@@ -15,7 +15,12 @@ This playbook defines a safe, repeatable process for AI-driven changes. It empha
 - Select the right Supabase client: browser client (public), server client (RSC), or admin client (service‑role; server only).
 
 ## 2) Database Changes (Migrations)
-- Add a new SQL migration under `supabase/migrations/` with a timestamped name that describes the change (e.g., `YYYYMMDDHHMMSS_add_entry_files.sql`).
+- Preferred via Yarn scripts:
+  - Create: `yarn db:new <name>` (example: `yarn db:new add_entry_files`)
+  - Apply: `yarn db:up`
+  - List: `yarn db:list`
+  - Reset (local dev): `yarn db:reset`
+- Or manually: add a new SQL migration under `supabase/migrations/` with a timestamped name that describes the change (e.g., `YYYYMMDDHHMMSS_add_entry_files.sql`).
 - Include in the same migration:
   - Table definition with explicit constraints and defaults
   - RLS `enable row level security`
@@ -93,7 +98,7 @@ create policy "Members can manage example in their household"
 - [ ] Sanity-checked RLS paths and typical queries
 
 ## 10) Rollout & Verification
-- Local: run `npm run db:migrate` (or `npx supabase migrations up --linked`), then `cd nextjs && yarn dev` and smoke test new flows.
+- Local: run `yarn db:migrate` (or `supabase migrations up --linked`), then `cd nextjs && yarn dev` and smoke test new flows.
 - If adding search or background jobs, include a backfill or init script and document it.
 
 ## 11) When to Ask for Human Input
@@ -103,4 +108,3 @@ create policy "Members can manage example in their household"
 
 ---
 Keep this document updated when the development process or conventions evolve. Link to this file from AGENTS.md (already done) so future AIs can act consistently.
-
