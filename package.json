@@ -1,0 +1,13 @@
+{
+    "name": "monorepo-scripts",
+    "private": true,
+    "scripts": {
+        "dev": "cd nextjs && yarn dev",
+        "build": "cd nextjs && yarn build",
+        "start": "cd nextjs && yarn start",
+        "db:migrate": "supabase migrations up --linked",
+        "db:reset": "supabase db reset --linked",
+        "db:new": "supabase migration new",
+        "tree": "tree -a -I 'node_modules|.next|.git|.temp|public|*.lock|repo_tree.txt' > repo_tree.txt"
+    }
+}

@@ -1,0 +1,109 @@
+.
+├── .github
+├── instructions.md
+├── LICENSE
+├── nextjs
+│   ├── .env.local
+│   ├── .env.template
+│   ├── .gitignore
+│   ├── components.json
+│   ├── eslint.config.mjs
+│   ├── next-env.d.ts
+│   ├── next.config.ts
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── postcss.config.mjs
+│   ├── README.md
+│   ├── src
+│   │   ├── app
+│   │   │   ├── api
+│   │   │   │   └── auth
+│   │   │   │       └── callback
+│   │   │   │           └── route.ts
+│   │   │   ├── app
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   ├── storage
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── table
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── user-settings
+│   │   │   │       └── page.tsx
+│   │   │   ├── auth
+│   │   │   │   ├── 2fa
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── forgot-password
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── login
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── register
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── reset-password
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── verify-email
+│   │   │   │       └── page.tsx
+│   │   │   ├── favicon.ico
+│   │   │   ├── globals.css
+│   │   │   ├── layout.tsx
+│   │   │   ├── legal
+│   │   │   │   ├── [document]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── page.tsx
+│   │   ├── components
+│   │   │   ├── AppLayout.tsx
+│   │   │   ├── AuthAwareButtons.tsx
+│   │   │   ├── Confetti.tsx
+│   │   │   ├── Cookies.tsx
+│   │   │   ├── HomePricing.tsx
+│   │   │   ├── LegalDocument.tsx
+│   │   │   ├── LegalDocuments.tsx
+│   │   │   ├── MFASetup.tsx
+│   │   │   ├── MFAVerification.tsx
+│   │   │   ├── SSOButtons.tsx
+│   │   │   └── ui
+│   │   │       ├── alert-dialog.tsx
+│   │   │       ├── alert.tsx
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       ├── input.tsx
+│   │   │       └── textarea.tsx
+│   │   ├── lib
+│   │   │   ├── context
+│   │   │   │   └── GlobalContext.tsx
+│   │   │   ├── pricing.ts
+│   │   │   ├── supabase
+│   │   │   │   ├── client.ts
+│   │   │   │   ├── middleware.ts
+│   │   │   │   ├── server.ts
+│   │   │   │   ├── serverAdminClient.ts
+│   │   │   │   └── unified.ts
+│   │   │   ├── types.ts
+│   │   │   └── utils.ts
+│   │   └── middleware.ts
+│   ├── tailwind.config.ts
+│   └── tsconfig.json
+├── package.json
+├── README.md
+└── supabase
+    ├── .gitignore
+    ├── config.toml
+    ├── migrations
+    │   ├── 20250107210416_MFA.sql
+    │   ├── 20250130165844_example_storage.sql
+    │   ├── 20250130181110_storage_policies.sql
+    │   ├── 20250130181641_todo_list.sql
+    │   ├── 20250921081621_create_households.sql
+    │   ├── 20250921081718_create_household_members.sql
+    │   └── 20250921081746_create_zones.sql
+    └── migrations_for_old
+        ├── 20250107210416_MFA.sql
+        ├── 20250130165844_example_storage.sql
+        ├── 20250130181110_storage_policies.sql
+        ├── 20250130181641_todo_list.sql
+        └── 20250525183944_auth_removal.sql
+
+29 directories, 78 files
