@@ -32,7 +32,7 @@ export default function NewHouseholdPage() {
         const payload = await res.json().catch(() => ({}));
         throw new Error(payload?.error || "Failed to create household");
       }
-      router.push("app/entries/new");
+      router.push("/app");
     } catch (e: any) {
       console.error(e);
       setError(e?.message || "Failed to create household");
