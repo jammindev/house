@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,11 +14,36 @@ export default function NewEntryPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [rawText, setRawText] = useState<string>("");
+  const [zones, setZones] = useState<{ id: string; name: string }[]>([]);
+  const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
 
   const currentHousehold = useMemo(
     () => households.find((h) => h.id === selectedHouseholdId) || null,
     [households, selectedHouseholdId]
   );
+
+  useEffect(() => {
+    (async () => {
+      setError("");
+      setZones([]);
+      setSelectedZoneIds([]);
+      if (!selectedHouseholdId) return;
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+        const { data, error: zErr } = await client
+          .from("zones" as any)
+          .select("id,name")
+          .eq("household_id", selectedHouseholdId)
+          .order("created_at" as any);
+        if (zErr) throw zErr;
+        setZones((data || []) as any);
+      } catch (e: any) {
+        console.error(e);
+        setError(e?.message || "Failed to load zones");
+      }
+    })();
+  }, [selectedHouseholdId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,8 +75,16 @@ export default function NewEntryPage() {
       const { data, error: insErr } = await client.from("entries" as any).insert(payload).select("id").single();
       if (insErr) throw insErr;
 
+      // Link zones if selected
+      if (data?.id && selectedZoneIds.length > 0) {
+        const rows = selectedZoneIds.map((zone_id) => ({ entry_id: data.id, zone_id }));
+        const { error: ezErr } = await client.from("entry_zones" as any).insert(rows);
+        if (ezErr) throw ezErr;
+      }
+
       setSuccess("Entry created successfully.");
       setRawText("");
+      setSelectedZoneIds([]);
       // Optionally navigate to entry detail once it exists
       // router.push(`/entries/${data?.id}`)
     } catch (e: any) {
@@ -93,6 +126,35 @@ export default function NewEntryPage() {
                 <div className="w-full border rounded-md h-10 px-3 flex items-center text-sm bg-gray-50">
                   {currentHousehold ? currentHousehold.name : 'No household selected'}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Zones</label>
+                {zones.length === 0 ? (
+                  <div className="text-sm text-gray-500">No zones in this household yet.</div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {zones.map((z) => {
+                      const checked = selectedZoneIds.includes(z.id);
+                      return (
+                        <label key={z.id} className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4"
+                            checked={checked}
+                            onChange={(e) => {
+                              setSelectedZoneIds((prev) => {
+                                if (e.target.checked) return [...prev, z.id];
+                                return prev.filter((id) => id !== z.id);
+                              });
+                            }}
+                          />
+                          <span className="text-sm">{z.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1">
