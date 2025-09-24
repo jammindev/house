@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {usePathname, useRouter} from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     Home,
     User,
@@ -10,6 +10,10 @@ import {
     ChevronDown,
     LogOut,
     Key, Files, LucideListTodo,
+    House,
+    Book,
+    Paperclip,
+    Notebook,
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
@@ -45,7 +49,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
 
     const navigation = [
-        { name: 'Homepage', href: '/app', icon: Home },
+        { name: 'Dashboard', href: '/app', icon: Home },
+        { name: 'Entries', href: '/app/entries', icon: Notebook },
         { name: 'Example Storage', href: '/app/storage', icon: Files },
         { name: 'Example Table', href: '/app/table', icon: LucideListTodo },
         { name: 'User Settings', href: '/app/user-settings', icon: User },
@@ -84,16 +89,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                                    isActive
-                                        ? 'bg-primary-50 text-primary-600'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
+                                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${isActive
+                                    ? 'bg-primary-50 text-primary-600'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
                             >
                                 <item.icon
-                                    className={`mr-3 h-5 w-5 ${
-                                        isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
-                                    }`}
+                                    className={`mr-3 h-5 w-5 ${isActive ? 'text-primary-500' : 'text-gray-400 group-hover:text-gray-500'
+                                        }`}
                                 />
                                 {item.name}
                             </Link>
@@ -109,7 +112,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         onClick={toggleSidebar}
                         className="lg:hidden text-gray-500 hover:text-gray-700"
                     >
-                        <Menu className="h-6 w-6"/>
+                        <Menu className="h-6 w-6" />
                     </button>
 
                     <div className="relative ml-auto">
@@ -123,7 +126,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                 </span>
                             </div>
                             <span>{user?.email || 'Loading...'}</span>
-                            <ChevronDown className="h-4 w-4"/>
+                            <ChevronDown className="h-4 w-4" />
                         </button>
 
                         {isUserDropdownOpen && (
@@ -142,7 +145,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         }}
                                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     >
-                                        <Key className="mr-3 h-4 w-4 text-gray-400"/>
+                                        <Key className="mr-3 h-4 w-4 text-gray-400" />
                                         Change Password
                                     </button>
                                     <button
@@ -152,7 +155,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         }}
                                         className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                                     >
-                                        <LogOut className="mr-3 h-4 w-4 text-red-400"/>
+                                        <LogOut className="mr-3 h-4 w-4 text-red-400" />
                                         Sign Out
                                     </button>
                                 </div>

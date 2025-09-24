@@ -46,6 +46,30 @@ export default function DashboardContent() {
                 <CardContent>
                     <div className="grid gap-4 md:grid-cols-2">
                         <Link
+                            href="/app/households"
+                            className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            <div className="p-2 bg-primary-50 rounded-full">
+                                <Settings className="h-4 w-4 text-primary-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-medium">Households</h3>
+                                <p className="text-sm text-gray-500">Manage your households</p>
+                            </div>
+                        </Link>
+                        <Link
+                            href="/app/entries"
+                            className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                            <div className="p-2 bg-primary-50 rounded-full">
+                                <Settings className="h-4 w-4 text-primary-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-medium">Entries</h3>
+                                <p className="text-sm text-gray-500">Manage your entries</p>
+                            </div>
+                        </Link>
+                        <Link
                             href="/app/user-settings"
                             className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                         >
