@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -14,6 +14,7 @@ import {
     Book,
     Paperclip,
     Notebook,
+    Plus,
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
@@ -21,11 +22,14 @@ import { createSPASassClient } from "@/lib/supabase/client";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [isUserDropdownOpen, setUserDropdownOpen] = useState(false);
+    const [isHouseholdDropdownOpen, setHouseholdDropdownOpen] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
 
-    const { user } = useGlobal();
+    const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
+
+    const currentHousehold = useMemo(() => households.find(h => h.id === selectedHouseholdId) || null, [households, selectedHouseholdId]);
 
     const handleLogout = async () => {
         try {
@@ -114,6 +118,54 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     >
                         <Menu className="h-6 w-6" />
                     </button>
+
+                    {/* Household selector */}
+                    {households && households.length > 0 && (
+                        <div className="relative ml-2 mr-auto">
+                            <button
+                                onClick={() => setHouseholdDropdownOpen(!isHouseholdDropdownOpen)}
+                                className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md hover:bg-gray-50"
+                                aria-haspopup="listbox"
+                                aria-expanded={isHouseholdDropdownOpen}
+                            >
+                                <House className="h-4 w-4 text-primary-600" />
+                                <span className="truncate max-w-[180px]">
+                                    {currentHousehold ? currentHousehold.name : 'Select household'}
+                                </span>
+                                <ChevronDown className="h-4 w-4 text-gray-500" />
+                            </button>
+
+                            {isHouseholdDropdownOpen && (
+                                <div className="absolute mt-2 w-64 bg-white rounded-md shadow-lg border z-50">
+                                    <div className="py-1 max-h-72 overflow-auto">
+                                        {households.map(h => (
+                                            <button
+                                                key={h.id}
+                                                onClick={() => {
+                                                    setSelectedHouseholdId(h.id);
+                                                    setHouseholdDropdownOpen(false);
+                                                }}
+                                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${selectedHouseholdId === h.id ? 'bg-primary-50 text-primary-700' : 'text-gray-700'}`}
+                                            >
+                                                {h.name}
+                                            </button>
+                                        ))}
+                                        <div className="my-1 border-t" />
+                                        <button
+                                            onClick={() => {
+                                                setHouseholdDropdownOpen(false);
+                                                router.push('/app/households/new');
+                                            }}
+                                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                                        >
+                                            <Plus className="h-4 w-4 text-gray-400" />
+                                            Create new household
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div className="relative ml-auto">
                         <button
