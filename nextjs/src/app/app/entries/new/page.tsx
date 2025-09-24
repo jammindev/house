@@ -1,68 +1,24 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-
-type Household = { id: string; name: string };
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 export default function NewEntryPage() {
-  const [loading, setLoading] = useState<boolean>(true);
+  const { loading, households, selectedHouseholdId } = useGlobal();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [rawText, setRawText] = useState<string>("");
-  const [households, setHouseholds] = useState<Household[]>([]);
-  const [selectedHouseholdId, setSelectedHouseholdId] = useState<string>("");
 
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const supa = await createSPASassClient();
-        const client = supa.getSupabaseClient();
-
-        // Ensure we have a user
-        const { data: userData, error: userErr } = await client.auth.getUser();
-        if (userErr || !userData.user) {
-          throw userErr || new Error("Not authenticated");
-        }
-
-        // Fetch household memberships for this user
-        const { data: memberships, error: mErr } = await client
-          .from("household_members" as any)
-          .select("household_id");
-        if (mErr) throw mErr;
-
-        const ids = (memberships || []).map((m: any) => m.household_id);
-        if (ids.length === 0) {
-          setHouseholds([]);
-          setSelectedHouseholdId("");
-          setError("You are not a member of any household.");
-          return;
-        }
-
-        // Fetch household names
-        const { data: hh, error: hErr } = await client
-          .from("households" as any)
-          .select("id,name")
-          .in("id", ids);
-        if (hErr) throw hErr;
-
-        const list: Household[] = (hh || []).map((r: any) => ({ id: r.id, name: r.name }));
-        setHouseholds(list);
-        setSelectedHouseholdId(list[0]?.id || "");
-      } catch (e: any) {
-        console.error(e);
-        setError(e?.message || "Failed to load households");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+  const currentHousehold = useMemo(
+    () => households.find((h) => h.id === selectedHouseholdId) || null,
+    [households, selectedHouseholdId]
+  );
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,7 +29,7 @@ export default function NewEntryPage() {
       return;
     }
     if (!selectedHouseholdId) {
-      setError("Select a household");
+      setError("No household selected. Go to dashboard to select or create one.");
       return;
     }
 
@@ -123,7 +79,7 @@ export default function NewEntryPage() {
                   {households.length === 0 && (
                     <span>
                       {" "}
-                      <Link href="/households/new" className="underline">Create a household</Link>.
+                      <Link href="/app/households/new" className="underline">Create a household</Link>.
                     </span>
                   )}
                 </div>
@@ -134,17 +90,9 @@ export default function NewEntryPage() {
 
               <div className="space-y-1">
                 <label className="text-sm font-medium">Household</label>
-                <select
-                  className="w-full border rounded-md h-10 px-3 text-sm"
-                  value={selectedHouseholdId}
-                  onChange={(e) => setSelectedHouseholdId(e.target.value)}
-                  disabled={households.length === 0}
-                  required
-                >
-                  {households.map((h) => (
-                    <option key={h.id} value={h.id}>{h.name}</option>
-                  ))}
-                </select>
+                <div className="w-full border rounded-md h-10 px-3 flex items-center text-sm bg-gray-50">
+                  {currentHousehold ? currentHousehold.name : 'No household selected'}
+                </div>
               </div>
 
               <div className="space-y-1">
@@ -159,7 +107,7 @@ export default function NewEntryPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button type="submit" disabled={submitting || households.length === 0} className="bg-primary-600 text-white hover:bg-primary-700">
+                <Button type="submit" disabled={submitting || households.length === 0 || !selectedHouseholdId} className="bg-primary-600 text-white hover:bg-primary-700">
                   {submitting ? "Creating…" : "Create Entry"}
                 </Button>
                 <Link href="/app/entries" className="text-sm text-gray-600 hover:underline">Cancel</Link>
