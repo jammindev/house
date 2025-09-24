@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { Input } from "@/components/ui/input";
 
 export default function NewEntryPage() {
   const { loading, households, selectedHouseholdId } = useGlobal();
@@ -16,6 +17,8 @@ export default function NewEntryPage() {
   const [rawText, setRawText] = useState<string>("");
   const [zones, setZones] = useState<{ id: string; name: string }[]>([]);
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
+  const [newZoneName, setNewZoneName] = useState<string>("");
+  const [creatingZone, setCreatingZone] = useState<boolean>(false);
 
   const currentHousehold = useMemo(
     () => households.find((h) => h.id === selectedHouseholdId) || null,
@@ -44,6 +47,37 @@ export default function NewEntryPage() {
       }
     })();
   }, [selectedHouseholdId]);
+
+  const handleCreateZone = async () => {
+    setError("");
+    const name = newZoneName.trim();
+    if (!selectedHouseholdId) {
+      setError("No household selected. Go to dashboard to select or create one.");
+      return;
+    }
+    if (!name) return;
+    try {
+      setCreatingZone(true);
+      const supa = await createSPASassClient();
+      const client = supa.getSupabaseClient();
+      const { data, error: insErr } = await client
+        .from("zones" as any)
+        .insert({ household_id: selectedHouseholdId, name })
+        .select("id,name")
+        .single();
+      if (insErr) throw insErr;
+      if (data) {
+        setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name }]);
+        setSelectedZoneIds((prev) => [...prev, (data as any).id]);
+        setNewZoneName("");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e?.message || "Failed to create zone");
+    } finally {
+      setCreatingZone(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -131,7 +165,19 @@ export default function NewEntryPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Zones</label>
                 {zones.length === 0 ? (
-                  <div className="text-sm text-gray-500">No zones in this household yet.</div>
+                  <div className="space-y-3">
+                    <div className="text-sm text-gray-500">No zones in this household yet.</div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={newZoneName}
+                        onChange={(e) => setNewZoneName(e.target.value)}
+                        placeholder="e.g., Kitchen, Garage, Garden"
+                      />
+                      <Button type="button" onClick={handleCreateZone} disabled={creatingZone || !newZoneName.trim()} className="bg-primary-600 text-white hover:bg-primary-700">
+                        {creatingZone ? "Adding…" : "Add Zone"}
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {zones.map((z) => {
