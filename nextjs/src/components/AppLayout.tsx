@@ -15,6 +15,7 @@ import {
     Paperclip,
     Notebook,
     Plus,
+    MapPin,
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
@@ -55,6 +56,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const navigation = [
         { name: 'Dashboard', href: '/app', icon: Home },
         { name: 'Entries', href: '/app/entries', icon: Notebook },
+        { name: 'Zones', href: '/app/zones', icon: MapPin },
         { name: 'Example Storage', href: '/app/storage', icon: Files },
         { name: 'Example Table', href: '/app/table', icon: LucideListTodo },
         { name: 'User Settings', href: '/app/user-settings', icon: User },
