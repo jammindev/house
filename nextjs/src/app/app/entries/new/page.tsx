@@ -19,6 +19,7 @@ export default function NewEntryPage() {
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
   const [newZoneName, setNewZoneName] = useState<string>("");
   const [creatingZone, setCreatingZone] = useState<boolean>(false);
+  const [showZoneInput, setShowZoneInput] = useState<boolean>(false);
 
   const currentHousehold = useMemo(
     () => households.find((h) => h.id === selectedHouseholdId) || null,
@@ -70,6 +71,7 @@ export default function NewEntryPage() {
         setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name }]);
         setSelectedZoneIds((prev) => [...prev, (data as any).id]);
         setNewZoneName("");
+        setShowZoneInput(false);
       }
     } catch (e: any) {
       console.error(e);
@@ -164,20 +166,43 @@ export default function NewEntryPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium">Zones</label>
-                {zones.length === 0 ? (
-                  <div className="space-y-3">
-                    <div className="text-sm text-gray-500">No zones in this household yet.</div>
-                    <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {showZoneInput ? (
+                    <>
                       <Input
                         value={newZoneName}
                         onChange={(e) => setNewZoneName(e.target.value)}
                         placeholder="e.g., Kitchen, Garage, Garden"
                       />
-                      <Button type="button" onClick={handleCreateZone} disabled={creatingZone || !newZoneName.trim()} className="bg-primary-600 text-white hover:bg-primary-700">
-                        {creatingZone ? "Adding…" : "Add Zone"}
+                      <Button
+                        type="button"
+                        onClick={handleCreateZone}
+                        disabled={creatingZone || !newZoneName.trim()}
+                        className="bg-primary-600 text-white hover:bg-primary-700"
+                      >
+                        {creatingZone ? "Adding…" : "Save"}
                       </Button>
-                    </div>
-                  </div>
+                      <Button
+                        type="button"
+                        onClick={() => { setShowZoneInput(false); setNewZoneName(""); }}
+                        className="border bg-white text-gray-700 hover:bg-gray-50"
+                        disabled={creatingZone}
+                      >
+                        Cancel
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      type="button"
+                      onClick={() => setShowZoneInput(true)}
+                      className="bg-primary-600 text-white hover:bg-primary-700"
+                    >
+                      Create new zone
+                    </Button>
+                  )}
+                </div>
+                {zones.length === 0 ? (
+                  <div className="text-sm text-gray-500">No zones in this household yet.</div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {zones.map((z) => {
