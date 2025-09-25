@@ -142,7 +142,7 @@ export default function EntryDetailPage() {
                 return (
                   <div key={f.id} className="border rounded-md p-2">
                     {isImg && f.url ? (
-                      <img src={f.url} alt={f.storage_path} className="w-full h-64 object-contain bg-white rounded" />
+                      <img loading="lazy" src={f.url} alt={f.storage_path} className="w-full h-64 object-contain bg-white rounded" />
                     ) : isPdf && f.url ? (
                       <iframe src={`${f.url}#toolbar=1`} className="w-full h-64 bg-white rounded" title="PDF"></iframe>
                     ) : (
@@ -163,4 +163,3 @@ export default function EntryDetailPage() {
     </div>
   );
 }
-
