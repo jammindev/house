@@ -1,226 +1,116 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Globe, Shield, Users, Key, Database, Clock } from 'lucide-react';
+import { ArrowRight, NotepadText, FolderOpen, Search, Layers, Shield } from 'lucide-react';
 import AuthAwareButtons from '@/components/AuthAwareButtons';
-import HomePricing from "@/components/HomePricing";
 
 export default function Home() {
-  const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
+  const productName = process.env.NEXT_PUBLIC_PRODUCTNAME || 'House';
 
   const features = [
     {
-      icon: Shield,
-      title: 'Robust Authentication',
-      description: 'Secure login with email/password, Multi-Factor Authentication, and SSO providers',
-      color: 'text-green-600'
+      icon: NotepadText,
+      title: 'Journal Entries',
+      description: 'Capture notes, receipts, maintenance logs, or any household detail with timestamps.',
+      color: 'text-primary-600'
     },
     {
-      icon: Database,
-      title: 'File Management',
-      description: 'Built-in file storage with secure sharing, downloads, and granular permissions',
-      color: 'text-orange-600'
-    },
-    {
-      icon: Users,
-      title: 'User Settings',
-      description: 'Complete user management with password updates, MFA setup, and profile controls',
-      color: 'text-red-600'
-    },
-    {
-      icon: Clock,
-      title: 'Task Management',
-      description: 'Built-in todo system with real-time updates and priority management',
-      color: 'text-teal-600'
-    },
-    {
-      icon: Globe,
-      title: 'Legal Documents',
-      description: 'Pre-configured privacy policy, terms of service, and refund policy pages',
-      color: 'text-purple-600'
-    },
-    {
-      icon: Key,
-      title: 'Cookie Consent',
-      description: 'GDPR-compliant cookie consent system with customizable preferences',
+      icon: Layers,
+      title: 'Zones & Organization',
+      description: 'Tag entries to rooms or areas (e.g., Kitchen, Garage) with parent/child zones.',
       color: 'text-blue-600'
+    },
+    {
+      icon: FolderOpen,
+      title: 'Attachments',
+      description: 'Upload files and link them to entries; view images/PDFs inline.',
+      color: 'text-amber-600'
+    },
+    {
+      icon: Search,
+      title: 'OCR & Search (coming)',
+      description: 'Extract text from images and search across your household’s knowledge base.',
+      color: 'text-emerald-600'
+    },
+    {
+      icon: Shield,
+      title: 'Multi‑tenant & Private',
+      description: 'Row‑Level Security keeps data scoped to your household members.',
+      color: 'text-purple-600'
     }
   ];
 
-  const stats = [
-    { label: 'Active Users', value: '10K+' },
-    { label: 'Organizations', value: '2K+' },
-    { label: 'Countries', value: '50+' },
-    { label: 'Uptime', value: '99.9%' }
-  ];
-
   return (
-      <div className="min-h-screen">
-        <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16 items-center">
-              <div className="flex-shrink-0">
+    <div className="min-h-screen">
+      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16 items-center">
+            <div className="flex-shrink-0">
               <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-500 bg-clip-text text-transparent">
                 {productName}
               </span>
-              </div>
-              <div className="hidden md:flex items-center space-x-8">
-                <Link href="#features" className="text-gray-600 hover:text-gray-900">
-                  Features
-                </Link>
-
-                <Link href="#pricing" className="text-gray-600 hover:text-gray-900">
-                  Pricing
-                </Link>
-                <Link
-                    href="https://github.com/Razikus/supabase-nextjs-template"
-                    className="text-gray-600 hover:text-gray-900"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                  Documentation
-                </Link>
-
-                <Link
-                    href="https://github.com/Razikus/supabase-nextjs-template"
-                    className="bg-primary-800 text-white px-4 py-2 rounded-lg hover:bg-primary-900 transition-colors"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                  Grab This Template
-                </Link>
-
-                <AuthAwareButtons variant="nav" />
-              </div>
+            </div>
+            <div className="hidden md:flex items-center space-x-6">
+              <Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link>
+              <Link href="/app" className="text-gray-600 hover:text-gray-900">Open App</Link>
+              <AuthAwareButtons variant="nav" />
             </div>
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        <section className="relative pt-32 pb-24 overflow-hidden">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
-                Bootstrap Your SaaS
-                <span className="block text-primary-600">In 5 minutes</span>
-              </h1>
-              <p className="mt-6 text-xl text-gray-600 max-w-3xl mx-auto">
-                Launch your SaaS product in days, not months. Complete with authentication and enterprise-grade security built right in.
-              </p>
-              <div className="mt-10 flex gap-4 justify-center">
-
-                <AuthAwareButtons />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 bg-gradient-to-b from-white to-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {stats.map((stat, index) => (
-                  <div key={index} className="text-center">
-                    <div className="text-4xl font-bold text-primary-600">{stat.value}</div>
-                    <div className="mt-2 text-sm text-gray-600">{stat.label}</div>
-                  </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Features Section */}
-        <section id="features" className="py-24 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold">Everything You Need</h2>
-              <p className="mt-4 text-xl text-gray-600">
-                Built with modern technologies for reliability and speed
-              </p>
-            </div>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {features.map((feature, index) => (
-                  <div
-                      key={index}
-                      className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <feature.icon className={`h-8 w-8 ${feature.color}`} />
-                    <h3 className="mt-4 text-xl font-semibold">{feature.title}</h3>
-                    <p className="mt-2 text-gray-600">{feature.description}</p>
-                  </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <HomePricing />
-
-        <section className="py-24 bg-primary-600">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold text-white">
-              Ready to Transform Your Idea into Reality?
-            </h2>
-            <p className="mt-4 text-xl text-primary-100">
-              Join thousands of developers building their SaaS with {productName}
-            </p>
+      <section className="relative pt-32 pb-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            Your household’s second brain
+            <span className="block text-primary-600">Entries, zones, and attachments</span>
+          </h1>
+          <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            House centralizes the little things: appliance manuals, paint codes, service visits, and receipts. Attach files, tag by room, and find it later.
+          </p>
+          <div className="mt-10 flex gap-3 justify-center">
             <Link
-                href="/auth/register"
-                className="mt-8 inline-flex items-center px-6 py-3 rounded-lg bg-white text-primary-600 font-medium hover:bg-primary-50 transition-colors"
+              href="/app/entries/new"
+              className="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary-700 text-white hover:bg-primary-800 transition-colors"
             >
-              Get Started Now
+              Create a new entry
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
+            <Link
+              href="/app"
+              className="inline-flex items-center px-5 py-2.5 rounded-lg border text-gray-800 hover:bg-gray-50"
+            >
+              Open dashboard
+            </Link>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <footer className="bg-gray-50 border-t border-gray-200">
-          <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">Product</h4>
-                <ul className="mt-4 space-y-2">
-                  <li>
-                    <Link href="#features" className="text-gray-600 hover:text-gray-900">
-                      Features
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#pricing" className="text-gray-600 hover:text-gray-900">
-                      Pricing
-                    </Link>
-                  </li>
-                </ul>
+      <section id="features" className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => (
+              <div key={i} className="bg-white p-6 rounded-xl border shadow-sm">
+                <f.icon className={`h-7 w-7 ${f.color}`} />
+                <h3 className="mt-3 text-lg font-semibold">{f.title}</h3>
+                <p className="mt-1.5 text-sm text-gray-600">{f.description}</p>
               </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">Resources</h4>
-                <ul className="mt-4 space-y-2">
-                  <li>
-                    <Link href="https://github.com/Razikus/supabase-nextjs-template" className="text-gray-600 hover:text-gray-900">
-                      Documentation
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900">Legal</h4>
-                <ul className="mt-4 space-y-2">
-                  <li>
-                    <Link href="/legal/privacy" className="text-gray-600 hover:text-gray-900">
-                      Privacy
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/legal/terms" className="text-gray-600 hover:text-gray-900">
-                      Terms
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <p className="text-center text-gray-600">
-                © {new Date().getFullYear()} {productName}. All rights reserved.
-              </p>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-gray-50 border-t border-gray-200">
+        <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-gray-600 text-sm">© {new Date().getFullYear()} {productName}. All rights reserved.</p>
+            <div className="flex items-center gap-4 text-sm">
+              <Link href="/legal/privacy" className="text-gray-600 hover:text-gray-900">Privacy</Link>
+              <Link href="/legal/terms" className="text-gray-600 hover:text-gray-900">Terms</Link>
+              <Link href="/app" className="text-gray-600 hover:text-gray-900">Open App</Link>
             </div>
           </div>
-        </footer>
-      </div>
+        </div>
+      </footer>
+    </div>
   );
 }
