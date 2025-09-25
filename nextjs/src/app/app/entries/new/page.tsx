@@ -110,35 +110,63 @@ export default function NewEntryPage() {
         created_by: userId,
       };
 
-      const { data, error: insErr } = await client.from("entries" as any).insert(payload).select("id").single();
+      const { data, error: insErr } = await client
+        .from("entries" as any)
+        .insert(payload)
+        .select("id")
+        .single();
       if (insErr) throw insErr;
 
-      // Link zones if selected
-      if (data?.id && selectedZoneIds.length > 0) {
-        const rows = selectedZoneIds.map((zone_id) => ({ entry_id: data.id, zone_id }));
-        const { error: ezErr } = await client.from("entry_zones" as any).insert(rows);
-        if (ezErr) throw ezErr;
-      }
+      const entryId = data?.id as string;
+      const uploadedPaths: string[] = [];
 
-      // Upload files and link in entry_files
-      if (data?.id && files.length > 0) {
-        setUploading(true);
-        for (const f of files) {
-          const safeName = f.name.replace(/[^0-9a-zA-Z!\-_. *'()]/g, "_");
-          const path = `${userId}/${data.id}/${Date.now()}_${safeName}`;
-          const { error: upErr } = await client.storage.from('files').upload(path, f, { upsert: false });
-          if (upErr) throw upErr;
-          const { error: linkErr } = await client
-            .from('entry_files' as any)
-            .insert({
-              entry_id: data.id,
-              storage_path: path,
-              mime_type: f.type,
-              metadata: { size: f.size, name: f.name } as any,
-            });
-          if (linkErr) throw linkErr;
+      try {
+        // Upload files and link in entry_files (all-or-nothing)
+        if (entryId && files.length > 0) {
+          setUploading(true);
+          for (const f of files) {
+            const safeName = f.name.replace(/[^0-9a-zA-Z!\-_. *'()]/g, "_");
+            const path = `${userId}/${entryId}/${Date.now()}_${safeName}`;
+            const { error: upErr } = await client.storage.from('files').upload(path, f, { upsert: false });
+            if (upErr) throw upErr;
+            uploadedPaths.push(path);
+            const { error: linkErr } = await client
+              .from('entry_files' as any)
+              .insert({
+                entry_id: entryId,
+                storage_path: path,
+                mime_type: f.type,
+                metadata: { size: f.size, name: f.name } as any,
+                created_by: userId,
+              });
+            if (linkErr) throw linkErr;
+          }
+          setFiles([]);
         }
-        setFiles([]);
+
+        // Link zones after successful file handling
+        if (entryId && selectedZoneIds.length > 0) {
+          const rows = selectedZoneIds.map((zone_id) => ({ entry_id: entryId, zone_id }));
+          const { error: ezErr } = await client.from("entry_zones" as any).insert(rows);
+          if (ezErr) throw ezErr;
+        }
+      } catch (innerErr) {
+        // Rollback: delete uploaded files and the entry row
+        try {
+          if (uploadedPaths.length > 0) {
+            await client.storage.from('files').remove(uploadedPaths);
+          }
+        } catch (rmErr) {
+          console.warn('Cleanup storage failed', rmErr);
+        }
+        try {
+          if (entryId) {
+            await client.from('entries' as any).delete().eq('id', entryId);
+          }
+        } catch (delErr) {
+          console.warn('Cleanup entry failed', delErr);
+        }
+        throw innerErr;
       }
 
       setSuccess("Entry created successfully.");
