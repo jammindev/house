@@ -130,7 +130,13 @@ export default function NewEntryPage() {
           if (upErr) throw upErr;
           const { error: linkErr } = await client
             .from('entry_files' as any)
-            .insert({ entry_id: data.id, storage_path: path, mime_type: f.type, metadata: { size: f.size, name: f.name } as any });
+            .insert({
+              entry_id: data.id,
+              storage_path: path,
+              mime_type: f.type,
+              metadata: { size: f.size, name: f.name } as any,
+              created_by: userId,
+            });
           if (linkErr) throw linkErr;
         }
         setFiles([]);
@@ -197,7 +203,7 @@ export default function NewEntryPage() {
                 {files.length > 0 && (
                   <ul className="text-xs text-gray-600 list-disc ml-5">
                     {files.map((f, idx) => (
-                      <li key={idx}>{f.name} ({Math.round(f.size/1024)} KB)</li>
+                      <li key={idx}>{f.name} ({Math.round(f.size / 1024)} KB)</li>
                     ))}
                   </ul>
                 )}
