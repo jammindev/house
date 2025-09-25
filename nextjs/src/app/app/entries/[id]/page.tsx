@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
-type Entry = { id: string; raw_text: string; created_at: string; household_id: string };
+type Entry = { id: string; raw_text: string; created_at: string; household_id: string; created_by?: string };
 type EntryFile = { id: string; storage_path: string; mime_type: string | null; created_by?: string };
 type Zone = { id: string; name: string };
 
@@ -25,6 +25,7 @@ export default function EntryDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [confirmDeleteEntryOpen, setConfirmDeleteEntryOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [deletingEntry, setDeletingEntry] = useState(false);
   const [confirmDeleteFileOpen, setConfirmDeleteFileOpen] = useState(false);
   const [pendingFileId, setPendingFileId] = useState<string | null>(null);
@@ -41,7 +42,7 @@ export default function EntryDetailPage() {
         // Load entry
         const { data: e, error: eErr } = await client
           .from('entries' as any)
-          .select('id, raw_text, created_at, household_id')
+          .select('id, raw_text, created_at, household_id, created_by')
           .eq('id', id)
           .single();
         if (eErr) throw eErr;
@@ -116,7 +117,13 @@ export default function EntryDetailPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Entry Detail</h1>
         <div className="flex items-center gap-2">
-          <Button variant="destructive" onClick={() => setConfirmDeleteEntryOpen(true)}>Delete Entry</Button>
+          <Button variant="destructive" onClick={() => {
+            if (entry?.created_by && user?.id && entry.created_by === user.id) {
+              setConfirmDeleteEntryOpen(true);
+            } else {
+              setInfoOpen(true);
+            }
+          }}>Delete Entry</Button>
           <Link href="/app/entries"><Button variant="secondary">Back to list</Button></Link>
         </div>
       </div>
@@ -179,7 +186,7 @@ export default function EntryDetailPage() {
         open={confirmDeleteEntryOpen}
         onOpenChange={setConfirmDeleteEntryOpen}
         title="Delete this entry?"
-        description="This will permanently delete the entry. Attachments not uploaded by you may remain due to access restrictions."
+        description="This will permanently delete the entry and its attachments."
         confirmText="Delete"
         cancelText="Cancel"
         destructive
@@ -189,11 +196,9 @@ export default function EntryDetailPage() {
             setDeletingEntry(true);
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
-            // Try removing storage files that belong to the current user
-            const myPaths = files.filter((f) => f.created_by === user?.id).map((f) => f.storage_path);
-            if (myPaths.length > 0) {
-              await client.storage.from('files').remove(myPaths);
-            }
+            // Remove storage files (owned by current user by design)
+            const paths = files.map((f) => f.storage_path);
+            if (paths.length > 0) await client.storage.from('files').remove(paths);
             await client.from('entries' as any).delete().eq('id', id);
             setConfirmDeleteEntryOpen(false);
             window.location.href = '/app/entries';
@@ -203,6 +208,16 @@ export default function EntryDetailPage() {
             setDeletingEntry(false);
           }
         }}
+      />
+
+      <ConfirmDialog
+        open={infoOpen}
+        onOpenChange={setInfoOpen}
+        title="Cannot delete this entry"
+        description="You cannot delete this entry because you did not create it."
+        confirmText="OK"
+        hideCancel
+        onConfirm={() => setInfoOpen(false)}
       />
 
       <ConfirmDialog

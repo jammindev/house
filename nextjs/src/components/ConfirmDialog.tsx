@@ -22,6 +22,7 @@ type ConfirmDialogProps = {
   onConfirm: () => void | Promise<void>;
   loading?: boolean;
   destructive?: boolean;
+  hideCancel?: boolean;
 };
 
 export function ConfirmDialog({
@@ -34,6 +35,7 @@ export function ConfirmDialog({
   onConfirm,
   loading = false,
   destructive = false,
+  hideCancel = false,
 }: ConfirmDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -45,7 +47,9 @@ export function ConfirmDialog({
           ) : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
+          {!hideCancel && (
+            <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
+          )}
           <AlertDialogAction
             className={destructive ? "bg-red-600 text-white hover:bg-red-700" : undefined}
             onClick={async () => {
@@ -62,4 +66,3 @@ export function ConfirmDialog({
 }
 
 export default ConfirmDialog;
-

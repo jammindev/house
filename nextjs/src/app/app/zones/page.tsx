@@ -9,10 +9,10 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
-type Zone = { id: string; name: string };
+type Zone = { id: string; name: string; created_by?: string; parent_id?: string | null };
 
 export default function ZonesPage() {
-  const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
+  const { loading: globalLoading, selectedHouseholdId, households, user } = useGlobal();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -28,6 +28,7 @@ export default function ZonesPage() {
   const [savingEdit, setSavingEdit] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
 
   const currentHousehold = useMemo(
@@ -46,7 +47,7 @@ export default function ZonesPage() {
         const client = supa.getSupabaseClient();
         const { data, error: zErr } = await client
           .from("zones" as any)
-          .select("id,name,parent_id")
+          .select("id,name,parent_id,created_by")
           .eq("household_id", selectedHouseholdId)
           .order("created_at" as any);
         if (zErr) throw zErr;
@@ -259,7 +260,16 @@ export default function ZonesPage() {
                     ) : (
                       <>
                         <Button size="sm" variant="secondary" onClick={() => startEdit(z)}>Rename</Button>
-                        <Button size="sm" variant="destructive" onClick={() => { setPendingDelete(z); setConfirmOpen(true); }} disabled={deletingId === z.id}>
+                        <Button size="sm" variant="destructive" onClick={() => {
+                          // Only allow delete if creator is current user
+                          if (z.created_by && user?.id && z.created_by === user.id) {
+                            setPendingDelete(z); setConfirmOpen(true);
+                          } else {
+                            // Show info dialog
+                            setPendingDelete(z);
+                            setInfoOpen(true);
+                          }
+                        }} disabled={deletingId === z.id}>
                           {deletingId === z.id ? "Deleting…" : "Delete"}
                         </Button>
                       </>
@@ -271,6 +281,7 @@ export default function ZonesPage() {
           )}
         </CardContent>
       </Card>
+      {/* Confirm delete */}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={(o) => { setConfirmOpen(o); if (!o) setPendingDelete(null); }}
@@ -286,6 +297,16 @@ export default function ZonesPage() {
           setConfirmOpen(false);
           setPendingDelete(null);
         }}
+      />
+      {/* Info when cannot delete */}
+      <ConfirmDialog
+        open={infoOpen}
+        onOpenChange={(o) => { setInfoOpen(o); if (!o) setPendingDelete(null); }}
+        title="Cannot delete this zone"
+        description="You cannot delete this zone because you did not create it."
+        confirmText="OK"
+        hideCancel
+        onConfirm={() => setInfoOpen(false)}
       />
     </div>
   );
