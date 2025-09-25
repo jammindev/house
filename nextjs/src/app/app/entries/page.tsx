@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Paperclip } from "lucide-react";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 
@@ -16,6 +17,7 @@ export default function EntriesHome() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [filesByEntry, setFilesByEntry] = useState<Record<string, EntryFile[]>>({});
   const [previews, setPreviews] = useState<Record<string, Preview>>({});
+  const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
@@ -58,22 +60,11 @@ export default function EntriesHome() {
             grouped[f.entry_id] = arr;
           });
           setFilesByEntry(grouped);
+          const counts: Record<string, number> = {};
+          Object.keys(grouped).forEach(k => counts[k] = grouped[k].length);
+          setFileCounts(counts);
 
-          // Build previews for image files
-          const previewMap: Record<string, Preview> = {};
-          for (const eid of Object.keys(grouped)) {
-            const files = grouped[eid];
-            const firstImage = files.find(ff => (ff.mime_type || '').startsWith('image/'));
-            const firstPdf = files.find(ff => (ff.mime_type || '').toLowerCase() === 'application/pdf');
-            if (firstImage) {
-              const { data: signed } = await client.storage.from('files').createSignedUrl(firstImage.storage_path, 60);
-              if (signed?.signedUrl) previewMap[eid] = { url: signed.signedUrl, kind: 'image' };
-            } else if (firstPdf) {
-              const { data: signed } = await client.storage.from('files').createSignedUrl(firstPdf.storage_path, 60);
-              if (signed?.signedUrl) previewMap[eid] = { url: signed.signedUrl, kind: 'pdf' };
-            }
-          }
-          setPreviews(previewMap);
+          // No inline previews on list per request
         }
       } catch (e: any) {
         console.error(e);
@@ -127,35 +118,22 @@ export default function EntriesHome() {
         <ul className="space-y-3">
           {entries.map((e) => {
             const files = filesByEntry[e.id] || [];
-            const preview = previews[e.id];
             const firstFile = files[0];
             return (
               <li key={e.id} className="border rounded-lg p-4 bg-white flex gap-4">
-                {preview ? (
-                  preview.kind === 'image' ? (
-                    <img src={preview.url} alt="preview" className="w-24 h-24 object-cover rounded-md border" />
-                  ) : (
-                    <iframe src={`${preview.url}#toolbar=0&navpanes=0&scrollbar=0`} title="PDF preview" className="w-24 h-24 rounded-md border bg-white" />
-                  )
-                ) : firstFile ? (
-                  <div className="w-24 h-24 flex items-center justify-center rounded-md border text-xs text-gray-600">
-                    {firstFile.mime_type || 'file'}
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 flex items-center justify-center rounded-md border text-xs text-gray-400">
-                    No file
-                  </div>
-                )}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
-                  <div className="mt-1 text-gray-900 line-clamp-3 whitespace-pre-wrap">
-                    {e.raw_text}
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
+                    {fileCounts[e.id] ? (
+                      <div className="flex items-center gap-1 text-gray-600" title="Attachments">
+                        <Paperclip className="w-4 h-4" />
+                        <span className="text-xs">{fileCounts[e.id]}</span>
+                      </div>
+                    ) : null}
                   </div>
-                  {files.length > 0 && (
-                    <div className="mt-2 text-xs text-gray-600">
-                      {files.length} file{files.length > 1 ? 's' : ''}
-                    </div>
-                  )}
+                  <Link href={`/app/entries/${e.id}`} className="block mt-1 text-gray-900 hover:underline line-clamp-3 whitespace-pre-wrap">
+                    {e.raw_text}
+                  </Link>
                 </div>
               </li>
             );
