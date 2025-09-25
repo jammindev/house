@@ -20,6 +20,8 @@ export default function NewEntryPage() {
   const [newZoneName, setNewZoneName] = useState<string>("");
   const [creatingZone, setCreatingZone] = useState<boolean>(false);
   const [showZoneInput, setShowZoneInput] = useState<boolean>(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState<boolean>(false);
 
   const currentHousehold = useMemo(
     () => households.find((h) => h.id === selectedHouseholdId) || null,
@@ -118,6 +120,22 @@ export default function NewEntryPage() {
         if (ezErr) throw ezErr;
       }
 
+      // Upload files and link in entry_files
+      if (data?.id && files.length > 0) {
+        setUploading(true);
+        for (const f of files) {
+          const safeName = f.name.replace(/[^0-9a-zA-Z!\-_. *'()]/g, "_");
+          const path = `${userId}/${data.id}/${Date.now()}_${safeName}`;
+          const { error: upErr } = await client.storage.from('files').upload(path, f, { upsert: false });
+          if (upErr) throw upErr;
+          const { error: linkErr } = await client
+            .from('entry_files' as any)
+            .insert({ entry_id: data.id, storage_path: path, mime_type: f.type, metadata: { size: f.size, name: f.name } as any });
+          if (linkErr) throw linkErr;
+        }
+        setFiles([]);
+      }
+
       setSuccess("Entry created successfully.");
       setRawText("");
       setSelectedZoneIds([]);
@@ -128,6 +146,7 @@ export default function NewEntryPage() {
       setError(e?.message || "Failed to create entry");
     } finally {
       setSubmitting(false);
+      setUploading(false);
     }
   };
 
@@ -162,6 +181,26 @@ export default function NewEntryPage() {
                 <div className="w-full border rounded-md h-10 px-3 flex items-center text-sm bg-gray-50">
                   {currentHousehold ? currentHousehold.name : 'No household selected'}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Documents</label>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    const list = e.target.files ? Array.from(e.target.files) : [];
+                    setFiles(list);
+                  }}
+                  className="block w-full text-sm"
+                />
+                {files.length > 0 && (
+                  <ul className="text-xs text-gray-600 list-disc ml-5">
+                    {files.map((f, idx) => (
+                      <li key={idx}>{f.name} ({Math.round(f.size/1024)} KB)</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -240,8 +279,8 @@ export default function NewEntryPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button type="submit" disabled={submitting || households.length === 0 || !selectedHouseholdId} className="bg-primary-600 text-white hover:bg-primary-700">
-                  {submitting ? "Creating…" : "Create Entry"}
+                <Button type="submit" disabled={submitting || uploading || households.length === 0 || !selectedHouseholdId}>
+                  {submitting || uploading ? "Saving…" : "Create Entry"}
                 </Button>
                 <Link href="/app/entries" className="text-sm text-gray-600 hover:underline">Cancel</Link>
                 {households.length === 0 && (
