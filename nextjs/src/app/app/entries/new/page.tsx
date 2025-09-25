@@ -18,6 +18,7 @@ export default function NewEntryPage() {
   const [zones, setZones] = useState<{ id: string; name: string }[]>([]);
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
   const [newZoneName, setNewZoneName] = useState<string>("");
+  const [newZoneParentId, setNewZoneParentId] = useState<string | "">("");
   const [creatingZone, setCreatingZone] = useState<boolean>(false);
   const [showZoneInput, setShowZoneInput] = useState<boolean>(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -65,7 +66,7 @@ export default function NewEntryPage() {
       const client = supa.getSupabaseClient();
       const { data, error: insErr } = await client
         .from("zones" as any)
-        .insert({ household_id: selectedHouseholdId, name })
+        .insert({ household_id: selectedHouseholdId, name, parent_id: newZoneParentId || null })
         .select("id,name")
         .single();
       if (insErr) throw insErr;
@@ -73,6 +74,7 @@ export default function NewEntryPage() {
         setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name }]);
         setSelectedZoneIds((prev) => [...prev, (data as any).id]);
         setNewZoneName("");
+        setNewZoneParentId("");
         setShowZoneInput(false);
       }
     } catch (e: any) {
@@ -246,6 +248,16 @@ export default function NewEntryPage() {
                         onChange={(e) => setNewZoneName(e.target.value)}
                         placeholder="e.g., Kitchen, Garage, Garden"
                       />
+                      <select
+                        value={newZoneParentId}
+                        onChange={(e) => setNewZoneParentId(e.target.value)}
+                        className="h-10 px-3 border rounded-md text-sm"
+                      >
+                        <option value="">No parent</option>
+                        {zones.map((z) => (
+                          <option key={z.id} value={z.id}>{z.name}</option>
+                        ))}
+                      </select>
                       <Button
                         type="button"
                         onClick={handleCreateZone}

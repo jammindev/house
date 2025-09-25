@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Zone = { id: string; name: string };
 
@@ -18,12 +19,16 @@ export default function ZonesPage() {
 
   const [showNew, setShowNew] = useState<boolean>(false);
   const [newName, setNewName] = useState<string>("");
+  const [newParentId, setNewParentId] = useState<string | "">("");
   const [creating, setCreating] = useState<boolean>(false);
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>("");
+  const [editingParentId, setEditingParentId] = useState<string | "">("");
   const [savingEdit, setSavingEdit] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
 
   const currentHousehold = useMemo(
     () => households.find(h => h.id === selectedHouseholdId) || null,
@@ -41,7 +46,7 @@ export default function ZonesPage() {
         const client = supa.getSupabaseClient();
         const { data, error: zErr } = await client
           .from("zones" as any)
-          .select("id,name")
+          .select("id,name,parent_id")
           .eq("household_id", selectedHouseholdId)
           .order("created_at" as any);
         if (zErr) throw zErr;
@@ -67,7 +72,7 @@ export default function ZonesPage() {
       const client = supa.getSupabaseClient();
       const { data, error: insErr } = await client
         .from("zones" as any)
-        .insert({ household_id: selectedHouseholdId, name })
+        .insert({ household_id: selectedHouseholdId, name, parent_id: newParentId || null })
         .select("id,name")
         .single();
       if (insErr) throw insErr;
@@ -75,6 +80,7 @@ export default function ZonesPage() {
         setZones(prev => [...prev, data as any]);
         setShowNew(false);
         setNewName("");
+        setNewParentId("");
       }
     } catch (e: any) {
       console.error(e);
@@ -87,6 +93,8 @@ export default function ZonesPage() {
   const startEdit = (z: Zone) => {
     setEditingId(z.id);
     setEditingName(z.name);
+    // @ts-ignore
+    setEditingParentId((z as any).parent_id || "");
   };
 
   const cancelEdit = () => {
@@ -104,10 +112,10 @@ export default function ZonesPage() {
       const client = supa.getSupabaseClient();
       const { error: upErr } = await client
         .from("zones" as any)
-        .update({ name })
+        .update({ name, parent_id: editingParentId || null })
         .eq("id", editingId);
       if (upErr) throw upErr;
-      setZones(prev => prev.map(z => (z.id === editingId ? { ...z, name } : z)));
+      setZones(prev => prev.map(z => (z.id === editingId ? { ...z, name, /* @ts-ignore */ parent_id: editingParentId || null } : z)));
       cancelEdit();
     } catch (e: any) {
       console.error(e);
@@ -119,7 +127,6 @@ export default function ZonesPage() {
 
   const removeZone = async (id: string) => {
     if (!id) return;
-    if (!window.confirm("Delete this zone? This cannot be undone.")) return;
     try {
       setDeletingId(id);
       const supa = await createSPASassClient();
@@ -180,6 +187,16 @@ export default function ZonesPage() {
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder="e.g., Kitchen, Garage, Garden"
                 />
+                <select
+                  value={newParentId}
+                  onChange={(e) => setNewParentId(e.target.value)}
+                  className="h-10 px-3 border rounded-md text-sm"
+                >
+                  <option value="">No parent</option>
+                  {zones.map((z) => (
+                    <option key={z.id} value={z.id}>{z.name}</option>
+                  ))}
+                </select>
                 <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
                   {creating ? "Creating…" : "Save"}
                 </Button>
@@ -207,9 +224,27 @@ export default function ZonesPage() {
                   {editingId === z.id ? (
                     <div className="flex-1 flex items-center gap-2">
                       <Input value={editingName} onChange={(e) => setEditingName(e.target.value)} />
+                      <select
+                        value={editingParentId}
+                        onChange={(e) => setEditingParentId(e.target.value)}
+                        className="h-10 px-3 border rounded-md text-sm"
+                      >
+                        <option value="">No parent</option>
+                        {zones.filter(zz => zz.id !== z.id).map(zz => (
+                          <option key={zz.id} value={zz.id}>{zz.name}</option>
+                        ))}
+                      </select>
                     </div>
                   ) : (
-                    <div className="flex-1 text-sm font-medium">{z.name}</div>
+                    <div className="flex-1 text-sm font-medium">
+                      {z.name}
+                      {/* @ts-ignore */}
+                      {/* eslint-disable-next-line */}
+                      {(z as any).parent_id ? (
+                        // @ts-ignore
+                        <span className="ml-2 text-xs text-gray-500">(child of {zones.find(zz => zz.id === (z as any).parent_id)?.name || '—'})</span>
+                      ) : null}
+                    </div>
                   )}
                   <div className="flex items-center gap-2">
                     {editingId === z.id ? (
@@ -224,7 +259,7 @@ export default function ZonesPage() {
                     ) : (
                       <>
                         <Button size="sm" variant="secondary" onClick={() => startEdit(z)}>Rename</Button>
-                        <Button size="sm" variant="destructive" onClick={() => removeZone(z.id)} disabled={deletingId === z.id}>
+                        <Button size="sm" variant="destructive" onClick={() => { setPendingDelete(z); setConfirmOpen(true); }} disabled={deletingId === z.id}>
                           {deletingId === z.id ? "Deleting…" : "Delete"}
                         </Button>
                       </>
@@ -236,7 +271,22 @@ export default function ZonesPage() {
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={(o) => { setConfirmOpen(o); if (!o) setPendingDelete(null); }}
+        title="Delete zone?"
+        description={pendingDelete ? `This will permanently delete "${pendingDelete.name}". Links to entries will be removed.` : undefined}
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
+        loading={!!(pendingDelete && deletingId === pendingDelete.id)}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          await removeZone(pendingDelete.id);
+          setConfirmOpen(false);
+          setPendingDelete(null);
+        }}
+      />
     </div>
   );
 }
-
