@@ -7,22 +7,28 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 type Entry = { id: string; raw_text: string; created_at: string; household_id: string };
-type EntryFile = { id: string; storage_path: string; mime_type: string | null };
+type EntryFile = { id: string; storage_path: string; mime_type: string | null; created_by?: string };
 type Zone = { id: string; name: string };
 
 export default function EntryDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
   const router = useRouter();
-  const { loading: globalLoading, selectedHouseholdId } = useGlobal();
+  const { loading: globalLoading, selectedHouseholdId, user } = useGlobal();
 
   const [entry, setEntry] = useState<Entry | null>(null);
   const [files, setFiles] = useState<(EntryFile & { url?: string })[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [confirmDeleteEntryOpen, setConfirmDeleteEntryOpen] = useState(false);
+  const [deletingEntry, setDeletingEntry] = useState(false);
+  const [confirmDeleteFileOpen, setConfirmDeleteFileOpen] = useState(false);
+  const [pendingFileId, setPendingFileId] = useState<string | null>(null);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -56,7 +62,7 @@ export default function EntryDetailPage() {
         // Load files
         const { data: fData, error: fErr } = await client
           .from('entry_files' as any)
-          .select('id, storage_path, mime_type')
+          .select('id, storage_path, mime_type, created_by')
           .eq('entry_id', id);
         if (fErr) throw fErr;
         const arr = (fData || []) as any[];
@@ -109,7 +115,10 @@ export default function EntryDetailPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Entry Detail</h1>
-        <Link href="/app/entries"><Button variant="secondary">Back to list</Button></Link>
+        <div className="flex items-center gap-2">
+          <Button variant="destructive" onClick={() => setConfirmDeleteEntryOpen(true)}>Delete Entry</Button>
+          <Link href="/app/entries"><Button variant="secondary">Back to list</Button></Link>
+        </div>
       </div>
 
       <Card>
@@ -139,6 +148,7 @@ export default function EntryDetailPage() {
                 const mt = (f.mime_type || '').toLowerCase();
                 const isImg = mt.startsWith('image/');
                 const isPdf = mt === 'application/pdf';
+                const canDelete = !!user?.id && (!!f.created_by && f.created_by === user.id);
                 return (
                   <div key={f.id} className="border rounded-md p-2">
                     {isImg && f.url ? (
@@ -149,8 +159,13 @@ export default function EntryDetailPage() {
                       <div className="text-sm text-gray-600">{f.mime_type || 'file'}</div>
                     )}
                     {f.url && (
-                      <div className="mt-2">
+                      <div className="mt-2 flex items-center gap-2">
                         <a href={f.url} target="_blank" rel="noreferrer" className="text-sm text-primary-700 underline">Open</a>
+                        {canDelete && (
+                          <Button size="sm" variant="destructive" onClick={() => { setPendingFileId(f.id); setConfirmDeleteFileOpen(true); }}>
+                            Delete
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -160,6 +175,63 @@ export default function EntryDetailPage() {
           </CardContent>
         </Card>
       )}
+      <ConfirmDialog
+        open={confirmDeleteEntryOpen}
+        onOpenChange={setConfirmDeleteEntryOpen}
+        title="Delete this entry?"
+        description="This will permanently delete the entry. Attachments not uploaded by you may remain due to access restrictions."
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
+        loading={deletingEntry}
+        onConfirm={async () => {
+          try {
+            setDeletingEntry(true);
+            const supa = await createSPASassClient();
+            const client = supa.getSupabaseClient();
+            // Try removing storage files that belong to the current user
+            const myPaths = files.filter((f) => f.created_by === user?.id).map((f) => f.storage_path);
+            if (myPaths.length > 0) {
+              await client.storage.from('files').remove(myPaths);
+            }
+            await client.from('entries' as any).delete().eq('id', id);
+            setConfirmDeleteEntryOpen(false);
+            window.location.href = '/app/entries';
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setDeletingEntry(false);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmDeleteFileOpen}
+        onOpenChange={(o) => { setConfirmDeleteFileOpen(o); if (!o) setPendingFileId(null); }}
+        title="Delete this file?"
+        confirmText="Delete"
+        cancelText="Cancel"
+        destructive
+        loading={!!(deletingFileId && pendingFileId === deletingFileId)}
+        onConfirm={async () => {
+          const file = files.find(f => f.id === pendingFileId);
+          if (!file) return;
+          try {
+            setDeletingFileId(file.id);
+            const supa = await createSPASassClient();
+            const client = supa.getSupabaseClient();
+            await client.storage.from('files').remove([file.storage_path]);
+            await client.from('entry_files' as any).delete().eq('id', file.id);
+            setFiles(prev => prev.filter(f => f.id !== file.id));
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setDeletingFileId(null);
+            setPendingFileId(null);
+            setConfirmDeleteFileOpen(false);
+          }
+        }}
+      />
     </div>
   );
 }
