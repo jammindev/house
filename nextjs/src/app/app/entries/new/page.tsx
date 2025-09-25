@@ -135,7 +135,6 @@ export default function NewEntryPage() {
               storage_path: path,
               mime_type: f.type,
               metadata: { size: f.size, name: f.name } as any,
-              created_by: userId,
             });
           if (linkErr) throw linkErr;
         }
