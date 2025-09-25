@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,12 +11,13 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { Input } from "@/components/ui/input";
 
 export default function NewEntryPage() {
+  const router = useRouter();
   const { loading, households, selectedHouseholdId } = useGlobal();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [rawText, setRawText] = useState<string>("");
-  const [zones, setZones] = useState<{ id: string; name: string }[]>([]);
+  const [zones, setZones] = useState<{ id: string; name: string; parent_id?: string | null }[]>([]);
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
   const [newZoneName, setNewZoneName] = useState<string>("");
   const [newZoneParentId, setNewZoneParentId] = useState<string | "">("");
@@ -40,7 +42,7 @@ export default function NewEntryPage() {
         const client = supa.getSupabaseClient();
         const { data, error: zErr } = await client
           .from("zones" as any)
-          .select("id,name")
+          .select("id,name,parent_id")
           .eq("household_id", selectedHouseholdId)
           .order("created_at" as any);
         if (zErr) throw zErr;
@@ -67,11 +69,11 @@ export default function NewEntryPage() {
       const { data, error: insErr } = await client
         .from("zones" as any)
         .insert({ household_id: selectedHouseholdId, name, parent_id: newZoneParentId || null })
-        .select("id,name")
+        .select("id,name,parent_id")
         .single();
       if (insErr) throw insErr;
       if (data) {
-        setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name }]);
+        setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name, parent_id: (data as any).parent_id }]);
         setSelectedZoneIds((prev) => [...prev, (data as any).id]);
         setNewZoneName("");
         setNewZoneParentId("");
@@ -97,6 +99,10 @@ export default function NewEntryPage() {
       setError("No household selected. Go to dashboard to select or create one.");
       return;
     }
+    if (selectedZoneIds.length === 0) {
+      setError("Please select at least one zone for this entry.");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -106,20 +112,16 @@ export default function NewEntryPage() {
       const userId = userData.user?.id;
       if (!userId) throw new Error("Not authenticated");
 
-      const payload: any = {
-        household_id: selectedHouseholdId,
-        raw_text: rawText.trim(),
-        created_by: userId,
-      };
+      // Create entry with zones atomically via RPC
+      const { data: rpcId, error: rpcErr } = await client
+        .rpc('create_entry_with_zones' as any, {
+          p_household_id: selectedHouseholdId,
+          p_raw_text: rawText.trim(),
+          p_zone_ids: selectedZoneIds,
+        });
+      if (rpcErr) throw rpcErr;
 
-      const { data, error: insErr } = await client
-        .from("entries" as any)
-        .insert(payload)
-        .select("id")
-        .single();
-      if (insErr) throw insErr;
-
-      const entryId = data?.id as string;
+      const entryId = rpcId as unknown as string;
       const uploadedPaths: string[] = [];
 
       try {
@@ -127,8 +129,10 @@ export default function NewEntryPage() {
         if (entryId && files.length > 0) {
           setUploading(true);
           for (const f of files) {
-            const safeName = f.name.replace(/[^0-9a-zA-Z!\-_. *'()]/g, "_");
-            const path = `${userId}/${entryId}/${Date.now()}_${safeName}`;
+            // Strict sanitize to avoid problematic characters in storage keys
+            const safeName = f.name.replace(/[^0-9a-zA-Z._-]/g, "_");
+            const uid = (globalThis as any).crypto?.randomUUID ? (globalThis as any).crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+            const path = `${userId}/${entryId}/${uid}_${safeName}`;
             const { error: upErr } = await client.storage.from('files').upload(path, f, { upsert: false });
             if (upErr) throw upErr;
             uploadedPaths.push(path);
@@ -147,11 +151,7 @@ export default function NewEntryPage() {
         }
 
         // Link zones after successful file handling
-        if (entryId && selectedZoneIds.length > 0) {
-          const rows = selectedZoneIds.map((zone_id) => ({ entry_id: entryId, zone_id }));
-          const { error: ezErr } = await client.from("entry_zones" as any).insert(rows);
-          if (ezErr) throw ezErr;
-        }
+        // Zones already linked by RPC
       } catch (innerErr) {
         // Rollback: delete uploaded files and the entry row
         try {
@@ -171,11 +171,8 @@ export default function NewEntryPage() {
         throw innerErr;
       }
 
-      setSuccess("Entry created successfully.");
-      setRawText("");
-      setSelectedZoneIds([]);
-      // Optionally navigate to entry detail once it exists
-      // router.push(`/entries/${data?.id}`)
+      // Navigate to entries list after success with success flag for toast
+      return router.push('/app/entries?created=1');
     } catch (e: any) {
       console.error(e);
       setError(e?.message || "Failed to create entry");
@@ -288,27 +285,7 @@ export default function NewEntryPage() {
                 {zones.length === 0 ? (
                   <div className="text-sm text-gray-500">No zones in this household yet.</div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {zones.map((z) => {
-                      const checked = selectedZoneIds.includes(z.id);
-                      return (
-                        <label key={z.id} className="flex items-center gap-2 border rounded-md px-3 py-2 cursor-pointer hover:bg-gray-50">
-                          <input
-                            type="checkbox"
-                            className="h-4 w-4"
-                            checked={checked}
-                            onChange={(e) => {
-                              setSelectedZoneIds((prev) => {
-                                if (e.target.checked) return [...prev, z.id];
-                                return prev.filter((id) => id !== z.id);
-                              });
-                            }}
-                          />
-                          <span className="text-sm">{z.name}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
+                  <MultiZoneSelect zones={zones} value={selectedZoneIds} onChange={setSelectedZoneIds} />
                 )}
               </div>
 
@@ -324,7 +301,7 @@ export default function NewEntryPage() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Button type="submit" disabled={submitting || uploading || households.length === 0 || !selectedHouseholdId}>
+                <Button type="submit" disabled={submitting || uploading || households.length === 0 || !selectedHouseholdId || selectedZoneIds.length === 0}>
                   {submitting || uploading ? "Saving…" : "Create Entry"}
                 </Button>
                 <Link href="/app/entries" className="text-sm text-gray-600 hover:underline">Cancel</Link>
@@ -337,5 +314,57 @@ export default function NewEntryPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function MultiZoneSelect({ zones, value, onChange }: { zones: { id: string; name: string; parent_id?: string | null }[]; value: string[]; onChange: (ids: string[]) => void }) {
+  // Build parent -> children map and order
+  const parents = zones.filter(z => !z.parent_id);
+  const childrenMap = zones.reduce<Record<string, { id: string; name: string; parent_id?: string | null }[]>>((acc, z) => {
+    if (z.parent_id) {
+      acc[z.parent_id] = acc[z.parent_id] || [];
+      acc[z.parent_id].push(z);
+    }
+    return acc;
+  }, {});
+
+  parents.sort((a, b) => a.name.localeCompare(b.name));
+  Object.values(childrenMap).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name)));
+
+  const ordered: { id: string; name: string; isChild: boolean }[] = [];
+  for (const p of parents) {
+    ordered.push({ id: p.id, name: p.name, isChild: false });
+    const kids = childrenMap[p.id] || [];
+    for (const c of kids) {
+      ordered.push({ id: c.id, name: c.name, isChild: true });
+    }
+  }
+
+  // Handle children whose parent is missing (edge cases)
+  const orphanChildren = zones.filter(z => z.parent_id && !parents.find(p => p.id === z.parent_id));
+  if (orphanChildren.length) {
+    for (const oc of orphanChildren) {
+      if (!ordered.find(o => o.id === oc.id)) {
+        ordered.push({ id: oc.id, name: oc.name, isChild: true });
+      }
+    }
+  }
+
+  return (
+    <select
+      multiple
+      value={value}
+      onChange={(e) => {
+        const selected = Array.from(e.currentTarget.selectedOptions).map(o => o.value);
+        onChange(selected);
+      }}
+      className="w-full border rounded-md px-3 py-2 text-sm h-40"
+    >
+      {ordered.map(opt => (
+        <option key={opt.id} value={opt.id} className="py-1">
+          {opt.isChild ? `↳ ${opt.name}` : opt.name}
+        </option>
+      ))}
+    </select>
   );
 }

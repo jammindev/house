@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Paperclip } from "lucide-react";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useToast } from "@/components/ToastProvider";
 
 type Entry = { id: string; raw_text: string; created_at: string };
 type EntryFile = { id: string; entry_id: string; storage_path: string; mime_type: string | null };
@@ -20,6 +22,9 @@ export default function EntriesHome() {
   const [fileCounts, setFileCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { show } = useToast();
 
   const currentHousehold = useMemo(
     () => households.find(h => h.id === selectedHouseholdId) || null,
@@ -76,6 +81,17 @@ export default function EntriesHome() {
     load();
   }, [selectedHouseholdId]);
 
+  useEffect(() => {
+    if (searchParams?.get('created') === '1') {
+      // scrub the param
+      const sp = new URLSearchParams(searchParams as any);
+      sp.delete('created');
+      const next = `/app/entries${sp.toString() ? `?${sp.toString()}` : ''}`;
+      router.replace(next, { scroll: false });
+      show({ title: 'Entry created successfully', variant: 'success' });
+    }
+  }, [searchParams, router, show]);
+
   if (globalLoading) {
     return <div className="p-6 text-sm text-gray-500">Loading…</div>;
   }
@@ -118,23 +134,27 @@ export default function EntriesHome() {
         <ul className="space-y-3">
           {entries.map((e) => {
             const files = filesByEntry[e.id] || [];
-            const firstFile = files[0];
             return (
-              <li key={e.id} className="border rounded-lg p-4 bg-white flex gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
-                    {fileCounts[e.id] ? (
-                      <div className="flex items-center gap-1 text-gray-600" title="Attachments">
-                        <Paperclip className="w-4 h-4" />
-                        <span className="text-xs">{fileCounts[e.id]}</span>
-                      </div>
-                    ) : null}
+              <li key={e.id}>
+                <Link
+                  href={`/app/entries/${e.id}`}
+                  className="block border rounded-lg p-4 bg-white flex gap-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
+                      {fileCounts[e.id] ? (
+                        <div className="flex items-center gap-1 text-gray-600" title="Attachments">
+                          <Paperclip className="w-4 h-4" />
+                          <span className="text-xs">{fileCounts[e.id]}</span>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div className="block mt-1 text-gray-900 line-clamp-3 whitespace-pre-wrap">
+                      {e.raw_text}
+                    </div>
                   </div>
-                  <Link href={`/app/entries/${e.id}`} className="block mt-1 text-gray-900 hover:underline line-clamp-3 whitespace-pre-wrap">
-                    {e.raw_text}
-                  </Link>
-                </div>
+                </Link>
               </li>
             );
           })}

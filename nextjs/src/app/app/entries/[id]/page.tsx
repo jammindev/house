@@ -196,9 +196,11 @@ export default function EntryDetailPage() {
             setDeletingEntry(true);
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
-            // Remove storage files (owned by current user by design)
-            const paths = files.map((f) => f.storage_path);
-            if (paths.length > 0) await client.storage.from('files').remove(paths);
+            // Remove storage files uploaded by current user (owner-only policy)
+            const myPaths = files.filter((f) => f.created_by === user?.id).map((f) => f.storage_path);
+            if (myPaths.length > 0) {
+              await client.storage.from('files').remove(myPaths);
+            }
             await client.from('entries' as any).delete().eq('id', id);
             setConfirmDeleteEntryOpen(false);
             window.location.href = '/app/entries';
