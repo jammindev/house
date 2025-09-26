@@ -112,7 +112,7 @@ export default function NewEntryPage() {
       const client = supa.getSupabaseClient();
       const { data: userData } = await client.auth.getUser();
       const userId = userData.user?.id;
-      if (!userId) throw new Error("Not authenticated");
+      if (!userId) throw new Error(t('auth.notAuthenticated'));
 
       // Create entry with zones atomically via RPC
       const { data: rpcId, error: rpcErr } = await client
@@ -188,7 +188,7 @@ export default function NewEntryPage() {
     <div className="max-w-2xl mx-auto p-6">
       <Card>
         <CardHeader>
-          <CardTitle>New Entry</CardTitle>
+          <CardTitle>{t('entries.newEntry')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -201,7 +201,7 @@ export default function NewEntryPage() {
                   {households.length === 0 && (
                     <span>
                       {" "}
-                      <Link href="/app/households/new" className="underline">Create a household</Link>.
+                      <Link href="/app/households/new" className="underline">{t('common.createHousehold')}</Link>.
                     </span>
                   )}
                 </div>
@@ -213,7 +213,7 @@ export default function NewEntryPage() {
               <div className="space-y-1">
                 <label className="text-sm font-medium">{t('common.household')}</label>
                 <div className="w-full border rounded-md h-10 px-3 flex items-center text-sm bg-gray-50">
-                  {currentHousehold ? currentHousehold.name : 'No household selected'}
+                  {currentHousehold ? currentHousehold.name : t('common.noHouseholdShort')}
                 </div>
               </div>
 

@@ -104,7 +104,7 @@ export default function EntryDetailPage() {
           <CardContent>
             <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">{error}</div>
             <div className="mt-4">
-              <Button variant="secondary" onClick={() => router.back()}>Back</Button>
+              <Button variant="secondary" onClick={() => router.back()}>{t('common.back')}</Button>
             </div>
           </CardContent>
         </Card>
@@ -163,9 +163,9 @@ export default function EntryDetailPage() {
                     {isImg && f.url ? (
                       <img loading="lazy" src={f.url} alt={f.storage_path} className="w-full h-64 object-contain bg-white rounded" />
                     ) : isPdf && f.url ? (
-                      <iframe src={`${f.url}#toolbar=1`} className="w-full h-64 bg-white rounded" title="PDF"></iframe>
+                      <iframe src={`${f.url}#toolbar=1`} className="w-full h-64 bg-white rounded" title={t('entries.pdfPreview')}></iframe>
                     ) : (
-                      <div className="text-sm text-gray-600">{f.mime_type || 'file'}</div>
+                      <div className="text-sm text-gray-600">{f.mime_type || t('common.file')}</div>
                     )}
                     {f.url && (
                       <div className="mt-2 flex items-center gap-2">

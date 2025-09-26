@@ -75,7 +75,7 @@ export default function EntriesHome() {
         }
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || 'Failed to load entries');
+        setError(e?.message || t('entries.listLoadFailed'));
       } finally {
         setLoading(false);
       }
