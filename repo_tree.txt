@@ -1,7 +1,11 @@
 .
 ├── .github
+│   └── ISSUE_TEMPLATE
+├── AGENTS.md
+├── AI_UPDATE_WORKFLOW.md
 ├── instructions.md
 ├── LICENSE
+├── NEXT_STEP.md
 ├── nextjs
 │   ├── .env.local
 │   ├── .env.template
@@ -17,17 +21,33 @@
 │   ├── src
 │   │   ├── app
 │   │   │   ├── api
-│   │   │   │   └── auth
-│   │   │   │       └── callback
-│   │   │   │           └── route.ts
+│   │   │   │   ├── auth
+│   │   │   │   │   └── callback
+│   │   │   │   │       └── route.ts
+│   │   │   │   ├── entries
+│   │   │   │   │   └── [id]
+│   │   │   │   └── households
+│   │   │   │       └── route.ts
 │   │   │   ├── app
+│   │   │   │   ├── entries
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── households
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
 │   │   │   │   ├── layout.tsx
 │   │   │   │   ├── page.tsx
 │   │   │   │   ├── storage
 │   │   │   │   │   └── page.tsx
 │   │   │   │   ├── table
 │   │   │   │   │   └── page.tsx
-│   │   │   │   └── user-settings
+│   │   │   │   ├── user-settings
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── zones
 │   │   │   │       └── page.tsx
 │   │   │   ├── auth
 │   │   │   │   ├── 2fa
@@ -56,6 +76,7 @@
 │   │   │   ├── AppLayout.tsx
 │   │   │   ├── AuthAwareButtons.tsx
 │   │   │   ├── Confetti.tsx
+│   │   │   ├── ConfirmDialog.tsx
 │   │   │   ├── Cookies.tsx
 │   │   │   ├── HomePricing.tsx
 │   │   │   ├── LegalDocument.tsx
@@ -63,6 +84,7 @@
 │   │   │   ├── MFASetup.tsx
 │   │   │   ├── MFAVerification.tsx
 │   │   │   ├── SSOButtons.tsx
+│   │   │   ├── ToastProvider.tsx
 │   │   │   └── ui
 │   │   │       ├── alert-dialog.tsx
 │   │   │       ├── alert.tsx
@@ -74,6 +96,11 @@
 │   │   ├── lib
 │   │   │   ├── context
 │   │   │   │   └── GlobalContext.tsx
+│   │   │   ├── i18n
+│   │   │   │   ├── dictionaries
+│   │   │   │   │   ├── en.json
+│   │   │   │   │   └── fr.json
+│   │   │   │   └── I18nProvider.tsx
 │   │   │   ├── pricing.ts
 │   │   │   ├── supabase
 │   │   │   │   ├── client.ts
@@ -98,7 +125,18 @@
     │   ├── 20250130181641_todo_list.sql
     │   ├── 20250921081621_create_households.sql
     │   ├── 20250921081718_create_household_members.sql
-    │   └── 20250921081746_create_zones.sql
+    │   ├── 20250921081746_create_zones.sql
+    │   ├── 20250921084515_create_entries.sql
+    │   ├── 20250921084607_create_entry_zones.sql
+    │   ├── 20250921213000_add_households_insert_policy.sql
+    │   ├── 20250924090000_create_entry_files.sql
+    │   ├── 20250924090500_entry_files_created_by_trigger.sql
+    │   ├── 20250924093000_fix_storage_policies_owner_only.sql
+    │   ├── 20250924100000_add_zone_parent.sql
+    │   ├── 20250924104000_owner_restricted_deletes.sql
+    │   ├── 20250924110000_enforce_entry_has_zone.sql
+    │   ├── 20250924111500_create_entry_with_zones_rpc.sql
+    │   └── 20250924113000_fix_entry_zone_orphan_triggers.sql
     └── migrations_for_old
         ├── 20250107210416_MFA.sql
         ├── 20250130165844_example_storage.sql
@@ -106,4 +144,4 @@
         ├── 20250130181641_todo_list.sql
         └── 20250525183944_auth_removal.sql
 
-29 directories, 78 files
+41 directories, 104 files
