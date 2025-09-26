@@ -19,7 +19,7 @@ _Status: generated 2025-09-26 — keep this file in sync with new migrations and
 | DELETE | _Not allowed (no policy)_ | — |
 
 Notes:
-- Household creation is handled via the service-role API (`/api/households`) to automatically add the creator as owner.
+- Insert policy now has a permissive `WITH CHECK` because the RPC `create_household_with_owner` enforces authentication/validation before inserting and immediately enrolls the caller as owner in the same transaction.
 
 ### `household_members`
 | Operation | Who | Policy/Mechanism |
@@ -81,6 +81,8 @@ Notes:
 - Part of the upstream SaaS template; not used in House domain but still exposed through `/app/table`.
 
 ## Functions & RPCs
+- `create_household_with_owner(p_name text)`
+  - Runs as `SECURITY DEFINER` with `search_path = public`, checks `auth.uid()`, trims/validates the name, inserts the household, and immediately enrolls the caller as `owner`. This bypasses the insert-time RLS check while still enforcing authentication inside the function.
 - `create_entry_with_zones(p_household_id uuid, p_raw_text text, p_zone_ids uuid[])`
   - Validates: user authenticated, member of household, and all zones belong to that household.
   - Inserts entry (`created_by = auth.uid()`) and related `entry_zones`, returns the new entry UUID.

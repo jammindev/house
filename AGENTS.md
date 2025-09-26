@@ -79,6 +79,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 
 - Functions & helpers
   - `create_entry_with_zones(p_household_id, p_raw_text, p_zone_ids uuid[])`: inserts an entry and its zone links atomically after validating membership and zone ownership; returns the entry UUID. Used by the “new entry” form.
+  - `create_household_with_owner(p_name text)`: `SECURITY DEFINER` RPC that checks `auth.uid()`, trims/validates the name, inserts the household, and enrolls the caller as `owner` atomically. Called from `/api/households`.
 
 ## 6) App Architecture (Next.js)
 - Root layout (`nextjs/src/app/layout.tsx`) wraps pages with the i18n provider, cookie banner, and analytics integration. Theme/product name still come from SaaS template environment variables.
