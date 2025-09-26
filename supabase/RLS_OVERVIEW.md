@@ -5,7 +5,7 @@ _Status: generated 2025-09-26 — keep this file in sync with new migrations and
 ## Access Model
 - Every domain table lives in the `public` schema with Row Level Security (RLS) enabled.
 - Household membership drives authorization: policies usually join through `household_members` and check `auth.uid()`.
-- Creator-only deletes exist on a few tables (`zones`, `entries`, `storage.objects`) to avoid cross-user content removal.
+- Most domain content can be managed (insert/update/delete) by any household member, so owners inherently have full control.
 - Storage objects must live under a key prefixed by the uploader’s user ID to satisfy bucket policies.
 
 ## Tables
@@ -33,8 +33,8 @@ Notes:
 |-----------|-----|------------------|
 | SELECT | Household members | `zones_select_members` |
 | INSERT | Household members | `zones_insert_members` |
-| UPDATE | Household members | `zones_update_members` |
-| DELETE | Household members who created the zone (`created_by = auth.uid()`) | `zones_delete_owner_only` |
+| UPDATE | Household members | `zones_update_members` + `zones_update_members_with_check` |
+| DELETE | Household members | `zones_delete_members` |
 
 Notes:
 - Column `created_by` is auto-filled by trigger `trg_zones_set_created_by`.
@@ -45,8 +45,8 @@ Notes:
 |-----------|-----|------------------|
 | SELECT | Household members | `Members can read entries of their household` |
 | INSERT | Household members | `Members can insert entries into their household` |
-| UPDATE | Household members | `Members can update entries of their household` |
-| DELETE | Entry creator (`created_by = auth.uid()`) who is also a member | `entries_delete_owner_only` |
+| UPDATE | Household members | `Members can update entries of their household` + `Members can update entries with check` |
+| DELETE | Household members | `Members can delete entries of their household` |
 
 Notes:
 - Trigger `update_entry_metadata` keeps `updated_at` and `updated_by` synchronized with `auth.uid()`.
@@ -69,7 +69,7 @@ Notes:
 | DELETE | Household members | `Members can delete entry_files of their household` |
 
 Notes:
-- Trigger `trg_entry_files_set_created_by` auto-populates `created_by = auth.uid()` so UI can enforce creator-only delete if desired.
+- Trigger `trg_entry_files_set_created_by` auto-populates `created_by = auth.uid()` for auditing or optional UI constraints; RLS already grants household-wide management rights.
 - `ocr_text` and `metadata` are reserved for future OCR/enrichment pipelines.
 
 ### Template table: `todo_list`

@@ -86,7 +86,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Global context (`GlobalContext`) loads the current user, their households, and manages the selected household (stored in `localStorage`).
 - Routes under `/auth/*` provide login/registration flows from the template; `/legal/*` hosts markdown legal pages.
 - `/app` dashboard aggregates recent entries and zone counts for the selected household with quick links.
-- Entries UI (`/app/entries`): list view limited to 50 recent entries, shows attachment counts. Detail view loads zones and previews attachments (image/pdf) via signed URLs and enforces creator-only deletion. `/app/entries/new` creates entries with zone selection, inline zone creation, and attachment upload (client uploads to storage then inserts rows into `entry_files`).
+- Entries UI (`/app/entries`): list view limited to 50 recent entries, shows attachment counts. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can now delete entries per updated RLS. `/app/entries/new` creates entries with zone selection, inline zone creation, and attachment upload (client uploads to storage then inserts rows into `entry_files`).
 - Zones UI (`/app/zones`): manage zones, including optional parent assignment. Only the creator can delete a zone; others see an informational dialog.
 - Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the service-role client.
 - Template demos: `/app/storage` (personal file bucket) and `/app/table` (todo list) still exist from the upstream template and operate on template schema. They are unrelated to the House domain and should be hidden or removed before launch.
@@ -131,7 +131,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Do not modify the Supabase `auth` schema. Reference `auth.users` but avoid schema changes there.
 - Service-role usage (`createServerAdminClient`) must remain limited to trusted server contexts; never expose the service key to the browser.
 - Storage security depends on file paths prefixed with `auth.uid()`; ensure any new uploads follow the same convention.
-- Entry and zone deletions are creator-only—UI must continue to respect that constraint to avoid authorization errors.
+- Zones, entries, and files can now be managed (update/delete) by any household member; owners inherit full control through membership. Update flows still need UI work but RLS is ready.
 - `nextjs/src/lib/types.ts` is outdated; relying on it for new queries can cause runtime/type mismatches until regenerated.
 - Template routes (storage, todo) are still exposed. Disable or guard them before production to prevent confusing or insecure flows.
 
