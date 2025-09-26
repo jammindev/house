@@ -9,10 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { Input } from "@/components/ui/input";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function NewEntryPage() {
   const router = useRouter();
   const { loading, households, selectedHouseholdId } = useGlobal();
+  const { t } = useI18n();
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
@@ -49,7 +51,7 @@ export default function NewEntryPage() {
         setZones((data || []) as any);
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || "Failed to load zones");
+        setError(e?.message || t('zones.loadFailed'));
       }
     })();
   }, [selectedHouseholdId]);
@@ -58,7 +60,7 @@ export default function NewEntryPage() {
     setError("");
     const name = newZoneName.trim();
     if (!selectedHouseholdId) {
-      setError("No household selected. Go to dashboard to select or create one.");
+      setError(t('common.noHouseholdSelected'));
       return;
     }
     if (!name) return;
@@ -81,7 +83,7 @@ export default function NewEntryPage() {
       }
     } catch (e: any) {
       console.error(e);
-      setError(e?.message || "Failed to create zone");
+      setError(e?.message || t('zones.createFailed'));
     } finally {
       setCreatingZone(false);
     }
@@ -92,15 +94,15 @@ export default function NewEntryPage() {
     setError("");
     setSuccess("");
     if (!rawText.trim()) {
-      setError("Raw text is required");
+      setError(t('entries.rawRequired'));
       return;
     }
     if (!selectedHouseholdId) {
-      setError("No household selected. Go to dashboard to select or create one.");
+      setError(t('common.noHouseholdSelected'));
       return;
     }
     if (selectedZoneIds.length === 0) {
-      setError("Please select at least one zone for this entry.");
+      setError(t('entries.selectZoneRequired'));
       return;
     }
 
@@ -175,7 +177,7 @@ export default function NewEntryPage() {
       return router.push('/app/entries?created=1');
     } catch (e: any) {
       console.error(e);
-      setError(e?.message || "Failed to create entry");
+      setError(e?.message || t('entries.createFailed'));
     } finally {
       setSubmitting(false);
       setUploading(false);
@@ -190,7 +192,7 @@ export default function NewEntryPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-sm text-gray-500">Loading…</div>
+            <div className="text-sm text-gray-500">{t('common.loading')}</div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
@@ -209,14 +211,14 @@ export default function NewEntryPage() {
               )}
 
               <div className="space-y-1">
-                <label className="text-sm font-medium">Household</label>
+                <label className="text-sm font-medium">{t('common.household')}</label>
                 <div className="w-full border rounded-md h-10 px-3 flex items-center text-sm bg-gray-50">
                   {currentHousehold ? currentHousehold.name : 'No household selected'}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Documents</label>
+                <label className="text-sm font-medium">{t('entries.documents')}</label>
                 <input
                   type="file"
                   multiple
@@ -236,21 +238,21 @@ export default function NewEntryPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Zones</label>
+                <label className="text-sm font-medium">{t('zones.title')}</label>
                 <div className="flex items-center gap-2">
                   {showZoneInput ? (
                     <>
                       <Input
                         value={newZoneName}
                         onChange={(e) => setNewZoneName(e.target.value)}
-                        placeholder="e.g., Kitchen, Garage, Garden"
+                        placeholder={t('zones.placeholder')}
                       />
                       <select
                         value={newZoneParentId}
                         onChange={(e) => setNewZoneParentId(e.target.value)}
                         className="h-10 px-3 border rounded-md text-sm"
                       >
-                        <option value="">No parent</option>
+                        <option value="">{t('zones.noParent')}</option>
                         {zones.map((z) => (
                           <option key={z.id} value={z.id}>{z.name}</option>
                         ))}
@@ -261,7 +263,7 @@ export default function NewEntryPage() {
                         disabled={creatingZone || !newZoneName.trim()}
                         className="bg-primary-600 text-white hover:bg-primary-700"
                       >
-                        {creatingZone ? "Adding…" : "Save"}
+                        {creatingZone ? t('common.adding') : t('common.save')}
                       </Button>
                       <Button
                         type="button"
@@ -269,7 +271,7 @@ export default function NewEntryPage() {
                         className="border bg-white text-gray-700 hover:bg-gray-50"
                         disabled={creatingZone}
                       >
-                        Cancel
+                        {t('common.cancel')}
                       </Button>
                     </>
                   ) : (
@@ -278,35 +280,35 @@ export default function NewEntryPage() {
                       onClick={() => setShowZoneInput(true)}
                       className="bg-primary-600 text-white hover:bg-primary-700"
                     >
-                      Create new zone
+                      {t('zones.createNew')}
                     </Button>
                   )}
                 </div>
                 {zones.length === 0 ? (
-                  <div className="text-sm text-gray-500">No zones in this household yet.</div>
+                  <div className="text-sm text-gray-500">{t('zones.none')}</div>
                 ) : (
                   <MultiZoneSelect zones={zones} value={selectedZoneIds} onChange={setSelectedZoneIds} />
                 )}
               </div>
 
               <div className="space-y-1">
-                <label className="text-sm font-medium">Raw Text</label>
+                <label className="text-sm font-medium">{t('entries.rawText')}</label>
                 <Textarea
                   value={rawText}
                   onChange={(e) => setRawText(e.target.value)}
                   rows={8}
-                  placeholder="Write your entry here…"
+                  placeholder={t('entries.rawPlaceholder')}
                   required
                 />
               </div>
 
               <div className="flex items-center gap-2">
                 <Button type="submit" disabled={submitting || uploading || households.length === 0 || !selectedHouseholdId || selectedZoneIds.length === 0}>
-                  {submitting || uploading ? "Saving…" : "Create Entry"}
+                  {submitting || uploading ? t('common.saving') : t('entries.createCta')}
                 </Button>
-                <Link href="/app/entries" className="text-sm text-gray-600 hover:underline">Cancel</Link>
+                <Link href="/app/entries" className="text-sm text-gray-600 hover:underline">{t('common.cancel')}</Link>
                 {households.length === 0 && (
-                  <Link href="/app/households/new" className="text-sm text-primary-700 hover:underline">Create a household</Link>
+                  <Link href="/app/households/new" className="text-sm text-primary-700 hover:underline">{t('common.createHousehold')}</Link>
                 )}
               </div>
             </form>

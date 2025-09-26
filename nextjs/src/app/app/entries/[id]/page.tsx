@@ -8,6 +8,7 @@ import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/s
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type Entry = { id: string; raw_text: string; created_at: string; household_id: string; created_by?: string };
 type EntryFile = { id: string; storage_path: string; mime_type: string | null; created_by?: string };
@@ -18,6 +19,7 @@ export default function EntryDetailPage() {
   const id = params?.id as string;
   const router = useRouter();
   const { loading: globalLoading, selectedHouseholdId, user } = useGlobal();
+  const { t } = useI18n();
 
   const [entry, setEntry] = useState<Entry | null>(null);
   const [files, setFiles] = useState<(EntryFile & { url?: string })[]>([]);
@@ -80,7 +82,7 @@ export default function EntryDetailPage() {
         setFiles(out);
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || 'Failed to load entry');
+        setError(e?.message || t('entries.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -89,7 +91,7 @@ export default function EntryDetailPage() {
   }, [id]);
 
   if (globalLoading || loading) {
-    return <div className="p-6 text-sm text-gray-500">Loading…</div>;
+    return <div className="p-6 text-sm text-gray-500">{t('common.loading')}</div>;
   }
 
   if (error) {
@@ -97,7 +99,7 @@ export default function EntryDetailPage() {
       <div className="max-w-3xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Entry</CardTitle>
+            <CardTitle>{t('entries.entry')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">{error}</div>
@@ -115,7 +117,7 @@ export default function EntryDetailPage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Entry Detail</h1>
+        <h1 className="text-xl font-semibold">{t('entries.detail')}</h1>
         <div className="flex items-center gap-2">
           <Button variant="destructive" onClick={() => {
             if (entry?.created_by && user?.id && entry.created_by === user.id) {
@@ -123,8 +125,8 @@ export default function EntryDetailPage() {
             } else {
               setInfoOpen(true);
             }
-          }}>Delete Entry</Button>
-          <Link href="/app/entries"><Button variant="secondary">Back to list</Button></Link>
+          }}>{t('entries.deleteEntry')}</Button>
+          <Link href="/app/entries"><Button variant="secondary">{t('common.backToList')}</Button></Link>
         </div>
       </div>
 
@@ -147,7 +149,7 @@ export default function EntryDetailPage() {
       {files.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Attachments</CardTitle>
+            <CardTitle>{t('entries.attachments')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid sm:grid-cols-2 gap-4">
@@ -167,10 +169,10 @@ export default function EntryDetailPage() {
                     )}
                     {f.url && (
                       <div className="mt-2 flex items-center gap-2">
-                        <a href={f.url} target="_blank" rel="noreferrer" className="text-sm text-primary-700 underline">Open</a>
+                        <a href={f.url} target="_blank" rel="noreferrer" className="text-sm text-primary-700 underline">{t('common.open')}</a>
                         {canDelete && (
                           <Button size="sm" variant="destructive" onClick={() => { setPendingFileId(f.id); setConfirmDeleteFileOpen(true); }}>
-                            Delete
+                            {t('common.delete')}
                           </Button>
                         )}
                       </div>
@@ -185,10 +187,10 @@ export default function EntryDetailPage() {
       <ConfirmDialog
         open={confirmDeleteEntryOpen}
         onOpenChange={setConfirmDeleteEntryOpen}
-        title="Delete this entry?"
-        description="This will permanently delete the entry and its attachments."
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('entries.confirmDeleteTitle')}
+        description={t('entries.confirmDeleteDesc')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         destructive
         loading={deletingEntry}
         onConfirm={async () => {
@@ -215,9 +217,9 @@ export default function EntryDetailPage() {
       <ConfirmDialog
         open={infoOpen}
         onOpenChange={setInfoOpen}
-        title="Cannot delete this entry"
-        description="You cannot delete this entry because you did not create it."
-        confirmText="OK"
+        title={t('entries.cannotDeleteTitle')}
+        description={t('entries.cannotDeleteDesc')}
+        confirmText={t('common.ok')}
         hideCancel
         onConfirm={() => setInfoOpen(false)}
       />
@@ -225,9 +227,9 @@ export default function EntryDetailPage() {
       <ConfirmDialog
         open={confirmDeleteFileOpen}
         onOpenChange={(o) => { setConfirmDeleteFileOpen(o); if (!o) setPendingFileId(null); }}
-        title="Delete this file?"
-        confirmText="Delete"
-        cancelText="Cancel"
+        title={t('entries.deleteFileTitle')}
+        confirmText={t('common.delete')}
+        cancelText={t('common.cancel')}
         destructive
         loading={!!(deletingFileId && pendingFileId === deletingFileId)}
         onConfirm={async () => {

@@ -9,6 +9,7 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type Entry = { id: string; raw_text: string; created_at: string };
 type EntryFile = { id: string; entry_id: string; storage_path: string; mime_type: string | null };
@@ -16,6 +17,7 @@ type Preview = { url: string; kind: 'image' | 'pdf' };
 
 export default function EntriesHome() {
   const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
+  const { t } = useI18n();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [filesByEntry, setFilesByEntry] = useState<Record<string, EntryFile[]>>({});
   const [previews, setPreviews] = useState<Record<string, Preview>>({});
@@ -88,12 +90,12 @@ export default function EntriesHome() {
       sp.delete('created');
       const next = `/app/entries${sp.toString() ? `?${sp.toString()}` : ''}`;
       router.replace(next, { scroll: false });
-      show({ title: 'Entry created successfully', variant: 'success' });
+      show({ title: t('entries.createdSuccess'), variant: 'success' });
     }
   }, [searchParams, router, show]);
 
   if (globalLoading) {
-    return <div className="p-6 text-sm text-gray-500">Loading…</div>;
+    return <div className="p-6 text-sm text-gray-500">{t('common.loading')}</div>;
   }
 
   if (!selectedHouseholdId) {
@@ -101,11 +103,11 @@ export default function EntriesHome() {
       <div className="max-w-3xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Entries</CardTitle>
+            <CardTitle>{t('entries.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-gray-600">
-              Select or create a household first on the <Link href="/app" className="underline">dashboard</Link>.
+              {t('common.selectHouseholdFirst')}{' '}<Link href="/app" className="underline">{t('nav.dashboard')}</Link>.
             </div>
           </CardContent>
         </Card>
@@ -116,9 +118,9 @@ export default function EntriesHome() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Entries {currentHousehold ? `· ${currentHousehold.name}` : ''}</h1>
+        <h1 className="text-xl font-semibold">{t('entries.title')} {currentHousehold ? `· ${currentHousehold.name}` : ''}</h1>
         <Link href="/app/entries/new">
-          <Button>New Entry</Button>
+          <Button>{t('entries.newEntry')}</Button>
         </Link>
       </div>
 
@@ -127,9 +129,9 @@ export default function EntriesHome() {
       )}
 
       {loading ? (
-        <div className="text-sm text-gray-500">Loading entries…</div>
+        <div className="text-sm text-gray-500">{t('entries.loading')}</div>
       ) : entries.length === 0 ? (
-        <div className="text-sm text-gray-500">No entries yet.</div>
+        <div className="text-sm text-gray-500">{t('entries.none')}</div>
       ) : (
         <ul className="space-y-3">
           {entries.map((e) => {
@@ -144,7 +146,7 @@ export default function EntriesHome() {
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
                       {fileCounts[e.id] ? (
-                        <div className="flex items-center gap-1 text-gray-600" title="Attachments">
+                        <div className="flex items-center gap-1 text-gray-600" title={t('entries.attachments')}>
                           <Paperclip className="w-4 h-4" />
                           <span className="text-xs">{fileCounts[e.id]}</span>
                         </div>

@@ -5,8 +5,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SSOButtons from "@/components/SSOButtons";
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function RegisterPage() {
+    const { t } = useI18n();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,12 +22,12 @@ export default function RegisterPage() {
         setError('');
 
         if (!acceptedTerms) {
-            setError('You must accept the Terms of Service and Privacy Policy');
+            setError(t('auth.acceptTerms'));
             return;
         }
 
         if (password !== confirmPassword) {
-            setError("Passwords don't match");
+            setError(t('auth.passwordsDontMatch'));
             return;
         }
 
@@ -60,7 +62,7 @@ export default function RegisterPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                        Email address
+                        {t('auth.email')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -78,7 +80,7 @@ export default function RegisterPage() {
 
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                        Password
+                        {t('auth.password')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -96,7 +98,7 @@ export default function RegisterPage() {
 
                 <div>
                     <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                        Confirm Password
+                        {t('auth.confirmPassword')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -126,21 +128,21 @@ export default function RegisterPage() {
                         </div>
                         <div className="ml-3 text-sm">
                             <label htmlFor="terms" className="text-gray-600">
-                                I agree to the{' '}
+                                {t('auth.iAgreeTo')}{' '}
                                 <Link
                                     href="/legal/terms"
                                     className="font-medium text-primary-600 hover:text-primary-500"
                                     target="_blank"
                                 >
-                                    Terms of Service
+                                    {t('auth.termsOfService')}
                                 </Link>{' '}
-                                and{' '}
+                                {t('auth.and')}{' '}
                                 <Link
                                     href="/legal/privacy"
                                     className="font-medium text-primary-600 hover:text-primary-500"
                                     target="_blank"
                                 >
-                                    Privacy Policy
+                                    {t('auth.privacyPolicy')}
                                 </Link>
                             </label>
                         </div>
@@ -152,7 +154,7 @@ export default function RegisterPage() {
                         disabled={loading}
                         className="flex w-full justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
                     >
-                        {loading ? 'Creating account...' : 'Create account'}
+                        {loading ? t('auth.creatingAccount') : t('auth.createAccount')}
                     </button>
                 </div>
             </form>
@@ -160,10 +162,10 @@ export default function RegisterPage() {
             <SSOButtons onError={setError}/>
 
             <div className="mt-6 text-center text-sm">
-                <span className="text-gray-600">Already have an account?</span>
+                <span className="text-gray-600">{t('auth.alreadyHaveAccount')}</span>
                 {' '}
                 <Link href="/auth/login" className="font-medium text-primary-600 hover:text-primary-500">
-                    Sign in
+                    {t('auth.signIn')}
                 </Link>
             </div>
         </div>

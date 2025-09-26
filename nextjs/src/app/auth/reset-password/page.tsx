@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import { createSPASassClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Key } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function ResetPasswordPage() {
+    const { t } = useI18n();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
@@ -78,14 +80,9 @@ export default function ResetPasswordPage() {
                         <CheckCircle className="h-16 w-16 text-green-500" />
                     </div>
 
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                        Password reset successful
-                    </h2>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('auth.resetSuccessTitle')}</h2>
 
-                    <p className="text-gray-600 mb-8">
-                        Your password has been successfully reset.
-                        You will be redirected to the app in a moment.
-                    </p>
+                    <p className="text-gray-600 mb-8">{t('auth.resetSuccessDesc')}</p>
                 </div>
             </div>
         );
@@ -97,9 +94,7 @@ export default function ResetPasswordPage() {
                 <div className="flex justify-center mb-4">
                     <Key className="h-12 w-12 text-primary-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
-                    Create new password
-                </h2>
+                <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">{t('auth.createNewPassword')}</h2>
             </div>
 
             {error && (
@@ -110,9 +105,7 @@ export default function ResetPasswordPage() {
 
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">
-                        New Password
-                    </label>
+                    <label htmlFor="new-password" className="block text-sm font-medium text-gray-700">{t('auth.newPassword')}</label>
                     <div className="mt-1">
                         <input
                             id="new-password"
@@ -128,9 +121,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div>
-                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">
-                        Confirm New Password
-                    </label>
+                    <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700">{t('auth.confirmNewPassword')}</label>
                     <div className="mt-1">
                         <input
                             id="confirm-password"
@@ -143,9 +134,7 @@ export default function ResetPasswordPage() {
                             className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-primary-500"
                         />
                     </div>
-                    <p className="mt-2 text-sm text-gray-500">
-                        Password must be at least 6 characters long
-                    </p>
+                    <p className="mt-2 text-sm text-gray-500">{t('auth.passwordMin')}</p>
                 </div>
 
                 <div>
@@ -154,7 +143,7 @@ export default function ResetPasswordPage() {
                         disabled={loading}
                         className="flex w-full justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
                     >
-                        {loading ? 'Resetting password...' : 'Reset password'}
+                        {loading ? t('auth.resettingPassword') : t('auth.resetPassword')}
                     </button>
                 </div>
             </form>

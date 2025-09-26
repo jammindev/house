@@ -6,8 +6,10 @@ import {useEffect, useState} from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SSOButtons from '@/components/SSOButtons';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function LoginPage() {
+    const { t } = useI18n();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -68,7 +70,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                        Email address
+                        {t('auth.email')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -86,7 +88,7 @@ export default function LoginPage() {
 
                 <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                        Password
+                        {t('auth.password')}
                     </label>
                     <div className="mt-1">
                         <input
@@ -105,7 +107,7 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                     <div className="text-sm">
                         <Link href="/auth/forgot-password" className="font-medium text-primary-600 hover:text-primary-500">
-                            Forgot your password?
+                            {t('auth.forgotPassword')}
                         </Link>
                     </div>
                 </div>
@@ -116,7 +118,7 @@ export default function LoginPage() {
                         disabled={loading}
                         className="flex w-full justify-center rounded-md border border-transparent bg-primary-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
                     >
-                        {loading ? 'Signing in...' : 'Sign in'}
+                        {loading ? t('auth.signingIn') : t('auth.signIn')}
                     </button>
                 </div>
             </form>
@@ -124,10 +126,10 @@ export default function LoginPage() {
             <SSOButtons onError={setError} />
 
             <div className="mt-6 text-center text-sm">
-                <span className="text-gray-600">Don&#39;t have an account?</span>
+                <span className="text-gray-600">{t('auth.noAccount')}</span>
                 {' '}
                 <Link href="/auth/register" className="font-medium text-primary-600 hover:text-primary-500">
-                    Sign up
+                    {t('auth.signUp')}
                 </Link>
             </div>
         </div>

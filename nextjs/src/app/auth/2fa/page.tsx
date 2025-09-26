@@ -5,9 +5,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSPASassClient } from '@/lib/supabase/client';
 import { MFAVerification } from '@/components/MFAVerification';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function TwoFactorAuthPage() {
     const router = useRouter();
+    const { t } = useI18n();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -37,7 +39,7 @@ export default function TwoFactorAuthPage() {
 
             setLoading(false);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            setError(err instanceof Error ? err.message : t('auth.unknownError'));
             setLoading(false);
         }
     };

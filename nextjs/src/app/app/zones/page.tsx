@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type Zone = { id: string; name: string; created_by?: string; parent_id?: string | null };
 
 export default function ZonesPage() {
   const { loading: globalLoading, selectedHouseholdId, households, user } = useGlobal();
+  const { t } = useI18n();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -54,7 +56,7 @@ export default function ZonesPage() {
         setZones((data || []) as any);
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || "Failed to load zones");
+        setError(e?.message || t('zones.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -85,7 +87,7 @@ export default function ZonesPage() {
       }
     } catch (e: any) {
       console.error(e);
-      setError(e?.message || "Failed to create zone");
+      setError(e?.message || t('zones.createFailed'));
     } finally {
       setCreating(false);
     }
@@ -120,7 +122,7 @@ export default function ZonesPage() {
       cancelEdit();
     } catch (e: any) {
       console.error(e);
-      setError(e?.message || "Failed to update zone");
+      setError(e?.message || t('zones.updateFailed'));
     } finally {
       setSavingEdit(false);
     }
@@ -140,7 +142,7 @@ export default function ZonesPage() {
       setZones(prev => prev.filter(z => z.id !== id));
     } catch (e: any) {
       console.error(e);
-      setError(e?.message || "Failed to delete zone");
+      setError(e?.message || t('zones.deleteFailed'));
     } finally {
       setDeletingId(null);
     }
@@ -148,7 +150,7 @@ export default function ZonesPage() {
 
   if (globalLoading) {
     return (
-      <div className="p-6 text-sm text-gray-500">Loading…</div>
+      <div className="p-6 text-sm text-gray-500">{t('common.loading')}</div>
     );
   }
 
@@ -157,11 +159,11 @@ export default function ZonesPage() {
       <div className="max-w-3xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Zones</CardTitle>
+            <CardTitle>{t('zones.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-gray-600">
-              Select or create a household first on the <Link href="/app" className="underline">dashboard</Link>.
+              {t('common.selectHouseholdFirst')}{' '}<Link href="/app" className="underline">{t('nav.dashboard')}</Link>.
             </div>
           </CardContent>
         </Card>
@@ -193,31 +195,31 @@ export default function ZonesPage() {
                   onChange={(e) => setNewParentId(e.target.value)}
                   className="h-10 px-3 border rounded-md text-sm"
                 >
-                  <option value="">No parent</option>
+                  <option value="">{t('zones.noParent')}</option>
                   {zones.map((z) => (
                     <option key={z.id} value={z.id}>{z.name}</option>
                   ))}
                 </select>
-                <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
-                  {creating ? "Creating…" : "Save"}
-                </Button>
-                <Button
+                  <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
+                  {creating ? t('common.creating') : t('common.save')}
+                  </Button>
+                  <Button
                   variant="secondary"
                   onClick={() => { setShowNew(false); setNewName(""); }}
                   disabled={creating}
-                >
-                  Cancel
-                </Button>
+                  >
+                  {t('common.cancel')}
+                  </Button>
               </>
             ) : (
-              <Button onClick={() => setShowNew(true)}>Add Zone</Button>
+              <Button onClick={() => setShowNew(true)}>{t('zones.addZone')}</Button>
             )}
           </div>
 
           {loading ? (
-            <div className="text-sm text-gray-500">Loading zones…</div>
+            <div className="text-sm text-gray-500">{t('zones.loading')}</div>
           ) : zones.length === 0 ? (
-            <div className="text-sm text-gray-500">No zones yet.</div>
+            <div className="text-sm text-gray-500">{t('zones.none')}</div>
           ) : (
             <ul className="space-y-2">
               {zones.map((z) => (
@@ -230,7 +232,7 @@ export default function ZonesPage() {
                         onChange={(e) => setEditingParentId(e.target.value)}
                         className="h-10 px-3 border rounded-md text-sm"
                       >
-                        <option value="">No parent</option>
+                        <option value="">{t('zones.noParent')}</option>
                         {zones.filter(zz => zz.id !== z.id).map(zz => (
                           <option key={zz.id} value={zz.id}>{zz.name}</option>
                         ))}
@@ -251,15 +253,15 @@ export default function ZonesPage() {
                     {editingId === z.id ? (
                       <>
                         <Button size="sm" onClick={saveEdit} disabled={savingEdit || !editingName.trim()}>
-                          {savingEdit ? "Saving…" : "Save"}
+                          {savingEdit ? t('common.saving') : t('common.save')}
                         </Button>
                         <Button size="sm" variant="secondary" onClick={cancelEdit} disabled={savingEdit}>
-                          Cancel
+                          {t('common.cancel')}
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Button size="sm" variant="secondary" onClick={() => startEdit(z)}>Rename</Button>
+                        <Button size="sm" variant="secondary" onClick={() => startEdit(z)}>{t('zones.rename')}</Button>
                         <Button size="sm" variant="destructive" onClick={() => {
                           // Only allow delete if creator is current user
                           if (z.created_by && user?.id && z.created_by === user.id) {
@@ -270,7 +272,7 @@ export default function ZonesPage() {
                             setInfoOpen(true);
                           }
                         }} disabled={deletingId === z.id}>
-                          {deletingId === z.id ? "Deleting…" : "Delete"}
+                          {deletingId === z.id ? t('common.deleting') : t('common.delete')}
                         </Button>
                       </>
                     )}
