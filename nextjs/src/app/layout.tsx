@@ -3,6 +3,7 @@ import "./globals.css";
 import { Analytics } from '@vercel/analytics/next';
 import CookieConsent from "@/components/Cookies";
 import { GoogleAnalytics } from '@next/third-parties/google'
+import { I18nProvider } from "@/lib/i18n/I18nProvider";
 
 
 export const metadata: Metadata = {
@@ -22,15 +23,16 @@ export default function RootLayout({
   const gaID = process.env.NEXT_PUBLIC_GOOGLE_TAG;
   return (
     <html lang="en">
-    <body className={theme}>
-      {children}
-      <Analytics />
-      <CookieConsent />
-      { gaID && (
-          <GoogleAnalytics gaId={gaID}/>
-      )}
-
-    </body>
+      <body className={theme}>
+        <I18nProvider>
+          {children}
+        </I18nProvider>
+        <Analytics />
+        <CookieConsent />
+        { gaID && (
+            <GoogleAnalytics gaId={gaID}/>
+        )}
+      </body>
     </html>
   );
 }

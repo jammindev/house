@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -53,13 +54,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
 
+    const { t } = useI18n();
     const navigation = [
-        { name: 'Dashboard', href: '/app', icon: Home },
-        { name: 'Entries', href: '/app/entries', icon: Notebook },
-        { name: 'Zones', href: '/app/zones', icon: MapPin },
-        { name: 'Example Storage', href: '/app/storage', icon: Files },
-        { name: 'Example Table', href: '/app/table', icon: LucideListTodo },
-        { name: 'User Settings', href: '/app/user-settings', icon: User },
+        { name: t('nav.dashboard'), href: '/app', icon: Home },
+        { name: t('nav.entries'), href: '/app/entries', icon: Notebook },
+        { name: t('nav.zones'), href: '/app/zones', icon: MapPin },
+        { name: t('nav.storage'), href: '/app/storage', icon: Files },
+        { name: t('nav.table'), href: '/app/table', icon: LucideListTodo },
+        { name: t('nav.userSettings'), href: '/app/user-settings', icon: User },
     ];
 
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
@@ -132,7 +134,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                             >
                                 <House className="h-4 w-4 text-primary-600" />
                                 <span className="truncate max-w-[180px]">
-                                    {currentHousehold ? currentHousehold.name : 'Select household'}
+                                    {currentHousehold ? currentHousehold.name : t('nav.selectHousehold')}
                                 </span>
                                 <ChevronDown className="h-4 w-4 text-gray-500" />
                             </button>
@@ -161,7 +163,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                             className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                                         >
                                             <Plus className="h-4 w-4 text-gray-400" />
-                                            Create new household
+                                            {t('nav.createHousehold')}
                                         </button>
                                     </div>
                                 </div>
@@ -200,7 +202,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                         className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                                     >
                                         <Key className="mr-3 h-4 w-4 text-gray-400" />
-                                        Change Password
+                                        {t('nav.changePassword')}
                                     </button>
                                     <button
                                         onClick={() => {

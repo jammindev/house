@@ -180,3 +180,11 @@ Missing UI (MVP)
 
 ---
 This AGENTS.md should be kept up to date when schema, routes, or major flows change, so that future AI/context tools can reason reliably about the codebase.
+
+## 14) I18n Setup
+- Library: Lightweight custom context at `nextjs/src/lib/i18n/I18nProvider.tsx`.
+- Locales: English (`en`, default) and French (`fr`).
+- Dictionaries: `nextjs/src/lib/i18n/dictionaries/{en,fr}.json` (flat keys). Use `useI18n().t(key, params?)`.
+- Provider: Wrapped in root layout (`nextjs/src/app/layout.tsx`).
+- Persistence: Selected locale stored in `localStorage` as `locale` and applied to `<html lang>`. User Settings page syncs selection to Supabase Auth user metadata (`locale`) as best-effort.
+- Usage example: `const { t } = useI18n(); t('dashboard.welcome', { name: 'Alice' })`.
