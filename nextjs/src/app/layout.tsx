@@ -26,9 +26,9 @@ export default function RootLayout({
       <body className={theme}>
         <I18nProvider>
           {children}
+          <CookieConsent />
         </I18nProvider>
         <Analytics />
-        <CookieConsent />
         { gaID && (
             <GoogleAnalytics gaId={gaID}/>
         )}

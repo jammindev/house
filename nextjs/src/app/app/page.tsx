@@ -6,11 +6,13 @@ import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/s
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CalendarDays, Settings, NotebookPen, Layers, PlusCircle } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 type Entry = { id: string; raw_text: string; created_at: string };
 
 export default function DashboardContent() {
   const { loading, user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
+  const { t } = useI18n();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [entryCount, setEntryCount] = useState<number>(0);
   const [zoneCount, setZoneCount] = useState<number>(0);
@@ -98,9 +100,9 @@ export default function DashboardContent() {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-              <CardTitle>Welcome, {user?.email?.split('@')[0]}! 👋</CardTitle>
+              <CardTitle>{t('dashboard.welcome', { name: user?.email?.split('@')[0] || '' })} 👋</CardTitle>
               <CardDescription className="flex items-center gap-2 mt-1">
-                <CalendarDays className="h-4 w-4" /> Member for {daysSinceRegistration} days
+                <CalendarDays className="h-4 w-4" /> {t('dashboard.memberFor', { days: String(daysSinceRegistration) })}
               </CardDescription>
             </div>
             {households.length > 1 ? (
@@ -128,38 +130,38 @@ export default function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Entries</CardTitle>
-            <CardDescription>Total in this household</CardDescription>
+            <CardTitle className="text-base">{t('dashboard.entries')}</CardTitle>
+            <CardDescription>{t('dashboard.totalInHousehold')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{loadingData ? '—' : entryCount}</div>
             <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/entries"><Button variant="secondary" size="sm">View</Button></Link>
-              <Link href="/app/entries/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> New</Button></Link>
+              <Link href="/app/entries"><Button variant="secondary" size="sm">{t('dashboard.view')}</Button></Link>
+              <Link href="/app/entries/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> {t('dashboard.new')}</Button></Link>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Zones</CardTitle>
-            <CardDescription>Rooms and areas</CardDescription>
+            <CardTitle className="text-base">{t('dashboard.zones')}</CardTitle>
+            <CardDescription>{t('dashboard.roomsAndAreas')}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-semibold">{loadingData ? '—' : zoneCount}</div>
             <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/zones"><Button variant="secondary" size="sm">Manage</Button></Link>
-              <Link href="/app/zones"><Button size="sm"><Layers className="w-4 h-4 mr-1" /> Add</Button></Link>
+              <Link href="/app/zones"><Button variant="secondary" size="sm">{t('dashboard.manage')}</Button></Link>
+              <Link href="/app/zones"><Button size="sm"><Layers className="w-4 h-4 mr-1" /> {t('dashboard.add')}</Button></Link>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Account & Households</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.accountHouseholds')}</CardTitle>
             <CardDescription>Settings and membership</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="mt-1 grid grid-cols-2 gap-2">
-              <Link href="/app/user-settings"><Button variant="secondary" size="sm" className="w-full"><Settings className="w-4 h-4 mr-1" /> Settings</Button></Link>
+              <Link href="/app/user-settings"><Button variant="secondary" size="sm" className="w-full"><Settings className="w-4 h-4 mr-1" /> {t('dashboard.settings')}</Button></Link>
               <Link href="/app/households"><Button size="sm" className="w-full">Households</Button></Link>
             </div>
           </CardContent>
@@ -169,8 +171,8 @@ export default function DashboardContent() {
       {/* Recent entries */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Entries {currentHousehold ? `· ${currentHousehold.name}` : ''}</CardTitle>
-          <CardDescription>Latest 3 entries in this household</CardDescription>
+          <CardTitle>{t('dashboard.recentEntries')} {currentHousehold ? `· ${currentHousehold.name}` : ''}</CardTitle>
+          <CardDescription>{t('dashboard.latestThree')}</CardDescription>
         </CardHeader>
         <CardContent>
           {(!selectedHouseholdId) ? (
@@ -178,7 +180,7 @@ export default function DashboardContent() {
           ) : loadingData ? (
             <div className="text-sm text-gray-500">Loading…</div>
           ) : entries.length === 0 ? (
-            <div className="text-sm text-gray-600">No entries yet. <Link className="underline" href="/app/entries/new">Create one</Link>.</div>
+            <div className="text-sm text-gray-600">{t('dashboard.noEntries')} <Link className="underline" href="/app/entries/new">{t('dashboard.createOne')}</Link>.</div>
           ) : (
             <ul className="space-y-2">
               {entries.map(e => (

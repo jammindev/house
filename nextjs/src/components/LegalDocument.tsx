@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 interface LegalDocumentProps {
     filePath: string;
@@ -14,6 +15,7 @@ const LegalDocument: React.FC<LegalDocumentProps> = ({ filePath, title }) => {
     const [content, setContent] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { t } = useI18n();
 
     useEffect(() => {
         setLoading(true);
@@ -32,7 +34,7 @@ const LegalDocument: React.FC<LegalDocumentProps> = ({ filePath, title }) => {
             })
             .catch(error => {
                 console.error('Error loading markdown:', error);
-                setError('Failed to load document. Please try again later.');
+                setError(t('legal.loadFailed'));
                 setLoading(false);
             });
     }, [filePath]);

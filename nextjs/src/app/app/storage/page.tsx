@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Upload, Download, Share2, Trash2, Loader2, FileIcon, AlertCircle, CheckCircle, Copy } from 'lucide-react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 import { FileObject } from '@supabase/storage-js';
+import { useI18n } from '@/lib/i18n/I18nProvider';
 
 export default function FileManagementPage() {
     const { user } = useGlobal();
+    const { t } = useI18n();
     const [files, setFiles] = useState<FileObject[]>([]);
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ export default function FileManagementPage() {
             if (error) throw error;
             setFiles(data || []);
         } catch (err) {
-            setError('Failed to load files');
+            setError(t('storage.loadFailed'));
             console.error('Error loading files:', err);
         } finally {
             setLoading(false);
@@ -59,9 +61,9 @@ export default function FileManagementPage() {
             if (error) throw error;
 
             await loadFiles();
-            setSuccess('File uploaded successfully');
+            setSuccess(t('storage.uploadSuccess'));
         } catch (err) {
-            setError('Failed to upload file');
+            setError(t('storage.uploadFailed'));
             console.error('Error uploading file:', err);
         } finally {
             setUploading(false);
@@ -117,7 +119,7 @@ export default function FileManagementPage() {
 
             window.open(data.signedUrl, '_blank');
         } catch (err) {
-            setError('Failed to download file');
+            setError(t('storage.downloadFailed'));
             console.error('Error downloading file:', err);
         }
     };
@@ -133,7 +135,7 @@ export default function FileManagementPage() {
             setShareUrl(data.signedUrl);
             setSelectedFile(filename);
         } catch (err) {
-            setError('Failed to generate share link');
+            setError(t('storage.shareFailed'));
             console.error('Error sharing file:', err);
         }
     };
@@ -149,9 +151,9 @@ export default function FileManagementPage() {
             if (error) throw error;
 
             await loadFiles();
-            setSuccess('File deleted successfully');
+            setSuccess(t('storage.deleteSuccess'));
         } catch (err) {
-            setError('Failed to delete file');
+            setError(t('storage.deleteFailed'));
             console.error('Error deleting file:', err);
         } finally {
             setShowDeleteDialog(false);
@@ -166,7 +168,7 @@ export default function FileManagementPage() {
             setTimeout(() => setShowCopiedMessage(false), 2000);
         } catch (err) {
             console.error('Failed to copy:', err);
-            setError('Failed to copy to clipboard');
+            setError(t('storage.copyFailed'));
         }
     };
 
@@ -175,8 +177,8 @@ export default function FileManagementPage() {
         <div className="space-y-6 p-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>File Management</CardTitle>
-                    <CardDescription>Upload, download, and share your files</CardDescription>
+                    <CardTitle>{t('storage.title')}</CardTitle>
+                    <CardDescription>{t('storage.subtitle')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {error && (
@@ -208,10 +210,10 @@ export default function FileManagementPage() {
                             <Upload className="w-8 h-8"/>
                             <span className="mt-2 text-base">
                                 {uploading
-                                    ? 'Uploading...'
+                                    ? t('storage.uploading')
                                     : isDragging
-                                        ? 'Drop your file here'
-                                        : 'Drag and drop or click to select a file (max 50mb)'}
+                                        ? t('storage.dropHere')
+                                        : t('storage.dragOrClick')}
                             </span>
                             <input
                                 type="file"
@@ -229,7 +231,7 @@ export default function FileManagementPage() {
                             </div>
                         )}
                         {files.length === 0 ? (
-                            <p className="text-center text-gray-500">No files uploaded yet</p>
+                            <p className="text-center text-gray-500">{t('storage.none')}</p>
                         ) : (
                             files.map((file) => (
                                 <div
@@ -244,7 +246,7 @@ export default function FileManagementPage() {
                                         <button
                                             onClick={() => handleDownload(file.name)}
                                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                            title="Download"
+                                            title={t('storage.download')}
                                         >
                                             <Download className="h-5 w-5"/>
                                         </button>
@@ -261,7 +263,7 @@ export default function FileManagementPage() {
                                                 setShowDeleteDialog(true);
                                             }}
                                             className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                            title="Delete"
+                                            title={t('common.delete')}
                                         >
                                             <Trash2 className="h-5 w-5"/>
                                         </button>
@@ -278,9 +280,9 @@ export default function FileManagementPage() {
                     }}>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Share {selectedFile?.split('/').pop()}</DialogTitle>
+                                <DialogTitle>{t('storage.shareTitle', { name: selectedFile?.split('/').pop() || '' })}</DialogTitle>
                                 <DialogDescription>
-                                    Copy the link below to share your file. This link will expire in 24 hours.
+                                    {t('storage.shareDesc')}
                                 </DialogDescription>
                             </DialogHeader>
                             <div className="flex items-center space-x-2">
@@ -298,7 +300,7 @@ export default function FileManagementPage() {
                                     {showCopiedMessage && (
                                         <span
                                             className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded">
-                                            Copied!
+                                            {t('storage.copied')}
                                         </span>
                                     )}
                                 </button>
@@ -310,15 +312,15 @@ export default function FileManagementPage() {
                     <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                         <AlertDialogContent>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Delete File</AlertDialogTitle>
+                                <AlertDialogTitle>{t('storage.confirmDeleteTitle')}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Are you sure you want to delete this file? This action cannot be undone.
+                                    {t('storage.confirmDeleteDesc')}
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                                    Delete
+                                    {t('common.delete')}
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>

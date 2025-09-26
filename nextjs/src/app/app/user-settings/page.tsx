@@ -177,7 +177,7 @@ export default function UserSettingsPage() {
 
                     <MFASetup
                         onStatusChange={() => {
-                            setSuccess('Two-factor authentication settings updated successfully');
+                            setSuccess(t('mfa.settingsUpdated'));
                         }}
                     />
                 </div>
