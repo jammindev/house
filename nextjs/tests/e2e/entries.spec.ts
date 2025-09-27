@@ -192,7 +192,7 @@ test.describe('entries', () => {
     await expect.poll(async () => (await getEntryById(entryId)) ? 1 : 0).toBe(0);
   });
 
-  test('prevents a non-creator from deleting an entry', async ({ page }) => {
+  test('allows another household member to delete an entry', async ({ page }) => {
     const ctx = requireContext();
     const zone = await createZone(ctx);
     const otherMember = await createHouseholdMember(ctx);
@@ -238,16 +238,17 @@ test.describe('entries', () => {
     await page.goto(`/app/entries/${entryId}`);
     await expect(page.getByText(text)).toBeVisible({ timeout: 15000 });
 
-    await page.getByRole('button', { name: /delete entry/i }).click();
-    const infoDialog = page.getByRole('alertdialog', { name: /cannot delete this entry/i });
-    await expect(infoDialog).toBeVisible();
-    await infoDialog.getByRole('button', { name: /^ok$/i }).click();
-    await expect(infoDialog).toBeHidden();
-
-    // Ensure attachments still exist and entry remains in DB
     await expect(page.getByText('text/plain').first()).toBeVisible();
-    await expect.poll(async () => await countEntryFiles(entryId)).toBeGreaterThan(0);
-    await expect.poll(async () => (await getEntryById(entryId)) ? 1 : 0).toBe(1);
+
+    await page.getByRole('button', { name: /delete entry/i }).click();
+    const dialog = page.getByRole('alertdialog', { name: /delete this entry/i });
+    await dialog.getByRole('button', { name: /^delete$/i }).click();
+
+    await expect(page).toHaveURL(/\/app\/entries$/);
+    await expect(page.getByText(text)).toHaveCount(0);
+
+    await expect.poll(async () => await countEntryFiles(entryId)).toBe(0);
+    await expect.poll(async () => (await getEntryById(entryId)) ? 1 : 0).toBe(0);
   });
 
   test('blocks creation when no zone is selected', async ({ page }) => {

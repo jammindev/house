@@ -90,8 +90,6 @@
   "entries.deleteEntry": "Delete Entry",
   "entries.confirmDeleteTitle": "Delete this entry?",
   "entries.confirmDeleteDesc": "This will permanently delete the entry and its attachments.",
-  "entries.cannotDeleteTitle": "Cannot delete this entry",
-  "entries.cannotDeleteDesc": "You cannot delete this entry because you did not create it.",
   "entries.deleteFileTitle": "Delete this file?",
   "entries.createFailed": "Failed to create entry",
   "entries.pdfPreview": "PDF preview",

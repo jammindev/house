@@ -90,8 +90,6 @@
   "entries.deleteEntry": "Supprimer l’entrée",
   "entries.confirmDeleteTitle": "Supprimer cette entrée ?",
   "entries.confirmDeleteDesc": "Cela supprimera définitivement l’entrée et ses pièces jointes.",
-  "entries.cannotDeleteTitle": "Impossible de supprimer cette entrée",
-  "entries.cannotDeleteDesc": "Vous ne pouvez pas supprimer cette entrée car vous ne l’avez pas créée.",
   "entries.deleteFileTitle": "Supprimer ce fichier ?",
   "entries.createFailed": "Échec de la création de l’entrée",
   "entries.pdfPreview": "Aperçu PDF",

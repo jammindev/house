@@ -27,7 +27,6 @@ export default function EntryDetailPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [confirmDeleteEntryOpen, setConfirmDeleteEntryOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
   const [deletingEntry, setDeletingEntry] = useState(false);
   const [confirmDeleteFileOpen, setConfirmDeleteFileOpen] = useState(false);
   const [pendingFileId, setPendingFileId] = useState<string | null>(null);
@@ -119,13 +118,7 @@ export default function EntryDetailPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">{t('entries.detail')}</h1>
         <div className="flex items-center gap-2">
-          <Button variant="destructive" onClick={() => {
-            if (entry?.created_by && user?.id && entry.created_by === user.id) {
-              setConfirmDeleteEntryOpen(true);
-            } else {
-              setInfoOpen(true);
-            }
-          }}>{t('entries.deleteEntry')}</Button>
+          <Button variant="destructive" onClick={() => setConfirmDeleteEntryOpen(true)}>{t('entries.deleteEntry')}</Button>
           <Link href="/app/entries"><Button variant="secondary">{t('common.backToList')}</Button></Link>
         </div>
       </div>
@@ -212,16 +205,6 @@ export default function EntryDetailPage() {
             setDeletingEntry(false);
           }
         }}
-      />
-
-      <ConfirmDialog
-        open={infoOpen}
-        onOpenChange={setInfoOpen}
-        title={t('entries.cannotDeleteTitle')}
-        description={t('entries.cannotDeleteDesc')}
-        confirmText={t('common.ok')}
-        hideCancel
-        onConfirm={() => setInfoOpen(false)}
       />
 
       <ConfirmDialog
