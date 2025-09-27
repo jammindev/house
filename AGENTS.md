@@ -125,7 +125,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Entry maintenance: add edit/update flows (including zone reassignment and attachment management) and consider pagination beyond the latest 50 entries.
 - Household management: surface household list, invitations, role management, and ability to switch default household via the UI.
 - Schema/types hygiene: regenerate `Database` types, remove unused template tables/routes (`todo_list`, `/app/table`, `/app/storage`) once House features replace them.
-- Quality & operations: add automated testing (unit/integration), lint/test scripts in CI, production-ready logging/monitoring, and update `README.md` to describe House instead of the upstream SaaS template.
+- Quality & operations: extend automated testing (more Playwright coverage, unit/integration suites), add CI, production-ready logging/monitoring, and update `README.md` to describe House instead of the upstream SaaS template.
 
 ## 11) Risks & Constraints
 - Do not modify the Supabase `auth` schema. Reference `auth.users` but avoid schema changes there.
@@ -159,3 +159,10 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Locales: English (`en`, default) and French (`fr`). Dictionaries live in `nextjs/src/lib/i18n/dictionaries/{en,fr}.json`.
 - Provider: added in `app/layout.tsx`; locale persists in `localStorage` as `locale` and updates `<html lang>`.
 - Usage example: `const { t } = useI18n(); t('dashboard.welcome', { name: 'Alice' })`.
+
+## 15) Testing & QA
+- End-to-end tests use Playwright and live under `nextjs/tests/e2e`. They cover auth redirects plus zone creation, rename, and deletion flows seeded through Supabase service-role helpers.
+- Install Playwright browsers with `cd nextjs && yarn playwright:install` (once per machine). Ensure `.env.local` exposes Supabase URL, anon key, and `PRIVATE_SUPABASE_SERVICE_KEY` for the test harness.
+- Run the suite via `yarn test:e2e` from the repo root or `cd nextjs && yarn test:e2e`. Set `PLAYWRIGHT_SKIP_WEB_SERVER=1` if you want to manage the Next.js server manually.
+- Tests seed temporary users/households via the service key and clean them up after each run; use isolated Supabase instances or reset your local DB if a run is interrupted.
+- Playwright automatically loads environment variables from `.env.test.local`, `.env.local`, `.env`, and `supabase/.env`. Ensure these files expose Supabase URL, anon, and service-role keys for deterministic runs.
