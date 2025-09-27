@@ -160,7 +160,7 @@ export async function cleanupHouseholdMember(member: HouseholdMemberContext) {
 
 export async function createZone(
   context: TestUserContext,
-  options?: { name?: string; parentId?: string | null }
+  options?: { name?: string; parentId?: string | null; surface?: number | null; note?: string | null }
 ): Promise<TestZone> {
   const client = getAdminClient();
   const name = options?.name ?? `Playwright Zone ${Date.now().toString(36)}`;
@@ -173,6 +173,8 @@ export async function createZone(
       name,
       parent_id: parentId,
       created_by: context.userId,
+      surface: options?.surface ?? null,
+      note: options?.note ?? null,
     })
     .select('id, name')
     .single();

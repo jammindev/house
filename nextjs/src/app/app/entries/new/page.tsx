@@ -11,6 +11,14 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
+type ZoneOption = {
+  id: string;
+  name: string;
+  parent_id?: string | null;
+  note?: string | null;
+  surface?: number | null;
+};
+
 export default function NewEntryPage() {
   const router = useRouter();
   const { loading, households, selectedHouseholdId } = useGlobal();
@@ -19,10 +27,12 @@ export default function NewEntryPage() {
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
   const [rawText, setRawText] = useState<string>("");
-  const [zones, setZones] = useState<{ id: string; name: string; parent_id?: string | null }[]>([]);
+  const [zones, setZones] = useState<ZoneOption[]>([]);
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
   const [newZoneName, setNewZoneName] = useState<string>("");
   const [newZoneParentId, setNewZoneParentId] = useState<string | "">("");
+  const [newZoneSurface, setNewZoneSurface] = useState<string>("");
+  const [newZoneNote, setNewZoneNote] = useState<string>("");
   const [creatingZone, setCreatingZone] = useState<boolean>(false);
   const [showZoneInput, setShowZoneInput] = useState<boolean>(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -44,11 +54,11 @@ export default function NewEntryPage() {
         const client = supa.getSupabaseClient();
         const { data, error: zErr } = await client
           .from("zones" as any)
-          .select("id,name,parent_id")
+          .select("id,name,parent_id,note,surface")
           .eq("household_id", selectedHouseholdId)
           .order("created_at" as any);
         if (zErr) throw zErr;
-        setZones((data || []) as any);
+        setZones((data as ZoneOption[]) ?? []);
       } catch (e: any) {
         console.error(e);
         setError(e?.message || t('zones.loadFailed'));
@@ -64,18 +74,31 @@ export default function NewEntryPage() {
       return;
     }
     if (!name) return;
+    const surfaceTrimmed = newZoneSurface.trim();
+    const surfaceValue = surfaceTrimmed ? Number(surfaceTrimmed) : null;
+    if (surfaceTrimmed && (Number.isNaN(surfaceValue) || surfaceValue < 0)) {
+      setError(t('zones.invalidSurface'));
+      return;
+    }
+    const noteValue = newZoneNote.trim();
     try {
       setCreatingZone(true);
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
       const { data, error: insErr } = await client
         .from("zones" as any)
-        .insert({ household_id: selectedHouseholdId, name, parent_id: newZoneParentId || null })
-        .select("id,name,parent_id")
+        .insert({
+          household_id: selectedHouseholdId,
+          name,
+          parent_id: newZoneParentId || null,
+          note: noteValue ? noteValue : null,
+          surface: surfaceValue,
+        })
+        .select("id,name,parent_id,note,surface")
         .single();
       if (insErr) throw insErr;
       if (data) {
-        const createdZone = { id: (data as any).id, name: (data as any).name, parent_id: (data as any).parent_id };
+        const createdZone = data as ZoneOption;
         setZones((prev) => {
           const nextZones = [...prev, createdZone];
           setSelectedZoneIds((prevIds) => normalizeZoneSelection([...prevIds, createdZone.id], nextZones));
@@ -83,6 +106,8 @@ export default function NewEntryPage() {
         });
         setNewZoneName("");
         setNewZoneParentId("");
+        setNewZoneSurface("");
+        setNewZoneNote("");
         setShowZoneInput(false);
       }
     } catch (e: any) {
@@ -245,39 +270,67 @@ export default function NewEntryPage() {
                 <label className="text-sm font-medium">{t('zones.title')}</label>
                 <div className="flex items-center gap-2">
                   {showZoneInput ? (
-                    <>
-                      <Input
-                        value={newZoneName}
-                        onChange={(e) => setNewZoneName(e.target.value)}
-                        placeholder={t('zones.placeholder')}
+                    <div className="w-full space-y-2 rounded-md border border-gray-200 bg-gray-50 p-3">
+                      <div className="flex flex-col gap-2 md:flex-row">
+                        <Input
+                          value={newZoneName}
+                          onChange={(e) => setNewZoneName(e.target.value)}
+                          placeholder={t('zones.placeholder')}
+                          className="md:flex-1"
+                        />
+                        <select
+                          value={newZoneParentId}
+                          onChange={(e) => setNewZoneParentId(e.target.value)}
+                          className="h-10 rounded-md border px-3 text-sm md:w-56"
+                        >
+                          <option value="">{t('zones.noParent')}</option>
+                          {zones.map((z) => (
+                            <option key={z.id} value={z.id}>{z.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-2 md:flex-row">
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={newZoneSurface}
+                          onChange={(e) => setNewZoneSurface(e.target.value)}
+                          placeholder={t('zones.surfacePlaceholder')}
+                          className="md:w-48"
+                        />
+                      </div>
+                      <Textarea
+                        value={newZoneNote}
+                        onChange={(e) => setNewZoneNote(e.target.value)}
+                        placeholder={t('zones.notePlaceholder')}
+                        rows={3}
                       />
-                      <select
-                        value={newZoneParentId}
-                        onChange={(e) => setNewZoneParentId(e.target.value)}
-                        className="h-10 px-3 border rounded-md text-sm"
-                      >
-                        <option value="">{t('zones.noParent')}</option>
-                        {zones.map((z) => (
-                          <option key={z.id} value={z.id}>{z.name}</option>
-                        ))}
-                      </select>
-                      <Button
-                        type="button"
-                        onClick={handleCreateZone}
-                        disabled={creatingZone || !newZoneName.trim()}
-                        className="bg-primary-600 text-white hover:bg-primary-700"
-                      >
-                        {creatingZone ? t('common.adding') : t('common.save')}
-                      </Button>
-                      <Button
-                        type="button"
-                        onClick={() => { setShowZoneInput(false); setNewZoneName(""); }}
-                        className="border bg-white text-gray-700 hover:bg-gray-50"
-                        disabled={creatingZone}
-                      >
-                        {t('common.cancel')}
-                      </Button>
-                    </>
+                      <div className="flex flex-wrap gap-2">
+                        <Button
+                          type="button"
+                          onClick={handleCreateZone}
+                          disabled={creatingZone || !newZoneName.trim()}
+                          className="bg-primary-600 text-white hover:bg-primary-700"
+                        >
+                          {creatingZone ? t('common.adding') : t('common.save')}
+                        </Button>
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            setShowZoneInput(false);
+                            setNewZoneName("");
+                            setNewZoneParentId("");
+                            setNewZoneSurface("");
+                            setNewZoneNote("");
+                          }}
+                          className="border bg-white text-gray-700 hover:bg-gray-50"
+                          disabled={creatingZone}
+                        >
+                          {t('common.cancel')}
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
                     <Button
                       type="button"
@@ -327,15 +380,15 @@ export default function NewEntryPage() {
   );
 }
 
-function ZonePicker({ zones, value, onChange }: { zones: { id: string; name: string; parent_id?: string | null }[]; value: string[]; onChange: React.Dispatch<React.SetStateAction<string[]>> }) {
+function ZonePicker({ zones, value, onChange }: { zones: ZoneOption[]; value: string[]; onChange: React.Dispatch<React.SetStateAction<string[]>> }) {
   const zoneMap = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; parent_id?: string | null }>();
+    const map = new Map<string, ZoneOption>();
     zones.forEach(z => map.set(z.id, z));
     return map;
   }, [zones]);
 
   const childrenMap = useMemo(() => {
-    const map = new Map<string, { id: string; name: string; parent_id?: string | null }[]>();
+    const map = new Map<string, ZoneOption[]>();
     zones.forEach(zone => {
       if (zone.parent_id && zoneMap.has(zone.parent_id)) {
         const list = map.get(zone.parent_id) || [];
@@ -446,7 +499,7 @@ function ZoneToggle({ zone, selected, onToggle, depth }: { zone: { id: string; n
 
 function normalizeZoneSelection(
   selectedIds: string[],
-  zones: { id: string; parent_id?: string | null }[]
+  zones: ZoneOption[]
 ): string[] {
   if (selectedIds.length === 0) {
     return [];

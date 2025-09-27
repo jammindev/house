@@ -29,15 +29,27 @@ test.describe('zones management', () => {
     await expect(page.getByRole('button', { name: ctx.householdName })).toBeVisible();
   };
 
-  const createZoneThroughUI = async (page: Page, name: string) => {
+  const createZoneThroughUI = async (
+    page: Page,
+    name: string,
+    options: { surface?: string; note?: string } = {}
+  ) => {
     const addZoneButton = page.getByRole('button', { name: /add zone/i });
     await expect(addZoneButton).toBeVisible();
     await addZoneButton.click();
 
     await page.getByPlaceholder('e.g., Kitchen, Garage, Garden').fill(name);
+    if (options.surface !== undefined) {
+      await page.getByPlaceholder(/surface/i).fill(options.surface);
+    }
+    if (options.note !== undefined) {
+      await page.getByPlaceholder(/note/i).fill(options.note);
+    }
     await page.getByRole('button', { name: /^save$/i }).click();
 
     await expect(page.getByText(name)).toBeVisible();
+
+    return page.getByRole('listitem').filter({ hasText: name }).first();
   };
 
   test.beforeEach(async () => {
@@ -55,7 +67,12 @@ test.describe('zones management', () => {
     await signInAndOpenZones(page);
 
     const name = zoneName();
-    await createZoneThroughUI(page, name);
+    const note = 'Zone principale';
+    const surface = '12.5';
+    const zoneRow = await createZoneThroughUI(page, name, { note, surface });
+
+    await expect(zoneRow.getByText(`Surface: ${surface} m²`)).toBeVisible();
+    await expect(zoneRow.getByText(`Note: ${note}`)).toBeVisible();
   });
 
   test('allows renaming an existing zone', async ({ page }) => {
@@ -68,13 +85,17 @@ test.describe('zones management', () => {
     const zoneRow = page.getByRole('listitem').filter({ hasText: name }).first();
     await zoneRow.getByRole('button', { name: /rename/i }).click();
 
-    const editingRow = page.getByRole('listitem').filter({ has: page.locator('input') }).first();
+    const editingRow = page.getByRole('listitem').filter({ has: page.locator('textarea') }).first();
     const editInput = editingRow.locator('input').first();
     await expect(editInput).toBeVisible();
     await editInput.fill(newName);
+    await editingRow.getByPlaceholder(/surface/i).fill('18');
+    await editingRow.getByPlaceholder(/note/i).fill('Mise à jour');
     await editingRow.getByRole('button', { name: /^save$/i }).click();
 
     await expect(page.getByText(newName)).toBeVisible();
+    await expect(page.getByText('Surface: 18 m²')).toBeVisible();
+    await expect(page.getByText('Note: Mise à jour')).toBeVisible();
   });
 
   test('allows deleting an existing zone', async ({ page }) => {
