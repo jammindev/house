@@ -82,9 +82,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
@@ -92,6 +92,28 @@ test.describe('entries', () => {
     await page.waitForURL('**/app/entries*', { timeout: 15000 });
     await expect(page.getByText(text)).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Entry created successfully').first()).toBeVisible();
+  });
+
+  test('selecting a child zone removes its parent from the selection', async ({ page }) => {
+    const ctx = requireContext();
+    const parentZone = await createZone(ctx, { name: 'Maison' });
+    const childZone = await createZone(ctx, { name: 'Cuisine', parentId: parentZone.id });
+
+    await signIn(page);
+    await page.goto('/app/entries/new');
+
+    const parentButton = page.locator(`[data-zone-id="${parentZone.id}"]`);
+    const childButton = page.locator(`[data-zone-id="${childZone.id}"]`);
+
+    await expect(parentButton).toBeVisible();
+    await expect(childButton).toBeVisible();
+
+    await parentButton.click();
+    await expect(parentButton).toHaveAttribute('aria-pressed', 'true');
+
+    await childButton.click();
+    await expect(childButton).toHaveAttribute('aria-pressed', 'true');
+    await expect(parentButton).toHaveAttribute('aria-pressed', 'false');
   });
 
   test('uploads an attachment and shows it on the entry detail page', async ({ page }) => {
@@ -103,9 +125,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.setInputFiles('input[type="file"]', filePath);
     await page.getByPlaceholder(/write your entry here/i).fill(text);
@@ -131,9 +153,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.setInputFiles('input[type="file"]', filePath);
     await page.getByPlaceholder(/write your entry here/i).fill(text);
@@ -165,9 +187,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.setInputFiles('input[type="file"]', filePath);
     await page.getByPlaceholder(/write your entry here/i).fill(text);
@@ -204,9 +226,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.setInputFiles('input[type="file"]', filePath);
     await page.getByPlaceholder(/write your entry here/i).fill(text);
@@ -259,8 +281,8 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
 
     await page.getByPlaceholder(/write your entry here/i).fill(text);
 
@@ -275,9 +297,9 @@ test.describe('entries', () => {
     await signIn(page);
     await page.goto('/app/entries/new');
 
-    const zoneSelect = page.locator('select[multiple]');
-    await expect(zoneSelect.locator('option', { hasText: zone.name })).toBeVisible();
-    await zoneSelect.selectOption(zone.id);
+    const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
+    await expect(zoneButton).toBeVisible();
+    await zoneButton.click();
 
     await page.getByPlaceholder(/write your entry here/i).fill('   ');
     await page.getByRole('button', { name: /create entry/i }).click();

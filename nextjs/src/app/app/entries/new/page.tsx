@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
@@ -75,8 +75,12 @@ export default function NewEntryPage() {
         .single();
       if (insErr) throw insErr;
       if (data) {
-        setZones((prev) => [...prev, { id: (data as any).id, name: (data as any).name, parent_id: (data as any).parent_id }]);
-        setSelectedZoneIds((prev) => [...prev, (data as any).id]);
+        const createdZone = { id: (data as any).id, name: (data as any).name, parent_id: (data as any).parent_id };
+        setZones((prev) => {
+          const nextZones = [...prev, createdZone];
+          setSelectedZoneIds((prevIds) => normalizeZoneSelection([...prevIds, createdZone.id], nextZones));
+          return nextZones;
+        });
         setNewZoneName("");
         setNewZoneParentId("");
         setShowZoneInput(false);
@@ -287,7 +291,11 @@ export default function NewEntryPage() {
                 {zones.length === 0 ? (
                   <div className="text-sm text-gray-500">{t('zones.none')}</div>
                 ) : (
-                  <MultiZoneSelect zones={zones} value={selectedZoneIds} onChange={setSelectedZoneIds} />
+                  <ZonePicker
+                    zones={zones}
+                    value={selectedZoneIds}
+                    onChange={setSelectedZoneIds}
+                  />
                 )}
               </div>
 
@@ -319,54 +327,168 @@ export default function NewEntryPage() {
   );
 }
 
-function MultiZoneSelect({ zones, value, onChange }: { zones: { id: string; name: string; parent_id?: string | null }[]; value: string[]; onChange: (ids: string[]) => void }) {
-  // Build parent -> children map and order
-  const parents = zones.filter(z => !z.parent_id);
-  const childrenMap = zones.reduce<Record<string, { id: string; name: string; parent_id?: string | null }[]>>((acc, z) => {
-    if (z.parent_id) {
-      acc[z.parent_id] = acc[z.parent_id] || [];
-      acc[z.parent_id].push(z);
-    }
-    return acc;
-  }, {});
+function ZonePicker({ zones, value, onChange }: { zones: { id: string; name: string; parent_id?: string | null }[]; value: string[]; onChange: React.Dispatch<React.SetStateAction<string[]>> }) {
+  const zoneMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; parent_id?: string | null }>();
+    zones.forEach(z => map.set(z.id, z));
+    return map;
+  }, [zones]);
 
-  parents.sort((a, b) => a.name.localeCompare(b.name));
-  Object.values(childrenMap).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name)));
+  const childrenMap = useMemo(() => {
+    const map = new Map<string, { id: string; name: string; parent_id?: string | null }[]>();
+    zones.forEach(zone => {
+      if (zone.parent_id && zoneMap.has(zone.parent_id)) {
+        const list = map.get(zone.parent_id) || [];
+        list.push(zone);
+        map.set(zone.parent_id, list);
+      }
+    });
+    map.forEach(list => list.sort((a, b) => a.name.localeCompare(b.name)));
+    return map;
+  }, [zones, zoneMap]);
 
-  const ordered: { id: string; name: string; isChild: boolean }[] = [];
-  for (const p of parents) {
-    ordered.push({ id: p.id, name: p.name, isChild: false });
-    const kids = childrenMap[p.id] || [];
-    for (const c of kids) {
-      ordered.push({ id: c.id, name: c.name, isChild: true });
-    }
-  }
+  const roots = useMemo(() => {
+    return zones
+      .filter(zone => !zone.parent_id || !zoneMap.has(zone.parent_id))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [zones, zoneMap]);
 
-  // Handle children whose parent is missing (edge cases)
-  const orphanChildren = zones.filter(z => z.parent_id && !parents.find(p => p.id === z.parent_id));
-  if (orphanChildren.length) {
-    for (const oc of orphanChildren) {
-      if (!ordered.find(o => o.id === oc.id)) {
-        ordered.push({ id: oc.id, name: oc.name, isChild: true });
+  const getDescendants = useCallback((zoneId: string) => {
+    const result: string[] = [];
+    const stack = [...(childrenMap.get(zoneId) || [])];
+    while (stack.length) {
+      const current = stack.pop();
+      if (!current) continue;
+      result.push(current.id);
+      const kids = childrenMap.get(current.id);
+      if (kids?.length) {
+        stack.push(...kids);
       }
     }
-  }
+    return result;
+  }, [childrenMap]);
+
+  const toggleZone = useCallback((zoneId: string) => {
+    const isSelected = value.includes(zoneId);
+    const descendants = getDescendants(zoneId);
+    let next = value.filter(id => id !== zoneId && !descendants.includes(id));
+    if (!isSelected) {
+      next = [...next, zoneId];
+    }
+    onChange(normalizeZoneSelection(next, zones));
+  }, [getDescendants, onChange, value, zones]);
+
+  const renderBranch = useCallback((zone: { id: string; name: string; parent_id?: string | null }, depth = 0): React.ReactNode => {
+    const isSelected = value.includes(zone.id);
+    const children = childrenMap.get(zone.id) || [];
+    const wrapperClass = depth === 0
+      ? "rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+      : "space-y-2 border-l border-gray-100 pl-4";
+    const offsetClass = depth > 0 ? "ml-2" : "";
+
+    return (
+      <div key={zone.id} className={`${wrapperClass} ${offsetClass}`}>
+        <ZoneToggle
+          zone={zone}
+          selected={isSelected}
+          onToggle={() => toggleZone(zone.id)}
+          depth={depth}
+        />
+        {children.length > 0 ? (
+          <div className="mt-2 space-y-2">
+            {children.map(child => renderBranch(child, depth + 1))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }, [childrenMap, toggleZone, value]);
+
+  const list = roots.length > 0 ? roots : [...zones].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <select
-      multiple
-      value={value}
-      onChange={(e) => {
-        const selected = Array.from(e.currentTarget.selectedOptions).map(o => o.value);
-        onChange(selected);
-      }}
-      className="w-full border rounded-md px-3 py-2 text-sm h-40"
-    >
-      {ordered.map(opt => (
-        <option key={opt.id} value={opt.id} className="py-1">
-          {opt.isChild ? `↳ ${opt.name}` : opt.name}
-        </option>
-      ))}
-    </select>
+    <div className="space-y-3">
+      {list.map(root => renderBranch(root))}
+    </div>
   );
+}
+
+function ZoneToggle({ zone, selected, onToggle, depth }: { zone: { id: string; name: string }; selected: boolean; onToggle: () => void; depth: number }) {
+  const indicatorClass = selected
+    ? "border-primary-500 bg-primary-500 text-white"
+    : "border-gray-300 text-transparent group-hover:text-gray-400 group-hover:border-primary-300";
+
+  const baseClass = selected
+    ? "border-primary-200 bg-primary-50 text-primary-900 shadow-sm"
+    : depth === 0
+      ? "border-gray-200 bg-white text-gray-800 hover:border-primary-200 hover:bg-primary-50/40"
+      : "border-gray-200 bg-gray-50 text-gray-700 hover:border-primary-200 hover:bg-primary-50/30";
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={selected}
+      data-zone-id={zone.id}
+      className={`group flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors ${baseClass}`}
+    >
+      <span className="flex items-center gap-3">
+        <span className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs font-semibold transition ${indicatorClass}`}>
+          ✓
+        </span>
+        <span className="flex items-center gap-2">
+          {depth > 0 ? <span className="text-gray-400">↳</span> : null}
+          <span className={depth === 0 ? "font-medium text-gray-900" : "text-gray-800"}>{zone.name}</span>
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function normalizeZoneSelection(
+  selectedIds: string[],
+  zones: { id: string; parent_id?: string | null }[]
+): string[] {
+  if (selectedIds.length === 0) {
+    return [];
+  }
+
+  const parentMap = new Map<string, string>();
+  for (const zone of zones) {
+    if (zone.parent_id) {
+      parentMap.set(zone.id, zone.parent_id);
+    }
+  }
+
+  const result = new Set(selectedIds);
+  for (const id of selectedIds) {
+    let parentId = parentMap.get(id);
+    while (parentId) {
+      if (result.has(parentId)) {
+        result.delete(parentId);
+      }
+      parentId = parentMap.get(parentId);
+    }
+  }
+
+  const ordered: string[] = [];
+  const seen = new Set<string>();
+  for (const id of selectedIds) {
+    if (result.has(id) && !seen.has(id)) {
+      ordered.push(id);
+      seen.add(id);
+    }
+  }
+
+  if (ordered.length === result.size) {
+    return ordered;
+  }
+
+  for (const id of result) {
+    if (!seen.has(id)) {
+      ordered.push(id);
+      seen.add(id);
+    }
+  }
+
+  return ordered;
 }
