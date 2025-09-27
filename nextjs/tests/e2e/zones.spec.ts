@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import type { Page } from '@playwright/test';
+import type { Page, Locator } from '@playwright/test';
 import { createTestUser, cleanupTestUser, type TestUserContext } from './utils/supabaseAdmin';
 
 const zoneName = () => `Playwright Zone ${Date.now().toString(36)}`;
@@ -32,7 +32,12 @@ test.describe('zones management', () => {
   const createZoneThroughUI = async (
     page: Page,
     name: string,
-    options: { surface?: string; note?: string } = {}
+    options: {
+      surface?: string;
+      note?: string;
+      afterCreate?: (editingRow: Locator) => Promise<void> | void;
+      leaveEditingOpen?: boolean;
+    } = {}
   ) => {
     const addZoneButton = page.getByRole('button', { name: /add zone/i });
     await expect(addZoneButton).toBeVisible();
@@ -47,9 +52,27 @@ test.describe('zones management', () => {
     }
     await page.getByRole('button', { name: /^save$/i }).click();
 
-    await expect(page.getByText(name)).toBeVisible();
+    const editingRow = page
+      .getByRole('listitem')
+      .filter({ has: page.locator(`input[value='${name}']`) })
+      .first();
 
-    return page.getByRole('listitem').filter({ hasText: name }).first();
+    await expect(editingRow).toBeVisible();
+
+    if (options.afterCreate) {
+      await options.afterCreate(editingRow);
+    }
+
+    if (options.leaveEditingOpen) {
+      return editingRow;
+    }
+
+    await editingRow.getByRole('button', { name: /^save$/i }).click();
+
+    const zoneRow = page.getByRole('listitem').filter({ hasText: name }).first();
+    await expect(zoneRow).toBeVisible();
+
+    return zoneRow;
   };
 
   test.beforeEach(async () => {
@@ -83,7 +106,7 @@ test.describe('zones management', () => {
 
     const newName = `${name}-renamed`;
     const zoneRow = page.getByRole('listitem').filter({ hasText: name }).first();
-    await zoneRow.getByRole('button', { name: /rename/i }).click();
+    await zoneRow.getByRole('button', { name: /edit/i }).click();
 
     const editingRow = page.getByRole('listitem').filter({ has: page.locator('textarea') }).first();
     const editInput = editingRow.locator('input').first();
@@ -96,6 +119,28 @@ test.describe('zones management', () => {
     await expect(page.getByText(newName)).toBeVisible();
     await expect(page.getByText('Surface: 18 m²')).toBeVisible();
     await expect(page.getByText('Note: Mise à jour')).toBeVisible();
+  });
+
+  test('opens the editor after creating a zone with existing values', async ({ page }) => {
+    await signInAndOpenZones(page);
+
+    const name = zoneName();
+    const note = 'Pré-remplie';
+    const surface = '7.5';
+
+    const editingRow = await createZoneThroughUI(page, name, {
+      surface,
+      note,
+      leaveEditingOpen: true,
+    });
+
+    const nameInput = editingRow.locator('input').first();
+    await expect(nameInput).toHaveValue(name);
+    await expect(editingRow.getByPlaceholder(/surface/i)).toHaveValue(surface);
+    await expect(editingRow.getByPlaceholder(/note/i)).toHaveValue(note);
+
+    await editingRow.getByRole('button', { name: /^save$/i }).click();
+    await expect(page.getByText(name)).toBeVisible();
   });
 
   test('allows deleting an existing zone', async ({ page }) => {
