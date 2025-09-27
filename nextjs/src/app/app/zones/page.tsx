@@ -13,7 +13,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 type Zone = { id: string; name: string; created_by?: string; parent_id?: string | null };
 
 export default function ZonesPage() {
-  const { loading: globalLoading, selectedHouseholdId, households, user } = useGlobal();
+  const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
   const { t } = useI18n();
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -30,7 +30,6 @@ export default function ZonesPage() {
   const [savingEdit, setSavingEdit] = useState<boolean>(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
 
   const currentHousehold = useMemo(
@@ -200,16 +199,16 @@ export default function ZonesPage() {
                     <option key={z.id} value={z.id}>{z.name}</option>
                   ))}
                 </select>
-                  <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
+                <Button onClick={handleCreate} disabled={creating || !newName.trim()}>
                   {creating ? t('common.creating') : t('common.save')}
-                  </Button>
-                  <Button
+                </Button>
+                <Button
                   variant="secondary"
                   onClick={() => { setShowNew(false); setNewName(""); }}
                   disabled={creating}
-                  >
+                >
                   {t('common.cancel')}
-                  </Button>
+                </Button>
               </>
             ) : (
               <Button onClick={() => setShowNew(true)}>{t('zones.addZone')}</Button>
@@ -262,16 +261,12 @@ export default function ZonesPage() {
                     ) : (
                       <>
                         <Button size="sm" variant="secondary" onClick={() => startEdit(z)}>{t('zones.rename')}</Button>
-                        <Button size="sm" variant="destructive" onClick={() => {
-                          // Only allow delete if creator is current user
-                          if (z.created_by && user?.id && z.created_by === user.id) {
-                            setPendingDelete(z); setConfirmOpen(true);
-                          } else {
-                            // Show info dialog
-                            setPendingDelete(z);
-                            setInfoOpen(true);
-                          }
-                        }} disabled={deletingId === z.id}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => { setPendingDelete(z); setConfirmOpen(true); }}
+                          disabled={deletingId === z.id}
+                        >
                           {deletingId === z.id ? t('common.deleting') : t('common.delete')}
                         </Button>
                       </>
@@ -299,16 +294,6 @@ export default function ZonesPage() {
           setConfirmOpen(false);
           setPendingDelete(null);
         }}
-      />
-      {/* Info when cannot delete */}
-      <ConfirmDialog
-        open={infoOpen}
-        onOpenChange={(o) => { setInfoOpen(o); if (!o) setPendingDelete(null); }}
-        title="Cannot delete this zone"
-        description="You cannot delete this zone because you did not create it."
-        confirmText="OK"
-        hideCancel
-        onConfirm={() => setInfoOpen(false)}
       />
     </div>
   );
