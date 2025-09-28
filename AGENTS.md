@@ -52,14 +52,14 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Policies on `households` rely on this table to authorize access.
 
 - `zones`
-  - Columns: `id uuid pk`, `household_id uuid`, `name text`, `parent_id uuid nullable` (same-household FK), `created_at timestamptz`, `created_by uuid`.
+  - Columns: `id uuid pk`, `household_id uuid`, `name text`, `parent_id uuid nullable` (same-household FK), `note text`, `surface numeric check (surface >= 0)`, `created_at timestamptz`, `created_by uuid`.
   - Trigger `trg_zones_set_created_by` populates `created_by = auth.uid()`.
-  - RLS: members of the household may select/insert/update; delete is limited to the creator.
+  - RLS: members of the household may select/insert/update/delete zones for their household; delete is no longer restricted to the creator.
 
 - `entries`
   - Columns: `id uuid pk`, `household_id uuid`, `raw_text text`, `enriched_text text`, `metadata jsonb default '{}'`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
   - Trigger `update_entry_metadata` keeps `updated_at` and `updated_by` in sync.
-  - RLS: members can select/insert/update; delete requires membership *and* `created_by = auth.uid()`.
+  - RLS: members can select/insert/update/delete entries that belong to their household (no creator check on delete).
 
 - `entry_zones`
   - Join table `(entry_id uuid fk → entries on delete cascade, zone_id uuid fk → zones on delete cascade)` with PK `(entry_id, zone_id)`.
@@ -84,16 +84,18 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 ## 6) App Architecture (Next.js)
 - Root layout (`nextjs/src/app/layout.tsx`) wraps pages with the i18n provider, cookie banner, and analytics integration. Theme/product name still come from SaaS template environment variables.
 - Global context (`GlobalContext`) loads the current user, their households, and manages the selected household (stored in `localStorage`).
-- Routes under `/auth/*` provide login/registration flows from the template; `/legal/*` hosts markdown legal pages.
-- `/app` dashboard aggregates recent entries and zone counts for the selected household with quick links.
-- Entries UI (`/app/entries`): list view limited to 50 recent entries, shows attachment counts. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can now delete entries per updated RLS. `/app/entries/new` creates entries with zone selection, inline zone creation, and attachment upload (client uploads to storage then inserts rows into `entry_files`).
-- Zones UI (`/app/zones`): manage zones, including optional parent assignment. Only the creator can delete a zone; others see an informational dialog.
-- Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the service-role client.
+- Routes under `/auth/*` provide login/registration flows plus the `/auth/2fa` challenge screen; `/legal/*` hosts markdown legal pages.
+- `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
+- Entries UI (`/app/entries`): list view limited to 50 recent entries, shows attachment counts. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete entries per updated RLS, while attachment deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/entries/new` creates entries with zone selection, inline zone creation, and attachment upload (client uploads to storage then inserts rows into `entry_files`).
+- Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, and per-household stats. Any household member can update or delete a zone; the UI exposes confirmations rather than ownership blockers.
+- User settings (`/app/user-settings`): change locale, view account metadata, update password, and enrol/manage TOTP MFA devices via `MFASetup`.
+- Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the security-definer RPC. `/app/households` currently just links to creation.
 - Template demos: `/app/storage` (personal file bucket) and `/app/table` (todo list) still exist from the upstream template and operate on template schema. They are unrelated to the House domain and should be hidden or removed before launch.
 - i18n: `I18nProvider` wraps the tree; dictionaries in `lib/i18n/dictionaries` include keys for dashboard, entries, zones, storage, etc. Locale persists in `localStorage`.
 
 ## 7) API & Edge Functions
-- `POST /api/households`: server action that authenticates the caller, inserts a household via the service-role client, and enrolls the requester as owner.
+- `POST /api/households`: server action that authenticates the caller, then uses the SSR client (anon key) to execute the `create_household_with_owner` security-definer RPC, which inserts the household and enrols the requester as owner.
+- `POST /api/internal/process-entry-files`: service-role pipeline kick-off; requires the `x-internal-task-token` header matching `INTERNAL_TASK_TOKEN`, runs `processEntryFiles` to extract attachment text and refresh `entries.enriched_text`.
 - `GET /api/auth/callback`: template Supabase auth callback route; untouched.
 - No dedicated API routes for entries/zones/files—client components interact directly with Supabase (RLS-enforced).
 - No edge functions or background workers yet. OCR, enrichment, and search remain future work.
@@ -140,6 +142,8 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Entry creation: `nextjs/src/app/app/entries/new/page.tsx`
 - Entry detail + deletion: `nextjs/src/app/app/entries/[id]/page.tsx`
 - Zones management: `nextjs/src/app/app/zones/page.tsx`
+- User settings + MFA enrolment: `nextjs/src/app/app/user-settings/page.tsx`, `nextjs/src/components/MFASetup.tsx`
+- MFA challenge screen: `nextjs/src/app/auth/2fa/page.tsx`, `nextjs/src/components/MFAVerification.tsx`
 - Household creation API: `nextjs/src/app/api/households/route.ts`
 - Supabase browser client wrapper: `nextjs/src/lib/supabase/client.ts`
 - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`
@@ -161,7 +165,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Usage example: `const { t } = useI18n(); t('dashboard.welcome', { name: 'Alice' })`.
 
 ## 15) Testing & QA
-- End-to-end tests use Playwright and live under `nextjs/tests/e2e`. They cover auth redirects plus zone creation, rename, and deletion flows seeded through Supabase service-role helpers.
+- End-to-end tests use Playwright and live under `nextjs/tests/e2e`. Coverage includes auth redirects, zone creation/rename/delete (with notes and surface fields), entries list/new/detail flows with attachment upload & cleanup, cross-member entry deletion, and validation errors—all seeded via Supabase service-role helpers.
 - Install Playwright browsers with `cd nextjs && yarn playwright:install` (once per machine). Ensure `.env.local` exposes Supabase URL, anon key, and `PRIVATE_SUPABASE_SERVICE_KEY` for the test harness.
 - Run the suite via `yarn test:e2e` from the repo root or `cd nextjs && yarn test:e2e`. Set `PLAYWRIGHT_SKIP_WEB_SERVER=1` if you want to manage the Next.js server manually.
 - Tests seed temporary users/households via the service key and clean them up after each run; use isolated Supabase instances or reset your local DB if a run is interrupted.
