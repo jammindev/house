@@ -10,8 +10,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "playwright:install": "playwright install --with-deps",
-    "process:entries": "tsx scripts/process-entry-files.ts"
+    "playwright:install": "playwright install --with-deps"
   },
   "dependencies": {
     "@next/third-parties": "^15.1.5",
