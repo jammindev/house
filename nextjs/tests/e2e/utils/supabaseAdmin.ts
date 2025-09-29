@@ -48,6 +48,57 @@ function getAdminClient(): SupabaseClient {
   return adminClient;
 }
 
+async function removeUserStorage(userId: string) {
+  const client = getAdminClient();
+  const bucket = client.storage.from('files');
+
+  try {
+    const { data: entryFolders, error: listError } = await bucket.list(userId, {
+      limit: 1000,
+    });
+
+    if (listError) {
+      // If the folder does not exist, list returns an error; treat as no-op.
+      if ((listError as { statusCode?: number }).statusCode === 404) {
+        return;
+      }
+      throw listError;
+    }
+
+    if (!entryFolders || entryFolders.length === 0) {
+      return;
+    }
+
+    for (const folder of entryFolders) {
+      const folderName = folder.name?.trim();
+      if (!folderName) continue;
+
+      const prefix = `${userId}/${folderName}`;
+      const { data: files, error: filesError } = await bucket.list(prefix, {
+        limit: 1000,
+      });
+
+      if (filesError) {
+        if ((filesError as { statusCode?: number }).statusCode === 404) {
+          continue;
+        }
+        throw filesError;
+      }
+
+      const paths = (files ?? [])
+        .map((file) => file.name?.trim())
+        .filter((name): name is string => Boolean(name))
+        .map((name) => `${prefix}/${name}`);
+
+      if (paths.length > 0) {
+        await bucket.remove(paths);
+      }
+    }
+  } catch (error) {
+    console.warn('Failed to cleanup storage for test user', { userId, error });
+  }
+}
+
 export async function createTestUser(): Promise<TestUserContext> {
   const client = getAdminClient();
 
@@ -105,6 +156,7 @@ export async function createTestUser(): Promise<TestUserContext> {
 export async function cleanupTestUser(context: TestUserContext) {
   const client = getAdminClient();
 
+  await removeUserStorage(context.userId);
   await client.from('households').delete().eq('id', context.householdId);
   await client.auth.admin.deleteUser(context.userId);
 }
@@ -154,6 +206,7 @@ export async function createHouseholdMember(
 export async function cleanupHouseholdMember(member: HouseholdMemberContext) {
   const client = getAdminClient();
 
+  await removeUserStorage(member.userId);
   await client.from('household_members').delete({ count: 'exact' }).eq('household_id', member.householdId).eq('user_id', member.userId);
   await client.auth.admin.deleteUser(member.userId);
 }
