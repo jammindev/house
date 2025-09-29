@@ -1,12 +1,14 @@
 .
+├── .DS_Store
 ├── .github
 │   └── ISSUE_TEMPLATE
+├── .gitignore
 ├── AGENTS.md
 ├── AI_UPDATE_WORKFLOW.md
 ├── instructions.md
 ├── LICENSE
-├── NEXT_STEP.md
 ├── nextjs
+│   ├── .DS_Store
 │   ├── .env.local
 │   ├── .env.template
 │   ├── .gitignore
@@ -16,16 +18,16 @@
 │   ├── next.config.ts
 │   ├── package-lock.json
 │   ├── package.json
+│   ├── playwright.config.ts
 │   ├── postcss.config.mjs
 │   ├── README.md
+│   ├── scripts
 │   ├── src
 │   │   ├── app
 │   │   │   ├── api
 │   │   │   │   ├── auth
 │   │   │   │   │   └── callback
 │   │   │   │   │       └── route.ts
-│   │   │   │   ├── entries
-│   │   │   │   │   └── [id]
 │   │   │   │   └── households
 │   │   │   │       └── route.ts
 │   │   │   ├── app
@@ -94,6 +96,7 @@
 │   │   │       ├── input.tsx
 │   │   │       └── textarea.tsx
 │   │   ├── lib
+│   │   │   ├── config
 │   │   │   ├── context
 │   │   │   │   └── GlobalContext.tsx
 │   │   │   ├── i18n
@@ -108,10 +111,22 @@
 │   │   │   │   ├── server.ts
 │   │   │   │   ├── serverAdminClient.ts
 │   │   │   │   └── unified.ts
+│   │   │   ├── tasks
 │   │   │   ├── types.ts
 │   │   │   └── utils.ts
 │   │   └── middleware.ts
 │   ├── tailwind.config.ts
+│   ├── test-results
+│   │   └── .last-run.json
+│   ├── tests
+│   │   └── e2e
+│   │       ├── auth.spec.ts
+│   │       ├── entries.spec.ts
+│   │       ├── fixtures
+│   │       │   └── sample.txt
+│   │       ├── utils
+│   │       │   └── supabaseAdmin.ts
+│   │       └── zones.spec.ts
 │   └── tsconfig.json
 ├── package.json
 ├── README.md
@@ -123,6 +138,7 @@
     │   ├── 20250130165844_example_storage.sql
     │   ├── 20250130181110_storage_policies.sql
     │   ├── 20250130181641_todo_list.sql
+    │   ├── 20250205100000_add_zone_note_surface.sql
     │   ├── 20250921081621_create_households.sql
     │   ├── 20250921081718_create_household_members.sql
     │   ├── 20250921081746_create_zones.sql
@@ -136,12 +152,21 @@
     │   ├── 20250924104000_owner_restricted_deletes.sql
     │   ├── 20250924110000_enforce_entry_has_zone.sql
     │   ├── 20250924111500_create_entry_with_zones_rpc.sql
-    │   └── 20250924113000_fix_entry_zone_orphan_triggers.sql
-    └── migrations_for_old
-        ├── 20250107210416_MFA.sql
-        ├── 20250130165844_example_storage.sql
-        ├── 20250130181110_storage_policies.sql
-        ├── 20250130181641_todo_list.sql
-        └── 20250525183944_auth_removal.sql
+    │   ├── 20250924113000_fix_entry_zone_orphan_triggers.sql
+    │   ├── 20250924120000_create_household_with_owner_rpc.sql
+    │   ├── 20250924120500_adjust_household_insert_policy.sql
+    │   ├── 20250924121000_update_household_rpc_security.sql
+    │   ├── 20250924121500_relax_entry_delete_policy.sql
+    │   ├── 20250924122000_relax_zone_delete_policy.sql
+    │   ├── 20250924122500_relax_zone_update_policy.sql
+    │   └── 20250924123000_relax_entry_update_policy.sql
+    ├── migrations_for_old
+    │   ├── 20250107210416_MFA.sql
+    │   ├── 20250130165844_example_storage.sql
+    │   ├── 20250130181110_storage_policies.sql
+    │   ├── 20250130181641_todo_list.sql
+    │   └── 20250525183944_auth_removal.sql
+    ├── RLS_OVERVIEW.md
+    └── tests
 
-41 directories, 104 files
+48 directories, 122 files
