@@ -18,7 +18,7 @@ import ZoneForm from "@zones/components/ZoneForm";
 import ZoneList from "@zones/components/ZoneList";
 
 export default function ZonesPage() {
-  const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
+  const { loading: globalLoading, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
   const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones(selectedHouseholdId);
 
@@ -30,11 +30,6 @@ export default function ZonesPage() {
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
   const { zonesById, sortedZones, zoneDepths, zoneStats } = useMemo(() => computeZoneTree(zones), [zones]);
   const formattedSurfaceTotal = zoneStats.hasSurfaceData ? numberFormatter.format(zoneStats.surfaceSum) : null;
-
-  const currentHousehold = useMemo(
-    () => households.find((h) => h.id === selectedHouseholdId) || null,
-    [households, selectedHouseholdId]
-  );
 
   if (globalLoading) return <div className="p-6 text-sm text-gray-500">{t("common.loading")}</div>;
 

@@ -10,7 +10,6 @@
   "nav.changePassword": "Changer le mot de passe",
   "nav.signOut": "Se déconnecter",
   "nav.signedInAs": "Connecté en tant que",
-
   "dashboard.welcome": "Bienvenue, {name} !",
   "dashboard.memberFor": "Membre depuis {days} jours",
   "dashboard.entries": "Entrées",
@@ -27,7 +26,6 @@
   "dashboard.latestThree": "3 dernières entrées de ce foyer",
   "dashboard.noEntries": "Aucune entrée pour l’instant.",
   "dashboard.createOne": "Créer",
-
   "settings.title": "Paramètres utilisateur",
   "settings.subtitle": "Gérez les réglages et préférences de votre compte",
   "settings.userDetails": "Informations utilisateur",
@@ -44,10 +42,8 @@
   "settings.language": "Langue",
   "settings.languageDescription": "Choisissez votre langue préférée",
   "settings.languageUpdated": "Langue mise à jour",
-
   "language.english": "Anglais",
   "language.french": "Français",
-
   "common.loading": "Chargement…",
   "common.save": "Enregistrer",
   "common.saving": "Enregistrement…",
@@ -70,7 +66,6 @@
   "common.processing": "Traitement…",
   "common.continue": "Continuer",
   "common.remove": "Retirer",
-
   "entries.title": "Entrées",
   "entries.newEntry": "Nouvelle entrée",
   "entries.newEntryIntro": "Ajoutez des documents, des zones et des notes pour votre foyer.",
@@ -99,10 +94,9 @@
   "entries.deleteFileTitle": "Supprimer ce fichier ?",
   "entries.createFailed": "Échec de la création de l’entrée",
   "entries.pdfPreview": "Aperçu PDF",
-
   "zones.title": "Zones",
   "zones.loading": "Chargement des zones…",
-  "zones.none": "Aucune zone pour ce foyer pour l’instant.",
+  "zones.none": "Aucune zone pour ce foyer.",
   "zones.placeholder": "ex. : Cuisine, Garage, Jardin",
   "zones.noParent": "Sans parent",
   "zones.createNew": "Créer une nouvelle zone",
@@ -128,7 +122,6 @@
   "zones.deleteConfirmDescription": "Cela supprimera définitivement \"{name}\". Les liaisons avec les entrées seront supprimées.",
   "zones.deleteConfirmCta": "Supprimer",
   "zones.deleteCancel": "Annuler",
-
   "auth.email": "Adresse e‑mail",
   "auth.password": "Mot de passe",
   "auth.forgotPassword": "Mot de passe oublié ?",
@@ -162,14 +155,12 @@
   "auth.resetPassword": "Réinitialiser le mot de passe",
   "auth.unknownError": "Une erreur est survenue",
   "auth.notAuthenticated": "Vous devez être connecté pour continuer",
-
   "cookies.message": "Nous utilisons des cookies pour améliorer votre expérience de navigation, proposer du contenu personnalisé et analyser notre trafic. En cliquant sur \"Accepter\", vous consentez à l’utilisation des cookies.",
   "cookies.readOur": "Lisez notre",
   "cookies.moreInfo": "pour en savoir plus.",
   "cookies.decline": "Refuser",
   "cookies.accept": "Accepter",
   "cookies.close": "Fermer",
-
   "legal.documents": "Documents juridiques",
   "legal.sidebarDesc": "Informations importantes sur nos services",
   "legal.privacyPolicy": "Politique de confidentialité",
@@ -180,7 +171,6 @@
   "legal.refundDesc": "Notre politique de remboursement et d’annulation",
   "legal.privacyNotice": "Notice de confidentialité",
   "legal.loadFailed": "Échec du chargement du document. Veuillez réessayer plus tard.",
-
   "mfa.title": "Authentification à deux facteurs (2FA)",
   "mfa.subtitle": "Ajoutez une couche de sécurité supplémentaire à votre compte",
   "mfa.fetchFailed": "Échec de la récupération de l’état MFA",
@@ -211,7 +201,6 @@
   "mfa.addMethod": "Ajouter une méthode d’authentification",
   "mfa.explainer": "Protégez votre compte avec l’authentification à deux facteurs. Une fois activée, vous devrez saisir un code de votre application d’authentification en plus de votre mot de passe lors de la connexion.",
   "mfa.settingsUpdated": "Paramètres de l’authentification à deux facteurs mis à jour",
-
   "storage.title": "Gestion des fichiers",
   "storage.subtitle": "Téléchargez, téléversez et partagez vos fichiers",
   "storage.loadFailed": "Échec du chargement des fichiers",
@@ -232,7 +221,6 @@
   "storage.copied": "Copié !",
   "storage.confirmDeleteTitle": "Supprimer le fichier",
   "storage.confirmDeleteDesc": "Voulez-vous vraiment supprimer ce fichier ? Cette action est irréversible.",
-
   "table.title": "Gestion des tâches",
   "table.subtitle": "Gérez vos tâches et to‑dos",
   "table.loadFailed": "Échec du chargement des tâches",

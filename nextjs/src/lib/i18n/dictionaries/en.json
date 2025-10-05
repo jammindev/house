@@ -10,7 +10,6 @@
   "nav.changePassword": "Change Password",
   "nav.signOut": "Sign out",
   "nav.signedInAs": "Signed in as",
-
   "dashboard.welcome": "Welcome, {name}!",
   "dashboard.memberFor": "Member for {days} days",
   "dashboard.entries": "Entries",
@@ -27,7 +26,6 @@
   "dashboard.latestThree": "Latest 3 entries in this household",
   "dashboard.noEntries": "No entries yet.",
   "dashboard.createOne": "Create one",
-
   "settings.title": "User Settings",
   "settings.subtitle": "Manage your account settings and preferences",
   "settings.userDetails": "User Details",
@@ -44,10 +42,8 @@
   "settings.language": "Language",
   "settings.languageDescription": "Choose your preferred language",
   "settings.languageUpdated": "Language updated",
-
   "language.english": "English",
   "language.french": "Français",
-
   "common.loading": "Loading…",
   "common.save": "Save",
   "common.saving": "Saving…",
@@ -70,7 +66,6 @@
   "common.processing": "Processing...",
   "common.continue": "Continue",
   "common.remove": "Remove",
-
   "entries.title": "Entries",
   "entries.newEntry": "New Entry",
   "entries.newEntryIntro": "Capture documents, zones, and notes for your household.",
@@ -99,10 +94,9 @@
   "entries.deleteFileTitle": "Delete this file?",
   "entries.createFailed": "Failed to create entry",
   "entries.pdfPreview": "PDF preview",
-
   "zones.title": "Zones",
   "zones.loading": "Loading zones…",
-  "zones.none": "No zones in this household yet.",
+  "zones.none": "No zones in this household.",
   "zones.placeholder": "e.g., Kitchen, Garage, Garden",
   "zones.noParent": "No parent",
   "zones.createNew": "Create new zone",
@@ -128,7 +122,6 @@
   "zones.deleteConfirmDescription": "This will permanently delete \"{name}\". Links to entries will be removed.",
   "zones.deleteConfirmCta": "Delete",
   "zones.deleteCancel": "Cancel",
-
   "auth.email": "Email address",
   "auth.password": "Password",
   "auth.forgotPassword": "Forgot your password?",
@@ -162,14 +155,12 @@
   "auth.resetPassword": "Reset password",
   "auth.unknownError": "An error occurred",
   "auth.notAuthenticated": "You must be signed in to continue",
-
   "cookies.message": "We use cookies to enhance your browsing experience, serve personalized content, and analyze our traffic. By clicking \"Accept\", you consent to our use of cookies.",
   "cookies.readOur": "Read our",
   "cookies.moreInfo": "for more information.",
   "cookies.decline": "Decline",
   "cookies.accept": "Accept",
   "cookies.close": "Close",
-
   "legal.documents": "Legal Documents",
   "legal.sidebarDesc": "Important information about our services",
   "legal.privacyPolicy": "Privacy Policy",
@@ -180,7 +171,6 @@
   "legal.refundDesc": "Our policy on refunds and cancellations",
   "legal.privacyNotice": "Privacy Notice",
   "legal.loadFailed": "Failed to load document. Please try again later.",
-
   "mfa.title": "Two-Factor Authentication (2FA)",
   "mfa.subtitle": "Add an additional layer of security to your account",
   "mfa.fetchFailed": "Failed to fetch MFA status",
@@ -211,7 +201,6 @@
   "mfa.addMethod": "Add New Authentication Method",
   "mfa.explainer": "Protect your account with two-factor authentication. When enabled, you'll need to enter a code from your authenticator app in addition to your password when signing in.",
   "mfa.settingsUpdated": "Two-factor authentication settings updated successfully",
-
   "storage.title": "File Management",
   "storage.subtitle": "Upload, download, and share your files",
   "storage.loadFailed": "Failed to load files",
@@ -232,7 +221,6 @@
   "storage.copied": "Copied!",
   "storage.confirmDeleteTitle": "Delete File",
   "storage.confirmDeleteDesc": "Are you sure you want to delete this file? This action cannot be undone.",
-
   "table.title": "Task Management",
   "table.subtitle": "Manage your tasks and to-dos",
   "table.loadFailed": "Failed to load tasks",
