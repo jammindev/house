@@ -26,29 +26,48 @@ function translate(dict: Dict, key: string, params?: Record<string, string | num
   return template;
 }
 
-export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [locale, _setLocale] = useState<Locale>("en");
+type I18nProviderProps = {
+  children: React.ReactNode;
+  initialLocale?: Locale;
+};
 
-  useEffect(() => {
-    try {
-      const fromStorage = localStorage.getItem("locale");
-      if (fromStorage === "fr" || fromStorage === "en") {
-        _setLocale(fromStorage);
-        return;
-      }
-    } catch {}
-    // fallback browser language
-    if (typeof navigator !== "undefined") {
-      const lang = navigator.language?.toLowerCase() || "en";
-      if (lang.startsWith("fr")) _setLocale("fr");
-    }
-  }, []);
+export function I18nProvider({ children, initialLocale = "en" }: I18nProviderProps) {
+  const [locale, _setLocale] = useState<Locale>(initialLocale);
 
   const setLocale = useCallback((l: Locale) => {
     _setLocale(l);
     try { localStorage.setItem("locale", l); } catch {}
     try { document.documentElement.lang = l; } catch {}
+    try {
+      const maxAge = 60 * 60 * 24 * 365; // 1 year
+      document.cookie = `locale=${l};path=/;max-age=${maxAge}`;
+    } catch {}
   }, []);
+
+  useEffect(() => {
+    let resolved: Locale | null = null;
+    try {
+      const fromStorage = localStorage.getItem("locale");
+      if (fromStorage === "fr" || fromStorage === "en") {
+        resolved = fromStorage;
+      }
+    } catch {}
+
+    if (!resolved && typeof navigator !== "undefined") {
+      const lang = navigator.language?.toLowerCase() || "en";
+      if (lang.startsWith("fr")) {
+        resolved = "fr";
+      }
+    }
+
+    if (resolved && resolved !== locale) {
+      setLocale(resolved);
+    }
+  }, [locale, setLocale]);
+
+  useEffect(() => {
+    try { document.documentElement.lang = locale; } catch {}
+  }, [locale]);
 
   const t = useCallback((key: string, params?: Record<string, string | number>) => {
     const dict = DICTS[locale] || DICTS.en;
@@ -65,4 +84,3 @@ export function useI18n() {
   if (!ctx) throw new Error("useI18n must be used within I18nProvider");
   return ctx;
 }
-
