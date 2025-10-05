@@ -1,3 +1,4 @@
+// src/app/entries/new/NewEntryForm.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -11,10 +12,10 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
-import { DocumentImportButtons } from "./components/DocumentImportButtons";
-import { ZonePicker } from "./components/ZonePicker";
-import { normalizeZoneSelection } from "./utils/normalizeZoneSelection";
-import { ZoneOption } from "./types";
+import { DocumentImportButtons } from "./DocumentImportButtons";
+import { ZonePicker } from "./ZonePicker";
+import { normalizeZoneSelection } from "../lib/normalizeZoneSelection";
+import { ZoneOption } from "../types";
 
 const sectionClass = "rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-sm space-y-3 sm:p-5";
 

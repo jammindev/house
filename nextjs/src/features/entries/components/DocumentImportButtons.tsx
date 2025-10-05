@@ -9,7 +9,7 @@ type DocumentImportButtonsProps = {
   onFilesSelected: (files: File[]) => void;
 };
 
-export function DocumentImportButtons({ onFilesSelected }: DocumentImportButtonsProps) {
+export default function DocumentImportButtons({ onFilesSelected }: DocumentImportButtonsProps) {
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -18,6 +18,7 @@ export function DocumentImportButtons({ onFilesSelected }: DocumentImportButtons
     if (!event.target.files) return;
     const selectedFiles = Array.from(event.target.files);
     onFilesSelected(selectedFiles);
+    // reset pour pouvoir re-sélectionner le même fichier ensuite
     event.target.value = "";
   };
 
@@ -41,6 +42,8 @@ export function DocumentImportButtons({ onFilesSelected }: DocumentImportButtons
           {t("entries.selectFiles")}
         </Button>
       </div>
+
+      {/* Caméra */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -49,6 +52,8 @@ export function DocumentImportButtons({ onFilesSelected }: DocumentImportButtons
         onChange={handleFilesChange}
         className="hidden"
       />
+
+      {/* Fichiers depuis le device */}
       <input
         ref={fileInputRef}
         type="file"
