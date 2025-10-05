@@ -75,6 +75,7 @@
   "entries.documents": "Documents",
   "entries.capturePhoto": "Prendre une photo",
   "entries.selectFiles": "Choisir des fichiers",
+  "entries.selectedFiles": "Fichiers sélectionnés ({count})",
   "entries.documentsHelper": "Prenez une photo ou ajoutez des fichiers depuis votre téléphone.",
   "entries.createdSuccess": "Entrée créée avec succès",
   "entries.rawText": "Texte brut",

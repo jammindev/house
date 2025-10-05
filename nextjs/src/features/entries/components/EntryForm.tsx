@@ -23,39 +23,103 @@ export default function EntryForm({ householdId, t, zones, loadingZones }: Props
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     const handleFilesSelected = (files: File[]) => {
-        setSelectedFiles(prev => [...prev, ...files]);
+        if (!files.length) return;
+        setSelectedFiles(prev => {
+            const existing = new Set(prev.map(file => `${file.name}:${file.size}:${file.lastModified}`));
+            const next = [...prev];
+            files.forEach(file => {
+                const key = `${file.name}:${file.size}:${file.lastModified}`;
+                if (!existing.has(key)) {
+                    existing.add(key);
+                    next.push(file);
+                }
+            });
+            return next;
+        });
+    };
+
+    const handleRemoveFile = (index: number) => {
+        setSelectedFiles(prev => prev.filter((_, idx) => idx !== index));
     };
 
     const handleSubmit = async () => {
-        if (!text.trim()) return;
+        if (!text.trim()) {
+            alert(t("entries.rawRequired"));
+            return;
+        }
+        if (!selectedZoneIds.length) {
+            alert(t("entries.selectZoneRequired"));
+            return;
+        }
         setLoading(true);
         try {
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
 
+            const { data: userData, error: userError } = await client.auth.getUser();
+            if (userError) throw userError;
+            const userId = userData?.user?.id;
+            if (!userId) throw new Error(t("auth.notAuthenticated"));
+
             // 1) créer l'entrée
-            const { data, error } = await client
-                .from("entries")
-                .insert({
-                    household_id: householdId,
-                    raw_text: text,
-                })
-                .select("id")
-                .single();
+            const { data: rpcData, error } = await client
+                .rpc("create_entry_with_zones" as any, {
+                    p_household_id: householdId,
+                    p_raw_text: text.trim(),
+                    p_zone_ids: selectedZoneIds,
+                });
 
             if (error) throw error;
-            const entryId = data?.id as string;
+            const entryId = rpcData as string | null;
+            if (!entryId) throw new Error(t("entries.createFailed"));
 
-            // 2) lier les zones sélectionnées (si table pivot `entry_zones`)
-            // if (selectedZoneIds.length) {
-            //   const { error: ezErr } = await client
-            //     .from("entry_zones")
-            //     .insert(selectedZoneIds.map(zone_id => ({ entry_id: entryId, zone_id })));
-            //   if (ezErr) throw ezErr;
-            // }
+            const uploadedPaths: string[] = [];
 
-            // 3) uploader les fichiers vers Storage + créer `entry_files`
-            // if (selectedFiles.length) { ... }
+            try {
+                if (selectedFiles.length) {
+                    for (const file of selectedFiles) {
+                        const safeName = file.name.replace(/[^0-9a-zA-Z._-]/g, "_");
+                        const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+                            ? crypto.randomUUID()
+                            : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+                        const storagePath = `${userId}/${entryId}/${uniqueId}_${safeName}`;
+
+                        const { error: uploadError } = await client.storage
+                            .from("files")
+                            .upload(storagePath, file, {
+                                cacheControl: "3600",
+                                upsert: false,
+                                contentType: file.type || undefined,
+                            });
+                        if (uploadError) throw uploadError;
+                        uploadedPaths.push(storagePath);
+
+                        const { error: linkError } = await client
+                            .from("entry_files" as any)
+                            .insert({
+                                entry_id: entryId,
+                                storage_path: storagePath,
+                                mime_type: file.type || null,
+                                metadata: { size: file.size, name: file.name } as Record<string, unknown>,
+                            });
+                        if (linkError) throw linkError;
+                    }
+                }
+            } catch (attachmentError) {
+                try {
+                    if (uploadedPaths.length) {
+                        await client.storage.from("files").remove(uploadedPaths);
+                    }
+                } catch (cleanupError) {
+                    console.warn("Failed to cleanup uploaded files", cleanupError);
+                }
+                try {
+                    await client.from("entries" as any).delete().eq("id", entryId);
+                } catch (cleanupEntryError) {
+                    console.warn("Failed to cleanup entry after attachment error", cleanupEntryError);
+                }
+                throw attachmentError;
+            }
 
             router.push("/app/entries?created=1");
         } catch (e: any) {
@@ -71,7 +135,7 @@ export default function EntryForm({ householdId, t, zones, loadingZones }: Props
             <Textarea
                 value={text}
                 onChange={e => setText(e.target.value)}
-                placeholder={t("entries.placeholder")}
+                placeholder={t("entries.rawPlaceholder")}
                 rows={6}
             />
 
@@ -86,13 +150,34 @@ export default function EntryForm({ householdId, t, zones, loadingZones }: Props
             <DocumentImportButtons onFilesSelected={handleFilesSelected} />
 
             {selectedFiles.length > 0 && (
-                <div className="text-xs text-gray-600">
-                    {t("entries.selectedFiles", { count: selectedFiles.length })}
+                <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                    <p className="mb-2 text-xs font-medium text-gray-600">
+                        {t("entries.selectedFiles", { count: selectedFiles.length })}
+                    </p>
+                    <ul className="space-y-1">
+                        {selectedFiles.map((file, index) => (
+                            <li
+                                key={`${file.name}-${file.lastModified}-${index}`}
+                                className="flex items-center justify-between gap-3 text-xs text-gray-700"
+                            >
+                                <span className="truncate" title={file.name}>
+                                    {file.name}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveFile(index)}
+                                    className="text-xs font-medium text-primary-600 hover:text-primary-700"
+                                >
+                                    {t("common.remove")}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
 
             <div className="flex gap-2">
-                <Button onClick={handleSubmit} disabled={loading || !text.trim()}>
+                <Button onClick={handleSubmit} disabled={loading || !text.trim() || selectedZoneIds.length === 0}>
                     {loading ? t("common.saving") : t("common.save")}
                 </Button>
                 <Button variant="secondary" onClick={() => router.back()} disabled={loading}>

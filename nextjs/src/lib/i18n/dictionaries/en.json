@@ -75,6 +75,7 @@
   "entries.documents": "Documents",
   "entries.capturePhoto": "Take a photo",
   "entries.selectFiles": "Choose files",
+  "entries.selectedFiles": "Selected files ({count})",
   "entries.documentsHelper": "Capture a new photo or add files from your library.",
   "entries.createdSuccess": "Entry created successfully",
   "entries.rawText": "Raw Text",

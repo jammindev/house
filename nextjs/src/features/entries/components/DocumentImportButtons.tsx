@@ -58,6 +58,7 @@ export default function DocumentImportButtons({ onFilesSelected }: DocumentImpor
         ref={fileInputRef}
         type="file"
         multiple
+        accept="image/*,.pdf"
         onChange={handleFilesChange}
         className="hidden"
       />
