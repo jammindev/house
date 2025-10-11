@@ -84,8 +84,13 @@ export default function EntryDetailPage() {
   if (error) return <div className="p-6 text-red-600">{error}</div>;
   if (!entry) return <div className="p-6 text-gray-500">{t("entries.notFound")}</div>;
 
-  const pdfFiles = files.filter((f) => f.mime_type?.includes("pdf"));
-  const imageFiles = files.filter((f) => f.mime_type?.startsWith("image/"));
+  const classifyAsPhoto = (file: (typeof files)[number]) =>
+    file.type === "photo";
+  const classifyAsDocument = (file: (typeof files)[number]) =>
+    file.type === "document";
+
+  const pdfFiles = files.filter(classifyAsDocument);
+  const imageFiles = files.filter(classifyAsPhoto);
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">

@@ -36,7 +36,7 @@ export function useEntries(householdId?: string | null) {
                 if (ids.length > 0) {
                     const { data: fData, error: fErr } = await client
                         .from("entry_files" as any)
-                        .select("id, entry_id, storage_path, mime_type")
+                        .select("id, entry_id, storage_path, mime_type, type")
                         .in("entry_id", ids);
                     if (fErr) throw fErr;
                     const grouped: Record<string, EntryFile[]> = {};

@@ -1,7 +1,7 @@
 // src/app/entries/new/NewEntryForm.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
@@ -16,6 +16,7 @@ import { DocumentImportButtons } from "./DocumentImportButtons";
 import { ZonePicker } from "./ZonePicker";
 import { normalizeZoneSelection } from "../lib/normalizeZoneSelection";
 import { ZoneOption } from "../types";
+import type { EntryFileType } from "@entries/types";
 
 const sectionClass = "rounded-2xl border border-gray-100 bg-white/80 p-4 shadow-sm space-y-3 sm:p-5";
 
@@ -35,14 +36,21 @@ export default function NewEntryForm() {
   const [newZoneNote, setNewZoneNote] = useState<string>("");
   const [creatingZone, setCreatingZone] = useState<boolean>(false);
   const [showZoneInput, setShowZoneInput] = useState<boolean>(false);
-  const [files, setFiles] = useState<File[]>([]);
+  type PendingFile = { file: File; type: EntryFileType };
+  const [files, setFiles] = useState<PendingFile[]>([]);
   const [uploading, setUploading] = useState<boolean>(false);
+  const fileTypeLabel = useMemo(() => t("entries.fileTypeLabel"), [t]);
+
+  const inferType = (file: File): EntryFileType =>
+    file.type && file.type.startsWith("image/") ? "photo" : "document";
+
+  const makeKey = (file: File) => `${file.name}:${file.size}:${file.lastModified}`;
 
   useEffect(() => {
     (async () => {
       setError("");
       setZones([]);
-      setSelectedZoneIds([]);
+        setSelectedZoneIds([]);
       if (!selectedHouseholdId) return;
       try {
         const supa = await createSPASassClient();
@@ -115,6 +123,36 @@ export default function NewEntryForm() {
     }
   };
 
+  const handleFileTypeChange = (index: number, type: EntryFileType) => {
+    setFiles((prev) => {
+      const target = prev[index];
+      if (!target || !(target.file.type && target.file.type.startsWith("image/"))) {
+        return prev;
+      }
+      return prev.map((item, idx) => (idx === index ? { ...item, type } : item));
+    });
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleFilesSelected = (incoming: File[]) => {
+    if (!incoming.length) return;
+    setFiles((prev) => {
+      const existing = new Set(prev.map((item) => makeKey(item.file)));
+      const next = [...prev];
+      incoming.forEach((file) => {
+        const key = makeKey(file);
+        if (!existing.has(key)) {
+          existing.add(key);
+          next.push({ file, type: inferType(file) });
+        }
+      });
+      return next;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
@@ -154,7 +192,8 @@ export default function NewEntryForm() {
       try {
         if (entryId && files.length > 0) {
           setUploading(true);
-          for (const f of files) {
+          for (const item of files) {
+            const { file: f, type } = item;
             const safeName = f.name.replace(/[^0-9a-zA-Z._-]/g, "_");
             const uid = (globalThis as any).crypto?.randomUUID
               ? (globalThis as any).crypto.randomUUID()
@@ -165,12 +204,14 @@ export default function NewEntryForm() {
               .upload(path, f, { upsert: false });
             if (upErr) throw upErr;
             uploadedPaths.push(path);
+            const resolvedType: EntryFileType = f.type && f.type.startsWith("image/") ? type : "document";
             const { error: linkErr } = await client
               .from("entry_files" as any)
               .insert({
                 entry_id: entryId,
                 storage_path: path,
                 mime_type: f.type,
+                type: resolvedType,
                 metadata: { size: f.size, name: f.name } as any,
                 created_by: userId,
               });
@@ -351,19 +392,64 @@ export default function NewEntryForm() {
                   <label className="text-sm font-semibold text-gray-900">{t("entries.documents")}</label>
                   <p className="text-xs text-gray-500">{t("entries.documentsHelper")}</p>
                 </div>
-                <DocumentImportButtons
-                  onFilesSelected={(list) =>
-                    setFiles((prev) => [...prev, ...list])
-                  }
-                />
+                <DocumentImportButtons onFilesSelected={handleFilesSelected} />
                 {files.length > 0 && (
-                  <ul className="ml-5 list-disc space-y-1 text-xs text-gray-600">
-                    {files.map((f, idx) => (
-                      <li key={idx}>
-                        {f.name} ({Math.round(f.size / 1024)} KB)
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                    <p className="mb-2 text-xs font-medium text-gray-600">
+                      {t("entries.selectedFiles", { count: files.length })}
+                    </p>
+                    <ul className="space-y-1">
+                      {files.map((item, index) => {
+                        const { file, type } = item;
+                        const selectId = `new-entry-file-type-${index}`;
+                        const isImage = file.type?.startsWith("image/") ?? false;
+                        return (
+                          <li
+                            key={`${file.name}-${file.lastModified}-${index}`}
+                            className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700"
+                          >
+                            <span className="truncate" title={file.name}>
+                              {file.name}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {isImage ? (
+                                <>
+                                  <label htmlFor={selectId} className="sr-only">
+                                    {fileTypeLabel}
+                                  </label>
+                                  <select
+                                    id={selectId}
+                                    value={type}
+                                    onChange={(event) =>
+                                      handleFileTypeChange(
+                                        index,
+                                        event.target.value as EntryFileType
+                                      )
+                                    }
+                                    className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                  >
+                                    <option value="photo">{t("entries.fileType.photo")}</option>
+                                    <option value="document">{t("entries.fileType.document")}</option>
+                                  </select>
+                                </>
+                              ) : (
+                                <span className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
+                                  {t("entries.fileType.document")}
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFile(index)}
+                                className="text-xs font-medium text-primary-600 hover:text-primary-700"
+                              >
+                                {t("common.remove")}
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 )}
               </section>
 

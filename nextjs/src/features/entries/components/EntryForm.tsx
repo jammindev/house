@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +9,7 @@ import ZonePicker from "@entries/components/ZonePicker";
 import { useZones } from "@/features/zones/hooks/useZones";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { EntryFileType } from "@entries/types";
 
 interface Props {
 
@@ -22,18 +23,25 @@ export default function EntryForm({ }: Props) {
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
     const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
-    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    type SelectedFile = { file: File; type: EntryFileType };
+    const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
+    const fileTypeLabel = useMemo(() => t("entries.fileTypeLabel"), [t]);
+
+    const inferType = (file: File): EntryFileType =>
+        file.type && file.type.startsWith("image/") ? "photo" : "document";
+
+    const makeKey = (file: File) => `${file.name}:${file.size}:${file.lastModified}`;
 
     const handleFilesSelected = (files: File[]) => {
         if (!files.length) return;
         setSelectedFiles(prev => {
-            const existing = new Set(prev.map(file => `${file.name}:${file.size}:${file.lastModified}`));
+            const existing = new Set(prev.map(item => makeKey(item.file)));
             const next = [...prev];
             files.forEach(file => {
-                const key = `${file.name}:${file.size}:${file.lastModified}`;
+                const key = makeKey(file);
                 if (!existing.has(key)) {
                     existing.add(key);
-                    next.push(file);
+                    next.push({ file, type: inferType(file) });
                 }
             });
             return next;
@@ -42,6 +50,16 @@ export default function EntryForm({ }: Props) {
 
     const handleRemoveFile = (index: number) => {
         setSelectedFiles(prev => prev.filter((_, idx) => idx !== index));
+    };
+
+    const handleFileTypeChange = (index: number, type: EntryFileType) => {
+        setSelectedFiles(prev => {
+            const target = prev[index];
+            if (!target || !(target.file.type && target.file.type.startsWith("image/"))) {
+                return prev;
+            }
+            return prev.map((item, idx) => (idx === index ? { ...item, type } : item));
+        });
     };
 
     const handleSubmit = async () => {
@@ -79,7 +97,8 @@ export default function EntryForm({ }: Props) {
 
             try {
                 if (selectedFiles.length) {
-                    for (const file of selectedFiles) {
+                    for (const item of selectedFiles) {
+                        const { file, type } = item;
                         const safeName = file.name.replace(/[^0-9a-zA-Z._-]/g, "_");
                         const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
                             ? crypto.randomUUID()
@@ -96,12 +115,14 @@ export default function EntryForm({ }: Props) {
                         if (uploadError) throw uploadError;
                         uploadedPaths.push(storagePath);
 
+                        const resolvedType: EntryFileType = file.type && file.type.startsWith("image/") ? type : "document";
                         const { error: linkError } = await client
                             .from("entry_files" as any)
                             .insert({
                                 entry_id: entryId,
                                 storage_path: storagePath,
                                 mime_type: file.type || null,
+                                type: resolvedType,
                                 metadata: { size: file.size, name: file.name } as Record<string, unknown>,
                             });
                         if (linkError) throw linkError;
@@ -157,23 +178,52 @@ export default function EntryForm({ }: Props) {
                         {t("entries.selectedFiles", { count: selectedFiles.length })}
                     </p>
                     <ul className="space-y-1">
-                        {selectedFiles.map((file, index) => (
+                        {selectedFiles.map((item, index) => {
+                            const { file, type } = item;
+                            const selectId = `selected-file-type-${index}`;
+                            const isImage = file.type?.startsWith("image/") ?? false;
+                            return (
                             <li
                                 key={`${file.name}-${file.lastModified}-${index}`}
-                                className="flex items-center justify-between gap-3 text-xs text-gray-700"
+                                className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700"
                             >
                                 <span className="truncate" title={file.name}>
                                     {file.name}
                                 </span>
-                                <button
-                                    type="button"
-                                    onClick={() => handleRemoveFile(index)}
-                                    className="text-xs font-medium text-primary-600 hover:text-primary-700"
-                                >
-                                    {t("common.remove")}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    {isImage ? (
+                                        <>
+                                            <label htmlFor={selectId} className="sr-only">
+                                                {fileTypeLabel}
+                                            </label>
+                                            <select
+                                                id={selectId}
+                                                value={type}
+                                                onChange={(event) =>
+                                                    handleFileTypeChange(index, event.target.value as EntryFileType)
+                                                }
+                                                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                            >
+                                                <option value="photo">{t("entries.fileType.photo")}</option>
+                                                <option value="document">{t("entries.fileType.document")}</option>
+                                            </select>
+                                        </>
+                                    ) : (
+                                        <span className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
+                                            {t("entries.fileType.document")}
+                                        </span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveFile(index)}
+                                        className="text-xs font-medium text-primary-600 hover:text-primary-700"
+                                    >
+                                        {t("common.remove")}
+                                    </button>
+                                </div>
                             </li>
-                        ))}
+                        );
+                        })}
                     </ul>
                 </div>
             )}
