@@ -18,21 +18,24 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl }: PdfFileItemP
     return (
         <li
             role="listitem"
-            className="flex items-center gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm"
+            className="flex items-center justify-between gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm w-full"
         >
-            {/* Icône / statut */}
-            <div className="h-12 w-12 flex items-center justify-center rounded border border-gray-200 bg-gray-50">
-                {isLoading ? (
-                    <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                ) : viewUrl ? (
-                    <FileText className="h-5 w-5 text-red-500" />
-                ) : (
-                    <FileX className="h-5 w-5 text-gray-400" />
-                )}
-            </div>
+            <div className="flex items-center gap-2 min-w-0">
+                {/* Icône / statut */}
+                <div className="h-12 w-12 flex shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-50">
+                    {isLoading ? (
+                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                    ) : viewUrl ? (
+                        <FileText className="h-5 w-5 text-red-500" />
+                    ) : (
+                        <FileX className="h-5 w-5 text-gray-400" />
+                    )}
+                </div>
 
-            {/* Détails */}
-            <span className="truncate text-sm font-medium text-gray-800">{fileName}</span>
+
+                {/* Détails */}
+                <span className="truncate text-sm font-medium text-gray-800">{fileName + "c'est ivuebviurbv. eurvber uivb b erçuvbe çrvberv"}</span>
+            </div>
 
             {/* Actions */}
             {viewUrl ? (
