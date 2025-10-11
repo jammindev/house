@@ -26,7 +26,6 @@ export default function EntriesPage() {
     [households, selectedHouseholdId]
   );
 
-  // gestion du param ?created=1
   useEffect(() => {
     if (searchParams?.get("created") === "1") {
       const sp = new URLSearchParams(searchParams as any);
@@ -35,8 +34,7 @@ export default function EntriesPage() {
       router.replace(next, { scroll: false });
       show({ title: t("entries.createdSuccess"), variant: "success" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, router, show, t]); // ajoute t pour éviter l’avertissement ESLint
+  }, [searchParams, router, show, t]);
 
   if (globalLoading) return <div className="p-6 text-sm text-gray-500">{t("common.loading")}</div>;
 
