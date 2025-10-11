@@ -14,7 +14,7 @@ export default function EntryDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-xl font-semibold mb-2">{t("entries.details")}</h1>
+      <h1 className="text-xl font-semibold mb-2">{t("entries.detail")}</h1>
       <div className="text-sm text-gray-500">{new Date(entry.created_at).toLocaleString()}</div>
       <pre className="mt-3 whitespace-pre-wrap text-gray-900">{entry.raw_text}</pre>
 

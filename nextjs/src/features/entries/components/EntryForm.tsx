@@ -6,20 +6,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import DocumentImportButtons from "@entries/components/DocumentImportButtons";
 import ZonePicker from "@entries/components/ZonePicker";
-import type { ZoneOption } from "@entries/types";
+import { useZones } from "@/features/zones/hooks/useZones";
+import { useGlobal } from "@/lib/context/GlobalContext";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface Props {
-    householdId: string;
-    t: (key: string, args?: Record<string, any>) => string;
-    zones: ZoneOption[];              // ✅ nécessaire pour le picker multi
-    loadingZones?: boolean;
+
 }
 
-export default function EntryForm({ householdId, t, zones, loadingZones }: Props) {
+export default function EntryForm({ }: Props) {
     const router = useRouter();
+    const { selectedHouseholdId } = useGlobal();
+    const { t } = useI18n();
+    const { zones, loading: loadingZones, error: zonesError } = useZones(selectedHouseholdId);
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
-    const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]); // ✅ multi
+    const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     const handleFilesSelected = (files: File[]) => {
@@ -64,7 +66,7 @@ export default function EntryForm({ householdId, t, zones, loadingZones }: Props
             // 1) créer l'entrée
             const { data: rpcData, error } = await client
                 .rpc("create_entry_with_zones" as any, {
-                    p_household_id: householdId,
+                    p_household_id: selectedHouseholdId,
                     p_raw_text: text.trim(),
                     p_zone_ids: selectedZoneIds,
                 });

@@ -1,22 +1,15 @@
 "use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import EntryForm from "@entries/components/EntryForm";
-import { useMemo } from "react";
 import { useZones } from "@zones/hooks/useZones";
-import type { ZoneOption } from "@entries/types";
 
 export default function NewEntryPage() {
   const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-
-  const { zones, loading: zonesLoading, error: zonesError } = useZones(selectedHouseholdId);
-
-  const zoneOptions: ZoneOption[] = useMemo(
-    () => zones.map(z => ({ id: z.id, name: z.name, parent_id: z.parent_id ?? null })),
-    [zones]
-  );
+  const { error: zonesError } = useZones(selectedHouseholdId);
 
   if (!selectedHouseholdId) {
     return (
@@ -38,12 +31,7 @@ export default function NewEntryPage() {
               {zonesError}
             </div>
           )}
-          <EntryForm
-            householdId={selectedHouseholdId}
-            t={t}
-            zones={zoneOptions}
-            loadingZones={zonesLoading}
-          />
+          <EntryForm />
         </CardContent>
       </Card>
     </div>
