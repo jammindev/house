@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { EntryFile } from "@entries/types";
+import { getEntryFileName } from "@entries/utils/getEntryFileName";
 import type { GalleryItem } from "./types";
 import GalleryGrid from "./GalleryGrid";
 import GalleryModal from "./GalleryModal";
@@ -19,7 +20,7 @@ export default function ImageGallery({ files, previews }: ImageGalleryProps) {
                 return {
                     file,
                     url,
-                    fileName: file.storage_path.split("/").pop() ?? "",
+                    fileName: getEntryFileName(file),
                 };
             })
             .filter((item): item is GalleryItem => item !== null);

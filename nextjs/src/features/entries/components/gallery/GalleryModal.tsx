@@ -9,6 +9,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, X, Download } from "lucide-react";
+import { formatFileSize, getEntryFileSize } from "@entries/utils/formatFileSize";
 import type { GalleryItem } from "./types";
 
 interface GalleryModalProps {
@@ -30,13 +31,18 @@ export default function GalleryModal({
 }: GalleryModalProps) {
     const isOpen = !!item;
 
+    const fileSizeLabel = item ? formatFileSize(getEntryFileSize(item.file)) : null;
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogOverlay className="bg-black/80" />
 
             <DialogContent hideDefaultCloseButton className="border-none bg-transparent shadow-none p-0">
                 <VisuallyHidden>
-                    <DialogTitle>Image agrandie : {item?.fileName}</DialogTitle>
+                    <DialogTitle>
+                        Image agrandie : {item?.fileName}
+                        {fileSizeLabel ? ` (${fileSizeLabel})` : ""}
+                    </DialogTitle>
                 </VisuallyHidden>
 
                 {item && (
@@ -101,6 +107,9 @@ export default function GalleryModal({
                             {item.fileName && (
                                 <figcaption className="mt-3 text-center text-sm text-gray-200">
                                     {item.fileName}
+                                    {fileSizeLabel && (
+                                        <span className="ml-2 text-xs text-gray-300">{fileSizeLabel}</span>
+                                    )}
                                 </figcaption>
                             )}
                         </figure>

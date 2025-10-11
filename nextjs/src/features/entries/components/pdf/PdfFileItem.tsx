@@ -3,6 +3,8 @@
 import { FileText, Loader2, FileX, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EntryFile } from "@entries/types";
+import { getEntryFileName } from "@entries/utils/getEntryFileName";
+import { formatFileSize, getEntryFileSize } from "@entries/utils/formatFileSize";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface PdfFileItemProps {
@@ -13,8 +15,9 @@ interface PdfFileItemProps {
 
 export default function PdfFileItem({ file, viewUrl, downloadUrl }: PdfFileItemProps) {
     const { t } = useI18n()
-    const fileName = file.storage_path.split("/").pop() || t("common.file");
+    const fileName = getEntryFileName(file) || t("common.file");
     const isLoading = !viewUrl;
+    const fileSizeLabel = formatFileSize(getEntryFileSize(file));
     return (
         <li
             role="listitem"
@@ -34,7 +37,12 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl }: PdfFileItemP
 
 
                 {/* Détails */}
-                <span className="truncate text-sm font-medium text-gray-800">{fileName + "c'est ivuebviurbv. eurvber uivb b erçuvbe çrvberv"}</span>
+                <span className="truncate text-sm font-medium text-gray-800">
+                    {fileName}
+                    {fileSizeLabel && (
+                        <span className="ml-2 text-xs font-medium text-gray-500">{fileSizeLabel}</span>
+                    )}
+                </span>
             </div>
 
             {/* Actions */}

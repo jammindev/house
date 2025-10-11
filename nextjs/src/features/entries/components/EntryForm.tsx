@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import DocumentImportButtons from "@entries/components/DocumentImportButtons";
@@ -11,19 +12,15 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { EntryFileType } from "@entries/types";
 
-interface Props {
-
-}
-
-export default function EntryForm({ }: Props) {
+export default function EntryForm() {
     const router = useRouter();
     const { selectedHouseholdId } = useGlobal();
     const { t } = useI18n();
-    const { zones, loading: loadingZones, error: zonesError } = useZones(selectedHouseholdId);
+    const { zones, loading: loadingZones } = useZones(selectedHouseholdId);
     const [text, setText] = useState("");
     const [loading, setLoading] = useState(false);
     const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
-    type SelectedFile = { file: File; type: EntryFileType };
+    type SelectedFile = { file: File; type: EntryFileType; customName: string };
     const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
     const fileTypeLabel = useMemo(() => t("entries.fileTypeLabel"), [t]);
 
@@ -41,7 +38,7 @@ export default function EntryForm({ }: Props) {
                 const key = makeKey(file);
                 if (!existing.has(key)) {
                     existing.add(key);
-                    next.push({ file, type: inferType(file) });
+                    next.push({ file, type: inferType(file), customName: "" });
                 }
             });
             return next;
@@ -60,6 +57,25 @@ export default function EntryForm({ }: Props) {
             }
             return prev.map((item, idx) => (idx === index ? { ...item, type } : item));
         });
+    };
+
+    const handleCustomNameChange = (index: number, value: string) => {
+        setSelectedFiles(prev => prev.map((item, idx) => (idx === index ? { ...item, customName: value } : item)));
+    };
+
+    const resolveFinalFileName = (item: SelectedFile) => {
+        const originalName = item.file.name;
+        const trimmed = item.customName?.trim() ?? "";
+        const extension = originalName.includes(".")
+            ? originalName.substring(originalName.lastIndexOf("."))
+            : "";
+        if (!trimmed) {
+            return extension ? `file${extension}` : "file";
+        }
+        if (trimmed.includes(".")) {
+            return trimmed;
+        }
+        return `${trimmed}${extension}`;
     };
 
     const handleSubmit = async () => {
@@ -99,7 +115,8 @@ export default function EntryForm({ }: Props) {
                 if (selectedFiles.length) {
                     for (const item of selectedFiles) {
                         const { file, type } = item;
-                        const safeName = file.name.replace(/[^0-9a-zA-Z._-]/g, "_");
+                        const finalName = resolveFinalFileName(item);
+                        const safeName = finalName.replace(/[^0-9a-zA-Z._-]/g, "_");
                         const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
                             ? crypto.randomUUID()
                             : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -123,7 +140,10 @@ export default function EntryForm({ }: Props) {
                                 storage_path: storagePath,
                                 mime_type: file.type || null,
                                 type: resolvedType,
-                                metadata: { size: file.size, name: file.name } as Record<string, unknown>,
+                                metadata: {
+                                    size: file.size,
+                                    customName: finalName,
+                                },
                             });
                         if (linkError) throw linkError;
                     }
@@ -187,9 +207,21 @@ export default function EntryForm({ }: Props) {
                                 key={`${file.name}-${file.lastModified}-${index}`}
                                 className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700"
                             >
-                                <span className="truncate" title={file.name}>
-                                    {file.name}
-                                </span>
+                                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                                    <label htmlFor={`custom-file-name-${index}`} className="sr-only">
+                                        {t("entries.customFileNameLabel")}
+                                    </label>
+                                    <Input
+                                        id={`custom-file-name-${index}`}
+                                        value={item.customName}
+                                        onChange={(event) => handleCustomNameChange(index, event.target.value)}
+                                        className="h-8 text-xs"
+                                        placeholder={file.name}
+                                    />
+                                    <span className="truncate text-[0.7rem] text-gray-500" title={file.name}>
+                                        {file.name}
+                                    </span>
+                                </div>
                                 <div className="flex items-center gap-2">
                                     {isImage ? (
                                         <>

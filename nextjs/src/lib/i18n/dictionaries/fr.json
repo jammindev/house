@@ -76,6 +76,7 @@
   "entries.capturePhoto": "Prendre une photo",
   "entries.selectFiles": "Choisir des fichiers",
   "entries.selectedFiles": "Fichiers sélectionnés ({count})",
+  "entries.customFileNameLabel": "Nom du fichier",
   "entries.fileTypeLabel": "Type de fichier",
   "entries.fileType.photo": "Photo",
   "entries.fileType.document": "Document",

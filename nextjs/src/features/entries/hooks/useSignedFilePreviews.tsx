@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { EntryFile } from "@entries/types";
+import { getEntryFileName } from "@entries/utils/getEntryFileName";
 
 const SIGNED_URL_TTL = 300;
 const REFRESH_BEFORE_EXPIRY = 20;
 
-export function useSignedFilePreviews(files: any[]) {
+export function useSignedFilePreviews(files: EntryFile[]) {
     const { t } = useI18n()
     const [previews, setPreviews] = useState<Record<string, { view: string; download: string }>>({});
     const [fileError, setFileError] = useState("");
@@ -26,7 +28,7 @@ export function useSignedFilePreviews(files: any[]) {
 
                 const entries = await Promise.all(
                     files.map(async (file) => {
-                        const fileName = file.storage_path.split("/").pop() ?? "file";
+                        const fileName = getEntryFileName(file) || "file";
 
                         const { data: viewData, error: viewError } = await client.storage
                             .from("files")
