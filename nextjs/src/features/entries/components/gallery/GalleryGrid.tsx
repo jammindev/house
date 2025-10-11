@@ -1,7 +1,8 @@
+import type { GalleryItem } from "./types";
 import GalleryThumbnail from "./GalleryThumbnail";
 
 interface GalleryGridProps {
-    items: { file: any; url: string; fileName: string }[];
+    items: GalleryItem[];
     onSelect: (index: number) => void;
 }
 

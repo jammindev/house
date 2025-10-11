@@ -1,0 +1,35 @@
+"use client";
+
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import PdfFileItem from "./PdfFileItem";
+import type { EntryFile } from "@entries/types";
+
+interface PdfFileListProps {
+    files: EntryFile[];
+    previews: Record<string, { view: string; download: string }>;
+}
+
+export default function PdfFileList({ files, previews }: PdfFileListProps) {
+    const { t } = useI18n()
+    return (
+        <section className="space-y-4">
+            <h2 className="text-lg font-medium mb-2">
+                {t("entries.documents") ?? "Documents PDF"}
+            </h2>
+
+            <ul role="list" className="space-y-3">
+                {files.map((file) => {
+                    const preview = previews[file.id];
+                    return (
+                        <PdfFileItem
+                            key={file.id}
+                            file={file}
+                            viewUrl={preview?.view}
+                            downloadUrl={preview?.download}
+                        />
+                    );
+                })}
+            </ul>
+        </section>
+    );
+}
