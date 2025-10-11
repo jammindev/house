@@ -12,18 +12,19 @@ export const metadata: Metadata = {
   description: "The best way to build your SaaS product.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const localeCookie = cookieStore.get("locale")?.value;
   let initialLocale: "en" | "fr" = "en";
   if (localeCookie === "fr" || localeCookie === "en") {
     initialLocale = localeCookie;
   } else {
-    const acceptLanguage = headers().get("accept-language");
+    const headerList = await headers();
+    const acceptLanguage = headerList.get("accept-language");
     if (acceptLanguage) {
       const primaryLang = acceptLanguage.split(",")[0]?.trim().toLowerCase();
       if (primaryLang && primaryLang.startsWith("fr")) {
