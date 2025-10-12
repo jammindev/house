@@ -92,6 +92,13 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
       const children = childrenMap.get(zone.id) || [];
       const hasChildren = children.length > 0;
       const isExpanded = expanded.has(zone.id);
+      const descendantIds = getDescendants(zone.id);
+      const selectedDescendantIds = descendantIds.filter((id) => value.includes(id));
+      const selectedDescendantsCount = selectedDescendantIds.length;
+      const selectedDescendantNames = selectedDescendantIds
+        .map((id) => zoneMap.get(id)?.name || "")
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b));
       const wrapperClass =
         depth === 0
           ? "rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
@@ -108,6 +115,8 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
             hasChildren={hasChildren}
             expanded={isExpanded}
             onToggleExpand={hasChildren ? () => toggleExpand(zone.id) : undefined}
+            selectedDescendantsCount={selectedDescendantsCount}
+            selectedDescendantNames={selectedDescendantNames}
           />
           {hasChildren && isExpanded ? (
             <div className="mt-2 space-y-2">
@@ -133,18 +142,33 @@ type ZoneToggleProps = {
   hasChildren?: boolean;
   expanded?: boolean;
   onToggleExpand?: () => void;
+  selectedDescendantsCount?: number;
+  selectedDescendantNames?: string[];
 };
 
-function ZoneToggle({ zone, selected, onToggle, depth, hasChildren, expanded, onToggleExpand }: ZoneToggleProps) {
+function ZoneToggle({
+  zone,
+  selected,
+  onToggle,
+  depth,
+  hasChildren,
+  expanded,
+  onToggleExpand,
+  selectedDescendantsCount = 0,
+  selectedDescendantNames = [],
+}: ZoneToggleProps) {
+  // Highlight a collapsed parent if any descendant is selected
+  const highlighted = !!(hasChildren && !expanded && selectedDescendantsCount > 0);
+
   const indicatorClass = selected
     ? "border-primary-500 bg-primary-500 text-white"
     : "border-gray-300 text-transparent";
 
-  const baseClass = selected
+  const baseClass = selected || highlighted
     ? "border-primary-200 bg-primary-50 text-primary-900 shadow-sm"
     : depth === 0
-      ? "border-gray-200 bg-white text-gray-800 hover:border-primary-200 hover:bg-primary-50/40"
-      : "border-gray-200 bg-gray-50 text-gray-700 hover:border-primary-200 hover:bg-primary-50/30";
+      ? "border-gray-200 bg-white text-gray-800"
+      : "border-gray-200 bg-gray-50 text-gray-700";
 
   return (
     <div className={`group flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors ${baseClass}`}>
@@ -185,6 +209,21 @@ function ZoneToggle({ zone, selected, onToggle, depth, hasChildren, expanded, on
           </span>
         </button>
       </div>
+      {hasChildren && !expanded && selectedDescendantsCount > 0 ? (
+        <div className="ml-3 max-w-[200px] flex-1 text-right">
+          <span
+            title={selectedDescendantNames.join(", ")}
+            className="block truncate text-[10px] leading-4 text-gray-600"
+          >
+            {(() => {
+              const limit = 3;
+              const names = selectedDescendantNames.slice(0, limit);
+              const more = selectedDescendantNames.length - names.length;
+              return more > 0 ? `${names.join(", ")}… (+${more})` : names.join(", ");
+            })()}
+          </span>
+        </div>
+      ) : null}
     </div>
   );
 }
