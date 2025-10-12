@@ -1,5 +1,10 @@
+// nextjs/src/app/app/entries/[id]/page.tsx
 "use client";
+import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useEntry } from "@entries/hooks/useEntry";
 import PdfFileList from "@/features/entries/components/pdf/PdfFileList";
@@ -26,8 +31,17 @@ export default function EntryDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-8">
-      <header>
-        <h1 className="text-xl font-semibold">{t("entries.detail")}</h1>
+      <header className="flex items-center justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center">
+            <Button asChild variant="ghost" size="icon">
+              <Link href="/app/entries">
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+            </Button>
+            <h1 className="text-xl font-semibold">{t("entries.detail")}</h1>
+          </div>
+        </div>
         <div className="text-sm text-gray-500">
           {new Date(entry.created_at).toLocaleString()}
         </div>
