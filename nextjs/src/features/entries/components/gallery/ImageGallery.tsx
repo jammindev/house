@@ -9,9 +9,10 @@ import GalleryModal from "./GalleryModal";
 interface ImageGalleryProps {
     files: EntryFile[];
     previews: Record<string, { view: string; download: string }>;
+    onDeleted?: () => void;
 }
 
-export default function ImageGallery({ files, previews }: ImageGalleryProps) {
+export default function ImageGallery({ files, previews, onDeleted }: ImageGalleryProps) {
     const galleryItems: GalleryItem[] = useMemo(() => {
         return files
             .map((file): GalleryItem | null => {
@@ -68,6 +69,7 @@ export default function ImageGallery({ files, previews }: ImageGalleryProps) {
                     onPrevious={showPrevious}
                     hasMultiple={galleryItems.length > 1}
                     downloadUrl={previews[galleryItems[activeIndex].file.id]?.download}
+                    onDeleted={onDeleted}
                 />
             )}
         </section>

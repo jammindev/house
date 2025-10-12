@@ -19,5 +19,6 @@ export type EntryFile = {
   mime_type: string | null;
   type: EntryFileType;
   metadata?: EntryFileMetadata;
+  created_by?: string;
 };
 export type Preview = { url: string; kind: "image" | "pdf" };

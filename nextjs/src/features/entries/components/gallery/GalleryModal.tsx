@@ -8,9 +8,14 @@ import {
 } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, X, Download } from "lucide-react";
+import { ArrowLeft, ArrowRight, X, Download, Trash2 } from "lucide-react";
 import { formatFileSize, getEntryFileSize } from "@entries/utils/formatFileSize";
 import type { GalleryItem } from "./types";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { useDeleteEntryFile } from "@entries/hooks/useDeleteEntryFile";
+import { useGlobal } from "@/lib/context/GlobalContext";
+import { useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface GalleryModalProps {
     item: GalleryItem | null;
@@ -19,6 +24,7 @@ interface GalleryModalProps {
     onPrevious: () => void;
     hasMultiple: boolean;
     downloadUrl?: string;
+    onDeleted?: () => void;
 }
 
 export default function GalleryModal({
@@ -28,8 +34,14 @@ export default function GalleryModal({
     onPrevious,
     hasMultiple,
     downloadUrl,
+    onDeleted,
 }: GalleryModalProps) {
     const isOpen = !!item;
+    const { t } = useI18n();
+    const { user } = useGlobal();
+    const canDelete = useMemo(() => !!(item?.file?.created_by && user?.id && item.file.created_by === user.id), [item?.file?.created_by, user?.id]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { deleteFile, loading } = useDeleteEntryFile();
 
     const fileSizeLabel = item ? formatFileSize(getEntryFileSize(item.file)) : null;
 
@@ -71,6 +83,36 @@ export default function GalleryModal({
                                     <Download className="w-5 h-5 text-gray-900" />
                                 </a>
                             </Button>
+                        )}
+
+                        {/* === Bouton Supprimer (si propriétaire) === */}
+                        {canDelete && (
+                            <>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="absolute top-3 left-16 text-red-600"
+                                    onClick={() => setConfirmOpen(true)}
+                                    aria-label={`Supprimer ${item.fileName}`}
+                                >
+                                    <Trash2 className="w-5 h-5" />
+                                </Button>
+                                <ConfirmDialog
+                                    open={confirmOpen}
+                                    onOpenChange={setConfirmOpen}
+                                    title={t("entries.deleteFileTitle")}
+                                    confirmText={t("common.delete")}
+                                    destructive
+                                    loading={loading}
+                                    onConfirm={async () => {
+                                        if (!item) return;
+                                        await deleteFile({ id: item.file.id, storage_path: item.file.storage_path });
+                                        setConfirmOpen(false);
+                                        onDeleted?.();
+                                        onClose();
+                                    }}
+                                />
+                            </>
                         )}
 
                         {/* === Navigation gauche/droite === */}

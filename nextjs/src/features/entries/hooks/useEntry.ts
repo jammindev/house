@@ -26,7 +26,7 @@ export function useEntry(id?: string) {
 
             const { data: fData, error: fErr } = await client
                 .from("entry_files" as any)
-                .select("id, entry_id, storage_path, mime_type, type, metadata")
+                .select("id, entry_id, storage_path, mime_type, type, metadata, created_by")
                 .eq("entry_id", id);
             if (fErr) throw fErr;
             setFiles((fData || []) as EntryFile[]);

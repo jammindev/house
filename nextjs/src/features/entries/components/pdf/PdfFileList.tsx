@@ -7,9 +7,10 @@ import type { EntryFile } from "@entries/types";
 interface PdfFileListProps {
     files: EntryFile[];
     previews: Record<string, { view: string; download: string }>;
+    onDeleted?: () => void;
 }
 
-export default function PdfFileList({ files, previews }: PdfFileListProps) {
+export default function PdfFileList({ files, previews, onDeleted }: PdfFileListProps) {
     const { t } = useI18n()
     return (
         <section className="space-y-4">
@@ -26,6 +27,7 @@ export default function PdfFileList({ files, previews }: PdfFileListProps) {
                             file={file}
                             viewUrl={preview?.view}
                             downloadUrl={preview?.download}
+                            onDeleted={onDeleted}
                         />
                     );
                 })}

@@ -59,9 +59,9 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      {pdfFiles.length > 0 && <PdfFileList files={pdfFiles} previews={previews} />}
+      {pdfFiles.length > 0 && <PdfFileList files={pdfFiles} previews={previews} onDeleted={reload} />}
 
-      {imageFiles.length > 0 && <ImageGallery files={imageFiles} previews={previews} />}
+      {imageFiles.length > 0 && <ImageGallery files={imageFiles} previews={previews} onDeleted={reload} />}
 
       <EntryDeleteButton entryId={entry.id} onDeleted={() => router.push("/app/entries")} />
     </div>

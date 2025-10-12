@@ -1,20 +1,29 @@
 "use client";
 
-import { FileText, Loader2, FileX, Download } from "lucide-react";
+import { FileText, Loader2, FileX, Download, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { EntryFile } from "@entries/types";
 import { getEntryFileName } from "@entries/utils/getEntryFileName";
 import { formatFileSize, getEntryFileSize } from "@entries/utils/formatFileSize";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import { useDeleteEntryFile } from "@entries/hooks/useDeleteEntryFile";
+import { useState, useMemo } from "react";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 interface PdfFileItemProps {
     file: EntryFile;
     viewUrl?: string;
     downloadUrl?: string;
+    onDeleted?: () => void;
 }
 
-export default function PdfFileItem({ file, viewUrl, downloadUrl }: PdfFileItemProps) {
+export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: PdfFileItemProps) {
     const { t } = useI18n()
+    const { user } = useGlobal();
+    const canDelete = useMemo(() => !!user?.id && !!file.created_by && user.id === file.created_by, [user?.id, file.created_by]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { deleteFile, loading, error } = useDeleteEntryFile();
     const fileName = getEntryFileName(file) || t("common.file");
     const isLoading = !viewUrl;
     const fileSizeLabel = formatFileSize(getEntryFileSize(file));
@@ -70,6 +79,34 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl }: PdfFileItemP
                                 <Download className="w-4 h-4" />
                             </a>
                         </Button>
+                    )}
+
+                    {/* Bouton supprimer */}
+                    {canDelete && (
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-600"
+                                aria-label={`${t("common.delete")} ${fileName}`}
+                                onClick={() => setConfirmOpen(true)}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </Button>
+                            <ConfirmDialog
+                                open={confirmOpen}
+                                onOpenChange={setConfirmOpen}
+                                title={t("entries.deleteFileTitle")}
+                                confirmText={t("common.delete")}
+                                onConfirm={async () => {
+                                    await deleteFile({ id: file.id, storage_path: file.storage_path });
+                                    setConfirmOpen(false);
+                                    onDeleted?.();
+                                }}
+                                loading={loading}
+                                destructive
+                            />
+                        </>
                     )}
                 </div>
             ) : (

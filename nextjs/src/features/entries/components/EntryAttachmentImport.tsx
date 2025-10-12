@@ -1,3 +1,4 @@
+// nextjs/src/features/entries/components/EntryAttachmentImport.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
