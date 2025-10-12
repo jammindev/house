@@ -101,8 +101,8 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
         .sort((a, b) => a.localeCompare(b));
       const wrapperClass =
         depth === 0
-          ? "rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
-          : "space-y-2 border-l border-gray-100 pl-4";
+          ? "rounded-lg bg-white p-2 shadow-sm"
+          : "space-y-1 border-l border-gray-100/60 pl-3";
       const offsetClass = depth > 0 ? "ml-2" : "";
 
       return (
@@ -119,7 +119,7 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
             selectedDescendantNames={selectedDescendantNames}
           />
           {hasChildren && isExpanded ? (
-            <div className="mt-2 space-y-2">
+            <div className="mt-1 space-y-1">
               {children.map((child) => renderBranch(child, depth + 1))}
             </div>
           ) : null}
@@ -131,7 +131,7 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
 
   const list = roots.length > 0 ? roots : [...zones].sort((a, b) => a.name.localeCompare(b.name));
 
-  return <div className="space-y-3">{list.map((root) => renderBranch(root))}</div>;
+  return <div className="space-y-1">{list.map((root) => renderBranch(root))}</div>;
 }
 
 type ZoneToggleProps = {
@@ -162,42 +162,42 @@ function ZoneToggle({
 
   const indicatorClass = selected
     ? "border-primary-500 bg-primary-500 text-white"
-    : "border-gray-300 text-transparent";
+    : "border-gray-300 bg-white text-transparent";
 
   const baseClass = selected || highlighted
-    ? "border-primary-200 bg-primary-50 text-primary-900 shadow-sm"
+    ? "bg-primary-50 text-primary-900 ring-1 ring-primary-200"
     : depth === 0
-      ? "border-gray-200 bg-white text-gray-800"
-      : "border-gray-200 bg-gray-50 text-gray-700";
+      ? "bg-white text-gray-800"
+      : "bg-gray-50 text-gray-700";
 
   return (
-    <div className={`group flex w-full items-center justify-between rounded-md border px-3 py-2 text-sm transition-colors ${baseClass}`}>
+    <div className={`group flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-[13px] transition-colors hover:bg-gray-50 ${baseClass}`}>
       <div className="flex items-center gap-3">
         {hasChildren ? (
           <button
             type="button"
             aria-label={expanded ? "Collapse" : "Expand"}
             onClick={onToggleExpand}
-            className="flex h-5 w-5 items-center justify-center rounded hover:bg-gray-100 text-gray-500"
+            className="flex h-4 w-4 items-center justify-center rounded text-gray-500 hover:bg-gray-100"
           >
             {expanded ? (
-              <ChevronDown className="h-4 w-4" aria-hidden="true" />
+              <ChevronDown className="h-3 w-3" aria-hidden="true" />
             ) : (
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              <ChevronRight className="h-3 w-3" aria-hidden="true" />
             )}
           </button>
         ) : (
-          <span className="inline-block h-5 w-5" />
+          <span className="inline-block h-4 w-4" />
         )}
         <button
           type="button"
           onClick={onToggle}
           aria-pressed={selected}
           data-zone-id={zone.id}
-          className="flex items-center gap-3"
+          className="flex items-center gap-2"
         >
           <span
-            className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs font-semibold transition ${indicatorClass}`}
+            className={`flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-semibold transition ${indicatorClass}`}
           >
             ✓
           </span>
@@ -210,10 +210,10 @@ function ZoneToggle({
         </button>
       </div>
       {hasChildren && !expanded && selectedDescendantsCount > 0 ? (
-        <div className="ml-3 max-w-[200px] flex-1 text-right">
+        <div className="ml-2 max-w-[200px] flex-1 text-right">
           <span
             title={selectedDescendantNames.join(", ")}
-            className="block truncate text-[10px] leading-4 text-gray-600"
+            className="inline-block truncate rounded-full bg-gray-100 px-1.5 py-0.5 text-[9px] leading-4 text-gray-700"
           >
             {(() => {
               const limit = 3;
