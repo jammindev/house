@@ -1,3 +1,4 @@
+// nextjs/src/app/app/entries/new/page.tsx
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,14 +14,14 @@ export default function NewEntryPage() {
 
   if (!selectedHouseholdId) {
     return (
-      <div className="max-w-3xl mx-auto p-6 text-gray-500 text-sm">
+      <div className="max-w-3xl mx-auto lg:p-6 text-gray-500 text-sm">
         {t("common.selectHouseholdFirst")}
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto lg:p-6">
       <Card>
         <CardHeader>
           <CardTitle>{t("entries.newEntry")}</CardTitle>

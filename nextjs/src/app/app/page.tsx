@@ -1,3 +1,4 @@
+// nextjs/src/app/app/page.tsx
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -94,7 +95,7 @@ export default function DashboardContent() {
   const daysSinceRegistration = getDaysSinceRegistration();
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 md:p-6">
       {/* Header with household switcher */}
       <Card>
         <CardHeader>

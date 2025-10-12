@@ -41,7 +41,7 @@ export default function EntriesPage() {
 
   if (!selectedHouseholdId)
     return (
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto lg:p-6">
         <Card>
           <CardHeader>
             <CardTitle>{t("entries.title")}</CardTitle>

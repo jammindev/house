@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
+        <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col">
             {/* Overlay (mobile) */}
             {isSidebarOpen && (
                 <div
@@ -60,7 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 onChangePassword={handleChangePassword}
             />
 
-            <main className="p-4 pb-20 lg:pb-4 lg:pl-64">{children}</main>
+            <main className="md:p-4 pb-20 lg:pb-4 lg:pl-64">{children}</main>
 
             <MobileNav pathname={pathname} onMenuClick={toggleSidebar} />
         </div>

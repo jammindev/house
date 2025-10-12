@@ -84,7 +84,7 @@ export default function SelectedFileItem({
                         id={`custom-file-name-${index}`}
                         value={customName}
                         onChange={handleNameChange}
-                        className="h-8 text-xs sm:text-sm"
+                        className="h-8 lg:text-sm"
                         placeholder={file.name}
                     />
                     <p className="mt-1 truncate text-[11px] text-gray-500">
