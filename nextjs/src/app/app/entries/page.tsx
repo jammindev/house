@@ -1,3 +1,4 @@
+// nextjs/src/app/app/entries/page.tsx
 "use client";
 import React, { useEffect, useMemo } from "react";
 import Link from "next/link";
@@ -59,7 +60,7 @@ export default function EntriesPage() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto md:p-6">
       <EntryHeader title={t("entries.title")} householdName={currentHousehold?.name} newHref="/app/entries/new" />
 
       {error && (

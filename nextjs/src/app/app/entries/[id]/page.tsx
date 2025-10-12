@@ -13,6 +13,7 @@ import ImageGallery from "@/features/entries/components/gallery/ImageGallery";
 import { useSignedFilePreviews } from "@/features/entries/hooks/useSignedFilePreviews";
 import EntryAttachmentImport from "@/features/entries/components/EntryAttachmentImport";
 import EntryZonesList from "@/features/entries/components/EntryZonesList";
+import EntryRawTextEditor from "@/features/entries/components/EntryRawTextEditor";
 
 export default function EntryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,7 +35,7 @@ export default function EntryDetailPage() {
   const imageFiles = files.filter(classifyAsPhoto);
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
+    <div className="max-w-3xl mx-auto md:p-6 space-y-8">
       <header className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center">
@@ -54,7 +55,7 @@ export default function EntryDetailPage() {
         </div>
       </header>
       <EntryZonesList entryId={entry.id} />
-      <pre className="whitespace-pre-wrap text-gray-900">{entry.raw_text}</pre>
+      <EntryRawTextEditor entryId={entry.id} initialText={entry.raw_text} onSaved={reload} />
       {fileError && (
         <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
           {fileError}
