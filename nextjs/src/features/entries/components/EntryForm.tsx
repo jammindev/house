@@ -1,3 +1,4 @@
+// nextjs/src/features/entries/components/EntryForm.tsx
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,8 @@ import { useZones } from "@/features/zones/hooks/useZones";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { EntryFileType } from "@entries/types";
+import { Trash } from "lucide-react";
+import SelectedFileItem from "./SelectedFileItem";
 
 export default function EntryForm() {
     const router = useRouter();
@@ -198,64 +201,19 @@ export default function EntryForm() {
                         {t("entries.selectedFiles", { count: selectedFiles.length })}
                     </p>
                     <ul className="space-y-1">
-                        {selectedFiles.map((item, index) => {
-                            const { file, type } = item;
-                            const selectId = `selected-file-type-${index}`;
-                            const isImage = file.type?.startsWith("image/") ?? false;
-                            return (
-                            <li
-                                key={`${file.name}-${file.lastModified}-${index}`}
-                                className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-700"
-                            >
-                                <div className="flex flex-col gap-1 flex-1 min-w-0">
-                                    <label htmlFor={`custom-file-name-${index}`} className="sr-only">
-                                        {t("entries.customFileNameLabel")}
-                                    </label>
-                                    <Input
-                                        id={`custom-file-name-${index}`}
-                                        value={item.customName}
-                                        onChange={(event) => handleCustomNameChange(index, event.target.value)}
-                                        className="h-8 text-xs"
-                                        placeholder={file.name}
-                                    />
-                                    <span className="truncate text-[0.7rem] text-gray-500" title={file.name}>
-                                        {file.name}
-                                    </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {isImage ? (
-                                        <>
-                                            <label htmlFor={selectId} className="sr-only">
-                                                {fileTypeLabel}
-                                            </label>
-                                            <select
-                                                id={selectId}
-                                                value={type}
-                                                onChange={(event) =>
-                                                    handleFileTypeChange(index, event.target.value as EntryFileType)
-                                                }
-                                                className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                            >
-                                                <option value="photo">{t("entries.fileType.photo")}</option>
-                                                <option value="document">{t("entries.fileType.document")}</option>
-                                            </select>
-                                        </>
-                                    ) : (
-                                        <span className="rounded-md border border-gray-300 bg-white px-2 py-1 text-xs text-gray-700">
-                                            {t("entries.fileType.document")}
-                                        </span>
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveFile(index)}
-                                        className="text-xs font-medium text-primary-600 hover:text-primary-700"
-                                    >
-                                        {t("common.remove")}
-                                    </button>
-                                </div>
-                            </li>
-                        );
-                        })}
+                        {selectedFiles.map((item, index) => (
+                            <SelectedFileItem
+                                key={`${item.file.name}-${item.file.lastModified}-${index}`}
+                                index={index}
+                                file={item.file}
+                                type={item.type}
+                                customName={item.customName}
+                                fileTypeLabel={fileTypeLabel}
+                                onCustomNameChange={handleCustomNameChange}
+                                onFileTypeChange={handleFileTypeChange}
+                                onRemove={handleRemoveFile}
+                            />
+                        ))}
                     </ul>
                 </div>
             )}
