@@ -12,7 +12,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 type Entry = { id: string; raw_text: string; created_at: string };
 
 export default function DashboardContent() {
-  const { loading, user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
+  const { loading, user, households, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [entryCount, setEntryCount] = useState<number>(0);
@@ -96,39 +96,8 @@ export default function DashboardContent() {
 
   return (
     <div className="space-y-6 md:p-6">
-      {/* Header with household switcher */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <div>
-              <CardTitle>{t('dashboard.welcome', { name: user?.email?.split('@')[0] || '' })} 👋</CardTitle>
-              <CardDescription className="flex items-center gap-2 mt-1">
-                <CalendarDays className="h-4 w-4" /> {t('dashboard.memberFor', { days: String(daysSinceRegistration) })}
-              </CardDescription>
-            </div>
-            {households.length > 1 ? (
-              <div className="flex items-center gap-2">
-                <label htmlFor="hh" className="text-sm text-gray-600">Household</label>
-                <select
-                  id="hh"
-                  value={selectedHouseholdId || ''}
-                  onChange={(e) => setSelectedHouseholdId(e.target.value)}
-                  className="h-9 px-3 border rounded-md text-sm"
-                >
-                  {households.map(h => (
-                    <option key={h.id} value={h.id}>{h.name}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <CardDescription className="mt-1">Household: {currentHousehold?.name}</CardDescription>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
-
       {/* Stats + Quick actions */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t('dashboard.entries')}</CardTitle>
@@ -152,18 +121,6 @@ export default function DashboardContent() {
             <div className="mt-3 flex items-center gap-2">
               <Link href="/app/zones"><Button variant="secondary" size="sm">{t('dashboard.manage')}</Button></Link>
               <Link href="/app/zones"><Button size="sm"><Layers className="w-4 h-4 mr-1" /> {t('dashboard.add')}</Button></Link>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.accountHouseholds')}</CardTitle>
-            <CardDescription>Settings and membership</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="mt-1 grid grid-cols-2 gap-2">
-              <Link href="/app/user-settings"><Button variant="secondary" size="sm" className="w-full"><Settings className="w-4 h-4 mr-1" /> {t('dashboard.settings')}</Button></Link>
-              <Link href="/app/households"><Button size="sm" className="w-full">Households</Button></Link>
             </div>
           </CardContent>
         </Card>

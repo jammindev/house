@@ -1,3 +1,4 @@
+// nextjs/src/lib/context/GlobalContext.tsx
 // src/lib/context/GlobalContext.tsx
 'use client';
 
@@ -86,7 +87,7 @@ export function GlobalProvider({ children }: { children: React.ReactNode }) {
                         // ignore
                     }
                     if (!selected) {
-                        if (hh.length === 1) selected = hh[0].id;
+                        selected = hh[0].id;
                     }
                     if (selected) setSelectedHouseholdId(selected);
                 }
