@@ -1,18 +1,20 @@
 // nextjs/src/app/app/entries/[id]/page.tsx
 "use client";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useEntry } from "@entries/hooks/useEntry";
+import EntryDeleteButton from "@entries/components/EntryDeleteButton";
 import PdfFileList from "@/features/entries/components/pdf/PdfFileList";
 import ImageGallery from "@/features/entries/components/gallery/ImageGallery";
 import { useSignedFilePreviews } from "@/features/entries/hooks/useSignedFilePreviews";
 
 export default function EntryDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { t } = useI18n();
   const { entry, files, loading, error } = useEntry(id);
   const { previews, error: fileError } = useSignedFilePreviews(files);
@@ -58,6 +60,8 @@ export default function EntryDetailPage() {
       {pdfFiles.length > 0 && <PdfFileList files={pdfFiles} previews={previews} />}
 
       {imageFiles.length > 0 && <ImageGallery files={imageFiles} previews={previews} />}
+
+      <EntryDeleteButton entryId={entry.id} onDeleted={() => router.push("/app/entries")} />
     </div>
   );
 }
