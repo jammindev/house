@@ -6,10 +6,11 @@ import { Layers } from "lucide-react";
 import { useEntryZones } from "@/features/entries/hooks/useEntryZones";
 import { useZones } from "@/features/zones/hooks/useZones";
 import { useGlobal } from "@/lib/context/GlobalContext";
-import ZonePicker from "@entries/components/ZonePicker";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { ZonePicker } from "./ZonePicker";
 
 type Props = {
   entryId: string;
