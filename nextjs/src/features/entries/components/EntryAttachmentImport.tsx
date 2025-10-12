@@ -1,42 +1,32 @@
 // nextjs/src/features/entries/components/EntryAttachmentImport.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Upload, X } from "lucide-react";
+import { useState } from "react";
+import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import DocumentImportButtons from "@entries/components/DocumentImportButtons";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { EntryFileType } from "@entries/types";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 type EntryAttachmentImportProps = {
   entryId: string;
   onUploaded?: () => void;
 };
 
-export default function EntryAttachmentImport({ entryId, onUploaded }: EntryAttachmentImportProps) {
-  const [open, setOpen] = useState(false);
+export default function EntryAttachmentImport({
+  entryId,
+  onUploaded,
+}: EntryAttachmentImportProps) {
   const [uploading, setUploading] = useState(false);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const btnRef = useRef<HTMLButtonElement | null>(null);
-
-  // basic click-outside/escape handling for the lightweight popover
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    const onClick = (e: MouseEvent) => {
-      const t = e.target as Node;
-      if (panelRef.current?.contains(t) || btnRef.current?.contains(t)) return;
-      setOpen(false);
-    };
-    document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
-    };
-  }, [open]);
+  const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   const inferType = (file: File): EntryFileType =>
     file.type && file.type.startsWith("image/") ? "photo" : "document";
@@ -52,8 +42,6 @@ export default function EntryAttachmentImport({ entryId, onUploaded }: EntryAtta
       if (userError) throw userError;
       const userId = userData?.user?.id;
       if (!userId) throw new Error("Not authenticated");
-
-      const uploadedPaths: string[] = [];
 
       for (const file of files) {
         const safeName = (file.name || "file").replace(/[^0-9a-zA-Z._-]/g, "_");
@@ -71,7 +59,6 @@ export default function EntryAttachmentImport({ entryId, onUploaded }: EntryAtta
             contentType: file.type || undefined,
           });
         if (uploadError) throw uploadError;
-        uploadedPaths.push(storagePath);
 
         const resolvedType: EntryFileType = inferType(file);
         const { error: linkError } = await client
@@ -93,35 +80,46 @@ export default function EntryAttachmentImport({ entryId, onUploaded }: EntryAtta
       onUploaded?.();
     } catch (e) {
       console.error(e);
-      alert("Upload failed");
+      alert("Le téléversement a échoué.");
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="relative">
-      <Button ref={btnRef} variant="ghost" size="icon" onClick={() => setOpen((v) => !v)} disabled={uploading}>
-        <Upload />
-      </Button>
-      {open && (
-        <div
-          ref={panelRef}
-          className="absolute right-0 z-20 mt-2 w-[260px] rounded-md border border-gray-200 bg-white p-3 shadow-md"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={uploading}
+          aria-label="Ajouter des fichiers"
+          className="hover:bg-muted transition-colors"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-700">Ajouter des fichiers</span>
-            <button className="p-1 text-gray-500 hover:text-gray-700" onClick={() => setOpen(false)} aria-label="Close">
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          {uploading ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : (
+            <Upload className="h-4 w-4 text-muted-foreground" />
+          )}
+        </Button>
+      </PopoverTrigger>
+
+      <PopoverContent
+        align="end"
+        sideOffset={6}
+        className="w-auto rounded-xl border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95"
+      >
+
+        <div className="space-y-2">
           <DocumentImportButtons onFilesSelected={handleFilesSelected} />
           {uploading && (
-            <div className="mt-2 text-xs text-gray-500">Téléversement en cours…</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" />
+              {t("entries.upload.inProgress")}
+            </div>
           )}
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
-

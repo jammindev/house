@@ -101,6 +101,7 @@
   "entries.deleteFileTitle": "Supprimer ce fichier ?",
   "entries.createFailed": "Échec de la création de l’entrée",
   "entries.pdfPreview": "Aperçu PDF",
+  "entries.upload.inProgress": "Téléversement en cours…",
   "zones.title": "Zones",
   "zones.loading": "Chargement des zones…",
   "zones.none": "Aucune zone pour ce foyer.",

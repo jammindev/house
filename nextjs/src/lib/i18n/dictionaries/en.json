@@ -101,6 +101,7 @@
   "entries.deleteFileTitle": "Delete this file?",
   "entries.createFailed": "Failed to create entry",
   "entries.pdfPreview": "PDF preview",
+  "entries.upload.inProgress": "Uploading…",
   "zones.title": "Zones",
   "zones.loading": "Loading zones…",
   "zones.none": "No zones in this household.",

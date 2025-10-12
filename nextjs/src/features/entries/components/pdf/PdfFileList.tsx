@@ -1,3 +1,4 @@
+// nextjs/src/features/entries/components/pdf/PdfFileList.tsx
 "use client";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -12,6 +13,7 @@ interface PdfFileListProps {
 
 export default function PdfFileList({ files, previews, onDeleted }: PdfFileListProps) {
     const { t } = useI18n()
+
     return (
         <section className="space-y-4">
             <h2 className="text-lg font-medium mb-2">
