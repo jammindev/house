@@ -11,12 +11,13 @@ import EntryDeleteButton from "@entries/components/EntryDeleteButton";
 import PdfFileList from "@/features/entries/components/pdf/PdfFileList";
 import ImageGallery from "@/features/entries/components/gallery/ImageGallery";
 import { useSignedFilePreviews } from "@/features/entries/hooks/useSignedFilePreviews";
+import EntryAttachmentImport from "@/features/entries/components/EntryAttachmentImport";
 
 export default function EntryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { t } = useI18n();
-  const { entry, files, loading, error } = useEntry(id);
+  const { entry, files, loading, error, reload } = useEntry(id);
   const { previews, error: fileError } = useSignedFilePreviews(files);
 
   if (loading) return <div className="p-6 text-gray-500">{t("common.loading")}</div>;
@@ -44,13 +45,14 @@ export default function EntryDetailPage() {
             <h1 className="text-xl font-semibold">{t("entries.detail")}</h1>
           </div>
         </div>
-        <div className="text-sm text-gray-500">
-          {new Date(entry.created_at).toLocaleString()}
+        <div className="flex justify-end">
+          {entry && <EntryAttachmentImport entryId={entry.id} onUploaded={reload} />}
         </div>
       </header>
-
+      <div className="text-sm text-gray-500">
+        {new Date(entry.created_at).toLocaleString()}
+      </div>
       <pre className="whitespace-pre-wrap text-gray-900">{entry.raw_text}</pre>
-
       {fileError && (
         <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
           {fileError}
