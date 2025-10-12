@@ -45,17 +45,15 @@ export default function EntryDetailPage() {
             </Button>
             <h1 className="text-xl font-semibold">{t("entries.detail")}</h1>
           </div>
+          <div className="text-sm text-gray-500">
+            {new Date(entry.created_at).toLocaleString()}
+          </div>
         </div>
         <div className="flex justify-end">
           {entry && <EntryAttachmentImport entryId={entry.id} onUploaded={reload} />}
         </div>
       </header>
-      <div className="flex items-center gap-3">
-        <EntryZonesList entryId={entry.id} />
-        <div className="text-sm text-gray-500">
-          {new Date(entry.created_at).toLocaleString()}
-        </div>
-      </div>
+      <EntryZonesList entryId={entry.id} />
       <pre className="whitespace-pre-wrap text-gray-900">{entry.raw_text}</pre>
       {fileError && (
         <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
@@ -63,9 +61,9 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      {pdfFiles.length > 0 && <PdfFileList files={pdfFiles} previews={previews} />}
+      {pdfFiles.length > 0 && <PdfFileList files={pdfFiles} previews={previews} onDeleted={reload} />}
 
-      {imageFiles.length > 0 && <ImageGallery files={imageFiles} previews={previews} />}
+      {imageFiles.length > 0 && <ImageGallery files={imageFiles} previews={previews} onDeleted={reload} />}
 
       <EntryDeleteButton entryId={entry.id} onDeleted={() => router.push("/app/entries")} />
     </div>
