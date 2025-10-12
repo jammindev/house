@@ -102,6 +102,8 @@
   "entries.createFailed": "Failed to create entry",
   "entries.pdfPreview": "PDF preview",
   "entries.upload.inProgress": "Uploading…",
+  "entries.zones": "Zones",
+  "entries.noZones": "No zones linked to this entry.",
   "zones.title": "Zones",
   "zones.loading": "Loading zones…",
   "zones.none": "No zones in this household.",

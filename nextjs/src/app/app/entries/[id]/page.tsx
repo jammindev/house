@@ -12,6 +12,7 @@ import PdfFileList from "@/features/entries/components/pdf/PdfFileList";
 import ImageGallery from "@/features/entries/components/gallery/ImageGallery";
 import { useSignedFilePreviews } from "@/features/entries/hooks/useSignedFilePreviews";
 import EntryAttachmentImport from "@/features/entries/components/EntryAttachmentImport";
+import EntryZonesList from "@/features/entries/components/EntryZonesList";
 
 export default function EntryDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,8 +50,11 @@ export default function EntryDetailPage() {
           {entry && <EntryAttachmentImport entryId={entry.id} onUploaded={reload} />}
         </div>
       </header>
-      <div className="text-sm text-gray-500">
-        {new Date(entry.created_at).toLocaleString()}
+      <div className="flex items-center gap-3">
+        <EntryZonesList entryId={entry.id} />
+        <div className="text-sm text-gray-500">
+          {new Date(entry.created_at).toLocaleString()}
+        </div>
       </div>
       <pre className="whitespace-pre-wrap text-gray-900">{entry.raw_text}</pre>
       {fileError && (
