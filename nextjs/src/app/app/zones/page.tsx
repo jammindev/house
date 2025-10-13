@@ -1,3 +1,4 @@
+// nextjs/src/app/app/zones/page.tsx
 "use client";
 
 import React, { useMemo, useState } from "react";
@@ -50,23 +51,21 @@ export default function ZonesPage() {
     );
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <Card>
+    <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-3xl flex-1 flex-col p-2 lg:p-6">
+      <div className="flex flex-1 flex-col">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>
-              {t("zones.title")}
-            </CardTitle>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <CardTitle>{t("zones.title")}</CardTitle>
 
-            <Button variant="ghost" size="icon" onClick={() => setFormOpen((prev) => !prev)} aria-label={t("zones.addZone")}>
-              <Plus className="h-5 w-5" />
+            <Button size="icon" variant="ghost" onClick={() => setFormOpen((prev) => !prev)}>
+              <Plus />
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent className="flex flex-1 flex-col gap-4">
           {error && (
-            <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">{error}</div>
+            <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
           )}
 
           <ZoneForm
@@ -86,40 +85,43 @@ export default function ZonesPage() {
             }}
           />
 
-          {!loading && sortedZones.length > 0 && (
+          {/* {!loading && sortedZones.length > 0 && (
             <ZoneStats stats={zoneStats} t={t} formattedSurfaceTotal={formattedSurfaceTotal} />
-          )}
+          )} */}
 
-          {loading ? (
-            <div className="text-sm text-gray-500">{t("zones.loading")}</div>
-          ) : sortedZones.length === 0 ? (
-            <div className="text-sm text-gray-500">{t("zones.none")}</div>
-          ) : (
-            <ZoneList
-              zones={sortedZones}
-              zonesById={zonesById}
-              zoneDepths={zoneDepths}
-              numberFormatter={numberFormatter}
-              t={t}
-              deletingId={deletingId}
-              onEdit={async (id, payload) => {
-                try {
-                  await updateZone(id, payload);
-                } catch (e: any) {
-                  console.error(e);
-                  setError(e?.message || t("zones.updateFailed"));
-                }
-              }}
-              onAskDelete={(z) => {
-                setPendingDelete(z);
-                setConfirmOpen(true);
-              }}
-            />
-          )}
+          <div className="flex-1">
+            {loading ? (
+              <div className="text-sm text-gray-500">{t("zones.loading")}</div>
+            ) : sortedZones.length === 0 ? (
+              <div className="text-sm text-gray-500">{t("zones.none")}</div>
+            ) : (
+              <div className="h-full overflow-y-auto rounded-md p-2">
+                <ZoneList
+                  zones={sortedZones}
+                  zonesById={zonesById}
+                  zoneDepths={zoneDepths}
+                  numberFormatter={numberFormatter}
+                  t={t}
+                  deletingId={deletingId}
+                  onEdit={async (id, payload) => {
+                    try {
+                      await updateZone(id, payload);
+                    } catch (e: any) {
+                      console.error(e);
+                      setError(e?.message || t("zones.updateFailed"));
+                    }
+                  }}
+                  onAskDelete={(z) => {
+                    setPendingDelete(z);
+                    setConfirmOpen(true);
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </CardContent>
-      </Card>
+      </div>
 
-      {/* Confirm delete */}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={(o) => {

@@ -138,6 +138,8 @@
   "zones.deleteConfirmDescription": "Cela supprimera définitivement \"{name}\". Les liaisons avec les entrées seront supprimées.",
   "zones.deleteConfirmCta": "Supprimer",
   "zones.deleteCancel": "Annuler",
+  "zones.expandZone": "Déplier la zone",
+  "zones.collapseZone": "Replier la zone",
   "auth.email": "Adresse e‑mail",
   "auth.password": "Mot de passe",
   "auth.forgotPassword": "Mot de passe oublié ?",

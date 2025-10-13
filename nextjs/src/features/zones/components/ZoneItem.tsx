@@ -1,10 +1,12 @@
+// nextjs/src/features/zones/components/ZoneItem.tsx
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Layers, Ruler, StickyNote, Pencil, Trash2, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import type { Zone } from "../types";
 import { formatZoneOptionLabel } from "../lib/tree";
 interface Props {
@@ -17,9 +19,27 @@ interface Props {
     onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null }) => Promise<void>;
     onAskDelete: (z: Zone) => void;
     deletingId?: string | null;
+    hasChildren?: boolean;
+    collapsed?: boolean;
+    onToggleCollapse?: () => void;
+    isFirstChildOfRoot?: boolean;
 }
 
-export default function ZoneItem({ zone, zonesById, sortedZones, zoneDepths, numberFormatter, t, onEdit, onAskDelete, deletingId }: Props) {
+export default function ZoneItem({
+    zone,
+    zonesById,
+    sortedZones,
+    zoneDepths,
+    numberFormatter,
+    t,
+    onEdit,
+    onAskDelete,
+    deletingId,
+    hasChildren = false,
+    collapsed = false,
+    onToggleCollapse,
+    isFirstChildOfRoot = false,
+}: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(zone.name);
     const [parentId, setParentId] = useState<string | "">(zone.parent_id ?? "");
@@ -49,18 +69,24 @@ export default function ZoneItem({ zone, zonesById, sortedZones, zoneDepths, num
         }
     };
     return (
-        <li
+        <motion.li
+            layout
+            initial={false}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             className={clsx(
-                "group rounded-md border px-3 py-3 shadow-sm transition hover:border-gray-300",
-                depth > 0 ? "bg-slate-50 border-l-4 border-l-indigo-200" : "border-l-4 border-l-slate-200 bg-white"
+                "group rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-slate-300",
+                depth > 0 && "bg-slate-50",
+                isFirstChildOfRoot && "mt-4"
             )}
-            style={depth ? { marginLeft: depth * 12 } : undefined}
+            style={{ marginLeft: depth ? depth * 18 : undefined, overflow: "hidden" }}
         >
             {isEditing ? (
-                <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-2 md:flex-row">
+                <div className="flex flex-col gap-4">
+                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_200px]">
                         <Input value={name} onChange={(e) => setName(e.target.value)} className="md:flex-1" />
-                        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className="h-10 rounded-md border px-3 text-sm md:w-56">
+                        <select value={parentId} onChange={(e) => setParentId(e.target.value)} className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm">
                             <option value="">{t("zones.noParent")}</option>
                             {sortedZones
                                 .filter((zz) => zz.id !== zone.id)
@@ -71,8 +97,15 @@ export default function ZoneItem({ zone, zonesById, sortedZones, zoneDepths, num
                                 ))}
                         </select>
                     </div>
-                    <div className="flex flex-col gap-2 md:flex-row">
-                        <Input type="number" min="0" step="0.01" value={surface} onChange={(e) => setSurface(e.target.value)} placeholder={t("zones.surfacePlaceholder")} className="md:w-48" />
+                    <div className="grid gap-3 md:grid-cols-[200px]">
+                        <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={surface}
+                            onChange={(e) => setSurface(e.target.value)}
+                            placeholder={t("zones.surfacePlaceholder")}
+                        />
                     </div>
                     <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("zones.notePlaceholder")} rows={3} />
                     <div className="flex flex-wrap gap-2">
@@ -85,51 +118,53 @@ export default function ZoneItem({ zone, zonesById, sortedZones, zoneDepths, num
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                    <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                            <Layers className="h-4 w-4 text-gray-400" />
-                            <span>{zone.name}</span>
-                        </div>
-                        {(parent || surfaceText) && (
-                            <div className="flex flex-wrap gap-2 text-xs">
-                                {parent ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-indigo-700">
-                                        <Layers className="h-3 w-3" />
-                                        {t("zones.childOf", { parent: parent.name })}
-                                    </span>
-                                ) : null}
-                                {surfaceText ? (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-amber-700">
-                                        <Ruler className="h-3 w-3" />
-                                        {t("zones.surfaceValue", { value: surfaceText })}
-                                    </span>
-                                ) : null}
-                            </div>
+                <div className="flex min-h-[44px] items-center gap-3">
+                    <div className="flex h-8 w-8 items-center justify-center">
+                        {hasChildren ? (
+                            <button
+                                type="button"
+                                onClick={onToggleCollapse}
+                                aria-label={collapsed ? t("zones.expandZone") : t("zones.collapseZone")}
+                                className="flex h-7 w-7 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100"
+                            >
+                                {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                            </button>
+                        ) : (
+                            <span className="inline-block h-7 w-7" />
                         )}
+                    </div>
+                    <div className="flex flex-1 items-center gap-3 overflow-hidden">
+                        <span className="truncate font-medium text-slate-900">{zone.name}</span>
+                        {surfaceText ? (
+                            <span className="whitespace-nowrap text-xs text-slate-500">{t("zones.surfaceValue", { value: surfaceText })}</span>
+                        ) : null}
                         {zone.note ? (
-                            <div className="flex items-start gap-2 text-xs text-gray-600">
-                                <StickyNote className="mt-0.5 h-4 w-4 text-gray-400" />
-                                <span>{t("zones.noteValue", { note: zone.note })}</span>
-                            </div>
+                            <span className="truncate text-xs text-slate-500">{t("zones.noteValue", { note: zone.note })}</span>
                         ) : null}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Button size="icon" variant="secondary" onClick={() => setIsEditing(true)} aria-label={t("zones.edit")}>
-                            <Pencil className="h-4 w-4" />
+                    <div className="flex items-center gap-1 text-slate-500">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setIsEditing(true)}
+                            aria-label={t("zones.edit")}
+                            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+                        >
+                            <Pencil className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                             size="icon"
-                            variant="destructive"
+                            variant="ghost"
+                            className="h-7 w-7 text-red-600 hover:bg-red-50 hover:text-red-600"
                             onClick={() => onAskDelete(zone)}
                             disabled={deletingId === zone.id}
                             aria-label={deletingId === zone.id ? t("common.deleting") : t("common.delete")}
                         >
-                            {deletingId === zone.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                            {deletingId === zone.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                         </Button>
                     </div>
                 </div>
             )}
-        </li>
+        </motion.li>
     );
 }

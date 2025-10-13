@@ -138,6 +138,8 @@
   "zones.deleteConfirmDescription": "This will permanently delete \"{name}\". Links to entries will be removed.",
   "zones.deleteConfirmCta": "Delete",
   "zones.deleteCancel": "Cancel",
+  "zones.expandZone": "Expand zone",
+  "zones.collapseZone": "Collapse zone",
   "auth.email": "Email address",
   "auth.password": "Password",
   "auth.forgotPassword": "Forgot your password?",
