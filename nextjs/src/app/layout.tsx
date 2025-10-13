@@ -7,9 +7,27 @@ import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { cookies, headers } from "next/headers";
 
 
+const productName = process.env.NEXT_PUBLIC_PRODUCTNAME ?? "House";
+
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_PRODUCTNAME,
-  description: "The best way to build your SaaS product.",
+  title: productName,
+  applicationName: productName,
+  description: "Centralisez la connaissance de votre foyer avec House.",
+  manifest: "/manifest.json",
+  themeColor: "#0f172a",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: productName,
+  },
+  icons: {
+    apple: [
+      { url: "/icons/apple-touch-icon-120.png", sizes: "120x120" },
+      { url: "/icons/apple-touch-icon-152.png", sizes: "152x152" },
+      { url: "/icons/apple-touch-icon-167.png", sizes: "167x167" },
+      { url: "/icons/apple-touch-icon-180.png", sizes: "180x180" },
+    ],
+  },
 };
 
 export default async function RootLayout({
