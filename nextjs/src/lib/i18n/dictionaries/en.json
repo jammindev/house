@@ -120,6 +120,7 @@
   "zones.edit": "Edit",
   "zones.surfacePlaceholder": "Surface (m²)",
   "zones.notePlaceholder": "Note about this zone (optional)",
+  "zones.noteEmpty": "No note yet.",
   "zones.surfaceValue": "Surface: {value} m²",
   "zones.noteValue": "Note: {note}",
   "zones.childOf": "Child of {parent}",

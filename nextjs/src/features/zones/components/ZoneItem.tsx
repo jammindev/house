@@ -1,8 +1,8 @@
 // nextjs/src/features/zones/components/ZoneItem.tsx
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,10 +48,15 @@ export default function ZoneItem({
     );
     const [note, setNote] = useState(zone.note ?? "");
     const [saving, setSaving] = useState(false);
+    const [expanded, setExpanded] = useState(false);
 
     const depth = zoneDepths.get(zone.id) ?? 0;
     const parent = useMemo(() => (zone.parent_id ? zonesById.get(zone.parent_id) ?? null : null), [zonesById, zone.parent_id]);
     const surfaceText = typeof zone.surface === "number" && !Number.isNaN(zone.surface) ? numberFormatter.format(zone.surface) : null;
+
+    useEffect(() => {
+        if (collapsed) setExpanded(false);
+    }, [collapsed]);
 
     const handleSave = async () => {
         const nameTrim = name.trim();
@@ -67,6 +72,16 @@ export default function ZoneItem({
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleToggleDetails = () => {
+        if (isEditing) return;
+        setExpanded((prev) => !prev);
+    };
+
+    const handleEditClick = () => {
+        setExpanded(true);
+        setIsEditing(true);
     };
     return (
         <motion.li
@@ -118,51 +133,72 @@ export default function ZoneItem({
                     </div>
                 </div>
             ) : (
-                <div className="flex min-h-[44px] items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center">
-                        {hasChildren ? (
-                            <button
-                                type="button"
-                                onClick={onToggleCollapse}
-                                aria-label={collapsed ? t("zones.expandZone") : t("zones.collapseZone")}
-                                className="flex h-7 w-7 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100"
+                <div className="flex flex-col">
+                    <div className="flex min-h-[44px] items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center">
+                            {hasChildren ? (
+                                <button
+                                    type="button"
+                                    onClick={onToggleCollapse}
+                                    aria-label={collapsed ? t("zones.expandZone") : t("zones.collapseZone")}
+                                    className="flex h-7 w-7 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100"
+                                >
+                                    {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                                </button>
+                            ) : (
+                                <span className="inline-block h-7 w-7" />
+                            )}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleToggleDetails}
+                            className="flex flex-1 items-center justify-between gap-3 rounded-md px-1 py-1 text-left transition hover:bg-slate-100"
+                        >
+                            <span className="truncate font-medium text-slate-900">{zone.name}</span>
+                            {surfaceText ? (
+                                <span className="whitespace-nowrap text-xs text-slate-500">{t("zones.surfaceValue", { value: surfaceText })}</span>
+                            ) : null}
+                        </button>
+                    </div>
+                    <AnimatePresence initial={false}>
+                        {expanded && (
+                            <motion.div
+                                key="zone-details"
+                                initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                animate={{ opacity: 1, height: "auto", marginTop: 12 }}
+                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                transition={{ duration: 0.18, ease: "easeOut" }}
+                                className="overflow-hidden"
                             >
-                                {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                            </button>
-                        ) : (
-                            <span className="inline-block h-7 w-7" />
+                                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                                    {zone.note ? (
+                                        <div className="whitespace-pre-wrap text-slate-600">{zone.note}</div>
+                                    ) : (
+                                        <div className="italic text-slate-400">{t("zones.noteEmpty")}</div>
+                                    )}
+                                    <div className="mt-3 flex items-center justify-end gap-2">
+                                        <Button size="sm" variant="outline" onClick={handleEditClick}>
+                                            <Pencil className="mr-1 h-3.5 w-3.5" />
+                                            {t("zones.edit")}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={() => onAskDelete(zone)}
+                                            disabled={deletingId === zone.id}
+                                        >
+                                            {deletingId === zone.id ? (
+                                                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                            )}
+                                            {deletingId === zone.id ? t("common.deleting") : t("common.delete")}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
-                    </div>
-                    <div className="flex flex-1 items-center gap-3 overflow-hidden">
-                        <span className="truncate font-medium text-slate-900">{zone.name}</span>
-                        {surfaceText ? (
-                            <span className="whitespace-nowrap text-xs text-slate-500">{t("zones.surfaceValue", { value: surfaceText })}</span>
-                        ) : null}
-                        {zone.note ? (
-                            <span className="truncate text-xs text-slate-500">{t("zones.noteValue", { note: zone.note })}</span>
-                        ) : null}
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-500">
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setIsEditing(true)}
-                            aria-label={t("zones.edit")}
-                            className="h-7 w-7 text-slate-500 hover:text-slate-900"
-                        >
-                            <Pencil className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="h-7 w-7 text-red-600 hover:bg-red-50 hover:text-red-600"
-                            onClick={() => onAskDelete(zone)}
-                            disabled={deletingId === zone.id}
-                            aria-label={deletingId === zone.id ? t("common.deleting") : t("common.delete")}
-                        >
-                            {deletingId === zone.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                        </Button>
-                    </div>
+                    </AnimatePresence>
                 </div>
             )}
         </motion.li>
