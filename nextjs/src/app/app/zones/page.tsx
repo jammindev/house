@@ -51,10 +51,10 @@ export default function ZonesPage() {
     );
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-3xl flex-1 flex-col p-2 lg:p-6">
+    <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-3xl flex-1 flex-col">
       <div className="flex flex-1 flex-col">
-        <CardHeader>
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
             <CardTitle>{t("zones.title")}</CardTitle>
 
             <Button size="icon" variant="ghost" onClick={() => setFormOpen((prev) => !prev)}>
@@ -63,7 +63,7 @@ export default function ZonesPage() {
           </div>
         </CardHeader>
 
-        <CardContent className="flex flex-1 flex-col gap-4">
+        <CardContent className="flex flex-1 flex-col gap-4 p-0">
           {error && (
             <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
           )}

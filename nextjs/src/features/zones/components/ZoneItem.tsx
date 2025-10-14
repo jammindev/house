@@ -83,6 +83,7 @@ export default function ZoneItem({
         setExpanded(true);
         setIsEditing(true);
     };
+
     return (
         <motion.li
             layout
@@ -95,7 +96,7 @@ export default function ZoneItem({
                 depth > 0 && "bg-slate-50",
                 isFirstChildOfRoot && "mt-4"
             )}
-            style={{ marginLeft: depth ? depth * 18 : undefined, overflow: "hidden" }}
+            style={{ marginLeft: depth ? (depth - 1) * 18 : undefined, overflow: "hidden" }}
         >
             {isEditing ? (
                 <div className="flex flex-col gap-4">
@@ -134,31 +135,33 @@ export default function ZoneItem({
                 </div>
             ) : (
                 <div className="flex flex-col">
-                    <div className="flex min-h-[44px] items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center">
+                    <div className="flex min-h-[48px] items-center gap-2 sm:gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center sm:h-8 sm:w-8">
                             {hasChildren ? (
                                 <button
                                     type="button"
                                     onClick={onToggleCollapse}
                                     aria-label={collapsed ? t("zones.expandZone") : t("zones.collapseZone")}
-                                    className="flex h-7 w-7 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100"
+                                    className="flex h-9 w-9 items-center justify-center rounded text-slate-500 transition hover:bg-slate-100 sm:h-7 sm:w-7"
                                 >
                                     {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                                 </button>
                             ) : (
-                                <span className="inline-block h-7 w-7" />
+                                <span className="inline-block h-9 w-9 sm:h-7 sm:w-7" />
                             )}
                         </div>
-                        <button
-                            type="button"
+                        <Button
+                            variant="ghost"
                             onClick={handleToggleDetails}
-                            className="flex flex-1 items-center justify-between gap-3 rounded-md px-1 py-1 text-left transition hover:bg-slate-100"
+                            className="flex flex-1 items-start justify-between gap-1 rounded-md px-2 py-2 text-left transition hover:bg-slate-100 sm:flex-row sm:items-center sm:gap-3"
                         >
-                            <span className="truncate font-medium text-slate-900">{zone.name}</span>
+                            <span className="truncate text-sm font-medium text-slate-900 sm:text-base">{zone.name}</span>
                             {surfaceText ? (
-                                <span className="whitespace-nowrap text-xs text-slate-500">{t("zones.surfaceValue", { value: surfaceText })}</span>
+                                <span className="whitespace-nowrap text-xs text-slate-500 sm:text-sm">
+                                    {t("zones.surfaceValue", { value: surfaceText })}
+                                </span>
                             ) : null}
-                        </button>
+                        </Button>
                     </div>
                     <AnimatePresence initial={false}>
                         {expanded && (
@@ -170,14 +173,17 @@ export default function ZoneItem({
                                 transition={{ duration: 0.18, ease: "easeOut" }}
                                 className="overflow-hidden"
                             >
-                                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-xs text-slate-600 sm:text-sm">
+                                    {parent ? (
+                                        <div className="mb-2 text-slate-500">{t("zones.childOf", { parent: parent.name })}</div>
+                                    ) : null}
                                     {zone.note ? (
                                         <div className="whitespace-pre-wrap text-slate-600">{zone.note}</div>
                                     ) : (
                                         <div className="italic text-slate-400">{t("zones.noteEmpty")}</div>
                                     )}
-                                    <div className="mt-3 flex items-center justify-end gap-2">
-                                        <Button size="sm" variant="outline" onClick={handleEditClick}>
+                                    <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                                        <Button size="sm" variant="outline" onClick={handleEditClick} className="w-full sm:w-auto">
                                             <Pencil className="mr-1 h-3.5 w-3.5" />
                                             {t("zones.edit")}
                                         </Button>
@@ -186,6 +192,7 @@ export default function ZoneItem({
                                             variant="destructive"
                                             onClick={() => onAskDelete(zone)}
                                             disabled={deletingId === zone.id}
+                                            className="w-full sm:w-auto"
                                         >
                                             {deletingId === zone.id ? (
                                                 <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
