@@ -1,8 +1,7 @@
 // nextjs/src/lib/context/GlobalContext.tsx
-// src/lib/context/GlobalContext.tsx
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 
 
@@ -27,80 +26,117 @@ interface GlobalContextType {
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-export function GlobalProvider({ children }: { children: React.ReactNode }) {
+export function GlobalProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<User | null>(null);
     const [households, setHouseholds] = useState<Household[]>([]);
-    const [selectedHouseholdId, _setSelectedHouseholdId] = useState<string | null>(null);
-
-    const setSelectedHouseholdId = (id: string | null) => {
-        _setSelectedHouseholdId(id);
-        try {
-            if (id) {
-                localStorage.setItem('selectedHouseholdId', id);
-            } else {
-                localStorage.removeItem('selectedHouseholdId');
-            }
-        } catch (e) {
-            // ignore storage errors
+    const [selectedHouseholdId, _setSelectedHouseholdId] = useState<string | null>(() => {
+        if (typeof window === 'undefined') {
+            return null;
         }
-    };
+        try {
+            return localStorage.getItem('selectedHouseholdId');
+        } catch (error) {
+            return null;
+        }
+    });
+
+    const selectedHouseholdIdRef = useRef<string | null>(selectedHouseholdId);
+    useEffect(() => {
+        selectedHouseholdIdRef.current = selectedHouseholdId;
+    }, [selectedHouseholdId]);
+
+    const setSelectedHouseholdId = useCallback((id: string | null) => {
+        _setSelectedHouseholdId((previous) => {
+            if (previous === id) {
+                return previous;
+            }
+
+            try {
+                if (id) {
+                    localStorage.setItem('selectedHouseholdId', id);
+                } else {
+                    localStorage.removeItem('selectedHouseholdId');
+                }
+            } catch (error) {
+                // ignore storage errors
+            }
+
+            return id;
+        });
+    }, []);
 
     useEffect(() => {
+        let isMounted = true;
+
         async function loadData() {
             try {
                 const supabase = await createSPASassClient();
                 const client = supabase.getSupabaseClient();
 
-                // Get user data
-                const { data: { user } } = await client.auth.getUser();
-                if (user) {
+                const [userResult, householdsResult] = await Promise.all([
+                    client.auth.getUser(),
+                    client
+                        .from('households' as any)
+                        .select('id, name')
+                        .order('created_at' as any)
+                ]);
+
+                if (!isMounted) {
+                    return;
+                }
+
+                if (userResult.error) {
+                    console.error('Error loading user:', userResult.error);
+                    setUser(null);
+                } else if (userResult.data.user) {
+                    const fetchedUser = userResult.data.user;
                     setUser({
-                        email: user.email!,
-                        id: user.id,
-                        registered_at: new Date(user.created_at)
+                        email: fetchedUser.email!,
+                        id: fetchedUser.id,
+                        registered_at: new Date(fetchedUser.created_at)
                     });
                 } else {
-                    throw new Error('User not found');
+                    setUser(null);
                 }
 
-                // Load households visible to this user (RLS enforced)
-                const { data: hhData, error: hhErr } = await client
-                    .from('households' as any)
-                    .select('id, name')
-                    .order('created_at' as any);
-                if (hhErr) {
-                    console.error('Error loading households:', hhErr);
+                if (householdsResult.error) {
+                    console.error('Error loading households:', householdsResult.error);
                     setHouseholds([]);
-                } else {
-                    const hh = (hhData || []) as any[];
-                    setHouseholds(hh as Household[]);
-
-                    // Determine selected household
-                    let selected: string | null = null;
-                    try {
-                        const stored = localStorage.getItem('selectedHouseholdId');
-                        if (stored && hh.some(h => h.id === stored)) {
-                            selected = stored;
-                        }
-                    } catch (e) {
-                        // ignore
-                    }
-                    if (!selected) {
-                        selected = hh[0].id;
-                    }
-                    if (selected) setSelectedHouseholdId(selected);
+                    setSelectedHouseholdId(null);
+                    return;
                 }
 
+                const fetchedHouseholds = (householdsResult.data || []) as Household[];
+                setHouseholds(fetchedHouseholds);
+
+                if (!fetchedHouseholds.length) {
+                    setSelectedHouseholdId(null);
+                    return;
+                }
+
+                const currentSelection = selectedHouseholdIdRef.current;
+                if (currentSelection && fetchedHouseholds.some((household) => household.id === currentSelection)) {
+                    setSelectedHouseholdId(currentSelection);
+                    return;
+                }
+
+                setSelectedHouseholdId(fetchedHouseholds[0].id);
             } catch (error) {
-                console.error('Error loading data:', error);
+                console.error('Error loading global context data:', error);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    setLoading(false);
+                }
             }
         }
 
         loadData();
-    }, []);
+
+        return () => {
+            isMounted = false;
+        };
+    }, [setSelectedHouseholdId]);
 
     return (
         <GlobalContext.Provider value={{ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }}>
