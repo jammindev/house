@@ -36,7 +36,7 @@ export default function Sidebar({
 
     const navigation = [
         { name: t("nav.dashboard"), href: "/app", icon: Home },
-        { name: t("nav.entries"), href: "/app/entries", icon: Notebook },
+        { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
         { name: t("nav.storage"), href: "/app/storage", icon: Files },
         { name: t("nav.table"), href: "/app/table", icon: LucideListTodo },

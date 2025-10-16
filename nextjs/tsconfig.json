@@ -30,8 +30,8 @@
       "@zones/*": [
         "features/zones/*"
       ],
-      "@entries/*": [
-        "features/entries/*"
+      "@interactions/*": [
+        "features/interactions/*"
       ]
     }
   },

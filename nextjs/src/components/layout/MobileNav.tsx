@@ -11,7 +11,7 @@ export default function MobileNav({
 }) {
     const mobileNav = [
         { href: "/app", icon: Home },
-        { href: "/app/entries", icon: Notebook },
+        { href: "/app/interactions", icon: Notebook },
         { href: "/app/zones", icon: MapPin },
         { href: "/app/storage", icon: Files },
         { href: "/app/table", icon: LucideListTodo },

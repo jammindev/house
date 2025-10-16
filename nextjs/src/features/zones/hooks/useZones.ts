@@ -17,12 +17,12 @@ export function useZones(householdId?: string | null) {
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
             const { data, error: zErr } = await client
-                .from("zones" as any)
+                .from("zones")
                 .select("id,name,parent_id,created_by,note,surface")
                 .eq("household_id", householdId)
                 .order("created_at" as any);
             if (zErr) throw zErr;
-            setZones((data as Zone[]) ?? []);
+            setZones((data ?? []) as unknown as Zone[]);
         } catch (e: any) {
             console.error(e);
             setError(e?.message || "Failed to load zones");
@@ -40,13 +40,14 @@ export function useZones(householdId?: string | null) {
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
             const { data, error } = await client
-                .from("zones" as any)
+                .from("zones")
                 .insert(payload)
                 .select("id,name,parent_id,note,surface,created_by")
                 .single();
             if (error) throw error;
-            setZones((prev) => [...prev, data as Zone]);
-            return data as Zone;
+            const zone = data as unknown as Zone;
+            setZones((prev) => [...prev, zone]);
+            return zone;
         },
         []
     );
@@ -55,7 +56,7 @@ export function useZones(householdId?: string | null) {
         async (id: string, payload: Partial<Omit<Zone, "id" | "created_by">>) => {
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
-            const { error } = await client.from("zones" as any).update(payload).eq("id", id);
+            const { error } = await client.from("zones").update(payload).eq("id", id);
             if (error) throw error;
             setZones((prev) => prev.map((z) => (z.id === id ? { ...z, ...payload } as Zone : z)));
         },
@@ -65,7 +66,7 @@ export function useZones(householdId?: string | null) {
     const deleteZone = useCallback(async (id: string) => {
         const supa = await createSPASassClient();
         const client = supa.getSupabaseClient();
-        const { error } = await client.from("zones" as any).delete().eq("id", id);
+        const { error } = await client.from("zones").delete().eq("id", id);
         if (error) throw error;
         setZones((prev) => prev.filter((z) => z.id !== id));
     }, []);

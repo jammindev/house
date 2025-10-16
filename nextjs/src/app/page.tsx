@@ -1,9 +1,21 @@
+// nextjs/src/app/page.tsx
 import React from 'react';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { ArrowRight, NotepadText, FolderOpen, Search, Layers, Shield } from 'lucide-react';
 import AuthAwareButtons from '@/components/AuthAwareButtons';
+import { createSSRClient } from '@/lib/supabase/server';
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createSSRClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect('/app');
+  }
+
   const productName = process.env.NEXT_PUBLIC_PRODUCTNAME || 'House';
 
   const features = [
@@ -16,13 +28,13 @@ export default function Home() {
     {
       icon: Layers,
       title: 'Zones & Organization',
-      description: 'Tag entries to rooms or areas (e.g., Kitchen, Garage) with parent/child zones.',
+      description: 'Tag interactions to rooms or areas (e.g., Kitchen, Garage) with parent/child zones.',
       color: 'text-blue-600'
     },
     {
       icon: FolderOpen,
       title: 'Attachments',
-      description: 'Upload files and link them to entries; view images/PDFs inline.',
+      description: 'Upload files and link them to interactions; view images/PDFs inline.',
       color: 'text-amber-600'
     },
     {
@@ -69,7 +81,7 @@ export default function Home() {
           </p>
           <div className="mt-10 flex gap-3 justify-center">
             <Link
-              href="/app/entries/new"
+              href="/app/interactions/new"
               className="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary-700 text-white hover:bg-primary-800 transition-colors"
             >
               Create a new entry

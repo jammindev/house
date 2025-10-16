@@ -6,21 +6,21 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 
 ## 1) Product Summary
 - Name: House
-- Purpose: Centralize household knowledge (journal entries with attachments and zone tagging). Current build supports multi-tenant households, entry capture, attachments, and zone management. Full-text search, OCR, renovation projects, budgeting, reminders, and maintenance dashboards are still future phases.
+- Purpose: Centralize household knowledge (chronological interactions with attachments, tagging, and context). Current build supports multi-tenant households, interaction capture, attachments, and zone management. Full-text search, OCR, renovation projects, budgeting, reminders, and maintenance dashboards are still future phases.
 - Multi-tenancy: Users belong to one or more households via `household_members`; all content is scoped by `household_id` and protected with RLS.
 
 ## 2) Repository Layout
 - Root scripts: `package.json` orchestrates Next.js and Supabase CLI (`dev|build|start` → `cd nextjs && yarn ...`, `db:migrate`, `db:reset`, `db:new`, `tree`).
 - Frontend app: `nextjs/` (Next.js 15 App Router, React 19, Tailwind, shadcn/ui, custom i18n).
   - Auth: `nextjs/src/app/auth/*`
-  - Dashboard + product: `nextjs/src/app/app/*` (households, zones, entries, storage demo, todo demo).
-  - Entries flow: `nextjs/src/app/app/entries/{page.tsx,new/[id]}`.
+  - Dashboard + product: `nextjs/src/app/app/*` (households, zones, interactions, storage demo, todo demo).
+  - Interactions flow: `nextjs/src/app/app/interactions/{page.tsx,new/[id]}`.
   - API routes: `nextjs/src/app/api/households/route.ts` and the template `api/auth/callback`.
   - Supabase helpers: `nextjs/src/lib/supabase/{client,server,serverAdminClient,unified}.ts`.
   - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`.
   - i18n dictionaries: `nextjs/src/lib/i18n/dictionaries/{en,fr}.json`.
 - Supabase project: `supabase/`
-  - Migrations define households, members, zones (with parent/creator), entries, entry_zones, entry_files, RPCs, and storage policies. Legacy template artifacts (`todo_list`) remain.
+  - Migrations define households, members, zones (with parent/creator), interactions, interaction_zones, documents, RPCs, and storage policies. Legacy template artifacts (`todo_list`) remain.
   - `supabase/config.toml` configures local dev, bucket `files`, and auth settings.
 - Docs & meta: `instructions.md`, `AI_UPDATE_WORKFLOW.md`, `README.md` (still upstream template content).
 - CI: none; `.github/ISSUE_TEMPLATE` only.
@@ -56,29 +56,29 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Trigger `trg_zones_set_created_by` populates `created_by = auth.uid()`.
   - RLS: members of the household may select/insert/update/delete zones for their household; delete is no longer restricted to the creator.
 
-- `entries`
-  - Columns: `id uuid pk`, `household_id uuid`, `raw_text text`, `enriched_text text`, `metadata jsonb default '{}'`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
-  - Trigger `update_entry_metadata` keeps `updated_at` and `updated_by` in sync.
-  - RLS: members can select/insert/update/delete entries that belong to their household (no creator check on delete).
+- `interactions`
+  - Columns: `id uuid pk`, `household_id uuid`, `subject text`, `content text`, `type text`, `status text nullable`, `occurred_at timestamptz`, `tags text[]`, `contact_id uuid nullable`, `structure_id uuid nullable`, `metadata jsonb default '{}'`, `enriched_text text`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
+  - Trigger `update_interaction_metadata` keeps `updated_at` and `updated_by` in sync.
+  - RLS: members can select/insert/update/delete interactions within their household.
 
-- `entry_zones`
-  - Join table `(entry_id uuid fk → entries on delete cascade, zone_id uuid fk → zones on delete cascade)` with PK `(entry_id, zone_id)`.
-  - RLS: membership is validated via the related entry.
-  - Triggers ensure entries always retain at least one zone after deletes/updates.
+- `interaction_zones`
+  - Join table `(interaction_id uuid fk → interactions on delete cascade, zone_id uuid fk → zones on delete cascade)` with PK `(interaction_id, zone_id)`.
+  - RLS: membership is validated via the related interaction.
+  - Triggers ensure surviving interactions always retain at least one zone after deletes/updates.
 
-- `entry_files`
-  - Columns: `id uuid pk`, `entry_id uuid fk`, `storage_path text`, `mime_type text`, `ocr_text text`, `metadata jsonb default '{}'`, `created_at`, `created_by uuid`.
-  - Trigger `set_entry_file_created_by` fills `created_by = auth.uid()`.
-  - RLS: household members may select/insert/update/delete files for entries in their household.
+- `documents`
+  - Columns: `id uuid pk`, `interaction_id uuid fk`, `file_path text`, `name text`, `notes text`, `mime_type text`, `type text`, `metadata jsonb default '{}'`, `ocr_text text`, `created_at`, `created_by uuid`.
+  - Trigger `set_document_created_by` fills `created_by = auth.uid()`.
+  - RLS: household members may select/insert/update/delete documents linked to interactions in their household.
 
 - Storage bucket `files`
-  - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader’s `auth.uid()`.
-  - UI stores files at `userId/entryId/<uuid>_filename` to stay within policy constraints.
+  - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader’s `auth.uid()` and cross-check household membership through `documents` → `interactions`.
+  - UI stores files at `userId/interactionId/<uuid>_filename` to stay within policy constraints.
 
 - Legacy template tables: `todo_list` (from the SaaS starter) still exists with owner-only policies and is used by `/app/table`. It is not part of the House domain.
 
 - Functions & helpers
-  - `create_entry_with_zones(p_household_id, p_raw_text, p_zone_ids uuid[])`: inserts an entry and its zone links atomically after validating membership and zone ownership; returns the entry UUID. Used by the “new entry” form.
+- `create_interaction_with_zones(p_household_id, p_subject, p_content, p_type text default 'note', p_status text default null, p_occurred_at timestamptz default null, p_zone_ids uuid[], p_tags text[] default null, p_contact_id uuid default null, p_structure_id uuid default null)`: inserts an interaction with zone links atomically after validating membership and zone ownership; returns the interaction UUID. Used by the “new interaction” form.
   - `create_household_with_owner(p_name text)`: `SECURITY DEFINER` RPC that checks `auth.uid()`, trims/validates the name, inserts the household, and enrolls the caller as `owner` atomically. Called from `/api/households`.
 
 ## 6) App Architecture (Next.js)
@@ -86,7 +86,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Global context (`GlobalContext`) loads the current user, their households, and manages the selected household (stored in `localStorage`).
 - Routes under `/auth/*` provide login/registration flows plus the `/auth/2fa` challenge screen; `/legal/*` hosts markdown legal pages.
 - `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
-- Entries UI (`/app/entries`): list view limited to 50 recent entries, shows attachment counts. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete entries per updated RLS, while attachment deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/entries/new` creates entries with zone selection, inline zone creation, and attachment upload (client uploads to storage then inserts rows into `entry_files`).
+- Interactions UI (`/app/interactions`): list view limited to recent interactions with attachment counts, subject/type/status metadata, and zone context. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete an interaction per RLS, while document deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/interactions/new` captures interactions with zone selection, metadata (subject/type/status/date/tags), inline zone creation, and attachment upload (client uploads to storage then inserts rows into `documents`).
 - Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, and per-household stats. Any household member can update or delete a zone; the UI exposes confirmations rather than ownership blockers.
 - User settings (`/app/user-settings`): change locale, view account metadata, update password, and enrol/manage TOTP MFA devices via `MFASetup`.
 - Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the security-definer RPC. `/app/households` currently just links to creation.
@@ -95,14 +95,14 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 
 ## 7) API & Edge Functions
 - `POST /api/households`: server action that authenticates the caller, then uses the SSR client (anon key) to execute the `create_household_with_owner` security-definer RPC, which inserts the household and enrols the requester as owner.
-- `POST /api/internal/process-entry-files`: service-role pipeline kick-off; requires the `x-internal-task-token` header matching `INTERNAL_TASK_TOKEN`, runs `processEntryFiles` to extract attachment text and refresh `entries.enriched_text`.
+- `POST /api/internal/process-entry-files`: service-role pipeline kick-off; requires the `x-internal-task-token` header matching `INTERNAL_TASK_TOKEN`, runs `processEntryFiles` to extract attachment text and refresh `documents.ocr_text` / `interactions.enriched_text`.
 - `GET /api/auth/callback`: template Supabase auth callback route; untouched.
 - No dedicated API routes for entries/zones/files—client components interact directly with Supabase (RLS-enforced).
 - No edge functions or background workers yet. OCR, enrichment, and search remain future work.
 
 ## 8) Conventions & Guidelines
 - RLS-first: every new table must ship with RLS and policies mirroring membership rules. Prefer explicit policies over broad ones.
-- Membership-driven access: when authoring SQL, join to `household_members` and use `auth.uid()` checks. Reuse the `create_entry_with_zones` RPC for atomic entry creation.
+- Membership-driven access: when authoring SQL, join to `household_members` and use `auth.uid()` checks. Reuse the `create_interaction_with_zones` RPC for atomic interaction creation.
 - Storage: keep uploaded file keys namespaced by user ID to satisfy storage policies. Sanitize filenames (see `entries/new/page.tsx`).
 - Supabase clients:
   - Browser: use `createSPASassClientAuthenticated` for authenticated SPA operations.
@@ -123,8 +123,8 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 
 ## 10) Roadmap / TODOs (High Priority)
 - Search: add `search_vector`, trigger maintenance, and a `/search` UI for entries.
-- OCR & enrichment: implement file processing pipeline (edge function or background worker) to populate `entry_files.ocr_text` / `entries.enriched_text`.
-- Entry maintenance: add edit/update flows (including zone reassignment and attachment management) and consider pagination beyond the latest 50 entries.
+- OCR & enrichment: implement file processing pipeline (edge function or background worker) to populate `documents.ocr_text` / `interactions.enriched_text`.
+- Interaction maintenance: add edit/update flows (including zone reassignment and attachment management) and consider pagination beyond the latest 50 interactions.
 - Household management: surface household list, invitations, role management, and ability to switch default household via the UI.
 - Schema/types hygiene: regenerate `Database` types, remove unused template tables/routes (`todo_list`, `/app/table`, `/app/storage`) once House features replace them.
 - Quality & operations: extend automated testing (more Playwright coverage, unit/integration suites), add CI, production-ready logging/monitoring, and update `README.md` to describe House instead of the upstream SaaS template.
@@ -138,17 +138,17 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Template routes (storage, todo) are still exposed. Disable or guard them before production to prevent confusing or insecure flows.
 
 ## 12) Helpful File Pointers
-- Entries list: `nextjs/src/app/app/entries/page.tsx`
-- Entry creation: `nextjs/src/app/app/entries/new/page.tsx`
-- Entry detail + deletion: `nextjs/src/app/app/entries/[id]/page.tsx`
+- Interactions list: `nextjs/src/app/app/interactions/page.tsx`
+- Interaction creation: `nextjs/src/app/app/interactions/new/page.tsx`
+- Interaction detail + deletion: `nextjs/src/app/app/interactions/[id]/page.tsx`
 - Zones management: `nextjs/src/app/app/zones/page.tsx`
 - User settings + MFA enrolment: `nextjs/src/app/app/user-settings/page.tsx`, `nextjs/src/components/MFASetup.tsx`
 - MFA challenge screen: `nextjs/src/app/auth/2fa/page.tsx`, `nextjs/src/components/MFAVerification.tsx`
 - Household creation API: `nextjs/src/app/api/households/route.ts`
 - Supabase browser client wrapper: `nextjs/src/lib/supabase/client.ts`
 - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`
-- Entry files schema/policies: `supabase/migrations/20250924090000_create_entry_files.sql`
-- Entry creation RPC: `supabase/migrations/20250924111500_create_entry_with_zones_rpc.sql`
+- Documents schema/policies refactor: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
+- Interaction creation RPC: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
 - Storage policies: `supabase/migrations/20250924093000_fix_storage_policies_owner_only.sql`
 
 ## 13) Prompts AI Should Ask Before Changes
@@ -165,7 +165,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Usage example: `const { t } = useI18n(); t('dashboard.welcome', { name: 'Alice' })`.
 
 ## 15) Testing & QA
-- End-to-end tests use Playwright and live under `nextjs/tests/e2e`. Coverage includes auth redirects, zone creation/rename/delete (with notes and surface fields), entries list/new/detail flows with attachment upload & cleanup, cross-member entry deletion, and validation errors—all seeded via Supabase service-role helpers.
+- End-to-end tests use Playwright and live under `nextjs/tests/e2e`. Coverage includes auth redirects, zone creation/rename/delete (with notes and surface fields), interaction list/new/detail flows with attachment upload & cleanup, cross-member interaction deletion, and validation errors—all seeded via Supabase service-role helpers.
 - Install Playwright browsers with `cd nextjs && yarn playwright:install` (once per machine). Ensure `.env.local` exposes Supabase URL, anon key, and `PRIVATE_SUPABASE_SERVICE_KEY` for the test harness.
 - Run the suite via `yarn test:e2e` from the repo root or `cd nextjs && yarn test:e2e`. Set `PLAYWRIGHT_SKIP_WEB_SERVER=1` if you want to manage the Next.js server manually.
 - Tests seed temporary users/households via the service key and clean them up after each run; use isolated Supabase instances or reset your local DB if a run is interrupted.

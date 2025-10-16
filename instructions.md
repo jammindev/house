@@ -1,7 +1,7 @@
 Contexte projet — House (Next.js + Supabase)
 
 🎯 Objectif
-- Centraliser la mémoire du foyer : entrées de journal, fichiers joints, zones hiérarchiques.
+- Centraliser la mémoire du foyer : interactions chronologiques, fichiers joints, zones hiérarchiques.
 - Offrir un périmètre MVP solide (multi-foyers, pièces jointes, stats de zones) en attendant les phases OCR, enrichissement et recherche plein texte.
 
 🧱 Architecture
@@ -12,8 +12,8 @@ Contexte projet — House (Next.js + Supabase)
 
 ✅ Fonctionnalités livrées
 - Création/gestion de foyers via l'API `create_household_with_owner` (RPC SEC DEF, exécuté depuis le client SSR).
-- Dashboard `/app` : sélecteur de foyer, indicateurs (entrées, zones) et raccourcis vers entrées, zones, paramètres et foyers.
-- Journal `/app/entries` : liste des 50 dernières entrées avec compteur de pièces jointes, création via RPC `create_entry_with_zones`, détail avec prévisualisation (image/PDF) et suppression par n'importe quel membre du foyer. Les pièces jointes ne peuvent être supprimées dans l'UI que par l'uploader (aligné avec la policy storage « owner-only »).
+- Dashboard `/app` : sélecteur de foyer, indicateurs (interactions, zones) et raccourcis vers interactions, zones, paramètres et foyers.
+- Interactions `/app/interactions` : liste des interactions récentes avec compteurs de documents, métadonnées (type, statut, date), création via RPC `create_interaction_with_zones`, détail avec prévisualisation (image/PDF) et suppression par n'importe quel membre du foyer. Les documents ne peuvent être supprimés dans l'UI que par l'uploader (aligné avec la policy storage « owner-only »).
 - Zones `/app/zones` : hiérarchie parent/enfants, notes libres, surface numeric (>= 0), statistiques globales et suppression accessible à tous les membres du foyer.
 - Paramètres utilisateur `/app/user-settings` : changement de langue, visualisation de l'ID/email, mise à jour du mot de passe et gestion MFA TOTP (`MFASetup`).
 - Authentification : flux login/registration template, rappel `/auth/callback`, écran `/auth/2fa` avec composant `MFAVerification` pour compléter le challenge TOTP.
@@ -23,24 +23,24 @@ Contexte projet — House (Next.js + Supabase)
 - `households`: id, name, created_at. RLS : sélection limitée aux membres, insertion ouverte aux utilisateurs authentifiés.
 - `household_members`: (household_id, user_id, role). RLS : un membre peut lire/insérer sa propre ligne.
 - `zones`: id, household_id, name, parent_id, note, surface >= 0, created_at, created_by (trigger `trg_zones_set_created_by`). RLS : tout membre peut lire/insérer/mettre à jour/supprimer une zone de son foyer.
-- `entries`: id, household_id, raw_text, enriched_text, metadata, created_at, updated_at, created_by, updated_by (trigger `update_entry_metadata`). RLS : tout membre peut lire/insérer/mettre à jour/supprimer les entrées du foyer.
-- `entry_zones`: table de jointure (entry_id, zone_id) avec cascade, triggers évitant qu’une entrée perde son dernier lien zone.
-- `entry_files`: id, entry_id, storage_path, mime_type, ocr_text, metadata, created_at, created_by. RLS alignée sur le foyer via `entries`. Storage : clés au format `userId/entryId/<uuid>_filename`.
+- `interactions`: id, household_id, subject, content, type, status nullable, occurred_at, tags[], contact_id nullable, structure_id nullable, metadata jsonb, enriched_text, created_at, updated_at, created_by, updated_by (trigger `update_interaction_metadata`). RLS : tout membre peut lire/insérer/mettre à jour/supprimer les interactions du foyer.
+- `interaction_zones`: table de jointure (interaction_id, zone_id) avec cascade, triggers évitant qu’une interaction perde son dernier lien zone.
+- `documents`: id, interaction_id, file_path, name, notes, mime_type, type, metadata, ocr_text, created_at, created_by. RLS alignée sur le foyer via `interactions`. Storage : clés au format `userId/interactionId/<uuid>_filename`.
 - Héritage template : table `todo_list` (utilisée par `/app/table`).
 
 ⚙️ Supabase & scripts
-- RPC `create_entry_with_zones(p_household_id, p_raw_text, p_zone_ids uuid[])` pour créer une entrée + lier les zones atomiquement.
+- RPC `create_interaction_with_zones(p_household_id, p_subject, p_content, p_type, p_status, p_occurred_at, p_zone_ids uuid[], p_tags text[], p_contact_id uuid, p_structure_id uuid)` pour créer une interaction + lier les zones atomiquement.
 - RPC `create_household_with_owner(p_name text)` (SECURITY DEFINER) pour créer un foyer et inscrire le créateur en owner.
 - Scripts racine `package.json` :
   - `yarn dev|build|start` → `cd nextjs && yarn ...`
   - `yarn db:migrate` (`supabase migrations up --linked`)
   - `yarn db:reset`, `yarn db:new <name>`
   - `yarn test:e2e`
-- Tests : Playwright (`nextjs/tests/e2e`) couvrant auth, zones (création/édition/suppression, surface/note), entrées (création avec pièces jointes, suppression croisée, validations) et gestion des fichiers.
+- Tests : Playwright (`nextjs/tests/e2e`) couvrant auth, zones (création/édition/suppression, surface/note), interactions (création avec documents, suppression croisée, validations) et gestion des fichiers.
 
 📁 Routes clés
 - Dashboard : `nextjs/src/app/app/page.tsx`
-- Entrées : `.../entries/page.tsx`, `.../entries/new/page.tsx`, `.../entries/[id]/page.tsx`
+- Interactions : `.../interactions/page.tsx`, `.../interactions/new/page.tsx`, `.../interactions/[id]/page.tsx`
 - Zones : `.../zones/page.tsx`
 - Paramètres & MFA : `.../user-settings/page.tsx`, `src/components/MFASetup.tsx`, `src/components/MFAVerification.tsx`
 - API : `src/app/api/households/route.ts`, `src/app/api/internal/process-entry-files/route.ts`
@@ -54,7 +54,7 @@ Contexte projet — House (Next.js + Supabase)
 🚧 Prochaines étapes
 - Recherche plein texte (`search_vector`, UI `/search`).
 - Pipeline OCR/enrichissement : ajout du support image (véritable OCR), planification automatique et enrichissement plus contextuel.
-- Edition complète des entrées (texte, zones, pièces jointes) + pagination.
+- Edition complète des interactions (texte, zones, pièces jointes) + pagination.
 - Gestion avancée des foyers (liste, invitations, rôles, foyer par défaut).
 - Nettoyage template : retirer `/app/storage`, `/app/table`, régénérer `src/lib/types.ts`.
 - Ajouter CI, tests supplémentaires (unitaires/intégration), documentation produit (`README.md`).

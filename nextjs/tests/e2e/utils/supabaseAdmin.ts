@@ -15,7 +15,7 @@ export type TestZone = {
 
 export type HouseholdMemberContext = TestUserContext;
 
-type EntryRecord = {
+type InteractionRecord = {
   id: string;
 };
 
@@ -242,9 +242,9 @@ export async function createZone(
   };
 }
 
-export async function createEntry(
+export async function createInteraction(
   context: TestUserContext,
-  params: { rawText: string; zoneIds: string[] }
+  params: { subject?: string; content: string; zoneIds: string[]; type?: string }
 ): Promise<{ id: string }> {
   const client = getAdminClient();
 
@@ -252,61 +252,86 @@ export async function createEntry(
     throw new Error('At least one zone id is required to create an entry');
   }
 
-  const { data: entryData, error: entryError } = await client
-    .from('entries')
+  const subject = (params.subject ?? params.content.trim().slice(0, 80)) || 'Untitled interaction';
+  const type = params.type ?? 'note';
+
+  const { data: interactionData, error: interactionError } = await client
+    .from('interactions')
     .insert({
       household_id: context.householdId,
-      raw_text: params.rawText,
+      subject,
+      content: params.content,
+      type,
+      occurred_at: new Date().toISOString(),
       created_by: context.userId,
     })
     .select('id')
     .single();
 
-  if (entryError || !entryData) {
-    throw entryError ?? new Error('Failed to create entry for test');
+  if (interactionError || !interactionData) {
+    throw interactionError ?? new Error('Failed to create interaction for test');
   }
 
-  const entryId = entryData.id as string;
+  const interactionId = interactionData.id as string;
 
-  const { error: linkError } = await client.from('entry_zones').insert(
-    params.zoneIds.map((zoneId) => ({ entry_id: entryId, zone_id: zoneId }))
+  const { error: linkError } = await client.from('interaction_zones').insert(
+    params.zoneIds.map((zoneId) => ({ interaction_id: interactionId, zone_id: zoneId }))
   );
 
   if (linkError) {
-    await client.from('entries').delete().eq('id', entryId);
+    await client.from('interactions').delete().eq('id', interactionId);
     throw linkError;
   }
 
-  return { id: entryId };
+  return { id: interactionId };
 }
 
-export async function getEntryById(entryId: string): Promise<EntryRecord | null> {
+export async function getInteractionById(interactionId: string): Promise<InteractionRecord | null> {
   const client = getAdminClient();
 
   const { data, error } = await client
-    .from('entries')
+    .from('interactions')
     .select('id')
-    .eq('id', entryId)
+    .eq('id', interactionId)
     .maybeSingle();
 
   if (error && error.code !== 'PGRST116') {
     throw error;
   }
 
-  return (data as EntryRecord | null) ?? null;
+  return (data as InteractionRecord | null) ?? null;
 }
 
-export async function countEntryFiles(entryId: string): Promise<number> {
+export async function countDocuments(interactionId: string): Promise<number> {
   const client = getAdminClient();
 
   const { data, error } = await client
-    .from('entry_files')
+    .from('documents')
     .select('id')
-    .eq('entry_id', entryId);
+    .eq('interaction_id', interactionId);
 
   if (error) {
     throw error;
   }
 
   return (data?.length ?? 0);
+}
+
+// Backward compatibility helpers while tests migrate to the new interaction model
+export async function createEntry(
+  context: TestUserContext,
+  params: { rawText: string; zoneIds: string[] }
+) {
+  return createInteraction(context, {
+    content: params.rawText,
+    zoneIds: params.zoneIds,
+  });
+}
+
+export async function getEntryById(entryId: string) {
+  return getInteractionById(entryId);
+}
+
+export async function countEntryFiles(entryId: string) {
+  return countDocuments(entryId);
 }

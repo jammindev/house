@@ -1,7 +1,7 @@
 // nextjs/src/lib/context/GlobalContext.tsx
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode, useMemo } from 'react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 
 
@@ -77,7 +77,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                 const [userResult, householdsResult] = await Promise.all([
                     client.auth.getUser(),
                     client
-                        .from('households' as any)
+                        .from('households')
                         .select('id, name')
                         .order('created_at' as any)
                 ]);
@@ -107,7 +107,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                const fetchedHouseholds = (householdsResult.data || []) as Household[];
+                const fetchedHouseholds = (householdsResult.data ?? []) as unknown as Household[];
                 setHouseholds(fetchedHouseholds);
 
                 if (!fetchedHouseholds.length) {
@@ -138,8 +138,13 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         };
     }, [setSelectedHouseholdId]);
 
+    const value = useMemo(
+        () => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }),
+        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId]
+    );
+
     return (
-        <GlobalContext.Provider value={{ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }}>
+        <GlobalContext.Provider value={value}>
             {children}
         </GlobalContext.Provider>
     );

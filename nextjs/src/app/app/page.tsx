@@ -9,13 +9,20 @@ import { Button } from '@/components/ui/button';
 import { CalendarDays, Settings, NotebookPen, Layers, PlusCircle } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 
-type Entry = { id: string; raw_text: string; created_at: string };
+type InteractionSummary = {
+  id: string;
+  subject: string;
+  content: string;
+  occurred_at: string;
+  created_at: string;
+  type: string;
+};
 
 export default function DashboardContent() {
   const { loading, user, households, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [entryCount, setEntryCount] = useState<number>(0);
+  const [interactions, setInteractions] = useState<InteractionSummary[]>([]);
+  const [interactionCount, setInteractionCount] = useState<number>(0);
   const [zoneCount, setZoneCount] = useState<number>(0);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const currentHousehold = useMemo(() => households.find(h => h.id === selectedHouseholdId) || null, [households, selectedHouseholdId]);
@@ -35,16 +42,16 @@ export default function DashboardContent() {
         const supa = await createSPASassClient();
         const client = supa.getSupabaseClient();
 
-        // Recent entries
-        const { data: eData, count: eCount, error: eErr } = await client
-          .from('entries' as any)
-          .select('id, raw_text, created_at', { count: 'exact' })
+        // Recent interactions
+        const { data: interactionData, count: interactionTotal, error: interactionError } = await client
+          .from('interactions')
+          .select('id, subject, content, occurred_at, created_at, type', { count: 'exact' })
           .eq('household_id', selectedHouseholdId)
-          .order('created_at' as any, { ascending: false })
+          .order('occurred_at' as any, { ascending: false })
           .limit(3);
-        if (eErr) throw eErr;
-        setEntries((eData || []) as any);
-        setEntryCount(eCount || 0);
+        if (interactionError) throw interactionError;
+        setInteractions((interactionData ?? []) as unknown as InteractionSummary[]);
+        setInteractionCount(interactionTotal || 0);
 
         // Zones count
         const { count: zCount, error: zErr } = await client
@@ -100,14 +107,14 @@ export default function DashboardContent() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.entries')}</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.interactions')}</CardTitle>
             <CardDescription>{t('dashboard.totalInHousehold')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold">{loadingData ? '—' : entryCount}</div>
+            <div className="text-3xl font-semibold">{loadingData ? '—' : interactionCount}</div>
             <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/entries"><Button variant="secondary" size="sm">{t('dashboard.view')}</Button></Link>
-              <Link href="/app/entries/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> {t('dashboard.new')}</Button></Link>
+              <Link href="/app/interactions"><Button variant="secondary" size="sm">{t('dashboard.view')}</Button></Link>
+              <Link href="/app/interactions/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> {t('dashboard.new')}</Button></Link>
             </div>
           </CardContent>
         </Card>
@@ -129,25 +136,26 @@ export default function DashboardContent() {
       {/* Recent entries */}
       <Card>
         <CardHeader>
-          <CardTitle>{t('dashboard.recentEntries')} {currentHousehold ? `· ${currentHousehold.name}` : ''}</CardTitle>
+          <CardTitle>{t('dashboard.recentInteractions')} {currentHousehold ? `· ${currentHousehold.name}` : ''}</CardTitle>
           <CardDescription>{t('dashboard.latestThree')}</CardDescription>
         </CardHeader>
         <CardContent>
           {(!selectedHouseholdId) ? (
-            <div className="text-sm text-gray-600">Select a household to see entries.</div>
+            <div className="text-sm text-gray-600">{t('dashboard.selectHousehold')}</div>
           ) : loadingData ? (
             <div className="text-sm text-gray-500">Loading…</div>
-          ) : entries.length === 0 ? (
-            <div className="text-sm text-gray-600">{t('dashboard.noEntries')} <Link className="underline" href="/app/entries/new">{t('dashboard.createOne')}</Link>.</div>
+          ) : interactions.length === 0 ? (
+            <div className="text-sm text-gray-600">{t('dashboard.noEntries')} <Link className="underline" href="/app/interactions/new">{t('dashboard.createOne')}</Link>.</div>
           ) : (
             <ul className="space-y-2">
-              {entries.map(e => (
-                <li key={e.id} className="border rounded-md p-3 bg-white">
+              {interactions.map(interaction => (
+                <li key={interaction.id} className="border rounded-md p-3 bg-white">
                   <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-500">{new Date(e.created_at).toLocaleString()}</div>
-                    <Link className="text-xs text-primary-700 underline" href={`/app/entries/${e.id}`}>Open</Link>
+                    <div className="text-xs text-gray-500">{new Date(interaction.occurred_at || interaction.created_at).toLocaleString()}</div>
+                    <Link className="text-xs text-primary-700 underline" href={`/app/interactions/${interaction.id}`}>{t('common.open')}</Link>
                   </div>
-                  <div className="mt-1 text-sm text-gray-900 line-clamp-3 whitespace-pre-wrap">{e.raw_text}</div>
+                  <div className="mt-1 text-sm font-medium text-gray-900 line-clamp-1">{interaction.subject}</div>
+                  <div className="mt-1 text-sm text-gray-700 line-clamp-2 whitespace-pre-wrap">{interaction.content}</div>
                 </li>
               ))}
             </ul>

@@ -33,9 +33,13 @@ export default function ZoneForm({ open, setOpen, t, sortedZones, zoneDepths, on
         const nameTrim = name.trim();
         if (!nameTrim) return;
         const sTrim = surface.trim();
-        const sVal = sTrim ? Number(sTrim) : null;
-        if (sTrim && (Number.isNaN(sVal) || sVal < 0)) {
-            throw new Error(t("zones.invalidSurface"));
+        let sVal: number | null = null;
+        if (sTrim) {
+            const parsed = Number(sTrim);
+            if (Number.isNaN(parsed) || parsed < 0) {
+                throw new Error(t("zones.invalidSurface"));
+            }
+            sVal = parsed;
         }
         const noteVal = note.trim() || null;
         setCreating(true);

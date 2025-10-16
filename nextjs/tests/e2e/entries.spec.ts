@@ -41,7 +41,7 @@ test.describe('entries', () => {
 
   const openEntriesList = async (page: Page) => {
     await signIn(page);
-    await page.goto('/app/entries');
+    await page.goto('/app/interactions');
     await expect(page.getByRole('heading', { name: /entries/i })).toBeVisible();
   };
 
@@ -80,7 +80,7 @@ test.describe('entries', () => {
     const text = entryText();
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -89,7 +89,7 @@ test.describe('entries', () => {
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
 
-    await page.waitForURL('**/app/entries*', { timeout: 15000 });
+    await page.waitForURL('**/app/interactions*', { timeout: 15000 });
     await expect(page.getByText(text)).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('Entry created successfully').first()).toBeVisible();
   });
@@ -100,7 +100,7 @@ test.describe('entries', () => {
     const childZone = await createZone(ctx, { name: 'Cuisine', parentId: parentZone.id });
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const parentButton = page.locator(`[data-zone-id="${parentZone.id}"]`);
     const childButton = page.locator(`[data-zone-id="${childZone.id}"]`);
@@ -123,7 +123,7 @@ test.describe('entries', () => {
     const filePath = path.resolve(__dirname, 'fixtures/sample.txt');
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -133,7 +133,7 @@ test.describe('entries', () => {
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
 
-    await page.waitForURL('**/app/entries*', { timeout: 20000 });
+    await page.waitForURL('**/app/interactions*', { timeout: 20000 });
     const entryLink = page.getByRole('link', { name: new RegExp(text) });
     await expect(entryLink).toBeVisible({ timeout: 15000 });
 
@@ -151,7 +151,7 @@ test.describe('entries', () => {
     const filePath = path.resolve(__dirname, 'fixtures/sample.txt');
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -161,7 +161,7 @@ test.describe('entries', () => {
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
 
-    await page.waitForURL('**/app/entries*', { timeout: 20000 });
+    await page.waitForURL('**/app/interactions*', { timeout: 20000 });
     const entryLink = page.getByRole('link', { name: new RegExp(text) });
     await entryLink.click();
     await page.waitForURL(/\/app\/entries\/.+/);
@@ -185,7 +185,7 @@ test.describe('entries', () => {
     const filePath = path.resolve(__dirname, 'fixtures/sample.txt');
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -195,7 +195,7 @@ test.describe('entries', () => {
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
 
-    await page.waitForURL('**/app/entries*', { timeout: 20000 });
+    await page.waitForURL('**/app/interactions*', { timeout: 20000 });
     const entryLink = page.getByRole('link', { name: new RegExp(text) });
     await entryLink.click();
     await page.waitForURL(/\/app\/entries\/.+/);
@@ -224,7 +224,7 @@ test.describe('entries', () => {
 
     // Owner creates an entry with an attachment
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -234,7 +234,7 @@ test.describe('entries', () => {
     await page.getByPlaceholder(/write your entry here/i).fill(text);
     await page.getByRole('button', { name: /create entry/i }).click();
 
-    await page.waitForURL('**/app/entries*', { timeout: 20000 });
+    await page.waitForURL('**/app/interactions*', { timeout: 20000 });
     const entryLink = page.getByRole('link', { name: new RegExp(text) });
     await entryLink.click();
     await page.waitForURL(/\/app\/entries\/.+/);
@@ -257,7 +257,7 @@ test.describe('entries', () => {
     await page.getByRole('button', { name: /sign in/i }).click();
 
     await page.waitForURL('**/app', { timeout: 20000 });
-    await page.goto(`/app/entries/${entryId}`);
+    await page.goto(`/app/interactions/${entryId}`);
     await expect(page.getByText(text)).toBeVisible({ timeout: 15000 });
 
     await expect(page.getByText('text/plain').first()).toBeVisible();
@@ -279,7 +279,7 @@ test.describe('entries', () => {
     const text = entryText();
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();
@@ -295,7 +295,7 @@ test.describe('entries', () => {
     const zone = await createZone(ctx);
 
     await signIn(page);
-    await page.goto('/app/entries/new');
+    await page.goto('/app/interactions/new');
 
     const zoneButton = page.locator(`[data-zone-id="${zone.id}"]`);
     await expect(zoneButton).toBeVisible();

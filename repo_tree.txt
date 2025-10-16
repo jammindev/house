@@ -20,9 +20,11 @@
 │   ├── package.json
 │   ├── playwright.config.ts
 │   ├── postcss.config.mjs
+│   ├── prisma
 │   ├── README.md
 │   ├── scripts
 │   ├── src
+│   │   ├── .DS_Store
 │   │   ├── app
 │   │   │   ├── api
 │   │   │   │   ├── auth
@@ -33,24 +35,18 @@
 │   │   │   │   └── households
 │   │   │   │       └── route.ts
 │   │   │   ├── app
-│   │   │   │   ├── entries
-│   │   │   │   │   ├── [id]
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   ├── new
-│   │   │   │   │   │   ├── components
-│   │   │   │   │   │   │   ├── DocumentImportButtons.tsx
-│   │   │   │   │   │   │   └── ZonePicker.tsx
-│   │   │   │   │   │   ├── NewEntryForm.tsx
-│   │   │   │   │   │   ├── page.tsx
-│   │   │   │   │   │   ├── types.ts
-│   │   │   │   │   │   └── utils
-│   │   │   │   │   │       └── normalizeZoneSelection.ts
-│   │   │   │   │   └── page.tsx
 │   │   │   │   ├── households
 │   │   │   │   │   ├── new
 │   │   │   │   │   │   └── page.tsx
 │   │   │   │   │   └── page.tsx
+│   │   │   │   ├── interactions
+│   │   │   │   │   ├── [id]
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── new
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
 │   │   │   │   ├── layout.tsx
+│   │   │   │   ├── loading.tsx
 │   │   │   │   ├── page.tsx
 │   │   │   │   ├── storage
 │   │   │   │   │   └── page.tsx
@@ -75,19 +71,6 @@
 │   │   │   │   └── verify-email
 │   │   │   │       └── page.tsx
 │   │   │   ├── favicon.ico
-│   │   │   ├── features
-│   │   │   │   └── zones
-│   │   │   │       ├── components
-│   │   │   │       │   ├── ZoneForm.tsx
-│   │   │   │       │   ├── ZoneItem.tsx
-│   │   │   │       │   ├── ZoneList.tsx
-│   │   │   │       │   └── ZoneStats.tsx
-│   │   │   │       ├── hooks
-│   │   │   │       │   └── useZones.ts
-│   │   │   │       ├── index.ts
-│   │   │   │       ├── lib
-│   │   │   │       │   └── tree.ts
-│   │   │   │       └── types.ts
 │   │   │   ├── globals.css
 │   │   │   ├── layout.tsx
 │   │   │   ├── legal
@@ -97,12 +80,19 @@
 │   │   │   │   └── page.tsx
 │   │   │   └── page.tsx
 │   │   ├── components
-│   │   │   ├── AppLayout.tsx
 │   │   │   ├── AuthAwareButtons.tsx
 │   │   │   ├── Confetti.tsx
 │   │   │   ├── ConfirmDialog.tsx
 │   │   │   ├── Cookies.tsx
 │   │   │   ├── HomePricing.tsx
+│   │   │   ├── layout
+│   │   │   │   ├── AppLayout.tsx
+│   │   │   │   ├── HouseholdDropdown.tsx
+│   │   │   │   ├── MobileNav.tsx
+│   │   │   │   ├── Sidebar.tsx
+│   │   │   │   ├── TopBar.tsx
+│   │   │   │   ├── UserAvatar.tsx
+│   │   │   │   └── UserDropdown.tsx
 │   │   │   ├── LegalDocument.tsx
 │   │   │   ├── LegalDocuments.tsx
 │   │   │   ├── MFASetup.tsx
@@ -116,8 +106,60 @@
 │   │   │   │   ├── card.tsx
 │   │   │   │   ├── dialog.tsx
 │   │   │   │   ├── input.tsx
+│   │   │   │   ├── popover.tsx
+│   │   │   │   ├── separator.tsx
 │   │   │   │   └── textarea.tsx
 │   │   │   └── zones
+│   │   ├── features
+│   │   │   ├── interactions
+│   │   │   │   ├── components
+│   │   │   │   │   ├── DocumentImportButtons.tsx
+│   │   │   │   │   ├── EntryAttachmentImport.tsx
+│   │   │   │   │   ├── EntryDeleteButton.tsx
+│   │   │   │   │   ├── EntryForm.tsx
+│   │   │   │   │   ├── EntryHeader.tsx
+│   │   │   │   │   ├── EntryItem.tsx
+│   │   │   │   │   ├── EntryList.tsx
+│   │   │   │   │   ├── EntryRawTextEditor.tsx
+│   │   │   │   │   ├── EntryZonesList.tsx
+│   │   │   │   │   ├── gallery
+│   │   │   │   │   │   ├── GalleryGrid.tsx
+│   │   │   │   │   │   ├── GalleryModal.tsx
+│   │   │   │   │   │   ├── GalleryThumbnail.tsx
+│   │   │   │   │   │   ├── ImageGallery.tsx
+│   │   │   │   │   │   └── types.ts
+│   │   │   │   │   ├── pdf
+│   │   │   │   │   │   ├── PdfFileItem.tsx
+│   │   │   │   │   │   └── PdfFileList.tsx
+│   │   │   │   │   ├── SelectedFileItem.tsx
+│   │   │   │   │   └── ZonePicker.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useDeleteDocument.ts
+│   │   │   │   │   ├── useDeleteInteraction.ts
+│   │   │   │   │   ├── useInteraction.ts
+│   │   │   │   │   ├── useInteractions.ts
+│   │   │   │   │   ├── useInteractionZones.ts
+│   │   │   │   │   ├── useSignedFilePreviews.tsx
+│   │   │   │   │   └── useUpdateInteractionContent.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── lib
+│   │   │   │   │   └── normalizeZoneSelection.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils
+│   │   │   │       ├── formatFileSize.ts
+│   │   │   │       └── getEntryFileName.ts
+│   │   │   └── zones
+│   │   │       ├── components
+│   │   │       │   ├── ZoneForm.tsx
+│   │   │       │   ├── ZoneItem.tsx
+│   │   │       │   ├── ZoneList.tsx
+│   │   │       │   └── ZoneStats.tsx
+│   │   │       ├── hooks
+│   │   │       │   └── useZones.ts
+│   │   │       ├── index.ts
+│   │   │       ├── lib
+│   │   │       │   └── tree.ts
+│   │   │       └── types.ts
 │   │   ├── lib
 │   │   │   ├── config
 │   │   │   ├── context
@@ -146,7 +188,52 @@
 │   │   │   ├── test-failed-1.png
 │   │   │   ├── trace.zip
 │   │   │   └── video.webm
-│   │   └── entries-entries-allows-cre-94e6a-w-entry-with-zone-selection-chromium
+│   │   ├── entries-entries-allows-cre-94e6a-w-entry-with-zone-selection-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── entries-entries-allows-del-3c0c1-ttachment-the-user-uploaded-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── entries-entries-blocks-creation-when-no-zone-is-selected-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── entries-entries-blocks-creation-when-raw-text-is-empty-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── entries-entries-deleting-an-entry-removes-its-attachments-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── entries-entries-uploads-an-82666-it-on-the-entry-detail-page-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── zones-zones-management-all-ab91d-cated-user-to-create-a-zone-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── zones-zones-management-allows-deleting-an-existing-zone-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   ├── zones-zones-management-allows-renaming-an-existing-zone-chromium
+│   │   │   ├── error-context.md
+│   │   │   ├── test-failed-1.png
+│   │   │   ├── trace.zip
+│   │   │   └── video.webm
+│   │   └── zones-zones-management-ope-d1b2f-a-zone-with-existing-values-chromium
 │   │       ├── error-context.md
 │   │       ├── test-failed-1.png
 │   │       ├── trace.zip
@@ -160,9 +247,11 @@
 │   │       ├── utils
 │   │       │   └── supabaseAdmin.ts
 │   │       └── zones.spec.ts
-│   └── tsconfig.json
+│   ├── tsconfig.json
+│   └── tsconfig.tsbuildinfo
 ├── package.json
 ├── README.md
+├── RESUME-PROJECT.md
 └── supabase
     ├── .gitignore
     ├── config.toml
@@ -192,7 +281,18 @@
     │   ├── 20250924121500_relax_entry_delete_policy.sql
     │   ├── 20250924122000_relax_zone_delete_policy.sql
     │   ├── 20250924122500_relax_zone_update_policy.sql
-    │   └── 20250924123000_relax_entry_update_policy.sql
+    │   ├── 20250924123000_relax_entry_update_policy.sql
+    │   ├── 20251001100000_add_entry_file_type.sql
+    │   ├── 20251011103000_delete_entry_with_files_rpc.sql
+    │   ├── 20251012075453_fix_delete_entry_with_files.sql
+    │   ├── 20251012080137_drop_delete_entry_with_files.sql
+    │   ├── 20251014191544_create_contacts.sql
+    │   ├── 20251014193406_create_emails.sql
+    │   ├── 20251014194044_create_phones.sql
+    │   ├── 20251014194239_create_addresses.sql
+    │   ├── 20251014194630_create_structures.sql
+    │   ├── 20251015090000_allow_household_members_view_files.sql
+    │   └── 20251016120000_refactor_entries_to_interactions.sql
     ├── migrations_for_old
     │   ├── 20250107210416_MFA.sql
     │   ├── 20250130165844_example_storage.sql
@@ -202,4 +302,4 @@
     ├── RLS_OVERVIEW.md
     └── tests
 
-60 directories, 143 files
+76 directories, 227 files
