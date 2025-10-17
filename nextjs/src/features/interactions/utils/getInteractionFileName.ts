@@ -3,7 +3,7 @@ import type { Document } from "@interactions/types";
 /**
  * Returns the preferred display name for an entry file. Falls back to the storage path segment.
  */
-export function getEntryFileName(file: Document): string {
+export function getInteractionFileName(file: Document): string {
   const metadata = file.metadata ?? undefined;
   const customName = typeof metadata?.customName === "string" ? metadata.customName : undefined;
   if (customName?.trim()) return customName.trim();

@@ -6,10 +6,10 @@ import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import EntryAttachmentImport from "@interactions/components/EntryAttachmentImport";
-import EntryDeleteButton from "@interactions/components/EntryDeleteButton";
-import EntryRawTextEditor from "@interactions/components/EntryRawTextEditor";
-import EntryZonesList from "@interactions/components/EntryZonesList";
+import InteractionAttachmentImport from "@interactions/components/InteractionAttachmentImport";
+import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
+import InteractionRawTextEditor from "@interactions/components/InteractionRawTextEditor";
+import InteractionZonesList from "@interactions/components/InteractionZonesList";
 import ImageGallery from "@interactions/components/gallery/ImageGallery";
 import PdfFileList from "@interactions/components/pdf/PdfFileList";
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
@@ -24,7 +24,7 @@ export default function InteractionDetailPage() {
 
   if (loading) return <div className="p-6 text-gray-500">{t("common.loading")}</div>;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
-  if (!interaction) return <div className="p-6 text-gray-500">{t("entries.notFound")}</div>;
+  if (!interaction) return <div className="p-6 text-gray-500">{t("interactionsnotFound")}</div>;
 
   const photoDocuments = documents.filter((doc) => doc.type === "photo");
   const documentTypes = new Set(["document", "quote", "invoice", "contract", "other"]);
@@ -43,7 +43,7 @@ export default function InteractionDetailPage() {
             <div>
               <h1 className="text-xl font-semibold">{interaction.subject}</h1>
               <p className="text-xs uppercase tracking-wide text-indigo-600">
-                {t(`entries.types.${interaction.type}`)}
+                {t(`interactionstypes.${interaction.type}`)}
               </p>
             </div>
           </div>
@@ -52,12 +52,12 @@ export default function InteractionDetailPage() {
           </div>
         </div>
         <div className="flex justify-end">
-          <EntryAttachmentImport interactionId={interaction.id} onUploaded={reload} />
+          <InteractionAttachmentImport interactionId={interaction.id} onUploaded={reload} />
         </div>
       </header>
 
-      <EntryZonesList interactionId={interaction.id} />
-      <EntryRawTextEditor interactionId={interaction.id} initialContent={interaction.content} onSaved={reload} />
+      <InteractionZonesList interactionId={interaction.id} />
+      <InteractionRawTextEditor interactionId={interaction.id} initialContent={interaction.content} onSaved={reload} />
       {fileError && (
         <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
           {fileError}
@@ -68,7 +68,7 @@ export default function InteractionDetailPage() {
 
       {photoDocuments.length > 0 && <ImageGallery files={photoDocuments} previews={previews} onDeleted={reload} />}
 
-      <EntryDeleteButton interactionId={interaction.id} onDeleted={() => router.push("/app/interactions")} />
+      <InteractionDeleteButton interactionId={interaction.id} onDeleted={() => router.push("/app/interactions")} />
     </div>
   );
 }

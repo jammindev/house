@@ -101,7 +101,7 @@ export default function GalleryModal({
                                 <ConfirmDialog
                                     open={confirmOpen}
                                     onOpenChange={setConfirmOpen}
-                                    title={t("entries.deleteFileTitle")}
+                                    title={t("interactionsdeleteFileTitle")}
                                     confirmText={t("common.delete")}
                                     destructive
                                     loading={loading}

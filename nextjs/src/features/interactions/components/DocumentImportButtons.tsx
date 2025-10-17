@@ -31,7 +31,7 @@ export default function DocumentImportButtons({ onFilesSelected }: DocumentImpor
           onClick={() => cameraInputRef.current?.click()}
           className="shrink-0"
         >
-          {t("entries.capturePhoto")}
+          {t("interactions.capturePhoto")}
         </Button>
         <Button
           type="button"
@@ -39,7 +39,7 @@ export default function DocumentImportButtons({ onFilesSelected }: DocumentImpor
           onClick={() => fileInputRef.current?.click()}
           className="shrink-0"
         >
-          {t("entries.selectFiles")}
+          {t("interactions.selectFiles")}
         </Button>
       </div>
 

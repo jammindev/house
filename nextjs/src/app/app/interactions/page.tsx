@@ -9,11 +9,11 @@ import { useToast } from "@/components/ToastProvider";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import EntryHeader from "@interactions/components/EntryHeader";
-import EntryList from "@interactions/components/EntryList";
+import InteractionHeader from "@interactions/components/InteractionHeader";
+import InteractionList from "@interactions/components/InteractionList";
 import { useInteractions } from "@interactions/hooks/useInteractions";
 
-export default function EntriesPage() {
+export default function InteractionsPage() {
   const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
   const { t } = useI18n();
   const { show } = useToast();
@@ -33,7 +33,7 @@ export default function EntriesPage() {
       sp.delete("created");
       const next = `/app/interactions${sp.toString() ? `?${sp.toString()}` : ""}`;
       router.replace(next, { scroll: false });
-      show({ title: t("entries.createdSuccess"), variant: "success" });
+      show({ title: t("interactionscreatedSuccess"), variant: "success" });
     }
   }, [searchParams, router, show, t]);
 
@@ -44,7 +44,7 @@ export default function EntriesPage() {
       <div className="max-w-3xl mx-auto lg:p-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t("entries.title")}</CardTitle>
+            <CardTitle>{t("interactionstitle")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-sm text-gray-600">
@@ -61,16 +61,16 @@ export default function EntriesPage() {
 
   return (
     <div className="max-w-4xl mx-auto md:p-6">
-      <EntryHeader title={t("entries.title")} householdName={currentHousehold?.name} newHref="/app/interactions/new" />
+      <InteractionHeader title={t("interactionstitle")} householdName={currentHousehold?.name} newHref="/app/interactions/new" />
 
       {error && (
         <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">{error}</div>
       )}
 
       {loading ? (
-        <div className="text-sm text-gray-500">{t("entries.loading")}</div>
+        <div className="text-sm text-gray-500">{t("interactionsloading")}</div>
       ) : (
-        <EntryList interactions={interactions} documentCounts={documentCounts} t={t} />
+        <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} />
       )}
     </div>
   );

@@ -14,11 +14,11 @@ interface PdfFileListProps {
 export default function PdfFileList({ files, previews, onDeleted }: PdfFileListProps) {
   const { t } = useI18n();
 
-    return (
-        <section className="space-y-4">
-            <h2 className="text-lg font-medium mb-2">
-                {t("entries.documents") ?? "Documents PDF"}
-            </h2>
+  return (
+    <section className="space-y-4">
+      <h2 className="text-lg font-medium mb-2">
+        {t("interactionsdocuments") ?? "Documents PDF"}
+      </h2>
 
       <ul role="list" className="space-y-3">
         {files.map((file) => {
@@ -34,6 +34,6 @@ export default function PdfFileList({ files, previews, onDeleted }: PdfFileListP
           );
         })}
       </ul>
-        </section>
-    );
+    </section>
+  );
 }

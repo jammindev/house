@@ -4,10 +4,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import EntryForm from "@interactions/components/EntryForm";
+import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";
 
-export default function NewEntryPage() {
+export default function NewInteractionPage() {
   const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
   const { error: zonesError } = useZones(selectedHouseholdId);
@@ -24,7 +24,7 @@ export default function NewEntryPage() {
     <div className="max-w-3xl mx-auto lg:p-6">
       <Card>
         <CardHeader>
-          <CardTitle>{t("entries.newEntry")}</CardTitle>
+          <CardTitle>{t("interactionsnewEntry")}</CardTitle>
         </CardHeader>
         <CardContent>
           {zonesError && (
@@ -32,7 +32,7 @@ export default function NewEntryPage() {
               {zonesError}
             </div>
           )}
-          <EntryForm />
+          <InteractionForm />
         </CardContent>
       </Card>
     </div>

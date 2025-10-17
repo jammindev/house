@@ -53,7 +53,7 @@ async function removeUserStorage(userId: string) {
   const bucket = client.storage.from('files');
 
   try {
-    const { data: entryFolders, error: listError } = await bucket.list(userId, {
+    const { data: interactionFolders, error: listError } = await bucket.list(userId, {
       limit: 1000,
     });
 
@@ -65,11 +65,11 @@ async function removeUserStorage(userId: string) {
       throw listError;
     }
 
-    if (!entryFolders || entryFolders.length === 0) {
+    if (!interactionFolders || interactionFolders.length === 0) {
       return;
     }
 
-    for (const folder of entryFolders) {
+    for (const folder of interactionFolders) {
       const folderName = folder.name?.trim();
       if (!folderName) continue;
 
@@ -249,7 +249,7 @@ export async function createInteraction(
   const client = getAdminClient();
 
   if (!params.zoneIds.length) {
-    throw new Error('At least one zone id is required to create an entry');
+    throw new Error('At least one zone id is required to create an interaction');
   }
 
   const subject = (params.subject ?? params.content.trim().slice(0, 80)) || 'Untitled interaction';

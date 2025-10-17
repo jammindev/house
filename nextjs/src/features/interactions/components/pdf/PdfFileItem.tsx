@@ -9,25 +9,25 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useDeleteDocument } from "@interactions/hooks/useDeleteDocument";
 import type { Document } from "@interactions/types";
-import { getEntryFileName } from "@interactions/utils/getEntryFileName";
+import { getInteractionFileName } from "@interactions/utils/getInteractionFileName";
 import { formatFileSize, getDocumentFileSize } from "@interactions/utils/formatFileSize";
 
 interface PdfFileItemProps {
-  file: Document;
-  viewUrl?: string;
-  downloadUrl?: string;
-  onDeleted?: () => void;
+    file: Document;
+    viewUrl?: string;
+    downloadUrl?: string;
+    onDeleted?: () => void;
 }
 
 export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: PdfFileItemProps) {
-  const { t } = useI18n();
-  const { user } = useGlobal();
-  const canDelete = useMemo(() => !!user?.id && !!file.created_by && user.id === file.created_by, [user?.id, file.created_by]);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const { deleteFile, loading } = useDeleteDocument();
-  const fileName = getEntryFileName(file) || t("common.file");
-  const isLoading = !viewUrl;
-  const fileSizeLabel = formatFileSize(getDocumentFileSize(file));
+    const { t } = useI18n();
+    const { user } = useGlobal();
+    const canDelete = useMemo(() => !!user?.id && !!file.created_by && user.id === file.created_by, [user?.id, file.created_by]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const { deleteFile, loading } = useDeleteDocument();
+    const fileName = getInteractionFileName(file) || t("common.file");
+    const isLoading = !viewUrl;
+    const fileSizeLabel = formatFileSize(getDocumentFileSize(file));
     return (
         <li
             role="listitem"
@@ -97,7 +97,7 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
                             <ConfirmDialog
                                 open={confirmOpen}
                                 onOpenChange={setConfirmOpen}
-                                title={t("entries.deleteFileTitle")}
+                                title={t("interactionsdeleteFileTitle")}
                                 confirmText={t("common.delete")}
                                 onConfirm={async () => {
                                     await deleteFile({ id: file.id, file_path: file.file_path });

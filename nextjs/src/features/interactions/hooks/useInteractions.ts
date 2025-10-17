@@ -59,7 +59,7 @@ export function useInteractions(householdId?: string | null) {
         }
       } catch (e: any) {
         console.error(e);
-        setError(e?.message || t("entries.listLoadFailed"));
+        setError(e?.message || t("interactionslistLoadFailed"));
       } finally {
         setLoading(false);
       }

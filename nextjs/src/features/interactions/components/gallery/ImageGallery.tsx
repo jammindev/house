@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { getEntryFileName } from "@interactions/utils/getEntryFileName";
+import { getInteractionFileName } from "@interactions/utils/getInteractionFileName";
 import type { Document } from "@interactions/types";
 
 import GalleryGrid from "./GalleryGrid";
@@ -9,9 +9,9 @@ import GalleryModal from "./GalleryModal";
 import type { GalleryItem } from "./types";
 
 interface ImageGalleryProps {
-  files: Document[];
-  previews: Record<string, { view: string; download: string }>;
-  onDeleted?: () => void;
+    files: Document[];
+    previews: Record<string, { view: string; download: string }>;
+    onDeleted?: () => void;
 }
 
 export default function ImageGallery({ files, previews, onDeleted }: ImageGalleryProps) {
@@ -23,7 +23,7 @@ export default function ImageGallery({ files, previews, onDeleted }: ImageGaller
                 return {
                     file,
                     url,
-                    fileName: getEntryFileName(file),
+                    fileName: getInteractionFileName(file),
                 };
             })
             .filter((item): item is GalleryItem => item !== null);

@@ -10,9 +10,9 @@ interface Props {
   t: (key: string, args?: Record<string, any>) => string;
 }
 
-export default function EntryItem({ interaction, documentCount, t }: Props) {
+export default function InteractionItem({ interaction, documentCount, t }: Props) {
   const occurredAt = new Date(interaction.occurred_at).toLocaleString();
-  const statusLabel = interaction.status ? t(`entries.status.${interaction.status}`) : t("entries.statusNone");
+  const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
   const tags = interaction.tags || [];
 
   return (
@@ -25,7 +25,7 @@ export default function EntryItem({ interaction, documentCount, t }: Props) {
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-gray-900 line-clamp-1">{interaction.subject}</span>
             <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700">
-              {t(`entries.types.${interaction.type}`)}
+              {t(`interactionstypes.${interaction.type}`)}
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-500">
@@ -33,7 +33,7 @@ export default function EntryItem({ interaction, documentCount, t }: Props) {
             <span>•</span>
             <span>{statusLabel}</span>
             {documentCount > 0 && (
-              <span className="flex items-center gap-1 text-gray-600" title={t("entries.attachments")}>
+              <span className="flex items-center gap-1 text-gray-600" title={t("interactionsattachments")}>
                 <Paperclip className="w-4 h-4" />
                 <span className="text-xs">{documentCount}</span>
               </span>

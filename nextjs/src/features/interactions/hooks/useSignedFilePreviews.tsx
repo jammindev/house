@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document } from "@interactions/types";
-import { getEntryFileName } from "@interactions/utils/getEntryFileName";
+import { getInteractionFileName } from "@interactions/utils/getInteractionFileName";
 
 const SIGNED_URL_TTL = 300;
 const REFRESH_BEFORE_EXPIRY = 20;
@@ -26,9 +26,9 @@ export function useSignedFilePreviews(files: Document[]) {
                 const supa = await createSPASassClient();
                 const client = supa.getSupabaseClient();
 
-                const entries = await Promise.all(
+                const interactions = await Promise.all(
                     files.map(async (file) => {
-                        const fileName = getEntryFileName(file) || "file";
+                        const fileName = getInteractionFileName(file) || "file";
 
                         const { data: viewData, error: viewError } = await client.storage
                             .from("files")
@@ -47,7 +47,7 @@ export function useSignedFilePreviews(files: Document[]) {
                 );
 
                 if (!cancelled) {
-                    setPreviews(Object.fromEntries(entries));
+                    setPreviews(Object.fromEntries(interactions));
                     setFileError("");
 
                     if (refreshTimer) clearTimeout(refreshTimer);

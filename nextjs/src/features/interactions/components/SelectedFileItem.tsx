@@ -51,82 +51,82 @@ export default function SelectedFileItem({
         shadow-sm hover:bg-gray-50 transition-colors
       "
     >
-            {/* --- Vignette + Nom --- */}
-            <div className="flex items-center gap-3 w-full sm:w-2/3">
-                {/* Vignette fichier */}
-                <div
-                    className={clsx(
-                        "relative flex-shrink-0 w-12 h-12 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center overflow-hidden",
-                        { "p-1": isImage }
-                    )}
-                >
-                    {isImage ? (
-                        <Image
-                            src={imagePreview!}
-                            alt={file.name}
-                            fill
-                            className="object-cover rounded-md"
-                            sizes="48px"
-                        />
-                    ) : isPDF ? (
-                        <FileText className="w-6 h-6 text-red-500" />
-                    ) : (
-                        <FileIcon className="w-6 h-6 text-gray-500" />
-                    )}
-                </div>
+      {/* --- Vignette + Nom --- */}
+      <div className="flex items-center gap-3 w-full sm:w-2/3">
+        {/* Vignette fichier */}
+        <div
+          className={clsx(
+            "relative flex-shrink-0 w-12 h-12 rounded-md border border-gray-200 bg-gray-100 flex items-center justify-center overflow-hidden",
+            { "p-1": isImage }
+          )}
+        >
+          {isImage ? (
+            <Image
+              src={imagePreview!}
+              alt={file.name}
+              fill
+              className="object-cover rounded-md"
+              sizes="48px"
+            />
+          ) : isPDF ? (
+            <FileText className="w-6 h-6 text-red-500" />
+          ) : (
+            <FileIcon className="w-6 h-6 text-gray-500" />
+          )}
+        </div>
 
-                {/* Nom du fichier */}
-                <div className="flex-1 min-w-0">
-                    <label htmlFor={`custom-file-name-${index}`} className="sr-only">
-                      {t("entries.customFileNameLabel")}
-                    </label>
-                    <Input
-                      id={`custom-file-name-${index}`}
-                      value={customName}
-                      onChange={handleNameChange}
-                      className="h-8 lg:text-sm"
-                      placeholder={file.name}
-                    />
-                    <p className="mt-1 truncate text-[11px] text-gray-500">
-                        {(file.size / 1024).toFixed(1)} KB — {file.type || "inconnu"}
-                    </p>
-                </div>
-            </div>
+        {/* Nom du fichier */}
+        <div className="flex-1 min-w-0">
+          <label htmlFor={`custom-file-name-${index}`} className="sr-only">
+            {t("interactionscustomFileNameLabel")}
+          </label>
+          <Input
+            id={`custom-file-name-${index}`}
+            value={customName}
+            onChange={handleNameChange}
+            className="h-8 lg:text-sm"
+            placeholder={file.name}
+          />
+          <p className="mt-1 truncate text-[11px] text-gray-500">
+            {(file.size / 1024).toFixed(1)} KB — {file.type || "inconnu"}
+          </p>
+        </div>
+      </div>
 
-            {/* --- Type + Supprimer --- */}
-            <div className="flex items-center justify-between sm:justify-end gap-2 sm:w-auto">
-                <div className="relative">
-                    <label htmlFor={selectId} className="sr-only">
-                        {fileTypeLabel}
-                    </label>
-                    <select
-                        id={selectId}
-                        value={type}
-                        onChange={handleTypeChange}
-                        disabled={!isImage} // PDF ou document -> lecture seule
-                        title={!isImage ? t("common.readOnly") : undefined}
-                        className={clsx(
-                            "rounded-md border border-gray-300 bg-white px-2 py-[6px] text-xs sm:text-sm text-gray-700 h-8 sm:h-9",
-                            "focus:outline-none focus:ring-2 focus:ring-primary-500",
-                            // Supprime le style grisé natif du select désactivé
-                            !isImage && "opacity-100 cursor-default text-gray-600"
-                        )}
-                    >
-                        <option value="photo">{t("entries.fileType.photo")}</option>
-                        <option value="document">{t("entries.fileType.document")}</option>
-                    </select>
-                </div>
+      {/* --- Type + Supprimer --- */}
+      <div className="flex items-center justify-between sm:justify-end gap-2 sm:w-auto">
+        <div className="relative">
+          <label htmlFor={selectId} className="sr-only">
+            {fileTypeLabel}
+          </label>
+          <select
+            id={selectId}
+            value={type}
+            onChange={handleTypeChange}
+            disabled={!isImage} // PDF ou document -> lecture seule
+            title={!isImage ? t("common.readOnly") : undefined}
+            className={clsx(
+              "rounded-md border border-gray-300 bg-white px-2 py-[6px] text-xs sm:text-sm text-gray-700 h-8 sm:h-9",
+              "focus:outline-none focus:ring-2 focus:ring-primary-500",
+              // Supprime le style grisé natif du select désactivé
+              !isImage && "opacity-100 cursor-default text-gray-600"
+            )}
+          >
+            <option value="photo">{t("interactionsfileType.photo")}</option>
+            <option value="document">{t("interactionsfileType.document")}</option>
+          </select>
+        </div>
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onRemove(index)}
-                  className="text-gray-500 hover:text-red-600"
-                  aria-label={t("common.delete")}
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-            </div>
-        </li>
-    );
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemove(index)}
+          className="text-gray-500 hover:text-red-600"
+          aria-label={t("common.delete")}
+        >
+          <Trash className="w-4 h-4" />
+        </Button>
+      </div>
+    </li>
+  );
 }

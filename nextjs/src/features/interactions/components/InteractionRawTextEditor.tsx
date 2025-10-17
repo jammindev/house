@@ -1,4 +1,4 @@
-// nextjs/src/features/entries/components/EntryRawTextEditor.tsx
+// nextjs/src/features/entries/components/InteractionRawTextEditor.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -14,14 +14,14 @@ type Props = {
   onSaved?: () => void;
 };
 
-export default function EntryRawTextEditor({ interactionId, initialContent, onSaved }: Props) {
+export default function InteractionRawTextEditor({ interactionId, initialContent, onSaved }: Props) {
   const { t } = useI18n();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(initialContent || "");
   const { updateContent, loading } = useUpdateInteractionContent();
 
   useEffect(() => {
-    // If entry reloads, keep editor in sync when not editing
+    // If interaction reloads, keep editor in sync when not editing
     if (!editing) setValue(initialContent || "");
   }, [initialContent, editing]);
 
@@ -33,7 +33,7 @@ export default function EntryRawTextEditor({ interactionId, initialContent, onSa
       setEditing(false);
       onSaved?.();
     } catch {
-      alert(t("entries.updateFailed"));
+      alert(t("interactionsupdateFailed"));
     }
   };
 
@@ -51,8 +51,8 @@ export default function EntryRawTextEditor({ interactionId, initialContent, onSa
             type="button"
             variant="ghost"
             size="icon"
-            aria-label={t("entries.editRaw")}
-            title={t("entries.editRaw")}
+            aria-label={t("interactionseditRaw")}
+            title={t("interactionseditRaw")}
             onClick={() => setEditing(true)}
           >
             <Pencil className="h-4 w-4" />
@@ -68,7 +68,7 @@ export default function EntryRawTextEditor({ interactionId, initialContent, onSa
         value={value}
         onChange={(e) => setValue(e.target.value)}
         rows={6}
-        placeholder={t("entries.rawPlaceholder")}
+        placeholder={t("interactionsrawPlaceholder")}
       />
       <div className="flex items-center gap-2 justify-end">
         <Button type="button" variant="secondary" onClick={handleCancel} disabled={loading}>

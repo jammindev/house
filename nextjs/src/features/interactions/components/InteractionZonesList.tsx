@@ -1,4 +1,4 @@
-// nextjs/src/features/entries/components/EntryZonesList.tsx
+// nextjs/src/features/entries/components/InteractionZonesList.tsx
 "use client";
 
 import { useMemo, useState } from "react";
@@ -16,14 +16,14 @@ type Props = {
   interactionId: string;
 };
 
-export default function EntryZonesList({ interactionId }: Props) {
+export default function InteractionZonesList({ interactionId }: Props) {
   const { t } = useI18n();
   const { selectedHouseholdId } = useGlobal();
-  const { zones: entryZones, updateZones } = useInteractionZones(interactionId);
+  const { zones: interactionZones, updateZones } = useInteractionZones(interactionId);
   const { zones: hhZones, loading: loadingZones } = useZones(selectedHouseholdId);
 
   const [open, setOpen] = useState(false);
-  const initialSelection = useMemo(() => entryZones.map((z) => z.id), [entryZones]);
+  const initialSelection = useMemo(() => interactionZones.map((z) => z.id), [interactionZones]);
   const [selected, setSelected] = useState<string[]>(initialSelection);
   const [saving, setSaving] = useState(false);
 
@@ -36,7 +36,7 @@ export default function EntryZonesList({ interactionId }: Props) {
 
   const handleSave = async () => {
     if (selected.length === 0) {
-      alert(t("entries.selectZoneRequired"));
+      alert(t("interactionsselectZoneRequired"));
       return;
     }
     setSaving(true);
@@ -53,9 +53,9 @@ export default function EntryZonesList({ interactionId }: Props) {
 
   return (
     <div className="flex items-center gap-2">
-      {entryZones.length > 0 ? (
+      {interactionZones.length > 0 ? (
         <ul role="list" className="flex flex-wrap gap-2">
-          {entryZones.map((z) => (
+          {interactionZones.map((z) => (
             <li key={z.id}>
               <button
                 type="button"
@@ -70,13 +70,13 @@ export default function EntryZonesList({ interactionId }: Props) {
           ))}
         </ul>
       ) : (
-        <div className="text-sm text-gray-500">{t("entries.noZones")}</div>
+        <div className="text-sm text-gray-500">{t("interactionsnoZones")}</div>
       )}
 
       <Dialog open={open} onOpenChange={handleOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t("entries.zones")}</DialogTitle>
+            <DialogTitle>{t("interactionszones")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             {loadingZones ? (

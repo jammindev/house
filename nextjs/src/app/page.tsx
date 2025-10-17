@@ -21,7 +21,7 @@ export default async function Home() {
   const features = [
     {
       icon: NotepadText,
-      title: 'Journal Entries',
+      title: 'Journal Interactions',
       description: 'Capture notes, receipts, maintenance logs, or any household detail with timestamps.',
       color: 'text-primary-600'
     },
@@ -74,7 +74,7 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
             Your household’s second brain
-            <span className="block text-primary-600">Entries, zones, and attachments</span>
+            <span className="block text-primary-600">Interactions, zones, and attachments</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
             House centralizes the little things: appliance manuals, paint codes, service visits, and receipts. Attach files, tag by room, and find it later.
@@ -84,7 +84,7 @@ export default async function Home() {
               href="/app/interactions/new"
               className="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary-700 text-white hover:bg-primary-800 transition-colors"
             >
-              Create a new entry
+              Create a new interaction
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <Link

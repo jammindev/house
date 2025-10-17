@@ -10,12 +10,12 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 
 import { useDeleteInteraction } from "@interactions/hooks/useDeleteInteraction";
 
-type EntryDeleteButtonProps = {
+type InteractionDeleteButtonProps = {
   interactionId: string;
   onDeleted?: () => void;
 };
 
-export function EntryDeleteButton({ interactionId, onDeleted }: EntryDeleteButtonProps) {
+export function InteractionDeleteButton({ interactionId, onDeleted }: InteractionDeleteButtonProps) {
   const { t } = useI18n();
   const { show } = useToast();
   const { deleteInteraction, loading, error, setError } = useDeleteInteraction();
@@ -24,12 +24,12 @@ export function EntryDeleteButton({ interactionId, onDeleted }: EntryDeleteButto
   const handleConfirm = async () => {
     try {
       await deleteInteraction(interactionId);
-      show({ title: t("entries.deleteSuccess"), variant: "success" });
+      show({ title: t("interactions.deleteSuccess"), variant: "success" });
       setError("");
       setConfirmOpen(false);
       onDeleted?.();
     } catch (err: any) {
-      const fallback = t("entries.deleteFailed");
+      const fallback = t("interactions.deleteFailed");
       const message = err?.message || fallback;
       setError(fallback);
       show({ title: fallback, description: message !== fallback ? message : undefined, variant: "error" });
@@ -53,7 +53,7 @@ export function EntryDeleteButton({ interactionId, onDeleted }: EntryDeleteButto
         disabled={loading}
       >
         <Trash2 className="w-4 h-4" />
-        {loading ? t("common.deleting") : t("entries.deleteEntry")}
+        {loading ? t("common.deleting") : t("interactions.deleteInteraction")}
       </Button>
 
       <ConfirmDialog
@@ -64,9 +64,9 @@ export function EntryDeleteButton({ interactionId, onDeleted }: EntryDeleteButto
             setError("");
           }
         }}
-        title={t("entries.confirmDeleteTitle")}
-        description={t("entries.confirmDeleteDesc")}
-        confirmText={t("entries.deleteEntry")}
+        title={t("interactions.confirmDeleteTitle")}
+        description={t("interactions.confirmDeleteDesc")}
+        confirmText={t("interactions.deleteInteraction")}
         cancelText={t("common.cancel")}
         destructive
         loading={loading}
@@ -76,4 +76,4 @@ export function EntryDeleteButton({ interactionId, onDeleted }: EntryDeleteButto
   );
 }
 
-export default EntryDeleteButton;
+export default InteractionDeleteButton;

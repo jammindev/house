@@ -99,35 +99,34 @@
 │   │   │   ├── MFAVerification.tsx
 │   │   │   ├── SSOButtons.tsx
 │   │   │   ├── ToastProvider.tsx
-│   │   │   ├── ui
-│   │   │   │   ├── alert-dialog.tsx
-│   │   │   │   ├── alert.tsx
-│   │   │   │   ├── button.tsx
-│   │   │   │   ├── card.tsx
-│   │   │   │   ├── dialog.tsx
-│   │   │   │   ├── input.tsx
-│   │   │   │   ├── popover.tsx
-│   │   │   │   ├── separator.tsx
-│   │   │   │   └── textarea.tsx
-│   │   │   └── zones
+│   │   │   └── ui
+│   │   │       ├── alert-dialog.tsx
+│   │   │       ├── alert.tsx
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── dialog.tsx
+│   │   │       ├── input.tsx
+│   │   │       ├── popover.tsx
+│   │   │       ├── separator.tsx
+│   │   │       └── textarea.tsx
 │   │   ├── features
 │   │   │   ├── interactions
 │   │   │   │   ├── components
 │   │   │   │   │   ├── DocumentImportButtons.tsx
-│   │   │   │   │   ├── EntryAttachmentImport.tsx
-│   │   │   │   │   ├── EntryDeleteButton.tsx
-│   │   │   │   │   ├── EntryForm.tsx
-│   │   │   │   │   ├── EntryHeader.tsx
-│   │   │   │   │   ├── EntryItem.tsx
-│   │   │   │   │   ├── EntryList.tsx
-│   │   │   │   │   ├── EntryRawTextEditor.tsx
-│   │   │   │   │   ├── EntryZonesList.tsx
 │   │   │   │   │   ├── gallery
 │   │   │   │   │   │   ├── GalleryGrid.tsx
 │   │   │   │   │   │   ├── GalleryModal.tsx
 │   │   │   │   │   │   ├── GalleryThumbnail.tsx
 │   │   │   │   │   │   ├── ImageGallery.tsx
 │   │   │   │   │   │   └── types.ts
+│   │   │   │   │   ├── InteractionAttachmentImport.tsx
+│   │   │   │   │   ├── InteractionDeleteButton.tsx
+│   │   │   │   │   ├── InteractionForm.tsx
+│   │   │   │   │   ├── InteractionHeader.tsx
+│   │   │   │   │   ├── InteractionItem.tsx
+│   │   │   │   │   ├── InteractionList.tsx
+│   │   │   │   │   ├── InteractionRawTextEditor.tsx
+│   │   │   │   │   ├── InteractionZonesList.tsx
 │   │   │   │   │   ├── pdf
 │   │   │   │   │   │   ├── PdfFileItem.tsx
 │   │   │   │   │   │   └── PdfFileList.tsx
@@ -147,7 +146,7 @@
 │   │   │   │   ├── types.ts
 │   │   │   │   └── utils
 │   │   │   │       ├── formatFileSize.ts
-│   │   │   │       └── getEntryFileName.ts
+│   │   │   │       └── getInteractionFileName.ts
 │   │   │   └── zones
 │   │   │       ├── components
 │   │   │       │   ├── ZoneForm.tsx
@@ -286,11 +285,11 @@
     │   ├── 20251011103000_delete_entry_with_files_rpc.sql
     │   ├── 20251012075453_fix_delete_entry_with_files.sql
     │   ├── 20251012080137_drop_delete_entry_with_files.sql
+    │   ├── 20251014191543_create_structures.sql
     │   ├── 20251014191544_create_contacts.sql
     │   ├── 20251014193406_create_emails.sql
     │   ├── 20251014194044_create_phones.sql
     │   ├── 20251014194239_create_addresses.sql
-    │   ├── 20251014194630_create_structures.sql
     │   ├── 20251015090000_allow_household_members_view_files.sql
     │   └── 20251016120000_refactor_entries_to_interactions.sql
     ├── migrations_for_old
@@ -302,4 +301,4 @@
     ├── RLS_OVERVIEW.md
     └── tests
 
-76 directories, 227 files
+75 directories, 227 files

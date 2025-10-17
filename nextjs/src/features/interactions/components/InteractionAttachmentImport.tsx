@@ -1,4 +1,4 @@
-// nextjs/src/features/entries/components/EntryAttachmentImport.tsx
+// nextjs/src/features/interactions/components/InteractionAttachmentImport.tsx
 "use client";
 
 import { useState } from "react";
@@ -14,15 +14,15 @@ import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/s
 import type { DocumentType } from "@interactions/types";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
-type EntryAttachmentImportProps = {
+type InteractionAttachmentImportProps = {
   interactionId: string;
   onUploaded?: () => void;
 };
 
-export default function EntryAttachmentImport({
+export default function InteractionAttachmentImport({
   interactionId,
   onUploaded,
-}: EntryAttachmentImportProps) {
+}: InteractionAttachmentImportProps) {
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
   const { t } = useI18n();
@@ -116,7 +116,7 @@ export default function EntryAttachmentImport({
           {uploading && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Loader2 className="h-3 w-3 animate-spin" />
-              {t("entries.upload.inProgress")}
+              {t("interactions.upload.inProgress")}
             </div>
           )}
         </div>

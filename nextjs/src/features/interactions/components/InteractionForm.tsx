@@ -1,4 +1,4 @@
-// nextjs/src/features/interactions/components/EntryForm.tsx
+// nextjs/src/features/interactions/components/InteractionForm.tsx
 "use client";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -38,7 +38,7 @@ const nowLocal = () => {
   return date.toISOString().slice(0, 16);
 };
 
-export default function EntryForm() {
+export default function InteractionForm() {
   const router = useRouter();
   const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
@@ -55,7 +55,7 @@ export default function EntryForm() {
   const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
 
-  const fileTypeLabel = useMemo(() => t("entries.fileTypeLabel"), [t]);
+  const fileTypeLabel = useMemo(() => t("interactionsfileTypeLabel"), [t]);
 
   const inferType = (file: File): DocumentType =>
     file.type && file.type.startsWith("image/") ? "photo" : "document";
@@ -128,15 +128,15 @@ export default function EntryForm() {
       return;
     }
     if (!subject.trim()) {
-      alert(t("entries.subjectRequired"));
+      alert(t("interactionssubjectRequired"));
       return;
     }
     if (!content.trim()) {
-      alert(t("entries.rawRequired"));
+      alert(t("interactionsrawRequired"));
       return;
     }
     if (!selectedZoneIds.length) {
-      alert(t("entries.selectZoneRequired"));
+      alert(t("interactionsselectZoneRequired"));
       return;
     }
 
@@ -166,7 +166,7 @@ export default function EntryForm() {
       });
       if (error) throw error;
       const interactionId = rpcData as string | null;
-      if (!interactionId) throw new Error(t("entries.createFailed"));
+      if (!interactionId) throw new Error(t("interactionscreateFailed"));
 
       const uploadedPaths: string[] = [];
 
@@ -228,7 +228,7 @@ export default function EntryForm() {
       router.push("/app/interactions?created=1");
     } catch (e: any) {
       console.error(e);
-      alert(t("entries.createFailed"));
+      alert(t("interactionscreateFailed"));
     } finally {
       setLoading(false);
     }
@@ -237,21 +237,21 @@ export default function EntryForm() {
   return (
     <div className="space-y-6">
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("entries.sections.details")}</h3>
-        <p className="text-xs text-gray-600">{t("entries.subjectHelper")}</p>
+        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.details")}</h3>
+        <p className="text-xs text-gray-600">{t("interactionssubjectHelper")}</p>
         <Input
           value={subject}
           onChange={(event) => setSubject(event.target.value)}
-          placeholder={t("entries.subjectPlaceholder")}
+          placeholder={t("interactionssubjectPlaceholder")}
         />
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("entries.sections.meta")}</h3>
+        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.meta")}</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-type">
-              {t("entries.typeLabel")}
+              {t("interactionstypeLabel")}
             </label>
             <select
               id="interaction-type"
@@ -261,14 +261,14 @@ export default function EntryForm() {
             >
               {INTERACTION_TYPES.map((option) => (
                 <option key={option} value={option}>
-                  {t(`entries.types.${option}`)}
+                  {t(`interactionstypes.${option}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-status">
-              {t("entries.statusLabel")}
+              {t("interactionsstatusLabel")}
             </label>
             <select
               id="interaction-status"
@@ -276,17 +276,17 @@ export default function EntryForm() {
               value={status}
               onChange={(event) => setStatus(event.target.value as InteractionStatus | "")}
             >
-              <option value="">{t("entries.statusNone")}</option>
+              <option value="">{t("interactionsstatusNone")}</option>
               {STATUS_OPTIONS.map((option) => (
                 <option key={option} value={option}>
-                  {t(`entries.status.${option}`)}
+                  {t(`interactionsstatus.${option}`)}
                 </option>
               ))}
             </select>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-occurred-at">
-              {t("entries.occurredAtLabel")}
+              {t("interactionsoccurredAtLabel")}
             </label>
             <Input
               id="interaction-occurred-at"
@@ -297,32 +297,32 @@ export default function EntryForm() {
           </div>
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-tags">
-              {t("entries.tagsLabel")}
+              {t("interactionstagsLabel")}
             </label>
             <Input
               id="interaction-tags"
               value={tagsInput}
               onChange={(event) => setTagsInput(event.target.value)}
-              placeholder={t("entries.tagsPlaceholder")}
+              placeholder={t("interactionstagsPlaceholder")}
             />
           </div>
         </div>
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("entries.sections.description")}</h3>
-        <p className="text-xs text-gray-600">{t("entries.rawHelper")}</p>
+        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.description")}</h3>
+        <p className="text-xs text-gray-600">{t("interactionsrawHelper")}</p>
         <Textarea
           value={content}
           onChange={(event) => setContent(event.target.value)}
-          placeholder={t("entries.rawPlaceholder")}
+          placeholder={t("interactionsrawPlaceholder")}
           rows={6}
         />
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("entries.sections.zones")}</h3>
-        <p className="text-xs text-gray-600">{t("entries.zoneHelper")}</p>
+        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.zones")}</h3>
+        <p className="text-xs text-gray-600">{t("interactionszoneHelper")}</p>
         {loadingZones ? (
           <div className="text-sm text-gray-500">{t("zones.loading")}</div>
         ) : (
@@ -331,14 +331,14 @@ export default function EntryForm() {
       </section>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("entries.sections.files")}</h3>
-        <p className="text-xs text-gray-600">{t("entries.documentsHelper")}</p>
+        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.files")}</h3>
+        <p className="text-xs text-gray-600">{t("interactionsdocumentsHelper")}</p>
         <DocumentImportButtons onFilesSelected={handleFilesSelected} />
 
         {selectedFiles.length > 0 && (
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
             <p className="mb-2 text-xs font-medium text-gray-600">
-              {t("entries.selectedFiles", { count: selectedFiles.length })}
+              {t("interactionsselectedFiles", { count: selectedFiles.length })}
             </p>
             <ul className="space-y-1">
               {selectedFiles.map((item, index) => (
