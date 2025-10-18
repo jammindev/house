@@ -143,48 +143,48 @@ export default function InteractionAttachmentImport({
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={uploading}
-          aria-label="Ajouter des fichiers"
-          className="hover:bg-muted transition-colors"
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-          ) : (
-            <Upload className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent
-        align="end"
-        sideOffset={6}
-        className="w-auto rounded-xl border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95"
-      >
-
-        <div className="space-y-2">
-          <DocumentImportButtons onFilesSelected={handleFilesSelected} />
+        <PopoverTrigger asChild>
           <Button
-            type="button"
             variant="outline"
             size="sm"
-            className="w-full justify-start"
-            onClick={() => setLibraryOpen(true)}
-            disabled={uploading || !selectedHouseholdId}
+            disabled={uploading}
+            aria-label="Ajouter des fichiers"
+            className="hover:bg-muted transition-colors"
           >
-            <LinkIcon className="mr-2 h-4 w-4" />
-            {t("interactions.linkExistingDocuments")}
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            ) : (
+              <Upload className="h-4 w-4 text-muted-foreground" />
+            )}
           </Button>
-          {uploading && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              {t("interactions.upload.inProgress")}
-            </div>
-          )}
-        </div>
+        </PopoverTrigger>
+
+        <PopoverContent
+          align="end"
+          sideOffset={6}
+          className="w-auto rounded-xl border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95"
+        >
+
+          <div className="space-y-2">
+            <DocumentImportButtons onFilesSelected={handleFilesSelected} />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() => setLibraryOpen(true)}
+              disabled={uploading || !selectedHouseholdId}
+            >
+              <LinkIcon className="mr-2 h-4 w-4" />
+              {t("interactions.linkExistingDocuments")}
+            </Button>
+            {uploading && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                {t("interactions.upload.inProgress")}
+              </div>
+            )}
+          </div>
         </PopoverContent>
       </Popover>
 

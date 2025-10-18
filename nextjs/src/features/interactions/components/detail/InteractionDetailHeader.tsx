@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/detail/InteractionDetailHeader.tsx
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
 
@@ -46,12 +47,11 @@ export default function InteractionDetailHeader({
             </div>
           </div>
         </div>
-        <div className="text-sm text-gray-500">{occurredAt}</div>
+        <div className="text-sm text-gray-500">{new Date(occurredAt).toLocaleDateString()}</div>
       </div>
       <div className="flex flex-wrap items-center justify-end gap-2">
         <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-          <Pencil className="h-4 w-4" />
-          {t("interactionsedit.open")}
+          <Pencil className="h-4 w-4 text-muted-foreground" />
         </Button>
         <InteractionAttachmentImport interactionId={interaction.id} onUploaded={onReload} />
       </div>
