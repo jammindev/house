@@ -5,11 +5,11 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
-type DocumentImportButtonsProps = {
+type Props = {
   onFilesSelected: (files: File[]) => void;
 };
 
-export default function DocumentImportButtons({ onFilesSelected }: DocumentImportButtonsProps) {
+export default function DocumentImportButtons({ onFilesSelected }: Props) {
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const cameraInputRef = useRef<HTMLInputElement | null>(null);

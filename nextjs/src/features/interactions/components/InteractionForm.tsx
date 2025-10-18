@@ -1,22 +1,36 @@
-// nextjs/src/features/interactions/components/InteractionForm.tsx
 "use client";
-import { useMemo, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { FormEvent, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import { useZones } from "@/features/zones/hooks/useZones";
-import { useGlobal } from "@/lib/context/GlobalContext";
+import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-
+import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import AddDocumentsModal, { type StagedDocument } from "@documents/components/AddDocumentModal";
 import DocumentImportButtons from "@interactions/components/DocumentImportButtons";
-import type { DocumentType, InteractionStatus, InteractionType } from "@interactions/types";
-import SelectedFileItem from "./SelectedFileItem";
-import { ZonePicker } from "./ZonePicker";
+import SelectedFileItem from "@interactions/components/SelectedFileItem";
+import { ZonePicker } from "@interactions/components/ZonePicker";
+import type { DocumentType, InteractionStatus, InteractionTag, InteractionType, ZoneOption } from "@interactions/types";
 
-const INTERACTION_TYPES: InteractionType[] = [
+type LocalFile = {
+  file: File;
+  customName: string;
+  type: DocumentType;
+  notes?: string;
+};
+
+type InteractionFormProps = {
+  householdId: string;
+  zones: ZoneOption[];
+  zonesLoading?: boolean;
+  onCreated?: (interactionId: string) => void;
+};
+
+const interactionTypes: InteractionType[] = [
   "note",
   "todo",
   "call",
@@ -28,264 +42,389 @@ const INTERACTION_TYPES: InteractionType[] = [
   "other",
 ];
 
-const STATUS_OPTIONS: InteractionStatus[] = ["pending", "in_progress", "done", "archived"];
+const interactionStatuses: (InteractionStatus | null)[] = [null, "pending", "in_progress", "done", "archived"];
 
-type SelectedFile = { file: File; type: DocumentType; customName: string };
-
-const nowLocal = () => {
-  const date = new Date();
-  date.setMilliseconds(0);
-  return date.toISOString().slice(0, 16);
+const toLocalDateTime = () => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 16);
 };
 
-export default function InteractionForm() {
+const inferFileType = (file: File): DocumentType => {
+  if (file.type?.startsWith("image/")) return "photo";
+  return "document";
+};
+
+const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
+
+export default function InteractionForm({ householdId, zones, zonesLoading = false, onCreated }: InteractionFormProps) {
   const router = useRouter();
-  const { selectedHouseholdId } = useGlobal();
+  const { show } = useToast();
   const { t } = useI18n();
-  const { zones, loading: loadingZones } = useZones(selectedHouseholdId);
 
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
-  const [interactionType, setInteractionType] = useState<InteractionType>("note");
+  const [type, setType] = useState<InteractionType>("note");
   const [status, setStatus] = useState<InteractionStatus | "">("");
-  const [occurredAt, setOccurredAt] = useState(nowLocal);
-  const [tagsInput, setTagsInput] = useState("");
+  const [occurredAt, setOccurredAt] = useState<string>(toLocalDateTime);
+  const [availableTags, setAvailableTags] = useState<InteractionTag[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [tagInputValue, setTagInputValue] = useState("");
+  const [tagsLoading, setTagsLoading] = useState(true);
+  const [creatingTag, setCreatingTag] = useState(false);
+  const [selectedZones, setSelectedZones] = useState<string[]>([]);
+  const [files, setFiles] = useState<LocalFile[]>([]);
+  const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [loading, setLoading] = useState(false);
-  const [selectedZoneIds, setSelectedZoneIds] = useState<string[]>([]);
-  const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
+  const hasZones = zones.length > 0;
 
-  const fileTypeLabel = useMemo(() => t("interactionsfileTypeLabel"), [t]);
+  const sortTags = useCallback(
+    (list: InteractionTag[]) =>
+      [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" })),
+    []
+  );
 
-  const inferType = (file: File): DocumentType =>
-    file.type && file.type.startsWith("image/") ? "photo" : "document";
+  useEffect(() => {
+    let active = true;
+    const loadTags = async () => {
+      setTagsLoading(true);
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+        const { data, error } = await client
+          .from("tags")
+          .select("id, name, household_id, type, created_at, created_by")
+          .eq("household_id", householdId)
+          .eq("type", "interaction")
+          .order("name", { ascending: true });
+        if (error) throw error;
+        if (!active) return;
+        const rows = (data ?? []) as InteractionTag[];
+        setAvailableTags(sortTags(rows));
+      } catch (loadError) {
+        console.error(loadError);
+        if (!active) return;
+        setAvailableTags([]);
+      } finally {
+        if (active) setTagsLoading(false);
+      }
+    };
 
-  const makeKey = (file: File) => `${file.name}:${file.size}:${file.lastModified}`;
+    loadTags();
+    return () => {
+      active = false;
+    };
+  }, [householdId, sortTags]);
 
-  const handleFilesSelected = (files: File[]) => {
-    if (!files.length) return;
-    setSelectedFiles((prev) => {
-      const existing = new Set(prev.map((item) => makeKey(item.file)));
-      const next = [...prev];
-      files.forEach((file) => {
-        const key = makeKey(file);
-        if (!existing.has(key)) {
-          existing.add(key);
-          next.push({ file, type: inferType(file), customName: "" });
-        }
-      });
-      return next;
-    });
-  };
+  const selectedTags = useMemo(
+    () =>
+      selectedTagIds
+        .map((id) => availableTags.find((tag) => tag.id === id) || null)
+        .filter((tag): tag is InteractionTag => Boolean(tag)),
+    [availableTags, selectedTagIds]
+  );
 
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, idx) => idx !== index));
-  };
-
-  const handleFileTypeChange = (index: number, type: DocumentType) => {
-    setSelectedFiles((prev) => {
-      const target = prev[index];
-      if (!target || !(target.file.type && target.file.type.startsWith("image/"))) {
+  useEffect(() => {
+    setSelectedTagIds((prev) => {
+      const filtered = prev.filter((id) => availableTags.some((tag) => tag.id === id));
+      if (filtered.length === prev.length && filtered.every((id, index) => id === prev[index])) {
         return prev;
       }
-      return prev.map((item, idx) => (idx === index ? { ...item, type } : item));
+      return filtered;
     });
-  };
+  }, [availableTags]);
 
-  const handleCustomNameChange = (index: number, value: string) => {
-    setSelectedFiles((prev) => prev.map((item, idx) => (idx === index ? { ...item, customName: value } : item)));
-  };
+  const toggleTag = useCallback((tagId: string) => {
+    setSelectedTagIds((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
+  }, []);
 
-  const resolveFinalFileName = (item: SelectedFile) => {
-    const originalName = item.file.name;
-    const trimmed = item.customName?.trim() ?? "";
-    const extension = originalName.includes(".") ? originalName.substring(originalName.lastIndexOf(".")) : "";
-    if (!trimmed) {
-      return extension ? `file${extension}` : "file";
-    }
-    if (trimmed.includes(".")) {
-      return trimmed;
-    }
-    return `${trimmed}${extension}`;
-  };
+  const handleRemoveTag = useCallback((tagId: string) => {
+    setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
+  }, []);
 
-  const parseTags = (value: string): string[] =>
-    value
-      .split(",")
-      .map((tag) => tag.trim())
-      .filter(Boolean);
-
-  const toIso = (value: string): string | null => {
-    if (!value) return null;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return null;
-    return date.toISOString();
-  };
-
-  const handleSubmit = async () => {
-    if (!selectedHouseholdId) {
-      alert(t("common.selectHouseholdFirst"));
-      return;
-    }
-    if (!subject.trim()) {
-      alert(t("interactionssubjectRequired"));
-      return;
-    }
-    if (!content.trim()) {
-      alert(t("interactionsrawRequired"));
-      return;
-    }
-    if (!selectedZoneIds.length) {
-      alert(t("interactionsselectZoneRequired"));
+  const handleCreateTag = useCallback(async () => {
+    const trimmed = tagInputValue.trim();
+    if (!trimmed) return;
+    const existing = availableTags.find((tag) => tag.name.toLowerCase() === trimmed.toLowerCase());
+    if (existing) {
+      setSelectedTagIds((prev) => (prev.includes(existing.id) ? prev : [...prev, existing.id]));
+      setTagInputValue("");
+      show({ title: t("interactionstagsDuplicate"), variant: "info" });
       return;
     }
 
-    setLoading(true);
+    setCreatingTag(true);
+    try {
+      const supa = await createSPASassClient();
+      const client = supa.getSupabaseClient();
+      const { data, error } = await client
+        .from("tags")
+        .insert({
+          household_id: householdId,
+          type: "interaction",
+          name: trimmed,
+        })
+        .select("id, name, household_id, type, created_at, created_by")
+        .single();
+      if (error) {
+        if ((error as any)?.code === "23505") {
+          const dup = availableTags.find((tag) => tag.name.toLowerCase() === trimmed.toLowerCase());
+          if (dup) {
+            setSelectedTagIds((prev) => (prev.includes(dup.id) ? prev : [...prev, dup.id]));
+            setTagInputValue("");
+            show({ title: t("interactionstagsDuplicate"), variant: "info" });
+            return;
+          }
+        }
+        throw error;
+      }
+
+      const newTag = (data as unknown as InteractionTag) ?? null;
+      if (newTag) {
+        setAvailableTags((prev) => sortTags([...prev, newTag]));
+        setSelectedTagIds((prev) => [...prev, newTag.id]);
+      }
+      setTagInputValue("");
+    } catch (createError: any) {
+      console.error(createError);
+      const description = createError?.message || t("interactionstagsCreateFailed");
+      show({ title: t("interactionstagsCreateFailed"), description, variant: "error" });
+    } finally {
+      setCreatingTag(false);
+    }
+  }, [availableTags, householdId, sortTags, show, t, tagInputValue]);
+
+  const handleTagInputKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        if (!creatingTag) {
+          handleCreateTag();
+        }
+      }
+    },
+    [creatingTag, handleCreateTag]
+  );
+
+  const zoneHelper = useMemo(() => {
+    if (zonesLoading) return t("zones.loading");
+    if (!hasZones) return t("zones.none");
+    return t("interactionszoneHelper");
+  }, [hasZones, t, zonesLoading]);
+
+  const handleFilesSelected = useCallback((picked: File[]) => {
+    if (!picked.length) return;
+    setFiles((prev) => [
+      ...prev,
+      ...picked.map((file) => ({
+        file,
+        customName: file.name,
+        type: inferFileType(file),
+        notes: "",
+      })),
+    ]);
+  }, []);
+
+  const handleDocumentsStaged = useCallback((staged: StagedDocument[]) => {
+    if (staged.length === 0) return;
+
+    setFiles((prev) => [
+      ...prev,
+      ...staged.map<LocalFile>((item) => ({
+        file: item.file,
+        customName: item.name || item.file.name,
+        type: item.type,
+        notes: item.notes,
+      })),
+    ]);
+  }, []);
+
+  const handleFileNameChange = useCallback((index: number, value: string) => {
+    setFiles((prev) => prev.map((item, idx) => (idx === index ? { ...item, customName: value } : item)));
+  }, []);
+
+  const handleFileTypeChange = useCallback((index: number, nextType: DocumentType) => {
+    setFiles((prev) => prev.map((item, idx) => (idx === index ? { ...item, type: nextType } : item)));
+  }, []);
+
+  const handleRemoveFile = useCallback((index: number) => {
+    setFiles((prev) => prev.filter((_, idx) => idx !== index));
+  }, []);
+
+  const resetForm = () => {
+    setSubject("");
+    setContent("");
+    setType("note");
+    setStatus("");
+    setOccurredAt(toLocalDateTime());
+    setSelectedTagIds([]);
+    setTagInputValue("");
+    setSelectedZones([]);
+    setFiles([]);
+    setDocumentsModalOpen(false);
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    const trimmedContent = content.trim();
+    const trimmedSubject = subject.trim() || trimmedContent.slice(0, 80);
+
+    if (!trimmedSubject) {
+      setError(t("interactionssubjectRequired"));
+      return;
+    }
+
+    if (!trimmedContent) {
+      setError(t("interactionsrawRequired"));
+      return;
+    }
+
+    if (!selectedZones.length) {
+      setError(t("interactionsselectZoneRequired"));
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
       const { data: userData, error: userError } = await client.auth.getUser();
       if (userError) throw userError;
-      const userId = userData?.user?.id;
+      const userId = userData.user?.id;
       if (!userId) throw new Error(t("auth.notAuthenticated"));
 
-      const tags = parseTags(tagsInput);
+      const occurredAtValue = occurredAt ? new Date(occurredAt).toISOString() : null;
 
-      const { data: rpcData, error } = await client.rpc("create_interaction_with_zones" as any, {
-        p_household_id: selectedHouseholdId,
-        p_subject: subject.trim(),
-        p_content: content.trim(),
-        p_type: interactionType,
+      const { data: createdId, error: createError } = await client.rpc("create_interaction_with_zones", {
+        p_household_id: householdId,
+        p_subject: trimmedSubject,
+        p_zone_ids: selectedZones,
+        p_content: trimmedContent,
+        p_type: type,
         p_status: status || null,
-        p_occurred_at: toIso(occurredAt),
-        p_zone_ids: selectedZoneIds,
-        p_tags: tags.length ? tags : null,
-        p_contact_id: null,
-        p_structure_id: null,
+        p_occurred_at: occurredAtValue,
+        p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
       });
-      if (error) throw error;
-      const interactionId = rpcData as string | null;
-      if (!interactionId) throw new Error(t("interactionscreateFailed"));
 
-      const uploadedPaths: string[] = [];
-
-      try {
-        if (selectedFiles.length) {
-          for (const item of selectedFiles) {
-            const { file, type } = item;
-            const finalName = resolveFinalFileName(item);
-            const safeName = finalName.replace(/[^0-9a-zA-Z._-]/g, "_");
-            const uniqueId = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-              ? crypto.randomUUID()
-              : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-            const storagePath = `${userId}/${interactionId}/${uniqueId}_${safeName}`;
-
-            const { error: uploadError } = await client.storage
-              .from("files")
-              .upload(storagePath, file, {
-                cacheControl: "3600",
-                upsert: false,
-                contentType: file.type || undefined,
-              });
-            if (uploadError) throw uploadError;
-            uploadedPaths.push(storagePath);
-
-            const resolvedType: DocumentType = file.type && file.type.startsWith("image/") ? type : "document";
-            const { error: linkError } = await client
-              .from("documents" as any)
-              .insert({
-                interaction_id: interactionId,
-                file_path: storagePath,
-                mime_type: file.type || null,
-                type: resolvedType,
-                name: finalName,
-                notes: "",
-                metadata: {
-                  size: file.size,
-                  customName: finalName,
-                },
-              });
-            if (linkError) throw linkError;
-          }
-        }
-      } catch (attachmentError) {
-        try {
-          if (uploadedPaths.length) {
-            await client.storage.from("files").remove(uploadedPaths);
-          }
-        } catch (cleanupError) {
-          console.warn("Failed to cleanup uploaded files", cleanupError);
-        }
-        try {
-          await client.from("interactions" as any).delete().eq("id", interactionId);
-        } catch (cleanupInteractionError) {
-          console.warn("Failed to cleanup interaction after attachment error", cleanupInteractionError);
-        }
-        throw attachmentError;
+      if (createError || !createdId) {
+        throw createError ?? new Error(t("interactionscreateFailed"));
       }
 
+      const interactionId = createdId as string;
+
+      if (files.length > 0) {
+        for (const item of files) {
+          const safeBaseName = sanitizeFilename(item.customName || item.file.name || "document");
+          const uniquePrefix =
+            typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+              ? crypto.randomUUID()
+              : `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const storagePath = `${userId}/${interactionId}/${uniquePrefix}_${safeBaseName}`;
+
+          const { error: uploadError } = await client.storage
+            .from("files")
+            .upload(storagePath, item.file, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: item.file.type || undefined,
+            });
+          if (uploadError) throw uploadError;
+
+          const { error: docError } = await client.from("documents").insert({
+            interaction_id: interactionId,
+            file_path: storagePath,
+            mime_type: item.file.type || null,
+            type: item.type,
+            name: item.customName || item.file.name,
+            notes: item.notes ?? "",
+            metadata: {
+              size: item.file.size,
+              originalName: item.file.name,
+            },
+          });
+          if (docError) throw docError;
+        }
+      }
+
+      resetForm();
+      onCreated?.(interactionId);
       router.push("/app/interactions?created=1");
     } catch (e: any) {
       console.error(e);
-      alert(t("interactionscreateFailed"));
+      const message = e?.message || t("interactionscreateFailed");
+      setError(message);
+      show({ title: t("interactionscreateFailed"), description: message, variant: "error" });
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.details")}</h3>
-        <p className="text-xs text-gray-600">{t("interactionssubjectHelper")}</p>
-        <Input
-          value={subject}
-          onChange={(event) => setSubject(event.target.value)}
-          placeholder={t("interactionssubjectPlaceholder")}
-        />
-      </section>
+    <>
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <section className="space-y-4">
+          <header className="space-y-1">
+            <h2 className="text-base font-semibold text-gray-900">{t("interactionssections.details")}</h2>
+            <p className="text-sm text-gray-600">{t("interactionssubjectHelper")}</p>
+          </header>
 
-      <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.meta")}</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-type">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-subject">
+              {t("common.subject")}
+            </label>
+            <Input
+              id="interaction-subject"
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              placeholder={t("interactionssubjectPlaceholder")}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-type">
               {t("interactionstypeLabel")}
             </label>
             <select
               id="interaction-type"
-              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-              value={interactionType}
-              onChange={(event) => setInteractionType(event.target.value as InteractionType)}
+              value={type}
+              onChange={(event) => setType(event.target.value as InteractionType)}
+              className="border rounded-md h-9 w-full px-3 text-sm bg-background"
             >
-              {INTERACTION_TYPES.map((option) => (
-                <option key={option} value={option}>
-                  {t(`interactionstypes.${option}`)}
+              {interactionTypes.map((value) => (
+                <option key={value} value={value}>
+                  {t(`interactionstypes.${value}`)}
                 </option>
               ))}
             </select>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-status">
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-status">
               {t("interactionsstatusLabel")}
             </label>
             <select
               id="interaction-status"
-              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
               value={status}
               onChange={(event) => setStatus(event.target.value as InteractionStatus | "")}
+              className="border rounded-md h-9 w-full px-3 text-sm bg-background"
             >
-              <option value="">{t("interactionsstatusNone")}</option>
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {t(`interactionsstatus.${option}`)}
+              {interactionStatuses.map((value) => (
+                <option key={value ?? "none"} value={value ?? ""}>
+                  {value ? t(`interactionsstatus.${value}`) : t("interactionsstatusNone")}
                 </option>
               ))}
             </select>
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-occurred-at">
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-occurred-at">
               {t("interactionsoccurredAtLabel")}
             </label>
             <Input
@@ -295,86 +434,175 @@ export default function InteractionForm() {
               onChange={(event) => setOccurredAt(event.target.value)}
             />
           </div>
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-gray-600" htmlFor="interaction-tags">
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-tags">
               {t("interactionstagsLabel")}
             </label>
-            <Input
-              id="interaction-tags"
-              value={tagsInput}
-              onChange={(event) => setTagsInput(event.target.value)}
-              placeholder={t("interactionstagsPlaceholder")}
-            />
+            <p className="text-xs text-gray-500">{t("interactionstagsHelper")}</p>
+
+            {selectedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedTags.map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
+                  >
+                    #{tag.name}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag.id)}
+                      className="rounded-full p-0.5 leading-none text-indigo-600 transition hover:bg-indigo-100 hover:text-indigo-800"
+                      aria-label={t("interactionstagsRemove", { name: tag.name })}
+                    >
+                      x
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="interaction-tags"
+                value={tagInputValue}
+                onChange={(event) => setTagInputValue(event.target.value)}
+                onKeyDown={handleTagInputKeyDown}
+                placeholder={t("interactionstagsCreatePlaceholder")}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCreateTag}
+                disabled={creatingTag || !tagInputValue.trim()}
+              >
+                {creatingTag ? t("common.saving") : t("interactionstagsAdd")}
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {t("interactionstagsExisting")}
+              </p>
+              {tagsLoading ? (
+                <div className="text-xs text-gray-500">{t("interactionstagsLoading")}</div>
+              ) : availableTags.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map((tag) => {
+                    const selected = selectedTagIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id}
+                        type="button"
+                        onClick={() => toggleTag(tag.id)}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                          selected
+                            ? "border-indigo-200 bg-indigo-100 text-indigo-700"
+                            : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                        aria-pressed={selected}
+                      >
+                        #{tag.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-xs text-gray-500">{t("interactionstagsNone")}</div>
+              )}
+            </div>
           </div>
+        </section>
+
+        <section className="space-y-4">
+          <header className="space-y-1">
+            <h2 className="text-base font-semibold text-gray-900">{t("interactionssections.meta")}</h2>
+            <p className="text-sm text-gray-600">{zoneHelper}</p>
+          </header>
+
+          <div className="rounded-lg border border-gray-200 bg-white/60 p-3">
+            {zonesLoading ? (
+              <div className="text-sm text-gray-500">{t("common.loading")}</div>
+            ) : hasZones ? (
+              <ZonePicker zones={zones} value={selectedZones} onChange={setSelectedZones} />
+            ) : (
+              <div className="text-sm text-gray-500">{t("zones.none")}</div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <header className="space-y-1">
+            <h2 className="text-base font-semibold text-gray-900">{t("interactionssections.description")}</h2>
+            <p className="text-sm text-gray-600">{t("interactionsrawHelper")}</p>
+          </header>
+
+          <Textarea
+            value={content}
+            onChange={(event) => setContent(event.target.value)}
+            rows={6}
+            placeholder={t("interactionsrawPlaceholder")}
+          />
+        </section>
+
+        <section className="space-y-4">
+          <header className="space-y-1">
+            <h2 className="text-base font-semibold text-gray-900">{t("interactionssections.files")}</h2>
+            <p className="text-sm text-gray-600">{t("interactionsdocumentsHelper")}</p>
+          </header>
+
+          <div className="space-y-3">
+            {/* <DocumentImportButtons onFilesSelected={handleFilesSelected} /> */}
+            <Button type="button" variant="outline" onClick={() => setDocumentsModalOpen(true)}>
+              {t("interactionsopenDocumentsModal")}
+            </Button>
+          </div>
+
+          {files.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {t("interactionsselectedFiles", { count: files.length })}
+              </p>
+              <ul className="space-y-2">
+                {files.map((item, index) => (
+                  <SelectedFileItem
+                    key={`${item.file.name}-${index}`}
+                    index={index}
+                    file={item.file}
+                    type={item.type}
+                    customName={item.customName}
+                    fileTypeLabel={t("interactionsfileTypeLabel")}
+                    onCustomNameChange={handleFileNameChange}
+                    onFileTypeChange={handleFileTypeChange}
+                    onRemove={handleRemoveFile}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <Button type="submit" disabled={submitting || zonesLoading || !hasZones}>
+            {submitting ? t("common.saving") : t("interactionscreateCta")}
+          </Button>
         </div>
-      </section>
+      </form>
 
-      <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.description")}</h3>
-        <p className="text-xs text-gray-600">{t("interactionsrawHelper")}</p>
-        <Textarea
-          value={content}
-          onChange={(event) => setContent(event.target.value)}
-          placeholder={t("interactionsrawPlaceholder")}
-          rows={6}
-        />
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.zones")}</h3>
-        <p className="text-xs text-gray-600">{t("interactionszoneHelper")}</p>
-        {loadingZones ? (
-          <div className="text-sm text-gray-500">{t("zones.loading")}</div>
-        ) : (
-          <ZonePicker zones={zones} value={selectedZoneIds} onChange={setSelectedZoneIds} />
-        )}
-      </section>
-
-      <section className="space-y-2">
-        <h3 className="text-sm font-medium text-gray-900">{t("interactionssections.files")}</h3>
-        <p className="text-xs text-gray-600">{t("interactionsdocumentsHelper")}</p>
-        <DocumentImportButtons onFilesSelected={handleFilesSelected} />
-
-        {selectedFiles.length > 0 && (
-          <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
-            <p className="mb-2 text-xs font-medium text-gray-600">
-              {t("interactionsselectedFiles", { count: selectedFiles.length })}
-            </p>
-            <ul className="space-y-1">
-              {selectedFiles.map((item, index) => (
-                <SelectedFileItem
-                  key={`${item.file.name}-${item.file.lastModified}-${index}`}
-                  index={index}
-                  file={item.file}
-                  type={item.type}
-                  customName={item.customName}
-                  fileTypeLabel={fileTypeLabel}
-                  onCustomNameChange={handleCustomNameChange}
-                  onFileTypeChange={handleFileTypeChange}
-                  onRemove={handleRemoveFile}
-                />
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
-
-      <div className="flex gap-2 justify-end">
-        <Button
-          onClick={handleSubmit}
-          disabled={
-            loading ||
-            !subject.trim() ||
-            !content.trim() ||
-            selectedZoneIds.length === 0
-          }
-        >
-          {loading ? t("common.saving") : t("common.save")}
-        </Button>
-        <Button variant="secondary" onClick={() => router.back()} disabled={loading}>
-          {t("common.cancel")}
-        </Button>
-      </div>
-    </div>
+      <AddDocumentsModal
+        open={documentsModalOpen}
+        onOpenChange={setDocumentsModalOpen}
+        householdId={householdId}
+        mode="staging"
+        multiple
+        onStagedChange={handleDocumentsStaged}
+      />
+    </>
   );
 }

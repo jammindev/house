@@ -129,9 +129,23 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
     [childrenMap, expanded, toggleExpand, toggleZone, value]
   );
 
-  const list = roots.length > 0 ? roots : [...zones].sort((a, b) => a.name.localeCompare(b.name));
+  const topLevelZones = useMemo(() => {
+    if (roots.length === 1) {
+      const onlyRoot = roots[0];
+      const directChildren = childrenMap.get(onlyRoot.id);
+      if (directChildren?.length) {
+        return directChildren;
+      }
+    }
 
-  return <div className="space-y-1">{list.map((root) => renderBranch(root))}</div>;
+    if (roots.length > 0) {
+      return roots;
+    }
+
+    return [...zones].sort((a, b) => a.name.localeCompare(b.name));
+  }, [childrenMap, roots, zones]);
+
+  return <div className="space-y-1">{topLevelZones.map((root) => renderBranch(root))}</div>;
 }
 
 type ZoneToggleProps = {

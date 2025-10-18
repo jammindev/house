@@ -1,5 +1,4 @@
 "use client";
-import { Card } from "@/components/ui/card";
 import { Layers, Ruler, type LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import type { ZoneStats } from "../types";

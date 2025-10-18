@@ -47,10 +47,10 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
           <div className="flex flex-wrap gap-2">
             {tags.map((tag) => (
               <span
-                key={tag}
+                key={tag.id}
                 className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600"
               >
-                #{tag}
+                #{tag.name}
               </span>
             ))}
           </div>

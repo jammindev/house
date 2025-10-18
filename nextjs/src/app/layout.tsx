@@ -14,7 +14,6 @@ export const metadata: Metadata = {
   applicationName: productName,
   description: "Centralisez la connaissance de votre foyer avec House.",
   manifest: "/manifest.json",
-  themeColor: "#0f172a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -51,7 +50,7 @@ export default async function RootLayout({
     }
   }
   let theme = process.env.NEXT_PUBLIC_THEME
-  if(!theme) {
+  if (!theme) {
     theme = "theme-sass3"
   }
   const gaID = process.env.NEXT_PUBLIC_GOOGLE_TAG;
@@ -63,8 +62,8 @@ export default async function RootLayout({
           <CookieConsent />
         </I18nProvider>
         <Analytics />
-        { gaID && (
-            <GoogleAnalytics gaId={gaID}/>
+        {gaID && (
+          <GoogleAnalytics gaId={gaID} />
         )}
       </body>
     </html>

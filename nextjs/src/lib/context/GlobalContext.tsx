@@ -59,7 +59,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                     localStorage.removeItem('selectedHouseholdId');
                 }
             } catch (error) {
-                // ignore storage errors
+                console.error('Error loading global context data:', error);
             }
 
             return id;

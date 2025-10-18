@@ -17,6 +17,19 @@ export type InteractionType =
 
 export type InteractionStatus = "pending" | "in_progress" | "done" | "archived";
 
+export type TagType = "interaction" | (string & {});
+
+export type Tag = {
+  id: string;
+  household_id: string;
+  type: TagType;
+  name: string;
+  created_at: string;
+  created_by?: string | null;
+};
+
+export type InteractionTag = Tag;
+
 export type Interaction = {
   id: string;
   household_id: string;
@@ -25,7 +38,7 @@ export type Interaction = {
   type: InteractionType;
   status: InteractionStatus | null;
   occurred_at: string;
-  tags: string[];
+  tags: InteractionTag[];
   contact_id?: string | null;
   structure_id?: string | null;
   metadata?: Record<string, unknown> | null;

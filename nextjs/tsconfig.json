@@ -32,6 +32,9 @@
       ],
       "@interactions/*": [
         "features/interactions/*"
+      ],
+      "@documents/*": [
+        "features/documents/*"
       ]
     }
   },

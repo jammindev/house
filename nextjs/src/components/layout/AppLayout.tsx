@@ -13,7 +13,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
-    const { t } = useI18n();
 
     const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
     const currentHousehold = useMemo(
