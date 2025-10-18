@@ -28,8 +28,8 @@ type RecentDocument = {
   name: string;
   type: DocumentType;
   createdAt: string;
-  interactionId: string;
-  interactionSubject: string;
+  interactionId?: string;
+  interactionSubject?: string;
 };
 
 type FlatZone = {
@@ -54,18 +54,21 @@ type StructureRow = {
   name: string | null;
 };
 
-type DocumentRow = {
-  id: string;
-  name: string | null;
-  type: DocumentType | null;
+type InteractionDocumentRow = {
+  interaction_id: string;
   created_at: string;
-  interaction_id: string | null;
-};
-
-type InteractionRow = {
-  id: string;
-  subject: string | null;
-  household_id: string;
+  document: {
+    id: string;
+    household_id: string;
+    name: string | null;
+    type: DocumentType | null;
+    created_at: string;
+  } | null;
+  interaction: {
+    id: string;
+    subject: string | null;
+    household_id: string;
+  } | null;
 };
 
 function sanitizeFilename(name: string) {
@@ -293,51 +296,52 @@ export default function QuickDocumentUploadPage() {
       const client = supa.getSupabaseClient();
 
       const { data: docsData, error: docsError } = await client
-        .from("documents")
-        .select("id, name, type, created_at, interaction_id")
+        .from("interaction_documents")
+        .select(
+          `
+            interaction_id,
+            created_at,
+            document:documents (
+              id,
+              household_id,
+              name,
+              type,
+              created_at
+            ),
+            interaction:interactions (
+              id,
+              subject,
+              household_id
+            )
+          `
+        )
         .order("created_at", { ascending: false })
         .limit(MAX_RECENT_DOCUMENTS);
 
       if (docsError) throw docsError;
-      const docRows = (docsData ?? []) as DocumentRow[];
+      const rows = (docsData ?? []) as InteractionDocumentRow[];
 
-      const interactionIds = docRows
-        .map((row) => row.interaction_id)
-        .filter((id): id is string => Boolean(id));
-
-      let interactionMap = new Map<string, InteractionRow>();
-
-      if (interactionIds.length > 0) {
-        const { data: interactionsData, error: interactionsError } = await client
-          .from("interactions")
-          .select("id, subject, household_id")
-          .in("id", interactionIds);
-        if (interactionsError) throw interactionsError;
-        const interactions = (interactionsData ?? []) as InteractionRow[];
-        interactionMap = new Map(interactions.map((row) => [row.id, row]));
-      }
-
-      const normalized: RecentDocument[] = docRows
-        .filter(
-          (row) => {
-            if (!row.interaction_id) return false;
-            const interaction = interactionMap.get(row.interaction_id);
-            if (!interaction) return false;
-            if (selectedHouseholdId && interaction.household_id !== selectedHouseholdId) return false;
-            return true;
-          }
-        )
+      const normalized: RecentDocument[] = rows
         .map((row) => {
-          const interaction = interactionMap.get(row.interaction_id!);
+          const document = row.document;
+          if (!document) return null;
+          if (selectedHouseholdId && document.household_id !== selectedHouseholdId) return null;
+
+          const interaction = row.interaction;
+          if (interaction && selectedHouseholdId && interaction.household_id !== selectedHouseholdId) {
+            return null;
+          }
+
           return {
-            id: row.id,
-            name: row.name ?? "",
-            type: row.type ?? "document",
-            createdAt: row.created_at,
-            interactionId: row.interaction_id!,
-            interactionSubject: interaction?.subject ?? "",
-          };
-        });
+            id: document.id,
+            name: document.name ?? "",
+            type: document.type ?? "document",
+            createdAt: row.created_at ?? document.created_at,
+            interactionId: interaction?.id ?? undefined,
+            interactionSubject: interaction?.subject ?? undefined,
+          } satisfies RecentDocument;
+        })
+        .filter((item): item is RecentDocument => Boolean(item));
 
       setRecentDocuments(normalized);
     } catch (loadErr: unknown) {
@@ -441,7 +445,7 @@ export default function QuickDocumentUploadPage() {
           const { data: insertedDoc, error: docErr } = await client
             .from("documents")
             .insert({
-              interaction_id: interactionId,
+              household_id: selectedHouseholdId,
               file_path: storagePath,
               mime_type: file.type || null,
               type: documentType,
@@ -459,7 +463,18 @@ export default function QuickDocumentUploadPage() {
             throw docErr ?? new Error(t("storage.insertDocumentFailed"));
           }
 
-          createdDocumentIds.push(insertedDoc.id as string);
+          const documentId = insertedDoc.id as string;
+          const { error: linkErr } = await client
+            .from("interaction_documents")
+            .insert({
+              interaction_id: interactionId,
+              document_id: documentId,
+              role: "attachment",
+              note: "",
+            });
+          if (linkErr) throw linkErr;
+
+          createdDocumentIds.push(documentId);
         }
 
         const successKey = fileArray.length > 1 ? "storage.quickUploadSuccessPlural" : "storage.quickUploadSuccessSingle";

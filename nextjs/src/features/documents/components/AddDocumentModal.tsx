@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { DocumentType } from "@interactions/types";
+import type { Document, DocumentType } from "@interactions/types";
 
 export type StagedDocument = {
     id: string; // local id for list rendering
@@ -18,14 +18,11 @@ export type StagedDocument = {
 };
 
 export type InsertedDocumentRow = {
-    id: string;
     interaction_id: string;
-    household_id: string;
-    type: DocumentType;
-    file_url: string; // storage path
-    name: string;
-    notes?: string | null;
-    created_at: string;
+    link_role: string | null;
+    link_note: string | null;
+    link_created_at: string;
+    document: Document;
 };
 
 // ---- Helpers -------------------------------------------------------------
@@ -76,22 +73,85 @@ export async function persistDocuments(
         });
         if (upload.error) throw upload.error;
 
-        // Insert DB row – assumes documents table has household_id + interaction_id + type + file_url + name + notes
-        const { data, error } = await supabase
+        // Insert the document row
+        const { data: documentRow, error: documentError } = await supabase
             .from(tableName)
             .insert({
                 household_id: householdId,
-                interaction_id: interactionId,
                 type: d.type,
-                file_url: path,
+                file_path: path,
+                mime_type: d.file.type || null,
                 name: d.name || d.file.name,
-                notes: d.notes ?? null,
+                notes: d.notes ?? "",
+                metadata: {
+                    size: d.file.size,
+                    originalName: d.file.name,
+                },
             })
-            .select("*")
+            .select("id, household_id, type, file_path, mime_type, name, notes, metadata, created_at, created_by")
             .single();
 
-        if (error) throw error;
-        inserted.push(data as InsertedDocumentRow);
+        if (documentError) throw documentError;
+
+        const documentId = (documentRow as any)?.id as string | undefined;
+        if (!documentId) throw new Error("Document creation failed");
+
+        const { data: linkRow, error: linkError } = await supabase
+            .from("interaction_documents")
+            .insert({
+                interaction_id: interactionId,
+                document_id: documentId,
+                role: "attachment",
+                note: d.notes ?? "",
+            })
+            .select(
+                `
+                interaction_id,
+                role,
+                note,
+                created_at,
+                document:documents (
+                    id,
+                    household_id,
+                    file_path,
+                    name,
+                    notes,
+                    mime_type,
+                    type,
+                    metadata,
+                    created_at,
+                    created_by
+                )
+                `
+            )
+            .single();
+        if (linkError) throw linkError;
+
+        const documentData = linkRow?.document as any;
+        const normalizedDocument: Document = {
+            id: documentData.id,
+            household_id: documentData.household_id,
+            file_path: documentData.file_path,
+            name: documentData.name ?? "",
+            notes: documentData.notes ?? "",
+            mime_type: documentData.mime_type ?? null,
+            type: (documentData.type ?? "document") as DocumentType,
+            metadata: documentData.metadata,
+            created_at: documentData.created_at,
+            created_by: documentData.created_by ?? null,
+            interaction_id: linkRow?.interaction_id,
+            link_role: linkRow?.role ?? null,
+            link_note: linkRow?.note ?? null,
+            link_created_at: linkRow?.created_at ?? null,
+        };
+
+        inserted.push({
+            interaction_id: linkRow?.interaction_id ?? interactionId,
+            link_role: linkRow?.role ?? null,
+            link_note: linkRow?.note ?? null,
+            link_created_at: linkRow?.created_at ?? null,
+            document: normalizedDocument,
+        });
     }
 
     return inserted;

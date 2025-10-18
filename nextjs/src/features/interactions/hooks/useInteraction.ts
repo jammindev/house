@@ -23,6 +23,25 @@ type RawInteraction = {
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
 };
 
+type RawInteractionDocument = {
+  interaction_id: string;
+  role: string | null;
+  note: string | null;
+  created_at: string;
+  document: {
+    id: string;
+    household_id: string;
+    file_path: string;
+    mime_type: string | null;
+    type: Document["type"];
+    metadata: Document["metadata"];
+    name: string;
+    notes: string;
+    created_by: string | null;
+    created_at: string;
+  } | null;
+};
+
 export function useInteraction(id?: string) {
   const [interaction, setInteraction] = useState<Interaction | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -99,11 +118,54 @@ export function useInteraction(id?: string) {
       }
 
       const { data: documentData, error: documentError } = await client
-        .from("documents")
-        .select("id, interaction_id, file_path, mime_type, type, metadata, name, notes, created_by, created_at")
-        .eq("interaction_id", id);
+        .from("interaction_documents")
+        .select(
+          `
+            interaction_id,
+            role,
+            note,
+            created_at,
+            document:documents (
+              id,
+              household_id,
+              file_path,
+              mime_type,
+              type,
+              metadata,
+              name,
+              notes,
+              created_by,
+              created_at
+            )
+          `
+        )
+        .eq("interaction_id", id)
+        .order("created_at", { ascending: true });
       if (documentError) throw documentError;
-      setDocuments((documentData ?? []) as unknown as Document[]);
+      const normalized =
+        (documentData ?? [])
+          .map((row) => {
+            const docRow = (row as RawInteractionDocument).document;
+            if (!docRow) return null;
+            return {
+              id: docRow.id,
+              household_id: docRow.household_id,
+              file_path: docRow.file_path,
+              name: docRow.name ?? "",
+              notes: docRow.notes ?? "",
+              mime_type: docRow.mime_type ?? null,
+              type: (docRow.type ?? "document") as Document["type"],
+              metadata: docRow.metadata,
+              created_at: docRow.created_at,
+              created_by: docRow.created_by ?? null,
+              interaction_id: (row as RawInteractionDocument).interaction_id,
+              link_role: (row as RawInteractionDocument).role,
+              link_note: (row as RawInteractionDocument).note,
+              link_created_at: (row as RawInteractionDocument).created_at,
+            } satisfies Document;
+          })
+          .filter((doc): doc is Document => Boolean(doc));
+      setDocuments(normalized);
     } catch (e: any) {
       console.error(e);
       setError(e?.message || "Failed to load interaction");

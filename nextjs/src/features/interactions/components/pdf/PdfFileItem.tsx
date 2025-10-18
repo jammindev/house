@@ -100,7 +100,11 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
                                 title={t("interactionsdeleteFileTitle")}
                                 confirmText={t("common.delete")}
                                 onConfirm={async () => {
-                                    await deleteFile({ id: file.id, file_path: file.file_path });
+                                    await deleteFile({
+                                        id: file.id,
+                                        file_path: file.file_path,
+                                        interaction_id: file.interaction_id,
+                                    });
                                     setConfirmOpen(false);
                                     onDeleted?.();
                                 }}

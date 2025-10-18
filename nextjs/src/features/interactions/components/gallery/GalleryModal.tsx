@@ -107,7 +107,11 @@ export default function GalleryModal({
                                     loading={loading}
                                     onConfirm={async () => {
                                         if (!item) return;
-                                        await deleteFile({ id: item.file.id, file_path: item.file.file_path });
+                                        await deleteFile({
+                                            id: item.file.id,
+                                            file_path: item.file.file_path,
+                                            interaction_id: item.file.interaction_id,
+                                        });
                                         setConfirmOpen(false);
                                         onDeleted?.();
                                         onClose();

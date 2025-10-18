@@ -59,7 +59,7 @@ export type DocumentMetadata = {
 
 export type Document = {
   id: string;
-  interaction_id: string;
+  household_id: string;
   file_path: string;
   name: string;
   notes: string;
@@ -68,6 +68,10 @@ export type Document = {
   metadata?: DocumentMetadata;
   created_at: string;
   created_by?: string | null;
+  interaction_id?: string;
+  link_role?: string | null;
+  link_note?: string | null;
+  link_created_at?: string | null;
 };
 
 export type Preview = { url: string; kind: "image" | "pdf" };

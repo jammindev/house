@@ -7,7 +7,6 @@ import TopBar from "./TopBar";
 import MobileNav from "./MobileNav";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
-import { useI18n } from "@/lib/i18n/I18nProvider";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -60,7 +59,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             />
 
             <main className="md:p-4 pb-20 lg:pb-4 lg:pl-64">{children}</main>
-
+            <div className="h-20 lg:hidden" />
             <MobileNav pathname={pathname} onMenuClick={toggleSidebar} />
         </div>
     );

@@ -16,33 +16,60 @@ export function useDeleteInteraction() {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
-      // 1️⃣ Récupère tous les documents liés à cette interaction
-      const { data: documents, error: filesError } = await client
-        .from("documents")
-        .select("file_path")
+      // 1️⃣ Récupère tous les documents liés à cette interaction et leurs usages
+      const { data: linkedRows, error: linkError } = await client
+        .from("interaction_documents")
+        .select("document_id, document:documents(file_path)")
         .eq("interaction_id", interactionId);
+      if (linkError) throw linkError;
 
-      if (filesError) throw filesError;
+      const documentIds =
+        linkedRows?.map((row) => row.document_id).filter((id): id is string => Boolean(id)) ?? [];
 
-      const storagePaths =
-        documents?.map((doc) => doc.file_path).filter(Boolean) || [];
+      // 2️⃣ Détermine quels documents ne sont liés à aucune autre interaction
+      let orphanDocumentIds: string[] = [];
+      if (documentIds.length > 0) {
+        const { data: usageRows, error: usageError } = await client
+          .from("interaction_documents")
+          .select("document_id, interaction_id")
+          .in("document_id", documentIds);
+        if (usageError) throw usageError;
 
-      // 2️⃣ Supprime les fichiers physiques du bucket (s’il y en a)
-      if (storagePaths.length > 0) {
-        const { error: storageError } = await client.storage
-          .from("files")
-          .remove(storagePaths);
-
-        if (storageError) throw storageError;
+        const usageCount = new Map<string, number>();
+        usageRows?.forEach((row) => {
+          const current = usageCount.get(row.document_id) ?? 0;
+          usageCount.set(row.document_id, current + 1);
+        });
+        orphanDocumentIds = documentIds.filter((id) => (usageCount.get(id) ?? 0) <= 1);
       }
 
-      // 3️⃣ Supprime l’interaction dans la base
+      const orphanStoragePaths =
+        linkedRows
+          ?.filter((row) => orphanDocumentIds.includes(row.document_id))
+          .map((row) => row.document?.file_path)
+          .filter((path): path is string => Boolean(path)) ?? [];
+
+      // 3️⃣ Supprime l’interaction dans la base (cascade sur interaction_documents)
       const { error: deleteError } = await client
         .from("interactions")
         .delete()
         .eq("id", interactionId);
 
       if (deleteError) throw deleteError;
+
+      // 4️⃣ Supprime les documents devenus orphelins + leurs fichiers
+      if (orphanDocumentIds.length > 0) {
+        if (orphanStoragePaths.length > 0) {
+          const { error: storageError } = await client.storage.from("files").remove(orphanStoragePaths);
+          if (storageError) throw storageError;
+        }
+
+        const { error: docDeleteError } = await client
+          .from("documents")
+          .delete()
+          .in("id", orphanDocumentIds);
+        if (docDeleteError) throw docDeleteError;
+      }
     } catch (err: any) {
       console.error("❌ Failed to delete interaction:", err);
       setError(err?.message || "Failed to delete interaction");

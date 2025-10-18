@@ -1,3 +1,4 @@
+// nextjs/src/components/layout/AppPageLayout.tsx
 "use client";
 
 import type { ReactNode } from "react";
@@ -39,7 +40,7 @@ export default function AppPageLayout({
 }: AppPageLayoutProps) {
   const actionButton = action ? (
     <Button
-      variant={action.variant ?? "ghost"}
+      variant={action.variant ?? "default"}
       size={action.size ?? "icon"}
       aria-label={action.label}
       disabled={action.disabled}
@@ -59,7 +60,7 @@ export default function AppPageLayout({
 
   return (
     <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8", className)}>
-      <header className="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between">
+      <header className="mb-4 flex flex-row justify-between items-center w-full">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}

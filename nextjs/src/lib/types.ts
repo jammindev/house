@@ -100,7 +100,7 @@ export type Database = {
           created_by: string
           file_path: string
           id: string
-          interaction_id: string
+          household_id: string
           metadata: Json | null
           mime_type: string | null
           name: string
@@ -113,7 +113,7 @@ export type Database = {
           created_by: string
           file_path: string
           id?: string
-          interaction_id: string
+          household_id: string
           metadata?: Json | null
           mime_type?: string | null
           name: string
@@ -126,7 +126,7 @@ export type Database = {
           created_by?: string
           file_path?: string
           id?: string
-          interaction_id?: string
+          household_id?: string
           metadata?: Json | null
           mime_type?: string | null
           name?: string
@@ -136,7 +136,46 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "documents_interaction_id_fkey"
+            foreignKeyName: "documents_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_documents: {
+        Row: {
+          created_at: string
+          document_id: string
+          interaction_id: string
+          note: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          interaction_id: string
+          note?: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          interaction_id?: string
+          note?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_documents_interaction_id_fkey"
             columns: ["interaction_id"]
             isOneToOne: false
             referencedRelation: "interactions"

@@ -1,18 +1,17 @@
 // nextjs/src/app/app/interactions/page.tsx
 "use client";
 import React, { useEffect, useMemo } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useToast } from "@/components/ToastProvider";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionList from "@interactions/components/InteractionList";
 import { useInteractions } from "@interactions/hooks/useInteractions";
-import AppPageLayout from "@/components/layout/AppPageLayout";
+
 import { Plus } from "lucide-react";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 
 export default function InteractionsPage() {
   const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
@@ -51,7 +50,6 @@ export default function InteractionsPage() {
   return (
     <AppPageLayout
       title={t("interactionstitle")}
-      context={currentHousehold?.name ?? undefined}
       action={{ icon: Plus, href: "/app/interactions/new" }}
     >
       {error ? (

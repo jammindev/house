@@ -1,3 +1,4 @@
+// nextjs/src/app/app/contacts/page.tsx
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -104,17 +105,13 @@ export default function ContactsPage() {
       subtitle={heading.description}
       action={{ icon: Plus, onClick: () => setCreateOpen(true) }}
     >
-      <Card className="shadow-sm">
-        <CardContent className="space-y-4 p-4 sm:p-6">
-          {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
+      {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
 
-          {loading ? (
-            <div className="text-sm text-gray-500">{t("contacts.loading")}</div>
-          ) : (
-            <ContactList contacts={contacts} onSelect={handleSelect} t={t} />
-          )}
-        </CardContent>
-      </Card>
+      {loading ? (
+        <div className="text-sm text-gray-500">{t("contacts.loading")}</div>
+      ) : (
+        <ContactList contacts={contacts} onSelect={handleSelect} t={t} />
+      )}
 
       <ContactDetailsDialog contact={selectedContact} open={dialogOpen} onOpenChange={handleDialogChange} t={t} />
       <ContactCreateDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreateContact} t={t} />

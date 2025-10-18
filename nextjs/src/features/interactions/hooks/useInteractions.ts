@@ -25,6 +25,25 @@ type RawInteraction = {
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
 };
 
+type RawInteractionDocument = {
+  interaction_id: string;
+  role: string | null;
+  note: string | null;
+  created_at: string;
+  document: {
+    id: string;
+    household_id: string;
+    file_path: string;
+    mime_type: string | null;
+    type: Document["type"];
+    name: string;
+    notes: string;
+    metadata: Document["metadata"];
+    created_at: string;
+    created_by: string | null;
+  } | null;
+};
+
 export function useInteractions(householdId?: string | null) {
   const { t } = useI18n();
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -109,15 +128,55 @@ export function useInteractions(householdId?: string | null) {
         const ids = normalized.map((interaction) => interaction.id);
         if (ids.length > 0) {
           const { data: documentData, error: documentError } = await client
-            .from("documents")
-            .select("id, interaction_id, file_path, mime_type, type, name, notes, metadata, created_at, created_by")
+            .from("interaction_documents")
+            .select(
+              `
+                interaction_id,
+                role,
+                note,
+                created_at,
+                document:documents (
+                  id,
+                  household_id,
+                  file_path,
+                  mime_type,
+                  type,
+                  name,
+                  notes,
+                  metadata,
+                  created_at,
+                  created_by
+                )
+              `
+            )
             .in("interaction_id", ids);
           if (documentError) throw documentError;
           const grouped: DocumentsByInteraction = {};
-          ((documentData ?? []) as unknown as Document[]).forEach((doc) => {
-            const arr = grouped[doc.interaction_id] || [];
+          (documentData ?? []).forEach((raw) => {
+            const row = raw as RawInteractionDocument;
+            const docRow = row.document;
+            if (!docRow) return;
+            const interactionId = row.interaction_id;
+            if (!interactionId) return;
+            const doc: Document = {
+              id: docRow.id,
+              household_id: docRow.household_id,
+              file_path: docRow.file_path,
+              name: docRow.name ?? "",
+              notes: docRow.notes ?? "",
+              mime_type: docRow.mime_type ?? null,
+              type: (docRow.type ?? "document") as Document["type"],
+              metadata: docRow.metadata,
+              created_at: docRow.created_at,
+              created_by: docRow.created_by ?? null,
+              interaction_id: interactionId,
+              link_role: row.role ?? null,
+              link_note: row.note ?? null,
+              link_created_at: row.created_at ?? null,
+            };
+            const arr = grouped[interactionId] || [];
             arr.push(doc);
-            grouped[doc.interaction_id] = arr;
+            grouped[interactionId] = arr;
           });
           setDocumentsByInteraction(grouped);
           const counts: Record<string, number> = {};

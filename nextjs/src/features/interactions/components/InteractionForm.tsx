@@ -11,10 +11,10 @@ import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import AddDocumentsModal, { type StagedDocument } from "@documents/components/AddDocumentModal";
-import DocumentImportButtons from "@interactions/components/DocumentImportButtons";
+import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
 import SelectedFileItem from "@interactions/components/SelectedFileItem";
 import { ZonePicker } from "@interactions/components/ZonePicker";
-import type { DocumentType, InteractionStatus, InteractionTag, InteractionType, ZoneOption } from "@interactions/types";
+import type { Document, DocumentType, InteractionStatus, InteractionTag, InteractionType, ZoneOption } from "@interactions/types";
 
 type LocalFile = {
   file: File;
@@ -75,6 +75,8 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
+  const [libraryModalOpen, setLibraryModalOpen] = useState(false);
+  const [libraryDocuments, setLibraryDocuments] = useState<Document[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -253,6 +255,19 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
     setFiles((prev) => prev.filter((_, idx) => idx !== index));
   }, []);
 
+  const handleLibraryConfirm = useCallback(async (docs: Document[]) => {
+    if (!docs.length) return;
+    setLibraryDocuments((prev) => {
+      const map = new Map(prev.map((doc) => [doc.id, doc]));
+      docs.forEach((doc) => map.set(doc.id, doc));
+      return Array.from(map.values());
+    });
+  }, []);
+
+  const handleRemoveLibraryDocument = useCallback((id: string) => {
+    setLibraryDocuments((prev) => prev.filter((doc) => doc.id !== id));
+  }, []);
+
   const resetForm = () => {
     setSubject("");
     setContent("");
@@ -264,6 +279,8 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
     setSelectedZones([]);
     setFiles([]);
     setDocumentsModalOpen(false);
+    setLibraryModalOpen(false);
+    setLibraryDocuments([]);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -337,20 +354,47 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
             });
           if (uploadError) throw uploadError;
 
-          const { error: docError } = await client.from("documents").insert({
-            interaction_id: interactionId,
-            file_path: storagePath,
-            mime_type: item.file.type || null,
-            type: item.type,
-            name: item.customName || item.file.name,
-            notes: item.notes ?? "",
-            metadata: {
-              size: item.file.size,
-              originalName: item.file.name,
-            },
-          });
+          const { data: insertedDoc, error: docError } = await client
+            .from("documents")
+            .insert({
+              household_id: householdId,
+              file_path: storagePath,
+              mime_type: item.file.type || null,
+              type: item.type,
+              name: item.customName || item.file.name,
+              notes: item.notes ?? "",
+              metadata: {
+                size: item.file.size,
+                originalName: item.file.name,
+              },
+            })
+            .select("id")
+            .single();
           if (docError) throw docError;
+          const documentId = insertedDoc?.id as string | undefined;
+          if (!documentId) throw new Error("Failed to create document");
+
+          const { error: linkError } = await client.from("interaction_documents").insert({
+            interaction_id: interactionId,
+            document_id: documentId,
+            role: "attachment",
+            note: item.notes ?? "",
+          });
+          if (linkError) throw linkError;
         }
+      }
+
+      if (libraryDocuments.length > 0) {
+        const existingPayload = libraryDocuments.map((doc) => ({
+          interaction_id: interactionId,
+          document_id: doc.id,
+          role: doc.link_role ?? "attachment",
+          note: doc.link_note ?? "",
+        }));
+        const { error: linkExistingError } = await client
+          .from("interaction_documents")
+          .upsert(existingPayload, { onConflict: "interaction_id,document_id" });
+        if (linkExistingError) throw linkExistingError;
       }
 
       resetForm();
@@ -551,10 +595,12 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
             <p className="text-sm text-gray-600">{t("interactionsdocumentsHelper")}</p>
           </header>
 
-          <div className="space-y-3">
-            {/* <DocumentImportButtons onFilesSelected={handleFilesSelected} /> */}
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button type="button" variant="outline" onClick={() => setDocumentsModalOpen(true)}>
               {t("interactionsopenDocumentsModal")}
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => setLibraryModalOpen(true)}>
+              {t("interactions.linkExistingDocuments")}
             </Button>
           </div>
 
@@ -576,6 +622,32 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
                     onFileTypeChange={handleFileTypeChange}
                     onRemove={handleRemoveFile}
                   />
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {libraryDocuments.length > 0 && (
+            <div className="space-y-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                {t("interactions.selectedLibraryDocuments", { count: libraryDocuments.length })}
+              </p>
+              <ul className="space-y-2">
+                {libraryDocuments.map((doc) => (
+                  <li
+                    key={doc.id}
+                    className="flex items-center justify-between gap-3 rounded-md border border-gray-200 bg-white px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {t(`interactionstypes.${doc.type}`, { defaultValue: doc.type })}
+                      </p>
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => handleRemoveLibraryDocument(doc.id)}>
+                      {t("common.remove")}
+                    </Button>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -602,6 +674,12 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
         mode="staging"
         multiple
         onStagedChange={handleDocumentsStaged}
+      />
+      <ExistingDocumentsModal
+        open={libraryModalOpen}
+        onOpenChange={setLibraryModalOpen}
+        householdId={householdId}
+        onConfirm={handleLibraryConfirm}
       />
     </>
   );
