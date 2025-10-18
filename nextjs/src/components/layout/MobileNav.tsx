@@ -1,6 +1,6 @@
 // nextjs/src/components/layout/MobileNav.tsx
 import Link from "next/link";
-import { Menu, Home, Notebook, Users, MapPin, Files, FileText, LucideListTodo } from "lucide-react";
+import { Menu, Home, Notebook, Users, MapPin, Files, FileText, LucideListTodo, Building2 } from "lucide-react";
 
 export default function MobileNav({
     pathname,
@@ -13,6 +13,7 @@ export default function MobileNav({
         { href: "/app", icon: Home },
         { href: "/app/interactions", icon: Notebook },
         { href: "/app/contacts", icon: Users },
+        { href: "/app/structures", icon: Building2 },
         { href: "/app/zones", icon: MapPin },
         { href: "/app/documents", icon: FileText },
         { href: "/app/storage", icon: Files },
