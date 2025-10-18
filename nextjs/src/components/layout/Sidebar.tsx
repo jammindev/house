@@ -1,17 +1,7 @@
 // nextjs/src/components/layout/Sidebar.tsx
 
 import Link from "next/link";
-import {
-    Home,
-    Notebook,
-    MapPin,
-    Files,
-    LucideListTodo,
-    User,
-    LogOut,
-    Key,
-    X,
-} from "lucide-react";
+import { Home, Notebook, Users, MapPin, Files, LucideListTodo, User, LogOut, Key, X } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -37,6 +27,7 @@ export default function Sidebar({
     const navigation = [
         { name: t("nav.dashboard"), href: "/app", icon: Home },
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
+        { name: t("nav.contacts"), href: "/app/contacts", icon: Users },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
         { name: t("nav.storage"), href: "/app/storage", icon: Files },
         { name: t("nav.table"), href: "/app/table", icon: LucideListTodo },

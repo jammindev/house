@@ -6,7 +6,7 @@ import { useGlobal } from '@/lib/context/GlobalContext';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarDays, Settings, NotebookPen, Layers, PlusCircle } from 'lucide-react';
+import { Layers, PlusCircle, Users } from 'lucide-react';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 
 type InteractionSummary = {
@@ -24,6 +24,7 @@ export default function DashboardContent() {
   const [interactions, setInteractions] = useState<InteractionSummary[]>([]);
   const [interactionCount, setInteractionCount] = useState<number>(0);
   const [zoneCount, setZoneCount] = useState<number>(0);
+  const [contactCount, setContactCount] = useState<number>(0);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const currentHousehold = useMemo(() => households.find(h => h.id === selectedHouseholdId) || null, [households, selectedHouseholdId]);
 
@@ -36,8 +37,15 @@ export default function DashboardContent() {
 
   useEffect(() => {
     const load = async () => {
-      if (!selectedHouseholdId) return;
       setLoadingData(true);
+      setInteractions([]);
+      setInteractionCount(0);
+      setZoneCount(0);
+      setContactCount(0);
+      if (!selectedHouseholdId) {
+        setLoadingData(false);
+        return;
+      }
       try {
         const supa = await createSPASassClient();
         const client = supa.getSupabaseClient();
@@ -60,6 +68,13 @@ export default function DashboardContent() {
           .eq('household_id', selectedHouseholdId);
         if (zErr) throw zErr;
         setZoneCount(zCount || 0);
+
+        const { count: cCount, error: cErr } = await client
+          .from('contacts' as any)
+          .select('id', { count: 'exact', head: true })
+          .eq('household_id', selectedHouseholdId);
+        if (cErr) throw cErr;
+        setContactCount(cCount || 0);
       } catch (e) {
         console.error(e);
       } finally {
@@ -104,7 +119,7 @@ export default function DashboardContent() {
   return (
     <div className="space-y-6 md:p-6">
       {/* Stats + Quick actions */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">{t('dashboard.interactions')}</CardTitle>
@@ -115,6 +130,23 @@ export default function DashboardContent() {
             <div className="mt-3 flex items-center gap-2">
               <Link href="/app/interactions"><Button variant="secondary" size="sm">{t('dashboard.view')}</Button></Link>
               <Link href="/app/interactions/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> {t('dashboard.new')}</Button></Link>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">{t('dashboard.contacts')}</CardTitle>
+            <CardDescription>{t('dashboard.peopleAndVendors')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-semibold">{loadingData ? '—' : contactCount}</div>
+            <div className="mt-3 flex items-center gap-2">
+              <Link href="/app/contacts">
+                <Button variant="secondary" size="sm">
+                  <Users className="mr-1 h-4 w-4" />
+                  {t('dashboard.view')}
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
