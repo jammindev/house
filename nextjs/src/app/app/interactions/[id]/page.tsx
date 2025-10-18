@@ -12,6 +12,7 @@ import InteractionRawTextEditor from "@interactions/components/InteractionRawTex
 import InteractionZonesList from "@interactions/components/InteractionZonesList";
 import ImageGallery from "@interactions/components/gallery/ImageGallery";
 import PdfFileList from "@interactions/components/pdf/PdfFileList";
+import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 import { useInteraction } from "@interactions/hooks/useInteraction";
 
@@ -29,6 +30,7 @@ export default function InteractionDetailPage() {
   const photoDocuments = documents.filter((doc) => doc.type === "photo");
   const documentTypes = new Set(["document", "quote", "invoice", "contract", "other"]);
   const pdfDocuments = documents.filter((doc) => documentTypes.has(doc.type));
+  const hasLinks = interaction.contacts.length > 0 || interaction.structures.length > 0;
 
   return (
     <div className="max-w-3xl mx-auto md:p-6 space-y-8">
@@ -55,6 +57,42 @@ export default function InteractionDetailPage() {
           <InteractionAttachmentImport interactionId={interaction.id} onUploaded={reload} />
         </div>
       </header>
+
+      {hasLinks && (
+        <section className="rounded-lg border border-gray-200 bg-white/70 p-4 space-y-4">
+          {interaction.contacts.length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold text-gray-800">{t("interactionscontacts.sectionTitle")}</h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {interaction.contacts.map((contact) => (
+                  <span
+                    key={`contact-${contact.id}`}
+                    className="inline-flex items-center rounded-md bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
+                  >
+                    {formatContactLabel(contact)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {interaction.structures.length > 0 && (
+            <div>
+              <h2 className="text-sm font-semibold text-gray-800">{t("interactionsstructures.sectionTitle")}</h2>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {interaction.structures.map((structure) => (
+                  <span
+                    key={`structure-${structure.id}`}
+                    className="inline-flex items-center rounded-md bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
+                  >
+                    {formatStructureLabel(structure)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
 
       <InteractionZonesList interactionId={interaction.id} />
       <InteractionRawTextEditor interactionId={interaction.id} initialContent={interaction.content} onSaved={reload} />

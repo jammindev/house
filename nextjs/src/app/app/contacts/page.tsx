@@ -19,7 +19,7 @@ import { Plus } from "lucide-react";
 export default function ContactsPage() {
   const { loading: globalLoading, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-  const { contacts, loading, error, createContact } = useContacts(selectedHouseholdId);
+  const { contacts, loading, error, createContact } = useContacts();
   const { show } = useToast();
 
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);

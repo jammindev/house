@@ -38,6 +38,9 @@
       ],
       "@documents/*": [
         "features/documents/*"
+      ],
+      "@structures/*": [
+        "features/structures/*"
       ]
     }
   },

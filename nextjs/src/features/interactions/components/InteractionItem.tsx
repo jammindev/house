@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { Paperclip } from "lucide-react";
 
+import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";
 import type { Interaction } from "@interactions/types";
 
 interface Props {
@@ -14,6 +15,7 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
   const occurredAt = new Date(interaction.occurred_at).toLocaleString();
   const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
   const tags = interaction.tags || [];
+  const hasLinks = interaction.contacts.length > 0 || interaction.structures.length > 0;
 
   return (
     <Link
@@ -42,6 +44,27 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
         </div>
 
         <p className="text-sm text-gray-700 line-clamp-3 whitespace-pre-wrap">{interaction.content}</p>
+
+        {hasLinks && (
+          <div className="flex flex-wrap gap-2">
+            {interaction.contacts.map((contact) => (
+              <span
+                key={`contact-${contact.id}`}
+                className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700"
+              >
+                {formatContactLabel(contact)}
+              </span>
+            ))}
+            {interaction.structures.map((structure) => (
+              <span
+                key={`structure-${structure.id}`}
+                className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-700"
+              >
+                {formatStructureLabel(structure)}
+              </span>
+            ))}
+          </div>
+        )}
 
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2">

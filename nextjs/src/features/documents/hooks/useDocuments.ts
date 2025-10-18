@@ -1,9 +1,11 @@
+// nextjs/src/features/documents/hooks/useDocuments.ts
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { Document } from "@interactions/types";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 export type DocumentLink = {
   interactionId: string;
@@ -26,7 +28,8 @@ type SupabaseDocumentRow = Document & {
   interaction_documents?: SupabaseInteractionLink[] | null;
 };
 
-export function useDocuments(householdId: string | null) {
+export function useDocuments() {
+  const { selectedHouseholdId: householdId } = useGlobal();
   const [documents, setDocuments] = useState<DocumentWithLinks[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

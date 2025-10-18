@@ -1,9 +1,12 @@
+// nextjs/src/features/zones/hooks/useZones.ts
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { Zone } from "../types";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
-export function useZones(householdId?: string | null) {
+export function useZones() {
+    const { selectedHouseholdId: householdId } = useGlobal();
     const [zones, setZones] = useState<Zone[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>("");

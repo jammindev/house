@@ -1,3 +1,4 @@
+// nextjs/src/features/contacts/hooks/useContacts.ts
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import type {
   ContactStructure,
   CreateContactInput,
 } from "../types";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 type RawContact = {
   id: string;
@@ -130,7 +132,9 @@ function sortContacts(list: Contact[]) {
   });
 }
 
-export function useContacts(householdId?: string | null) {
+export function useContacts() {
+  const { selectedHouseholdId: householdId } = useGlobal();
+
   const { t } = useI18n();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);

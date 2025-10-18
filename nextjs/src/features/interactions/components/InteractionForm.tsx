@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/InteractionForm.tsx
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -12,9 +13,12 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import AddDocumentsModal, { type StagedDocument } from "@documents/components/AddDocumentModal";
 import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
+import ContactSelector from "@interactions/components/ContactSelector";
+import StructureSelector from "@interactions/components/StructureSelector";
 import SelectedFileItem from "@interactions/components/SelectedFileItem";
 import { ZonePicker } from "@interactions/components/ZonePicker";
 import type { Document, DocumentType, InteractionStatus, InteractionTag, InteractionType, ZoneOption } from "@interactions/types";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 type LocalFile = {
   file: File;
@@ -57,8 +61,9 @@ const inferFileType = (file: File): DocumentType => {
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
 
-export default function InteractionForm({ householdId, zones, zonesLoading = false, onCreated }: InteractionFormProps) {
+export default function InteractionForm({ zones, zonesLoading = false, onCreated }: InteractionFormProps) {
   const router = useRouter();
+  const { selectedHouseholdId: householdId } = useGlobal()
   const { show } = useToast();
   const { t } = useI18n();
 
@@ -73,6 +78,8 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
   const [tagsLoading, setTagsLoading] = useState(true);
   const [creatingTag, setCreatingTag] = useState(false);
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
+  const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
+  const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
   const [files, setFiles] = useState<LocalFile[]>([]);
   const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
   const [libraryModalOpen, setLibraryModalOpen] = useState(false);
@@ -277,6 +284,8 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
     setSelectedTagIds([]);
     setTagInputValue("");
     setSelectedZones([]);
+    setSelectedContactIds([]);
+    setSelectedStructureIds([]);
     setFiles([]);
     setDocumentsModalOpen(false);
     setLibraryModalOpen(false);
@@ -328,6 +337,8 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
         p_status: status || null,
         p_occurred_at: occurredAtValue,
         p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
+        p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
+        p_structure_ids: selectedStructureIds.length ? selectedStructureIds : null,
       });
 
       if (createError || !createdId) {
@@ -539,11 +550,10 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
                         key={tag.id}
                         type="button"
                         onClick={() => toggleTag(tag.id)}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                          selected
-                            ? "border-indigo-200 bg-indigo-100 text-indigo-700"
-                            : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                        }`}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${selected
+                          ? "border-indigo-200 bg-indigo-100 text-indigo-700"
+                          : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                          }`}
                         aria-pressed={selected}
                       >
                         #{tag.name}
@@ -555,6 +565,26 @@ export default function InteractionForm({ householdId, zones, zonesLoading = fal
                 <div className="text-xs text-gray-500">{t("interactionstagsNone")}</div>
               )}
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">{t("interactionscontacts.label")}</label>
+            <p className="text-xs text-gray-500">{t("interactionscontacts.helper")}</p>
+            <ContactSelector
+              householdId={householdId}
+              value={selectedContactIds}
+              onChange={setSelectedContactIds}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">{t("interactionsstructures.label")}</label>
+            <p className="text-xs text-gray-500">{t("interactionsstructures.helper")}</p>
+            <StructureSelector
+              householdId={householdId}
+              value={selectedStructureIds}
+              onChange={setSelectedStructureIds}
+            />
           </div>
         </section>
 

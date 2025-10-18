@@ -2,7 +2,13 @@
 import { useEffect, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import type { Document, Interaction, InteractionTag } from "@interactions/types";
+import type {
+  Document,
+  Interaction,
+  InteractionContact,
+  InteractionStructure,
+  InteractionTag,
+} from "@interactions/types";
 
 type RawInteraction = {
   id: string;
@@ -18,9 +24,23 @@ type RawInteraction = {
   updated_at: string;
   created_by?: string | null;
   updated_by?: string | null;
-  contact_id?: string | null;
-  structure_id?: string | null;
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
+  interaction_contacts?: { contact?: RawContact | null }[] | null;
+  interaction_structures?: { structure?: RawStructure | null }[] | null;
+};
+
+type RawContact = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  position?: string | null;
+  structure?: RawStructure | null;
+};
+
+type RawStructure = {
+  id: string;
+  name?: string | null;
+  type?: string | null;
 };
 
 type RawInteractionDocument = {
@@ -72,8 +92,6 @@ export function useInteraction(id?: string) {
             household_id,
             created_by,
             updated_by,
-            contact_id,
-            structure_id,
             interaction_tags:interaction_tags(
               tag:tags(
                 id,
@@ -82,6 +100,26 @@ export function useInteraction(id?: string) {
                 name,
                 created_at,
                 created_by
+              )
+            ),
+            interaction_contacts:interaction_contacts(
+              contact:contacts(
+                id,
+                first_name,
+                last_name,
+                position,
+                structure:structures(
+                  id,
+                  name,
+                  type
+                )
+              )
+            ),
+            interaction_structures:interaction_structures(
+              structure:structures(
+                id,
+                name,
+                type
               )
             )
           `
@@ -104,8 +142,32 @@ export function useInteraction(id?: string) {
           status: row.status,
           occurred_at: row.occurred_at,
           tags,
-          contact_id: row.contact_id ?? null,
-          structure_id: row.structure_id ?? null,
+          contacts:
+            row.interaction_contacts
+              ?.map((link) => link?.contact)
+              .filter((contact): contact is RawContact => Boolean(contact))
+              .map<InteractionContact>((contact) => ({
+                id: contact.id,
+                first_name: contact.first_name?.trim() ?? "",
+                last_name: contact.last_name?.trim() ?? "",
+                position: contact.position?.trim() || null,
+                structure: contact.structure
+                  ? {
+                      id: contact.structure.id,
+                      name: contact.structure.name?.trim() ?? "",
+                      type: contact.structure.type?.trim() || null,
+                    }
+                  : null,
+              })) ?? [],
+          structures:
+            row.interaction_structures
+              ?.map((link) => link?.structure)
+              .filter((structure): structure is RawStructure => Boolean(structure))
+              .map<InteractionStructure>((structure) => ({
+                id: structure.id,
+                name: structure.name?.trim() ?? "",
+                type: structure.type?.trim() || null,
+              })) ?? [],
           metadata: row.metadata,
           enriched_text: row.enriched_text,
           created_at: row.created_at,
@@ -166,9 +228,10 @@ export function useInteraction(id?: string) {
           })
           .filter((doc): doc is Document => Boolean(doc));
       setDocuments(normalized);
-    } catch (e: any) {
-      console.error(e);
-      setError(e?.message || "Failed to load interaction");
+    } catch (error) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to load interaction";
+      setError(message);
     } finally {
       setLoading(false);
     }

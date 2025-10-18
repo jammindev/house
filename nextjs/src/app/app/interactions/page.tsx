@@ -14,18 +14,12 @@ import { Plus } from "lucide-react";
 import AppPageLayout from "@/components/layout/AppPageLayout";
 
 export default function InteractionsPage() {
-  const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
   const { t } = useI18n();
   const { show } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { interactions, documentCounts, loading, error } = useInteractions(selectedHouseholdId);
-
-  const currentHousehold = useMemo(
-    () => households.find((h) => h.id === selectedHouseholdId) || null,
-    [households, selectedHouseholdId]
-  );
+  const { interactions, documentCounts, loading, error } = useInteractions();
 
   useEffect(() => {
     if (searchParams?.get("created") === "1") {
@@ -36,16 +30,6 @@ export default function InteractionsPage() {
       show({ title: t("interactionscreatedSuccess"), variant: "success" });
     }
   }, [searchParams, router, show, t]);
-
-  if (globalLoading)
-    return (
-      <AppPageLayout
-        title={t("interactionstitle")}
-        action={{ icon: Plus, disabled: true }}
-      >
-        <div className="text-sm text-gray-500">{t("common.loading")}</div>
-      </AppPageLayout>
-    );
 
   return (
     <AppPageLayout

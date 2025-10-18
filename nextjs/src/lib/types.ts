@@ -18,7 +18,6 @@ export type Database = {
       interactions: {
         Row: {
           content: string
-          contact_id: string | null
           created_at: string | null
           created_by: string
           enriched_text: string | null
@@ -27,7 +26,6 @@ export type Database = {
           metadata: Json | null
           occurred_at: string
           status: string | null
-          structure_id: string | null
           subject: string
           tags: string[]
           type: string
@@ -36,7 +34,6 @@ export type Database = {
         }
         Insert: {
           content: string
-          contact_id?: string | null
           created_at?: string | null
           created_by: string
           enriched_text?: string | null
@@ -45,7 +42,6 @@ export type Database = {
           metadata?: Json | null
           occurred_at?: string
           status?: string | null
-          structure_id?: string | null
           subject: string
           tags?: string[]
           type: string
@@ -54,7 +50,6 @@ export type Database = {
         }
         Update: {
           content?: string
-          contact_id?: string | null
           created_at?: string | null
           created_by?: string
           enriched_text?: string | null
@@ -63,7 +58,6 @@ export type Database = {
           metadata?: Json | null
           occurred_at?: string
           status?: string | null
-          structure_id?: string | null
           subject?: string
           tags?: string[]
           type?: string
@@ -72,24 +66,10 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "interactions_contact_id_fkey"
-            columns: ["contact_id"]
-            isOneToOne: false
-            referencedRelation: "contacts"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "interactions_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interactions_structure_id_fkey"
-            columns: ["structure_id"]
-            isOneToOne: false
-            referencedRelation: "structures"
             referencedColumns: ["id"]
           },
         ]
@@ -179,6 +159,72 @@ export type Database = {
             columns: ["interaction_id"]
             isOneToOne: false
             referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_contacts: {
+        Row: {
+          created_at: string
+          interaction_id: string
+          contact_id: string
+        }
+        Insert: {
+          created_at?: string
+          interaction_id: string
+          contact_id: string
+        }
+        Update: {
+          created_at?: string
+          interaction_id?: string
+          contact_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_contacts_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_structures: {
+        Row: {
+          created_at: string
+          interaction_id: string
+          structure_id: string
+        }
+        Insert: {
+          created_at?: string
+          interaction_id: string
+          structure_id: string
+        }
+        Update: {
+          created_at?: string
+          interaction_id?: string
+          structure_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_structures_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_structures_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "structures"
             referencedColumns: ["id"]
           },
         ]

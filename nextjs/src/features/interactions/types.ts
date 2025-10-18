@@ -39,14 +39,34 @@ export type Interaction = {
   status: InteractionStatus | null;
   occurred_at: string;
   tags: InteractionTag[];
-  contact_id?: string | null;
-  structure_id?: string | null;
+  contacts: InteractionContact[];
+  structures: InteractionStructure[];
   metadata?: Record<string, unknown> | null;
   enriched_text?: string | null;
   created_at: string;
   updated_at: string;
   created_by?: string | null;
   updated_by?: string | null;
+};
+
+export type InteractionContact = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  position?: string | null;
+  structure?: InteractionLinkedStructure | null;
+};
+
+export type InteractionStructure = {
+  id: string;
+  name: string;
+  type?: string | null;
+};
+
+export type InteractionLinkedStructure = {
+  id: string;
+  name: string;
+  type?: string | null;
 };
 
 export type DocumentType = "document" | "photo" | "quote" | "invoice" | "contract" | "other";

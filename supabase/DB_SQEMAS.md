@@ -133,14 +133,26 @@ CREATE TABLE public.interactions (
   type text NOT NULL DEFAULT 'note'::text CHECK (type = ANY (ARRAY['note'::text, 'todo'::text, 'call'::text, 'meeting'::text, 'document'::text, 'expense'::text, 'message'::text, 'signature'::text, 'other'::text])),
   status text CHECK (status IS NULL OR (status = ANY (ARRAY['pending'::text, 'in_progress'::text, 'done'::text, 'archived'::text]))),
   occurred_at timestamp with time zone NOT NULL DEFAULT now(),
-  contact_id uuid,
-  structure_id uuid,
   CONSTRAINT interactions_pkey PRIMARY KEY (id),
   CONSTRAINT entries_household_id_fkey FOREIGN KEY (household_id) REFERENCES public.households(id),
   CONSTRAINT entries_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id),
-  CONSTRAINT entries_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id),
-  CONSTRAINT interactions_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES public.contacts(id),
-  CONSTRAINT interactions_structure_id_fkey FOREIGN KEY (structure_id) REFERENCES public.structures(id)
+  CONSTRAINT entries_updated_by_fkey FOREIGN KEY (updated_by) REFERENCES auth.users(id)
+);
+CREATE TABLE public.interaction_contacts (
+  interaction_id uuid NOT NULL,
+  contact_id uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT interaction_contacts_pkey PRIMARY KEY (interaction_id, contact_id),
+  CONSTRAINT interaction_contacts_interaction_id_fkey FOREIGN KEY (interaction_id) REFERENCES public.interactions(id) ON DELETE CASCADE,
+  CONSTRAINT interaction_contacts_contact_id_fkey FOREIGN KEY (contact_id) REFERENCES public.contacts(id) ON DELETE CASCADE
+);
+CREATE TABLE public.interaction_structures (
+  interaction_id uuid NOT NULL,
+  structure_id uuid NOT NULL,
+  created_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT interaction_structures_pkey PRIMARY KEY (interaction_id, structure_id),
+  CONSTRAINT interaction_structures_interaction_id_fkey FOREIGN KEY (interaction_id) REFERENCES public.interactions(id) ON DELETE CASCADE,
+  CONSTRAINT interaction_structures_structure_id_fkey FOREIGN KEY (structure_id) REFERENCES public.structures(id) ON DELETE CASCADE
 );
 CREATE TABLE public.phones (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

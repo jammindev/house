@@ -1,9 +1,17 @@
+// nextjs/src/features/interactions/hooks/useInteractions.ts
 "use client";
 import { useEffect, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import type { Document, Interaction, InteractionTag } from "@interactions/types";
+import type {
+  Document,
+  Interaction,
+  InteractionContact,
+  InteractionStructure,
+  InteractionTag,
+} from "@interactions/types";
+import { useGlobal } from "@/lib/context/GlobalContext";
 
 type DocumentsByInteraction = Record<string, Document[]>;
 type RawInteraction = {
@@ -18,11 +26,25 @@ type RawInteraction = {
   enriched_text: Interaction["enriched_text"];
   created_at: string;
   updated_at: string;
-  contact_id?: string | null;
-  structure_id?: string | null;
   created_by?: string | null;
   updated_by?: string | null;
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
+  interaction_contacts?: { contact?: RawContact | null }[] | null;
+  interaction_structures?: { structure?: RawStructure | null }[] | null;
+};
+
+type RawContact = {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  position?: string | null;
+  structure?: RawStructure | null;
+};
+
+type RawStructure = {
+  id: string;
+  name?: string | null;
+  type?: string | null;
 };
 
 type RawInteractionDocument = {
@@ -44,7 +66,8 @@ type RawInteractionDocument = {
   } | null;
 };
 
-export function useInteractions(householdId?: string | null) {
+export function useInteractions() {
+  const { selectedHouseholdId: householdId } = useGlobal();
   const { t } = useI18n();
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [documentsByInteraction, setDocumentsByInteraction] = useState<DocumentsByInteraction>({});
@@ -79,8 +102,6 @@ export function useInteractions(householdId?: string | null) {
               enriched_text,
               created_by,
               updated_by,
-              contact_id,
-              structure_id,
               interaction_tags:interaction_tags(
                 tag:tags(
                   id,
@@ -89,6 +110,26 @@ export function useInteractions(householdId?: string | null) {
                   name,
                   created_at,
                   created_by
+                )
+              ),
+              interaction_contacts:interaction_contacts(
+                contact:contacts(
+                  id,
+                  first_name,
+                  last_name,
+                  position,
+                  structure:structures(
+                    id,
+                    name,
+                    type
+                  )
+                )
+              ),
+              interaction_structures:interaction_structures(
+                structure:structures(
+                  id,
+                  name,
+                  type
                 )
               )
             `
@@ -113,8 +154,32 @@ export function useInteractions(householdId?: string | null) {
             status: item.status,
             occurred_at: item.occurred_at,
             tags,
-            contact_id: item.contact_id ?? null,
-            structure_id: item.structure_id ?? null,
+            contacts:
+              item.interaction_contacts
+                ?.map((link) => link?.contact)
+                .filter((contact): contact is RawContact => Boolean(contact))
+                .map<InteractionContact>((contact) => ({
+                  id: contact.id,
+                  first_name: contact.first_name?.trim() ?? "",
+                  last_name: contact.last_name?.trim() ?? "",
+                  position: contact.position?.trim() || null,
+                  structure: contact.structure
+                    ? {
+                        id: contact.structure.id,
+                        name: contact.structure.name?.trim() ?? "",
+                        type: contact.structure.type?.trim() || null,
+                      }
+                    : null,
+                })) ?? [],
+            structures:
+              item.interaction_structures
+                ?.map((link) => link?.structure)
+                .filter((structure): structure is RawStructure => Boolean(structure))
+                .map<InteractionStructure>((structure) => ({
+                  id: structure.id,
+                  name: structure.name?.trim() ?? "",
+                  type: structure.type?.trim() || null,
+                })) ?? [],
             metadata: item.metadata,
             enriched_text: item.enriched_text,
             created_at: item.created_at,
@@ -185,9 +250,10 @@ export function useInteractions(householdId?: string | null) {
           });
           setDocumentCounts(counts);
         }
-      } catch (e: any) {
-        console.error(e);
-        setError(e?.message || t("interactionslistLoadFailed"));
+      } catch (error) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : t("interactionslistLoadFailed");
+        setError(message);
       } finally {
         setLoading(false);
       }

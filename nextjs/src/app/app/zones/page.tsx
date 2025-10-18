@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import AppPageLayout from "@/components/layout/AppPageLayout";
 
+
 import { Zone } from "@zones/types";
 import { computeZoneTree } from "@zones/lib/tree";
 import { useZones } from "@zones/hooks/useZones";
@@ -16,9 +17,8 @@ import ZoneForm from "@zones/components/ZoneForm";
 import ZoneList from "@zones/components/ZoneList";
 
 export default function ZonesPage() {
-  const { loading: globalLoading, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones(selectedHouseholdId);
+  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
@@ -28,16 +28,6 @@ export default function ZonesPage() {
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
   const { zonesById, sortedZones, zoneDepths, zoneStats } = useMemo(() => computeZoneTree(zones), [zones]);
   const formattedSurfaceTotal = zoneStats.hasSurfaceData ? numberFormatter.format(zoneStats.surfaceSum) : null;
-
-  if (globalLoading)
-    return (
-      <AppPageLayout
-        title={t("zones.title")}
-        action={{ label: t("zones.addZone"), icon: Plus, disabled: true }}
-      >
-        <div className="text-sm text-gray-500">{t("common.loading")}</div>
-      </AppPageLayout>
-    );
 
   return (
     <AppPageLayout
