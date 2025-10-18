@@ -5,14 +5,15 @@ import Link from "next/link";
 
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ToastProvider";
 import ContactList from "@contacts/components/ContactList";
 import ContactDetailsDialog from "@contacts/components/ContactDetailsDialog";
-import ContactHeader from "@contacts/components/ContactHeader";
 import ContactCreateDialog, { ContactCreateFormValues } from "@contacts/components/ContactCreateDialog";
 import { useContacts } from "@contacts/hooks/useContacts";
 import type { Contact } from "@contacts/types";
+import AppPageLayout from "@/components/layout/AppPageLayout";
+import { Plus } from "lucide-react";
 
 export default function ContactsPage() {
   const { loading: globalLoading, selectedHouseholdId } = useGlobal();
@@ -67,17 +68,17 @@ export default function ContactsPage() {
         notes: values.notes,
         email: values.email.trim()
           ? {
-              email: values.email,
-              label: values.emailLabel,
-              is_primary: true,
-            }
+            email: values.email,
+            label: values.emailLabel,
+            is_primary: true,
+          }
           : null,
         phone: values.phone.trim()
           ? {
-              phone: values.phone,
-              label: values.phoneLabel,
-              is_primary: true,
-            }
+            phone: values.phone,
+            label: values.phoneLabel,
+            is_primary: true,
+          }
           : null,
       });
 
@@ -86,60 +87,37 @@ export default function ContactsPage() {
     [createContact, selectedHouseholdId, show, t]
   );
 
-  if (globalLoading) return <div className="p-6 text-sm text-gray-500">{t("common.loading")}</div>;
-
-  if (!selectedHouseholdId)
+  if (globalLoading)
     return (
-      <div className="mx-auto max-w-3xl p-6">
-        <Card>
-          <CardHeader>
-            <ContactHeader
-              title={heading.title}
-              description={heading.description}
-              addLabel={t("contacts.addContact")}
-              onAdd={() => setCreateOpen(true)}
-              disabled
-            />
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-gray-600">
-              {t("common.selectHouseholdFirst")}{" "}
-              <Link href="/app" className="underline">
-                {t("nav.dashboard")}
-              </Link>
-              .
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AppPageLayout
+        title={heading.title}
+        subtitle={heading.description}
+        action={{ label: t("contacts.addContact"), icon: Plus, disabled: true }}
+      >
+        <div className="text-sm text-gray-500">{t("common.loading")}</div>
+      </AppPageLayout>
     );
 
   return (
-    <>
-      <div className="mx-auto flex min-h-[calc(100vh-5rem)] w-full max-w-3xl flex-col gap-4 p-2 sm:p-0">
-        <Card className="shadow-sm">
-          <CardHeader className="pb-4">
-            <ContactHeader
-              title={heading.title}
-              description={heading.description}
-              addLabel={t("contacts.addContact")}
-              onAdd={() => setCreateOpen(true)}
-            />
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>}
+    <AppPageLayout
+      title={heading.title}
+      subtitle={heading.description}
+      action={{ icon: Plus, onClick: () => setCreateOpen(true) }}
+    >
+      <Card className="shadow-sm">
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
 
-            {loading ? (
-              <div className="text-sm text-gray-500">{t("contacts.loading")}</div>
-            ) : (
-              <ContactList contacts={contacts} onSelect={handleSelect} t={t} />
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          {loading ? (
+            <div className="text-sm text-gray-500">{t("contacts.loading")}</div>
+          ) : (
+            <ContactList contacts={contacts} onSelect={handleSelect} t={t} />
+          )}
+        </CardContent>
+      </Card>
 
       <ContactDetailsDialog contact={selectedContact} open={dialogOpen} onOpenChange={handleDialogChange} t={t} />
       <ContactCreateDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreateContact} t={t} />
-    </>
+    </AppPageLayout>
   );
 }

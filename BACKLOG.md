@@ -2,34 +2,5 @@
 
 - Migrer vers react hook form
 
-- refaire la page stockage (storage) afin d'avoir une page ajout rapide de doucument : pour cela : supprime toute la page et le but ca sera d'implémenter le mecansime d'ajout de document rapide. Comme tu peux lire dans RESUME-PROJECT.md
-🧠 User Story — “Ajout rapide d’un document”
-
-🎯 Contexte
-
-L’utilisateur veut simplement ajouter un fichier (photo, facture, devis, etc.) dans son espace, sans remplir de formulaire complexe ou créer explicitement une “interaction”.
-
-⸻
-
-🗣️ En tant qu’utilisateur
-
-“Je veux pouvoir ajouter rapidement un document (photo, PDF, facture, etc.), et que l’application crée automatiquement le contexte associé, sans que j’aie à remplir tous les champs.”
-
-⸻
-
-✅ Critères d’acceptation
-Critère
-Description
-📁 Upload simple
-L’utilisateur peut glisser-déposer ou sélectionner un fichier depuis son appareil.
-🧠 Création automatique
-L’application crée automatiquement une interaction de type 'document' si aucune n’existe.
-🏷️ Métadonnées basiques
-L’interaction.subject = nom du fichier (sans extension)  type = 'document'  status = 'done' (ou 'archived' selon logique).
-🧩 Lien automatique
-Le document créé est lié à l’interaction générée.
-🕵️ Option d’enrichissement
-L’utilisateur peut ensuite ajouter (ou l’IA suggérer) un tag, une structure, un contact, ou une note.
-🔒 Sécurité
-Le champ household_id est automatiquement récupéré du contexte utilisateur (RLS).
+- Je voudrais que tu normalize le design des pages. Pour cela, prend pour exemple le layout de interaction et créé un composant de layout pour appiquer à storage, zones, contact : pense le mobile first. Ajoute au ssi le boutton action en haut à droite. Pour les pages que je t'ai dit ca sera le boutton ajouter mais je vais reprendre le layout pur d'autre page donc il faut que se soit dynamique et que je puisse mettre n'importe quel icon et action. Sépare bien la logique
 

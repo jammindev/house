@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Sparkles, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
+import { AlertCircle, CheckCircle2, Loader2, Plus, Sparkles, UploadCloud } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 import { useZones } from "@zones/hooks/useZones";
 import type { Zone } from "@zones/types";
 import type { DocumentType } from "@interactions/types";
@@ -150,6 +151,7 @@ export default function QuickDocumentUploadPage() {
   const [selectedContactId, setSelectedContactId] = useState<string>("");
   const [selectedStructureId, setSelectedStructureId] = useState<string>("");
   const [note, setNote] = useState("");
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [metaLoading, setMetaLoading] = useState(false);
   const [metaError, setMetaError] = useState<string | null>(null);
@@ -514,293 +516,300 @@ export default function QuickDocumentUploadPage() {
   const disableUpload = uploading || globalLoading || !selectedHouseholdId || !selectedZoneId;
 
   return (
-    <div className="space-y-6 p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("storage.title")}</CardTitle>
-          <CardDescription>{t("storage.subtitle")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" aria-hidden="true" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+    <AppPageLayout
+      title={t("storage.title")}
+      subtitle={t("storage.subtitle")}
+      action={{
+        icon: Plus,
+        onClick: () => fileInputRef.current?.click(),
+        disabled: disableUpload,
+      }}
+    >
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="space-y-6 p-4 sm:p-6">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          {success && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
+            {success && (
+              <Alert>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
 
-          {!globalLoading && !selectedHouseholdId && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" aria-hidden="true" />
-              <AlertDescription>{t("storage.noHousehold")}</AlertDescription>
-            </Alert>
-          )}
+            {!globalLoading && !selectedHouseholdId && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{t("storage.noHousehold")}</AlertDescription>
+              </Alert>
+            )}
 
-          {zonesError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" aria-hidden="true" />
-              <AlertDescription>{zonesError}</AlertDescription>
-            </Alert>
-          )}
+            {zonesError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{zonesError}</AlertDescription>
+              </Alert>
+            )}
 
-          <section className="space-y-2">
-            <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-zone">
-              {t("storage.zoneLabel")}
-            </label>
-            <p className="text-xs text-gray-500">{t("storage.zoneHelper")}</p>
+            <section className="space-y-2">
+              <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-zone">
+                {t("storage.zoneLabel")}
+              </label>
+              <p className="text-xs text-gray-500">{t("storage.zoneHelper")}</p>
 
-            {globalLoading || zonesLoading ? (
+              {globalLoading || zonesLoading ? (
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  {t("common.loading")}
+                </div>
+              ) : flatZones.length === 0 ? (
+                <div className="rounded-md border border-dashed border-gray-200 bg-white px-3 py-4 text-sm text-gray-500">
+                  {t("storage.noZones")}
+                </div>
+              ) : (
+                <select
+                  id="quick-doc-zone"
+                  value={selectedZoneId ?? ""}
+                  onChange={(event) => setSelectedZoneId(event.target.value || null)}
+                  disabled={globalLoading || zonesLoading}
+                  className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                >
+                  {flatZones.map((zone) => {
+                    const prefix = "  ".repeat(zone.depth);
+                    return (
+                      <option key={zone.id} value={zone.id}>
+                        {`${prefix}${zone.name}`}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+            </section>
+
+            <section>
+              <label
+                htmlFor="quick-doc-uploader"
+                onDrop={handleDrop}
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                className={cn(
+                  "flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/70 px-6 py-10 text-center transition hover:border-primary-300 hover:bg-primary-50",
+                  disableUpload && "cursor-not-allowed opacity-70"
+                )}
+              >
+                <UploadCloud className="mb-3 h-10 w-10 text-primary-500" aria-hidden="true" />
+                <p className="text-base font-medium text-primary-900">
+                  {uploading ? t("storage.uploading") : t("storage.dragOrClick")}
+                </p>
+                <p className="mt-1 text-sm text-primary-700">{t("storage.uploadHint")}</p>
+
+                <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-primary-700">
+                  {pendingFiles.map((filename) => (
+                    <span key={filename} className="rounded-full bg-primary-100 px-3 py-1 font-medium">
+                      {t("storage.processingFile", { name: filename })}
+                    </span>
+                  ))}
+                </div>
+
+                <input
+                  id="quick-doc-uploader"
+                  type="file"
+                  ref={fileInputRef}
+                  disabled={disableUpload}
+                  onChange={handleInputChange}
+                  className="hidden"
+                  multiple
+                />
+              </label>
+            </section>
+
+            <section className="space-y-4">
+              <button
+                type="button"
+                onClick={() => setShowEnrichment((prev) => !prev)}
+                className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+              >
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary-500" aria-hidden="true" />
+                  {t("storage.enrichmentTitle")}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {showEnrichment ? t("storage.enrichmentHide") : t("storage.enrichmentShow")}
+                </span>
+              </button>
+
+              {showEnrichment && (
+                <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm text-gray-600">{t("storage.enrichmentDescription")}</p>
+
+                  {metaError && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                      <AlertDescription>{metaError}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {metaLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                      {t("storage.metadataLoading")}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-gray-700">{t("storage.tagsLabel")}</p>
+                        {availableTags.length > 0 ? (
+                          <div className="flex flex-wrap gap-2">
+                            {availableTags.map((tag) => {
+                              const selected = selectedTagIds.includes(tag.id);
+                              return (
+                                <button
+                                  key={tag.id}
+                                  type="button"
+                                  onClick={() => toggleTag(tag.id)}
+                                  className={cn(
+                                    "rounded-full border px-3 py-1 text-xs font-medium transition",
+                                    selected
+                                      ? "border-primary-200 bg-primary-100 text-primary-800 shadow-sm"
+                                      : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                  )}
+                                  aria-pressed={selected}
+                                >
+                                  #{tag.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-500">{t("storage.noTags")}</p>
+                        )}
+                      </div>
+
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-contact">
+                            {t("storage.contactLabel")}
+                          </label>
+                          <select
+                            id="quick-doc-contact"
+                            value={selectedContactId}
+                            onChange={(event) => setSelectedContactId(event.target.value)}
+                            className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                          >
+                            <option value="">{t("storage.contactPlaceholder")}</option>
+                            {contacts.map((contact) => (
+                              <option key={contact.id} value={contact.id}>
+                                {contact.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-structure">
+                            {t("storage.structureLabel")}
+                          </label>
+                          <select
+                            id="quick-doc-structure"
+                            value={selectedStructureId}
+                            onChange={(event) => setSelectedStructureId(event.target.value)}
+                            className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                          >
+                            <option value="">{t("storage.structurePlaceholder")}</option>
+                            {structures.map((structure) => (
+                              <option key={structure.id} value={structure.id}>
+                                {structure.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-note">
+                          {t("storage.noteLabel")}
+                        </label>
+                        <Textarea
+                          id="quick-doc-note"
+                          value={note}
+                          onChange={(event) => setNote(event.target.value)}
+                          rows={3}
+                          placeholder={t("storage.notePlaceholder")}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </section>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("storage.recentUploadsTitle")}</CardTitle>
+            <CardDescription>{t("storage.recentUploadsSubtitle")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {recentError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{recentError}</AlertDescription>
+              </Alert>
+            )}
+
+            {recentLoading ? (
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                 {t("common.loading")}
               </div>
-            ) : flatZones.length === 0 ? (
-              <div className="rounded-md border border-dashed border-gray-200 bg-white px-3 py-4 text-sm text-gray-500">
-                {t("storage.noZones")}
-              </div>
+            ) : recentDocuments.length === 0 ? (
+              <p className="text-sm text-gray-500">{t("storage.recentNone")}</p>
             ) : (
-              <select
-                id="quick-doc-zone"
-                value={selectedZoneId ?? ""}
-                onChange={(event) => setSelectedZoneId(event.target.value || null)}
-                disabled={globalLoading || zonesLoading}
-                className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-              >
-                {flatZones.map((zone) => {
-                  const prefix = "  ".repeat(zone.depth);
+              <ul className="space-y-3">
+                {recentDocuments.map((doc) => {
+                  const highlighted = highlightedIds.includes(doc.id);
                   return (
-                    <option key={zone.id} value={zone.id}>
-                      {`${prefix}${zone.name}`}
-                    </option>
+                    <li
+                      key={doc.id}
+                      className={cn(
+                        "flex flex-col gap-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary-200 hover:bg-primary-50/60 md:flex-row md:items-center md:justify-between",
+                        highlighted && "border-primary-300 bg-primary-50"
+                      )}
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {doc.type} · {formatDate(doc.createdAt)}
+                        </p>
+                        {doc.interactionSubject && (
+                          <p className="text-xs text-gray-500">
+                            {t("storage.interactionSubjectLabel", { subject: doc.interactionSubject })}
+                          </p>
+                        )}
+                      </div>
+                      <div className="mt-3 flex items-center gap-2 md:mt-0">
+                        <Link href={`/app/interactions/${doc.interactionId}`} className="inline-flex">
+                          <Button variant="outline" size="sm">
+                            {t("storage.openInteraction")}
+                          </Button>
+                        </Link>
+                      </div>
+                    </li>
                   );
                 })}
-              </select>
+              </ul>
             )}
-          </section>
-
-          <section>
-            <label
-              htmlFor="quick-doc-uploader"
-              onDrop={handleDrop}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-              }}
-              className={cn(
-                "flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/70 px-6 py-10 text-center transition hover:border-primary-300 hover:bg-primary-50",
-                disableUpload && "cursor-not-allowed opacity-70"
-              )}
-            >
-              <UploadCloud className="mb-3 h-10 w-10 text-primary-500" aria-hidden="true" />
-              <p className="text-base font-medium text-primary-900">
-                {uploading ? t("storage.uploading") : t("storage.dragOrClick")}
-              </p>
-              <p className="mt-1 text-sm text-primary-700">{t("storage.uploadHint")}</p>
-
-              <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-primary-700">
-                {pendingFiles.map((filename) => (
-                  <span key={filename} className="rounded-full bg-primary-100 px-3 py-1 font-medium">
-                    {t("storage.processingFile", { name: filename })}
-                  </span>
-                ))}
-              </div>
-
-              <input
-                id="quick-doc-uploader"
-                type="file"
-                disabled={disableUpload}
-                onChange={handleInputChange}
-                className="hidden"
-                multiple
-              />
-            </label>
-          </section>
-
-          <section className="space-y-4">
-            <button
-              type="button"
-              onClick={() => setShowEnrichment((prev) => !prev)}
-              className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
-            >
-              <span className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary-500" aria-hidden="true" />
-                {t("storage.enrichmentTitle")}
-              </span>
-              <span className="text-xs text-gray-500">
-                {showEnrichment ? t("storage.enrichmentHide") : t("storage.enrichmentShow")}
-              </span>
-            </button>
-
-            {showEnrichment && (
-              <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-                <p className="text-sm text-gray-600">{t("storage.enrichmentDescription")}</p>
-
-                {metaError && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" aria-hidden="true" />
-                    <AlertDescription>{metaError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {metaLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                    {t("storage.metadataLoading")}
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-gray-700">{t("storage.tagsLabel")}</p>
-                      {availableTags.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {availableTags.map((tag) => {
-                            const selected = selectedTagIds.includes(tag.id);
-                            return (
-                              <button
-                                key={tag.id}
-                                type="button"
-                                onClick={() => toggleTag(tag.id)}
-                                className={cn(
-                                  "rounded-full border px-3 py-1 text-xs font-medium transition",
-                                  selected
-                                    ? "border-primary-200 bg-primary-100 text-primary-800 shadow-sm"
-                                    : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                )}
-                                aria-pressed={selected}
-                              >
-                                #{tag.name}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-500">{t("storage.noTags")}</p>
-                      )}
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-contact">
-                          {t("storage.contactLabel")}
-                        </label>
-                        <select
-                          id="quick-doc-contact"
-                          value={selectedContactId}
-                          onChange={(event) => setSelectedContactId(event.target.value)}
-                          className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                        >
-                          <option value="">{t("storage.contactPlaceholder")}</option>
-                          {contacts.map((contact) => (
-                            <option key={contact.id} value={contact.id}>
-                              {contact.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-structure">
-                          {t("storage.structureLabel")}
-                        </label>
-                        <select
-                          id="quick-doc-structure"
-                          value={selectedStructureId}
-                          onChange={(event) => setSelectedStructureId(event.target.value)}
-                          className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                        >
-                          <option value="">{t("storage.structurePlaceholder")}</option>
-                          {structures.map((structure) => (
-                            <option key={structure.id} value={structure.id}>
-                              {structure.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-note">
-                        {t("storage.noteLabel")}
-                      </label>
-                      <Textarea
-                        id="quick-doc-note"
-                        value={note}
-                        onChange={(event) => setNote(event.target.value)}
-                        rows={3}
-                        placeholder={t("storage.notePlaceholder")}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </section>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("storage.recentUploadsTitle")}</CardTitle>
-          <CardDescription>{t("storage.recentUploadsSubtitle")}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {recentError && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" aria-hidden="true" />
-              <AlertDescription>{recentError}</AlertDescription>
-            </Alert>
-          )}
-
-          {recentLoading ? (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              {t("common.loading")}
-            </div>
-          ) : recentDocuments.length === 0 ? (
-            <p className="text-sm text-gray-500">{t("storage.recentNone")}</p>
-          ) : (
-            <ul className="space-y-3">
-              {recentDocuments.map((doc) => {
-                const highlighted = highlightedIds.includes(doc.id);
-                return (
-                  <li
-                    key={doc.id}
-                    className={cn(
-                      "flex flex-col gap-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary-200 hover:bg-primary-50/60 md:flex-row md:items-center md:justify-between",
-                      highlighted && "border-primary-300 bg-primary-50"
-                    )}
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{doc.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {doc.type} · {formatDate(doc.createdAt)}
-                      </p>
-                      {doc.interactionSubject && (
-                        <p className="text-xs text-gray-500">
-                          {t("storage.interactionSubjectLabel", { subject: doc.interactionSubject })}
-                        </p>
-                      )}
-                    </div>
-                    <div className="mt-3 flex items-center gap-2 md:mt-0">
-                      <Link href={`/app/interactions/${doc.interactionId}`} className="inline-flex">
-                        <Button variant="outline" size="sm">
-                          {t("storage.openInteraction")}
-                        </Button>
-                      </Link>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </CardContent>
+        </Card>
+      </div>
+    </AppPageLayout>
   );
 }

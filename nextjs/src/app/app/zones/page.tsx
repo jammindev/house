@@ -8,8 +8,8 @@ import { Plus } from "lucide-react";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 
 import { Zone } from "@zones/types";
 import { computeZoneTree } from "@zones/lib/tree";
@@ -32,41 +32,26 @@ export default function ZonesPage() {
   const { zonesById, sortedZones, zoneDepths, zoneStats } = useMemo(() => computeZoneTree(zones), [zones]);
   const formattedSurfaceTotal = zoneStats.hasSurfaceData ? numberFormatter.format(zoneStats.surfaceSum) : null;
 
-  if (globalLoading) return <div className="p-6 text-sm text-gray-500">{t("common.loading")}</div>;
-
-  if (!selectedHouseholdId)
+  if (globalLoading)
     return (
-      <div className="max-w-3xl mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("zones.title")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-gray-600">
-              {t("common.selectHouseholdFirst")} <Link href="/app" className="underline">{t("nav.dashboard")}</Link>.
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AppPageLayout
+        title={t("zones.title")}
+        action={{ label: t("zones.addZone"), icon: Plus, disabled: true }}
+      >
+        <div className="text-sm text-gray-500">{t("common.loading")}</div>
+      </AppPageLayout>
     );
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-3xl flex-1 flex-col">
-      <div className="flex flex-1 flex-col">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <CardTitle>{t("zones.title")}</CardTitle>
-
-            <Button size="icon" variant="ghost" onClick={() => setFormOpen((prev) => !prev)}>
-              <Plus />
-            </Button>
-          </div>
-        </CardHeader>
-
-        <CardContent className="flex flex-1 flex-col gap-4 p-0">
-          {error && (
+    <AppPageLayout
+      title={t("zones.title")}
+      action={{ icon: Plus, onClick: () => setFormOpen(true) }}
+    >
+      <Card>
+        <CardContent className="space-y-4 p-4 sm:p-6">
+          {error ? (
             <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
-          )}
+          ) : null}
 
           <ZoneForm
             open={formOpen}
@@ -85,17 +70,13 @@ export default function ZonesPage() {
             }}
           />
 
-          {/* {!loading && sortedZones.length > 0 && (
-            <ZoneStats stats={zoneStats} t={t} formattedSurfaceTotal={formattedSurfaceTotal} />
-          )} */}
-
-          <div className="flex-1">
+          <div>
             {loading ? (
               <div className="text-sm text-gray-500">{t("zones.loading")}</div>
             ) : sortedZones.length === 0 ? (
               <div className="text-sm text-gray-500">{t("zones.none")}</div>
             ) : (
-              <div className="h-full overflow-y-auto rounded-md p-2">
+              <div className="rounded-md border border-gray-200 bg-white p-2 shadow-sm">
                 <ZoneList
                   zones={sortedZones}
                   zonesById={zonesById}
@@ -120,7 +101,7 @@ export default function ZonesPage() {
             )}
           </div>
         </CardContent>
-      </div>
+      </Card>
 
       <ConfirmDialog
         open={confirmOpen}
@@ -149,6 +130,6 @@ export default function ZonesPage() {
           }
         }}
       />
-    </div>
+    </AppPageLayout>
   );
 }

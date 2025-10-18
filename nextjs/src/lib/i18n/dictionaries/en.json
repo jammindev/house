@@ -263,6 +263,7 @@
   "mfa.settingsUpdated": "Two-factor authentication settings updated successfully",
   "storage.title": "Quick document upload",
   "storage.subtitle": "Drop a file and we'll create the interaction automatically.",
+  "storage.addDocument": "Add document",
   "storage.defaultSubject": "New document",
   "storage.noHousehold": "Select a household before adding documents.",
   "storage.noUser": "We could not confirm your session. Please sign in again before retrying.",

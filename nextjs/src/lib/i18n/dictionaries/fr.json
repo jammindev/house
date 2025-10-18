@@ -263,6 +263,7 @@
   "mfa.settingsUpdated": "Paramètres de l’authentification à deux facteurs mis à jour",
   "storage.title": "Ajout rapide de documents",
   "storage.subtitle": "Dépose un fichier et l'interaction sera créée automatiquement.",
+  "storage.addDocument": "Ajouter un document",
   "storage.defaultSubject": "Nouveau document",
   "storage.noHousehold": "Sélectionne un foyer avant d'ajouter des documents.",
   "storage.noUser": "Impossible de vérifier ta session. Reconnecte-toi puis réessaie.",

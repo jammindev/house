@@ -9,9 +9,10 @@ import { useToast } from "@/components/ToastProvider";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import InteractionHeader from "@interactions/components/InteractionHeader";
 import InteractionList from "@interactions/components/InteractionList";
 import { useInteractions } from "@interactions/hooks/useInteractions";
+import AppPageLayout from "@/components/layout/AppPageLayout";
+import { Plus } from "lucide-react";
 
 export default function InteractionsPage() {
   const { loading: globalLoading, selectedHouseholdId, households } = useGlobal();
@@ -37,41 +38,31 @@ export default function InteractionsPage() {
     }
   }, [searchParams, router, show, t]);
 
-  if (globalLoading) return <div className="p-6 text-sm text-gray-500">{t("common.loading")}</div>;
-
-  if (!selectedHouseholdId)
+  if (globalLoading)
     return (
-      <div className="max-w-3xl mx-auto lg:p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("interactionstitle")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-sm text-gray-600">
-              {t("common.selectHouseholdFirst")}{" "}
-              <Link href="/app" className="underline">
-                {t("nav.dashboard")}
-              </Link>
-              .
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <AppPageLayout
+        title={t("interactionstitle")}
+        action={{ icon: Plus, disabled: true }}
+      >
+        <div className="text-sm text-gray-500">{t("common.loading")}</div>
+      </AppPageLayout>
     );
 
   return (
-    <div className="max-w-4xl mx-auto md:p-6">
-      <InteractionHeader title={t("interactionstitle")} householdName={currentHousehold?.name} newHref="/app/interactions/new" />
-
-      {error && (
-        <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">{error}</div>
-      )}
+    <AppPageLayout
+      title={t("interactionstitle")}
+      context={currentHousehold?.name ?? undefined}
+      action={{ icon: Plus, href: "/app/interactions/new" }}
+    >
+      {error ? (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
+      ) : null}
 
       {loading ? (
         <div className="text-sm text-gray-500">{t("interactionsloading")}</div>
       ) : (
         <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} />
       )}
-    </div>
+    </AppPageLayout>
   );
 }
