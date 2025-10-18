@@ -12,12 +12,24 @@ export type ContactEmail = {
   created_at?: string | null;
 };
 
+export type ContactEmailInput = {
+  email: string;
+  label?: string | null;
+  is_primary?: boolean | null;
+};
+
 export type ContactPhone = {
   id: string;
   phone: string;
   label?: string | null;
   is_primary?: boolean | null;
   created_at?: string | null;
+};
+
+export type ContactPhoneInput = {
+  phone: string;
+  label?: string | null;
+  is_primary?: boolean | null;
 };
 
 export type ContactAddress = {
@@ -46,4 +58,14 @@ export type Contact = {
   emails: ContactEmail[];
   phones: ContactPhone[];
   addresses: ContactAddress[];
+};
+
+export type CreateContactInput = {
+  householdId: string;
+  firstName: string;
+  lastName?: string;
+  position?: string;
+  notes?: string;
+  email?: ContactEmailInput | null;
+  phone?: ContactPhoneInput | null;
 };

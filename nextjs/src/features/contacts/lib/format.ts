@@ -1,7 +1,13 @@
 import type { Contact, ContactAddress, ContactEmail, ContactPhone } from "../types";
 
+function cleanText(value?: string | null) {
+  return value?.trim() ? value.trim() : "";
+}
+
 export function formatFullName(contact: Pick<Contact, "first_name" | "last_name">) {
-  return [contact.first_name, contact.last_name].filter(Boolean).join(" ").trim();
+  return [cleanText(contact.first_name), cleanText(contact.last_name)]
+    .filter((part) => part.length > 0)
+    .join(" ");
 }
 
 export function getPrimaryEmail(contact: Contact): ContactEmail | null {
@@ -13,8 +19,8 @@ export function getPrimaryPhone(contact: Contact): ContactPhone | null {
 }
 
 export function formatAddress(address: ContactAddress) {
-  const line1 = address.address_1;
-  const line2 = [address.zipcode, address.city].filter(Boolean).join(" ");
-  const line3 = address.country;
-  return [line1, line2, line3].filter((line) => !!line && line.trim().length > 0).join("\n");
+  const line1 = cleanText(address.address_1);
+  const line2 = [cleanText(address.zipcode), cleanText(address.city)].filter((part) => part.length > 0).join(" ");
+  const line3 = cleanText(address.country);
+  return [line1, line2, line3].filter((line) => line.length > 0).join("\n");
 }
