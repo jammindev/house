@@ -1,8 +1,8 @@
 // nextjs/src/features/interactions/components/InteractionForm.tsx
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { FormEvent, KeyboardEvent } from "react";
+import { useCallback, useMemo, useState } from "react";
+import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,10 @@ import ContactSelector from "@interactions/components/ContactSelector";
 import StructureSelector from "@interactions/components/StructureSelector";
 import SelectedFileItem from "@interactions/components/SelectedFileItem";
 import { ZonePicker } from "@interactions/components/ZonePicker";
-import type { Document, DocumentType, InteractionStatus, InteractionTag, InteractionType, ZoneOption } from "@interactions/types";
+import InteractionTagsSelector from "@interactions/components/InteractionTagsSelector";
+import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
+import { getCurrentLocalDateTimeInput } from "@interactions/utils/datetime";
+import type { Document, DocumentType, InteractionStatus, InteractionType, ZoneOption } from "@interactions/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 
 type LocalFile = {
@@ -34,26 +37,6 @@ type InteractionFormProps = {
   onCreated?: (interactionId: string) => void;
 };
 
-const interactionTypes: InteractionType[] = [
-  "note",
-  "todo",
-  "call",
-  "meeting",
-  "document",
-  "expense",
-  "message",
-  "signature",
-  "other",
-];
-
-const interactionStatuses: (InteractionStatus | null)[] = [null, "pending", "in_progress", "done", "archived"];
-
-const toLocalDateTime = () => {
-  const now = new Date();
-  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-  return now.toISOString().slice(0, 16);
-};
-
 const inferFileType = (file: File): DocumentType => {
   if (file.type?.startsWith("image/")) return "photo";
   return "document";
@@ -63,7 +46,7 @@ const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_
 
 export default function InteractionForm({ zones, zonesLoading = false, onCreated }: InteractionFormProps) {
   const router = useRouter();
-  const { selectedHouseholdId: householdId } = useGlobal()
+  const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
   const { t } = useI18n();
 
@@ -71,12 +54,8 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
   const [content, setContent] = useState("");
   const [type, setType] = useState<InteractionType>("note");
   const [status, setStatus] = useState<InteractionStatus | "">("");
-  const [occurredAt, setOccurredAt] = useState<string>(toLocalDateTime);
-  const [availableTags, setAvailableTags] = useState<InteractionTag[]>([]);
+  const [occurredAt, setOccurredAt] = useState<string>(getCurrentLocalDateTimeInput);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [tagInputValue, setTagInputValue] = useState("");
-  const [tagsLoading, setTagsLoading] = useState(true);
-  const [creatingTag, setCreatingTag] = useState(false);
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
@@ -88,134 +67,6 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
   const [error, setError] = useState<string | null>(null);
 
   const hasZones = zones.length > 0;
-
-  const sortTags = useCallback(
-    (list: InteractionTag[]) =>
-      [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" })),
-    []
-  );
-
-  useEffect(() => {
-    let active = true;
-    const loadTags = async () => {
-      setTagsLoading(true);
-      try {
-        const supa = await createSPASassClient();
-        const client = supa.getSupabaseClient();
-        const { data, error } = await client
-          .from("tags")
-          .select("id, name, household_id, type, created_at, created_by")
-          .eq("household_id", householdId)
-          .eq("type", "interaction")
-          .order("name", { ascending: true });
-        if (error) throw error;
-        if (!active) return;
-        const rows = (data ?? []) as InteractionTag[];
-        setAvailableTags(sortTags(rows));
-      } catch (loadError) {
-        console.error(loadError);
-        if (!active) return;
-        setAvailableTags([]);
-      } finally {
-        if (active) setTagsLoading(false);
-      }
-    };
-
-    loadTags();
-    return () => {
-      active = false;
-    };
-  }, [householdId, sortTags]);
-
-  const selectedTags = useMemo(
-    () =>
-      selectedTagIds
-        .map((id) => availableTags.find((tag) => tag.id === id) || null)
-        .filter((tag): tag is InteractionTag => Boolean(tag)),
-    [availableTags, selectedTagIds]
-  );
-
-  useEffect(() => {
-    setSelectedTagIds((prev) => {
-      const filtered = prev.filter((id) => availableTags.some((tag) => tag.id === id));
-      if (filtered.length === prev.length && filtered.every((id, index) => id === prev[index])) {
-        return prev;
-      }
-      return filtered;
-    });
-  }, [availableTags]);
-
-  const toggleTag = useCallback((tagId: string) => {
-    setSelectedTagIds((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
-  }, []);
-
-  const handleRemoveTag = useCallback((tagId: string) => {
-    setSelectedTagIds((prev) => prev.filter((id) => id !== tagId));
-  }, []);
-
-  const handleCreateTag = useCallback(async () => {
-    const trimmed = tagInputValue.trim();
-    if (!trimmed) return;
-    const existing = availableTags.find((tag) => tag.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) {
-      setSelectedTagIds((prev) => (prev.includes(existing.id) ? prev : [...prev, existing.id]));
-      setTagInputValue("");
-      show({ title: t("interactionstagsDuplicate"), variant: "info" });
-      return;
-    }
-
-    setCreatingTag(true);
-    try {
-      const supa = await createSPASassClient();
-      const client = supa.getSupabaseClient();
-      const { data, error } = await client
-        .from("tags")
-        .insert({
-          household_id: householdId,
-          type: "interaction",
-          name: trimmed,
-        })
-        .select("id, name, household_id, type, created_at, created_by")
-        .single();
-      if (error) {
-        if ((error as any)?.code === "23505") {
-          const dup = availableTags.find((tag) => tag.name.toLowerCase() === trimmed.toLowerCase());
-          if (dup) {
-            setSelectedTagIds((prev) => (prev.includes(dup.id) ? prev : [...prev, dup.id]));
-            setTagInputValue("");
-            show({ title: t("interactionstagsDuplicate"), variant: "info" });
-            return;
-          }
-        }
-        throw error;
-      }
-
-      const newTag = (data as unknown as InteractionTag) ?? null;
-      if (newTag) {
-        setAvailableTags((prev) => sortTags([...prev, newTag]));
-        setSelectedTagIds((prev) => [...prev, newTag.id]);
-      }
-      setTagInputValue("");
-    } catch (createError: any) {
-      console.error(createError);
-      const description = createError?.message || t("interactionstagsCreateFailed");
-      show({ title: t("interactionstagsCreateFailed"), description, variant: "error" });
-    } finally {
-      setCreatingTag(false);
-    }
-  }, [availableTags, householdId, sortTags, show, t, tagInputValue]);
-
-  const handleTagInputKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLInputElement>) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        if (!creatingTag) {
-          handleCreateTag();
-        }
-      }
-    },
-    [creatingTag, handleCreateTag]
-  );
 
   const zoneHelper = useMemo(() => {
     if (zonesLoading) return t("zones.loading");
@@ -280,9 +131,8 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
     setContent("");
     setType("note");
     setStatus("");
-    setOccurredAt(toLocalDateTime());
+    setOccurredAt(getCurrentLocalDateTimeInput());
     setSelectedTagIds([]);
-    setTagInputValue("");
     setSelectedZones([]);
     setSelectedContactIds([]);
     setSelectedStructureIds([]);
@@ -452,7 +302,7 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
               onChange={(event) => setType(event.target.value as InteractionType)}
               className="border rounded-md h-9 w-full px-3 text-sm bg-background"
             >
-              {interactionTypes.map((value) => (
+              {INTERACTION_TYPES.map((value) => (
                 <option key={value} value={value}>
                   {t(`interactionstypes.${value}`)}
                 </option>
@@ -470,7 +320,7 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
               onChange={(event) => setStatus(event.target.value as InteractionStatus | "")}
               className="border rounded-md h-9 w-full px-3 text-sm bg-background"
             >
-              {interactionStatuses.map((value) => (
+              {INTERACTION_STATUSES.map((value) => (
                 <option key={value ?? "none"} value={value ?? ""}>
                   {value ? t(`interactionsstatus.${value}`) : t("interactionsstatusNone")}
                 </option>
@@ -490,82 +340,12 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-tags">
-              {t("interactionstagsLabel")}
-            </label>
-            <p className="text-xs text-gray-500">{t("interactionstagsHelper")}</p>
-
-            {selectedTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedTags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
-                  >
-                    #{tag.name}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tag.id)}
-                      className="rounded-full p-0.5 leading-none text-indigo-600 transition hover:bg-indigo-100 hover:text-indigo-800"
-                      aria-label={t("interactionstagsRemove", { name: tag.name })}
-                    >
-                      x
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Input
-                id="interaction-tags"
-                value={tagInputValue}
-                onChange={(event) => setTagInputValue(event.target.value)}
-                onKeyDown={handleTagInputKeyDown}
-                placeholder={t("interactionstagsCreatePlaceholder")}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCreateTag}
-                disabled={creatingTag || !tagInputValue.trim()}
-              >
-                {creatingTag ? t("common.saving") : t("interactionstagsAdd")}
-              </Button>
-            </div>
-
-            <div className="space-y-2">
-              <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                {t("interactionstagsExisting")}
-              </p>
-              {tagsLoading ? (
-                <div className="text-xs text-gray-500">{t("interactionstagsLoading")}</div>
-              ) : availableTags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => {
-                    const selected = selectedTagIds.includes(tag.id);
-                    return (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={() => toggleTag(tag.id)}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${selected
-                          ? "border-indigo-200 bg-indigo-100 text-indigo-700"
-                          : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                          }`}
-                        aria-pressed={selected}
-                      >
-                        #{tag.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-xs text-gray-500">{t("interactionstagsNone")}</div>
-              )}
-            </div>
-          </div>
+          <InteractionTagsSelector
+            householdId={householdId}
+            value={selectedTagIds}
+            onChange={setSelectedTagIds}
+            inputId="interaction-tags"
+          />
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">{t("interactionscontacts.label")}</label>
