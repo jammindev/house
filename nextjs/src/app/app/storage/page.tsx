@@ -1,332 +1,806 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
-import { useGlobal } from '@/lib/context/GlobalContext';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Upload, Download, Share2, Trash2, Loader2, FileIcon, AlertCircle, CheckCircle, Copy } from 'lucide-react';
-import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
-import { FileObject } from '@supabase/storage-js';
-import { useI18n } from '@/lib/i18n/I18nProvider';
 
-export default function FileManagementPage() {
-    const { user } = useGlobal();
-    const { t } = useI18n();
-    const [files, setFiles] = useState<FileObject[]>([]);
-    const [uploading, setUploading] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [shareUrl, setShareUrl] = useState('');
-    const [selectedFile, setSelectedFile] = useState<string | null>(null);
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-    const [fileToDelete, setFileToDelete] = useState<string | null>(null);
-    const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type DragEvent } from "react";
+import { AlertCircle, CheckCircle2, Loader2, Sparkles, UploadCloud } from "lucide-react";
 
-    useEffect(() => {
-        if (user?.id) {
-            loadFiles();
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { useGlobal } from "@/lib/context/GlobalContext";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
+import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import { useZones } from "@zones/hooks/useZones";
+import type { Zone } from "@zones/types";
+import type { DocumentType } from "@interactions/types";
+
+const MAX_RECENT_DOCUMENTS = 10;
+
+type TagOption = { id: string; name: string };
+type ContactOption = { id: string; label: string };
+type StructureOption = { id: string; name: string };
+
+type RecentDocument = {
+  id: string;
+  name: string;
+  type: DocumentType;
+  createdAt: string;
+  interactionId: string;
+  interactionSubject: string;
+};
+
+type FlatZone = {
+  id: string;
+  name: string;
+  depth: number;
+};
+
+type TagRow = {
+  id: string;
+  name: string | null;
+};
+
+type ContactRow = {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+};
+
+type StructureRow = {
+  id: string;
+  name: string | null;
+};
+
+type DocumentRow = {
+  id: string;
+  name: string | null;
+  type: DocumentType | null;
+  created_at: string;
+  interaction_id: string | null;
+};
+
+type InteractionRow = {
+  id: string;
+  subject: string | null;
+  household_id: string;
+};
+
+function sanitizeFilename(name: string) {
+  return name.replace(/[^0-9a-zA-Z._-]/g, "_");
+}
+
+function inferDocumentType(file: File): DocumentType {
+  if (file.type?.startsWith("image/")) return "photo";
+  const lower = file.name.toLowerCase();
+  if (/(devis|quote)/i.test(lower)) return "quote";
+  if (/(facture|invoice)/i.test(lower)) return "invoice";
+  if (/(contrat|contract)/i.test(lower)) return "contract";
+  return "document";
+}
+
+function fileBaseName(name: string) {
+  const lastDot = name.lastIndexOf(".");
+  if (lastDot > 0) {
+    return name.slice(0, lastDot).trim();
+  }
+  return name.trim();
+}
+
+function flattenZones(zones: Zone[]): FlatZone[] {
+  const byParent = new Map<string | null, Zone[]>();
+  zones.forEach((zone) => {
+    const parentKey = zone.parent_id ?? null;
+    const list = byParent.get(parentKey) ?? [];
+    list.push(zone);
+    byParent.set(parentKey, list);
+  });
+  byParent.forEach((list) => list.sort((a, b) => a.name.localeCompare(b.name)));
+
+  const result: FlatZone[] = [];
+  const visited = new Set<string>();
+
+  function walk(parentId: string | null, depth: number) {
+    const children = byParent.get(parentId) ?? [];
+    children.forEach((child) => {
+      if (visited.has(child.id)) return;
+      visited.add(child.id);
+      result.push({ id: child.id, name: child.name, depth });
+      walk(child.id, depth + 1);
+    });
+  }
+
+  walk(null, 0);
+
+  // Include orphans if any
+  zones.forEach((zone) => {
+    if (!visited.has(zone.id)) {
+      result.push({ id: zone.id, name: zone.name, depth: 0 });
+    }
+  });
+
+  return result;
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+
+export default function QuickDocumentUploadPage() {
+  const { selectedHouseholdId, user, loading: globalLoading } = useGlobal();
+  const { t } = useI18n();
+
+  const { zones, loading: zonesLoading, error: zonesError } = useZones(globalLoading ? null : selectedHouseholdId);
+  const flatZones = useMemo(() => flattenZones(zones), [zones]);
+
+  const [selectedZoneId, setSelectedZoneId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!selectedZoneId && flatZones.length) {
+      setSelectedZoneId(flatZones[0].id);
+    }
+  }, [flatZones, selectedZoneId]);
+
+  const [availableTags, setAvailableTags] = useState<TagOption[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [contacts, setContacts] = useState<ContactOption[]>([]);
+  const [structures, setStructures] = useState<StructureOption[]>([]);
+  const [selectedContactId, setSelectedContactId] = useState<string>("");
+  const [selectedStructureId, setSelectedStructureId] = useState<string>("");
+  const [note, setNote] = useState("");
+
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaError, setMetaError] = useState<string | null>(null);
+
+  const [uploading, setUploading] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const [recentDocuments, setRecentDocuments] = useState<RecentDocument[]>([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [recentError, setRecentError] = useState<string | null>(null);
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [showEnrichment, setShowEnrichment] = useState(false);
+
+  useEffect(() => {
+    if (!availableTags.length) return;
+    setSelectedTagIds((prev) => prev.filter((id) => availableTags.some((tag) => tag.id === id)));
+  }, [availableTags]);
+
+  useEffect(() => {
+    if (contacts.length === 0) {
+      setSelectedContactId("");
+    } else if (selectedContactId && !contacts.some((contact) => contact.id === selectedContactId)) {
+      setSelectedContactId("");
+    }
+  }, [contacts, selectedContactId]);
+
+  useEffect(() => {
+    if (structures.length === 0) {
+      setSelectedStructureId("");
+    } else if (selectedStructureId && !structures.some((structure) => structure.id === selectedStructureId)) {
+      setSelectedStructureId("");
+    }
+  }, [structures, selectedStructureId]);
+
+  useEffect(() => {
+    if (!selectedHouseholdId) {
+      setAvailableTags([]);
+      setContacts([]);
+      setStructures([]);
+      setMetaLoading(false);
+      setMetaError(null);
+      return;
+    }
+
+    let active = true;
+    setMetaLoading(true);
+    setMetaError(null);
+    (async () => {
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+
+        const [tagsResult, contactsResult, structuresResult] = await Promise.all([
+          client
+            .from("tags")
+            .select("id, name")
+            .eq("household_id", selectedHouseholdId)
+            .eq("type", "interaction")
+            .order("name", { ascending: true }),
+          client
+            .from("contacts")
+            .select("id, first_name, last_name")
+            .eq("household_id", selectedHouseholdId)
+            .order("last_name", { ascending: true })
+            .order("first_name", { ascending: true }),
+          client
+            .from("structures")
+            .select("id, name")
+            .eq("household_id", selectedHouseholdId)
+            .order("name", { ascending: true }),
+        ]);
+
+        if (!active) return;
+
+        if (tagsResult.error) throw tagsResult.error;
+        if (contactsResult.error) throw contactsResult.error;
+        if (structuresResult.error) throw structuresResult.error;
+
+        const tagRows = (tagsResult.data ?? []) as TagRow[];
+        const tagOptions = tagRows.map((row) => ({
+          id: row.id,
+          name: row.name ?? "",
+        }));
+
+        const contactRows = (contactsResult.data ?? []) as ContactRow[];
+        const contactItems = contactRows.map((row) => {
+          const first = (row.first_name ?? "").trim();
+          const last = (row.last_name ?? "").trim();
+          const label = [first, last].filter(Boolean).join(" ") || t("storage.unnamedContact");
+          return { id: row.id, label };
+        });
+
+        const structureRows = (structuresResult.data ?? []) as StructureRow[];
+        const structureItems = structureRows.map((row) => ({
+          id: row.id,
+          name: (row.name ?? "").trim() || t("storage.unnamedStructure"),
+        }));
+
+        setAvailableTags(tagOptions);
+        setContacts(contactItems);
+        setStructures(structureItems);
+      } catch (loadError: unknown) {
+        console.error(loadError);
+        if (!active) return;
+        const message =
+          loadError instanceof Error ? loadError.message : t("storage.metadataLoadFailed");
+        setMetaError(message);
+        setAvailableTags([]);
+        setContacts([]);
+        setStructures([]);
+      } finally {
+        if (active) {
+          setMetaLoading(false);
         }
-    }, [user]);
+      }
+    })();
 
-    const loadFiles = async () => {
-        try {
-            setLoading(true);
-            setError('');
-            const supabase = await createSPASassClient();
-            const { data, error } = await supabase.getFiles(user!.id);
-
-            if (error) throw error;
-            setFiles(data || []);
-        } catch (err) {
-            setError(t('storage.loadFailed'));
-            console.error('Error loading files:', err);
-        } finally {
-            setLoading(false);
-        }
+    return () => {
+      active = false;
     };
+  }, [selectedHouseholdId, t]);
 
-    const handleFileUpload = async (file: File) => {
-        try {
-            setUploading(true);
-            setError('');
+  const loadRecentDocuments = useCallback(async () => {
+    if (globalLoading) {
+      return;
+    }
 
-            console.log(user)
+    if (!selectedHouseholdId) {
+      setRecentDocuments([]);
+      return;
+    }
 
-            const supabase = await createSPASassClient();
-            const { error } = await supabase.uploadFile(user!.id!, file.name, file);
+    setRecentLoading(true);
+    setRecentError(null);
+    try {
+      const supa = await createSPASassClient();
+      const client = supa.getSupabaseClient();
 
-            if (error) throw error;
+      const { data: docsData, error: docsError } = await client
+        .from("documents")
+        .select("id, name, type, created_at, interaction_id")
+        .order("created_at", { ascending: false })
+        .limit(MAX_RECENT_DOCUMENTS);
 
-            await loadFiles();
-            setSuccess(t('storage.uploadSuccess'));
-        } catch (err) {
-            setError(t('storage.uploadFailed'));
-            console.error('Error uploading file:', err);
-        } finally {
-            setUploading(false);
+      if (docsError) throw docsError;
+      const docRows = (docsData ?? []) as DocumentRow[];
+
+      const interactionIds = docRows
+        .map((row) => row.interaction_id)
+        .filter((id): id is string => Boolean(id));
+
+      let interactionMap = new Map<string, InteractionRow>();
+
+      if (interactionIds.length > 0) {
+        const { data: interactionsData, error: interactionsError } = await client
+          .from("interactions")
+          .select("id, subject, household_id")
+          .in("id", interactionIds);
+        if (interactionsError) throw interactionsError;
+        const interactions = (interactionsData ?? []) as InteractionRow[];
+        interactionMap = new Map(interactions.map((row) => [row.id, row]));
+      }
+
+      const normalized: RecentDocument[] = docRows
+        .filter(
+          (row) => {
+            if (!row.interaction_id) return false;
+            const interaction = interactionMap.get(row.interaction_id);
+            if (!interaction) return false;
+            if (selectedHouseholdId && interaction.household_id !== selectedHouseholdId) return false;
+            return true;
+          }
+        )
+        .map((row) => {
+          const interaction = interactionMap.get(row.interaction_id!);
+          return {
+            id: row.id,
+            name: row.name ?? "",
+            type: row.type ?? "document",
+            createdAt: row.created_at,
+            interactionId: row.interaction_id!,
+            interactionSubject: interaction?.subject ?? "",
+          };
+        });
+
+      setRecentDocuments(normalized);
+    } catch (loadErr: unknown) {
+      console.error(loadErr);
+      const message = loadErr instanceof Error ? loadErr.message : t("storage.recentLoadFailed");
+      setRecentError(message);
+      setRecentDocuments([]);
+    } finally {
+      setRecentLoading(false);
+    }
+  }, [globalLoading, selectedHouseholdId, t]);
+
+  useEffect(() => {
+    loadRecentDocuments();
+  }, [loadRecentDocuments]);
+
+  useEffect(() => {
+    if (!highlightedIds.length) return;
+    const timeout = setTimeout(() => setHighlightedIds([]), 6000);
+    return () => clearTimeout(timeout);
+  }, [highlightedIds]);
+
+  const toggleTag = useCallback((tagId: string) => {
+    setSelectedTagIds((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
+  }, []);
+
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArray = Array.from(files ?? []).filter((file) => file.size > 0);
+      if (!fileArray.length) return;
+
+      if (globalLoading) {
+        return;
+      }
+
+      if (!selectedHouseholdId) {
+        setError(t("storage.noHousehold"));
+        return;
+      }
+
+      if (!selectedZoneId) {
+        setError(t("storage.zoneRequired"));
+        return;
+      }
+
+      setError(null);
+      setSuccess(null);
+      setPendingFiles(fileArray.map((file) => file.name));
+      setUploading(true);
+
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+
+        let userId = user?.id ?? null;
+        if (!userId) {
+          const { data: authData, error: authErr } = await client.auth.getUser();
+          if (authErr) throw authErr;
+          userId = authData?.user?.id ?? null;
         }
-    };
-
-
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const fileList = event.target.files;
-        if (!fileList || fileList.length === 0) return;
-        handleFileUpload(fileList[0]);
-        event.target.value = '';
-    };
-
-
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-
-        const files = Array.from(e.dataTransfer.files);
-        if (files.length > 0) {
-            handleFileUpload(files[0]);
+        if (!userId) {
+          throw new Error(t("storage.noUser"));
         }
-    }, []);
 
+        const createdDocumentIds: string[] = [];
 
-    const handleDragEnter = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(true);
-    }, []);
+        for (const file of fileArray) {
+          const subject = fileBaseName(file.name) || t("storage.defaultSubject");
+          const content = note.trim();
+          const { data: createdId, error: createErr } = await client.rpc("create_interaction_with_zones", {
+            p_household_id: selectedHouseholdId,
+            p_subject: subject,
+            p_zone_ids: [selectedZoneId],
+            p_content: content,
+            p_type: "document",
+            p_status: "done",
+            p_contact_id: selectedContactId || null,
+            p_structure_id: selectedStructureId || null,
+            p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
+          });
+          if (createErr || !createdId) {
+            throw createErr ?? new Error(t("storage.createInteractionFailed"));
+          }
 
-    const handleDragLeave = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsDragging(false);
-    }, []);
+          const interactionId = typeof createdId === "string" ? createdId : (createdId as string);
+          const safeBase = sanitizeFilename(file.name || subject);
+          const uniquePrefix =
+            typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+              ? crypto.randomUUID()
+              : `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const storagePath = `${userId}/${interactionId}/${uniquePrefix}_${safeBase}`;
 
-    const handleDragOver = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-    }, []);
+          const { error: uploadErr } = await client.storage.from("files").upload(storagePath, file, {
+            cacheControl: "3600",
+            upsert: false,
+            contentType: file.type || undefined,
+          });
+          if (uploadErr) throw uploadErr;
 
+          const documentType = inferDocumentType(file);
+          const { data: insertedDoc, error: docErr } = await client
+            .from("documents")
+            .insert({
+              interaction_id: interactionId,
+              file_path: storagePath,
+              mime_type: file.type || null,
+              type: documentType,
+              name: file.name,
+              notes: "",
+              metadata: {
+                size: file.size,
+                originalName: file.name,
+                quickUpload: true,
+              },
+            })
+            .select("id")
+            .single();
+          if (docErr || !insertedDoc) {
+            throw docErr ?? new Error(t("storage.insertDocumentFailed"));
+          }
 
-    const handleDownload = async (filename: string) => {
-        try {
-            setError('');
-            const supabase = await createSPASassClient();
-            const { data, error } = await supabase.shareFile(user!.id!, filename, 60, true);
-
-            if (error) throw error;
-
-            window.open(data.signedUrl, '_blank');
-        } catch (err) {
-            setError(t('storage.downloadFailed'));
-            console.error('Error downloading file:', err);
+          createdDocumentIds.push(insertedDoc.id as string);
         }
-    };
 
-    const handleShare = async (filename: string) => {
-        try {
-            setError('');
-            const supabase = await createSPASassClient();
-            const { data, error } = await supabase.shareFile(user!.id!, filename, 24 * 60 * 60);
+        const successKey = fileArray.length > 1 ? "storage.quickUploadSuccessPlural" : "storage.quickUploadSuccessSingle";
+        setSuccess(t(successKey, { count: fileArray.length }));
+        await loadRecentDocuments();
+        setHighlightedIds(createdDocumentIds);
+      } catch (uploadErr: unknown) {
+        console.error(uploadErr);
+        const message =
+          uploadErr instanceof Error ? uploadErr.message : t("storage.quickUploadFailed");
+        setError(message);
+      } finally {
+        setUploading(false);
+        setPendingFiles([]);
+      }
+    },
+    [
+      loadRecentDocuments,
+      note,
+      selectedContactId,
+      selectedHouseholdId,
+      selectedStructureId,
+      selectedTagIds,
+      selectedZoneId,
+      t,
+      globalLoading,
+      user?.id,
+    ]
+  );
 
-            if (error) throw error;
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const files = event.target.files;
+      if (files?.length) {
+        void handleFiles(files);
+        event.target.value = "";
+      }
+    },
+    [handleFiles]
+  );
 
-            setShareUrl(data.signedUrl);
-            setSelectedFile(filename);
-        } catch (err) {
-            setError(t('storage.shareFailed'));
-            console.error('Error sharing file:', err);
-        }
-    };
+  const handleDrop = useCallback(
+    (event: DragEvent<HTMLLabelElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const files = event.dataTransfer?.files;
+      if (files?.length) {
+        void handleFiles(files);
+      }
+    },
+    [handleFiles]
+  );
 
-    const handleDelete = async () => {
-        if (!fileToDelete) return;
+  const disableUpload = uploading || globalLoading || !selectedHouseholdId || !selectedZoneId;
 
-        try {
-            setError('');
-            const supabase = await createSPASassClient();
-            const { error } = await supabase.deleteFile(user!.id!, fileToDelete);
+  return (
+    <div className="space-y-6 p-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("storage.title")}</CardTitle>
+          <CardDescription>{t("storage.subtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-            if (error) throw error;
+          {success && (
+            <Alert>
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
 
-            await loadFiles();
-            setSuccess(t('storage.deleteSuccess'));
-        } catch (err) {
-            setError(t('storage.deleteFailed'));
-            console.error('Error deleting file:', err);
-        } finally {
-            setShowDeleteDialog(false);
-            setFileToDelete(null);
-        }
-    };
+          {!globalLoading && !selectedHouseholdId && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              <AlertDescription>{t("storage.noHousehold")}</AlertDescription>
+            </Alert>
+          )}
 
-    const copyToClipboard = async (text: string) => {
-        try {
-            await navigator.clipboard.writeText(text);
-            setShowCopiedMessage(true);
-            setTimeout(() => setShowCopiedMessage(false), 2000);
-        } catch (err) {
-            console.error('Failed to copy:', err);
-            setError(t('storage.copyFailed'));
-        }
-    };
+          {zonesError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              <AlertDescription>{zonesError}</AlertDescription>
+            </Alert>
+          )}
 
+          <section className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-zone">
+              {t("storage.zoneLabel")}
+            </label>
+            <p className="text-xs text-gray-500">{t("storage.zoneHelper")}</p>
 
-    return (
-        <div className="space-y-6 p-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>{t('storage.title')}</CardTitle>
-                    <CardDescription>{t('storage.subtitle')}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {error && (
-                        <Alert variant="destructive" className="mb-4">
-                            <AlertCircle className="h-4 w-4"/>
-                            <AlertDescription>{error}</AlertDescription>
-                        </Alert>
-                    )}
+            {globalLoading || zonesLoading ? (
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                {t("common.loading")}
+              </div>
+            ) : flatZones.length === 0 ? (
+              <div className="rounded-md border border-dashed border-gray-200 bg-white px-3 py-4 text-sm text-gray-500">
+                {t("storage.noZones")}
+              </div>
+            ) : (
+              <select
+                id="quick-doc-zone"
+                value={selectedZoneId ?? ""}
+                onChange={(event) => setSelectedZoneId(event.target.value || null)}
+                disabled={globalLoading || zonesLoading}
+                className="h-10 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+              >
+                {flatZones.map((zone) => {
+                  const prefix = "  ".repeat(zone.depth);
+                  return (
+                    <option key={zone.id} value={zone.id}>
+                      {`${prefix}${zone.name}`}
+                    </option>
+                  );
+                })}
+              </select>
+            )}
+          </section>
 
-                    {success && (
-                        <Alert className="mb-4">
-                            <CheckCircle className="h-4 w-4"/>
-                            <AlertDescription>{success}</AlertDescription>
-                        </Alert>
-                    )}
+          <section>
+            <label
+              htmlFor="quick-doc-uploader"
+              onDrop={handleDrop}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              className={cn(
+                "flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/70 px-6 py-10 text-center transition hover:border-primary-300 hover:bg-primary-50",
+                disableUpload && "cursor-not-allowed opacity-70"
+              )}
+            >
+              <UploadCloud className="mb-3 h-10 w-10 text-primary-500" aria-hidden="true" />
+              <p className="text-base font-medium text-primary-900">
+                {uploading ? t("storage.uploading") : t("storage.dragOrClick")}
+              </p>
+              <p className="mt-1 text-sm text-primary-700">{t("storage.uploadHint")}</p>
 
-                    <div className="flex items-center justify-center w-full">
-                        <label
-                            className={`w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg shadow-lg tracking-wide border-2 cursor-pointer transition-colors ${
-                                isDragging
-                                    ? 'border-primary-500 border-dashed bg-primary-50'
-                                    : 'border-primary-600 hover:bg-primary-50'
-                            }`}
-                            onDragEnter={handleDragEnter}
-                            onDragOver={handleDragOver}
-                            onDragLeave={handleDragLeave}
-                            onDrop={handleDrop}
-                        >
-                            <Upload className="w-8 h-8"/>
-                            <span className="mt-2 text-base">
-                                {uploading
-                                    ? t('storage.uploading')
-                                    : isDragging
-                                        ? t('storage.dropHere')
-                                        : t('storage.dragOrClick')}
-                            </span>
-                            <input
-                                type="file"
-                                className="hidden"
-                                onChange={handleInputChange}
-                                disabled={uploading}
-                            />
+              <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-primary-700">
+                {pendingFiles.map((filename) => (
+                  <span key={filename} className="rounded-full bg-primary-100 px-3 py-1 font-medium">
+                    {t("storage.processingFile", { name: filename })}
+                  </span>
+                ))}
+              </div>
+
+              <input
+                id="quick-doc-uploader"
+                type="file"
+                disabled={disableUpload}
+                onChange={handleInputChange}
+                className="hidden"
+                multiple
+              />
+            </label>
+          </section>
+
+          <section className="space-y-4">
+            <button
+              type="button"
+              onClick={() => setShowEnrichment((prev) => !prev)}
+              className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3 text-left text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+            >
+              <span className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary-500" aria-hidden="true" />
+                {t("storage.enrichmentTitle")}
+              </span>
+              <span className="text-xs text-gray-500">
+                {showEnrichment ? t("storage.enrichmentHide") : t("storage.enrichmentShow")}
+              </span>
+            </button>
+
+            {showEnrichment && (
+              <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <p className="text-sm text-gray-600">{t("storage.enrichmentDescription")}</p>
+
+                {metaError && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                    <AlertDescription>{metaError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {metaLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    {t("storage.metadataLoading")}
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">{t("storage.tagsLabel")}</p>
+                      {availableTags.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {availableTags.map((tag) => {
+                            const selected = selectedTagIds.includes(tag.id);
+                            return (
+                              <button
+                                key={tag.id}
+                                type="button"
+                                onClick={() => toggleTag(tag.id)}
+                                className={cn(
+                                  "rounded-full border px-3 py-1 text-xs font-medium transition",
+                                  selected
+                                    ? "border-primary-200 bg-primary-100 text-primary-800 shadow-sm"
+                                    : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                )}
+                                aria-pressed={selected}
+                              >
+                                #{tag.name}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">{t("storage.noTags")}</p>
+                      )}
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-contact">
+                          {t("storage.contactLabel")}
                         </label>
+                        <select
+                          id="quick-doc-contact"
+                          value={selectedContactId}
+                          onChange={(event) => setSelectedContactId(event.target.value)}
+                          className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                        >
+                          <option value="">{t("storage.contactPlaceholder")}</option>
+                          {contacts.map((contact) => (
+                            <option key={contact.id} value={contact.id}>
+                              {contact.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-structure">
+                          {t("storage.structureLabel")}
+                        </label>
+                        <select
+                          id="quick-doc-structure"
+                          value={selectedStructureId}
+                          onChange={(event) => setSelectedStructureId(event.target.value)}
+                          className="h-9 w-full rounded-md border border-gray-200 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
+                        >
+                          <option value="">{t("storage.structurePlaceholder")}</option>
+                          {structures.map((structure) => (
+                            <option key={structure.id} value={structure.id}>
+                              {structure.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {loading && (
-                            <div className="flex items-center justify-center">
-                                <Loader2 className="w-6 h-6 animate-spin"/>
-                            </div>
-                        )}
-                        {files.length === 0 ? (
-                            <p className="text-center text-gray-500">{t('storage.none')}</p>
-                        ) : (
-                            files.map((file) => (
-                                <div
-                                    key={file.name}
-                                    className="flex items-center justify-between p-4 bg-white rounded-lg border"
-                                >
-                                    <div className="flex items-center space-x-3">
-                                        <FileIcon className="h-6 w-6 text-gray-400"/>
-                                        <span className="font-medium">{file.name.split('/').pop()}</span>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <button
-                                            onClick={() => handleDownload(file.name)}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                                            title={t('storage.download')}
-                                        >
-                                            <Download className="h-5 w-5"/>
-                                        </button>
-                                        <button
-                                            onClick={() => handleShare(file.name)}
-                                            className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
-                                            title="Share"
-                                        >
-                                            <Share2 className="h-5 w-5"/>
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setFileToDelete(file.name);
-                                                setShowDeleteDialog(true);
-                                            }}
-                                            className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                                            title={t('common.delete')}
-                                        >
-                                            <Trash2 className="h-5 w-5"/>
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700" htmlFor="quick-doc-note">
+                        {t("storage.noteLabel")}
+                      </label>
+                      <Textarea
+                        id="quick-doc-note"
+                        value={note}
+                        onChange={(event) => setNote(event.target.value)}
+                        rows={3}
+                        placeholder={t("storage.notePlaceholder")}
+                      />
                     </div>
+                  </>
+                )}
+              </div>
+            )}
+          </section>
+        </CardContent>
+      </Card>
 
-                    {/* Share Dialog */}
-                    <Dialog open={Boolean(shareUrl)} onOpenChange={() => {
-                        setShareUrl('');
-                        setSelectedFile(null);
-                    }}>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>{t('storage.shareTitle', { name: selectedFile?.split('/').pop() || '' })}</DialogTitle>
-                                <DialogDescription>
-                                    {t('storage.shareDesc')}
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="text"
-                                    value={shareUrl}
-                                    readOnly
-                                    className="flex-1 p-2 border rounded bg-gray-50"
-                                />
-                                <button
-                                    onClick={() => copyToClipboard(shareUrl)}
-                                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-full transition-colors relative"
-                                >
-                                    <Copy className="h-5 w-5"/>
-                                    {showCopiedMessage && (
-                                        <span
-                                            className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded">
-                                            {t('storage.copied')}
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("storage.recentUploadsTitle")}</CardTitle>
+          <CardDescription>{t("storage.recentUploadsSubtitle")}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {recentError && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              <AlertDescription>{recentError}</AlertDescription>
+            </Alert>
+          )}
 
-                    {/* Delete Confirmation Dialog */}
-                    <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>{t('storage.confirmDeleteTitle')}</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    {t('storage.confirmDeleteDesc')}
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                                    {t('common.delete')}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </CardContent>
-            </Card>
-        </div>
-    );
+          {recentLoading ? (
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              {t("common.loading")}
+            </div>
+          ) : recentDocuments.length === 0 ? (
+            <p className="text-sm text-gray-500">{t("storage.recentNone")}</p>
+          ) : (
+            <ul className="space-y-3">
+              {recentDocuments.map((doc) => {
+                const highlighted = highlightedIds.includes(doc.id);
+                return (
+                  <li
+                    key={doc.id}
+                    className={cn(
+                      "flex flex-col gap-1 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary-200 hover:bg-primary-50/60 md:flex-row md:items-center md:justify-between",
+                      highlighted && "border-primary-300 bg-primary-50"
+                    )}
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {doc.type} · {formatDate(doc.createdAt)}
+                      </p>
+                      {doc.interactionSubject && (
+                        <p className="text-xs text-gray-500">
+                          {t("storage.interactionSubjectLabel", { subject: doc.interactionSubject })}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-3 flex items-center gap-2 md:mt-0">
+                      <Link href={`/app/interactions/${doc.interactionId}`} className="inline-flex">
+                        <Button variant="outline" size="sm">
+                          {t("storage.openInteraction")}
+                        </Button>
+                      </Link>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
