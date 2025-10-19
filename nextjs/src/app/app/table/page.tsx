@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useGlobal } from '@/lib/context/GlobalContext';
 import {
     createSPASassClientAuthenticated as createSPASassClient
@@ -142,13 +142,7 @@ export default function TaskManagementPage() {
     const [filter, setFilter] = useState<boolean | null>(null);
     const [showConfetti, setShowConfetti] = useState<boolean>(false);
 
-    useEffect(() => {
-        if (user?.id) {
-            loadTasks();
-        }
-    }, [filter, user?.id]);
-
-    const loadTasks = async (): Promise<void> => {
+    const loadTasks = useCallback(async (): Promise<void> => {
         try {
             const isFirstLoad = initialLoading;
             if (!isFirstLoad) setLoading(true);
@@ -165,7 +159,13 @@ export default function TaskManagementPage() {
             setLoading(false);
             setInitialLoading(false);
         }
-    };
+    }, [filter, initialLoading, t]);
+
+    useEffect(() => {
+        if (user?.id) {
+            loadTasks();
+        }
+    }, [filter, user?.id, loadTasks]);
 
     const handleRemoveTask = async (id: number): Promise<void> => {
         try {

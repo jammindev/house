@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,9 +32,10 @@ export default function NewHouseholdPage() {
         throw new Error(payload?.error || "Failed to create household");
       }
       router.push("/app");
-    } catch (e: any) {
-      console.error(e);
-      setError(e?.message || "Failed to create household");
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to create household";
+      setError(message);
     } finally {
       setSubmitting(false);
     }

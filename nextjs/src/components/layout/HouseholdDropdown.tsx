@@ -4,12 +4,24 @@ import { ChevronDown, House, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
+type HouseholdOption = {
+  id: string;
+  name: string;
+};
+
+type HouseholdDropdownProps = {
+  households: HouseholdOption[];
+  currentHousehold: HouseholdOption | null;
+  selectedHouseholdId: string | null;
+  onSelect: (id: string) => void;
+};
+
 export default function HouseholdDropdown({
-    households,
-    currentHousehold,
-    selectedHouseholdId,
-    onSelect,
-}: any) {
+  households,
+  currentHousehold,
+  selectedHouseholdId,
+  onSelect,
+}: HouseholdDropdownProps) {
     const [isOpen, setOpen] = useState(false);
     const router = useRouter();
     const { t } = useI18n();
@@ -30,19 +42,19 @@ export default function HouseholdDropdown({
             {isOpen && (
                 <div className="absolute mt-2 w-64 bg-white rounded-md shadow-lg border z-50">
                     <div className="py-1 max-h-72 overflow-auto">
-                        {households.map((h: any) => (
+                        {households.map((household) => (
                             <button
-                                key={h.id}
+                                key={household.id}
                                 onClick={() => {
-                                    onSelect(h.id);
+                                    onSelect(household.id);
                                     setOpen(false);
                                 }}
-                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${selectedHouseholdId === h.id
+                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 ${selectedHouseholdId === household.id
                                         ? "bg-primary-50 text-primary-700"
                                         : "text-gray-700"
                                     }`}
                             >
-                                {h.name}
+                                {household.name}
                             </button>
                         ))}
                         <div className="my-1 border-t" />

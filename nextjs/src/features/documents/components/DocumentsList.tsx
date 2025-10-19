@@ -19,12 +19,15 @@ function formatDate(value: string) {
 }
 
 function formatSize(metadata: DocumentWithLinks["metadata"]) {
-  const size = metadata && typeof metadata === "object" && "size" in metadata ? Number((metadata as any).size) : NaN;
-  if (!Number.isFinite(size) || size <= 0) return "";
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  const sizeValue =
+    metadata && typeof metadata === "object" && "size" in metadata
+      ? Number((metadata as { size: unknown }).size)
+      : NaN;
+  if (!Number.isFinite(sizeValue) || sizeValue <= 0) return "";
+  if (sizeValue < 1024) return `${sizeValue} B`;
+  if (sizeValue < 1024 * 1024) return `${(sizeValue / 1024).toFixed(1)} KB`;
+  if (sizeValue < 1024 * 1024 * 1024) return `${(sizeValue / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(sizeValue / (1024 * 1024 * 1024)).toFixed(1)} GB`;
 }
 
 type DocumentsListProps = {

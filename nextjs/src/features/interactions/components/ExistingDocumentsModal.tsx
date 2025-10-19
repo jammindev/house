@@ -94,7 +94,7 @@ export default function ExistingDocumentsModal({
           notes: row.notes ?? "",
           mime_type: row.mime_type ?? null,
           type: (row.type ?? "document") as DocumentType,
-          metadata: row.metadata as any,
+          metadata: row.metadata ?? null,
           created_at: row.created_at,
           created_by: row.created_by ?? null,
           interaction_id: undefined,
@@ -103,7 +103,7 @@ export default function ExistingDocumentsModal({
           link_created_at: null,
         }));
         setDocuments(mapped);
-      } catch (loadError) {
+      } catch (loadError: unknown) {
         console.error(loadError);
         if (cancelled) return;
         const message =
@@ -148,7 +148,7 @@ export default function ExistingDocumentsModal({
       await onConfirm(selectedDocs);
       setSelectedIds(new Set());
       onOpenChange(false);
-    } catch (confirmError) {
+    } catch (confirmError: unknown) {
       console.error(confirmError);
       const message =
         confirmError instanceof Error ? confirmError.message : t("storage.quickUploadFailed");

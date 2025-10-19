@@ -30,9 +30,9 @@ export function InteractionDeleteButton({ interactionId, onDeleted, className }:
       setError("");
       setConfirmOpen(false);
       onDeleted?.();
-    } catch (err: any) {
+    } catch (error: unknown) {
       const fallback = t("interactions.deleteFailed");
-      const message = err?.message || fallback;
+      const message = error instanceof Error ? error.message : fallback;
       setError(fallback);
       show({ title: fallback, description: message !== fallback ? message : undefined, variant: "error" });
     }

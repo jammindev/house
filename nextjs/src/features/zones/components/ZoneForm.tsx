@@ -9,7 +9,7 @@ import { formatZoneOptionLabel } from "../lib/tree";
 interface Props {
     open: boolean;
     setOpen: (v: boolean) => void;
-    t: (key: string, args?: Record<string, any>) => string;
+    t: (key: string, args?: Record<string, string | number>) => string;
     sortedZones: Zone[];
     zoneDepths: Map<string, number>;
     onCreate: (payload: { name: string; parent_id: string | null; note: string | null; surface: number | null }) => Promise<void>;

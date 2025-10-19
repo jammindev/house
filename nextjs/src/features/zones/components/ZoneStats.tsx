@@ -5,7 +5,7 @@ import type { ZoneStats } from "../types";
 
 interface Props {
     stats: ZoneStats;
-    t: (key: string, args?: Record<string, any>) => string;
+    t: (key: string, args?: Record<string, string | number>) => string;
     formattedSurfaceTotal: string | null;
 }
 

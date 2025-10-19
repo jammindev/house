@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import type { PostgrestError } from "@supabase/supabase-js";
 import type { InteractionTag } from "@interactions/types";
 
 type InteractionTagsSelectorProps = {
@@ -19,6 +20,9 @@ type InteractionTagsSelectorProps = {
 
 const sortTags = (list: InteractionTag[]) =>
   [...list].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+
+const isPostgrestError = (error: unknown): error is PostgrestError =>
+  typeof error === "object" && error !== null && "code" in error;
 
 export default function InteractionTagsSelector({
   householdId,
@@ -65,7 +69,7 @@ export default function InteractionTagsSelector({
         if (!active) return;
         const rows = (data ?? []) as InteractionTag[];
         setAvailableTags(sortTags(rows));
-      } catch (err) {
+      } catch (err: unknown) {
         console.error(err);
         if (!active) return;
         setAvailableTags([]);
@@ -123,7 +127,7 @@ export default function InteractionTagsSelector({
         .select("id, name, household_id, type, created_at, created_by")
         .single();
       if (error) {
-        if ((error as any)?.code === "23505") {
+        if (isPostgrestError(error) && error.code === "23505") {
           const dup = availableTags.find((tag) => tag.name.toLowerCase() === trimmed.toLowerCase());
           if (dup) {
             onChange(value.includes(dup.id) ? value : [...value, dup.id]);
@@ -141,9 +145,9 @@ export default function InteractionTagsSelector({
         onChange([...value, newTag.id]);
       }
       setTagInputValue("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      const description = err?.message || t("interactionstagsCreateFailed");
+      const description = err instanceof Error ? err.message : t("interactionstagsCreateFailed");
       show({ title: t("interactionstagsCreateFailed"), description, variant: "error" });
     } finally {
       setCreatingTag(false);

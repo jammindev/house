@@ -3,8 +3,15 @@ import { useState } from "react";
 import { ChevronDown, Key, LogOut } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import UserAvatar from "./UserAvatar";
+import type { User } from "@/lib/context/GlobalContext";
 
-export default function UserDropdown({ user, onLogout, onChangePassword }: any) {
+type UserDropdownProps = {
+  user: User | null;
+  onLogout: () => void;
+  onChangePassword: () => void;
+};
+
+export default function UserDropdown({ user, onLogout, onChangePassword }: UserDropdownProps) {
     const [isOpen, setOpen] = useState(false);
     const { t } = useI18n();
 

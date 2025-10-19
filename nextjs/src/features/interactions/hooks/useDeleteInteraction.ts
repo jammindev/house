@@ -70,10 +70,11 @@ export function useDeleteInteraction() {
           .in("id", orphanDocumentIds);
         if (docDeleteError) throw docDeleteError;
       }
-    } catch (err: any) {
-      console.error("❌ Failed to delete interaction:", err);
-      setError(err?.message || "Failed to delete interaction");
-      throw err;
+    } catch (error: unknown) {
+      console.error("❌ Failed to delete interaction:", error);
+      const message = error instanceof Error ? error.message : "Failed to delete interaction";
+      setError(message);
+      throw error;
     } finally {
       setLoading(false);
     }

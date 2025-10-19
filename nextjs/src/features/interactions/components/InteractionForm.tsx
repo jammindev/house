@@ -37,11 +37,6 @@ type InteractionFormProps = {
   onCreated?: (interactionId: string) => void;
 };
 
-const inferFileType = (file: File): DocumentType => {
-  if (file.type?.startsWith("image/")) return "photo";
-  return "document";
-};
-
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
 
 export default function InteractionForm({ zones, zonesLoading = false, onCreated }: InteractionFormProps) {
@@ -73,19 +68,6 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
     if (!hasZones) return t("zones.none");
     return t("interactionszoneHelper");
   }, [hasZones, t, zonesLoading]);
-
-  const handleFilesSelected = useCallback((picked: File[]) => {
-    if (!picked.length) return;
-    setFiles((prev) => [
-      ...prev,
-      ...picked.map((file) => ({
-        file,
-        customName: file.name,
-        type: inferFileType(file),
-        notes: "",
-      })),
-    ]);
-  }, []);
 
   const handleDocumentsStaged = useCallback((staged: StagedDocument[]) => {
     if (staged.length === 0) return;
@@ -229,10 +211,10 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
                 originalName: item.file.name,
               },
             })
-            .select("id")
+            .select<{ id: string }>("id")
             .single();
           if (docError) throw docError;
-          const documentId = insertedDoc?.id as string | undefined;
+          const documentId = insertedDoc?.id;
           if (!documentId) throw new Error("Failed to create document");
 
           const { error: linkError } = await client.from("interaction_documents").insert({
@@ -261,9 +243,9 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
       resetForm();
       onCreated?.(interactionId);
       router.push("/app/interactions?created=1");
-    } catch (e: any) {
-      console.error(e);
-      const message = e?.message || t("interactionscreateFailed");
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : t("interactionscreateFailed");
       setError(message);
       show({ title: t("interactionscreateFailed"), description: message, variant: "error" });
     } finally {

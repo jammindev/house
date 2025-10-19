@@ -13,12 +13,13 @@ const ToastContext = createContext<ToastContextType | null>(null);
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const timers = useRef<Record<string, any>>({});
+  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   const remove = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-    if (timers.current[id]) {
-      clearTimeout(timers.current[id]);
+    const timerRef = timers.current[id];
+    if (timerRef) {
+      clearTimeout(timerRef);
       delete timers.current[id];
     }
   }, []);

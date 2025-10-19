@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, X, Loader2, Link as LinkIcon } from "lucide-react";
+import { Upload, Loader2, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -69,7 +69,7 @@ export default function InteractionAttachmentImport({
 
         const resolvedType: DocumentType = inferType(file);
         const { data: document, error: documentError } = await client
-          .from("documents" as any)
+          .from("documents")
           .insert({
             household_id: selectedHouseholdId,
             file_path: storagePath,
@@ -82,11 +82,11 @@ export default function InteractionAttachmentImport({
               customName: file.name || "file",
             },
           })
-          .select("id")
+          .select<{ id: string }>("id")
           .single();
         if (documentError) throw documentError;
 
-        const documentId = document?.id as string | undefined;
+        const documentId = document?.id;
         if (!documentId) throw new Error("Failed to create document");
 
         const { error: linkError } = await client
@@ -102,8 +102,8 @@ export default function InteractionAttachmentImport({
 
       setOpen(false);
       onUploaded?.();
-    } catch (e) {
-      console.error(e);
+    } catch (error: unknown) {
+      console.error(error);
       alert("Le téléversement a échoué.");
     } finally {
       setUploading(false);
@@ -132,8 +132,8 @@ export default function InteractionAttachmentImport({
       setLibraryOpen(false);
       setOpen(false);
       onUploaded?.();
-    } catch (e) {
-      console.error(e);
+    } catch (error: unknown) {
+      console.error(error);
       alert(t("interactions.linkDocumentsFailed") ?? "Impossible de lier les documents.");
     } finally {
       setUploading(false);

@@ -155,9 +155,10 @@ export function useContacts() {
 
       const normalized = sortContacts((data ?? []).map((item) => normalizeContact(item as RawContact)));
       setContacts(normalized);
-    } catch (e: any) {
-      console.error(e);
-      setError(e?.message || t("contacts.loadFailed"));
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : t("contacts.loadFailed");
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -244,9 +245,10 @@ export function useContacts() {
         setContacts((prev) => sortContacts([...prev, contact]));
 
         return contact;
-      } catch (e: any) {
-        console.error(e);
-        throw new Error(e?.message || t("contacts.createFailed"));
+      } catch (error: unknown) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : t("contacts.createFailed");
+        throw new Error(message);
       }
     },
     [t]

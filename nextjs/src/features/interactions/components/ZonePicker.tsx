@@ -126,7 +126,7 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
         </div>
       );
     },
-    [childrenMap, expanded, toggleExpand, toggleZone, value]
+    [childrenMap, expanded, toggleExpand, toggleZone, value, zoneMap, getDescendants]
   );
 
   const topLevelZones = useMemo(() => {

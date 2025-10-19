@@ -13,7 +13,7 @@ export function getInteractionFileName(file: Document): string {
   }
 
   const lastSegment = file.file_path.split("/").pop() ?? "";
-  const [_prefix, ...rest] = lastSegment.split("_");
+  const [, ...rest] = lastSegment.split("_");
   const fallback = rest.length ? rest.join("_") : lastSegment;
   return fallback || "file";
 }

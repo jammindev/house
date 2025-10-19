@@ -1,22 +1,22 @@
 // nextjs/src/lib/context/GlobalContext.tsx
-'use client';
+"use client";
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode, useMemo } from 'react';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/types';
 
-
-type User = {
+export type User = {
     email: string;
     id: string;
     registered_at: Date;
 };
 
-type Household = {
+export type Household = {
     id: string;
     name: string;
 };
 
-interface GlobalContextType {
+export interface GlobalContextType {
     loading: boolean;
     user: User | null;
     households: Household[];
@@ -36,7 +36,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         }
         try {
             return localStorage.getItem('selectedHouseholdId');
-        } catch (error) {
+        } catch {
             return null;
         }
     });
@@ -58,8 +58,8 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                 } else {
                     localStorage.removeItem('selectedHouseholdId');
                 }
-            } catch (error) {
-                console.error('Error loading global context data:', error);
+            } catch (loadError) {
+                console.error('Error loading global context data:', loadError);
             }
 
             return id;
@@ -79,7 +79,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                     client
                         .from('households')
                         .select('id, name')
-                        .order('created_at' as any)
+                        .order('created_at')
                 ]);
 
                 if (!isMounted) {
@@ -107,7 +107,12 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                     return;
                 }
 
-                const fetchedHouseholds = (householdsResult.data ?? []) as unknown as Household[];
+                type HouseholdRow = Pick<Database['public']['Tables']['households']['Row'], 'id' | 'name'>;
+                const fetchedHouseholds: Household[] =
+                    (householdsResult.data as HouseholdRow[] | null)?.map((household) => ({
+                        id: household.id,
+                        name: household.name,
+                    })) ?? [];
                 setHouseholds(fetchedHouseholds);
 
                 if (!fetchedHouseholds.length) {

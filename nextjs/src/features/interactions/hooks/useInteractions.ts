@@ -135,7 +135,7 @@ export function useInteractions() {
             `
           )
           .eq("household_id", householdId)
-          .order("occurred_at" as any, { ascending: false })
+          .order("occurred_at", { ascending: false })
           .limit(100);
         if (interactionError) throw interactionError;
         const list = (interactionData ?? []) as RawInteraction[];
@@ -250,7 +250,7 @@ export function useInteractions() {
           });
           setDocumentCounts(counts);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(error);
         const message = error instanceof Error ? error.message : t("interactionslistLoadFailed");
         setError(message);

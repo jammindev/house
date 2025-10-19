@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { Layers } from "lucide-react";
 import { useInteractionZones } from "@interactions/hooks/useInteractionZones";
 import { useZones } from "@/features/zones/hooks/useZones";
-import { useGlobal } from "@/lib/context/GlobalContext";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -18,9 +17,8 @@ type Props = {
 
 export default function InteractionZonesList({ interactionId }: Props) {
   const { t } = useI18n();
-  const { selectedHouseholdId } = useGlobal();
   const { zones: interactionZones, updateZones } = useInteractionZones(interactionId);
-  const { zones: hhZones, loading: loadingZones } = useZones(selectedHouseholdId);
+  const { zones: hhZones, loading: loadingZones } = useZones();
 
   const [open, setOpen] = useState(false);
   const initialSelection = useMemo(() => interactionZones.map((z) => z.id), [interactionZones]);
@@ -82,7 +80,7 @@ export default function InteractionZonesList({ interactionId }: Props) {
             {loadingZones ? (
               <div className="text-sm text-gray-500">{t("zones.loading")}</div>
             ) : (
-              <ZonePicker zones={hhZones as any} value={selected} onChange={setSelected} />
+              <ZonePicker zones={hhZones} value={selected} onChange={setSelected} />
             )}
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="secondary" onClick={() => handleOpen(false)} disabled={saving}>

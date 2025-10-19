@@ -52,13 +52,14 @@ export function useDeleteDocument() {
           if (storageError) throw storageError;
         }
 
-        const { error: dbError } = await client.from("documents" as any).delete().eq("id", file.id);
+        const { error: dbError } = await client.from("documents").delete().eq("id", file.id);
         if (dbError) throw dbError;
       }
-    } catch (e: any) {
-      console.error("Failed to delete document", e);
-      setError(e?.message || "Failed to delete document");
-      throw e;
+    } catch (error: unknown) {
+      console.error("Failed to delete document", error);
+      const message = error instanceof Error ? error.message : "Failed to delete document";
+      setError(message);
+      throw error;
     } finally {
       setLoading(false);
     }

@@ -14,7 +14,10 @@ type I18nContextType = {
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
-const DICTS: Record<Locale, Dict> = { en, fr } as any;
+const DICTS: Record<Locale, Dict> = {
+  en: en as Dict,
+  fr: fr as Dict,
+};
 
 function translate(dict: Dict, key: string, params?: Record<string, string | number>) {
   let template = dict[key] ?? DICTS.en[key] ?? key;

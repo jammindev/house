@@ -73,11 +73,11 @@ export function useUpdateInteraction() {
           .insert(structureIds.map((structureId) => ({ interaction_id: interactionId, structure_id: structureId })));
         if (insertStructuresError) throw insertStructuresError;
       }
-    } catch (err: any) {
-      console.error(err);
-      const message = err?.message || "Failed to update interaction";
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to update interaction";
       setError(message);
-      throw err;
+      throw error;
     } finally {
       setLoading(false);
     }

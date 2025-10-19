@@ -1,9 +1,8 @@
 // nextjs/src/app/app/interactions/page.tsx
 "use client";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { useGlobal } from "@/lib/context/GlobalContext";
 import { useToast } from "@/components/ToastProvider";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -23,7 +22,7 @@ export default function InteractionsPage() {
 
   useEffect(() => {
     if (searchParams?.get("created") === "1") {
-      const sp = new URLSearchParams(searchParams as any);
+      const sp = new URLSearchParams(searchParams.toString());
       sp.delete("created");
       const next = `/app/interactions${sp.toString() ? `?${sp.toString()}` : ""}`;
       router.replace(next, { scroll: false });

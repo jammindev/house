@@ -17,6 +17,7 @@ import { useDeleteDocument } from "@interactions/hooks/useDeleteDocument";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import Image from "next/image";
 
 interface GalleryModalProps {
     item: GalleryItem | null;
@@ -145,12 +146,17 @@ export default function GalleryModal({
                         )}
 
                         {/* === Image === */}
-                        <figure className="max-h-[calc(100vh-6rem)] w-full max-w-4xl">
-                            <img
-                                src={item.url}
-                                alt={item.fileName}
-                                className="h-full w-full max-h-[calc(100vh-6rem)] object-contain"
-                            />
+                        <figure className="relative max-h-[calc(100vh-6rem)] w-full max-w-4xl">
+                            <div className="relative h-[60vh] w-full">
+                                <Image
+                                    src={item.url}
+                                    alt={item.fileName}
+                                    fill
+                                    sizes="(max-width: 1024px) 90vw, 1024px"
+                                    className="object-contain"
+                                    unoptimized
+                                />
+                            </div>
                             {item.fileName && (
                                 <figcaption className="mt-3 text-center text-sm text-gray-200">
                                     {item.fileName}

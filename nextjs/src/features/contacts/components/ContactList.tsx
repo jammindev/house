@@ -6,7 +6,7 @@ import { formatFullName, getPrimaryEmail, getPrimaryPhone } from "../lib/format"
 type ContactListProps = {
   contacts: Contact[];
   onSelect: (contact: Contact) => void;
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 };
 
 export default function ContactList({ contacts, onSelect, t }: ContactListProps) {

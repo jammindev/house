@@ -11,7 +11,7 @@ interface Props {
     zonesById: Map<string, Zone>;
     zoneDepths: Map<string, number>;
     numberFormatter: Intl.NumberFormat;
-    t: (key: string, args?: Record<string, any>) => string;
+    t: (key: string, args?: Record<string, string | number>) => string;
     onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null }) => Promise<void>;
     onAskDelete: (z: Zone) => void;
     deletingId?: string | null;

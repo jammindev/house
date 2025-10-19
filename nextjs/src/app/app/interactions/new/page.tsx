@@ -1,9 +1,8 @@
 // nextjs/src/app/app/interactions/new/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";

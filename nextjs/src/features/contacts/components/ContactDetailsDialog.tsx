@@ -22,7 +22,7 @@ type ContactDetailsDialogProps = {
   contact: Contact | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 };
 
 export default function ContactDetailsDialog({ contact, open, onOpenChange, t }: ContactDetailsDialogProps) {

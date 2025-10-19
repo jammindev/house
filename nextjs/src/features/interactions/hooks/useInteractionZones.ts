@@ -2,6 +2,18 @@
 import { useEffect, useState, useCallback } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { Zone } from "@/features/zones/types";
+import type { Database } from "@/lib/types";
+
+type ZoneRow = Pick<Database["public"]["Tables"]["zones"]["Row"], "id" | "name" | "parent_id" | "created_by" | "note" | "surface">;
+
+const mapZoneRow = (row: ZoneRow): Zone => ({
+  id: row.id,
+  name: row.name,
+  parent_id: row.parent_id,
+  created_by: row.created_by ?? undefined,
+  note: row.note,
+  surface: row.surface,
+});
 
 export function useInteractionZones(interactionId?: string) {
   const [zones, setZones] = useState<Zone[]>([]);
@@ -20,11 +32,11 @@ export function useInteractionZones(interactionId?: string) {
       // First get zone ids linked to this interaction
       const { data: links, error: lErr } = await client
         .from("interaction_zones")
-        .select("zone_id")
+        .select<{ zone_id: string }>("zone_id")
         .eq("interaction_id", interactionId);
       if (lErr) throw lErr;
 
-      const zoneIds = ((links ?? []) as { zone_id: string }[]).map((l) => l.zone_id).filter(Boolean);
+      const zoneIds = (links ?? []).map((link) => link.zone_id).filter(Boolean);
       if (zoneIds.length === 0) {
         setZones([]);
         return;
@@ -32,14 +44,15 @@ export function useInteractionZones(interactionId?: string) {
 
       const { data, error: zErr } = await client
         .from("zones")
-        .select("id,name,parent_id,created_by,note,surface")
+        .select<ZoneRow>("id,name,parent_id,created_by,note,surface")
         .in("id", zoneIds)
-        .order("name" as any);
+        .order("name");
       if (zErr) throw zErr;
-      setZones((data ?? []) as unknown as Zone[]);
-    } catch (e: any) {
-      console.error(e);
-      setError(e?.message || "Failed to load zones for interaction");
+      setZones((data ?? []).map(mapZoneRow));
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to load zones for interaction";
+      setError(message);
     } finally {
       setLoading(false);
     }

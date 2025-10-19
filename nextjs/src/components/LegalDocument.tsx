@@ -37,7 +37,7 @@ const LegalDocument: React.FC<LegalDocumentProps> = ({ filePath, title }) => {
                 setError(t('legal.loadFailed'));
                 setLoading(false);
             });
-    }, [filePath]);
+    }, [filePath, t]);
 
     return (
         <Card className="w-full max-w-4xl mx-auto my-8">

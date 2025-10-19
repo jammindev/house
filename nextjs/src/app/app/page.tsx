@@ -1,22 +1,19 @@
 // nextjs/src/app/app/page.tsx
 "use client";
-import React, { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useGlobal } from '@/lib/context/GlobalContext';
-import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Layers, PlusCircle, Users } from 'lucide-react';
-import { useI18n } from '@/lib/i18n/I18nProvider';
+import React, { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useGlobal } from "@/lib/context/GlobalContext";
+import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Layers, PlusCircle, Users } from "lucide-react";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { Database } from "@/lib/types";
 
-type InteractionSummary = {
-  id: string;
-  subject: string;
-  content: string;
-  occurred_at: string;
-  created_at: string;
-  type: string;
-};
+type InteractionSummary = Pick<
+  Database["public"]["Tables"]["interactions"]["Row"],
+  "id" | "subject" | "content" | "occurred_at" | "created_at" | "type"
+>;
 
 export default function DashboardContent() {
   const { loading, user, households, selectedHouseholdId } = useGlobal();
@@ -27,13 +24,6 @@ export default function DashboardContent() {
   const [contactCount, setContactCount] = useState<number>(0);
   const [loadingData, setLoadingData] = useState<boolean>(false);
   const currentHousehold = useMemo(() => households.find(h => h.id === selectedHouseholdId) || null, [households, selectedHouseholdId]);
-
-  const getDaysSinceRegistration = () => {
-    if (!user?.registered_at) return 0;
-    const today = new Date();
-    const diffTime = Math.abs(today.getTime() - user.registered_at.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
 
   useEffect(() => {
     const load = async () => {
@@ -52,31 +42,31 @@ export default function DashboardContent() {
 
         // Recent interactions
         const { data: interactionData, count: interactionTotal, error: interactionError } = await client
-          .from('interactions')
-          .select('id, subject, content, occurred_at, created_at, type', { count: 'exact' })
-          .eq('household_id', selectedHouseholdId)
-          .order('occurred_at' as any, { ascending: false })
+          .from("interactions")
+          .select<InteractionSummary>("id, subject, content, occurred_at, created_at, type", { count: "exact" })
+          .eq("household_id", selectedHouseholdId)
+          .order("occurred_at", { ascending: false })
           .limit(3);
         if (interactionError) throw interactionError;
-        setInteractions((interactionData ?? []) as unknown as InteractionSummary[]);
+        setInteractions(interactionData ?? []);
         setInteractionCount(interactionTotal || 0);
 
         // Zones count
         const { count: zCount, error: zErr } = await client
-          .from('zones' as any)
-          .select('id', { count: 'exact', head: true })
-          .eq('household_id', selectedHouseholdId);
+          .from("zones")
+          .select("id", { count: "exact", head: true })
+          .eq("household_id", selectedHouseholdId);
         if (zErr) throw zErr;
         setZoneCount(zCount || 0);
 
         const { count: cCount, error: cErr } = await client
-          .from('contacts' as any)
-          .select('id', { count: 'exact', head: true })
-          .eq('household_id', selectedHouseholdId);
+          .from("contacts")
+          .select("id", { count: "exact", head: true })
+          .eq("household_id", selectedHouseholdId);
         if (cErr) throw cErr;
         setContactCount(cCount || 0);
-      } catch (e) {
-        console.error(e);
+      } catch (error: unknown) {
+        console.error(error);
       } finally {
         setLoadingData(false);
       }
@@ -98,8 +88,8 @@ export default function DashboardContent() {
       <div className="space-y-6 p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Welcome, {user?.email?.split('@')[0]}!</CardTitle>
-            <CardDescription>You don't belong to a household yet.</CardDescription>
+            <CardTitle>Welcome, {user?.email?.split("@")[0]}!</CardTitle>
+            <CardDescription>You don&apos;t belong to a household yet.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
@@ -113,8 +103,6 @@ export default function DashboardContent() {
       </div>
     );
   }
-
-  const daysSinceRegistration = getDaysSinceRegistration();
 
   return (
     <div className="space-y-6 md:p-6">

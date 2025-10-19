@@ -18,6 +18,7 @@ import ZoneList from "@zones/components/ZoneList";
 
 export default function ZonesPage() {
   const { t } = useI18n();
+  const { selectedHouseholdId } = useGlobal();
   const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -26,8 +27,7 @@ export default function ZonesPage() {
   const [formOpen, setFormOpen] = useState(false);
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
-  const { zonesById, sortedZones, zoneDepths, zoneStats } = useMemo(() => computeZoneTree(zones), [zones]);
-  const formattedSurfaceTotal = zoneStats.hasSurfaceData ? numberFormatter.format(zoneStats.surfaceSum) : null;
+  const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
 
   return (
     <AppPageLayout
@@ -49,9 +49,10 @@ export default function ZonesPage() {
           if (!selectedHouseholdId) return;
           try {
             await createZone({ household_id: selectedHouseholdId, name, parent_id, note, surface });
-          } catch (e: any) {
-            console.error(e);
-            setError(e?.message || t("zones.createFailed"));
+          } catch (error: unknown) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : t("zones.createFailed");
+            setError(message);
           }
         }}
       />
@@ -73,9 +74,10 @@ export default function ZonesPage() {
               onEdit={async (id, payload) => {
                 try {
                   await updateZone(id, payload);
-                } catch (e: any) {
-                  console.error(e);
-                  setError(e?.message || t("zones.updateFailed"));
+                } catch (error: unknown) {
+                  console.error(error);
+                  const message = error instanceof Error ? error.message : t("zones.updateFailed");
+                  setError(message);
                 }
               }}
               onAskDelete={(z) => {
@@ -104,9 +106,10 @@ export default function ZonesPage() {
           try {
             setDeletingId(pendingDelete.id);
             await deleteZone(pendingDelete.id);
-          } catch (e: any) {
-            console.error(e);
-            setError(e?.message || t("zones.deleteFailed"));
+          } catch (error: unknown) {
+            console.error(error);
+            const message = error instanceof Error ? error.message : t("zones.deleteFailed");
+            setError(message);
           } finally {
             setDeletingId(null);
             setConfirmOpen(false);

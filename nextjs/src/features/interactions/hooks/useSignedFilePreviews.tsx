@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document } from "@interactions/types";
@@ -11,7 +11,7 @@ export function useSignedFilePreviews(files: Document[]) {
     const { t } = useI18n();
     const [previews, setPreviews] = useState<Record<string, { view: string; download: string }>>({});
     const [fileError, setFileError] = useState("");
-    const [refreshTimer, setRefreshTimer] = useState<NodeJS.Timeout | null>(null);
+    const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (!files.length) {
@@ -50,10 +50,11 @@ export function useSignedFilePreviews(files: Document[]) {
                     setPreviews(Object.fromEntries(interactions));
                     setFileError("");
 
-                    if (refreshTimer) clearTimeout(refreshTimer);
+                    if (refreshTimerRef.current) {
+                        clearTimeout(refreshTimerRef.current);
+                    }
                     const refreshDelay = (SIGNED_URL_TTL - REFRESH_BEFORE_EXPIRY) * 1000;
-                    const timer = setTimeout(loadPreviews, refreshDelay);
-                    setRefreshTimer(timer);
+                    refreshTimerRef.current = setTimeout(loadPreviews, refreshDelay);
                 }
             } catch (e) {
                 console.error(e);
@@ -64,7 +65,10 @@ export function useSignedFilePreviews(files: Document[]) {
         loadPreviews();
         return () => {
             cancelled = true;
-            if (refreshTimer) clearTimeout(refreshTimer);
+            if (refreshTimerRef.current) {
+                clearTimeout(refreshTimerRef.current);
+                refreshTimerRef.current = null;
+            }
         };
     }, [files, t]);
 

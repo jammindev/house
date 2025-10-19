@@ -8,6 +8,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Document, DocumentType } from "@interactions/types";
+import type { Database } from "@/lib/types";
+
+type DocumentRow = Database["public"]["Tables"]["documents"]["Row"];
+
+type InteractionDocumentLinkRow = {
+    interaction_id: string | null;
+    role: string | null;
+    note: string | null;
+    created_at: string | null;
+    document: DocumentRow | null;
+};
 
 export type StagedDocument = {
     id: string; // local id for list rendering
@@ -45,7 +56,7 @@ function inferTypeFromFile(file: File): DocumentType {
 
 // Persist a set of staged docs into Supabase storage + DB
 export async function persistDocuments(
-    supabase: SupabaseClient,
+    supabase: SupabaseClient<Database>,
     params: {
         householdId: string;
         interactionId: string;
@@ -93,8 +104,9 @@ export async function persistDocuments(
 
         if (documentError) throw documentError;
 
-        const documentId = (documentRow as any)?.id as string | undefined;
-        if (!documentId) throw new Error("Document creation failed");
+        const typedDocumentRow = documentRow as DocumentRow | null;
+        const documentId = typedDocumentRow?.id;
+        if (!typedDocumentRow || !documentId) throw new Error("Document creation failed");
 
         const { data: linkRow, error: linkError } = await supabase
             .from("interaction_documents")
@@ -127,7 +139,11 @@ export async function persistDocuments(
             .single();
         if (linkError) throw linkError;
 
-        const documentData = linkRow?.document as any;
+        const typedLink = linkRow as InteractionDocumentLinkRow | null;
+        const documentData = typedLink?.document;
+        if (!documentData) {
+            throw new Error("Document link failed");
+        }
         const normalizedDocument: Document = {
             id: documentData.id,
             household_id: documentData.household_id,
@@ -139,17 +155,17 @@ export async function persistDocuments(
             metadata: documentData.metadata,
             created_at: documentData.created_at,
             created_by: documentData.created_by ?? null,
-            interaction_id: linkRow?.interaction_id,
-            link_role: linkRow?.role ?? null,
-            link_note: linkRow?.note ?? null,
-            link_created_at: linkRow?.created_at ?? null,
+            interaction_id: typedLink?.interaction_id ?? interactionId,
+            link_role: typedLink?.role ?? null,
+            link_note: typedLink?.note ?? null,
+            link_created_at: typedLink?.created_at ?? null,
         };
 
         inserted.push({
-            interaction_id: linkRow?.interaction_id ?? interactionId,
-            link_role: linkRow?.role ?? null,
-            link_note: linkRow?.note ?? null,
-            link_created_at: linkRow?.created_at ?? null,
+            interaction_id: typedLink?.interaction_id ?? interactionId,
+            link_role: typedLink?.role ?? null,
+            link_note: typedLink?.note ?? null,
+            link_created_at: typedLink?.created_at ?? null,
             document: normalizedDocument,
         });
     }
@@ -161,7 +177,7 @@ export async function persistDocuments(
 export function AddDocumentsModal(props: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    supabase?: SupabaseClient;
+    supabase?: SupabaseClient<Database>;
     householdId: string;
     mode: "staging" | "immediate";
     interactionId?: string; // required if mode === "immediate"
@@ -251,8 +267,9 @@ export function AddDocumentsModal(props: {
             });
             onUploaded?.(rows);
             onOpenChange(false);
-        } catch (e: any) {
-            setError(e?.message ?? "Échec de l'enregistrement des documents");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Échec de l'enregistrement des documents";
+            setError(message);
         } finally {
             setIsSubmitting(false);
         }

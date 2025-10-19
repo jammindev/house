@@ -1,52 +1,47 @@
-'use client';
+"use client";
 
-import React from 'react';
-import LegalDocument from '@/components/LegalDocument';
-import { notFound } from 'next/navigation';
-import { useI18n } from '@/lib/i18n/I18nProvider';
+import LegalDocument from "@/components/LegalDocument";
+import { notFound } from "next/navigation";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
 const legalDocuments = {
-    'privacy': {
-        titleKey: 'legal.privacyNotice',
-        path: '/terms/privacy-notice.md'
-    },
-    'terms': {
-        titleKey: 'legal.termsOfService',
-        path: '/terms/terms-of-service.md'
-    },
-    'refund': {
-        titleKey: 'legal.refundPolicy',
-        path: '/terms/refund-policy.md'
-    }
+  privacy: {
+    titleKey: "legal.privacyNotice",
+    path: "/terms/privacy-notice.md",
+  },
+  terms: {
+    titleKey: "legal.termsOfService",
+    path: "/terms/terms-of-service.md",
+  },
+  refund: {
+    titleKey: "legal.refundPolicy",
+    path: "/terms/refund-policy.md",
+  },
 } as const;
 
-type LegalDocument = keyof typeof legalDocuments;
+type LegalDocumentKey = keyof typeof legalDocuments;
 
-interface LegalPageProps {
-    document: LegalDocument;
-    lng: string;
+type LegalPageProps = {
+  params: { document: string };
+};
+
+function isLegalDocumentKey(value: string): value is LegalDocumentKey {
+  return value in legalDocuments;
 }
 
-interface LegalPageParams {
-    params: Promise<LegalPageProps>
-}
+export default function LegalPage({ params }: LegalPageProps) {
+  const { t } = useI18n();
+  const document = params.document;
 
-export default function LegalPage({ params }: LegalPageParams) {
-    const {document} = React.use<LegalPageProps>(params);
-    const { t } = useI18n();
+  if (!isLegalDocumentKey(document)) {
+    notFound();
+  }
 
-    if (!legalDocuments[document]) {
-        notFound();
-    }
+  const { titleKey, path } = legalDocuments[document];
 
-    const { titleKey, path } = legalDocuments[document];
-
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <LegalDocument
-                title={t(titleKey as any)}
-                filePath={path}
-            />
-        </div>
-    );
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <LegalDocument title={t(titleKey)} filePath={path} />
+    </div>
+  );
 }

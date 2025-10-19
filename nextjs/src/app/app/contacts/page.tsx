@@ -2,11 +2,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ToastProvider";
 import ContactList from "@contacts/components/ContactList";
 import ContactDetailsDialog from "@contacts/components/ContactDetailsDialog";

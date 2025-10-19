@@ -5,7 +5,7 @@ import type { Interaction } from "@interactions/types";
 interface Props {
   interactions: Interaction[];
   documentCounts: Record<string, number>;
-  t: (key: string, args?: Record<string, any>) => string;
+  t: (key: string, args?: Record<string, string | number>) => string;
 }
 
 export default function InteractionList({ interactions, documentCounts, t }: Props) {

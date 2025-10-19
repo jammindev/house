@@ -4,7 +4,6 @@
 import { useMemo, useState } from "react";
 
 import AppPageLayout from "@/components/layout/AppPageLayout";
-import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { DocumentsFilters } from "@/features/documents/components/DocumentsFilters";
 import { DocumentsList } from "@/features/documents/components/DocumentsList";

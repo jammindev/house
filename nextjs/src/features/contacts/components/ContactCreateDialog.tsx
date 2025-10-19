@@ -42,7 +42,7 @@ type ContactCreateDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: ContactCreateFormValues) => Promise<void>;
-  t: (key: string, values?: Record<string, any>) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 };
 
 export default function ContactCreateDialog({ open, onOpenChange, onSubmit, t }: ContactCreateDialogProps) {
@@ -76,8 +76,9 @@ export default function ContactCreateDialog({ open, onOpenChange, onSubmit, t }:
     try {
       await onSubmit(values);
       onOpenChange(false);
-    } catch (e: any) {
-      setSubmitError(e?.message || t("contacts.createFailed"));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : t("contacts.createFailed");
+      setSubmitError(message);
     }
   });
 
