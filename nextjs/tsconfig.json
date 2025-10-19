@@ -41,6 +41,9 @@
       ],
       "@structures/*": [
         "features/structures/*"
+      ],
+      "@projects/*": [
+        "features/projects/*"
       ]
     }
   },

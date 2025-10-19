@@ -57,7 +57,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - RLS: members of the household may select/insert/update/delete zones for their household; delete is no longer restricted to the creator.
 
 - `interactions`
-  - Columns: `id uuid pk`, `household_id uuid`, `subject text`, `content text`, `type text`, `status text nullable`, `occurred_at timestamptz`, `tags text[]`, `contact_id uuid nullable`, `structure_id uuid nullable`, `metadata jsonb default '{}'`, `enriched_text text`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
+  - Columns: `id uuid pk`, `household_id uuid`, `subject text`, `content text`, `type text`, `status text nullable`, `occurred_at timestamptz`, `tags text[]`, `metadata jsonb default '{}'`, `enriched_text text`, `project_id uuid nullable`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
   - Trigger `update_interaction_metadata` keeps `updated_at` and `updated_by` in sync.
   - RLS: members can select/insert/update/delete interactions within their household.
 
@@ -71,6 +71,15 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Trigger `set_document_created_by` fills `created_by = auth.uid()`.
   - RLS: household members may select/insert/update/delete documents linked to interactions in their household.
 
+- `projects`
+  - Columns: `id uuid pk`, `household_id uuid`, `title text not null`, `description text`, `status project_status default 'draft'`, `priority int check (1 <= value <= 5)`, `start_date date`, `due_date date`, `closed_at timestamptz`, `tags text[]`, `planned_budget numeric(12,2)`, `actual_cost_cached numeric(12,2)`, `cover_interaction_id uuid nullable`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
+  - Triggers populate `created_by`/`updated_by`, keep `closed_at` in sync when status moves to `completed`, and ensure the optional cover interaction belongs to the same household.
+  - `refresh_project_actual_cost` trigger recalculates `actual_cost_cached` whenever linked expense interactions change.
+  - RLS: household members can select/insert/update/delete projects scoped to their household.
+
+- View `project_metrics`
+  - Aggregates open/done todos, linked document count, and exposes `actual_cost_cached` for each project (backed by RLS on the underlying tables).
+
 - Storage bucket `files`
   - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader’s `auth.uid()` and cross-check household membership through `documents` → `interactions`.
   - UI stores files at `userId/interactionId/<uuid>_filename` to stay within policy constraints.
@@ -78,7 +87,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Legacy template tables: `todo_list` (from the SaaS starter) still exists with owner-only policies and is used by `/app/table`. It is not part of the House domain.
 
 - Functions & helpers
-- `create_interaction_with_zones(p_household_id, p_subject, p_content, p_type text default 'note', p_status text default null, p_occurred_at timestamptz default null, p_zone_ids uuid[], p_tags text[] default null, p_contact_id uuid default null, p_structure_id uuid default null)`: inserts an interaction with zone links atomically after validating membership and zone ownership; returns the interaction UUID. Used by the “new interaction” form.
+- `create_interaction_with_zones(p_household_id, p_subject, p_zone_ids uuid[], p_content text default '', p_type text default 'note', p_status text default null, p_occurred_at timestamptz default null, p_tag_ids uuid[] default null, p_contact_ids uuid[] default null, p_structure_ids uuid[] default null, p_project_id uuid default null)`: inserts an interaction with zone links atomically after validating membership/ownership and can optionally attach the interaction to a project; returns the new interaction UUID. Used by the “new interaction” form.
   - `create_household_with_owner(p_name text)`: `SECURITY DEFINER` RPC that checks `auth.uid()`, trims/validates the name, inserts the household, and enrolls the caller as `owner` atomically. Called from `/api/households`.
 
 ## 6) App Architecture (Next.js)
@@ -87,6 +96,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Routes under `/auth/*` provide login/registration flows plus the `/auth/2fa` challenge screen; `/legal/*` hosts markdown legal pages.
 - `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
 - Interactions UI (`/app/interactions`): list view limited to recent interactions with attachment counts, subject/type/status metadata, and zone context. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete an interaction per RLS, while document deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/interactions/new` captures interactions with zone selection, metadata (subject/type/status/date/tags), inline zone creation, and attachment upload (client uploads to storage then inserts rows into `documents`).
+- Projects UI (`/app/projects` and `/app/projects/[id]`): list and filter projects by status/dates/tags, show budget and activity rollups, and expose quick actions to create tasks, notes, documents, or expenses pre-linked to the project. Detail pages provide a timeline, dedicated tabs (tasks/documents/expenses) backed by `project_metrics`, and let members relink existing interactions to the project.
 - Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, and per-household stats. Any household member can update or delete a zone; the UI exposes confirmations rather than ownership blockers.
 - User settings (`/app/user-settings`): change locale, view account metadata, update password, and enrol/manage TOTP MFA devices via `MFASetup`.
 - Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the security-definer RPC. `/app/households` currently just links to creation.

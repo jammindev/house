@@ -18,6 +18,7 @@ type RawInteraction = {
   type: Interaction["type"];
   status: Interaction["status"];
   occurred_at: string;
+  project_id?: string | null;
   metadata: Interaction["metadata"];
   enriched_text: Interaction["enriched_text"];
   created_at: string;
@@ -85,6 +86,7 @@ export function useInteraction(id?: string) {
             type,
             status,
             occurred_at,
+            project_id,
             metadata,
             enriched_text,
             created_at,
@@ -141,6 +143,7 @@ export function useInteraction(id?: string) {
           type: row.type,
           status: row.status,
           occurred_at: row.occurred_at,
+          project_id: row.project_id ?? null,
           tags,
           contacts:
             row.interaction_contacts

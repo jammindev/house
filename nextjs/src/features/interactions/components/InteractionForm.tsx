@@ -1,7 +1,7 @@
 // nextjs/src/features/interactions/components/InteractionForm.tsx
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 
@@ -20,7 +20,14 @@ import { ZonePicker } from "@interactions/components/ZonePicker";
 import InteractionTagsSelector from "@interactions/components/InteractionTagsSelector";
 import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
 import { getCurrentLocalDateTimeInput } from "@interactions/utils/datetime";
-import type { Document, DocumentType, InteractionStatus, InteractionType, ZoneOption } from "@interactions/types";
+import type {
+  Document,
+  DocumentType,
+  InteractionStatus,
+  InteractionType,
+  ZoneOption,
+} from "@interactions/types";
+import type { ProjectStatus } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 
 type LocalFile = {
@@ -30,26 +37,50 @@ type LocalFile = {
   notes?: string;
 };
 
+type ProjectOption = {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+};
+
+type InteractionFormDefaults = {
+  type?: InteractionType;
+  status?: InteractionStatus | "";
+  occurredAt?: string;
+  projectId?: string | null;
+};
+
 type InteractionFormProps = {
-  householdId: string;
   zones: ZoneOption[];
   zonesLoading?: boolean;
   onCreated?: (interactionId: string) => void;
+  defaultValues?: InteractionFormDefaults;
 };
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
 
-export default function InteractionForm({ zones, zonesLoading = false, onCreated }: InteractionFormProps) {
+export default function InteractionForm({
+  zones,
+  zonesLoading = false,
+  onCreated,
+  defaultValues = {},
+}: InteractionFormProps) {
   const router = useRouter();
   const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
   const { t } = useI18n();
 
+  const initialOccurredAt = useMemo(
+    () => defaultValues.occurredAt ?? getCurrentLocalDateTimeInput(),
+    [defaultValues.occurredAt]
+  );
+
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
-  const [type, setType] = useState<InteractionType>("note");
-  const [status, setStatus] = useState<InteractionStatus | "">("");
-  const [occurredAt, setOccurredAt] = useState<string>(getCurrentLocalDateTimeInput);
+  const [type, setType] = useState<InteractionType>(defaultValues.type ?? "note");
+  const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "");
+  const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [selectedZones, setSelectedZones] = useState<string[]>([]);
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
@@ -60,6 +91,70 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
   const [libraryDocuments, setLibraryDocuments] = useState<Document[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
+  const [projectLoading, setProjectLoading] = useState(false);
+  const [projectError, setProjectError] = useState("");
+
+  useEffect(() => {
+    setType(defaultValues.type ?? "note");
+  }, [defaultValues.type]);
+
+  useEffect(() => {
+    setStatus(defaultValues.status ?? "");
+  }, [defaultValues.status]);
+
+  useEffect(() => {
+    setOccurredAt(initialOccurredAt);
+  }, [initialOccurredAt]);
+
+  useEffect(() => {
+    setSelectedProjectId(defaultValues.projectId ?? null);
+  }, [defaultValues.projectId]);
+
+  useEffect(() => {
+    if (!householdId) {
+      setProjectOptions([]);
+      return;
+    }
+    let active = true;
+    const loadProjects = async () => {
+      setProjectLoading(true);
+      setProjectError("");
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+        const { data, error: loadError } = await client
+          .from("projects")
+          .select("id, title, status")
+          .eq("household_id", householdId)
+          .order("updated_at", { ascending: false })
+          .limit(100);
+        if (loadError) throw loadError;
+        if (!active) return;
+        setProjectOptions(
+          (data ?? []).map(
+            (row) =>
+              ({
+                id: row.id,
+                title: row.title,
+                status: row.status as ProjectStatus,
+              }) satisfies ProjectOption
+          )
+        );
+      } catch (err: unknown) {
+        if (!active) return;
+        const message = err instanceof Error ? err.message : t("common.unexpectedError");
+        setProjectError(message);
+        setProjectOptions([]);
+      } finally {
+        if (active) setProjectLoading(false);
+      }
+    };
+    void loadProjects();
+    return () => {
+      active = false;
+    };
+  }, [householdId, t]);
 
   const hasZones = zones.length > 0;
 
@@ -111,9 +206,10 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
   const resetForm = () => {
     setSubject("");
     setContent("");
-    setType("note");
-    setStatus("");
-    setOccurredAt(getCurrentLocalDateTimeInput());
+    setType(defaultValues.type ?? "note");
+    setStatus(defaultValues.status ?? "");
+    setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
+    setSelectedProjectId(defaultValues.projectId ?? null);
     setSelectedTagIds([]);
     setSelectedZones([]);
     setSelectedContactIds([]);
@@ -171,6 +267,7 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
         p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
         p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
         p_structure_ids: selectedStructureIds.length ? selectedStructureIds : null,
+        p_project_id: selectedProjectId ?? null,
       });
 
       if (createError || !createdId) {
@@ -308,6 +405,30 @@ export default function InteractionForm({ zones, zonesLoading = false, onCreated
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-project">
+              {t("interactionsprojectLabel")}
+            </label>
+            <select
+              id="interaction-project"
+              value={selectedProjectId ?? ""}
+              onChange={(event) => setSelectedProjectId(event.target.value ? event.target.value : null)}
+              disabled={projectLoading}
+              className="border rounded-md h-9 w-full px-3 text-sm bg-background disabled:opacity-60"
+            >
+              <option value="">{t("interactionsprojectNone")}</option>
+              {projectOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.title} · {t(`projects.status.${option.status}`)}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500">{t("interactionsprojectHelper")}</p>
+            {projectError ? (
+              <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">{projectError}</div>
+            ) : null}
           </div>
 
           <div className="space-y-2">

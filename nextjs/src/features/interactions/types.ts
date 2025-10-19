@@ -38,6 +38,7 @@ export type Interaction = {
   type: InteractionType;
   status: InteractionStatus | null;
   occurred_at: string;
+  project_id?: string | null;
   tags: InteractionTag[];
   contacts: InteractionContact[];
   structures: InteractionStructure[];
