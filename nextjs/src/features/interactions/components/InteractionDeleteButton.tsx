@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { AlertCircle, Trash2 } from "lucide-react";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useToast } from "@/components/ToastProvider";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
 import { useDeleteInteraction } from "@interactions/hooks/useDeleteInteraction";
@@ -13,9 +14,10 @@ import { useDeleteInteraction } from "@interactions/hooks/useDeleteInteraction";
 type InteractionDeleteButtonProps = {
   interactionId: string;
   onDeleted?: () => void;
+  className?: string;
 };
 
-export function InteractionDeleteButton({ interactionId, onDeleted }: InteractionDeleteButtonProps) {
+export function InteractionDeleteButton({ interactionId, onDeleted, className }: InteractionDeleteButtonProps) {
   const { t } = useI18n();
   const { show } = useToast();
   const { deleteInteraction, loading, error, setError } = useDeleteInteraction();
@@ -37,10 +39,11 @@ export function InteractionDeleteButton({ interactionId, onDeleted }: Interactio
   };
 
   return (
-    <div className="pt-8 border-t border-gray-200 space-y-3">
+    <div className={cn("space-y-4", className)}>
       {error && (
-        <div className="text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
-          {error}
+        <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4" />
+          <span>{error}</span>
         </div>
       )}
       <Button
