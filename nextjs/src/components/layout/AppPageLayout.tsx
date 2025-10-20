@@ -60,7 +60,7 @@ export default function AppPageLayout({
   ) : null;
 
   return (
-    <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8", className)}>
+    <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8", className)}>
       <header className="mb-4 flex flex-row justify-between items-center w-full">
         <div className="flex gap-2 items-center">
           <BackButton />

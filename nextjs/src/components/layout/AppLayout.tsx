@@ -1,16 +1,16 @@
 // nextjs/src/components/layout/AppLayout.tsx
 "use client";
 import React, { useState, useMemo } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
-import MobileNav from "./MobileNav";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
+import { Button } from "../ui/button";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const pathname = usePathname();
     const router = useRouter();
 
     const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
@@ -33,6 +33,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col">
+            <Button
+                size="icon"
+                variant="ghost"
+                onClick={toggleSidebar}
+                aria-label="Open navigation"
+                className="lg:hidden fixed bottom-6 right-4 z-30 rounded-full bg-white/90 border border-gray-200 shadow-md p-2 text-gray-600 opacity-80"
+            >
+                <Menu className="h-6 w-6" />
+            </Button>
+
             {/* Overlay (mobile) */}
             {isSidebarOpen && (
                 <div
@@ -58,9 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 onChangePassword={handleChangePassword}
             />
 
-            <main className="md:p-4 pb-20 lg:pb-4 lg:pl-64">{children}</main>
-            <div className="h-20 lg:hidden" />
-            <MobileNav pathname={pathname} onMenuClick={toggleSidebar} />
+            <main className="md:p-4 pb-16 lg:pb-4 lg:pl-64">{children}</main>
         </div>
     );
 }
