@@ -1,3 +1,4 @@
+// nextjs/src/app/app/projects/page.tsx
 "use client";
 
 import { useMemo } from "react";
@@ -31,9 +32,8 @@ export default function ProjectsPage() {
       subtitle={t("projects.subtitle")}
       action={{
         icon: Plus,
-        label: t("projects.new"),
         href: "/app/projects/new",
-        size: "default",
+        size: "sm",
       }}
     >
       <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />

@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
-import { CheckCircle2, Clock3, ListTodo } from "lucide-react";
+import { ArrowUpRight, CheckCircle2, Clock3, ListTodo } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Interaction } from "@interactions/types";
@@ -68,14 +69,21 @@ export default function ProjectTasksPanel({ tasks }: ProjectTasksPanelProps) {
           const statusInfo = STATUS_LABELS[task.status ?? null];
           return (
             <li key={task.id} className="p-4">
-              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <ListTodo className="h-4 w-4 text-slate-500" />
                     <span className="text-sm font-semibold text-slate-900">{task.subject}</span>
                     <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusInfo.className}`}>
                       {t(statusInfo.labelKey)}
                     </span>
+                    <Link
+                      href={`/app/interactions/${task.id}`}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700"
+                    >
+                      {t("projects.tasks.viewInteraction")}
+                      <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                    </Link>
                   </div>
                   {task.content ? <p className="text-sm text-slate-600">{task.content}</p> : null}
                 </div>

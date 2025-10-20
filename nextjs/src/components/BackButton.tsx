@@ -19,11 +19,11 @@ export default function BackButton() {
     return (<Button
         type="button"
         variant="ghost"
-        size="sm"
+        size="icon"
         onClick={handleBack}
         className="w-fit gap-2 rounded-full border border-transparent px-3 text-sm font-medium text-muted-foreground hover:border-border/60 hover:bg-background"
     >
-        <ArrowLeft className="h-4 w-4" />
-        {t("common.back")}
+        <ArrowLeft className="h-5 w-5" />
+        <span className="sr-only">{t("common.back")}</span>
     </Button>)
 }

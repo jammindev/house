@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment } from "react";
-import { Clock, FileText, Tag } from "lucide-react";
+import { ArrowUpRight, Clock, FileText, Tag } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document, Interaction } from "@interactions/types";
@@ -66,8 +67,17 @@ export default function ProjectTimeline({ interactions, documentsByInteraction }
                   {formatDateTime(interaction.occurred_at, locale)}
                 </div>
               </div>
-              <div className="space-y-2 rounded-md border border-slate-200 bg-white p-4 shadow-sm">
-                <h3 className="text-sm font-semibold text-slate-900">{interaction.subject}</h3>
+              <div className="space-y-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-slate-900">{interaction.subject}</h3>
+                  <Link
+                    href={`/app/interactions/${interaction.id}`}
+                    className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700"
+                  >
+                    {t("projects.timeline.viewInteraction")}
+                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                </div>
                 {interaction.content ? (
                   <p className="text-sm text-slate-600 whitespace-pre-line">{interaction.content}</p>
                 ) : null}

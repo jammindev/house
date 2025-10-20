@@ -69,13 +69,13 @@ export default function AppPageLayout({
               {title}
               {context ? <span className="text-gray-500"> · {context}</span> : null}
             </h1>
-            {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+            {subtitle ? <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p> : null}
           </div>
         </div>
         {action
           ? action.href && !action.disabled
             ? (
-              <Link href={action.href} className="self-end sm:self-auto">
+              <Link href={action.href} className="self-auto">
                 {actionButton}
               </Link>
             )

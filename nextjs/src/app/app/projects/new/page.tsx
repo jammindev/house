@@ -1,8 +1,10 @@
+// nextjs/src/app/app/projects/new/page.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 import ProjectForm from "@projects/components/ProjectForm";
 
 export default function NewProjectPage() {
@@ -10,16 +12,17 @@ export default function NewProjectPage() {
   const router = useRouter();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-900">{t("projects.newTitle")}</h1>
-        <p className="text-sm text-slate-500">{t("projects.newSubtitle")}</p>
-      </div>
+    <AppPageLayout
+      title={t("projects.newTitle")}
+      subtitle={t("projects.newSubtitle")}
+      className=""
+      contentClassName="mt-4 px-4 pb-6 sm:px-0"
+    >
       <ProjectForm
         onSuccess={(projectId) => {
           router.push(`/app/projects/${projectId}`);
         }}
       />
-    </div>
+    </AppPageLayout>
   );
 }
