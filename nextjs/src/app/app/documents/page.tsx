@@ -23,7 +23,7 @@ export default function DocumentsPage() {
   const errorMessage = error ? `${t("documents.loadFailed")} (${error})` : null;
 
   return (
-    <AppPageLayout title={t("documents.title")} subtitle={t("documents.subtitle")}>
+    <AppPageLayout title={t("documents.title")} subtitle={t("documents.subtitle")} hideBackButton>
       <div className="space-y-4">
         <>
           <DocumentsFilters

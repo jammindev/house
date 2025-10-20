@@ -12,8 +12,10 @@ import type {
   ContactPhone,
   ContactStructure,
   CreateContactInput,
+  UpdateContactInput,
 } from "../types";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { getPrimaryEmail, getPrimaryPhone } from "../lib/format";
 
 type RawContact = {
   id: string;
@@ -74,6 +76,10 @@ const CONTACT_SELECT = `
 `;
 
 const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+
+function isNotFoundError(error: unknown) {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: string }).code === "PGRST116";
+}
 
 function normalizeBoolean(value?: boolean | null) {
   return value === true;
@@ -258,5 +264,167 @@ export function useContacts() {
     reload();
   }, [reload]);
 
-  return { contacts, loading, error, setError, reload, createContact };
+  const updateContact = useCallback(
+    async (input: UpdateContactInput) => {
+      if (!input.householdId) throw new Error(t("contacts.householdRequired"));
+
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+
+        const { data: authData, error: authError } = await client.auth.getUser();
+        if (authError) throw authError;
+        const userId = authData?.user?.id;
+        if (!userId) throw new Error(t("contacts.updateNoUser"));
+
+        const trimmedFirstName = input.firstName?.trim() ?? "";
+        const trimmedLastName = input.lastName?.trim() ?? "";
+        if (!trimmedFirstName && !trimmedLastName) {
+          throw new Error(t("contacts.nameRequired"));
+        }
+
+        const structureId = input.structureId?.trim() ?? "";
+
+        let existingContact: Contact | null =
+          contacts.find((contact) => contact.id === input.contactId) ?? null;
+
+        if (!existingContact) {
+          const { data: existingData, error: existingError } = await client
+            .from("contacts")
+            .select(CONTACT_SELECT)
+            .eq("id", input.contactId)
+            .single();
+
+          if (existingError) {
+            if (isNotFoundError(existingError)) {
+              throw new Error(t("contacts.notFound"));
+            }
+            throw existingError;
+          }
+          if (!existingData) throw new Error(t("contacts.notFound"));
+
+          existingContact = normalizeContact(existingData as RawContact);
+        }
+
+        const { error: contactError } = await client
+          .from("contacts")
+          .update({
+            first_name: trimmedFirstName,
+            last_name: trimmedLastName,
+            position: input.position?.trim() ?? "",
+            notes: input.notes?.trim() ?? "",
+            structure_id: structureId ? structureId : null,
+          })
+          .eq("id", input.contactId)
+          .eq("household_id", input.householdId);
+
+        if (contactError) throw contactError;
+
+        const primaryEmail = getPrimaryEmail(existingContact);
+        const emailValue = input.email?.email?.trim() ?? "";
+        const emailLabel = input.email?.label?.trim() ?? "";
+        const emailIsPrimary = input.email?.is_primary ?? true;
+
+        if (emailValue) {
+          if (primaryEmail) {
+            const { error: emailUpdateError } = await client
+              .from("emails")
+              .update({
+                email: emailValue,
+                label: emailLabel,
+                is_primary: emailIsPrimary,
+              })
+              .eq("id", primaryEmail.id);
+            if (emailUpdateError) throw emailUpdateError;
+          } else {
+            const { error: emailInsertError } = await client
+              .from("emails")
+              .insert({
+                household_id: input.householdId,
+                contact_id: input.contactId,
+                email: emailValue,
+                label: emailLabel,
+                is_primary: emailIsPrimary,
+                created_by: userId,
+              })
+              .select("id")
+              .single();
+            if (emailInsertError) throw emailInsertError;
+          }
+        } else if (primaryEmail) {
+          const { error: emailDeleteError } = await client.from("emails").delete().eq("id", primaryEmail.id);
+          if (emailDeleteError) throw emailDeleteError;
+        }
+
+        const primaryPhone = getPrimaryPhone(existingContact);
+        const phoneValue = input.phone?.phone?.trim() ?? "";
+        const phoneLabel = input.phone?.label?.trim() ?? "";
+        const phoneIsPrimary = input.phone?.is_primary ?? true;
+
+        if (phoneValue) {
+          if (primaryPhone) {
+            const { error: phoneUpdateError } = await client
+              .from("phones")
+              .update({
+                phone: phoneValue,
+                label: phoneLabel,
+                is_primary: phoneIsPrimary,
+              })
+              .eq("id", primaryPhone.id);
+            if (phoneUpdateError) throw phoneUpdateError;
+          } else {
+            const { error: phoneInsertError } = await client
+              .from("phones")
+              .insert({
+                household_id: input.householdId,
+                contact_id: input.contactId,
+                phone: phoneValue,
+                label: phoneLabel,
+                is_primary: phoneIsPrimary,
+                created_by: userId,
+              })
+              .select("id")
+              .single();
+            if (phoneInsertError) throw phoneInsertError;
+          }
+        } else if (primaryPhone) {
+          const { error: phoneDeleteError } = await client.from("phones").delete().eq("id", primaryPhone.id);
+          if (phoneDeleteError) throw phoneDeleteError;
+        }
+
+        const { data: refreshedData, error: fetchError } = await client
+          .from("contacts")
+          .select(CONTACT_SELECT)
+          .eq("id", input.contactId)
+          .single();
+
+        if (fetchError) {
+          if (isNotFoundError(fetchError)) {
+            throw new Error(t("contacts.notFound"));
+          }
+          throw fetchError;
+        }
+        if (!refreshedData) throw new Error(t("contacts.notFound"));
+
+        const contact = normalizeContact(refreshedData as RawContact);
+
+        setContacts((prev) => {
+          const exists = prev.some((item) => item.id === contact.id);
+          if (!exists) {
+            return sortContacts([...prev, contact]);
+          }
+          return sortContacts(prev.map((item) => (item.id === contact.id ? contact : item)));
+        });
+
+        return contact;
+      } catch (error: unknown) {
+        console.error(error);
+        const message = error instanceof Error ? error.message : t("contacts.updateFailed");
+        throw new Error(message);
+      }
+    },
+    [contacts, t]
+  );
+
+  return { contacts, loading, error, setError, reload, createContact, updateContact };
 }

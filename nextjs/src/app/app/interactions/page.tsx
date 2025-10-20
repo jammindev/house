@@ -34,6 +34,7 @@ export default function InteractionsPage() {
     <AppPageLayout
       title={t("interactionstitle")}
       action={{ icon: Plus, href: "/app/interactions/new" }}
+      hideBackButton
     >
       {error ? (
         <div className="mb-4 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>

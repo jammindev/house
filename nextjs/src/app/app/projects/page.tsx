@@ -35,6 +35,7 @@ export default function ProjectsPage() {
         href: "/app/projects/new",
         size: "sm",
       }}
+      hideBackButton
     >
       <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
       {content}

@@ -337,6 +337,7 @@ export default function StoragePage() {
         variant: "outline",
         size: "sm",
       }}
+      hideBackButton
     >
       <div className="space-y-6">
         <Card>

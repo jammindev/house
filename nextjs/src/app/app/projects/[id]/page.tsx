@@ -1,18 +1,18 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 import ProjectDetailView from "@projects/components/ProjectDetailView";
-import ProjectForm from "@projects/components/ProjectForm";
 import ProjectLinkInteractionModal from "@projects/components/ProjectLinkInteractionModal";
 import { useProject } from "@projects/hooks/useProject";
 import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { t } = useI18n();
   const { project, loading, error, reload: reloadProject } = useProject(id);
   const {
@@ -26,7 +26,6 @@ export default function ProjectDetailPage() {
     reload: reloadInteractions,
   } = useProjectInteractions(id);
 
-  const [editOpen, setEditOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
   const handleRefresh = useCallback(() => {
@@ -50,31 +49,24 @@ export default function ProjectDetailPage() {
     return <div className="p-6 text-sm text-slate-500">{t("projects.notFound")}</div>;
   }
 
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-      <ProjectDetailView
-        project={project}
-        interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
-        onRefresh={handleRefresh}
-        onLinkExisting={() => setLinkOpen(true)}
-        onEdit={() => setEditOpen(true)}
-      />
+  const statusLabel = project.status ? t(`projects.status.${project.status}`) : undefined;
 
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>{t("projects.editTitle")}</DialogTitle>
-          </DialogHeader>
-          <ProjectForm
-            project={project}
-            mode="edit"
-            onSuccess={() => {
-              setEditOpen(false);
-              handleRefresh();
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+  return (
+    <>
+      <AppPageLayout
+        title={project.title}
+        context={statusLabel}
+        className="max-w-5xl"
+        contentClassName="flex flex-col gap-6 pb-10"
+      >
+        <ProjectDetailView
+          project={project}
+          interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
+          onRefresh={handleRefresh}
+          onLinkExisting={() => setLinkOpen(true)}
+          onEdit={() => router.push(`/app/projects/${project.id}/edit`)}
+        />
+      </AppPageLayout>
 
       <ProjectLinkInteractionModal
         open={linkOpen}
@@ -82,6 +74,6 @@ export default function ProjectDetailPage() {
         projectId={project.id}
         onLinked={handleRefresh}
       />
-    </div>
+    </>
   );
 }

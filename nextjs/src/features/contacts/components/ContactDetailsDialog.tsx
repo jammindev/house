@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import {
   Dialog,
@@ -169,12 +170,15 @@ export default function ContactDetailsDialog({ contact, open, onOpenChange, t }:
             );
           })()}
 
-          <DialogFooter className="border-t border-gray-100 bg-gray-50 px-4 py-3">
+          <DialogFooter className="border-t border-gray-100 bg-gray-50 px-4 py-3 gap-2">
             <DialogClose asChild>
-              <Button variant="secondary" className="w-full">
+              <Button variant="secondary" className="w-full sm:w-auto">
                 {t("common.close")}
               </Button>
             </DialogClose>
+            <Button asChild className="w-full sm:w-auto">
+              <Link href={`/app/contacts/${contact.id}/edit`}>{t("contacts.editContact")}</Link>
+            </Button>
           </DialogFooter>
         </DialogContent>
       )}

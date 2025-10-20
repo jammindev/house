@@ -69,3 +69,15 @@ export type CreateContactInput = {
   email?: ContactEmailInput | null;
   phone?: ContactPhoneInput | null;
 };
+
+export type UpdateContactInput = {
+  contactId: string;
+  householdId: string;
+  firstName: string;
+  lastName?: string;
+  position?: string;
+  notes?: string;
+  structureId?: string | null;
+  email?: ContactEmailInput | null;
+  phone?: ContactPhoneInput | null;
+};

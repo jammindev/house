@@ -85,6 +85,7 @@ export default function StructuresPage() {
       title={heading.title}
       subtitle={heading.description}
       action={{ icon: Plus, onClick: () => setCreateOpen(true) }}
+      hideBackButton
     >
       {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
 
