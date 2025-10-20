@@ -9,6 +9,7 @@ import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";
 import type { InteractionStatus, InteractionType, ZoneOption } from "@interactions/types";
 import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
+import AppPageLayout from "@/components/layout/AppPageLayout";
 
 export default function NewInteractionPage() {
   const { t } = useI18n();
@@ -52,20 +53,13 @@ export default function NewInteractionPage() {
   );
 
   return (
-    <div className="max-w-3xl mx-auto lg:p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("interactionsnewEntry")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {zonesError && (
-            <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
-              {zonesError}
-            </div>
-          )}
-          <InteractionForm zones={zoneOptions} zonesLoading={zonesLoading} defaultValues={defaultValues} />
-        </CardContent>
-      </Card>
-    </div>
+    <AppPageLayout title={t("interactionsnewEntry")}>
+      {zonesError && (
+        <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
+          {zonesError}
+        </div>
+      )}
+      <InteractionForm zones={zoneOptions} zonesLoading={zonesLoading} defaultValues={defaultValues} />
+    </AppPageLayout>
   );
 }

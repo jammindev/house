@@ -7,6 +7,7 @@ import type { LucideIcon } from "lucide-react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import BackButton from "../BackButton";
 
 type PageAction = {
   label?: string;
@@ -61,12 +62,15 @@ export default function AppPageLayout({
   return (
     <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 py-4 sm:px-6 sm:py-6 lg:px-8", className)}>
       <header className="mb-4 flex flex-row justify-between items-center w-full">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {title}
-            {context ? <span className="text-gray-500"> · {context}</span> : null}
-          </h1>
-          {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+        <div className="flex gap-2 items-center">
+          <BackButton />
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {title}
+              {context ? <span className="text-gray-500"> · {context}</span> : null}
+            </h1>
+            {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+          </div>
         </div>
         {action
           ? action.href && !action.disabled
