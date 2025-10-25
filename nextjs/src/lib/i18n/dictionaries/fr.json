@@ -436,6 +436,7 @@
   "interactionsamountHelper": "Indiquez le total du devis (chiffres uniquement).",
   "interactionsamountRequired": "Le montant est requis pour un devis.",
   "interactionsamountInvalid": "Veuillez saisir un montant valide.",
+  "interactionsquoteAutoSubject": "Reçu devis pour {project} : {entity}",
   "interactionsquoteAssociationRequired": "Ajoutez au moins une structure ou un contact pour un devis.",
   "interactionsoccurredAtLabel": "Date de l'interaction",
   "interactionsedit.open": "Modifier les détails",

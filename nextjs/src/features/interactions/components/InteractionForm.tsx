@@ -31,6 +31,10 @@ import type {
 import type { ProjectStatus } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { parseAmountInput } from "@interactions/utils/amount";
+import { useContacts } from "@contacts/hooks/useContacts";
+import { useStructures } from "@structures/hooks/useStructures";
+import type { Contact } from "@contacts/types";
+import type { Structure } from "@structures/types";
 
 type LocalFile = {
   file: File;
@@ -60,6 +64,15 @@ type InteractionFormProps = {
 };
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
+const formatStructureDisplayName = (structure?: Structure) => structure?.name?.trim() ?? "";
+const formatContactDisplayName = (contact?: Contact) => {
+  if (!contact) return "";
+  const first = contact.first_name?.trim() ?? "";
+  const last = contact.last_name?.trim() ?? "";
+  const full = `${first} ${last}`.trim();
+  if (full) return full;
+  return contact.structure?.name?.trim() ?? "";
+};
 
 export default function InteractionForm({
   zones,
@@ -78,6 +91,7 @@ export default function InteractionForm({
   );
 
   const [subject, setSubject] = useState("");
+  const [subjectDirty, setSubjectDirty] = useState(false);
   const [content, setContent] = useState("");
   const [type, setType] = useState<InteractionType>(defaultValues.type ?? "note");
   const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "");
@@ -97,6 +111,8 @@ export default function InteractionForm({
   const [projectLoading, setProjectLoading] = useState(false);
   const [projectError, setProjectError] = useState("");
   const [quoteAmount, setQuoteAmount] = useState("");
+  const { contacts } = useContacts();
+  const { structures } = useStructures();
 
   useEffect(() => {
     setType(defaultValues.type ?? "note");
@@ -208,6 +224,7 @@ export default function InteractionForm({
 
   const resetForm = () => {
     setSubject("");
+    setSubjectDirty(false);
     setContent("");
     setType(defaultValues.type ?? "note");
     setStatus(defaultValues.status ?? "");
@@ -223,6 +240,50 @@ export default function InteractionForm({
     setLibraryDocuments([]);
     setQuoteAmount("");
   };
+
+  useEffect(() => {
+    if (type !== "quote" && subjectDirty) {
+      setSubjectDirty(false);
+    }
+  }, [subjectDirty, type]);
+
+  const primaryStructureName = useMemo(() => {
+    if (!selectedStructureIds.length) return null;
+    const match = structures.find((item) => item.id === selectedStructureIds[0]);
+    const formatted = formatStructureDisplayName(match);
+    return formatted || null;
+  }, [selectedStructureIds, structures]);
+
+  const primaryContactName = useMemo(() => {
+    if (!selectedContactIds.length) return null;
+    const match = contacts.find((item) => item.id === selectedContactIds[0]);
+    const formatted = formatContactDisplayName(match);
+    return formatted || null;
+  }, [contacts, selectedContactIds]);
+
+  const selectedProjectName = useMemo(() => {
+    if (!selectedProjectId) return null;
+    const match = projectOptions.find((project) => project.id === selectedProjectId);
+    const name = match?.title?.trim();
+    return name || null;
+  }, [projectOptions, selectedProjectId]);
+
+  const quoteAutoSubject = useMemo(() => {
+    if (type !== "quote") return null;
+    const entityName = primaryStructureName ?? primaryContactName;
+    if (!entityName || !selectedProjectName) return null;
+    return t("interactionsquoteAutoSubject", {
+      project: selectedProjectName,
+      entity: entityName,
+    });
+  }, [primaryContactName, primaryStructureName, selectedProjectName, t, type]);
+
+  useEffect(() => {
+    if (!quoteAutoSubject) return;
+    if (subjectDirty) return;
+    if (subject === quoteAutoSubject) return;
+    setSubject(quoteAutoSubject);
+  }, [quoteAutoSubject, subject, subjectDirty]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -391,7 +452,11 @@ export default function InteractionForm({
               <Input
                 id="interaction-subject"
                 value={subject}
-                onChange={(event) => setSubject(event.target.value)}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setSubject(nextValue);
+                  setSubjectDirty(nextValue.trim().length > 0);
+                }}
                 placeholder={t("interactionssubjectPlaceholder")}
               />
             </div>

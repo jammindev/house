@@ -435,6 +435,7 @@
   "interactionsamountHelper": "Enter the quoted total (numbers only).",
   "interactionsamountRequired": "Amount is required for quotes.",
   "interactionsamountInvalid": "Please enter a valid amount.",
+  "interactionsquoteAutoSubject": "Received quote for {project}: {entity}",
   "interactionsquoteAssociationRequired": "Add at least one structure or contact for a quote.",
   "interactionsoccurredAtLabel": "Interaction date",
   "interactionsedit.open": "Edit details",
