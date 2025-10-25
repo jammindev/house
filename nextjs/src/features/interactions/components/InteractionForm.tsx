@@ -30,6 +30,7 @@ import type {
 } from "@interactions/types";
 import type { ProjectStatus } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { parseAmountInput } from "@interactions/utils/amount";
 
 type LocalFile = {
   file: File;
@@ -95,6 +96,7 @@ export default function InteractionForm({
   const [projectOptions, setProjectOptions] = useState<ProjectOption[]>([]);
   const [projectLoading, setProjectLoading] = useState(false);
   const [projectError, setProjectError] = useState("");
+  const [quoteAmount, setQuoteAmount] = useState("");
 
   useEffect(() => {
     setType(defaultValues.type ?? "note");
@@ -219,6 +221,7 @@ export default function InteractionForm({
     setDocumentsModalOpen(false);
     setLibraryModalOpen(false);
     setLibraryDocuments([]);
+    setQuoteAmount("");
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -241,6 +244,26 @@ export default function InteractionForm({
     if (!selectedZones.length) {
       setError(t("interactionsselectZoneRequired"));
       return;
+    }
+
+    if (type === "quote" && selectedStructureIds.length === 0 && selectedContactIds.length === 0) {
+      setError(t("interactionsquoteAssociationRequired"));
+      return;
+    }
+
+    let metadataPayload: Record<string, unknown> | null = null;
+    if (type === "quote") {
+      const trimmedAmount = quoteAmount.trim();
+      if (!trimmedAmount) {
+        setError(t("interactionsamountRequired"));
+        return;
+      }
+      const parsedAmount = parseAmountInput(trimmedAmount);
+      if (parsedAmount === null) {
+        setError(t("interactionsamountInvalid"));
+        return;
+      }
+      metadataPayload = { amount: parsedAmount };
     }
 
     setSubmitting(true);
@@ -269,6 +292,7 @@ export default function InteractionForm({
         p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
         p_structure_ids: selectedStructureIds.length ? selectedStructureIds : null,
         p_project_id: selectedProjectId ?? null,
+        p_metadata: metadataPayload,
       });
 
       if (createError || !createdId) {
@@ -408,6 +432,21 @@ export default function InteractionForm({
                   ))}
                 </select>
               </div>
+
+              {type === "quote" && (
+                <div className="space-y-2 md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700" htmlFor="interaction-quote-amount">
+                    {t("interactionsamountLabel")}
+                  </label>
+                  <Input
+                    id="interaction-quote-amount"
+                    value={quoteAmount}
+                    onChange={(event) => setQuoteAmount(event.target.value)}
+                    placeholder={t("interactionsamountPlaceholder")}
+                  />
+                  <p className="text-xs text-gray-500">{t("interactionsamountHelper")}</p>
+                </div>
+              )}
 
               <div className="space-y-2 md:col-span-2">
                 <label className="text-sm font-medium text-gray-700" htmlFor="interaction-project">

@@ -17,6 +17,7 @@ import PdfFileList from "@interactions/components/pdf/PdfFileList";
 import { useInteractionAudit } from "@interactions/hooks/useInteractionAudit";
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import type { Document, Interaction } from "@interactions/types";
+import { extractAmountFromMetadata } from "@interactions/utils/amount";
 
 type InteractionDetailViewProps = {
   interaction: Interaction;
@@ -44,13 +45,19 @@ export default function InteractionDetailView({
   editOpen,
   setEditOpen,
 }: InteractionDetailViewProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
 
   const createdAt = new Date(interaction.created_at).toLocaleString();
   const updatedAt = new Date(interaction.updated_at).toLocaleString();
   const metadata = isObjectRecord(interaction.metadata) ? interaction.metadata : null;
+  const quoteAmount =
+    interaction.type === "quote" ? extractAmountFromMetadata(interaction.metadata) : null;
+  const formattedQuoteAmount =
+    quoteAmount !== null
+      ? new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(quoteAmount)
+      : null;
 
   const photoDocuments = documents.filter((doc) => doc.type === "photo");
   const pdfDocuments = documents.filter((doc) => DOCUMENT_TYPES.has(doc.type));
@@ -61,6 +68,24 @@ export default function InteractionDetailView({
     <div className="mx-auto flex w-full flex-col gap-6 pb-12 md:gap-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
+          {interaction.type === "quote" && (
+            <section className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-5 shadow-sm transition-colors">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
+                {t("interactiondetail.quoteSectionTitle")}
+              </h2>
+              {formattedQuoteAmount ? (
+                <div className="mt-3 flex items-baseline gap-3">
+                  <span className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+                    {t("interactiondetail.quoteAmountLabel")}
+                  </span>
+                  <p className="text-2xl font-semibold text-emerald-900">{formattedQuoteAmount}</p>
+                </div>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-800">{t("interactiondetail.quoteAmountMissing")}</p>
+              )}
+            </section>
+          )}
+
           <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               {t("interactionssections.description")}

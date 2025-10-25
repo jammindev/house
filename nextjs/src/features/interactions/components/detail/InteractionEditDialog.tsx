@@ -15,6 +15,7 @@ import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants
 import { toIsoStringFromInput, toLocalDateTimeInput } from "@interactions/utils/datetime";
 import { useUpdateInteraction } from "@interactions/hooks/useUpdateInteraction";
 import type { Interaction, InteractionStatus, InteractionType } from "@interactions/types";
+import { extractAmountFromMetadata, formatAmountForInput, parseAmountInput } from "@interactions/utils/amount";
 
 type InteractionEditDialogProps = {
   interaction: Interaction;
@@ -36,6 +37,9 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
   const [contactIds, setContactIds] = useState<string[]>(interaction.contacts.map((contact) => contact.id));
   const [structureIds, setStructureIds] = useState<string[]>(interaction.structures.map((structure) => structure.id));
   const [formError, setFormError] = useState("");
+  const [quoteAmount, setQuoteAmount] = useState(() =>
+    interaction.type === "quote" ? formatAmountForInput(extractAmountFromMetadata(interaction.metadata)) : ""
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -46,6 +50,9 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
     setTagIds(interaction.tags.map((tag) => tag.id));
     setContactIds(interaction.contacts.map((contact) => contact.id));
     setStructureIds(interaction.structures.map((structure) => structure.id));
+    setQuoteAmount(
+      interaction.type === "quote" ? formatAmountForInput(extractAmountFromMetadata(interaction.metadata)) : ""
+    );
     setFormError("");
     setError("");
   }, [interaction, open, setError]);
@@ -60,7 +67,29 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
       return;
     }
 
+    if (type === "quote" && contactIds.length === 0 && structureIds.length === 0) {
+      setFormError(t("interactionsquoteAssociationRequired"));
+      return;
+    }
+
     const occurredAtIso = toIsoStringFromInput(occurredAt) ?? interaction.occurred_at;
+
+    let metadataPayload: Record<string, unknown> | null | undefined;
+    if (type === "quote") {
+      const trimmedAmount = quoteAmount.trim();
+      if (!trimmedAmount) {
+        setFormError(t("interactionsamountRequired"));
+        return;
+      }
+      const parsedAmount = parseAmountInput(trimmedAmount);
+      if (parsedAmount === null) {
+        setFormError(t("interactionsamountInvalid"));
+        return;
+      }
+      metadataPayload = { amount: parsedAmount };
+    } else if (interaction.type === "quote") {
+      metadataPayload = null;
+    }
 
     try {
       await updateInteraction(interaction.id, {
@@ -71,6 +100,7 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
         tagIds,
         contactIds,
         structureIds,
+        metadata: metadataPayload,
       });
       show({ title: t("interactionsupdated"), variant: "success" });
       onSaved();
@@ -147,6 +177,21 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
                 </select>
               </div>
             </div>
+
+            {type === "quote" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="edit-interaction-quote-amount">
+                  {t("interactionsamountLabel")}
+                </label>
+                <Input
+                  id="edit-interaction-quote-amount"
+                  value={quoteAmount}
+                  onChange={(event) => setQuoteAmount(event.target.value)}
+                  placeholder={t("interactionsamountPlaceholder")}
+                />
+                <p className="text-xs text-gray-500">{t("interactionsamountHelper")}</p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700" htmlFor="edit-interaction-occurred-at">

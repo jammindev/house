@@ -13,6 +13,7 @@ type UpdateInteractionInput = {
   tagIds: string[];
   contactIds: string[];
   structureIds: string[];
+  metadata?: Record<string, unknown> | null;
 };
 
 export function useUpdateInteraction() {
@@ -26,15 +27,24 @@ export function useUpdateInteraction() {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
-      const { error: updateError } = await client
-        .from("interactions")
-        .update({
-          subject: input.subject,
-          type: input.type,
-          status: input.status,
-          occurred_at: input.occurredAt ?? null,
-        })
-        .eq("id", interactionId);
+      const updatePayload: {
+        subject: string;
+        type: InteractionType;
+        status: InteractionStatus | null;
+        occurred_at: string | null;
+        metadata?: Record<string, unknown> | null;
+      } = {
+        subject: input.subject,
+        type: input.type,
+        status: input.status,
+        occurred_at: input.occurredAt ?? null,
+      };
+
+      if (input.metadata !== undefined) {
+        updatePayload.metadata = input.metadata;
+      }
+
+      const { error: updateError } = await client.from("interactions").update(updatePayload).eq("id", interactionId);
       if (updateError) throw updateError;
 
       const tagIds = Array.from(new Set(input.tagIds));

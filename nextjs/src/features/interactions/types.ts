@@ -13,6 +13,7 @@ export type InteractionType =
   | "meeting"
   | "document"
   | "expense"
+  | "quote"
   | "message"
   | "signature"
   | "other";

@@ -6,6 +6,7 @@ import { ArrowUpRight, Clock, FileText, Tag } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document, Interaction } from "@interactions/types";
+import { extractAmountFromMetadata } from "@interactions/utils/amount";
 
 interface ProjectTimelineProps {
   interactions: Interaction[];
@@ -34,6 +35,7 @@ const badgeByType: Record<Interaction["type"], { labelKey: string; className: st
   document: { labelKey: "projects.timeline.types.document", className: "bg-purple-100 text-purple-700" },
   expense: { labelKey: "projects.timeline.types.expense", className: "bg-rose-100 text-rose-700" },
   message: { labelKey: "projects.timeline.types.message", className: "bg-indigo-100 text-indigo-700" },
+  quote: { labelKey: "projects.timeline.types.quote", className: "bg-emerald-100 text-emerald-700" },
   signature: { labelKey: "projects.timeline.types.signature", className: "bg-teal-100 text-teal-700" },
   other: { labelKey: "projects.timeline.types.other", className: "bg-slate-100 text-slate-700" },
 };
@@ -54,6 +56,23 @@ export default function ProjectTimeline({ interactions, documentsByInteraction }
       {interactions.map((interaction, index) => {
         const typeInfo = badgeByType[interaction.type] ?? badgeByType.other;
         const docs = documentsByInteraction[interaction.id] ?? [];
+        const quoteAmount =
+          interaction.type === "quote"
+            ? extractAmountFromMetadata(interaction.metadata)
+            : null;
+        const formattedQuoteAmount =
+          quoteAmount !== null
+            ? new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(quoteAmount)
+            : null;
+        const primaryStructureName = interaction.structures[0]?.name;
+        const primaryContactName = interaction.contacts[0]
+          ? [interaction.contacts[0].first_name, interaction.contacts[0].last_name].filter(Boolean).join(" ").trim()
+          : "";
+        const headline =
+          interaction.type === "quote"
+            ? primaryStructureName || primaryContactName || interaction.subject
+            : interaction.subject;
+
         return (
           <Fragment key={interaction.id}>
             <li className="mb-8 flex flex-col gap-2">
@@ -69,7 +88,7 @@ export default function ProjectTimeline({ interactions, documentsByInteraction }
               </div>
               <div className="space-y-3 rounded-md border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <h3 className="text-sm font-semibold text-slate-900">{interaction.subject}</h3>
+                  <h3 className="text-sm font-semibold text-slate-900">{headline}</h3>
                   <Link
                     href={`/app/interactions/${interaction.id}`}
                     className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700"
@@ -78,6 +97,16 @@ export default function ProjectTimeline({ interactions, documentsByInteraction }
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </Link>
                 </div>
+                {interaction.type === "quote" && (
+                  <div className="inline-flex flex-wrap items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+                    <span className="font-medium uppercase tracking-wide">
+                      {t("projects.timeline.quoteAmountLabel")}
+                    </span>
+                    <span className="text-base font-semibold text-emerald-900">
+                      {formattedQuoteAmount ?? t("projects.timeline.quoteAmountMissing")}
+                    </span>
+                  </div>
+                )}
                 {interaction.content ? (
                   <p className="text-sm text-slate-600 whitespace-pre-line">{interaction.content}</p>
                 ) : null}

@@ -5,28 +5,21 @@ import { Receipt } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Interaction } from "@interactions/types";
+import { extractAmountFromMetadata } from "@interactions/utils/amount";
 
 interface ProjectExpensesPanelProps {
   expenses: Interaction[];
 }
 
-const parseAmount = (metadata: Interaction["metadata"]) => {
-  if (!metadata) return 0;
-  const raw = (metadata as Record<string, unknown>)?.amount;
-  if (typeof raw === "number") return raw;
-  if (typeof raw === "string") {
-    const normalized = raw.trim();
-    const parsed = Number(normalized.replace(",", "."));
-    return Number.isNaN(parsed) ? 0 : parsed;
-  }
-  return 0;
-};
-
 export default function ProjectExpensesPanel({ expenses }: ProjectExpensesPanelProps) {
   const { t, locale } = useI18n();
 
   const total = useMemo(
-    () => expenses.reduce((sum, expense) => sum + parseAmount(expense.metadata), 0),
+    () =>
+      expenses.reduce(
+        (sum, expense) => sum + (extractAmountFromMetadata(expense.metadata) ?? 0),
+        0
+      ),
     [expenses]
   );
 
@@ -49,7 +42,7 @@ export default function ProjectExpensesPanel({ expenses }: ProjectExpensesPanelP
 
       <ul className="divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white shadow-sm">
         {expenses.map((expense) => {
-          const amount = parseAmount(expense.metadata);
+          const amount = extractAmountFromMetadata(expense.metadata) ?? 0;
           return (
             <li key={expense.id} className="p-4">
               <div className="flex items-center justify-between gap-4">
