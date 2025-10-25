@@ -1,3 +1,4 @@
+// nextjs/src/components/DeleteWithConfirmButton.tsx
 "use client";
 
 import { useState } from "react";
@@ -56,7 +57,9 @@ export default function DeleteWithConfirmButton({
     setErrorMessage("");
     try {
       await onConfirm();
-      successToast && show({ variant: "success", ...successToast });
+      if (successToast) {
+        show({ variant: "success", ...successToast });
+      }
       setOpen(false);
       onSuccess?.();
     } catch (error: unknown) {

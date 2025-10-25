@@ -3,7 +3,6 @@
 
 import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";

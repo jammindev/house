@@ -2,15 +2,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Coins, Pencil } from "lucide-react";
+import { CalendarDays, Coins } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { ProjectStatus, ProjectWithMetrics } from "@projects/types";
 import { PROJECT_STATUSES } from "@projects/constants";
-import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
 import ProjectQuickActions from "@projects/components/ProjectQuickActions";
 import { useToast } from "@/components/ToastProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -20,7 +18,6 @@ interface ProjectDetailHeaderProps {
   project: ProjectWithMetrics;
   onProjectChanged?: () => void;
   onLinkExisting?: () => void;
-  onEdit?: () => void;
 }
 
 const formatCurrency = (value: number, locale: string) =>
@@ -41,7 +38,6 @@ export default function ProjectDetailHeader({
   project,
   onProjectChanged,
   onLinkExisting,
-  onEdit,
 }: ProjectDetailHeaderProps) {
   const { selectedHouseholdId: householdId } = useGlobal();
   const { t, locale } = useI18n();

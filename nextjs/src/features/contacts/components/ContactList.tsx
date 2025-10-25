@@ -23,7 +23,7 @@ export default function ContactList({ contacts, onSelect, t }: ContactListProps)
   return (
     <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
       <ul className="divide-y divide-gray-100">
-        {contacts.map((contact, index) => {
+        {contacts.map((contact) => {
           const primaryEmail = getPrimaryEmail(contact);
           const primaryPhone = getPrimaryPhone(contact);
           const fullName = formatFullName(contact);

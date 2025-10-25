@@ -1,9 +1,8 @@
 // nextjs/src/features/interactions/components/InteractionItem.tsx
 "use client";
 import Link from "next/link";
-import { Building2, CalendarDays, Clock, Folder, Paperclip, Tag as TagIcon, UserRound } from "lucide-react";
+import { Building2, CalendarDays, Folder, Paperclip, Tag as TagIcon, UserRound } from "lucide-react";
 
-import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";
 import type { Interaction } from "@interactions/types";
 
 interface Props {
