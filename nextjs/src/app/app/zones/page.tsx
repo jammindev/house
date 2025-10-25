@@ -46,10 +46,10 @@ export default function ZonesPage() {
         t={t}
         sortedZones={sortedZones}
         zoneDepths={zoneDepths}
-        onCreate={async ({ name, parent_id, note, surface }) => {
+        onCreate={async ({ name, parent_id, note, surface, color }) => {
           if (!selectedHouseholdId) return;
           try {
-            await createZone({ household_id: selectedHouseholdId, name, parent_id, note, surface });
+            await createZone({ household_id: selectedHouseholdId, name, parent_id, note, surface, color });
           } catch (error: unknown) {
             console.error(error);
             const message = error instanceof Error ? error.message : t("zones.createFailed");

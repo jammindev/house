@@ -12,7 +12,7 @@ interface Props {
     zoneDepths: Map<string, number>;
     numberFormatter: Intl.NumberFormat;
     t: (key: string, args?: Record<string, string | number>) => string;
-    onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null }) => Promise<void>;
+    onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null; color?: string | null }) => Promise<void>;
     onAskDelete: (z: Zone) => void;
     deletingId?: string | null;
 }
@@ -75,8 +75,16 @@ export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter
     let firstRendered = true;
 
     return (
-        <motion.ul layout className="space-y-1" transition={{ duration: 0.18, ease: "easeOut" }}>
-            <AnimatePresence initial={false} mode="popLayout">
+        <ul
+        // layout
+        // className="space-y-1"
+        // transition={{
+        //     duration: 0.18,
+        //     ease: "easeOut",
+        //     layout: { type: "keyframes", duration: 0.25, ease: "easeInOut" },
+        // }}
+        >
+            <AnimatePresence initial={false} mode="sync">
                 {zones.map((zone) => {
                     if (rootIds.has(zone.id)) return null;
                     if (isHidden(zone)) return null;
@@ -106,6 +114,6 @@ export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter
                     return item;
                 })}
             </AnimatePresence>
-        </motion.ul>
+        </ul>
     );
 }

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import type { Zone } from "../types";
 import { formatZoneOptionLabel } from "../lib/tree";
+import { DEFAULT_FIRST_LEVEL_COLOR, getZoneDisplayColor, normalizeHexColor } from "@zones/lib/colors";
 interface Props {
     zone: Zone;
     zonesById: Map<string, Zone>;
@@ -16,7 +17,7 @@ interface Props {
     zoneDepths: Map<string, number>;
     numberFormatter: Intl.NumberFormat;
     t: (key: string, args?: Record<string, string | number>) => string;
-    onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null }) => Promise<void>;
+    onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null; color?: string | null }) => Promise<void>;
     onAskDelete: (z: Zone) => void;
     deletingId?: string | null;
     hasChildren?: boolean;
@@ -47,12 +48,23 @@ export default function ZoneItem({
         typeof zone.surface === "number" && !Number.isNaN(zone.surface) ? String(zone.surface) : ""
     );
     const [note, setNote] = useState(zone.note ?? "");
+    const [colorValue, setColorValue] = useState(zone.color || DEFAULT_FIRST_LEVEL_COLOR);
     const [saving, setSaving] = useState(false);
     const [expanded, setExpanded] = useState(false);
 
     const depth = zoneDepths.get(zone.id) ?? 0;
     const parent = useMemo(() => (zone.parent_id ? zonesById.get(zone.parent_id) ?? null : null), [zonesById, zone.parent_id]);
+    const draftParent = useMemo(
+        () => (parentId ? sortedZones.find((z) => z.id === parentId) ?? null : null),
+        [parentId, sortedZones]
+    );
     const surfaceText = typeof zone.surface === "number" && !Number.isNaN(zone.surface) ? numberFormatter.format(zone.surface) : null;
+    const isDraftFirstLevel = !!(draftParent && !draftParent.parent_id);
+    const displayColor = useMemo(() => getZoneDisplayColor(zone, zonesById), [zone, zonesById]);
+
+    useEffect(() => {
+        setColorValue(zone.color || DEFAULT_FIRST_LEVEL_COLOR);
+    }, [zone.color]);
 
     useEffect(() => {
         if (collapsed) setExpanded(false);
@@ -69,9 +81,19 @@ export default function ZoneItem({
             sVal = parsed;
         }
         const noteVal = note.trim() || null;
+        const colorPayload = isDraftFirstLevel ? normalizeHexColor(colorValue) : null;
+        if (isDraftFirstLevel && !colorPayload) {
+            throw new Error(t("zones.colorRequired"));
+        }
         setSaving(true);
         try {
-            await onEdit(zone.id, { name: nameTrim, parent_id: parentId || null, note: noteVal, surface: sVal });
+            await onEdit(zone.id, {
+                name: nameTrim,
+                parent_id: parentId || null,
+                note: noteVal,
+                surface: sVal,
+                color: colorPayload ?? undefined,
+            });
             setIsEditing(false);
         } finally {
             setSaving(false);
@@ -94,13 +116,22 @@ export default function ZoneItem({
             initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
+            transition={{
+                duration: 0.10,
+                ease: "easeOut",
+                layout: { type: "spring", duration: 0.10, ease: "easeInOut" },
+            }}
             className={clsx(
                 "group rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-slate-300",
                 depth > 0 && "bg-slate-50",
                 isFirstChildOfRoot && "mt-4"
             )}
-            style={{ marginLeft: depth ? (depth - 1) * 18 : undefined, overflow: "hidden" }}
+            style={{
+                marginLeft: depth ? (depth - 1) * 18 : undefined,
+                overflow: "hidden",
+                borderLeftWidth: 6,
+                borderLeftColor: displayColor,
+            }}
         >
             {isEditing ? (
                 <div className="flex flex-col gap-4">
@@ -127,6 +158,21 @@ export default function ZoneItem({
                             placeholder={t("zones.surfacePlaceholder")}
                         />
                     </div>
+                    {isDraftFirstLevel ? (
+                        <div className="flex flex-col gap-1 rounded-md border border-indigo-100 bg-white/70 p-3">
+                            <label className="text-xs font-semibold uppercase tracking-wide text-indigo-600">{t("zones.colorLabel")}</label>
+                            <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                                <input
+                                    type="color"
+                                    value={colorValue}
+                                    onChange={(e) => setColorValue(e.target.value)}
+                                    className="h-12 w-full rounded-md border border-indigo-200 bg-white p-1 md:h-10 md:w-40"
+                                    aria-label={t("zones.colorLabel")}
+                                />
+                                <p className="text-xs text-slate-500 md:flex-1">{t("zones.colorHelper")}</p>
+                            </div>
+                        </div>
+                    ) : null}
                     <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("zones.notePlaceholder")} rows={3} />
                     <div className="flex flex-wrap gap-2">
                         <Button size="sm" onClick={handleSave} disabled={saving || !name.trim()}>
@@ -159,7 +205,13 @@ export default function ZoneItem({
                             onClick={handleToggleDetails}
                             className="flex flex-1 items-start justify-between gap-1 rounded-md px-2 py-2 text-left transition hover:bg-slate-100 sm:flex-row sm:items-center sm:gap-3"
                         >
-                            <span className="truncate text-sm font-medium text-slate-900 sm:text-base">{zone.name}</span>
+                            <span className="flex flex-1 items-center gap-2 truncate text-sm font-medium text-slate-900 sm:text-base">
+                                <span
+                                    className="h-3 w-3 rounded-full border border-white shadow-inner shadow-white"
+                                    style={{ backgroundColor: displayColor }}
+                                />
+                                <span className="truncate">{zone.name}</span>
+                            </span>
                             {surfaceText ? (
                                 <span className="whitespace-nowrap text-xs text-slate-500 sm:text-sm">
                                     {t("zones.surfaceValue", { value: surfaceText })}

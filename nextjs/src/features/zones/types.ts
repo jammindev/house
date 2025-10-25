@@ -5,6 +5,7 @@ export type Zone = {
     parent_id?: string | null;
     note?: string | null;
     surface?: number | null;
+    color: string;
 };
 
 export type ZoneStats = {

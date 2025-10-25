@@ -346,6 +346,7 @@ export type Database = {
           note: string | null
           parent_id: string | null
           surface: number | null
+          color: string
         }
         Insert: {
           created_at?: string | null
@@ -356,6 +357,7 @@ export type Database = {
           note?: string | null
           parent_id?: string | null
           surface?: number | null
+          color?: string
         }
         Update: {
           created_at?: string | null
@@ -366,6 +368,7 @@ export type Database = {
           note?: string | null
           parent_id?: string | null
           surface?: number | null
+          color?: string
         }
         Relationships: [
           {

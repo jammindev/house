@@ -52,7 +52,8 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Policies on `households` rely on this table to authorize access.
 
 - `zones`
-  - Columns: `id uuid pk`, `household_id uuid`, `name text`, `parent_id uuid nullable` (same-household FK), `note text`, `surface numeric check (surface >= 0)`, `created_at timestamptz`, `created_by uuid`.
+  - Columns: `id uuid pk`, `household_id uuid`, `name text`, `parent_id uuid nullable` (same-household FK), `note text`, `surface numeric check (surface >= 0)`, `color text not null default '#f4f4f5'` (hex), `created_at timestamptz`, `created_by uuid`.
+  - Color model: first-generation children of root zones store a user-selected base color while deeper descendants automatically inherit lightened shades of their parent.
   - Trigger `trg_zones_set_created_by` populates `created_by = auth.uid()`.
   - RLS: members of the household may select/insert/update/delete zones for their household; delete is no longer restricted to the creator.
 
@@ -97,7 +98,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
 - Interactions UI (`/app/interactions`): list view limited to recent interactions with attachment counts, subject/type/status metadata, and zone context. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete an interaction per RLS, while document deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/interactions/new` captures interactions with zone selection, metadata (subject/type/status/date/tags), inline zone creation, and attachment upload (client uploads to storage then inserts rows into `documents`).
 - Projects UI (`/app/projects` and `/app/projects/[id]`): list and filter projects by status/dates/tags, show budget and activity rollups, and expose quick actions to create tasks, notes, documents, or expenses pre-linked to the project. Detail pages provide a timeline, dedicated tabs (tasks/documents/expenses) backed by `project_metrics`, and let members relink existing interactions to the project.
-- Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, and per-household stats. Any household member can update or delete a zone; the UI exposes confirmations rather than ownership blockers.
+- Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, color selection for first-level children, and per-household stats. Any household member can update or delete a zone; descendants automatically display lighter shades of their parent color and the UI exposes confirmations rather than ownership blockers.
 - User settings (`/app/user-settings`): change locale, view account metadata, update password, and enrol/manage TOTP MFA devices via `MFASetup`.
 - Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the security-definer RPC. `/app/households` currently just links to creation.
 - Template demos: `/app/storage` (personal file bucket) and `/app/table` (todo list) still exist from the upstream template and operate on template schema. They are unrelated to the House domain and should be hidden or removed before launch.
