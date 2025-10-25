@@ -187,6 +187,7 @@ export function useProjectInteractions(projectId?: string) {
           status: item.status,
           occurred_at: item.occurred_at,
           project_id: item.project_id ?? null,
+          project: null,
           tags,
           contacts:
             item.interaction_contacts

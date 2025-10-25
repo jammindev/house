@@ -335,8 +335,6 @@ export default function StoragePage() {
         label: t("storage.viewDocuments"),
         href: "/app/documents",
         icon: FileText,
-        variant: "outline",
-        size: "sm",
       }]}
       hideBackButton
     >

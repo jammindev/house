@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/InteractionDeleteButton.tsx
 "use client";
 
 import { useState } from "react";
@@ -56,7 +57,7 @@ export function InteractionDeleteButton({ interactionId, onDeleted, className }:
         disabled={loading}
       >
         <Trash2 className="w-4 h-4" />
-        {loading ? t("common.deleting") : t("interactions.deleteInteraction")}
+        {loading ? t("common.deleting") : t("common.delete")}
       </Button>
 
       <ConfirmDialog

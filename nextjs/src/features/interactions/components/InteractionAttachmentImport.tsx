@@ -149,12 +149,11 @@ export default function InteractionAttachmentImport({
             size="sm"
             disabled={uploading}
             aria-label="Ajouter des fichiers"
-            className="hover:bg-muted transition-colors"
           >
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             ) : (
-              <Upload className="h-4 w-4 text-muted-foreground" />
+              <Upload className="h-4 w-4" />
             )}
           </Button>
         </PopoverTrigger>

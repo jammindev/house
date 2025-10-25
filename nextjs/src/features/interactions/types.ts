@@ -1,3 +1,5 @@
+import type { ProjectStatus } from "@projects/types";
+
 export type ZoneOption = {
   id: string;
   name: string;
@@ -30,6 +32,12 @@ export type Tag = {
 
 export type InteractionTag = Tag;
 
+export type InteractionProjectSummary = {
+  id: string;
+  title: string;
+  status: ProjectStatus;
+};
+
 export type Interaction = {
   id: string;
   household_id: string;
@@ -39,6 +47,7 @@ export type Interaction = {
   status: InteractionStatus | null;
   occurred_at: string;
   project_id?: string | null;
+  project?: InteractionProjectSummary | null;
   tags: InteractionTag[];
   contacts: InteractionContact[];
   structures: InteractionStructure[];
@@ -96,3 +105,10 @@ export type Document = {
 };
 
 export type Preview = { url: string; kind: "image" | "pdf" };
+
+export type InteractionListFilters = {
+  search?: string | null;
+  statuses?: (InteractionStatus | null)[];
+  occurredFrom?: string | null;
+  occurredTo?: string | null;
+};

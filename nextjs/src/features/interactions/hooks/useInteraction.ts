@@ -6,6 +6,7 @@ import type {
   Document,
   Interaction,
   InteractionContact,
+  InteractionProjectSummary,
   InteractionStructure,
   InteractionTag,
 } from "@interactions/types";
@@ -28,6 +29,7 @@ type RawInteraction = {
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
   interaction_contacts?: { contact?: RawContact | null }[] | null;
   interaction_structures?: { structure?: RawStructure | null }[] | null;
+  project?: RawProject | null;
 };
 
 type RawContact = {
@@ -61,6 +63,12 @@ type RawInteractionDocument = {
     created_by: string | null;
     created_at: string;
   } | null;
+};
+
+type RawProject = {
+  id: string;
+  title?: string | null;
+  status?: InteractionProjectSummary["status"] | null;
 };
 
 export function useInteraction(id?: string) {
@@ -123,6 +131,11 @@ export function useInteraction(id?: string) {
                 name,
                 type
               )
+            ),
+            project:projects!interactions_project_id_fkey(
+              id,
+              title,
+              status
             )
           `
         )
@@ -131,6 +144,13 @@ export function useInteraction(id?: string) {
       if (interactionError) throw interactionError;
       const row = (interactionData as RawInteraction | null) ?? null;
       if (row) {
+        const project: InteractionProjectSummary | null = row.project
+          ? {
+              id: row.project.id,
+              title: row.project.title?.trim() ?? "",
+              status: (row.project.status ?? "draft") as InteractionProjectSummary["status"],
+            }
+          : null;
         const tags =
           row.interaction_tags
             ?.map((entry) => entry?.tag)
@@ -144,6 +164,7 @@ export function useInteraction(id?: string) {
           status: row.status,
           occurred_at: row.occurred_at,
           project_id: row.project_id ?? null,
+          project,
           tags,
           contacts:
             row.interaction_contacts

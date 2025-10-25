@@ -1,3 +1,4 @@
+// nextjs/src/features/projects/hooks/useProjects.ts
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -47,6 +48,7 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+  console.log(filters)
 
   const load = useCallback(async () => {
     if (!householdId) return;

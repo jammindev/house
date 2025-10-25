@@ -1,7 +1,10 @@
 // nextjs/src/features/interactions/components/InteractionDetailView.tsx
 "use client";
+import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
 import InteractionEditDialog from "@interactions/components/detail/InteractionEditDialog";
@@ -44,11 +47,6 @@ export default function InteractionDetailView({
 
   const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
 
-  const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
-  const typeLabel = t(`interactionstypes.${interaction.type}`);
-  const occurredAt = interaction.occurred_at
-    ? new Date(interaction.occurred_at).toLocaleString()
-    : new Date(interaction.created_at).toLocaleString();
   const createdAt = new Date(interaction.created_at).toLocaleString();
   const updatedAt = new Date(interaction.updated_at).toLocaleString();
   const metadata = isObjectRecord(interaction.metadata) ? interaction.metadata : null;
@@ -59,7 +57,7 @@ export default function InteractionDetailView({
   const shouldShowFilesSection = hasFiles || Boolean(fileError);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pb-12 pt-4 md:gap-8">
+    <div className="mx-auto flex w-full flex-col gap-6 pb-12 md:gap-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
@@ -112,31 +110,51 @@ export default function InteractionDetailView({
             structures={interaction.structures}
           />
 
-          <InteractionMetadata metadata={metadata} />
-
-          {!auditLoading && (
+          {interaction.project && (
             <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
-              <div className="space-y-2 text-sm text-muted-foreground">
-                <p>
-                  {t("interactiondetail.auditCreated", {
-                    date: createdAt,
-                    user: audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
-                  })}
-                </p>
-                <p>
-                  {t("interactiondetail.auditUpdated", {
-                    date: updatedAt,
-                    user: audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
-                  })}
-                </p>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("interactiondetail.projectSectionTitle")}
+              </h2>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-base font-semibold text-foreground">{interaction.project.title}</p>
+                  <Badge variant="outline" className="mt-2">
+                    {t(`projects.status.${interaction.project.status}`)}
+                  </Badge>
+                </div>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href={`/app/projects/${interaction.project.id}`}>
+                    {t("interactiondetail.viewProject")}
+                  </Link>
+                </Button>
               </div>
             </section>
           )}
 
-          <section className="rounded-2xl border border-destructive/40 bg-destructive/5 p-5 shadow-sm transition-colors">
-            <InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />
-          </section>
+          <InteractionMetadata metadata={metadata} />
+
+
         </div>
+        <section className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+          {!auditLoading && (
+            <div className="text-xs text-muted-foreground">
+              <p>
+                {t("interactiondetail.auditCreated", {
+                  date: createdAt,
+                  user: audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
+                })}
+              </p>
+              <p>
+                {t("interactiondetail.auditUpdated", {
+                  date: updatedAt,
+                  user: audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
+                })}
+              </p>
+            </div>
+          )}
+          <InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />
+        </section>
+
       </div>
 
       <InteractionEditDialog

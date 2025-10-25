@@ -15,7 +15,7 @@ import AppPageLayout from "@/components/layout/AppPageLayout";
 import { Plus } from "lucide-react";
 
 export default function ContactsPage() {
-  const { loading: globalLoading, selectedHouseholdId } = useGlobal();
+  const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
   const { contacts, loading, error, createContact } = useContacts();
   const { show } = useToast();
@@ -85,18 +85,6 @@ export default function ContactsPage() {
     },
     [createContact, selectedHouseholdId, show, t]
   );
-
-  if (globalLoading)
-    return (
-      <AppPageLayout
-        title={heading.title}
-        subtitle={heading.description}
-        actions={[{ label: t("contacts.addContact"), icon: Plus, disabled: true }]}
-        hideBackButton
-      >
-        <div className="text-sm text-gray-500">{t("common.loading")}</div>
-      </AppPageLayout>
-    );
 
   return (
     <AppPageLayout

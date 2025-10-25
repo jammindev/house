@@ -12,7 +12,6 @@ import BackButton from "../BackButton";
 
 type PageAction =
   | {
-    /** ✅ Élément React libre (ex: <InteractionAttachmentImport />) */
     element: ReactNode;
   }
   | {
@@ -54,8 +53,8 @@ export default function AppPageLayout({
     return (
       <Button
         key={i}
-        variant={action.variant ?? "default"}
-        size={action.size ?? "icon"}
+        variant={action.variant ?? "outline"}
+        size={action.size ?? "sm"}
         aria-label={action.label}
         disabled={action.disabled}
         onClick={action.href ? undefined : action.onClick}
@@ -103,17 +102,14 @@ export default function AppPageLayout({
   return (
     <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8", className)}>
       <header className="mb-4 flex flex-row justify-between items-center w-full">
-        <div className="flex gap-2 items-center">
-          {!hideBackButton && <BackButton />}
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-gray-900">
-              {title}
-              {context ? <span className="text-gray-500"> · {context}</span> : null}
-            </h1>
-            {subtitle ? <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p> : null}
-          </div>
+        <div className="ml-4 space-y-1">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {title}
+            {context ? <span className="text-gray-500"> · {context}</span> : null}
+          </h1>
+          {subtitle ? <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p> : null}
         </div>
-        <div className="flex gap-2 self-end sm:self-auto">{actionButtons}</div>
+        <div className="flex gap-2 self-end sm:self-auto">{!hideBackButton && <BackButton />}{actionButtons}</div>
 
       </header>
       <div className={cn("flex-1", contentClassName)}>{children}</div>

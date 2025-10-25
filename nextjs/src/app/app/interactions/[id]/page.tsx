@@ -34,7 +34,7 @@ export default function InteractionDetailPage() {
       title={interaction.subject || t("interactionsdetail")}
       context={typeLabel}
       subtitle={subtitle}
-      actions={[{ icon: Pencil, onClick: () => setEditOpen(true), variant: "secondary" }, {
+      actions={[{ icon: Pencil, onClick: () => setEditOpen(true) }, {
         element: (
           <InteractionAttachmentImport
             interactionId={interaction.id}

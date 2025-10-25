@@ -33,7 +33,6 @@ export default function ProjectsPage() {
       actions={[{
         icon: Plus,
         href: "/app/projects/new",
-        size: "sm",
       }]}
       hideBackButton
     >

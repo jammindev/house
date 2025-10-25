@@ -60,7 +60,7 @@ export default function ProjectDetailPage() {
         context={statusLabel}
         className="max-w-5xl"
         contentClassName="flex flex-col gap-6 pb-10"
-        actions={[{ icon: Pencil, onClick: () => router.push(`/app/projects/${project.id}/edit`), variant: "secondary" }]}
+        actions={[{ icon: Pencil, onClick: () => router.push(`/app/projects/${project.id}/edit`) }]}
 
       >
         <ProjectDetailView
