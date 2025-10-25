@@ -8,6 +8,7 @@ import type {
   Document,
   Interaction,
   InteractionContact,
+  InteractionProjectSummary,
   InteractionStructure,
   InteractionTag,
 } from "@interactions/types";
@@ -23,6 +24,7 @@ type RawInteraction = {
   status: Interaction["status"];
   occurred_at: string;
   project_id?: string | null;
+  project?: RawProject | null;
   metadata: Interaction["metadata"];
   enriched_text: Interaction["enriched_text"];
   created_at: string;
@@ -32,6 +34,12 @@ type RawInteraction = {
   interaction_tags?: { tag?: InteractionTag | null }[] | null;
   interaction_contacts?: { contact?: RawContact | null }[] | null;
   interaction_structures?: { structure?: RawStructure | null }[] | null;
+};
+
+type RawProject = {
+  id: string;
+  title?: string | null;
+  status?: InteractionProjectSummary["status"] | null;
 };
 
 type RawContact = {
@@ -97,6 +105,11 @@ export function useInteractions() {
               status,
               occurred_at,
               project_id,
+              project:projects!interactions_project_id_fkey(
+                id,
+                title,
+                status
+              ),
               created_at,
               updated_at,
               household_id,
@@ -142,6 +155,13 @@ export function useInteractions() {
         if (interactionError) throw interactionError;
         const list = (interactionData ?? []) as RawInteraction[];
         const normalized: Interaction[] = list.map((item) => {
+          const project: InteractionProjectSummary | null = item.project
+            ? {
+                id: item.project.id,
+                title: item.project.title?.trim() ?? "",
+                status: (item.project.status ?? "draft") as InteractionProjectSummary["status"],
+              }
+            : null;
           const tags =
             item.interaction_tags
               ?.map((entry) => entry?.tag)
@@ -155,8 +175,8 @@ export function useInteractions() {
             type: item.type,
             status: item.status,
             occurred_at: item.occurred_at,
-            project_id: item.project_id ?? null,
-            project: null,
+            project_id: item.project_id ?? project?.id ?? null,
+            project,
             tags,
             contacts:
               item.interaction_contacts
@@ -169,10 +189,10 @@ export function useInteractions() {
                   position: contact.position?.trim() || null,
                   structure: contact.structure
                     ? {
-                        id: contact.structure.id,
-                        name: contact.structure.name?.trim() ?? "",
-                        type: contact.structure.type?.trim() || null,
-                      }
+                      id: contact.structure.id,
+                      name: contact.structure.name?.trim() ?? "",
+                      type: contact.structure.type?.trim() || null,
+                    }
                     : null,
                 })) ?? [],
             structures:

@@ -1,6 +1,7 @@
+// nextjs/src/features/interactions/components/InteractionItem.tsx
 "use client";
 import Link from "next/link";
-import { Paperclip } from "lucide-react";
+import { Folder, Paperclip } from "lucide-react";
 
 import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";
 import type { Interaction } from "@interactions/types";
@@ -16,7 +17,7 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
   const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
   const tags = interaction.tags || [];
   const hasLinks = interaction.contacts.length > 0 || interaction.structures.length > 0;
-
+  const projectStatusLabel = interaction.project ? t(`projects.status.${interaction.project.status}`) : null;
   return (
     <Link
       href={`/app/interactions/${interaction.id}`}
@@ -44,6 +45,21 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
         </div>
 
         <p className="text-sm text-gray-700 line-clamp-3 whitespace-pre-wrap">{interaction.content}</p>
+
+        {interaction.project && (
+          <div className="flex flex-wrap items-center gap-2 rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-600">
+            <span className="flex items-center gap-1 font-medium text-gray-700">
+              <Folder className="h-3.5 w-3.5" />
+              {t("interactionsprojectLabel")}
+            </span>
+            <span className="text-sm font-semibold text-gray-900">{interaction.project.title}</span>
+            {projectStatusLabel && (
+              <span className="inline-flex items-center rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                {projectStatusLabel}
+              </span>
+            )}
+          </div>
+        )}
 
         {hasLinks && (
           <div className="flex flex-wrap gap-2">
