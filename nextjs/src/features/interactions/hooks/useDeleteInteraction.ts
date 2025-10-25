@@ -1,17 +1,11 @@
 // nextjs/src/features/interactions/hooks/useDeleteInteraction.ts
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 
 export function useDeleteInteraction() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const deleteInteraction = useCallback(async (interactionId: string) => {
-    setLoading(true);
-    setError("");
-
+  return useCallback(async (interactionId: string) => {
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
@@ -72,13 +66,7 @@ export function useDeleteInteraction() {
       }
     } catch (error: unknown) {
       console.error("❌ Failed to delete interaction:", error);
-      const message = error instanceof Error ? error.message : "Failed to delete interaction";
-      setError(message);
       throw error;
-    } finally {
-      setLoading(false);
     }
   }, []);
-
-  return { deleteInteraction, loading, error, setError };
 }

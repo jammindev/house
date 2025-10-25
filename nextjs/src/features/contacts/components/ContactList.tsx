@@ -1,7 +1,9 @@
-import { ChevronRight } from "lucide-react";
+// nextjs/src/features/contacts/components/ContactList.tsx
+import { Mail, Notebook, Phone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Contact } from "../types";
 import { formatFullName, getPrimaryEmail, getPrimaryPhone } from "../lib/format";
+import { Button } from "@/components/ui/button";
 
 type ContactListProps = {
   contacts: Contact[];
@@ -19,51 +21,92 @@ export default function ContactList({ contacts, onSelect, t }: ContactListProps)
   }
 
   return (
-    <div className="overflow-hidden rounded-md border border-gray-200 bg-white">
+    <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
       <ul className="divide-y divide-gray-100">
         {contacts.map((contact, index) => {
           const primaryEmail = getPrimaryEmail(contact);
           const primaryPhone = getPrimaryPhone(contact);
           const fullName = formatFullName(contact);
-          const isFirst = index === 0;
+          const displayName = fullName || t("contacts.unnamedContact");
+
+          const position = contact.position;
+          const structure = contact.structure?.name;
 
           return (
             <li key={contact.id}>
-              <button
-                type="button"
-                onClick={() => onSelect(contact)}
+              <div
                 className={cn(
-                  "flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
-                  isFirst ? "rounded-t-md" : ""
+                  "flex w-full items-start justify-between gap-4 px-4 py-3 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
                 )}
               >
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="text-sm font-medium text-gray-900">{fullName || t("contacts.unnamedContact")}</div>
-                  {(contact.position || contact.structure?.name) && (
-                    <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-                      {contact.position && <span>{contact.position}</span>}
-                      {contact.structure?.name && (
-                        <span className="rounded bg-gray-100 px-2 py-0.5 text-gray-600">{contact.structure.name}</span>
+                {/* Bloc principal : infos du contact */}
+                <div className="flex flex-col flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-3">
+                    {/* Nom */}
+                    <div className="truncate text-sm font-medium text-gray-900">
+                      {displayName}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex shrink-0 gap-1">
+                      {primaryEmail && (
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-primary/10 transition-colors"
+                        >
+                          <a
+                            href={`mailto:${primaryEmail.email}`}
+                            aria-label={t("contacts.emailAction", { name: displayName })}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <Mail className="h-4 w-4 text-gray-600" aria-hidden />
+                          </a>
+                        </Button>
+                      )}
+                      {primaryPhone && (
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-primary/10 transition-colors"
+                        >
+                          <a
+                            href={`tel:${primaryPhone.phone}`}
+                            aria-label={t("contacts.phoneAction", { name: displayName })}
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            <Phone className="h-4 w-4 text-gray-600" aria-hidden />
+                          </a>
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => onSelect(contact)}
+                        aria-label={t("contacts.viewDetails", { name: displayName })}
+                      >
+                        <Notebook className="h-4 w-4 text-gray-700" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Détails métier / structure */}
+                  {(position || structure) && (
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                      {position && (
+                        <span className="font-medium text-gray-700">{position}</span>
+                      )}
+                      {structure && (
+                        <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 font-medium text-gray-700">
+                          {structure}
+                        </span>
                       )}
                     </div>
                   )}
-                  <div className="mt-1 flex flex-col gap-1 text-xs text-gray-500">
-                    {primaryEmail && (
-                      <div>
-                        <span className="font-medium text-gray-600">{t("contacts.primaryEmail")}:</span>{" "}
-                        <span className="break-all text-gray-700">{primaryEmail.email}</span>
-                      </div>
-                    )}
-                    {primaryPhone && (
-                      <div>
-                        <span className="font-medium text-gray-600">{t("contacts.primaryPhone")}:</span>{" "}
-                        <span className="text-gray-700">{primaryPhone.phone}</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
-                <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
-              </button>
+              </div>
             </li>
           );
         })}

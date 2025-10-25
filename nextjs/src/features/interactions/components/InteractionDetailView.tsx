@@ -15,6 +15,7 @@ import InteractionZonesList from "@interactions/components/InteractionZonesList"
 import ImageGallery from "@interactions/components/gallery/ImageGallery";
 import PdfFileList from "@interactions/components/pdf/PdfFileList";
 import { useInteractionAudit } from "@interactions/hooks/useInteractionAudit";
+import AuditHistoryCard from "@/components/AuditHistoryCard";
 import type { Document, Interaction } from "@interactions/types";
 
 type InteractionDetailViewProps = {
@@ -135,26 +136,20 @@ export default function InteractionDetailView({
 
 
         </div>
-        <section className="flex flex-col gap-2 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
-          {!auditLoading && (
-            <div className="text-xs text-muted-foreground">
-              <p>
-                {t("interactiondetail.auditCreated", {
-                  date: createdAt,
-                  user: audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
-                })}
-              </p>
-              <p>
-                {t("interactiondetail.auditUpdated", {
-                  date: updatedAt,
-                  user: audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
-                })}
-              </p>
-            </div>
-          )}
-          <InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />
-        </section>
-
+        <AuditHistoryCard
+          loading={auditLoading}
+          lines={[
+            t("interactiondetail.auditCreated", {
+              date: createdAt,
+              user: audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
+            }),
+            t("interactiondetail.auditUpdated", {
+              date: updatedAt,
+              user: audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
+            }),
+          ]}
+          actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />}
+        />
       </div>
 
       <InteractionEditDialog

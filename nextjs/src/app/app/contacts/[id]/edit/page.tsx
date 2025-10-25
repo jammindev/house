@@ -1,3 +1,4 @@
+// nextjs/src/app/app/contacts/[id]/edit/page.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -171,16 +172,6 @@ export default function ContactEditPage() {
     return (
       <AppPageLayout title={heading.title} subtitle={heading.subtitle}>
         <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-600">{t("contacts.notFound")}</div>
-      </AppPageLayout>
-    );
-  }
-
-  if (!selectedHouseholdId) {
-    return (
-      <AppPageLayout title={heading.title} subtitle={heading.subtitle}>
-        <div className="rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
-          {t("contacts.householdRequired")}
-        </div>
       </AppPageLayout>
     );
   }
