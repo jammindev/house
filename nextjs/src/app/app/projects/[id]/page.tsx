@@ -1,3 +1,4 @@
+// nextjs/src/app/app/projects/[id]/page.tsx
 "use client";
 
 import { useCallback, useState } from "react";
@@ -9,6 +10,7 @@ import ProjectDetailView from "@projects/components/ProjectDetailView";
 import ProjectLinkInteractionModal from "@projects/components/ProjectLinkInteractionModal";
 import { useProject } from "@projects/hooks/useProject";
 import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
+import { Pencil } from "lucide-react";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -58,15 +60,16 @@ export default function ProjectDetailPage() {
         context={statusLabel}
         className="max-w-5xl"
         contentClassName="flex flex-col gap-6 pb-10"
+        actions={[{ icon: Pencil, onClick: () => router.push(`/app/projects/${project.id}/edit`), variant: "secondary" }]}
+
       >
         <ProjectDetailView
           project={project}
           interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
           onRefresh={handleRefresh}
           onLinkExisting={() => setLinkOpen(true)}
-          onEdit={() => router.push(`/app/projects/${project.id}/edit`)}
         />
-      </AppPageLayout>
+      </AppPageLayout >
 
       <ProjectLinkInteractionModal
         open={linkOpen}

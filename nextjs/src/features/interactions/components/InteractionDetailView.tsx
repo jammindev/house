@@ -1,13 +1,10 @@
+// nextjs/src/features/interactions/components/InteractionDetailView.tsx
 "use client";
-
-import { useState } from "react";
 import { AlertCircle } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
 import InteractionEditDialog from "@interactions/components/detail/InteractionEditDialog";
-import InteractionDetailHeader from "@interactions/components/detail/InteractionDetailHeader";
-import InteractionDetailSummary from "@interactions/components/detail/InteractionDetailSummary";
 import InteractionMetadata from "@interactions/components/detail/InteractionMetadata";
 import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
 import InteractionRawTextEditor from "@interactions/components/InteractionRawTextEditor";
@@ -24,6 +21,8 @@ type InteractionDetailViewProps = {
   fileError?: string;
   onReload: () => void;
   onDeleted: () => void;
+  editOpen: boolean;
+  setEditOpen: (status: boolean) => void;
 };
 
 const DOCUMENT_TYPES = new Set(["document", "quote", "invoice", "contract", "other"]);
@@ -38,10 +37,11 @@ export default function InteractionDetailView({
   fileError,
   onReload,
   onDeleted,
+  editOpen,
+  setEditOpen,
 }: InteractionDetailViewProps) {
   const { t } = useI18n();
 
-  const [editOpen, setEditOpen] = useState(false);
   const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
 
   const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
@@ -60,15 +60,6 @@ export default function InteractionDetailView({
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pb-12 pt-4 md:gap-8">
-      <InteractionDetailHeader
-        interaction={interaction}
-        updatedAt={updatedAt}
-        onReload={onReload}
-        onEdit={() => setEditOpen(true)}
-      />
-
-      <InteractionDetailSummary typeLabel={typeLabel} statusLabel={statusLabel} occurredAt={occurredAt} />
-
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">

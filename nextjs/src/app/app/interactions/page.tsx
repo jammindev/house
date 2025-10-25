@@ -33,7 +33,7 @@ export default function InteractionsPage() {
   return (
     <AppPageLayout
       title={t("interactionstitle")}
-      action={{ icon: Plus, href: "/app/interactions/new" }}
+      actions={[{ icon: Plus, href: "/app/interactions/new" }]}
       hideBackButton
     >
       {error ? (

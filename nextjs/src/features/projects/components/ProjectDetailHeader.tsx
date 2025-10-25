@@ -1,3 +1,4 @@
+// nextjs/src/features/projects/components/ProjectDetailHeader.tsx
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -91,8 +92,6 @@ export default function ProjectDetailHeader({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold text-slate-900">{project.title}</h1>
-              <ProjectStatusBadge status={status} />
               {project.isOverdue ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-600">
                   {t("projects.badges.overdue")}
@@ -131,10 +130,6 @@ export default function ProjectDetailHeader({
                 </option>
               ))}
             </select>
-            <Button variant="ghost" size="sm" className="justify-start gap-2 text-slate-600" onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-              {t("projects.actions.editProject")}
-            </Button>
           </div>
         </div>
 

@@ -32,7 +32,7 @@ export default function ZonesPage() {
   return (
     <AppPageLayout
       title={t("zones.title")}
-      action={{ icon: Plus, onClick: () => setFormOpen(true) }}
+      actions={[{ icon: Plus, onClick: () => setFormOpen(true) }]}
       hideBackButton
     >
 

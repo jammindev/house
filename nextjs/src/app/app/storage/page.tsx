@@ -1,3 +1,4 @@
+// nextjs/src/app/app/storage/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -148,9 +149,9 @@ export default function StoragePage() {
       prev.map((file) =>
         file.id === id
           ? {
-              ...file,
-              ...changes,
-            }
+            ...file,
+            ...changes,
+          }
           : file
       )
     );
@@ -330,13 +331,13 @@ export default function StoragePage() {
     <AppPageLayout
       title={t("storage.title")}
       subtitle={t("storage.subtitle")}
-      action={{
+      actions={[{
         label: t("storage.viewDocuments"),
         href: "/app/documents",
         icon: FileText,
         variant: "outline",
         size: "sm",
-      }}
+      }]}
       hideBackButton
     >
       <div className="space-y-6">

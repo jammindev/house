@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/InteractionZonesList.tsx
 // nextjs/src/features/entries/components/InteractionZonesList.tsx
 "use client";
 
@@ -9,6 +10,7 @@ import { useZones } from "@/features/zones/hooks/useZones";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import type { Zone } from "@/features/zones/types";
 import { ZonePicker } from "./ZonePicker";
 
 type Props = {
@@ -71,28 +73,65 @@ export default function InteractionZonesList({ interactionId }: Props) {
         <div className="text-sm text-gray-500">{t("interactionsnoZones")}</div>
       )}
 
-      <Dialog open={open} onOpenChange={handleOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("interactionszones")}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            {loadingZones ? (
-              <div className="text-sm text-gray-500">{t("zones.loading")}</div>
-            ) : (
-              <ZonePicker zones={hhZones} value={selected} onChange={setSelected} />
-            )}
-            <div className="flex gap-2 justify-end pt-2">
-              <Button variant="secondary" onClick={() => handleOpen(false)} disabled={saving}>
-                {t("common.cancel")}
-              </Button>
-              <Button onClick={handleSave} disabled={saving || loadingZones || selected.length === 0}>
-                {saving ? t("common.saving") : t("common.save")}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ZoneSelectionDialog
+        open={open}
+        onOpenChange={handleOpen}
+        loadingZones={loadingZones}
+        zones={hhZones}
+        selected={selected}
+        onSelectionChange={setSelected}
+        saving={saving}
+        onSave={handleSave}
+      />
     </div>
+  );
+}
+
+type ZoneSelectionDialogProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  loadingZones: boolean;
+  zones: Zone[];
+  selected: string[];
+  onSelectionChange: (value: string[]) => void;
+  saving: boolean;
+  onSave: () => void | Promise<void>;
+};
+
+function ZoneSelectionDialog({
+  open,
+  onOpenChange,
+  loadingZones,
+  zones,
+  selected,
+  onSelectionChange,
+  saving,
+  onSave,
+}: ZoneSelectionDialogProps) {
+  const { t } = useI18n();
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("interactionszones")}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3">
+          {loadingZones ? (
+            <div className="text-sm text-gray-500">{t("zones.loading")}</div>
+          ) : (
+            <ZonePicker zones={zones} value={selected} onChange={onSelectionChange} />
+          )}
+          <div className="flex gap-2 justify-end pt-2">
+            <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={onSave} disabled={saving || loadingZones || selected.length === 0}>
+              {saving ? t("common.saving") : t("common.save")}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

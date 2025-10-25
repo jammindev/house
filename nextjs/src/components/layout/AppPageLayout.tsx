@@ -9,22 +9,28 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
 
-type PageAction = {
-  label?: string;
-  icon: LucideIcon;
-  href?: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  variant?: ButtonProps["variant"];
-  size?: ButtonProps["size"];
-  className?: string;
-};
+
+type PageAction =
+  | {
+    /** ✅ Élément React libre (ex: <InteractionAttachmentImport />) */
+    element: ReactNode;
+  }
+  | {
+    label?: string;
+    icon: LucideIcon;
+    href?: string;
+    onClick?: () => void;
+    disabled?: boolean;
+    variant?: ButtonProps["variant"];
+    size?: ButtonProps["size"];
+    className?: string;
+  };
 
 interface AppPageLayoutProps {
   title: string;
   subtitle?: string;
   context?: string;
-  action?: PageAction;
+  actions?: PageAction[];
   children: ReactNode;
   className?: string;
   contentClassName?: string;
@@ -35,31 +41,64 @@ export default function AppPageLayout({
   title,
   subtitle,
   context,
-  action,
+  actions,
   children,
   className,
   contentClassName,
   hideBackButton = false,
 }: AppPageLayoutProps) {
-  const actionButton = action ? (
-    <Button
-      variant={action.variant ?? "default"}
-      size={action.size ?? "icon"}
-      aria-label={action.label}
-      disabled={action.disabled}
-      onClick={action.href ? undefined : action.onClick}
-      className={cn(
-        "relative shrink-0",
-        action.size === "icon" ? "p-2" : "gap-2",
-        action.className
-      )}
-    >
-      <action.icon className="h-5 w-5" />
-      {action.label &&
-        <span className={cn(action.size === "icon" ? "sr-only" : "text-sm font-medium")}>{action.label}</span>
-      }
-    </Button>
-  ) : null;
+  const actionButtons = actions?.map((action, i) => {
+    if ("element" in action) {
+      return <div key={i}>{action.element}</div>;
+    }
+    return (
+      <Button
+        key={i}
+        variant={action.variant ?? "default"}
+        size={action.size ?? "icon"}
+        aria-label={action.label}
+        disabled={action.disabled}
+        onClick={action.href ? undefined : action.onClick}
+        className={cn(
+          "relative shrink-0",
+          action.size === "icon" ? "p-2" : "gap-2",
+          action.className
+        )}
+        asChild={!!action.href}
+      >
+        {action.href ? (
+          <a href={action.href}>
+            <action.icon className="h-5 w-5" />
+            {action.label && (
+              <span
+                className={cn(
+                  action.size === "icon"
+                    ? "sr-only"
+                    : "text-sm font-medium"
+                )}
+              >
+                {action.label}
+              </span>
+            )}
+          </a>
+        ) : (
+          <>
+            <action.icon className="h-5 w-5" />
+            {action.label && (
+              <span
+                className={cn(
+                  action.size === "icon"
+                    ? "sr-only"
+                    : "text-sm font-medium"
+                )}
+              >
+                {action.label}
+              </span>
+            )}
+          </>
+        )}
+      </Button>)
+  });
 
   return (
     <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8", className)}>
@@ -74,17 +113,8 @@ export default function AppPageLayout({
             {subtitle ? <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p> : null}
           </div>
         </div>
-        {action
-          ? action.href && !action.disabled
-            ? (
-              <Link href={action.href} className="self-auto">
-                {actionButton}
-              </Link>
-            )
-            : (
-              <div className="self-end sm:self-auto">{actionButton}</div>
-            )
-          : null}
+        <div className="flex gap-2 self-end sm:self-auto">{actionButtons}</div>
+
       </header>
       <div className={cn("flex-1", contentClassName)}>{children}</div>
     </div>

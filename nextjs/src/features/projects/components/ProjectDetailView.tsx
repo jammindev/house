@@ -1,3 +1,4 @@
+// nextjs/src/features/projects/components/ProjectDetailView.tsx
 "use client";
 
 import { useState } from "react";
@@ -18,7 +19,6 @@ interface ProjectDetailViewProps {
   interactionsData: ProjectInteractionSummary;
   onRefresh?: () => void;
   onLinkExisting?: () => void;
-  onEdit?: () => void;
 }
 
 const TABS = ["timeline", "tasks", "documents", "expenses"] as const;
@@ -28,14 +28,13 @@ export default function ProjectDetailView({
   interactionsData,
   onRefresh,
   onLinkExisting,
-  onEdit,
 }: ProjectDetailViewProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<typeof TABS[number]>("timeline");
 
   return (
     <div className="space-y-6 pb-10">
-      <ProjectDetailHeader project={project} onProjectChanged={onRefresh} onLinkExisting={onLinkExisting} onEdit={onEdit} />
+      <ProjectDetailHeader project={project} onProjectChanged={onRefresh} onLinkExisting={onLinkExisting} />
 
       <Card className="border border-slate-200 shadow-sm">
         <CardContent className="p-0">

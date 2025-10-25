@@ -30,11 +30,11 @@ export default function ProjectsPage() {
     <AppPageLayout
       title={t("projects.title")}
       subtitle={t("projects.subtitle")}
-      action={{
+      actions={[{
         icon: Plus,
         href: "/app/projects/new",
         size: "sm",
-      }}
+      }]}
       hideBackButton
     >
       <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
