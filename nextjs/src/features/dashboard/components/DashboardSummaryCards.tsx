@@ -1,3 +1,4 @@
+// nextjs/src/features/dashboard/components/DashboardSummaryCards.tsx
 "use client";
 
 import Link from "next/link";
@@ -89,7 +90,7 @@ export default function DashboardSummaryCards({ summary, loading = false }: Dash
               <CardFooter className="flex flex-wrap gap-2">
                 <Link href={item.primaryCta} aria-label={t(item.primaryLabelKey)}>
                   <Button size="sm" className="flex items-center gap-1">
-                    {item.key === "interactions" ? <PlusCircle className="h-4 w-4" aria-hidden /> : <ArrowRight className="h-4 w-4" aria-hidden />} 
+                    {item.key === "interactions" ? <PlusCircle className="h-4 w-4" aria-hidden /> : <ArrowRight className="h-4 w-4" aria-hidden />}
                     {t(item.primaryLabelKey)}
                   </Button>
                 </Link>
