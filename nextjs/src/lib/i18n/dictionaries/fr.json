@@ -14,6 +14,7 @@
   "nav.signedInAs": "Connecté en tant que",
   "dashboard.welcome": "Bienvenue, {name} !",
   "dashboard.memberFor": "Membre depuis {days} jours",
+  "dashboard.documents": "Documents",
   "dashboard.zones": "Zones",
   "dashboard.contacts": "Contacts",
   "dashboard.peopleAndVendors": "Personnes clés et prestataires du foyer",

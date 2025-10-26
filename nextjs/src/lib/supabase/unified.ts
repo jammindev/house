@@ -46,9 +46,6 @@ export class SassClient {
             scope: 'local',
         });
         if (error) throw error;
-        if(this.clientType === ClientType.SPA) {
-            window.location.href = '/auth/login';
-        }
     }
 
     async uploadFile(myId: string, filename: string, file: File) {
