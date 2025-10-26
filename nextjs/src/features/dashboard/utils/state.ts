@@ -1,4 +1,5 @@
-import type { DashboardState } from "../types";
+// nextjs/src/features/dashboard/utils/state.ts
+
 
 export const createInitialDashboardState = (): DashboardState => ({
   summary: [],
