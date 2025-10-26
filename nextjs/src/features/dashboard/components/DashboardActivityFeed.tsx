@@ -36,7 +36,7 @@ export default function DashboardActivityFeed({ interactions, loading = false, h
     <Card aria-labelledby="dashboard-activity">
       <CardHeader>
         <CardTitle id="dashboard-activity" className="text-lg font-semibold text-slate-900">
-          {t("dashboard.activity.title")}
+          {t("dashboard.sections.activity")}
         </CardTitle>
         <CardDescription>
           {householdName
@@ -92,9 +92,9 @@ export default function DashboardActivityFeed({ interactions, loading = false, h
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/interactions" aria-label={t("dashboard.activity.viewAll")}>
+        <Link href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
-            {t("dashboard.activity.viewAll")}
+            {t("dashboard.actions.viewInteractions")}
           </Button>
         </Link>
       </CardFooter>

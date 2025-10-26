@@ -36,7 +36,7 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
     <Card aria-labelledby="dashboard-documents">
       <CardHeader>
         <CardTitle id="dashboard-documents" className="text-lg font-semibold text-slate-900">
-          {t("dashboard.documents.title")}
+          {t("dashboard.sections.documents")}
         </CardTitle>
         <CardDescription>{t("dashboard.documents.subtitle")}</CardDescription>
       </CardHeader>
@@ -49,13 +49,13 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2">
-            <section aria-label={t("dashboard.documents.unlinked")} className="space-y-3">
+            <section aria-label={t("dashboard.summary.documentsBacklog")} className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                 <LinkIcon className="h-4 w-4 text-amber-500" aria-hidden />
-                {t("dashboard.documents.unlinked")}
+                {t("dashboard.summary.documentsBacklog")}
               </div>
               {backlog.length === 0 ? (
-                <p className="text-sm text-slate-600">{t("dashboard.documents.unlinkedEmpty")}</p>
+                <p className="text-sm text-slate-600">{t("dashboard.summary.documentsBacklogEmpty")}</p>
               ) : (
                 <ul className="space-y-2">
                   {backlog.map((doc) => (
@@ -67,13 +67,13 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
                 </ul>
               )}
             </section>
-            <section aria-label={t("dashboard.documents.recent")} className="space-y-3">
+            <section aria-label={t("dashboard.summary.documentsRecent")} className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-slate-800">
                 <Paperclip className="h-4 w-4 text-slate-500" aria-hidden />
-                {t("dashboard.documents.recent")}
+                {t("dashboard.summary.documentsRecent")}
               </div>
               {recentUploads.length === 0 ? (
-                <p className="text-sm text-slate-600">{t("dashboard.documents.recentEmpty")}</p>
+                <p className="text-sm text-slate-600">{t("dashboard.summary.documentsRecentEmpty")}</p>
               ) : (
                 <ul className="space-y-2">
                   {recentUploads.map((doc) => (
@@ -86,12 +86,12 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
                         {doc.links.length > 0 ? (
                           <span className="text-xs text-emerald-600">
                             <FileText className="mr-1 inline h-4 w-4 align-middle" aria-hidden />
-                            {doc.links[0]?.subject ?? t("dashboard.documents.linked")}
+                            {doc.links[0]?.subject ?? t("dashboard.summary.documentsLinked")}
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 text-xs text-amber-600">
                             <FileQuestion className="h-4 w-4" aria-hidden />
-                            {t("dashboard.documents.unlinked")}
+                            {t("dashboard.summary.documentsBacklog")}
                           </span>
                         )}
                       </div>
@@ -104,9 +104,9 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/documents" aria-label={t("dashboard.documents.viewAll")}>
+        <Link href="/app/documents" aria-label={t("dashboard.actions.manageDocuments")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
-            {t("dashboard.documents.viewAll")}
+            {t("dashboard.actions.manageDocuments")}
           </Button>
         </Link>
       </CardFooter>
