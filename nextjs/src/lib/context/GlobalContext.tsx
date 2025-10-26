@@ -29,7 +29,15 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
     const setSelectedHouseholdId = useCallback((id: string | null) => {
         _setSelectedHouseholdId(prev => {
             if (prev === id) return prev;
-            try { id ? localStorage.setItem('selectedHouseholdId', id) : localStorage.removeItem('selectedHouseholdId'); } catch { }
+            try {
+                if (id) {
+                    localStorage.setItem('selectedHouseholdId', id);
+                } else {
+                    localStorage.removeItem('selectedHouseholdId');
+                }
+            } catch {
+                // ignore storage errors
+            }
             return id;
         });
     }, []);
@@ -60,7 +68,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
             }
         })();
         return () => { cancelled = true; };
-    }, []);
+    }, [setSelectedHouseholdId]);
 
     const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }),
         [loading, user, households, selectedHouseholdId, setSelectedHouseholdId]);

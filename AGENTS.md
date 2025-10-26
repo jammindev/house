@@ -186,3 +186,21 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Run the suite via `yarn test:e2e` from the repo root or `cd nextjs && yarn test:e2e`. Set `PLAYWRIGHT_SKIP_WEB_SERVER=1` if you want to manage the Next.js server manually.
 - Tests seed temporary users/households via the service key and clean them up after each run; use isolated Supabase instances or reset your local DB if a run is interrupted.
 - Playwright automatically loads environment variables from `.env.test.local`, `.env.local`, `.env`, and `supabase/.env`. Ensure these files expose Supabase URL, anon, and service-role keys for deterministic runs.
+
+## 16) Architecture & Folder Patterns
+- **Feature-first slices**: Domain logic (contacts, interactions, projects, zones, photos, etc.) lives under `nextjs/src/features/<domain>` with consistent sub-folders (`components/`, `hooks/`, `lib/`, `utils/`, `types.ts`). Components are imported via path aliases like `@interactions/components/InteractionForm` to keep route files thin.
+- **Route entrypoints**: `nextjs/src/app` is limited to App Router files (`layout.tsx`, `page.tsx`, route handlers). Files under `/app/app/*` load data via hooks/contexts and delegate rendering to feature components. Favor server components unless the page needs browser APIs (`"use client"`).
+- **Shared UI + layout**: Global UI primitives sit in `nextjs/src/components/ui` (shadcn) and layout shell pieces in `nextjs/src/components/layout`. Reuse these before creating new wrappers so typography/theme stays consistent.
+- **Cross-cutting libraries**: `nextjs/src/lib` houses Supabase clients (`supabase/`), configuration, contexts (e.g., `GlobalContext`), utilities, and i18n (`i18n/`, dictionaries). Any code that is not domain-specific but reused across features should live here.
+- **Backend & schema**: Supabase SQL lives in `supabase/migrations` with timestamped filenames. Keep RLS policies close to their tables and document new RPCs/functions. Service-role utilities/tests live under `supabase/tests`.
+- **Testing artifacts**: Playwright specs live in `nextjs/tests/e2e`, while failing-run artifacts are stored under `nextjs/test-results`. Keep heavy fixtures (videos, traces) out of feature folders.
+
+## 17) Organizing Requests & Changes by Layer
+When scoping a new request or PR, keep changes separated so reviewers can trace intent quickly:
+1. **Data & RLS**: Document whether Supabase schema/migrations or storage policies must change. Include table, trigger, and policy impacts plus any need to regenerate `Database` types.
+2. **Server boundary**: Clarify updates to `app/api/*` route handlers, server components, or Supabase client helpers (`createSSRClient`, `createServerAdminClient`). Note required headers/secrets.
+3. **Feature module**: Identify the owning domain folder in `nextjs/src/features/<domain>` and add/adjust code inside the appropriate sub-folder (`components`, `hooks`, `lib`, etc.) to keep logic reusable.
+4. **Route surface & navigation**: Explain how `nextjs/src/app/...` pages/layouts should consume the feature code, including loading states, error handling, and any `AppPageLayout`/`GlobalContext` needs.
+5. **Shared resources**: Call out required updates to `nextjs/src/components` (shared UI), i18n dictionaries (`lib/i18n/dictionaries`), styles, and automated tests (`nextjs/tests/e2e`). Mention documentation touch points (README, AGENTS, BACKLOG) if behavior changes.
+
+Following this checklist keeps responsibilities separated (schema ↔ server ↔ feature ↔ route ↔ shared assets) and mirrors the existing project structure, which in turn makes future diffs smaller and safer.

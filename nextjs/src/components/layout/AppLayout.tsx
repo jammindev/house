@@ -9,11 +9,10 @@ import TopBar from "./TopBar";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
 import { Button } from "../ui/button";
-import Loading from "@/app/loading";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [isPending, startTransition] = useTransition();
+    const [, startTransition] = useTransition();
     const router = useRouter();
 
     const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
@@ -41,13 +40,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
 
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
-
-    const handleNavigate = (href: string) => {
-        setSidebarOpen(false);
-        startTransition(() => {
-            router.push(href);
-        });
-    };
 
     return (
         <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col">

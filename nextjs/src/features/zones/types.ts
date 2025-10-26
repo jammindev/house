@@ -8,6 +8,16 @@ export type Zone = {
     color: string;
 };
 
+export type ZoneDetail = Zone & {
+    household_id: string;
+    created_at?: string | null;
+    parent?: {
+        id: string;
+        name: string;
+        color?: string | null;
+    } | null;
+};
+
 export type ZoneStats = {
     totalCount: number;
     rootCount: number;

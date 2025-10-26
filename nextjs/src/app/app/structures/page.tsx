@@ -1,56 +1,23 @@
 // nextjs/src/app/app/structures/page.tsx
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 
 import AppPageLayout from "@/components/layout/AppPageLayout";
 import { useToast } from "@/components/ToastProvider";
-import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import StructureList from "@structures/components/StructureList";
-import StructureDetailsDialog from "@structures/components/StructureDetailsDialog";
-import StructureCreateDialog, { StructureCreateFormValues } from "@structures/components/StructureCreateDialog";
 import { useStructures } from "@structures/hooks/useStructures";
 import type { Structure } from "@structures/types";
 
-function parseTags(value: string) {
-  return value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter((tag) => tag.length > 0);
-}
-
 export default function StructuresPage() {
-  const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { show } = useToast();
-  const { structures, loading, error, createStructure } = useStructures();
-
-  const [selectedStructure, setSelectedStructure] = useState<Structure | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-
-  useEffect(() => {
-    if (!selectedHouseholdId) {
-      setCreateOpen(false);
-    }
-  }, [selectedHouseholdId]);
-
-  const handleSelect = useCallback((structure: Structure) => {
-    setSelectedStructure(structure);
-    setDetailsOpen(true);
-  }, []);
-
-  const handleDetailsChange = useCallback(
-    (open: boolean) => {
-      setDetailsOpen(open);
-      if (!open) {
-        setSelectedStructure(null);
-      }
-    },
-    [setSelectedStructure]
-  );
+  const { structures, loading, error } = useStructures();
 
   const heading = useMemo(
     () => ({
@@ -60,31 +27,40 @@ export default function StructuresPage() {
     [t]
   );
 
-  const handleCreateStructure = useCallback(
-    async (values: StructureCreateFormValues) => {
-      if (!selectedHouseholdId) {
-        throw new Error(t("structures.householdRequired"));
-      }
-
-      await createStructure({
-        householdId: selectedHouseholdId,
-        name: values.name.trim(),
-        type: values.type.trim(),
-        description: values.description.trim(),
-        website: values.website.trim(),
-        tags: parseTags(values.tags),
-      });
-
-      show({ title: t("structures.createSuccess"), variant: "success" });
+  const handleSelect = useCallback(
+    (structure: Structure) => {
+      router.push(`/app/structures/${structure.id}`);
     },
-    [createStructure, selectedHouseholdId, show, t]
+    [router]
   );
+
+  useEffect(() => {
+    if (!searchParams) return;
+    const params = new URLSearchParams(searchParams.toString());
+    let shouldReplace = false;
+
+    if (params.get("created") === "1") {
+      params.delete("created");
+      shouldReplace = true;
+      show({ title: t("structures.createSuccess"), variant: "success" });
+    }
+
+    if (shouldReplace) {
+      const next = `/app/structures${params.toString() ? `?${params.toString()}` : ""}`;
+      router.replace(next, { scroll: false });
+    }
+  }, [router, searchParams, show, t]);
 
   return (
     <AppPageLayout
       title={heading.title}
       subtitle={heading.description}
-      actions={[{ icon: Plus, onClick: () => setCreateOpen(true) }]}
+      actions={[
+        {
+          icon: Plus,
+          href: "/app/structures/new",
+        },
+      ]}
       hideBackButton
     >
       {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
@@ -94,9 +70,6 @@ export default function StructuresPage() {
       ) : (
         <StructureList structures={structures} onSelect={handleSelect} t={t} />
       )}
-
-      <StructureDetailsDialog structure={selectedStructure} open={detailsOpen} onOpenChange={handleDetailsChange} t={t} />
-      <StructureCreateDialog open={createOpen} onOpenChange={setCreateOpen} onSubmit={handleCreateStructure} t={t} />
     </AppPageLayout>
   );
 }
