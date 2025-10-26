@@ -1,3 +1,4 @@
+// nextjs/src/features/zones/hooks/useZoneDetail.ts
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
@@ -115,7 +116,7 @@ export function useZoneDetail(zoneId?: string) {
             parent_id,
             created_at,
             created_by,
-            parent:zones!zones_parent_same_household_fk(
+            zones(
               id,
               name,
               color
@@ -130,23 +131,23 @@ export function useZoneDetail(zoneId?: string) {
 
       const parsedZone: ZoneDetail | null = rawZone
         ? {
-            id: rawZone.id,
-            name: rawZone.name,
-            note: rawZone.note,
-            surface: rawZone.surface,
-            color: rawZone.color,
-            household_id: rawZone.household_id ?? "",
-            parent_id: rawZone.parent_id,
-            created_at: rawZone.created_at,
-            created_by: rawZone.created_by ?? undefined,
-            parent: rawZone.parent
-              ? {
-                  id: rawZone.parent.id,
-                  name: rawZone.parent.name,
-                  color: rawZone.parent.color ?? undefined,
-                }
-              : null,
-          }
+          id: rawZone.id,
+          name: rawZone.name,
+          note: rawZone.note,
+          surface: rawZone.surface,
+          color: rawZone.color,
+          household_id: rawZone.household_id ?? "",
+          parent_id: rawZone.parent_id,
+          created_at: rawZone.created_at,
+          created_by: rawZone.created_by ?? undefined,
+          parent: rawZone.parent
+            ? {
+              id: rawZone.parent.id,
+              name: rawZone.parent.name,
+              color: rawZone.parent.color ?? undefined,
+            }
+            : null,
+        }
         : null;
       setZone(parsedZone);
 
@@ -262,10 +263,10 @@ export function useZoneDetail(zoneId?: string) {
 function mapInteraction(raw: RawInteraction): Interaction {
   const project: InteractionProjectSummary | null = raw.project
     ? {
-        id: raw.project.id,
-        title: raw.project.title?.trim() ?? "",
-        status: (raw.project.status ?? "draft") as InteractionProjectSummary["status"],
-      }
+      id: raw.project.id,
+      title: raw.project.title?.trim() ?? "",
+      status: (raw.project.status ?? "draft") as InteractionProjectSummary["status"],
+    }
     : null;
   const tags = raw.interaction_tags?.map((entry) => entry?.tag).filter((tag): tag is InteractionTag => Boolean(tag)) ?? [];
 
@@ -280,10 +281,10 @@ function mapInteraction(raw: RawInteraction): Interaction {
         position: contact.position?.trim() || null,
         structure: contact.structure
           ? {
-              id: contact.structure.id,
-              name: contact.structure.name?.trim() ?? "",
-              type: contact.structure.type?.trim() || null,
-            }
+            id: contact.structure.id,
+            name: contact.structure.name?.trim() ?? "",
+            type: contact.structure.type?.trim() || null,
+          }
           : null,
       })) ?? [];
 
