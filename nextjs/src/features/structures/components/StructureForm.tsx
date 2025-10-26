@@ -1,3 +1,4 @@
+// nextjs/src/features/structures/components/StructureForm.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -140,7 +141,7 @@ export default function StructureForm({ initialValues, submitLabel, onSubmit, on
     handleSubmit,
     reset,
     setError,
-        formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<StructureFormFields>({
     defaultValues: toInternalValues(initialValues),
   });
@@ -177,21 +178,21 @@ export default function StructureForm({ initialValues, submitLabel, onSubmit, on
         addresses: normalizeAddresses(values.addresses ?? []),
         emails: normalizedEmail
           ? [
-              {
-                email: normalizedEmail.value,
-                label: normalizedEmail.label,
-                is_primary: true,
-              },
-            ]
+            {
+              email: normalizedEmail.value,
+              label: normalizedEmail.label,
+              is_primary: true,
+            },
+          ]
           : [],
         phones: normalizedPhone
           ? [
-              {
-                phone: normalizedPhone.value,
-                label: normalizedPhone.label,
-                is_primary: true,
-              },
-            ]
+            {
+              phone: normalizedPhone.value,
+              label: normalizedPhone.label,
+              is_primary: true,
+            },
+          ]
           : [],
       });
     } catch (error) {
@@ -382,42 +383,42 @@ export default function StructureForm({ initialValues, submitLabel, onSubmit, on
     </form>
   );
 }
-      <section className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="structure-email" className="text-sm font-medium text-foreground">
-            {t("structures.email")}
-          </label>
-          <Input
-            id="structure-email"
-            type="email"
-            placeholder={t("structures.emailPlaceholder")}
-            {...register("email")}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="structure-email-label" className="text-sm font-medium text-foreground">
-            {t("structures.emailLabel")}
-          </label>
-          <Input
-            id="structure-email-label"
-            placeholder={t("structures.emailLabelPlaceholder")}
-            {...register("emailLabel")}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="structure-phone" className="text-sm font-medium text-foreground">
-            {t("structures.phone")}
-          </label>
-          <Input id="structure-phone" placeholder={t("structures.phonePlaceholder")} {...register("phone")} />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="structure-phone-label" className="text-sm font-medium text-foreground">
-            {t("structures.phoneLabel")}
-          </label>
-          <Input
-            id="structure-phone-label"
-            placeholder={t("structures.phoneLabelPlaceholder")}
-            {...register("phoneLabel")}
-          />
-        </div>
-      </section>
+// <section className="grid gap-4 md:grid-cols-2">
+//   <div className="space-y-2">
+//     <label htmlFor="structure-email" className="text-sm font-medium text-foreground">
+//       {t("structures.email")}
+//     </label>
+//     <Input
+//       id="structure-email"
+//       type="email"
+//       placeholder={t("structures.emailPlaceholder")}
+//       {...register("email")}
+//     />
+//   </div>
+//   <div className="space-y-2">
+//     <label htmlFor="structure-email-label" className="text-sm font-medium text-foreground">
+//       {t("structures.emailLabel")}
+//     </label>
+//     <Input
+//       id="structure-email-label"
+//       placeholder={t("structures.emailLabelPlaceholder")}
+//       {...register("emailLabel")}
+//     />
+//   </div>
+//   <div className="space-y-2">
+//     <label htmlFor="structure-phone" className="text-sm font-medium text-foreground">
+//       {t("structures.phone")}
+//     </label>
+//     <Input id="structure-phone" placeholder={t("structures.phonePlaceholder")} {...register("phone")} />
+//   </div>
+//   <div className="space-y-2">
+//     <label htmlFor="structure-phone-label" className="text-sm font-medium text-foreground">
+//       {t("structures.phoneLabel")}
+//     </label>
+//     <Input
+//       id="structure-phone-label"
+//       placeholder={t("structures.phoneLabelPlaceholder")}
+//       {...register("phoneLabel")}
+//     />
+//   </div>
+// </section>
