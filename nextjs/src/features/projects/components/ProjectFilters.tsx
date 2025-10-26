@@ -1,3 +1,4 @@
+// nextjs/src/features/projects/components/ProjectFilters.tsx
 "use client";
 
 import { useMemo } from "react";
@@ -39,6 +40,7 @@ export default function ProjectFilters({ filters, onChange, onReset }: ProjectFi
       onReset={onReset}
       resetAriaLabel={t("projects.filters.reset")}
       className="mb-4"
+      defaultCollapsed
     >
       <Input
         className="w-full md:w-64"

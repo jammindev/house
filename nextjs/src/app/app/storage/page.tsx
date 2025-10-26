@@ -23,6 +23,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { DocumentType } from "@interactions/types";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 
 const MAX_RECENT_DOCUMENTS = 10;
 const DOCUMENT_TYPES: DocumentType[] = ["document", "photo", "quote", "invoice", "contract", "other"];
@@ -244,17 +245,19 @@ export default function StoragePage() {
       const createdIds: string[] = [];
 
       for (const staged of stagedFiles) {
-        const safeName = sanitizeFilename(staged.file.name || staged.name);
+        const compressionResult = await compressFileForUpload(staged.file);
+        const fileForUpload = compressionResult.file;
+        const safeName = sanitizeFilename(fileForUpload.name || staged.file.name || staged.name);
         const uniquePrefix =
           typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
             ? crypto.randomUUID()
             : `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         const storagePath = `${userId}/documents/${uniquePrefix}_${safeName}`;
 
-        const { error: uploadError } = await client.storage.from("files").upload(storagePath, staged.file, {
+        const { error: uploadError } = await client.storage.from("files").upload(storagePath, fileForUpload, {
           cacheControl: "3600",
           upsert: false,
-          contentType: staged.file.type || undefined,
+          contentType: fileForUpload.type || undefined,
         });
         if (uploadError) throw uploadError;
 
@@ -263,14 +266,14 @@ export default function StoragePage() {
           .insert({
             household_id: selectedHouseholdId,
             file_path: storagePath,
-            mime_type: staged.file.type || null,
+            mime_type: fileForUpload.type || null,
             type: staged.type,
             name: staged.name?.trim() || staged.file.name,
             notes: "",
             metadata: {
-              size: staged.file.size,
-              originalName: staged.file.name,
+              ...buildDocumentMetadata(staged.file, compressionResult),
               quickUpload: true,
+              uploadSource: "storage_page",
             },
           })
           .select("id")

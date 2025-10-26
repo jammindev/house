@@ -15,6 +15,8 @@ type ExistingDocumentsModalProps = {
   householdId?: string | null;
   interactionId?: string;
   onConfirm: (documents: Document[]) => Promise<void> | void;
+  allowedTypes?: DocumentType[];
+  excludeDocumentIds?: string[];
 };
 
 type DocumentRow = {
@@ -36,6 +38,8 @@ export default function ExistingDocumentsModal({
   householdId,
   interactionId,
   onConfirm,
+  allowedTypes,
+  excludeDocumentIds,
 }: ExistingDocumentsModalProps) {
   const { t } = useI18n();
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -44,6 +48,12 @@ export default function ExistingDocumentsModal({
   const [confirming, setConfirming] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const allowedTypesKey = useMemo(() => (allowedTypes && allowedTypes.length ? allowedTypes.join(",") : ""), [allowedTypes]);
+  const excludeIdsKey = useMemo(() => (excludeDocumentIds && excludeDocumentIds.length ? excludeDocumentIds.join(",") : ""), [excludeDocumentIds]);
+  const excludedIds = useMemo(() => {
+    if (!excludeIdsKey) return new Set<string>();
+    return new Set(excludeIdsKey.split(",").filter(Boolean));
+  }, [excludeIdsKey]);
 
   useEffect(() => {
     if (!open) {
@@ -64,12 +74,22 @@ export default function ExistingDocumentsModal({
         const supa = await createSPASassClient();
         const client = supa.getSupabaseClient();
 
-        const { data, error: docsError } = await client
+        let query = client
           .from("documents")
           .select("id, household_id, file_path, mime_type, type, name, notes, metadata, created_at, created_by")
           .eq("household_id", householdId)
-          .order("created_at", { ascending: false })
-          .limit(100);
+          .order("created_at", { ascending: false });
+
+        const allowedFilterList = allowedTypesKey
+          ? (allowedTypesKey.split(",").filter(Boolean) as DocumentType[])
+          : null;
+        if (allowedFilterList && allowedFilterList.length > 0) {
+          query = query.in("type", allowedFilterList);
+        }
+
+        query = query.limit(100);
+
+        const { data, error: docsError } = await query;
         if (docsError) throw docsError;
 
         let rows = (data ?? []) as DocumentRow[];
@@ -119,13 +139,28 @@ export default function ExistingDocumentsModal({
     return () => {
       cancelled = true;
     };
-  }, [open, householdId, interactionId, t]);
+  }, [allowedTypesKey, householdId, interactionId, open, t]);
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      next.forEach((id) => {
+        if (excludedIds.has(id)) {
+          next.delete(id);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [excludedIds]);
 
   const filteredDocuments = useMemo(() => {
-    if (!search.trim()) return documents;
+    const base = documents.filter((doc) => !excludedIds.has(doc.id));
+    if (!search.trim()) return base;
     const lower = search.toLowerCase();
-    return documents.filter((doc) => doc.name.toLowerCase().includes(lower));
-  }, [documents, search]);
+    return base.filter((doc) => doc.name.toLowerCase().includes(lower));
+  }, [documents, excludedIds, search]);
 
   const toggleSelection = (id: string) => {
     setSelectedIds((prev) => {

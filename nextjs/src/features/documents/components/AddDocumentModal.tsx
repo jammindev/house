@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Document, DocumentType } from "@interactions/types";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 import type { Database } from "@/lib/types";
 
 type DocumentRow = Database["public"]["Tables"]["documents"]["Row"];
@@ -76,11 +77,16 @@ export async function persistDocuments(
     const inserted: InsertedDocumentRow[] = [];
 
     for (const d of docs) {
-        const path = `${householdId}/${interactionId}/${uid()}_${sanitizeFilename(d.file.name)}`;
+        const compressionResult = await compressFileForUpload(d.file);
+        const fileForUpload = compressionResult.file;
+        const path = `${householdId}/${interactionId}/${uid()}_${sanitizeFilename(
+            fileForUpload.name || d.file.name
+        )}`;
 
-        const upload = await supabase.storage.from(bucketName).upload(path, d.file, {
+        const upload = await supabase.storage.from(bucketName).upload(path, fileForUpload, {
             cacheControl: "3600",
             upsert: false,
+            contentType: fileForUpload.type || undefined,
         });
         if (upload.error) throw upload.error;
 
@@ -91,12 +97,12 @@ export async function persistDocuments(
                 household_id: householdId,
                 type: d.type,
                 file_path: path,
-                mime_type: d.file.type || null,
+                mime_type: fileForUpload.type || null,
                 name: d.name || d.file.name,
                 notes: d.notes ?? "",
                 metadata: {
-                    size: d.file.size,
-                    originalName: d.file.name,
+                    ...buildDocumentMetadata(d.file, compressionResult),
+                    uploadSource: "add_document_modal",
                 },
             })
             .select("id, household_id, type, file_path, mime_type, name, notes, metadata, created_at, created_by")
@@ -174,6 +180,16 @@ export async function persistDocuments(
 }
 
 // ---- Component -----------------------------------------------------------
+const ALL_DOCUMENT_TYPES: DocumentType[] = ["document", "photo", "quote", "invoice", "contract", "other"];
+const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
+    document: "Document",
+    photo: "Photo",
+    quote: "Devis",
+    invoice: "Facture",
+    contract: "Contrat",
+    other: "Autre",
+};
+
 export function AddDocumentsModal(props: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -186,6 +202,8 @@ export function AddDocumentsModal(props: {
     multiple?: boolean; // default: true
     onStagedChange?: (docs: StagedDocument[]) => void; // used in staging mode
     onUploaded?: (rows: InsertedDocumentRow[]) => void; // used in immediate mode
+    allowedTypes?: DocumentType[];
+    defaultType?: DocumentType;
 }) {
     const {
         open,
@@ -199,12 +217,16 @@ export function AddDocumentsModal(props: {
         multiple = true,
         onStagedChange,
         onUploaded,
+        allowedTypes,
+        defaultType,
     } = props;
 
     const [files, setFiles] = useState<StagedDocument[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const typeOptions = allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_DOCUMENT_TYPES;
+    const enforcedDefaultType = defaultType && typeOptions.includes(defaultType) ? defaultType : undefined;
 
     // Reset when opened/closed
     useEffect(() => {
@@ -215,14 +237,23 @@ export function AddDocumentsModal(props: {
         }
     }, [open]);
 
-    const addFromFileList = useCallback((list: FileList | null) => {
-        if (!list) return;
-        const next: StagedDocument[] = [];
-        Array.from(list).forEach((file) => {
-            next.push({ id: uid(), file, name: file.name, type: inferTypeFromFile(file) });
-        });
-        setFiles((prev) => (multiple ? [...prev, ...next] : next.slice(0, 1)));
-    }, [multiple]);
+    const inferInitialType = useCallback((file: File): DocumentType => {
+        if (enforcedDefaultType) return enforcedDefaultType;
+        const inferred = inferTypeFromFile(file);
+        return typeOptions.includes(inferred) ? inferred : typeOptions[0];
+    }, [enforcedDefaultType, typeOptions]);
+
+    const addFromFileList = useCallback(
+        (list: FileList | null) => {
+            if (!list) return;
+            const next: StagedDocument[] = [];
+            Array.from(list).forEach((file) => {
+                next.push({ id: uid(), file, name: file.name, type: inferInitialType(file) });
+            });
+            setFiles((prev) => (multiple ? [...prev, ...next] : next.slice(0, 1)));
+        },
+        [inferInitialType, multiple]
+    );
 
     const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
@@ -337,16 +368,21 @@ export function AddDocumentsModal(props: {
                                         <div className="sm:col-span-1">
                                             <label className="text-xs text-muted-foreground">Type</label>
                                             <select
-                                                value={f.type}
-                                                onChange={(e) => updateOne(f.id, { type: e.target.value as DocumentType })}
+                                                value={typeOptions.includes(f.type) ? f.type : typeOptions[0]}
+                                                onChange={(e) => {
+                                                    const nextType = e.target.value as DocumentType;
+                                                    if (typeOptions.includes(nextType)) {
+                                                        updateOne(f.id, { type: nextType });
+                                                    }
+                                                }}
                                                 className="mt-1 w-full border rounded-md h-9 px-3 text-sm bg-background"
+                                                disabled={typeOptions.length === 1}
                                             >
-                                                <option value="document">Document</option>
-                                                <option value="photo">Photo</option>
-                                                <option value="quote">Devis</option>
-                                                <option value="invoice">Facture</option>
-                                                <option value="contract">Contrat</option>
-                                                <option value="other">Autre</option>
+                                                {typeOptions.map((option) => (
+                                                    <option key={option} value={option}>
+                                                        {DOCUMENT_TYPE_LABELS[option] ?? option}
+                                                    </option>
+                                                ))}
                                             </select>
                                         </div>
                                         <div className="sm:col-span-2">
