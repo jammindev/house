@@ -4,29 +4,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import type { Document } from "@interactions/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
-
-export type DocumentLink = {
-  interactionId: string;
-  subject: string | null;
-};
-
-export type DocumentWithLinks = Document & {
-  links: DocumentLink[];
-};
-
-type SupabaseInteractionLink = {
-  interaction_id: string;
-  interaction?: {
-    id: string;
-    subject: string | null;
-  } | null;
-};
-
-type SupabaseDocumentRow = Document & {
-  interaction_documents?: SupabaseInteractionLink[] | null;
-};
+import type { DocumentWithLinks, SupabaseDocumentRow } from "@documents/types";
+import { normalizeDocuments } from "@documents/utils/normalizeDocuments";
 
 export function useDocuments() {
   const { selectedHouseholdId: householdId } = useGlobal();
@@ -75,17 +55,7 @@ export function useDocuments() {
 
       if (supabaseError) throw supabaseError;
 
-      const normalized: DocumentWithLinks[] = (data as SupabaseDocumentRow[] | null)?.map((row) => {
-        const linksRaw = row.interaction_documents ?? [];
-        const links: DocumentLink[] = linksRaw.map((link) => ({
-          interactionId: link.interaction_id,
-          subject: link.interaction?.subject ?? null,
-        }));
-        return {
-          ...row,
-          links,
-        };
-      }) ?? [];
+      const normalized: DocumentWithLinks[] = normalizeDocuments(data as SupabaseDocumentRow[] | null);
 
       setDocuments(normalized);
     } catch (fetchError: unknown) {
