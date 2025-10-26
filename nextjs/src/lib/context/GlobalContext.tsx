@@ -1,18 +1,11 @@
 // nextjs/src/lib/context/GlobalContext.tsx
+// src/lib/context/GlobalContext.tsx
 "use client";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from 'react';
+import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 
-import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode, useMemo } from 'react';
-
-export type User = {
-    email: string;
-    id: string;
-    registered_at: Date;
-};
-
-export type Household = {
-    id: string;
-    name: string;
-};
+export type User = { email: string; id: string; registered_at: Date; };
+export type Household = { id: string; name: string; };
 
 export interface GlobalContextType {
     loading: boolean;
@@ -22,100 +15,61 @@ export interface GlobalContextType {
     setSelectedHouseholdId: (id: string | null) => void;
 }
 
-interface GlobalProviderProps {
-    children: ReactNode;
-    initialUser: User | null;
-    initialHouseholds: Household[];
-    initialSelectedHouseholdId: string | null;
-}
-
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
-export function GlobalProvider({
-    children,
-    initialUser,
-    initialHouseholds,
-    initialSelectedHouseholdId,
-}: GlobalProviderProps) {
-    const [user] = useState<User | null>(initialUser);
-    const [households] = useState<Household[]>(initialHouseholds);
-    const [selectedHouseholdId, _setSelectedHouseholdId] = useState<string | null>(initialSelectedHouseholdId);
+export function GlobalProvider({ children }: { children: ReactNode }) {
+    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState<User | null>(null);
+    const [households, setHouseholds] = useState<Household[]>([]);
+    const [selectedHouseholdId, _setSelectedHouseholdId] = useState<string | null>(null);
 
-    const selectedHouseholdIdRef = useRef<string | null>(selectedHouseholdId);
-    useEffect(() => {
-        selectedHouseholdIdRef.current = selectedHouseholdId;
-    }, [selectedHouseholdId]);
+    const selectedRef = useRef<string | null>(selectedHouseholdId);
+    useEffect(() => { selectedRef.current = selectedHouseholdId; }, [selectedHouseholdId]);
 
     const setSelectedHouseholdId = useCallback((id: string | null) => {
-        _setSelectedHouseholdId((previous) => {
-            if (previous === id) {
-                return previous;
-            }
-
-            try {
-                if (id) {
-                    localStorage.setItem('selectedHouseholdId', id);
-                } else {
-                    localStorage.removeItem('selectedHouseholdId');
-                }
-            } catch (loadError) {
-                console.error('Error persisting selected household:', loadError);
-            }
-
+        _setSelectedHouseholdId(prev => {
+            if (prev === id) return prev;
+            try { id ? localStorage.setItem('selectedHouseholdId', id) : localStorage.removeItem('selectedHouseholdId'); } catch { }
             return id;
         });
     }, []);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            return;
-        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const spa = await createSPASassClient();
+                const supa = spa.getSupabaseClient();
 
-        try {
-            const storedSelection = localStorage.getItem('selectedHouseholdId');
-            const hasStoredSelectionInList = storedSelection
-                ? households.some((household) => household.id === storedSelection)
-                : false;
+                const { data: { user: authUser } } = await supa.auth.getUser();
+                if (!authUser) { setUser(null); setHouseholds([]); setSelectedHouseholdId(null); return; }
 
-            if (storedSelection && hasStoredSelectionInList && storedSelection !== selectedHouseholdIdRef.current) {
-                _setSelectedHouseholdId(storedSelection);
-                return;
+                setUser({ email: authUser.email ?? '', id: authUser.id, registered_at: new Date(authUser.created_at) });
+
+                const { data: householdsData, error } = await supa.from('households').select('id, name').order('created_at');
+                if (!error && householdsData) {
+                    const mapped = householdsData.map(h => ({ id: h.id, name: h.name })) as Household[];
+                    setHouseholds(mapped);
+
+                    const stored = localStorage.getItem('selectedHouseholdId');
+                    const valid = stored && mapped.some(h => h.id === stored);
+                    _setSelectedHouseholdId(valid ? stored! : (mapped[0]?.id ?? null));
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
             }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
-            if (storedSelection && !hasStoredSelectionInList) {
-                localStorage.removeItem('selectedHouseholdId');
-            }
+    const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }),
+        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId]);
 
-            if (!storedSelection && !selectedHouseholdIdRef.current && households.length > 0) {
-                _setSelectedHouseholdId(households[0].id);
-            }
-        } catch (error) {
-            console.error('Error loading selected household from storage:', error);
-        }
-    }, [households]);
-
-    const value = useMemo(
-        () => ({
-            loading: false,
-            user,
-            households,
-            selectedHouseholdId,
-            setSelectedHouseholdId,
-        }),
-        [households, selectedHouseholdId, setSelectedHouseholdId, user]
-    );
-
-    return (
-        <GlobalContext.Provider value={value}>
-            {children}
-        </GlobalContext.Provider>
-    );
+    return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;
 }
 
 export const useGlobal = () => {
-    const context = useContext(GlobalContext);
-    if (context === undefined) {
-        throw new Error('useGlobal must be used within a GlobalProvider');
-    }
-    return context;
+    const ctx = useContext(GlobalContext);
+    if (!ctx) throw new Error('useGlobal must be used within a GlobalProvider');
+    return ctx;
 };

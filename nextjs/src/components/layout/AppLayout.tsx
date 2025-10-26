@@ -1,6 +1,7 @@
 // nextjs/src/components/layout/AppLayout.tsx
 "use client";
-import React, { useState, useMemo } from "react";
+
+import React, { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
@@ -8,9 +9,11 @@ import TopBar from "./TopBar";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
 import { Button } from "../ui/button";
+import Loading from "@/app/loading";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [isPending, startTransition] = useTransition();
     const router = useRouter();
 
     const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
@@ -23,16 +26,32 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         try {
             const client = await createSPASassClient();
             await client.logout();
+            startTransition(() => {
+                router.push("/auth/login");
+            });
         } catch (error) {
             console.error("Error logging out:", error);
         }
     };
 
-    const handleChangePassword = () => router.push("/app/user-settings");
+    const handleChangePassword = () => {
+        startTransition(() => {
+            router.push("/app/user-settings");
+        });
+    };
+
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
+    const handleNavigate = (href: string) => {
+        setSidebarOpen(false);
+        startTransition(() => {
+            router.push(href);
+        });
+    };
 
     return (
         <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col">
+            {/* Floating button (mobile) */}
             <Button
                 size="icon"
                 variant="ghost"
