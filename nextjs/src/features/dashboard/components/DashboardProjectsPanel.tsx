@@ -18,7 +18,7 @@ export default function DashboardProjectsPanel({ projects, loading = false }: Da
     <Card aria-labelledby="dashboard-projects">
       <CardHeader>
         <CardTitle id="dashboard-projects" className="text-lg font-semibold text-slate-900">
-          {t("dashboard.projects.title")}
+          {t("dashboard.sections.projects")}
         </CardTitle>
         <CardDescription>{t("dashboard.projects.subtitle")}</CardDescription>
       </CardHeader>
