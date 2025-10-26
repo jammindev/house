@@ -47,6 +47,9 @@
       ],
       "@dashboard/*": [
         "features/dashboard/*"
+      ],
+      "@photos/*": [
+        "features/photos/*"
       ]
     }
   },

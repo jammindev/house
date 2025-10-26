@@ -1,7 +1,6 @@
 // nextjs/src/components/layout/Sidebar.tsx
 "use client";
 
-import Link from "next/link";
 import { useTransition, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -11,6 +10,7 @@ import {
     MapPin,
     Files,
     FileText,
+    Image as ImageIcon,
     LucideListTodo,
     User,
     LogOut,
@@ -18,7 +18,6 @@ import {
     X,
     Building2,
     LayoutDashboard,
-    Loader2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -52,6 +51,7 @@ export default function Sidebar({
         { name: t("nav.structures"), href: "/app/structures", icon: Building2 },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
+        { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
         { name: t("nav.storage"), href: "/app/storage", icon: Files },
         { name: t("nav.table"), href: "/app/table", icon: LucideListTodo },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
@@ -69,13 +69,6 @@ export default function Sidebar({
 
     return (
         <>
-            {/* Global overlay spinner (visible pendant les transitions)
-            {isPending && (
-                <div className="fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-[9999]">
-                    <Loader2 className="h-10 w-10 text-primary-600 animate-spin" />
-                </div>
-            )} */}
-
             <div
                 className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-30 
         ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
