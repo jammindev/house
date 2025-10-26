@@ -111,7 +111,7 @@ export function useDashboardData() {
             status,
             occurred_at,
             created_at,
-            project:projects (
+            project:projects!interactions_project_id_fkey (
               id,
               title,
               status
@@ -135,7 +135,7 @@ export function useDashboardData() {
             status,
             occurred_at,
             created_at,
-            project:projects (
+            project:projects!interactions_project_id_fkey (
               id,
               title,
               status
