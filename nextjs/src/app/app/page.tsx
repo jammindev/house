@@ -1,78 +1,33 @@
 // nextjs/src/app/app/page.tsx
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useGlobal } from "@/lib/context/GlobalContext";
-import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Layers, PlusCircle, Users } from "lucide-react";
-import { useI18n } from "@/lib/i18n/I18nProvider";
-import type { Database } from "@/lib/types";
 
-type InteractionSummary = Pick<
-  Database["public"]["Tables"]["interactions"]["Row"],
-  "id" | "subject" | "content" | "occurred_at" | "created_at" | "type"
->;
+import React, { useMemo } from "react";
+import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGlobal } from "@/lib/context/GlobalContext";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+
+import {
+  DashboardActivityFeed,
+  DashboardDocumentsPanel,
+  DashboardProjectsPanel,
+  DashboardSummaryCards,
+  DashboardTasksPanel,
+  useDashboardData,
+} from "@dashboard/index";
 
 export default function DashboardContent() {
   const { loading, user, households, selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-  const [interactions, setInteractions] = useState<InteractionSummary[]>([]);
-  const [interactionCount, setInteractionCount] = useState<number>(0);
-  const [zoneCount, setZoneCount] = useState<number>(0);
-  const [contactCount, setContactCount] = useState<number>(0);
-  const [loadingData, setLoadingData] = useState<boolean>(false);
-  const currentHousehold = useMemo(() => households.find(h => h.id === selectedHouseholdId) || null, [households, selectedHouseholdId]);
+  const { summary, tasks, highlightProjects, documents, recentInteractions, loading: dataLoading, error } =
+    useDashboardData();
 
-  useEffect(() => {
-    const load = async () => {
-      setLoadingData(true);
-      setInteractions([]);
-      setInteractionCount(0);
-      setZoneCount(0);
-      setContactCount(0);
-      if (!selectedHouseholdId) {
-        setLoadingData(false);
-        return;
-      }
-      try {
-        const supa = await createSPASassClient();
-        const client = supa.getSupabaseClient();
-
-        // Recent interactions
-        const { data: interactionData, count: interactionTotal, error: interactionError } = await client
-          .from("interactions")
-          .select<InteractionSummary>("id, subject, content, occurred_at, created_at, type", { count: "exact" })
-          .eq("household_id", selectedHouseholdId)
-          .order("occurred_at", { ascending: false })
-          .limit(3);
-        if (interactionError) throw interactionError;
-        setInteractions(interactionData ?? []);
-        setInteractionCount(interactionTotal || 0);
-
-        // Zones count
-        const { count: zCount, error: zErr } = await client
-          .from("zones")
-          .select("id", { count: "exact", head: true })
-          .eq("household_id", selectedHouseholdId);
-        if (zErr) throw zErr;
-        setZoneCount(zCount || 0);
-
-        const { count: cCount, error: cErr } = await client
-          .from("contacts")
-          .select("id", { count: "exact", head: true })
-          .eq("household_id", selectedHouseholdId);
-        if (cErr) throw cErr;
-        setContactCount(cCount || 0);
-      } catch (error: unknown) {
-        console.error(error);
-      } finally {
-        setLoadingData(false);
-      }
-    };
-    load();
-  }, [selectedHouseholdId]);
+  const currentHousehold = useMemo(
+    () => households.find((item) => item.id === selectedHouseholdId) ?? null,
+    [households, selectedHouseholdId]
+  );
 
   if (loading) {
     return (
@@ -104,84 +59,42 @@ export default function DashboardContent() {
     );
   }
 
-  return (
-    <div className="space-y-6 md:p-6">
-      {/* Stats + Quick actions */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+  if (!selectedHouseholdId) {
+    return (
+      <div className="space-y-6 md:p-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.interactions')}</CardTitle>
-            <CardDescription>{t('dashboard.totalInHousehold')}</CardDescription>
+            <CardTitle>{t("dashboard.recentInteractions")}</CardTitle>
+            <CardDescription>{t("dashboard.selectHousehold")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold">{loadingData ? '—' : interactionCount}</div>
-            <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/interactions"><Button variant="secondary" size="sm">{t('dashboard.view')}</Button></Link>
-              <Link href="/app/interactions/new"><Button size="sm"><PlusCircle className="w-4 h-4 mr-1" /> {t('dashboard.new')}</Button></Link>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.contacts')}</CardTitle>
-            <CardDescription>{t('dashboard.peopleAndVendors')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{loadingData ? '—' : contactCount}</div>
-            <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/contacts">
-                <Button variant="secondary" size="sm">
-                  <Users className="mr-1 h-4 w-4" />
-                  {t('dashboard.view')}
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t('dashboard.zones')}</CardTitle>
-            <CardDescription>{t('dashboard.roomsAndAreas')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-semibold">{loadingData ? '—' : zoneCount}</div>
-            <div className="mt-3 flex items-center gap-2">
-              <Link href="/app/zones"><Button variant="secondary" size="sm">{t('dashboard.manage')}</Button></Link>
-              <Link href="/app/zones"><Button size="sm"><Layers className="w-4 h-4 mr-1" /> {t('dashboard.add')}</Button></Link>
-            </div>
+            <p className="text-sm text-slate-600">{t("dashboard.selectHousehold")}</p>
           </CardContent>
         </Card>
       </div>
+    );
+  }
 
-      {/* Recent entries */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('dashboard.recentInteractions')} {currentHousehold ? `· ${currentHousehold.name}` : ''}</CardTitle>
-          <CardDescription>{t('dashboard.latestThree')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {(!selectedHouseholdId) ? (
-            <div className="text-sm text-gray-600">{t('dashboard.selectHousehold')}</div>
-          ) : loadingData ? (
-            <div className="text-sm text-gray-500">Loading…</div>
-          ) : interactions.length === 0 ? (
-            <div className="text-sm text-gray-600">{t('dashboard.noEntries')} <Link className="underline" href="/app/interactions/new">{t('dashboard.createOne')}</Link>.</div>
-          ) : (
-            <ul className="space-y-2">
-              {interactions.map(interaction => (
-                <li key={interaction.id} className="border rounded-md p-3 bg-white">
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-gray-500">{new Date(interaction.occurred_at || interaction.created_at).toLocaleString()}</div>
-                    <Link className="text-xs text-primary-700 underline" href={`/app/interactions/${interaction.id}`}>{t('common.open')}</Link>
-                  </div>
-                  <div className="mt-1 text-sm font-medium text-gray-900 line-clamp-1">{interaction.subject}</div>
-                  <div className="mt-1 text-sm text-gray-700 line-clamp-2 whitespace-pre-wrap">{interaction.content}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+  return (
+    <div className="space-y-6 md:p-6">
+      {error ? (
+        <Alert variant="destructive">
+          <AlertDescription>{t("dashboard.error")}</AlertDescription>
+        </Alert>
+      ) : null}
+      <DashboardSummaryCards summary={summary} loading={dataLoading} />
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="space-y-6 xl:col-span-2">
+          <DashboardTasksPanel tasks={tasks} loading={dataLoading} />
+          <DashboardProjectsPanel projects={highlightProjects} loading={dataLoading} />
+          <DashboardDocumentsPanel documents={documents} loading={dataLoading} />
+        </div>
+        <DashboardActivityFeed
+          interactions={recentInteractions}
+          loading={dataLoading}
+          householdName={currentHousehold?.name ?? null}
+        />
+      </div>
     </div>
   );
 }
