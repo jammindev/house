@@ -291,14 +291,10 @@ export default function InteractionForm({
 
     const trimmedContent = content.trim();
     const trimmedSubject = subject.trim() || trimmedContent.slice(0, 80);
+    const contentPayload = trimmedContent.length > 0 ? trimmedContent : null;
 
     if (!trimmedSubject) {
       setError(t("interactionssubjectRequired"));
-      return;
-    }
-
-    if (!trimmedContent) {
-      setError(t("interactionsrawRequired"));
       return;
     }
 
@@ -345,7 +341,7 @@ export default function InteractionForm({
         p_household_id: householdId,
         p_subject: trimmedSubject,
         p_zone_ids: selectedZones,
-        p_content: trimmedContent,
+        p_content: contentPayload,
         p_type: type,
         p_status: status || null,
         p_occurred_at: occurredAtValue,
