@@ -72,6 +72,7 @@ export default function ZonesPage() {
               numberFormatter={numberFormatter}
               t={t}
               deletingId={deletingId}
+              householdId={selectedHouseholdId}
               onEdit={async (id, payload) => {
                 try {
                   await updateZone(id, payload);

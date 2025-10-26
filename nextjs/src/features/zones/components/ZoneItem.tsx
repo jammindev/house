@@ -10,6 +10,7 @@ import { ChevronDown, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react
 import type { Zone } from "../types";
 import { formatZoneOptionLabel } from "../lib/tree";
 import { DEFAULT_FIRST_LEVEL_COLOR, getZoneDisplayColor, normalizeHexColor } from "@zones/lib/colors";
+import ZonePhotoGallery from "./ZonePhotoGallery";
 interface Props {
     zone: Zone;
     zonesById: Map<string, Zone>;
@@ -24,6 +25,7 @@ interface Props {
     collapsed?: boolean;
     onToggleCollapse?: () => void;
     isFirstChildOfRoot?: boolean;
+    householdId?: string | null;
 }
 
 export default function ZoneItem({
@@ -40,6 +42,7 @@ export default function ZoneItem({
     collapsed = false,
     onToggleCollapse,
     isFirstChildOfRoot = false,
+    householdId,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(zone.name);
@@ -258,6 +261,7 @@ export default function ZoneItem({
                                             {deletingId === zone.id ? t("common.deleting") : t("common.delete")}
                                         </Button>
                                     </div>
+                                    <ZonePhotoGallery zoneId={zone.id} householdId={householdId} />
                                 </div>
                             </motion.div>
                         )}
