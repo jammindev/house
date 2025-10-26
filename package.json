@@ -1,10 +1,12 @@
 {
-    "name": "monorepo-scripts",
+    "name": "house-scripts",
     "private": true,
     "scripts": {
         "dev": "cd nextjs && yarn dev",
         "build": "cd nextjs && yarn build",
         "start": "cd nextjs && yarn start",
+        "lint": "cd nextjs && yarn lint",
+        "lint:fix": "cd nextjs && yarn lint --fix",
         "db:migrate": "supabase migrations up --linked",
         "db:reset": "supabase db reset --linked",
         "db:new": "supabase migration new",
