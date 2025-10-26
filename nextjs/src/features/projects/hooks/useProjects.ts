@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import { computeProjectFlags } from "@projects/utils/projectFlags";
 import type {
   Project,
   ProjectListFilters,
@@ -18,29 +19,6 @@ export const DEFAULT_PROJECT_FILTERS: ProjectListFilters = {
   statuses: ["active", "draft"],
 };
 
-const MS_IN_DAY = 1000 * 60 * 60 * 24;
-
-const computeIsOverdue = (project: Project, metrics: ProjectMetrics | null) => {
-  if (!project.due_date || project.status === "completed" || project.status === "cancelled") return false;
-  const due = new Date(project.due_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-  const openTodos = metrics?.open_todos ?? 0;
-  return due < today && openTodos > 0;
-};
-
-const computeIsDueSoon = (project: Project, metrics: ProjectMetrics | null) => {
-  if (!project.due_date || project.status === "completed" || project.status === "cancelled") return false;
-  const due = new Date(project.due_date);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-  const delta = (due.getTime() - today.getTime()) / MS_IN_DAY;
-  const openTodos = metrics?.open_todos ?? 0;
-  return delta >= 0 && delta <= 7 && openTodos > 0;
-};
-
 export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT_FILTERS) {
   const { t } = useI18n();
   const { selectedHouseholdId: householdId } = useGlobal();
@@ -48,7 +26,6 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  console.log(filters)
 
   const load = useCallback(async () => {
     if (!householdId) return;
@@ -125,11 +102,11 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
 
       const enriched: ProjectWithMetrics[] = typedProjects.map((project) => {
         const metrics = metricsByProject.get(project.id) ?? null;
+        const flags = computeProjectFlags(project, metrics);
         return {
           ...project,
           metrics,
-          isOverdue: computeIsOverdue(project, metrics),
-          isDueSoon: computeIsDueSoon(project, metrics),
+          ...flags,
         };
       });
 
