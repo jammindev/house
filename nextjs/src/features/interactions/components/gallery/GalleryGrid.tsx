@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/gallery/GalleryGrid.tsx
 import type { GalleryItem } from "./types";
 import GalleryThumbnail from "./GalleryThumbnail";
 
@@ -8,7 +9,7 @@ interface GalleryGridProps {
 
 export default function GalleryGrid({ items, onSelect }: GalleryGridProps) {
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <div  className="grid grid-cols-3 gap-[2px] sm:gap-1">
             {items.map((item, index) => (
                 <GalleryThumbnail
                     key={item.file.id}

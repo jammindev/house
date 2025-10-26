@@ -34,7 +34,7 @@ const typeBadgeStyles: Partial<Record<Interaction["type"], string>> = {
 export default function InteractionItem({ interaction, documentCount, t }: Props) {
   const occurredDate = new Date(interaction.occurred_at);
   const occurredDateLabel = occurredDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-  const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : t("interactionsstatusNone");
+  const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : null;
   const tags = interaction.tags || [];
   const contacts = interaction.contacts || [];
   const structures = interaction.structures || [];
@@ -50,27 +50,23 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="min-w-0 w-full space-y-1">
+            <div className="flex flex-nowrap justify-between gap-4">
               <div className="flex flex-col gap-1">
                 <span className="flex items-center gap-1 font-medium text-gray-900 text-xs">
                   <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
                   {occurredDateLabel}
                 </span>
-                <span className="text-sm font-semibold text-gray-900 line-clamp-1">{interaction.subject}</span>
-
               </div>
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${typeBadgeClass}`}>
+              <span className={`inline-flex items-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold h-fit ${typeBadgeClass}`}>
                 {t(`interactionstypes.${interaction.type}`)}
               </span>
             </div>
+            <span className="text-sm font-semibold text-gray-900 line-clamp-1">{interaction.subject}</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
-          <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium ${statusBadgeClass}`}>
-            {statusLabel}
-          </span>
+        <div className="flex flex-wrap items-center gap-2 text-xs">
           {interaction.project && (
             <span className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50 px-2.5 py-0.5 text-[11px] font-semibold text-purple-800">
               <Folder className="h-3.5 w-3.5" />
@@ -82,6 +78,12 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
               )}
             </span>
           )}
+          {statusLabel && <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-medium ${statusBadgeClass}`}>
+            {statusLabel}
+          </span>}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
           {documentCount > 0 && (
             <span
               className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700"
@@ -100,6 +102,7 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
               {tags.length}
             </span>
           )}
+
           {contacts.length > 0 && (
             <span
               className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-700"

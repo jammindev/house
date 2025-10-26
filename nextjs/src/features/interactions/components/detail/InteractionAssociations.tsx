@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/detail/InteractionAssociations.tsx
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";

@@ -68,6 +68,37 @@ export default function InteractionDetailView({
     <div className="mx-auto flex w-full flex-col gap-6 pb-12 md:gap-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("interactionssections.zones")}
+              </h2>
+              <div className="mt-3">
+                <InteractionZonesList interactionId={interaction.id} />
+              </div>
+            </section>
+
+            {interaction.project && (
+              <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("interactiondetail.projectSectionTitle")}
+                </h2>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-base font-semibold text-foreground">{interaction.project.title}</p>
+                    <Badge variant="outline" className="mt-2">
+                      {t(`projects.status.${interaction.project.status}`)}
+                    </Badge>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={`/app/projects/${interaction.project.id}`}>
+                      {t("interactiondetail.viewProject")}
+                    </Link>
+                  </Button>
+                </div>
+              </section>
+            )}
+          </div>
           {interaction.type === "quote" && (
             <section className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-5 shadow-sm transition-colors">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
@@ -99,68 +130,47 @@ export default function InteractionDetailView({
             </div>
           </section>
 
-          {shouldShowFilesSection && (
-            <section className="space-y-4 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("interactionssections.files")}
-              </h2>
-              {fileError && (
-                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
-                  <AlertCircle className="mt-0.5 h-4 w-4" />
-                  <span>{fileError}</span>
-                </div>
-              )}
-              {pdfDocuments.length > 0 && (
-                <PdfFileList files={pdfDocuments} previews={previews} onDeleted={onReload} />
-              )}
-              {photoDocuments.length > 0 && (
-                <ImageGallery files={photoDocuments} previews={previews} onDeleted={onReload} />
-              )}
-            </section>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("interactionssections.zones")}
-            </h2>
-            <div className="mt-3">
-              <InteractionZonesList interactionId={interaction.id} />
-            </div>
-          </section>
-
           <InteractionAssociations
             tags={interaction.tags}
             contacts={interaction.contacts}
             structures={interaction.structures}
           />
 
-          {interaction.project && (
-            <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("interactiondetail.projectSectionTitle")}
-              </h2>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-base font-semibold text-foreground">{interaction.project.title}</p>
-                  <Badge variant="outline" className="mt-2">
-                    {t(`projects.status.${interaction.project.status}`)}
-                  </Badge>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={`/app/projects/${interaction.project.id}`}>
-                    {t("interactiondetail.viewProject")}
-                  </Link>
-                </Button>
-              </div>
-            </section>
+          {shouldShowFilesSection && (
+            <>
+              {pdfDocuments.length > 0 && (<section className="space-y-4 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("interactionssections.documents")}
+                </h2>
+                {fileError && (
+                  <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    <AlertCircle className="mt-0.5 h-4 w-4" />
+                    <span>{fileError}</span>
+                  </div>
+                )}
+                <PdfFileList files={pdfDocuments} previews={previews} onDeleted={onReload} />
+              </section>)}
+              {photoDocuments.length > 0 && (<section className="space-y-4 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("interactionssections.photoGallery")}
+                </h2>
+                {fileError && (
+                  <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                    <AlertCircle className="mt-0.5 h-4 w-4" />
+                    <span>{fileError}</span>
+                  </div>
+                )}
+                {photoDocuments.length > 0 && (
+                  <ImageGallery files={photoDocuments} previews={previews} onDeleted={onReload} />
+                )}
+              </section>)}
+
+            </>
           )}
-
-          <InteractionMetadata metadata={metadata} />
-
-
         </div>
+
+        <InteractionMetadata metadata={metadata} />
+
         <AuditHistoryCard
           loading={auditLoading}
           lines={[

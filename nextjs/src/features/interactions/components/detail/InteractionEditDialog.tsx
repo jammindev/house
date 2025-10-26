@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/detail/InteractionEditDialog.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -121,7 +122,7 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
         }
       }}
     >
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto" aria-describedby="Test">
         <DialogHeader>
           <DialogTitle>{t("interactionsedit.title")}</DialogTitle>
         </DialogHeader>

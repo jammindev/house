@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/gallery/ImageGallery.tsx
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -59,8 +60,7 @@ export default function ImageGallery({ files, previews, onDeleted }: ImageGaller
     if (!galleryItems.length) return null;
 
     return (
-        <section>
-            <h2 className="text-lg font-medium mb-3">Galerie d’images</h2>
+        <div>
             <GalleryGrid items={galleryItems} onSelect={setActiveIndex} />
 
             {activeIndex !== null && (
@@ -74,6 +74,6 @@ export default function ImageGallery({ files, previews, onDeleted }: ImageGaller
                     onDeleted={onDeleted}
                 />
             )}
-        </section>
+        </div>
     );
 }
