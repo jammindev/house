@@ -12,6 +12,7 @@ import {
 import DocumentImportButtons from "@interactions/components/DocumentImportButtons";
 import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 import type { Document, DocumentType } from "@interactions/types";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -51,7 +52,9 @@ export default function InteractionAttachmentImport({
       }
 
       for (const file of files) {
-        const safeName = (file.name || "file").replace(/[^0-9a-zA-Z._-]/g, "_");
+        const compressionResult = await compressFileForUpload(file);
+        const fileForUpload = compressionResult.file;
+        const safeName = (fileForUpload.name || file.name || "file").replace(/[^0-9a-zA-Z._-]/g, "_");
         const uniqueId =
           typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
             ? crypto.randomUUID()
@@ -60,26 +63,26 @@ export default function InteractionAttachmentImport({
 
         const { error: uploadError } = await client.storage
           .from("files")
-          .upload(storagePath, file, {
+          .upload(storagePath, fileForUpload, {
             cacheControl: "3600",
             upsert: false,
-            contentType: file.type || undefined,
+            contentType: fileForUpload.type || undefined,
           });
         if (uploadError) throw uploadError;
 
-        const resolvedType: DocumentType = inferType(file);
+        const resolvedType: DocumentType = inferType(fileForUpload);
         const { data: document, error: documentError } = await client
           .from("documents")
           .insert({
             household_id: selectedHouseholdId,
             file_path: storagePath,
-            mime_type: file.type || null,
+            mime_type: fileForUpload.type || null,
             type: resolvedType,
-            name: file.name || "file",
+            name: file.name || fileForUpload.name || "file",
             notes: "",
             metadata: {
-              size: file.size,
-              customName: file.name || "file",
+              ...buildDocumentMetadata(file, compressionResult),
+              uploadSource: "interaction_attachment_import",
             },
           })
           .select<{ id: string }>("id")

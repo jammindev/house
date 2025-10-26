@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/gallery/GalleryModal.tsx
 "use client";
 
 import {
@@ -38,13 +39,13 @@ export default function GalleryModal({
     downloadUrl,
     onDeleted,
 }: GalleryModalProps) {
+    console.log("hey")
     const isOpen = !!item;
     const { t } = useI18n();
     const { user } = useGlobal();
     const canDelete = useMemo(() => !!(item?.file?.created_by && user?.id && item.file.created_by === user.id), [item?.file?.created_by, user?.id]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const { deleteFile, loading } = useDeleteDocument();
-
     const fileSizeLabel = item ? formatFileSize(getDocumentFileSize(item.file)) : null;
 
     return (
@@ -66,7 +67,7 @@ export default function GalleryModal({
                             size="icon"
                             variant="ghost"
                             onClick={onClose}
-                            className="absolute top-3 right-5"
+                            className="absolute top-3 right-5 z-10"
                             aria-label="Fermer"
                         >
                             <X className="w-5 h-5 text-gray-900" />
@@ -78,7 +79,7 @@ export default function GalleryModal({
                                 asChild
                                 size="icon"
                                 variant="ghost"
-                                className="absolute top-3 left-5"
+                                className="absolute top-3 left-5 z-10"
                                 aria-label={`Télécharger ${item.fileName}`}
                             >
                                 <a href={downloadUrl}>
@@ -93,7 +94,7 @@ export default function GalleryModal({
                                 <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="absolute top-3 left-16 text-red-600"
+                                    className="absolute top-3 left-16 text-red-600 z-10"
                                     onClick={() => setConfirmOpen(true)}
                                     aria-label={`Supprimer ${item.fileName}`}
                                 >
@@ -127,7 +128,7 @@ export default function GalleryModal({
                                 <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="absolute left-5 top-1/2 -translate-y-1/2"
+                                    className="absolute left-5 top-1/2 -translate-y-1/2 z-10"
                                     onClick={onPrevious}
                                     aria-label="Image précédente"
                                 >
@@ -136,7 +137,7 @@ export default function GalleryModal({
                                 <Button
                                     size="icon"
                                     variant="ghost"
-                                    className="absolute right-5 top-1/2 -translate-y-1/2"
+                                    className="absolute right-5 top-1/2 -translate-y-1/2 z-10"
                                     onClick={onNext}
                                     aria-label="Image suivante"
                                 >

@@ -8,6 +8,17 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
+import path from "node:path";
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    environment: "node",
+    include: ["src/**/*.test.{ts,tsx}"],
+    coverage: {
+      reporter: ["text", "lcov"],
+      enabled: false,
+    },
   },
   resolve: {
     alias: {

@@ -15,9 +15,10 @@ interface Props {
     onEdit: (id: string, payload: { name: string; parent_id: string | null; note: string | null; surface: number | null; color?: string | null }) => Promise<void>;
     onAskDelete: (z: Zone) => void;
     deletingId?: string | null;
+    householdId?: string | null;
 }
 
-export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter, t, onEdit, onAskDelete, deletingId }: Props) {
+export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter, t, onEdit, onAskDelete, deletingId, householdId }: Props) {
     const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
 
     const childrenByParent = useMemo(() => {
@@ -108,6 +109,7 @@ export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter
                             collapsed={collapsed.has(zone.id)}
                             onToggleCollapse={hasChildren ? () => toggleCollapse(zone.id) : undefined}
                             isFirstChildOfRoot={applyExtraMargin}
+                            householdId={householdId}
                         />
                     );
                     firstRendered = false;
