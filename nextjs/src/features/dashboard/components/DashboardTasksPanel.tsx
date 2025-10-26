@@ -17,6 +17,11 @@ const STATUS_VARIANTS: Record<string, string> = {
   archived: "bg-slate-100 text-slate-600",
 };
 
+const DUE_STATUS_VARIANTS: Record<string, string> = {
+  overdue: "bg-rose-100 text-rose-700",
+  dueSoon: "bg-amber-100 text-amber-700",
+};
+
 type DashboardTasksPanelProps = {
   tasks: DashboardTask[];
   loading?: boolean;
@@ -35,6 +40,29 @@ const formatDate = (value: string | null, locale: string) => {
   }
 };
 
+const computeDueStatus = (value: string | null) => {
+  if (!value) return null;
+  const dueDate = new Date(value);
+  if (Number.isNaN(dueDate.getTime())) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  dueDate.setHours(0, 0, 0, 0);
+
+  if (dueDate < today) {
+    return "overdue" as const;
+  }
+
+  const diffInMs = dueDate.getTime() - today.getTime();
+  const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+
+  if (diffInDays <= 7) {
+    return "dueSoon" as const;
+  }
+
+  return null;
+};
+
 export default function DashboardTasksPanel({ tasks, loading = false }: DashboardTasksPanelProps) {
   const { locale, t } = useI18n();
 
@@ -42,7 +70,7 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
     <Card aria-labelledby="dashboard-tasks">
       <CardHeader>
         <CardTitle id="dashboard-tasks" className="text-lg font-semibold text-slate-900">
-          {t("dashboard.tasks.title")}
+          {t("dashboard.sections.tasks")}
         </CardTitle>
         <CardDescription>{t("dashboard.tasks.subtitle")}</CardDescription>
       </CardHeader>
@@ -63,6 +91,8 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
               const dueLabel = formatDate(task.occurred_at, locale);
               const statusKey = task.status ?? "pending";
               const badgeClass = STATUS_VARIANTS[statusKey] ?? STATUS_VARIANTS.pending;
+              const dueStatus = computeDueStatus(task.occurred_at);
+              const dueStatusClass = dueStatus ? DUE_STATUS_VARIANTS[dueStatus] : null;
               return (
                 <li key={task.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="flex flex-col gap-2">
@@ -84,6 +114,11 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
                               ? t("dashboard.tasks.dueOn", { date: dueLabel })
                               : t("dashboard.tasks.noDate")}
                           </span>
+                          {dueStatus ? (
+                            <Badge variant="outline" className={dueStatusClass ?? ""}>
+                              {t(`dashboard.status.${dueStatus}`)}
+                            </Badge>
+                          ) : null}
                           {task.project ? (
                             <span className="inline-flex items-center gap-1">
                               <Folder className="h-3.5 w-3.5" aria-hidden />
@@ -104,9 +139,9 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/interactions" aria-label={t("dashboard.tasks.viewAll")}> 
+        <Link href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
-            {t("dashboard.tasks.viewAll")}
+            {t("dashboard.actions.viewInteractions")}
           </Button>
         </Link>
       </CardFooter>
