@@ -42,14 +42,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
     return (
-        <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col">
+        <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col relative">
             {/* Floating button (mobile) */}
             <Button
                 size="icon"
                 variant="ghost"
                 onClick={toggleSidebar}
                 aria-label="Open navigation"
-                className="lg:hidden fixed bottom-6 right-4 z-30 rounded-full bg-white/90 border border-gray-200 shadow-md p-2 text-gray-600 opacity-80"
+                className="lg:hidden absolute top-4 left-4 z-30 rounded-full bg-white/90 border border-gray-200 shadow-md p-2 text-gray-600 opacity-80"
             >
                 <Menu className="h-6 w-6" />
             </Button>

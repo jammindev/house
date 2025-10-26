@@ -1,6 +1,6 @@
 // nextjs/src/features/zones/components/ZoneList.tsx
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import ZoneItem from "./ZoneItem";
@@ -50,6 +50,22 @@ export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter
         };
     }, [zones]);
 
+    // 👉 Par défaut : on replie toutes les zones AVEC enfants, SAUF les racines
+    const defaultCollapsed = useMemo(() => {
+        const set = new Set<string>();
+        zones.forEach((zone) => {
+            if (!zone.parent_id) return; // ne pas replier les racines
+            const hasChildren = (childrenByParent.get(zone.id) ?? []).length > 0;
+            if (hasChildren) set.add(zone.id);
+        });
+        return set;
+    }, [zones, childrenByParent]);
+
+    // Si la liste des zones change (ex: chargement, refresh), on repart de l'état "tout replié par défaut"
+    useEffect(() => {
+        setCollapsed(defaultCollapsed);
+    }, [defaultCollapsed]);
+
     const toggleCollapse = useCallback((zoneId: string) => {
         setCollapsed((prev) => {
             const next = new Set(prev);
@@ -75,45 +91,35 @@ export default function ZoneList({ zones, zonesById, zoneDepths, numberFormatter
     let firstRendered = true;
 
     return (
-        <ul
-        // layout
-        // className="space-y-1"
-        // transition={{
-        //     duration: 0.18,
-        //     ease: "easeOut",
-        //     layout: { type: "keyframes", duration: 0.25, ease: "easeInOut" },
-        // }}
-        >
-            <AnimatePresence initial={false} mode="sync">
-                {zones.map((zone) => {
-                    if (rootIds.has(zone.id)) return null;
-                    if (isHidden(zone)) return null;
-                    const hasChildren = (childrenByParent.get(zone.id) ?? []).length > 0;
-                    const isFirstChildOfRoot = rootFirstChildSet.has(zone.id);
-                    const applyExtraMargin = !firstRendered && isFirstChildOfRoot;
+        <ul>
+            {zones.map((zone) => {
+                if (rootIds.has(zone.id)) return null;     // on ne rend pas les racines
+                if (isHidden(zone)) return null;           // on masque si un ancêtre est replié
+                const hasChildren = (childrenByParent.get(zone.id) ?? []).length > 0;
+                const isFirstChildOfRoot = rootFirstChildSet.has(zone.id);
+                const applyExtraMargin = !firstRendered && isFirstChildOfRoot;
 
-                    const item = (
-                        <ZoneItem
-                            key={zone.id}
-                            zone={zone}
-                            zonesById={zonesById}
-                            sortedZones={zones}
-                            zoneDepths={zoneDepths}
-                            numberFormatter={numberFormatter}
-                            t={t}
-                            onEdit={onEdit}
-                            onAskDelete={onAskDelete}
-                            deletingId={deletingId}
-                            hasChildren={hasChildren}
-                            collapsed={collapsed.has(zone.id)}
-                            onToggleCollapse={hasChildren ? () => toggleCollapse(zone.id) : undefined}
-                            isFirstChildOfRoot={applyExtraMargin}
-                        />
-                    );
-                    firstRendered = false;
-                    return item;
-                })}
-            </AnimatePresence>
+                const item = (
+                    <ZoneItem
+                        key={zone.id}
+                        zone={zone}
+                        zonesById={zonesById}
+                        sortedZones={zones}
+                        zoneDepths={zoneDepths}
+                        numberFormatter={numberFormatter}
+                        t={t}
+                        onEdit={onEdit}
+                        onAskDelete={onAskDelete}
+                        deletingId={deletingId}
+                        hasChildren={hasChildren}
+                        collapsed={collapsed.has(zone.id)}
+                        onToggleCollapse={hasChildren ? () => toggleCollapse(zone.id) : undefined}
+                        isFirstChildOfRoot={applyExtraMargin}
+                    />
+                );
+                firstRendered = false;
+                return item;
+            })}
         </ul>
     );
 }
