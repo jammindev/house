@@ -18,7 +18,7 @@ describe("DashboardSummaryCards", () => {
 
     expect(screen.getByText("Household overview")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "New interaction" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Log interaction" })).toHaveAttribute(
       "href",
       "/app/interactions/new"
     );
