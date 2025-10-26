@@ -14,6 +14,7 @@ import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/s
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import AddDocumentsModal, { type StagedDocument } from "@documents/components/AddDocumentModal";
 import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 import ContactSelector from "@interactions/components/ContactSelector";
 import StructureSelector from "@interactions/components/StructureSelector";
 import SelectedFileItem from "@interactions/components/SelectedFileItem";
@@ -360,7 +361,9 @@ export default function InteractionForm({
 
       if (files.length > 0) {
         for (const item of files) {
-          const safeBaseName = sanitizeFilename(item.customName || item.file.name || "document");
+          const compressionResult = await compressFileForUpload(item.file);
+          const fileForUpload = compressionResult.file;
+          const safeBaseName = sanitizeFilename(fileForUpload.name || item.file.name || "document");
           const uniquePrefix =
             typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
               ? crypto.randomUUID()
@@ -369,10 +372,10 @@ export default function InteractionForm({
 
           const { error: uploadError } = await client.storage
             .from("files")
-            .upload(storagePath, item.file, {
+            .upload(storagePath, fileForUpload, {
               cacheControl: "3600",
               upsert: false,
-              contentType: item.file.type || undefined,
+              contentType: fileForUpload.type || undefined,
             });
           if (uploadError) throw uploadError;
 
@@ -381,13 +384,13 @@ export default function InteractionForm({
             .insert({
               household_id: householdId,
               file_path: storagePath,
-              mime_type: item.file.type || null,
+              mime_type: fileForUpload.type || null,
               type: item.type,
               name: item.customName || item.file.name,
               notes: item.notes ?? "",
               metadata: {
-                size: item.file.size,
-                originalName: item.file.name,
+                ...buildDocumentMetadata(item.file, compressionResult),
+                uploadSource: "interaction_form",
               },
             })
             .select<{ id: string }>("id")

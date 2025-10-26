@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useToast } from "@/components/ToastProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import AddDocumentsModal, { type StagedDocument } from "@documents/components/AddDocumentModal";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
 import type { Document } from "@interactions/types";
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
@@ -134,7 +135,9 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
         if (!userId) throw new Error(t("auth.notAuthenticated"));
 
         for (const item of staged) {
-          const safeBaseName = sanitizeFilename(item.name || item.file.name || "photo");
+          const compressionResult = await compressFileForUpload(item.file);
+          const fileForUpload = compressionResult.file;
+          const safeBaseName = sanitizeFilename(fileForUpload.name || item.name || item.file.name || "photo");
           const uniquePrefix =
             typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
               ? crypto.randomUUID()
@@ -143,7 +146,11 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
 
           const { error: uploadError } = await client.storage
             .from("files")
-            .upload(storagePath, item.file, { cacheControl: "3600", upsert: false, contentType: item.file.type || undefined });
+            .upload(storagePath, fileForUpload, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: fileForUpload.type || undefined,
+            });
           if (uploadError) throw uploadError;
 
           const { data: insertedDoc, error: insertError } = await client
@@ -151,13 +158,13 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
             .insert({
               household_id: householdId,
               file_path: storagePath,
-              mime_type: item.file.type || null,
+              mime_type: fileForUpload.type || null,
               type: "photo",
               name: item.name || item.file.name,
               notes: item.notes ?? "",
               metadata: {
-                size: item.file.size,
-                originalName: item.file.name,
+                ...buildDocumentMetadata(item.file, compressionResult),
+                uploadSource: "zone_photo_gallery",
               },
             })
             .select("id")

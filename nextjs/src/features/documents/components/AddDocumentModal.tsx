@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Document, DocumentType } from "@interactions/types";
+import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
 import type { Database } from "@/lib/types";
 
 type DocumentRow = Database["public"]["Tables"]["documents"]["Row"];
@@ -76,11 +77,16 @@ export async function persistDocuments(
     const inserted: InsertedDocumentRow[] = [];
 
     for (const d of docs) {
-        const path = `${householdId}/${interactionId}/${uid()}_${sanitizeFilename(d.file.name)}`;
+        const compressionResult = await compressFileForUpload(d.file);
+        const fileForUpload = compressionResult.file;
+        const path = `${householdId}/${interactionId}/${uid()}_${sanitizeFilename(
+            fileForUpload.name || d.file.name
+        )}`;
 
-        const upload = await supabase.storage.from(bucketName).upload(path, d.file, {
+        const upload = await supabase.storage.from(bucketName).upload(path, fileForUpload, {
             cacheControl: "3600",
             upsert: false,
+            contentType: fileForUpload.type || undefined,
         });
         if (upload.error) throw upload.error;
 
@@ -91,12 +97,12 @@ export async function persistDocuments(
                 household_id: householdId,
                 type: d.type,
                 file_path: path,
-                mime_type: d.file.type || null,
+                mime_type: fileForUpload.type || null,
                 name: d.name || d.file.name,
                 notes: d.notes ?? "",
                 metadata: {
-                    size: d.file.size,
-                    originalName: d.file.name,
+                    ...buildDocumentMetadata(d.file, compressionResult),
+                    uploadSource: "add_document_modal",
                 },
             })
             .select("id, household_id, type, file_path, mime_type, name, notes, metadata, created_at, created_by")
