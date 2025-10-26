@@ -6,30 +6,7 @@ import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/s
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Project, ProjectMetrics, ProjectWithMetrics } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
-
-const computeFlags = (project: Project, metrics: ProjectMetrics | null) => {
-  const base: Pick<ProjectWithMetrics, "isDueSoon" | "isOverdue"> = {
-    isDueSoon: false,
-    isOverdue: false,
-  };
-  if (!project.due_date || project.status === "completed" || project.status === "cancelled") {
-    return base;
-  }
-
-  const due = new Date(project.due_date);
-  const today = new Date();
-  due.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-  const openTodos = metrics?.open_todos ?? 0;
-
-  const diffMs = due.getTime() - today.getTime();
-  const diffDays = diffMs / (1000 * 60 * 60 * 24);
-
-  return {
-    isOverdue: due < today && openTodos > 0,
-    isDueSoon: diffDays >= 0 && diffDays <= 7 && openTodos > 0,
-  };
-};
+import { computeProjectFlags } from "@projects/utils/projectFlags";
 
 export function useProject(projectId?: string) {
   const { selectedHouseholdId: householdId } = useGlobal();
@@ -89,7 +66,7 @@ export function useProject(projectId?: string) {
       if (metricsError) throw metricsError;
 
       const metrics = (metricsRow as ProjectMetrics | null) ?? null;
-      const flags = computeFlags(projectData, metrics);
+      const flags = computeProjectFlags(projectData, metrics);
 
       setProject({
         ...projectData,
