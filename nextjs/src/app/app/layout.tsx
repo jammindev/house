@@ -1,4 +1,3 @@
-// nextjs/src/app/app/layout.tsx
 // src/app/app/layout.tsx
 'use client';
 

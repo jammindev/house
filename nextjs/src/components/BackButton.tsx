@@ -15,6 +15,10 @@ export default function BackButton() {
             router.back();
             return;
         }
+        setTimeout(() => {
+            router.refresh();
+        }, 200);
+        return;
     }, [router]);
     return (<Button
         type="button"

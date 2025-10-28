@@ -83,7 +83,7 @@ export function useInteractions() {
   const [documentCounts, setDocumentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  console.log(loading)
   useEffect(() => {
     const load = async () => {
       setError("");
@@ -157,10 +157,10 @@ export function useInteractions() {
         const normalized: Interaction[] = list.map((item) => {
           const project: InteractionProjectSummary | null = item.project
             ? {
-                id: item.project.id,
-                title: item.project.title?.trim() ?? "",
-                status: (item.project.status ?? "draft") as InteractionProjectSummary["status"],
-              }
+              id: item.project.id,
+              title: item.project.title?.trim() ?? "",
+              status: (item.project.status ?? "draft") as InteractionProjectSummary["status"],
+            }
             : null;
           const tags =
             item.interaction_tags

@@ -49,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 variant="ghost"
                 onClick={toggleSidebar}
                 aria-label="Open navigation"
-                className="lg:hidden absolute top-4 left-4 z-30 rounded-full bg-white/90 border border-gray-200 shadow-md p-2 text-gray-600 opacity-80"
+                className="lg:hidden absolute top-2 left-4 lg:left-8 lg:top-8 z-30 rounded-full bg-white/90 border border-gray-200 shadow-md p-2 text-gray-600 opacity-80"
             >
                 <Menu className="h-6 w-6" />
             </Button>

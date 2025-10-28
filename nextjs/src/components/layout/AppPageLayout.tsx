@@ -3,16 +3,12 @@
 
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
 
-
 type PageAction =
-  | {
-    element: ReactNode;
-  }
+  | { element: ReactNode }
   | {
     label?: string;
     icon: LucideIcon;
@@ -33,6 +29,7 @@ interface AppPageLayoutProps {
   className?: string;
   contentClassName?: string;
   hideBackButton?: boolean;
+  loading?: boolean;
 }
 
 export default function AppPageLayout({
@@ -44,11 +41,10 @@ export default function AppPageLayout({
   className,
   contentClassName,
   hideBackButton = false,
+  loading = false,
 }: AppPageLayoutProps) {
   const actionButtons = actions?.map((action, i) => {
-    if ("element" in action) {
-      return <div key={i}>{action.element}</div>;
-    }
+    if ("element" in action) return <div key={i}>{action.element}</div>;
     return (
       <Button
         key={i}
@@ -70,9 +66,7 @@ export default function AppPageLayout({
             {action.label && (
               <span
                 className={cn(
-                  action.size === "icon"
-                    ? "sr-only"
-                    : "text-sm font-medium"
+                  action.size === "icon" ? "sr-only" : "text-sm font-medium"
                 )}
               >
                 {action.label}
@@ -85,9 +79,7 @@ export default function AppPageLayout({
             {action.label && (
               <span
                 className={cn(
-                  action.size === "icon"
-                    ? "sr-only"
-                    : "text-sm font-medium"
+                  action.size === "icon" ? "sr-only" : "text-sm font-medium"
                 )}
               >
                 {action.label}
@@ -95,23 +87,41 @@ export default function AppPageLayout({
             )}
           </>
         )}
-      </Button>)
+      </Button>
+    );
   });
 
   return (
-    <div className={cn("mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8", className)}>
-      <header className="mb-4 flex flex-row justify-between items-center w-full">
-        <div className="ml-4 space-y-1">
+    <div
+      className={cn(
+        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8",
+        className
+      )}
+    >
+      <header className="mb-4 flex justify-between w-full">
+        <div className="ml-16 lg:ml-4 space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}
             {context ? <span className="text-gray-500"> · {context}</span> : null}
           </h1>
-          {subtitle ? <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p> : null}
+          {subtitle && (
+            <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p>
+          )}
         </div>
-        <div className="flex gap-2 self-end sm:self-auto">{!hideBackButton && <BackButton />}{actionButtons}</div>
-
+        <div className="flex gap-2">
+          {!hideBackButton && <BackButton />}
+          {actionButtons}
+        </div>
       </header>
-      <div className={cn("flex-1", contentClassName)}>{children}</div>
+
+      {/* 💡 Ajout d’un loader global */}
+      {loading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+        </div>
+      ) : (
+        <div className={cn("flex-1", contentClassName)}>{children}</div>
+      )}
     </div>
   );
 }
