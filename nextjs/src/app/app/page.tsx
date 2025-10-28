@@ -1,4 +1,4 @@
-// nextjs/src/app/app/page.tsx
+// src/app/app/page.tsx
 "use client";
 
 import React, { useMemo } from "react";
