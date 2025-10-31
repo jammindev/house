@@ -303,15 +303,16 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {photos.map((photo) => {
               const preview = previews[photo.id];
+              const previewUrl = preview?.thumbnail ?? preview?.view;
               return (
                 <div
                   key={photo.id}
                   className="flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm"
                 >
                   <div className="relative h-48 bg-slate-100">
-                    {preview?.view ? (
+                    {previewUrl ? (
                       <Image
-                        src={preview.view}
+                        src={previewUrl}
                         alt={photo.name}
                         fill
                         className="object-cover"

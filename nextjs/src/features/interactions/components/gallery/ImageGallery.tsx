@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getInteractionFileName } from "@interactions/utils/getInteractionFileName";
 import type { Document } from "@interactions/types";
+import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
 
 import GalleryGrid from "./GalleryGrid";
 import GalleryModal from "./GalleryModal";
@@ -11,7 +12,7 @@ import type { GalleryItem } from "./types";
 
 interface ImageGalleryProps {
     files: Document[];
-    previews: Record<string, { view: string; download: string }>;
+    previews: Record<string, FilePreview>;
     onDeleted?: () => void;
 }
 
@@ -19,11 +20,13 @@ export default function ImageGallery({ files, previews, onDeleted }: ImageGaller
     const galleryItems: GalleryItem[] = useMemo(() => {
         return files
             .map((file): GalleryItem | null => {
-                const url = previews[file.id]?.view; // 👈 correction ici
-                if (!url) return null;
+                const preview = previews[file.id];
+                const viewUrl = preview?.view;
+                if (!viewUrl) return null;
                 return {
                     file,
-                    url,
+                    viewUrl,
+                    thumbnailUrl: preview?.thumbnail ?? viewUrl,
                     fileName: getInteractionFileName(file),
                 };
             })

@@ -4,10 +4,11 @@
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import PdfFileItem from "./PdfFileItem";
 import type { Document } from "@interactions/types";
+import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
 
 interface PdfFileListProps {
   files: Document[];
-  previews: Record<string, { view: string; download: string }>;
+  previews: Record<string, FilePreview>;
   onDeleted?: () => void;
 }
 

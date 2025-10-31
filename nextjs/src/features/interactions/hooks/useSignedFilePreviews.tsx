@@ -6,10 +6,18 @@ import { getInteractionFileName } from "@interactions/utils/getInteractionFileNa
 
 const SIGNED_URL_TTL = 300;
 const REFRESH_BEFORE_EXPIRY = 20;
+const IMAGE_VIEW_TRANSFORM = { width: 1600, height: 1600, resize: "contain" as const, quality: 80 };
+const IMAGE_THUMBNAIL_TRANSFORM = { width: 480, height: 480, resize: "cover" as const, quality: 60 };
+
+export type FilePreview = {
+    view?: string;
+    download?: string;
+    thumbnail?: string;
+};
 
 export function useSignedFilePreviews(files: Document[]) {
     const { t } = useI18n();
-    const [previews, setPreviews] = useState<Record<string, { view: string; download: string }>>({});
+    const [previews, setPreviews] = useState<Record<string, FilePreview>>({});
     const [fileError, setFileError] = useState("");
     const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -29,12 +37,31 @@ export function useSignedFilePreviews(files: Document[]) {
                 const interactions = await Promise.all(
                     files.map(async (file) => {
                         const fileName = getInteractionFileName(file) || "file";
+                        const isPhoto = file.type === "photo";
 
                         const { data: viewData, error: viewError } = await client.storage
                             .from("files")
-                            .createSignedUrl(file.file_path, SIGNED_URL_TTL);
+                            .createSignedUrl(
+                                file.file_path,
+                                SIGNED_URL_TTL,
+                                isPhoto ? { transform: IMAGE_VIEW_TRANSFORM } : undefined
+                            );
 
                         if (viewError) throw viewError;
+
+                        let thumbnailUrl: string | undefined;
+                        if (isPhoto) {
+                            const { data: thumbnailData, error: thumbnailError } = await client.storage
+                                .from("files")
+                                .createSignedUrl(file.file_path, SIGNED_URL_TTL, {
+                                    transform: IMAGE_THUMBNAIL_TRANSFORM,
+                                });
+                            if (!thumbnailError) {
+                                thumbnailUrl = thumbnailData?.signedUrl;
+                            } else {
+                                console.warn("Failed to create thumbnail signed URL", thumbnailError);
+                            }
+                        }
 
                         const { data: downloadData, error: downloadError } = await client.storage
                             .from("files")
@@ -42,7 +69,17 @@ export function useSignedFilePreviews(files: Document[]) {
 
                         if (downloadError) throw downloadError;
 
-                        return [file.id, { view: viewData.signedUrl, download: downloadData.signedUrl }] as const;
+                        const viewUrl = viewData?.signedUrl;
+                        const downloadUrl = downloadData?.signedUrl;
+
+                        return [
+                            file.id,
+                            {
+                                view: viewUrl,
+                                download: downloadUrl,
+                                thumbnail: thumbnailUrl ?? viewUrl,
+                            },
+                        ] as const;
                     })
                 );
 
