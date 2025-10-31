@@ -1,5 +1,7 @@
 "use client";
 
+import AuditHistoryCard from "@/components/AuditHistoryCard";
+import ProjectGroupDeleteButton from "@project-groups/components/ProjectGroupDeleteButton";
 import ProjectGroupSummary from "@project-groups/components/ProjectGroupSummary";
 import ProjectList from "@projects/components/ProjectList";
 import type { ProjectWithMetrics } from "@projects/types";
@@ -14,6 +16,18 @@ type Props = {
 
 export default function ProjectGroupDetailsView({ group, projects, onRefresh }: Props) {
   const { t } = useI18n();
+  const auditLines = [
+    group.created_at
+      ? t("projectGroups.auditCreated", {
+          date: new Date(group.created_at).toLocaleString(),
+        })
+      : null,
+    group.updated_at
+      ? t("projectGroups.auditUpdated", {
+          date: new Date(group.updated_at).toLocaleString(),
+        })
+      : null,
+  ].filter((line): line is string => Boolean(line));
 
   return (
     <div className="flex flex-col gap-6 pb-10">
@@ -43,7 +57,11 @@ export default function ProjectGroupDetailsView({ group, projects, onRefresh }: 
       </div>
 
       <ProjectList projects={projects} />
+
+      <AuditHistoryCard
+        lines={auditLines}
+        actions={<ProjectGroupDeleteButton group={group} onDeleted={onRefresh} />}
+      />
     </div>
   );
 }
-
