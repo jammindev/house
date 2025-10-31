@@ -39,7 +39,6 @@ export default function GalleryModal({
     downloadUrl,
     onDeleted,
 }: GalleryModalProps) {
-    console.log("hey")
     const isOpen = !!item;
     const { t } = useI18n();
     const { user } = useGlobal();
@@ -150,12 +149,11 @@ export default function GalleryModal({
                         <figure className="relative max-h-[calc(100vh-6rem)] w-full max-w-4xl">
                             <div className="relative h-[60vh] w-full">
                                 <Image
-                                    src={item.url}
+                                    src={item.viewUrl}
                                     alt={item.fileName}
                                     fill
                                     sizes="(max-width: 1024px) 90vw, 1024px"
                                     className="object-contain"
-                                    unoptimized
                                 />
                             </div>
                             {item.fileName && (

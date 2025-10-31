@@ -15,6 +15,7 @@ import InteractionZonesList from "@interactions/components/InteractionZonesList"
 import ImageGallery from "@interactions/components/gallery/ImageGallery";
 import PdfFileList from "@interactions/components/pdf/PdfFileList";
 import { useInteractionAudit } from "@interactions/hooks/useInteractionAudit";
+import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import type { Document, Interaction } from "@interactions/types";
 import { extractAmountFromMetadata } from "@interactions/utils/amount";
@@ -22,7 +23,7 @@ import { extractAmountFromMetadata } from "@interactions/utils/amount";
 type InteractionDetailViewProps = {
   interaction: Interaction;
   documents: Document[];
-  previews: Record<string, { view: string; download: string }>;
+  previews: Record<string, FilePreview>;
   fileError?: string;
   onReload: () => void;
   onDeleted: () => void;

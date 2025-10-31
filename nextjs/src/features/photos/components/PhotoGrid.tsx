@@ -11,10 +11,11 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { PhotoDocument } from "@photos/types";
 import { PhotoDetailsPanel } from "@photos/components/PhotoDetailsPanel";
+import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
 
 type PhotoGridProps = {
   photos: PhotoDocument[];
-  previews: Record<string, { view: string; download: string }>;
+  previews: Record<string, FilePreview>;
   loading: boolean;
   error: string | null;
   onRefresh: () => void;
@@ -54,7 +55,8 @@ export function PhotoGrid({ photos, previews, loading, error, onRefresh }: Photo
   const renderGrid = () => (
     <div className="grid grid-cols-3 gap-[2px] sm:gap-1">
       {photos.map((photo) => {
-        const previewUrl = previews[photo.id]?.view;
+        const preview = previews[photo.id];
+        const previewUrl = preview?.thumbnail ?? preview?.view;
         const isSelected = photo.id === activePhotoId;
         return (
           <button
@@ -73,7 +75,6 @@ export function PhotoGrid({ photos, previews, loading, error, onRefresh }: Photo
                 fill
                 sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
                 className="object-cover transition duration-200 hover:scale-105"
-                unoptimized
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
@@ -148,14 +149,13 @@ export function PhotoGrid({ photos, previews, loading, error, onRefresh }: Photo
                         fill
                         sizes="(max-width: 1024px) 100vw, 60vw"
                         className="object-contain"
-                        unoptimized
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-500">
                         <ImageIcon className="h-8 w-8" aria-hidden="true" />
                       </div>
-                    )}
-                  </div>
+                )}
+              </div>
                   <div className="w-full max-h-[88vh] overflow-y-auto border-t border-gray-200 p-6 lg:w-1/3 lg:border-l lg:border-t-0">
                     <PhotoDetailsPanel
                       photo={activePhoto}
