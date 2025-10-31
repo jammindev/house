@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useParams } from "next/navigation";
-import { CalendarDays, Globe, MapPin, Pencil, Phone, StickyNote, Tag, Mail } from "lucide-react";
+import { Building2, CalendarDays, Globe, MapPin, Pencil, Phone, StickyNote, Tag, Mail } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import DetailPageLayout from "@shared/layout/DetailPageLayout";
+import EmptyState from "@shared/components/EmptyState";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useStructures } from "@structures/hooks/useStructures";
 import { useContacts } from "@contacts/hooks/useContacts";
 import StructureDeleteButton from "@structures/components/StructureDeleteButton";
 import { formatFullName } from "@contacts/lib/format";
 import type { Structure, StructureAddress } from "@structures/types";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 type Translator = (key: string, values?: Record<string, unknown>) => string;
 
@@ -248,7 +250,6 @@ export default function StructureDetailPage() {
   const { t } = useI18n();
   const { structures, loading, error, deleteStructure } = useStructures();
   const { contacts } = useContacts();
-  const setPageLayoutConfig = usePageLayoutConfig();
 
   const structureIdParam = params?.id;
   const structureId = Array.isArray(structureIdParam) ? structureIdParam[0] : structureIdParam ?? "";
@@ -263,9 +264,6 @@ export default function StructureDetailPage() {
     return contacts.filter((contact) => contact.structure_id === structure.id);
   }, [contacts, structure]);
 
-  const title = structure ? structure.name || t("structures.unnamedStructure") : t("structures.detailFallbackTitle");
-  const subtitle = t("structures.detailSubtitle");
-  const context = structure?.type ?? undefined;
   const actions = useMemo(
     () =>
       structure
@@ -273,39 +271,42 @@ export default function StructureDetailPage() {
             {
               icon: Pencil,
               href: `/app/structures/${structure.id}/edit`,
+              label: t("structures.editTitle"),
             } as const,
           ]
         : undefined,
-    [structure]
+    [structure, t]
   );
 
-  useEffect(() => {
-    setPageLayoutConfig({
-      title,
-      subtitle,
-      context,
-      actions,
-      hideBackButton: false,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
-  }, [actions, context, setPageLayoutConfig, subtitle, title]);
-
-  if (!structureId) {
-    return <div className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-600">{t("structures.notFound")}</div>;
-  }
+  const isNotFound = Boolean(structureId) && !loading && !structure;
 
   return (
-    <>
-      {error ? (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">{error}</div>
-      ) : null}
-
-      {loading ? (
-        <div className="text-sm text-muted-foreground">{t("structures.loading")}</div>
-      ) : structure ? (
-        <div className="space-y-6">
+    <DetailPageLayout
+      title={structure ? structure.name || t("structures.unnamedStructure") : t("structures.detailFallbackTitle")}
+      subtitle={t("structures.detailSubtitle")}
+      context={structure?.type ?? undefined}
+      actions={actions}
+      loading={loading}
+      error={error ?? null}
+      errorTitle={t("structures.loadFailed")}
+      isNotFound={isNotFound}
+      notFoundState={
+        <EmptyState
+          icon={Building2}
+          title={t("structures.notFound")}
+          description={t("structures.detailSubtitle")}
+          action={
+            <Button asChild variant="outline">
+              <Link href="/app/structures">{t("structures.title")}</Link>
+            </Button>
+          }
+        />
+      }
+      className="max-w-4xl"
+      contentClassName="space-y-6"
+    >
+      {structure ? (
+        <>
           <StructureDetails structure={structure} t={t} />
 
           <section className="rounded-lg border border-border/60 bg-card p-4">
@@ -343,12 +344,8 @@ export default function StructureDetailPage() {
           <div className="flex justify-end">
             <StructureDeleteButton structure={structure} onDelete={() => deleteStructure(structure.id)} />
           </div>
-        </div>
-      ) : (
-        <div className="rounded border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-          {t("structures.notFound")}
-        </div>
-      )}
-    </>
+        </>
+      ) : null}
+    </DetailPageLayout>
   );
 }
