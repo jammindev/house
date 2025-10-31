@@ -1,54 +1,98 @@
 // nextjs/src/app/app/(pages)/usePageLayoutConfig.ts
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { usePageLayout } from './layout';
-import type { LucideIcon } from 'lucide-react';
+import type { PageAction } from '@/components/layout/AppPageLayout';
 
-interface UsePageLayoutConfigProps {
-    title?: string;
-    subtitle?: string;
-    context?: string;
-    hideBackButton?: boolean;
-    actions?: {
-        icon: LucideIcon;
-        label?: string;
-        href?: string;
-        onClick?: () => void;
-    }[];
-}
+export type PageLayoutConfig = {
+  title?: string;
+  subtitle?: string;
+  context?: string;
+  hideBackButton?: boolean;
+  actions?: PageAction[];
+  className?: string;
+  contentClassName?: string;
+  loading?: boolean;
+};
 
 /**
- * Permet de configurer le layout de page de manière déclarative.
- * Exemple :
- * usePageLayoutConfig({
- *   title: "Contacts",
- *   subtitle: "Gérez vos relations",
- *   actions: [{ icon: Plus, href: "/app/contacts/new" }],
- *   hideBackButton: true,
- * });
+ * Retourne une fonction permettant de configurer le layout dynamiquement.
+ * Si `initialConfig` est fourni, il est appliqué immédiatement.
  */
-export function usePageLayoutConfig({
-    title,
-    subtitle,
-    context,
-    hideBackButton,
-    actions,
-}: UsePageLayoutConfigProps) {
-    const {
-        setTitle,
-        setSubtitle,
-        setContext,
-        setActions,
-        setHideBackButton,
-    } = usePageLayout();
+export function usePageLayoutConfig(initialConfig?: PageLayoutConfig) {
+  const {
+    setTitle,
+    setSubtitle,
+    setContext,
+    setActions,
+    setHideBackButton,
+    setClassName,
+    setContentClassName,
+    setLoading,
+  } = usePageLayout();
 
-    useEffect(() => {
-        if (title) setTitle(title);
-        if (subtitle !== undefined) setSubtitle(subtitle);
-        if (context !== undefined) setContext(context);
-        if (actions !== undefined) setActions(actions);
-        if (hideBackButton !== undefined) setHideBackButton(hideBackButton);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [title, subtitle, context, hideBackButton, JSON.stringify(actions)]);
+  const applyConfig = useCallback(
+    (config: PageLayoutConfig) => {
+      if (Object.prototype.hasOwnProperty.call(config, 'title')) {
+        setTitle(config.title ?? '');
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'subtitle')) {
+        setSubtitle(config.subtitle);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'context')) {
+        setContext(config.context);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'actions')) {
+        setActions(config.actions);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'hideBackButton')) {
+        setHideBackButton(!!config.hideBackButton);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'className')) {
+        setClassName(config.className);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'contentClassName')) {
+        setContentClassName(config.contentClassName);
+      }
+
+      if (Object.prototype.hasOwnProperty.call(config, 'loading')) {
+        setLoading(!!config.loading);
+      }
+    },
+    [
+      setActions,
+      setContext,
+      setHideBackButton,
+      setSubtitle,
+      setTitle,
+      setClassName,
+      setContentClassName,
+      setLoading,
+    ],
+  );
+
+  useEffect(() => {
+    if (!initialConfig) return;
+    applyConfig(initialConfig);
+  }, [
+    applyConfig,
+    initialConfig?.title,
+    initialConfig?.subtitle,
+    initialConfig?.context,
+    initialConfig?.hideBackButton,
+    initialConfig?.actions,
+    initialConfig?.className,
+    initialConfig?.contentClassName,
+    initialConfig?.loading,
+    initialConfig,
+  ]);
+
+  return applyConfig;
 }

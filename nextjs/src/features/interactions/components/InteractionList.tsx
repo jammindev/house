@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/InteractionList.tsx
 "use client";
 import { useMemo, useState } from "react";
 import InteractionItem from "./InteractionItem";

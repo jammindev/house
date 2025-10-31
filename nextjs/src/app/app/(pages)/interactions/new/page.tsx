@@ -1,19 +1,35 @@
+// nextjs/src/app/app/(pages)/interactions/new/page.tsx
 // nextjs/src/app/app/interactions/new/page.tsx
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";
 import type { InteractionStatus, InteractionType, ZoneOption } from "@interactions/types";
 import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
-import AppPageLayout from "@/components/layout/AppPageLayout";
+import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function NewInteractionPage() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const { zones, loading: zonesLoading, error: zonesError } = useZones();
+
+  const setPageLayoutConfig = usePageLayoutConfig();
+
+  useEffect(() => {
+    setPageLayoutConfig({
+      title: t("interactionsnewEntry"),
+      subtitle: undefined,
+      context: undefined,
+      actions: undefined,
+      className: undefined,
+      contentClassName: undefined,
+      hideBackButton: false,
+      loading: false,
+    });
+  }, [setPageLayoutConfig, t]);
 
   const zoneOptions: ZoneOption[] = useMemo(
     () => zones.map(({ id, name, parent_id }) => ({ id, name, parent_id: parent_id ?? null })),
@@ -52,13 +68,13 @@ export default function NewInteractionPage() {
   );
 
   return (
-    <AppPageLayout title={t("interactionsnewEntry")}>
+    <>
       {zonesError && (
         <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
           {zonesError}
         </div>
       )}
       <InteractionForm zones={zoneOptions} zonesLoading={zonesLoading} defaultValues={defaultValues} />
-    </AppPageLayout>
+    </>
   );
 }
