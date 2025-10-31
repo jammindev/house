@@ -201,6 +201,11 @@ export function useDashboardData() {
             planned_budget,
             actual_cost_cached,
             cover_interaction_id,
+            project_group_id,
+            project_group:project_groups (
+              id,
+              name
+            ),
             created_at,
             updated_at,
             created_by,
@@ -314,11 +319,13 @@ export function useDashboardData() {
       const highlightProjects: ProjectWithMetrics[] = rawProjects
         .map<ProjectWithMetrics>((project) => {
           const metrics = metricsByProject.get(project.id) ?? null;
+          const group = (project.project_group as { id: string; name: string } | null) ?? null;
           const enriched: ProjectWithMetrics = {
             ...project,
             metrics,
             isOverdue: computeIsOverdue(project, metrics),
             isDueSoon: computeIsDueSoon(project, metrics),
+            group,
           };
           return enriched;
         })

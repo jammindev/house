@@ -82,8 +82,15 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - `refresh_project_actual_cost` trigger recalculates `actual_cost_cached` whenever linked expense interactions change.
   - RLS: household members can select/insert/update/delete projects scoped to their household.
 
+- `project_groups`
+  - Columns: `id uuid pk`, `household_id uuid`, `name text not null`, `description text`, `tags text[]`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
+  - Trigger helpers populate audit fields and a consistency trigger on `projects` enforces matching `household_id` when linking a project to a group.
+  - RLS: household members can select/insert/update/delete groups scoped to their household.
 - View `project_metrics`
   - Aggregates open/done todos, linked document count, and exposes `actual_cost_cached` for each project (backed by RLS on the underlying tables).
+
+- View `project_group_metrics`
+  - Rolls up per-group counts (projects, tasks, documents) and compares planned vs. actual budgets to support dashboards.
 
 - Storage bucket `files`
   - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader’s `auth.uid()` and cross-check household membership through `documents` → `interactions`.
