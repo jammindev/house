@@ -1,16 +1,17 @@
-// nextjs/src/app/app/project-groups/page.tsx
+// nextjs/src/app/app/(pages)/project-groups/page.tsx
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
-import AppPageLayout from "@/components/layout/AppPageLayout";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectGroupList from "@project-groups/components/ProjectGroupList";
 import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
+import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function ProjectGroupsPage() {
   const { t } = useI18n();
   const { groups, loading, error } = useProjectGroups();
+  const setPageLayoutConfig = usePageLayoutConfig();
 
   const content = useMemo(() => {
     if (loading) {
@@ -26,13 +27,18 @@ export default function ProjectGroupsPage() {
     return <ProjectGroupList groups={groups} />;
   }, [error, groups, loading, t]);
 
-  return (
-    <AppPageLayout
-      title={t("projectGroups.title")}
-      subtitle={t("projectGroups.subtitle")}
-      hideBackButton
-    >
-      {content}
-    </AppPageLayout>
-  );
+  useEffect(() => {
+    setPageLayoutConfig({
+      title: t("projectGroups.title"),
+      subtitle: t("projectGroups.subtitle"),
+      context: undefined,
+      actions: undefined,
+      className: undefined,
+      contentClassName: undefined,
+      hideBackButton: true,
+      loading: false,
+    });
+  }, [setPageLayoutConfig, t]);
+
+  return <>{content}</>;
 }

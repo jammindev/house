@@ -1,19 +1,20 @@
-// nextjs/src/app/app/project-groups/[id]/page.tsx
+// nextjs/src/app/app/(pages)/project-groups/[id]/page.tsx
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 
-import AppPageLayout from "@/components/layout/AppPageLayout";
 import ProjectList from "@projects/components/ProjectList";
 import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProjects";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectGroupSummary from "@project-groups/components/ProjectGroupSummary";
 import { useProjectGroup } from "@project-groups/hooks/useProjectGroup";
+import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function ProjectGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
+  const setPageLayoutConfig = usePageLayoutConfig();
   const { group, loading, error, reload } = useProjectGroup(id);
   const {
     projects,
@@ -44,6 +45,35 @@ export default function ProjectGroupDetailPage() {
     return <ProjectList projects={projects} />;
   }, [projects, projectsError, projectsLoading, t]);
 
+  useEffect(() => {
+    const fallbackTitle = isLoading ? t("projectGroups.title") : t("projectGroups.notFound");
+
+    if (!group) {
+      setPageLayoutConfig({
+        title: fallbackTitle,
+        subtitle: undefined,
+        context: undefined,
+        actions: undefined,
+        hideBackButton: false,
+        className: "max-w-5xl",
+        contentClassName: "flex flex-col gap-6 pb-10",
+        loading: isLoading,
+      });
+      return;
+    }
+
+    setPageLayoutConfig({
+      title: group.name,
+      subtitle: group.description || undefined,
+      context: undefined,
+      actions: undefined,
+      hideBackButton: false,
+      className: "max-w-5xl",
+      contentClassName: "flex flex-col gap-6 pb-10",
+      loading: false,
+    });
+  }, [group, isLoading, setPageLayoutConfig, t]);
+
   if (!id) {
     return <div className="p-6 text-sm text-slate-500">{t("projectGroups.notFound")}</div>;
   }
@@ -61,12 +91,7 @@ export default function ProjectGroupDetailPage() {
   }
 
   return (
-    <AppPageLayout
-      title={group.name}
-      subtitle={group.description || undefined}
-      className="max-w-5xl"
-      contentClassName="flex flex-col gap-6 pb-10"
-    >
+    <>
       <ProjectGroupSummary group={group} />
 
       {group.tags.length ? (
@@ -91,6 +116,6 @@ export default function ProjectGroupDetailPage() {
       </div>
 
       {projectContent}
-    </AppPageLayout>
+    </>
   );
 }
