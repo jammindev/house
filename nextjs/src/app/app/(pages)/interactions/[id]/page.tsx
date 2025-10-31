@@ -45,37 +45,22 @@ export default function InteractionDetailPage() {
   }, [interactionId, reload]);
 
   useEffect(() => {
-    if (!interaction) {
+    if (interaction) {
       setPageLayoutConfig({
-        title: t("interactionsdetail"),
-        subtitle: undefined,
-        context: undefined,
-        actions: undefined,
+        title: interactionSubject || t("interactionsdetail"),
+        context: typeLabel,
+        subtitle,
+        actions: layoutActions,
         hideBackButton: false,
-        className: undefined,
-        contentClassName: undefined,
-        loading: false,
       });
-      return;
     }
-
-    setPageLayoutConfig({
-      title: interactionSubject || t("interactionsdetail"),
-      context: typeLabel,
-      subtitle,
-      actions: layoutActions,
-      hideBackButton: false,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
   }, [
     interaction,
     interactionSubject,
     layoutActions,
     setPageLayoutConfig,
     subtitle,
-    t,
+
     typeLabel,
   ]);
 

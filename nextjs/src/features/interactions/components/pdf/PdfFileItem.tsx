@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/components/pdf/PdfFileItem.tsx
 "use client";
 
 import { FileText, Loader2, FileX, Download, Trash2 } from "lucide-react";
@@ -31,7 +32,7 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
     return (
         <li
             role="listitem"
-            className="flex items-center justify-between gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm w-full"
+            className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm w-full"
         >
             <div className="flex items-center gap-2 min-w-0">
                 {/* Icône / statut */}
