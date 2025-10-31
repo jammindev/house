@@ -31,3 +31,10 @@ export type ProjectGroupWithMetrics = ProjectGroup & {
   overBudget: boolean;
   budgetDelta: number;
 };
+
+export type CreateProjectGroupInput = {
+  householdId: string;
+  name: string;
+  description?: string | null;
+  tags?: string[];
+};

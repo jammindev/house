@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { Project, ProjectPriority, ProjectStatus } from "@projects/types";
 import { PROJECT_PRIORITY_OPTIONS, PROJECT_STATUSES } from "@projects/constants";
+import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
 
 type Mode = "create" | "edit";
 
@@ -45,10 +46,22 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
     project?.planned_budget != null ? project.planned_budget.toString() : ""
   );
   const [tagsInput, setTagsInput] = useState(project?.tags?.join(", ") ?? "");
+  const [projectGroupId, setProjectGroupId] = useState(project?.project_group_id ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const tagHint = useMemo(() => t("projects.form.tagsHint"), [t]);
+  const { groups: groupOptions, loading: groupsLoading, error: groupsError } = useProjectGroups();
+
+  // Ensure the group selector reflects changes when editing and the project prop updates
+  useEffect(() => {
+    if (isEdit && project) {
+      setProjectGroupId(project.project_group_id ?? "");
+    }
+  }, [isEdit, project]);
+
+  const groupIds = useMemo(() => new Set(groupOptions.map((g) => g.id)), [groupOptions]);
+  const hasCurrentGroupOption = projectGroupId ? groupIds.has(projectGroupId) : true;
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -75,8 +88,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
         const client = supa.getSupabaseClient();
         const parsedBudget = plannedBudget ? Number(plannedBudget) : 0;
 
-        const payload = {
-          household_id: householdId,
+        const baseFields = {
           title: trimmedTitle,
           description: description.trim(),
           status,
@@ -85,21 +97,30 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
           due_date: dueDate || null,
           planned_budget: parsedBudget,
           tags: ensureTagsArray(tagsInput),
-        };
+          project_group_id: projectGroupId || null,
+        } as const;
 
         if (isEdit && project) {
-          const { error: updateError } = await client
+          const updatePayload = { ...baseFields };
+          const { data: updated, error: updateError } = await client
             .from("projects")
-            .update(payload)
+            .update(updatePayload)
             .eq("id", project.id)
-            .eq("household_id", householdId);
+            .eq("household_id", householdId)
+            .select("id, project_group_id")
+            .single();
           if (updateError) throw updateError;
+          if (!updated?.id) throw new Error(t("common.unexpectedError"));
           show({ title: t("projects.form.successUpdate"), variant: "success" });
           onSuccess?.(project.id);
         } else {
+          const insertPayload = {
+            household_id: householdId,
+            ...baseFields,
+          };
           const { data, error: insertError } = await client
             .from("projects")
-            .insert(payload)
+            .insert(insertPayload)
             .select("id")
             .single();
           if (insertError) throw insertError;
@@ -124,6 +145,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
       plannedBudget,
       priority,
       project,
+      projectGroupId,
       show,
       startDate,
       status,
@@ -190,6 +212,33 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
                 value={plannedBudget}
                 onChange={(event) => setPlannedBudget(event.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-700">{t("projects.fields.projectGroup")}</label>
+              <select
+                value={projectGroupId}
+                onChange={(e) => setProjectGroupId(e.target.value)}
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                disabled={groupsLoading}
+              >
+                <option value="">{groupsLoading ? t("projects.form.groupLoading") : t("projects.form.groupNone")}</option>
+                {!hasCurrentGroupOption && projectGroupId ? (
+                  <option value={projectGroupId}>
+                    {project?.group?.name || t("projects.form.groupCurrent")}
+                  </option>
+                ) : null}
+                {groupOptions.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+              {groupsError ? (
+                <span className="text-xs text-rose-600">{groupsError}</span>
+              ) : null}
             </div>
           </div>
 
