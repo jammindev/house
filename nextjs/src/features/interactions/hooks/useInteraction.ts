@@ -1,5 +1,6 @@
+// nextjs/src/features/interactions/hooks/useInteraction.ts
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type {
@@ -77,7 +78,7 @@ export function useInteraction(id?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!id) return;
     setLoading(true);
     setError("");
@@ -146,10 +147,10 @@ export function useInteraction(id?: string) {
       if (row) {
         const project: InteractionProjectSummary | null = row.project
           ? {
-              id: row.project.id,
-              title: row.project.title?.trim() ?? "",
-              status: (row.project.status ?? "draft") as InteractionProjectSummary["status"],
-            }
+            id: row.project.id,
+            title: row.project.title?.trim() ?? "",
+            status: (row.project.status ?? "draft") as InteractionProjectSummary["status"],
+          }
           : null;
         const tags =
           row.interaction_tags
@@ -177,10 +178,10 @@ export function useInteraction(id?: string) {
                 position: contact.position?.trim() || null,
                 structure: contact.structure
                   ? {
-                      id: contact.structure.id,
-                      name: contact.structure.name?.trim() ?? "",
-                      type: contact.structure.type?.trim() || null,
-                    }
+                    id: contact.structure.id,
+                    name: contact.structure.name?.trim() ?? "",
+                    type: contact.structure.type?.trim() || null,
+                  }
                   : null,
               })) ?? [],
           structures:
@@ -259,12 +260,11 @@ export function useInteraction(id?: string) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [load]);
 
   return { interaction, documents, loading, error, reload: load };
 }
