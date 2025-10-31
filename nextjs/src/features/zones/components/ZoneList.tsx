@@ -1,7 +1,6 @@
 // nextjs/src/features/zones/components/ZoneList.tsx
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence } from "framer-motion";
 
 import ZoneItem from "./ZoneItem";
 import type { Zone } from "../types";

@@ -7,7 +7,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
 
-type PageAction =
+export type PageAction =
   | { element: ReactNode }
   | {
     label?: string;
@@ -99,7 +99,7 @@ export default function AppPageLayout({
       )}
     >
       <header className="mb-4 flex justify-between w-full">
-        <div className="ml-16 lg:ml-4 space-y-1">
+        <div className="ml-16 md:ml-4 space-y-1">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}
             {context ? <span className="text-gray-500"> · {context}</span> : null}
