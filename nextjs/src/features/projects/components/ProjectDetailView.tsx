@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 
+import AuditHistoryCard from "@/components/AuditHistoryCard";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ProjectInteractionSummary } from "@projects/hooks/useProjectInteractions";
@@ -13,6 +14,7 @@ import ProjectTasksPanel from "@projects/components/ProjectTasksPanel";
 import ProjectDocumentsPanel from "@projects/components/ProjectDocumentsPanel";
 import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -31,6 +33,18 @@ export default function ProjectDetailView({
 }: ProjectDetailViewProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<typeof TABS[number]>("timeline");
+  const auditLines = [
+    project.created_at
+      ? t("projects.auditCreated", {
+          date: new Date(project.created_at).toLocaleString(),
+        })
+      : null,
+    project.updated_at
+      ? t("projects.auditUpdated", {
+          date: new Date(project.updated_at).toLocaleString(),
+        })
+      : null,
+  ].filter((line): line is string => Boolean(line));
 
   return (
     <div className="space-y-6 pb-10">
@@ -69,6 +83,11 @@ export default function ProjectDetailView({
           </div>
         </CardContent>
       </Card>
+
+      <AuditHistoryCard
+        lines={auditLines}
+        actions={<ProjectDeleteButton project={project} onDeleted={onRefresh} />}
+      />
     </div>
   );
 }
