@@ -23,9 +23,10 @@ house/
 ### 1.1 `src/app`
 
 - Routes follow the App Router convention.
-- `app/(pages)/…` wraps authenticated application pages with `AppPageLayout`.
+- `app/app/page.tsx` is a lightweight redirect to `/app/dashboard` so the authenticated root stays stable.
+- Feature routes live in `app/app/(pages)/<feature>/page.tsx` (e.g., `dashboard`, `contacts`, `projects`, `photos`, `documents`, `zones`, …). Group folders such as `(pages)` are purely organizational and do not affect the URL.
 - Server routes live under `app/api`.
-- Layout context is provided by `app/(pages)/layout.tsx` which exposes setters consumed by hooks in feature routes.
+- Layout context is provided by `app/app/(pages)/layout.tsx` which exposes setters consumed by the shared shells.
 
 ### 1.2 `src/features`
 

@@ -1,16 +1,19 @@
 // nextjs/src/app/app/structures/page.tsx
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { Button } from "@/components/ui/button";
+import EmptyState from "@shared/components/EmptyState";
+import ListPageLayout from "@shared/layout/ListPageLayout";
 import StructureList from "@structures/components/StructureList";
 import { useStructures } from "@structures/hooks/useStructures";
 import type { Structure } from "@structures/types";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function StructuresPage() {
   const { t } = useI18n();
@@ -18,9 +21,6 @@ export default function StructuresPage() {
   const searchParams = useSearchParams();
   const { show } = useToast();
   const { structures, loading, error } = useStructures();
-  const setPageLayoutConfig = usePageLayoutConfig();
-  const title = t("structures.title");
-  const subtitle = t("structures.subtitle");
 
   const handleSelect = useCallback(
     (structure: Structure) => {
@@ -46,33 +46,42 @@ export default function StructuresPage() {
     }
   }, [router, searchParams, show, t]);
 
-  useEffect(() => {
-    setPageLayoutConfig({
-      title,
-      subtitle,
-      context: undefined,
-      actions: [
-        {
-          icon: Plus,
-          href: "/app/structures/new",
-        },
-      ],
-      hideBackButton: true,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, subtitle, title]);
+  const actions = useMemo(
+    () => [
+      {
+        icon: Plus,
+        href: "/app/structures/new",
+        label: t("structures.addStructure"),
+        variant: "default" as const,
+      },
+    ],
+    [t]
+  );
 
   return (
-    <>
-      {error ? <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div> : null}
-
-      {loading ? (
-        <div className="text-sm text-gray-500">{t("structures.loading")}</div>
-      ) : (
-        <StructureList structures={structures} onSelect={handleSelect} t={t} />
-      )}
-    </>
+    <ListPageLayout
+      title={t("structures.title")}
+      subtitle={t("structures.subtitle")}
+      hideBackButton
+      actions={actions}
+      loading={loading}
+      error={error}
+      errorTitle={t("structures.loadFailed")}
+      isEmpty={!loading && structures.length === 0}
+      emptyState={
+        <EmptyState
+          icon={Building2}
+          title={t("structures.empty")}
+          description={t("structures.createDescription")}
+          action={
+            <Button asChild>
+              <Link href="/app/structures/new">{t("structures.addStructure")}</Link>
+            </Button>
+          }
+        />
+      }
+    >
+      {structures.length > 0 ? <StructureList structures={structures} onSelect={handleSelect} t={t} /> : null}
+    </ListPageLayout>
   );
 }
