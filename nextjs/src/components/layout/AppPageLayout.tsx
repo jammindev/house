@@ -3,9 +3,11 @@
 
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
+import { useSidebarToggle } from "./SidebarToggleContext";
 
 export type PageAction =
   | { element: ReactNode }
@@ -43,6 +45,7 @@ export default function AppPageLayout({
   hideBackButton = false,
   loading = false,
 }: AppPageLayoutProps) {
+  const { toggleSidebar } = useSidebarToggle();
   const actionButtons = actions?.map((action, i) => {
     if ("element" in action) return <div key={i}>{action.element}</div>;
     return (
@@ -98,17 +101,32 @@ export default function AppPageLayout({
         className
       )}
     >
-      <header className="mb-4 flex justify-between w-full">
-        <div className="ml-16 md:ml-4 space-y-1">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {title}
-            {context ? <span className="text-gray-500"> · {context}</span> : null}
-          </h1>
-          {subtitle && (
-            <p className="text-sm text-gray-500 max-w-sm">{subtitle}</p>
-          )}
+      <header className="mb-4 flex w-full items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="flex flex-col gap-3 md:flex-row md:gap-5 ">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={toggleSidebar}
+              aria-label="Open navigation"
+              className="w-fit lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="space-y-1 flex-1 ml-5 md:ml-0 lg:ml-3">
+              <div>
+                <h1 className="text-2xl font-semibold text-gray-900">
+                  {title}
+                </h1>
+                {context ? <span className="text-gray-500">{context}</span> : null}
+              </div>
+              {subtitle && (
+                <p className="max-w-sm text-sm text-gray-500">{subtitle}</p>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {!hideBackButton && <BackButton />}
           {actionButtons}
         </div>
