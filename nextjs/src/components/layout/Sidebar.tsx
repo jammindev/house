@@ -55,7 +55,7 @@ export default function Sidebar({
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
         { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
         { name: t("nav.storage"), href: "/app/storage", icon: Files },
-        { name: t("nav.table"), href: "/app/table", icon: LucideListTodo },
+        { name: t("nav.tasks"), href: "/app/tasks", icon: LucideListTodo },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
     ];
 
