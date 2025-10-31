@@ -2,11 +2,14 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
+import { Plus } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import ProjectGroupList from "@project-groups/components/ProjectGroupList";
-import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
+
 import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
+import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
+
+import ProjectGroupList from "@project-groups/components/ProjectGroupList";
 
 export default function ProjectGroupsPage() {
   const { t } = useI18n();
@@ -32,7 +35,12 @@ export default function ProjectGroupsPage() {
       title: t("projectGroups.title"),
       subtitle: t("projectGroups.subtitle"),
       context: undefined,
-      actions: undefined,
+      actions: [
+        {
+          icon: Plus,
+          href: "/app/project-groups/new",
+        },
+      ],
       className: undefined,
       contentClassName: undefined,
       hideBackButton: true,

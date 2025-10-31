@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { ProjectListFilters, ProjectStatus } from "@projects/types";
 import { PROJECT_STATUSES } from "@projects/constants";
+import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
 
 interface ProjectFiltersProps {
   filters: ProjectListFilters;
@@ -18,6 +19,7 @@ interface ProjectFiltersProps {
 
 export default function ProjectFilters({ filters, onChange, onReset }: ProjectFiltersProps) {
   const { t } = useI18n();
+  const { groups, loading: groupsLoading, error: groupsError } = useProjectGroups();
 
   const activeStatuses = useMemo(() => new Set(filters.statuses ?? []), [filters.statuses]);
 
@@ -53,6 +55,33 @@ export default function ProjectFilters({ filters, onChange, onReset }: ProjectFi
           })
         }
       />
+
+      <div className="flex flex-col gap-1">
+        <label className="text-xs font-medium uppercase tracking-wide text-slate-500">
+          {t("projects.filters.group")}
+        </label>
+        <select
+          value={filters.projectGroupId ?? ""}
+          onChange={(e) =>
+            onChange({
+              ...filters,
+              projectGroupId: e.target.value || null,
+            })
+          }
+          className="w-full md:w-64 rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          disabled={groupsLoading}
+        >
+          <option value="">{groupsLoading ? t("projects.form.groupLoading") : t("projects.filters.groupAny")}</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
+        {groupsError ? (
+          <span className="text-xs text-rose-600">{groupsError}</span>
+        ) : null}
+      </div>
       <div className="flex flex-wrap gap-1">
         {PROJECT_STATUSES.map((status) => {
           const isActive = activeStatuses.has(status);
