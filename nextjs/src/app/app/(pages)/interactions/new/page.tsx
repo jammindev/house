@@ -1,35 +1,20 @@
-// nextjs/src/app/app/(pages)/interactions/new/page.tsx
-// nextjs/src/app/app/interactions/new/page.tsx
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+import ResourcePageShell from "@shared/layout/ResourcePageShell";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionForm from "@interactions/components/InteractionForm";
 import { useZones } from "@zones/hooks/useZones";
 import type { InteractionStatus, InteractionType, ZoneOption } from "@interactions/types";
 import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function NewInteractionPage() {
   const { t } = useI18n();
   const searchParams = useSearchParams();
   const { zones, loading: zonesLoading, error: zonesError } = useZones();
-
-  const setPageLayoutConfig = usePageLayoutConfig();
-
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("interactionsnewEntry"),
-      subtitle: undefined,
-      context: undefined,
-      actions: undefined,
-      className: undefined,
-      contentClassName: undefined,
-      hideBackButton: false,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, t]);
 
   const zoneOptions: ZoneOption[] = useMemo(
     () => zones.map(({ id, name, parent_id }) => ({ id, name, parent_id: parent_id ?? null })),
@@ -68,13 +53,19 @@ export default function NewInteractionPage() {
   );
 
   return (
-    <>
-      {zonesError && (
-        <div className="mb-4 text-sm text-red-600 border border-red-200 rounded p-2 bg-red-50">
-          {zonesError}
-        </div>
-      )}
+    <ResourcePageShell
+      title={t("interactionsnewEntry")}
+      subtitle={t("interactionsnewEntryIntro")}
+      hideBackButton={false}
+      bodyClassName="gap-4"
+    >
+      {zonesError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t("zones.loadFailed")}</AlertTitle>
+          <AlertDescription>{zonesError}</AlertDescription>
+        </Alert>
+      ) : null}
       <InteractionForm zones={zoneOptions} zonesLoading={zonesLoading} defaultValues={defaultValues} />
-    </>
+    </ResourcePageShell>
   );
 }

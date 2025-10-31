@@ -12,14 +12,6 @@ type ContactListProps = {
 };
 
 export default function ContactList({ contacts, onSelect, t }: ContactListProps) {
-  if (contacts.length === 0) {
-    return (
-      <div className="rounded-md border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
-        {t("contacts.empty")}
-      </div>
-    );
-  }
-
   return (
     <div className="overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm">
       <ul className="divide-y divide-gray-100">

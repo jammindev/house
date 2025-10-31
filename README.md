@@ -6,6 +6,8 @@ A comprehensive household knowledge management system built with Next.js 15, Sup
 
 House is a multi-tenant application designed to help households capture, organize, and retrieve knowledge efficiently. Whether it's documenting home maintenance, tracking renovation projects, managing contacts, or organizing photos by room, House provides a centralized hub for all your household information.
 
+> 📄 Looking for implementation guidance? Start with [`STRUCTURE.md`](./STRUCTURE.md) for the repository map, then read [`PAGE_LAYOUTS.md`](./PAGE_LAYOUTS.md) to learn how pages use the shared shells and layouts.
+
 ### Key Capabilities
 
 - **📝 Interactions**: Capture chronological notes, tasks, expenses, and quotes with attachments

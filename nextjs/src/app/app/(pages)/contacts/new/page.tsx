@@ -1,23 +1,27 @@
 // nextjs/src/app/app/contacts/new/page.tsx
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ContactCreateForm, { ContactCreateFormValues } from "@contacts/components/ContactCreateForm";
 import { useContacts } from "@contacts/hooks/useContacts";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
+import ResourcePageShell from "@shared/layout/ResourcePageShell";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function NewContactPage() {
   const router = useRouter();
   const { t } = useI18n();
   const { selectedHouseholdId } = useGlobal();
   const { createContact } = useContacts();
-  const setPageLayoutConfig = usePageLayoutConfig();
 
   const [submitError, setSubmitError] = useState("");
+
+  const layoutTitle = useMemo(() => t("contacts.createTitle"), [t]);
+  const layoutSubtitle = useMemo(() => t("contacts.createDescription"), [t]);
+  const errorTitle = useMemo(() => t("contacts.createFailed"), [t]);
 
   const handleSubmit = useCallback(
     async (values: ContactCreateFormValues) => {
@@ -63,26 +67,16 @@ export default function NewContactPage() {
     router.push("/app/contacts");
   }, [router]);
 
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("contacts.createTitle"),
-      subtitle: t("contacts.createDescription"),
-      context: undefined,
-      actions: undefined,
-      className: undefined,
-      contentClassName: undefined,
-      hideBackButton: false,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, t]);
-
   return (
-    <>
+    <ResourcePageShell title={layoutTitle} subtitle={layoutSubtitle}>
       {submitError && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">{submitError}</div>
+        <Alert variant="destructive">
+          <AlertTitle>{errorTitle}</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
       )}
 
       <ContactCreateForm onSubmit={handleSubmit} onCancel={handleCancel} t={t} />
-    </>
+    </ResourcePageShell>
   );
 }

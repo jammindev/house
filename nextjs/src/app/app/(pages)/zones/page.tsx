@@ -1,19 +1,19 @@
 // nextjs/src/app/app/zones/page.tsx
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import ResourcePageShell from "@shared/layout/ResourcePageShell";
 
 import { Zone } from "@zones/types";
 import { computeZoneTree } from "@zones/lib/tree";
 import { useZones } from "@zones/hooks/useZones";
 import ZoneForm from "@zones/components/ZoneForm";
 import ZoneList from "@zones/components/ZoneList";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function ZonesPage() {
   const { t } = useI18n();
@@ -24,30 +24,12 @@ export default function ZonesPage() {
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
-  const setPageLayoutConfig = usePageLayoutConfig();
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
   const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
 
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("zones.title"),
-      subtitle: undefined,
-      context: undefined,
-      actions: [{ icon: Plus, onClick: () => setFormOpen(true) }],
-      hideBackButton: true,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
-  }, [setFormOpen, setPageLayoutConfig, t]);
-
   return (
     <>
-      {error ? (
-        <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
-      ) : null}
-
       <ZoneForm
         open={formOpen}
         setOpen={setFormOpen}
@@ -66,37 +48,48 @@ export default function ZonesPage() {
         }}
       />
 
-      <div>
-        {loading ? (
-          <div className="text-sm text-gray-500">{t("zones.loading")}</div>
-        ) : sortedZones.length === 0 ? (
-          <div className="text-sm text-gray-500">{t("zones.none")}</div>
-        ) : (
-          <div>
-            <ZoneList
-              zones={sortedZones}
-              zonesById={zonesById}
-              zoneDepths={zoneDepths}
-              numberFormatter={numberFormatter}
-              t={t}
-              deletingId={deletingId}
-              onEdit={async (id, payload) => {
-                try {
-                  await updateZone(id, payload);
-                } catch (error: unknown) {
-                  console.error(error);
-                  const message = error instanceof Error ? error.message : t("zones.updateFailed");
-                  setError(message);
-                }
-              }}
-              onAskDelete={(z) => {
-                setPendingDelete(z);
-                setConfirmOpen(true);
-              }}
-            />
-          </div>
-        )}
-      </div>
+      <ResourcePageShell
+        title={t("zones.title")}
+        hideBackButton
+        actions={[{ icon: Plus, onClick: () => setFormOpen(true) }]}
+        bodyClassName="space-y-4"
+      >
+        {error ? (
+          <div className="rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</div>
+        ) : null}
+
+        <div>
+          {loading ? (
+            <div className="text-sm text-gray-500">{t("zones.loading")}</div>
+          ) : sortedZones.length === 0 ? (
+            <div className="text-sm text-gray-500">{t("zones.none")}</div>
+          ) : (
+            <div>
+              <ZoneList
+                zones={sortedZones}
+                zonesById={zonesById}
+                zoneDepths={zoneDepths}
+                numberFormatter={numberFormatter}
+                t={t}
+                deletingId={deletingId}
+                onEdit={async (id, payload) => {
+                  try {
+                    await updateZone(id, payload);
+                  } catch (error: unknown) {
+                    console.error(error);
+                    const message = error instanceof Error ? error.message : t("zones.updateFailed");
+                    setError(message);
+                  }
+                }}
+                onAskDelete={(z) => {
+                  setPendingDelete(z);
+                  setConfirmOpen(true);
+                }}
+              />
+            </div>
+          )}
+        </div>
+      </ResourcePageShell>
 
       <ConfirmDialog
         open={confirmOpen}

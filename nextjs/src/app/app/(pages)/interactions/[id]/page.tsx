@@ -1,16 +1,18 @@
-// nextjs/src/app/app/(pages)/interactions/[id]/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { Notebook, Pencil } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import DetailPageLayout from "@shared/layout/DetailPageLayout";
+import EmptyState from "@shared/components/EmptyState";
 import InteractionDetailView from "@interactions/components/InteractionDetailView";
-import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 import { useInteraction } from "@interactions/hooks/useInteraction";
-import { Pencil } from "lucide-react";
+import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 import InteractionAttachmentImport from "@/features/interactions/components/InteractionAttachmentImport";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function InteractionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -18,7 +20,6 @@ export default function InteractionDetailPage() {
   const { t } = useI18n();
   const { interaction, documents, loading, error, reload } = useInteraction(id);
   const { previews, error: fileError } = useSignedFilePreviews(documents);
-  const setPageLayoutConfig = usePageLayoutConfig();
 
   const [editOpen, setEditOpen] = useState(false);
 
@@ -29,63 +30,63 @@ export default function InteractionDetailPage() {
   const occurredAtLabel = interaction?.occurred_at
     ? new Date(interaction.occurred_at).toLocaleDateString()
     : undefined;
-  const subtitle = [occurredAtLabel, statusLabel].filter(Boolean).join(" - ") || undefined;
+  const subtitle = [occurredAtLabel, statusLabel].filter(Boolean).join(" · ") || undefined;
+  const title = interactionSubject || t("interactionsdetail");
 
   const layoutActions = useMemo(() => {
     if (!interactionId) return undefined;
 
     return [
-      { icon: Pencil, onClick: () => setEditOpen(true) },
+      {
+        icon: Pencil,
+        onClick: () => setEditOpen(true),
+        label: t("interactionsedit.open"),
+      } as const,
       {
         element: (
           <InteractionAttachmentImport interactionId={interactionId} onUploaded={reload} />
         ),
       },
     ];
-  }, [interactionId, reload]);
+  }, [interactionId, reload, t]);
 
-  useEffect(() => {
-    if (interaction) {
-      setPageLayoutConfig({
-        title: interactionSubject || t("interactionsdetail"),
-        context: typeLabel,
-        subtitle,
-        actions: layoutActions,
-        hideBackButton: false,
-      });
-    }
-  }, [
-    interaction,
-    interactionSubject,
-    layoutActions,
-    setPageLayoutConfig,
-    subtitle,
-
-    typeLabel,
-  ]);
-
-  if (loading) {
-    return <div className="p-6 text-gray-500">{t("common.loading")}</div>;
-  }
-
-  if (error) {
-    return <div className="p-6 text-red-600">{error}</div>;
-  }
-
-  if (!interaction) {
-    return <div className="p-6 text-gray-500">{t("interactionsnotFound")}</div>;
-  }
+  const isNotFound = !loading && (!id || !interaction);
 
   return (
-    <InteractionDetailView
-      interaction={interaction}
-      documents={documents}
-      previews={previews}
-      fileError={fileError}
-      onReload={reload}
-      onDeleted={() => router.push("/app/interactions")}
-      editOpen={editOpen}
-      setEditOpen={setEditOpen}
-    />
+    <DetailPageLayout
+      title={title}
+      subtitle={subtitle}
+      context={typeLabel}
+      actions={layoutActions}
+      loading={loading}
+      error={error ?? null}
+      errorTitle={t("interactionsloadFailed")}
+      isNotFound={isNotFound}
+      notFoundState={
+        <EmptyState
+          icon={Notebook}
+          title={t("interactionsnotFound")}
+          description={t("interactionsnewEntryIntro")}
+          action={
+            <Button asChild variant="outline">
+              <Link href="/app/interactions">{t("interactionstitle")}</Link>
+            </Button>
+          }
+        />
+      }
+    >
+      {interaction ? (
+        <InteractionDetailView
+          interaction={interaction}
+          documents={documents}
+          previews={previews}
+          fileError={fileError}
+          onReload={reload}
+          onDeleted={() => router.push("/app/interactions")}
+          editOpen={editOpen}
+          setEditOpen={setEditOpen}
+        />
+      ) : null}
+    </DetailPageLayout>
   );
 }
