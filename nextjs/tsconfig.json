@@ -36,6 +36,9 @@
       "@contacts/*": [
         "features/contacts/*"
       ],
+      "@shared/*": [
+        "features/_shared/*"
+      ],
       "@documents/*": [
         "features/documents/*"
       ],

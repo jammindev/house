@@ -1,12 +1,13 @@
 // nextjs/src/app/app/(pages)/project-groups/new/page.tsx
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+import ResourcePageShell from "@shared/layout/ResourcePageShell";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 import ProjectGroupCreateForm, {
   type ProjectGroupCreateFormValues,
 } from "@project-groups/components/ProjectGroupCreateForm";
@@ -17,7 +18,6 @@ export default function NewProjectGroupPage() {
   const { t } = useI18n();
   const { selectedHouseholdId } = useGlobal();
   const { createProjectGroup } = useProjectGroups();
-  const setPageLayoutConfig = usePageLayoutConfig();
 
   const [submitError, setSubmitError] = useState("");
 
@@ -55,26 +55,16 @@ export default function NewProjectGroupPage() {
     router.push("/app/project-groups");
   }, [router]);
 
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("projectGroups.createTitle"),
-      subtitle: t("projectGroups.createDescription"),
-      context: undefined,
-      actions: undefined,
-      className: undefined,
-      contentClassName: undefined,
-      hideBackButton: false,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, t]);
-
   return (
-    <>
-      {submitError && (
-        <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">{submitError}</div>
-      )}
+    <ResourcePageShell title={t("projectGroups.createTitle")} subtitle={t("projectGroups.createDescription")}>
+      {submitError ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t("projectGroups.createFailed")}</AlertTitle>
+          <AlertDescription>{submitError}</AlertDescription>
+        </Alert>
+      ) : null}
 
       <ProjectGroupCreateForm onSubmit={handleSubmit} onCancel={handleCancel} t={t} />
-    </>
+    </ResourcePageShell>
   );
 }

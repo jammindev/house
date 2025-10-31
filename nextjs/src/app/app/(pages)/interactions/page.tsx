@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { NotebookPen, Plus } from "lucide-react";
+
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { Loader2, Plus } from "lucide-react";
-
 import InteractionList from "@interactions/components/InteractionList";
 import { useInteractions } from "@interactions/hooks/useInteractions";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
+import ListPageLayout from "@shared/layout/ListPageLayout";
+import EmptyState from "@shared/components/EmptyState";
+import { Button } from "@/components/ui/button";
 
 export default function InteractionsPage() {
   const { t } = useI18n();
@@ -16,23 +19,40 @@ export default function InteractionsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { interactions, documentCounts, loading, error } = useInteractions();
-  const setPageLayoutConfig = usePageLayoutConfig();
 
-  // --- Configure dynamiquement le layout ---
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("interactionstitle"),
-      subtitle: undefined,
-      context: undefined,
-      actions: [{ icon: Plus, href: "/app/interactions/new" }],
-      hideBackButton: true,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, t]);
+  const contactIdFilter = searchParams?.get("contactId") ?? null;
+  const contactNameParam = searchParams?.get("contactName") ?? null;
+  const contactName = contactNameParam ? decodeURIComponent(contactNameParam) : null;
 
-  // --- Gestion du toast de succès ---
+  const filteredInteractions = useMemo(() => {
+    if (!contactIdFilter) return interactions;
+    return interactions.filter((interaction) => interaction.contacts.some((contact) => contact.id === contactIdFilter));
+  }, [contactIdFilter, interactions]);
+
+  const isFilteredView = Boolean(contactIdFilter);
+  const displayedInteractions = isFilteredView ? filteredInteractions : interactions;
+
+  const handleClearContactFilter = useCallback(() => {
+    if (!contactIdFilter) return;
+    const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
+    nextParams.delete("contactId");
+    nextParams.delete("contactName");
+    const next = `/app/interactions${nextParams.toString() ? `?${nextParams.toString()}` : ""}`;
+    router.replace(next, { scroll: false });
+  }, [contactIdFilter, router, searchParams]);
+
+  const actions = useMemo(
+    () => [
+      {
+        icon: Plus,
+        href: "/app/interactions/new",
+        label: t("interactionsnewEntry"),
+        variant: "default" as const,
+      },
+    ],
+    [t]
+  );
+
   useEffect(() => {
     if (searchParams?.get("created") === "1") {
       const sp = new URLSearchParams(searchParams.toString());
@@ -46,27 +66,48 @@ export default function InteractionsPage() {
     }
   }, [searchParams, router, show, t]);
 
-  if (error) {
-    return (
-      <div className="mb-4 rounded border border-red-200 bg-red-50 p-2 text-sm text-red-600">
-        {error}
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-      </div>
-    );
-  }
+  const emptyTitle = isFilteredView ? t("contacts.latestInteractionsEmpty") : t("interactionsnone");
+  const emptyDescription = isFilteredView
+    ? contactName
+      ? t("interactions.filteredByContact", { name: contactName })
+      : t("interactions.filteredByContactUnknown")
+    : t("interactionsnewEntryIntro");
 
   return (
-    <InteractionList
-      interactions={interactions}
-      documentCounts={documentCounts}
-      t={t}
-    />
+    <ListPageLayout
+      title={t("interactionstitle")}
+      hideBackButton
+      actions={actions}
+      loading={loading}
+      isEmpty={!loading && displayedInteractions.length === 0}
+      emptyState={
+        <EmptyState
+          icon={NotebookPen}
+          title={emptyTitle}
+          description={emptyDescription}
+          action={
+            <Button asChild>
+              <Link href="/app/interactions/new">{t("interactionscreateCta")}</Link>
+            </Button>
+          }
+        />
+      }
+      error={error}
+      errorTitle={t("interactionslistLoadFailed")}
+    >
+      {isFilteredView ? (
+        <div className="mb-4 flex flex-col gap-2 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-2 text-sm text-indigo-800 sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            {contactName
+              ? t("interactions.filteredByContact", { name: contactName })
+              : t("interactions.filteredByContactUnknown")}
+          </span>
+          <Button size="sm" variant="ghost" onClick={handleClearContactFilter} className="self-start sm:self-auto">
+            {t("interactions.filteredByContactClear")}
+          </Button>
+        </div>
+      ) : null}
+      <InteractionList interactions={displayedInteractions} documentCounts={documentCounts} t={t} />
+    </ListPageLayout>
   );
 }

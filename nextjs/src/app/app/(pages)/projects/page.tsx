@@ -1,54 +1,64 @@
 // nextjs/src/app/app/projects/page.tsx
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
 import ProjectList from "@projects/components/ProjectList";
 import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProjects";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
+import ListPageLayout from "@shared/layout/ListPageLayout";
+import EmptyState from "@shared/components/EmptyState";
+import { Button } from "@/components/ui/button";
 
 export default function ProjectsPage() {
   const { t } = useI18n();
   const { projects, loading, error, filters, setFilters } = useProjects();
-  const setPageLayoutConfig = usePageLayoutConfig();
+
+  const actions = useMemo(
+    () => [
+      {
+        icon: Plus,
+        href: "/app/projects/new",
+        label: t("projects.new"),
+        variant: "default" as const,
+      },
+    ],
+    [t]
+  );
 
   const resetFilters = () => setFilters({ ...DEFAULT_PROJECT_FILTERS });
 
-  const content = useMemo(() => {
-    if (loading) {
-      return <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">{t("common.loading")}</div>;
-    }
-    if (error) {
-      return <div className="rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</div>;
-    }
-    return <ProjectList projects={projects} />;
-  }, [error, loading, projects, t]);
-
-  useEffect(() => {
-    setPageLayoutConfig({
-      title: t("projects.title"),
-      subtitle: t("projects.subtitle"),
-      context: undefined,
-      actions: [
-        {
-          icon: Plus,
-          href: "/app/projects/new",
-        },
-      ],
-      hideBackButton: true,
-      className: undefined,
-      contentClassName: undefined,
-      loading: false,
-    });
-  }, [setPageLayoutConfig, t]);
+  const toolbar = (
+    <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+  );
 
   return (
-    <>
-      <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
-      {content}
-    </>
+    <ListPageLayout
+      title={t("projects.title")}
+      subtitle={t("projects.subtitle")}
+      hideBackButton
+      actions={actions}
+      toolbar={toolbar}
+      loading={loading}
+      error={error ?? null}
+      errorTitle={t("projects.loadFailed")}
+      isEmpty={!loading && projects.length === 0}
+      emptyState={
+        <EmptyState
+          title={t("projects.emptyState")}
+          description={t("projects.newSubtitle")}
+          action={
+            <Button asChild>
+              <Link href="/app/projects/new">{t("projects.new")}</Link>
+            </Button>
+          }
+        />
+      }
+    >
+      <ProjectList projects={projects} />
+    </ListPageLayout>
   );
 }
