@@ -40,6 +40,11 @@ export function useProject(projectId?: string) {
             planned_budget,
             actual_cost_cached,
             cover_interaction_id,
+            project_group_id,
+            project_group:project_groups (
+              id,
+              name
+            ),
             created_at,
             updated_at,
             created_by,
@@ -68,10 +73,13 @@ export function useProject(projectId?: string) {
       const metrics = (metricsRow as ProjectMetrics | null) ?? null;
       const flags = computeProjectFlags(projectData, metrics);
 
+      const group = (projectData.project_group as { id: string; name: string } | null) ?? null;
+
       setProject({
         ...projectData,
         metrics,
         ...flags,
+        group,
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("common.unexpectedError");

@@ -17,6 +17,7 @@ import {
     Key,
     X,
     Building2,
+    FolderKanban,
     LayoutDashboard,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -47,6 +48,7 @@ export default function Sidebar({
         { name: t("nav.dashboard"), href: "/app", icon: Home },
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
+        { name: t("nav.projectGroups"), href: "/app/project-groups", icon: FolderKanban },
         { name: t("nav.contacts"), href: "/app/contacts", icon: Users },
         { name: t("nav.structures"), href: "/app/structures", icon: Building2 },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },

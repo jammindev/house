@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, CheckCircle2, FileText, TriangleAlert } from "lucide-react";
+import { ArrowRight, CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert } from "lucide-react";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -40,22 +40,31 @@ export default function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
-            <div className="flex flex-wrap gap-2 items-center">
-              <ProjectStatusBadge status={project.status} />
-              {project.isOverdue ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">
-                  <TriangleAlert className="h-4 w-4" />
-                  {t("projects.badges.overdue")}
-                </span>
-              ) : null}
-              {!project.isOverdue && project.isDueSoon ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-                  <CalendarClock className="h-4 w-4" />
-                  {t("projects.badges.dueSoon")}
-                </span>
-              ) : null}
-            </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <ProjectStatusBadge status={project.status} />
+            {project.isOverdue ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">
+                <TriangleAlert className="h-4 w-4" />
+                {t("projects.badges.overdue")}
+              </span>
+            ) : null}
+            {!project.isOverdue && project.isDueSoon ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+                <CalendarClock className="h-4 w-4" />
+                {t("projects.badges.dueSoon")}
+              </span>
+            ) : null}
+            {project.group ? (
+              <Link
+                href={`/app/project-groups/${project.group.id}`}
+                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
+              >
+                <FolderKanban className="h-4 w-4" />
+                {project.group.name}
+              </Link>
+            ) : null}
           </div>
+        </div>
           <div className="text-right">
             <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>
             <div className="text-sm font-medium text-slate-800">{formatDate(project.due_date, locale)}</div>

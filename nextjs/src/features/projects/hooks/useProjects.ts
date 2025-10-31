@@ -17,6 +17,7 @@ import type {
 
 export const DEFAULT_PROJECT_FILTERS: ProjectListFilters = {
   statuses: ["active", "draft"],
+  projectGroupId: null,
 };
 
 export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT_FILTERS) {
@@ -52,6 +53,11 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
             planned_budget,
             actual_cost_cached,
             cover_interaction_id,
+            project_group_id,
+            project_group:project_groups (
+              id,
+              name
+            ),
             created_at,
             updated_at,
             created_by,
@@ -63,6 +69,10 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
 
       if (filters.statuses && filters.statuses.length) {
         query = query.in("status", filters.statuses as ProjectStatus[]);
+      }
+
+      if (filters.projectGroupId) {
+        query = query.eq("project_group_id", filters.projectGroupId);
       }
 
       if (filters.search && filters.search.trim().length > 0) {
@@ -103,10 +113,12 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
       const enriched: ProjectWithMetrics[] = typedProjects.map((project) => {
         const metrics = metricsByProject.get(project.id) ?? null;
         const flags = computeProjectFlags(project, metrics);
+        const group = (project.project_group as { id: string; name: string } | null) ?? null;
         return {
           ...project,
           metrics,
           ...flags,
+          group,
         };
       });
 

@@ -45,6 +45,9 @@
       "@projects/*": [
         "features/projects/*"
       ],
+      "@project-groups/*": [
+        "features/project-groups/*"
+      ],
       "@dashboard/*": [
         "features/dashboard/*"
       ],

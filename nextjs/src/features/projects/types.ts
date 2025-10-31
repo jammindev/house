@@ -16,10 +16,15 @@ export type Project = {
   planned_budget: number;
   actual_cost_cached: number;
   cover_interaction_id: string | null;
+  project_group_id: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;
   updated_by: string | null;
+  project_group?: {
+    id: string;
+    name: string;
+  } | null;
 };
 
 export type ProjectMetrics = {
@@ -36,10 +41,15 @@ export type ProjectListFilters = {
   tags?: string[];
   startDateFrom?: string | null;
   dueDateTo?: string | null;
+  projectGroupId?: string | null;
 };
 
 export type ProjectWithMetrics = Project & {
   metrics: ProjectMetrics | null;
   isOverdue: boolean;
   isDueSoon: boolean;
+  group: {
+    id: string;
+    name: string;
+  } | null;
 };
