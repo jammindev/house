@@ -5,11 +5,10 @@ import { ExternalLink, Link2, Pencil, Trash2, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated } from "@/lib/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ToastProvider";
 import type { ProjectWithMetrics } from "@projects/types";
 
 interface ProjectPinterestBoardPanelProps {
@@ -22,7 +21,7 @@ export default function ProjectPinterestBoardPanel({
   onUpdate,
 }: ProjectPinterestBoardPanelProps) {
   const { t } = useI18n();
-  const { toast } = useToast();
+  const { show } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [url, setUrl] = useState(project.pinterest_board_url ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,9 +42,9 @@ export default function ProjectPinterestBoardPanel({
     
     // Validate URL if not empty
     if (trimmedUrl && !validatePinterestUrl(trimmedUrl)) {
-      toast({
+      show({
         title: t("projects.pinterest.invalidUrl"),
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -73,8 +72,9 @@ export default function ProjectPinterestBoardPanel({
         successMessage = t("projects.pinterest.successRemove");
       }
 
-      toast({
+      show({
         title: successMessage,
+        variant: "success",
       });
 
       setIsEditing(false);
@@ -83,9 +83,9 @@ export default function ProjectPinterestBoardPanel({
       }
     } catch (error) {
       console.error("Failed to update Pinterest board:", error);
-      toast({
+      show({
         title: t("common.unexpectedError"),
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -112,8 +112,9 @@ export default function ProjectPinterestBoardPanel({
         throw error;
       }
 
-      toast({
+      show({
         title: t("projects.pinterest.successRemove"),
+        variant: "success",
       });
 
       setIsEditing(false);
@@ -122,9 +123,9 @@ export default function ProjectPinterestBoardPanel({
       }
     } catch (error) {
       console.error("Failed to remove Pinterest board:", error);
-      toast({
+      show({
         title: t("common.unexpectedError"),
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -233,7 +234,9 @@ export default function ProjectPinterestBoardPanel({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="pinterest-url">{t("projects.pinterest.urlLabel")}</Label>
+              <label htmlFor="pinterest-url" className="text-sm font-medium text-slate-900">
+                {t("projects.pinterest.urlLabel")}
+              </label>
               <Input
                 id="pinterest-url"
                 type="url"
