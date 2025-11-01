@@ -167,7 +167,7 @@ export default function ContactEditPage() {
       });
 
       show({ title: t("contacts.updateSuccess"), variant: "success" });
-      router.push("/app/contacts");
+      router.push("/app/repertoire?view=contacts");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t("contacts.updateFailed");
       setSubmitError(message);
@@ -308,7 +308,12 @@ export default function ContactEditPage() {
         </div>
 
         <div className="flex items-center justify-end gap-2">
-          <Button type="button" variant="ghost" onClick={() => router.push("/app/contacts")} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => router.push("/app/repertoire?view=contacts")}
+            disabled={isSubmitting}
+          >
             {t("common.cancel")}
           </Button>
           <Button type="submit" disabled={isSubmitting}>

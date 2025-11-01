@@ -54,7 +54,7 @@ export default function NewContactPage() {
             : null,
         });
 
-        router.push("/app/contacts?created=1");
+        router.push("/app/repertoire?view=contacts&created=1");
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : t("contacts.createFailed");
         setSubmitError(message);
@@ -64,7 +64,7 @@ export default function NewContactPage() {
   );
 
   const handleCancel = useCallback(() => {
-    router.push("/app/contacts");
+    router.push("/app/repertoire?view=contacts");
   }, [router]);
 
   return (

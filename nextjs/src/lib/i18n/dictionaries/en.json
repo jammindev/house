@@ -1,6 +1,7 @@
 {
   "nav.dashboard": "Dashboard",
   "nav.contacts": "Contacts",
+  "nav.directory": "Directory",
   "nav.structures": "Structures",
   "nav.zones": "Zones",
   "nav.documents": "Documents",
@@ -89,6 +90,10 @@
   "common.continue": "Continue",
   "common.remove": "Remove",
   "common.filter": "Filter",
+  "repertoire.title": "Directory",
+  "repertoire.subtitle": "Manage household contacts and structures in one place.",
+  "repertoire.contactsTab": "Contacts",
+  "repertoire.structuresTab": "Structures",
   "contacts.title": "Contact Directory",
   "contacts.subtitle": "Browse and view key contacts for this household.",
   "contacts.detailFallbackTitle": "Contact details",

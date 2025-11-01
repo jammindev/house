@@ -19,7 +19,7 @@ export default function StructureDeleteButton({ structure, onDelete, onDeleted }
 
   const handleSuccess = () => {
     onDeleted?.();
-    router.push("/app/structures?deleted=1");
+    router.push("/app/repertoire?view=structures&deleted=1");
   };
 
   return (

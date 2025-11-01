@@ -67,13 +67,13 @@ export default function StructureEditPage() {
       });
 
       show({ title: t("structures.updateSuccess"), variant: "success" });
-      router.push("/app/structures");
+      router.push("/app/repertoire?view=structures");
     },
     [router, selectedHouseholdId, show, structureId, t, updateStructure]
   );
 
   const handleCancel = useCallback(() => {
-    router.push("/app/structures");
+    router.push("/app/repertoire?view=structures");
   }, [router]);
 
   const title = t("structures.editTitle");

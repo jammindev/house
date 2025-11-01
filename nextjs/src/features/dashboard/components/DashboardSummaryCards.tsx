@@ -37,7 +37,7 @@ const SUMMARY_ITEMS = [
   {
     key: "contacts" as const,
     icon: Users,
-    primaryCta: "/app/contacts",
+    primaryCta: "/app/repertoire?view=contacts",
     secondaryCta: "/app/households",
     primaryLabelKey: "dashboard.actions.viewContacts",
     secondaryLabelKey: "dashboard.actions.inviteMember",

@@ -16,7 +16,6 @@ import {
     LogOut,
     Key,
     X,
-    Building2,
     FolderKanban,
     LayoutDashboard,
 } from "lucide-react";
@@ -49,8 +48,7 @@ export default function Sidebar({
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.projectGroups"), href: "/app/project-groups", icon: FolderKanban },
-        { name: t("nav.contacts"), href: "/app/contacts", icon: Users },
-        { name: t("nav.structures"), href: "/app/structures", icon: Building2 },
+        { name: t("nav.directory"), href: "/app/repertoire", icon: Users },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
         { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
