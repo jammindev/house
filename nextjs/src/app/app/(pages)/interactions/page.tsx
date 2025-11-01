@@ -1,3 +1,4 @@
+// nextjs/src/app/app/(pages)/interactions/page.tsx
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
@@ -8,7 +9,9 @@ import { NotebookPen, Plus } from "lucide-react";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionList from "@interactions/components/InteractionList";
+import InteractionFilters from "@interactions/components/InteractionFilters";
 import { useInteractions } from "@interactions/hooks/useInteractions";
+import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -18,7 +21,7 @@ export default function InteractionsPage() {
   const { show } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { interactions, documentCounts, loading, error } = useInteractions();
+  const { interactions, documentCounts, loading, error, filters, setFilters } = useInteractions();
 
   const contactIdFilter = searchParams?.get("contactId") ?? null;
   const contactNameParam = searchParams?.get("contactName") ?? null;
@@ -53,6 +56,12 @@ export default function InteractionsPage() {
     [t]
   );
 
+  const resetFilters = () => setFilters({ ...DEFAULT_INTERACTION_FILTERS });
+
+  const toolbar = (
+    <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+  );
+
   useEffect(() => {
     if (searchParams?.get("created") === "1") {
       const sp = new URLSearchParams(searchParams.toString());
@@ -78,6 +87,7 @@ export default function InteractionsPage() {
       title={t("interactionstitle")}
       hideBackButton
       actions={actions}
+      toolbar={toolbar}
       loading={loading}
       isEmpty={!loading && displayedInteractions.length === 0}
       emptyState={

@@ -1,7 +1,8 @@
+// nextjs/src/features/projects/components/ProjectCard.tsx
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert } from "lucide-react";
+import { CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert } from "lucide-react";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -35,7 +36,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const documentsCount = metrics?.documents_count ?? 0;
 
   return (
-    <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+    <Link href={`/app/projects/${project.id}`} className="block">
+      <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-2">
@@ -57,6 +59,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             {project.group ? (
               <Link
                 href={`/app/project-groups/${project.group.id}`}
+                onClick={(e) => e.stopPropagation()}
                 className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
               >
                 <FolderKanban className="h-4 w-4" />
@@ -140,14 +143,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             date: formatDate(project.updated_at ?? project.created_at, locale),
           })}
         </div>
-        <Link
-          href={`/app/projects/${project.id}`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-primary-600 hover:text-primary-700"
-        >
-          {t("projects.viewDetails")}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
       </CardFooter>
     </Card>
+    </Link>
   );
 }

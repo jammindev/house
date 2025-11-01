@@ -1,16 +1,18 @@
+// nextjs/src/features/documents/components/DocumentsList.tsx
 "use client";
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { AlertCircle, ExternalLink, FileDown, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, Edit, ExternalLink, FileDown, Loader2, Trash2 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import type { DocumentWithLinks } from "../hooks/useDocuments";
+import type { DocumentWithLinks } from "../types";
 import { useDeleteDocument } from "@/features/interactions/hooks/useDeleteDocument";
+import { EditDocumentModal } from "./EditDocumentModal";
 
 function formatDate(value: string) {
   const date = new Date(value);
@@ -44,6 +46,8 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
   const [actionError, setActionError] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [editingDocument, setEditingDocument] = useState<DocumentWithLinks | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const emptyMessage = useMemo(() => {
     if (filterActive) {
@@ -101,6 +105,15 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
     },
     [deleteFile, onRefresh, t]
   );
+
+  const handleEdit = useCallback((doc: DocumentWithLinks) => {
+    setEditingDocument(doc);
+    setIsEditModalOpen(true);
+  }, []);
+
+  const handleEditSuccess = useCallback(() => {
+    onRefresh();
+  }, [onRefresh]);
 
   return (
     <div className="space-y-4">
@@ -162,6 +175,17 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
                       )}
                     </Button>
                     <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(doc)}
+                      disabled={downloadingId === doc.id || deletingId === doc.id}
+                    >
+                      <span className="flex items-center gap-2">
+                        <Edit className="h-4 w-4" aria-hidden="true" />
+                        {t("documents.edit")}
+                      </span>
+                    </Button>
+                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => void handleDelete(doc)}
@@ -207,6 +231,13 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
           })}
         </ul>
       )}
+
+      <EditDocumentModal
+        document={editingDocument}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }

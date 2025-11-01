@@ -1,3 +1,4 @@
+// nextjs/src/features/zones/components/ZoneEditDialog.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -7,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  MobileOptimizedInput,
+  MobileOptimizedTextarea,
+  MobileOptimizedButton,
+  MobileOptimizedSelect,
+  MobileButtonGroup
+} from "@/components/ui/mobile-optimized";
 
 import type { Zone } from "../types";
 import { formatZoneOptionLabel } from "../lib/tree";
@@ -96,8 +104,8 @@ export default function ZoneEditDialog({ open, onOpenChange, zone, zones, zonesB
           <DialogDescription>{t("zones.detail.editDescription")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("zones.placeholder")} />
-          <select value={parentId} onChange={(e) => setParentId(e.target.value)} className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm">
+          <MobileOptimizedInput value={name} onChange={(e) => setName(e.target.value)} placeholder={t("zones.placeholder")} />
+          <MobileOptimizedSelect value={parentId} onChange={(e) => setParentId(e.target.value)}>
             <option value="">{t("zones.noParent")}</option>
             {zones
               .filter((candidate) => candidate.id !== zone.id)
@@ -106,8 +114,8 @@ export default function ZoneEditDialog({ open, onOpenChange, zone, zones, zonesB
                   {formatZoneOptionLabel(candidate, zoneDepths)}
                 </option>
               ))}
-          </select>
-          <Input
+          </MobileOptimizedSelect>
+          <MobileOptimizedInput
             type="number"
             min="0"
             step="0.01"
@@ -128,13 +136,13 @@ export default function ZoneEditDialog({ open, onOpenChange, zone, zones, zonesB
               <p className="text-xs text-slate-500">{t("zones.colorHelper")}</p>
             </div>
           ) : null}
-          <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("zones.notePlaceholder")} rows={4} />
+          <MobileOptimizedTextarea value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("zones.notePlaceholder")} rows={4} />
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
-          <div className="flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>
+          <MobileButtonGroup>
+            <MobileOptimizedButton variant="secondary" onClick={() => onOpenChange(false)} disabled={saving}>
               {t("common.cancel")}
-            </Button>
-            <Button onClick={handleSave} disabled={saving || !name.trim()}>
+            </MobileOptimizedButton>
+            <MobileOptimizedButton onClick={handleSave} disabled={saving || !name.trim()}>
               {saving ? (
                 <span className="inline-flex items-center gap-2">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -143,8 +151,8 @@ export default function ZoneEditDialog({ open, onOpenChange, zone, zones, zonesB
               ) : (
                 t("common.save")
               )}
-            </Button>
-          </div>
+            </MobileOptimizedButton>
+          </MobileButtonGroup>
         </div>
       </DialogContent>
     </Dialog>

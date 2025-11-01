@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
-import InteractionEditDialog from "@interactions/components/detail/InteractionEditDialog";
 import InteractionMetadata from "@interactions/components/detail/InteractionMetadata";
 import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
 import InteractionRawTextEditor from "@interactions/components/InteractionRawTextEditor";
@@ -27,8 +26,6 @@ type InteractionDetailViewProps = {
   fileError?: string;
   onReload: () => void;
   onDeleted: () => void;
-  editOpen: boolean;
-  setEditOpen: (status: boolean) => void;
 };
 
 const DOCUMENT_TYPES = new Set(["document", "quote", "invoice", "contract", "other"]);
@@ -43,8 +40,6 @@ export default function InteractionDetailView({
   fileError,
   onReload,
   onDeleted,
-  editOpen,
-  setEditOpen,
 }: InteractionDetailViewProps) {
   const { t, locale } = useI18n();
 
@@ -187,13 +182,6 @@ export default function InteractionDetailView({
           actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />}
         />
       </div>
-
-      <InteractionEditDialog
-        interaction={interaction}
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        onSaved={onReload}
-      />
     </div>
   );
 }
