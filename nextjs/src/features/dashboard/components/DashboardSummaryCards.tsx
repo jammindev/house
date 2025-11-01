@@ -65,7 +65,7 @@ export default function DashboardSummaryCards({ summary, loading = false }: Dash
         </h2>
         <p className="text-sm text-slate-600">{t("dashboard.summarySubtitle")}</p>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         {SUMMARY_ITEMS.map((item) => {
           const Icon = item.icon;
           const value = summary ? summary[item.key] : "—";

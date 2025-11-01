@@ -5,6 +5,7 @@ import { useTransition, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import {
     Home,
+    BookOpen,
     Notebook,
     Users,
     MapPin,
@@ -45,6 +46,7 @@ export default function Sidebar({
 
     const navigation = [
         { name: t("nav.dashboard"), href: "/app", icon: Home },
+        { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.projectGroups"), href: "/app/project-groups", icon: FolderKanban },
@@ -87,11 +89,16 @@ export default function Sidebar({
 
                 {/* User (mobile) */}
                 <div className="flex items-center gap-3 px-4 py-3 border-b lg:hidden">
-                    <UserAvatar email={user?.email} />
+                    <UserAvatar email={user?.email} displayName={user?.displayName} avatarUrl={user?.avatarUrl} />
                     <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-900 truncate">
-                            {user?.email || "Utilisateur"}
+                            {user?.displayName && user.displayName.trim().length > 0
+                                ? user.displayName
+                                : user?.email || "Utilisateur"}
                         </span>
+                        {user?.displayName && user.email && (
+                            <span className="text-xs text-gray-500 truncate">{user.email}</span>
+                        )}
                         <button
                             onClick={onLogout}
                             className="text-xs text-red-600 hover:underline"
