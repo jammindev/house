@@ -97,12 +97,12 @@ export default function AppPageLayout({
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-4xl flex-1 flex-col",
+        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8 gap-5",
         className
       )}
     >
-      <header className="sticky top-0 z-10 bg-gray-100 sm:px-6 sm:pt-6 lg:px-8 space-y-2 w-full pb-4">
-        <div className="flex w-full items-start justify-between">
+      <header className="space-y-2 w-full">
+        <div className="sticky top-0 z-10 bg-gray-100 flex w-full items-start justify-between pb-2">
           <Button
             size="sm"
             variant="outline"
@@ -133,7 +133,7 @@ export default function AppPageLayout({
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
         </div>
       ) : (
-        <div className={cn("flex-1 sm:px-6 lg:px-8 pb-6", contentClassName)}>{children}</div>
+        <div className={cn("flex-1", contentClassName)}>{children}</div>
       )}
     </div>
   );
