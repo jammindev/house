@@ -7,6 +7,7 @@ export const INTERACTION_TYPES: InteractionType[] = [
   "meeting",
   "document",
   "expense",
+  "artisan_visit",
   "quote",
   "message",
   "signature",

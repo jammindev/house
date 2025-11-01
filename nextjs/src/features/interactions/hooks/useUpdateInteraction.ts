@@ -10,6 +10,7 @@ type UpdateInteractionInput = {
   type: InteractionType;
   status: InteractionStatus | null;
   occurredAt: string | null;
+  projectId?: string | null;
   tagIds: string[];
   contactIds: string[];
   structureIds: string[];
@@ -33,11 +34,13 @@ export function useUpdateInteraction() {
         status: InteractionStatus | null;
         occurred_at: string | null;
         metadata?: Record<string, unknown> | null;
+        project_id: string | null;
       } = {
         subject: input.subject,
         type: input.type,
         status: input.status,
         occurred_at: input.occurredAt ?? null,
+        project_id: input.projectId ?? null,
       };
 
       if (input.metadata !== undefined) {

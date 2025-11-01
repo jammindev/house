@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,8 @@ const formatContactDisplayName = (contact?: Contact) => {
   return contact.structure?.name?.trim() ?? "";
 };
 
+const AUTO_SUBJECT_TYPES = new Set<InteractionType>(["quote", "artisan_visit"]);
+
 export default function InteractionForm({
   zones,
   zonesLoading = false,
@@ -116,7 +119,11 @@ export default function InteractionForm({
   const { structures } = useStructures();
 
   useEffect(() => {
-    setType(defaultValues.type ?? "note");
+    const nextType = defaultValues.type ?? "note";
+    setType(nextType);
+    if (AUTO_SUBJECT_TYPES.has(nextType)) {
+      setSubjectDirty(false);
+    }
   }, [defaultValues.type]);
 
   useEffect(() => {
@@ -243,7 +250,7 @@ export default function InteractionForm({
   };
 
   useEffect(() => {
-    if (type !== "quote" && subjectDirty) {
+    if (!AUTO_SUBJECT_TYPES.has(type) && subjectDirty) {
       setSubjectDirty(false);
     }
   }, [subjectDirty, type]);
@@ -269,29 +276,51 @@ export default function InteractionForm({
     return name || null;
   }, [projectOptions, selectedProjectId]);
 
-  const quoteAutoSubject = useMemo(() => {
-    if (type !== "quote") return null;
-    const entityName = primaryStructureName ?? primaryContactName;
-    if (!entityName || !selectedProjectName) return null;
-    return t("interactionsquoteAutoSubject", {
-      project: selectedProjectName,
-      entity: entityName,
-    });
+  const autoSubject = useMemo(() => {
+    if (type === "quote") {
+      const entityName = primaryStructureName ?? primaryContactName;
+      if (!entityName || !selectedProjectName) return null;
+      return t("interactionsquoteAutoSubject", {
+        project: selectedProjectName,
+        entity: entityName,
+      });
+    }
+    if (type === "artisan_visit") {
+      const base = t("interactionsartisanVisitBaseSubject");
+      const entityName = primaryStructureName ?? primaryContactName;
+      if (selectedProjectName && entityName) {
+        return t("interactionsartisanVisitAutoSubjectWithProject", {
+          project: selectedProjectName,
+          entity: entityName,
+        });
+      }
+      if (selectedProjectName && !entityName) {
+        return t("interactionsartisanVisitAutoSubjectProjectOnly", { project: selectedProjectName });
+      }
+      if (entityName) {
+        return t("interactionsartisanVisitAutoSubject", { entity: entityName });
+      }
+      return base;
+    }
+    return null;
   }, [primaryContactName, primaryStructureName, selectedProjectName, t, type]);
 
+  const isAutoSubjectType = AUTO_SUBJECT_TYPES.has(type);
+
   useEffect(() => {
-    if (!quoteAutoSubject) return;
+    if (!autoSubject) return;
     if (subjectDirty) return;
-    if (subject === quoteAutoSubject) return;
-    setSubject(quoteAutoSubject);
-  }, [quoteAutoSubject, subject, subjectDirty]);
+    if (subject === autoSubject) return;
+    setSubject(autoSubject);
+  }, [autoSubject, subject, subjectDirty]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (submitting) return;
 
     const trimmedContent = content.trim();
-    const trimmedSubject = subject.trim() || trimmedContent.slice(0, 80);
+    const effectiveSubject = !subjectDirty && autoSubject ? autoSubject : subject;
+    const trimmedSubject = effectiveSubject.trim() || trimmedContent.slice(0, 80);
     const contentPayload = trimmedContent.length > 0 ? trimmedContent : null;
 
     if (!trimmedSubject) {
@@ -301,6 +330,11 @@ export default function InteractionForm({
 
     if (!selectedZones.length) {
       setError(t("interactionsselectZoneRequired"));
+      return;
+    }
+
+    if (type === "artisan_visit" && selectedContactIds.length === 0) {
+      setError(t("interactionsartisanVisitContactRequired"));
       return;
     }
 
@@ -457,7 +491,14 @@ export default function InteractionForm({
                   setSubjectDirty(nextValue.trim().length > 0);
                 }}
                 placeholder={t("interactionssubjectPlaceholder")}
+                aria-describedby={isAutoSubjectType ? "interaction-subject-auto" : undefined}
               />
+              {isAutoSubjectType ? (
+                <p id="interaction-subject-auto" className="flex items-center gap-2 text-xs text-gray-500">
+                  <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
+                  {t("interactionsautoSubjectNotice")}
+                </p>
+              ) : null}
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
@@ -468,7 +509,13 @@ export default function InteractionForm({
                 <select
                   id="interaction-type"
                   value={type}
-                  onChange={(event) => setType(event.target.value as InteractionType)}
+                  onChange={(event) => {
+                    const nextType = event.target.value as InteractionType;
+                    setType(nextType);
+                    if (AUTO_SUBJECT_TYPES.has(nextType)) {
+                      setSubjectDirty(false);
+                    }
+                  }}
                   className="border rounded-md h-9 w-full px-3 text-sm bg-background"
                 >
                   {INTERACTION_TYPES.map((value) => (

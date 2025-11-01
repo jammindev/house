@@ -14,6 +14,10 @@ type UserDropdownProps = {
 export default function UserDropdown({ user, onLogout, onChangePassword }: UserDropdownProps) {
     const [isOpen, setOpen] = useState(false);
     const { t } = useI18n();
+    const mainLabel =
+        (user?.displayName && user.displayName.trim().length > 0 ? user.displayName : null) ??
+        user?.email ??
+        "Loading...";
 
     return (
         <div className="relative ml-auto">
@@ -21,8 +25,8 @@ export default function UserDropdown({ user, onLogout, onChangePassword }: UserD
                 onClick={() => setOpen(!isOpen)}
                 className="flex items-center space-x-2 text-sm text-gray-700 hover:text-gray-900"
             >
-                <UserAvatar email={user?.email} />
-                <span>{user?.email || "Loading..."}</span>
+                <UserAvatar email={user?.email} displayName={user?.displayName} avatarUrl={user?.avatarUrl} />
+                <span className="max-w-[160px] truncate">{mainLabel}</span>
                 <ChevronDown className="h-4 w-4" />
             </button>
 
@@ -30,7 +34,14 @@ export default function UserDropdown({ user, onLogout, onChangePassword }: UserD
                 <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border">
                     <div className="p-2 border-b border-gray-100">
                         <p className="text-xs text-gray-500">{t("nav.signedInAs")}</p>
-                        <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+                        {user?.displayName ? (
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium text-gray-900 truncate">{user.displayName}</p>
+                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            </div>
+                        ) : (
+                            <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
+                        )}
                     </div>
                     <div className="py-1">
                         <button

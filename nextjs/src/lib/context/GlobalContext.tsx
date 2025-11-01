@@ -2,9 +2,17 @@
 // src/lib/context/GlobalContext.tsx
 "use client";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from 'react';
+import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 
-export type User = { email: string; id: string; registered_at: Date; };
+export type User = {
+    email: string;
+    id: string;
+    registered_at: Date;
+    displayName: string | null;
+    avatarPath: string | null;
+    avatarUrl: string | null;
+};
 export type Household = { id: string; name: string; };
 
 export interface GlobalContextType {
@@ -13,13 +21,61 @@ export interface GlobalContextType {
     households: Household[];
     selectedHouseholdId: string | null;
     setSelectedHouseholdId: (id: string | null) => void;
+    refreshUser: () => Promise<void>;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 
+const AVATAR_SIGNED_URL_TTL_SECONDS = 60 * 60 * 6; // 6 hours
+
+const extractDisplayName = (authUser: SupabaseUser) =>
+    typeof authUser.user_metadata?.display_name === 'string'
+        ? authUser.user_metadata.display_name
+        : null;
+
+const extractAvatarPath = (authUser: SupabaseUser) =>
+    typeof authUser.user_metadata?.avatar_path === 'string' && authUser.user_metadata.avatar_path.length > 0
+        ? authUser.user_metadata.avatar_path
+        : null;
+
+async function createAvatarSignedUrl(client: SupabaseClient, avatarPath: string | null): Promise<string | null> {
+    if (!avatarPath) return null;
+    try {
+        const { data, error } = await client.storage
+            .from('avatars')
+            .createSignedUrl(avatarPath, AVATAR_SIGNED_URL_TTL_SECONDS);
+        if (error) {
+            console.warn('avatar signed url error', error);
+            return null;
+        }
+        return data?.signedUrl ?? null;
+    } catch (err) {
+        console.warn('avatar signed url error', err);
+        return null;
+    }
+}
+
+async function loadAuthenticatedUser(client: SupabaseClient): Promise<User | null> {
+    const { data } = await client.auth.getUser();
+    const authUser = data.user;
+    if (!authUser) return null;
+
+    const avatarPath = extractAvatarPath(authUser);
+    const avatarUrl = await createAvatarSignedUrl(client, avatarPath);
+
+    return {
+        email: authUser.email ?? '',
+        id: authUser.id,
+        registered_at: new Date(authUser.created_at),
+        displayName: extractDisplayName(authUser),
+        avatarPath,
+        avatarUrl,
+    };
+}
+
 export function GlobalProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUserState] = useState<User | null>(null);
     const [households, setHouseholds] = useState<Household[]>([]);
     const [selectedHouseholdId, _setSelectedHouseholdId] = useState<string | null>(null);
 
@@ -42,6 +98,13 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         });
     }, []);
 
+    const refreshUser = useCallback(async () => {
+        const spa = await createSPASassClient();
+        const supa = spa.getSupabaseClient();
+        const nextUser = await loadAuthenticatedUser(supa);
+        setUserState(nextUser);
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -49,10 +112,10 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
                 const spa = await createSPASassClient();
                 const supa = spa.getSupabaseClient();
 
-                const { data: { user: authUser } } = await supa.auth.getUser();
-                if (!authUser) { setUser(null); setHouseholds([]); setSelectedHouseholdId(null); return; }
+                const nextUser = await loadAuthenticatedUser(supa);
+                if (!nextUser) { setUserState(null); setHouseholds([]); setSelectedHouseholdId(null); return; }
 
-                setUser({ email: authUser.email ?? '', id: authUser.id, registered_at: new Date(authUser.created_at) });
+                setUserState(nextUser);
 
                 const { data: householdsData, error } = await supa.from('households').select('id, name').order('created_at');
                 if (!error && householdsData) {
@@ -70,8 +133,8 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         return () => { cancelled = true; };
     }, [setSelectedHouseholdId]);
 
-    const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId }),
-        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId]);
+    const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser }),
+        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser]);
 
     return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;
 }

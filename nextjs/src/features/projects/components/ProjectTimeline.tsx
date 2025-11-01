@@ -35,6 +35,7 @@ const badgeByType: Record<Interaction["type"], { labelKey: string; className: st
   document: { labelKey: "projects.timeline.types.document", className: "bg-purple-100 text-purple-700" },
   expense: { labelKey: "projects.timeline.types.expense", className: "bg-rose-100 text-rose-700" },
   message: { labelKey: "projects.timeline.types.message", className: "bg-indigo-100 text-indigo-700" },
+  artisan_visit: { labelKey: "projects.timeline.types.artisan_visit", className: "bg-orange-100 text-orange-700" },
   quote: { labelKey: "projects.timeline.types.quote", className: "bg-emerald-100 text-emerald-700" },
   signature: { labelKey: "projects.timeline.types.signature", className: "bg-teal-100 text-teal-700" },
   other: { labelKey: "projects.timeline.types.other", className: "bg-slate-100 text-slate-700" },

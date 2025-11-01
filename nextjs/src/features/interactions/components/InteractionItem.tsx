@@ -25,6 +25,7 @@ const typeBadgeStyles: Partial<Record<Interaction["type"], string>> = {
   meeting: "bg-purple-100 text-purple-800",
   document: "bg-blue-100 text-blue-800",
   expense: "bg-rose-100 text-rose-800",
+  artisan_visit: "bg-orange-100 text-orange-800",
   quote: "bg-emerald-100 text-emerald-800",
   message: "bg-teal-100 text-teal-800",
   signature: "bg-fuchsia-100 text-fuchsia-800",
