@@ -37,6 +37,25 @@ export default function ProjectPinterestBoardPanel({
     }
   };
 
+  const getPinterestEmbedUrl = (boardUrl: string): string => {
+    // Pinterest boards can be embedded by adding .rss to the URL and using a widget
+    // For now, we'll just link directly and let users open in new tab
+    // A future enhancement could use Pinterest's official widget/API
+    return boardUrl;
+  };
+
+  const updatePinterestUrl = async (newUrl: string | null) => {
+    const supabase = createSPASassClientAuthenticated();
+    const { error } = await supabase
+      .from("projects")
+      .update({ pinterest_board_url: newUrl })
+      .eq("id", project.id);
+
+    if (error) {
+      throw error;
+    }
+  };
+
   const handleSave = async () => {
     const trimmedUrl = url.trim();
     
@@ -52,15 +71,7 @@ export default function ProjectPinterestBoardPanel({
     setIsSubmitting(true);
 
     try {
-      const supabase = createSPASassClientAuthenticated();
-      const { error } = await supabase
-        .from("projects")
-        .update({ pinterest_board_url: trimmedUrl || null })
-        .eq("id", project.id);
-
-      if (error) {
-        throw error;
-      }
+      await updatePinterestUrl(trimmedUrl || null);
 
       const wasEmpty = !project.pinterest_board_url;
       const isEmpty = !trimmedUrl;
@@ -102,15 +113,7 @@ export default function ProjectPinterestBoardPanel({
     setIsSubmitting(true);
 
     try {
-      const supabase = createSPASassClientAuthenticated();
-      const { error } = await supabase
-        .from("projects")
-        .update({ pinterest_board_url: null })
-        .eq("id", project.id);
-
-      if (error) {
-        throw error;
-      }
+      await updatePinterestUrl(null);
 
       show({
         title: t("projects.pinterest.successRemove"),
@@ -191,14 +194,39 @@ export default function ProjectPinterestBoardPanel({
               </div>
             </div>
 
-            {/* Pinterest embed iframe */}
-            <div className="overflow-hidden rounded-lg border border-slate-200">
-              <iframe
-                src={`${project.pinterest_board_url}?embed=true`}
-                className="h-[400px] w-full"
-                title={t("projects.pinterest.title")}
-                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-              />
+            {/* Pinterest board preview card */}
+            <div className="rounded-lg border border-slate-200 bg-white p-6">
+              <div className="flex items-center justify-center">
+                <div className="text-center space-y-3">
+                  <div className="flex justify-center">
+                    <div className="rounded-full bg-primary-100 p-4">
+                      <Link2 className="h-8 w-8 text-primary-600" />
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-slate-900">
+                      {t("projects.pinterest.title")}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {t("projects.pinterest.description")}
+                    </p>
+                  </div>
+                  <Button
+                    asChild
+                    className="mt-2"
+                  >
+                    <a
+                      href={project.pinterest_board_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2"
+                    >
+                      {t("projects.pinterest.viewBoard")}
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
