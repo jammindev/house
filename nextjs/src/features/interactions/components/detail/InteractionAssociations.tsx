@@ -26,7 +26,7 @@ export default function InteractionAssociations({
   return (
     <section
       className={cn(
-        "rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors",
+        "flex flex-col gap-5 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors",
         className,
       )}
     >
@@ -45,7 +45,6 @@ export default function InteractionAssociations({
           </div>
         </div>
       )}
-
       {contacts.length > 0 && (
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-foreground">{t("interactionscontacts.sectionTitle")}</h2>

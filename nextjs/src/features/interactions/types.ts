@@ -13,7 +13,7 @@ export type InteractionType =
   | "meeting"
   | "document"
   | "expense"
-  | "artisan_visit"
+  | "visit"
   | "quote"
   | "message"
   | "signature"
