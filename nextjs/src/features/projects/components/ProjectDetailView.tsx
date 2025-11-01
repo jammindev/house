@@ -15,9 +15,11 @@ import ProjectDocumentsPanel from "@projects/components/ProjectDocumentsPanel";
 import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
+import ProjectCard from "@projects/components/ProjectCard";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
+  relatedProjects?: ProjectWithMetrics[];
   interactionsData: ProjectInteractionSummary;
   onRefresh?: () => void;
   onLinkExisting?: () => void;
@@ -27,6 +29,7 @@ const TABS = ["timeline", "tasks", "documents", "expenses"] as const;
 
 export default function ProjectDetailView({
   project,
+  relatedProjects = [],
   interactionsData,
   onRefresh,
   onLinkExisting,
@@ -83,6 +86,35 @@ export default function ProjectDetailView({
           </div>
         </CardContent>
       </Card>
+
+      {project.group ? (
+        <Card className="border border-slate-200 shadow-sm">
+          <CardContent className="space-y-4 p-6">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold text-slate-900">
+                {t("projects.relatedProjects.title", { group: project.group.name })}
+              </h2>
+              {typeof project.group.projectsCount === "number" ? (
+                <p className="text-sm text-slate-500">
+                  {t("projects.relatedProjects.count", { count: project.group.projectsCount })}
+                </p>
+              ) : null}
+            </div>
+
+            {relatedProjects.length ? (
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                {relatedProjects.map((relatedProject) => (
+                  <ProjectCard key={relatedProject.id} project={relatedProject} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-dashed border-slate-200 p-6 text-sm text-slate-500">
+                {t("projects.relatedProjects.empty", { group: project.group.name })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <AuditHistoryCard
         lines={auditLines}
