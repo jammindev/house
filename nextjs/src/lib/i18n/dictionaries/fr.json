@@ -919,5 +919,21 @@
   "projects.filters.group": "Groupe",
   "projects.filters.groupAny": "Tous les groupes",
   "common.unexpectedError": "Erreur inattendue.",
-  "projects.form.groupCurrent": "Groupe actuel"
+  "projects.form.groupCurrent": "Groupe actuel",
+  "projects.pinterest.title": "Tableau Pinterest",
+  "projects.pinterest.description": "Visualisez l'inspiration de votre projet avec un tableau Pinterest",
+  "projects.pinterest.addButton": "Ajouter un tableau Pinterest",
+  "projects.pinterest.editButton": "Modifier le tableau Pinterest",
+  "projects.pinterest.removeButton": "Supprimer le tableau Pinterest",
+  "projects.pinterest.urlLabel": "URL du tableau Pinterest",
+  "projects.pinterest.urlPlaceholder": "https://www.pinterest.com/nom-utilisateur/nom-tableau/",
+  "projects.pinterest.urlHelper": "Collez l'URL de votre tableau Pinterest ici",
+  "projects.pinterest.save": "Enregistrer le tableau Pinterest",
+  "projects.pinterest.cancel": "Annuler",
+  "projects.pinterest.invalidUrl": "Veuillez entrer une URL Pinterest valide",
+  "projects.pinterest.successAdd": "Tableau Pinterest ajouté avec succès",
+  "projects.pinterest.successUpdate": "Tableau Pinterest mis à jour avec succès",
+  "projects.pinterest.successRemove": "Tableau Pinterest supprimé avec succès",
+  "projects.pinterest.viewBoard": "Voir le tableau Pinterest",
+  "projects.pinterest.empty": "Aucun tableau Pinterest lié pour le moment"
 }

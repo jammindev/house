@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { ProjectInteractionSummary } from "@projects/hooks/useProjectInteractions";
 import type { ProjectWithMetrics } from "@projects/types";
@@ -13,9 +14,11 @@ import ProjectTimeline from "@projects/components/ProjectTimeline";
 import ProjectTasksPanel from "@projects/components/ProjectTasksPanel";
 import ProjectDocumentsPanel from "@projects/components/ProjectDocumentsPanel";
 import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
+import ProjectPinterestBoardPanel from "@projects/components/ProjectPinterestBoardPanel";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
 import ProjectCard from "@projects/components/ProjectCard";
+import { Link2 } from "lucide-react";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -36,6 +39,8 @@ export default function ProjectDetailView({
 }: ProjectDetailViewProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<typeof TABS[number]>("timeline");
+  const [showPinterestBoard, setShowPinterestBoard] = useState(!!project.pinterest_board_url);
+  
   const auditLines = [
     project.created_at
       ? t("projects.auditCreated", {
@@ -86,6 +91,29 @@ export default function ProjectDetailView({
           </div>
         </CardContent>
       </Card>
+
+      {showPinterestBoard ? (
+        <ProjectPinterestBoardPanel 
+          project={project} 
+          onUpdate={() => {
+            if (onRefresh) {
+              onRefresh();
+            }
+          }}
+        />
+      ) : (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowPinterestBoard(true)}
+            className="gap-2"
+          >
+            <Link2 className="h-4 w-4" />
+            {t("projects.pinterest.addButton")}
+          </Button>
+        </div>
+      )}
 
       {project.group ? (
         <Card className="border border-slate-200 shadow-sm">

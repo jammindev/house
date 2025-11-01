@@ -17,6 +17,7 @@ export type Project = {
   actual_cost_cached: number;
   cover_interaction_id: string | null;
   project_group_id: string | null;
+  pinterest_board_url: string | null;
   created_at: string;
   updated_at: string;
   created_by: string | null;

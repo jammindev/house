@@ -913,5 +913,21 @@
   "projects.filters.group": "Group",
   "projects.filters.groupAny": "All groups",
   "common.unexpectedError": "Unexpected error.",
-  "projects.form.groupCurrent": "Current group"
+  "projects.form.groupCurrent": "Current group",
+  "projects.pinterest.title": "Pinterest Board",
+  "projects.pinterest.description": "Visualize your project inspiration with a Pinterest board",
+  "projects.pinterest.addButton": "Add Pinterest board",
+  "projects.pinterest.editButton": "Edit Pinterest board",
+  "projects.pinterest.removeButton": "Remove Pinterest board",
+  "projects.pinterest.urlLabel": "Pinterest Board URL",
+  "projects.pinterest.urlPlaceholder": "https://www.pinterest.com/username/board-name/",
+  "projects.pinterest.urlHelper": "Paste the URL of your Pinterest board here",
+  "projects.pinterest.save": "Save Pinterest board",
+  "projects.pinterest.cancel": "Cancel",
+  "projects.pinterest.invalidUrl": "Please enter a valid Pinterest URL",
+  "projects.pinterest.successAdd": "Pinterest board added successfully",
+  "projects.pinterest.successUpdate": "Pinterest board updated successfully",
+  "projects.pinterest.successRemove": "Pinterest board removed successfully",
+  "projects.pinterest.viewBoard": "View Pinterest board",
+  "projects.pinterest.empty": "No Pinterest board linked yet"
 }
