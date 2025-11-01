@@ -101,7 +101,7 @@ export default function AppPageLayout({
         className
       )}
     >
-      <div className="sticky top-0 z-10 bg-gray-100 flex w-full items-start justify-between sm:pt-6 pb-2">
+      <div className="sticky top-0 z-10 bg-gray-100 flex w-full items-start justify-between pt-6 pb-2">
         <Button
           size="sm"
           variant="outline"
