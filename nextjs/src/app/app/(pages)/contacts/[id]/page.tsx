@@ -64,7 +64,7 @@ export default function ContactDetailPage() {
           description={t("contacts.detailSubtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/contacts">{t("contacts.title")}</Link>
+              <Link href="/app/repertoire?view=contacts">{t("contacts.title")}</Link>
             </Button>
           }
         />

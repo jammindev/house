@@ -1,6 +1,7 @@
 {
   "nav.dashboard": "Tableau de bord",
   "nav.contacts": "Annuaire",
+  "nav.directory": "Répertoire",
   "nav.structures": "Structures",
   "nav.zones": "Zones",
   "nav.documents": "Documents",
@@ -89,6 +90,10 @@
   "common.processing": "Traitement…",
   "common.continue": "Continuer",
   "common.remove": "Retirer",
+  "repertoire.title": "Répertoire",
+  "repertoire.subtitle": "Gérez contacts et structures du foyer au même endroit.",
+  "repertoire.contactsTab": "Contacts",
+  "repertoire.structuresTab": "Structures",
   "contacts.title": "Annuaire des contacts",
   "contacts.subtitle": "Retrouvez les contacts clés de ce foyer.",
   "contacts.detailFallbackTitle": "Fiche contact",

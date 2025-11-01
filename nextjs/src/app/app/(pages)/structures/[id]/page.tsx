@@ -297,7 +297,7 @@ export default function StructureDetailPage() {
           description={t("structures.detailSubtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/structures">{t("structures.title")}</Link>
+              <Link href="/app/repertoire?view=structures">{t("structures.title")}</Link>
             </Button>
           }
         />

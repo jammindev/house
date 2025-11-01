@@ -34,13 +34,13 @@ export default function NewStructurePage() {
         phones: values.phones,
       });
 
-      router.push("/app/structures?created=1");
+      router.push("/app/repertoire?view=structures&created=1");
     },
     [createStructure, router, selectedHouseholdId, t]
   );
 
   const handleCancel = useCallback(() => {
-    router.push("/app/structures");
+    router.push("/app/repertoire?view=structures");
   }, [router]);
 
   useEffect(() => {

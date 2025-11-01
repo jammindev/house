@@ -21,7 +21,7 @@ export default function ContactDeleteButton({ contact, onDeleted }: ContactDelet
 
   const handleSuccess = () => {
     onDeleted?.();
-    router.push("/app/contacts?deleted=1");
+    router.push("/app/repertoire?view=contacts&deleted=1");
   };
 
   return (
