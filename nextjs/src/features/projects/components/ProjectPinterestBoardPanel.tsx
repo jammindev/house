@@ -22,7 +22,7 @@ export default function ProjectPinterestBoardPanel({
 }: ProjectPinterestBoardPanelProps) {
   const { t } = useI18n();
   const { show } = useToast();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(!project.pinterest_board_url);
   const [url, setUrl] = useState(project.pinterest_board_url ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
