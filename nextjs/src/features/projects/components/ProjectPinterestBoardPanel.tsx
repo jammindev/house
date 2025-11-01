@@ -31,17 +31,16 @@ export default function ProjectPinterestBoardPanel({
     
     try {
       const urlObj = new URL(inputUrl);
-      return urlObj.hostname.includes("pinterest.com") || urlObj.hostname.includes("pin.it");
+      const hostname = urlObj.hostname.toLowerCase();
+      // Exact domain matching for security
+      return (
+        hostname === "pinterest.com" ||
+        hostname === "www.pinterest.com" ||
+        hostname === "pin.it"
+      );
     } catch {
       return false;
     }
-  };
-
-  const getPinterestEmbedUrl = (boardUrl: string): string => {
-    // Pinterest boards can be embedded by adding .rss to the URL and using a widget
-    // For now, we'll just link directly and let users open in new tab
-    // A future enhancement could use Pinterest's official widget/API
-    return boardUrl;
   };
 
   const updatePinterestUrl = async (newUrl: string | null) => {
