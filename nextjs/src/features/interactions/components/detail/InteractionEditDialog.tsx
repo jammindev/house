@@ -46,7 +46,7 @@ const formatContactDisplayName = (contact?: ContactLike) => {
 
 const formatStructureDisplayName = (structure?: StructureLike) => structure?.name?.trim() ?? "";
 
-const AUTO_SUBJECT_TYPES = new Set<InteractionType>(["quote", "artisan_visit"]);
+const AUTO_SUBJECT_TYPES = new Set<InteractionType>(["quote", "visit"]);
 
 type ProjectOption = {
   id: string;
@@ -176,20 +176,20 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
         entity: entityName,
       });
     }
-    if (type === "artisan_visit") {
-      const base = t("interactionsartisanVisitBaseSubject");
+    if (type === "visit") {
+      const base = t("interactionsvisitBaseSubject");
       const entityName = primaryStructureName ?? primaryContactName;
       if (selectedProjectName && entityName) {
-        return t("interactionsartisanVisitAutoSubjectWithProject", {
+        return t("interactionsvisitAutoSubjectWithProject", {
           project: selectedProjectName,
           entity: entityName,
         });
       }
       if (selectedProjectName && !entityName) {
-        return t("interactionsartisanVisitAutoSubjectProjectOnly", { project: selectedProjectName });
+        return t("interactionsvisitAutoSubjectProjectOnly", { project: selectedProjectName });
       }
       if (entityName) {
-        return t("interactionsartisanVisitAutoSubject", { entity: entityName });
+        return t("interactionsvisitAutoSubject", { entity: entityName });
       }
       return base;
     }
@@ -241,8 +241,8 @@ export default function InteractionEditDialog({ interaction, open, onOpenChange,
       return;
     }
 
-    if (type === "artisan_visit" && contactIds.length === 0) {
-      setFormError(t("interactionsartisanVisitContactRequired"));
+    if (type === "visit" && contactIds.length === 0) {
+      setFormError(t("interactionsvisitContactRequired"));
       return;
     }
 

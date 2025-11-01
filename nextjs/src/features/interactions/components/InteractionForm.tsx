@@ -76,7 +76,7 @@ const formatContactDisplayName = (contact?: Contact) => {
   return contact.structure?.name?.trim() ?? "";
 };
 
-const AUTO_SUBJECT_TYPES = new Set<InteractionType>(["quote", "artisan_visit"]);
+const AUTO_SUBJECT_TYPES = new Set<InteractionType>(["quote", "visit"]);
 
 export default function InteractionForm({
   zones,
@@ -285,20 +285,20 @@ export default function InteractionForm({
         entity: entityName,
       });
     }
-    if (type === "artisan_visit") {
-      const base = t("interactionsartisanVisitBaseSubject");
+    if (type === "visit") {
+      const base = t("interactionsvisitBaseSubject");
       const entityName = primaryStructureName ?? primaryContactName;
       if (selectedProjectName && entityName) {
-        return t("interactionsartisanVisitAutoSubjectWithProject", {
+        return t("interactionsvisitAutoSubjectWithProject", {
           project: selectedProjectName,
           entity: entityName,
         });
       }
       if (selectedProjectName && !entityName) {
-        return t("interactionsartisanVisitAutoSubjectProjectOnly", { project: selectedProjectName });
+        return t("interactionsvisitAutoSubjectProjectOnly", { project: selectedProjectName });
       }
       if (entityName) {
-        return t("interactionsartisanVisitAutoSubject", { entity: entityName });
+        return t("interactionsvisitAutoSubject", { entity: entityName });
       }
       return base;
     }
@@ -333,8 +333,8 @@ export default function InteractionForm({
       return;
     }
 
-    if (type === "artisan_visit" && selectedContactIds.length === 0) {
-      setError(t("interactionsartisanVisitContactRequired"));
+    if (type === "visit" && selectedContactIds.length === 0) {
+      setError(t("interactionsvisitContactRequired"));
       return;
     }
 
