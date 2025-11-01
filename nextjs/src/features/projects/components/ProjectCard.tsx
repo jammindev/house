@@ -60,7 +60,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
               >
                 <FolderKanban className="h-4 w-4" />
-                {project.group.name}
+                {typeof project.group.projectsCount === "number"
+                  ? `${project.group.projectsCount} ${project.group.name}`
+                  : project.group.name}
               </Link>
             ) : null}
           </div>

@@ -51,5 +51,6 @@ export type ProjectWithMetrics = Project & {
   group: {
     id: string;
     name: string;
+    projectsCount?: number;
   } | null;
 };

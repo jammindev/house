@@ -18,7 +18,7 @@ import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
-  const { project, loading, error, reload: reloadProject } = useProject(id);
+  const { project, relatedProjects, loading, error, reload: reloadProject } = useProject(id);
   const {
     interactions,
     documentsByInteraction,
@@ -38,6 +38,13 @@ export default function ProjectDetailPage() {
   }, [reloadProject, reloadInteractions]);
 
   const statusLabel = project?.status ? t(`projects.status.${project.status}`) : undefined;
+  const projectSubtitleParts = project
+    ? [
+        project.group ? project.group.name : null,
+        statusLabel ?? null,
+      ].filter((part): part is string => Boolean(part))
+    : [];
+  const projectSubtitle = projectSubtitleParts.length ? projectSubtitleParts.join(" • ") : undefined;
   const isLoading = loading || interactionsLoading;
   const combinedError = error || interactionsError || null;
   const isNotFound = !isLoading && (!id || !project);
@@ -59,8 +66,8 @@ export default function ProjectDetailPage() {
   return (
     <DetailPageLayout
       title={project ? project.title : t("projects.notFound")}
-      subtitle={project ? undefined : t("projects.subtitle")}
-      context={statusLabel}
+      subtitle={project ? projectSubtitle : t("projects.subtitle")}
+      context={project ? undefined : statusLabel}
       actions={actions}
       loading={isLoading}
       error={combinedError}
@@ -85,6 +92,7 @@ export default function ProjectDetailPage() {
         <>
           <ProjectDetailView
             project={project}
+            relatedProjects={relatedProjects}
             interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
             onRefresh={handleRefresh}
             onLinkExisting={() => setLinkOpen(true)}

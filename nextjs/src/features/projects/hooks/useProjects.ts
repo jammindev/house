@@ -97,6 +97,13 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
 
       const typedProjects = (projectRows ?? []) as Project[];
       const ids = typedProjects.map((item) => item.id);
+      const groupIds = Array.from(
+        new Set(
+          typedProjects
+            .map((item) => item.project_group_id)
+            .filter((value): value is string => Boolean(value))
+        )
+      );
 
       let metricsByProject = new Map<string, ProjectMetrics>();
       if (ids.length) {
@@ -110,10 +117,26 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
         );
       }
 
+      let groupCountsById = new Map<string, number>();
+      if (groupIds.length) {
+        const { data: groupMetricsRows, error: groupMetricsError } = await client
+          .from("project_group_metrics")
+          .select("group_id, projects_count")
+          .in("group_id", groupIds);
+        if (groupMetricsError) throw groupMetricsError;
+        groupCountsById = new Map(
+          (groupMetricsRows ?? []).map(
+            (item) => [item.group_id as string, (item as { projects_count: number }).projects_count]
+          )
+        );
+      }
+
       const enriched: ProjectWithMetrics[] = typedProjects.map((project) => {
         const metrics = metricsByProject.get(project.id) ?? null;
         const flags = computeProjectFlags(project, metrics);
-        const group = (project.project_group as { id: string; name: string } | null) ?? null;
+        const groupRecord = (project.project_group as { id: string; name: string } | null) ?? null;
+        const projectsCount = groupRecord ? groupCountsById.get(groupRecord.id) : undefined;
+        const group = groupRecord ? { ...groupRecord, projectsCount } : null;
         return {
           ...project,
           metrics,

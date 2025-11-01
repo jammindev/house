@@ -88,27 +88,29 @@ export default function ProjectDetailHeader({
       <CardContent className="space-y-6 p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-3">
-            {project.isOverdue ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-600">
-                {t("projects.badges.overdue")}
-              </span>
-            ) : null}
-            {!project.isOverdue && project.isDueSoon ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-                {t("projects.badges.dueSoon")}
-              </span>
-            ) : null}
-            {project.group ? (
-              <Link
-                href={`/app/project-groups/${project.group.id}`}
-                className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
-              >
-                <FolderKanban className="h-4 w-4" />
-                {project.group.name}
-              </Link>
-            ) : null}
-          </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {project.isOverdue ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-600">
+                  {t("projects.badges.overdue")}
+                </span>
+              ) : null}
+              {!project.isOverdue && project.isDueSoon ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+                  {t("projects.badges.dueSoon")}
+                </span>
+              ) : null}
+              {project.group ? (
+                <Link
+                  href={`/app/project-groups/${project.group.id}`}
+                  className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
+                >
+                  <FolderKanban className="h-4 w-4" />
+                  {typeof project.group.projectsCount === "number"
+                    ? `${project.group.projectsCount} ${project.group.name}`
+                    : project.group.name}
+                </Link>
+              ) : null}
+            </div>
             {project.description ? (
               <p className="max-w-3xl text-sm text-slate-600 whitespace-pre-line">{project.description}</p>
             ) : null}
