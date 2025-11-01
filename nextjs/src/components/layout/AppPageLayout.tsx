@@ -97,25 +97,25 @@ export default function AppPageLayout({
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8 gap-5",
+        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 lg:px-8",
         className
       )}
     >
-      <header className="space-y-2 w-full">
-        <div className="sticky top-0 z-10 bg-gray-100 flex w-full items-start justify-between pb-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={toggleSidebar}
-            aria-label="Open navigation"
-            className="w-fit lg:invisible"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex self-end space-x-2"> {!hideBackButton && <BackButton />}
-            {actionButtons}</div>
-        </div>
+      <div className="sticky top-0 z-10 bg-gray-100 flex w-full items-start justify-between sm:pt-6 pb-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={toggleSidebar}
+          aria-label="Open navigation"
+          className="w-fit lg:invisible"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="flex self-end space-x-2"> {!hideBackButton && <BackButton />}
+          {actionButtons}</div>
+      </div>
 
+      <header className="space-y-2 w-full pt-2 pb-3">
         <div className="space-y-1 ml-2 lg:ml-3">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}
