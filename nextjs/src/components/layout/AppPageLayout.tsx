@@ -97,38 +97,33 @@ export default function AppPageLayout({
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8",
+        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8 gap-5",
         className
       )}
     >
-      <header className="mb-4 flex w-full items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="flex flex-col gap-3 md:flex-row md:gap-5 ">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={toggleSidebar}
-              aria-label="Open navigation"
-              className="w-fit lg:hidden"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-            <div className="space-y-1 flex-1 ml-5 md:ml-0 lg:ml-3">
-              <div>
-                <h1 className="text-2xl font-semibold text-gray-900">
-                  {title}
-                </h1>
-                {context ? <span className="text-gray-500">{context}</span> : null}
-              </div>
-              {subtitle && (
-                <p className="max-w-sm text-sm text-gray-500">{subtitle}</p>
-              )}
-            </div>
-          </div>
+      <header className="space-y-2 w-full">
+        <div className="flex w-full items-start justify-between">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={toggleSidebar}
+            aria-label="Open navigation"
+            className="w-fit lg:invisible"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+          <div className="flex self-end space-x-2"> {!hideBackButton && <BackButton />}
+            {actionButtons}</div>
         </div>
-        <div className="flex items-center gap-2">
-          {!hideBackButton && <BackButton />}
-          {actionButtons}
+
+        <div className="space-y-1 ml-2 lg:ml-3">
+          <h1 className="text-2xl font-semibold text-gray-900">
+            {title}
+          </h1>
+          {context ? <span className="text-gray-500">{context}</span> : null}
+          {subtitle && (
+            <p className="max-w-sm text-sm text-gray-500">{subtitle}</p>
+          )}
         </div>
       </header>
 

@@ -1,6 +1,6 @@
 // nextjs/src/features/interactions/hooks/useInteractions.ts
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -8,10 +8,12 @@ import type {
   Document,
   Interaction,
   InteractionContact,
+  InteractionListFilters,
   InteractionProjectSummary,
   InteractionStructure,
   InteractionTag,
 } from "@interactions/types";
+import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import { useGlobal } from "@/lib/context/GlobalContext";
 
 type DocumentsByInteraction = Record<string, Document[]>;
@@ -78,16 +80,59 @@ type RawInteractionDocument = {
 export function useInteractions() {
   const { selectedHouseholdId: householdId } = useGlobal();
   const { t } = useI18n();
-  const [interactions, setInteractions] = useState<Interaction[]>([]);
+  const [allInteractions, setAllInteractions] = useState<Interaction[]>([]);
   const [documentsByInteraction, setDocumentsByInteraction] = useState<DocumentsByInteraction>({});
   const [documentCounts, setDocumentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [filters, setFilters] = useState<InteractionListFilters>({ ...DEFAULT_INTERACTION_FILTERS });
+
+  const interactions = useMemo(() => {
+    const searchTerm = filters.search?.trim().toLowerCase() || null;
+    const typeFilters = (filters.types ?? []).length ? new Set(filters.types ?? []) : null;
+    const statusFilters = (filters.statuses ?? []).length ? new Set(filters.statuses ?? []) : null;
+    const occurredFrom = filters.occurredFrom ?? null;
+    const occurredTo = filters.occurredTo ?? null;
+
+    return allInteractions.filter((interaction) => {
+      if (typeFilters && !typeFilters.has(interaction.type)) {
+        return false;
+      }
+
+      if (statusFilters && !statusFilters.has(interaction.status ?? null)) {
+        return false;
+      }
+
+      const occurredDate = interaction.occurred_at.slice(0, 10);
+      if (occurredFrom && occurredDate < occurredFrom) {
+        return false;
+      }
+      if (occurredTo && occurredDate > occurredTo) {
+        return false;
+      }
+
+      if (searchTerm) {
+        const haystack = [
+          interaction.subject,
+          interaction.content,
+          interaction.tags.map((tag) => tag.name).join(" "),
+        ]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(searchTerm)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [filters, allInteractions]);
+
   useEffect(() => {
     const load = async () => {
       setError("");
       setLoading(true);
-      setInteractions([]);
+      setAllInteractions([]);
       setDocumentsByInteraction({});
       try {
         if (!householdId) return;
@@ -211,7 +256,7 @@ export function useInteractions() {
             updated_by: item.updated_by ?? null,
           };
         });
-        setInteractions(normalized);
+        setAllInteractions(normalized);
 
         const ids = normalized.map((interaction) => interaction.id);
         if (ids.length > 0) {
@@ -285,5 +330,5 @@ export function useInteractions() {
     load();
   }, [householdId, t]);
 
-  return { interactions, documentsByInteraction, documentCounts, loading, error, setError };
+  return { interactions, documentsByInteraction, documentCounts, loading, error, setError, filters, setFilters };
 }

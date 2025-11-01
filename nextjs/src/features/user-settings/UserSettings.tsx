@@ -1,3 +1,4 @@
+// nextjs/src/features/user-settings/UserSettings.tsx
 "use client";
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -9,10 +10,12 @@ import { MFASetup } from '@/components/MFASetup';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Button } from '@/components/ui/button';
 import { compressFileForUpload } from '@documents/utils/fileCompression';
+import { usePageLayoutConfig } from '@/app/app/(pages)/usePageLayoutConfig';
 
-export default function UserSettingsPage() {
+export function UserSettings() {
     const { user, refreshUser } = useGlobal();
     const { t, locale, setLocale } = useI18n();
+    const setLayout = usePageLayoutConfig();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -26,6 +29,10 @@ export default function UserSettingsPage() {
     useEffect(() => {
         setDisplayName(user?.displayName ?? '');
     }, [user?.displayName]);
+
+    useEffect(() => {
+        setLayout({ title: t('settings.title'), subtitle: t('settings.subtitle'), hideBackButton: false });
+    }, [setLayout, t]);
 
     const handleDisplayNameSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,8 +101,8 @@ export default function UserSettingsPage() {
                 return processed.type === 'image/png'
                     ? 'png'
                     : processed.type === 'image/jpeg'
-                    ? 'jpg'
-                    : 'webp';
+                        ? 'jpg'
+                        : 'webp';
             })();
             const objectPath = `${user.id}/avatar.${extension}`;
 
@@ -162,7 +169,7 @@ export default function UserSettingsPage() {
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
         if (newPassword !== confirmPassword) {
-            setError("New passwords don't match");
+            setError(t('settings.passwordMismatch'));
             return;
         }
 
@@ -189,7 +196,7 @@ export default function UserSettingsPage() {
                 setError(err.message);
             } else {
                 console.error('Error updating password:', err);
-                setError('Failed to update password');
+                setError(t('settings.passwordUpdateFailed'));
             }
         } finally {
             setLoading(false);
@@ -200,11 +207,6 @@ export default function UserSettingsPage() {
 
     return (
         <div className="space-y-6 p-6">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
-                <p className="text-muted-foreground">{t('settings.subtitle')}</p>
-            </div>
-
             {error && (
                 <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
@@ -311,9 +313,7 @@ export default function UserSettingsPage() {
                                             disabled={avatarLoading}
                                             className="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100 disabled:opacity-50"
                                         />
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            {t('settings.avatarHelper')}
-                                        </p>
+                                        <p className="mt-1 text-xs text-gray-500">{t('settings.avatarHelper')}</p>
                                     </div>
                                     {user?.avatarPath ? (
                                         <Button
@@ -404,3 +404,5 @@ export default function UserSettingsPage() {
         </div>
     );
 }
+
+export default UserSettings;

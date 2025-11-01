@@ -1,6 +1,7 @@
+// nextjs/src/app/app/(pages)/interactions/[id]/page.tsx
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Notebook, Pencil } from "lucide-react";
@@ -21,8 +22,6 @@ export default function InteractionDetailPage() {
   const { interaction, documents, loading, error, reload } = useInteraction(id);
   const { previews, error: fileError } = useSignedFilePreviews(documents);
 
-  const [editOpen, setEditOpen] = useState(false);
-
   const interactionId = interaction?.id;
   const interactionSubject = interaction?.subject;
   const typeLabel = interaction?.type ? t(`interactionstypes.${interaction.type}`) : undefined;
@@ -39,8 +38,7 @@ export default function InteractionDetailPage() {
     return [
       {
         icon: Pencil,
-        onClick: () => setEditOpen(true),
-        label: t("interactionsedit.open"),
+        href: `/app/interactions/${interactionId}/edit`,
       } as const,
       {
         element: (
@@ -48,7 +46,7 @@ export default function InteractionDetailPage() {
         ),
       },
     ];
-  }, [interactionId, reload, t]);
+  }, [interactionId, reload]);
 
   const isNotFound = !loading && (!id || !interaction);
 
@@ -83,8 +81,6 @@ export default function InteractionDetailPage() {
           fileError={fileError}
           onReload={reload}
           onDeleted={() => router.push("/app/interactions")}
-          editOpen={editOpen}
-          setEditOpen={setEditOpen}
         />
       ) : null}
     </DetailPageLayout>

@@ -68,7 +68,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onChangePassword={handleChangePassword}
                 />
 
-                <main className="md:p-4 pb-16 lg:pb-4 lg:pl-64">{children}</main>
+                <main className="md:p-4 lg:pl-64">{children}</main>
             </div>
         </SidebarToggleProvider>
     );

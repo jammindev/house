@@ -1,3 +1,4 @@
+// nextjs/src/features/interactions/types.ts
 import type { ProjectStatus } from "@projects/types";
 
 export type ZoneOption = {
@@ -110,6 +111,7 @@ export type Preview = { url: string; kind: "image" | "pdf" };
 
 export type InteractionListFilters = {
   search?: string | null;
+  types?: InteractionType[];
   statuses?: (InteractionStatus | null)[];
   occurredFrom?: string | null;
   occurredTo?: string | null;
