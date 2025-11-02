@@ -1,9 +1,11 @@
+// apps/mobile/metro.config.js
 // mobile/metro.config.js
 const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
 
 const projectRoot = __dirname;
-const sharedPath = path.resolve(__dirname, '..', 'shared');
+const monorepoRoot = path.resolve(__dirname, '..', '..');
+const sharedPath = path.resolve(monorepoRoot, 'packages', 'shared');
 
 const config = getDefaultConfig(projectRoot);
 

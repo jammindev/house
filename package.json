@@ -1,16 +1,30 @@
 {
-    "name": "house-scripts",
+    "name": "house-monorepo",
+    "version": "1.0.0",
     "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "packageManager": "yarn@4.10.3",
     "scripts": {
-        "dev": "cd nextjs && yarn dev",
-        "build": "cd nextjs && yarn build",
-        "start": "cd nextjs && yarn start",
-        "lint": "cd nextjs && yarn lint",
-        "lint:fix": "cd nextjs && yarn lint --fix",
+        "dev": "yarn workspace @house/web dev",
+        "dev:mobile": "yarn workspace @house/mobile start",
+        "build": "yarn workspace @house/web build",
+        "build:shared": "yarn workspace @house/shared build",
+        "build:web": "yarn build:shared && yarn workspace @house/web build",
+        "start": "yarn workspace @house/web start",
+        "lint": "yarn workspaces foreach -A run lint",
+        "lint:fix": "yarn workspaces foreach -A run lint --fix",
+        "type-check": "yarn workspaces foreach -A run type-check",
+        "clean": "yarn workspaces foreach -A run clean",
         "db:migrate": "supabase migrations up --linked",
         "db:reset": "supabase db reset --linked",
         "db:new": "supabase migration new",
-        "tree": "tree -a -I 'node_modules|.next|.git|.temp|public|*.lock|repo_tree.txt' > repo_tree.txt",
-        "test": "cd nextjs && yarn test:e2e"
+        "test": "yarn workspaces foreach -A run test",
+        "test:e2e": "yarn workspace @house/web test:e2e"
+    },
+    "devDependencies": {
+        "typescript": "^5.0.0"
     }
 }
