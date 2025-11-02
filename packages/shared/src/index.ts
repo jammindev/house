@@ -1,7 +1,11 @@
+// packages/shared/src/index.ts
 // shared/src/index.ts
 // Types
 export * from './types'
 export * from './types/contacts'
+
+// Features
+export * from './features'
 
 // Supabase clients
 export * from './supabase/unified'
@@ -9,7 +13,7 @@ export * from './supabase/client-native'
 
 // Hooks réutilisables
 export * from './hooks/useTodos'
-export * from './hooks/useContacts'
+// export * from './hooks/useContacts' // TODO: implement this hook
 
 // Lib utilitaires
 export * from './lib/contacts'
