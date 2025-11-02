@@ -1,18 +1,44 @@
 .
 ├── .DS_Store
 ├── .github
+│   ├── chatmodes
 │   └── ISSUE_TEMPLATE
 ├── .gitignore
 ├── AGENTS.md
 ├── AI_UPDATE_WORKFLOW.md
+├── apps
+│   ├── mobile
+│   │   ├── .expo
+│   │   └── src
+│   │       └── lib
+│   │           └── context
+│   └── web
+│       ├── .DS_Store
+│       ├── src
+│       │   ├── .DS_Store
+│       │   ├── app
+│       │   │   └── api
+│       │   │       └── entries
+│       │   │           └── [id]
+│       │   └── lib
+│       │       └── config
+│       └── test-results
+│           ├── entries-entries-allows-ano-934cc-d-member-to-delete-an-entry-chromium
+│           ├── entries-entries-allows-cre-94e6a-w-entry-with-zone-selection-chromium
+│           ├── entries-entries-allows-del-3c0c1-ttachment-the-user-uploaded-chromium
+│           ├── entries-entries-blocks-creation-when-no-zone-is-selected-chromium
+│           ├── entries-entries-blocks-creation-when-raw-text-is-empty-chromium
+│           ├── entries-entries-deleting-an-entry-removes-its-attachments-chromium
+│           ├── entries-entries-uploads-an-82666-it-on-the-entry-detail-page-chromium
+│           ├── zones-zones-management-all-ab91d-cated-user-to-create-a-zone-chromium
+│           ├── zones-zones-management-allows-deleting-an-existing-zone-chromium
+│           ├── zones-zones-management-allows-renaming-an-existing-zone-chromium
+│           └── zones-zones-management-ope-d1b2f-a-zone-with-existing-values-chromium
 ├── AUDIT.md
 ├── BACKLOG.md
 ├── instructions.md
 ├── LICENSE
 ├── nextjs
-│   ├── .DS_Store
-│   ├── .env.local
-│   ├── .env.template
 │   ├── .gitignore
 │   ├── components.json
 │   ├── eslint.config.mjs
@@ -21,18 +47,13 @@
 │   ├── package.json
 │   ├── playwright.config.ts
 │   ├── postcss.config.mjs
-│   ├── prisma
 │   ├── README.md
-│   ├── scripts
 │   ├── src
-│   │   ├── .DS_Store
 │   │   ├── app
 │   │   │   ├── api
 │   │   │   │   ├── auth
 │   │   │   │   │   └── callback
 │   │   │   │   │       └── route.ts
-│   │   │   │   ├── entries
-│   │   │   │   │   └── [id]
 │   │   │   │   ├── households
 │   │   │   │   │   └── route.ts
 │   │   │   │   └── interactions
@@ -40,55 +61,74 @@
 │   │   │   │           └── audit
 │   │   │   │               └── route.ts
 │   │   │   ├── app
-│   │   │   │   ├── contacts
-│   │   │   │   │   ├── [id]
-│   │   │   │   │   │   ├── edit
+│   │   │   │   ├── (pages)
+│   │   │   │   │   ├── contacts
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── new
 │   │   │   │   │   │   │   └── page.tsx
 │   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   ├── new
+│   │   │   │   │   ├── dashboard
 │   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── documents
-│   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── documents
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── interactions
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── new
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── layout.tsx
+│   │   │   │   │   ├── photos
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── project-groups
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── new
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── projects
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── new
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── repertoire
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── storage
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── structures
+│   │   │   │   │   │   ├── [id]
+│   │   │   │   │   │   │   ├── edit
+│   │   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   ├── new
+│   │   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── tasks
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── tutorial
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   ├── usePageLayoutConfig.ts
+│   │   │   │   │   ├── user-settings
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── zones
+│   │   │   │   │       ├── [id]
+│   │   │   │   │       │   └── page.tsx
+│   │   │   │   │       └── page.tsx
 │   │   │   │   ├── households
-│   │   │   │   │   ├── new
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── interactions
-│   │   │   │   │   ├── [id]
-│   │   │   │   │   │   └── page.tsx
 │   │   │   │   │   ├── new
 │   │   │   │   │   │   └── page.tsx
 │   │   │   │   │   └── page.tsx
 │   │   │   │   ├── layout.tsx
 │   │   │   │   ├── page.tsx
-│   │   │   │   ├── photos
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── projects
-│   │   │   │   │   ├── [id]
-│   │   │   │   │   │   ├── edit
-│   │   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   ├── new
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── storage
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── structures
-│   │   │   │   │   ├── [id]
-│   │   │   │   │   │   ├── edit
-│   │   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   ├── new
-│   │   │   │   │   │   └── page.tsx
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── table
-│   │   │   │   │   └── page.tsx
-│   │   │   │   ├── user-settings
-│   │   │   │   │   └── page.tsx
-│   │   │   │   └── zones
-│   │   │   │       ├── [id]
-│   │   │   │       │   └── page.tsx
+│   │   │   │   └── table
 │   │   │   │       └── page.tsx
 │   │   │   ├── auth
 │   │   │   │   ├── 2fa
@@ -123,13 +163,13 @@
 │   │   │   ├── ConfirmDialog.tsx
 │   │   │   ├── Cookies.tsx
 │   │   │   ├── DeleteWithConfirmButton.tsx
-│   │   │   ├── feedback
 │   │   │   ├── HomePricing.tsx
 │   │   │   ├── layout
 │   │   │   │   ├── AppLayout.tsx
 │   │   │   │   ├── AppPageLayout.tsx
 │   │   │   │   ├── HouseholdDropdown.tsx
 │   │   │   │   ├── Sidebar.tsx
+│   │   │   │   ├── SidebarToggleContext.tsx
 │   │   │   │   ├── TopBar.tsx
 │   │   │   │   ├── UserAvatar.tsx
 │   │   │   │   └── UserDropdown.tsx
@@ -147,10 +187,22 @@
 │   │   │       ├── card.tsx
 │   │   │       ├── dialog.tsx
 │   │   │       ├── input.tsx
+│   │   │       ├── mobile-optimized.tsx
 │   │   │       ├── popover.tsx
 │   │   │       ├── separator.tsx
+│   │   │       ├── skeleton.tsx
 │   │   │       └── textarea.tsx
 │   │   ├── features
+│   │   │   ├── _shared
+│   │   │   │   ├── components
+│   │   │   │   │   ├── DetailSkeleton.tsx
+│   │   │   │   │   ├── EmptyState.tsx
+│   │   │   │   │   ├── ListSkeleton.tsx
+│   │   │   │   │   └── RepertoireListItem.tsx
+│   │   │   │   └── layout
+│   │   │   │       ├── DetailPageLayout.tsx
+│   │   │   │       ├── ListPageLayout.tsx
+│   │   │   │       └── ResourcePageShell.tsx
 │   │   │   ├── contacts
 │   │   │   │   ├── components
 │   │   │   │   │   ├── ContactCreateForm.tsx
@@ -158,6 +210,7 @@
 │   │   │   │   │   ├── ContactDetailsView.tsx
 │   │   │   │   │   └── ContactList.tsx
 │   │   │   │   ├── hooks
+│   │   │   │   │   ├── useContactInteractions.ts
 │   │   │   │   │   ├── useContacts.ts
 │   │   │   │   │   └── useDeleteContact.ts
 │   │   │   │   ├── lib
@@ -185,9 +238,11 @@
 │   │   │   │   ├── components
 │   │   │   │   │   ├── AddDocumentModal.tsx
 │   │   │   │   │   ├── DocumentsFilters.tsx
-│   │   │   │   │   └── DocumentsList.tsx
+│   │   │   │   │   ├── DocumentsList.tsx
+│   │   │   │   │   └── EditDocumentModal.tsx
 │   │   │   │   ├── hooks
-│   │   │   │   │   └── useDocuments.ts
+│   │   │   │   │   ├── useDocuments.ts
+│   │   │   │   │   └── useEditDocument.ts
 │   │   │   │   ├── types.ts
 │   │   │   │   └── utils
 │   │   │   │       ├── fileCompression.test.ts
@@ -198,7 +253,6 @@
 │   │   │   │   │   ├── ContactSelector.tsx
 │   │   │   │   │   ├── detail
 │   │   │   │   │   │   ├── InteractionAssociations.tsx
-│   │   │   │   │   │   ├── InteractionEditDialog.tsx
 │   │   │   │   │   │   └── InteractionMetadata.tsx
 │   │   │   │   │   ├── DocumentImportButtons.tsx
 │   │   │   │   │   ├── ExistingDocumentsModal.tsx
@@ -211,6 +265,7 @@
 │   │   │   │   │   ├── InteractionAttachmentImport.tsx
 │   │   │   │   │   ├── InteractionDeleteButton.tsx
 │   │   │   │   │   ├── InteractionDetailView.tsx
+│   │   │   │   │   ├── InteractionEditForm.tsx
 │   │   │   │   │   ├── InteractionFilters.tsx
 │   │   │   │   │   ├── InteractionForm.tsx
 │   │   │   │   │   ├── InteractionItem.tsx
@@ -254,9 +309,25 @@
 │   │   │   │   ├── types.ts
 │   │   │   │   └── utils
 │   │   │   │       └── normalizePhotoDocuments.ts
+│   │   │   ├── project-groups
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ProjectGroupCard.tsx
+│   │   │   │   │   ├── ProjectGroupCreateForm.tsx
+│   │   │   │   │   ├── ProjectGroupDeleteButton.tsx
+│   │   │   │   │   ├── ProjectGroupDetailsView.tsx
+│   │   │   │   │   ├── ProjectGroupList.tsx
+│   │   │   │   │   └── ProjectGroupSummary.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── useDeleteProjectGroup.ts
+│   │   │   │   │   ├── useProjectGroup.ts
+│   │   │   │   │   └── useProjectGroups.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   └── utils
+│   │   │   │       └── projectGroupStats.ts
 │   │   │   ├── projects
 │   │   │   │   ├── components
 │   │   │   │   │   ├── ProjectCard.tsx
+│   │   │   │   │   ├── ProjectDeleteButton.tsx
 │   │   │   │   │   ├── ProjectDetailHeader.tsx
 │   │   │   │   │   ├── ProjectDetailView.tsx
 │   │   │   │   │   ├── ProjectDocumentsPanel.tsx
@@ -271,6 +342,7 @@
 │   │   │   │   │   └── ProjectTimeline.tsx
 │   │   │   │   ├── constants.ts
 │   │   │   │   ├── hooks
+│   │   │   │   │   ├── useDeleteProject.ts
 │   │   │   │   │   ├── useProject.ts
 │   │   │   │   │   ├── useProjectInteractions.ts
 │   │   │   │   │   └── useProjects.ts
@@ -286,6 +358,21 @@
 │   │   │   │   ├── hooks
 │   │   │   │   │   └── useStructures.ts
 │   │   │   │   └── types.ts
+│   │   │   ├── tasks
+│   │   │   │   ├── components
+│   │   │   │   │   ├── TaskBoard.tsx
+│   │   │   │   │   ├── TaskCard.tsx
+│   │   │   │   │   └── TaskColumn.tsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useTasks.ts
+│   │   │   │   ├── lib
+│   │   │   │   │   └── utils.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── tutorial
+│   │   │   │   └── components
+│   │   │   │       └── TutorialPageContent.tsx
+│   │   │   ├── user-settings
+│   │   │   │   └── UserSettings.tsx
 │   │   │   └── zones
 │   │   │       ├── components
 │   │   │       │   ├── GalleryPhoto.tsx
@@ -305,7 +392,6 @@
 │   │   │       │   └── tree.ts
 │   │   │       └── types.ts
 │   │   ├── lib
-│   │   │   ├── config
 │   │   │   ├── context
 │   │   │   │   └── GlobalContext.tsx
 │   │   │   ├── i18n
@@ -320,68 +406,10 @@
 │   │   │   │   ├── server.ts
 │   │   │   │   ├── serverAdminClient.ts
 │   │   │   │   └── unified.ts
-│   │   │   ├── tasks
 │   │   │   ├── types.ts
 │   │   │   └── utils.ts
 │   │   └── middleware.ts
 │   ├── tailwind.config.ts
-│   ├── test-results
-│   │   ├── .last-run.json
-│   │   ├── entries-entries-allows-ano-934cc-d-member-to-delete-an-entry-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-allows-cre-94e6a-w-entry-with-zone-selection-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-allows-del-3c0c1-ttachment-the-user-uploaded-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-blocks-creation-when-no-zone-is-selected-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-blocks-creation-when-raw-text-is-empty-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-deleting-an-entry-removes-its-attachments-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── entries-entries-uploads-an-82666-it-on-the-entry-detail-page-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── zones-zones-management-all-ab91d-cated-user-to-create-a-zone-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── zones-zones-management-allows-deleting-an-existing-zone-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   ├── zones-zones-management-allows-renaming-an-existing-zone-chromium
-│   │   │   ├── error-context.md
-│   │   │   ├── test-failed-1.png
-│   │   │   ├── trace.zip
-│   │   │   └── video.webm
-│   │   └── zones-zones-management-ope-d1b2f-a-zone-with-existing-values-chromium
-│   │       ├── error-context.md
-│   │       ├── test-failed-1.png
-│   │       ├── trace.zip
-│   │       └── video.webm
 │   ├── tests
 │   │   └── e2e
 │   │       ├── auth.spec.ts
@@ -392,12 +420,15 @@
 │   │       │   └── supabaseAdmin.ts
 │   │       └── zones.spec.ts
 │   ├── tsconfig.json
-│   ├── tsconfig.tsbuildinfo
 │   ├── vitest.config.ts
 │   └── vitest.setup.ts
 ├── package.json
+├── PAGE_LAYOUTS.md
+├── react-native
 ├── README.md
+├── repo-tree.txt
 ├── RESUME-PROJECT.md
+├── STRUCTURE.md
 └── supabase
     ├── .gitignore
     ├── config.toml
@@ -450,7 +481,9 @@
     │   ├── 20260318121500_enforce_quote_associations.sql
     │   ├── 20260430110000_make_interaction_description_optional.sql
     │   ├── 20260505120000_add_zone_documents.sql
-    │   └── 20260510100000_add_project_type_and_quote_metrics.sql
+    │   ├── 20260605100000_create_project_groups.sql
+    │   ├── 20261009120000_create_avatar_bucket.sql
+    │   └── 20271101120000_allow_visit_interaction_type.sql
     ├── migrations_for_old
     │   ├── 20250107210416_MFA.sql
     │   ├── 20250130165844_example_storage.sql
@@ -460,4 +493,4 @@
     ├── RLS_OVERVIEW.md
     └── tests
 
-120 directories, 341 files
+152 directories, 342 files
