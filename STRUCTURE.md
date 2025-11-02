@@ -1,6 +1,6 @@
 # House Project Structure
 
-This document summarizes how the repository is organized today and highlights the shared presentation primitives introduced for the feature pages (contacts, interactions, projects, project groups, …).
+This document summarizes the monorepo organization and highlights the shared presentation primitives introduced for the feature pages (contacts, interactions, projects, project groups, …).
 
 ## 1. Repository Layout
 
@@ -8,19 +8,48 @@ This document summarizes how the repository is organized today and highlights th
 house/
 ├─ README.md               -> product overview and setup
 ├─ STRUCTURE.md            -> (you are here) repo and UI structure guidelines
-├─ nextjs/                 -> Next.js 15 application
-│  ├─ src/
-│  │  ├─ app/              -> App Router entrypoints (routes, layouts, API handlers)
-│  │  ├─ features/         -> Feature-first slices (contacts, interactions, projects, …)
-│  │  ├─ components/       -> Shared UI primitives (shadcn/ui wrappers, layout shell)
-│  │  ├─ lib/              -> Supabase clients, contexts, i18n, utilities
-│  │  └─ styles/           -> Tailwind globals
-│  └─ tests/               -> Playwright e2e coverage
-├─ supabase/               -> Database migrations, policies, storage config
-└─ …                       -> Project meta (AI instructions, backlog, etc.)
+├─ MONOREPO_GUIDE.md       -> detailed monorepo setup and workflows
+├─ MIGRATION_GUIDE.md      -> migration from single app to monorepo
+├─ package.json            -> workspace orchestration (yarn@4.10.3)
+├─ .yarnrc.yml            -> Yarn v4 configuration (node-modules linker)
+├─ tsconfig.json          -> shared TypeScript configuration
+├─ vercel.json            -> deployment configuration
+│
+├─ apps/
+│  ├─ web/                -> Next.js 15 application (previously nextjs/)
+│  │  ├─ src/
+│  │  │  ├─ app/          -> App Router entrypoints (routes, layouts, API handlers)
+│  │  │  ├─ features/     -> Feature-first slices (contacts, interactions, projects, …)
+│  │  │  ├─ components/   -> Shared UI primitives (shadcn/ui wrappers, layout shell)
+│  │  │  ├─ lib/          -> Supabase clients, contexts, i18n, utilities
+│  │  │  └─ styles/       -> Tailwind globals
+│  │  ├─ tests/           -> Playwright e2e coverage
+│  │  └─ package.json     -> web app dependencies + @house/shared
+│  │
+│  └─ mobile/             -> React Native + Expo application
+│     ├─ src/
+│     │  ├─ screens/      -> Mobile screen components
+│     │  ├─ components/   -> Mobile-specific UI components
+│     │  └─ navigation/   -> React Navigation setup
+│     ├─ App.tsx          -> mobile app entry point
+│     ├─ metro.config.js  -> Metro bundler config for monorepo
+│     └─ package.json     -> mobile app dependencies + @house/shared
+│
+├─ packages/
+│  └─ shared/             -> TypeScript package with shared logic
+│     ├─ src/
+│     │  ├─ hooks/        -> Reusable React hooks (useContacts, useSupabase, …)
+│     │  ├─ types.ts      -> Shared TypeScript definitions
+│     │  ├─ utils/        -> Common utility functions
+│     │  └─ index.ts      -> Package exports
+│     ├─ dist/            -> Compiled output (built by TypeScript)
+│     └─ package.json     -> shared package configuration
+│
+├─ supabase/              -> Database migrations, policies, storage config
+└─ …                      -> Project meta (AI instructions, backlog, etc.)
 ```
 
-### 1.1 `src/app`
+### 1.1 `apps/web/src/app`
 
 - Routes follow the App Router convention.
 - `app/app/page.tsx` is a lightweight redirect to `/app/dashboard` so the authenticated root stays stable.
@@ -28,7 +57,7 @@ house/
 - Server routes live under `app/api`.
 - Layout context is provided by `app/app/(pages)/layout.tsx` which exposes setters consumed by the shared shells.
 
-### 1.2 `src/features`
+### 1.2 `apps/web/src/features`
 
 Feature slices gather domain-specific logic:
 
@@ -48,6 +77,42 @@ features/
 ```
 
 Each feature exports hooks and UI components so App Router entrypoints stay thin.
+
+### 1.3 `packages/shared`
+
+The shared package contains business logic and types used by both web and mobile applications:
+
+```
+packages/shared/src/
+├─ hooks/
+│  ├─ useContacts.ts       -> Contact management hook
+│  ├─ useSupabase.ts       -> Supabase client hook
+│  └─ useInteractions.ts   -> Interaction management hook
+├─ types.ts                -> Shared TypeScript definitions
+├─ utils/
+│  ├─ supabase.ts          -> Supabase configuration
+│  └─ format.ts            -> Common formatting utilities
+└─ index.ts                -> Package exports
+
+# Usage in apps:
+# import { useContacts } from '@house/shared';
+# import type { Contact } from '@house/shared';
+```
+
+### 1.4 `apps/mobile`
+
+The mobile application shares business logic with the web app:
+
+```
+apps/mobile/src/
+├─ screens/                -> Screen components (ContactsScreen, ProjectsScreen, …)
+├─ components/             -> Mobile-specific UI components
+├─ navigation/             -> React Navigation setup
+└─ hooks/                  -> Mobile-specific hooks (uses @house/shared)
+
+# Metro bundler configured for monorepo in metro.config.js
+# TypeScript path mapping for @house/shared imports
+```
 
 ### 1.3 `@shared` Namespace
 

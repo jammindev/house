@@ -10,15 +10,28 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Multi-tenancy: Users belong to one or more households via `household_members`; all content is scoped by `household_id` and protected with RLS.
 
 ## 2) Repository Layout
-- Root scripts: `package.json` orchestrates Next.js and Supabase CLI (`dev|build|start` → `cd nextjs && yarn ...`, `db:migrate`, `db:reset`, `db:new`, `tree`).
-- Frontend app: `nextjs/` (Next.js 15 App Router, React 19, Tailwind, shadcn/ui, custom i18n).
-  - Auth: `nextjs/src/app/auth/*`
-  - Dashboard + product: `nextjs/src/app/app/*` (households, zones, interactions, storage demo, todo demo).
-  - Interactions flow: `nextjs/src/app/app/interactions/{page.tsx,new/[id]}`.
-  - API routes: `nextjs/src/app/api/households/route.ts` and the template `api/auth/callback`.
-  - Supabase helpers: `nextjs/src/lib/supabase/{client,server,serverAdminClient,unified}.ts`.
-  - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`.
-  - i18n dictionaries: `nextjs/src/lib/i18n/dictionaries/{en,fr}.json`.
+- Root scripts: `package.json` orchestrates the monorepo with Yarn Workspaces v4.10.3 (`dev|build|start` → workspace commands, `db:migrate`, `db:reset`, `db:new`, `test:e2e`).
+- **Monorepo structure**:
+  - `apps/web/` (Next.js 15 App Router, React 19, Tailwind, shadcn/ui, custom i18n) - previously `nextjs/`
+  - `apps/mobile/` (React Native + Expo, React Navigation, shared hooks)
+  - `packages/shared/` (TypeScript package with reusable hooks, types, and utilities)
+- Frontend web app: `apps/web/` (Next.js 15 App Router, React 19, Tailwind, shadcn/ui, custom i18n).
+  - Auth: `apps/web/src/app/auth/*`
+  - Dashboard + product: `apps/web/src/app/app/*` (households, zones, interactions, storage demo, todo demo).
+  - Interactions flow: `apps/web/src/app/app/interactions/{page.tsx,new/[id]}`.
+  - API routes: `apps/web/src/app/api/households/route.ts` and the template `api/auth/callback`.
+  - Supabase helpers: `apps/web/src/lib/supabase/{client,server,serverAdminClient,unified}.ts`.
+  - Global household context: `apps/web/src/lib/context/GlobalContext.tsx`.
+  - i18n dictionaries: `apps/web/src/lib/i18n/dictionaries/{en,fr}.json`.
+- Mobile app: `apps/mobile/` (React Native + Expo, React Navigation, shared business logic).
+  - Entry point: `apps/mobile/App.tsx` with navigation setup
+  - Screens: `apps/mobile/src/screens/` with bottom tab navigation
+  - Shared hooks: Uses `@house/shared` package for business logic consistency
+  - Configuration: `apps/mobile/metro.config.js` configured for monorepo paths
+- Shared package: `packages/shared/` (TypeScript compilation to dist/, reusable across web and mobile).
+  - Hooks: `packages/shared/src/hooks/` (e.g., useContacts for data fetching)
+  - Types: `packages/shared/src/types.ts` (shared TypeScript definitions)
+  - Utils: `packages/shared/src/utils/` (common utility functions)
 - Supabase project: `supabase/`
   - Migrations define households, members, zones (with parent/creator), interactions, interaction_zones, documents, RPCs, and storage policies. Legacy template artifacts (`todo_list`) remain.
   - `supabase/config.toml` configures local dev, bucket `files`, and auth settings.
@@ -26,17 +39,24 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - CI: none; `.github/ISSUE_TEMPLATE` only.
 
 ## 3) Tech Stack
-- Frontend: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui, Lucide icons, custom i18n provider.
+- **Monorepo**: Yarn Workspaces v4.10.3 with apps/ and packages/ structure
+- Frontend web: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui, Lucide icons, custom i18n provider.
+- Frontend mobile: React Native + Expo, React Navigation, Metro bundler configured for monorepo.
+- Shared logic: TypeScript package (`@house/shared`) with reusable hooks, types, and utilities.
 - Backend: Supabase (Postgres 17, RLS policies, Storage buckets, Auth).
-- Tooling: TypeScript 5, ESLint 9, PostCSS, Yarn. Supabase CLI for migrations/RPCs.
+- Tooling: TypeScript 5, ESLint 9, PostCSS, Yarn Workspaces. Supabase CLI for migrations/RPCs.
+- Deployment: Vercel with corepack for modern Yarn support, `file:` dependencies for workspace compatibility.
 
 ## 4) Environment & Secrets
-- Copy `nextjs/.env.template` → `nextjs/.env.local` and provide:
+- Copy `apps/web/.env.template` → `apps/web/.env.local` and provide:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `PRIVATE_SUPABASE_SERVICE_KEY`
+- Copy `apps/mobile/.env.template` → `apps/mobile/.env.local` and provide:
+  - `EXPO_PUBLIC_SUPABASE_URL`
+  - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 - Template variables (`NEXT_PUBLIC_PRODUCTNAME`, `NEXT_PUBLIC_THEME`, billing tier settings, etc.) are still present; adjust or remove them for House branding before production.
-- Never commit `.env.local`.
+- Never commit `.env.local` files.
 - Supabase linking workflow: `npx supabase login`, `npx supabase link`, `npx supabase config push`, `npx supabase migrations up --linked`.
 
 ## 5) Database Model (RLS-first)
@@ -103,7 +123,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - `create_household_with_owner(p_name text)`: `SECURITY DEFINER` RPC that checks `auth.uid()`, trims/validates the name, inserts the household, and enrolls the caller as `owner` atomically. Called from `/api/households`.
 
 ## 6) App Architecture (Next.js)
-- Root layout (`nextjs/src/app/layout.tsx`) wraps pages with the i18n provider, cookie banner, and analytics integration. Theme/product name still come from SaaS template environment variables.
+- Root layout (`apps/web/src/app/layout.tsx`) wraps pages with the i18n provider, cookie banner, and analytics integration. Theme/product name still come from SaaS template environment variables.
 - Global context (`GlobalContext`) loads the current user, their households, and manages the selected household (stored in `localStorage`).
 - Routes under `/auth/*` provide login/registration flows plus the `/auth/2fa` challenge screen; `/legal/*` hosts markdown legal pages.
 - `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
