@@ -1,9 +1,9 @@
 {
   "version": 2,
   "name": "house-web",
-  "buildCommand": "yarn build",
+  "buildCommand": "corepack enable && yarn build",
   "devCommand": "yarn dev",
-  "installCommand": "yarn install",
+  "installCommand": "corepack enable && yarn install",
   "outputDirectory": "apps/web/.next",
   "framework": null,
   "builds": [
