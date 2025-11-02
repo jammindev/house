@@ -10,7 +10,7 @@
     "scripts": {
         "dev": "yarn workspace @house/web dev",
         "dev:mobile": "yarn workspace @house/mobile start",
-        "build": "yarn workspace @house/web build",
+        "build": "yarn build:shared && yarn workspace @house/web build",
         "build:shared": "yarn workspace @house/shared build",
         "build:web": "yarn build:shared && yarn workspace @house/web build",
         "start": "yarn workspace @house/web start",
