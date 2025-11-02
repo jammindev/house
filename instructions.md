@@ -1,4 +1,17 @@
+⚠️ **DEPRECATED**: This file contains outdated single-app context. 
+
+For current project information, please refer to:
+- **[AGENTS.md](./AGENTS.md)** - Complete project context for AI contributors
+- **[README.md](./README.md)** - Current project overview and setup
+- **[MONOREPO_GUIDE.md](./MONOREPO_GUIDE.md)** - Detailed monorepo setup
+
+---
+
+# Legacy Instructions (Outdated)
+
 Contexte projet — House (Next.js + Supabase)
+
+**⚠️ This project has been migrated to a monorepo structure. The information below is outdated.**
 
 🎯 Objectif
 - Centraliser la mémoire du foyer : interactions chronologiques, fichiers joints, zones hiérarchiques.

@@ -9,7 +9,8 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Purpose: Centralize household knowledge (chronological interactions with attachments, tagging, and context). Current build supports multi-tenant households, interaction capture, attachments, and zone management. Full-text search, OCR, renovation projects, budgeting, reminders, and maintenance dashboards are still future phases.
 - Multi-tenancy: Users belong to one or more households via `household_members`; all content is scoped by `household_id` and protected with RLS.
 
-## 2) Repository Layout
+## 2) Repository Layout — MONOREPO STRUCTURE
+
 - Root scripts: `package.json` orchestrates the monorepo with Yarn Workspaces v4.10.3 (`dev|build|start` → workspace commands, `db:migrate`, `db:reset`, `db:new`, `test:e2e`).
 - **Monorepo structure**:
   - `apps/web/` (Next.js 15 App Router, React 19, Tailwind, shadcn/ui, custom i18n) - previously `nextjs/`
@@ -35,10 +36,10 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Supabase project: `supabase/`
   - Migrations define households, members, zones (with parent/creator), interactions, interaction_zones, documents, RPCs, and storage policies. Legacy template artifacts (`todo_list`) remain.
   - `supabase/config.toml` configures local dev, bucket `files`, and auth settings.
-- Docs & meta: `instructions.md`, `AI_UPDATE_WORKFLOW.md`, `README.md` (still upstream template content).
+- Docs & meta: `AGENTS.md` (this file), `AI_UPDATE_WORKFLOW.md`, `README.md`, `MONOREPO_GUIDE.md`, `WORKSPACE_COMMANDS.md`.
 - CI: none; `.github/ISSUE_TEMPLATE` only.
 
-## 3) Tech Stack
+## 3) Tech Stack — UPDATED FOR MONOREPO
 - **Monorepo**: Yarn Workspaces v4.10.3 with apps/ and packages/ structure
 - Frontend web: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui, Lucide icons, custom i18n provider.
 - Frontend mobile: React Native + Expo, React Navigation, Metro bundler configured for monorepo.
@@ -47,7 +48,7 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Tooling: TypeScript 5, ESLint 9, PostCSS, Yarn Workspaces. Supabase CLI for migrations/RPCs.
 - Deployment: Vercel with corepack for modern Yarn support, `file:` dependencies for workspace compatibility.
 
-## 4) Environment & Secrets
+## 4) Environment & Secrets — UPDATED FOR MONOREPO
 - Copy `apps/web/.env.template` → `apps/web/.env.local` and provide:
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -58,6 +59,58 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Template variables (`NEXT_PUBLIC_PRODUCTNAME`, `NEXT_PUBLIC_THEME`, billing tier settings, etc.) are still present; adjust or remove them for House branding before production.
 - Never commit `.env.local` files.
 - Supabase linking workflow: `npx supabase login`, `npx supabase link`, `npx supabase config push`, `npx supabase migrations up --linked`.
+
+## 5) Workspace Commands & Dependencies — NEW SECTION
+### Root Commands (run from /house)
+```bash
+# Development
+yarn dev                    # Start web dev server
+yarn dev:mobile            # Start mobile dev server
+
+# Building
+yarn build                 # Build shared + web (production)
+yarn build:shared          # Build shared package only
+yarn build:web             # Build web with shared dependency
+
+# Testing & Quality
+yarn test                  # Run all tests
+yarn test:e2e              # Run end-to-end tests (web)
+yarn lint                  # Lint all workspaces
+yarn type-check            # Type check all workspaces
+
+# Database
+yarn db:migrate            # Run Supabase migrations
+yarn db:reset              # Reset Supabase database
+yarn db:new <name>         # Create new migration
+
+# Maintenance
+yarn clean                 # Clean build artifacts
+```
+
+### Shared Package Resolution
+- Both apps depend on `@house/shared` via `"@house/shared": "file:../../packages/shared"`
+- The shared package compiles TypeScript to `packages/shared/dist/`
+- During development, use `yarn workspace @house/shared dev` (tsc --watch) to auto-rebuild
+- Apps import compiled JavaScript from the shared package at runtime
+- TypeScript path mapping in `tsconfig.json` points to source for editor support
+
+### Metro Configuration (Mobile)
+- `apps/mobile/metro.config.js` maps `@house/shared` to `packages/shared/dist`
+- Adds shared package to `watchFolders` for hot reload on changes
+- Configured for monorepo structure with proper Node modules resolution
+
+### Next.js Configuration (Web)
+- `apps/web/next.config.ts` configured for Supabase images
+- Uses compiled shared package from `node_modules/@house/shared`
+- Build process: shared package → web application
+
+### Vercel Deployment
+- `vercel.json` configured with:
+  - `installCommand: "corepack enable && yarn install"`
+  - `buildCommand: "corepack enable && yarn build"`
+  - `outputDirectory: "apps/web/.next"`
+- Uses `file:` dependencies for Yarn v1 compatibility
+- Enables modern Yarn with corepack for workspace support
 
 ## 5) Database Model (RLS-first)
 _All domain tables live in the `public` schema with RLS enabled. Membership determines access._
@@ -154,24 +207,62 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Types: `nextjs/src/lib/types.ts` still reflects the template (`todo_list` only). Regenerate types (`supabase gen types typescript --linked`) when schema changes to maintain type safety.
 - UI: server components by default; mark interactive pages as client components (`"use client"`). Keep translations in sync across `en`/`fr` dictionaries.
 
-## 9) How to Run Locally
-1. Supabase (first time per machine/project)
-   - `npx supabase login`
-   - `npx supabase link`
-   - `npx supabase config push`
-   - `npx supabase migrations up --linked`
-2. Frontend
-   - `cd nextjs && yarn`
-   - Copy `.env.template` → `.env.local` and fill Supabase keys + branding vars.
-   - `yarn dev` then open `http://localhost:3000`.
+## 9) How to Run Locally — UPDATED FOR MONOREPO
+1. **Supabase setup (first time per machine/project)**
+   ```bash
+   npx supabase login
+   npx supabase link
+   npx supabase config push
+   npx supabase migrations up --linked
+   ```
 
-## 10) Roadmap / TODOs (High Priority)
-- Search: add `search_vector`, trigger maintenance, and a `/search` UI for entries.
-- OCR & enrichment: implement file processing pipeline (edge function or background worker) to populate `documents.ocr_text` / `interactions.enriched_text`.
-- Interaction maintenance: add edit/update flows (including zone reassignment and attachment management) and consider pagination beyond the latest 50 interactions.
-- Household management: surface household list, invitations, role management, and ability to switch default household via the UI.
-- Schema/types hygiene: regenerate `Database` types, remove unused template tables/routes (`todo_list`, `/app/table`, `/app/storage`) once House features replace them.
-- Quality & operations: extend automated testing (more Playwright coverage, unit/integration suites), add CI, production-ready logging/monitoring, and update `README.md` to describe House instead of the upstream SaaS template.
+2. **Monorepo setup**
+   ```bash
+   # Install all workspace dependencies
+   yarn install
+   
+   # Build shared package (required before starting apps)
+   yarn build:shared
+   ```
+
+3. **Environment configuration**
+   ```bash
+   # Web app
+   cp apps/web/.env.template apps/web/.env.local
+   # Edit apps/web/.env.local with Supabase keys + branding vars
+   
+   # Mobile app
+   cp apps/mobile/.env.template apps/mobile/.env.local
+   # Edit apps/mobile/.env.local with Supabase keys
+   ```
+
+4. **Development servers**
+   ```bash
+   # Web app (terminal 1)
+   yarn dev  # → http://localhost:3000 or 3001
+   
+   # Mobile app (terminal 2)
+   yarn dev:mobile  # → Expo QR code for device testing
+   ```
+
+5. **Development workflow with shared code**
+   ```bash
+   # Auto-rebuild shared package on changes (terminal 3)
+   yarn workspace @house/shared dev
+   
+   # Or manually rebuild after changes
+   yarn build:shared
+   ```
+
+## 10) Roadmap / TODOs (High Priority) — UPDATED
+- **Monorepo stabilization**: Complete mobile feature parity, ensure all shared hooks work across platforms
+- **Search**: add `search_vector`, trigger maintenance, and a `/search` UI for entries.
+- **OCR & enrichment**: implement file processing pipeline (edge function or background worker) to populate `documents.ocr_text` / `interactions.enriched_text`.
+- **Interaction maintenance**: add edit/update flows (including zone reassignment and attachment management) and consider pagination beyond the latest 50 interactions.
+- **Household management**: surface household list, invitations, role management, and ability to switch default household via the UI.
+- **Schema/types hygiene**: regenerate `Database` types, remove unused template tables/routes (`todo_list`, `/app/table`, `/app/storage`) once House features replace them.
+- **Quality & operations**: extend automated testing (more Playwright coverage, unit/integration suites), add CI, production-ready logging/monitoring, and update `README.md` to describe House instead of the upstream SaaS template.
+- **Mobile development**: Complete mobile app features, offline-first capabilities, camera integration
 
 ## 11) Risks & Constraints
 - Do not modify the Supabase `auth` schema. Reference `auth.users` but avoid schema changes there.
@@ -181,19 +272,36 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - `nextjs/src/lib/types.ts` is outdated; relying on it for new queries can cause runtime/type mismatches until regenerated.
 - Template routes (storage, todo) are still exposed. Disable or guard them before production to prevent confusing or insecure flows.
 
-## 12) Helpful File Pointers
-- Interactions list: `nextjs/src/app/app/interactions/page.tsx`
-- Interaction creation: `nextjs/src/app/app/interactions/new/page.tsx`
-- Interaction detail + deletion: `nextjs/src/app/app/interactions/[id]/page.tsx`
-- Zones management: `nextjs/src/app/app/zones/page.tsx`
-- User settings + MFA enrolment: `nextjs/src/app/app/user-settings/page.tsx`, `nextjs/src/components/MFASetup.tsx`
-- MFA challenge screen: `nextjs/src/app/auth/2fa/page.tsx`, `nextjs/src/components/MFAVerification.tsx`
-- Household creation API: `nextjs/src/app/api/households/route.ts`
-- Supabase browser client wrapper: `nextjs/src/lib/supabase/client.ts`
-- Global household context: `nextjs/src/lib/context/GlobalContext.tsx`
-- Documents schema/policies refactor: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
-- Interaction creation RPC: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
-- Storage policies: `supabase/migrations/20250924093000_fix_storage_policies_owner_only.sql`
+## 12) Helpful File Pointers — UPDATED FOR MONOREPO
+- **Monorepo configuration**: 
+  - Root workspace: `package.json`, `.yarnrc.yml`, `tsconfig.json`
+  - Shared package: `packages/shared/package.json`, `packages/shared/src/index.ts`
+  - Web app: `apps/web/package.json`, `apps/web/next.config.ts`
+  - Mobile app: `apps/mobile/package.json`, `apps/mobile/metro.config.js`
+  - Deployment: `vercel.json`
+- **Web application routes**:
+  - Interactions list: `apps/web/src/app/app/interactions/page.tsx`
+  - Interaction creation: `apps/web/src/app/app/interactions/new/page.tsx`
+  - Interaction detail + deletion: `apps/web/src/app/app/interactions/[id]/page.tsx`
+  - Zones management: `apps/web/src/app/app/zones/page.tsx`
+  - User settings + MFA enrolment: `apps/web/src/app/app/user-settings/page.tsx`, `apps/web/src/components/MFASetup.tsx`
+  - MFA challenge screen: `apps/web/src/app/auth/2fa/page.tsx`, `apps/web/src/components/MFAVerification.tsx`
+- **API and context**:
+  - Household creation API: `apps/web/src/app/api/households/route.ts`
+  - Supabase browser client wrapper: `apps/web/src/lib/supabase/client.ts`
+  - Global household context: `apps/web/src/lib/context/GlobalContext.tsx`
+- **Mobile application**:
+  - Entry point: `apps/mobile/App.tsx`
+  - Screens: `apps/mobile/src/screens/`
+  - Navigation: `apps/mobile/src/navigation/`
+- **Shared code**:
+  - Hooks: `packages/shared/src/hooks/`
+  - Types: `packages/shared/src/types.ts`
+  - Utilities: `packages/shared/src/utils/`
+- **Database and infrastructure**:
+  - Documents schema/policies refactor: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
+  - Interaction creation RPC: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
+  - Storage policies: `supabase/migrations/20250924093000_fix_storage_policies_owner_only.sql`
 
 ## 13) Prompts AI Should Ask Before Changes
 - Which household access patterns must the change support?
@@ -215,15 +323,119 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Tests seed temporary users/households via the service key and clean them up after each run; use isolated Supabase instances or reset your local DB if a run is interrupted.
 - Playwright automatically loads environment variables from `.env.test.local`, `.env.local`, `.env`, and `supabase/.env`. Ensure these files expose Supabase URL, anon, and service-role keys for deterministic runs.
 
-## 16) Architecture & Folder Patterns
-- **Feature-first slices**: Domain logic (contacts, interactions, projects, zones, photos, etc.) lives under `nextjs/src/features/<domain>` with consistent sub-folders (`components/`, `hooks/`, `lib/`, `utils/`, `types.ts`). Components are imported via path aliases like `@interactions/components/InteractionForm` to keep route files thin.
-- **Route entrypoints**: `nextjs/src/app` is limited to App Router files (`layout.tsx`, `page.tsx`, route handlers). Files under `/app/app/*` load data via hooks/contexts and delegate rendering to feature components. Favor server components unless the page needs browser APIs (`"use client"`).
-- **Shared UI + layout**: Global UI primitives sit in `nextjs/src/components/ui` (shadcn) and layout shell pieces in `nextjs/src/components/layout`. Reuse these before creating new wrappers so typography/theme stays consistent.
-- **Cross-cutting libraries**: `nextjs/src/lib` houses Supabase clients (`supabase/`), configuration, contexts (e.g., `GlobalContext`), utilities, and i18n (`i18n/`, dictionaries). Any code that is not domain-specific but reused across features should live here.
+## 16) Architecture & Folder Patterns — UPDATED FOR MONOREPO
+- **Monorepo architecture**: Feature-first with shared logic extracted to `packages/shared`
+- **Web app architecture**: Domain logic lives under `apps/web/src/features/<domain>` with consistent sub-folders (`components/`, `hooks/`, `lib/`, `utils/`, `types.ts`). Components are imported via path aliases like `@interactions/components/InteractionForm` to keep route files thin.
+- **Mobile app architecture**: Screen-based with `apps/mobile/src/screens/` containing React Native screens, shared business logic via `@house/shared` imports.
+- **Shared package architecture**: `packages/shared/src/` contains:
+  - `hooks/` - Reusable React hooks (useContacts, useSupabase, useInteractions)
+  - `types.ts` - Shared TypeScript definitions
+  - `utils/` - Common utility functions
+  - `index.ts` - Package exports
+- **Route entrypoints**: `apps/web/src/app` is limited to App Router files (`layout.tsx`, `page.tsx`, route handlers). Files under `/app/app/*` load data via hooks/contexts and delegate rendering to feature components. Favor server components unless the page needs browser APIs (`"use client"`).
+- **Shared UI + layout**: Global UI primitives sit in `apps/web/src/components/ui` (shadcn) and layout shell pieces in `apps/web/src/components/layout`. Reuse these before creating new wrappers so typography/theme stays consistent.
+- **Cross-cutting libraries**: `apps/web/src/lib` houses Supabase clients (`supabase/`), configuration, contexts (e.g., `GlobalContext`), utilities, and i18n (`i18n/`, dictionaries). Any code that is not domain-specific but reused across features should live here.
 - **Backend & schema**: Supabase SQL lives in `supabase/migrations` with timestamped filenames. Keep RLS policies close to their tables and document new RPCs/functions. Service-role utilities/tests live under `supabase/tests`.
-- **Testing artifacts**: Playwright specs live in `nextjs/tests/e2e`, while failing-run artifacts are stored under `nextjs/test-results`. Keep heavy fixtures (videos, traces) out of feature folders.
+- **Testing artifacts**: Playwright specs live in `apps/web/tests/e2e`, while failing-run artifacts are stored under `apps/web/test-results`. Keep heavy fixtures (videos, traces) out of feature folders.
 
-## 17) Organizing Requests & Changes by Layer
+## 17) Shared Package Development Workflow — NEW SECTION
+### Code Sharing Patterns
+- **Hooks**: Business logic hooks go in `packages/shared/src/hooks/` (e.g., `useContacts`, `useInteractions`)
+- **Types**: Shared TypeScript definitions in `packages/shared/src/types.ts`
+- **Utilities**: Common functions in `packages/shared/src/utils/`
+- **Supabase clients**: Shared Supabase configuration and client creation
+
+### Development Workflow
+1. **Build shared package first**: `yarn build:shared` (compiles TypeScript to `dist/`)
+2. **Watch mode during development**: `yarn workspace @house/shared dev` (runs `tsc --watch`)
+3. **Import in apps**: `import { useContacts } from '@house/shared'`
+4. **TypeScript resolution**: Path mapping in `tsconfig.json` points to source for editor support
+
+### Adding New Shared Code
+1. Create files in `packages/shared/src/`
+2. Export from `packages/shared/src/index.ts`
+3. Rebuild: `yarn build:shared`
+4. Import in apps: `import { newHook } from '@house/shared'`
+
+### Metro Configuration (Mobile)
+- `apps/mobile/metro.config.js` maps `@house/shared` to `packages/shared/dist`
+- Adds shared package to `watchFolders` for hot reload
+- Uses compiled JavaScript from `dist/`, not TypeScript source
+
+### Next.js Configuration (Web)
+- Uses `file:` dependency pointing to `packages/shared`
+- Imports compiled JavaScript from shared package
+- Build process ensures shared package is built first
+
+## 18) Deployment & CI/CD — NEW SECTION
+### Vercel Configuration
+- **Root Directory**: `./` (monorepo root, not `apps/web`)
+- **Framework**: Other (custom configuration)
+- **Build Command**: `corepack enable && yarn build`
+- **Install Command**: `corepack enable && yarn install`
+- **Output Directory**: `apps/web/.next`
+- **Node.js Version**: 20.x (specified in `.nvmrc`)
+
+### Vercel Environment Variables
+Required in Vercel Dashboard → Settings → Environment Variables:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+PRIVATE_SUPABASE_SERVICE_KEY=your-service-role-key
+```
+
+### Build Process
+1. **Install**: Vercel runs `corepack enable && yarn install` (enables Yarn v4)
+2. **Workspace resolution**: `file:` dependencies resolve to local packages
+3. **Build**: `yarn build` runs `yarn build:shared && yarn workspace @house/web build`
+4. **Output**: Next.js build artifacts in `apps/web/.next`
+
+### Mobile Deployment (Expo)
+- Development: `yarn dev:mobile` → Expo QR code
+- Production builds: `expo build:android` / `expo build:ios`
+- App Store/Play Store submission via Expo or EAS
+
+### Deployment Troubleshooting
+- **Yarn version issues**: Ensure `corepack enable` is in install/build commands
+- **Workspace resolution**: Use `file:` dependencies instead of `workspace:*` for Vercel compatibility
+- **Build order**: Shared package must build before web app (handled by root `yarn build`)
+
+## 19) Documentation Hierarchy — FOR AI REFERENCE
+### Primary AI Documentation (READ FIRST)
+- **`AGENTS.md`** (this file): Complete project overview, architecture, conventions
+- **`AI_UPDATE_WORKFLOW.md`**: Step-by-step process for making changes
+- **`WORKSPACE_COMMANDS.md`**: All available monorepo commands
+- **`MONOREPO_GUIDE.md`**: Detailed monorepo setup and patterns
+
+### Secondary Documentation
+- **`STRUCTURE.md`**: Detailed folder structure and patterns
+- **`MIGRATION_GUIDE.md`**: Migration from single app to monorepo
+- **`README.md`**: User-facing project overview and setup
+- **`supabase/RLS_OVERVIEW.md`**: Database security model
+- **`apps/web/README.md`**: Web app specific documentation
+
+### Legacy/Template Documentation (IGNORE OR UPDATE)
+- **`instructions.md`**: Outdated single-app context (should be updated)
+- **`BACKLOG.md`**: Feature planning (may be outdated)
+- **`AUDIT.md`**: Project audit (may need updating)
+
+### AI Reading Priority
+1. Read `AGENTS.md` (this file) first for complete context
+2. Reference `AI_UPDATE_WORKFLOW.md` before making changes
+3. Use `WORKSPACE_COMMANDS.md` for specific commands
+4. Consult other files as needed for specific domains
+
+## 20) Organizing Requests & Changes by Layer
+When scoping a new request or PR, keep changes separated so reviewers can trace intent quickly:
+1. **Data & RLS**: Document whether Supabase schema/migrations or storage policies must change. Include table, trigger, and policy impacts plus any need to regenerate `Database` types.
+2. **Shared logic**: Identify any business logic that should be extracted to `packages/shared` for use by both web and mobile apps. Consider hooks, types, and utilities.
+3. **Server boundary**: Clarify updates to `apps/web/src/app/api/*` route handlers, server components, or Supabase client helpers (`createSSRClient`, `createServerAdminClient`). Note required headers/secrets.
+4. **Feature modules**: Identify the owning domain folder in `apps/web/src/features/<domain>` and add/adjust code inside the appropriate sub-folder (`components`, `hooks`, `lib`, etc.) to keep logic reusable.
+5. **Mobile implementation**: Consider how features should be implemented in `apps/mobile/src/screens/` and whether shared hooks from `@house/shared` can be reused.
+6. **Route surface & navigation**: Explain how `apps/web/src/app/...` pages/layouts should consume the feature code, including loading states, error handling, and any `AppPageLayout`/`GlobalContext` needs.
+7. **Shared resources**: Call out required updates to `apps/web/src/components` (shared UI), i18n dictionaries (`lib/i18n/dictionaries`), styles, and automated tests (`apps/web/tests/e2e`). Mention documentation touch points (README, AGENTS, BACKLOG) if behavior changes.
+
+Following this checklist keeps responsibilities separated (schema ↔ shared ↔ server ↔ feature ↔ mobile ↔ route ↔ shared assets) and mirrors the existing project structure, which in turn makes future diffs smaller and safer.
 When scoping a new request or PR, keep changes separated so reviewers can trace intent quickly:
 1. **Data & RLS**: Document whether Supabase schema/migrations or storage policies must change. Include table, trigger, and policy impacts plus any need to regenerate `Database` types.
 2. **Server boundary**: Clarify updates to `app/api/*` route handlers, server components, or Supabase client helpers (`createSSRClient`, `createServerAdminClient`). Note required headers/secrets.
