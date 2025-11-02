@@ -7,11 +7,13 @@ import { View, Text, ActivityIndicator } from 'react-native'
 // Import des écrans
 import { LoginScreen } from '../screens/auth/LoginScreen'
 import { MainScreen } from '../screens/MainScreen'
+import DirectoryScreen from '../screens/directory/DirectoryScreen'
 import { useAuth } from '../contexts/AuthContext'
 
 export type RootStackParamList = {
     Auth: undefined
     Main: undefined
+    Directory: undefined
 }
 
 export type AuthStackParamList = {
@@ -45,7 +47,18 @@ export function AppNavigator() {
         <NavigationContainer>
             <RootStack.Navigator screenOptions={{ headerShown: false }}>
                 {user ? (
-                    <RootStack.Screen name="Main" component={MainScreen} />
+                    <>
+                        <RootStack.Screen
+                            name="Main"
+                            component={MainScreen}
+                            options={{ headerShown: true, title: 'Accueil' }}
+                        />
+                        <RootStack.Screen
+                            name="Directory"
+                            component={DirectoryScreen}
+                            options={{ headerShown: true, title: 'Répertoire' }}
+                        />
+                    </>
                 ) : (
                     <RootStack.Screen name="Auth" component={AuthNavigator} />
                 )}

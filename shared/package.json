@@ -9,9 +9,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.47.10",
-    "react": "^19.0.0",
-    "react-hook-form": "^7.65.0"
+    "@supabase/supabase-js": "^2.47.10"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",
