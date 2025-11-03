@@ -279,10 +279,10 @@ export function useDashboardData() {
         created_at: item.created_at,
         project: item.project
           ? {
-              id: item.project.id,
-              title: item.project.title,
-              status: item.project.status,
-            }
+            id: item.project.id,
+            title: item.project.title,
+            status: item.project.status,
+          }
           : null,
       }));
 
@@ -294,10 +294,10 @@ export function useDashboardData() {
         created_at: item.created_at,
         project: item.project
           ? {
-              id: item.project.id,
-              title: item.project.title,
-              status: item.project.status,
-            }
+            id: item.project.id,
+            title: item.project.title,
+            status: item.project.status,
+          }
           : null,
       }));
 
