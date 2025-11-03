@@ -54,15 +54,17 @@ export default function HorizontalScrollContainer({
             3: "grid-cols-3",
             4: "grid-cols-4",
             5: "grid-cols-5",
-            6: "grid-cols-6"
+            6: "grid-cols-6",
+            7: "grid-cols-7",
+            8: "grid-cols-8"
         };
-        return columnMap[columns] || "grid-cols-2";
+        return columnMap[columns] || "grid-cols-4";
     };
 
     // Si mobileOnly est false, toujours utiliser le grid
     if (!mobileOnly) {
         return (
-            <div className={cn(`grid ${getGridColumnClass(desktopColumns)} gap-3`, className)}>
+            <div className={cn(`grid ${getGridColumnClass(desktopColumns)} gap-2`, className)}>
                 {Children.toArray(children).map((child, index) => (
                     <div key={index} className={itemClassName}>
                         {child}
@@ -87,7 +89,7 @@ export default function HorizontalScrollContainer({
 
     // Sinon, utiliser le grid avec le nombre de colonnes spécifié (desktop)
     return (
-        <div className={cn(`grid ${getGridColumnClass(desktopColumns)} gap-3`, className)}>
+        <div className={cn(`grid ${getGridColumnClass(desktopColumns)} gap-2`, className)}>
             {Children.toArray(children).map((child, index) => (
                 <div key={index} className={itemClassName}>
                     {child}

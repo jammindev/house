@@ -151,7 +151,7 @@ export default function DashboardQuickActions() {
       </div>
       <p className="text-sm text-muted-foreground hidden sm:block">{t("dashboard.quickActions.subtitle")}</p>
 
-      <HorizontalScrollContainer className="py-1" itemWidth="w-40" desktopColumns={3}>
+      <HorizontalScrollContainer className="py-1" itemWidth="w-28" desktopColumns={4}>
         {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
           return (
@@ -160,20 +160,20 @@ export default function DashboardQuickActions() {
               className="transition-all duration-200 hover:shadow-md cursor-pointer group hover:scale-[1.02] border shadow-sm active:scale-95 active:shadow-lg touch-manipulation"
               onClick={() => handleInteractionClick(action)}
             >
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex flex-col items-center gap-1.5 sm:flex-row sm:items-start sm:gap-3">
-                  <div className={`p-2 sm:p-2.5 rounded-lg transition-colors border ${action.color} shrink-0`}>
-                    <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+              <CardContent className="p-2 sm:p-2.5">
+                <div className="flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-2">
+                  <div className={`p-1.5 sm:p-1.5 rounded-md transition-colors border ${action.color} shrink-0`}>
+                    <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                   </div>
                   <div className="flex-1 min-w-0 text-center sm:text-left">
-                    <h3 className="font-medium text-xs sm:text-sm text-foreground group-hover:text-primary-600 transition-colors leading-tight">
+                    <h3 className="font-medium text-xs text-foreground group-hover:text-primary-600 transition-colors leading-tight">
                       {t(action.labelKey)}
                     </h3>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 hidden sm:block">
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 hidden xl:block">
                       {t(action.descriptionKey)}
                     </p>
                   </div>
-                  <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground group-hover:text-primary-600 transition-all opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0 hidden sm:block" />
+                  <ArrowRight className="h-3 w-3 text-muted-foreground group-hover:text-primary-600 transition-all opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0 hidden xl:block" />
                 </div>
               </CardContent>
             </Card>
