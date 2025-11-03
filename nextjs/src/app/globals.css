@@ -3,6 +3,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Animation fluide pour le scroll global */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Transition douce pour tous les éléments de scroll */
+* {
+    scroll-behavior: smooth;
+}
+
 :root {
     /* Color scheme variables */
     --color-background: #ffffff;
@@ -191,6 +201,44 @@
     --color-accent-900: #8f1e15;
 }
 
+.theme-house {
+    /* Primary colors - Evergreen foundation */
+    --color-primary-50: #f1f9f5;
+    --color-primary-100: #dceedf;
+    --color-primary-200: #b8decb;
+    --color-primary-300: #8ccaa9;
+    --color-primary-400: #5fb789;
+    --color-primary-500: #329f6d;
+    --color-primary-600: #258059;
+    --color-primary-700: #1f6a4c;
+    --color-primary-800: #19543c;
+    --color-primary-900: #123829;
+
+    /* Secondary colors - Warm home neutrals */
+    --color-secondary-50: #fdf8f4;
+    --color-secondary-100: #f6ede2;
+    --color-secondary-200: #ead9c3;
+    --color-secondary-300: #d8bc95;
+    --color-secondary-400: #c69d6d;
+    --color-secondary-500: #aa804f;
+    --color-secondary-600: #8e663e;
+    --color-secondary-700: #734f32;
+    --color-secondary-800: #553a26;
+    --color-secondary-900: #3b271a;
+
+    /* Accent colors - Sunlit highlights */
+    --color-accent-50: #fffbf3;
+    --color-accent-100: #fef3d7;
+    --color-accent-200: #fde1aa;
+    --color-accent-300: #facb74;
+    --color-accent-400: #f3b142;
+    --color-accent-500: #e7951d;
+    --color-accent-600: #cf7a12;
+    --color-accent-700: #a25b12;
+    --color-accent-800: #784312;
+    --color-accent-900: #4e2c0c;
+}
+
 .theme-purple {
     --color-primary-50: #faf5ff;
     --color-primary-100: #f3e8ff;
@@ -342,5 +390,20 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+}
+
+/* Utility pour cacher les scrollbars */
+@layer utilities {
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        /* Internet Explorer 10+ */
+        scrollbar-width: none;
+        /* Firefox */
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+        /* Safari et Chrome */
     }
 }

@@ -63,6 +63,7 @@ type InteractionFormProps = {
   zonesLoading?: boolean;
   onCreated?: (interactionId: string) => void;
   defaultValues?: InteractionFormDefaults;
+  redirectOnSuccess?: boolean;
 };
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
@@ -83,6 +84,7 @@ export default function InteractionForm({
   zonesLoading = false,
   onCreated,
   defaultValues = {},
+  redirectOnSuccess = true,
 }: InteractionFormProps) {
   const router = useRouter();
   const { selectedHouseholdId: householdId } = useGlobal();
@@ -458,7 +460,9 @@ export default function InteractionForm({
 
       resetForm();
       onCreated?.(interactionId);
-      router.push("/app/interactions?created=1");
+      if (redirectOnSuccess) {
+        router.push("/app/interactions?created=1");
+      }
     } catch (error: unknown) {
       console.error(error);
       const message = error instanceof Error ? error.message : t("interactionscreateFailed");

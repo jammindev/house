@@ -101,21 +101,26 @@ export default function AppPageLayout({
         className
       )}
     >
-      <header className="space-y-2 w-full">
-        <div className="flex w-full items-start justify-between">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={toggleSidebar}
-            aria-label="Open navigation"
-            className="w-fit lg:invisible"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
-          <div className="flex self-end space-x-2"> {!hideBackButton && <BackButton />}
-            {actionButtons}</div>
-        </div>
+      {/* Bouton menu fixe à gauche */}
+      <div className="fixed top-4 left-4 z-50">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={toggleSidebar}
+          aria-label="Open navigation"
+          className="w-fit lg:invisible"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
 
+      {/* Boutons d'action fixes à droite */}
+      <div className="fixed top-4 right-4 z-50 flex space-x-2">
+        {!hideBackButton && <BackButton />}
+        {actionButtons}
+      </div>
+
+      <header className="space-y-2 w-full mt-14">
         <div className="space-y-1 ml-2 lg:ml-3">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}
