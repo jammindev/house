@@ -133,25 +133,38 @@ export default function DashboardQuickActions() {
 
       if (!config.type) return;
 
+      // Use specialized forms for common types
+      const specializedTypes = ['note', 'todo', 'quote', 'expense', 'call', 'visit'];
       const params = new URLSearchParams();
-      params.set("type", config.type);
+
       if (config.status) {
         params.set("status", config.status);
       }
-      router.push(`/app/interactions/new?${params.toString()}`);
+
+      const queryString = params.toString();
+
+      if (specializedTypes.includes(config.type)) {
+        // Route to specialized form
+        const url = `/app/interactions/new/${config.type}${queryString ? `?${queryString}` : ''}`;
+        router.push(url);
+      } else {
+        // Route to generic form with type parameter
+        params.set("type", config.type);
+        router.push(`/app/interactions/new?${params.toString()}`);
+      }
     },
     [router]
   );
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-1">
       <div className="flex items-center gap-2">
         <Plus className="h-5 w-5 text-primary-600" />
         <h2 className="text-lg font-semibold text-foreground">{t("dashboard.quickActions.title")}</h2>
       </div>
       <p className="text-sm text-muted-foreground hidden sm:block">{t("dashboard.quickActions.subtitle")}</p>
 
-      <HorizontalScrollContainer className="py-1" itemWidth="w-28" desktopColumns={4}>
+      <HorizontalScrollContainer itemWidth="w-28" desktopColumns={4}>
         {QUICK_ACTIONS.map((action) => {
           const Icon = action.icon;
           return (
@@ -180,11 +193,6 @@ export default function DashboardQuickActions() {
           );
         })}
       </HorizontalScrollContainer>
-
-      {/* Indicateur mobile pour montrer que les cartes sont cliquables */}
-      <p className="text-xs text-muted-foreground text-center sm:hidden opacity-75">
-        {t("dashboard.quickActions.tapToCreate")}
-      </p>
     </section>
   );
 }

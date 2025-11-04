@@ -165,7 +165,7 @@ export default function DashboardContent() {
         subtitle={t("dashboard.subtitle")}
         actions={pageActions}
         hideBackButton
-        bodyClassName="space-y-4 md:space-y-6 p-4 md:p-6"
+        bodyClassName="space-y-2 md:space-y-6 p-1 md:p-6"
       >
         {content}
       </ResourcePageShell>

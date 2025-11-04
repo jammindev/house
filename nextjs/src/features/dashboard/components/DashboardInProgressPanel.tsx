@@ -85,7 +85,7 @@ export default function DashboardInProgressPanel({
                         <p className="text-sm text-muted-foreground mb-4">
                             {t("dashboard.inProgress.empty")}
                         </p>
-                        <Link href="/app/interactions/new?type=todo">
+                        <Link href="/app/interactions/new/todo">
                             <Button size="sm">
                                 {t("dashboard.inProgress.createTask")}
                             </Button>
