@@ -16,7 +16,7 @@ import {
   DashboardActivityFeed,
   DashboardDocumentsPanel,
   DashboardInProgressPanel,
-  DashboardProjectsInProgress,
+  DashboardProjectsByGroups,
   DashboardProjectsPanel,
   DashboardQuickActions,
   DashboardTasksPanel,
@@ -141,34 +141,9 @@ export default function DashboardContent() {
           </Alert>
         ) : null}
         <DashboardQuickActions />
-        <DashboardProjectsInProgress
-          projects={sortedProjects}
+        <DashboardProjectsByGroups
           loading={dataLoading || projectsLoading}
         />
-        <div className="grid gap-4 md:gap-6 xl:grid-cols-3">
-          <div className="space-y-4 md:space-y-6 xl:col-span-2">
-            <DashboardInProgressPanel
-              activeTasks={sortedTasks}
-              activeProjects={sortedProjects.map(p => ({
-                id: p.id,
-                title: p.title,
-                status: p.status,
-                total_tasks: p.metrics?.open_todos ? p.metrics.open_todos + (p.metrics.done_todos || 0) : undefined,
-                completed_tasks: p.metrics?.done_todos,
-                due_date: p.due_date
-              }))}
-              loading={dataLoading}
-            />
-            <DashboardTasksPanel tasks={sortedTasks} loading={dataLoading} />
-            <DashboardProjectsPanel projects={sortedProjects} loading={dataLoading} />
-            <DashboardDocumentsPanel documents={documents} loading={dataLoading} />
-          </div>
-          <DashboardActivityFeed
-            interactions={recentInteractions}
-            loading={dataLoading}
-            householdName={currentHousehold?.name ?? null}
-          />
-        </div>
       </>
     );
   }
