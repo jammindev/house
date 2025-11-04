@@ -16,6 +16,7 @@ import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
 import ProjectCard from "@projects/components/ProjectCard";
+import ProjectPinterestEmbed from "@projects/components/ProjectPinterestEmbed";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -25,7 +26,7 @@ interface ProjectDetailViewProps {
   onLinkExisting?: () => void;
 }
 
-const TABS = ["timeline", "tasks", "documents", "expenses"] as const;
+const TABS = ["timeline", "tasks", "documents", "expenses", "pinterest"] as const;
 
 export default function ProjectDetailView({
   project,
@@ -39,13 +40,13 @@ export default function ProjectDetailView({
   const auditLines = [
     project.created_at
       ? t("projects.auditCreated", {
-          date: new Date(project.created_at).toLocaleString(),
-        })
+        date: new Date(project.created_at).toLocaleString(),
+      })
       : null,
     project.updated_at
       ? t("projects.auditUpdated", {
-          date: new Date(project.updated_at).toLocaleString(),
-        })
+        date: new Date(project.updated_at).toLocaleString(),
+      })
       : null,
   ].filter((line): line is string => Boolean(line));
 
@@ -83,6 +84,7 @@ export default function ProjectDetailView({
             {tab === "tasks" ? <ProjectTasksPanel tasks={interactionsData.tasks} /> : null}
             {tab === "documents" ? <ProjectDocumentsPanel documents={interactionsData.documents} /> : null}
             {tab === "expenses" ? <ProjectExpensesPanel expenses={interactionsData.expenses} /> : null}
+            {tab === "pinterest" ? <ProjectPinterestEmbed projectId={project.id} /> : null}
           </div>
         </CardContent>
       </Card>
