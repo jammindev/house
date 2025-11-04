@@ -144,7 +144,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
         .filter(group => projectsByGroup[group.id] && projectsByGroup[group.id].length > 0)
         .map(group => ({
             ...group,
-            projects: projectsByGroup[group.id].slice(0, 4) // Limiter à 4 projets par groupe
+            projects: projectsByGroup[group.id] // Afficher tous les projets par groupe
         }));
 
     if (isLoading) {
@@ -180,7 +180,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
 
     if (sortedProjects.length === 0) {
         return (
-            <section className="space-y-4">
+            <section className="space-y-1">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Layers className="h-5 w-5 text-primary-600" />
@@ -203,7 +203,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
     }
 
     return (
-        <section className="space-y-6">
+        <section className="space-y-1">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Layers className="h-5 w-5 text-primary-600" />
@@ -217,17 +217,17 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
                 </Link>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-1">
                 {/* Afficher les groupes avec leurs projets */}
                 {groupsWithProjects.map((group) => (
-                    <div key={group.id} className="space-y-3">
+                    <div key={group.id} className="space-y-1">
                         <div className="flex items-center gap-2">
                             <FolderKanban className="h-4 w-4 text-primary-500" />
                             <h3 className="text-base font-medium text-foreground">{group.name}</h3>
-                            <span className="text-sm text-muted-foreground">({group.projects?.length || 0})</span>
+                            <span className="text-sm text-muted-foreground">({projectsByGroup[group.id]?.length || 0})</span>
                         </div>
-                        <HorizontalScrollContainer className="py-1" itemWidth="w-72">
-                            {(group.projects || []).map((project) => (
+                        <HorizontalScrollContainer itemWidth="w-72">
+                            {(projectsByGroup[group.id] || []).map((project) => (
                                 <ProjectCard
                                     key={project.id}
                                     project={project}
@@ -236,18 +236,6 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
                                 />
                             ))}
                         </HorizontalScrollContainer>
-                        {projectsByGroup[group.id] && projectsByGroup[group.id].length > 4 && (
-                            <div className="text-center">
-                                <Link href={`/app/projects?group=${group.id}`}>
-                                    <Button variant="outline" size="sm">
-                                        {t("dashboard.projectsByGroups.viewMoreInGroup", {
-                                            count: projectsByGroup[group.id].length - 4,
-                                            groupName: group.name
-                                        })}
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
                     </div>
                 ))}
 
@@ -260,7 +248,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
                             <span className="text-sm text-muted-foreground">({ungroupedProjects.length})</span>
                         </div>
                         <HorizontalScrollContainer className="py-1" itemWidth="w-72">
-                            {ungroupedProjects.slice(0, 4).map((project) => (
+                            {ungroupedProjects.map((project) => (
                                 <ProjectCard
                                     key={project.id}
                                     project={project}
@@ -269,17 +257,6 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
                                 />
                             ))}
                         </HorizontalScrollContainer>
-                        {ungroupedProjects.length > 4 && (
-                            <div className="text-center">
-                                <Link href="/app/projects?ungrouped=true">
-                                    <Button variant="outline" size="sm">
-                                        {t("dashboard.projectsByGroups.viewMoreUngrouped", {
-                                            count: ungroupedProjects.length - 4
-                                        })}
-                                    </Button>
-                                </Link>
-                            </div>
-                        )}
                     </div>
                 )}
             </div>

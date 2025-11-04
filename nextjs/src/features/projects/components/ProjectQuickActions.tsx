@@ -17,13 +17,13 @@ export default function ProjectQuickActions({ projectId, onLinkExisting }: Proje
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new?projectId=${projectId}&type=todo`}>
+        <Link href={`/app/interactions/new/todo?projectId=${projectId}`}>
           <NotebookPen className="h-4 w-4" />
           {t("projects.quickActions.addTask")}
         </Link>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new?projectId=${projectId}&type=note`}>
+        <Link href={`/app/interactions/new/note?projectId=${projectId}`}>
           <Plus className="h-4 w-4" />
           {t("projects.quickActions.addNote")}
         </Link>
@@ -35,13 +35,13 @@ export default function ProjectQuickActions({ projectId, onLinkExisting }: Proje
         </Link>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new?projectId=${projectId}&type=expense`}>
+        <Link href={`/app/interactions/new/expense?projectId=${projectId}`}>
           <Receipt className="h-4 w-4" />
           {t("projects.quickActions.addExpense")}
         </Link>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new?projectId=${projectId}&type=call`}>
+        <Link href={`/app/interactions/new/call?projectId=${projectId}`}>
           <FileText className="h-4 w-4" />
           {t("projects.quickActions.addCall")}
         </Link>
