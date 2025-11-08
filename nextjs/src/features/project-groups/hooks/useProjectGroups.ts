@@ -12,7 +12,7 @@ export function useProjectGroups() {
   const { selectedHouseholdId: householdId } = useGlobal();
   const { t } = useI18n();
   const [groups, setGroups] = useState<ProjectGroupWithMetrics[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   const load = useCallback(async () => {

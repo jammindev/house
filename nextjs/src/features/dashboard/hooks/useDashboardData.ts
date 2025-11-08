@@ -83,7 +83,7 @@ export function useDashboardData() {
   const { selectedHouseholdId: householdId } = useGlobal();
   const { t } = useI18n();
   const [data, setData] = useState<DashboardData>(EMPTY_DATA);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {

@@ -11,6 +11,7 @@ import { useI18n } from '@/lib/i18n/I18nProvider';
 import { Button } from '@/components/ui/button';
 import { compressFileForUpload } from '@documents/utils/fileCompression';
 import { usePageLayoutConfig } from '@/app/app/(pages)/usePageLayoutConfig';
+import { HouseholdManagement } from './components/HouseholdManagement';
 
 export function UserSettings() {
     const { user, refreshUser } = useGlobal();
@@ -31,7 +32,7 @@ export function UserSettings() {
     }, [user?.displayName]);
 
     useEffect(() => {
-        setLayout({ title: t('settings.title'), subtitle: t('settings.subtitle'), hideBackButton: false });
+        setLayout({ title: t('settings.title'), subtitle: t('settings.subtitle'), hideBackButton: true });
     }, [setLayout, t]);
 
     const handleDisplayNameSave = async (e: React.FormEvent) => {
@@ -222,6 +223,7 @@ export function UserSettings() {
 
             <div className="grid gap-6">
                 <div className="lg:col-span-2 space-y-6">
+                    <HouseholdManagement />
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">

@@ -59,6 +59,9 @@
       ],
       "@tasks/*": [
         "features/tasks/*"
+      ],
+      "@households/*": [
+        "features/households/*"
       ]
     }
   },
