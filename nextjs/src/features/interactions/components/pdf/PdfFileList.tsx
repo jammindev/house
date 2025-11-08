@@ -17,10 +17,6 @@ export default function PdfFileList({ files, previews, onDeleted }: PdfFileListP
 
   return (
     <section className="space-y-4">
-      <h2 className="text-lg font-medium mb-2">
-        {t("interactionsdocuments") ?? "Documents PDF"}
-      </h2>
-
       <ul role="list" className="space-y-3">
         {files.map((file) => {
           const preview = previews[file.id];
