@@ -38,9 +38,10 @@ type DocumentsListProps = {
   error: string | null;
   onRefresh: () => void;
   filterActive: boolean;
+  highlightedIds?: string[];
 };
 
-export function DocumentsList({ documents, loading, error, onRefresh, filterActive }: DocumentsListProps) {
+export function DocumentsList({ documents, loading, error, onRefresh, filterActive, highlightedIds = [] }: DocumentsListProps) {
   const { t } = useI18n();
   const { deleteFile } = useDeleteDocument();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -137,10 +138,14 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
         <ul className="space-y-3">
           {documents.map((doc) => {
             const docSize = formatSize(doc.metadata);
+            const isHighlighted = highlightedIds.includes(doc.id);
             return (
               <li
                 key={doc.id}
-                className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary-200 hover:bg-primary-50/60"
+                className={cn(
+                  "flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition hover:border-primary-200 hover:bg-primary-50/60",
+                  isHighlighted && "border-primary-300 bg-primary-50"
+                )}
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="space-y-1">
