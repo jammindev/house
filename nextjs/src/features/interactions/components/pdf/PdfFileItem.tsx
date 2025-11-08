@@ -29,96 +29,110 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
     const fileName = getInteractionFileName(file) || t("common.file");
     const isLoading = !viewUrl;
     const fileSizeLabel = formatFileSize(getDocumentFileSize(file));
+
     return (
         <li
             role="listitem"
-            className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm w-full"
+            className="flex items-center gap-3 border border-gray-200 rounded-md bg-white px-3 py-2 transition-shadow hover:shadow-sm w-full overflow-hidden"
         >
-            <div className="flex flex-wrap items-center gap-2 min-w-0">
-                {/* Icône / statut */}
-                <div className="h-12 w-12 flex shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-50">
-                    {isLoading ? (
-                        <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-                    ) : viewUrl ? (
-                        <FileText className="h-5 w-5 text-red-500" />
-                    ) : (
-                        <FileX className="h-5 w-5 text-gray-400" />
-                    )}
-                </div>
-
-
-                {/* Détails */}
-                <div className="flex flex-col min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-gray-800">
-                        {fileName}
-                    </div>
-                    {fileSizeLabel && (
-                        <div className="text-xs font-medium text-gray-500">{fileSizeLabel}</div>
-                    )}
-                </div>
-            </div>
-
-            {/* Actions */}
+            {/* Icône + Nom cliquable */}
             {viewUrl ? (
-                <div className="flex items-center gap-2 shrink-0">
-                    {/* Bouton ouvrir */}
-                    <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs">
-                        <a
-                            href={viewUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`${t("common.open")} ${fileName}`}
-                        >
-                            {t("common.open")}
-                        </a>
-                    </Button>
+                <a
+                    href={viewUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${t("common.open")} ${fileName}`}
+                    className="flex items-center gap-3 w-0 flex-1 overflow-hidden group hover:bg-gray-50 rounded px-1 py-1 transition-colors"
+                >
+                    {/* Icône */}
+                    <div className="flex-shrink-0">
+                        {isLoading ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        ) : (
+                            <FileText className="h-4 w-4 text-red-500 group-hover:text-red-600" />
+                        )}
+                    </div>
 
+                    {/* Nom du fichier + taille sur une ligne */}
+                    <div className="w-0 flex-1 overflow-hidden">
+                        <div className="truncate text-sm text-gray-900 group-hover:text-gray-700">
+                            <span className="font-medium">{fileName}</span>
+                            {fileSizeLabel && (
+                                <span className="ml-2 text-xs text-gray-500">({fileSizeLabel})</span>
+                            )}
+                        </div>
+                    </div>
+                </a>
+            ) : (
+                <div className="flex items-center gap-3 w-0 flex-1 overflow-hidden">
+                    {/* Icône non cliquable */}
+                    <div className="flex-shrink-0">
+                        <FileX className="h-4 w-4 text-gray-400" />
+                    </div>
+
+                    {/* Nom du fichier + taille */}
+                    <div className="w-0 flex-1 overflow-hidden">
+                        <div className="truncate text-sm text-gray-900">
+                            <span className="font-medium">{fileName}</span>
+                            {fileSizeLabel && (
+                                <span className="ml-2 text-xs text-gray-500">({fileSizeLabel})</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Actions compactes */}
+            {viewUrl ? (
+                <div className="flex items-center gap-1 shrink-0">
                     {/* Bouton télécharger */}
                     {downloadUrl && (
-                        <Button asChild variant="ghost" size="icon" className="h-8 w-8">
+                        <Button asChild variant="ghost" size="icon" className="h-7 w-7">
                             <a
                                 href={downloadUrl}
                                 aria-label={`${t("common.download")} ${fileName}`}
                             >
-                                <Download className="w-4 h-4" />
+                                <Download className="w-3.5 h-3.5" />
                             </a>
                         </Button>
                     )}
 
                     {/* Bouton supprimer */}
                     {canDelete && (
-                        <>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-red-600"
-                                aria-label={`${t("common.delete")} ${fileName}`}
-                                onClick={() => setConfirmOpen(true)}
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </Button>
-                            <ConfirmDialog
-                                open={confirmOpen}
-                                onOpenChange={setConfirmOpen}
-                                title={t("interactionsdeleteFileTitle")}
-                                confirmText={t("common.delete")}
-                                onConfirm={async () => {
-                                    await deleteFile({
-                                        id: file.id,
-                                        file_path: file.file_path,
-                                        interaction_id: file.interaction_id,
-                                    });
-                                    setConfirmOpen(false);
-                                    onDeleted?.();
-                                }}
-                                loading={loading}
-                                destructive
-                            />
-                        </>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-red-600 hover:text-red-700"
+                            aria-label={`${t("common.delete")} ${fileName}`}
+                            onClick={() => setConfirmOpen(true)}
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                     )}
                 </div>
             ) : (
-                <span className="text-xs text-gray-400">{t("common.previewUnavailable")}</span>
+                <span className="text-xs text-gray-500 shrink-0">{t("common.previewUnavailable")}</span>
+            )}
+
+            {/* Dialog de confirmation */}
+            {canDelete && (
+                <ConfirmDialog
+                    open={confirmOpen}
+                    onOpenChange={setConfirmOpen}
+                    title={t("interactionsdeleteFileTitle")}
+                    confirmText={t("common.delete")}
+                    onConfirm={async () => {
+                        await deleteFile({
+                            id: file.id,
+                            file_path: file.file_path,
+                            interaction_id: file.interaction_id,
+                        });
+                        setConfirmOpen(false);
+                        onDeleted?.();
+                    }}
+                    loading={loading}
+                    destructive
+                />
             )}
         </li>
     );
