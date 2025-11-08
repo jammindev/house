@@ -1,48 +1,27 @@
 // nextjs/src/app/app/(pages)/documents/page.tsx
-// nextjs/src/app/app/documents/page.tsx
 "use client";
-
-import { useMemo, useState } from "react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ResourcePageShell from "@shared/layout/ResourcePageShell";
-import { DocumentsFilters } from "@/features/documents/components/DocumentsFilters";
-import { DocumentsList } from "@/features/documents/components/DocumentsList";
-import { useDocuments } from "@/features/documents/hooks/useDocuments";
+import { DocumentUploadSection, DocumentsSection, useDocumentHighlight } from "@/features/documents";
 
 export default function DocumentsPage() {
   const { t } = useI18n();
-  const [unlinkedOnly, setUnlinkedOnly] = useState(true);
+  const { highlightedIds, highlightDocuments } = useDocumentHighlight();
 
-  const { documents, loading, error, refresh, unlinkedCount } = useDocuments();
-
-  const filteredDocuments = useMemo(() => {
-    if (!unlinkedOnly) return documents;
-    return documents.filter((doc) => doc.links.length === 0);
-  }, [documents, unlinkedOnly]);
-
-  const errorMessage = error ? `${t("documents.loadFailed")} (${error})` : null;
+  const handleUploadSuccess = (uploadedIds: string[]) => {
+    highlightDocuments(uploadedIds);
+  };
 
   return (
     <ResourcePageShell
       title={t("documents.title")}
       subtitle={t("documents.subtitle")}
       hideBackButton
-      bodyClassName="space-y-4"
+      bodyClassName="space-y-6"
     >
-      <DocumentsFilters
-        unlinkedOnly={unlinkedOnly}
-        onToggle={setUnlinkedOnly}
-        totalCount={documents.length}
-        unlinkedCount={unlinkedCount}
-      />
-      <DocumentsList
-        documents={filteredDocuments}
-        loading={loading}
-        error={errorMessage}
-        onRefresh={refresh}
-        filterActive={unlinkedOnly}
-      />
+      <DocumentUploadSection onUploadSuccess={handleUploadSuccess} />
+      <DocumentsSection highlightedIds={highlightedIds} />
     </ResourcePageShell>
   );
 }

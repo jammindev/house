@@ -1,4 +1,4 @@
-import type { Document } from "@interactions/types";
+import type { Document, DocumentType } from "@interactions/types";
 
 type SupabaseInteractionLink = {
   interaction_id: string;
@@ -19,4 +19,17 @@ export type DocumentWithLinks = Document & {
 
 export type SupabaseDocumentRow = Document & {
   interaction_documents?: SupabaseInteractionLink[] | null;
+};
+
+export type StagedFile = {
+  id: string;
+  file: File;
+  name: string;
+  type: DocumentType;
+};
+
+export type DocumentUploadResult = {
+  success: boolean;
+  uploadedIds: string[];
+  error?: string;
 };
