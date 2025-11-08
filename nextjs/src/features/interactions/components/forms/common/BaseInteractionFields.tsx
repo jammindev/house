@@ -191,7 +191,7 @@ export default function BaseInteractionFields({
 
             <Card>
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">{t("interactionssections.meta")}</CardTitle>
+                    <CardTitle className="text-lg font-semibold">{t("interactionssections.zones")}</CardTitle>
                     <CardDescription>{zoneHelper}</CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -13,9 +13,6 @@ import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
 import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
 import { useProjects } from "@projects/hooks/useProjects";
 
-interface DashboardProjectsByGroupsProps {
-    loading?: boolean;
-}
 
 const formatCurrency = (value: number, locale: string) =>
     new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(value);
@@ -110,14 +107,14 @@ function ProjectCard({ project, locale, t }: {
     );
 }
 
-export default function DashboardProjectsByGroups({ loading = false }: DashboardProjectsByGroupsProps) {
+export default function DashboardProjectsByGroups() {
     const { locale, t } = useI18n();
     const { groups, loading: groupsLoading } = useProjectGroups();
     const { projects: allProjects, loading: projectsLoading } = useProjects({
-        statuses: ["active", "draft", "on_hold"]
+        statuses: ["active",]
     });
 
-    const isLoading = loading || groupsLoading || projectsLoading;
+    const isLoading = groupsLoading || projectsLoading;
 
     // Trier les projets par date de mise à jour (plus récent en premier)
     const sortedProjects = [...allProjects].sort((a, b) => {
@@ -168,7 +165,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
                             <div className="h-6 w-48 animate-pulse rounded bg-slate-200" />
                             <HorizontalScrollContainer className="py-1" itemWidth="w-72">
                                 {Array.from({ length: 4 }).map((_, cardIndex) => (
-                                    <div key={cardIndex} className="h-32 w-full animate-pulse rounded-lg bg-slate-200" />
+                                    <div key={cardIndex} className="h-44 w-full animate-pulse rounded-lg bg-slate-200" />
                                 ))}
                             </HorizontalScrollContainer>
                         </div>
@@ -203,21 +200,13 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
     }
 
     return (
-        <section className="space-y-1">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Layers className="h-5 w-5 text-primary-600" />
-                    <h2 className="text-lg font-semibold text-foreground">{t("dashboard.projectsByGroups.title")}</h2>
-                </div>
-                <Link href="/app/projects">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        {t("dashboard.actions.viewProjects")}
-                        <ArrowRight className="h-4 w-4" />
-                    </Button>
-                </Link>
+        <section className="space-y-2">
+            <div className="flex items-center gap-2">
+                <Layers className="h-5 w-5 text-primary-600" />
+                <h2 className="text-lg font-semibold text-foreground">{t("dashboard.projectsByGroups.title")}</h2>
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-5">
                 {/* Afficher les groupes avec leurs projets */}
                 {groupsWithProjects.map((group) => (
                     <div key={group.id} className="space-y-1">
@@ -241,7 +230,7 @@ export default function DashboardProjectsByGroups({ loading = false }: Dashboard
 
                 {/* Afficher les projets non groupés s'il y en a */}
                 {ungroupedProjects.length > 0 && (
-                    <div className="space-y-3">
+                    <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <Folder className="h-4 w-4 text-muted-foreground" />
                             <h3 className="text-base font-medium text-foreground">{t("dashboard.projectsByGroups.ungrouped")}</h3>

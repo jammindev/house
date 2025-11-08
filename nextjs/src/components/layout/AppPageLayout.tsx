@@ -120,7 +120,7 @@ export default function AppPageLayout({
         {actionButtons}
       </div>
 
-      <header className="space-y-2 w-full mt-14">
+      <header className="space-y-2 w-full mt-14 sm:mt-8 lg:mt-0">
         <div className="space-y-1 ml-2 lg:ml-3">
           <h1 className="text-2xl font-semibold text-gray-900">
             {title}

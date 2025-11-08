@@ -25,7 +25,7 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
   const { selectedHouseholdId: householdId } = useGlobal();
   const [filters, setFilters] = useState<ProjectListFilters>(initialFilters);
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
 
   const load = useCallback(async () => {

@@ -1,6 +1,7 @@
 // nextjs/src/lib/context/GlobalContext.tsx
-// src/lib/context/GlobalContext.tsx
+
 "use client";
+
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback, type ReactNode } from 'react';
 import type { SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
@@ -22,6 +23,7 @@ export interface GlobalContextType {
     selectedHouseholdId: string | null;
     setSelectedHouseholdId: (id: string | null) => void;
     refreshUser: () => Promise<void>;
+    refreshHouseholds: () => Promise<void>;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -105,6 +107,24 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         setUserState(nextUser);
     }, []);
 
+    const refreshHouseholds = useCallback(async () => {
+        const spa = await createSPASassClient();
+        const supa = spa.getSupabaseClient();
+
+        const { data: householdsData, error } = await supa.from('households').select('id, name').order('created_at');
+        if (!error && householdsData) {
+            const mapped = householdsData.map(h => ({ id: h.id, name: h.name })) as Household[];
+            setHouseholds(mapped);
+
+            // If current selected household is no longer available, reset selection
+            const current = selectedRef.current;
+            const stillExists = current && mapped.some(h => h.id === current);
+            if (!stillExists) {
+                setSelectedHouseholdId(mapped[0]?.id ?? null);
+            }
+        }
+    }, [setSelectedHouseholdId]);
+
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -133,8 +153,8 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         return () => { cancelled = true; };
     }, [setSelectedHouseholdId]);
 
-    const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser }),
-        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser]);
+    const value = useMemo(() => ({ loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser, refreshHouseholds }),
+        [loading, user, households, selectedHouseholdId, setSelectedHouseholdId, refreshUser, refreshHouseholds]);
 
     return <GlobalContext.Provider value={value}>{children}</GlobalContext.Provider>;
 }

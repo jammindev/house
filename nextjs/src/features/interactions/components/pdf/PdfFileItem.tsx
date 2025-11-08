@@ -34,7 +34,7 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
             role="listitem"
             className="flex flex-wrap items-center justify-between gap-3 border border-gray-200 rounded-md bg-white p-3 transition-shadow hover:shadow-sm w-full"
         >
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 min-w-0">
                 {/* Icône / statut */}
                 <div className="h-12 w-12 flex shrink-0 items-center justify-center rounded border border-gray-200 bg-gray-50">
                     {isLoading ? (
@@ -48,12 +48,14 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
 
 
                 {/* Détails */}
-                <span className="truncate text-sm font-medium text-gray-800">
-                    {fileName}
+                <div className="flex flex-col min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-gray-800">
+                        {fileName}
+                    </div>
                     {fileSizeLabel && (
-                        <span className="ml-2 text-xs font-medium text-gray-500">{fileSizeLabel}</span>
+                        <div className="text-xs font-medium text-gray-500">{fileSizeLabel}</div>
                     )}
-                </span>
+                </div>
             </div>
 
             {/* Actions */}

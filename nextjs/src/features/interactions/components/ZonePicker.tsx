@@ -130,20 +130,12 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
   );
 
   const topLevelZones = useMemo(() => {
-    if (roots.length === 1) {
-      const onlyRoot = roots[0];
-      const directChildren = childrenMap.get(onlyRoot.id);
-      if (directChildren?.length) {
-        return directChildren;
-      }
-    }
-
     if (roots.length > 0) {
       return roots;
     }
 
     return [...zones].sort((a, b) => a.name.localeCompare(b.name));
-  }, [childrenMap, roots, zones]);
+  }, [roots, zones]);
 
   return <div className="space-y-1">{topLevelZones.map((root) => renderBranch(root))}</div>;
 }
