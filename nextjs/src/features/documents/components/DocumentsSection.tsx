@@ -13,7 +13,7 @@ type DocumentsSectionProps = {
 
 export function DocumentsSection({ highlightedIds = [] }: DocumentsSectionProps) {
     const { t } = useI18n();
-    const [unlinkedOnly, setUnlinkedOnly] = useState(true);
+    const [unlinkedOnly, setUnlinkedOnly] = useState(false);
     const { documents, loading, error, refresh, unlinkedCount } = useDocuments();
 
     // Exclude documents of type 'photo' entirely per request
