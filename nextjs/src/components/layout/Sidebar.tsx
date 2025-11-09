@@ -9,7 +9,6 @@ import {
     Notebook,
     Users,
     MapPin,
-    Files,
     FileText,
     Image as ImageIcon,
     LucideListTodo,
@@ -46,16 +45,16 @@ export default function Sidebar({
 
     const navigation = [
         { name: t("nav.dashboard"), href: "/app", icon: Home },
-        { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
-        { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.projectGroups"), href: "/app/project-groups", icon: FolderKanban },
-        { name: t("nav.directory"), href: "/app/repertoire", icon: Users },
+        { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
+        { name: t("nav.tasks"), href: "/app/tasks", icon: LucideListTodo },
+        { name: t("nav.directory"), href: "/app/repertoire", icon: Users },
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
         { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
-        { name: t("nav.tasks"), href: "/app/tasks", icon: LucideListTodo },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
+        { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
     ];
 
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
