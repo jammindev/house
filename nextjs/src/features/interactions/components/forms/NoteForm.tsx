@@ -210,6 +210,7 @@ export default function NoteForm({
                                 type: item.type,
                                 name: item.customName || item.file.name,
                                 notes: item.notes ?? "",
+                                household_id: householdId,
                                 metadata: {
                                     ...buildDocumentMetadata(item.file, compressionResult),
                                     uploadSource: "note_form",
