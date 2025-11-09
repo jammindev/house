@@ -18,7 +18,7 @@ export default function DocumentsPage() {
       title={t("documents.title")}
       subtitle={t("documents.subtitle")}
       hideBackButton
-      bodyClassName="space-y-6"
+      bodyClassName="space-y-2"
     >
       <DocumentUploadSection onUploadSuccess={handleUploadSuccess} />
       <DocumentsSection highlightedIds={highlightedIds} />
