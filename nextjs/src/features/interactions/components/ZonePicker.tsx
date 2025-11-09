@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 
 import { ZoneOption } from "../types";
@@ -15,7 +15,7 @@ type ZonePickerProps = {
 };
 
 export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
-  // Track which parent zones are expanded. Children are collapsed by default.
+  // Track which parent zones are expanded. Children are collapsed by default unless auto-expanded for selection visibility.
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   const zoneMap = useMemo(() => {
@@ -42,6 +42,27 @@ export function ZonePicker({ zones, value, onChange }: ZonePickerProps) {
       .filter((zone) => !zone.parent_id || !zoneMap.has(zone.parent_id))
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [zones, zoneMap]);
+
+  useEffect(() => {
+    if (value.length === 0) {
+      return;
+    }
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      let changed = false;
+      value.forEach((zoneId) => {
+        let current = zoneMap.get(zoneId);
+        while (current?.parent_id) {
+          if (!next.has(current.parent_id)) {
+            next.add(current.parent_id);
+            changed = true;
+          }
+          current = zoneMap.get(current.parent_id);
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [value, zoneMap]);
 
   const getDescendants = useCallback(
     (zoneId: string) => {
