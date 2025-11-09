@@ -99,7 +99,12 @@ export function ResponsiveOverlay({
               mobileContainerClassName,
             )}
           >
-            <div className={cn("flex flex-col gap-4 p-5", mobileContentClassName)}>
+            <div
+              className={cn(
+                "flex max-h-[70vh] flex-col gap-4 overflow-y-auto p-5",
+                mobileContentClassName,
+              )}
+            >
               <div className="mx-auto h-1.5 w-12 rounded-full bg-muted" />
               {(title || description) && (
                 <div className="space-y-1">

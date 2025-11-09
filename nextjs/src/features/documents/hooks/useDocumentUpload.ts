@@ -6,15 +6,47 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { DocumentType } from "@interactions/types";
-import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
+import {
+    buildDocumentMetadata,
+    compressFileForUpload,
+    type CompressFileResult,
+} from "@documents/utils/fileCompression";
 import { createLocalId, sanitizeFilename, inferDocumentType } from "@documents/utils/uploadHelpers";
 import type { StagedFile } from "@documents/types";
 
 export type { StagedFile };
 
-export function useDocumentUpload() {
+type StorageFolderOption = string | ((file: StagedFile) => string);
+type MetadataExtrasOption =
+    | Record<string, unknown>
+    | ((params: { staged: StagedFile; compression: CompressFileResult }) => Record<string, unknown>);
+
+type UseDocumentUploadOptions = {
+    storageFolder?: StorageFolderOption;
+    uploadSource?: string;
+    metadataExtras?: MetadataExtrasOption;
+};
+
+const normalizeFolder = (folder: string | null | undefined) => {
+    if (!folder) return "";
+    return folder.replace(/^\/+|\/+$/g, "");
+};
+
+function resolveFolder(folder: StorageFolderOption | undefined, staged: StagedFile) {
+    if (!folder) return "documents";
+    const value = typeof folder === "function" ? folder(staged) : folder;
+    const normalized = normalizeFolder(value);
+    return normalized || "documents";
+}
+
+export function useDocumentUpload(options: UseDocumentUploadOptions = {}) {
     const { t } = useI18n();
     const { selectedHouseholdId, user } = useGlobal();
+    const {
+        storageFolder,
+        uploadSource = "documents_page",
+        metadataExtras,
+    } = options;
 
     const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -97,7 +129,9 @@ export function useDocumentUpload() {
                     typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
                         ? crypto.randomUUID()
                         : `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-                const storagePath = `${userId}/documents/${uniquePrefix}_${safeName}`;
+                const folderSegment = resolveFolder(storageFolder, staged);
+                const folderPrefix = folderSegment ? `${folderSegment}/` : "";
+                const storagePath = `${userId}/${folderPrefix}${uniquePrefix}_${safeName}`;
 
                 const { error: uploadError } = await client.storage.from("files").upload(storagePath, fileForUpload, {
                     cacheControl: "3600",
@@ -119,7 +153,10 @@ export function useDocumentUpload() {
                         metadata: {
                             ...buildDocumentMetadata(staged.file, compressionResult),
                             quickUpload: true,
-                            uploadSource: "documents_page",
+                            uploadSource,
+                            ...(typeof metadataExtras === "function"
+                                ? metadataExtras({ staged, compression: compressionResult })
+                                : metadataExtras ?? {}),
                         },
                     })
                     .select("id")
@@ -146,7 +183,7 @@ export function useDocumentUpload() {
         } finally {
             setUploading(false);
         }
-    }, [selectedHouseholdId, stagedFiles, t, user?.id]);
+    }, [selectedHouseholdId, stagedFiles, storageFolder, t, uploadSource, user?.id, metadataExtras]);
 
     return {
         stagedFiles,
