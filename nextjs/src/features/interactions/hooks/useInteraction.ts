@@ -33,18 +33,54 @@ type RawInteraction = {
   project?: RawProject | null;
 };
 
+type RawContactEmail = {
+  id: string;
+  email?: string | null;
+  label?: string | null;
+  is_primary?: boolean | null;
+  created_at?: string | null;
+};
+
+type RawContactPhone = {
+  id: string;
+  phone?: string | null;
+  label?: string | null;
+  is_primary?: boolean | null;
+  created_at?: string | null;
+};
+
 type RawContact = {
   id: string;
   first_name?: string | null;
   last_name?: string | null;
   position?: string | null;
   structure?: RawStructure | null;
+  emails?: RawContactEmail[] | null;
+  phones?: RawContactPhone[] | null;
+};
+
+type RawStructureEmail = {
+  id: string;
+  email?: string | null;
+  label?: string | null;
+  is_primary?: boolean | null;
+  created_at?: string | null;
+};
+
+type RawStructurePhone = {
+  id: string;
+  phone?: string | null;
+  label?: string | null;
+  is_primary?: boolean | null;
+  created_at?: string | null;
 };
 
 type RawStructure = {
   id: string;
   name?: string | null;
   type?: string | null;
+  emails?: RawStructureEmail[] | null;
+  phones?: RawStructurePhone[] | null;
 };
 
 type RawInteractionDocument = {
@@ -71,6 +107,45 @@ type RawProject = {
   title?: string | null;
   status?: InteractionProjectSummary["status"] | null;
 };
+
+const normalizeText = (value?: string | null) => {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : null;
+};
+
+const normalizeBoolean = (value?: boolean | null) => value === true;
+
+const normalizeContactEmail = (email: RawContactEmail) => ({
+  id: email.id,
+  email: normalizeText(email.email) ?? "",
+  label: normalizeText(email.label),
+  is_primary: normalizeBoolean(email.is_primary),
+  created_at: email.created_at ?? null,
+});
+
+const normalizeContactPhone = (phone: RawContactPhone) => ({
+  id: phone.id,
+  phone: normalizeText(phone.phone) ?? "",
+  label: normalizeText(phone.label),
+  is_primary: normalizeBoolean(phone.is_primary),
+  created_at: phone.created_at ?? null,
+});
+
+const normalizeStructureEmail = (email: RawStructureEmail) => ({
+  id: email.id,
+  email: normalizeText(email.email) ?? "",
+  label: normalizeText(email.label),
+  is_primary: normalizeBoolean(email.is_primary),
+  created_at: email.created_at ?? null,
+});
+
+const normalizeStructurePhone = (phone: RawStructurePhone) => ({
+  id: phone.id,
+  phone: normalizeText(phone.phone) ?? "",
+  label: normalizeText(phone.label),
+  is_primary: normalizeBoolean(phone.is_primary),
+  created_at: phone.created_at ?? null,
+});
 
 export function useInteraction(id?: string) {
   const [interaction, setInteraction] = useState<Interaction | null>(null);
@@ -119,6 +194,20 @@ export function useInteraction(id?: string) {
                 first_name,
                 last_name,
                 position,
+                emails:emails(
+                  id,
+                  email,
+                  label,
+                  is_primary,
+                  created_at
+                ),
+                phones:phones(
+                  id,
+                  phone,
+                  label,
+                  is_primary,
+                  created_at
+                ),
                 structure:structures(
                   id,
                   name,
@@ -130,7 +219,21 @@ export function useInteraction(id?: string) {
               structure:structures(
                 id,
                 name,
-                type
+                type,
+                emails:emails!emails_structure_id_fkey(
+                  id,
+                  email,
+                  label,
+                  is_primary,
+                  created_at
+                ),
+                phones:phones!phones_structure_id_fkey(
+                  id,
+                  phone,
+                  label,
+                  is_primary,
+                  created_at
+                )
               )
             ),
             project:projects!interactions_project_id_fkey(
@@ -173,16 +276,18 @@ export function useInteraction(id?: string) {
               .filter((contact): contact is RawContact => Boolean(contact))
               .map<InteractionContact>((contact) => ({
                 id: contact.id,
-                first_name: contact.first_name?.trim() ?? "",
-                last_name: contact.last_name?.trim() ?? "",
-                position: contact.position?.trim() || null,
+                first_name: normalizeText(contact.first_name) ?? "",
+                last_name: normalizeText(contact.last_name) ?? "",
+                position: normalizeText(contact.position),
                 structure: contact.structure
                   ? {
                     id: contact.structure.id,
-                    name: contact.structure.name?.trim() ?? "",
-                    type: contact.structure.type?.trim() || null,
+                    name: normalizeText(contact.structure.name) ?? "",
+                    type: normalizeText(contact.structure.type),
                   }
                   : null,
+                emails: contact.emails?.map((email) => normalizeContactEmail(email)) ?? [],
+                phones: contact.phones?.map((phone) => normalizeContactPhone(phone)) ?? [],
               })) ?? [],
           structures:
             row.interaction_structures
@@ -190,8 +295,10 @@ export function useInteraction(id?: string) {
               .filter((structure): structure is RawStructure => Boolean(structure))
               .map<InteractionStructure>((structure) => ({
                 id: structure.id,
-                name: structure.name?.trim() ?? "",
-                type: structure.type?.trim() || null,
+                name: normalizeText(structure.name) ?? "",
+                type: normalizeText(structure.type),
+                emails: structure.emails?.map((email) => normalizeStructureEmail(email)) ?? [],
+                phones: structure.phones?.map((phone) => normalizeStructurePhone(phone)) ?? [],
               })) ?? [],
           metadata: row.metadata,
           enriched_text: row.enriched_text,

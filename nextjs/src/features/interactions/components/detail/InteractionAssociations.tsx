@@ -1,8 +1,9 @@
 // nextjs/src/features/interactions/components/detail/InteractionAssociations.tsx
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { formatContactLabel, formatStructureLabel } from "@interactions/lib/formatParticipants";
 import type { InteractionContact, InteractionStructure, InteractionTag } from "@interactions/types";
+import ContactAssociationChip from "./ContactAssociationChip";
+import StructureAssociationChip from "./StructureAssociationChip";
 
 type InteractionAssociationsProps = {
   tags: InteractionTag[];
@@ -50,12 +51,7 @@ export default function InteractionAssociations({
           <h2 className="text-sm font-semibold text-foreground">{t("interactionscontacts.sectionTitle")}</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {contacts.map((contact) => (
-              <span
-                key={`contact-${contact.id}`}
-                className="inline-flex items-center rounded-full border border-indigo-200/60 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700"
-              >
-                {formatContactLabel(contact)}
-              </span>
+              <ContactAssociationChip key={`contact-${contact.id}`} contact={contact} t={t} />
             ))}
           </div>
         </div>
@@ -66,12 +62,11 @@ export default function InteractionAssociations({
           <h2 className="text-sm font-semibold text-foreground">{t("interactionsstructures.sectionTitle")}</h2>
           <div className="mt-2 flex flex-wrap gap-2">
             {structures.map((structure) => (
-              <span
+              <StructureAssociationChip
                 key={`structure-${structure.id}`}
-                className="inline-flex items-center rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700"
-              >
-                {formatStructureLabel(structure)}
-              </span>
+                structure={structure}
+                t={t}
+              />
             ))}
           </div>
         </div>
