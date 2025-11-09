@@ -46,7 +46,10 @@ export async function GET(_request: Request, { params }: RouteContext) {
       ),
     );
 
-    const auditUsers = new Map<string, string | null>();
+    const auditUsers = new Map<
+      string,
+      { email: string | null; username: string | null } | null
+    >();
     if (uniqueUserIds.length > 0) {
       const adminClient = await createServerAdminClient();
 
@@ -59,7 +62,15 @@ export async function GET(_request: Request, { params }: RouteContext) {
               auditUsers.set(identifier, null);
               return;
             }
-            auditUsers.set(identifier, data?.user?.email ?? null);
+
+            const user = data?.user;
+            // Prefer an explicit username/display name in user_metadata when available,
+            // fall back to email otherwise.
+            const username =
+              (user as any)?.user_metadata?.username ?? (user as any)?.user_metadata?.display_name ?? null;
+            const email = user?.email ?? null;
+
+            auditUsers.set(identifier, { email, username });
           } catch (error) {
             console.error("Unexpected error while loading audit user:", error);
             auditUsers.set(identifier, null);
@@ -73,15 +84,17 @@ export async function GET(_request: Request, { params }: RouteContext) {
       updated_at: interaction.updated_at,
       created_by: interaction.created_by
         ? {
-            id: interaction.created_by,
-            email: auditUsers.get(interaction.created_by) ?? null,
-          }
+          id: interaction.created_by,
+          email: auditUsers.get(interaction.created_by)?.email ?? null,
+          username: auditUsers.get(interaction.created_by)?.username ?? null,
+        }
         : null,
       updated_by: interaction.updated_by
         ? {
-            id: interaction.updated_by,
-            email: auditUsers.get(interaction.updated_by) ?? null,
-          }
+          id: interaction.updated_by,
+          email: auditUsers.get(interaction.updated_by)?.email ?? null,
+          username: auditUsers.get(interaction.updated_by)?.username ?? null,
+        }
         : null,
     });
   } catch (error) {

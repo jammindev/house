@@ -1,5 +1,4 @@
 // nextjs/src/features/interactions/components/InteractionZonesList.tsx
-// nextjs/src/features/entries/components/InteractionZonesList.tsx
 "use client";
 
 import { useMemo, useState } from "react";

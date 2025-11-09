@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -28,27 +29,31 @@ type ConfirmDialogProps = {
 export function ConfirmDialog({
   open,
   onOpenChange,
-  title = "Are you sure?",
+  title,
   description,
-  confirmText = "Confirm",
-  cancelText = "Cancel",
+  confirmText,
+  cancelText,
   onConfirm,
   loading = false,
   destructive = false,
   hideCancel = false,
 }: ConfirmDialogProps) {
+  const { t } = useI18n();
+  const titleText = title ?? t("common.areYouSure");
+  const confirmLabel = confirmText ?? t("common.confirm");
+  const cancelLabel = cancelText ?? t("common.cancel");
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogTitle>{titleText}</AlertDialogTitle>
           {description ? (
             <AlertDialogDescription>{description}</AlertDialogDescription>
           ) : null}
         </AlertDialogHeader>
         <AlertDialogFooter>
           {!hideCancel && (
-            <AlertDialogCancel disabled={loading}>{cancelText}</AlertDialogCancel>
+            <AlertDialogCancel disabled={loading}>{cancelLabel}</AlertDialogCancel>
           )}
           <AlertDialogAction
             className={destructive ? "bg-red-600 text-white hover:bg-red-700" : undefined}
@@ -57,7 +62,7 @@ export function ConfirmDialog({
             }}
             disabled={loading}
           >
-            {loading ? "Working…" : confirmText}
+            {loading ? "Working…" : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

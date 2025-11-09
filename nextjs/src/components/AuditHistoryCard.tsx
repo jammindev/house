@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type AuditHistoryCardProps = {
   lines?: string[];
@@ -28,6 +29,12 @@ export default function AuditHistoryCard({ lines = [], loading = false, actions,
           {lines.map((line, index) => (
             <p key={index}>{line}</p>
           ))}
+        </div>
+      )}
+      {loading && (
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
         </div>
       )}
       {actions ? <div className="mt-1">{actions}</div> : null}

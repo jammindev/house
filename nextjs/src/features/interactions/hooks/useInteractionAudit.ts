@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 type AuditUser = {
   id: string;
   email: string | null;
+  username: string | null;
 };
 
 type AuditResponse = {
@@ -22,9 +23,6 @@ export function useInteractionAudit(interactionId?: string, refreshKey?: string 
   useEffect(() => {
     if (!interactionId) return undefined;
 
-    let isMounted = true;
-    const controller = new AbortController();
-
     async function load() {
       setLoading(true);
       setError("");
@@ -32,7 +30,6 @@ export function useInteractionAudit(interactionId?: string, refreshKey?: string 
       try {
         const response = await fetch(`/api/interactions/${interactionId}/audit`, {
           method: "GET",
-          signal: controller.signal,
           headers: {
             Accept: "application/json",
           },
@@ -44,29 +41,19 @@ export function useInteractionAudit(interactionId?: string, refreshKey?: string 
         }
 
         const payload = (await response.json()) as AuditResponse;
-        if (isMounted) {
-          setAudit(payload);
-        }
+        setAudit(payload);
       } catch (error) {
-        if (!isMounted || (error instanceof DOMException && error.name === "AbortError")) {
-          return;
-        }
-
+        // If fetch fails (network / server), report it.
         console.error("Failed to load interaction audit metadata:", error);
         setError(error instanceof Error ? error.message : "Failed to load audit metadata");
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     }
 
     load();
 
-    return () => {
-      isMounted = false;
-      controller.abort();
-    };
+    return undefined;
   }, [interactionId, refreshKey]);
 
   return { audit, loading, error };
