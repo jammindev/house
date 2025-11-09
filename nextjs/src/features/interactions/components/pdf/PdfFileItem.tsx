@@ -25,7 +25,7 @@ export default function PdfFileItem({ file, viewUrl, downloadUrl, onDeleted }: P
     const { user } = useGlobal();
     const canDelete = useMemo(() => !!user?.id && !!file.created_by && user.id === file.created_by, [user?.id, file.created_by]);
     const [confirmOpen, setConfirmOpen] = useState(false);
-    const { deleteFile, loading } = useDeleteDocument();
+    const { deleteFile, loading } = useDeleteDocument({ shouldDeleteDocument: false });
     const fileName = getInteractionFileName(file) || t("common.file");
     const isLoading = !viewUrl;
     const fileSizeLabel = formatFileSize(getDocumentFileSize(file));

@@ -6,6 +6,8 @@ import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
+import { fr as dateFnsFr, enUS as dateFnsEn } from "date-fns/locale";
 import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
 import InteractionMetadata from "@interactions/components/detail/InteractionMetadata";
 import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
@@ -45,8 +47,56 @@ export default function InteractionDetailView({
 
   const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
 
-  const createdAt = new Date(interaction.created_at).toLocaleString();
-  const updatedAt = new Date(interaction.updated_at).toLocaleString();
+  // Helpers: localized public date and short relative time (14h, 1j, 1an)
+  const getDateFnsLocale = (loc: string) => {
+    if (!loc) return dateFnsEn;
+    if (loc.startsWith("fr")) return dateFnsFr;
+    return dateFnsEn;
+  };
+
+  const formatPublicDate = (isoDate?: string | null) => {
+    if (!isoDate) return "";
+    try {
+      const d = new Date(isoDate);
+      // Pp -> localized date + time, friendly for "grand public"
+      return format(d, "Pp", { locale: getDateFnsLocale(locale) });
+    } catch (e) {
+      return new Date(isoDate).toLocaleString();
+    }
+  };
+
+  const formatRelativeShort = (isoDate?: string | null) => {
+    if (!isoDate) return "";
+    const now = new Date();
+    const d = new Date(isoDate);
+    const years = differenceInYears(now, d);
+    if (years >= 1) {
+      // French: 1an 2ans, English: 1y 2y
+      if (locale?.startsWith("fr")) return `${years}${years === 1 ? "an" : "ans"}`;
+      return `${years}y`;
+    }
+    const months = differenceInMonths(now, d);
+    if (months >= 1) {
+      if (locale?.startsWith("fr")) return `${months}${months === 1 ? "mois" : "mois"}`;
+      return `${months}mo`;
+    }
+    const days = differenceInDays(now, d);
+    if (days >= 1) {
+      if (locale?.startsWith("fr")) return `${days}j`;
+      return `${days}d`;
+    }
+    const hours = differenceInHours(now, d);
+    if (hours >= 1) return `${hours}h`;
+    const minutes = differenceInMinutes(now, d);
+    if (minutes >= 1) return `${minutes}${locale?.startsWith("fr") ? "min" : "m"}`;
+    const seconds = differenceInSeconds(now, d);
+    if (seconds >= 5) return `${seconds}${locale?.startsWith("fr") ? "s" : "s"}`;
+    // just now
+    return locale?.startsWith("fr") ? "à l'instant" : "now";
+  };
+
+  const createdAt = formatPublicDate(interaction.created_at);
+  const updatedAt = formatRelativeShort(interaction.updated_at);
   const metadata = isObjectRecord(interaction.metadata) ? interaction.metadata : null;
   const quoteAmount =
     interaction.type === "quote" ? extractAmountFromMetadata(interaction.metadata) : null;
@@ -172,11 +222,11 @@ export default function InteractionDetailView({
           lines={[
             t("interactiondetail.auditCreated", {
               date: createdAt,
-              user: audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
+              user: audit?.created_by?.username ?? audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
             }),
             t("interactiondetail.auditUpdated", {
               date: updatedAt,
-              user: audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
+              user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
             }),
           ]}
           actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />}
