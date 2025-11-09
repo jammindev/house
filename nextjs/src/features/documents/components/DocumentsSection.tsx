@@ -16,10 +16,15 @@ export function DocumentsSection({ highlightedIds = [] }: DocumentsSectionProps)
     const [unlinkedOnly, setUnlinkedOnly] = useState(true);
     const { documents, loading, error, refresh, unlinkedCount } = useDocuments();
 
+    // Exclude documents of type 'photo' entirely per request
+    const nonPhotoDocuments = useMemo(() => documents.filter((doc) => doc.type !== "photo"), [documents]);
+
     const filteredDocuments = useMemo(() => {
-        if (!unlinkedOnly) return documents;
-        return documents.filter((doc) => doc.links.length === 0);
-    }, [documents, unlinkedOnly]);
+        if (!unlinkedOnly) return nonPhotoDocuments;
+        return nonPhotoDocuments.filter((doc) => doc.links.length === 0);
+    }, [nonPhotoDocuments, unlinkedOnly]);
+
+    const unlinkedCountFiltered = useMemo(() => nonPhotoDocuments.filter((d) => d.links.length === 0).length, [nonPhotoDocuments]);
 
     const errorMessage = error ? `${t("documents.loadFailed")} (${error})` : null;
 
@@ -28,8 +33,8 @@ export function DocumentsSection({ highlightedIds = [] }: DocumentsSectionProps)
             <DocumentsFilters
                 unlinkedOnly={unlinkedOnly}
                 onToggle={setUnlinkedOnly}
-                totalCount={documents.length}
-                unlinkedCount={unlinkedCount}
+                totalCount={nonPhotoDocuments.length}
+                unlinkedCount={unlinkedCountFiltered}
             />
             <DocumentsList
                 documents={filteredDocuments}

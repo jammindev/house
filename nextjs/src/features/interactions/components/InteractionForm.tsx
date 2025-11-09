@@ -90,7 +90,6 @@ export default function InteractionForm({
   const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
   const { t } = useI18n();
-
   const initialOccurredAt = useMemo(
     () => defaultValues.occurredAt ?? getCurrentLocalDateTimeInput(),
     [defaultValues.occurredAt]
@@ -414,7 +413,6 @@ export default function InteractionForm({
               contentType: fileForUpload.type || undefined,
             });
           if (uploadError) throw uploadError;
-
           const { data: insertedDoc, error: docError } = await client
             .from("documents")
             .insert({
@@ -662,7 +660,7 @@ export default function InteractionForm({
 
         <Card>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-lg font-semibold">{t("interactionssections.files")}</CardTitle>
+            <CardTitle className="text-lg font-semibold">{t("interactionssections.documents")}</CardTitle>
             <CardDescription>{t("interactionsdocumentsHelper")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

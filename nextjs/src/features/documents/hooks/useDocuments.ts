@@ -8,7 +8,7 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import type { DocumentWithLinks, SupabaseDocumentRow } from "@documents/types";
 import { normalizeDocuments } from "@documents/utils/normalizeDocuments";
 
-export function useDocuments() {
+export function useDocuments(options?: { withPhoto?: boolean }) {
   const { selectedHouseholdId: householdId } = useGlobal();
   const [documents, setDocuments] = useState<DocumentWithLinks[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export function useDocuments() {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
-      const { data, error: supabaseError } = await client
+      const query = client
         .from("documents")
         .select(
           `
@@ -52,6 +52,13 @@ export function useDocuments() {
         )
         .eq("household_id", householdId)
         .order("created_at", { ascending: false });
+
+      // By default exclude photos at the hook level. Pass { withPhoto: true } to include them.
+      if (!options?.withPhoto) {
+        query.neq("type", "photo");
+      }
+
+      const { data, error: supabaseError } = await query;
 
       if (supabaseError) throw supabaseError;
 

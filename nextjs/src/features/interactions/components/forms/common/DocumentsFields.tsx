@@ -77,7 +77,7 @@ export default function DocumentsFields({
         <>
             <Card>
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">{t("interactionssections.files")}</CardTitle>
+                    <CardTitle className="text-lg font-semibold">{t("interactionssections.documents")}</CardTitle>
                     <CardDescription>{t("interactionsdocumentsHelper")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
