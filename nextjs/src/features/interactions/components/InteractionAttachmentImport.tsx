@@ -1,202 +1,266 @@
 // nextjs/src/features/interactions/components/InteractionAttachmentImport.tsx
 "use client";
 
-import { useState } from "react";
-import { Upload, Loader2, Link as LinkIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, CheckCircle2, Link as LinkIcon, Loader2, Upload } from "lucide-react";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import DocumentImportButtons from "@interactions/components/DocumentImportButtons";
-import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
-import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
-import type { Document, DocumentType } from "@interactions/types";
-import { useI18n } from "@/lib/i18n/I18nProvider";
+import { ResponsiveOverlay } from "@/components/ui/responsive-overlay";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
+import ExistingDocumentsModal from "@interactions/components/ExistingDocumentsModal";
+import type { Document } from "@interactions/types";
+import { DesktopUploadInterface } from "@documents/components/DesktopUploadInterface";
+import { MobileUploadInterface } from "@documents/components/MobileUploadInterface";
+import { StagedFileItem } from "@documents/components/StagedFileItem";
+import { useDocumentUpload } from "@documents/hooks/useDocumentUpload";
+import { useIsMobile } from "@documents/hooks/useIsMobile";
+import { DOCUMENT_TYPES } from "@documents/utils/uploadHelpers";
 
 type InteractionAttachmentImportProps = {
-  interactionId: string;
+  interactionId?: string;
   onUploaded?: () => void;
 };
 
-export default function InteractionAttachmentImport({
-  interactionId,
-  onUploaded,
-}: InteractionAttachmentImportProps) {
-  const [uploading, setUploading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [libraryOpen, setLibraryOpen] = useState(false);
+type DocumentLinkPayload = {
+  id: string;
+  role?: string | null;
+  note?: string | null;
+};
+
+export default function InteractionAttachmentImport({ interactionId, onUploaded }: InteractionAttachmentImportProps) {
   const { t } = useI18n();
   const { selectedHouseholdId } = useGlobal();
+  const isMobile = useIsMobile();
 
-  const inferType = (file: File): DocumentType =>
-    file.type && file.type.startsWith("image/") ? "photo" : "document";
+  const [overlayOpen, setOverlayOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [linking, setLinking] = useState(false);
 
-  const handleFilesSelected = async (files: File[]) => {
-    if (!files.length || uploading) return;
-    setUploading(true);
-    try {
-      const supa = await createSPASassClient();
-      const client = supa.getSupabaseClient();
+  const uploadOptions = useMemo(
+    () => ({
+      storageFolder: interactionId ? () => interactionId : undefined,
+      uploadSource: "interaction_attachment_import",
+    }),
+    [interactionId],
+  );
 
-      const { data: userData, error: userError } = await client.auth.getUser();
-      if (userError) throw userError;
-      const userId = userData?.user?.id;
-      if (!userId) throw new Error("Not authenticated");
+  const {
+    stagedFiles,
+    uploading,
+    error,
+    success,
+    stageFiles,
+    removeStagedFile,
+    updateStagedFile,
+    uploadFiles,
+    canUpload,
+    clearStaged,
+  } = useDocumentUpload(uploadOptions);
 
-      if (!selectedHouseholdId) {
-        throw new Error(t("storage.noHousehold"));
-      }
+  const typeOptions = useMemo(
+    () =>
+      DOCUMENT_TYPES.map((value) => ({
+        value,
+        label: t(`storage.type.${value}` as const),
+      })),
+    [t],
+  );
 
-      for (const file of files) {
-        const compressionResult = await compressFileForUpload(file);
-        const fileForUpload = compressionResult.file;
-        const safeName = (fileForUpload.name || file.name || "file").replace(/[^0-9a-zA-Z._-]/g, "_");
-        const uniqueId =
-          typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-            ? crypto.randomUUID()
-            : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-        const storagePath = `${userId}/${interactionId}/${uniqueId}_${safeName}`;
+  const uploadDisabled = !canUpload || uploading || linking;
+  const stagedCount = stagedFiles.length;
 
-        const { error: uploadError } = await client.storage
-          .from("files")
-          .upload(storagePath, fileForUpload, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: fileForUpload.type || undefined,
-          });
-        if (uploadError) throw uploadError;
+  const handleFilesSelected = useCallback(
+    (files: FileList) => {
+      if (!files?.length) return;
+      stageFiles(files);
+    },
+    [stageFiles],
+  );
 
-        const resolvedType: DocumentType = inferType(fileForUpload);
-        const { data: document, error: documentError } = await client
-          .from("documents")
-          .insert({
-            household_id: selectedHouseholdId,
-            file_path: storagePath,
-            mime_type: fileForUpload.type || null,
-            type: resolvedType,
-            name: file.name || fileForUpload.name || "file",
-            notes: "",
-            metadata: {
-              ...buildDocumentMetadata(file, compressionResult),
-              uploadSource: "interaction_attachment_import",
-            },
-          })
-          .select<{ id: string }>("id")
-          .single();
-        if (documentError) throw documentError;
-
-        const documentId = document?.id;
-        if (!documentId) throw new Error("Failed to create document");
-
+  const linkDocuments = useCallback(
+    async (docs: DocumentLinkPayload[]) => {
+      if (!interactionId || !docs.length) return;
+      setLinking(true);
+      try {
+        const supa = await createSPASassClient();
+        const client = supa.getSupabaseClient();
+        const payload = docs.map((doc) => ({
+          interaction_id: interactionId,
+          document_id: doc.id,
+          role: doc.role ?? "attachment",
+          note: doc.note ?? "",
+        }));
         const { error: linkError } = await client
           .from("interaction_documents")
-          .insert({
-            interaction_id: interactionId,
-            document_id: documentId,
-            role: "attachment",
-            note: "",
-          });
+          .upsert(payload, { onConflict: "interaction_id,document_id" });
         if (linkError) throw linkError;
+      } finally {
+        setLinking(false);
       }
+    },
+    [interactionId],
+  );
 
-      setOpen(false);
-      onUploaded?.();
-    } catch (error: unknown) {
-      console.error(error);
-      alert("Le téléversement a échoué.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleLinkDocuments = async (docs: Document[]) => {
-    if (!docs.length) return;
-    setUploading(true);
+  const handleUpload = useCallback(async () => {
     try {
-      const supa = await createSPASassClient();
-      const client = supa.getSupabaseClient();
-
-      const payload = docs.map((doc) => ({
-        interaction_id: interactionId,
-        document_id: doc.id,
-        role: doc.link_role ?? "attachment",
-        note: doc.link_note ?? "",
-      }));
-
-      const { error: linkError } = await client
-        .from("interaction_documents")
-        .upsert(payload, { onConflict: "interaction_id,document_id" });
-      if (linkError) throw linkError;
-
-      setLibraryOpen(false);
-      setOpen(false);
-      onUploaded?.();
-    } catch (error: unknown) {
-      console.error(error);
+      const uploadedIds = await uploadFiles();
+      if (uploadedIds.length && interactionId) {
+        await linkDocuments(uploadedIds.map((id) => ({ id })));
+      }
+      if (uploadedIds.length) {
+        onUploaded?.();
+        setOverlayOpen(false);
+      }
+    } catch (err) {
+      console.error(err);
       alert(t("interactions.linkDocumentsFailed") ?? "Impossible de lier les documents.");
-    } finally {
-      setUploading(false);
     }
-  };
+  }, [uploadFiles, linkDocuments, onUploaded, t, interactionId]);
+
+  const handleLinkDocuments = useCallback(
+    async (docs: Document[]) => {
+      if (!interactionId || !docs.length) return;
+      try {
+        await linkDocuments(
+          docs.map((doc) => ({
+            id: doc.id,
+            role: doc.link_role ?? "attachment",
+            note: doc.link_note ?? "",
+          })),
+        );
+        setLibraryOpen(false);
+        setOverlayOpen(false);
+        onUploaded?.();
+      } catch (err) {
+        console.error(err);
+        alert(t("interactions.linkDocumentsFailed") ?? "Impossible de lier les documents.");
+      }
+    },
+    [linkDocuments, onUploaded, t],
+  );
+
+  useEffect(() => {
+    if (!overlayOpen) {
+      clearStaged();
+    }
+  }, [overlayOpen, clearStaged]);
 
   return (
     <>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+      <ResponsiveOverlay
+        trigger={
           <Button
             variant="outline"
-            size="sm"
-            disabled={uploading}
-            aria-label="Ajouter des fichiers"
+            size={isMobile ? "default" : "sm"}
+            disabled={uploading || linking}
+            aria-label={t("interactionsattachments")}
           >
-            {uploading ? (
+            {(uploading || linking) ? (
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             ) : (
               <Upload className="h-4 w-4" />
             )}
           </Button>
-        </PopoverTrigger>
+        }
+        title={t("interactionsattachments")}
+        description={t("interactionsdocumentsHelper")}
+        closeLabel={t("common.close")}
+        popoverContentClassName="w-80 space-y-3"
+        mobileContentClassName="pb-4"
+        open={overlayOpen}
+        onOpenChange={(next) => setOverlayOpen(next)}
+      >
+        {({ isMobile }) => (
+          <div className="space-y-4">
+            {isMobile ? (
+              <MobileUploadInterface onFilesSelected={handleFilesSelected} disabled={uploading || linking} />
+            ) : (
+              <DesktopUploadInterface onFilesSelected={handleFilesSelected} disabled={uploading || linking} />
+            )}
 
-        <PopoverContent
-          align="end"
-          sideOffset={6}
-          className="w-auto rounded-xl border bg-popover shadow-lg animate-in fade-in-0 zoom-in-95"
-        >
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
 
-          <div className="space-y-2">
-            <DocumentImportButtons onFilesSelected={handleFilesSelected} />
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="w-full justify-start"
-              onClick={() => setLibraryOpen(true)}
-              disabled={uploading || !selectedHouseholdId}
-            >
-              <LinkIcon className="mr-2 h-4 w-4" />
-              {t("interactions.linkExistingDocuments")}
-            </Button>
-            {uploading && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" />
-                {t("interactions.upload.inProgress")}
+            {success && (
+              <Alert className="border-green-200 bg-green-50 text-green-800">
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
+
+            {stagedFiles.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("storage.stageEmpty")}</p>
+            ) : (
+              <div className="space-y-3">
+                {stagedFiles.map((staged) => (
+                  <StagedFileItem
+                    key={staged.id}
+                    staged={staged}
+                    typeOptions={typeOptions}
+                    onUpdate={(changes) => updateStagedFile(staged.id, changes)}
+                    onRemove={() => removeStagedFile(staged.id)}
+                  />
+                ))}
               </div>
             )}
-          </div>
-        </PopoverContent>
-      </Popover>
 
-      <ExistingDocumentsModal
-        open={libraryOpen}
-        onOpenChange={setLibraryOpen}
-        householdId={selectedHouseholdId}
-        interactionId={interactionId}
-        onConfirm={handleLinkDocuments}
-      />
+            <div className="space-y-2 border-t pt-3">
+              <Button
+                type="button"
+                onClick={() => void handleUpload()}
+                disabled={uploadDisabled}
+                className="w-full"
+              >
+                {uploading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                    {t("storage.uploading")}
+                  </span>
+                ) : stagedCount > 1 ? (
+                  t("storage.uploadActionPlural", { count: stagedCount })
+                ) : (
+                  t("storage.uploadAction", { count: stagedCount })
+                )}
+              </Button>
+              {interactionId ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full justify-center gap-2 text-sm"
+                  onClick={() => setLibraryOpen(true)}
+                  disabled={linking || uploading || !selectedHouseholdId}
+                >
+                  <LinkIcon className="h-4 w-4" />
+                  {t("interactions.linkExistingDocuments")}
+                </Button>
+              ) : null}
+              {(uploading || linking) && (
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  {t("interactions.upload.inProgress")}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </ResponsiveOverlay>
+
+      {interactionId ? (
+        <ExistingDocumentsModal
+          open={libraryOpen}
+          onOpenChange={setLibraryOpen}
+          householdId={selectedHouseholdId}
+          interactionId={interactionId}
+          onConfirm={handleLinkDocuments}
+        />
+      ) : null}
     </>
   );
 }

@@ -2,20 +2,19 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Trash2, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, ChevronUp, Plus } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
-import type { DocumentType } from "@interactions/types";
-import { useDocumentUpload, type StagedFile } from "../hooks/useDocumentUpload";
+import { useDocumentUpload } from "../hooks/useDocumentUpload";
 import { useIsMobile } from "../hooks/useIsMobile";
-import { DOCUMENT_TYPES, formatFileSize } from "../utils/uploadHelpers";
-import { MobileUploadInterface } from "./MobileUploadInterface";
+import { DOCUMENT_TYPES } from "../utils/uploadHelpers";
 import { DesktopUploadInterface } from "./DesktopUploadInterface";
+import { MobileUploadInterface } from "./MobileUploadInterface";
+import { StagedFileItem } from "./StagedFileItem";
 
 type DocumentUploadSectionProps = {
     onUploadSuccess?: (uploadedIds: string[]) => void;
@@ -171,68 +170,5 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
                 </CardContent>
             ) : null}
         </Card>
-    );
-}
-
-type StagedFileItemProps = {
-    staged: StagedFile;
-    typeOptions: Array<{ value: DocumentType; label: string }>;
-    onUpdate: (changes: Partial<Pick<StagedFile, "name" | "type">>) => void;
-    onRemove: () => void;
-};
-
-function StagedFileItem({ staged, typeOptions, onUpdate, onRemove }: StagedFileItemProps) {
-    const { t } = useI18n();
-
-    return (
-        <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <div className="flex flex-col gap-2">
-                <div>
-                    <label className="text-xs font-medium text-gray-600" htmlFor={`name-${staged.id}`}>
-                        {t("storage.fields.nameLabel")}
-                    </label>
-                    <Input
-                        id={`name-${staged.id}`}
-                        value={staged.name}
-                        onChange={(event) => onUpdate({ name: event.target.value })}
-                        autoComplete="off"
-                        className="mt-1"
-                    />
-                </div>
-                <div>
-                    <label className="text-xs font-medium text-gray-600" htmlFor={`type-${staged.id}`}>
-                        {t("storage.fields.typeLabel")}
-                    </label>
-                    <select
-                        id={`type-${staged.id}`}
-                        value={staged.type}
-                        onChange={(event) => onUpdate({ type: event.target.value as DocumentType })}
-                        className="mt-1 h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                    >
-                        {typeOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <p className="text-xs text-gray-500">
-                    {staged.file.name} · {formatFileSize(staged.file.size)}
-                </p>
-            </div>
-            <div className="flex items-center justify-end">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={onRemove}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    aria-label={t("common.remove")}
-                >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {t("common.remove")}
-                </Button>
-            </div>
-        </div>
     );
 }
