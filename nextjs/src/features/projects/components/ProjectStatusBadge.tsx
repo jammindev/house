@@ -14,7 +14,7 @@ interface ProjectStatusBadgeProps {
 export default function ProjectStatusBadge({ status }: ProjectStatusBadgeProps) {
   const { t } = useI18n();
   const label = useMemo(() => t(`projects.status.${status}`), [status, t]);
-  const base = "inline-flex items-center gap-1 rounded-full border px-2 py-1 text-xs font-medium";
+  const base = "rounded-full border px-2 py-1 text-xs font-medium w-fit";
   const statusClass = PROJECT_STATUS_COLORS[status] ?? "bg-slate-100 text-slate-700 border-slate-200";
 
   return <span className={cn(base, statusClass)}>{label}</span>;
