@@ -1,0 +1,12 @@
+# Dependencies and build output
+node_modules
+dist
+storybook-static
+
+# Editor cruft
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Env files
+.env*
