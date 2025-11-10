@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert } from "lucide-react";
+import CountBadge from "@/components/ui/CountBadge";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -57,8 +58,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                   </span>
                 ) : null}
                 {project.group ? (
-                  <button
-                    type="button"
+                  <CountBadge
+                    icon={<FolderKanban className="h-4 w-4" />}
+                    count={undefined}
+                    label={project.group.name}
+                    display="inline"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -66,14 +70,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                         window.location.href = `/app/project-groups/${project.group.id}`;
                       }
                     }}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700 cursor-pointer border-0 outline-none hover:bg-slate-200 transition-colors"
-                  >
-                    <FolderKanban className="h-4 w-4" />
-                    {typeof project.group.projectsCount === "number"
-                      ? `${project.group.projectsCount} ${project.group.name}`
-                      : project.group.name}
-                  </button>
+                  />
                 ) : null}
+                <CountBadge icon={<FileText className="h-4 w-4" />} count={documentsCount} display="tooltip" label={t("documents.title")} />
               </div>
             </div>
             <div className="text-right">
@@ -101,13 +100,6 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               <div className="flex flex-col leading-tight">
                 <span className="text-xs uppercase text-slate-500">{t("projects.metrics.tasks")}</span>
                 <span className="font-medium">{t("projects.metrics.tasksSummary", { open: openTodos, done: doneTodos })}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-slate-500" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.documents")}</span>
-                <span className="font-medium">{documentsCount}</span>
               </div>
             </div>
           </div>
@@ -143,12 +135,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           ) : null}
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t border-slate-100 bg-slate-50">
-          <div className="text-xs text-slate-500">
+        <CardFooter className="p-2 border-t border-slate-100 bg-slate-50">
+          <span className="w-full text-xs text-slate-500 text-right">
             {t("projects.updatedAt", {
               date: formatDate(project.updated_at ?? project.created_at, locale),
             })}
-          </div>
+          </span>
         </CardFooter>
       </Card>
     </Link>
