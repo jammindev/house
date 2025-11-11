@@ -22,7 +22,6 @@ export default function ProjectsPage() {
       {
         icon: Plus,
         href: "/app/projects/new",
-        label: t("projects.new"),
         variant: "default" as const,
       },
     ],

@@ -7,7 +7,7 @@ import { useInteractionZones } from "@interactions/hooks/useInteractionZones";
 import { useZones } from "@/features/zones/hooks/useZones";
 
 import { Button } from "@/components/ui/button";
-import { ResponsiveOverlay } from "@/components/ui/responsive-overlay";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Zone } from "@/features/zones/types";
 import { ZonePicker } from "./ZonePicker";
@@ -189,17 +189,16 @@ function ZoneOverlayTrigger({
   children,
 }: ZoneOverlayTriggerProps) {
   return (
-    <ResponsiveOverlay
+    <SheetDialog
       trigger={trigger}
       title={title}
       closeLabel={null}
-      popoverContentClassName="w-80 space-y-4 p-4"
-      mobileContentClassName="gap-4"
-      mobileContainerClassName="pb-0"
+      contentClassName="gap-4"
+      containerClassName="pb-0"
       open={open}
       onOpenChange={onOpenChange}
     >
       {children}
-    </ResponsiveOverlay>
+    </SheetDialog>
   );
 }

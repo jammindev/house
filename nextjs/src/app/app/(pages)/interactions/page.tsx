@@ -49,7 +49,6 @@ export default function InteractionsPage() {
       {
         icon: Plus,
         href: "/app/interactions/new",
-        label: t("interactionsnewEntry"),
         variant: "default" as const,
       },
     ],

@@ -2,6 +2,7 @@
 "use client";
 import Link from "next/link";
 import { Building2, CalendarDays, Folder, Paperclip, Tag as TagIcon, UserRound } from "lucide-react";
+import CountBadge from "@/components/ui/CountBadge";
 
 import type { Interaction } from "@interactions/types";
 
@@ -86,41 +87,39 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
 
         <div className="flex flex-wrap items-center gap-2">
           {documentCount > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-0.5 text-[11px] font-medium text-indigo-700"
-              title={t("interactionsattachments")}
-            >
-              <Paperclip className="h-3.5 w-3.5" />
-              {documentCount}
-            </span>
+            <CountBadge
+              icon={<Paperclip className="h-3.5 w-3.5" />}
+              count={documentCount}
+              label={t("interactionsattachments")}
+              display="tooltip"
+            />
           )}
+
           {tags.length > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[11px] font-medium text-gray-600"
-              title={t("interactionstagsLabel")}
-            >
-              <TagIcon className="h-3.5 w-3.5" />
-              {tags.length}
-            </span>
+            <CountBadge
+              icon={<TagIcon className="h-3.5 w-3.5" />}
+              count={tags.length}
+              label={t("interactionstagsLabel")}
+              display="tooltip"
+            />
           )}
 
           {contacts.length > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[11px] font-medium text-slate-700"
-              title={t("interactionscontacts.sectionTitle")}
-            >
-              <UserRound className="h-3.5 w-3.5" />
-              {contacts.length}
-            </span>
+            <CountBadge
+              icon={<UserRound className="h-3.5 w-3.5" />}
+              count={contacts.length}
+              label={t("interactionscontacts.sectionTitle")}
+              display="tooltip"
+            />
           )}
+
           {structures.length > 0 && (
-            <span
-              className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-medium text-emerald-800"
-              title={t("interactionsstructures.sectionTitle")}
-            >
-              <Building2 className="h-3.5 w-3.5" />
-              {structures.length}
-            </span>
+            <CountBadge
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              count={structures.length}
+              label={t("interactionsstructures.sectionTitle")}
+              display="tooltip"
+            />
           )}
         </div>
       </div>

@@ -6,7 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import { forwardRef } from "react";
 
 import { Button } from "@/components/ui/button";
-import { ResponsiveOverlay } from "@/components/ui/responsive-overlay";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { cn } from "@/lib/utils";
 
 export type ActionChipAction = {
@@ -44,7 +44,7 @@ export function ActionChip({
   chipClassName,
 }: ActionChipProps) {
   return (
-    <ResponsiveOverlay
+    <SheetDialog
       trigger={<ChipButton label={label} variant={variant} className={chipClassName} />}
       title={label}
       description={helperText}
@@ -62,7 +62,7 @@ export function ActionChip({
           ))}
         </div>
       )}
-    </ResponsiveOverlay>
+    </SheetDialog>
   );
 }
 

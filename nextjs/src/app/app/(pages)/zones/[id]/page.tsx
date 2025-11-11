@@ -41,12 +41,11 @@ export default function ZoneDetailPage() {
     () =>
       zone
         ? [
-            {
-              icon: Pencil,
-              onClick: () => setEditOpen(true),
-              label: t("zones.detail.edit"),
-            } as const,
-          ]
+          {
+            icon: Pencil,
+            onClick: () => setEditOpen(true),
+          } as const,
+        ]
         : undefined,
     [t, zone]
   );

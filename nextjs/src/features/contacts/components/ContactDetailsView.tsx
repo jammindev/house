@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Loader2, Mail, MapPin, Phone, StickyNote } from "lucide-react";
+import { Mail, MapPin, Phone, StickyNote } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import ContactDeleteButton from "@contacts/components/ContactDeleteButton";
 import { useContactInteractions } from "@contacts/hooks/useContactInteractions";
-import InteractionItem from "@interactions/components/InteractionItem";
+import EntityInteractionsCard from "@/components/EntityInteractionsCard";
 
 import type { Contact } from "../types";
 import { formatAddress, formatFullName } from "../lib/format";
@@ -128,9 +128,8 @@ export default function ContactDetailsView({ contact, t }: ContactDetailsViewPro
     loading: interactionsLoading,
     error: interactionsError,
   } = useContactInteractions(contact.id, { limit: 5 });
-  const moreInteractionsHref = `/app/interactions?contactId=${contact.id}${
-    fullName ? `&contactName=${encodeURIComponent(fullName)}` : ""
-  }`;
+  const moreInteractionsHref = `/app/interactions?contactId=${contact.id}${fullName ? `&contactName=${encodeURIComponent(fullName)}` : ""
+    }`;
   const auditLines = [
     contact.created_at
       ? t("contacts.auditCreated", {
@@ -175,45 +174,16 @@ export default function ContactDetailsView({ contact, t }: ContactDetailsViewPro
           )}
         </CardContent>
       </Card>
-      <Card className="border border-border/70 shadow-sm">
-        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <CardTitle className="text-lg font-semibold">{t("contacts.latestInteractionsTitle")}</CardTitle>
-            <p className="text-sm text-muted-foreground">{t("contacts.latestInteractionsSubtitle")}</p>
-          </div>
-          {recentInteractions.length > 0 && !interactionsLoading ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href={moreInteractionsHref}>{t("contacts.viewAllInteractions")}</Link>
-            </Button>
-          ) : null}
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {interactionsLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              {t("common.loading")}
-            </div>
-          ) : interactionsError ? (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              {t("contacts.latestInteractionsError")}
-            </div>
-          ) : recentInteractions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("contacts.latestInteractionsEmpty")}</p>
-          ) : (
-            <ul className="space-y-3">
-              {recentInteractions.map((interaction) => (
-                <li key={interaction.id}>
-                  <InteractionItem
-                    interaction={interaction}
-                    documentCount={documentCounts[interaction.id] ?? 0}
-                    t={t}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+      <EntityInteractionsCard
+        title={t("contacts.latestInteractionsTitle")}
+        subtitle={t("contacts.latestInteractionsSubtitle")}
+        interactions={recentInteractions}
+        documentCounts={documentCounts}
+        loading={interactionsLoading}
+        error={interactionsError}
+        moreHref={moreInteractionsHref}
+        t={t}
+      />
       <AuditHistoryCard
         lines={auditLines}
         actions={<ContactDeleteButton contact={contact} />}

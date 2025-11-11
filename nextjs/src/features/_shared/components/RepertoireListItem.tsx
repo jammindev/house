@@ -36,8 +36,17 @@ export default function RepertoireListItem({
 }: RepertoireListItemProps) {
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onSelect()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar" || e.code === "Space") {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
       className={cn(
-        "flex w-full items-start justify-between gap-4 px-4 py-3 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
+        "flex w-full items-start justify-between gap-4 px-4 py-3 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 cursor-pointer",
         className
       )}
     >
@@ -89,19 +98,6 @@ export default function RepertoireListItem({
                 </Button>
               );
             })}
-
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              onClick={(event) => {
-                event.stopPropagation();
-                onSelect();
-              }}
-              aria-label={detailAriaLabel}
-            >
-              <Notebook className="h-4 w-4 text-gray-700" aria-hidden />
-            </Button>
           </div>
         </div>
 

@@ -13,6 +13,8 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useStructures } from "@structures/hooks/useStructures";
 import { useContacts } from "@contacts/hooks/useContacts";
 import StructureDeleteButton from "@structures/components/StructureDeleteButton";
+import EntityInteractionsCard from "@/components/EntityInteractionsCard";
+import { useStructureInteractions } from "@structures/hooks/useStructureInteractions";
 import { formatFullName } from "@contacts/lib/format";
 import type { Structure, StructureAddress } from "@structures/types";
 
@@ -264,16 +266,29 @@ export default function StructureDetailPage() {
     return contacts.filter((contact) => contact.structure_id === structure.id);
   }, [contacts, structure]);
 
+  const {
+    interactions: recentInteractions,
+    documentCounts,
+    loading: interactionsLoading,
+    error: interactionsError,
+  } = useStructureInteractions(structure?.id ?? null, { limit: 5 });
+
+  const moreInteractionsHref = structure
+    ? `/app/interactions?structureId=${structure.id}${structure.name ? `&structureName=${encodeURIComponent(
+      structure.name
+    )}` : ""}`
+    : undefined;
+
   const actions = useMemo(
     () =>
       structure
         ? [
-            {
-              icon: Pencil,
-              href: `/app/structures/${structure.id}/edit`,
-              label: t("structures.editTitle"),
-            } as const,
-          ]
+          {
+            icon: Pencil,
+            href: `/app/structures/${structure.id}/edit`,
+            label: t("structures.editTitle"),
+          } as const,
+        ]
         : undefined,
     [structure, t]
   );
@@ -306,7 +321,7 @@ export default function StructureDetailPage() {
       contentClassName="space-y-6"
     >
       {structure ? (
-        <>
+        <div className="space-y-6">
           <StructureDetails structure={structure} t={t} />
 
           <section className="rounded-lg border border-border/60 bg-card p-4">
@@ -341,10 +356,23 @@ export default function StructureDetailPage() {
             )}
           </section>
 
+          <section>
+            <EntityInteractionsCard
+              title={t("structures.latestInteractionsTitle")}
+              subtitle={t("structures.latestInteractionsSubtitle")}
+              interactions={recentInteractions}
+              documentCounts={documentCounts}
+              loading={interactionsLoading}
+              error={interactionsError}
+              moreHref={moreInteractionsHref}
+              t={t}
+            />
+          </section>
+
           <div className="flex justify-end">
             <StructureDeleteButton structure={structure} onDelete={() => deleteStructure(structure.id)} />
           </div>
-        </>
+        </div>
       ) : null}
     </DetailPageLayout>
   );
