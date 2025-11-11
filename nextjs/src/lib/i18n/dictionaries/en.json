@@ -888,6 +888,8 @@
   "projects.metrics.tasksSummary": "{open} open · {done} done",
   "projects.metrics.documents": "Documents",
   "projects.metrics.documentsCount": "{count} documents",
+  "projects.metrics.interactions": "Interactions",
+  "projects.metrics.interactionsCount": "{count} interactions",
   "projects.metrics.budgetPlanned": "Planned",
   "projects.metrics.budgetActual": "Actual",
   "projects.metrics.budget": "Budget",

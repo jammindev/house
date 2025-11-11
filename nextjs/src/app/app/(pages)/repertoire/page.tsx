@@ -116,7 +116,7 @@ export default function RepertoirePage() {
 
   const toggleToolbar = (
     <div className="flex justify-end">
-      <div className="inline-flex rounded-md border border-border bg-background p-1">
+      <div className="inline-flex gap-2">
         <Button
           type="button"
           variant={currentView === "contacts" ? "default" : "ghost"}

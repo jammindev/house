@@ -7,6 +7,7 @@ import { Filter, Plus } from "lucide-react";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
+import TextSearch from "@projects/components/TextSearch";
 import ProjectList from "@projects/components/ProjectList";
 import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProjects";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -38,11 +39,11 @@ export default function ProjectsPage() {
         variant: "default" as const,
       },
     ],
-    [t, filters, setFilters, resetFilters]
+    [filters, setFilters, resetFilters]
   );
 
   const toolbar = (
-    <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+    <TextSearch filters={filters} setFilters={setFilters} />
   );
 
   return (

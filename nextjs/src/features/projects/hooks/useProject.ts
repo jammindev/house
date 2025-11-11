@@ -14,6 +14,7 @@ export function useProject(projectId?: string) {
   const { t } = useI18n();
   const [project, setProject] = useState<ProjectWithMetrics | null>(null);
   const [relatedProjects, setRelatedProjects] = useState<ProjectWithMetrics[]>([]);
+  const [interactionsCount, setInteractionsCount] = useState<number | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -162,6 +163,21 @@ export function useProject(projectId?: string) {
         ...flags,
         group,
       });
+      // fetch interactions count for this project (used in some UIs)
+      try {
+        const { data: _rows, count: interactionsCountResult, error: interactionsCountError } = await client
+          .from("interactions")
+          .select("id", { count: "exact" })
+          .eq("project_id", projectData.id)
+          .eq("household_id", householdId);
+        if (interactionsCountError) throw interactionsCountError;
+        setInteractionsCount(interactionsCountResult ?? 0);
+      } catch (err) {
+        // non-fatal: log and continue (we still surface the project)
+        // eslint-disable-next-line no-console
+        console.warn("Failed to load interactions count for project", projectData.id, err);
+        setInteractionsCount(undefined);
+      }
       setRelatedProjects(related);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("common.unexpectedError");
@@ -188,5 +204,6 @@ export function useProject(projectId?: string) {
     loading,
     error,
     reload: load,
+    interactionsCount,
   };
 }
