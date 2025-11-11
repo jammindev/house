@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
 import Link from "next/link";
-import { motion } from "framer-motion";
+// removed framer-motion presence animation
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import type { Zone } from "../types";
@@ -47,16 +47,7 @@ export default function ZoneItem({
     const displayColor = useMemo(() => getZoneDisplayColor(zone, zonesById), [zone, zonesById]);
 
     return (
-        <motion.li
-            layout
-            initial={false}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, height: 0, marginTop: 0, marginBottom: 0 }}
-            transition={{
-                duration: 0.10,
-                ease: "easeOut",
-                layout: { type: "spring", duration: 0.10, ease: "easeInOut" },
-            }}
+        <li
             className={clsx(
                 "group rounded-md border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm transition hover:border-slate-300",
                 depth > 0 && "bg-slate-50",
@@ -128,6 +119,6 @@ export default function ZoneItem({
                 t={t}
                 onSave={onEdit}
             />
-        </motion.li>
+        </li>
     );
 }

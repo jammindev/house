@@ -6,7 +6,7 @@ import { AlertCircle, CheckCircle2, Link as LinkIcon, Loader2, Upload } from "lu
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { ResponsiveOverlay } from "@/components/ui/responsive-overlay";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
@@ -150,7 +150,7 @@ export default function InteractionAttachmentImport({ interactionId, onUploaded 
 
   return (
     <>
-      <ResponsiveOverlay
+      <SheetDialog
         trigger={
           <Button
             variant="outline"
@@ -168,8 +168,7 @@ export default function InteractionAttachmentImport({ interactionId, onUploaded 
         title={t("interactionsattachments")}
         description={t("interactionsdocumentsHelper")}
         closeLabel={t("common.close")}
-        popoverContentClassName="w-80 space-y-3"
-        mobileContentClassName="pb-4"
+        contentClassName="pb-4"
         open={overlayOpen}
         onOpenChange={(next) => setOverlayOpen(next)}
       >
@@ -250,7 +249,7 @@ export default function InteractionAttachmentImport({ interactionId, onUploaded 
             </div>
           </div>
         )}
-      </ResponsiveOverlay>
+      </SheetDialog>
 
       {interactionId ? (
         <ExistingDocumentsModal

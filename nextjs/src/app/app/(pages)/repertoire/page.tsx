@@ -100,7 +100,6 @@ export default function RepertoirePage() {
         {
           icon: Plus,
           href: "/app/structures/new",
-          label: t("structures.addStructure"),
           variant: "default" as const,
         },
       ];
@@ -110,7 +109,6 @@ export default function RepertoirePage() {
       {
         icon: Plus,
         href: "/app/contacts/new",
-        label: t("contacts.addContact"),
         variant: "default" as const,
       },
     ];
@@ -146,48 +144,48 @@ export default function RepertoirePage() {
   const layoutProps =
     currentView === "structures"
       ? {
-          loading: structuresLoading,
-          error: structuresError,
-          errorTitle: t("structures.loadFailed"),
-          isEmpty: !structuresLoading && structures.length === 0,
-          emptyState: (
-            <EmptyState
-              icon={Building2}
-              title={t("structures.empty")}
-              description={t("structures.createDescription")}
-              action={
-                <Button asChild>
-                  <Link href="/app/structures/new">{t("structures.addStructure")}</Link>
-                </Button>
-              }
-            />
-          ),
-          children:
-            structures.length > 0 ? (
-              <StructureList structures={structures} onSelect={handleSelectStructure} t={t} />
-            ) : null,
-        }
+        loading: structuresLoading,
+        error: structuresError,
+        errorTitle: t("structures.loadFailed"),
+        isEmpty: !structuresLoading && structures.length === 0,
+        emptyState: (
+          <EmptyState
+            icon={Building2}
+            title={t("structures.empty")}
+            description={t("structures.createDescription")}
+            action={
+              <Button asChild>
+                <Link href="/app/structures/new">{t("structures.addStructure")}</Link>
+              </Button>
+            }
+          />
+        ),
+        children:
+          structures.length > 0 ? (
+            <StructureList structures={structures} onSelect={handleSelectStructure} t={t} />
+          ) : null,
+      }
       : {
-          loading: contactsLoading,
-          error: contactsError,
-          errorTitle: t("contacts.loadFailed"),
-          isEmpty: !contactsLoading && contacts.length === 0,
-          emptyState: (
-            <EmptyState
-              icon={UserPlus}
-              title={t("contacts.empty")}
-              description={t("contacts.createDescription")}
-              action={
-                <Button asChild>
-                  <Link href="/app/contacts/new">{t("contacts.addContact")}</Link>
-                </Button>
-              }
-            />
-          ),
-          children: (
-            <ContactList contacts={contacts} onSelect={(contact) => handleSelectContact(contact.id)} t={t} />
-          ),
-        };
+        loading: contactsLoading,
+        error: contactsError,
+        errorTitle: t("contacts.loadFailed"),
+        isEmpty: !contactsLoading && contacts.length === 0,
+        emptyState: (
+          <EmptyState
+            icon={UserPlus}
+            title={t("contacts.empty")}
+            description={t("contacts.createDescription")}
+            action={
+              <Button asChild>
+                <Link href="/app/contacts/new">{t("contacts.addContact")}</Link>
+              </Button>
+            }
+          />
+        ),
+        children: (
+          <ContactList contacts={contacts} onSelect={(contact) => handleSelectContact(contact.id)} t={t} />
+        ),
+      };
 
   return (
     <ListPageLayout

@@ -21,7 +21,6 @@ export default function ProjectGroupsPage() {
       {
         icon: Plus,
         href: "/app/project-groups/new",
-        label: t("projectGroups.createTitle"),
         variant: "default" as const,
       },
     ],

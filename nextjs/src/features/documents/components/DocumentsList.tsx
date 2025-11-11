@@ -1,9 +1,8 @@
 // nextjs/src/features/documents/components/DocumentsList.tsx
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
-import { AlertCircle, Edit, ExternalLink, FileDown, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, Loader2, Trash2 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -12,23 +11,6 @@ import type { DocumentWithLinks } from "../types";
 import DocumentListItem from "./DocumentListItem";
 import { EditDocumentModal } from "./EditDocumentModal";
 
-function formatDate(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
-}
-
-function formatSize(metadata: DocumentWithLinks["metadata"]) {
-  const sizeValue =
-    metadata && typeof metadata === "object" && "size" in metadata
-      ? Number((metadata as { size: unknown }).size)
-      : NaN;
-  if (!Number.isFinite(sizeValue) || sizeValue <= 0) return "";
-  if (sizeValue < 1024) return `${sizeValue} B`;
-  if (sizeValue < 1024 * 1024) return `${(sizeValue / 1024).toFixed(1)} KB`;
-  if (sizeValue < 1024 * 1024 * 1024) return `${(sizeValue / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(sizeValue / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
 
 type DocumentsListProps = {
   documents: DocumentWithLinks[];
@@ -42,8 +24,6 @@ type DocumentsListProps = {
 export function DocumentsList({ documents, loading, error, onRefresh, filterActive, highlightedIds = [] }: DocumentsListProps) {
   const { t } = useI18n();
   const [actionError, setActionError] = useState<string | null>(null);
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingDocument, setEditingDocument] = useState<DocumentWithLinks | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 

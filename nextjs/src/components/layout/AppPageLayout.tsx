@@ -32,6 +32,11 @@ interface AppPageLayoutProps {
   contentClassName?: string;
   hideBackButton?: boolean;
   loading?: boolean;
+  /**
+   * When true titles/contexts/subtitles are centered. Defaults to true to
+   * preserve current visual behaviour. Set to false to left-align titles.
+   */
+  titlesCentered?: boolean;
 }
 
 export default function AppPageLayout({
@@ -44,6 +49,7 @@ export default function AppPageLayout({
   contentClassName,
   hideBackButton = false,
   loading = false,
+  titlesCentered = true,
 }: AppPageLayoutProps) {
   const { toggleSidebar } = useSidebarToggle();
   const actionButtons = actions?.map((action, i) => {
@@ -53,7 +59,7 @@ export default function AppPageLayout({
         key={i}
         variant={action.variant ?? "outline"}
         size={action.size ?? "sm"}
-        aria-label={action.label}
+        aria-label={action.label ?? action.href ?? "Action"}
         disabled={action.disabled}
         onClick={action.href ? undefined : action.onClick}
         className={cn(
@@ -64,30 +70,16 @@ export default function AppPageLayout({
         asChild={!!action.href}
       >
         {action.href ? (
-          <a href={action.href}>
+          <a href={action.href} aria-label={action.label ?? action.href ?? "Action"}>
             <action.icon className="h-5 w-5" />
-            {action.label && (
-              <span
-                className={cn(
-                  action.size === "icon" ? "sr-only" : "text-sm font-medium"
-                )}
-              >
-                {action.label}
-              </span>
-            )}
+            {/* Never show the label visually — keep a screen-reader-only label for accessibility */}
+            <span className="sr-only">{action.label ?? action.href ?? "Action"}</span>
           </a>
         ) : (
           <>
             <action.icon className="h-5 w-5" />
-            {action.label && (
-              <span
-                className={cn(
-                  action.size === "icon" ? "sr-only" : "text-sm font-medium"
-                )}
-              >
-                {action.label}
-              </span>
-            )}
+            {/* Visually hidden label for screen readers only */}
+            <span className="sr-only">{action.label ?? "Action"}</span>
           </>
         )}
       </Button>
@@ -101,35 +93,46 @@ export default function AppPageLayout({
         className
       )}
     >
-      {/* Bouton menu fixe à gauche */}
-      <div className="fixed top-4 left-4 z-50">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={toggleSidebar}
-          aria-label="Open navigation"
-          className="w-fit lg:invisible"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
-      </div>
+      <header>
+        {/* Layout header: left fixed, center flexible (min-w-0 + truncate), right fixed */}
+        <div className="flex items-center">
+          {/* Bouton menu fixe à gauche */}
+          <div className="flex items-center flex-shrink-0">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={toggleSidebar}
+              aria-label="Open navigation"
+              className="w-fit lg:invisible"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
 
-      {/* Boutons d'action fixes à droite */}
-      <div className="fixed top-4 right-4 z-50 flex space-x-2">
-        {!hideBackButton && <BackButton />}
-        {actionButtons}
-      </div>
+          {/* Zone centrale : prend l'espace restant, permet la troncature */}
+          <div className="flex-1 min-w-0 px-4">
+            <h1
+              className={cn(
+                "text-2xl font-semibold text-gray-900 truncate",
+                titlesCentered ? "text-center" : "text-left"
+              )}
+              title={title}
+            >
+              {title}
+            </h1>
+          </div>
 
-      <header className="space-y-2 w-full mt-14 sm:mt-8 lg:mt-0">
-        <div className="space-y-1 ml-2 lg:ml-3">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {title}
-          </h1>
-          {context ? <span className="text-gray-500">{context}</span> : null}
-          {subtitle && (
-            <p className="max-w-sm text-sm text-gray-500">{subtitle}</p>
-          )}
+          {/* Boutons d'action fixes à droite */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {!hideBackButton && <BackButton />}
+            {actionButtons}
+          </div>
         </div>
+        {subtitle && (
+          <p className={cn("max-w-full text-sm text-gray-500 mt-1", titlesCentered ? "text-center" : "text-left")}>
+            {subtitle}
+          </p>
+        )}
       </header>
 
       {/* 💡 Ajout d’un loader global */}
