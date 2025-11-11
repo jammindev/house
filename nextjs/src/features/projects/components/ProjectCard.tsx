@@ -2,9 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert } from "lucide-react";
+import { useState, type MouseEvent } from "react";
+import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileText, FolderKanban, TriangleAlert } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -35,11 +37,19 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const openTodos = metrics?.open_todos ?? 0;
   const doneTodos = metrics?.done_todos ?? 0;
   const documentsCount = metrics?.documents_count ?? 0;
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const detailsId = `project-card-details-${project.id}`;
+
+  const handleToggleDetails = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsCollapsed((prev) => !prev);
+  };
 
   return (
     <Link href={`/app/projects/${project.id}`} className="block">
       <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
@@ -75,73 +85,85 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 <CountBadge icon={<FileText className="h-4 w-4" />} count={documentsCount} display="tooltip" label={t("documents.title")} />
               </div>
             </div>
-            <div className="text-right">
-              <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>
-              <div className="text-sm font-medium text-slate-800">{formatDate(project.due_date, locale)}</div>
+            <div className="flex flex-col items-end gap-2 text-right">
+              <div>
+                <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>
+                <div className="text-sm font-medium text-slate-800">{formatDate(project.due_date, locale)}</div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-xs font-medium uppercase text-slate-600 hover:text-slate-900"
+                onClick={handleToggleDetails}
+                aria-expanded={!isCollapsed}
+                aria-controls={detailsId}
+              >
+                <span>{t(isCollapsed ? "projects.actions.showDetails" : "projects.actions.hideDetails")}</span>
+                {isCollapsed ? <ChevronDown className="ml-1 h-4 w-4" /> : <ChevronUp className="ml-1 h-4 w-4" />}
+              </Button>
             </div>
           </div>
-
-          {project.description ? (
-            <p className="text-sm text-slate-600 line-clamp-3">{project.description}</p>
-          ) : null}
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-4 text-sm text-slate-700">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center gap-2">
-              <CalendarClock className="h-4 w-4 text-slate-500" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs uppercase text-slate-500">{t("projects.fields.startDate")}</span>
-                <span className="font-medium">{formatDate(project.start_date, locale)}</span>
+        <div id={detailsId} hidden={isCollapsed}>
+          <CardContent className="flex flex-col gap-4 text-sm text-slate-700">
+            {project.description ? <p className="text-sm text-slate-600">{project.description}</p> : null}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <CalendarClock className="h-4 w-4 text-slate-500" />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs uppercase text-slate-500">{t("projects.fields.startDate")}</span>
+                  <span className="font-medium">{formatDate(project.start_date, locale)}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-slate-500" />
+                <div className="flex flex-col leading-tight">
+                  <span className="text-xs uppercase text-slate-500">{t("projects.metrics.tasks")}</span>
+                  <span className="font-medium">{t("projects.metrics.tasksSummary", { open: openTodos, done: doneTodos })}</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-slate-500" />
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.tasks")}</span>
-                <span className="font-medium">{t("projects.metrics.tasksSummary", { open: openTodos, done: doneTodos })}</span>
-              </div>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap gap-4">
-            <div className="flex flex-col">
-              <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetPlanned")}</span>
-              <span className="font-semibold text-slate-900">
-                {formatCurrency(project.planned_budget ?? 0, locale)}
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetActual")}</span>
-              <span
-                className={cn(
-                  "font-semibold",
-                  project.actual_cost_cached > project.planned_budget ? "text-rose-600" : "text-emerald-700"
-                )}
-              >
-                {formatCurrency(project.actual_cost_cached ?? 0, locale)}
-              </span>
-            </div>
-          </div>
-
-          {project.tags?.length ? (
-            <div className="flex flex-wrap gap-2">
-              {project.tags.map((tag) => (
-                <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                  #{tag}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex flex-col">
+                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetPlanned")}</span>
+                <span className="font-semibold text-slate-900">
+                  {formatCurrency(project.planned_budget ?? 0, locale)}
                 </span>
-              ))}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetActual")}</span>
+                <span
+                  className={cn(
+                    "font-semibold",
+                    project.actual_cost_cached > project.planned_budget ? "text-rose-600" : "text-emerald-700"
+                  )}
+                >
+                  {formatCurrency(project.actual_cost_cached ?? 0, locale)}
+                </span>
+              </div>
             </div>
-          ) : null}
-        </CardContent>
 
-        <CardFooter className="p-2 border-t border-slate-100 bg-slate-50">
-          <span className="w-full text-xs text-slate-500 text-right">
-            {t("projects.updatedAt", {
-              date: formatDate(project.updated_at ?? project.created_at, locale),
-            })}
-          </span>
-        </CardFooter>
+            {project.tags?.length ? (
+              <div className="flex flex-wrap gap-2">
+                {project.tags.map((tag) => (
+                  <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </CardContent>
+
+          <CardFooter className="p-2 border-t border-slate-100 bg-slate-50">
+            <span className="w-full text-xs text-slate-500 text-right">
+              {t("projects.updatedAt", {
+                date: formatDate(project.updated_at ?? project.created_at, locale),
+              })}
+            </span>
+          </CardFooter>
+        </div>
       </Card>
     </Link>
   );

@@ -917,6 +917,8 @@
   "projects.quickActions.addExpense": "Enregistrer une dépense",
   "projects.quickActions.addCall": "Consigner un appel",
   "projects.quickActions.linkExisting": "Lier une interaction existante",
+  "projects.actions.showDetails": "Plus de détails",
+  "projects.actions.hideDetails": "Masquer les détails",
   "projects.actions.editProject": "Modifier le projet",
   "projects.tabs.timeline": "Chronologie",
   "projects.tabs.tasks": "Tâches",

@@ -58,7 +58,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onChangePassword={handleChangePassword}
                 />
 
-                <TopBar
+                {/* <TopBar
                     user={user}
                     households={households}
                     selectedHouseholdId={selectedHouseholdId}
@@ -66,9 +66,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onSelectHousehold={setSelectedHouseholdId}
                     onLogout={handleLogout}
                     onChangePassword={handleChangePassword}
-                />
+                /> */}
 
-                <main className="flex-1 md:p-4 lg:pl-64">{children}</main>
+                <main className="flex-1 p-2 md:p-4 lg:pl-64">{children}</main>
             </div>
         </SidebarToggleProvider>
     );
