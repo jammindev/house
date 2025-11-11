@@ -6,6 +6,7 @@ import {
   type MouseEvent,
   type ReactElement,
   type ReactNode,
+  type KeyboardEvent,
   useCallback,
   useMemo,
   useState,
@@ -94,7 +95,7 @@ export function SheetDialog({
           hideDefaultCloseButton
           aria-describedby={description ? undefined : ""}
           className={cn(
-            "rounded-t-3xl border-none bg-background p-0 pb-2 shadow-2xl",
+            "rounded-t-3xl border-none bg-background p-0 pb-2 shadow-2xl max-w-4xl mx-auto",
             containerClassName,
           )}
         >
@@ -104,7 +105,22 @@ export function SheetDialog({
               contentClassName,
             )}
           >
-            <div className="mx-auto h-1.5 w-12 rounded-full bg-muted" />
+            <div
+              role="button"
+              tabIndex={0}
+              aria-label={closeLabel ?? "Close"}
+              title={closeLabel ?? "Close"} className="w-full h-6" onClick={() => helpers.close()}
+              onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
+                // Close on Enter or Space (handle various browser key values)
+                if (e.key === "Enter" || e.key === " " || e.key === "Spacebar" || e.key === "Space") {
+                  e.preventDefault();
+                  helpers.close();
+                }
+              }}>
+              <div
+                className="mx-auto h-1.5 w-12 rounded-full bg-muted"
+              />
+            </div>
             <div className="space-y-1">
               {title ? (
                 <DialogTitle className="text-base font-semibold text-foreground">{title}</DialogTitle>

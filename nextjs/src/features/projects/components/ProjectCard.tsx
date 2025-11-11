@@ -3,8 +3,9 @@
 
 import Link from "next/link";
 import { useState, type MouseEvent } from "react";
-import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileText, FolderKanban, TriangleAlert } from "lucide-react";
+import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileText, FolderKanban, TriangleAlert, MessageSquare } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
+import { useProject } from "@projects/hooks/useProject";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -37,134 +38,147 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const openTodos = metrics?.open_todos ?? 0;
   const doneTodos = metrics?.done_todos ?? 0;
   const documentsCount = metrics?.documents_count ?? 0;
+  const { interactionsCount } = useProject(project.id);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const detailsId = `project-card-details-${project.id}`;
 
-  const handleToggleDetails = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
+  const handleToggleDetails = (event?: MouseEvent<HTMLButtonElement>) => {
+    // stopPropagation in case this button is placed inside other interactive containers
+    event?.stopPropagation();
     setIsCollapsed((prev) => !prev);
   };
 
   return (
-    <Link href={`/app/projects/${project.id}`} className="block">
-      <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer">
-        <CardHeader className="space-y-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-2">
-              <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
-              <div className="flex flex-wrap gap-2 items-center">
-                <ProjectStatusBadge status={project.status} />
-                {project.isOverdue ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">
-                    <TriangleAlert className="h-4 w-4" />
-                    {t("projects.badges.overdue")}
-                  </span>
-                ) : null}
-                {!project.isOverdue && project.isDueSoon ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-                    <CalendarClock className="h-4 w-4" />
-                    {t("projects.badges.dueSoon")}
-                  </span>
-                ) : null}
-                {project.group ? (
-                  <CountBadge
-                    icon={<FolderKanban className="h-4 w-4" />}
-                    count={undefined}
-                    label={project.group.name}
-                    display="inline"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (project.group) {
-                        window.location.href = `/app/project-groups/${project.group.id}`;
-                      }
-                    }}
-                  />
-                ) : null}
-                <CountBadge icon={<FileText className="h-4 w-4" />} count={documentsCount} display="tooltip" label={t("documents.title")} />
+    <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+      <CardHeader className="space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <Link href={`/app/projects/${project.id}`} className="flex flex-col gap-2">
+            <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
+            <div className="flex flex-wrap gap-2 items-center">
+              <ProjectStatusBadge status={project.status} />
+              {project.isOverdue ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">
+                  <TriangleAlert className="h-4 w-4" />
+                  {t("projects.badges.overdue")}
+                </span>
+              ) : null}
+              {!project.isOverdue && project.isDueSoon ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+                  <CalendarClock className="h-4 w-4" />
+                  {t("projects.badges.dueSoon")}
+                </span>
+              ) : null}
+              {project.group ? (
+                <CountBadge
+                  icon={<FolderKanban className="h-4 w-4" />}
+                  count={undefined}
+                  label={project.group.name}
+                  display="inline"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (project.group) {
+                      window.location.href = `/app/project-groups/${project.group.id}`;
+                    }
+                  }}
+                />
+              ) : null}
+              {/* interactions count fetched via useProject */}
+            </div>
+          </Link>
+          {project.due_date && <div className="flex flex-col items-end gap-2 text-right">
+            <div>
+              <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>
+              <div className="text-sm font-medium text-slate-800">{formatDate(project.due_date, locale)}</div>
+            </div>
+          </div>}
+        </div>
+        <div className="flex items-center gap-1">
+          <CountBadge icon={<MessageSquare className="h-4 w-4" />} count={interactionsCount} display="tooltip" label={t("projects.metrics.interactions")} />
+          <CountBadge icon={<FileText className="h-4 w-4" />} count={documentsCount} display="tooltip" label={t("documents.title")} />
+
+        </div>
+      </CardHeader>
+
+      <div id={detailsId} hidden={isCollapsed}>
+        <CardContent className="flex flex-col gap-4 text-sm text-slate-700">
+          {project.description ? <p className="text-sm text-slate-600">{project.description}</p> : null}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <CalendarClock className="h-4 w-4 text-slate-500" />
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs uppercase text-slate-500">{t("projects.fields.startDate")}</span>
+                <span className="font-medium">{formatDate(project.start_date, locale)}</span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2 text-right">
-              <div>
-                <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>
-                <div className="text-sm font-medium text-slate-800">{formatDate(project.due_date, locale)}</div>
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-slate-500" />
+              <div className="flex flex-col leading-tight">
+                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.tasks")}</span>
+                <span className="font-medium">{t("projects.metrics.tasksSummary", { open: openTodos, done: doneTodos })}</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-xs font-medium uppercase text-slate-600 hover:text-slate-900"
-                onClick={handleToggleDetails}
-                aria-expanded={!isCollapsed}
-                aria-controls={detailsId}
-              >
-                <span>{t(isCollapsed ? "projects.actions.showDetails" : "projects.actions.hideDetails")}</span>
-                {isCollapsed ? <ChevronDown className="ml-1 h-4 w-4" /> : <ChevronUp className="ml-1 h-4 w-4" />}
-              </Button>
             </div>
           </div>
-        </CardHeader>
 
-        <div id={detailsId} hidden={isCollapsed}>
-          <CardContent className="flex flex-col gap-4 text-sm text-slate-700">
-            {project.description ? <p className="text-sm text-slate-600">{project.description}</p> : null}
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <CalendarClock className="h-4 w-4 text-slate-500" />
-                <div className="flex flex-col leading-tight">
-                  <span className="text-xs uppercase text-slate-500">{t("projects.fields.startDate")}</span>
-                  <span className="font-medium">{formatDate(project.start_date, locale)}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-slate-500" />
-                <div className="flex flex-col leading-tight">
-                  <span className="text-xs uppercase text-slate-500">{t("projects.metrics.tasks")}</span>
-                  <span className="font-medium">{t("projects.metrics.tasksSummary", { open: openTodos, done: doneTodos })}</span>
-                </div>
-              </div>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col">
+              <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetPlanned")}</span>
+              <span className="font-semibold text-slate-900">
+                {formatCurrency(project.planned_budget ?? 0, locale)}
+              </span>
             </div>
-
-            <div className="flex flex-wrap gap-4">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetPlanned")}</span>
-                <span className="font-semibold text-slate-900">
-                  {formatCurrency(project.planned_budget ?? 0, locale)}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetActual")}</span>
-                <span
-                  className={cn(
-                    "font-semibold",
-                    project.actual_cost_cached > project.planned_budget ? "text-rose-600" : "text-emerald-700"
-                  )}
-                >
-                  {formatCurrency(project.actual_cost_cached ?? 0, locale)}
-                </span>
-              </div>
+            <div className="flex flex-col">
+              <span className="text-xs uppercase text-slate-500">{t("projects.metrics.budgetActual")}</span>
+              <span
+                className={cn(
+                  "font-semibold",
+                  project.actual_cost_cached > project.planned_budget ? "text-rose-600" : "text-emerald-700"
+                )}
+              >
+                {formatCurrency(project.actual_cost_cached ?? 0, locale)}
+              </span>
             </div>
+          </div>
 
-            {project.tags?.length ? (
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </CardContent>
+          {project.tags?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {project.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </CardContent>
+      </div>
 
-          <CardFooter className="p-2 border-t border-slate-100 bg-slate-50">
-            <span className="w-full text-xs text-slate-500 text-right">
-              {t("projects.updatedAt", {
-                date: formatDate(project.updated_at ?? project.created_at, locale),
-              })}
-            </span>
-          </CardFooter>
+      <CardFooter className="p-2 border-t border-slate-100 bg-slate-50">
+        <div className="w-full flex items-center justify-between gap-2">
+          <span className="text-xs text-slate-500">
+            {t("projects.updatedAt", {
+              date: formatDate(project.updated_at ?? project.created_at, locale),
+            })}
+          </span>
+
+          <div className="flex items-center sm:justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleToggleDetails}
+              aria-expanded={!isCollapsed}
+              aria-controls={detailsId}
+              aria-label={isCollapsed ? t("projects.actions.showDetails") : t("projects.actions.hideDetails")}
+              title={isCollapsed ? t("projects.actions.showDetails") : t("projects.actions.hideDetails")}
+            >
+              {isCollapsed ? (
+                <ChevronDown className="h-4 w-4 text-slate-600" />
+              ) : (
+                <ChevronUp className="h-4 w-4 text-slate-600" />
+              )}
+            </Button>
+          </div>
         </div>
-      </Card>
-    </Link>
+      </CardFooter>
+    </Card>
   );
 }

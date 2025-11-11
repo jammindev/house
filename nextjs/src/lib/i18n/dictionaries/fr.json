@@ -894,6 +894,8 @@
   "projects.metrics.tasksSummary": "{open} en cours · {done} terminées",
   "projects.metrics.documents": "Documents",
   "projects.metrics.documentsCount": "{count} documents",
+  "projects.metrics.interactions": "Interactions",
+  "projects.metrics.interactionsCount": "{count} interactions",
   "projects.metrics.budgetPlanned": "Prévisionnel",
   "projects.metrics.budgetActual": "Réalisé",
   "projects.metrics.budget": "Budget",
