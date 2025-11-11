@@ -42,7 +42,6 @@ export default function ProjectFilters({ filters, onChange, onReset }: ProjectFi
       onReset={onReset}
       resetAriaLabel={t("projects.filters.reset")}
       className="mb-4"
-      defaultCollapsed
     >
       <Input
         className="w-full md:w-64"

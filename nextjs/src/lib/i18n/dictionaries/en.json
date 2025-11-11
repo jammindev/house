@@ -911,6 +911,8 @@
   "projects.quickActions.addExpense": "Log expense",
   "projects.quickActions.addCall": "Log call",
   "projects.quickActions.linkExisting": "Link existing interaction",
+  "projects.actions.showDetails": "More details",
+  "projects.actions.hideDetails": "Hide details",
   "projects.actions.editProject": "Edit project",
   "projects.tabs.timeline": "Timeline",
   "projects.tabs.tasks": "Tasks",

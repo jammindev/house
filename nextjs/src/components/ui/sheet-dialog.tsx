@@ -13,6 +13,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@documents/hooks/useIsMobile";
@@ -104,14 +105,21 @@ export function SheetDialog({
             )}
           >
             <div className="mx-auto h-1.5 w-12 rounded-full bg-muted" />
-            {(title || description) && (
-              <div className="space-y-1">
-                {title && <DialogTitle className="text-base font-semibold text-foreground">{title}</DialogTitle>}
-                {description && (
-                  <DialogDescription className="text-sm text-muted-foreground">{description}</DialogDescription>
-                )}
-              </div>
-            )}
+            <div className="space-y-1">
+              {title ? (
+                <DialogTitle className="text-base font-semibold text-foreground">{title}</DialogTitle>
+              ) : (
+                // DialogContent requires a DialogTitle for accessibility. If no title was
+                // provided, render a visually hidden title so screen readers still have
+                // an accessible name for the dialog.
+                <VisuallyHidden>
+                  <DialogTitle>Dialog</DialogTitle>
+                </VisuallyHidden>
+              )}
+              {description && (
+                <DialogDescription className="text-sm text-muted-foreground">{description}</DialogDescription>
+              )}
+            </div>
             {content}
           </div>
           {closeLabel && (

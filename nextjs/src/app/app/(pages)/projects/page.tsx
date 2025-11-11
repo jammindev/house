@@ -3,7 +3,8 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Filter, Plus } from "lucide-react";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
 import ProjectList from "@projects/components/ProjectList";
@@ -17,18 +18,28 @@ export default function ProjectsPage() {
   const { t } = useI18n();
   const { projects, loading, error, filters, setFilters } = useProjects();
 
+  const resetFilters = () => setFilters({ ...DEFAULT_PROJECT_FILTERS });
+
   const actions = useMemo(
     () => [
+      {
+        // Custom element action: open filters in a SheetDialog
+        element: (
+          <SheetDialog
+            trigger={<Button variant="outline" size="sm"><Filter /></Button>}
+          >
+            <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+          </SheetDialog>
+        ),
+      },
       {
         icon: Plus,
         href: "/app/projects/new",
         variant: "default" as const,
       },
     ],
-    [t]
+    [t, filters, setFilters, resetFilters]
   );
-
-  const resetFilters = () => setFilters({ ...DEFAULT_PROJECT_FILTERS });
 
   const toolbar = (
     <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
