@@ -95,13 +95,13 @@ export function SheetDialog({
           hideDefaultCloseButton
           aria-describedby={description ? undefined : ""}
           className={cn(
-            "rounded-t-3xl border-none bg-background p-0 pb-2 shadow-2xl max-w-4xl mx-auto",
+            "rounded-t-3xl bg-background p-0 pb-2 shadow-2xl max-w-4xl mx-auto flex flex-col justify-between",
             containerClassName,
           )}
         >
           <div
             className={cn(
-              "flex max-h-[70vh] flex-col gap-4 overflow-y-auto p-5",
+              "flex flex-col gap-4 overflow-y-auto p-5 ",
               contentClassName,
             )}
           >
@@ -118,7 +118,7 @@ export function SheetDialog({
                 }
               }}>
               <div
-                className="mx-auto h-1.5 w-12 rounded-full bg-muted"
+                className="mx-auto mt-6 h-1.5 w-12 rounded-full bg-muted"
               />
             </div>
             <div className="space-y-1">

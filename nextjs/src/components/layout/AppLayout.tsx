@@ -4,7 +4,6 @@
 import React, { useState, useMemo, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
-import TopBar from "./TopBar";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
 import { SidebarToggleProvider } from "./SidebarToggleContext";
