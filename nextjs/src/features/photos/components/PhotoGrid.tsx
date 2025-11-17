@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { Image as ImageIcon, RefreshCcw, X } from "lucide-react";
-import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { useEffect, useState } from "react";
+import { Image as ImageIcon, RefreshCcw } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { cn } from "@/lib/utils";
 import type { PhotoDocument } from "@photos/types";
 import { PhotoDetailsPanel } from "@photos/components/PhotoDetailsPanel";
 import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
@@ -23,33 +23,21 @@ type PhotoGridProps = {
 
 export function PhotoGrid({ photos, previews, loading, error, onRefresh }: PhotoGridProps) {
   const { t } = useI18n();
-  const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [openPhotoId, setOpenPhotoId] = useState<string | null>(null);
   const isEmpty = !loading && photos.length === 0 && !error;
 
   useEffect(() => {
-    setActivePhotoId((current) => {
+    setOpenPhotoId((current) => {
       if (!current) return null;
       return photos.some((photo) => photo.id === current) ? current : null;
     });
   }, [photos]);
 
-  const activePhoto = useMemo(
-    () => (activePhotoId ? photos.find((photo) => photo.id === activePhotoId) ?? null : null),
-    [photos, activePhotoId]
-  );
-
-  const activePreview = activePhoto ? previews[activePhoto.id] : undefined;
-  const isDialogOpen = isModalOpen && Boolean(activePhoto);
-
-  const handleSelect = (photoId: string) => {
-    setActivePhotoId(photoId);
-    setIsModalOpen(true);
-  };
-
-  const handleClose = () => {
-    setIsModalOpen(false);
-    setActivePhotoId(null);
+  const handleOpenChange = (photoId: string, open: boolean) => {
+    setOpenPhotoId((current) => {
+      if (open) return photoId;
+      return current === photoId ? null : current;
+    });
   };
 
   const renderGrid = () => (
@@ -57,31 +45,74 @@ export function PhotoGrid({ photos, previews, loading, error, onRefresh }: Photo
       {photos.map((photo) => {
         const preview = previews[photo.id];
         const previewUrl = preview?.thumbnail ?? preview?.view;
-        const isSelected = photo.id === activePhotoId;
+        const isSelected = photo.id === openPhotoId;
+        const title = photoTitle(photo.name, t("documents.untitledDocument"));
+        const description = photo.notes && photo.notes.trim().length > 0 ? photo.notes : undefined;
         return (
-          <button
+          <SheetDialog
             key={photo.id}
-            type="button"
-            onClick={() => handleSelect(photo.id)}
-            className={`relative aspect-square overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 ${
-              isSelected ? "ring-2 ring-primary-500" : ""
-            }`}
-            aria-pressed={isSelected}
+            trigger={
+              <button
+                type="button"
+                className={cn(
+                  "group relative aspect-square overflow-hidden rounded-lg border border-transparent bg-gray-50 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500",
+                  isSelected
+                    ? "ring-2 ring-primary-500 border-primary-200"
+                    : "hover:border-primary-200 hover:ring-1 hover:ring-primary-200/70"
+                )}
+                aria-pressed={isSelected}
+              >
+                {previewUrl ? (
+                  <Image
+                    src={previewUrl}
+                    alt={photo.name}
+                    fill
+                    sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
+                    className="object-cover transition duration-200 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
+                    <ImageIcon className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                )}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent p-2 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+                  {title}
+                </div>
+              </button>
+            }
+            description={description}
+            closeLabel={t("common.close") ?? "Close"}
+            contentClassName="gap-6 p-0 sm:p-6"
+            containerClassName="h-full"
+            open={openPhotoId === photo.id}
+            onOpenChange={(open) => handleOpenChange(photo.id, open)}
           >
-            {previewUrl ? (
-              <Image
-                src={previewUrl}
-                alt={photo.name}
-                fill
-                sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"
-                className="object-cover transition duration-200 hover:scale-105"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400">
-                <ImageIcon className="h-6 w-6" aria-hidden="true" />
+            <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,3.5fr)_minmax(280px,1fr)] lg:items-start">
+              <div className="relative min-h-[75vh] w-full overflow-hidden border border-gray-900/10 bg-gradient-to-b from-gray-900 to-black shadow-2xl lg:min-h-[65vh]">
+                {preview?.view ? (
+                  <Image
+                    src={preview.view}
+                    alt={photo.name || t("photos.previewUnavailable")}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 60vw"
+                    className="object-contain"
+                    priority
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-500">
+                    <ImageIcon className="h-10 w-10" aria-hidden="true" />
+                  </div>
+                )}
               </div>
-            )}
-          </button>
+              <div className="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-lg shadow-gray-200/60 backdrop-blur lg:self-stretch">
+                <PhotoDetailsPanel
+                  photo={photo}
+                  previewUrl={preview?.view}
+                  downloadUrl={preview?.download}
+                />
+              </div>
+            </div>
+          </SheetDialog>
         );
       })}
     </div>
@@ -120,54 +151,7 @@ export function PhotoGrid({ photos, previews, loading, error, onRefresh }: Photo
           </Button>
         </div>
       ) : (
-        <>
-          {renderGrid()}
-
-          <Dialog open={isDialogOpen} onOpenChange={(open) => (open ? setIsModalOpen(true) : handleClose())}>
-            {activePhoto ? (
-              <DialogContent
-                hideDefaultCloseButton
-                className="w-[96vw] max-w-5xl border-none bg-transparent p-0 shadow-none"
-              >
-                <VisuallyHidden>
-                  <p>{photoTitle(activePhoto.name, t("documents.untitledDocument"))}</p>
-                </VisuallyHidden>
-                <div className="flex max-h-[88vh] flex-col overflow-hidden rounded-2xl bg-white shadow-xl lg:flex-row">
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-1 text-white transition hover:bg-black/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                    aria-label={t("common.close") ?? "Close"}
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                  <div className="relative flex-1 bg-black">
-                    {activePreview?.view ? (
-                      <Image
-                        src={activePreview.view}
-                        alt={activePhoto.name || t("photos.previewUnavailable")}
-                        fill
-                        sizes="(max-width: 1024px) 100vw, 60vw"
-                        className="object-contain"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-gray-900 text-gray-500">
-                        <ImageIcon className="h-8 w-8" aria-hidden="true" />
-                      </div>
-                )}
-              </div>
-                  <div className="w-full max-h-[88vh] overflow-y-auto border-t border-gray-200 p-6 lg:w-1/3 lg:border-l lg:border-t-0">
-                    <PhotoDetailsPanel
-                      photo={activePhoto}
-                      previewUrl={activePreview?.view}
-                      downloadUrl={activePreview?.download}
-                    />
-                  </div>
-                </div>
-              </DialogContent>
-            ) : null}
-          </Dialog>
-        </>
+        renderGrid()
       )}
     </div>
   );

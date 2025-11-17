@@ -8,6 +8,7 @@ import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
 import { useSidebarToggle } from "./SidebarToggleContext";
+import { Card } from "../ui/card";
 
 export type PageAction =
   | { element: ReactNode }
@@ -93,56 +94,64 @@ export default function AppPageLayout({
         className
       )}
     >
-      <header>
-        {/* Layout header: left fixed, center flexible (min-w-0 + truncate), right fixed */}
-        <div className="flex items-center">
-          {/* Bouton menu fixe à gauche */}
-          <div className="flex items-center flex-shrink-0">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={toggleSidebar}
-              aria-label="Open navigation"
-              className="w-fit lg:invisible"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
+      <Card className={cn(
+        "sticky top-0 z-20 border-b border-gray-200 bg-white/90 p-2 rounded-none",
+        "supports-[backdrop-filter]:bg-white/70 supports-[backdrop-filter]:backdrop-blur"
+      )}>
+        <header
+        >
+          {/* Header uses grid to keep side buttons fixed while the title truncates */}
+          <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2 sm:gap-4">
+            {/* Bouton menu fixe à gauche */}
+            <div className="flex items-center flex-shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={toggleSidebar}
+                aria-label="Open navigation"
+                className="w-fit lg:invisible"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </div>
 
-          {/* Zone centrale : prend l'espace restant, permet la troncature */}
-          <div className="flex-1 min-w-0 px-4">
-            <h1
-              className={cn(
-                "text-2xl font-semibold text-gray-900 truncate",
-                titlesCentered ? "text-center" : "text-left"
-              )}
-              title={title}
-            >
-              {title}
-            </h1>
-          </div>
+            {/* Zone centrale : prend l'espace restant, permet la troncature */}
+            <div className="min-w-0 px-2 sm:px-4">
+              <h1
+                className={cn(
+                  "text-2xl font-semibold text-gray-900 truncate",
+                  titlesCentered ? "text-center" : "text-left"
+                )}
+                title={title}
+              >
+                {title}
+              </h1>
+            </div>
 
-          {/* Boutons d'action fixes à droite */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {!hideBackButton && <BackButton />}
-            {actionButtons}
+            {/* Boutons d'action fixes à droite */}
+            <div className="flex items-center gap-2 flex-shrink-0 justify-end">
+              {!hideBackButton && <BackButton />}
+              {actionButtons}
+            </div>
           </div>
-        </div>
-        {subtitle && (
-          <p className={cn("max-w-full text-sm text-gray-500 mt-1", titlesCentered ? "text-center" : "text-left")}>
-            {subtitle}
-          </p>
-        )}
-      </header>
+          {subtitle && (
+            <p className={cn("max-w-full text-sm text-gray-500 mt-1", titlesCentered ? "text-center" : "text-left")}>
+              {subtitle}
+            </p>
+          )}
+        </header>
+      </Card>
 
       {/* 💡 Ajout d’un loader global */}
-      {loading ? (
-        <div className="flex flex-1 items-center justify-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
-        </div>
-      ) : (
-        <div className={cn("flex-1", contentClassName)}>{children}</div>
-      )}
-    </div>
+      {
+        loading ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+          </div>
+        ) : (
+          <div className={cn("flex-1", contentClassName)}>{children}</div>
+        )
+      }
+    </div >
   );
 }
