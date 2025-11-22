@@ -39,6 +39,7 @@
   "dashboard.summary.documentsDescription": "Files and records stored for everyone",
   "dashboard.quickActions.title": "Capture a new interaction",
   "dashboard.quickActions.subtitle": "Log notes, tasks, or quotes without leaving the dashboard.",
+  "dashboard.quickActions.triggerLabel": "Quick actions",
   "dashboard.quickActions.addNote": "Note",
   "dashboard.quickActions.addNoteDesc": "Capture an observation or information",
   "dashboard.quickActions.addTask": "Task",

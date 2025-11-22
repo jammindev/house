@@ -5,7 +5,6 @@ import ResourcePageShell from "@shared/layout/ResourcePageShell";
 import type { PageAction } from "@/components/layout/AppPageLayout";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import InteractionAttachmentImport from "@/features/interactions/components/InteractionAttachmentImport";
 import {
   DashboardProjectsByGroups,
   DashboardQuickActions,
@@ -23,7 +22,7 @@ export default function DashboardContent() {
   const pageActions = useMemo<PageAction[]>(() => {
     return [
       {
-        element: <InteractionAttachmentImport />,
+        element: <DashboardQuickActions />,
       },
     ];
   }, []);
@@ -36,7 +35,6 @@ export default function DashboardContent() {
       hideBackButton
       bodyClassName="space-y-2 md:space-y-6"
     >
-      <DashboardQuickActions />
       <DashboardProjectsByGroups />
     </ResourcePageShell>
   );
