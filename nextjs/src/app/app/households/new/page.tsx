@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function NewHouseholdPage() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function NewHouseholdPage() {
               <Button type="submit" disabled={submitting} className="bg-primary-600 text-white hover:bg-primary-700">
                 {submitting ? "Creating…" : "Create Household"}
               </Button>
-              <Link href="/app" className="text-sm text-gray-600 hover:underline">Cancel</Link>
+              <LinkWithOverlay href="/app" className="text-sm text-gray-600 hover:underline">Cancel</LinkWithOverlay>
             </div>
           </form>
         </CardContent>

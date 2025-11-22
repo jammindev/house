@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ExternalLink, Link as LinkIcon, MapPin, Download } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { PhotoDocument } from "@photos/types";
 import { formatFileSize, getDocumentFileSize } from "@interactions/utils/formatFileSize";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 type PhotoDetailsPanelProps = {
   photo: PhotoDocument;
@@ -73,14 +73,14 @@ export function PhotoDetailsPanel({ photo, previewUrl, downloadUrl }: PhotoDetai
           </div>
           <div className="flex flex-wrap gap-2">
             {photo.links.map((link) => (
-              <Link
+              <LinkWithOverlay
                 key={link.interactionId}
                 href={`/app/interactions/${link.interactionId}`}
                 className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
               >
                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
                 {link.subject || t("documents.interactionNoSubject")}
-              </Link>
+              </LinkWithOverlay>
             ))}
           </div>
         </div>

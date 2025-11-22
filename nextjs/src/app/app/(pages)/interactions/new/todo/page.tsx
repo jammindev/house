@@ -22,6 +22,11 @@ export default function NewTaskPage() {
 
     const projectIdParam = searchParams?.get("projectId");
     const statusParam = searchParams?.get("status");
+    const returnToParam = searchParams?.get("returnTo");
+    const redirectTo = useMemo(
+        () => (returnToParam && returnToParam.startsWith("/") ? returnToParam : null),
+        [returnToParam]
+    );
 
     const defaultValues = useMemo(
         () => ({
@@ -44,7 +49,12 @@ export default function NewTaskPage() {
                     <AlertDescription>{zonesError}</AlertDescription>
                 </Alert>
             ) : null}
-            <TaskForm zones={zoneOptions} zonesLoading={zonesLoading} defaultValues={defaultValues} />
+            <TaskForm
+                zones={zoneOptions}
+                zonesLoading={zonesLoading}
+                defaultValues={defaultValues}
+                redirectTo={redirectTo}
+            />
         </ResourcePageShell>
     );
 }

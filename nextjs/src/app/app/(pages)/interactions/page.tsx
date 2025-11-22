@@ -2,12 +2,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { NotebookPen, Plus } from "lucide-react";
 
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import InteractionList from "@interactions/components/InteractionList";
 import InteractionFilters from "@interactions/components/InteractionFilters";
 import { useInteractions } from "@interactions/hooks/useInteractions";
@@ -96,7 +96,7 @@ export default function InteractionsPage() {
           description={emptyDescription}
           action={
             <Button asChild>
-              <Link href="/app/interactions/new">{t("interactionscreateCta")}</Link>
+              <LinkWithOverlay href="/app/interactions/new">{t("interactionscreateCta")}</LinkWithOverlay>
             </Button>
           }
         />

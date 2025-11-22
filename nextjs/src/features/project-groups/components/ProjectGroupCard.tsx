@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowRight, FileText, FolderKanban, GaugeCircle } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { ProjectGroupWithMetrics } from "@project-groups/types";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 interface ProjectGroupCardProps {
   group: ProjectGroupWithMetrics;
@@ -35,7 +35,7 @@ export default function ProjectGroupCard({ group }: ProjectGroupCardProps) {
   const ariaLabel = `${group.name} — ${t("projectGroups.viewDetails")}`;
 
   return (
-    <Link
+    <LinkWithOverlay
       href={`/app/project-groups/${group.id}`}
       aria-label={ariaLabel}
       className="block rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
@@ -114,6 +114,6 @@ export default function ProjectGroupCard({ group }: ProjectGroupCardProps) {
           </div>
         </CardFooter>
       </Card>
-    </Link>
+    </LinkWithOverlay>
   );
 }

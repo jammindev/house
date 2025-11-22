@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { Clock, CheckCircle2, Folder, Calendar, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { DashboardTask } from "@dashboard/types";
 
@@ -85,11 +85,11 @@ export default function DashboardInProgressPanel({
                         <p className="text-sm text-muted-foreground mb-4">
                             {t("dashboard.inProgress.empty")}
                         </p>
-                        <Link href="/app/interactions/new/todo">
+                        <LinkWithOverlay href="/app/interactions/new/todo">
                             <Button size="sm">
                                 {t("dashboard.inProgress.createTask")}
                             </Button>
-                        </Link>
+                        </LinkWithOverlay>
                     </div>
                 ) : (
                     <div className="space-y-6">
@@ -100,11 +100,11 @@ export default function DashboardInProgressPanel({
                                     <h4 className="font-medium text-sm text-foreground">
                                         {t("dashboard.inProgress.activeTasks")} ({activeTasks.length})
                                     </h4>
-                                    <Link href="/app/tasks">
+                                    <LinkWithOverlay href="/app/tasks">
                                         <Button variant="ghost" size="sm" className="h-auto p-1">
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
-                                    </Link>
+                                    </LinkWithOverlay>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     {t("dashboard.inProgress.sortedByLastUpdate")}
@@ -116,12 +116,12 @@ export default function DashboardInProgressPanel({
                                             <div key={task.id} className="flex items-center gap-3 p-3 border border-slate-200 rounded-lg bg-white">
                                                 <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                                                 <div className="flex-1 min-w-0">
-                                                    <Link
+                                                    <LinkWithOverlay
                                                         href={`/app/interactions/${task.id}`}
                                                         className="text-sm font-medium text-foreground hover:text-primary-600 block truncate"
                                                     >
                                                         {task.subject}
-                                                    </Link>
+                                                    </LinkWithOverlay>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700">
                                                             {t(`interactionsstatus.${task.status || 'pending'}`)}
@@ -153,11 +153,11 @@ export default function DashboardInProgressPanel({
                                     <h4 className="font-medium text-sm text-foreground">
                                         {t("dashboard.inProgress.activeProjects")} ({activeProjects.length})
                                     </h4>
-                                    <Link href="/app/projects">
+                                    <LinkWithOverlay href="/app/projects">
                                         <Button variant="ghost" size="sm" className="h-auto p-1">
                                             <ArrowRight className="h-4 w-4" />
                                         </Button>
-                                    </Link>
+                                    </LinkWithOverlay>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                     {t("dashboard.inProgress.sortedByLastUpdate")}
@@ -174,12 +174,12 @@ export default function DashboardInProgressPanel({
                                                 <div className="flex items-start gap-3">
                                                     <Folder className="h-4 w-4 text-primary-600 mt-0.5" />
                                                     <div className="flex-1 min-w-0">
-                                                        <Link
+                                                        <LinkWithOverlay
                                                             href={`/app/projects/${project.id}`}
                                                             className="text-sm font-medium text-foreground hover:text-primary-600 block"
                                                         >
                                                             {project.title}
-                                                        </Link>
+                                                        </LinkWithOverlay>
                                                         {project.total_tasks && project.total_tasks > 0 && (
                                                             <div className="mt-2 space-y-1">
                                                                 <div className="flex items-center justify-between text-xs">

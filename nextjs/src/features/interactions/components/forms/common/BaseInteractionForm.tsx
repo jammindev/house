@@ -34,6 +34,7 @@ export interface BaseInteractionFormProps {
     zonesLoading?: boolean;
     onCreated?: (interactionId: string) => void;
     redirectOnSuccess?: boolean;
+    redirectTo?: string | null;
 
     // Default values
     defaultValues?: {
@@ -71,6 +72,7 @@ export default function BaseInteractionForm({
     zonesLoading = false,
     onCreated,
     redirectOnSuccess = true,
+    redirectTo = null,
     defaultValues = {},
     isAutoSubjectType = false,
     subjectPlaceholder,
@@ -364,7 +366,8 @@ export default function BaseInteractionForm({
             resetForm();
             onCreated?.(interactionId);
             if (redirectOnSuccess) {
-                router.push("/app/interactions?created=1");
+                const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/app/interactions?created=1";
+                router.push(target);
             }
         } catch (error: unknown) {
             console.error(error);

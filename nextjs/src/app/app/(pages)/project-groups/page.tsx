@@ -2,10 +2,10 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
@@ -43,7 +43,7 @@ export default function ProjectGroupsPage() {
           description={t("projectGroups.createDescription")}
           action={
             <Button asChild>
-              <Link href="/app/project-groups/new">{t("projectGroups.createTitle")}</Link>
+              <LinkWithOverlay href="/app/project-groups/new">{t("projectGroups.createTitle")}</LinkWithOverlay>
             </Button>
           }
         />

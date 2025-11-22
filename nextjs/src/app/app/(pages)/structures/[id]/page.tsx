@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 import { Building2, CalendarDays, Globe, MapPin, Pencil, Phone, StickyNote, Tag, Mail } from "lucide-react";
@@ -17,6 +16,7 @@ import EntityInteractionsCard from "@/components/EntityInteractionsCard";
 import { useStructureInteractions } from "@structures/hooks/useStructureInteractions";
 import { formatFullName } from "@contacts/lib/format";
 import type { Structure, StructureAddress } from "@structures/types";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 type Translator = (key: string, values?: Record<string, unknown>) => string;
 
@@ -312,7 +312,7 @@ export default function StructureDetailPage() {
           description={t("structures.detailSubtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/repertoire?view=structures">{t("structures.title")}</Link>
+              <LinkWithOverlay href="/app/repertoire?view=structures">{t("structures.title")}</LinkWithOverlay>
             </Button>
           }
         />
@@ -342,13 +342,13 @@ export default function StructureDetailPage() {
                   const name = formatFullName(contact) || t("contacts.unnamedContact");
                   return (
                     <li key={contact.id}>
-                      <Link
+                      <LinkWithOverlay
                         href={`/app/contacts/${contact.id}`}
                         className="flex items-center justify-between px-2 py-3 text-sm transition hover:bg-muted/60"
                       >
                         <span className="font-medium text-foreground">{name}</span>
                         <span className="text-xs text-primary">{t("structures.viewContact")}</span>
-                      </Link>
+                      </LinkWithOverlay>
                     </li>
                   );
                 })}

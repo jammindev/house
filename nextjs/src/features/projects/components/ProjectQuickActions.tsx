@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { FileText, Link2, NotebookPen, Paperclip, Plus, Receipt } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 interface ProjectQuickActionsProps {
   projectId: string;
@@ -13,38 +13,52 @@ interface ProjectQuickActionsProps {
 
 export default function ProjectQuickActions({ projectId, onLinkExisting }: ProjectQuickActionsProps) {
   const { t } = useI18n();
+  const projectPagePath = `/app/projects/${projectId}`;
+
+  const buildInteractionUrl = (basePath: string, extraParams: Record<string, string | undefined> = {}) => {
+    const params = new URLSearchParams({
+      projectId,
+      returnTo: projectPagePath,
+    });
+    Object.entries(extraParams).forEach(([key, value]) => {
+      if (value) {
+        params.set(key, value);
+      }
+    });
+    return `${basePath}?${params.toString()}`;
+  };
 
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new/todo?projectId=${projectId}`}>
+        <LinkWithOverlay href={buildInteractionUrl("/app/interactions/new/todo")}>
           <NotebookPen className="h-4 w-4" />
           {t("projects.quickActions.addTask")}
-        </Link>
+        </LinkWithOverlay>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new/note?projectId=${projectId}`}>
+        <LinkWithOverlay href={buildInteractionUrl("/app/interactions/new/note")}>
           <Plus className="h-4 w-4" />
           {t("projects.quickActions.addNote")}
-        </Link>
+        </LinkWithOverlay>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new?projectId=${projectId}&type=document`}>
+        <LinkWithOverlay href={buildInteractionUrl("/app/interactions/new", { type: "document" })}>
           <Paperclip className="h-4 w-4" />
           {t("projects.quickActions.addDocument")}
-        </Link>
+        </LinkWithOverlay>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new/expense?projectId=${projectId}`}>
+        <LinkWithOverlay href={buildInteractionUrl("/app/interactions/new/expense")}>
           <Receipt className="h-4 w-4" />
           {t("projects.quickActions.addExpense")}
-        </Link>
+        </LinkWithOverlay>
       </Button>
       <Button asChild variant="outline" className="justify-start gap-2">
-        <Link href={`/app/interactions/new/call?projectId=${projectId}`}>
+        <LinkWithOverlay href={buildInteractionUrl("/app/interactions/new/call")}>
           <FileText className="h-4 w-4" />
           {t("projects.quickActions.addCall")}
-        </Link>
+        </LinkWithOverlay>
       </Button>
       <Button
         type="button"

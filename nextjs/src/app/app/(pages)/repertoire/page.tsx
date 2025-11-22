@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Building2, Plus, UserPlus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import EmptyState from "@shared/components/EmptyState";
@@ -155,7 +155,7 @@ export default function RepertoirePage() {
             description={t("structures.createDescription")}
             action={
               <Button asChild>
-                <Link href="/app/structures/new">{t("structures.addStructure")}</Link>
+                <LinkWithOverlay href="/app/structures/new">{t("structures.addStructure")}</LinkWithOverlay>
               </Button>
             }
           />
@@ -177,7 +177,7 @@ export default function RepertoirePage() {
             description={t("contacts.createDescription")}
             action={
               <Button asChild>
-                <Link href="/app/contacts/new">{t("contacts.addContact")}</Link>
+                <LinkWithOverlay href="/app/contacts/new">{t("contacts.addContact")}</LinkWithOverlay>
               </Button>
             }
           />

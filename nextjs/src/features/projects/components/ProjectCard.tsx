@@ -1,7 +1,6 @@
 // nextjs/src/features/projects/components/ProjectCard.tsx
 "use client";
 
-import Link from "next/link";
 import { useState, type MouseEvent } from "react";
 import { CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileText, FolderKanban, TriangleAlert, MessageSquare } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
@@ -13,6 +12,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
 import type { ProjectWithMetrics } from "@projects/types";
 import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 interface ProjectCardProps {
   project: ProjectWithMetrics;
@@ -52,7 +52,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
       <CardHeader className="space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <Link href={`/app/projects/${project.id}`} className="flex flex-col gap-2">
+          <LinkWithOverlay href={`/app/projects/${project.id}`} className="flex flex-col gap-2">
             <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
             <div className="flex flex-wrap gap-2 items-center">
               <ProjectStatusBadge status={project.status} />
@@ -85,7 +85,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               ) : null}
               {/* interactions count fetched via useProject */}
             </div>
-          </Link>
+          </LinkWithOverlay>
           {project.due_date && <div className="flex flex-col items-end gap-2 text-right">
             <div>
               <span className="text-xs uppercase text-slate-500">{t("projects.fields.dueDate")}</span>

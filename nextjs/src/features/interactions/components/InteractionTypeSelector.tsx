@@ -10,14 +10,16 @@ import type { InteractionType } from "@interactions/types";
 
 interface InteractionTypeSelectorProps {
     projectId?: string | null;
+    returnTo?: string | null;
     onTypeSelect?: (type: InteractionType) => void;
 }
 
 const COMMON_TYPES: InteractionType[] = ["note", "todo", "quote", "expense", "call", "visit"];
 
-export default function InteractionTypeSelector({ projectId, onTypeSelect }: InteractionTypeSelectorProps) {
+export default function InteractionTypeSelector({ projectId, returnTo, onTypeSelect }: InteractionTypeSelectorProps) {
     const { t } = useI18n();
     const router = useRouter();
+    const safeReturnTo = returnTo && returnTo.startsWith("/") ? returnTo : null;
 
     const handleTypeSelect = (type: InteractionType) => {
         if (onTypeSelect) {
@@ -29,6 +31,9 @@ export default function InteractionTypeSelector({ projectId, onTypeSelect }: Int
         const params = new URLSearchParams();
         if (projectId) {
             params.set("projectId", projectId);
+        }
+        if (safeReturnTo) {
+            params.set("returnTo", safeReturnTo);
         }
 
         const queryString = params.toString();

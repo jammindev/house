@@ -2,12 +2,12 @@
 "use client";
 
 import { useCallback } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FolderX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProjects";
@@ -49,7 +49,7 @@ export default function ProjectGroupDetailPage() {
           description={t("projectGroups.createDescription")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/project-groups">{t("projectGroups.title")}</Link>
+              <LinkWithOverlay href="/app/project-groups">{t("projectGroups.title")}</LinkWithOverlay>
             </Button>
           }
         />

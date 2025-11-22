@@ -1,8 +1,8 @@
 // nextjs/src/components/layout/Sidebar.tsx
 "use client";
 
-import { useTransition, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState, MouseEvent } from "react";
+import { usePathname } from "next/navigation";
 import {
     Home,
     BookOpen,
@@ -22,6 +22,7 @@ import {
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import UserAvatar from "./UserAvatar";
+import LinkWithOverlay from "./LinkWithOverlay";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -36,12 +37,14 @@ export default function Sidebar({
     onLogout,
     onChangePassword,
 }: SidebarProps) {
-    const router = useRouter();
     const pathname = usePathname();
     const { user } = useGlobal();
     const { t } = useI18n();
-    const [isPending, startTransition] = useTransition();
     const [loadingRoute, setLoadingRoute] = useState<string | null>(null);
+
+    useEffect(() => {
+        setLoadingRoute(null);
+    }, [pathname]);
 
     const navigation = [
         { name: t("nav.dashboard"), href: "/app", icon: Home },
@@ -59,12 +62,30 @@ export default function Sidebar({
 
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
 
-    const handleNavigate = (href: string) => {
+    const handleLinkClick = (
+        event: MouseEvent<HTMLAnchorElement>,
+        href: string,
+        isDisabled: boolean,
+    ) => {
+        if (isDisabled) {
+            event.preventDefault();
+            return;
+        }
+
+        if (
+            event.defaultPrevented ||
+            event.metaKey ||
+            event.altKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.button !== 0
+        ) {
+            // Let the browser handle modified clicks (new tab/window)
+            return;
+        }
+
         onClose();
         setLoadingRoute(href);
-        startTransition(() => {
-            router.push(href);
-        });
     };
 
     return (
@@ -110,17 +131,24 @@ export default function Sidebar({
                 <nav className="mt-4 px-2 space-y-1">
                     {navigation.map((item) => {
                         const isActive = pathname === item.href;
-                        const isLoadingThisRoute = isPending && loadingRoute === item.href;
+                        const isLoadingThisRoute = loadingRoute === item.href;
+                        const isDisabled = isLoadingThisRoute || isActive;
 
                         return (
-                            <button
+                            <LinkWithOverlay
                                 key={item.name}
-                                onClick={() => handleNavigate(item.href)}
-                                disabled={isLoadingThisRoute}
+                                href={item.href}
+                                onClick={(event) =>
+                                    handleLinkClick(event, item.href, isDisabled)
+                                }
                                 className={`group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md transition-all ${isActive
                                     ? "bg-primary-50 text-primary-600"
                                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                    } ${isLoadingThisRoute ? "opacity-50 cursor-wait" : ""}`}
+                                    } ${isDisabled ? "opacity-50 cursor-wait pointer-events-none" : ""}`}
+                                aria-disabled={isDisabled}
+                                tabIndex={isDisabled ? -1 : undefined}
+                                prefetch
+                                disabled={isDisabled}
                             >
                                 <item.icon
                                     className={`mr-3 h-5 w-5 ${isActive
@@ -129,7 +157,7 @@ export default function Sidebar({
                                         }`}
                                 />
                                 {item.name}
-                            </button>
+                            </LinkWithOverlay>
                         );
                     })}
                 </nav>

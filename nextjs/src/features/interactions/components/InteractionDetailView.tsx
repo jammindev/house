@@ -1,6 +1,6 @@
 // nextjs/src/features/interactions/components/InteractionDetailView.tsx
 "use client";
-import Link from "next/link";
+
 import { AlertCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import type { Document, Interaction } from "@interactions/types";
 import { extractAmountFromMetadata } from "@interactions/utils/amount";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 type InteractionDetailViewProps = {
   interaction: Interaction;
@@ -137,9 +138,9 @@ export default function InteractionDetailView({
                     </Badge>
                   </div>
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/app/projects/${interaction.project.id}`}>
+                    <LinkWithOverlay href={`/app/projects/${interaction.project.id}`}>
                       {t("interactiondetail.viewProject")}
-                    </Link>
+                    </LinkWithOverlay>
                   </Button>
                 </div>
               </section>

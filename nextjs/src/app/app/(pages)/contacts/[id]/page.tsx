@@ -2,7 +2,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Pencil, UserX } from "lucide-react";
 
@@ -13,6 +12,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function ContactDetailPage() {
   const params = useParams<{ id?: string | string[] }>();
@@ -64,7 +64,7 @@ export default function ContactDetailPage() {
           description={t("contacts.detailSubtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/repertoire?view=contacts">{t("contacts.title")}</Link>
+              <LinkWithOverlay href="/app/repertoire?view=contacts">{t("contacts.title")}</LinkWithOverlay>
             </Button>
           }
         />
