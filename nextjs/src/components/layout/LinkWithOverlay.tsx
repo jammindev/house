@@ -6,7 +6,10 @@ import {
     type AnchorHTMLAttributes,
     type MouseEvent,
     type ReactNode,
+    useEffect,
+    useRef,
 } from "react";
+import { useRouter } from "next/navigation";
 import { useNavigationOverlay } from "./NavigationOverlayProvider";
 
 export interface LinkWithOverlayProps
@@ -32,6 +35,17 @@ const LinkWithOverlay = forwardRef<HTMLAnchorElement, LinkWithOverlayProps>(
         ref,
     ) => {
         const { showOverlay } = useNavigationOverlay();
+        const router = useRouter();
+        const timeoutRef = useRef<number | null>(null);
+
+        useEffect(() => {
+            return () => {
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                    timeoutRef.current = null;
+                }
+            };
+        }, []);
 
         const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
             if (disabled) {
@@ -52,7 +66,35 @@ const LinkWithOverlay = forwardRef<HTMLAnchorElement, LinkWithOverlayProps>(
             }
 
             if (showOverlayOnNavigate) {
+                // Prevent the default immediate navigation so we can show the overlay
+                // and perform a programmatic navigation after a minimum delay (500ms).
+                event.preventDefault();
                 showOverlay();
+
+                const href = props.href;
+                const hrefString =
+                    typeof href === "string"
+                        ? href
+                        : href instanceof URL
+                            ? href.toString()
+                            : (props.href as any)?.toString?.() ?? "/";
+
+                if (timeoutRef.current) {
+                    clearTimeout(timeoutRef.current);
+                }
+
+                timeoutRef.current = window.setTimeout(() => {
+                    if ((props as any).target === "_blank") {
+                        window.open(hrefString, "_blank");
+                        return;
+                    }
+
+                    if ((props as any).replace) {
+                        router.replace(hrefString);
+                    } else {
+                        router.push(hrefString);
+                    }
+                }, 500);
             }
         };
 
