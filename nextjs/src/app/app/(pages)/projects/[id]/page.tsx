@@ -2,7 +2,6 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ClipboardList, Pencil } from "lucide-react";
 
@@ -14,6 +13,7 @@ import ProjectDetailView from "@projects/components/ProjectDetailView";
 import ProjectLinkInteractionModal from "@projects/components/ProjectLinkInteractionModal";
 import { useProject } from "@projects/hooks/useProject";
 import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -80,7 +80,7 @@ export default function ProjectDetailPage() {
           description={t("projects.newSubtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/projects">{t("projects.title")}</Link>
+              <LinkWithOverlay href="/app/projects">{t("projects.title")}</LinkWithOverlay>
             </Button>
           }
         />

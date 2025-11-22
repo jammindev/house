@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/next';
 import CookieConsent from "@/components/Cookies";
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
+import { NavigationOverlayProvider } from "@/components/layout/NavigationOverlayProvider";
 
 const productName = process.env.NEXT_PUBLIC_PRODUCTNAME ?? "House";
 
@@ -33,8 +34,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={theme}>
         <I18nProvider initialLocale="en">
-          {children}
-          <CookieConsent />
+          <NavigationOverlayProvider>
+            {children}
+            <CookieConsent />
+          </NavigationOverlayProvider>
         </I18nProvider>
         <Analytics />
         {gaID && <GoogleAnalytics gaId={gaID} />}

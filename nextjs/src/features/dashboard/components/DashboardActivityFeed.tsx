@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { Calendar, Folder, MessageCircle, Clock, ArrowRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { DashboardInteraction } from "@dashboard/types";
 
@@ -117,11 +117,11 @@ export default function DashboardActivityFeed({ interactions, loading = false, h
             <p className="text-sm text-muted-foreground mb-4">
               {t("dashboard.activity.empty")}
             </p>
-            <Link href="/app/interactions/new">
+            <LinkWithOverlay href="/app/interactions/new">
               <Button size="sm">
                 {t("dashboard.activity.createFirst")}
               </Button>
-            </Link>
+            </LinkWithOverlay>
           </div>
         ) : (
           <div className="space-y-4" aria-live="polite">
@@ -137,12 +137,12 @@ export default function DashboardActivityFeed({ interactions, loading = false, h
                   </div>
                   <div className="flex-1 min-w-0 space-y-1">
                     <div className="flex items-start justify-between gap-2">
-                      <Link
+                      <LinkWithOverlay
                         href={`/app/interactions/${interaction.id}`}
                         className="font-medium text-sm text-foreground hover:text-primary-600 line-clamp-2 group-hover:text-primary-600 transition-colors"
                       >
                         {interaction.subject || t("dashboard.activity.untitled")}
-                      </Link>
+                      </LinkWithOverlay>
                       <span className="text-xs text-muted-foreground whitespace-nowrap">
                         {timeLabel}
                       </span>
@@ -171,12 +171,12 @@ export default function DashboardActivityFeed({ interactions, loading = false, h
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
+        <LinkWithOverlay href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
             {t("dashboard.actions.viewInteractions")}
             <ArrowRight className="h-4 w-4" />
           </Button>
-        </Link>
+        </LinkWithOverlay>
       </CardFooter>
     </Card>
   );

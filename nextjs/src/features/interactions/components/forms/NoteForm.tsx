@@ -28,6 +28,7 @@ interface NoteFormProps {
     onCreated?: (interactionId: string) => void;
     defaultValues?: NoteFormDefaults;
     redirectOnSuccess?: boolean;
+    redirectTo?: string | null;
 }
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
@@ -38,6 +39,7 @@ export default function NoteForm({
     onCreated,
     defaultValues = {},
     redirectOnSuccess = true,
+    redirectTo = null,
 }: NoteFormProps) {
     const router = useRouter();
     const { selectedHouseholdId: householdId } = useGlobal();
@@ -252,7 +254,8 @@ export default function NoteForm({
             resetForm();
             onCreated?.(interactionId);
             if (redirectOnSuccess) {
-                router.push("/app/interactions?created=1");
+                const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/app/interactions?created=1";
+                router.push(target);
             }
         } catch (error: unknown) {
             console.error(error);

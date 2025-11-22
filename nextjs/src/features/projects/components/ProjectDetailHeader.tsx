@@ -1,7 +1,6 @@
 // nextjs/src/features/projects/components/ProjectDetailHeader.tsx
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CalendarDays, Coins, FolderKanban } from "lucide-react";
 
@@ -14,6 +13,7 @@ import ProjectQuickActions from "@projects/components/ProjectQuickActions";
 import { useToast } from "@/components/ToastProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { cn } from "@/lib/utils";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 interface ProjectDetailHeaderProps {
   project: ProjectWithMetrics;
@@ -100,7 +100,7 @@ export default function ProjectDetailHeader({
                 </span>
               ) : null}
               {project.group ? (
-                <Link
+                <LinkWithOverlay
                   href={`/app/project-groups/${project.group.id}`}
                   className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 hover:text-primary-700"
                 >
@@ -108,7 +108,7 @@ export default function ProjectDetailHeader({
                   {typeof project.group.projectsCount === "number"
                     ? `${project.group.projectsCount} ${project.group.name}`
                     : project.group.name}
-                </Link>
+                </LinkWithOverlay>
               ) : null}
             </div>
             {project.description ? (

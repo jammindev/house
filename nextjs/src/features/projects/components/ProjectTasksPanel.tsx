@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo } from "react";
 import { ArrowUpRight, CheckCircle2, Clock3, ListTodo } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Interaction } from "@interactions/types";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 interface ProjectTasksPanelProps {
   tasks: Interaction[];
@@ -77,13 +77,13 @@ export default function ProjectTasksPanel({ tasks }: ProjectTasksPanelProps) {
                     <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusInfo.className}`}>
                       {t(statusInfo.labelKey)}
                     </span>
-                    <Link
+                    <LinkWithOverlay
                       href={`/app/interactions/${task.id}`}
                       className="inline-flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700"
                     >
                       {t("projects.tasks.viewInteraction")}
                       <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                    </Link>
+                    </LinkWithOverlay>
                   </div>
                   {task.content ? <p className="text-sm text-slate-600">{task.content}</p> : null}
                 </div>

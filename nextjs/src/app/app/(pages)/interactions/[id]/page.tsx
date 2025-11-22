@@ -2,12 +2,12 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { Notebook, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import InteractionDetailView from "@interactions/components/InteractionDetailView";
@@ -67,7 +67,7 @@ export default function InteractionDetailPage() {
           description={t("interactionsnewEntryIntro")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/interactions">{t("interactionstitle")}</Link>
+              <LinkWithOverlay href="/app/interactions">{t("interactionstitle")}</LinkWithOverlay>
             </Button>
           }
         />

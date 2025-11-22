@@ -2,7 +2,6 @@
 "use client";
 
 import { useMemo } from "react";
-import Link from "next/link";
 import { Filter, Plus } from "lucide-react";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
 
@@ -14,6 +13,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function ProjectsPage() {
   const { t } = useI18n();
@@ -63,7 +63,7 @@ export default function ProjectsPage() {
           description={t("projects.newSubtitle")}
           action={
             <Button asChild>
-              <Link href="/app/projects/new">{t("projects.new")}</Link>
+              <LinkWithOverlay href="/app/projects/new">{t("projects.new")}</LinkWithOverlay>
             </Button>
           }
         />

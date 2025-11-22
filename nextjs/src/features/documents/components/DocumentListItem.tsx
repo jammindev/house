@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { FileText, Loader2, FileX, Download, Trash2, ExternalLink, Edit } from "lucide-react";
 
@@ -12,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useDeleteDocument } from "@/features/interactions/hooks/useDeleteDocument";
 import type { DocumentWithLinks } from "../types";
 import { formatFileSize, getDocumentFileSize } from "@interactions/utils/formatFileSize";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 type Props = {
     doc: DocumentWithLinks;
@@ -154,14 +154,14 @@ export default function DocumentListItem({ doc, viewUrl, downloadUrl, onEdit, on
                 <div className="flex flex-wrap items-center gap-2">
                     {doc.links.length ? (
                         doc.links.map((link) => (
-                            <Link
+                            <LinkWithOverlay
                                 key={link.interactionId}
                                 href={`/app/interactions/${link.interactionId}`}
                                 className="inline-flex items-center gap-1 rounded-full border border-primary-200 bg-primary-50 px-3 py-1 text-xs text-primary-700 transition hover:border-primary-300 hover:bg-primary-100"
                             >
                                 <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                 {link.subject || t("documents.interactionNoSubject")}
-                            </Link>
+                            </LinkWithOverlay>
                         ))
                     ) : (
                         <span className="text-xs text-gray-500">{t("documents.noLinkedInteractions")}</span>

@@ -1,8 +1,9 @@
 // nextjs/src/features/interactions/components/InteractionItem.tsx
 "use client";
-import Link from "next/link";
+
 import { Building2, CalendarDays, Folder, Paperclip, Tag as TagIcon, UserRound } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { Interaction } from "@interactions/types";
 
@@ -46,7 +47,7 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
   const typeBadgeClass = typeBadgeStyles[interaction.type] ?? "bg-slate-100 text-slate-800";
 
   return (
-    <Link
+    <LinkWithOverlay
       href={`/app/interactions/${interaction.id}`}
       className="group block rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm ring-1 ring-transparent transition hover:border-indigo-200 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
     >
@@ -123,6 +124,6 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
           )}
         </div>
       </div>
-    </Link>
+    </LinkWithOverlay>
   );
 }

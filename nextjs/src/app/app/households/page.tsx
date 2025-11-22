@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function HouseholdsIndex() {
   return (
@@ -11,12 +11,11 @@ export default function HouseholdsIndex() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">Create or manage your households.</p>
-          <Link href="/app/households/new">
+          <LinkWithOverlay href="/app/households/new">
             <Button className="bg-primary-600 text-white hover:bg-primary-700">New Household</Button>
-          </Link>
+          </LinkWithOverlay>
         </CardContent>
       </Card>
     </div>
   );
 }
-

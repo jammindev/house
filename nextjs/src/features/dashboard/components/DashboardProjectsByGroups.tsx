@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { CalendarClock, CheckCircle2, FileText, FolderKanban, TriangleAlert, ArrowRight, Folder, Layers } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import type { ProjectWithMetrics } from "@projects/types";
 import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
 import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
 import { useProjects } from "@projects/hooks/useProjects";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 
 const formatCurrency = (value: number, locale: string) =>
@@ -37,7 +37,7 @@ function ProjectCard({ project, locale, t }: {
     const documentsCount = metrics?.documents_count ?? 0;
 
     return (
-        <Link key={project.id} href={`/app/projects/${project.id}`} className="block">
+        <LinkWithOverlay key={project.id} href={`/app/projects/${project.id}`} className="block">
             <Card className="border border-slate-200 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer hover:scale-[1.02] h-full">
                 <CardHeader className="space-y-2 sm:space-y-3 pb-2 sm:pb-3 p-3 sm:p-6">
                     <div className="flex items-start justify-between gap-1 sm:gap-2">
@@ -103,7 +103,7 @@ function ProjectCard({ project, locale, t }: {
                     </div>
                 </CardContent>
             </Card>
-        </Link>
+        </LinkWithOverlay>
     );
 }
 
@@ -152,12 +152,12 @@ export default function DashboardProjectsByGroups() {
                         <Layers className="h-5 w-5 text-primary-600" />
                         <h2 className="text-lg font-semibold text-foreground">{t("dashboard.projectsByGroups.title")}</h2>
                     </div>
-                    <Link href="/app/projects">
+                    <LinkWithOverlay href="/app/projects">
                         <Button variant="ghost" size="sm" className="flex items-center gap-1">
                             {t("dashboard.actions.viewProjects")}
                             <ArrowRight className="h-4 w-4" />
                         </Button>
-                    </Link>
+                    </LinkWithOverlay>
                 </div>
                 <div className="space-y-6">
                     {Array.from({ length: 2 }).map((_, index) => (
@@ -183,11 +183,11 @@ export default function DashboardProjectsByGroups() {
                         <Layers className="h-5 w-5 text-primary-600" />
                         <h2 className="text-lg font-semibold text-foreground">{t("dashboard.projectsByGroups.title")}</h2>
                     </div>
-                    <Link href="/app/projects/new">
+                    <LinkWithOverlay href="/app/projects/new">
                         <Button size="sm" className="flex items-center gap-1">
                             {t("dashboard.projectsByGroups.createFirst")}
                         </Button>
-                    </Link>
+                    </LinkWithOverlay>
                 </div>
                 <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-300">
                     <Folder className="h-12 w-12 text-muted-foreground mx-auto mb-3" />

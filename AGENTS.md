@@ -133,6 +133,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Server components/routes: use `createSSRClient`; use `createServerAdminClient` sparingly for service-role operations.
 - Types: `nextjs/src/lib/types.ts` still reflects the template (`todo_list` only). Regenerate types (`supabase gen types typescript --linked`) when schema changes to maintain type safety.
 - UI: server components by default; mark interactive pages as client components (`"use client"`). Keep translations in sync across `en`/`fr` dictionaries.
+- Navigation overlay: wrap any link that navigates into `/app` routes with `LinkWithOverlay` (`@/components/layout/LinkWithOverlay`) so the frosted loading overlay displays while leaving the sidebar visible; keep plain `Link` for external/legal/auth URLs.
 
 ## 9) How to Run Locally
 1. Supabase (first time per machine/project)

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { ArrowRight, NotepadText, FolderOpen, Search, Layers, Shield } from 'lucide-react';
 import AuthAwareButtons from '@/components/AuthAwareButtons';
 import { createSSRClient } from '@/lib/supabase/server';
+import LinkWithOverlay from '@/components/layout/LinkWithOverlay';
 
 export default async function Home() {
   const supabase = await createSSRClient();
@@ -63,7 +64,7 @@ export default async function Home() {
             </div>
             <div className="hidden md:flex items-center space-x-6">
               <Link href="#features" className="text-gray-600 hover:text-gray-900">Features</Link>
-              <Link href="/app" className="text-gray-600 hover:text-gray-900">Open App</Link>
+              <LinkWithOverlay href="/app" className="text-gray-600 hover:text-gray-900">Open App</LinkWithOverlay>
               <AuthAwareButtons variant="nav" />
             </div>
           </div>
@@ -80,19 +81,19 @@ export default async function Home() {
             House centralizes the little things: appliance manuals, paint codes, service visits, and receipts. Attach files, tag by room, and find it later.
           </p>
           <div className="mt-10 flex gap-3 justify-center">
-            <Link
+            <LinkWithOverlay
               href="/app/interactions/new"
               className="inline-flex items-center px-5 py-2.5 rounded-lg bg-primary-700 text-white hover:bg-primary-800 transition-colors"
             >
               Create a new interaction
               <ArrowRight className="ml-2 h-5 w-5" />
-            </Link>
-            <Link
+            </LinkWithOverlay>
+            <LinkWithOverlay
               href="/app"
               className="inline-flex items-center px-5 py-2.5 rounded-lg border text-gray-800 hover:bg-gray-50"
             >
               Open dashboard
-            </Link>
+            </LinkWithOverlay>
           </div>
         </div>
       </section>
@@ -118,7 +119,7 @@ export default async function Home() {
             <div className="flex items-center gap-4 text-sm">
               <Link href="/legal/privacy" className="text-gray-600 hover:text-gray-900">Privacy</Link>
               <Link href="/legal/terms" className="text-gray-600 hover:text-gray-900">Terms</Link>
-              <Link href="/app" className="text-gray-600 hover:text-gray-900">Open App</Link>
+              <LinkWithOverlay href="/app" className="text-gray-600 hover:text-gray-900">Open App</LinkWithOverlay>
             </div>
           </div>
         </div>

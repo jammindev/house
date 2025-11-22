@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { MapPin, Pencil } from "lucide-react";
 
@@ -9,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import { useZoneDetail } from "@zones/hooks/useZoneDetail";
 import { useZones } from "@zones/hooks/useZones";
 import { computeZoneTree } from "@zones/lib/tree";
@@ -68,7 +68,7 @@ export default function ZoneDetailPage() {
           description={t("zones.detail.subtitle")}
           action={
             <Button asChild variant="outline">
-              <Link href="/app/zones">{t("zones.title")}</Link>
+              <LinkWithOverlay href="/app/zones">{t("zones.title")}</LinkWithOverlay>
             </Button>
           }
         />

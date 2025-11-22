@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { createSPASassClient } from '@/lib/supabase/client';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import Link from "next/link";
+import LinkWithOverlay from '@/components/layout/LinkWithOverlay';
 
 export default function AuthAwareButtons({ variant = 'primary' }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,12 +32,12 @@ export default function AuthAwareButtons({ variant = 'primary' }) {
     // Navigation buttons for the header
     if (variant === 'nav') {
         return isAuthenticated ? (
-            <Link
+            <LinkWithOverlay
                 href="/app"
                 className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
             >
                 Go to Dashboard
-            </Link>
+            </LinkWithOverlay>
         ) : (
             <>
                 <Link href="/auth/login" className="text-gray-600 hover:text-gray-900">
@@ -54,13 +55,13 @@ export default function AuthAwareButtons({ variant = 'primary' }) {
 
     // Primary buttons for the hero section
     return isAuthenticated ? (
-        <Link
+        <LinkWithOverlay
             href="/app"
             className="inline-flex items-center px-6 py-3 rounded-lg bg-primary-600 text-white font-medium hover:bg-primary-700 transition-colors"
         >
             Go to Dashboard
             <ArrowRight className="ml-2 h-5 w-5" />
-        </Link>
+        </LinkWithOverlay>
     ) : (
         <>
             <Link

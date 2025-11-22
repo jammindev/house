@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { CalendarDays, CheckCircle2, Folder } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { DashboardTask } from "@dashboard/types";
 
@@ -98,12 +98,12 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
                   <div className="flex flex-col gap-2">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col gap-1">
-                        <Link
+                        <LinkWithOverlay
                           href={`/app/interactions/${task.id}`}
                           className="text-sm font-semibold text-primary-600 hover:text-primary-700"
                         >
                           {task.subject}
-                        </Link>
+                        </LinkWithOverlay>
                         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
                           <Badge variant="outline" className={badgeClass}>
                             {t(`interactionsstatus.${statusKey}`)}
@@ -139,11 +139,11 @@ export default function DashboardTasksPanel({ tasks, loading = false }: Dashboar
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
+        <LinkWithOverlay href="/app/interactions" aria-label={t("dashboard.actions.viewInteractions")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
             {t("dashboard.actions.viewInteractions")}
           </Button>
-        </Link>
+        </LinkWithOverlay>
       </CardFooter>
     </Card>
   );

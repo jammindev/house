@@ -2,13 +2,13 @@
 "use client";
 import { useMemo, useState } from "react";
 import clsx from "clsx";
-import Link from "next/link";
 // removed framer-motion presence animation
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import type { Zone } from "../types";
 import { getZoneDisplayColor } from "@zones/lib/colors";
 import ZoneEditDialog from "./ZoneEditDialog";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 interface Props {
     zone: Zone;
     zonesById: Map<string, Zone>;
@@ -75,7 +75,7 @@ export default function ZoneItem({
                         <span className="inline-block h-9 w-9 sm:h-7 sm:w-7" />
                     )}
                 </div>
-                <Link
+                <LinkWithOverlay
                     href={`/app/zones/${zone.id}`}
                     className="flex flex-1 items-center justify-between gap-3 rounded-md px-2 py-2 text-left transition hover:bg-slate-100"
                 >
@@ -91,7 +91,7 @@ export default function ZoneItem({
                             {t("zones.surfaceValue", { value: surfaceText })}
                         </span>
                     ) : null}
-                </Link>
+                </LinkWithOverlay>
                 <div className="flex items-center gap-1">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setEditOpen(true)}>
                         <Pencil className="h-4 w-4" />

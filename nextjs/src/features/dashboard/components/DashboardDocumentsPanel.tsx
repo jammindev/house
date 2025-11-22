@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { FileQuestion, FileText, LinkIcon, Paperclip } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { DashboardDocument } from "@dashboard/types";
 
@@ -104,11 +104,11 @@ export default function DashboardDocumentsPanel({ documents, loading = false }: 
         )}
       </CardContent>
       <CardFooter className="justify-end">
-        <Link href="/app/documents" aria-label={t("dashboard.actions.manageDocuments")}>
+        <LinkWithOverlay href="/app/documents" aria-label={t("dashboard.actions.manageDocuments")}>
           <Button variant="ghost" size="sm" className="flex items-center gap-1">
             {t("dashboard.actions.manageDocuments")}
           </Button>
-        </Link>
+        </LinkWithOverlay>
       </CardFooter>
     </Card>
   );

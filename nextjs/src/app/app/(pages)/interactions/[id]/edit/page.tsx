@@ -9,9 +9,9 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useInteraction } from "@interactions/hooks/useInteraction";
 import EmptyState from "@shared/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { Notebook } from "lucide-react";
 import InteractionEditForm from "@interactions/components/InteractionEditForm";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function EditInteractionPage() {
     const { id } = useParams<{ id: string }>();
@@ -66,7 +66,7 @@ export default function EditInteractionPage() {
                     description={t("interactionsnewEntryIntro")}
                     action={
                         <Button asChild variant="outline">
-                            <Link href="/app/interactions">{t("interactionstitle")}</Link>
+                            <LinkWithOverlay href="/app/interactions">{t("interactionstitle")}</LinkWithOverlay>
                         </Button>
                     }
                 />
