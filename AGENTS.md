@@ -60,6 +60,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - `interactions`
   - Columns: `id uuid pk`, `household_id uuid`, `subject text`, `content text`, `type text`, `status text nullable`, `occurred_at timestamptz`, `tags text[]`, `metadata jsonb default '{}'`, `enriched_text text`, `project_id uuid nullable`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
   - Trigger `update_interaction_metadata` keeps `updated_at` and `updated_by` in sync.
+  - Types allowed include lifecycle events (`maintenance`, `repair`, `installation`, `inspection`, `warranty`, `issue`, `upgrade`, `replacement`, `disposal`) alongside existing note/expense/todo variants.
   - RLS: members can select/insert/update/delete interactions within their household.
 
 - `interaction_zones`
@@ -75,6 +76,15 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
   - Join table `(zone_id uuid fk → zones on delete cascade, document_id uuid fk → documents on delete cascade)` with PK `(zone_id, document_id)`, `role text default 'photo'`, `note text`, audit columns.
   - Trigger ensures linked documents belong to the same household and have `type = 'photo'`; `created_by` auto-populated.
   - RLS: household members can select/insert/update/delete zone documents when they belong to their household; policies validate membership on the owning zone.
+
+- `equipment`
+  - Columns: `id uuid pk`, `household_id uuid`, `zone_id uuid nullable`, `name text not null`, `category text default 'general'`, `manufacturer text`, `model text`, `serial_number text`, `purchase_date date`, `purchase_price numeric(12,2)`, `purchase_vendor text`, `warranty_expires_on date`, `warranty_provider text`, `warranty_notes text default ''`, `maintenance_interval_months int`, `last_service_at date`, `next_service_due date generated from last service + interval`, `status text check in ('active','maintenance','storage','retired','lost','ordered') default 'active'`, `condition text`, `installed_at date`, `retired_at date`, `notes text default ''`, `tags text[] default '{}'`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
+  - Triggers populate audit fields and enforce the zone/household consistency.
+  - RLS: household members can select/insert/update/delete equipment scoped to their household.
+- `equipment_interactions`
+  - Join table `(equipment_id uuid fk → equipment on delete cascade, interaction_id uuid fk → interactions on delete cascade)` with link metadata (`role text default 'log'`, `note text default ''`, `created_at`, `created_by`).
+  - Trigger enforces matching households between equipment and interaction.
+  - RLS: household members can manage rows when the equipment belongs to their household and the linked interaction shares the household.
 
 - `projects`
   - Columns: `id uuid pk`, `household_id uuid`, `title text not null`, `description text`, `status project_status default 'draft'`, `priority int check (1 <= value <= 5)`, `start_date date`, `due_date date`, `closed_at timestamptz`, `tags text[]`, `planned_budget numeric(12,2)`, `actual_cost_cached numeric(12,2)`, `cover_interaction_id uuid nullable`, audit columns (`created_at`, `updated_at`, `created_by`, `updated_by`).
@@ -112,6 +122,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Projects UI (`/app/projects` and `/app/projects/[id]`): list and filter projects by status/dates/tags, show budget and activity rollups, and expose quick actions to create tasks, notes, documents, or expenses pre-linked to the project. Detail pages provide a timeline, dedicated tabs (tasks/documents/expenses) backed by `project_metrics`, and let members relink existing interactions to the project.
 - Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, color selection for first-level children, and per-household stats. Any household member can update or delete a zone; descendants automatically display lighter shades of their parent color and the UI exposes confirmations rather than ownership blockers.
 - Zone detail cards now include a photo gallery so members can visualize each zone. Users may upload new photo documents or link existing ones from the household library; previews use signed URLs from Supabase storage.
+- Equipment UI (`/app/equipment`): catalogue household equipment with optional zone assignment, purchase/warranty/maintenance metadata, list filters, detail view, and edit form. Detail pages surface lifecycle highlights plus linked interactions (maintenance/repairs/expenses) and let users log new lifecycle events as interactions tied to a zone.
 - User settings (`/app/user-settings`): change locale, view account metadata, update password, and enrol/manage TOTP MFA devices via `MFASetup`.
 - Household flows: `/app/households/new` posts to `/api/households` to create a household plus membership via the security-definer RPC. `/app/households` currently just links to creation.
 - Template demos: `/app/storage` (personal file bucket) and `/app/table` (todo list) still exist from the upstream template and operate on template schema. They are unrelated to the House domain and should be hidden or removed before launch.
@@ -172,6 +183,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Household creation API: `nextjs/src/app/api/households/route.ts`
 - Supabase browser client wrapper: `nextjs/src/lib/supabase/client.ts`
 - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`
+- Equipment pages: `nextjs/src/app/app/(pages)/equipment/*`, feature code under `nextjs/src/features/equipment`
 - Documents schema/policies refactor: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
 - Interaction creation RPC: `supabase/migrations/20251016120000_refactor_entries_to_interactions.sql`
 - Storage policies: `supabase/migrations/20250924093000_fix_storage_policies_owner_only.sql`
