@@ -62,6 +62,9 @@
       ],
       "@households/*": [
         "features/households/*"
+      ],
+      "@equipment/*": [
+        "features/equipment/*"
       ]
     }
   },
