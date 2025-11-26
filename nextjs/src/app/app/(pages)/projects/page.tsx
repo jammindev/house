@@ -1,9 +1,8 @@
 // nextjs/src/app/app/projects/page.tsx
 "use client";
 
-import { useMemo } from "react";
-import { Filter, Plus } from "lucide-react";
-import { SheetDialog } from "@/components/ui/sheet-dialog";
+import { useCallback, useMemo } from "react";
+import { Plus } from "lucide-react";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
 import TextSearch from "@projects/components/TextSearch";
@@ -12,6 +11,7 @@ import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProject
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
+import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
@@ -19,18 +19,21 @@ export default function ProjectsPage() {
   const { t } = useI18n();
   const { projects, loading, error, filters, setFilters } = useProjects();
 
-  const resetFilters = () => setFilters({ ...DEFAULT_PROJECT_FILTERS });
+  const resetFilters = useCallback(
+    () => setFilters({ ...DEFAULT_PROJECT_FILTERS }),
+    [setFilters]
+  );
 
   const actions = useMemo(
     () => [
       {
-        // Custom element action: open filters in a SheetDialog
         element: (
-          <SheetDialog
-            trigger={<Button variant="outline" size="sm"><Filter /></Button>}
+          <FiltersActionSheet
+            title={t("projects.filters.title")}
+            ariaLabel={t("common.filter")}
           >
             <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
-          </SheetDialog>
+          </FiltersActionSheet>
         ),
       },
       {
@@ -39,7 +42,7 @@ export default function ProjectsPage() {
         variant: "default" as const,
       },
     ],
-    [filters, setFilters, resetFilters]
+    [filters, resetFilters, setFilters, t]
   );
 
   const toolbar = (

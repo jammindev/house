@@ -14,6 +14,7 @@ import { useInteractions } from "@interactions/hooks/useInteractions";
 import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
+import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
 
 export default function InteractionsPage() {
@@ -44,21 +45,30 @@ export default function InteractionsPage() {
     router.replace(next, { scroll: false });
   }, [contactIdFilter, router, searchParams]);
 
+  const resetFilters = useCallback(
+    () => setFilters({ ...DEFAULT_INTERACTION_FILTERS }),
+    [setFilters]
+  );
+
   const actions = useMemo(
     () => [
+      {
+        element: (
+          <FiltersActionSheet
+            title={t("interactions.filters.title")}
+            ariaLabel={t("common.filter")}
+          >
+            <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+          </FiltersActionSheet>
+        ),
+      },
       {
         icon: Plus,
         href: "/app/interactions/new",
         variant: "default" as const,
       },
     ],
-    [t]
-  );
-
-  const resetFilters = () => setFilters({ ...DEFAULT_INTERACTION_FILTERS });
-
-  const toolbar = (
-    <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+    [filters, resetFilters, setFilters, t]
   );
 
   useEffect(() => {
@@ -86,7 +96,6 @@ export default function InteractionsPage() {
       title={t("interactionstitle")}
       hideBackButton
       actions={actions}
-      toolbar={toolbar}
       loading={loading}
       isEmpty={!loading && displayedInteractions.length === 0}
       emptyState={
