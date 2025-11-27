@@ -36,8 +36,7 @@ describe("usePersistentFilters", () => {
 
   beforeEach(() => {
     localStorageMock = createMockStorage();
-    vi.stubGlobal("window", { localStorage: localStorageMock.localStorage } as unknown as Window &
-      typeof globalThis);
+    vi.stubGlobal("localStorage", localStorageMock.localStorage);
   });
 
   afterEach(() => {
