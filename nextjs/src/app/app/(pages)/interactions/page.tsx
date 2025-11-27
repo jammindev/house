@@ -11,7 +11,6 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import InteractionList from "@interactions/components/InteractionList";
 import InteractionFilters from "@interactions/components/InteractionFilters";
 import { useInteractions } from "@interactions/hooks/useInteractions";
-import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import FiltersActionSheet from "@shared/components/FiltersActionSheet";
@@ -22,7 +21,7 @@ export default function InteractionsPage() {
   const { show } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { interactions, documentCounts, loading, error, filters, setFilters } = useInteractions();
+  const { interactions, documentCounts, loading, error, filters, setFilters, resetFilters } = useInteractions();
 
   const contactIdFilter = searchParams?.get("contactId") ?? null;
   const contactNameParam = searchParams?.get("contactName") ?? null;
@@ -44,11 +43,6 @@ export default function InteractionsPage() {
     const next = `/app/interactions${nextParams.toString() ? `?${nextParams.toString()}` : ""}`;
     router.replace(next, { scroll: false });
   }, [contactIdFilter, router, searchParams]);
-
-  const resetFilters = useCallback(
-    () => setFilters({ ...DEFAULT_INTERACTION_FILTERS }),
-    [setFilters]
-  );
 
   const hasActiveFilters = useMemo(
     () =>

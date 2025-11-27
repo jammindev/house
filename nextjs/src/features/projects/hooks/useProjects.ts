@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { computeProjectFlags } from "@projects/utils/projectFlags";
+import { usePersistentFilters } from "@shared/hooks/usePersistentFilters";
 import type {
   Project,
   ProjectListFilters,
@@ -23,7 +24,11 @@ export const DEFAULT_PROJECT_FILTERS: ProjectListFilters = {
 export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT_FILTERS) {
   const { t } = useI18n();
   const { selectedHouseholdId: householdId } = useGlobal();
-  const [filters, setFilters] = useState<ProjectListFilters>(initialFilters);
+  const { filters, setFilters, resetFilters } = usePersistentFilters<ProjectListFilters>({
+    key: "project-filters",
+    fallback: initialFilters,
+    scope: householdId,
+  });
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -169,6 +174,7 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
     error,
     filters: activeFilters,
     setFilters,
+    resetFilters,
     reload: load,
   };
 }
