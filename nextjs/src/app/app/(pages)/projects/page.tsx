@@ -1,7 +1,7 @@
 // nextjs/src/app/app/projects/page.tsx
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { Plus } from "lucide-react";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
@@ -17,12 +17,7 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function ProjectsPage() {
   const { t } = useI18n();
-  const { projects, loading, error, filters, setFilters } = useProjects();
-
-  const resetFilters = useCallback(
-    () => setFilters({ ...DEFAULT_PROJECT_FILTERS }),
-    [setFilters]
-  );
+  const { projects, loading, error, filters, setFilters, resetFilters } = useProjects();
 
   const hasActiveFilters = useMemo(() => {
     const defaultStatuses = DEFAULT_PROJECT_FILTERS.statuses ?? [];
