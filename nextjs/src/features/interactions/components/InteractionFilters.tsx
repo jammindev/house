@@ -76,7 +76,6 @@ export default function InteractionFilters({ filters, onChange, onReset }: Inter
         title={t("common.filter")}
         onReset={onReset}
         resetAriaLabel={t("interactions.filters.reset")}
-        defaultCollapsed
       >
         <Input
           className="w-full md:w-64"
