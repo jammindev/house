@@ -24,6 +24,23 @@ export default function ProjectsPage() {
     [setFilters]
   );
 
+  const hasActiveFilters = useMemo(() => {
+    const defaultStatuses = DEFAULT_PROJECT_FILTERS.statuses ?? [];
+    const currentStatuses = filters.statuses ?? [];
+    const statusesChanged =
+      defaultStatuses.length !== currentStatuses.length ||
+      currentStatuses.some((status) => !defaultStatuses.includes(status));
+
+    return Boolean(
+      statusesChanged ||
+        filters.search?.trim() ||
+        (filters.tags?.length ?? 0) > 0 ||
+        filters.startDateFrom ||
+        filters.dueDateTo ||
+        filters.projectGroupId
+    );
+  }, [filters]);
+
   const actions = useMemo(
     () => [
       {
@@ -31,6 +48,7 @@ export default function ProjectsPage() {
           <FiltersActionSheet
             title={t("projects.filters.title")}
             ariaLabel={t("common.filter")}
+            isActive={hasActiveFilters}
           >
             <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
           </FiltersActionSheet>
@@ -42,7 +60,7 @@ export default function ProjectsPage() {
         variant: "default" as const,
       },
     ],
-    [filters, resetFilters, setFilters, t]
+    [filters, hasActiveFilters, resetFilters, setFilters, t]
   );
 
   const toolbar = (

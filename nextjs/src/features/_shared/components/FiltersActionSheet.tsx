@@ -16,6 +16,7 @@ interface FiltersActionSheetProps {
   buttonVariant?: ButtonProps["variant"];
   buttonSize?: ButtonProps["size"];
   ariaLabel?: string;
+  isActive?: boolean;
 }
 
 export default function FiltersActionSheet({
@@ -26,6 +27,7 @@ export default function FiltersActionSheet({
   buttonVariant = "outline",
   buttonSize = "sm",
   ariaLabel,
+  isActive = false,
 }: FiltersActionSheetProps) {
   return (
     <SheetDialog
@@ -36,8 +38,15 @@ export default function FiltersActionSheet({
           variant={buttonVariant}
           size={buttonSize}
           aria-label={ariaLabel ?? title ?? "Filters"}
+          className="relative"
         >
           <Icon />
+          {isActive ? (
+            <span
+              aria-hidden
+              className="absolute -right-0.5 -top-0.5 block h-2 w-2 rounded-full bg-primary ring-2 ring-background"
+            />
+          ) : null}
         </Button>
       )}
     >
