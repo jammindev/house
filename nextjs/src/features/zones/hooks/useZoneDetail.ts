@@ -116,7 +116,7 @@ export function useZoneDetail(zoneId?: string) {
             parent_id,
             created_at,
             created_by,
-            parent:zones!zones_parent_id_fkey(
+            parent:parent_id(
               id,
               name,
               color
