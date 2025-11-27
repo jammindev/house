@@ -120,7 +120,7 @@ export default function AppPageLayout({
             <div className="min-w-0 px-2 sm:px-4">
               <h1
                 className={cn(
-                  "text-2xl font-semibold text-gray-900 truncate",
+                  "text-lg md:text-2xl font-semibold text-gray-900 truncate",
                   titlesCentered ? "text-center" : "text-left"
                 )}
                 title={title}
