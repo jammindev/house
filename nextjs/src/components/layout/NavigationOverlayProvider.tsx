@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "../ui/spinner";
 
 interface NavigationOverlayContextValue {
     showOverlay: () => void;
@@ -59,10 +59,7 @@ function NavigationOverlay({ isVisible }: { isVisible: boolean }) {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/20 to-white/5 backdrop-blur-2xl backdrop-saturate-150" />
                 <div className="absolute inset-0 opacity-70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7),transparent_55%)]" />
             </div>
-            <div className="relative z-10 flex flex-col items-center gap-3 text-gray-700">
-                <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
-                <span className="text-sm font-medium">Chargement...</span>
-            </div>
+            <Spinner />
         </div>
     );
 }

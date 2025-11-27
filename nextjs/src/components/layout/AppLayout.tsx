@@ -57,16 +57,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     onChangePassword={handleChangePassword}
                 />
 
-                {/* <TopBar
-                    user={user}
-                    households={households}
-                    selectedHouseholdId={selectedHouseholdId}
-                    currentHousehold={currentHousehold}
-                    onSelectHousehold={setSelectedHouseholdId}
-                    onLogout={handleLogout}
-                    onChangePassword={handleChangePassword}
-                /> */}
-
                 <main className="flex-1 p-2 md:p-4 lg:pl-64">{children}</main>
             </div>
         </SidebarToggleProvider>
