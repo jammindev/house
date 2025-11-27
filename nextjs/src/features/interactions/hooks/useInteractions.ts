@@ -15,6 +15,7 @@ import type {
 } from "@interactions/types";
 import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { usePersistentFilters } from "@shared/hooks/usePersistentFilters";
 
 type DocumentsByInteraction = Record<string, Document[]>;
 type RawInteraction = {
@@ -160,7 +161,11 @@ export function useInteractions() {
   const [documentCounts, setDocumentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState<InteractionListFilters>({ ...DEFAULT_INTERACTION_FILTERS });
+  const { filters, setFilters, resetFilters } = usePersistentFilters<InteractionListFilters>({
+    key: "interaction-filters",
+    fallback: DEFAULT_INTERACTION_FILTERS,
+    scope: householdId,
+  });
 
   const interactions = useMemo(() => {
     const searchTerm = filters.search?.trim().toLowerCase() || null;
@@ -437,5 +442,15 @@ export function useInteractions() {
     load();
   }, [householdId, t]);
 
-  return { interactions, documentsByInteraction, documentCounts, loading, error, setError, filters, setFilters };
+  return {
+    interactions,
+    documentsByInteraction,
+    documentCounts,
+    loading,
+    error,
+    setError,
+    filters,
+    setFilters,
+    resetFilters,
+  };
 }

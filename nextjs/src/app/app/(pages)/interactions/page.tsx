@@ -11,9 +11,9 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import InteractionList from "@interactions/components/InteractionList";
 import InteractionFilters from "@interactions/components/InteractionFilters";
 import { useInteractions } from "@interactions/hooks/useInteractions";
-import { DEFAULT_INTERACTION_FILTERS } from "@interactions/constants";
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
+import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
 
 export default function InteractionsPage() {
@@ -21,7 +21,7 @@ export default function InteractionsPage() {
   const { show } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { interactions, documentCounts, loading, error, filters, setFilters } = useInteractions();
+  const { interactions, documentCounts, loading, error, filters, setFilters, resetFilters } = useInteractions();
 
   const contactIdFilter = searchParams?.get("contactId") ?? null;
   const contactNameParam = searchParams?.get("contactName") ?? null;
@@ -44,21 +44,38 @@ export default function InteractionsPage() {
     router.replace(next, { scroll: false });
   }, [contactIdFilter, router, searchParams]);
 
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(
+        filters.search?.trim() ||
+          filters.types.length ||
+          filters.statuses.length ||
+          filters.occurredFrom ||
+          filters.occurredTo
+      ),
+    [filters]
+  );
+
   const actions = useMemo(
     () => [
+      {
+        element: (
+          <FiltersActionSheet
+            title={t("interactions.filters.title")}
+            ariaLabel={t("common.filter")}
+            isActive={hasActiveFilters}
+          >
+            <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+          </FiltersActionSheet>
+        ),
+      },
       {
         icon: Plus,
         href: "/app/interactions/new",
         variant: "default" as const,
       },
     ],
-    [t]
-  );
-
-  const resetFilters = () => setFilters({ ...DEFAULT_INTERACTION_FILTERS });
-
-  const toolbar = (
-    <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
+    [filters, hasActiveFilters, resetFilters, setFilters, t]
   );
 
   useEffect(() => {
@@ -86,7 +103,6 @@ export default function InteractionsPage() {
       title={t("interactionstitle")}
       hideBackButton
       actions={actions}
-      toolbar={toolbar}
       loading={loading}
       isEmpty={!loading && displayedInteractions.length === 0}
       emptyState={

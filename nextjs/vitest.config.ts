@@ -1,6 +1,6 @@
-import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import path from "path";
+import path from "node:path";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
@@ -8,12 +8,6 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
-import path from "node:path";
-import { defineConfig } from "vitest/config";
-
-export default defineConfig({
-  test: {
-    environment: "node",
     include: ["src/**/*.test.{ts,tsx}"],
     coverage: {
       reporter: ["text", "lcov"],
@@ -30,6 +24,7 @@ export default defineConfig({
       "@documents": path.resolve(__dirname, "./src/features/documents"),
       "@structures": path.resolve(__dirname, "./src/features/structures"),
       "@projects": path.resolve(__dirname, "./src/features/projects"),
+      "@shared": path.resolve(__dirname, "./src/features/_shared"),
     },
   },
 });
