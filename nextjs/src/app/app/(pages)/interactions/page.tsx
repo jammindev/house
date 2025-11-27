@@ -50,6 +50,18 @@ export default function InteractionsPage() {
     [setFilters]
   );
 
+  const hasActiveFilters = useMemo(
+    () =>
+      Boolean(
+        filters.search?.trim() ||
+          filters.types.length ||
+          filters.statuses.length ||
+          filters.occurredFrom ||
+          filters.occurredTo
+      ),
+    [filters]
+  );
+
   const actions = useMemo(
     () => [
       {
@@ -57,6 +69,7 @@ export default function InteractionsPage() {
           <FiltersActionSheet
             title={t("interactions.filters.title")}
             ariaLabel={t("common.filter")}
+            isActive={hasActiveFilters}
           >
             <InteractionFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
           </FiltersActionSheet>
@@ -68,7 +81,7 @@ export default function InteractionsPage() {
         variant: "default" as const,
       },
     ],
-    [filters, resetFilters, setFilters, t]
+    [filters, hasActiveFilters, resetFilters, setFilters, t]
   );
 
   useEffect(() => {
