@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import BackButton from "../BackButton";
 import { useSidebarToggle } from "./SidebarToggleContext";
 import { Card } from "../ui/card";
+import { Spinner } from "../ui/spinner";
 
 export type PageAction =
   | { element: ReactNode }
@@ -146,7 +147,7 @@ export default function AppPageLayout({
       {
         loading ? (
           <div className="flex flex-1 items-center justify-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-500"></div>
+            <Spinner />
           </div>
         ) : (
           <div className={cn("flex-1", contentClassName)}>{children}</div>
