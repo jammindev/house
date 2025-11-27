@@ -20,6 +20,8 @@ interface NoteFormDefaults {
     status?: InteractionStatus | "";
     occurredAt?: string;
     projectId?: string | null;
+    subject?: string;
+    content?: string;
 }
 
 interface NoteFormProps {
@@ -29,6 +31,8 @@ interface NoteFormProps {
     defaultValues?: NoteFormDefaults;
     redirectOnSuccess?: boolean;
     redirectTo?: string | null;
+    allowContentPrefill?: boolean;
+    initialFiles?: LocalFile[];
 }
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
@@ -40,6 +44,8 @@ export default function NoteForm({
     defaultValues = {},
     redirectOnSuccess = true,
     redirectTo = null,
+    allowContentPrefill = true,
+    initialFiles = [],
 }: NoteFormProps) {
     const router = useRouter();
     const { selectedHouseholdId: householdId } = useGlobal();
@@ -52,9 +58,9 @@ export default function NoteForm({
     );
 
     // Base form state
-    const [subject, setSubject] = useState("");
-    const [subjectDirty, setSubjectDirty] = useState(false);
-    const [content, setContent] = useState("");
+    const [subject, setSubject] = useState(defaultValues.subject ?? "");
+    const [subjectDirty, setSubjectDirty] = useState(Boolean(defaultValues.subject));
+    const [content, setContent] = useState(allowContentPrefill ? defaultValues.content ?? "" : "");
     const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "");
     const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
@@ -64,7 +70,7 @@ export default function NoteForm({
     const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
 
     // Files and documents
-    const [files, setFiles] = useState<LocalFile[]>([]);
+    const [files, setFiles] = useState<LocalFile[]>(initialFiles);
     const [libraryDocuments, setLibraryDocuments] = useState<Document[]>([]);
 
     // Form state
@@ -117,9 +123,9 @@ export default function NoteForm({
     const hasZones = zones.length > 0;
 
     const resetForm = () => {
-        setSubject("");
-        setSubjectDirty(false);
-        setContent("");
+        setSubject(defaultValues.subject ?? "");
+        setSubjectDirty(Boolean(defaultValues.subject));
+        setContent(allowContentPrefill ? defaultValues.content ?? "" : "");
         setStatus(defaultValues.status ?? "");
         setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
         setSelectedProjectId(defaultValues.projectId ?? null);
@@ -127,7 +133,7 @@ export default function NoteForm({
         setSelectedZones([]);
         setSelectedContactIds([]);
         setSelectedStructureIds([]);
-        setFiles([]);
+        setFiles(initialFiles);
         setLibraryDocuments([]);
     };
 

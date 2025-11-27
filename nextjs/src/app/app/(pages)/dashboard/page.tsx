@@ -6,6 +6,7 @@ import type { PageAction } from "@/components/layout/AppPageLayout";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
+  DashboardAiInteractionPrompt,
   DashboardProjectsByGroups,
   DashboardQuickActions,
 } from "@dashboard/index";
@@ -35,6 +36,7 @@ export default function DashboardContent() {
       hideBackButton
       bodyClassName="space-y-2 md:space-y-6"
     >
+      <DashboardAiInteractionPrompt />
       <DashboardProjectsByGroups />
     </ResourcePageShell>
   );

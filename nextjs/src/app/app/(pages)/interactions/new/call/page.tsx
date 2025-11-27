@@ -8,7 +8,9 @@ import ResourcePageShell from "@shared/layout/ResourcePageShell";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import NoteForm from "@interactions/components/forms/NoteForm";
 import { useZones } from "@zones/hooks/useZones";
-import type { InteractionStatus, ZoneOption } from "@interactions/types";
+import type { ZoneOption } from "@interactions/types";
+import { parseInteractionDraftParams } from "@interactions/utils/prefill";
+import { consumeDraftFiles } from "@interactions/utils/draftUploadsStore";
 
 export default function NewCallPage() {
     const { t } = useI18n();
@@ -21,7 +23,11 @@ export default function NewCallPage() {
     );
 
     const projectIdParam = searchParams?.get("projectId");
-    const statusParam = searchParams?.get("status");
+    const draftDefaults = useMemo(() => parseInteractionDraftParams(searchParams), [searchParams]);
+    const draftFiles = useMemo(
+        () => (draftDefaults.draftId ? consumeDraftFiles(draftDefaults.draftId) : []),
+        [draftDefaults.draftId]
+    );
     const returnToParam = searchParams?.get("returnTo");
     const redirectTo = useMemo(
         () => (returnToParam && returnToParam.startsWith("/") ? returnToParam : null),
@@ -30,10 +36,13 @@ export default function NewCallPage() {
 
     const defaultValues = useMemo(
         () => ({
-            status: (statusParam as InteractionStatus) || "done",
+            status: draftDefaults.status ?? "done",
             projectId: projectIdParam ?? null,
+            subject: draftDefaults.subject,
+            content: draftDefaults.content,
+            occurredAt: draftDefaults.occurredAt,
         }),
-        [statusParam, projectIdParam]
+        [draftDefaults, projectIdParam]
     );
 
     return (
@@ -54,6 +63,7 @@ export default function NewCallPage() {
                 zonesLoading={zonesLoading}
                 defaultValues={defaultValues}
                 redirectTo={redirectTo}
+                initialFiles={draftFiles}
             />
         </ResourcePageShell>
     );
