@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { FileText, Loader2, FileX, Download, Trash2, ExternalLink, Edit } from "lucide-react";
+import { useCallback, useState } from "react";
+import { FileText, Loader2, FileX, Trash2, ExternalLink, Edit } from "lucide-react";
 
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import { cn } from "@/lib/utils";
 import { useDeleteDocument } from "@/features/interactions/hooks/useDeleteDocument";
 import type { DocumentWithLinks } from "../types";
 import { formatFileSize, getDocumentFileSize } from "@interactions/utils/formatFileSize";
@@ -116,12 +115,6 @@ export default function DocumentListItem({ doc, viewUrl, downloadUrl, onEdit, on
 
                 {/* Actions */}
                 <div className="flex items-center gap-1 shrink-0">
-                    <Button asChild variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.preventDefault(); void handleDownload(); }}>
-                        <a aria-label={`${t("common.download")} ${fileName}`}>
-                            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
-                        </a>
-                    </Button>
-
                     <Button variant="ghost" size="icon" className="h-7 w-7" aria-label={`${t("documents.edit")}`} onClick={() => onEdit?.(doc)}>
                         <Edit className="w-3.5 h-3.5" />
                     </Button>
