@@ -14,6 +14,8 @@ import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/s
 import type { Project, ProjectPriority, ProjectStatus, ProjectType } from "@projects/types";
 import { PROJECT_PRIORITY_OPTIONS, PROJECT_STATUSES, PROJECT_TYPE_META, PROJECT_TYPES } from "@projects/constants";
 import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
+import { ZonePicker } from "@interactions/components/ZonePicker";
+import type { ZoneOption } from "@interactions/types";
 
 type Mode = "create" | "edit";
 
@@ -21,6 +23,8 @@ interface ProjectFormProps {
   project?: Project;
   mode?: Mode;
   onSuccess?: (projectId: string) => void;
+  zones: ZoneOption[];
+  zonesLoading?: boolean;
 }
 
 const ensureTagsArray = (value: string) =>
@@ -29,7 +33,7 @@ const ensureTagsArray = (value: string) =>
     .map((tag) => tag.trim())
     .filter(Boolean);
 
-export default function ProjectForm({ project, mode = "create", onSuccess }: ProjectFormProps) {
+export default function ProjectForm({ project, mode = "create", onSuccess, zones, zonesLoading = false }: ProjectFormProps) {
   const { selectedHouseholdId: householdId } = useGlobal();
   const { t } = useI18n();
   const { show } = useToast();
@@ -48,6 +52,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
   );
   const [tagsInput, setTagsInput] = useState(project?.tags?.join(", ") ?? "");
   const [projectGroupId, setProjectGroupId] = useState(project?.project_group_id ?? "");
+  const [selectedZones, setSelectedZones] = useState<string[]>(project?.zones?.map(z => z.id) ?? []);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [statusTouched, setStatusTouched] = useState(isEdit);
@@ -135,6 +140,25 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
             .single();
           if (updateError) throw updateError;
           if (!updated?.id) throw new Error(t("common.unexpectedError"));
+
+          // Gérer les zones : supprimer les anciennes et ajouter les nouvelles
+          const { error: deleteZonesError } = await (client as any)
+            .from("project_zones")
+            .delete()
+            .eq("project_id", project.id);
+          if (deleteZonesError) throw deleteZonesError;
+
+          if (selectedZones.length > 0) {
+            const zoneInserts = selectedZones.map(zoneId => ({
+              project_id: project.id,
+              zone_id: zoneId,
+            }));
+            const { error: insertZonesError } = await (client as any)
+              .from("project_zones")
+              .insert(zoneInserts);
+            if (insertZonesError) throw insertZonesError;
+          }
+
           show({ title: t("projects.form.successUpdate"), variant: "success" });
           onSuccess?.(project.id);
         } else {
@@ -149,6 +173,19 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
             .single();
           if (insertError) throw insertError;
           const newId = data?.id;
+
+          // Ajouter les zones sélectionnées
+          if (newId && selectedZones.length > 0) {
+            const zoneInserts = selectedZones.map(zoneId => ({
+              project_id: newId,
+              zone_id: zoneId,
+            }));
+            const { error: insertZonesError } = await (client as any)
+              .from("project_zones")
+              .insert(zoneInserts);
+            if (insertZonesError) throw insertZonesError;
+          }
+
           show({ title: t("projects.form.successCreate"), variant: "success" });
           if (newId) onSuccess?.(newId);
         }
@@ -170,6 +207,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
       priority,
       project,
       projectGroupId,
+      selectedZones,
       show,
       startDate,
       status,
@@ -276,7 +314,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
                 <option value="">{groupsLoading ? t("projects.form.groupLoading") : t("projects.form.groupNone")}</option>
                 {!hasCurrentGroupOption && projectGroupId ? (
                   <option value={projectGroupId}>
-                    {project?.group?.name || t("projects.form.groupCurrent")}
+                    {project?.project_group?.name || t("projects.form.groupCurrent")}
                   </option>
                 ) : null}
                 {groupOptions.map((g) => (
@@ -300,6 +338,24 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
               <label className="text-sm font-medium text-slate-700">{t("projects.fields.dueDate")}</label>
               <Input type="date" value={dueDate ?? ""} onChange={(event) => setDueDate(event.target.value)} />
             </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-slate-700">
+              {t("projects.fields.zones")}
+              <span className="ml-2 text-xs font-normal text-slate-400">
+                {t("projects.form.zonesHelper")}
+              </span>
+            </label>
+            {zonesLoading ? (
+              <div className="p-4 text-center text-sm text-slate-500">
+                {t("projects.form.zonesLoading")}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-slate-200 p-3">
+                <ZonePicker zones={zones} value={selectedZones} onChange={setSelectedZones} />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">

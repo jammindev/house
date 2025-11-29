@@ -57,58 +57,43 @@ export function ProjectAIComposer({
     };
 
     return (
-        <div className="space-y-3">
-            <div className="flex gap-2">
-                <div className="flex-1 relative">
-                    <Textarea
-                        ref={textareaRef}
-                        value={message}
-                        onChange={handleInput}
-                        onKeyDown={handleKeyDown}
-                        placeholder={t("projects.aiChat.placeholder")}
-                        disabled={disabled}
-                        className="min-h-[44px] max-h-[120px] resize-none pr-12"
-                        rows={1}
-                        aria-label={t("projects.aiChat.messageLabel")}
-                    />
+        <div className="flex gap-2">
+            <div className="flex-1 relative">
+                <Textarea
+                    ref={textareaRef}
+                    value={message}
+                    onChange={handleInput}
+                    onKeyDown={handleKeyDown}
+                    placeholder={t("projects.aiChat.placeholder")}
+                    disabled={disabled}
+                    className="min-h-[44px] max-h-[120px] resize-none pr-12"
+                    rows={1}
+                    aria-label={t("projects.aiChat.messageLabel")}
+                />
 
-                    {isStreaming ? (
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleCancel}
-                            className="absolute right-1 top-1 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                            aria-label={t("projects.aiChat.cancel")}
-                        >
-                            <Square className="h-4 w-4" />
-                        </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={handleSubmit}
-                            disabled={!message.trim() || disabled}
-                            className="absolute right-1 top-1 h-8 w-8 p-0 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50"
-                            aria-label={t("projects.aiChat.send")}
-                        >
-                            <Send className="h-4 w-4" />
-                        </Button>
-                    )}
-                </div>
-            </div>
-
-            <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{t("projects.aiChat.keyboardHint")}</span>
-                {isStreaming && (
-                    <button
+                {isStreaming ? (
+                    <Button
                         type="button"
+                        size="sm"
+                        variant="ghost"
                         onClick={handleCancel}
-                        className="hover:text-foreground transition-colors"
+                        className="absolute right-1 top-1 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                        aria-label={t("projects.aiChat.cancel")}
                     >
-                        {t("projects.aiChat.cancel")}
-                    </button>
+                        <Square className="h-4 w-4" />
+                    </Button>
+                ) : (
+                    <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleSubmit}
+                        disabled={!message.trim() || disabled}
+                        className="absolute right-1 top-1 h-8 w-8 p-0 text-muted-foreground hover:text-foreground disabled:text-muted-foreground/50"
+                        aria-label={t("projects.aiChat.send")}
+                    >
+                        <Send className="h-4 w-4" />
+                    </Button>
                 )}
             </div>
         </div>

@@ -86,7 +86,7 @@ export default function ProjectDetailView({
             ))}
           </div>
 
-          <div className="p-2">
+          <div className="p-2 min-h-32">
             {tab === "timeline" ? (
               <ProjectTimeline
                 projectId={project.id}
@@ -95,6 +95,11 @@ export default function ProjectDetailView({
             {tab === "tasks" ? (
               <ProjectTasksPanel
                 projectId={project.id}
+                projectZones={project.zones?.map(zone => ({
+                  id: zone.id,
+                  name: zone.name,
+                  parent_id: zone.parent_id
+                }))}
               />
             ) : null}
             {tab === "documents" ? <ProjectDocumentsPanel documents={interactionsData.documents} /> : null}

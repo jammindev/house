@@ -11,12 +11,13 @@ import type { InteractionType } from "@interactions/types";
 interface InteractionTypeSelectorProps {
     projectId?: string | null;
     returnTo?: string | null;
+    zones?: string | null;
     onTypeSelect?: (type: InteractionType) => void;
 }
 
 const COMMON_TYPES: InteractionType[] = ["note", "todo", "quote", "expense", "call", "visit"];
 
-export default function InteractionTypeSelector({ projectId, returnTo, onTypeSelect }: InteractionTypeSelectorProps) {
+export default function InteractionTypeSelector({ projectId, returnTo, zones, onTypeSelect }: InteractionTypeSelectorProps) {
     const { t } = useI18n();
     const router = useRouter();
     const safeReturnTo = returnTo && returnTo.startsWith("/") ? returnTo : null;
@@ -34,6 +35,9 @@ export default function InteractionTypeSelector({ projectId, returnTo, onTypeSel
         }
         if (safeReturnTo) {
             params.set("returnTo", safeReturnTo);
+        }
+        if (zones) {
+            params.set("zones", zones);
         }
 
         const queryString = params.toString();

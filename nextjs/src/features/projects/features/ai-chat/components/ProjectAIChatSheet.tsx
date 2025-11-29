@@ -13,9 +13,10 @@ import { ProjectAIComposer } from "./ProjectAIComposer";
 interface ProjectAIChatSheetProps {
     projectId: string;
     projectTitle: string;
+    trigger?: React.ReactElement;
 }
 
-export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatSheetProps) {
+export function ProjectAIChatSheet({ projectId, projectTitle, trigger: customTrigger }: ProjectAIChatSheetProps) {
     const { t } = useI18n();
     const [isOpen, setIsOpen] = useState(false);
     const {
@@ -42,7 +43,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatShe
         }
     };
 
-    const trigger = (
+    const defaultTrigger = (
         <Button
             variant="secondary"
             size="sm"
@@ -56,13 +57,13 @@ export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatShe
 
     return (
         <SheetDialog
-            trigger={trigger}
+            trigger={customTrigger || defaultTrigger}
             open={isOpen}
             onOpenChange={setIsOpen}
             title={t("projects.aiChat.title")}
             description={t("projects.aiChat.description", { project: projectTitle })}
             closeLabel={t("common.close")}
-            contentClassName="p-0 gap-0"
+            contentClassName="p-2 gap-0"
         >
             {({ close }) => (
                 <>
@@ -103,7 +104,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatShe
                         </div>
 
                         {/* Composer */}
-                        <div className="border-t p-4">
+                        <div className="border-t p-2">
                             <ProjectAIComposer
                                 onSendMessage={handleSendMessage}
                                 isStreaming={isStreaming}

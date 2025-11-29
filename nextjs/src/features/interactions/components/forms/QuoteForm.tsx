@@ -28,6 +28,7 @@ interface QuoteFormDefaults {
     status?: InteractionStatus | "";
     occurredAt?: string;
     projectId?: string | null;
+    selectedZones?: string[];
 }
 
 interface QuoteFormProps {
@@ -65,11 +66,10 @@ export default function QuoteForm({
     const [subject, setSubject] = useState("");
     const [subjectDirty, setSubjectDirty] = useState(false);
     const [content, setContent] = useState("");
-    const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "pending");
     const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-    const [selectedZones, setSelectedZones] = useState<string[]>([]);
+    const [selectedZones, setSelectedZones] = useState<string[]>(defaultValues.selectedZones ?? []);
     const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
     const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
 
@@ -172,11 +172,10 @@ export default function QuoteForm({
         setSubject("");
         setSubjectDirty(false);
         setContent("");
-        setStatus(defaultValues.status ?? "pending");
         setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
         setSelectedProjectId(defaultValues.projectId ?? null);
         setSelectedTagIds([]);
-        setSelectedZones([]);
+        setSelectedZones(defaultValues.selectedZones ?? []);
         setSelectedContactIds([]);
         setSelectedStructureIds([]);
         setQuoteAmount("");
@@ -242,7 +241,7 @@ export default function QuoteForm({
                 p_zone_ids: selectedZones,
                 p_content: contentPayload,
                 p_type: "quote",
-                p_status: status || null,
+                p_status: null,
                 p_occurred_at: occurredAtValue,
                 p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
                 p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
@@ -347,8 +346,6 @@ export default function QuoteForm({
                 onSubjectDirtyChange={setSubjectDirty}
                 isAutoSubjectType={true}
                 subjectPlaceholder={t("forms.quote.subjectPlaceholder")}
-                status={status}
-                onStatusChange={setStatus}
                 occurredAt={occurredAt}
                 onOccurredAtChange={setOccurredAt}
                 selectedProjectId={selectedProjectId}

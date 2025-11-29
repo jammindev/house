@@ -10,6 +10,7 @@ export default function NewInteractionPage() {
   const searchParams = useSearchParams();
   const projectIdParam = searchParams?.get("projectId");
   const returnToParam = searchParams?.get("returnTo");
+  const zonesParam = searchParams?.get("zones");
   const redirectTo = returnToParam && returnToParam.startsWith("/") ? returnToParam : null;
 
   return (
@@ -19,7 +20,7 @@ export default function NewInteractionPage() {
       hideBackButton={false}
       bodyClassName="gap-4"
     >
-      <InteractionTypeSelector projectId={projectIdParam} returnTo={redirectTo} />
+      <InteractionTypeSelector projectId={projectIdParam} returnTo={redirectTo} zones={zonesParam} />
     </ResourcePageShell>
   );
 }

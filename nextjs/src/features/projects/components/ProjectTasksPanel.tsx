@@ -8,9 +8,12 @@ import type { Interaction, InteractionStatus } from "@interactions/types";
 import { useUpdateInteractionStatus } from "@interactions/hooks/useUpdateInteractionStatus";
 import { useProjectTasks } from "@projects/hooks/useProjectTasks";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import NewTaskDialog from "@interactions/components/NewTaskDialog";
+import type { ZoneOption } from "@interactions/types";
 
 interface ProjectTasksPanelProps {
   projectId: string;
+  projectZones?: ZoneOption[];
 }
 
 type TaskStatusCategory = 'incomplete' | 'complete' | 'cancelled';
@@ -51,7 +54,7 @@ const getBulletIcon = (status: InteractionStatus | null) => {
   }
 };
 
-export default function ProjectTasksPanel({ projectId }: ProjectTasksPanelProps) {
+export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTasksPanelProps) {
   const { t } = useI18n();
   const { updateStatus, loading: updateLoading } = useUpdateInteractionStatus();
   const { tasks: fetchedTasks, loading, error, refetch } = useProjectTasks(projectId);
@@ -91,7 +94,14 @@ export default function ProjectTasksPanel({ projectId }: ProjectTasksPanelProps)
         )
       );
     }
-  }, [updateStatus, refetch]); const sortedTasks = useMemo(() => {
+  }, [updateStatus, refetch]);
+
+  const handleTaskCreated = useCallback(async () => {
+    // Refetch tasks when a new one is created
+    await refetch();
+  }, [refetch]);
+
+  const sortedTasks = useMemo(() => {
     const tasksByCategory = localTasks.reduce((acc: Record<TaskStatusCategory, Interaction[]>, task: Interaction) => {
       const category = getStatusCategory(task.status);
       acc[category] = acc[category] || [];
@@ -136,36 +146,53 @@ export default function ProjectTasksPanel({ projectId }: ProjectTasksPanelProps)
 
   if (!localTasks.length) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-        {t("projects.tasks.empty")}
+      <div className="space-y-4">
+        <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
+          <p className="text-sm text-slate-500 mb-4">{t("projects.tasks.empty")}</p>
+          <NewTaskDialog
+            projectId={projectId}
+            defaultStatus="pending"
+            onCreated={handleTaskCreated}
+          />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      {/* Summary Stats */}
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5">
-          <Circle className="h-4 w-4 text-amber-600" />
-          <span className="font-medium text-amber-700">
-            {t("projects.tasks.incompleteCount", { count: totals.incomplete })}
-          </span>
-        </div>
-        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5">
-          <Check className="h-4 w-4 text-emerald-600" />
-          <span className="font-medium text-emerald-700">
-            {t("projects.tasks.completeCount", { count: totals.complete })}
-          </span>
-        </div>
-        {totals.cancelled > 0 && (
-          <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1.5">
-            <X className="h-4 w-4 text-slate-600" />
-            <span className="font-medium text-slate-700">
-              {t("projects.tasks.cancelledCount", { count: totals.cancelled })}
+      {/* Summary Stats and Add Button */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1.5">
+            <Circle className="h-4 w-4 text-amber-600" />
+            <span className="font-medium text-amber-700">
+              {t("projects.tasks.incompleteCount", { count: totals.incomplete })}
             </span>
           </div>
-        )}
+          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5">
+            <Check className="h-4 w-4 text-emerald-600" />
+            <span className="font-medium text-emerald-700">
+              {t("projects.tasks.completeCount", { count: totals.complete })}
+            </span>
+          </div>
+          {totals.cancelled > 0 && (
+            <div className="inline-flex items-center gap-2 rounded-full bg-slate-50 px-3 py-1.5">
+              <X className="h-4 w-4 text-slate-600" />
+              <span className="font-medium text-slate-700">
+                {t("projects.tasks.cancelledCount", { count: totals.cancelled })}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Quick Add Task Button */}
+        <NewTaskDialog
+          projectId={projectId}
+          defaultStatus="pending"
+          preSelectedZones={projectZones}
+          onCreated={handleTaskCreated}
+        />
       </div>
 
       {/* Tasks List */}

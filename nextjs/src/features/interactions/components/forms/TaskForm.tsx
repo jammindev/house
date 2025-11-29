@@ -20,6 +20,7 @@ interface TaskFormDefaults {
     status?: InteractionStatus | "";
     occurredAt?: string;
     projectId?: string | null;
+    selectedZones?: string[];
 }
 
 interface TaskFormProps {
@@ -59,7 +60,7 @@ export default function TaskForm({
     const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-    const [selectedZones, setSelectedZones] = useState<string[]>([]);
+    const [selectedZones, setSelectedZones] = useState<string[]>(defaultValues.selectedZones ?? []);
     const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
     const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
 
@@ -124,7 +125,7 @@ export default function TaskForm({
         setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
         setSelectedProjectId(defaultValues.projectId ?? null);
         setSelectedTagIds([]);
-        setSelectedZones([]);
+        setSelectedZones(defaultValues.selectedZones ?? []);
         setSelectedContactIds([]);
         setSelectedStructureIds([]);
         setFiles([]);

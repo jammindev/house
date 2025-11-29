@@ -7,6 +7,7 @@ import { useGlobal } from "@/lib/context/GlobalContext";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectForm from "@projects/components/ProjectForm";
 import { useProject } from "@projects/hooks/useProject";
+import { useZones } from "@zones/hooks/useZones";
 import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 export default function ProjectEditPage() {
@@ -20,6 +21,13 @@ export default function ProjectEditPage() {
   const projectId = Array.isArray(projectIdParam) ? projectIdParam[0] : projectIdParam ?? "";
 
   const { project, loading, error } = useProject(projectId);
+  const { zones, loading: zonesLoading } = useZones();
+
+  const zoneOptions = zones.map((zone) => ({
+    id: zone.id,
+    name: zone.name,
+    parent_id: zone.parent_id,
+  }));
 
   const title = t("projects.editTitle");
   const subtitle = t("projects.editSubtitle");
@@ -62,6 +70,8 @@ export default function ProjectEditPage() {
       <ProjectForm
         project={project}
         mode="edit"
+        zones={zoneOptions}
+        zonesLoading={zonesLoading}
         onSuccess={(updatedId) => {
           router.push(`/app/projects/${updatedId}`);
         }}

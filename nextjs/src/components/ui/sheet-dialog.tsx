@@ -34,6 +34,7 @@ type ResponsiveOverlayProps = {
   closeLabel?: string | null;
   contentClassName?: string;
   containerClassName?: string;
+  minHeight?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
@@ -46,6 +47,7 @@ export function SheetDialog({
   closeLabel = "Close",
   contentClassName,
   containerClassName,
+  minHeight,
   open: controlledOpen,
   onOpenChange,
 }: ResponsiveOverlayProps) {
@@ -95,9 +97,12 @@ export function SheetDialog({
           hideDefaultCloseButton
           aria-describedby={description ? undefined : ""}
           className={cn(
-            "rounded-t-3xl bg-background p-0 pb-2 shadow-2xl max-w-4xl mx-auto flex flex-col justify-between",
+            "rounded-t-3xl bg-background p-2 shadow-2xl max-w-4xl mx-auto flex flex-col justify-between",
             containerClassName,
           )}
+          style={{
+            minHeight: minHeight || "auto",
+          }}
         >
           <div
             className={cn(
@@ -105,23 +110,7 @@ export function SheetDialog({
               contentClassName,
             )}
           >
-            <div
-              role="button"
-              tabIndex={0}
-              aria-label={closeLabel ?? "Close"}
-              title={closeLabel ?? "Close"} className="w-full h-6" onClick={() => helpers.close()}
-              onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
-                // Close on Enter or Space (handle various browser key values)
-                if (e.key === "Enter" || e.key === " " || e.key === "Spacebar" || e.key === "Space") {
-                  e.preventDefault();
-                  helpers.close();
-                }
-              }}>
-              <div
-                className="mx-auto mt-6 h-1.5 w-12 rounded-full bg-muted"
-              />
-            </div>
-            <div className="space-y-1">
+            <div>
               {title ? (
                 <DialogTitle className="text-base font-semibold text-foreground">{title}</DialogTitle>
               ) : (
