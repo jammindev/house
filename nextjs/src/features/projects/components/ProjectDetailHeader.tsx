@@ -159,12 +159,12 @@ export default function ProjectDetailHeader({
               ))}
             </div>}
           </div>
-          
+
           {/* Actions Section */}
           <div className="flex items-center gap-2 lg:self-start lg:mt-1">
-            <ProjectAIChatSheet 
-              projectId={project.id} 
-              projectTitle={project.title} 
+            <ProjectAIChatSheet
+              projectId={project.id}
+              projectTitle={project.title}
             />
           </div>
         </div>
