@@ -267,6 +267,15 @@ export function useProjectAIChat({ projectId }: UseProjectAIChatProps) {
         setState(prev => ({ ...prev, error: null }));
     }, []);
 
+    // Create new thread
+    const createNewThread = useCallback(() => {
+        setState(prev => ({
+            ...prev,
+            activeThread: null,
+            messages: []
+        }));
+    }, []);
+
     // Load threads on mount and when projectId changes
     useEffect(() => {
         loadThreads();
@@ -278,6 +287,7 @@ export function useProjectAIChat({ projectId }: UseProjectAIChatProps) {
         createThread,
         switchThread,
         deleteThread,
+        createNewThread,
         cancelStream,
         clearError,
         reload: loadThreads,

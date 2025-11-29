@@ -1105,6 +1105,7 @@
   "projects.aiChat.welcome.title": "Comment puis-je vous aider avec ce projet ?",
   "projects.aiChat.welcome.description": "Je peux fournir des informations sur votre calendrier de projet, votre budget, vos tâches et suggérer les prochaines étapes basées sur votre activité.",
   "projects.aiChat.conversations": "{count} conversations",
+  "projects.aiChat.newChat": "Nouveau Chat",
   "projects.aiChat.selectThread": "Sélectionner une conversation",
   "projects.aiChat.deleteThread": "Supprimer la conversation {title}",
   "projects.aiChat.deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette conversation ? Cette action ne peut pas être annulée.",
