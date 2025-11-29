@@ -135,7 +135,6 @@ export default function ProjectDetailPage() {
 
   return (
     <DetailPageLayout
-      title={project ? project.title : t("projects.notFound")}
       context={project ? undefined : statusLabel}
       actions={actions}
       loading={isLoading}

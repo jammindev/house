@@ -203,7 +203,7 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
           const isCancelled = task.status === 'archived';
 
           return (
-            <div key={task.id} className="flex items-start gap-3 group">
+            <div key={task.id} className="flex items-center gap-3 group border p-2 border-slate-200 shadow-sm rounded-lg bg-white">
               {/* Clickable Bullet */}
               <button
                 type="button"
@@ -230,11 +230,6 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
                     }`}
                 >
                   <span className="font-medium">{task.subject}</span>
-                  {task.content && (
-                    <span className="block text-xs text-slate-500 mt-1 truncate">
-                      {task.content}
-                    </span>
-                  )}
                 </LinkWithOverlay>
               </div>
             </div>

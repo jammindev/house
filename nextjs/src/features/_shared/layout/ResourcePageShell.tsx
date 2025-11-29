@@ -7,7 +7,7 @@ import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 import { cn } from "@/lib/utils";
 
 export type ResourcePageShellProps = {
-  title: string;
+  title?: string;
   subtitle?: string;
   context?: string;
   hideBackButton?: boolean;

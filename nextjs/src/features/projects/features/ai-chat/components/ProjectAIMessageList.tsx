@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Bot, User, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import MarkdownContent from "@/components/ui/MarkdownContent";
 import type { ProjectAIMessage } from "../types";
 
 interface ProjectAIMessageListProps {
@@ -33,53 +34,7 @@ export function ProjectAIMessageList({
     };
 
     const renderMessageContent = (content: string) => {
-        // Simple markdown-like rendering for lists and basic formatting
-        const lines = content.split('\n');
-        return (
-            <div className="space-y-2">
-                {lines.map((line, index) => {
-                    // Handle bullet points
-                    if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
-                        return (
-                            <div key={index} className="flex gap-2">
-                                <span className="text-muted-foreground">•</span>
-                                <span>{line.trim().substring(2)}</span>
-                            </div>
-                        );
-                    }
-
-                    // Handle numbered lists
-                    const numberedMatch = line.trim().match(/^(\d+\.)\s+(.*)$/);
-                    if (numberedMatch) {
-                        return (
-                            <div key={index} className="flex gap-2">
-                                <span className="text-muted-foreground">{numberedMatch[1]}</span>
-                                <span>{numberedMatch[2]}</span>
-                            </div>
-                        );
-                    }
-
-                    // Handle bold text **text**
-                    if (line.includes('**')) {
-                        const parts = line.split(/\*\*(.*?)\*\*/);
-                        return (
-                            <p key={index}>
-                                {parts.map((part, partIndex) =>
-                                    partIndex % 2 === 1 ? (
-                                        <strong key={partIndex}>{part}</strong>
-                                    ) : (
-                                        <span key={partIndex}>{part}</span>
-                                    )
-                                )}
-                            </p>
-                        );
-                    }
-
-                    // Regular line
-                    return line.trim() ? <p key={index}>{line}</p> : <br key={index} />;
-                })}
-            </div>
-        );
+        return <MarkdownContent className="text-sm">{content}</MarkdownContent>;
     };
 
     if (isLoading && messages.length === 0) {

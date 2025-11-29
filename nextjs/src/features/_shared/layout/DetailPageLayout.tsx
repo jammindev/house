@@ -7,7 +7,7 @@ import DetailSkeleton from "../components/DetailSkeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export type DetailPageLayoutProps = {
-  title: string;
+  title?: string;
   subtitle?: string;
   context?: string;
   hideBackButton?: boolean;
