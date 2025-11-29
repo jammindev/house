@@ -37,6 +37,12 @@ export type Project = {
     id: string;
     name: string;
   } | null;
+  zones?: {
+    id: string;
+    name: string;
+    parent_id?: string | null;
+    color?: string;
+  }[];
 };
 
 export type ProjectMetrics = {

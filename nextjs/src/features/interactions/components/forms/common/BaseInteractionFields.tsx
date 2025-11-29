@@ -23,8 +23,8 @@ export interface BaseInteractionFieldsProps {
     subjectPlaceholder?: string;
 
     // Status field
-    status: InteractionStatus | "";
-    onStatusChange: (status: InteractionStatus | "") => void;
+    status?: InteractionStatus | "";
+    onStatusChange?: (status: InteractionStatus | "") => void;
 
     // Date field
     occurredAt: string;
@@ -95,7 +95,7 @@ export default function BaseInteractionFields({
         <>
             <Card>
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-lg font-semibold">{t("interactionssections.details")}</CardTitle>
+                    <CardTitle className="text-base font-semibold">{t("interactionssections.details")}</CardTitle>
                     <CardDescription>{t("interactionssubjectHelper")}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -123,23 +123,26 @@ export default function BaseInteractionFields({
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-status">
-                                {t("interactionsstatusLabel")}
-                            </label>
-                            <select
-                                id="interaction-status"
-                                value={status}
-                                onChange={(event) => onStatusChange(event.target.value as InteractionStatus | "")}
-                                className="border rounded-md h-9 w-full px-3 text-sm bg-background"
-                            >
-                                {INTERACTION_STATUSES.map((value) => (
-                                    <option key={value ?? "none"} value={value ?? ""}>
-                                        {value ? t(`interactionsstatus.${value}`) : t("interactionsstatusNone")}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                        {/* Status field - only show if status props are provided */}
+                        {status !== undefined && onStatusChange && (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700" htmlFor="interaction-status">
+                                    {t("interactionsstatusLabel")}
+                                </label>
+                                <select
+                                    id="interaction-status"
+                                    value={status}
+                                    onChange={(event) => onStatusChange(event.target.value as InteractionStatus | "")}
+                                    className="border rounded-md h-9 w-full px-3 text-sm bg-background"
+                                >
+                                    {INTERACTION_STATUSES.map((value) => (
+                                        <option key={value ?? "none"} value={value ?? ""}>
+                                            {value ? t(`interactionsstatus.${value}`) : t("interactionsstatusNone")}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-700" htmlFor="interaction-occurred-at">

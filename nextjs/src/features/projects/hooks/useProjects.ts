@@ -122,7 +122,9 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
           .in("project_id", ids);
         if (metricsError) throw metricsError;
         metricsByProject = new Map(
-          (metricsRows ?? []).map((item) => [item.project_id, item as ProjectMetrics])
+          (metricsRows ?? [])
+            .filter((item) => item.project_id !== null)
+            .map((item) => [item.project_id as string, item as ProjectMetrics])
         );
       }
 

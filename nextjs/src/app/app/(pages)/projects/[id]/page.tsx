@@ -3,7 +3,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClipboardList, Pencil, Plus } from "lucide-react";
+import { Bot, ClipboardList, Pencil, Plus } from "lucide-react";
+
+import { ProjectAIChatSheet } from "@projects/features/ai-chat";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -66,6 +68,24 @@ export default function ProjectDetailPage() {
             ),
           },
           {
+            element: (
+              <ProjectAIChatSheet
+                projectId={project.id}
+                projectTitle={project.title}
+                trigger={(
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label={t("projects.ai.chatTitle")}
+                    className="shadow-sm"
+                  >
+                    <Bot className="h-5 w-5" />
+                  </Button>
+                )}
+              />
+            ),
+          },
+          {
             icon: Pencil,
             href: `/app/projects/${project.id}/edit`,
             label: t("projects.editTitle"),
@@ -86,18 +106,27 @@ export default function ProjectDetailPage() {
                   </Button>
                 )}
               >
-                  {({ close }) => (
-                    <AddProjectInteraction
-                      projectId={project.id}
-                      onLinkExisting={() => {
-                        close();
-                        setLinkOpen(true);
-                      }}
-                      showHeader={false}
-                    />
-                  )}
-                </SheetDialog>
-              ),
+                {({ close }) => (
+                  <AddProjectInteraction
+                    projectId={project.id}
+                    projectZones={project.zones?.map(zone => ({
+                      id: zone.id,
+                      name: zone.name,
+                      parent_id: zone.parent_id
+                    }))}
+                    onLinkExisting={() => {
+                      close();
+                      setLinkOpen(true);
+                    }}
+                    onInteractionCreated={() => {
+                      close();
+                      handleRefresh();
+                    }}
+                    showHeader={false}
+                  />
+                )}
+              </SheetDialog>
+            ),
           },
         ]
         : undefined,

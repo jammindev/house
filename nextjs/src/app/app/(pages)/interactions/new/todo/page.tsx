@@ -23,6 +23,13 @@ export default function NewTaskPage() {
     const projectIdParam = searchParams?.get("projectId");
     const statusParam = searchParams?.get("status");
     const returnToParam = searchParams?.get("returnTo");
+    const zonesParam = searchParams?.get("zones");
+
+    const preSelectedZones = useMemo(() => {
+        if (!zonesParam) return [];
+        return zonesParam.split(',').filter(Boolean);
+    }, [zonesParam]);
+
     const redirectTo = useMemo(
         () => (returnToParam && returnToParam.startsWith("/") ? returnToParam : null),
         [returnToParam]
@@ -32,8 +39,9 @@ export default function NewTaskPage() {
         () => ({
             status: (statusParam as InteractionStatus) || "pending",
             projectId: projectIdParam ?? null,
+            selectedZones: preSelectedZones,
         }),
-        [statusParam, projectIdParam]
+        [statusParam, projectIdParam, preSelectedZones]
     );
 
     return (

@@ -51,6 +51,14 @@ export function useProject(projectId?: string) {
               id,
               name
             ),
+            project_zones (
+              zone:zones (
+                id,
+                name,
+                parent_id,
+                color
+              )
+            ),
             created_at,
             updated_at,
             created_by,
@@ -68,7 +76,14 @@ export function useProject(projectId?: string) {
         return;
       }
 
-      const projectData = projectRow as Project;
+      // Transform project data and extract zones
+      const rawProject = projectRow as any;
+      const zones = rawProject.project_zones?.map((pz: any) => pz.zone) || [];
+      const projectData: Project = {
+        ...rawProject,
+        zones,
+        project_zones: undefined, // Remove the raw join data
+      };
 
       const { data: metricsRow, error: metricsError } = await client
         .from("project_metrics")
@@ -119,6 +134,14 @@ export function useProject(projectId?: string) {
                 id,
                 name
               ),
+              project_zones (
+                zone:zones (
+                  id,
+                  name,
+                  parent_id,
+                  color
+                )
+              ),
               created_at,
               updated_at,
               created_by,
@@ -131,7 +154,11 @@ export function useProject(projectId?: string) {
           .order("updated_at", { ascending: false });
         if (relatedError) throw relatedError;
 
-        const relatedProjectsRaw = (relatedRows ?? []) as Project[];
+        const relatedProjectsRaw = (relatedRows ?? []).map((rawRelated: any) => ({
+          ...rawRelated,
+          zones: rawRelated.project_zones?.map((pz: any) => pz.zone) || [],
+          project_zones: undefined, // Remove the raw join data
+        })) as Project[];
         const relatedIds = relatedProjectsRaw.map((item) => item.id);
 
         let relatedMetricsById = new Map<string, ProjectMetrics>();
@@ -142,7 +169,9 @@ export function useProject(projectId?: string) {
             .in("project_id", relatedIds);
           if (relatedMetricsError) throw relatedMetricsError;
           relatedMetricsById = new Map(
-            (relatedMetricsRows ?? []).map((item) => [item.project_id, item as ProjectMetrics])
+            (relatedMetricsRows ?? [])
+              .filter((item) => item.project_id !== null)
+              .map((item) => [item.project_id as string, item as ProjectMetrics])
           );
         }
 

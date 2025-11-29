@@ -20,6 +20,7 @@ interface NoteFormDefaults {
     status?: InteractionStatus | "";
     occurredAt?: string;
     projectId?: string | null;
+    selectedZones?: string[];
 }
 
 interface NoteFormProps {
@@ -55,11 +56,10 @@ export default function NoteForm({
     const [subject, setSubject] = useState("");
     const [subjectDirty, setSubjectDirty] = useState(false);
     const [content, setContent] = useState("");
-    const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "");
     const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-    const [selectedZones, setSelectedZones] = useState<string[]>([]);
+    const [selectedZones, setSelectedZones] = useState<string[]>(defaultValues.selectedZones ?? []);
     const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
     const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
 
@@ -120,11 +120,10 @@ export default function NoteForm({
         setSubject("");
         setSubjectDirty(false);
         setContent("");
-        setStatus(defaultValues.status ?? "");
         setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
         setSelectedProjectId(defaultValues.projectId ?? null);
         setSelectedTagIds([]);
-        setSelectedZones([]);
+        setSelectedZones(defaultValues.selectedZones ?? []);
         setSelectedContactIds([]);
         setSelectedStructureIds([]);
         setFiles([]);
@@ -170,7 +169,7 @@ export default function NoteForm({
                 p_zone_ids: selectedZones,
                 p_content: contentPayload,
                 p_type: "note",
-                p_status: status || null,
+                p_status: null,
                 p_occurred_at: occurredAtValue,
                 p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
                 p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
@@ -272,12 +271,10 @@ export default function NoteForm({
             <BaseInteractionFields
                 subject={subject}
                 onSubjectChange={setSubject}
-                subjectDirty={subjectDirty}
-                onSubjectDirtyChange={setSubjectDirty}
+                subjectDirty={false}
+                onSubjectDirtyChange={() => { }}
                 isAutoSubjectType={false}
                 subjectPlaceholder={t("forms.note.subjectPlaceholder")}
-                status={status}
-                onStatusChange={setStatus}
                 occurredAt={occurredAt}
                 onOccurredAtChange={setOccurredAt}
                 selectedProjectId={selectedProjectId}

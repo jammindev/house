@@ -23,6 +23,7 @@ export default function NewQuotePage() {
     const projectIdParam = searchParams?.get("projectId");
     const statusParam = searchParams?.get("status");
     const returnToParam = searchParams?.get("returnTo");
+    const zonesParam = searchParams?.get("zones");
     const redirectTo = useMemo(
         () => (returnToParam && returnToParam.startsWith("/") ? returnToParam : null),
         [returnToParam]
@@ -32,8 +33,9 @@ export default function NewQuotePage() {
         () => ({
             status: (statusParam as InteractionStatus) || "pending",
             projectId: projectIdParam ?? null,
+            selectedZones: zonesParam ? zonesParam.split(",") : undefined,
         }),
-        [statusParam, projectIdParam]
+        [statusParam, projectIdParam, zonesParam]
     );
 
     return (

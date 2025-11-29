@@ -16,8 +16,6 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import CollapsibleSectionToggle from "@/components/layout/CollapsibleSectionToggle";
 import ProjectStatusSheet from "@projects/components/ProjectStatusSheet";
 import CountBadge from "@/components/ui/CountBadge";
-import { ProjectAIChatSheet } from "@projects/features/ai-chat";
-
 interface ProjectDetailHeaderProps {
   project: ProjectWithMetrics;
   onProjectChanged?: () => void;
@@ -135,17 +133,26 @@ export default function ProjectDetailHeader({
                 >
                   <CountBadge
                     icon={<FolderKanban className="h-4 w-4" />}
-                    label={
-                      typeof project.group.projectsCount === "number"
-                        ? `${project.group.projectsCount} ${project.group.name}`
-                        : project.group.name
-                    }
+                    label={project.group.name}
                     display="inline"
                     tone="none"
                     className="border border-slate-200 bg-slate-100 text-slate-600 transition-colors hover:text-primary-700"
                   />
                 </LinkWithOverlay>
               ) : null}
+              {project.zones && project.zones.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {project.zones.map((zone) => (
+                    <CountBadge
+                      key={zone.id}
+                      label={zone.name}
+                      display="inline"
+                      tone="none"
+                      className="border border-slate-200 bg-slate-100 text-slate-600"
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             {project.description ? (
               <p className="max-w-3xl text-sm text-slate-600 whitespace-pre-line">{project.description}</p>
@@ -158,14 +165,6 @@ export default function ProjectDetailHeader({
                 </span>
               ))}
             </div>}
-          </div>
-
-          {/* Actions Section */}
-          <div className="flex items-center gap-2 lg:self-start lg:mt-1">
-            <ProjectAIChatSheet
-              projectId={project.id}
-              projectTitle={project.title}
-            />
           </div>
         </div>
       </CardContent>
