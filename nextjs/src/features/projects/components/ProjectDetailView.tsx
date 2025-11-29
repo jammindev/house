@@ -38,7 +38,7 @@ interface ProjectDetailViewProps {
   onRefresh?: () => void;
 }
 
-const TABS = ["description", "metrics", "timeline", "tasks", "documents", "expenses"] as const;
+const TABS = ["timeline", "description", "metrics", "tasks", "documents", "expenses"] as const;
 const RELATED_PROJECTS_PAGE_SIZE = 3;
 
 export default function ProjectDetailView({
@@ -51,7 +51,7 @@ export default function ProjectDetailView({
   const isMobile = useIsMobile();
   const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
-  const [tab, setTab] = useState<typeof TABS[number]>("description");
+  const [tab, setTab] = useState<typeof TABS[number]>("timeline");
   const [visibleRelatedCount, setVisibleRelatedCount] = useState(RELATED_PROJECTS_PAGE_SIZE);
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [updating, setUpdating] = useState(false);
