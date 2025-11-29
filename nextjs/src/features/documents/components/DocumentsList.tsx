@@ -45,23 +45,23 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
   // Generate signed URLs for all documents
   const generateSignedUrls = useCallback(async () => {
     if (documents.length === 0) return;
-    
+
     setUrlsLoading(true);
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
-      
+
       const urlPromises = documents.map(async (doc) => {
         try {
           const { data, error } = await client.storage
             .from("files")
             .createSignedUrl(doc.file_path, 3600); // 1 hour expiry
-          
+
           if (error || !data?.signedUrl) {
             console.warn(`Failed to generate signed URL for ${doc.file_path}:`, error);
             return { id: doc.id, viewUrl: null, downloadUrl: null };
           }
-          
+
           return {
             id: doc.id,
             viewUrl: data.signedUrl,
@@ -81,7 +81,7 @@ export function DocumentsList({ documents, loading, error, onRefresh, filterActi
         };
         return acc;
       }, {} as Record<string, DocumentUrls>);
-      
+
       setDocumentUrls(urlMap);
     } catch (error) {
       console.error("Failed to generate signed URLs for documents:", error);
