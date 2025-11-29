@@ -51,7 +51,7 @@ export default function ZonesPage() {
       <ResourcePageShell
         title={t("zones.title")}
         hideBackButton
-        actions={[{ icon: Plus, onClick: () => setFormOpen(true) }]}
+        actions={[{ icon: Plus, label: t("zones.addZone"), onClick: () => setFormOpen(true) }]}
         bodyClassName="space-y-4"
       >
         {error ? (

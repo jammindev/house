@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { ProjectStatus, ProjectWithMetrics } from "@projects/types";
-import { PROJECT_STATUSES } from "@projects/constants";
+import { PROJECT_STATUSES, PROJECT_TYPE_META } from "@projects/constants";
 import ProjectQuickActions from "@projects/components/ProjectQuickActions";
 import { useToast } from "@/components/ToastProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -45,6 +45,8 @@ export default function ProjectDetailHeader({
   const { show } = useToast();
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [updating, setUpdating] = useState(false);
+  const typeMeta = PROJECT_TYPE_META[project.type] ?? PROJECT_TYPE_META.other;
+  const helperText = t(typeMeta.helperKey);
 
   useEffect(() => {
     setStatus(project.status);
@@ -89,6 +91,14 @@ export default function ProjectDetailHeader({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-3">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
+                  typeMeta.accent.badge
+                )}
+              >
+                {t(typeMeta.labelKey)}
+              </span>
               {project.isOverdue ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-600">
                   {t("projects.badges.overdue")}
@@ -114,6 +124,7 @@ export default function ProjectDetailHeader({
             {project.description ? (
               <p className="max-w-3xl text-sm text-slate-600 whitespace-pre-line">{project.description}</p>
             ) : null}
+            {helperText ? <p className="text-xs text-slate-500">{helperText}</p> : null}
             <div className="flex flex-wrap gap-2">
               {project.tags.map((tag) => (
                 <span key={tag} className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">

@@ -303,6 +303,138 @@ export type Database = {
         }
         Relationships: []
       }
+      project_groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          household_id: string
+          id: string
+          name: string
+          tags: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          household_id: string
+          id?: string
+          name: string
+          tags?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          household_id?: string
+          id?: string
+          name?: string
+          tags?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_groups_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          actual_cost_cached: number
+          closed_at: string | null
+          cover_interaction_id: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          due_date: string | null
+          household_id: string
+          id: string
+          planned_budget: number
+          priority: number
+          project_group_id: string | null
+          start_date: string | null
+          status: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          tags: string[]
+          title: string
+          type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          actual_cost_cached?: number
+          closed_at?: string | null
+          cover_interaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string | null
+          household_id: string
+          id?: string
+          planned_budget?: number
+          priority?: number
+          project_group_id?: string | null
+          start_date?: string | null
+          status?: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          tags?: string[]
+          title: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          actual_cost_cached?: number
+          closed_at?: string | null
+          cover_interaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          due_date?: string | null
+          household_id?: string
+          id?: string
+          planned_budget?: number
+          priority?: number
+          project_group_id?: string | null
+          start_date?: string | null
+          status?: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          tags?: string[]
+          title?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_cover_interaction_id_fkey"
+            columns: ["cover_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_project_group_id_fkey"
+            columns: ["project_group_id"]
+            isOneToOne: false
+            referencedRelation: "project_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       todo_list: {
         Row: {
           created_at: string
@@ -389,7 +521,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      project_group_metrics: {
+        Row: {
+          actual_cost: number
+          documents_count: number
+          done_todos: number
+          group_id: string
+          open_todos: number
+          planned_budget: number
+          projects_count: number
+        }
+        Relationships: []
+      }
+      project_metrics: {
+        Row: {
+          actual_cost: number
+          documents_count: number
+          done_todos: number
+          open_todos: number
+          project_id: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       create_entry_with_zones: {
@@ -406,7 +559,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      project_status: "draft" | "active" | "on_hold" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never

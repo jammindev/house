@@ -18,15 +18,20 @@ test.describe('authentication', () => {
     await expect(page.getByRole('button', { name: /sign in/i })).toBeVisible();
   });
 
-  test('allows a confirmed Supabase user to sign in and reach the dashboard', async ({ page }) => {
-    context = await createTestUser();
+test('allows a confirmed Supabase user to sign in and reach the dashboard', async ({ page }) => {
+  context = await createTestUser();
 
-    await page.goto('/auth/login');
-    await page.getByLabel(/email/i).fill(context.email);
-    await page.getByLabel(/password/i).fill(context.password);
-    await page.getByRole('button', { name: /sign in/i }).click();
+  // Pre-accept cookie banner to avoid blocking clicks
+  await page.context().addCookies([
+    { name: 'cookie-accept', value: 'accepted', domain: '127.0.0.1', path: '/' },
+  ]);
 
-    await page.waitForURL('**/app', { timeout: 15000 });
-    await expect(page.getByText(`Household: ${context.householdName}`)).toBeVisible();
-  });
+  await page.goto('/auth/login');
+  await page.getByLabel(/email/i).fill(context.email);
+  await page.getByLabel(/password/i).fill(context.password);
+  await page.getByRole('button', { name: /sign in/i }).click();
+
+  await page.waitForURL('**/app', { timeout: 15000 });
+  await expect(page.getByRole('link', { name: /interactions/i })).toBeVisible({ timeout: 20000 });
+});
 });

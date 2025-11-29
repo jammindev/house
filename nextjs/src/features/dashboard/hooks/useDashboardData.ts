@@ -194,6 +194,7 @@ export function useDashboardData() {
             description,
             status,
             priority,
+            type,
             start_date,
             due_date,
             closed_at,

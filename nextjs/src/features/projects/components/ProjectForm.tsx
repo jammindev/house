@@ -11,8 +11,8 @@ import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import type { Project, ProjectPriority, ProjectStatus } from "@projects/types";
-import { PROJECT_PRIORITY_OPTIONS, PROJECT_STATUSES } from "@projects/constants";
+import type { Project, ProjectPriority, ProjectStatus, ProjectType } from "@projects/types";
+import { PROJECT_PRIORITY_OPTIONS, PROJECT_STATUSES, PROJECT_TYPE_META, PROJECT_TYPES } from "@projects/constants";
 import { useProjectGroups } from "@project-groups/hooks/useProjectGroups";
 
 type Mode = "create" | "edit";
@@ -40,6 +40,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
   const [description, setDescription] = useState(project?.description ?? "");
   const [status, setStatus] = useState<ProjectStatus>(project?.status ?? "draft");
   const [priority, setPriority] = useState<ProjectPriority>(project?.priority ?? 3);
+  const [type, setType] = useState<ProjectType>(project?.type ?? "other");
   const [startDate, setStartDate] = useState(project?.start_date ?? "");
   const [dueDate, setDueDate] = useState(project?.due_date ?? "");
   const [plannedBudget, setPlannedBudget] = useState(
@@ -49,9 +50,31 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
   const [projectGroupId, setProjectGroupId] = useState(project?.project_group_id ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [statusTouched, setStatusTouched] = useState(isEdit);
+  const [priorityTouched, setPriorityTouched] = useState(isEdit);
 
   const tagHint = useMemo(() => t("projects.form.tagsHint"), [t]);
   const { groups: groupOptions, loading: groupsLoading, error: groupsError } = useProjectGroups();
+  const typeMeta = PROJECT_TYPE_META[type] ?? PROJECT_TYPE_META.other;
+  const typeHelperText = t(typeMeta.helperKey);
+
+  const handleTypeChange = (nextType: ProjectType) => {
+    setType(nextType);
+    const meta = PROJECT_TYPE_META[nextType];
+    if (!statusTouched && status !== meta.defaults.status) {
+      setStatus(meta.defaults.status);
+    }
+    if (!priorityTouched && priority !== meta.defaults.priority) {
+      setPriority(meta.defaults.priority);
+    }
+  };
+
+  const handleAddSuggestedTag = (tag: string) => {
+    const currentTags = ensureTagsArray(tagsInput);
+    if (currentTags.includes(tag)) return;
+    const next = [...currentTags, tag];
+    setTagsInput(next.join(", "));
+  };
 
   // Ensure the group selector reflects changes when editing and the project prop updates
   useEffect(() => {
@@ -93,6 +116,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
           description: description.trim(),
           status,
           priority,
+          type,
           start_date: startDate || null,
           due_date: dueDate || null,
           planned_budget: parsedBudget,
@@ -151,6 +175,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
       status,
       submitting,
       t,
+      type,
       tagsInput,
       title,
     ]
@@ -160,8 +185,8 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
     <Card>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 py-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="flex flex-col gap-2 md:col-span-2">
               <label className="text-sm font-medium text-slate-700">{t("projects.fields.title")}</label>
               <Input
                 value={title}
@@ -171,10 +196,31 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
               />
             </div>
             <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-slate-700">{t("projects.fields.type")}</label>
+              <select
+                value={type}
+                onChange={(event) => handleTypeChange(event.target.value as ProjectType)}
+                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                {PROJECT_TYPES.map((projectType) => (
+                  <option key={projectType} value={projectType}>
+                    {t(`projects.types.${projectType}.label`)}
+                  </option>
+                ))}
+              </select>
+              {typeHelperText ? <span className="text-xs text-slate-500">{typeHelperText}</span> : null}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-slate-700">{t("projects.fields.status")}</label>
               <select
                 value={status}
-                onChange={(event) => setStatus(event.target.value as ProjectStatus)}
+                onChange={(event) => {
+                  setStatus(event.target.value as ProjectStatus);
+                  setStatusTouched(true);
+                }}
                 className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {PROJECT_STATUSES.map((statusOption) => (
@@ -184,14 +230,14 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
                 ))}
               </select>
             </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-slate-700">{t("projects.fields.priority")}</label>
               <select
                 value={priority}
-                onChange={(event) => setPriority(Number(event.target.value) as ProjectPriority)}
+                onChange={(event) => {
+                  setPriority(Number(event.target.value) as ProjectPriority);
+                  setPriorityTouched(true);
+                }}
                 className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 {PROJECT_PRIORITY_OPTIONS.map((option) => (
@@ -201,7 +247,10 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
                 ))}
               </select>
             </div>
-            <div className="flex flex-col gap-2">
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col gap-2 md:col-span-2 md:max-w-sm">
               <label className="text-sm font-medium text-slate-700">
                 {t("projects.fields.plannedBudget")}
               </label>
@@ -261,6 +310,21 @@ export default function ProjectForm({ project, mode = "create", onSuccess }: Pro
               placeholder={t("projects.form.tagsPlaceholder")}
             />
             <span className="text-xs text-slate-500">{tagHint}</span>
+            {typeMeta.suggestedTags.length ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs text-slate-500">{t("projects.form.suggestedTagsLabel")}</span>
+                {typeMeta.suggestedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => handleAddSuggestedTag(tag)}
+                    className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+                  >
+                    #{tag}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-2">

@@ -51,6 +51,7 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
             description,
             status,
             priority,
+            type,
             start_date,
             due_date,
             closed_at,

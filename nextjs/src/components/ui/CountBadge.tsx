@@ -11,6 +11,8 @@ interface CountBadgeProps {
     label?: string;
     /** How to show the label */
     display?: "inline" | "tooltip";
+    /** Background/text style to use. `muted` keeps the default soft pill, `none` lets callers fully control colors via `className`. */
+    tone?: "muted" | "none";
     onClick?: (e: React.MouseEvent) => void;
     className?: string;
 }
@@ -20,17 +22,18 @@ export default function CountBadge({
     count,
     label,
     display = "tooltip",
+    tone = "muted",
     onClick,
     className = "",
 }: CountBadgeProps) {
-    const base =
-        "inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600";
+    const base = "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium";
+    const toneClass = tone === "muted" ? "bg-slate-100 text-slate-600" : "";
 
     const content = (
         <>
             {icon ? <span aria-hidden className="flex items-center">{icon}</span> : null}
             {typeof count === "number" ? <span className="font-semibold">{count}</span> : null}
-            {display === "inline" && label ? <span className="ml-1">{label}</span> : null}
+            {display === "inline" && label ? <span>{label}</span> : null}
         </>
     );
 
@@ -41,12 +44,12 @@ export default function CountBadge({
             type="button"
             onClick={onClick}
             aria-label={label ?? undefined}
-            className={`${base} ${cursorClass} ${className}`.trim()}
+            className={`${base} ${toneClass} ${cursorClass} ${className}`.trim()}
         >
             {content}
         </button>
     ) : (
-        <span aria-label={label ?? undefined} className={`${base} ${className}`.trim()}>
+        <span aria-label={label ?? undefined} className={`${base} ${toneClass} ${className}`.trim()}>
             {content}
         </span>
     );
