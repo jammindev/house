@@ -35,6 +35,7 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
   - `NEXT_PUBLIC_SUPABASE_URL`
   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - `PRIVATE_SUPABASE_SERVICE_KEY`
+  - `OPENAI_API_KEY` (required for AI project assistant functionality)
 - Template variables (`NEXT_PUBLIC_PRODUCTNAME`, `NEXT_PUBLIC_THEME`, billing tier settings, etc.) are still present; adjust or remove them for House branding before production.
 - Never commit `.env.local`.
 - Supabase linking workflow: `npx supabase login`, `npx supabase link`, `npx supabase config push`, `npx supabase migrations up --linked`.
@@ -102,8 +103,18 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - View `project_group_metrics`
   - Rolls up per-group counts (projects, tasks, documents) and compares planned vs. actual budgets to support dashboards.
 
+- `project_ai_threads`
+  - Columns: `id uuid pk`, `project_id uuid`, `household_id uuid`, `user_id uuid`, `title text`, `created_at`, `updated_at`, `archived_at timestamptz`.
+  - AI conversation threads for project assistance; users can only access their own threads within their household projects.
+  - RLS: users can select/insert/update/delete threads only when they belong to the same household and own the thread.
+
+- `project_ai_messages`
+  - Columns: `id uuid pk`, `thread_id uuid`, `role text check in ('user','assistant','system')`, `content text`, `metadata jsonb`, `created_at`.
+  - Messages within AI chat threads; cascades on thread deletion.
+  - RLS: users can access messages only from threads they own in their households.
+
 - Storage bucket `files`
-  - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader’s `auth.uid()` and cross-check household membership through `documents` → `interactions`.
+  - Owner-only access enforced by policies that restrict CRUD to paths prefixed with the uploader's `auth.uid()` and cross-check household membership through `documents` → `interactions`.
   - UI stores files at `userId/interactionId/<uuid>_filename` to stay within policy constraints.
 
 - Legacy template tables: `todo_list` (from the SaaS starter) still exists with owner-only policies and is used by `/app/table`. It is not part of the House domain.
@@ -119,7 +130,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - `/app` dashboard aggregates recent entries and zone counts for the selected household, surfaces quick actions (new entry, manage zones, user settings, households), and respects the locale stored on the user profile.
 - Interactions UI (`/app/interactions`): list view limited to recent interactions with attachment counts, subject/type/status metadata, and zone context. Detail view loads zones and previews attachments (image/pdf) via signed URLs; any household member can delete an interaction per RLS, while document deletion in the UI is limited to the uploader to satisfy storage owner-only policies. `/app/interactions/new` captures interactions with zone selection, metadata (subject/type/status/date/tags), inline zone creation, and attachment upload (client uploads to storage then inserts rows into `documents`).
 - Tasks board (`/app/tasks`): kanban-style drag-and-drop board that surfaces `todo` interactions grouped by status (backlog, pending, in progress, done, archived) and lets members update statuses directly.
-- Projects UI (`/app/projects` and `/app/projects/[id]`): list and filter projects by status/dates/tags, show budget and activity rollups, and expose quick actions to create tasks, notes, documents, or expenses pre-linked to the project. Detail pages provide a timeline, dedicated tabs (tasks/documents/expenses) backed by `project_metrics`, and let members relink existing interactions to the project.
+- Projects UI (`/app/projects` and `/app/projects/[id]`): list and filter projects by status/dates/tags, show budget and activity rollups, and expose quick actions to create tasks, notes, documents, or expenses pre-linked to the project. Detail pages provide a timeline, dedicated tabs (tasks/documents/expenses) backed by `project_metrics`, and let members relink existing interactions to the project. AI chat assistance is available via the "Ask AI" button in project headers, providing contextual help with project management, budget analysis, and next step recommendations.
 - Zones UI (`/app/zones`): manage zones, including optional parent assignment, free-form notes, surface area capture, color selection for first-level children, and per-household stats. Any household member can update or delete a zone; descendants automatically display lighter shades of their parent color and the UI exposes confirmations rather than ownership blockers.
 - Zone detail cards now include a photo gallery so members can visualize each zone. Users may upload new photo documents or link existing ones from the household library; previews use signed URLs from Supabase storage.
 - Equipment UI (`/app/equipment`): catalogue household equipment with optional zone assignment, purchase/warranty/maintenance metadata, list filters, detail view, and edit form. Detail pages surface lifecycle highlights plus linked interactions (maintenance/repairs/expenses) and let users log new lifecycle events as interactions tied to a zone.
@@ -130,6 +141,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 
 ## 7) API & Edge Functions
 - `POST /api/households`: server action that authenticates the caller, then uses the SSR client (anon key) to execute the `create_household_with_owner` security-definer RPC, which inserts the household and enrols the requester as owner.
+- `POST /api/projects/[id]/ai-chat`: AI chat endpoint that accepts `{ threadId?, message }`, validates project membership, gathers project context (details, recent interactions), and streams OpenAI responses back to the client. Automatically creates new conversation threads and stores all messages in `project_ai_threads` and `project_ai_messages` tables.
 - `POST /api/internal/process-entry-files`: service-role pipeline kick-off; requires the `x-internal-task-token` header matching `INTERNAL_TASK_TOKEN`, runs `processEntryFiles` to extract attachment text and refresh `documents.ocr_text` / `interactions.enriched_text`.
 - `GET /api/auth/callback`: template Supabase auth callback route; untouched.
 - No dedicated API routes for entries/zones/files—client components interact directly with Supabase (RLS-enforced).
@@ -209,7 +221,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 - Playwright automatically loads environment variables from `.env.test.local`, `.env.local`, `.env`, and `supabase/.env`. Ensure these files expose Supabase URL, anon, and service-role keys for deterministic runs.
 
 ## 16) Architecture & Folder Patterns
-- **Feature-first slices**: Domain logic (contacts, interactions, projects, zones, photos, etc.) lives under `nextjs/src/features/<domain>` with consistent sub-folders (`components/`, `hooks/`, `lib/`, `utils/`, `types.ts`). Components are imported via path aliases like `@interactions/components/InteractionForm` to keep route files thin.
+- **Feature-first slices**: Domain logic (contacts, interactions, projects, zones, photos, etc.) lives under `nextjs/src/features/<domain>` with consistent sub-folders (`components/`, `hooks/`, `lib/`, `utils/`, `types.ts`). Nested features like the AI chat assistant live under `features/<domain>/features/<sub-feature>` (e.g., `nextjs/src/features/projects/features/ai-chat/`). Components are imported via path aliases like `@interactions/components/InteractionForm` to keep route files thin.
 - **Route entrypoints**: `nextjs/src/app` is limited to App Router files (`layout.tsx`, `page.tsx`, route handlers). Files under `/app/app/*` load data via hooks/contexts and delegate rendering to feature components. Favor server components unless the page needs browser APIs (`"use client"`).
 - **Shared UI + layout**: Global UI primitives sit in `nextjs/src/components/ui` (shadcn) and layout shell pieces in `nextjs/src/components/layout`. Reuse these before creating new wrappers so typography/theme stays consistent.
 - **Cross-cutting libraries**: `nextjs/src/lib` houses Supabase clients (`supabase/`), configuration, contexts (e.g., `GlobalContext`), utilities, and i18n (`i18n/`, dictionaries). Any code that is not domain-specific but reused across features should live here.

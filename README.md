@@ -163,6 +163,7 @@ House is a multi-tenant application designed to help households capture, organiz
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    PRIVATE_SUPABASE_SERVICE_KEY=your-service-role-key
+   OPENAI_API_KEY=your-openai-api-key  # Required for AI project assistant
    ```
 
 4. **Run the development server**
@@ -215,6 +216,7 @@ yarn test:unit
    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
    PRIVATE_SUPABASE_SERVICE_KEY=your-service-role-key
+   OPENAI_API_KEY=your-openai-api-key  # Required for AI project assistant
    ```
 
 4. **Deploy**
