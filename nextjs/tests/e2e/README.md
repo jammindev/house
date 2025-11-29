@@ -3,7 +3,7 @@
 How we set up, seed, and write Playwright specs so they stay stable with our RLS-first, multi-tenant flows.
 
 ## Setup
-- Env: copy `nextjs/.env.template` → `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_KEY`. Keep secrets out of git.
+- Env: copy `nextjs/.env.template` → `.env.local` and provide `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `PRIVATE_SUPABASE_SERVICE_KEY`, `OPENAI_API_KEY` (for AI features). Keep secrets out of git.
 - Install deps in `nextjs/`: `yarn` then `yarn playwright:install` (downloads browsers once).
 - Running: from repo root `yarn test:e2e` (uses `nextjs/playwright.config.ts`). Set `PLAYWRIGHT_SKIP_WEB_SERVER=1` if you start Next.js yourself. Override base URL via `PLAYWRIGHT_BASE_URL` when pointing to a live server.
 - Traces: enabled on first retry in CI, retained on failure locally (`trace`, screenshots, videos).

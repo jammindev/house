@@ -16,6 +16,7 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import CollapsibleSectionToggle from "@/components/layout/CollapsibleSectionToggle";
 import ProjectStatusSheet from "@projects/components/ProjectStatusSheet";
 import CountBadge from "@/components/ui/CountBadge";
+import { ProjectAIChatSheet } from "@projects/features/ai-chat";
 
 interface ProjectDetailHeaderProps {
   project: ProjectWithMetrics;
@@ -157,6 +158,14 @@ export default function ProjectDetailHeader({
                 </span>
               ))}
             </div>}
+          </div>
+          
+          {/* Actions Section */}
+          <div className="flex items-center gap-2 lg:self-start lg:mt-1">
+            <ProjectAIChatSheet 
+              projectId={project.id} 
+              projectTitle={project.title} 
+            />
           </div>
         </div>
       </CardContent>
