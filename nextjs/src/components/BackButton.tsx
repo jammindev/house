@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { ArrowLeft } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 
 const HISTORY_KEY = "appPageLayout:history";
 
@@ -33,21 +33,22 @@ function writeHistory(history: string[]) {
   }
 }
 
+export function pushToBackHistory(pathname: string) {
+  if (typeof window === "undefined" || !pathname) return;
+
+  const history = readHistory();
+  const lastEntry = history[history.length - 1];
+
+  if (lastEntry === pathname) return;
+
+  const nextHistory = [...history, pathname].filter(Boolean).slice(-50);
+  writeHistory(nextHistory);
+}
+
 export default function BackButton() {
   const { t } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const history = readHistory();
-    const lastEntry = history[history.length - 1];
-    if (lastEntry !== pathname) {
-      const updated = [...history, pathname].slice(-50);
-      writeHistory(updated);
-    }
-  }, [pathname]);
 
   const handleBack = useCallback(() => {
     const history = readHistory();

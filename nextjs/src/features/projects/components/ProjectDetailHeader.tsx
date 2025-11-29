@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays, Coins, FolderKanban } from "lucide-react";
+import { CalendarDays, Coins, FolderKanban, Pin } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -107,6 +107,12 @@ export default function ProjectDetailHeader({
               {!project.isOverdue && project.isDueSoon ? (
                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
                   {t("projects.badges.dueSoon")}
+                </span>
+              ) : null}
+              {project.is_pinned ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
+                  <Pin className="h-3.5 w-3.5" />
+                  {t("projects.pinned")}
                 </span>
               ) : null}
               {project.group ? (

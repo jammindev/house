@@ -7,6 +7,7 @@ import { Filter } from "lucide-react";
 
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
+import ActiveIndicator from "@shared/components/ActiveIndicator";
 
 interface FiltersActionSheetProps {
   children: ReactNode;
@@ -41,12 +42,7 @@ export default function FiltersActionSheet({
           className="relative"
         >
           <Icon />
-          {isActive ? (
-            <span
-              aria-hidden
-              className="absolute -right-0.5 -top-0.5 block h-2 w-2 rounded-full bg-primary ring-2 ring-background"
-            />
-          ) : null}
+          {isActive ? <ActiveIndicator /> : null}
         </Button>
       )}
     >

@@ -11,6 +11,7 @@ import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import ProjectDetailView from "@projects/components/ProjectDetailView";
 import ProjectLinkInteractionModal from "@projects/components/ProjectLinkInteractionModal";
+import ProjectPinButton from "@projects/components/ProjectPinButton";
 import { useProject } from "@projects/hooks/useProject";
 import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
@@ -54,13 +55,22 @@ export default function ProjectDetailPage() {
       project
         ? [
             {
+              element: (
+                <ProjectPinButton
+                  projectId={project.id}
+                  isPinned={project.is_pinned}
+                  onPinnedChange={handleRefresh}
+                />
+              ),
+            },
+            {
               icon: Pencil,
               href: `/app/projects/${project.id}/edit`,
               label: t("projects.editTitle"),
             } as const,
           ]
         : undefined,
-    [project, t]
+    [handleRefresh, project, t]
   );
 
   return (

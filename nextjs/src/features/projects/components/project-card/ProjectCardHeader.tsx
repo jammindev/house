@@ -1,7 +1,7 @@
 // nextjs/src/features/projects/components/project-card/ProjectCardHeader.tsx
 "use client";
 
-import { CalendarClock, FileText, FolderKanban, MessageSquare, TriangleAlert } from "lucide-react";
+import { CalendarClock, FileText, FolderKanban, MessageSquare, Pin, TriangleAlert } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
 import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
 import type { ProjectWithMetrics } from "@projects/types";
@@ -44,6 +44,12 @@ export default function ProjectCardHeader({
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
                 <CalendarClock className="h-4 w-4" />
                 {t("projects.badges.dueSoon")}
+              </span>
+            ) : null}
+            {project.is_pinned ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
+                <Pin className="h-3.5 w-3.5" />
+                {t("projects.pinned")}
               </span>
             ) : null}
             {project.group ? (

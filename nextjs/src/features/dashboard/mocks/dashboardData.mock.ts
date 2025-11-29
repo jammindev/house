@@ -125,6 +125,8 @@ export const dashboardDataMock: DashboardState = {
       planned_budget: 12000,
       actual_cost_cached: 2500,
       cover_interaction_id: null,
+      project_group_id: null,
+      is_pinned: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       created_by: "user-1",

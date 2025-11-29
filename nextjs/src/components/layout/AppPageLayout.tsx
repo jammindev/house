@@ -1,12 +1,13 @@
 // nextjs/src/components/layout/AppPageLayout.tsx
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Button, type ButtonProps } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import BackButton from "../BackButton";
+import BackButton, { pushToBackHistory } from "../BackButton";
 import { useSidebarToggle } from "./SidebarToggleContext";
 import { Card } from "../ui/card";
 import { Spinner } from "../ui/spinner";
@@ -54,6 +55,12 @@ export default function AppPageLayout({
   titlesCentered = true,
 }: AppPageLayoutProps) {
   const { toggleSidebar } = useSidebarToggle();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    pushToBackHistory(pathname);
+  }, [pathname]);
+
   const actionButtons = actions?.map((action, i) => {
     if ("element" in action) return <div key={i}>{action.element}</div>;
     return (

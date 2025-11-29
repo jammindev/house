@@ -203,6 +203,7 @@ export function useDashboardData() {
             actual_cost_cached,
             cover_interaction_id,
             project_group_id,
+            is_pinned,
             project_group:project_groups (
               id,
               name
