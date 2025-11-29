@@ -3,7 +3,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { ClipboardList, Pencil } from "lucide-react";
+import { ClipboardList, Pencil, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -15,6 +15,8 @@ import ProjectPinButton from "@projects/components/ProjectPinButton";
 import { useProject } from "@projects/hooks/useProject";
 import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
+import AddProjectInteraction from "@projects/components/AddProjectInteraction";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -41,9 +43,9 @@ export default function ProjectDetailPage() {
   const statusLabel = project?.status ? t(`projects.status.${project.status}`) : undefined;
   const projectSubtitleParts = project
     ? [
-        project.group ? project.group.name : null,
-        statusLabel ?? null,
-      ].filter((part): part is string => Boolean(part))
+      project.group ? project.group.name : null,
+      statusLabel ?? null,
+    ].filter((part): part is string => Boolean(part))
     : [];
   const projectSubtitle = projectSubtitleParts.length ? projectSubtitleParts.join(" • ") : undefined;
   const isLoading = loading || interactionsLoading;
@@ -54,29 +56,57 @@ export default function ProjectDetailPage() {
     () =>
       project
         ? [
-            {
-              element: (
-                <ProjectPinButton
-                  projectId={project.id}
-                  isPinned={project.is_pinned}
-                  onPinnedChange={handleRefresh}
-                />
+          {
+            element: (
+              <ProjectPinButton
+                projectId={project.id}
+                isPinned={project.is_pinned}
+                onPinnedChange={handleRefresh}
+              />
+            ),
+          },
+          {
+            icon: Pencil,
+            href: `/app/projects/${project.id}/edit`,
+            label: t("projects.editTitle"),
+          } as const,
+          {
+            element: (
+              <SheetDialog
+                title={t("projects.quickActions.title")}
+                description={t("projects.quickActions.subtitle")}
+                trigger={(
+                  <Button
+                    variant="default"
+                    size="icon"
+                    aria-label={t("projects.quickActions.triggerLabel")}
+                    className="shadow-sm"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                )}
+              >
+                  {({ close }) => (
+                    <AddProjectInteraction
+                      projectId={project.id}
+                      onLinkExisting={() => {
+                        close();
+                        setLinkOpen(true);
+                      }}
+                      showHeader={false}
+                    />
+                  )}
+                </SheetDialog>
               ),
-            },
-            {
-              icon: Pencil,
-              href: `/app/projects/${project.id}/edit`,
-              label: t("projects.editTitle"),
-            } as const,
-          ]
+          },
+        ]
         : undefined,
-    [handleRefresh, project, t]
+    [handleRefresh, project, setLinkOpen, t]
   );
 
   return (
     <DetailPageLayout
       title={project ? project.title : t("projects.notFound")}
-      subtitle={project ? projectSubtitle : t("projects.subtitle")}
       context={project ? undefined : statusLabel}
       actions={actions}
       loading={isLoading}
@@ -105,7 +135,6 @@ export default function ProjectDetailPage() {
             relatedProjects={relatedProjects}
             interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
             onRefresh={handleRefresh}
-            onLinkExisting={() => setLinkOpen(true)}
           />
 
           <ProjectLinkInteractionModal

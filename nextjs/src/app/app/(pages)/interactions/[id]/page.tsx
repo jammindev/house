@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Notebook, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,12 @@ import InteractionAttachmentImport from "@/features/interactions/components/Inte
 export default function InteractionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useI18n();
   const { interaction, documents, loading, error, reload } = useInteraction(id);
   const { previews, error: fileError } = useSignedFilePreviews(documents);
+
+  const returnTo = searchParams.get('returnTo');
 
   const interactionId = interaction?.id;
   const interactionSubject = interaction?.subject;
@@ -80,7 +83,7 @@ export default function InteractionDetailPage() {
           previews={previews}
           fileError={fileError}
           onReload={reload}
-          onDeleted={() => router.push("/app/interactions")}
+          onDeleted={() => router.push(returnTo || "/app/interactions")}
         />
       ) : null}
     </DetailPageLayout>

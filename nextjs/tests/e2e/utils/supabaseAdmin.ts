@@ -306,8 +306,8 @@ export async function countDocuments(interactionId: string): Promise<number> {
   const client = getAdminClient();
 
   const { data, error } = await client
-    .from('documents')
-    .select('id')
+    .from('interaction_documents')
+    .select('document_id')
     .eq('interaction_id', interactionId);
 
   if (error) {
@@ -334,4 +334,95 @@ export async function getEntryById(entryId: string) {
 
 export async function countEntryFiles(entryId: string) {
   return countDocuments(entryId);
+}
+
+// Project-related test helpers
+export async function createTestProject(
+  householdId: string,
+  params: {
+    title: string;
+    description?: string;
+    status?: 'draft' | 'active' | 'on_hold' | 'completed' | 'cancelled';
+    priority?: number;
+  }
+): Promise<string> {
+  const client = getAdminClient();
+
+  const { data, error } = await client
+    .from('projects')
+    .insert([{
+      household_id: householdId,
+      title: params.title,
+      description: params.description || '',
+      status: params.status || 'draft',
+      priority: params.priority || 3,
+    }])
+    .select('id')
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create test project: ${error.message}`);
+  }
+
+  return data.id;
+}
+
+export async function createTestInteraction(
+  householdId: string,
+  params: {
+    subject: string;
+    content?: string;
+    type: string;
+    status?: string | null;
+    project_id?: string | null;
+    zoneIds?: string[];
+  }
+): Promise<string> {
+  const client = getAdminClient();
+
+  // First, get a zone to link to (required by RLS/triggers)
+  let zoneIds = params.zoneIds;
+  if (!zoneIds || zoneIds.length === 0) {
+    const { data: zones } = await client
+      .from('zones')
+      .select('id')
+      .eq('household_id', householdId)
+      .limit(1);
+
+    if (zones && zones.length > 0) {
+      zoneIds = [zones[0].id];
+    } else {
+      // Create a test zone if none exist
+      const { data: newZone } = await client
+        .from('zones')
+        .insert([{
+          household_id: householdId,
+          name: 'Test Zone'
+        }])
+        .select('id')
+        .single();
+
+      if (newZone) {
+        zoneIds = [newZone.id];
+      }
+    }
+  }
+
+  // Create interaction using the RPC
+  const { data, error } = await client
+    .rpc('create_interaction_with_zones', {
+      p_household_id: householdId,
+      p_subject: params.subject,
+      p_zone_ids: zoneIds || [],
+      p_content: params.content || '',
+      p_type: params.type,
+      p_status: params.status,
+      p_project_id: params.project_id,
+    });
+
+  if (error) {
+    throw new Error(`Failed to create test interaction: ${error.message}`);
+  }
+
+  return data;
 }

@@ -1,9 +1,10 @@
 // nextjs/src/features/projects/components/ProjectDetailView.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import AuditHistoryCard from "@/components/AuditHistoryCard";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ProjectInteractionSummary } from "@projects/hooks/useProjectInteractions";
@@ -23,20 +24,21 @@ interface ProjectDetailViewProps {
   relatedProjects?: ProjectWithMetrics[];
   interactionsData: ProjectInteractionSummary;
   onRefresh?: () => void;
-  onLinkExisting?: () => void;
 }
 
-const TABS = ["timeline", "tasks", "documents", "expenses", "pinterest"] as const;
+// const TABS = ["timeline", "tasks", "documents", "expenses", "pinterest"] as const;
+const TABS = ["timeline", "tasks", "documents", "expenses"] as const;
+const RELATED_PROJECTS_PAGE_SIZE = 5;
 
 export default function ProjectDetailView({
   project,
   relatedProjects = [],
   interactionsData,
   onRefresh,
-  onLinkExisting,
 }: ProjectDetailViewProps) {
   const { t } = useI18n();
   const [tab, setTab] = useState<typeof TABS[number]>("timeline");
+  const [visibleRelatedCount, setVisibleRelatedCount] = useState(RELATED_PROJECTS_PAGE_SIZE);
   const auditLines = [
     project.created_at
       ? t("projects.auditCreated", {
@@ -50,9 +52,19 @@ export default function ProjectDetailView({
       : null,
   ].filter((line): line is string => Boolean(line));
 
+  useEffect(() => {
+    setVisibleRelatedCount(RELATED_PROJECTS_PAGE_SIZE);
+  }, [project.id, relatedProjects.length]);
+
+  const relatedProjectsToShow = relatedProjects.slice(0, visibleRelatedCount);
+  const displayedRelatedCount = relatedProjectsToShow.length;
+  const hasMoreRelatedProjects = visibleRelatedCount < relatedProjects.length;
+  const remainingRelatedProjects = relatedProjects.length - displayedRelatedCount;
+  const nextBatchSize = Math.min(RELATED_PROJECTS_PAGE_SIZE, Math.max(remainingRelatedProjects, 0));
+
   return (
     <div className="space-y-6 pb-10">
-      <ProjectDetailHeader project={project} onProjectChanged={onRefresh} onLinkExisting={onLinkExisting} />
+      <ProjectDetailHeader project={project} onProjectChanged={onRefresh} />
 
       <Card className="border border-slate-200 shadow-sm">
         <CardContent className="p-0">
@@ -74,17 +86,20 @@ export default function ProjectDetailView({
             ))}
           </div>
 
-          <div className="p-6">
+          <div className="p-2">
             {tab === "timeline" ? (
               <ProjectTimeline
-                interactions={interactionsData.interactions}
-                documentsByInteraction={interactionsData.documentsByInteraction}
+                projectId={project.id}
               />
             ) : null}
-            {tab === "tasks" ? <ProjectTasksPanel tasks={interactionsData.tasks} /> : null}
+            {tab === "tasks" ? (
+              <ProjectTasksPanel
+                projectId={project.id}
+              />
+            ) : null}
             {tab === "documents" ? <ProjectDocumentsPanel documents={interactionsData.documents} /> : null}
             {tab === "expenses" ? <ProjectExpensesPanel expenses={interactionsData.expenses} /> : null}
-            {tab === "pinterest" ? <ProjectPinterestEmbed projectId={project.id} /> : null}
+            {/* {tab === "pinterest" ? <ProjectPinterestEmbed projectId={project.id} /> : null} */}
           </div>
         </CardContent>
       </Card>
@@ -93,7 +108,7 @@ export default function ProjectDetailView({
         <Card className="border border-slate-200 shadow-sm">
           <CardContent className="space-y-4 p-6">
             <div className="space-y-1">
-              <h2 className="text-lg font-semibold text-slate-900">
+              <h2 className="text-base font-semibold text-slate-900">
                 {t("projects.relatedProjects.title", { group: project.group.name })}
               </h2>
               {typeof project.group.projectsCount === "number" ? (
@@ -104,10 +119,39 @@ export default function ProjectDetailView({
             </div>
 
             {relatedProjects.length ? (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {relatedProjects.map((relatedProject) => (
-                  <ProjectCard key={relatedProject.id} project={relatedProject} />
-                ))}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {relatedProjectsToShow.map((relatedProject) => (
+                    <ProjectCard key={relatedProject.id} project={relatedProject} />
+                  ))}
+                </div>
+
+                {relatedProjects.length > RELATED_PROJECTS_PAGE_SIZE ? (
+                  <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                    <p>
+                      {t("projects.relatedProjects.showing", {
+                        displayed: displayedRelatedCount,
+                        total: relatedProjects.length,
+                      })}
+                    </p>
+                    {hasMoreRelatedProjects ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          setVisibleRelatedCount((count) =>
+                            Math.min(count + RELATED_PROJECTS_PAGE_SIZE, relatedProjects.length)
+                          )
+                        }
+                      >
+                        {t("projects.relatedProjects.loadMore", {
+                          count: nextBatchSize,
+                        })}
+                      </Button>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-slate-200 p-6 text-sm text-slate-500">

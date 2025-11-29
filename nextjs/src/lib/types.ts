@@ -1,4 +1,3 @@
-// nextjs/src/lib/types.ts
 export type Json =
   | string
   | number
@@ -13,63 +12,162 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
-      interactions: {
+      addresses: {
         Row: {
-          content: string
+          address_1: string
+          address_2: string
+          city: string
+          contact_id: string | null
+          country: string
           created_at: string | null
           created_by: string
-          enriched_text: string | null
           household_id: string
           id: string
-          metadata: Json | null
-          occurred_at: string
-          status: string | null
-          subject: string
-          tags: string[]
-          type: string
+          is_primary: boolean | null
+          label: string | null
+          structure_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+          zipcode: string
+        }
+        Insert: {
+          address_1?: string
+          address_2?: string
+          city?: string
+          contact_id?: string | null
+          country?: string
+          created_at?: string | null
+          created_by: string
+          household_id: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          zipcode?: string
+        }
+        Update: {
+          address_1?: string
+          address_2?: string
+          city?: string
+          contact_id?: string | null
+          country?: string
+          created_at?: string | null
+          created_by?: string
+          household_id?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          zipcode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "addresses_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addresses_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "addresses_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          first_name: string
+          household_id: string
+          id: string
+          last_name: string
+          notes: string | null
+          position: string | null
+          structure_id: string | null
           updated_at: string | null
           updated_by: string | null
         }
         Insert: {
-          content: string
           created_at?: string | null
           created_by: string
-          enriched_text?: string | null
+          first_name?: string
           household_id: string
           id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          status?: string | null
-          subject: string
-          tags?: string[]
-          type: string
+          last_name?: string
+          notes?: string | null
+          position?: string | null
+          structure_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Update: {
-          content?: string
           created_at?: string | null
           created_by?: string
-          enriched_text?: string | null
+          first_name?: string
           household_id?: string
           id?: string
-          metadata?: Json | null
-          occurred_at?: string
-          status?: string | null
-          subject?: string
-          tags?: string[]
-          type?: string
+          last_name?: string
+          notes?: string | null
+          position?: string | null
+          structure_id?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "interactions_household_id_fkey"
+            foreignKeyName: "contacts_household_id_fkey"
             columns: ["household_id"]
             isOneToOne: false
             referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "structures"
             referencedColumns: ["id"]
           },
         ]
@@ -79,9 +177,9 @@ export type Database = {
           created_at: string | null
           created_by: string
           file_path: string
-          id: string
           household_id: string
-          metadata: Json | null
+          id: string
+          metadata: Json
           mime_type: string | null
           name: string
           notes: string
@@ -92,22 +190,22 @@ export type Database = {
           created_at?: string | null
           created_by: string
           file_path: string
-          id?: string
           household_id: string
-          metadata?: Json | null
+          id?: string
+          metadata?: Json
           mime_type?: string | null
-          name: string
+          name?: string
           notes?: string
           ocr_text?: string | null
-          type: string
+          type?: string
         }
         Update: {
           created_at?: string | null
           created_by?: string
           file_path?: string
-          id?: string
           household_id?: string
-          metadata?: Json | null
+          id?: string
+          metadata?: Json
           mime_type?: string | null
           name?: string
           notes?: string
@@ -124,104 +222,63 @@ export type Database = {
           },
         ]
       }
-      interaction_documents: {
+      emails: {
         Row: {
-          created_at: string
-          document_id: string
-          interaction_id: string
-          note: string
-          role: string
+          contact_id: string | null
+          created_at: string | null
+          created_by: string
+          email: string
+          household_id: string
+          id: string
+          is_primary: boolean | null
+          label: string | null
+          structure_id: string | null
+          updated_at: string | null
+          updated_by: string | null
         }
         Insert: {
-          created_at?: string
-          document_id: string
-          interaction_id: string
-          note?: string
-          role?: string
+          contact_id?: string | null
+          created_at?: string | null
+          created_by: string
+          email: string
+          household_id: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Update: {
-          created_at?: string
-          document_id?: string
-          interaction_id?: string
-          note?: string
-          role?: string
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          email?: string
+          household_id?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "interaction_documents_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "documents"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "interaction_documents_interaction_id_fkey"
-            columns: ["interaction_id"]
-            isOneToOne: false
-            referencedRelation: "interactions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      interaction_contacts: {
-        Row: {
-          created_at: string
-          interaction_id: string
-          contact_id: string
-        }
-        Insert: {
-          created_at?: string
-          interaction_id: string
-          contact_id: string
-        }
-        Update: {
-          created_at?: string
-          interaction_id?: string
-          contact_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interaction_contacts_contact_id_fkey"
+            foreignKeyName: "emails_contact_id_fkey"
             columns: ["contact_id"]
             isOneToOne: false
             referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "interaction_contacts_interaction_id_fkey"
-            columns: ["interaction_id"]
+            foreignKeyName: "emails_household_id_fkey"
+            columns: ["household_id"]
             isOneToOne: false
-            referencedRelation: "interactions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      interaction_structures: {
-        Row: {
-          created_at: string
-          interaction_id: string
-          structure_id: string
-        }
-        Insert: {
-          created_at?: string
-          interaction_id: string
-          structure_id: string
-        }
-        Update: {
-          created_at?: string
-          interaction_id?: string
-          structure_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "interaction_structures_interaction_id_fkey"
-            columns: ["interaction_id"]
-            isOneToOne: false
-            referencedRelation: "interactions"
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "interaction_structures_structure_id_fkey"
+            foreignKeyName: "emails_structure_id_fkey"
             columns: ["structure_id"]
             isOneToOne: false
             referencedRelation: "structures"
@@ -229,32 +286,149 @@ export type Database = {
           },
         ]
       }
-      interaction_zones: {
+      equipment: {
         Row: {
-          interaction_id: string
-          zone_id: string
+          category: string
+          condition: string | null
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          installed_at: string | null
+          last_service_at: string | null
+          maintenance_interval_months: number | null
+          manufacturer: string | null
+          model: string | null
+          name: string
+          next_service_due: string | null
+          notes: string
+          purchase_date: string | null
+          purchase_price: number | null
+          purchase_vendor: string | null
+          retired_at: string | null
+          serial_number: string | null
+          status: string
+          tags: string[]
+          updated_at: string
+          updated_by: string | null
+          warranty_expires_on: string | null
+          warranty_notes: string
+          warranty_provider: string | null
+          zone_id: string | null
         }
         Insert: {
-          interaction_id: string
-          zone_id: string
+          category?: string
+          condition?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          installed_at?: string | null
+          last_service_at?: string | null
+          maintenance_interval_months?: number | null
+          manufacturer?: string | null
+          model?: string | null
+          name: string
+          next_service_due?: string | null
+          notes?: string
+          purchase_date?: string | null
+          purchase_price?: number | null
+          purchase_vendor?: string | null
+          retired_at?: string | null
+          serial_number?: string | null
+          status?: string
+          tags?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          warranty_expires_on?: string | null
+          warranty_notes?: string
+          warranty_provider?: string | null
+          zone_id?: string | null
         }
         Update: {
-          interaction_id?: string
-          zone_id?: string
+          category?: string
+          condition?: string | null
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          installed_at?: string | null
+          last_service_at?: string | null
+          maintenance_interval_months?: number | null
+          manufacturer?: string | null
+          model?: string | null
+          name?: string
+          next_service_due?: string | null
+          notes?: string
+          purchase_date?: string | null
+          purchase_price?: number | null
+          purchase_vendor?: string | null
+          retired_at?: string | null
+          serial_number?: string | null
+          status?: string
+          tags?: string[]
+          updated_at?: string
+          updated_by?: string | null
+          warranty_expires_on?: string | null
+          warranty_notes?: string
+          warranty_provider?: string | null
+          zone_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "interaction_zones_interaction_id_fkey"
-            columns: ["interaction_id"]
+            foreignKeyName: "equipment_household_id_fkey"
+            columns: ["household_id"]
             isOneToOne: false
-            referencedRelation: "interactions"
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "interaction_zones_zone_id_fkey"
+            foreignKeyName: "equipment_zone_id_fkey"
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      equipment_interactions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          equipment_id: string
+          interaction_id: string
+          note: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          equipment_id: string
+          interaction_id: string
+          note?: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          equipment_id?: string
+          interaction_id?: string
+          note?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_interactions_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_interactions_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
             referencedColumns: ["id"]
           },
         ]
@@ -303,11 +477,319 @@ export type Database = {
         }
         Relationships: []
       }
+      interaction_contacts: {
+        Row: {
+          contact_id: string
+          created_at: string
+          interaction_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          interaction_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          interaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_contacts_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_contacts_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_documents: {
+        Row: {
+          created_at: string
+          document_id: string
+          interaction_id: string
+          note: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          interaction_id: string
+          note?: string
+          role?: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          interaction_id?: string
+          note?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_documents_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_structures: {
+        Row: {
+          created_at: string
+          interaction_id: string
+          structure_id: string
+        }
+        Insert: {
+          created_at?: string
+          interaction_id: string
+          structure_id: string
+        }
+        Update: {
+          created_at?: string
+          interaction_id?: string
+          structure_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_structures_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_structures_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          interaction_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          interaction_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          interaction_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_tags_interaction_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interaction_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interaction_zones: {
+        Row: {
+          interaction_id: string
+          zone_id: string
+        }
+        Insert: {
+          interaction_id: string
+          zone_id: string
+        }
+        Update: {
+          interaction_id?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_zones_entry_id_fkey"
+            columns: ["interaction_id"]
+            isOneToOne: false
+            referencedRelation: "interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entry_zones_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interactions: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string
+          enriched_text: string | null
+          household_id: string
+          id: string
+          metadata: Json | null
+          occurred_at: string
+          project_id: string | null
+          status: string | null
+          subject: string
+          type: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          content?: string
+          created_at?: string | null
+          created_by: string
+          enriched_text?: string | null
+          household_id: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          project_id?: string | null
+          status?: string | null
+          subject?: string
+          type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          enriched_text?: string | null
+          household_id?: string
+          id?: string
+          metadata?: Json | null
+          occurred_at?: string
+          project_id?: string | null
+          status?: string | null
+          subject?: string
+          type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entries_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "project_metrics"
+            referencedColumns: ["project_id"]
+          },
+          {
+            foreignKeyName: "interactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      phones: {
+        Row: {
+          contact_id: string | null
+          created_at: string | null
+          created_by: string
+          household_id: string
+          id: string
+          is_primary: boolean | null
+          label: string | null
+          phone: string
+          structure_id: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          contact_id?: string | null
+          created_at?: string | null
+          created_by: string
+          household_id: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          phone: string
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          contact_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          household_id?: string
+          id?: string
+          is_primary?: boolean | null
+          label?: string | null
+          phone?: string
+          structure_id?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phones_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phones_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "phones_structure_id_fkey"
+            columns: ["structure_id"]
+            isOneToOne: false
+            referencedRelation: "structures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_groups: {
         Row: {
           created_at: string
           created_by: string | null
-          description: string
+          description: string | null
           household_id: string
           id: string
           name: string
@@ -318,7 +800,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
-          description?: string
+          description?: string | null
           household_id: string
           id?: string
           name: string
@@ -329,7 +811,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
-          description?: string
+          description?: string | null
           household_id?: string
           id?: string
           name?: string
@@ -354,7 +836,7 @@ export type Database = {
           cover_interaction_id: string | null
           created_at: string
           created_by: string | null
-          description: string
+          description: string | null
           due_date: string | null
           household_id: string
           id: string
@@ -363,7 +845,7 @@ export type Database = {
           priority: number
           project_group_id: string | null
           start_date: string | null
-          status: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          status: Database["public"]["Enums"]["project_status"]
           tags: string[]
           title: string
           type: string
@@ -376,7 +858,7 @@ export type Database = {
           cover_interaction_id?: string | null
           created_at?: string
           created_by?: string | null
-          description?: string
+          description?: string | null
           due_date?: string | null
           household_id: string
           id?: string
@@ -385,7 +867,7 @@ export type Database = {
           priority?: number
           project_group_id?: string | null
           start_date?: string | null
-          status?: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          status?: Database["public"]["Enums"]["project_status"]
           tags?: string[]
           title: string
           type?: string
@@ -398,7 +880,7 @@ export type Database = {
           cover_interaction_id?: string | null
           created_at?: string
           created_by?: string | null
-          description?: string
+          description?: string | null
           due_date?: string | null
           household_id?: string
           id?: string
@@ -407,7 +889,7 @@ export type Database = {
           priority?: number
           project_group_id?: string | null
           start_date?: string | null
-          status?: "draft" | "active" | "on_hold" | "completed" | "cancelled"
+          status?: Database["public"]["Enums"]["project_status"]
           tags?: string[]
           title?: string
           type?: string
@@ -433,7 +915,99 @@ export type Database = {
             foreignKeyName: "projects_project_group_id_fkey"
             columns: ["project_group_id"]
             isOneToOne: false
+            referencedRelation: "project_group_metrics"
+            referencedColumns: ["group_id"]
+          },
+          {
+            foreignKeyName: "projects_project_group_id_fkey"
+            columns: ["project_group_id"]
+            isOneToOne: false
             referencedRelation: "project_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      structures: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          household_id: string
+          id: string
+          name: string
+          tags: string[] | null
+          type: string | null
+          updated_at: string | null
+          updated_by: string | null
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          household_id: string
+          id?: string
+          name?: string
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          household_id?: string
+          id?: string
+          name?: string
+          tags?: string[] | null
+          type?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "structures_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          household_id: string
+          id: string
+          name: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          household_id: string
+          id?: string
+          name: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          household_id?: string
+          id?: string
+          name?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
             referencedColumns: ["id"]
           },
         ]
@@ -471,8 +1045,51 @@ export type Database = {
         }
         Relationships: []
       }
+      zone_documents: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          document_id: string
+          note: string
+          role: string
+          zone_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          document_id: string
+          note?: string
+          role?: string
+          zone_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          document_id?: string
+          note?: string
+          role?: string
+          zone_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zone_documents_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "zone_documents_zone_id_fkey"
+            columns: ["zone_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zones: {
         Row: {
+          color: string
           created_at: string | null
           created_by: string | null
           household_id: string | null
@@ -481,9 +1098,9 @@ export type Database = {
           note: string | null
           parent_id: string | null
           surface: number | null
-          color: string
         }
         Insert: {
+          color?: string
           created_at?: string | null
           created_by?: string | null
           household_id?: string | null
@@ -492,9 +1109,9 @@ export type Database = {
           note?: string | null
           parent_id?: string | null
           surface?: number | null
-          color?: string
         }
         Update: {
+          color?: string
           created_at?: string | null
           created_by?: string | null
           household_id?: string | null
@@ -503,7 +1120,6 @@ export type Database = {
           note?: string | null
           parent_id?: string | null
           surface?: number | null
-          color?: string
         }
         Relationships: [
           {
@@ -515,10 +1131,10 @@ export type Database = {
           },
           {
             foreignKeyName: "zones_parent_same_household_fk"
-            columns: ["parent_id", "household_id"]
+            columns: ["parent_id"]
             isOneToOne: false
             referencedRelation: "zones"
-            referencedColumns: ["id", "household_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -526,28 +1142,32 @@ export type Database = {
     Views: {
       project_group_metrics: {
         Row: {
-          actual_cost: number
-          documents_count: number
-          done_todos: number
-          group_id: string
-          open_todos: number
-          planned_budget: number
-          projects_count: number
+          actual_cost: number | null
+          documents_count: number | null
+          done_todos: number | null
+          group_id: string | null
+          open_todos: number | null
+          planned_budget: number | null
+          projects_count: number | null
         }
         Relationships: []
       }
       project_metrics: {
         Row: {
-          actual_cost: number
-          documents_count: number
-          done_todos: number
-          open_todos: number
-          project_id: string
+          actual_cost: number | null
+          documents_count: number | null
+          done_todos: number | null
+          open_todos: number | null
+          project_id: string | null
         }
         Relationships: []
       }
     }
     Functions: {
+      assert_quote_has_link: {
+        Args: { p_interaction_id: string }
+        Returns: undefined
+      }
       create_entry_with_zones: {
         Args: {
           p_household_id: string
@@ -556,9 +1176,44 @@ export type Database = {
         }
         Returns: string
       }
-      create_household_with_owner: {
-        Args: { p_name: string }
+      create_household_with_owner: { Args: { p_name: string }; Returns: string }
+      create_interaction_with_zones: {
+        Args: {
+          p_contact_ids?: string[]
+          p_content?: string
+          p_household_id: string
+          p_metadata?: Json
+          p_occurred_at?: string
+          p_project_id?: string
+          p_status?: string
+          p_structure_ids?: string[]
+          p_subject: string
+          p_tag_ids?: string[]
+          p_type?: string
+          p_zone_ids: string[]
+        }
         Returns: string
+      }
+      delete_household: { Args: { p_household_id: string }; Returns: undefined }
+      get_household_members: {
+        Args: { p_household_id: string }
+        Returns: {
+          joined_at: string
+          role: string
+          user_display_name: string
+          user_email: string
+          user_id: string
+        }[]
+      }
+      leave_household: { Args: { p_household_id: string }; Returns: undefined }
+      lighten_hex_color: {
+        Args: { base: string; factor?: number }
+        Returns: string
+      }
+      project_expense_amount: { Args: { p_metadata: Json }; Returns: number }
+      refresh_project_actual_cost: {
+        Args: { p_project_id: string }
+        Returns: undefined
       }
     }
     Enums: {
@@ -576,119 +1231,124 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-  : never = never,
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-  ? R
-  : never
+    ? R
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-  ? R
-  : never
-  : never
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
+      Insert: infer I
+    }
+    ? I
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Insert: infer I
-  }
-  ? I
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-    Update: infer U
-  }
-  ? U
-  : never
+      Update: infer U
+    }
+    ? U
+    : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-    Update: infer U
-  }
-  ? U
-  : never
-  : never
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-  : never = never,
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
-  public: {
+  graphql_public: {
     Enums: {},
+  },
+  public: {
+    Enums: {
+      project_status: ["draft", "active", "on_hold", "completed", "cancelled"],
+    },
   },
 } as const
