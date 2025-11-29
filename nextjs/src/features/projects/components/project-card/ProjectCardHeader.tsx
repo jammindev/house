@@ -31,7 +31,14 @@ export default function ProjectCardHeader({
     <>
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h3 className="text-base font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
+          <div className="flex items-center gap-2">
+            {project.is_pinned ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
+                <Pin className="h-3.5 w-3.5" />
+              </span>
+            ) : null}
+            <h3 className="text-base font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
+          </div>
           <div className="flex flex-wrap gap-2 items-center">
             <ProjectStatusBadge status={project.status} />
             {project.isOverdue ? (
@@ -44,12 +51,6 @@ export default function ProjectCardHeader({
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
                 <CalendarClock className="h-4 w-4" />
                 {t("projects.badges.dueSoon")}
-              </span>
-            ) : null}
-            {project.is_pinned ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
-                <Pin className="h-3.5 w-3.5" />
-                {t("projects.pinned")}
               </span>
             ) : null}
             {project.group ? (

@@ -95,7 +95,7 @@ export default function ProjectDetailHeader({
     <Card className="border border-slate-200 shadow-sm overflow-hidden">
       <CardContent className="space-y-6 p-3">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-2">
+          <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               {project.is_pinned ? (
                 <CountBadge
