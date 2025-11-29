@@ -15,7 +15,7 @@ import ProjectDocumentsPanel from "@projects/components/ProjectDocumentsPanel";
 import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
-import ProjectCard from "@projects/components/ProjectCard";
+import ProjectCard from "@projects/components/project-card/ProjectCard";
 import ProjectPinterestEmbed from "@projects/components/ProjectPinterestEmbed";
 
 interface ProjectDetailViewProps {

@@ -31,7 +31,7 @@ export const PROJECT_TYPES: ProjectType[] = [
 
 export type ProjectCardSection = "progress" | "schedule" | "budget" | "tags";
 
-type ProjectTypeDefinition = {
+export type ProjectTypeDefinition = {
   labelKey: string;
   helperKey: string;
   emptyStateKey?: string;

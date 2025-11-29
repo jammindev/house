@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { ProjectWithMetrics } from "@projects/types";
-import ProjectCard from "@projects/components/ProjectCard";
+import ProjectCard from "@projects/components/project-card/ProjectCard";
 
 interface ProjectListProps {
   projects: ProjectWithMetrics[];
