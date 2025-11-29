@@ -108,27 +108,6 @@ export default function Sidebar({
                     </button>
                 </div>
 
-                {/* User (mobile) */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b lg:hidden">
-                    <UserAvatar email={user?.email} displayName={user?.displayName} avatarUrl={user?.avatarUrl} />
-                    <div className="flex flex-col">
-                        <span className="text-sm font-medium text-gray-900 truncate">
-                            {user?.displayName && user.displayName.trim().length > 0
-                                ? user.displayName
-                                : user?.email || "Utilisateur"}
-                        </span>
-                        {user?.displayName && user.email && (
-                            <span className="text-xs text-gray-500 truncate">{user.email}</span>
-                        )}
-                        <button
-                            onClick={onLogout}
-                            className="text-xs text-red-600 hover:underline"
-                        >
-                            {t("nav.signOut")}
-                        </button>
-                    </div>
-                </div>
-
                 {/* Navigation */}
                 <nav className="mt-4 px-2 space-y-1">
                     {navigation.map((item) => {
@@ -163,6 +142,27 @@ export default function Sidebar({
                         );
                     })}
                 </nav>
+
+                {/* User (mobile) */}
+                <div className="flex items-center gap-3 px-4 py-3 border-b lg:hidden">
+                    <UserAvatar email={user?.email} displayName={user?.displayName} avatarUrl={user?.avatarUrl} />
+                    <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-900 truncate">
+                            {user?.displayName && user.displayName.trim().length > 0
+                                ? user.displayName
+                                : user?.email || "Utilisateur"}
+                        </span>
+                        {user?.displayName && user.email && (
+                            <span className="text-xs text-gray-500 truncate">{user.email}</span>
+                        )}
+                        <button
+                            onClick={onLogout}
+                            className="text-xs text-red-600 hover:underline"
+                        >
+                            {t("nav.signOut")}
+                        </button>
+                    </div>
+                </div>
 
                 {/* Actions (desktop only) */}
                 <div className="hidden lg:block mt-auto border-t p-3">

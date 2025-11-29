@@ -31,6 +31,7 @@ const BASE_PROJECT: ProjectWithMetrics = {
   actual_cost_cached: 1200,
   cover_interaction_id: null,
   project_group_id: null,
+  is_pinned: false,
   created_at: "2025-01-01T00:00:00.000Z",
   updated_at: "2025-01-02T00:00:00.000Z",
   created_by: "user-1",
@@ -98,5 +99,10 @@ describe("ProjectCard", () => {
     const repairToggle = screen.getAllByRole("button", { name: /more details/i }).at(-1);
     expect(repairToggle).toHaveClass("bg-rose-50");
     expect(repairToggle).toHaveClass("border-rose-200");
+  });
+
+  it("displays the pinned badge when the project is pinned", () => {
+    renderProjectCard({ is_pinned: true });
+    expect(screen.getByText("Pinned project")).toBeInTheDocument();
   });
 });

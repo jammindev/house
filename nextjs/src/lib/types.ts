@@ -358,6 +358,7 @@ export type Database = {
           due_date: string | null
           household_id: string
           id: string
+          is_pinned: boolean
           planned_budget: number
           priority: number
           project_group_id: string | null
@@ -379,6 +380,7 @@ export type Database = {
           due_date?: string | null
           household_id: string
           id?: string
+          is_pinned?: boolean
           planned_budget?: number
           priority?: number
           project_group_id?: string | null
@@ -400,6 +402,7 @@ export type Database = {
           due_date?: string | null
           household_id?: string
           id?: string
+          is_pinned?: boolean
           planned_budget?: number
           priority?: number
           project_group_id?: string | null

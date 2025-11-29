@@ -1,48 +1,38 @@
-// nextjs/src/features/projects/hooks/useProjects.ts
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowRight, Folder, Pin } from "lucide-react";
 
-import { useI18n } from "@/lib/i18n/I18nProvider";
+import { Button } from "@/components/ui/button";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import ProjectCard from "@projects/components/project-card/ProjectCard";
+import type { Project, ProjectMetrics, ProjectWithMetrics } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { computeProjectFlags } from "@projects/utils/projectFlags";
 import { sortProjectsByPinAndUpdate } from "@projects/utils/sortProjects";
-import { usePersistentFilters } from "@shared/hooks/usePersistentFilters";
-import type {
-  Project,
-  ProjectListFilters,
-  ProjectMetrics,
-  ProjectStatus,
-  ProjectWithMetrics,
-} from "@projects/types";
+import { useI18n } from "@/lib/i18n/I18nProvider";
 
-export const DEFAULT_PROJECT_FILTERS: ProjectListFilters = {
-  statuses: ["active", "draft"],
-  projectGroupId: null,
-};
-
-export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT_FILTERS) {
+export default function DashboardPinnedProjects() {
+  const { selectedHouseholdId } = useGlobal();
   const { t } = useI18n();
-  const { selectedHouseholdId: householdId } = useGlobal();
-  const { filters, setFilters, resetFilters } = usePersistentFilters<ProjectListFilters>({
-    key: "project-filters",
-    fallback: initialFilters,
-    scope: householdId,
-  });
   const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!householdId) return;
+    if (!selectedHouseholdId) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    setError("");
+    setError(null);
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
-      let query = client
+      const { data: projectRows, error: projectsError } = await client
         .from("projects")
         .select(
           `
@@ -72,40 +62,14 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
             updated_by
           `
         )
-        .eq("household_id", householdId)
-        .order("is_pinned", { ascending: false })
+        .eq("household_id", selectedHouseholdId)
+        .eq("is_pinned", true)
         .order("updated_at", { ascending: false });
 
-      if (filters.statuses && filters.statuses.length) {
-        query = query.in("status", filters.statuses as ProjectStatus[]);
-      }
-
-      if (filters.projectGroupId) {
-        query = query.eq("project_group_id", filters.projectGroupId);
-      }
-
-      if (filters.search && filters.search.trim().length > 0) {
-        const searchTerm = filters.search.trim();
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
-      }
-
-      if (filters.startDateFrom) {
-        query = query.gte("start_date", filters.startDateFrom);
-      }
-
-      if (filters.dueDateTo) {
-        query = query.lte("due_date", filters.dueDateTo);
-      }
-
-      if (filters.tags && filters.tags.length > 0) {
-        query = query.contains("tags", filters.tags);
-      }
-
-      const { data: projectRows, error: projectError } = await query;
-      if (projectError) throw projectError;
+      if (projectsError) throw projectsError;
 
       const typedProjects = (projectRows ?? []) as Project[];
-      const ids = typedProjects.map((item) => item.id);
+      const projectIds = typedProjects.map((item) => item.id);
       const groupIds = Array.from(
         new Set(
           typedProjects
@@ -115,11 +79,11 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
       );
 
       let metricsByProject = new Map<string, ProjectMetrics>();
-      if (ids.length) {
+      if (projectIds.length) {
         const { data: metricsRows, error: metricsError } = await client
           .from("project_metrics")
           .select("project_id, open_todos, done_todos, documents_count, actual_cost")
-          .in("project_id", ids);
+          .in("project_id", projectIds);
         if (metricsError) throw metricsError;
         metricsByProject = new Map(
           (metricsRows ?? []).map((item) => [item.project_id, item as ProjectMetrics])
@@ -162,23 +126,60 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
     } finally {
       setLoading(false);
     }
-  }, [filters, householdId, t]);
+  }, [selectedHouseholdId, t]);
 
   useEffect(() => {
-    setProjects([]);
-    if (!householdId) return;
     void load();
-  }, [householdId, load]);
+  }, [load]);
 
-  const activeFilters = useMemo(() => filters, [filters]);
+  return (
+    <section className="space-y-4">
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+            <Pin className="h-4 w-4" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">{t("dashboard.pinnedProjects.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("dashboard.pinnedProjects.subtitle")}</p>
+          </div>
+        </div>
+        <Button asChild variant="ghost" size="sm" className="justify-start gap-1 text-primary-700">
+          <LinkWithOverlay href="/app/projects">
+            {t("dashboard.pinnedProjects.viewAll")}
+            <ArrowRight className="h-4 w-4" />
+          </LinkWithOverlay>
+        </Button>
+      </header>
 
-  return {
-    projects,
-    loading,
-    error,
-    filters: activeFilters,
-    setFilters,
-    resetFilters,
-    reload: load,
-  };
+      {error ? (
+        <div className="rounded-lg border border-rose-200 bg-rose-50/70 p-4 text-sm text-rose-700">
+          {error}
+        </div>
+      ) : null}
+
+      {loading ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div key={index} className="h-48 rounded-xl border border-slate-200 bg-slate-100/60 animate-pulse" />
+          ))}
+        </div>
+      ) : projects.length ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {projects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+          <Folder className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">{t("dashboard.pinnedProjects.empty")}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{t("dashboard.pinnedProjects.hint")}</p>
+          <Button asChild variant="secondary" size="sm" className="mt-4">
+            <LinkWithOverlay href="/app/projects">{t("dashboard.pinnedProjects.viewAll")}</LinkWithOverlay>
+          </Button>
+        </div>
+      )}
+    </section>
+  );
 }
