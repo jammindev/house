@@ -207,7 +207,7 @@ export function UserSettings() {
 
 
     return (
-        <div className="space-y-6 p-6">
+        <div>
             {error && (
                 <Alert variant="destructive">
                     <AlertDescription>{error}</AlertDescription>
@@ -226,7 +226,7 @@ export function UserSettings() {
                     <HouseholdManagement />
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="text-base flex items-center gap-2">
                                 {t('settings.language')}
                             </CardTitle>
                             <CardDescription>{t('settings.languageDescription')}</CardDescription>
@@ -257,7 +257,7 @@ export function UserSettings() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('settings.displayName')}</CardTitle>
+                            <CardTitle className='text-base '>{t('settings.displayName')}</CardTitle>
                             <CardDescription>{t('settings.displayNameDescription')}</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -288,7 +288,7 @@ export function UserSettings() {
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('settings.avatar')}</CardTitle>
+                            <CardTitle className='text-base '>{t('settings.avatar')}</CardTitle>
                             <CardDescription>{t('settings.avatarDescription')}</CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -335,7 +335,7 @@ export function UserSettings() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="text-base flex items-center gap-2">
                                 <User className="h-5 w-5" />
                                 {t('settings.userDetails')}
                             </CardTitle>
@@ -355,7 +355,7 @@ export function UserSettings() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
+                            <CardTitle className="text-base flex items-center gap-2">
                                 <Key className="h-5 w-5" />
                                 {t('settings.changePassword')}
                             </CardTitle>

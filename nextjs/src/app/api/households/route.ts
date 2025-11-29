@@ -3,7 +3,15 @@ import { createSSRClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { name } = await req.json();
+    const {
+      name,
+      address = '',
+      city = '',
+      country = '',
+      context_notes = '',
+      ai_prompt_context = ''
+    } = await req.json();
+
     const trimmedName = typeof name === "string" ? name.trim() : "";
     if (!trimmedName) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
@@ -14,10 +22,19 @@ export async function POST(req: NextRequest) {
     if (userErr || !userData.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+
     const { data: householdId, error: rpcErr } = await supaSSR.rpc(
       "create_household_with_owner",
-      { p_name: trimmedName },
+      {
+        p_name: trimmedName,
+        p_address: address || '',
+        p_city: city || '',
+        p_country: country || '',
+        p_context_notes: context_notes || '',
+        p_ai_prompt_context: ai_prompt_context || ''
+      },
     );
+
     if (rpcErr) {
       return NextResponse.json({ error: rpcErr.message }, { status: 400 });
     }

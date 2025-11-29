@@ -24,7 +24,15 @@ function redactPII(text: string): string {
 }
 
 // Helper function to summarize project context to stay under token limits
-function summarizeProjectContext(project: any, interactions: any[]): string {
+function summarizeProjectContext(project: any, interactions: any[], household: any = null): string {
+    const householdSummary = household ? `Household: ${household.name}
+${household.address ? `Address: ${household.address}` : ''}
+${household.city ? `Location: ${household.city}${household.country ? `, ${household.country}` : ''}` : ''}
+${household.context_notes ? `Context: ${household.context_notes}` : ''}
+${household.ai_prompt_context ? `AI Context: ${household.ai_prompt_context}` : ''}
+
+` : '';
+
     const projectSummary = `Project: ${project.title}
 Description: ${project.description || 'No description provided'}
 Status: ${project.status}
@@ -42,7 +50,7 @@ Tags: ${project.tags?.join(', ') || 'None'}`;
         ).join('\n')
         : '\n\nNo recent activity recorded.';
 
-    return redactPII(projectSummary + interactionsSummary);
+    return redactPII(householdSummary + projectSummary + interactionsSummary);
 }
 
 export async function POST(
@@ -169,6 +177,18 @@ export async function POST(
 
         // Gather project context for real OpenAI response
         console.log('AI Chat API: Gathering project context');
+
+        // Get household information
+        const { data: household, error: householdError } = await supabase
+            .from('households')
+            .select('name, address, city, country, context_notes, ai_prompt_context')
+            .eq('id', project.household_id)
+            .single();
+
+        if (householdError) {
+            console.warn('AI Chat API: Failed to get household context:', householdError);
+        }
+
         const { data: interactions, error: interactionsError } = await supabase
             .from('interactions')
             .select(`
@@ -187,7 +207,7 @@ export async function POST(
             .order('occurred_at', { ascending: false })
             .limit(25);
 
-        const contextSummary = summarizeProjectContext(project, interactions || []);
+        const contextSummary = summarizeProjectContext(project, interactions || [], household);
 
         // Build conversation for OpenAI
         const conversationMessages = [
@@ -198,14 +218,33 @@ export async function POST(
 Current Project Context:
 ${contextSummary}
 
+OUTPUT FORMAT: Always format your responses using clean markdown for better readability:
+- **Bold text** for emphasis and important points
+- ## Headings for main sections (use ## for sections, ### for subsections)
+- - Bullet points for lists and action items
+- Plain text for paragraphs
+- NO code blocks, tables, or complex formatting
+
 Guidelines:
 - Provide helpful, actionable advice about this project
 - Reference the project's current status, budget, and timeline when relevant
 - If asked about specific interactions or activities, refer to the recent activity list
 - Keep responses concise but informative
+- Use markdown formatting for better structure and readability
 - If you don't have enough information, suggest what data might be helpful to track
 - Do not edit or modify any project data - you can only provide advice and insights
-- Focus on practical household management advice`
+- Focus on practical household management advice
+
+FORMATTING EXAMPLE:
+## Analysis
+[Your analysis here...]
+
+**Key Recommendations:**
+- First recommendation
+- Second recommendation
+
+## Next Steps
+[Actionable steps...]`
             },
             ...messages.map(msg => ({
                 role: msg.role as "user" | "assistant",

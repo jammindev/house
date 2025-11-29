@@ -12,6 +12,7 @@ import { PROJECT_STATUSES, PROJECT_TYPE_META } from "@projects/constants";
 import { useToast } from "@/components/ToastProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { cn } from "@/lib/utils";
+import MarkdownContent from "@/components/ui/MarkdownContent";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import CollapsibleSectionToggle from "@/components/layout/CollapsibleSectionToggle";
 import ProjectStatusSheet from "@projects/components/ProjectStatusSheet";
@@ -155,7 +156,9 @@ export default function ProjectDetailHeader({
               )}
             </div>
             {project.description ? (
-              <p className="max-w-3xl text-sm text-slate-600 whitespace-pre-line">{project.description}</p>
+              <MarkdownContent className="max-w-3xl text-sm text-slate-600">
+                {project.description}
+              </MarkdownContent>
             ) : null}
             {helperText ? <p className="text-xs text-slate-500">{helperText}</p> : null}
             {project.tags.length > 0 && <div className="flex flex-wrap gap-2">
