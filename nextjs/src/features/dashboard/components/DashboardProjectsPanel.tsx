@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import ProjectCard from "@projects/components/ProjectCard";
+import ProjectCard from "@projects/components/project-card/ProjectCard";
 
 import type { ProjectWithMetrics } from "@projects/types";
 
