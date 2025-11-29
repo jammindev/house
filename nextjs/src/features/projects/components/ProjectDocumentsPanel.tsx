@@ -15,11 +15,11 @@ export default function ProjectDocumentsPanel({ documents }: ProjectDocumentsPan
   const { t } = useI18n();
 
   // Transform documents to DocumentWithLinks format (without interaction links for project view)
-  const documentsWithLinks: DocumentWithLinks[] = useMemo(() => 
+  const documentsWithLinks: DocumentWithLinks[] = useMemo(() =>
     documents.map((doc) => ({
       ...doc,
       links: [], // No interaction links shown in project context
-    })), 
+    })),
     [documents]
   );
 
@@ -29,7 +29,7 @@ export default function ProjectDocumentsPanel({ documents }: ProjectDocumentsPan
       documents={documentsWithLinks}
       loading={false}
       error={null}
-      onRefresh={() => {}} // No refresh needed in project context
+      onRefresh={() => { }} // No refresh needed in project context
       filterActive={false}
       highlightedIds={[]}
       readonly={true} // Make documents read-only in project context
