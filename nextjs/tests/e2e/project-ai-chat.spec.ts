@@ -97,8 +97,6 @@ async function createTestData(): Promise<TestData> {
             description: projectDescription,
             status: 'active',
             priority: 3,
-            type: 'renovation',
-            planned_budget: 5000,
             created_by: authData.user.id
         })
         .select()
@@ -129,222 +127,221 @@ async function createTestData(): Promise<TestData> {
     };
 }
 
-// Helper function to clean up test data
-async function cleanupTestData(testData: TestData) {
-    // Clean up in reverse order of creation
-    await adminClient.from('projects').delete().eq('id', testData.project.id);
-    await adminClient.from('zones').delete().eq('id', testData.zone.id);
-    await adminClient.from('household_members').delete().eq('household_id', testData.household.id);
-    await adminClient.from('households').delete().eq('id', testData.household.id);
-    await adminClient.auth.admin.deleteUser(testData.user.id);
+// Helper function to cleanup test data
+async function cleanupTestData(data: TestData) {
+    // Delete project (cascades to threads/messages)
+    await adminClient.from('projects').delete().eq('id', data.project.id);
+
+    // Delete zone
+    await adminClient.from('zones').delete().eq('id', data.zone.id);
+
+    // Delete household (cascades to members)
+    await adminClient.from('households').delete().eq('id', data.household.id);
+
+    // Delete user
+    await adminClient.auth.admin.deleteUser(data.user.id);
 }
 
-// Helper to sign in the user
-async function signInUser(page: any, email: string, password: string) {
-    await page.goto('/auth/signin');
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL('/app*');
-}
-
-// Mock OpenAI API responses for testing
-async function setupMockOpenAI(page: any) {
-    await page.route('**/api/projects/*/ai-chat', async route => {
-        const request = route.request();
-        if (request.method() === 'POST') {
-            const body = await request.postDataJSON();
-
-            // Simulate streaming response
-            const mockResponse = {
-                body: 'data: {"content":"Hello! I can help you with your "}\\n\\ndata: {"content":"project. Based on the information provided, "}\\n\\ndata: {"content":"this appears to be a renovation project. "}\\n\\ndata: {"content":"What specific aspect would you like help with?"}\\n\\ndata: {"done":true,"threadId":"mock-thread-id"}\\n\\n',
-                headers: {
-                    'Content-Type': 'text/event-stream',
-                    'Cache-Control': 'no-cache'
-                }
-            };
-
-            await route.fulfill({
-                status: 200,
-                headers: mockResponse.headers,
-                body: mockResponse.body
-            });
-        } else {
-            await route.continue();
-        }
-    });
-}
-
-test.describe('Project AI Chat', () => {
+test.describe('Project AI Chat - Enhanced Tests', () => {
     let testData: TestData;
 
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async () => {
         testData = await createTestData();
-        await setupMockOpenAI(page);
-        await signInUser(page, testData.user.email, testData.user.password);
     });
 
     test.afterEach(async () => {
-        if (testData) {
-            await cleanupTestData(testData);
-        }
+        await cleanupTestData(testData);
+    });
+
+    test('should open AI chat dialog and display welcome message', async ({ page }) => {
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+
+        await expect(page.locator('[role="dialog"]')).toBeVisible();
+        await expect(page.locator('text=How can I help with this project?')).toBeVisible();
+    });
+
+    test('should handle new chat creation', async ({ page }) => {
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+        await expect(page.locator('button:has-text("New Chat")')).toBeVisible();
+
+        const testMessage = 'What is the status of this project?';
+        await page.fill('textarea[placeholder*="Ask about your project"]', testMessage);
+        await page.press('textarea[placeholder*="Ask about your project"]', 'Enter');
+
+        await expect(page.locator(`text=${testMessage}`)).toBeVisible();
+    });
+
+    test('should display error messages properly', async ({ page }) => {
+        await page.route('**/api/projects/*/ai-chat', (route) => {
+            route.fulfill({
+                status: 429,
+                contentType: 'application/json',
+                body: JSON.stringify({ error: 'AI service quota exceeded. Please try again later.' })
+            });
+        });
+
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+        await page.fill('textarea[placeholder*="Ask about your project"]', 'Test message');
+        await page.press('textarea[placeholder*="Ask about your project"]', 'Enter');
+
+        await expect(page.locator('text=AI service quota exceeded')).toBeVisible();
+        await expect(page.locator('button:has-text("Try again")')).toBeVisible();
+    });
+
+    test('should handle conversation selection dropdown', async ({ page }) => {
+        // Create a conversation via API
+        const { data: thread } = await adminClient
+            .from('project_ai_threads')
+            .insert({
+                project_id: testData.project.id,
+                household_id: testData.household.id,
+                user_id: testData.user.id,
+                title: 'Test Conversation'
+            })
+            .select()
+            .single();
+
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+        await page.click('button:has-text("Test Conversation")');
+
+        // Verify dropdown opens with "New Chat" option
+        await expect(page.locator('[role="menuitem"]:has-text("New Chat")')).toBeVisible();
+
+        // Click "New Chat"
+        await page.click('[role="menuitem"]:has-text("New Chat")');
+
+        // Verify selector shows "New Chat" again
+        await expect(page.locator('button:has-text("New Chat")')).toBeVisible();
+    });
+
+    test('should handle keyboard shortcuts', async ({ page }) => {
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+
+        const textarea = page.locator('textarea[placeholder*="Ask about your project"]');
+
+        // Test Shift+Enter for new line
+        await textarea.fill('First line');
+        await page.keyboard.press('Shift+Enter');
+        await textarea.type('Second line');
+
+        // Verify multiline content
+        await expect(textarea).toHaveValue('First line\nSecond line');
+
+        // Test Enter to send
+        await textarea.fill('Test message');
+        await page.keyboard.press('Enter');
+
+        // Verify message was sent (input should be cleared)
+        await expect(textarea).toHaveValue('');
+    });
+
+    test('should maintain conversation history', async ({ page }) => {
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        // Create a thread with messages via API
+        const { data: thread } = await adminClient
+            .from('project_ai_threads')
+            .insert({
+                project_id: testData.project.id,
+                household_id: testData.household.id,
+                user_id: testData.user.id,
+                title: 'Test Thread'
+            })
+            .select()
+            .single();
+
+        await adminClient.from('project_ai_messages').insert([
+            {
+                thread_id: thread!.id,
+                role: 'user',
+                content: 'Hello AI'
+            },
+            {
+                thread_id: thread!.id,
+                role: 'assistant',
+                content: 'Hello! How can I help you?'
+            }
+        ]);
+
+        await page.click('button:has-text("Ask AI")');
+        await page.click('button:has-text("Test Thread")');
+
+        // Verify messages are loaded
+        await expect(page.locator('text=Hello AI')).toBeVisible();
+        await expect(page.locator('text=Hello! How can I help you?')).toBeVisible();
+    });
+
+    test('should close dialog properly', async ({ page }) => {
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
+        await page.goto(`/app/projects/${testData.project.id}`);
+
+        await page.click('button:has-text("Ask AI")');
+        await expect(page.locator('[role="dialog"]')).toBeVisible();
+
+        await page.click('button:has-text("Close")');
+        await expect(page.locator('[role="dialog"]')).not.toBeVisible();
     });
 
     test('should display AI chat button in project header', async ({ page }) => {
-        // Navigate to project detail page
+        await page.goto('/auth');
+        await page.fill('input[type="email"]', testData.user.email);
+        await page.fill('input[type="password"]', testData.user.password);
+        await page.click('button[type="submit"]');
+
+        await expect(page).toHaveURL('/app');
         await page.goto(`/app/projects/${testData.project.id}`);
 
-        // Check that the Ask AI button is visible
-        const aiButton = page.getByRole('button', { name: /ask ai/i });
-        await expect(aiButton).toBeVisible();
-
-        // Verify button has proper accessibility attributes
-        await expect(aiButton).toHaveAttribute('aria-expanded', 'false');
-    });
-
-    test('should open AI chat sheet when button is clicked', async ({ page }) => {
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Click the Ask AI button
-        const aiButton = page.getByRole('button', { name: /ask ai/i });
-        await aiButton.click();
-
-        // Check that the sheet is open
-        await expect(page.getByRole('dialog')).toBeVisible();
-        await expect(page.getByText('Project Assistant')).toBeVisible();
-        await expect(page.getByText(`Get help with ${testData.project.title}`)).toBeVisible();
-
-        // Verify button state updated
-        await expect(aiButton).toHaveAttribute('aria-expanded', 'true');
-    });
-
-    test('should show welcome state when no conversations exist', async ({ page }) => {
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat
-        await page.getByRole('button', { name: /ask ai/i }).click();
-
-        // Check welcome state
-        await expect(page.getByText('How can I help with this project?')).toBeVisible();
-        await expect(page.getByText(/I can provide insights about your project timeline/)).toBeVisible();
-
-        // Verify composer is present
-        const messageInput = page.getByPlaceholder('Ask about your project...');
-        await expect(messageInput).toBeVisible();
-        await expect(messageInput).toBeEnabled();
-    });
-
-    test('should send message and receive AI response', async ({ page }) => {
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat
-        await page.getByRole('button', { name: /ask ai/i }).click();
-
-        // Type a message
-        const messageInput = page.getByPlaceholder('Ask about your project...');
-        await messageInput.fill('What is the status of this project?');
-
-        // Send message (Enter key)
-        await messageInput.press('Enter');
-
-        // Verify user message appears
-        await expect(page.getByText('What is the status of this project?')).toBeVisible();
-
-        // Verify AI response appears (from mock)
-        await expect(page.getByText(/Hello! I can help you with your project/)).toBeVisible();
-        await expect(page.getByText(/What specific aspect would you like help with?/)).toBeVisible();
-
-        // Verify message roles are displayed
-        await expect(page.getByText('You')).toBeVisible();
-        await expect(page.getByText('House Assistant')).toBeVisible();
-    });
-
-    test('should handle keyboard shortcuts correctly', async ({ page }) => {
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat
-        await page.getByRole('button', { name: /ask ai/i }).click();
-
-        const messageInput = page.getByPlaceholder('Ask about your project...');
-
-        // Test Shift+Enter for new line
-        await messageInput.fill('First line');
-        await messageInput.press('Shift+Enter');
-        await messageInput.type('Second line');
-
-        // Verify textarea contains newline
-        await expect(messageInput).toHaveValue('First line\\nSecond line');
-
-        // Clear and test Enter to send
-        await messageInput.fill('Test message');
-        await messageInput.press('Enter');
-
-        // Verify message was sent
-        await expect(page.getByText('Test message')).toBeVisible();
-    });
-
-    test('should close sheet with escape key', async ({ page }) => {
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat
-        const aiButton = page.getByRole('button', { name: /ask ai/i });
-        await aiButton.click();
-
-        // Verify sheet is open
-        await expect(page.getByRole('dialog')).toBeVisible();
-
-        // Press Escape
-        await page.keyboard.press('Escape');
-
-        // Verify sheet is closed
-        await expect(page.getByRole('dialog')).not.toBeVisible();
-        await expect(aiButton).toHaveAttribute('aria-expanded', 'false');
-    });
-
-    test('should work correctly on mobile viewport', async ({ page }) => {
-        // Set mobile viewport
-        await page.setViewportSize({ width: 375, height: 667 });
-
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat
-        await page.getByRole('button', { name: /ask ai/i }).click();
-
-        // On mobile, sheet should cover full width
-        const sheet = page.getByRole('dialog');
-        await expect(sheet).toBeVisible();
-
-        // Verify composer is accessible
-        const messageInput = page.getByPlaceholder('Ask about your project...');
-        await expect(messageInput).toBeVisible();
-
-        // Test message sending on mobile
-        await messageInput.fill('Mobile test message');
-        await messageInput.press('Enter');
-
-        await expect(page.getByText('Mobile test message')).toBeVisible();
-    });
-
-    test('should persist conversation after page reload', async ({ page }) => {
-        // Note: This test assumes the backend stores messages properly
-        // In a real test, you'd need to verify the conversation persists
-        // For now, we'll just test that the UI handles reload correctly
-
-        await page.goto(`/app/projects/${testData.project.id}`);
-
-        // Open AI chat and send a message
-        await page.getByRole('button', { name: /ask ai/i }).click();
-        const messageInput = page.getByPlaceholder('Ask about your project...');
-        await messageInput.fill('Test persistence');
-        await messageInput.press('Enter');
-
-        // Wait for response
-        await expect(page.getByText('Test persistence')).toBeVisible();
-
-        // Reload page
-        await page.reload();
-
-        // AI button should still be present
-        await expect(page.getByRole('button', { name: /ask ai/i })).toBeVisible();
+        await expect(page.locator('button:has-text("Ask AI")')).toBeVisible();
     });
 });

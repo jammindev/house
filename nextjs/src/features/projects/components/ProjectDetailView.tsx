@@ -28,7 +28,7 @@ interface ProjectDetailViewProps {
 
 // const TABS = ["timeline", "tasks", "documents", "expenses", "pinterest"] as const;
 const TABS = ["timeline", "tasks", "documents", "expenses"] as const;
-const RELATED_PROJECTS_PAGE_SIZE = 5;
+const RELATED_PROJECTS_PAGE_SIZE = 3;
 
 export default function ProjectDetailView({
   project,
