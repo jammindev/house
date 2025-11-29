@@ -18,6 +18,7 @@ interface ProjectAIThreadListProps {
     activeThread: ProjectAIThread | null;
     onSelectThread: (thread: ProjectAIThread) => void;
     onDeleteThread: (threadId: string) => void;
+    onNewChat: () => void;
     isLoading: boolean;
 }
 
@@ -26,6 +27,7 @@ export function ProjectAIThreadList({
     activeThread,
     onSelectThread,
     onDeleteThread,
+    onNewChat,
     isLoading,
 }: ProjectAIThreadListProps) {
     const { t } = useI18n();
@@ -56,8 +58,6 @@ export function ProjectAIThreadList({
         }
     };
 
-    if (threads.length === 0) return null;
-
     return (
         <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
             <DropdownMenuTrigger asChild>
@@ -70,17 +70,29 @@ export function ProjectAIThreadList({
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                         <MessageSquare className="h-3 w-3 shrink-0" />
                         <span className="truncate text-xs">
-                            {activeThread?.title || t("projects.aiChat.selectThread")}
+                            {activeThread?.title || t("projects.aiChat.newChat")}
                         </span>
                     </div>
                     <ChevronDown className="h-3 w-3 shrink-0" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-72">
-                <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                    {t("projects.aiChat.conversations", { count: threads.length })}
-                </div>
-                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                    onSelect={() => onNewChat()}
+                    className="flex items-center gap-2"
+                >
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{t("projects.aiChat.newChat")}</span>
+                </DropdownMenuItem>
+                {threads.length > 0 && (
+                    <>
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                            {t("projects.aiChat.conversations", { count: threads.length })}
+                        </div>
+                        <DropdownMenuSeparator />
+                    </>
+                )}
                 {threads.map((thread) => (
                     <DropdownMenuItem
                         key={thread.id}

@@ -29,6 +29,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatShe
         createThread,
         switchThread,
         deleteThread,
+        createNewThread,
         cancelStream,
         clearError,
     } = useProjectAIChat({ projectId });
@@ -60,25 +61,23 @@ export function ProjectAIChatSheet({ projectId, projectTitle }: ProjectAIChatShe
             onOpenChange={setIsOpen}
             title={t("projects.aiChat.title")}
             description={t("projects.aiChat.description", { project: projectTitle })}
-            closeLabel={null}
+            closeLabel={t("common.close")}
             contentClassName="p-0 gap-0"
-            containerClassName="max-w-lg w-full sm:max-w-lg"
         >
             {({ close }) => (
                 <>
                     <div className="flex-1 flex flex-col min-h-0">
                         {/* Thread Selector */}
-                        {threads.length > 0 && (
-                            <div className="px-6 py-3 border-b bg-muted/30">
-                                <ProjectAIThreadList
-                                    threads={threads}
-                                    activeThread={activeThread}
-                                    onSelectThread={switchThread}
-                                    onDeleteThread={deleteThread}
-                                    isLoading={isLoading}
-                                />
-                            </div>
-                        )}
+                        <div className="px-6 py-3 border-b bg-muted/30">
+                            <ProjectAIThreadList
+                                threads={threads}
+                                activeThread={activeThread}
+                                onSelectThread={switchThread}
+                                onDeleteThread={deleteThread}
+                                onNewChat={createNewThread}
+                                isLoading={isLoading}
+                            />
+                        </div>
 
                         {/* Messages */}
                         <div className="flex-1 overflow-scroll">
