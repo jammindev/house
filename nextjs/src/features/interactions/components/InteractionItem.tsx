@@ -11,6 +11,7 @@ interface Props {
   interaction: Interaction;
   documentCount: number;
   t: (key: string, args?: Record<string, string | number>) => string;
+  returnTo?: string;
 }
 
 const statusBadgeStyles: Partial<Record<NonNullable<Interaction["status"]>, string>> = {
@@ -44,7 +45,7 @@ const typeBadgeStyles: Partial<Record<Interaction["type"], string>> = {
   other: "bg-gray-100 text-gray-800",
 };
 
-export default function InteractionItem({ interaction, documentCount, t }: Props) {
+export default function InteractionItem({ interaction, documentCount, t, returnTo }: Props) {
   const occurredDate = new Date(interaction.occurred_at);
   const occurredDateLabel = occurredDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
   const statusLabel = interaction.status ? t(`interactionsstatus.${interaction.status}`) : null;
@@ -56,9 +57,13 @@ export default function InteractionItem({ interaction, documentCount, t }: Props
     interaction.status ? statusBadgeStyles[interaction.status] ?? "border-gray-200 bg-gray-50 text-gray-600" : "border-gray-200 bg-gray-50 text-gray-600";
   const typeBadgeClass = typeBadgeStyles[interaction.type] ?? "bg-slate-100 text-slate-800";
 
+  const href = returnTo
+    ? `/app/interactions/${interaction.id}?returnTo=${encodeURIComponent(returnTo)}`
+    : `/app/interactions/${interaction.id}`;
+
   return (
     <LinkWithOverlay
-      href={`/app/interactions/${interaction.id}`}
+      href={href}
       className="group block rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm ring-1 ring-transparent transition hover:border-indigo-200 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
     >
       <div className="flex flex-col gap-4">

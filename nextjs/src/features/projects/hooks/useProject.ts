@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Project, ProjectMetrics, ProjectWithMetrics } from "@projects/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { computeProjectFlags } from "@projects/utils/projectFlags";
+import { sortProjectsByPinAndUpdate } from "@projects/utils/sortProjects";
 
 export function useProject(projectId?: string) {
   const { selectedHouseholdId: householdId } = useGlobal();
@@ -182,7 +183,7 @@ export function useProject(projectId?: string) {
         console.warn("Failed to load interactions count for project", projectData.id, err);
         setInteractionsCount(undefined);
       }
-      setRelatedProjects(related);
+      setRelatedProjects(sortProjectsByPinAndUpdate(related));
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("common.unexpectedError");
       setError(message);

@@ -72,7 +72,6 @@ export default function ProjectPinButton({ projectId, isPinned, onPinnedChange }
       <Pin
         className={cn(
           "h-4 w-4 transition-colors",
-          pinned ? "text-primary-600" : "text-slate-600"
         )}
         aria-hidden
       />
