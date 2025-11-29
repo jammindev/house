@@ -1,9 +1,11 @@
 "use client";
 
-import { Paperclip } from "lucide-react";
+import { useMemo } from "react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document } from "@interactions/types";
+import { DocumentsList } from "@/features/documents/components/DocumentsList";
+import type { DocumentWithLinks } from "@/features/documents/types";
 
 interface ProjectDocumentsPanelProps {
   documents: Document[];
@@ -12,32 +14,25 @@ interface ProjectDocumentsPanelProps {
 export default function ProjectDocumentsPanel({ documents }: ProjectDocumentsPanelProps) {
   const { t } = useI18n();
 
-  if (!documents.length) {
-    return (
-      <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500">
-        {t("projects.documents.empty")}
-      </div>
-    );
-  }
+  // Transform documents to DocumentWithLinks format (without interaction links for project view)
+  const documentsWithLinks: DocumentWithLinks[] = useMemo(() => 
+    documents.map((doc) => ({
+      ...doc,
+      links: [], // No interaction links shown in project context
+    })), 
+    [documents]
+  );
 
+  // Empty state handled by DocumentsList
   return (
-    <ul className="grid grid-cols-1 gap-3 md:grid-cols-2">
-      {documents.map((doc) => (
-        <li key={doc.id} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100">
-              <Paperclip className="h-5 w-5 text-slate-600" />
-            </span>
-            <div className="flex-1 space-y-1">
-              <div className="text-sm font-semibold text-slate-900">{doc.name}</div>
-              {doc.notes ? <p className="text-xs text-slate-500">{doc.notes}</p> : null}
-              <div className="text-xs text-slate-400">
-                {doc.mime_type ?? "—"} · {doc.type}
-              </div>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+    <DocumentsList
+      documents={documentsWithLinks}
+      loading={false}
+      error={null}
+      onRefresh={() => {}} // No refresh needed in project context
+      filterActive={false}
+      highlightedIds={[]}
+      readonly={true} // Make documents read-only in project context
+    />
   );
 }
