@@ -2,6 +2,16 @@ export type ProjectStatus = "draft" | "active" | "on_hold" | "completed" | "canc
 
 export type ProjectPriority = 1 | 2 | 3 | 4 | 5;
 
+export type ProjectType =
+  | "renovation"
+  | "maintenance"
+  | "repair"
+  | "purchase"
+  | "relocation"
+  | "vacation"
+  | "leisure"
+  | "other";
+
 export type Project = {
   id: string;
   household_id: string;
@@ -9,6 +19,7 @@ export type Project = {
   description: string;
   status: ProjectStatus;
   priority: ProjectPriority;
+  type: ProjectType;
   start_date: string | null;
   due_date: string | null;
   closed_at: string | null;
@@ -37,6 +48,7 @@ export type ProjectMetrics = {
 
 export type ProjectListFilters = {
   statuses?: ProjectStatus[];
+  types?: ProjectType[];
   search?: string;
   tags?: string[];
   startDateFrom?: string | null;

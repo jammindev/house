@@ -7,6 +7,7 @@
         "start": "cd nextjs && yarn start",
         "lint": "cd nextjs && yarn lint",
         "lint:fix": "cd nextjs && yarn lint --fix",
+        "test:e2e": "cd nextjs && yarn test:e2e",
         "db:migrate": "supabase migrations up --linked",
         "db:reset": "supabase db reset --linked",
         "db:new": "supabase migration new",
