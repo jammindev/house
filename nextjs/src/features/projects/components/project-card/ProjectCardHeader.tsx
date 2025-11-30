@@ -8,7 +8,7 @@ import type { ProjectWithMetrics } from "@projects/types";
 import type { ProjectTypeDefinition } from "@projects/constants";
 import { formatDate } from "@projects/utils/projectCard";
 
-type Translate = (key: string, params?: Record<string, unknown>) => string;
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface ProjectCardHeaderProps {
   project: ProjectWithMetrics;
@@ -31,7 +31,7 @@ export default function ProjectCardHeader({
     <>
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-h-[48px]">
             {project.is_pinned ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
                 <Pin className="h-3.5 w-3.5" />

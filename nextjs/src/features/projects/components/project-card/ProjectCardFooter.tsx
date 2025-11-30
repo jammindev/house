@@ -7,7 +7,7 @@ import CollapsibleSectionToggle from "@/components/layout/CollapsibleSectionTogg
 import { cn } from "@/lib/utils";
 import { formatDate } from "@projects/utils/projectCard";
 
-type Translate = (key: string, params?: Record<string, unknown>) => string;
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface ProjectCardFooterProps {
   isCollapsed: boolean;
