@@ -226,7 +226,7 @@ export default function ProjectDetailView({
       </div>
 
       {/* Tabs Navigation */}
-      <div className={cn(("flex flex-col gap-2"), !isMobile && "bg-white")}>
+      <div className={cn(("flex flex-col rounded-lg"), !isMobile && "bg-stone-50")}>
         {/* Mobile: TabSheet */}
         {isMobile ? (
           <TabSheet
@@ -236,7 +236,7 @@ export default function ProjectDetailView({
           />
         ) : (
           /* Desktop: Horizontal tabs */
-          <div className="border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+          <div className="border border-slate-200 bg-white overflow-x-scroll rounded-t-lg shadow-sm overflow-hidden">
             <div className="flex border-b border-slate-200 bg-slate-50/30">
               {TABS.map((tabKey) => (
                 <button
@@ -246,7 +246,7 @@ export default function ProjectDetailView({
                   className={cn(
                     "flex-1 px-6 py-4 text-sm font-medium transition-all duration-200 whitespace-nowrap border-b-2 relative",
                     tab === tabKey
-                      ? "border-primary-600 text-primary-700 bg-white font-semibold shadow-sm"
+                      ? "border-primary-600 text-primary-700  font-semibold shadow-sm"
                       : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-white/60"
                   )}
                 >
@@ -259,7 +259,7 @@ export default function ProjectDetailView({
 
         {/* Tab Content */}
         <div className={cn(
-          "min-h-72 mt-2",
+          "min-h-72",
           isMobile ? "" : "p-6 border-l border-r border-b border-slate-200 rounded-b-lg shadow-sm"
         )}>
           {tab === "description" ? (
