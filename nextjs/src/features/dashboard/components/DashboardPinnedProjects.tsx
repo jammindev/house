@@ -134,11 +134,9 @@ export default function DashboardPinnedProjects() {
 
   return (
     <section className="space-y-2">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex  gap-2 justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary-50 text-primary-700">
-            <Pin className="h-4 w-4" />
-          </div>
+          <Pin className="h-4 w-4" />
           <h2 className="text-lg font-semibold text-foreground">{t("dashboard.pinnedProjects.title")}</h2>
         </div>
         <Button asChild variant="ghost" size="sm" className="justify-start gap-1 text-primary-700">
@@ -156,13 +154,13 @@ export default function DashboardPinnedProjects() {
       ) : null}
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 items-start">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {Array.from({ length: 2 }).map((_, index) => (
             <div key={index} className="h-48 rounded-xl border border-slate-200 bg-slate-100/60 animate-pulse" />
           ))}
         </div>
       ) : projects.length ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 items-start">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}

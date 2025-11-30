@@ -6,15 +6,37 @@ import { Check, Circle, X } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Interaction, InteractionStatus } from "@interactions/types";
 import { useUpdateInteractionStatus } from "@interactions/hooks/useUpdateInteractionStatus";
-import { useProjectTasks } from "@projects/hooks/useProjectTasks";
+import { useProjectTasks, type TaskScope } from "@projects/hooks/useProjectTasks";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import NewTaskDialog from "@interactions/components/NewTaskDialog";
 import type { ZoneOption } from "@interactions/types";
+import { Button } from "@/components/ui/button";
+import CountBadge from "@/components/ui/CountBadge";
+import { PROJECT_TYPE_META } from "@projects/constants";
+import type { ProjectType } from "@projects/types";
 
 interface ProjectTasksPanelProps {
-  projectId: string;
+  projectId?: string;
   projectZones?: ZoneOption[];
+  scope?: TaskScope;
+  statusFilter?: InteractionStatus[];
+  hideArchived?: boolean;
+  withProjectLabel?: boolean;
 }
+
+const ACTIVE_TASK_STATUSES: InteractionStatus[] = ["pending", "in_progress", "done"];
+
+const resolveProjectType = (projectType?: ProjectType | null): ProjectType => {
+  if (projectType && PROJECT_TYPE_META[projectType]) {
+    return projectType;
+  }
+  return "other";
+};
+
+const getProjectBadgeClasses = (projectType?: ProjectType | null) => {
+  const resolved = resolveProjectType(projectType);
+  return PROJECT_TYPE_META[resolved].accent.badge;
+};
 
 type TaskStatusCategory = 'incomplete' | 'complete' | 'cancelled';
 
@@ -54,10 +76,23 @@ const getBulletIcon = (status: InteractionStatus | null) => {
   }
 };
 
-export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTasksPanelProps) {
+export default function ProjectTasksPanel({
+  projectId,
+  projectZones,
+  scope,
+  statusFilter,
+  hideArchived = false,
+  withProjectLabel = false,
+}: ProjectTasksPanelProps) {
   const { t } = useI18n();
   const { updateStatus, loading: updateLoading } = useUpdateInteractionStatus();
-  const { tasks: fetchedTasks, loading, error, refetch } = useProjectTasks(projectId);
+  const resolvedScope: TaskScope = scope ?? (projectId ? "project" : "household");
+  const resolvedStatuses = statusFilter ?? (resolvedScope === "household" ? ACTIVE_TASK_STATUSES : undefined);
+  const { tasks: fetchedTasks, loading, error, refetch } = useProjectTasks({
+    projectId,
+    scope: resolvedScope,
+    statuses: resolvedStatuses,
+  });
 
   // Local state to manage tasks and see updates immediately
   const [localTasks, setLocalTasks] = useState<Interaction[]>([]);
@@ -96,13 +131,44 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
     }
   }, [updateStatus, refetch]);
 
+  const handleCancelTask = useCallback(async (task: Interaction) => {
+    if (task.status === "archived") return;
+
+    setLocalTasks(prev =>
+      prev.map(t =>
+        t.id === task.id
+          ? { ...t, status: "archived", updated_at: new Date().toISOString() }
+          : t
+      )
+    );
+
+    try {
+      await updateStatus(task.id, "archived");
+      await refetch();
+    } catch (error) {
+      console.error("Failed to cancel task:", error);
+      setLocalTasks(prev =>
+        prev.map(t =>
+          t.id === task.id
+            ? { ...t, status: task.status, updated_at: task.updated_at }
+            : t
+        )
+      );
+    }
+  }, [updateStatus, refetch]);
+
   const handleTaskCreated = useCallback(async () => {
     // Refetch tasks when a new one is created
     await refetch();
   }, [refetch]);
 
+  const visibleTasks = useMemo(
+    () => (hideArchived ? localTasks.filter(task => task.status !== "archived") : localTasks),
+    [hideArchived, localTasks]
+  );
+
   const sortedTasks = useMemo(() => {
-    const tasksByCategory = localTasks.reduce((acc: Record<TaskStatusCategory, Interaction[]>, task: Interaction) => {
+    const tasksByCategory = visibleTasks.reduce((acc: Record<TaskStatusCategory, Interaction[]>, task: Interaction) => {
       const category = getStatusCategory(task.status);
       acc[category] = acc[category] || [];
       acc[category].push(task);
@@ -119,14 +185,14 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
       ...(tasksByCategory.complete || []),
       ...(tasksByCategory.cancelled || [])
     ];
-  }, [localTasks]);
+  }, [visibleTasks]);
 
   const totals = useMemo(() => {
-    const incomplete = localTasks.filter((task: Interaction) => getStatusCategory(task.status) === 'incomplete').length;
-    const complete = localTasks.filter((task: Interaction) => task.status === 'done').length;
-    const cancelled = localTasks.filter((task: Interaction) => task.status === 'archived').length;
+    const incomplete = visibleTasks.filter((task: Interaction) => getStatusCategory(task.status) === 'incomplete').length;
+    const complete = visibleTasks.filter((task: Interaction) => task.status === 'done').length;
+    const cancelled = hideArchived ? 0 : visibleTasks.filter((task: Interaction) => task.status === 'archived').length;
     return { incomplete, complete, cancelled };
-  }, [localTasks]);
+  }, [hideArchived, visibleTasks]);
 
   if (loading) {
     return (
@@ -144,7 +210,7 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
     );
   }
 
-  if (!localTasks.length) {
+  if (!visibleTasks.length) {
     return (
       <div className="space-y-4">
         <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
@@ -198,7 +264,7 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
       {/* Tasks List */}
       <div className="space-y-1">
         {sortedTasks.map((task) => {
-          const isDisabled = loading;
+          const isDisabled = loading || updateLoading;
           const isComplete = task.status === 'done';
           const isCancelled = task.status === 'archived';
 
@@ -231,7 +297,31 @@ export default function ProjectTasksPanel({ projectId, projectZones }: ProjectTa
                 >
                   <span className="font-medium">{task.subject}</span>
                 </LinkWithOverlay>
+                {withProjectLabel && task.project ? (
+                  <div className="mt-1">
+                    <CountBadge
+                      display="inline"
+                      tone="none"
+                      label={task.project.title}
+                      className={getProjectBadgeClasses(task.project.type)}
+                    />
+                  </div>
+                ) : null}
               </div>
+
+              {task.status !== "archived" && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={isDisabled}
+                  onClick={() => handleCancelTask(task)}
+                  className="text-slate-500 hover:text-slate-900"
+                >
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">{t("projects.tasks.cancel")}</span>
+                </Button>
+              )}
             </div>
           );
         })}
