@@ -132,11 +132,11 @@ export default function ProjectCardDetails({
 
   return (
     <CardContent className="flex flex-col gap-4 text-sm text-slate-700">
-      {project.description ? (
+      {/* {project.description ? (
         <p className="text-sm text-slate-600">{project.description}</p>
       ) : emptyStateText ? (
         <p className="text-sm text-slate-500 italic">{emptyStateText}</p>
-      ) : null}
+      ) : null} */}
       {helperText ? <p className="text-xs text-slate-500">{helperText}</p> : null}
       {sectionNodes.length ? <div className="grid gap-3 md:grid-cols-2">{sectionNodes}</div> : null}
     </CardContent>
