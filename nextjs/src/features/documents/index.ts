@@ -9,6 +9,7 @@ export { EditDocumentModal } from "./components/EditDocumentModal";
 export { AddDocumentsModal } from "./components/AddDocumentModal";
 export { MobileUploadInterface } from "./components/MobileUploadInterface";
 export { DesktopUploadInterface } from "./components/DesktopUploadInterface";
+export { CameraScannerDialog } from "./components/CameraScannerDialog";
 
 // Hooks
 export { useDocuments } from "./hooks/useDocuments";
