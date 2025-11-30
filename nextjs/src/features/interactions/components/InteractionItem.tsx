@@ -64,7 +64,7 @@ export default function InteractionItem({ interaction, documentCount, t, returnT
   return (
     <LinkWithOverlay
       href={href}
-      className="group block rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-sm ring-1 ring-transparent transition hover:border-indigo-200 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+      className="group block rounded-2xl bg-white/90 p-4 shadow-sm ring-1 ring-transparent transition hover:border-color- hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
     >
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
