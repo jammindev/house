@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
-import { DEFAULT_PROJECT_FILTERS, useProjects } from "@projects/hooks/useProjects";
+import { useProjectsByGroup } from "@projects/hooks/useProjects";
 import { useProjectGroup } from "@project-groups/hooks/useProjectGroup";
 import ProjectGroupDetailsView from "@project-groups/components/ProjectGroupDetailsView";
 
@@ -23,7 +23,7 @@ export default function ProjectGroupDetailPage() {
     loading: projectsLoading,
     error: projectsError,
     reload: reloadProjects,
-  } = useProjects({ ...DEFAULT_PROJECT_FILTERS, statuses: undefined, projectGroupId: id ?? null });
+  } = useProjectsByGroup(id);
 
   const handleRefresh = useCallback(() => {
     void reload();

@@ -184,3 +184,158 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
     reload: load,
   };
 }
+
+/**
+ * Fetch projects directly for a specific project group.
+ * This bypasses `usePersistentFilters` and returns a fresh, non-persisted
+ * list of projects scoped to the given `householdId` and `projectGroupId`.
+ * Useful for pages that need a focused, performant request (eg. project-group page).
+ */
+export async function fetchProjectsByGroup(
+  householdId: string | null | undefined,
+  projectGroupId: string | null | undefined
+): Promise<ProjectWithMetrics[]> {
+  if (!householdId) return [];
+
+  const supa = await createSPASassClient();
+  const client = supa.getSupabaseClient();
+
+  const query = client
+    .from("projects")
+    .select(
+      `
+            id,
+            household_id,
+            title,
+            description,
+            status,
+            priority,
+            type,
+            start_date,
+            due_date,
+            closed_at,
+            tags,
+            planned_budget,
+            actual_cost_cached,
+            cover_interaction_id,
+            project_group_id,
+            is_pinned,
+            project_group:project_groups (
+              id,
+              name
+            ),
+            created_at,
+            updated_at,
+            created_by,
+            updated_by
+          `
+    )
+    .eq("household_id", householdId)
+    .order("is_pinned", { ascending: false })
+    .order("updated_at", { ascending: false });
+
+  if (projectGroupId) {
+    query.eq("project_group_id", projectGroupId);
+  }
+
+  const { data: projectRows, error: projectError } = await query;
+  if (projectError) throw projectError;
+
+  const typedProjects = (projectRows ?? []) as Project[];
+  const ids = typedProjects.map((item) => item.id);
+  const groupIds = Array.from(
+    new Set(
+      typedProjects
+        .map((item) => item.project_group_id)
+        .filter((value): value is string => Boolean(value))
+    )
+  );
+
+  let metricsByProject = new Map<string, ProjectMetrics>();
+  if (ids.length) {
+    const { data: metricsRows, error: metricsError } = await client
+      .from("project_metrics")
+      .select("project_id, open_todos, done_todos, documents_count, actual_cost")
+      .in("project_id", ids);
+    if (metricsError) throw metricsError;
+    metricsByProject = new Map(
+      (metricsRows ?? [])
+        .filter((item) => item.project_id !== null)
+        .map((item) => [item.project_id as string, item as ProjectMetrics])
+    );
+  }
+
+  let groupCountsById = new Map<string, number>();
+  if (groupIds.length) {
+    const { data: groupMetricsRows, error: groupMetricsError } = await client
+      .from("project_group_metrics")
+      .select("group_id, projects_count")
+      .in("group_id", groupIds);
+    if (groupMetricsError) throw groupMetricsError;
+    groupCountsById = new Map(
+      (groupMetricsRows ?? []).map(
+        (item) => [item.group_id as string, (item as { projects_count: number }).projects_count]
+      )
+    );
+  }
+
+  const enriched: ProjectWithMetrics[] = typedProjects.map((project) => {
+    const metrics = metricsByProject.get(project.id) ?? null;
+    const flags = computeProjectFlags(project, metrics);
+    const groupRecord = (project.project_group as { id: string; name: string } | null) ?? null;
+    const projectsCount = groupRecord ? groupCountsById.get(groupRecord.id) : undefined;
+    const group = groupRecord ? { ...groupRecord, projectsCount } : null;
+    return {
+      ...project,
+      metrics,
+      ...flags,
+      group,
+    };
+  });
+
+  return sortProjectsByPinAndUpdate(enriched);
+}
+
+/**
+ * Hook to fetch projects for a specific project group with loading/error states.
+ * Uses fetchProjectsByGroup internally but provides a React hook interface.
+ */
+export function useProjectsByGroup(projectGroupId: string | null | undefined) {
+  const { selectedHouseholdId } = useGlobal();
+  const { t } = useI18n();
+  const [projects, setProjects] = useState<ProjectWithMetrics[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!selectedHouseholdId || !projectGroupId) {
+      setProjects([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const fetchedProjects = await fetchProjectsByGroup(selectedHouseholdId, projectGroupId);
+      setProjects(fetchedProjects);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : t("common.unexpectedError");
+      setError(message);
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedHouseholdId, projectGroupId, t]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  return {
+    projects,
+    loading,
+    error,
+    reload: load,
+  };
+}
