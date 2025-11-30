@@ -56,8 +56,8 @@ function NavigationOverlay({ isVisible }: { isVisible: boolean }) {
             aria-hidden={!isVisible}
         >
             <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/20 to-white/5 backdrop-blur-2xl backdrop-saturate-150" />
-                <div className="absolute inset-0 opacity-70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.7),transparent_55%)]" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/35 to-white/10 backdrop-blur-[28px] backdrop-saturate-200" />
+                <div className="absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),transparent_60%)]" />
             </div>
             <Spinner />
         </div>

@@ -14,13 +14,18 @@ interface ProjectDocumentsPanelProps {
 export default function ProjectDocumentsPanel({ documents }: ProjectDocumentsPanelProps) {
   const { t } = useI18n();
 
+  const documentsWithoutPhotos = useMemo(
+    () => documents.filter((doc) => doc.type !== "photo"),
+    [documents]
+  );
+
   // Transform documents to DocumentWithLinks format (without interaction links for project view)
   const documentsWithLinks: DocumentWithLinks[] = useMemo(() =>
-    documents.map((doc) => ({
+    documentsWithoutPhotos.map((doc) => ({
       ...doc,
       links: [], // No interaction links shown in project context
     })),
-    [documents]
+    [documentsWithoutPhotos]
   );
 
   // Empty state handled by DocumentsList

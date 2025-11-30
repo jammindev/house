@@ -30,6 +30,9 @@ import { useToast } from "@/components/ToastProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useCallback } from "react";
 import ProjectDescriptionTab from "@projects/components/ProjectDescriptionTab";
+import { PhotoGrid } from "@photos/components/PhotoGrid";
+import { useProjectPhotoDocuments } from "@projects/hooks/useProjectPhotoDocuments";
+import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -38,7 +41,7 @@ interface ProjectDetailViewProps {
   onRefresh?: () => void;
 }
 
-const TABS = ["timeline", "description", "metrics", "tasks", "documents", "expenses"] as const;
+const TABS = ["timeline", "description", "metrics", "tasks", "documents", "photos", "expenses"] as const;
 const RELATED_PROJECTS_PAGE_SIZE = 3;
 
 export default function ProjectDetailView({
@@ -56,6 +59,14 @@ export default function ProjectDetailView({
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [updating, setUpdating] = useState(false);
   const [projectDescription, setProjectDescription] = useState(project.description);
+  const {
+    photos: projectPhotos,
+    loading: photosLoading,
+    error: projectPhotosError,
+    refresh: refreshProjectPhotos,
+  } = useProjectPhotoDocuments(project.id);
+  const { previews: photoPreviews, error: photoPreviewError } = useSignedFilePreviews(projectPhotos);
+  const combinedPhotoError = projectPhotosError ?? (photoPreviewError || null);
 
   // Update local description when project changes
   useEffect(() => {
@@ -370,6 +381,16 @@ export default function ProjectDetailView({
 
           {tab === "documents" ? (
             <ProjectDocumentsPanel documents={interactionsData.documents} />
+          ) : null}
+
+          {tab === "photos" ? (
+            <PhotoGrid
+              photos={projectPhotos}
+              previews={photoPreviews}
+              loading={photosLoading}
+              error={combinedPhotoError}
+              onRefresh={refreshProjectPhotos}
+            />
           ) : null}
 
           {tab === "expenses" ? (

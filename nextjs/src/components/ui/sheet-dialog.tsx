@@ -6,18 +6,17 @@ import {
   type MouseEvent,
   type ReactElement,
   type ReactNode,
-  type KeyboardEvent,
   useCallback,
   useMemo,
   useState,
 } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@documents/hooks/useIsMobile";
+import { X } from "lucide-react";
 
 type ResponsiveOverlayRenderProps = {
   close: () => void;
@@ -78,7 +77,6 @@ export function SheetDialog({
 
   const content = typeof children === "function" ? children(helpers) : children;
 
-
   const triggerWithHandler = cloneElement(trigger, {
     onClick: (event: MouseEvent<HTMLElement>) => {
       trigger.props?.onClick?.(event);
@@ -95,6 +93,12 @@ export function SheetDialog({
         <DialogContent
           variant="mobileSheet"
           hideDefaultCloseButton
+          onInteractOutside={(event) => {
+            const originalTarget = event.detail?.originalEvent?.target;
+            if (originalTarget instanceof Element && originalTarget.closest("[data-allow-interact]")) {
+              event.preventDefault();
+            }
+          }}
           aria-describedby={description ? undefined : ""}
           className={cn(
             "rounded-t-3xl bg-background p-2 shadow-2xl max-w-4xl mx-auto flex flex-col justify-between",
@@ -102,6 +106,7 @@ export function SheetDialog({
           )}
           style={{
             minHeight: minHeight || "auto",
+            maxHeight: "87vh",
           }}
         >
           <div
@@ -112,7 +117,7 @@ export function SheetDialog({
           >
             <div>
               {title ? (
-                <DialogTitle className="text-base font-semibold text-foreground">{title}</DialogTitle>
+                <DialogTitle className="text-lg font-semibold text-foreground">{title}</DialogTitle>
               ) : (
                 // DialogContent requires a DialogTitle for accessibility. If no title was
                 // provided, render a visually hidden title so screen readers still have
@@ -127,14 +132,20 @@ export function SheetDialog({
             </div>
             {content}
           </div>
-          {closeLabel && (
-            <div className="border-t border-border px-5 pt-3">
-              <Button variant="ghost" className="w-full" onClick={helpers.close}>
-                {closeLabel}
-              </Button>
-            </div>
-          )}
         </DialogContent>
+        {open && closeLabel && (
+          <DialogClose asChild data-allow-interact>
+            <Button
+              data-allow-interact
+              variant="ghost"
+              size="icon"
+              className="fixed left-4 top-4 z-[60] rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label={closeLabel}
+            >
+              <X />
+            </Button>
+          </DialogClose>
+        )}
       </Dialog>
     </>
   );

@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import type { Interaction } from "@interactions/types";
+import type { Interaction, InteractionStatus, InteractionType } from "@interactions/types";
+import type { ProjectStatus, ProjectType } from "@projects/types";
+
+const DEFAULT_TASK_TYPES: InteractionType[] = ["task", "todo"];
 
 export interface ProjectTasksData {
     tasks: Interaction[];
@@ -12,16 +15,37 @@ export interface ProjectTasksData {
     refetch: () => Promise<void>;
 }
 
-export function useProjectTasks(projectId: string): ProjectTasksData {
+export type TaskScope = "project" | "household";
+
+export interface UseProjectTasksOptions {
+    projectId?: string;
+    scope?: TaskScope;
+    statuses?: InteractionStatus[];
+    types?: InteractionType[];
+}
+
+export function useProjectTasks({
+    projectId,
+    scope = "project",
+    statuses,
+    types = DEFAULT_TASK_TYPES,
+}: UseProjectTasksOptions): ProjectTasksData {
     const { selectedHouseholdId } = useGlobal();
     const [tasks, setTasks] = useState<Interaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
     const fetchTasks = useCallback(async () => {
-        if (!projectId || !selectedHouseholdId) {
+        if (!selectedHouseholdId) {
             setTasks([]);
             setLoading(false);
+            return;
+        }
+
+        if (scope === "project" && !projectId) {
+            setTasks([]);
+            setLoading(false);
+            setError("Project ID is required to fetch project tasks");
             return;
         }
 
@@ -32,10 +56,16 @@ export function useProjectTasks(projectId: string): ProjectTasksData {
             const supa = await createSPASassClient();
             const client = supa.getSupabaseClient();
 
-            const { data: tasksData, error: tasksError } = await client
+            const query = client
                 .from("interactions")
                 .select(`
           *,
+          project:projects!interactions_project_id_fkey (
+            id,
+            title,
+            status,
+            type
+          ),
           interaction_tags (
             tag:tags (
               id,
@@ -44,9 +74,18 @@ export function useProjectTasks(projectId: string): ProjectTasksData {
           )
         `)
                 .eq("household_id", selectedHouseholdId)
-                .eq("project_id", projectId)
-                .in("type", ["task", "todo"])
+                .in("type", types)
                 .order("updated_at", { ascending: false });
+
+            if (scope === "project" && projectId) {
+                query.eq("project_id", projectId);
+            }
+
+            if (Array.isArray(statuses) && statuses.length > 0) {
+                query.in("status", statuses);
+            }
+
+            const { data: tasksData, error: tasksError } = await query;
 
             if (tasksError) {
                 throw new Error(tasksError.message);
@@ -68,6 +107,14 @@ export function useProjectTasks(projectId: string): ProjectTasksData {
                 updated_at: raw.updated_at,
                 created_by: raw.created_by,
                 updated_by: raw.updated_by,
+                project: raw.project
+                    ? {
+                        id: raw.project.id,
+                        title: raw.project.title ?? "",
+                        status: (raw.project.status ?? "draft") as ProjectStatus,
+                        type: (raw.project.type ?? null) as ProjectType | null,
+                    }
+                    : null,
                 tags: raw.interaction_tags?.map((it: any) => it.tag).filter((tag: any) => Boolean(tag)) || [],
                 contacts: [],
                 structures: [],
@@ -81,7 +128,7 @@ export function useProjectTasks(projectId: string): ProjectTasksData {
         } finally {
             setLoading(false);
         }
-    }, [projectId, selectedHouseholdId]);
+    }, [projectId, scope, selectedHouseholdId, statuses, types]);
 
     useEffect(() => {
         fetchTasks();

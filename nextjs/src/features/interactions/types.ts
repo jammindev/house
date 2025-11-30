@@ -1,6 +1,6 @@
 // nextjs/src/features/interactions/types.ts
 import type { ContactEmail, ContactPhone } from "@contacts/types";
-import type { ProjectStatus } from "@projects/types";
+import type { ProjectStatus, ProjectType } from "@projects/types";
 import type { StructureEmail, StructurePhone } from "@structures/types";
 
 export type ZoneOption = {
@@ -51,6 +51,7 @@ export type InteractionProjectSummary = {
   id: string;
   title: string;
   status: ProjectStatus;
+  type?: ProjectType | null;
 };
 
 export type Interaction = {

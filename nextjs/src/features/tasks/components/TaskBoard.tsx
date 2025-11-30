@@ -1,3 +1,8 @@
+/**
+ * TaskBoard component is temporarily commented out while it gets reworked.
+ * The previous implementation is preserved below for reference.
+ */
+/*
 "use client";
 
 import { useCallback, useMemo } from "react";
@@ -125,3 +130,6 @@ function resolveColumnIdById(id: UniqueIdentifier): TaskColumnId | undefined {
   const match = COLUMN_SEQUENCE.find((columnId) => columnId === id);
   return match?.id;
 }
+*/
+
+export {};
