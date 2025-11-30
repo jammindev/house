@@ -33,28 +33,31 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   };
 
   return (
-    <Card className="flex flex-col border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-      <LinkWithOverlay href={`/app/projects/${project.id}`} className="flex flex-col gap-1">
-        <CardHeader className="space-y-4">
-          <ProjectCardHeader
+    <Card className="flex flex-col h-full border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex flex-col flex-1">
+        <LinkWithOverlay href={`/app/projects/${project.id}`} className="flex flex-col gap-1">
+          <CardHeader className="space-y-4">
+            <ProjectCardHeader
+              project={project}
+              typeMeta={typeMeta}
+              interactionsCount={interactionsCount}
+              documentsCount={documentsCount}
+              locale={locale}
+              t={t}
+            />
+          </CardHeader>
+        </LinkWithOverlay>
+
+        <div id={detailsId} hidden={isCollapsed} className="flex-none">
+          <ProjectCardDetails
             project={project}
             typeMeta={typeMeta}
-            interactionsCount={interactionsCount}
-            documentsCount={documentsCount}
             locale={locale}
+            helperText={helperText}
+            emptyStateText={emptyStateText}
             t={t}
           />
-        </CardHeader>
-      </LinkWithOverlay>
-      <div id={detailsId} hidden={isCollapsed}>
-        <ProjectCardDetails
-          project={project}
-          typeMeta={typeMeta}
-          locale={locale}
-          helperText={helperText}
-          emptyStateText={emptyStateText}
-          t={t}
-        />
+        </div>
       </div>
 
       <ProjectCardFooter

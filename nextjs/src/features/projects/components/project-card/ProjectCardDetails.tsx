@@ -8,7 +8,7 @@ import type { ProjectCardSection, ProjectTypeDefinition } from "@projects/consta
 import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "@projects/utils/projectCard";
 
-type Translate = (key: string, params?: Record<string, unknown>) => string;
+type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 interface ProjectCardDetailsProps {
   project: ProjectWithMetrics;
