@@ -89,11 +89,10 @@ export default function ProjectCardHeader({
           <Wallet className="h-3.5 w-3.5" />
           <span>
             {t("projects.fields.budget")}:{" "}
-            <span className={`font-medium ${
-              project.actual_cost_cached > project.planned_budget && project.planned_budget > 0 
-                ? "text-rose-600" 
+            <span className={`font-medium ${project.actual_cost_cached > project.planned_budget && project.planned_budget > 0
+                ? "text-rose-600"
                 : "text-slate-700"
-            }`}>
+              }`}>
               {new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(
                 project.planned_budget > 0 ? project.planned_budget : project.actual_cost_cached
               )}
