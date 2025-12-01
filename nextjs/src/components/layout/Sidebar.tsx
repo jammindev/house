@@ -19,6 +19,7 @@ import {
     FolderKanban,
     LayoutDashboard,
     Wrench,
+    Banknote,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -56,6 +57,7 @@ export default function Sidebar({
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.equipment"), href: "/app/equipment", icon: Wrench },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
+        { name: "Banque", href: "/app/banking", icon: Banknote },
         { name: t("nav.directory"), href: "/app/repertoire", icon: Users },
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
         { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
