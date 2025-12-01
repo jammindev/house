@@ -3,6 +3,8 @@
 
 import { useState } from "react";
 import { useProject } from "@projects/hooks/useProject";
+import { useProjectPhotosCount } from "@projects/hooks/useProjectPhotosCount";
+import { useProjectDocumentsCount } from "@projects/hooks/useProjectDocumentsCount";
 
 import { Card, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -15,13 +17,15 @@ import ProjectCardFooter from "@projects/components/project-card/ProjectCardFoot
 
 interface ProjectCardProps {
   project: ProjectWithMetrics;
+  hideGroupBadge?: boolean;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+export default function ProjectCard({ project, hideGroupBadge = false }: ProjectCardProps) {
   const { locale, t } = useI18n();
   const metrics = project.metrics;
-  const documentsCount = metrics?.documents_count ?? 0;
   const { interactionsCount } = useProject(project.id);
+  const { photosCount, loading: photosLoading, error: photosError } = useProjectPhotosCount(project.id);
+  const { documentsCount, loading: documentsLoading } = useProjectDocumentsCount(project.id);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const detailsId = `project-card-details-${project.id}`;
   const typeMeta = PROJECT_TYPE_META[project.type] ?? PROJECT_TYPE_META.other;
@@ -42,6 +46,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               typeMeta={typeMeta}
               interactionsCount={interactionsCount}
               documentsCount={documentsCount}
+              photosCount={photosCount}
+              photosLoading={photosLoading}
+              hideGroupBadge={hideGroupBadge}
               locale={locale}
               t={t}
             />

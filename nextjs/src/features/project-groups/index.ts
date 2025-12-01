@@ -10,6 +10,7 @@ export { default as ProjectGroupDeleteButton } from "./components/ProjectGroupDe
 export { default as ProjectGroupDetailsView } from "./components/ProjectGroupDetailsView";
 export { default as ProjectGroupList } from "./components/ProjectGroupList";
 export { default as ProjectGroupSummary } from "./components/ProjectGroupSummary";
+export { default as ProjectBudgetBreakdown } from "./components/ProjectBudgetBreakdown";
 
 // Types
 export type {

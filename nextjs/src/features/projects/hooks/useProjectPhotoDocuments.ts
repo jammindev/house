@@ -26,45 +26,58 @@ export function useProjectPhotoDocuments(projectId?: string) {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
 
+      // Requête corrigée : partir de interaction_documents pour avoir la jointure correcte
       const { data, error: supabaseError } = await client
-        .from("documents")
+        .from("interaction_documents")
         .select(
           `
-            id,
-            household_id,
-            file_path,
-            name,
-            notes,
-            mime_type,
-            type,
-            metadata,
-            created_at,
-            created_by,
-            interaction_documents (
-              interaction_id,
-              interaction:interactions (
-                id,
-                subject,
-                project_id
-              )
+            document_id,
+            interaction_id,
+            interactions!inner (
+              id,
+              subject,
+              project_id,
+              household_id
             ),
-            zone_documents (
-              zone_id,
-              zone:zones (
-                id,
-                name
+            documents!inner (
+              id,
+              household_id,
+              file_path,
+              name,
+              notes,
+              mime_type,
+              type,
+              metadata,
+              created_at,
+              created_by,
+              zone_documents (
+                zone_id,
+                zone:zones (
+                  id,
+                  name
+                )
               )
             )
           `
         )
-        .eq("household_id", householdId)
-        .eq("type", "photo")
-        .eq("interaction_documents.interaction.project_id", projectId)
-        .order("created_at", { ascending: false });
+        .eq("interactions.project_id", projectId)
+        .eq("interactions.household_id", householdId)
+        .eq("documents.type", "photo")
+        .eq("documents.household_id", householdId)
+        .order("created_at", { ascending: false, referencedTable: "documents" });
 
       if (supabaseError) throw supabaseError;
 
-      const normalized = normalizePhotoDocuments(data as SupabasePhotoDocumentRow[] | null);
+      // Transformer les données pour correspondre au format attendu
+      const transformedData = data?.map(item => ({
+        ...item.documents,
+        interaction_documents: [{
+          interaction_id: item.interaction_id,
+          interaction: item.interactions
+        }]
+      })) ?? [];
+
+      const normalized = normalizePhotoDocuments(transformedData as SupabasePhotoDocumentRow[] | null);
       setPhotos(normalized);
     } catch (fetchError: unknown) {
       console.error(fetchError);

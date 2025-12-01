@@ -5,22 +5,26 @@ import { FileText, GaugeCircle, Wallet } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { ProjectGroupWithMetrics } from "@project-groups/types";
+import type { ProjectWithMetrics } from "@projects/types";
+import ProjectBudgetBreakdown from "@project-groups/components/ProjectBudgetBreakdown";
 
 interface ProjectGroupSummaryProps {
   group: ProjectGroupWithMetrics;
+  projects?: ProjectWithMetrics[];
 }
 
 const formatCurrency = (value: number, locale: string) =>
   new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(value);
 
-export default function ProjectGroupSummary({ group }: ProjectGroupSummaryProps) {
+export default function ProjectGroupSummary({ group, projects = [] }: ProjectGroupSummaryProps) {
   const { t, locale } = useI18n();
   const completionPercent = Math.round(group.completionRate * 100);
   const openTodos = group.metrics?.open_todos ?? 0;
   const doneTodos = group.metrics?.done_todos ?? 0;
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-3">
       <Card className="border border-slate-200 bg-slate-50 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <h3 className="text-sm font-medium text-slate-500">{t("projectGroups.summary.budget")}</h3>
@@ -93,6 +97,10 @@ export default function ProjectGroupSummary({ group }: ProjectGroupSummaryProps)
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      {/* Project Budget Breakdown */}
+      <ProjectBudgetBreakdown projects={projects} />
     </div>
   );
 }
