@@ -52,12 +52,10 @@ export function useNavigationOverlay() {
 function NavigationOverlay({ isVisible }: { isVisible: boolean }) {
     return (
         <div
-            className={`fixed inset-0 lg:left-64 z-[1000] flex items-center justify-center transition-opacity duration-200 ${isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+            className={`fixed inset-0 lg:left-64 z-[1000] flex items-center justify-center  ${isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
             aria-hidden={!isVisible}
         >
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/85 via-white/35 to-white/10 backdrop-blur-[28px] backdrop-saturate-200" />
-                <div className="absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),transparent_60%)]" />
+            <div className="absolute inset-0 overflow-hidden backdrop-blur-md">
             </div>
             <Spinner />
         </div>
