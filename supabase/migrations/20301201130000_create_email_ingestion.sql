@@ -238,7 +238,7 @@ SELECT ensure_household_email_alias();
 
 -- 12) Add index for faster document metadata queries (for email-sourced documents)
 CREATE INDEX IF NOT EXISTS idx_documents_metadata_upload_source 
-ON documents USING gin((metadata->>'uploadSource')) 
+ON documents ((metadata->>'uploadSource')) 
 WHERE metadata->>'uploadSource' IS NOT NULL;
 
 -- Grant necessary permissions

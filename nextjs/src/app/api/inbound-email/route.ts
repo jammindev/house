@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 // MailerSend webhook payload interface
 interface MailerSendWebhookPayload {
     type: string;
-    email: {
+    email?: {
         message_id: string;
         from: {
             email: string;
@@ -25,6 +25,22 @@ interface MailerSendWebhookPayload {
             content: string; // base64 encoded
         }>;
         headers?: Record<string, string>;
+        timestamp: number;
+    };
+    // Alternative format for test/dev
+    data?: {
+        message_id: string;
+        sender: string;
+        recipient: string;
+        subject: string;
+        text?: string;
+        html?: string;
+        attachments?: Array<{
+            filename: string;
+            content_type: string;
+            size: number;
+            content: string; // base64 encoded
+        }>;
         timestamp: number;
     };
 }
@@ -51,61 +67,98 @@ export async function POST(request: NextRequest) {
         const payload: MailerSendWebhookPayload = await request.json();
         console.log('📧 Payload received:', {
             type: payload.type,
-            messageId: payload.email?.message_id,
-            from: payload.email?.from?.email,
-            to: payload.email?.to?.[0]?.email,
-            subject: payload.email?.subject
+            messageId: payload.email?.message_id || payload.data?.message_id,
+            from: payload.email?.from?.email || payload.data?.sender,
+            to: payload.email?.to?.[0]?.email || payload.data?.recipient,
+            subject: payload.email?.subject || payload.data?.subject
         });
 
-        // Only process inbound email events
-        if (payload.type !== 'activity.inbound') {
+        // Support both production and test formats
+        const isInboundEmail = payload.type === 'activity.inbound' || payload.type === 'inbound';
+        
+        if (!isInboundEmail) {
             console.log('📧 Ignoring non-inbound event:', payload.type);
             return NextResponse.json({ status: 'ignored', reason: 'Not an inbound email event' });
         }
 
-        if (!payload.email) {
+        // Normalize email data from either format
+        let email;
+        if (payload.email) {
+            // Production format
+            email = payload.email;
+        } else if (payload.data) {
+            // Test/dev format - convert to standard format
+            email = {
+                message_id: payload.data.message_id,
+                from: {
+                    email: payload.data.sender,
+                    name: undefined
+                },
+                to: [{
+                    email: payload.data.recipient,
+                    name: undefined
+                }],
+                subject: payload.data.subject,
+                text: payload.data.text,
+                html: payload.data.html,
+                attachments: payload.data.attachments,
+                timestamp: payload.data.timestamp
+            };
+        } else {
             console.error('📧 No email data in payload');
             return NextResponse.json({ error: 'No email data provided' }, { status: 400 });
         }
 
-        const email = payload.email;
+        // Extract sender email address to find the user
+        const fromEmail = email.from?.email;
+        if (!fromEmail) {
+            console.error('📧 No sender email found');
+            return NextResponse.json({ error: 'No sender email found' }, { status: 400 });
+        }
 
-        // Extract the target email address (should be something like alias@house.jammin-dev.com)
+        // Extract the target email address for logging
         const toEmail = email.to?.[0]?.email;
-        if (!toEmail) {
-            console.error('📧 No recipient email found');
-            return NextResponse.json({ error: 'No recipient email found' }, { status: 400 });
-        }
-
-        // Extract alias from email (assuming format: alias@house.jammin-dev.com)
-        const aliasMatch = toEmail.match(/^([^@]+)@/);
-        const alias = aliasMatch?.[1];
-
-        if (!alias) {
-            console.error('📧 Could not extract alias from email:', toEmail);
-            return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
-        }
-
-        console.log('📧 Extracted alias:', alias);
+        console.log('📧 Email from:', fromEmail, 'to:', toEmail);
 
         // Create admin client for service-level operations
         const supabase = await createServerAdminClient();
 
-        // Find the household by alias
-        const { data: household, error: householdError } = await supabase
-            .from('households')
-            .select('id, name')
-            .eq('inbound_email_alias', alias)
-            .single();
+        // Find the user by email address
+        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
 
-        if (householdError || !household) {
-            console.error('📧 Household not found for alias:', alias, householdError);
+        if (userError) {
+            console.error('📧 Error fetching users:', userError);
+            return NextResponse.json({ error: 'Failed to lookup user' }, { status: 500 });
+        }
+
+        const user = userData.users.find(u => u.email === fromEmail);
+        if (!user) {
+            console.error('📧 User not found for email:', fromEmail);
             return NextResponse.json({
-                error: 'Household not found for email alias',
-                alias: alias
+                error: 'User not found for email address',
+                email: fromEmail
             }, { status: 404 });
         }
 
+        console.log('📧 Found user:', user.email, user.id);
+
+        // Find the user's household (we'll take the first one for now)
+        const { data: membership, error: membershipError } = await supabase
+            .from('household_members')
+            .select('household_id, households(id, name)')
+            .eq('user_id', user.id)
+            .limit(1)
+            .single();
+
+        if (membershipError || !membership) {
+            console.error('📧 No household found for user:', user.id, membershipError);
+            return NextResponse.json({
+                error: 'No household found for user',
+                userId: user.id
+            }, { status: 404 });
+        }
+
+        const household = membership.households as any;
         console.log('📧 Found household:', household.name, household.id);
 
         // Use raw SQL queries for the new tables until types are updated
@@ -188,6 +241,7 @@ export async function POST(request: NextRequest) {
             message: 'Email processed successfully',
             id: incomingEmailId,
             household: household.name,
+            user_email: fromEmail,
             attachments_count: email.attachments?.length || 0
         });
 
