@@ -6,9 +6,10 @@ import ProjectCard from "@projects/components/project-card/ProjectCard";
 
 interface ProjectListProps {
   projects: ProjectWithMetrics[];
+  hideGroupBadge?: boolean;
 }
 
-export default function ProjectList({ projects }: ProjectListProps) {
+export default function ProjectList({ projects, hideGroupBadge = false }: ProjectListProps) {
   const { t } = useI18n();
 
   if (!projects.length) {
@@ -22,7 +23,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {projects.map((project) => (
-        <ProjectCard key={project.id} project={project} />
+        <ProjectCard key={project.id} project={project} hideGroupBadge={hideGroupBadge} />
       ))}
     </div>
   );

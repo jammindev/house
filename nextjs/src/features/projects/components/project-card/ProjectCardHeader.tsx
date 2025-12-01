@@ -1,7 +1,7 @@
 // nextjs/src/features/projects/components/project-card/ProjectCardHeader.tsx
 "use client";
 
-import { CalendarClock, FileText, FolderKanban, MessageSquare, Pin } from "lucide-react";
+import { CalendarClock, FileText, FolderKanban, MessageSquare, Pin, Wallet, Image } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
 import OverdueBadge from "@/components/ui/OverdueBadge";
 import DueSoonBadge from "@/components/ui/DueSoonBadge";
@@ -17,6 +17,9 @@ interface ProjectCardHeaderProps {
   typeMeta: ProjectTypeDefinition;
   interactionsCount?: number;
   documentsCount: number;
+  photosCount?: number;
+  photosLoading?: boolean;
+  hideGroupBadge?: boolean;
   locale: string;
   t: Translate;
 }
@@ -26,6 +29,9 @@ export default function ProjectCardHeader({
   typeMeta,
   interactionsCount,
   documentsCount,
+  photosCount = 0,
+  photosLoading = false,
+  hideGroupBadge = false,
   locale,
   t,
 }: ProjectCardHeaderProps) {
@@ -49,7 +55,7 @@ export default function ProjectCardHeader({
             {!project.isOverdue && project.isDueSoon ? (
               <DueSoonBadge label={t("projects.badges.dueSoon")} />
             ) : null}
-            {project.group ? (
+            {!hideGroupBadge && project.group ? (
               <CountBadge
                 icon={<FolderKanban className="h-4 w-4" />}
                 count={undefined}
@@ -78,6 +84,23 @@ export default function ProjectCardHeader({
           </span>
         </div>
       ) : null}
+      {(project.planned_budget > 0 || project.actual_cost_cached > 0) && (
+        <div className="flex items-center gap-2 text-xs text-slate-500">
+          <Wallet className="h-3.5 w-3.5" />
+          <span>
+            {t("projects.fields.budget")}:{" "}
+            <span className={`font-medium ${
+              project.actual_cost_cached > project.planned_budget && project.planned_budget > 0 
+                ? "text-rose-600" 
+                : "text-slate-700"
+            }`}>
+              {new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(
+                project.planned_budget > 0 ? project.planned_budget : project.actual_cost_cached
+              )}
+            </span>
+          </span>
+        </div>
+      )}
       <div className="flex items-center gap-1">
         <CountBadge
           icon={<MessageSquare className="h-4 w-4" />}
@@ -91,6 +114,14 @@ export default function ProjectCardHeader({
           display="tooltip"
           label={t("documents.title")}
         />
+        {!photosLoading && photosCount > 0 && (
+          <CountBadge
+            icon={<Image className="h-4 w-4" />}
+            count={photosCount}
+            display="tooltip"
+            label={t("photos.title")}
+          />
+        )}
       </div>
     </>
   );

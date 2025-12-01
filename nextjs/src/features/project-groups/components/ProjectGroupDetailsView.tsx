@@ -40,11 +40,11 @@ export default function ProjectGroupDetailsView({ group, projects, onRefresh }: 
           ))}
         </div>
       ) : null}
-      <ProjectGroupSummary group={group} />
+      <ProjectGroupSummary group={group} projects={projects} />
 
       <div className="space-y-2">
         <h2 className="text-lg font-semibold text-slate-800">{t("projectGroups.projectsSection")}</h2>
-        <ProjectList projects={projects} />
+        <ProjectList projects={projects} hideGroupBadge={true} />
       </div>
 
       <AuditHistoryCard
