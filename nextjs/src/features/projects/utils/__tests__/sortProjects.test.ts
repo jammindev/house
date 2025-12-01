@@ -1,4 +1,4 @@
-import { sortProjectsByPinAndUpdate } from "../sortProjects";
+import { compareProjectsByPriority, sortProjectsByPinAndUpdate } from "../sortProjects";
 import type { ProjectWithMetrics } from "@projects/types";
 
 let counter = 1;
@@ -58,5 +58,38 @@ describe("sortProjectsByPinAndUpdate", () => {
     const sorted = sortProjectsByPinAndUpdate(projects);
 
     expect(sorted.map((p) => p.id)).toEqual(["latest", "newer", "older"]);
+  });
+
+  it("prioritizes overdue projects immediately after pinned ones", () => {
+    const projects = [
+      buildProject({ id: "regular" }),
+      buildProject({ id: "overdue", isOverdue: true }),
+      buildProject({ id: "pinned", is_pinned: true }),
+    ];
+
+    const sorted = sortProjectsByPinAndUpdate(projects);
+
+    expect(sorted.map((p) => p.id)).toEqual(["pinned", "overdue", "regular"]);
+  });
+
+  it("prioritizes due soon projects before the rest when not overdue", () => {
+    const projects = [
+      buildProject({ id: "regular" }),
+      buildProject({ id: "due-soon", isDueSoon: true, updated_at: "2025-01-01T00:00:00.000Z" }),
+      buildProject({ id: "newer-regular", updated_at: "2025-01-03T00:00:00.000Z" }),
+    ];
+
+    const sorted = sortProjectsByPinAndUpdate(projects);
+
+    expect(sorted.map((p) => p.id)).toEqual(["due-soon", "newer-regular", "regular"]);
+  });
+});
+
+describe("compareProjectsByPriority", () => {
+  it("returns 0 for identical priority", () => {
+    const a = buildProject({ id: "a" });
+    const b = buildProject({ id: "b" });
+
+    expect(compareProjectsByPriority(a, b)).toBe(0);
   });
 });
