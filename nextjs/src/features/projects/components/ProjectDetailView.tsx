@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import { Button } from "@/components/ui/button";
+import OverdueBadge from "@/components/ui/OverdueBadge";
+import DueSoonBadge from "@/components/ui/DueSoonBadge";
 import { cn } from "@/lib/utils";
 import type { ProjectInteractionSummary } from "@projects/hooks/useProjectInteractions";
 import type { ProjectWithMetrics } from "@projects/types";
@@ -177,14 +179,10 @@ export default function ProjectDetailView({
             className={cn(typeMeta.accent.badge)}
           />
           {project.isOverdue ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-600">
-              {t("projects.badges.overdue")}
-            </span>
+            <OverdueBadge label={t("projects.badges.overdue")} />
           ) : null}
           {!project.isOverdue && project.isDueSoon ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-              {t("projects.badges.dueSoon")}
-            </span>
+            <DueSoonBadge label={t("projects.badges.dueSoon")} />
           ) : null}
           {project.group ? (
             <LinkWithOverlay
@@ -226,7 +224,7 @@ export default function ProjectDetailView({
       </div>
 
       {/* Tabs Navigation */}
-      <div className={cn(("flex flex-col rounded-lg"), !isMobile && "bg-stone-50")}>
+      <div className={cn(("flex flex-col rounded-lg"), !isMobile && "bg-stone-50", isMobile && "space-y-2")}>
         {/* Mobile: TabSheet */}
         {isMobile ? (
           <TabSheet

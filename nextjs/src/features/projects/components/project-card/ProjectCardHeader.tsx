@@ -1,8 +1,10 @@
 // nextjs/src/features/projects/components/project-card/ProjectCardHeader.tsx
 "use client";
 
-import { CalendarClock, FileText, FolderKanban, MessageSquare, Pin, TriangleAlert } from "lucide-react";
+import { CalendarClock, FileText, FolderKanban, MessageSquare, Pin } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
+import OverdueBadge from "@/components/ui/OverdueBadge";
+import DueSoonBadge from "@/components/ui/DueSoonBadge";
 import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
 import type { ProjectWithMetrics } from "@projects/types";
 import type { ProjectTypeDefinition } from "@projects/constants";
@@ -42,16 +44,10 @@ export default function ProjectCardHeader({
           <div className="flex flex-wrap gap-2 items-center">
             <ProjectStatusBadge status={project.status} />
             {project.isOverdue ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-1 text-xs font-medium text-rose-700">
-                <TriangleAlert className="h-4 w-4" />
-                {t("projects.badges.overdue")}
-              </span>
+              <OverdueBadge label={t("projects.badges.overdue")} />
             ) : null}
             {!project.isOverdue && project.isDueSoon ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
-                <CalendarClock className="h-4 w-4" />
-                {t("projects.badges.dueSoon")}
-              </span>
+              <DueSoonBadge label={t("projects.badges.dueSoon")} />
             ) : null}
             {project.group ? (
               <CountBadge
