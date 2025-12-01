@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mail, Paperclip, Calendar, User, Clock, Download } from "lucide-react";
 
@@ -45,12 +45,13 @@ export default function EmailDetailPage() {
     const { emails } = useIncomingEmails();
     const email = emails.find(e => e.id === emailId);
 
-    // Configure page layout
-    usePageLayoutConfig({
+    const pageLayoutConfig = useMemo(() => ({
         title: email?.subject || t('emails.emailDetails'),
-        subtitle: email ? t('emails.from') + ': ' + email.from_email : '',
-        actions: []
-    });
+        subtitle: email ? `${t('emails.from')}: ${email.from_email}` : ''
+    }), [email?.subject, email?.from_email, t]);
+
+    // Configure page layout
+    usePageLayoutConfig(pageLayoutConfig);
 
     if (!email) {
         return (

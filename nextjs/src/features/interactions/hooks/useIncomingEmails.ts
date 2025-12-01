@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n/I18nProvider';
 import { useGlobal } from '@/lib/context/GlobalContext';
@@ -53,8 +53,8 @@ export function useIncomingEmails(): UseIncomingEmailsReturn {
     const [emails, setEmails] = useState<IncomingEmail[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    const loadEmails = async () => {
+    console.log(emails)
+    const loadEmails = useCallback(async () => {
         if (!householdId) {
             setEmails([]);
             setLoading(false);
@@ -146,9 +146,9 @@ export function useIncomingEmails(): UseIncomingEmailsReturn {
         } finally {
             setLoading(false);
         }
-    };
+    }, [householdId, t]);
 
-    const markAsIgnored = async (emailId: string) => {
+    const markAsIgnored = useCallback(async (emailId: string) => {
         try {
             const supa = await createSPASassClientAuthenticated();
             const client = supa.getSupabaseClient() as any;
@@ -177,9 +177,9 @@ export function useIncomingEmails(): UseIncomingEmailsReturn {
             console.error('Error marking email as ignored:', err);
             setError(err instanceof Error ? err.message : t('common.unexpectedError'));
         }
-    };
+    }, [t]);
 
-    const markAsProcessing = async (emailId: string) => {
+    const markAsProcessing = useCallback(async (emailId: string) => {
         try {
             const supa = await createSPASassClientAuthenticated();
             const client = supa.getSupabaseClient() as any;
@@ -207,7 +207,7 @@ export function useIncomingEmails(): UseIncomingEmailsReturn {
             console.error('Error marking email as processing:', err);
             setError(err instanceof Error ? err.message : t('common.unexpectedError'));
         }
-    };
+    }, [t]);
 
     const getUnreadCount = () => {
         return emails.filter(email => email.processing_status === 'pending').length;
@@ -216,7 +216,7 @@ export function useIncomingEmails(): UseIncomingEmailsReturn {
     // Load emails when household changes
     useEffect(() => {
         loadEmails();
-    }, [householdId]);
+    }, [loadEmails]);
 
     return {
         emails,

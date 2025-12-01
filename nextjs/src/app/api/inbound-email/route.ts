@@ -1,204 +1,266 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { createServerAdminClient } from '@/lib/supabase/serverAdminClient';
-import { headers } from 'next/headers';
 
-// MailerSend webhook payload interface
-interface MailerSendWebhookPayload {
-    type: string;
-    email?: {
-        message_id: string;
-        from: {
-            email: string;
-            name?: string;
+// CloudMailin form-data payload structure
+interface CloudMailinPayload {
+    envelope: {
+        to: string;
+        from: string;
+        helo_domain?: string;
+        remote_ip?: string;
+        spf?: {
+            result: string;
+            domain: string;
         };
-        to: Array<{
-            email: string;
-            name?: string;
-        }>;
-        subject: string;
-        text?: string;
-        html?: string;
-        attachments?: Array<{
-            filename: string;
-            content_type: string;
-            size: number;
-            content: string; // base64 encoded
-        }>;
-        headers?: Record<string, string>;
-        timestamp: number;
     };
-    // Alternative format for test/dev
-    data?: {
-        message_id: string;
-        sender: string;
-        recipient: string;
+    headers: {
+        from: string;
+        to: string;
         subject: string;
-        text?: string;
-        html?: string;
-        attachments?: Array<{
-            filename: string;
-            content_type: string;
-            size: number;
-            content: string; // base64 encoded
-        }>;
-        timestamp: number;
+        date: string;
+        message_id: string;
+        received?: string[];
+        [key: string]: any;
+    };
+    plain: string;
+    html?: string;
+    reply_plain?: string;
+    attachments?: Array<{
+        file_name: string;
+        content_type: string;
+        size: number;
+        content: string; // base64 encoded
+        disposition: string;
+    }>;
+}
+
+const EMAIL_IN_ANGLE_BRACKETS = /<([^>]+)>/;
+
+function parseEmailAddress(value?: string | null): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    const match = trimmed.match(EMAIL_IN_ANGLE_BRACKETS);
+    const email = match ? match[1] : trimmed;
+    return email.trim().toLowerCase() || null;
+}
+
+function parseDisplayName(value?: string | null): string {
+    if (!value) return '';
+    const withoutEmail = value.replace(EMAIL_IN_ANGLE_BRACKETS, '').trim();
+    return withoutEmail.replace(/^"(.*)"$/, '$1');
+}
+
+/**
+ * Parse CloudMailin form data into our expected format
+ */
+function parseCloudMailinFormData(formData: FormData): CloudMailinPayload {
+    // Parse envelope data
+    const envelope: any = {
+        to: formData.get('envelope[to]') as string,
+        from: formData.get('envelope[from]') as string,
+        helo_domain: formData.get('envelope[helo_domain]') as string || undefined,
+        remote_ip: formData.get('envelope[remote_ip]') as string || undefined,
+    };
+
+    if (formData.get('envelope[spf][result]')) {
+        envelope.spf = {
+            result: formData.get('envelope[spf][result]') as string,
+            domain: formData.get('envelope[spf][domain]') as string || ''
+        };
+    }
+
+    // Parse headers
+    const headers: any = {
+        from: formData.get('headers[from]') as string,
+        to: formData.get('headers[to]') as string,
+        subject: formData.get('headers[subject]') as string || '',
+        date: formData.get('headers[date]') as string,
+        message_id: formData.get('headers[message_id]') as string,
+    };
+
+    // Parse received headers (array)
+    const received: string[] = [];
+    let i = 0;
+    while (formData.get(`headers[received][${i}]`)) {
+        received.push(formData.get(`headers[received][${i}]`) as string);
+        i++;
+    }
+    if (received.length > 0) {
+        headers.received = received;
+    }
+
+    // Parse body content
+    const plain = formData.get('plain') as string || '';
+    const html = formData.get('html') as string || '';
+    const reply_plain = formData.get('reply_plain') as string || '';
+
+    return {
+        envelope,
+        headers,
+        plain,
+        html,
+        reply_plain,
+        attachments: [] // TODO: Parse attachments if needed
     };
 }
 
 /**
- * Webhook endpoint for MailerSend inbound emails
+ * Webhook endpoint for CloudMailin inbound emails
  * POST /api/inbound-email
  */
 export async function POST(request: NextRequest) {
-    console.log('📧 MailerSend webhook received');
+    console.log('📧 CloudMailin webhook received');
 
     try {
-        // Verify the webhook signature (recommended for security)
-        const headersList = await headers();
-        const signature = headersList.get('x-mailersend-signature');
-        const webhookSecret = process.env.MAILERSEND_WEBHOOK_SECRET;
+        const contentType = request.headers.get('content-type') || '';
+        console.log('📧 Content-Type:', contentType);
 
-        if (webhookSecret && signature) {
-            // Verify signature here if MailerSend provides one
-            // This is a placeholder - check MailerSend docs for exact implementation
-        }
+        let payload: CloudMailinPayload;
 
-        // Parse the payload
-        const payload: MailerSendWebhookPayload = await request.json();
-        console.log('📧 Payload received:', {
-            type: payload.type,
-            messageId: payload.email?.message_id || payload.data?.message_id,
-            from: payload.email?.from?.email || payload.data?.sender,
-            to: payload.email?.to?.[0]?.email || payload.data?.recipient,
-            subject: payload.email?.subject || payload.data?.subject
-        });
-
-        // Support both production and test formats
-        const isInboundEmail = payload.type === 'activity.inbound' || payload.type === 'inbound';
-
-        if (!isInboundEmail) {
-            console.log('📧 Ignoring non-inbound event:', payload.type);
-            return NextResponse.json({ status: 'ignored', reason: 'Not an inbound email event' });
-        }
-
-        // Normalize email data from either format
-        let email;
-        if (payload.email) {
-            // Production format
-            email = payload.email;
-        } else if (payload.data) {
-            // Test/dev format - convert to standard format
-            email = {
-                message_id: payload.data.message_id,
-                from: {
-                    email: payload.data.sender,
-                    name: undefined
-                },
-                to: [{
-                    email: payload.data.recipient,
-                    name: undefined
-                }],
-                subject: payload.data.subject,
-                text: payload.data.text,
-                html: payload.data.html,
-                attachments: payload.data.attachments,
-                timestamp: payload.data.timestamp
-            };
+        // CloudMailin envoie toujours en form-data
+        if (contentType.includes('multipart/form-data') || contentType.includes('application/x-www-form-urlencoded')) {
+            console.log('📧 Parsing form-data payload');
+            try {
+                const formData = await request.formData();
+                console.log('📧 Form data entries count:', Array.from(formData.entries()).length);
+                payload = parseCloudMailinFormData(formData);
+            } catch (err) {
+                console.error('📧 Invalid form-data payload:', err);
+                return NextResponse.json({ error: 'Invalid form-data payload' }, { status: 400 });
+            }
         } else {
-            console.error('📧 No email data in payload');
-            return NextResponse.json({ error: 'No email data provided' }, { status: 400 });
+            console.error('📧 Unsupported content type:', contentType);
+            return NextResponse.json({ error: 'Unsupported content type. Expected multipart/form-data' }, { status: 400 });
         }
 
-        // Extract sender email address to find the user
-        const fromEmail = email.from?.email;
+        console.log('📧 Parsed payload envelope:', payload.envelope);
+        console.log('📧 Parsed payload headers:', payload.headers);
+        console.log('📧 Parsed payload plain text:', payload.plain?.substring(0, 100) + '...');
+
+        const toEmail = parseEmailAddress(payload.envelope.to || payload.headers.to);
+        const fromEmail = parseEmailAddress(payload.envelope.from || payload.headers.from);
+
+        if (!toEmail) {
+            console.error('📧 Missing recipient email in payload');
+            return NextResponse.json({ error: 'Recipient email is required' }, { status: 400 });
+        }
+
         if (!fromEmail) {
-            console.error('📧 No sender email found');
-            return NextResponse.json({ error: 'No sender email found' }, { status: 400 });
+            console.error('📧 Missing sender email in payload');
+            return NextResponse.json({ error: 'Sender email is required' }, { status: 400 });
         }
 
-        // Extract the target email address for logging
-        const toEmail = email.to?.[0]?.email;
-        console.log('📧 Email from:', fromEmail, 'to:', toEmail);
+        const emailAlias = toEmail.split('@')[0];
+        console.log('📧 Email from:', fromEmail, 'to alias:', emailAlias);
 
-        // Create admin client for service-level operations
         const supabase = await createServerAdminClient();
 
-        // Find the user by email address
-        const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+        type HouseholdRecord = { id: string; name: string; inbound_email_alias?: string | null };
+        let household: HouseholdRecord | null = null;
+        let householdResolution: 'alias' | 'sender' = 'alias';
 
-        if (userError) {
-            console.error('📧 Error fetching users:', userError);
-            return NextResponse.json({ error: 'Failed to lookup user' }, { status: 500 });
+        // Chercher d'abord par alias
+        if (emailAlias) {
+            const { data: aliasHousehold, error: householdError } = await (supabase as any)
+                .from('households')
+                .select('id, name, inbound_email_alias')
+                .eq('inbound_email_alias', emailAlias)
+                .maybeSingle();
+
+            if (!householdError && aliasHousehold) {
+                household = aliasHousehold;
+                console.log('📧 Household found by alias:', aliasHousehold.name);
+            } else {
+                console.warn('📧 No household found for alias, trying sender lookup:', emailAlias);
+            }
         }
 
-        const user = userData.users.find(u => u.email === fromEmail);
-        if (!user) {
-            console.error('📧 User not found for email:', fromEmail);
+        // Fallback: chercher par email de l'expéditeur
+        if (!household) {
+            householdResolution = 'sender';
+
+            const { data: userData, error: userError } = await supabase.auth.admin.listUsers();
+            if (userError) {
+                console.error('📧 Error fetching users during fallback:', userError);
+            } else {
+                const senderUser = userData.users.find(u => u.email?.toLowerCase() === fromEmail);
+                if (senderUser) {
+                    const { data: membership, error: membershipError } = await (supabase as any)
+                        .from('household_members')
+                        .select('household_id, households(id, name, inbound_email_alias)')
+                        .eq('user_id', senderUser.id)
+                        .limit(1)
+                        .single();
+
+                    if (membershipError) {
+                        console.error('📧 Fallback membership lookup failed:', membershipError);
+                    } else if (membership?.households) {
+                        household = membership.households as HouseholdRecord;
+                        console.log('📧 Household found by sender:', membership.households.name);
+                    }
+                } else {
+                    console.warn('📧 No user found matching sender email:', fromEmail);
+                }
+            }
+        }
+
+        if (!household) {
+            console.error('📧 No household resolved for alias or sender', { emailAlias, fromEmail });
             return NextResponse.json({
-                error: 'User not found for email address',
-                email: fromEmail
+                error: 'Unknown household alias or sender',
+                alias: emailAlias,
+                sender: fromEmail
             }, { status: 404 });
         }
 
-        console.log('📧 Found user:', user.email, user.id);
+        console.log('📧 Processing email for household:', household.name);
 
-        // Find the user's household (we'll take the first one for now)
-        const { data: membership, error: membershipError } = await supabase
-            .from('household_members')
-            .select('household_id, households(id, name)')
-            .eq('user_id', user.id)
-            .limit(1)
-            .single();
-
-        if (membershipError || !membership) {
-            console.error('📧 No household found for user:', user.id, membershipError);
-            return NextResponse.json({
-                error: 'No household found for user',
-                userId: user.id
-            }, { status: 404 });
-        }
-
-        const household = membership.households as any;
-        console.log('📧 Found household:', household.name, household.id);
-
-        // Use raw SQL queries for the new tables until types are updated
+        // Vérifier si l'email existe déjà (éviter les doublons)
         const supabaseRaw = supabase as any;
+        let existingEmailData: { id: string } | null = null;
 
-        // Check if we already processed this message
-        const { data: existingEmailData, error: existingEmailError } = await supabaseRaw
-            .from('incoming_emails')
-            .select('id')
-            .eq('message_id', email.message_id)
-            .maybeSingle();
+        if (payload.headers?.message_id) {
+            const { data, error: existingEmailError } = await supabaseRaw
+                .from('incoming_emails')
+                .select('id')
+                .eq('message_id', payload.headers.message_id)
+                .maybeSingle();
 
-        if (existingEmailData) {
-            console.log('📧 Email already processed:', email.message_id);
-            return NextResponse.json({
-                status: 'duplicate',
-                message: 'Email already processed',
-                id: existingEmailData.id
-            });
+            if (!existingEmailError && data) {
+                console.log('📧 Email already processed:', payload.headers.message_id);
+                return NextResponse.json({
+                    status: 'duplicate',
+                    message: 'Email already processed',
+                    id: data.id
+                });
+            }
         }
 
-        // Store the incoming email
+        // Stocker l'email entrant
+        const receivedAt = payload.headers?.date
+            ? new Date(payload.headers.date).toISOString()
+            : new Date().toISOString();
+
         const { data: incomingEmailData, error: emailError } = await supabaseRaw
             .from('incoming_emails')
             .insert({
                 household_id: household.id,
-                message_id: email.message_id,
-                from_email: email.from.email,
-                from_name: email.from.name || '',
+                message_id: payload.headers?.message_id || crypto.randomUUID(),
+                from_email: fromEmail,
+                from_name: parseDisplayName(payload.headers?.from),
                 to_email: toEmail,
-                subject: email.subject || '',
-                body_text: email.text || '',
-                body_html: email.html || '',
+                subject: payload.headers?.subject || '',
+                body_text: payload.plain || '',
+                body_html: payload.html || '',
                 processing_status: 'pending',
                 metadata: {
-                    timestamp: email.timestamp,
-                    headers: email.headers || {},
-                    mailersend_data: payload
+                    envelope: payload.envelope,
+                    headers: payload.headers,
+                    household_alias: emailAlias,
+                    household_resolution_strategy: householdResolution
                 },
-                received_at: new Date(email.timestamp * 1000).toISOString()
+                received_at: receivedAt
             })
             .select('id')
             .single();
@@ -208,41 +270,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Failed to store email' }, { status: 500 });
         }
 
-        const incomingEmailId = incomingEmailData.id;
-        console.log('📧 Email stored with ID:', incomingEmailId);
-
-        // Store attachments if any
-        if (email.attachments && email.attachments.length > 0) {
-            const attachmentsToInsert = email.attachments.map(attachment => ({
-                incoming_email_id: incomingEmailId,
-                filename: attachment.filename,
-                content_type: attachment.content_type,
-                size_bytes: attachment.size,
-                content_base64: attachment.content,
-                metadata: {
-                    original_size: attachment.size
-                }
-            }));
-
-            const { error: attachmentsError } = await supabaseRaw
-                .from('incoming_email_attachments')
-                .insert(attachmentsToInsert);
-
-            if (attachmentsError) {
-                console.error('📧 Error storing attachments:', attachmentsError);
-                // Don't fail the whole process for attachment errors
-            } else {
-                console.log('📧 Stored', email.attachments.length, 'attachments');
-            }
-        }
-
+        console.log('📧 Email stored successfully with ID:', incomingEmailData.id);
+        console.log(incomingEmailData)
         return NextResponse.json({
             status: 'success',
             message: 'Email processed successfully',
-            id: incomingEmailId,
+            id: incomingEmailData.id,
             household: household.name,
-            user_email: fromEmail,
-            attachments_count: email.attachments?.length || 0
+            from: fromEmail,
+            subject: payload.headers?.subject || '',
+            resolution: householdResolution
         });
 
     } catch (error) {
@@ -258,7 +295,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
     return NextResponse.json({
         status: 'ok',
-        message: 'MailerSend inbound email webhook endpoint',
+        message: 'CloudMailin inbound email webhook endpoint',
         timestamp: new Date().toISOString()
     });
 }

@@ -224,19 +224,23 @@ export default function EmailInboxPage() {
         ? `${currentHousehold.inbound_email_alias}@mail.house.jammin-dev.com`
         : null;
 
-    // Configure page layout
-    usePageLayoutConfig({
+    const pageActions = useMemo(() => [
+        {
+            label: t('common.refresh'),
+            icon: RotateCcw,
+            onClick: refreshEmails,
+            disabled: loading
+        }
+    ], [t, refreshEmails, loading]);
+
+    const pageLayoutConfig = useMemo(() => ({
         title: t('emails.inbox'),
         subtitle: emailAddress ? `${t('emails.inboxSubtitle')} • ${emailAddress}` : t('emails.inboxSubtitle'),
-        actions: [
-            {
-                label: t('common.refresh'),
-                icon: RotateCcw,
-                onClick: refreshEmails,
-                disabled: loading
-            }
-        ]
-    });
+        actions: pageActions
+    }), [t, emailAddress, pageActions]);
+
+    // Configure page layout
+    usePageLayoutConfig(pageLayoutConfig);
 
     const filteredEmails = useMemo(() => {
         const pending = emails.filter(email => email.processing_status === 'pending');
