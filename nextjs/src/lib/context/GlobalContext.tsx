@@ -14,7 +14,11 @@ export type User = {
     avatarPath: string | null;
     avatarUrl: string | null;
 };
-export type Household = { id: string; name: string; };
+export type Household = { 
+    id: string; 
+    name: string; 
+    inbound_email_alias?: string;
+};
 
 export interface GlobalContextType {
     loading: boolean;
@@ -111,9 +115,13 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
         const spa = await createSPASassClient();
         const supa = spa.getSupabaseClient();
 
-        const { data: householdsData, error } = await supa.from('households').select('id, name').order('created_at');
+        const { data: householdsData, error } = await supa.from('households').select('id, name, inbound_email_alias').order('created_at');
         if (!error && householdsData) {
-            const mapped = householdsData.map(h => ({ id: h.id, name: h.name })) as Household[];
+            const mapped = householdsData.map(h => ({ 
+                id: h.id, 
+                name: h.name, 
+                inbound_email_alias: h.inbound_email_alias 
+            })) as Household[];
             setHouseholds(mapped);
 
             // If current selected household is no longer available, reset selection
@@ -137,9 +145,13 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
 
                 setUserState(nextUser);
 
-                const { data: householdsData, error } = await supa.from('households').select('id, name').order('created_at');
+                const { data: householdsData, error } = await supa.from('households').select('id, name, inbound_email_alias').order('created_at');
                 if (!error && householdsData) {
-                    const mapped = householdsData.map(h => ({ id: h.id, name: h.name })) as Household[];
+                    const mapped = householdsData.map(h => ({ 
+                        id: h.id, 
+                        name: h.name, 
+                        inbound_email_alias: h.inbound_email_alias 
+                    })) as Household[];
                     setHouseholds(mapped);
 
                     const stored = localStorage.getItem('selectedHouseholdId');

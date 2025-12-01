@@ -19,6 +19,7 @@ import {
     FolderKanban,
     LayoutDashboard,
     Wrench,
+    Mail,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -60,6 +61,7 @@ export default function Sidebar({
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
         { name: t("nav.photos"), href: "/app/photos", icon: ImageIcon },
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
+        { name: t("nav.emails"), href: "/app/emails", icon: Mail },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
         { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
     ];
