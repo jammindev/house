@@ -101,20 +101,20 @@ fetch(`${NGROK_URL}/api/inbound-email`, {
     },
     body: JSON.stringify(testPayload)
 })
-.then(res => {
-    console.log('📡 Test endpoint status:', res.status);
-    return res.json();
-})
-.then(data => {
-    if (data.success) {
-        console.log('✅ Endpoint local fonctionne!');
-        console.log('📧 Interaction créée:', data.id);
-    } else {
-        console.log('⚠️  Erreur:', data.error);
-    }
-})
-.catch(err => {
-    console.log('❌ Erreur lors du test:', err.message);
-    console.log('🔧 Assurez-vous que Next.js tourne sur localhost:3000');
-    console.log('🌐 Et que ngrok tunnel est actif');
-});
+    .then(res => {
+        console.log('📡 Test endpoint status:', res.status);
+        return res.json();
+    })
+    .then(data => {
+        if (data.success) {
+            console.log('✅ Endpoint local fonctionne!');
+            console.log('📧 Interaction créée:', data.id);
+        } else {
+            console.log('⚠️  Erreur:', data.error);
+        }
+    })
+    .catch(err => {
+        console.log('❌ Erreur lors du test:', err.message);
+        console.log('🔧 Assurez-vous que Next.js tourne sur localhost:3000');
+        console.log('🌐 Et que ngrok tunnel est actif');
+    });

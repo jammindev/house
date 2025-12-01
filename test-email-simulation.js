@@ -51,7 +51,7 @@ async function simulateInboundEmails() {
         {
             name: 'Maintenance Chauffage',
             payload: {
-                type: 'inbound', 
+                type: 'inbound',
                 data: {
                     recipient: 'mail@test-ywj2lpnx78kg7oqz.mlsender.net',
                     sender: 'service@chauffage-pro.com',
@@ -107,7 +107,7 @@ async function simulateInboundEmails() {
         }
 
         console.log('');
-        
+
         // Pause entre les emails
         if (i < testEmails.length - 1) {
             await new Promise(resolve => setTimeout(resolve, 1000));

@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
         // Support both production and test formats
         const isInboundEmail = payload.type === 'activity.inbound' || payload.type === 'inbound';
-        
+
         if (!isInboundEmail) {
             console.log('📧 Ignoring non-inbound event:', payload.type);
             return NextResponse.json({ status: 'ignored', reason: 'Not an inbound email event' });

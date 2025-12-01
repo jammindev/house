@@ -79,7 +79,7 @@ async function enableInboundRouting() {
             const domainData = await domainCheckResponse.json();
             const inboundEnabled = domainData.data?.domain_settings?.inbound_routing_enabled;
             console.log('📥 Routage inbound activé:', inboundEnabled ? '✅' : '❌');
-            
+
             if (inboundEnabled) {
                 console.log('\n🎉 Configuration terminée avec succès!');
                 console.log('📧 Adresse email de test:');
