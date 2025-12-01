@@ -133,7 +133,7 @@ export async function getOrCreateBridgeUser(externalUserId: string): Promise<str
     // Check localStorage first for existing Bridge user mapping
     const storageKey = `bridge_user_uuid_${externalUserId}`;
     const existingUuid = localStorage.getItem(storageKey);
-    
+
     if (existingUuid) {
         console.log('Using existing Bridge user UUID from localStorage:', existingUuid);
         return existingUuid;
@@ -158,11 +158,11 @@ export async function getOrCreateBridgeUser(externalUserId: string): Promise<str
         // If error is 409 (Conflict), user already exists
         if (error.message.includes('409')) {
             console.log('Bridge user already exists with 409 conflict');
-            
+
             // Check if we have any existing UUID in localStorage for any user
             // This handles the case where we had the hardcoded UUID before
             const allBridgeKeys = Object.keys(localStorage).filter(key => key.startsWith('bridge_user_uuid_'));
-            
+
             if (allBridgeKeys.length > 0) {
                 // Use the first existing UUID we find
                 const existingUuidFromStorage = localStorage.getItem(allBridgeKeys[0]);
@@ -173,7 +173,7 @@ export async function getOrCreateBridgeUser(externalUserId: string): Promise<str
                     return existingUuidFromStorage;
                 }
             }
-            
+
             // Fallback: if we still have the hardcoded UUID and it works, use it
             const fallbackUuid = '47f5a83c-3075-43fe-a63a-d0c6ac088879';
             console.log('Using fallback UUID and saving to localStorage:', fallbackUuid);
@@ -219,7 +219,7 @@ export async function createBridgeConnectSession(
     // In production, you would configure a proper domain
     const callbackUrl = process.env.BRIDGE_CONNECT_CALLBACK_URL;
     const isLocalhost = callbackUrl?.includes('localhost');
-    
+
     if (callbackUrl && !isLocalhost) {
         requestBody.callback_url = callbackUrl;
         console.log('Using callback URL:', callbackUrl);

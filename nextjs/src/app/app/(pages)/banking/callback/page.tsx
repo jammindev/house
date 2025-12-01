@@ -30,7 +30,7 @@ export default function BankingCallbackPage() {
                 }
 
                 const bridgeData = JSON.parse(bridgeDataString);
-                
+
                 // Sauvegarder les données utilisateur avec la date de connexion
                 const bridgeUserData = {
                     ...bridgeData,

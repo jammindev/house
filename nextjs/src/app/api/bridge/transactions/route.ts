@@ -62,14 +62,14 @@ export async function POST(req: NextRequest) {
         if (limit) options.limit = limit;
 
         const rawTransactions = await getBridgeTransactions(accessToken, options);
-        
+
         // Transformer les données Bridge vers notre format
         const transactions = rawTransactions.map(transaction => ({
             ...transaction,
             description: transaction.clean_description || transaction.provider_description || 'Transaction',
             category: null // Bridge ne semble pas retourner de catégories dans cette version
         }));
-        
+
         // Log des données reçues pour debug
         console.log('=== BRIDGE TRANSACTIONS DATA ===');
         console.log('Number of transactions:', transactions.length);

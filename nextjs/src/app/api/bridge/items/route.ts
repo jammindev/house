@@ -10,7 +10,7 @@ import { getBridgeAccessToken, bridgeFetch } from '@/lib/bridge';
 export async function POST(req: NextRequest) {
     try {
         const { bridgeUserUuid, action } = await req.json();
-        
+
         if (!bridgeUserUuid) {
             return NextResponse.json(
                 { error: 'Missing bridgeUserUuid in request body' },
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
 
         if (action === 'list' || !action) {
             const accessToken = await getBridgeAccessToken(bridgeUserUuid);
-            
+
             // Get all items for this user
             const items = await bridgeFetch('/aggregation/items', {
                 headers: {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
     try {
         const { itemIds, bridgeUserUuid } = await req.json();
-        
+
         if (!itemIds || !Array.isArray(itemIds)) {
             return NextResponse.json(
                 { error: 'Missing or invalid itemIds array' },
@@ -67,9 +67,9 @@ export async function DELETE(req: NextRequest) {
         }
 
         const accessToken = await getBridgeAccessToken(bridgeUserUuid);
-        
+
         const results = [];
-        
+
         for (const itemId of itemIds) {
             try {
                 await bridgeFetch(`/aggregation/items/${itemId}`, {

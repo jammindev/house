@@ -19,7 +19,7 @@ export default function BankingPage() {
     const { user, selectedHouseholdId } = useGlobal();
     const router = useRouter();
     const [email, setEmail] = useState(user?.email || '');
-    
+
     const {
         loading,
         connecting,
@@ -150,7 +150,7 @@ export default function BankingPage() {
                                 </div>
                             </CardContent>
                         </Card>
-                        
+
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Comptes</CardTitle>
@@ -362,7 +362,7 @@ export default function BankingPage() {
                                 </>
                             )}
                         </Button>
-                        
+
                         <div className="text-xs text-muted-foreground text-center mt-2">
                             💡 Après avoir connecté votre banque, revenez à cette page pour voir vos données
                         </div>
