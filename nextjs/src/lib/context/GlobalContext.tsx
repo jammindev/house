@@ -14,9 +14,9 @@ export type User = {
     avatarPath: string | null;
     avatarUrl: string | null;
 };
-export type Household = { 
-    id: string; 
-    name: string; 
+export type Household = {
+    id: string;
+    name: string;
     inbound_email_alias?: string;
 };
 
@@ -117,10 +117,10 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
 
         const { data: householdsData, error } = await supa.from('households').select('id, name, inbound_email_alias').order('created_at');
         if (!error && householdsData) {
-            const mapped = householdsData.map(h => ({ 
-                id: h.id, 
-                name: h.name, 
-                inbound_email_alias: h.inbound_email_alias 
+            const mapped = householdsData.map(h => ({
+                id: h.id,
+                name: h.name,
+                inbound_email_alias: h.inbound_email_alias
             })) as Household[];
             setHouseholds(mapped);
 
@@ -147,10 +147,10 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
 
                 const { data: householdsData, error } = await supa.from('households').select('id, name, inbound_email_alias').order('created_at');
                 if (!error && householdsData) {
-                    const mapped = householdsData.map(h => ({ 
-                        id: h.id, 
-                        name: h.name, 
-                        inbound_email_alias: h.inbound_email_alias 
+                    const mapped = householdsData.map(h => ({
+                        id: h.id,
+                        name: h.name,
+                        inbound_email_alias: h.inbound_email_alias
                     })) as Household[];
                     setHouseholds(mapped);
 

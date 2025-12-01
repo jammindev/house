@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
         const headersList = await headers();
         const signature = headersList.get('x-mailersend-signature');
         const webhookSecret = process.env.MAILERSEND_WEBHOOK_SECRET;
-        
+
         if (webhookSecret && signature) {
             // Verify signature here if MailerSend provides one
             // This is a placeholder - check MailerSend docs for exact implementation
@@ -49,12 +49,12 @@ export async function POST(request: NextRequest) {
 
         // Parse the payload
         const payload: MailerSendWebhookPayload = await request.json();
-        console.log('📧 Payload received:', { 
-            type: payload.type, 
+        console.log('📧 Payload received:', {
+            type: payload.type,
             messageId: payload.email?.message_id,
             from: payload.email?.from?.email,
             to: payload.email?.to?.[0]?.email,
-            subject: payload.email?.subject 
+            subject: payload.email?.subject
         });
 
         // Only process inbound email events
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         // Extract alias from email (assuming format: alias@house.jammin-dev.com)
         const aliasMatch = toEmail.match(/^([^@]+)@/);
         const alias = aliasMatch?.[1];
-        
+
         if (!alias) {
             console.error('📧 Could not extract alias from email:', toEmail);
             return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
         if (householdError || !household) {
             console.error('📧 Household not found for alias:', alias, householdError);
-            return NextResponse.json({ 
+            return NextResponse.json({
                 error: 'Household not found for email alias',
                 alias: alias
             }, { status: 404 });
@@ -120,10 +120,10 @@ export async function POST(request: NextRequest) {
 
         if (existingEmailData) {
             console.log('📧 Email already processed:', email.message_id);
-            return NextResponse.json({ 
-                status: 'duplicate', 
+            return NextResponse.json({
+                status: 'duplicate',
                 message: 'Email already processed',
-                id: existingEmailData.id 
+                id: existingEmailData.id
             });
         }
 
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('📧 Error processing webhook:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Internal server error',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });

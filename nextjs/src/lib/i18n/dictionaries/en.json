@@ -1328,7 +1328,6 @@
   "equipment.interactions.type": "Type",
   "equipment.interactions.occurredAt": "Occurred at",
   "equipment.interactions.created": "Interaction created",
-
   "emails.inbox": "Email Inbox",
   "emails.inboxSubtitle": "Manage emails sent to your household",
   "emails.from": "From",
@@ -1341,7 +1340,7 @@
   "emails.andXMore": "and {count} more...",
   "emails.status.pending": "Pending",
   "emails.status.processing": "Processing",
-  "emails.status.completed": "Completed", 
+  "emails.status.completed": "Completed",
   "emails.status.failed": "Failed",
   "emails.status.ignored": "Ignored",
   "emails.convertToInteraction": "Convert to Interaction",
