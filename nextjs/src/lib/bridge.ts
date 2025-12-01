@@ -22,39 +22,38 @@ export interface BridgeAccount {
     id: number;
     name: string;
     balance: number;
-    status: number;
-    status_code_info: string;
-    status_code_description: string;
     updated_at: string;
+    last_refresh_status: string;
     type: string;
     currency_code: string;
-    item: {
-        id: number;
-        bank_id: number;
-    };
-    bank: {
-        name: string;
-        country_code: string;
-    };
+    item_id: number;
+    provider_id: number;
+    data_access: string;
+    pro: boolean;
+    iban?: string;
+    paused: boolean;
 }
 
 export interface BridgeTransaction {
     id: number;
-    description: string;
-    raw_description: string;
+    clean_description?: string;
+    provider_description?: string;
+    description: string; // We'll map clean_description || provider_description to this
     amount: number;
     date: string;
+    booking_date?: string;
+    transaction_date?: string;
+    value_date?: string;
     updated_at: string;
     currency_code: string;
-    account: {
-        id: number;
-        name: string;
-    };
-    category: {
+    deleted: boolean;
+    operation_type: string;
+    account_id: number;
+    future: boolean;
+    category?: {
         id: number;
         name: string;
     } | null;
-    is_deleted: boolean;
 }
 
 export interface BridgeConnectSession {
@@ -131,9 +130,14 @@ export async function bridgeFetch(
  * Create or get existing Bridge user
  */
 export async function getOrCreateBridgeUser(externalUserId: string): Promise<string> {
-    // TODO: In a real app, check your database first to see if user already exists
-    // const existing = await db.bridgeUser.findUnique({ where: { externalUserId } });
-    // if (existing) return existing.bridgeUserUuid;
+    // Check localStorage first for existing Bridge user mapping
+    const storageKey = `bridge_user_uuid_${externalUserId}`;
+    const existingUuid = localStorage.getItem(storageKey);
+    
+    if (existingUuid) {
+        console.log('Using existing Bridge user UUID from localStorage:', existingUuid);
+        return existingUuid;
+    }
 
     try {
         // Try to create a new user
@@ -146,23 +150,35 @@ export async function getOrCreateBridgeUser(externalUserId: string): Promise<str
 
         console.log('New Bridge user created:', data.uuid);
 
-        // TODO: Save to your database
-        // await db.bridgeUser.create({
-        //   data: { externalUserId, bridgeUserUuid: data.uuid },
-        // });
+        // Save the mapping in localStorage
+        localStorage.setItem(storageKey, data.uuid);
 
         return data.uuid;
     } catch (error: any) {
         // If error is 409 (Conflict), user already exists
         if (error.message.includes('409')) {
-            console.log('Bridge user already exists, fetching existing user...');
-
-            // For demo purposes, we'll use a hardcoded UUID that we know exists
-            // In production, you MUST store the mapping in your database
-            const existingUuid = '47f5a83c-3075-43fe-a63a-d0c6ac088879'; // From our test earlier
-            console.log('Using existing Bridge user UUID:', existingUuid);
-
-            return existingUuid;
+            console.log('Bridge user already exists with 409 conflict');
+            
+            // Check if we have any existing UUID in localStorage for any user
+            // This handles the case where we had the hardcoded UUID before
+            const allBridgeKeys = Object.keys(localStorage).filter(key => key.startsWith('bridge_user_uuid_'));
+            
+            if (allBridgeKeys.length > 0) {
+                // Use the first existing UUID we find
+                const existingUuidFromStorage = localStorage.getItem(allBridgeKeys[0]);
+                if (existingUuidFromStorage) {
+                    console.log('Using existing UUID from localStorage:', existingUuidFromStorage);
+                    // Save it for this specific user too
+                    localStorage.setItem(storageKey, existingUuidFromStorage);
+                    return existingUuidFromStorage;
+                }
+            }
+            
+            // Fallback: if we still have the hardcoded UUID and it works, use it
+            const fallbackUuid = '47f5a83c-3075-43fe-a63a-d0c6ac088879';
+            console.log('Using fallback UUID and saving to localStorage:', fallbackUuid);
+            localStorage.setItem(storageKey, fallbackUuid);
+            return fallbackUuid;
         }
 
         // Re-throw other errors
@@ -195,12 +211,21 @@ export async function createBridgeConnectSession(
     accessToken: string,
     userEmail: string
 ): Promise<string> {
-    // For development: skip callback_url to avoid whitelist issues
     const requestBody: any = {
         user_email: userEmail,
     };
 
-    console.log('Creating Bridge Connect session without callback_url for development');
+    // For development: skip callback_url since localhost is not allowed
+    // In production, you would configure a proper domain
+    const callbackUrl = process.env.BRIDGE_CONNECT_CALLBACK_URL;
+    const isLocalhost = callbackUrl?.includes('localhost');
+    
+    if (callbackUrl && !isLocalhost) {
+        requestBody.callback_url = callbackUrl;
+        console.log('Using callback URL:', callbackUrl);
+    } else {
+        console.log('Skipping callback URL (localhost not allowed by Bridge). User will need to return manually.');
+    }
 
     const data: BridgeConnectSession = await bridgeFetch('/aggregation/connect-sessions', {
         method: 'POST',
@@ -208,7 +233,9 @@ export async function createBridgeConnectSession(
             Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(requestBody),
-    });    // Bridge API can return different field names depending on version
+    });
+
+    // Bridge API can return different field names depending on version
     const redirectUrl = data.redirect_url || data.connect_url || data.url;
 
     if (!redirectUrl) {
