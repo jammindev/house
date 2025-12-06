@@ -1371,5 +1371,12 @@
   "emails.processingError": "Processing Error",
   "emails.downloadStarted": "Download started",
   "emails.downloadError": "Download failed",
-  "emails.addressCopied": "Email address copied to clipboard"
+  "emails.addressCopied": "Email address copied to clipboard",
+  "emails.save": "Save",
+  "emails.saved": "Saved",
+  "emails.saving": "Saving...",
+  "emails.saveError": "Failed to save attachment",
+  "emails.noHouseholdSelected": "No household selected",
+  "emails.attachmentSaved": "Attachment saved",
+  "emails.attachmentSavedDescription": "{name} has been saved to your documents"
 }

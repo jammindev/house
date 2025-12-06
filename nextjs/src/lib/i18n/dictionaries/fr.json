@@ -1374,5 +1374,12 @@
   "emails.processingError": "Erreur de traitement",
   "emails.downloadStarted": "Téléchargement commencé",
   "emails.downloadError": "Échec du téléchargement",
-  "emails.addressCopied": "Adresse email copiée dans le presse-papiers"
+  "emails.addressCopied": "Adresse email copiée dans le presse-papiers",
+  "emails.save": "Sauvegarder",
+  "emails.saved": "Sauvegardé",
+  "emails.saving": "Sauvegarde...",
+  "emails.saveError": "Échec de la sauvegarde de la pièce jointe",
+  "emails.noHouseholdSelected": "Aucun foyer sélectionné",
+  "emails.attachmentSaved": "Pièce jointe sauvegardée",
+  "emails.attachmentSavedDescription": "{name} a été sauvegardé dans vos documents"
 }

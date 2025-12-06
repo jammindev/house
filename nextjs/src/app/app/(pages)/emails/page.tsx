@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Paperclip, Check, X, Clock, AlertCircle, Trash2, ExternalLink, RotateCcw, Copy } from "lucide-react";
+import { Mail, Paperclip, Check, X, Clock, AlertCircle, Trash2, ExternalLink, RotateCcw, Copy, Download, Save } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -13,6 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 import { useIncomingEmails, type IncomingEmail } from "@interactions/hooks/useIncomingEmails";
+import { useEmailAttachments } from "@interactions/hooks/useEmailAttachments";
+import { saveEmailAttachmentAsDocument } from "@interactions/utils/saveEmailAttachment";
 import { usePageLayoutConfig } from "@/app/app/(pages)/usePageLayoutConfig";
 
 // Helper to format file size
@@ -49,7 +51,13 @@ function EmailItem({
     onViewDetails: (emailId: string) => void;
 }) {
     const { t } = useI18n();
+    const { selectedHouseholdId } = useGlobal();
+    const { show: showToast } = useToast();
     const [loading, setLoading] = useState(false);
+    const [savingAttachments, setSavingAttachments] = useState<Set<string>>(new Set());
+    
+    // Fetch actual attachments from database
+    const { attachments, markAsSaved } = useEmailAttachments(email.id);
 
     const handleConvert = async () => {
         if (email.processing_status !== 'pending') return;
@@ -71,7 +79,50 @@ function EmailItem({
         }
     };
 
-    const hasAttachments = email.attachments.length > 0;
+    const handleSaveAttachment = async (attachmentId: string) => {
+        if (!selectedHouseholdId) {
+            showToast({
+                title: t('emails.saveError'),
+                description: t('emails.noHouseholdSelected'),
+                variant: 'error'
+            });
+            return;
+        }
+
+        setSavingAttachments(prev => new Set(prev).add(attachmentId));
+        
+        try {
+            const attachment = attachments.find(a => a.id === attachmentId);
+            if (!attachment) throw new Error('Attachment not found');
+
+            const documentId = await saveEmailAttachmentAsDocument(
+                attachment,
+                selectedHouseholdId
+            );
+
+            await markAsSaved(attachmentId, documentId);
+
+            showToast({
+                title: t('emails.attachmentSaved'),
+                description: t('emails.attachmentSavedDescription', { name: attachment.filename }),
+                variant: 'success'
+            });
+        } catch (err) {
+            showToast({
+                title: t('emails.saveError'),
+                description: err instanceof Error ? err.message : t('common.unexpectedError'),
+                variant: 'error'
+            });
+        } finally {
+            setSavingAttachments(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(attachmentId);
+                return newSet;
+            });
+        }
+    };
+
+    const hasAttachments = attachments.length > 0;
     const isPending = email.processing_status === 'pending';
 
     return (
@@ -130,17 +181,48 @@ function EmailItem({
                 {hasAttachments && (
                     <div className="mb-3">
                         <h4 className="text-sm font-medium mb-2">{t('emails.attachments')}:</h4>
-                        <div className="space-y-1">
-                            {email.attachments.slice(0, 3).map((attachment) => (
-                                <div key={attachment.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Paperclip className="h-3 w-3" />
-                                    <span className="truncate">{attachment.filename}</span>
-                                    <span>({formatFileSize(attachment.size_bytes)})</span>
-                                </div>
-                            ))}
-                            {email.attachments.length > 3 && (
+                        <div className="space-y-2">
+                            {attachments.slice(0, 3).map((attachment) => {
+                                const isSaving = savingAttachments.has(attachment.id);
+                                const isSaved = attachment.document_id !== null;
+                                
+                                return (
+                                    <div key={attachment.id} className="flex items-center justify-between gap-2 p-2 border border-gray-200 rounded-md bg-white">
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <Paperclip className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                            <span className="text-sm truncate">{attachment.filename}</span>
+                                            <span className="text-xs text-muted-foreground flex-shrink-0">
+                                                ({formatFileSize(attachment.size_bytes ? Number(attachment.size_bytes) : null)})
+                                            </span>
+                                            {isSaved && (
+                                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                                    <Check className="h-3 w-3 mr-1" />
+                                                    {t('emails.saved')}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        {!isSaved && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                disabled={isSaving}
+                                                onClick={() => handleSaveAttachment(attachment.id)}
+                                                className="flex-shrink-0"
+                                            >
+                                                {isSaving ? (
+                                                    <Clock className="h-3 w-3 mr-1 animate-spin" />
+                                                ) : (
+                                                    <Save className="h-3 w-3 mr-1" />
+                                                )}
+                                                {isSaving ? t('emails.saving') : t('emails.save')}
+                                            </Button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            {attachments.length > 3 && (
                                 <div className="text-xs text-muted-foreground">
-                                    {t('emails.andXMore', { count: email.attachments.length - 3 })}
+                                    {t('emails.andXMore', { count: attachments.length - 3 })}
                                 </div>
                             )}
                         </div>
