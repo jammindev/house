@@ -23,10 +23,10 @@ export function useEmailAttachments(emailId?: string) {
             setAttachments([]);
             return;
         }
-        
+
         setLoading(true);
         setError(null);
-        
+
         try {
             const response = await fetch(`/api/emails/${emailId}/attachments`);
             const data = await response.json();
@@ -52,8 +52,8 @@ export function useEmailAttachments(emailId?: string) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ 
-                    document_id: documentId 
+                body: JSON.stringify({
+                    document_id: documentId
                 }),
             });
 
@@ -64,9 +64,9 @@ export function useEmailAttachments(emailId?: string) {
             }
 
             // Update local state
-            setAttachments(prev => 
-                prev.map(att => 
-                    att.id === attachmentId 
+            setAttachments(prev =>
+                prev.map(att =>
+                    att.id === attachmentId
                         ? { ...att, document_id: documentId }
                         : att
                 )

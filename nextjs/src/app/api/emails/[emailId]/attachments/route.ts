@@ -11,13 +11,13 @@ export async function GET(
 ) {
     try {
         const { emailId } = params;
-        
+
         if (!emailId) {
             return NextResponse.json({ error: 'Email ID is required' }, { status: 400 });
         }
 
         const supabase = await createServerAdminClient();
-        
+
         const { data, error } = await (supabase as any)
             .from('incoming_email_attachments')
             .select('*')
@@ -32,7 +32,7 @@ export async function GET(
         return NextResponse.json({ attachments: data || [] });
     } catch (error) {
         console.error('Error in email attachments API:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Internal server error',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });

@@ -12,15 +12,15 @@ export async function PATCH(
     try {
         const { attachmentId } = params;
         const { document_id } = await request.json();
-        
+
         if (!attachmentId || !document_id) {
-            return NextResponse.json({ 
-                error: 'Attachment ID and document_id are required' 
+            return NextResponse.json({
+                error: 'Attachment ID and document_id are required'
             }, { status: 400 });
         }
 
         const supabase = await createServerAdminClient();
-        
+
         const { error } = await (supabase as any)
             .from('incoming_email_attachments')
             .update({ document_id })
@@ -34,7 +34,7 @@ export async function PATCH(
         return NextResponse.json({ success: true });
     } catch (error) {
         console.error('Error in attachment update API:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Internal server error',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });

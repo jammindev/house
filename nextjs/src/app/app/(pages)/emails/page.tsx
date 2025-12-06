@@ -55,7 +55,7 @@ function EmailItem({
     const { show: showToast } = useToast();
     const [loading, setLoading] = useState(false);
     const [savingAttachments, setSavingAttachments] = useState<Set<string>>(new Set());
-    
+
     // Fetch actual attachments from database
     const { attachments, markAsSaved } = useEmailAttachments(email.id);
 
@@ -90,7 +90,7 @@ function EmailItem({
         }
 
         setSavingAttachments(prev => new Set(prev).add(attachmentId));
-        
+
         try {
             const attachment = attachments.find(a => a.id === attachmentId);
             if (!attachment) throw new Error('Attachment not found');
@@ -185,7 +185,7 @@ function EmailItem({
                             {attachments.slice(0, 3).map((attachment) => {
                                 const isSaving = savingAttachments.has(attachment.id);
                                 const isSaved = attachment.document_id !== null;
-                                
+
                                 return (
                                     <div key={attachment.id} className="flex items-center justify-between gap-2 p-2 border border-gray-200 rounded-md bg-white">
                                         <div className="flex items-center gap-2 min-w-0 flex-1">

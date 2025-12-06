@@ -98,25 +98,25 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
     // Parse attachments - CloudMailin uses different formats
     const attachments: CloudMailinPayload['attachments'] = [];
     let attachmentIndex = 0;
-    
+
     console.log('📎 Looking for attachments in form data...');
-    
+
     // Try standard format first: attachments[0][filename]
     while (formData.get(`attachments[${attachmentIndex}][filename]`)) {
         console.log(`📎 Found attachment ${attachmentIndex} (standard format):`);
-        
+
         const filename = formData.get(`attachments[${attachmentIndex}][filename]`) as string;
         const contentType = formData.get(`attachments[${attachmentIndex}][content_type]`) as string;
         const size = formData.get(`attachments[${attachmentIndex}][size]`) as string;
         const content = formData.get(`attachments[${attachmentIndex}][content]`) as string;
         const disposition = formData.get(`attachments[${attachmentIndex}][disposition]`) as string;
-        
+
         console.log(`📎   - filename: ${filename}`);
         console.log(`📎   - content_type: ${contentType}`);
         console.log(`📎   - size: ${size}`);
         console.log(`📎   - content length: ${content?.length || 0} chars`);
         console.log(`📎   - disposition: ${disposition}`);
-        
+
         const attachment = {
             file_name: filename,
             content_type: contentType,
@@ -127,24 +127,24 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
         attachments.push(attachment);
         attachmentIndex++;
     }
-    
+
     // Try CloudMailin attachment_details format: attachment_details[0][filename]
     attachmentIndex = 0;
     while (formData.get(`attachment_details[${attachmentIndex}][filename]`)) {
         console.log(`📎 Found attachment ${attachmentIndex} (attachment_details format):`);
-        
+
         const filename = formData.get(`attachment_details[${attachmentIndex}][filename]`) as string;
         const contentType = formData.get(`attachment_details[${attachmentIndex}][content_type]`) as string;
         const size = formData.get(`attachment_details[${attachmentIndex}][size]`) as string;
         const content = formData.get(`attachment_details[${attachmentIndex}][content]`) as string;
         const disposition = formData.get(`attachment_details[${attachmentIndex}][disposition]`) as string;
-        
+
         console.log(`📎   - filename: ${filename}`);
         console.log(`📎   - content_type: ${contentType}`);
         console.log(`📎   - size: ${size}`);
         console.log(`📎   - content length: ${content?.length || 0} chars`);
         console.log(`📎   - disposition: ${disposition}`);
-        
+
         const attachment = {
             file_name: filename,
             content_type: contentType,
@@ -155,24 +155,24 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
         attachments.push(attachment);
         attachmentIndex++;
     }
-    
+
     // Try alternative CloudMailin format without index: attachment_details[][filename]
     if (attachments.length === 0) {
         console.log('📎 Trying alternative attachment formats...');
         const allKeys = Array.from(formData.keys());
-        const attachmentKeys = allKeys.filter(key => 
+        const attachmentKeys = allKeys.filter(key =>
             key.includes('attachment')
         );
         console.log('📎 Found attachment-related keys:', attachmentKeys);
-        
+
         // Check for empty bracket format: attachment_details[][property]
         const emptyBracketKeys = attachmentKeys.filter(key => key.includes('attachment_details[]'));
         if (emptyBracketKeys.length > 0) {
             console.log('📎 Found empty bracket format keys:', emptyBracketKeys);
-            
+
             // Collect all attachment properties
             const attachmentData: Record<string, string> = {};
-            
+
             for (const key of emptyBracketKeys) {
                 const match = key.match(/attachment_details\[\]\[([^\]]+)\]/);
                 if (match) {
@@ -184,11 +184,11 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
                     }
                 }
             }
-            
+
             // Create attachment if we have enough data
             if (attachmentData.content_id || attachmentData.filename) {
                 console.log('📎 Creating attachment from empty bracket format');
-                
+
                 const attachment = {
                     file_name: attachmentData.filename || attachmentData.content_id || 'unknown',
                     content_type: attachmentData.content_type || 'application/octet-stream',
@@ -196,27 +196,27 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
                     content: attachmentData.content || '',
                     disposition: attachmentData.disposition || 'attachment'
                 };
-                
+
                 console.log('📎 Created attachment:', {
                     filename: attachment.file_name,
                     contentType: attachment.content_type,
                     size: attachment.size,
                     contentLength: attachment.content.length
                 });
-                
+
                 attachments.push(attachment);
             }
         }
-        
+
         // Check for direct file uploads (CloudMailin might send files as separate fields)
         for (const [key, value] of formData.entries()) {
             if (value instanceof File && value.size > 0) {
                 console.log(`📎 Found File object: ${key} = ${value.name} (${value.size} bytes)`);
-                
+
                 // Read file content as base64
                 const arrayBuffer = await value.arrayBuffer();
                 const base64Content = Buffer.from(arrayBuffer).toString('base64');
-                
+
                 const attachment = {
                     file_name: value.name,
                     content_type: value.type || 'application/octet-stream',
@@ -224,18 +224,18 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
                     content: base64Content,
                     disposition: 'attachment'
                 };
-                
+
                 console.log('📎 Created attachment from File object:', {
                     filename: attachment.file_name,
                     contentType: attachment.content_type,
                     size: attachment.size,
                     contentLength: attachment.content.length
                 });
-                
+
                 attachments.push(attachment);
             }
         }
-        
+
         // Also try simple format with just property names
         const filenameKeys = attachmentKeys.filter(key => key.includes('filename'));
         for (const filenameKey of filenameKeys) {
@@ -245,14 +245,14 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
             const size = formData.get(`${baseKey}[size]`) as string;
             const content = formData.get(`${baseKey}[content]`) as string;
             const disposition = formData.get(`${baseKey}[disposition]`) as string;
-            
+
             if (filename && !attachments.some(a => a.file_name === filename)) {
                 console.log(`📎 Extracted attachment from key ${filenameKey}:`);
                 console.log(`📎   - filename: ${filename}`);
                 console.log(`📎   - content_type: ${contentType}`);
                 console.log(`📎   - size: ${size}`);
                 console.log(`📎   - content length: ${content?.length || 0} chars`);
-                
+
                 const attachment = {
                     file_name: filename,
                     content_type: contentType,
@@ -264,7 +264,7 @@ async function parseCloudMailinFormData(formData: FormData): Promise<CloudMailin
             }
         }
     }
-    
+
     console.log(`📎 Total attachments found: ${attachments.length}`);
 
     return {
@@ -296,12 +296,12 @@ export async function POST(request: NextRequest) {
             try {
                 const formData = await request.formData();
                 console.log('📧 Form data entries count:', Array.from(formData.entries()).length);
-                
+
                 // Debug: Log all form data keys to see attachment format
                 const allKeys = Array.from(formData.keys());
                 console.log('📧 All form data keys:', allKeys);
                 console.log('📧 Attachment-related keys:', allKeys.filter(key => key.includes('attachment')));
-                
+
                 payload = await parseCloudMailinFormData(formData);
             } catch (err) {
                 console.error('📧 Invalid form-data payload:', err);
@@ -453,11 +453,11 @@ export async function POST(request: NextRequest) {
         // Process and store attachments
         if (payload.attachments && payload.attachments.length > 0) {
             console.log('📎 Processing', payload.attachments.length, 'attachments for storage');
-            
+
             for (let i = 0; i < payload.attachments.length; i++) {
                 const attachment = payload.attachments[i];
                 console.log(`📎 Storing attachment ${i + 1}/${payload.attachments.length}:`, attachment.file_name);
-                
+
                 try {
                     const insertData = {
                         incoming_email_id: incomingEmailData.id,
@@ -466,7 +466,7 @@ export async function POST(request: NextRequest) {
                         size_bytes: attachment.size,
                         content_base64: attachment.content
                     };
-                    
+
                     console.log('📎 Insert data:', {
                         ...insertData,
                         content_base64: `${attachment.content?.length || 0} chars`

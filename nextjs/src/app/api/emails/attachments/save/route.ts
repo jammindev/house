@@ -46,17 +46,17 @@ function generateUniqueFilename(originalFilename: string): string {
  */
 export async function POST(request: NextRequest) {
     try {
-        const { 
-            attachmentId, 
-            householdId, 
-            customName, 
-            customType, 
-            notes 
+        const {
+            attachmentId,
+            householdId,
+            customName,
+            customType,
+            notes
         } = await request.json();
 
         if (!attachmentId || !householdId) {
-            return NextResponse.json({ 
-                error: 'attachmentId and householdId are required' 
+            return NextResponse.json({
+                error: 'attachmentId and householdId are required'
             }, { status: 400 });
         }
 
@@ -71,14 +71,14 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (fetchError || !attachment) {
-            return NextResponse.json({ 
-                error: 'Attachment not found' 
+            return NextResponse.json({
+                error: 'Attachment not found'
             }, { status: 404 });
         }
 
         if (!attachment.content_base64) {
-            return NextResponse.json({ 
-                error: 'Attachment content is missing' 
+            return NextResponse.json({
+                error: 'Attachment content is missing'
             }, { status: 400 });
         }
 
@@ -99,14 +99,14 @@ export async function POST(request: NextRequest) {
             });
 
         if (uploadError) {
-            return NextResponse.json({ 
-                error: `Upload failed: ${uploadError.message}` 
+            return NextResponse.json({
+                error: `Upload failed: ${uploadError.message}`
             }, { status: 500 });
         }
 
         // 5. Create document record using authenticated client (for proper user context)
         const documentType = customType || inferDocumentType(
-            attachment.filename, 
+            attachment.filename,
             attachment.content_type
         );
 
@@ -132,16 +132,16 @@ export async function POST(request: NextRequest) {
         if (documentError) {
             // Cleanup uploaded file on document creation failure
             await adminClient.storage.from('files').remove([storagePath]);
-            return NextResponse.json({ 
-                error: `Document creation failed: ${documentError.message}` 
+            return NextResponse.json({
+                error: `Document creation failed: ${documentError.message}`
             }, { status: 500 });
         }
 
         if (!document?.id) {
             // Cleanup uploaded file
             await adminClient.storage.from('files').remove([storagePath]);
-            return NextResponse.json({ 
-                error: 'Document creation failed: No ID returned' 
+            return NextResponse.json({
+                error: 'Document creation failed: No ID returned'
             }, { status: 500 });
         }
 
@@ -157,8 +157,8 @@ export async function POST(request: NextRequest) {
         }
 
         console.log(`📎 Successfully saved attachment ${attachment.filename} as document ${document.id}`);
-        
-        return NextResponse.json({ 
+
+        return NextResponse.json({
             success: true,
             documentId: document.id,
             message: 'Attachment saved as document'
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         console.error('Error saving email attachment as document:', error);
-        return NextResponse.json({ 
+        return NextResponse.json({
             error: 'Internal server error',
             details: error instanceof Error ? error.message : 'Unknown error'
         }, { status: 500 });
