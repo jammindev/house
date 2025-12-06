@@ -59,7 +59,6 @@ export interface BaseInteractionFieldsProps {
 export default function BaseInteractionFields({
     subject,
     onSubjectChange,
-    subjectDirty,
     onSubjectDirtyChange,
     isAutoSubjectType = false,
     subjectPlaceholder,
