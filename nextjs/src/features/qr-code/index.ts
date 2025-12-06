@@ -11,17 +11,17 @@ export { useEquipmentUrl } from './hooks/useEquipmentUrl';
 
 // Utils
 export {
-  generateQRCode,
-  buildEquipmentUrl,
-  buildPublicEquipmentUrl,
-  isValidUrl,
-  getOptimalQRSize,
+    generateQRCode,
+    buildEquipmentUrl,
+    buildPublicEquipmentUrl,
+    isValidUrl,
+    getOptimalQRSize,
 } from './lib/qr-utils';
 
 // Types
 export type {
-  QRCodeOptions,
-  QRCodePrintOptions,
-  EquipmentLabelData,
+    QRCodeOptions,
+    QRCodePrintOptions,
+    EquipmentLabelData,
 } from './types';
 export type { QRGenerationOptions } from './lib/qr-utils';
