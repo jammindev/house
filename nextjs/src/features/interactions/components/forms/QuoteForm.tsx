@@ -1,10 +1,9 @@
 // nextjs/src/features/interactions/components/forms/QuoteForm.tsx
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Info } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,11 +16,12 @@ import DocumentsFields, { type LocalFile } from "./common/DocumentsFields";
 import ContactStructureSelector from "@interactions/components/ContactStructureSelector";
 import { getCurrentLocalDateTimeInput } from "@interactions/utils/datetime";
 import { parseAmountInput } from "@interactions/utils/amount";
-import type { Document, InteractionStatus, ZoneOption } from "@interactions/types";
+import type { Document, InteractionStatus } from "@interactions/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { useContacts } from "@contacts/hooks/useContacts";
 import { useStructures } from "@structures/hooks/useStructures";
 import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
+import { useZones } from "@zones/hooks/useZones";
 
 interface QuoteFormDefaults {
     status?: InteractionStatus | "";
@@ -31,8 +31,6 @@ interface QuoteFormDefaults {
 }
 
 interface QuoteFormProps {
-    zones: ZoneOption[];
-    zonesLoading?: boolean;
     onCreated?: (interactionId: string) => void;
     defaultValues?: QuoteFormDefaults;
     redirectOnSuccess?: boolean;
@@ -42,8 +40,6 @@ interface QuoteFormProps {
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
 
 export default function QuoteForm({
-    zones,
-    zonesLoading = false,
     onCreated,
     defaultValues = {},
     redirectOnSuccess = true,
@@ -55,6 +51,9 @@ export default function QuoteForm({
     const { t } = useI18n();
     const { contacts } = useContacts();
     const { structures } = useStructures();
+
+    // Use the existing useZones hook instead of reimplementing zone loading
+    const { zones, loading: zonesLoading, error: zonesError } = useZones();
 
     const initialOccurredAt = useMemo(
         () => defaultValues.occurredAt ?? getCurrentLocalDateTimeInput(),
