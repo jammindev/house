@@ -1332,5 +1332,10 @@
   "equipment.interactions.subjectPlaceholder": "{name} – maintenance or expense...",
   "equipment.interactions.type": "Type",
   "equipment.interactions.occurredAt": "Occurred at",
-  "equipment.interactions.created": "Interaction created"
+  "equipment.interactions.created": "Interaction created",
+  "priority.highest": "Highest",
+  "priority.higher": "Higher",
+  "priority.medium": "Medium",
+  "priority.lower": "Lower",
+  "priority.lowest": "Lowest"
 }
