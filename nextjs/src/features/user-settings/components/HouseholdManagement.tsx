@@ -11,7 +11,7 @@ import { SheetDialog } from '@/components/ui/sheet-dialog';
 import { useGlobal } from '@/lib/context/GlobalContext';
 import { createSPASassClientAuthenticated as createSPASassClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n/I18nProvider';
-import { Home, Users, Crown, Trash2, LogOut, Plus, AlertTriangle, Edit, Save, X } from 'lucide-react';
+import { Home, Users, Crown, Trash2, LogOut, Plus, AlertTriangle, Save, X } from 'lucide-react';
 
 interface HouseholdMember {
     user_id: string;

@@ -62,6 +62,7 @@ export default function InteractionDetailView({
       // Pp -> localized date + time, friendly for "grand public"
       return format(d, "Pp", { locale: getDateFnsLocale(locale) });
     } catch (e) {
+      console.error(e)
       return new Date(isoDate).toLocaleString();
     }
   };
