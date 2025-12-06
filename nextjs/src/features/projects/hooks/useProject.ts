@@ -208,7 +208,7 @@ export function useProject(projectId?: string) {
         setInteractionsCount(interactionsCountResult ?? 0);
       } catch (err) {
         // non-fatal: log and continue (we still surface the project)
-        // eslint-disable-next-line no-console
+         
         console.warn("Failed to load interactions count for project", projectData.id, err);
         setInteractionsCount(undefined);
       }

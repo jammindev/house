@@ -23,7 +23,6 @@ import type {
     InteractionFormField
 } from "@interactions/types/formConfig";
 import {
-    formConfigurations,
     shouldShowField,
     getFormDefaults
 } from "@interactions/configs/formConfigurations";
@@ -52,7 +51,6 @@ export function InteractionFormFactory({
     onCancel,
     zones,
     projects,
-    householdId,
     submitting = false,
     errors = {}
 }: InteractionFormFactoryProps) {

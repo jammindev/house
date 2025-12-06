@@ -1,12 +1,10 @@
 // nextjs/src/features/contacts/components/ContactDetailsView.tsx
 "use client";
 
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Mail, MapPin, Phone, StickyNote } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import AuditHistoryCard from "@/components/AuditHistoryCard";

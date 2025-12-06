@@ -22,7 +22,6 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, hideGroupBadge = false }: ProjectCardProps) {
   const { locale, t } = useI18n();
-  const metrics = project.metrics;
   const { interactionsCount } = useProject(project.id);
   const { photosCount, loading: photosLoading, error: photosError } = useProjectPhotosCount(project.id);
   const { documentsCount, loading: documentsLoading } = useProjectDocumentsCount(project.id);

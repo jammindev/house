@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertCircle, Loader2, Trash2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useI18n } from "@/lib/i18n/I18nProvider";

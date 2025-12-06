@@ -2,7 +2,7 @@
 "use client";
 
 import { useRef, type ChangeEvent } from "react";
-import { Camera, FolderOpen, Plus } from "lucide-react";
+import { Camera, FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -65,7 +65,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle, trigger: customTri
             closeLabel={t("common.close")}
             contentClassName="p-2 gap-0"
         >
-            {({ close }) => (
+            {() => (
                 <>
                     <div className="flex-1 flex flex-col min-h-0">
                         {/* Thread Selector */}

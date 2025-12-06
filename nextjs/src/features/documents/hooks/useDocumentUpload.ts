@@ -5,7 +5,6 @@ import { useCallback, useState } from "react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import type { DocumentType } from "@interactions/types";
 import {
     buildDocumentMetadata,
     compressFileForUpload,

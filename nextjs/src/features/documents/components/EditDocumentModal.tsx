@@ -3,14 +3,13 @@
 
 import React, { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { 
-  MobileOptimizedInput, 
-  MobileOptimizedTextarea, 
-  MobileOptimizedButton, 
+import {
+  MobileOptimizedInput,
+  MobileOptimizedTextarea,
+  MobileOptimizedButton,
   MobileOptimizedSelect,
-  MobileButtonGroup 
+  MobileButtonGroup
 } from "@/components/ui/mobile-optimized";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { DocumentType } from "@interactions/types";
@@ -132,16 +131,16 @@ export function EditDocumentModal({ document, isOpen, onClose, onSuccess }: Edit
           </div>
 
           <MobileButtonGroup>
-            <MobileOptimizedButton 
-              type="button" 
-              variant="outline" 
-              onClick={handleClose} 
+            <MobileOptimizedButton
+              type="button"
+              variant="outline"
+              onClick={handleClose}
               disabled={isLoading}
             >
               {t("documents.editModalCancel")}
             </MobileOptimizedButton>
-            <MobileOptimizedButton 
-              type="submit" 
+            <MobileOptimizedButton
+              type="submit"
               disabled={isLoading}
             >
               {isLoading ? t("documents.editing") : t("documents.editModalSave")}

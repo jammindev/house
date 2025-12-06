@@ -54,7 +54,7 @@ describe('useProjectAIChat', () => {
       error: null
     });
 
-    const { result } = renderHook(() =>
+    renderHook(() =>
       useProjectAIChat({ projectId: 'test-project-id' })
     );
 

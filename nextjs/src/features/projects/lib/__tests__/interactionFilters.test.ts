@@ -177,7 +177,7 @@ describe('interactionFilters', () => {
 
     describe('filter definitions', () => {
         it('should have required properties for all filters', () => {
-            Object.entries(INTERACTION_FILTERS).forEach(([key, filter]) => {
+            Object.entries(INTERACTION_FILTERS).forEach(([_, filter]) => {
                 expect(filter).toHaveProperty('name');
                 expect(filter).toHaveProperty('description');
                 expect(filter).toHaveProperty('filter');
