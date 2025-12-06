@@ -33,13 +33,13 @@ export default function EquipmentDetailPage() {
 
   const equipmentLabelData: EquipmentLabelData | null = useMemo(() => {
     if (!equipment) return null;
-    
+
     // Build the equipment URL for QR code
-    const baseUrl = typeof window !== 'undefined' 
-      ? window.location.origin 
+    const baseUrl = typeof window !== 'undefined'
+      ? window.location.origin
       : process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.com';
     const url = `${baseUrl}/app/equipment/${equipment.id}`;
-    
+
     return {
       id: equipment.id,
       name: equipment.name,

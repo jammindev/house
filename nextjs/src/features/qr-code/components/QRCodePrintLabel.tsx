@@ -6,84 +6,84 @@ import QRCodeDisplay from './QRCodeDisplay';
 import type { EquipmentLabelData, QRCodePrintOptions } from '../types';
 
 export interface QRCodePrintLabelProps {
-  equipment: EquipmentLabelData;
-  options?: QRCodePrintOptions;
-  className?: string;
+    equipment: EquipmentLabelData;
+    options?: QRCodePrintOptions;
+    className?: string;
 }
 
 export default function QRCodePrintLabel({
-  equipment,
-  options = {},
-  className
+    equipment,
+    options = {},
+    className
 }: QRCodePrintLabelProps) {
-  const {
-    includeText = true,
-    labelSize = 'medium',
-    title,
-    subtitle,
-    showUrl = false
-  } = options;
+    const {
+        includeText = true,
+        labelSize = 'medium',
+        title,
+        subtitle,
+        showUrl = false
+    } = options;
 
-  const sizeClasses = {
-    small: 'w-20 text-xs',
-    medium: 'w-32 text-sm', 
-    large: 'w-48 text-base'
-  };
+    const sizeClasses = {
+        small: 'w-20 text-xs',
+        medium: 'w-32 text-sm',
+        large: 'w-48 text-base'
+    };
 
-  const qrSize = {
-    small: 64,
-    medium: 128,
-    large: 192
-  };
+    const qrSize = {
+        small: 64,
+        medium: 128,
+        large: 192
+    };
 
-  return (
-    <div className={cn(
-      "print-label flex flex-col items-center gap-2 p-4 bg-white",
-      "border border-gray-300 rounded-lg shadow-sm",
-      className
-    )}>
-      {/* QR Code */}
-      <QRCodeDisplay
-        value={equipment.url}
-        options={{ size: qrSize[labelSize] }}
-        className={cn("border border-gray-200 rounded", sizeClasses[labelSize])}
-        alt={`QR code for ${equipment.name}`}
-      />
+    return (
+        <div className={cn(
+            "print-label flex flex-col items-center gap-2 p-4 bg-white",
+            "border border-gray-300 rounded-lg shadow-sm",
+            className
+        )}>
+            {/* QR Code */}
+            <QRCodeDisplay
+                value={equipment.url}
+                options={{ size: qrSize[labelSize] }}
+                className={cn("border border-gray-200 rounded", sizeClasses[labelSize])}
+                alt={`QR code for ${equipment.name}`}
+            />
 
-      {/* Equipment Information */}
-      {includeText && (
-        <div className="text-center space-y-1">
-          <div className="font-semibold text-gray-900 leading-tight">
-            {title || equipment.name}
-          </div>
-          
-          {(subtitle || equipment.category) && (
-            <div className="text-gray-600 leading-tight">
-              {subtitle || equipment.category}
-            </div>
-          )}
+            {/* Equipment Information */}
+            {includeText && (
+                <div className="text-center space-y-1">
+                    <div className="font-semibold text-gray-900 leading-tight">
+                        {title || equipment.name}
+                    </div>
 
-          {equipment.serialNumber && (
-            <div className="text-gray-500 font-mono text-xs leading-tight">
-              S/N: {equipment.serialNumber}
-            </div>
-          )}
+                    {(subtitle || equipment.category) && (
+                        <div className="text-gray-600 leading-tight">
+                            {subtitle || equipment.category}
+                        </div>
+                    )}
 
-          {equipment.householdName && (
-            <div className="text-gray-500 text-xs leading-tight">
-              {equipment.householdName}
-            </div>
-          )}
+                    {equipment.serialNumber && (
+                        <div className="text-gray-500 font-mono text-xs leading-tight">
+                            S/N: {equipment.serialNumber}
+                        </div>
+                    )}
 
-          {showUrl && (
-            <div className="text-gray-400 text-xs font-mono leading-tight break-all">
-              {equipment.url}
-            </div>
-          )}
-        </div>
-      )}
+                    {equipment.householdName && (
+                        <div className="text-gray-500 text-xs leading-tight">
+                            {equipment.householdName}
+                        </div>
+                    )}
 
-      <style jsx>{`
+                    {showUrl && (
+                        <div className="text-gray-400 text-xs font-mono leading-tight break-all">
+                            {equipment.url}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <style jsx>{`
         @media print {
           .print-label {
             page-break-inside: avoid;
@@ -118,6 +118,6 @@ export default function QRCodePrintLabel({
           }
         }
       `}</style>
-    </div>
-  );
+        </div>
+    );
 }
