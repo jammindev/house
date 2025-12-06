@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Printer } from "lucide-react";
 
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
@@ -15,6 +15,8 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { Button } from "@/components/ui/button";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import QRCodePrintDialog from "@qr-code/components/QRCodePrintDialog";
+import type { EquipmentLabelData } from "@qr-code/types";
 
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,8 +27,28 @@ export default function EquipmentDetailPage() {
     useEquipmentInteractions(equipment?.id);
   const { zones } = useZones();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+
+  const equipmentLabelData: EquipmentLabelData | null = useMemo(() => {
+    if (!equipment) return null;
+    
+    // Build the equipment URL for QR code
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.com';
+    const url = `${baseUrl}/app/equipment/${equipment.id}`;
+    
+    return {
+      id: equipment.id,
+      name: equipment.name,
+      category: equipment.category,
+      serialNumber: equipment.serial_number || undefined,
+      url,
+      // householdName could be added from GlobalContext if needed
+    };
+  }, [equipment]);
 
   const layoutActions = useMemo(() => {
     if (!equipment) return [];
@@ -34,6 +56,11 @@ export default function EquipmentDetailPage() {
       {
         icon: Pencil,
         href: `/app/equipment/${equipment.id}/edit`,
+      } as const,
+      {
+        icon: Printer,
+        onClick: () => setPrintDialogOpen(true),
+        variant: "outline" as const,
       } as const,
       {
         icon: Trash2,
@@ -84,6 +111,15 @@ export default function EquipmentDetailPage() {
           />
         ) : null}
       </DetailPageLayout>
+
+      {/* QR Code Print Dialog */}
+      {equipmentLabelData && (
+        <QRCodePrintDialog
+          open={printDialogOpen}
+          onOpenChange={setPrintDialogOpen}
+          equipment={equipmentLabelData}
+        />
+      )}
 
       <ConfirmDialog
         open={confirmOpen}
