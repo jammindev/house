@@ -41,8 +41,6 @@ export default function InteractionEditFactory({
         case "quote":
             return (
                 <QuoteForm
-                    zones={zones}
-                    zonesLoading={zonesLoading}
                     onCreated={onUpdated}
                     defaultValues={defaultValues}
                     redirectOnSuccess={redirectOnSuccess}
