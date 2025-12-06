@@ -1335,5 +1335,10 @@
   "equipment.interactions.subjectPlaceholder": "{name} – entretien ou dépense...",
   "equipment.interactions.type": "Type",
   "equipment.interactions.occurredAt": "Date de l'événement",
-  "equipment.interactions.created": "Interaction créée"
+  "equipment.interactions.created": "Interaction créée",
+  "priority.highest": "Très élevée",
+  "priority.higher": "Élevée",
+  "priority.medium": "Normale",
+  "priority.lower": "Faible",
+  "priority.lowest": "Très faible"
 }
