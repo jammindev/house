@@ -14,8 +14,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import BaseInteractionFields from "./common/BaseInteractionFields";
 import DocumentsFields, { type LocalFile } from "./common/DocumentsFields";
-import ContactSelector from "@interactions/components/ContactSelector";
-import StructureSelector from "@interactions/components/StructureSelector";
+import ContactStructureSelector from "@interactions/components/ContactStructureSelector";
 import { getCurrentLocalDateTimeInput } from "@interactions/utils/datetime";
 import { parseAmountInput } from "@interactions/utils/amount";
 import type { Document, InteractionStatus, ZoneOption } from "@interactions/types";
@@ -384,28 +383,21 @@ export default function QuoteForm({
                         />
                         <p className="text-xs text-gray-500">{t("interactionsamountHelper")}</p>
                     </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">{t("interactionscontacts.label")}</label>
-                        <p className="text-xs text-gray-500">{t("forms.quote.contactsHelper")}</p>
-                        <ContactSelector
-                            householdId={householdId || ""}
-                            value={selectedContactIds}
-                            onChange={setSelectedContactIds}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">{t("interactionsstructures.label")}</label>
-                        <p className="text-xs text-gray-500">{t("forms.quote.structuresHelper")}</p>
-                        <StructureSelector
-                            householdId={householdId || ""}
-                            value={selectedStructureIds}
-                            onChange={setSelectedStructureIds}
-                        />
-                    </div>
                 </CardContent>
             </Card>
+
+            <ContactStructureSelector
+                householdId={householdId || ""}
+                selectedContactIds={selectedContactIds}
+                onContactsChange={setSelectedContactIds}
+                selectedStructureIds={selectedStructureIds}
+                onStructuresChange={setSelectedStructureIds}
+                title={t("forms.quote.contactsStructuresTitle")}
+                description={t("forms.quote.contactsStructuresDescription")}
+                contactsHelper={t("forms.quote.contactsHelper")}
+                structuresHelper={t("forms.quote.structuresHelper")}
+                autoFillStructure={true}
+            />
 
             <DocumentsFields
                 files={files}
