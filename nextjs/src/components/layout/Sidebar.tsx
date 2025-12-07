@@ -19,6 +19,7 @@ import {
     FolderKanban,
     LayoutDashboard,
     Wrench,
+    Bug,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -62,6 +63,9 @@ export default function Sidebar({
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
         { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
+        ...(process.env.NODE_ENV === 'development' ? [
+            { name: "Debug", href: "/app/debug", icon: Bug }
+        ] : [])
     ];
 
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
