@@ -3,35 +3,35 @@ import { AdminGuard } from '@/features/admin/components/AdminGuard';
 import { AdminNav, AdminHeader } from '@/features/admin/components/AdminNav';
 
 export default function AdminLayout({
-  children,
+    children,
 }: {
-  children: React.ReactNode;
+    children: React.ReactNode;
 }) {
-  return (
-    <AdminGuard>
-      <div className="min-h-screen bg-background">
-        <div className="flex h-screen">
-          {/* Sidebar */}
-          <div className="w-64 border-r bg-muted/10">
-            <div className="p-4">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">
-                  A
+    return (
+        <AdminGuard>
+            <div className="min-h-screen bg-background">
+                <div className="flex h-screen">
+                    {/* Sidebar */}
+                    <div className="w-64 border-r bg-muted/10">
+                        <div className="p-4">
+                            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white text-sm font-bold">
+                                    A
+                                </div>
+                                Administration
+                            </h2>
+                            <AdminNav />
+                        </div>
+                    </div>
+
+                    {/* Main content */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <main className="flex-1 overflow-auto">
+                            {children}
+                        </main>
+                    </div>
                 </div>
-                Administration
-              </h2>
-              <AdminNav />
             </div>
-          </div>
-          
-          {/* Main content */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <main className="flex-1 overflow-auto">
-              {children}
-            </main>
-          </div>
-        </div>
-      </div>
-    </AdminGuard>
-  );
+        </AdminGuard>
+    );
 }
