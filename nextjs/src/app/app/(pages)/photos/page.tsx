@@ -16,7 +16,6 @@ export default function PhotosPage() {
   return (
     <ResourcePageShell
       title={t("photos.title")}
-      subtitle={t("photos.subtitle")}
       hideBackButton
       bodyClassName="space-y-4"
     >

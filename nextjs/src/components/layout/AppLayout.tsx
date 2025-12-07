@@ -1,10 +1,9 @@
 // nextjs/src/components/layout/AppLayout.tsx
 "use client";
 
-import React, { useState, useMemo, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
-import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClient } from "@/lib/supabase/client";
 import { SidebarToggleProvider } from "./SidebarToggleContext";
 
@@ -12,12 +11,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [, startTransition] = useTransition();
     const router = useRouter();
-
-    const { user, households, selectedHouseholdId, setSelectedHouseholdId } = useGlobal();
-    const currentHousehold = useMemo(
-        () => households.find((h) => h.id === selectedHouseholdId) || null,
-        [households, selectedHouseholdId]
-    );
 
     const handleLogout = async () => {
         try {
@@ -45,7 +38,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 {/* Overlay (mobile) */}
                 {isSidebarOpen && (
                     <div
-                        className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
+                        className="fixed inset-0 bg-gray-600 bg-opacity-75 z-30 lg:hidden"
                         onClick={toggleSidebar}
                     />
                 )}
