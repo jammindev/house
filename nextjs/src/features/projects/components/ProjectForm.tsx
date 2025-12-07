@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ToastProvider";
@@ -273,202 +272,198 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
   );
 
   return (
-    <Card>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4 py-6">
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="flex flex-col gap-2 md:col-span-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.title")}</label>
-              <Input
-                {...register("title")}
-                placeholder={t("projects.form.titlePlaceholder")}
-              />
-              {errors.title && (
-                <span className="text-xs text-red-600">{errors.title.message}</span>
-              )}
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.type")}</label>
-              <select
-                {...register("type")}
-                onChange={(event) => handleTypeChange(event.target.value as ProjectType)}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                {PROJECT_TYPES.map((projectType) => (
-                  <option key={projectType} value={projectType}>
-                    {t(`projects.types.${projectType}.label`)}
-                  </option>
-                ))}
-              </select>
-              {typeHelperText ? <span className="text-xs text-slate-500">{typeHelperText}</span> : null}
-            </div>
-          </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="flex flex-col gap-2 md:col-span-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.title")}</label>
+          <Input
+            {...register("title")}
+            placeholder={t("projects.form.titlePlaceholder")}
+          />
+          {errors.title && (
+            <span className="text-xs text-red-600">{errors.title.message}</span>
+          )}
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.type")}</label>
+          <select
+            {...register("type")}
+            onChange={(event) => handleTypeChange(event.target.value as ProjectType)}
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            {PROJECT_TYPES.map((projectType) => (
+              <option key={projectType} value={projectType}>
+                {t(`projects.types.${projectType}.label`)}
+              </option>
+            ))}
+          </select>
+          {typeHelperText ? <span className="text-xs text-slate-500">{typeHelperText}</span> : null}
+        </div>
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.status")}</label>
-              <select
-                {...register("status")}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                {PROJECT_STATUSES.map((statusOption) => (
-                  <option key={statusOption} value={statusOption}>
-                    {t(`projects.status.${statusOption}`)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.priority")}</label>
-              <select
-                {...register("priority", { valueAsNumber: true })}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                {PROJECT_PRIORITY_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {t(option.label)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.status")}</label>
+          <select
+            {...register("status")}
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            {PROJECT_STATUSES.map((statusOption) => (
+              <option key={statusOption} value={statusOption}>
+                {t(`projects.status.${statusOption}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.priority")}</label>
+          <select
+            {...register("priority", { valueAsNumber: true })}
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          >
+            {PROJECT_PRIORITY_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {t(option.label)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2 md:col-span-2 md:max-w-sm">
-              <label className="text-sm font-medium text-slate-700">
-                {t("projects.fields.plannedBudget")}
-              </label>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                {...register("plannedBudget")}
-              />
-            </div>
-          </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-2 md:col-span-2 md:max-w-sm">
+          <label className="text-sm font-medium text-slate-700">
+            {t("projects.fields.plannedBudget")}
+          </label>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            {...register("plannedBudget")}
+          />
+        </div>
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.projectGroup")}</label>
-              <select
-                {...register("projectGroupId")}
-                className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                disabled={groupsLoading}
-              >
-                <option value="">{groupsLoading ? t("projects.form.groupLoading") : t("projects.form.groupNone")}</option>
-                {!hasCurrentGroupOption && currentProjectGroupId ? (
-                  <option value={currentProjectGroupId}>
-                    {project?.project_group?.name || t("projects.form.groupCurrent")}
-                  </option>
-                ) : null}
-                {groupOptions.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name}
-                  </option>
-                ))}
-              </select>
-              {groupsError ? (
-                <span className="text-xs text-rose-600">{groupsError}</span>
-              ) : null}
-            </div>
-          </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.projectGroup")}</label>
+          <select
+            {...register("projectGroupId")}
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            disabled={groupsLoading}
+          >
+            <option value="">{groupsLoading ? t("projects.form.groupLoading") : t("projects.form.groupNone")}</option>
+            {!hasCurrentGroupOption && currentProjectGroupId ? (
+              <option value={currentProjectGroupId}>
+                {project?.project_group?.name || t("projects.form.groupCurrent")}
+              </option>
+            ) : null}
+            {groupOptions.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+          {groupsError ? (
+            <span className="text-xs text-rose-600">{groupsError}</span>
+          ) : null}
+        </div>
+      </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.startDate")}</label>
-              <Input type="date" {...register("startDate")} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-slate-700">{t("projects.fields.dueDate")}</label>
-              <Input type="date" {...register("dueDate")} />
-              {errors.dueDate && (
-                <span className="text-xs text-red-600">{errors.dueDate.message}</span>
-              )}
-            </div>
-          </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.startDate")}</label>
+          <Input type="date" {...register("startDate")} />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-slate-700">{t("projects.fields.dueDate")}</label>
+          <Input type="date" {...register("dueDate")} />
+          {errors.dueDate && (
+            <span className="text-xs text-red-600">{errors.dueDate.message}</span>
+          )}
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-700">
-              {t("projects.fields.zones")}
-              <span className="ml-2 text-xs font-normal text-slate-400">
-                {t("projects.form.zonesHelper")}
-              </span>
-            </label>
-            {zonesLoading ? (
-              <div className="p-4 text-center text-sm text-slate-500">
-                {t("projects.form.zonesLoading")}
-              </div>
-            ) : (
-              <div className="rounded-lg border border-slate-200 p-3">
-                <ZonePicker
-                  zones={zones}
-                  value={watchedSelectedZones}
-                  onChange={(zonesOrFunction) => {
-                    if (typeof zonesOrFunction === 'function') {
-                      setValue("selectedZones", zonesOrFunction(watchedSelectedZones));
-                    } else {
-                      setValue("selectedZones", zonesOrFunction);
-                    }
-                  }}
-                />
-                {errors.selectedZones && (
-                  <span className="text-xs text-red-600 mt-1 block">{errors.selectedZones.message}</span>
-                )}
-              </div>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium text-slate-700">
+          {t("projects.fields.zones")}
+          <span className="ml-2 text-xs font-normal text-slate-400">
+            {t("projects.form.zonesHelper")}
+          </span>
+        </label>
+        {zonesLoading ? (
+          <div className="p-4 text-center text-sm text-slate-500">
+            {t("projects.form.zonesLoading")}
+          </div>
+        ) : (
+          <div className="rounded-lg border border-slate-200 p-3">
+            <ZonePicker
+              zones={zones}
+              value={watchedSelectedZones}
+              onChange={(zonesOrFunction) => {
+                if (typeof zonesOrFunction === 'function') {
+                  setValue("selectedZones", zonesOrFunction(watchedSelectedZones));
+                } else {
+                  setValue("selectedZones", zonesOrFunction);
+                }
+              }}
+            />
+            {errors.selectedZones && (
+              <span className="text-xs text-red-600 mt-1 block">{errors.selectedZones.message}</span>
             )}
           </div>
+        )}
+      </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-700">{t("projects.fields.tags")}</label>
-            <Input
-              {...register("tagsInput")}
-              placeholder={t("projects.form.tagsPlaceholder")}
-            />
-            <span className="text-xs text-slate-500">{tagHint}</span>
-            {typeMeta.suggestedTags.length ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs text-slate-500">{t("projects.form.suggestedTagsLabel")}</span>
-                {typeMeta.suggestedTags.map((tag: string) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => handleAddSuggestedTag(tag)}
-                    className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
-                  >
-                    #{tag}
-                  </button>
-                ))}
-              </div>
-            ) : null}
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium text-slate-700">{t("projects.fields.tags")}</label>
+        <Input
+          {...register("tagsInput")}
+          placeholder={t("projects.form.tagsPlaceholder")}
+        />
+        <span className="text-xs text-slate-500">{tagHint}</span>
+        {typeMeta.suggestedTags.length ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-slate-500">{t("projects.form.suggestedTagsLabel")}</span>
+            {typeMeta.suggestedTags.map((tag: string) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => handleAddSuggestedTag(tag)}
+                className="rounded-full border border-slate-200 px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+              >
+                #{tag}
+              </button>
+            ))}
           </div>
+        ) : null}
+      </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-slate-700">
-              {t("projects.fields.description")}
-              <span className="ml-2 text-xs font-normal text-slate-400">
-                {t("projects.form.descriptionHelper")}
-              </span>
-            </label>
-            <Textarea
-              {...register("description")}
-              rows={6}
-              placeholder={t("projects.form.descriptionPlaceholder")}
-            />
-          </div>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-medium text-slate-700">
+          {t("projects.fields.description")}
+          <span className="ml-2 text-xs font-normal text-slate-400">
+            {t("projects.form.descriptionHelper")}
+          </span>
+        </label>
+        <Textarea
+          {...register("description")}
+          rows={6}
+          placeholder={t("projects.form.descriptionPlaceholder")}
+        />
+      </div>
 
-          {errors.root && (
-            <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-sm text-rose-700">
-              {errors.root.message}
-            </div>
-          )}
-        </CardContent>
+      {errors.root && (
+        <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-sm text-rose-700">
+          {errors.root.message}
+        </div>
+      )}
 
-        <CardFooter className="flex justify-end border-t border-slate-200 bg-slate-50 py-4">
-          <Button type="submit" disabled={isSubmitting || isRedirecting}>
-            {(isSubmitting || isRedirecting) ? t("projects.form.submitting") : isEdit ? t("projects.form.update") : t("projects.form.create")}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+      <div className="flex justify-end pt-4">
+        <Button type="submit" disabled={isSubmitting || isRedirecting}>
+          {(isSubmitting || isRedirecting) ? t("projects.form.submitting") : isEdit ? t("projects.form.update") : t("projects.form.create")}
+        </Button>
+      </div>
+    </form>
   );
 }
