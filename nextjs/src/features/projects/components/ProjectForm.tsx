@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -27,20 +29,6 @@ interface ProjectFormProps {
   zonesLoading?: boolean;
 }
 
-interface ProjectFormData {
-  title: string;
-  description: string;
-  status: ProjectStatus;
-  priority: ProjectPriority;
-  type: ProjectType;
-  startDate: string;
-  dueDate: string;
-  plannedBudget: string;
-  tagsInput: string;
-  projectGroupId: string;
-  selectedZones: string[];
-}
-
 const ensureTagsArray = (value: string) =>
   value
     .split(",")
@@ -63,6 +51,34 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
     return rootZones.length > 0 ? [rootZones[0].id] : [];
   }, [zones]);
 
+  // Schema de validation zod avec traductions
+  const projectFormSchema = useMemo(() => z.object({
+    title: z.string().min(1, t("projects.form.errorTitleRequired")).transform(s => s.trim()),
+    description: z.string(),
+    status: z.enum(["draft", "active", "on_hold", "completed", "cancelled"] as const),
+    priority: z.number().min(1).max(5),
+    type: z.enum(["renovation", "maintenance", "repair", "purchase", "relocation", "vacation", "leisure", "other"] as const),
+    startDate: z.string(),
+    dueDate: z.string(),
+    plannedBudget: z.string(),
+    tagsInput: z.string(),
+    projectGroupId: z.string(),
+    selectedZones: z.array(z.string()).min(1, t("projects.form.errorZoneRequired"))
+  }).refine(
+    (data) => {
+      if (data.startDate && data.dueDate) {
+        return new Date(data.dueDate) >= new Date(data.startDate);
+      }
+      return true;
+    },
+    {
+      message: t("projects.form.errorDates"),
+      path: ["dueDate"]
+    }
+  ), [t]);
+
+  type ProjectFormData = z.infer<typeof projectFormSchema>;
+
   const {
     register,
     handleSubmit,
@@ -73,6 +89,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
     clearErrors,
     reset
   } = useForm<ProjectFormData>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
       title: project?.title ?? "",
       description: project?.description ?? "",
@@ -152,18 +169,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
       if (!householdId) return;
 
       clearErrors();
-      setIsRedirecting(false); // Reset redirection state at start
-
-      const trimmedTitle = data.title.trim();
-      if (!trimmedTitle) {
-        setError("title", { message: t("projects.form.errorTitleRequired") });
-        return;
-      }
-
-      if (data.dueDate && data.startDate && data.dueDate < data.startDate) {
-        setError("dueDate", { message: t("projects.form.errorDates") });
-        return;
-      }
+      setIsRedirecting(false);
 
       try {
         const supa = await createSPASassClient();
@@ -171,8 +177,8 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
         const parsedBudget = data.plannedBudget ? Number(data.plannedBudget) : 0;
 
         const baseFields = {
-          title: trimmedTitle,
-          description: data.description.trim(),
+          title: data.title, // déjà trimé par zod
+          description: data.description,
           status: data.status,
           priority: data.priority,
           type: data.type,
@@ -274,7 +280,7 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
             <div className="flex flex-col gap-2 md:col-span-2">
               <label className="text-sm font-medium text-slate-700">{t("projects.fields.title")}</label>
               <Input
-                {...register("title", { required: t("projects.form.errorTitleRequired") })}
+                {...register("title")}
                 placeholder={t("projects.form.titlePlaceholder")}
               />
               {errors.title && (
@@ -405,6 +411,9 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
                     }
                   }}
                 />
+                {errors.selectedZones && (
+                  <span className="text-xs text-red-600 mt-1 block">{errors.selectedZones.message}</span>
+                )}
               </div>
             )}
           </div>

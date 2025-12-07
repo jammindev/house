@@ -1,14 +1,10 @@
-// nextjs/src/features/documents/components/DesktopUploadInterface.tsx
 "use client";
 
-import { useRef, type ChangeEvent, type DragEvent } from "react";
-import { UploadCloud } from "lucide-react";
-
+import { useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { Upload, File, Image, FileText, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { useGlobal } from "@/lib/context/GlobalContext";
-import { cn } from "@/lib/utils";
 
 type DesktopUploadInterfaceProps = {
     onFilesSelected: (files: FileList) => void;
@@ -17,68 +13,153 @@ type DesktopUploadInterfaceProps = {
 
 export function DesktopUploadInterface({ onFilesSelected, disabled = false }: DesktopUploadInterfaceProps) {
     const { t } = useI18n();
-    const { loading: globalLoading } = useGlobal();
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-    const isDisabled = disabled || globalLoading;
-
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files?.length) {
-            onFilesSelected(event.target.files);
-            event.target.value = "";
+    const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+        if (rejectedFiles.length > 0) {
+            // Les erreurs seront affichées par le hook useDocumentUpload
+            console.warn('Rejected files:', rejectedFiles);
         }
-    };
 
-    const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (event.dataTransfer?.files?.length) {
-            onFilesSelected(event.dataTransfer.files);
+        if (acceptedFiles.length > 0) {
+            // Convertir File[] en FileList pour maintenir la compatibilité
+            const fileList = Object.assign(acceptedFiles, {
+                item: (index: number) => acceptedFiles[index] || null,
+                [Symbol.iterator]: function* () {
+                    for (const file of acceptedFiles) {
+                        yield file;
+                    }
+                }
+            }) as FileList;
+
+            onFilesSelected(fileList);
         }
-    };
+    }, [onFilesSelected]);
 
-    const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
-        event.preventDefault();
-        event.stopPropagation();
+    const { getRootProps, getInputProps, isDragActive, open, fileRejections } = useDropzone({
+        onDrop,
+        disabled,
+        noClick: true, // On gère le clic manuellement avec le bouton
+        accept: {
+            'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.heic'],
+            'application/pdf': ['.pdf'],
+            'text/*': ['.txt', '.md'],
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+            'application/msword': ['.doc'],
+            'application/vnd.ms-excel': ['.xls']
+        },
+        maxSize: 10 * 1024 * 1024, // 10MB
+        multiple: true
+    });
+
+    const getSupportedTypesDisplay = () => {
+        return t("storage.supportedFormats"); // "Images, PDF, Documents"
     };
 
     return (
-        <label
-            htmlFor="documents-file-input"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            className={cn(
-                "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-gray-300 bg-white px-6 py-10 text-center transition cursor-pointer",
-                "hover:border-primary-300 hover:bg-primary-50/50",
-                isDisabled && "pointer-events-none opacity-60"
-            )}
-        >
-            <UploadCloud className="h-10 w-10 text-gray-400" aria-hidden="true" />
-            <div>
-                <p className="text-base font-medium text-gray-900">{t("storage.dropLabel")}</p>
-                <p className="text-sm text-gray-500">{t("storage.dropHelper")}</p>
-            </div>
-            <Input
-                ref={fileInputRef}
-                id="documents-file-input"
-                type="file"
-                multiple
-                className="sr-only"
-                onChange={handleInputChange}
-                disabled={isDisabled}
-            />
-            <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                    e.preventDefault();
-                    fileInputRef.current?.click();
-                }}
-                disabled={isDisabled}
+        <div className="space-y-4">
+            {/* Zone de drop principale */}
+            <div
+                {...getRootProps()}
+                className={`
+                    relative rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200 ease-in-out
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                    ${isDragActive
+                        ? 'border-blue-400 bg-blue-50 shadow-lg scale-[1.01] ring-2 ring-blue-200'
+                        : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    }
+                `}
             >
-                {t("storage.chooseFiles")}
-            </Button>
-        </label>
+                <input {...getInputProps()} />
+
+                <div className="flex flex-col items-center gap-4">
+                    {/* Icône avec animation */}
+                    <div className={`
+                        rounded-full p-4 transition-all duration-200
+                        ${isDragActive
+                            ? 'bg-blue-100 scale-110'
+                            : 'bg-gray-100 hover:bg-gray-200'
+                        }
+                    `}>
+                        <Upload className={`h-8 w-8 transition-colors duration-200 ${isDragActive ? 'text-blue-600' : 'text-gray-500'
+                            }`} />
+                    </div>
+
+                    {/* Messages contextuels */}
+                    {isDragActive ? (
+                        <div className="space-y-1">
+                            <p className="text-lg font-semibold text-blue-700">
+                                {t("storage.dropFilesHere")}
+                            </p>
+                            <p className="text-sm text-blue-600">
+                                {t("storage.releaseToUpload")}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="space-y-1">
+                                <p className="text-lg font-medium text-gray-700">
+                                    {t("storage.dragFilesOr")}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                    {getSupportedTypesDisplay()} • {t("storage.maxSize", { size: "10MB" })}
+                                </p>
+                            </div>
+
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="lg"
+                                onClick={open}
+                                disabled={disabled}
+                                className="bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-400"
+                            >
+                                <File className="h-4 w-4 mr-2" />
+                                {t("storage.browse")}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Animation de drop overlay */}
+                {isDragActive && (
+                    <div className="absolute inset-0 rounded-lg border-2 border-blue-400 bg-blue-50/30 animate-pulse pointer-events-none" />
+                )}
+            </div>
+
+            {/* Types de fichiers acceptés avec icônes */}
+            <div className="flex justify-center">
+                <div className="flex items-center gap-6 text-xs text-gray-500">
+                    <div className="flex items-center gap-1">
+                        <Image className="h-3 w-3" />
+                        <span>{t("storage.types.images")}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        <span>{t("storage.types.documents")}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <File className="h-3 w-3" />
+                        <span>{t("storage.types.pdf")}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Erreurs de fichiers rejetés */}
+            {fileRejections.length > 0 && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                    <p className="text-sm font-medium text-red-800 mb-1">
+                        {t("storage.rejectedFiles")}
+                    </p>
+                    <ul className="text-xs text-red-700 space-y-1">
+                        {fileRejections.map(({ file, errors }) => (
+                            <li key={file.name}>
+                                <span className="font-medium">{file.name}</span>: {errors[0]?.message}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
     );
 }
