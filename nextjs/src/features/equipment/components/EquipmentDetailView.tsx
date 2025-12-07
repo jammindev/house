@@ -3,15 +3,20 @@
 
 import { useMemo, useState } from "react";
 import { CalendarDays, CreditCard, FileWarning, MapPin, ShieldCheck, Tag as TagIcon, Wrench } from "lucide-react";
+import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
+import { fr as dateFnsFr, enUS as dateFnsEn } from "date-fns/locale";
 
 import InteractionList from "@interactions/components/InteractionList";
 import type { Interaction, ZoneOption } from "@interactions/types";
 import EquipmentStatusBadge from "./EquipmentStatusBadge";
+import EquipmentDeleteButton from "./EquipmentDeleteButton";
 import type { Equipment } from "../types";
 import EquipmentInteractionForm from "./EquipmentInteractionForm";
+import { useEquipmentAudit } from "../hooks/useEquipmentAudit";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import AuditHistoryCard from "@/components/AuditHistoryCard";
 
 type Props = {
   equipment: Equipment;
@@ -19,8 +24,10 @@ type Props = {
   documentCounts: Record<string, number>;
   zones: ZoneOption[];
   onInteractionAdded: () => void;
+  onDeleted: () => void;
   interactionError?: string | null;
   interactionLoading?: boolean;
+  locale?: string;
   t: (key: string, args?: Record<string, string | number>) => string;
 };
 
@@ -36,17 +43,70 @@ const formatCurrency = (value?: number | null) => {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "EUR" }).format(value);
 };
 
+// Helpers: localized public date and short relative time (14h, 1j, 1an)
+const getDateFnsLocale = (loc?: string) => {
+  if (!loc) return dateFnsEn;
+  if (loc.startsWith("fr")) return dateFnsFr;
+  return dateFnsEn;
+};
+
+const formatPublicDate = (isoDate?: string | null, locale?: string) => {
+  if (!isoDate) return "";
+  try {
+    const d = new Date(isoDate);
+    // Pp -> localized date + time, friendly for "grand public"
+    return format(d, "Pp", { locale: getDateFnsLocale(locale) });
+  } catch (e) {
+    console.error(e);
+    return new Date(isoDate).toLocaleString();
+  }
+};
+
+const formatRelativeShort = (isoDate?: string | null, locale?: string) => {
+  if (!isoDate) return "";
+  const now = new Date();
+  const d = new Date(isoDate);
+  const years = differenceInYears(now, d);
+  if (years >= 1) {
+    // French: 1an 2ans, English: 1y 2y
+    if (locale?.startsWith("fr")) return `${years}${years === 1 ? "an" : "ans"}`;
+    return `${years}y`;
+  }
+  const months = differenceInMonths(now, d);
+  if (months >= 1) {
+    if (locale?.startsWith("fr")) return `${months}${months === 1 ? "mois" : "mois"}`;
+    return `${months}mo`;
+  }
+  const days = differenceInDays(now, d);
+  if (days >= 1) {
+    if (locale?.startsWith("fr")) return `${days}j`;
+    return `${days}d`;
+  }
+  const hours = differenceInHours(now, d);
+  if (hours >= 1) return `${hours}h`;
+  const minutes = differenceInMinutes(now, d);
+  if (minutes >= 1) return `${minutes}${locale?.startsWith("fr") ? "min" : "m"}`;
+  const seconds = differenceInSeconds(now, d);
+  if (seconds >= 5) return `${seconds}${locale?.startsWith("fr") ? "s" : "s"}`;
+  // just now
+  return locale?.startsWith("fr") ? "à l'instant" : "now";
+};
+
 export default function EquipmentDetailView({
   equipment,
   interactions,
   documentCounts,
   zones,
   onInteractionAdded,
+  onDeleted,
   interactionError,
   interactionLoading = false,
+  locale,
   t,
 }: Props) {
   const [interactionOpen, setInteractionOpen] = useState(false);
+  const { audit, loading: auditLoading } = useEquipmentAudit(equipment.id, equipment.updated_at);
+
   const nextService = formatDate(equipment.next_service_due);
   const lastService = formatDate(equipment.last_service_at);
   const warranty = formatDate(equipment.warranty_expires_on);
@@ -235,6 +295,21 @@ export default function EquipmentDetailView({
           )}
         </CardContent>
       </Card>
+
+      <AuditHistoryCard
+        loading={auditLoading}
+        lines={[
+          t("equipment.audit.created", {
+            date: formatPublicDate(equipment.created_at, locale),
+            user: audit?.created_by?.username ?? audit?.created_by?.email ?? t("equipment.audit.unknownUser"),
+          }),
+          t("equipment.audit.updated", {
+            date: formatRelativeShort(equipment.updated_at, locale),
+            user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("equipment.audit.unknownUser"),
+          }),
+        ]}
+        actions={<EquipmentDeleteButton equipmentId={equipment.id} equipmentName={equipment.name} onDeleted={onDeleted} />}
+      />
     </div>
   );
 }
