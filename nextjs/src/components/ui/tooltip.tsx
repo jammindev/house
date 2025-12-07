@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
+import { Z_INDEX_CLASSES } from "@/lib/design-tokens"
 
 import { cn } from "@/lib/utils"
 
@@ -21,7 +22,7 @@ const TooltipContent = React.forwardRef<
         sideOffset={sideOffset}
         side={side}
         className={cn(
-            "z-50 max-w-xs rounded-md border bg-popover px-2 py-1.5 text-sm text-popover-foreground shadow-md",
+            `${Z_INDEX_CLASSES.interactive.tooltip} max-w-xs rounded-md border bg-popover px-2 py-1.5 text-sm text-popover-foreground shadow-md`,
             className
         )}
         {...props}

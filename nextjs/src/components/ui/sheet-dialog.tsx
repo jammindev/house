@@ -17,6 +17,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@documents/hooks/useIsMobile";
 import { X } from "lucide-react";
+import { Z_INDEX_CLASSES } from "@/lib/design-tokens";
 
 type ResponsiveOverlayRenderProps = {
   close: () => void;
@@ -139,7 +140,10 @@ export function SheetDialog({
               data-allow-interact
               variant="ghost"
               size="icon"
-              className="fixed left-4 top-4 z-[60] rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className={cn(
+                "fixed left-4 top-4 rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                Z_INDEX_CLASSES.navigation.mobileMenu
+              )}
               aria-label={closeLabel}
             >
               <X />

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Spinner } from "../ui/spinner";
+import { Z_INDEX_CLASSES } from "@/lib/design-tokens";
 
 interface NavigationOverlayContextValue {
     showOverlay: () => void;
@@ -52,7 +53,7 @@ export function useNavigationOverlay() {
 function NavigationOverlay({ isVisible }: { isVisible: boolean }) {
     return (
         <div
-            className={`fixed inset-0 lg:left-64 z-[1000] flex items-center justify-center  ${isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+            className={`fixed inset-0 lg:left-64 ${Z_INDEX_CLASSES.system.loading} flex items-center justify-center  ${isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
             aria-hidden={!isVisible}
         >
             <div className="absolute inset-0 overflow-hidden backdrop-blur-md">

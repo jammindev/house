@@ -1,10 +1,40 @@
 import type { Config } from "tailwindcss";
+import { Z_INDEX } from "./src/lib/design-tokens/z-index";
 
 const config: Config = {
 	darkMode: ["class"],
 	content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
 	theme: {
 		extend: {
+			zIndex: {
+				// Content layers
+				'content-raised': Z_INDEX.content.raised.toString(),
+				'content-sticky': Z_INDEX.content.sticky.toString(),
+
+				// Interactive layers
+				'interactive-dropdown': Z_INDEX.interactive.dropdown.toString(),
+				'interactive-tooltip': Z_INDEX.interactive.tooltip.toString(),
+				'interactive-popover': Z_INDEX.interactive.popover.toString(),
+
+				// Navigation layers
+				'nav-header': Z_INDEX.navigation.header.toString(),
+				'nav-sidebar': Z_INDEX.navigation.sidebar.toString(),
+				'nav-mobile': Z_INDEX.navigation.mobileMenu.toString(),
+
+				// Overlay layers
+				'overlay-backdrop': Z_INDEX.overlay.backdrop.toString(),
+				'overlay-modal': Z_INDEX.overlay.modal.toString(),
+				'overlay-sheet': Z_INDEX.overlay.sheet.toString(),
+				'overlay-drawer': Z_INDEX.overlay.drawer.toString(),
+
+				// System layers
+				'system-toast': Z_INDEX.system.toast.toString(),
+				'system-loading': Z_INDEX.system.loading.toString(),
+				'system-debug': Z_INDEX.system.debug.toString(),
+
+				// Emergency
+				'emergency': Z_INDEX.emergency.toString(),
+			},
 			colors: {
 				primary: {
 					'50': 'var(--color-primary-50)',
