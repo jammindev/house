@@ -15,7 +15,7 @@ export function useAdminContext(): AdminContext {
 
             const supabase = await createSPASassClientAuthenticated();
             const client = supabase.getSupabaseClient();
-            
+
             const { data: user } = await client.auth.getUser();
             if (!user?.user?.id) {
                 setAdminRole('user');
@@ -86,7 +86,7 @@ export function useSystemStats() {
             } catch (rpcError) {
                 // Fallback: calculer les stats manuellement via les tables existantes
                 console.warn('System stats RPC not available, calculating manually...');
-                
+
                 const [
                     { count: totalHouseholds },
                     { count: totalInteractions },
