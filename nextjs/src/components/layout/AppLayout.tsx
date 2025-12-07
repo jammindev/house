@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Sidebar from "./Sidebar";
 import { createSPASassClient } from "@/lib/supabase/client";
 import { SidebarToggleProvider } from "./SidebarToggleContext";
-import { ZIndexDebugger } from "@/components/dev/ZIndexDebugger";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -44,9 +43,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 />
 
                 <main className="flex-1 p-2 md:p-4 lg:pl-64">{children}</main>
-
-                {/* Z-Index Debugger - Development only */}
-                <ZIndexDebugger />
             </div>
         </SidebarToggleProvider>
     );
