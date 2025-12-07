@@ -94,6 +94,13 @@ export default function Sidebar({
 
     return (
         <>
+            {isOpen && (
+                <div
+                    className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
+                    onClick={onClose}
+                />
+            )}
+
             <div
                 className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-30 flex flex-col justify-between
         ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
