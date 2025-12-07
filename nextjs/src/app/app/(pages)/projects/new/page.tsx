@@ -23,7 +23,7 @@ export default function NewProjectPage() {
     <ResourcePageShell
       title={t("projects.newTitle")}
       subtitle={t("projects.newSubtitle")}
-      bodyClassName="mt-4 px-4 pb-6 sm:px-0"
+      bodyClassName="mt-4 pb-6 sm:px-0"
     >
       <ProjectForm
         zones={zoneOptions}
