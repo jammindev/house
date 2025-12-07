@@ -115,6 +115,7 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
                     {isMobile ? (
                         <MobileUploadInterface
                             onFilesSelected={handleFilesSelected}
+                            onScannerOpen={() => setScannerOpen(true)}
                             disabled={globalLoading}
                         />
                     ) : (
@@ -123,31 +124,6 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
                             disabled={globalLoading}
                         />
                     )}
-
-                    <div className="rounded-lg border border-dashed border-slate-200/80 bg-slate-50/80 p-4">
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                            <div>
-                                <p className="text-sm font-semibold text-slate-700">
-                                    {t("storage.cameraScanner.action")}
-                                </p>
-                                <p className="text-xs text-slate-500">
-                                    {t("storage.cameraScanner.helper")}
-                                </p>
-                            </div>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size={isMobile ? "lg" : "sm"}
-                                className={isMobile ? "w-full" : undefined}
-                                onClick={() => setScannerOpen(true)}
-                            >
-                                <span className="flex items-center gap-2">
-                                    <Camera className="h-4 w-4" aria-hidden="true" />
-                                    {t("storage.cameraScanner.action")}
-                                </span>
-                            </Button>
-                        </div>
-                    </div>
 
                     {error && (
                         <Alert variant="destructive">
