@@ -20,12 +20,14 @@ import {
     LayoutDashboard,
     Wrench,
     Bug,
+    Shield,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import UserAvatar from "./UserAvatar";
 import LinkWithOverlay from "./LinkWithOverlay";
 import { Button } from "../ui/button";
+import { useAdminContext } from "@/features/admin/hooks/useAdmin";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -45,6 +47,7 @@ export default function Sidebar({
     const { user } = useGlobal();
     const { t } = useI18n();
     const [loadingRoute, setLoadingRoute] = useState<string | null>(null);
+    const { isAdmin } = useAdminContext();
 
     useEffect(() => {
         setLoadingRoute(null);
@@ -63,6 +66,9 @@ export default function Sidebar({
         { name: t("nav.interactions"), href: "/app/interactions", icon: Notebook },
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
         { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
+        ...(isAdmin ? [
+            { name: "Administration", href: "/admin", icon: Shield }
+        ] : []),
         ...(process.env.NODE_ENV === 'development' ? [
             { name: "Debug", href: "/app/debug", icon: Bug }
         ] : [])
