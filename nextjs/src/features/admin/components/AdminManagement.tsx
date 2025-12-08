@@ -37,36 +37,43 @@ export function AdminManagement() {
     const fetchAdmins = async () => {
         try {
             setLoading(true);
+            const supabase = await createSPASassClientAuthenticated();
+            const client = supabase.getSupabaseClient();
 
-            // Mock data for now until service-role access is implemented
-            const mockAdmins: SystemAdmin[] = [
-                {
-                    id: '1',
-                    user_id: 'user-1',
-                    role: 'super_admin',
-                    granted_by: 'system',
-                    granted_at: '2024-01-01T00:00:00Z',
-                    notes: 'Administrateur principal du système',
-                    created_at: '2024-01-01T00:00:00Z',
-                    updated_at: '2024-01-01T00:00:00Z',
-                    user_email: 'admin@example.com',
-                    user_display_name: 'Administrateur Principal'
-                },
-                {
-                    id: '2',
-                    user_id: 'user-2',
-                    role: 'admin',
-                    granted_by: 'user-1',
-                    granted_at: '2024-06-15T00:00:00Z',
-                    notes: 'Administrateur support client',
-                    created_at: '2024-06-15T00:00:00Z',
-                    updated_at: '2024-06-15T00:00:00Z',
-                    user_email: 'support@example.com',
-                    user_display_name: 'Support Admin'
-                }
-            ];
+            // Récupérer les administrateurs système
+            const { data: admins, error: adminsError } = await client
+                .from('system_admins')
+                .select(`
+                    id,
+                    user_id,
+                    role,
+                    granted_by,
+                    granted_at,
+                    notes,
+                    created_at,
+                    updated_at
+                `);
 
-            setAdmins(mockAdmins);
+            if (adminsError) throw adminsError;
+
+            if (!admins) {
+                setAdmins([]);
+                return;
+            }
+
+            // Enrichir avec des données utilisateur fictives (car on ne peut pas accéder à auth.users)
+            const enrichedAdmins: SystemAdmin[] = admins.map((admin, index) => ({
+                ...admin,
+                role: admin.role as 'admin' | 'super_admin',
+                granted_by: admin.granted_by || undefined,
+                notes: admin.notes || undefined,
+                created_at: admin.created_at || new Date().toISOString(),
+                updated_at: admin.updated_at || new Date().toISOString(),
+                user_email: `admin${index + 1}@example.com`,
+                user_display_name: `Administrateur ${index + 1}`
+            }));
+
+            setAdmins(enrichedAdmins);
         } catch (err) {
             console.error('Error fetching admins:', err);
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des administrateurs');

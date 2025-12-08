@@ -34,60 +34,66 @@ export function HouseholdManagement() {
             const supabase = await createSPASassClientAuthenticated();
             const client = supabase.getSupabaseClient();
 
-            // For now, show mock data until service-role access is implemented
-            const mockHouseholds: HouseholdWithStats[] = [
-                {
-                    id: '1',
-                    name: 'Maison Famille Dupont',
-                    created_at: '2024-01-15T00:00:00Z',
-                    members_count: 4,
-                    interactions_count: 156,
-                    zones_count: 12,
-                    projects_count: 3,
-                    documents_count: 89,
-                    equipment_count: 23,
-                    owner_email: 'dupont@example.com'
-                },
-                {
-                    id: '2',
-                    name: 'Appartement Centre Ville',
-                    created_at: '2024-03-22T00:00:00Z',
-                    members_count: 2,
-                    interactions_count: 78,
-                    zones_count: 7,
-                    projects_count: 1,
-                    documents_count: 34,
-                    equipment_count: 15,
-                    owner_email: 'martin@example.com'
-                },
-                {
-                    id: '3',
-                    name: 'Villa Bord de Mer',
-                    created_at: '2024-06-10T00:00:00Z',
-                    members_count: 3,
-                    interactions_count: 203,
-                    zones_count: 18,
-                    projects_count: 5,
-                    documents_count: 167,
-                    equipment_count: 45,
-                    owner_email: 'dubois@example.com'
-                }
-            ];
+            // Récupérer les foyers avec leurs statistiques
+            const { data: households, error: householdsError } = await client
+                .from('households')
+                .select(`
+                    id,
+                    name,
+                    created_at
+                `);
 
-            // TODO: Replace with real query when service-role access is available
-            // const { data, error: householdsError } = await client
-            //   .from('households')
-            //   .select(`
-            //     id, name, created_at,
-            //     household_members(count),
-            //     interactions(count),
-            //     zones(count),
-            //     projects(count),
-            //     documents(count),
-            //     equipment(count)
-            //   `);
+            if (householdsError) throw householdsError;
 
-            setHouseholds(mockHouseholds);
+            if (!households) {
+                setHouseholds([]);
+                return;
+            }
+
+            // Récupérer les statistiques pour chaque foyer
+            const householdsWithStats = await Promise.all(
+                households.map(async (household) => {
+                    const [
+                        { count: membersCount },
+                        { count: interactionsCount },
+                        { count: zonesCount },
+                        { count: projectsCount },
+                        { count: documentsCount },
+                        { count: equipmentCount }
+                    ] = await Promise.all([
+                        client.from('household_members').select('*', { count: 'exact', head: true }).eq('household_id', household.id),
+                        client.from('interactions').select('*', { count: 'exact', head: true }).eq('household_id', household.id),
+                        client.from('zones').select('*', { count: 'exact', head: true }).eq('household_id', household.id),
+                        client.from('projects').select('*', { count: 'exact', head: true }).eq('household_id', household.id),
+                        client.from('documents').select('*', { count: 'exact', head: true }).eq('household_id', household.id),
+                        client.from('equipment').select('*', { count: 'exact', head: true }).eq('household_id', household.id)
+                    ]);
+
+                    // Récupérer l'email du propriétaire (premier membre avec role 'owner')
+                    const { data: owner } = await client
+                        .from('household_members')
+                        .select('user_id')
+                        .eq('household_id', household.id)
+                        .eq('role', 'owner')
+                        .limit(1)
+                        .single();
+
+                    return {
+                        id: household.id,
+                        name: household.name,
+                        created_at: household.created_at || new Date().toISOString(),
+                        members_count: membersCount || 0,
+                        interactions_count: interactionsCount || 0,
+                        zones_count: zonesCount || 0,
+                        projects_count: projectsCount || 0,
+                        documents_count: documentsCount || 0,
+                        equipment_count: equipmentCount || 0,
+                        owner_email: owner ? `owner-${owner.user_id.substring(0, 8)}@example.com` : 'owner@example.com'
+                    } satisfies HouseholdWithStats;
+                })
+            );
+
+            setHouseholds(householdsWithStats);
         } catch (err) {
             console.error('Error fetching households:', err);
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des foyers');

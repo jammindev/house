@@ -48,7 +48,6 @@ export function useProjectDocumentsCount(projectId?: string) {
             if (documentsError) throw documentsError;
 
             const count = documentsData?.length ?? 0;
-            console.log(`Project ${projectId}: found ${count} non-photo documents`);
             setDocumentsCount(count);
         } catch (fetchError: unknown) {
             console.error("Error fetching documents count:", fetchError);
