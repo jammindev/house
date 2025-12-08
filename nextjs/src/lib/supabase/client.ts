@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { ClientType, SassClient } from "@/lib/supabase/unified";
-import { Database } from "@/lib/types";
+import { Database } from "@/lib/types-generated";
 
 let _supabaseClient: ReturnType<typeof createBrowserClient<Database>> | null = null;
 

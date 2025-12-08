@@ -1,5 +1,5 @@
-import {SupabaseClient} from "@supabase/supabase-js";
-import {Database} from "@/lib/types";
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "@/lib/types-generated";
 
 export enum ClientType {
     SERVER = 'server',
@@ -83,12 +83,12 @@ export class SassClient {
         return this.client.from('todo_list').insert(row)
     }
 
-    async removeTask (id: string) {
+    async removeTask(id: string) {
         return this.client.from('todo_list').delete().eq('id', id)
     }
 
-    async updateAsDone (id: string) {
-        return this.client.from('todo_list').update({done: true}).eq('id', id)
+    async updateAsDone(id: string) {
+        return this.client.from('todo_list').update({ done: true }).eq('id', id)
     }
 
     getSupabaseClient() {

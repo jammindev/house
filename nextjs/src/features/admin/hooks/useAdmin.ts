@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { AdminRole, AdminContext, SystemStats } from '../types';
+import { Database } from '@/lib/types-generated';
 
 export function useAdminContext(): AdminContext {
     const [adminRole, setAdminRole] = useState<AdminRole>('user');
@@ -22,21 +23,14 @@ export function useAdminContext(): AdminContext {
                 return;
             }
 
-            // Vérifier si l'utilisateur est admin via une requête SQL personnalisée
-            // Utilisons une approche de fallback sécurisée
-            try {
-                // Tentative d'utilisation de la fonction RPC (quand les types seront mis à jour)
-                const result = await (client as any).rpc('get_user_admin_role');
-                if (result.error) {
-                    console.warn('RPC function not available, user has no admin privileges');
-                    setAdminRole('user');
-                } else {
-                    setAdminRole((result.data as AdminRole) || 'user');
-                }
-            } catch (rpcError) {
-                // Fallback: supposer que l'utilisateur n'est pas admin
-                console.warn('Admin functions not available, defaulting to user role');
+            // Vérifier le rôle admin avec la fonction RPC
+            const { data: role, error } = await client.rpc('get_user_admin_role');
+
+            if (error) {
+                console.warn('User has no admin privileges:', error.message);
                 setAdminRole('user');
+            } else {
+                setAdminRole((role as AdminRole) || 'user');
             }
         } catch (error) {
             console.error('Error checking admin status:', error);

@@ -1,5 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
-import {Database} from "@/lib/types";
+import { Database } from "@/lib/types-generated";
 
 export async function createServerAdminClient() {
 
@@ -9,7 +9,7 @@ export async function createServerAdminClient() {
         {
             cookies: {
                 getAll: () => [],
-                setAll: () => {},
+                setAll: () => { },
             },
             auth: {
                 persistSession: false,
