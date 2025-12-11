@@ -13,7 +13,7 @@ import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
-import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import { ProjectAICreationSheet } from "@projects/features/ai-create";
 
 export default function ProjectsPage() {
   const { t } = useI18n();
@@ -50,9 +50,20 @@ export default function ProjectsPage() {
         ),
       },
       {
-        icon: Plus,
-        href: "/app/projects/new",
-        variant: "default" as const,
+        element: (
+          <ProjectAICreationSheet
+            trigger={(
+              <Button
+                variant="default"
+                size="icon"
+                aria-label={t("projects.aiCreate.trigger")}
+                className="shadow-sm"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            )}
+          />
+        ),
       },
     ],
     [filters, hasActiveFilters, resetFilters, setFilters, t]
@@ -78,9 +89,7 @@ export default function ProjectsPage() {
           title={t("projects.emptyState")}
           description={t("projects.newSubtitle")}
           action={
-            <Button asChild>
-              <LinkWithOverlay href="/app/projects/new">{t("projects.new")}</LinkWithOverlay>
-            </Button>
+            <ProjectAICreationSheet />
           }
         />
       }

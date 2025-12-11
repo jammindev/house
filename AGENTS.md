@@ -142,6 +142,7 @@ _All domain tables live in the `public` schema with RLS enabled. Membership dete
 ## 7) API & Edge Functions
 - `POST /api/households`: server action that authenticates the caller, then uses the SSR client (anon key) to execute the `create_household_with_owner` security-definer RPC, which inserts the household and enrols the requester as owner.
 - `POST /api/projects/[id]/ai-chat`: AI chat endpoint that accepts `{ threadId?, message }`, validates project membership, gathers project context (details, recent interactions), and streams OpenAI responses back to the client. Automatically creates new conversation threads and stores all messages in `project_ai_threads` and `project_ai_messages` tables.
+- `POST /api/projects/ai-create`: AI intake endpoint used by the project creation sheet; checks household membership, builds a short natural-language prompt for the current step, and returns a friendly assistant message with graceful fallbacks when OpenAI is unavailable.
 - `POST /api/internal/process-entry-files`: service-role pipeline kick-off; requires the `x-internal-task-token` header matching `INTERNAL_TASK_TOKEN`, runs `processEntryFiles` to extract attachment text and refresh `documents.ocr_text` / `interactions.enriched_text`.
 - `GET /api/auth/callback`: template Supabase auth callback route; untouched.
 - No dedicated API routes for entries/zones/files—client components interact directly with Supabase (RLS-enforced).
