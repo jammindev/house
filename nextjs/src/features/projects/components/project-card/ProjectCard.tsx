@@ -7,6 +7,7 @@ import { useProjectPhotosCount } from "@projects/hooks/useProjectPhotosCount";
 import { useProjectDocumentsCount } from "@projects/hooks/useProjectDocumentsCount";
 
 import { Card, CardHeader } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { ProjectWithMetrics } from "@projects/types";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
@@ -54,15 +55,24 @@ export default function ProjectCard({ project, hideGroupBadge = false }: Project
           </CardHeader>
         </LinkWithOverlay>
 
-        <div id={detailsId} hidden={isCollapsed} className="flex-none">
-          <ProjectCardDetails
-            project={project}
-            typeMeta={typeMeta}
-            locale={locale}
-            helperText={helperText}
-            emptyStateText={emptyStateText}
-            t={t}
-          />
+        <div
+          id={detailsId}
+          aria-hidden={isCollapsed}
+          className={cn(
+            "grid flex-none transition-[grid-template-rows,opacity] duration-300 ease-in-out",
+            isCollapsed ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+          )}
+        >
+          <div className="overflow-hidden">
+            <ProjectCardDetails
+              project={project}
+              typeMeta={typeMeta}
+              locale={locale}
+              helperText={helperText}
+              emptyStateText={emptyStateText}
+              t={t}
+            />
+          </div>
         </div>
       </div>
 

@@ -40,6 +40,7 @@ export function usePageLayoutConfig(initialConfig?: PageLayoutConfig) {
 
       if (Object.prototype.hasOwnProperty.call(config, 'subtitle')) {
         setSubtitle(config.subtitle);
+        setSubtitle("");
       }
 
       if (Object.prototype.hasOwnProperty.call(config, 'context')) {

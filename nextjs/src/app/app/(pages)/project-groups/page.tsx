@@ -30,7 +30,7 @@ export default function ProjectGroupsPage() {
   return (
     <ListPageLayout
       title={t("projectGroups.title")}
-      subtitle={t("projectGroups.subtitle")}
+      // subtitle={t("projectGroups.subtitle")}
       hideBackButton
       actions={actions}
       loading={loading}

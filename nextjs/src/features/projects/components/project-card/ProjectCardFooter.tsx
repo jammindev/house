@@ -43,7 +43,7 @@ export default function ProjectCardFooter({
         collapsedLabel={t("projects.actions.showDetails")}
         expandedLabel={t("projects.actions.hideDetails")}
         label={toggleLabel}
-        className={cn("rounded-b-lg border-t", typeMeta.accent.footerBg, typeMeta.accent.footerBorder)}
+        className="bg-secondary"
       />
     </CardFooter>
   );
