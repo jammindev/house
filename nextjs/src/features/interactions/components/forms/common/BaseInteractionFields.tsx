@@ -29,6 +29,7 @@ export interface BaseInteractionFieldsProps {
     // Date field
     occurredAt: string;
     onOccurredAtChange: (date: string) => void;
+    showOccurredAt?: boolean;
 
     // Project field
     selectedProjectId: string | null;
@@ -36,10 +37,17 @@ export interface BaseInteractionFieldsProps {
     projectOptions: Array<{ id: string; title: string; status: string }>;
     projectLoading: boolean;
     projectError: string;
+    showProject?: boolean;
+    selectedEquipmentId?: string | null;
+    onEquipmentChange?: (equipmentId: string | null) => void;
+    equipmentOptions?: Array<{ id: string; name: string; status: string | null }>;
+    equipmentLoading?: boolean;
+    equipmentError?: string;
 
     // Tags field
     selectedTagIds: string[];
     onTagsChange: (tagIds: string[]) => void;
+    showTags?: boolean;
 
     // Zones fields
     selectedZones: string[];
@@ -47,6 +55,7 @@ export interface BaseInteractionFieldsProps {
     zones: ZoneOption[];
     zonesLoading: boolean;
     hasZones: boolean;
+    zonesLocked?: { locked: boolean; zoneNames?: string[]; helper?: string };
 
     // Content field
     content: string;
@@ -66,18 +75,27 @@ export default function BaseInteractionFields({
     onStatusChange,
     occurredAt,
     onOccurredAtChange,
+    showOccurredAt = true,
     selectedProjectId,
     onProjectChange,
     projectOptions,
     projectLoading,
     projectError,
+    showProject = true,
+    selectedEquipmentId,
+    onEquipmentChange,
+    equipmentOptions = [],
+    equipmentLoading = false,
+    equipmentError = "",
     selectedTagIds,
     onTagsChange,
+    showTags = true,
     selectedZones,
     onZonesChange,
     zones,
     zonesLoading,
     hasZones,
+    zonesLocked,
     content,
     onContentChange,
     householdId,
@@ -143,51 +161,86 @@ export default function BaseInteractionFields({
                             </div>
                         )}
 
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-occurred-at">
-                                {t("interactionsoccurredAtLabel")}
-                            </label>
-                            <Input
-                                id="interaction-occurred-at"
-                                type="datetime-local"
-                                value={occurredAt}
-                                onChange={(event) => onOccurredAtChange(event.target.value)}
-                            />
-                        </div>
+                        {showOccurredAt ? (
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700" htmlFor="interaction-occurred-at">
+                                    {t("interactionsoccurredAtLabel")}
+                                </label>
+                                <Input
+                                    id="interaction-occurred-at"
+                                    type="datetime-local"
+                                    value={occurredAt}
+                                    onChange={(event) => onOccurredAtChange(event.target.value)}
+                                />
+                            </div>
+                        ) : null}
 
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm font-medium text-gray-700" htmlFor="interaction-project">
-                                {t("interactionsprojectLabel")}
-                            </label>
-                            <select
-                                id="interaction-project"
-                                value={selectedProjectId ?? ""}
-                                onChange={(event) => onProjectChange(event.target.value ? event.target.value : null)}
-                                disabled={projectLoading}
-                                className="border rounded-md h-9 w-full px-3 text-sm bg-background disabled:opacity-60"
-                            >
-                                <option value="">{t("interactionsprojectNone")}</option>
-                                {projectOptions.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.title} · {t(`projects.status.${option.status}`)}
-                                    </option>
-                                ))}
-                            </select>
-                            <p className="text-xs text-gray-500">{t("interactionsprojectHelper")}</p>
-                            {projectError && (
-                                <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
-                                    {projectError}
-                                </div>
-                            )}
-                        </div>
+                        {showProject ? (
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-medium text-gray-700" htmlFor="interaction-project">
+                                    {t("interactionsprojectLabel")}
+                                </label>
+                                <select
+                                    id="interaction-project"
+                                    value={selectedProjectId ?? ""}
+                                    onChange={(event) => onProjectChange(event.target.value ? event.target.value : null)}
+                                    disabled={projectLoading}
+                                    className="border rounded-md h-9 w-full px-3 text-sm bg-background disabled:opacity-60"
+                                >
+                                    <option value="">{t("interactionsprojectNone")}</option>
+                                    {projectOptions.map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                            {option.title} · {t(`projects.status.${option.status}`)}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500">{t("interactionsprojectHelper")}</p>
+                                {projectError && (
+                                    <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
+                                        {projectError}
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
+
+                        {onEquipmentChange ? (
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-sm font-medium text-gray-700" htmlFor="interaction-equipment">
+                                    {t("forms.note.equipmentLabel")}
+                                </label>
+                                <select
+                                    id="interaction-equipment"
+                                    value={selectedEquipmentId ?? ""}
+                                    onChange={(event) => onEquipmentChange(event.target.value ? event.target.value : null)}
+                                    disabled={equipmentLoading}
+                                    className="border rounded-md h-9 w-full px-3 text-sm bg-background disabled:opacity-60"
+                                >
+                                    <option value="">{t("forms.note.equipmentPlaceholder")}</option>
+                                    {equipmentOptions.map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                            {option.name}
+                                            {option.status ? ` · ${option.status}` : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500">{t("forms.note.equipmentHelper")}</p>
+                                {equipmentError && (
+                                    <div className="rounded-md border border-rose-200 bg-rose-50 p-2 text-xs text-rose-700">
+                                        {equipmentError}
+                                    </div>
+                                )}
+                            </div>
+                        ) : null}
                     </div>
 
-                    <InteractionTagsSelector
-                        householdId={householdId}
-                        value={selectedTagIds}
-                        onChange={onTagsChange}
-                        inputId="interaction-tags"
-                    />
+                    {showTags ? (
+                        <InteractionTagsSelector
+                            householdId={householdId}
+                            value={selectedTagIds}
+                            onChange={onTagsChange}
+                            inputId="interaction-tags"
+                        />
+                    ) : null}
                 </CardContent>
             </Card>
 
@@ -197,7 +250,18 @@ export default function BaseInteractionFields({
                     <CardDescription>{zoneHelper}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {zonesLoading ? (
+                    {zonesLocked?.locked ? (
+                        <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                            <p>{zonesLocked.helper || t("forms.note.projectZonesLocked")}</p>
+                            {zonesLocked.zoneNames?.length ? (
+                                <ul className="mt-2 list-disc pl-4 text-slate-800">
+                                    {zonesLocked.zoneNames.map((name) => (
+                                        <li key={name}>{name}</li>
+                                    ))}
+                                </ul>
+                            ) : null}
+                        </div>
+                    ) : zonesLoading ? (
                         <div className="text-sm text-gray-500">{t("common.loading")}</div>
                     ) : hasZones ? (
                         <ZonePicker zones={zones} value={selectedZones} onChange={onZonesChange} />

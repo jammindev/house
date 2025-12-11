@@ -28,11 +28,11 @@ export default function ProjectsPage() {
 
     return Boolean(
       statusesChanged ||
-        filters.search?.trim() ||
-        (filters.tags?.length ?? 0) > 0 ||
-        filters.startDateFrom ||
-        filters.dueDateTo ||
-        filters.projectGroupId
+      filters.search?.trim() ||
+      (filters.tags?.length ?? 0) > 0 ||
+      filters.startDateFrom ||
+      filters.dueDateTo ||
+      filters.projectGroupId
     );
   }, [filters]);
 
@@ -65,7 +65,7 @@ export default function ProjectsPage() {
   return (
     <ListPageLayout
       title={t("projects.title")}
-      subtitle={t("projects.subtitle")}
+      // subtitle={t("projects.subtitle")}
       hideBackButton
       actions={actions}
       toolbar={toolbar}

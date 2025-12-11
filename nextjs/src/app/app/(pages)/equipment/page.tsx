@@ -97,7 +97,7 @@ export default function EquipmentPage() {
   return (
     <ListPageLayout
       title={t("equipment.title")}
-      subtitle={t("equipment.subtitle")}
+      // subtitle={t("equipment.subtitle")}
       hideBackButton
       actions={actions}
       toolbar={toolbar}

@@ -30,7 +30,7 @@ export default function DashboardContent() {
   return (
     <ResourcePageShell
       title={currentHousehold?.name || t("dashboard.title")}
-      subtitle={t("dashboard.subtitle")}
+      // subtitle={t("dashboard.subtitle")}
       actions={pageActions}
       hideBackButton
       bodyClassName="space-y-2 md:space-y-6"

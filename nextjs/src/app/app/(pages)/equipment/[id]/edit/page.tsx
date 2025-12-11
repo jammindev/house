@@ -19,7 +19,8 @@ export default function EditEquipmentPage() {
 
   if (loading) {
     return (
-      <ResourcePageShell title={t("equipment.editTitle")} subtitle={t("equipment.editSubtitle")}>
+      // <ResourcePageShell title={t("equipment.editTitle")} subtitle={t("equipment.editSubtitle")}>
+      <ResourcePageShell title={t("equipment.editTitle")} >
         <p className="text-sm text-gray-500">{t("equipment.loading")}</p>
       </ResourcePageShell>
     );
