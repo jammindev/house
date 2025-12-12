@@ -19,6 +19,7 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
   - Supabase helpers: `nextjs/src/lib/supabase/{client,server,serverAdminClient,unified}.ts`.
   - Global household context: `nextjs/src/lib/context/GlobalContext.tsx`.
   - i18n dictionaries: `nextjs/src/lib/i18n/dictionaries/{en,fr}.json`.
+- Backend app: `backend/` (FastAPI + SQLModel scaffold that reuses Supabase auth; see `backend/README.md`).
 - Supabase project: `supabase/`
   - Migrations define households, members, zones (with parent/creator), interactions, interaction_zones, documents, RPCs, and storage policies. Legacy template artifacts (`todo_list`) remain.
   - `supabase/config.toml` configures local dev, bucket `files`, and auth settings.
@@ -27,7 +28,7 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 
 ## 3) Tech Stack
 - Frontend: Next.js 15 (App Router), React 19, Tailwind CSS, shadcn/ui, Lucide icons, custom i18n provider.
-- Backend: Supabase (Postgres 17, RLS policies, Storage buckets, Auth).
+- Backend: Supabase (Postgres 17, RLS policies, Storage buckets, Auth) plus a FastAPI + SQLModel service scaffold that reuses Supabase auth.
 - Tooling: TypeScript 5, ESLint 9, PostCSS, Yarn. Supabase CLI for migrations/RPCs.
 
 ## 4) Environment & Secrets
@@ -39,6 +40,7 @@ If you are an AI planning to change code, also read AI_UPDATE_WORKFLOW.md for th
 - Template variables (`NEXT_PUBLIC_PRODUCTNAME`, `NEXT_PUBLIC_THEME`, billing tier settings, etc.) are still present; adjust or remove them for House branding before production.
 - Never commit `.env.local`.
 - Supabase linking workflow: `npx supabase login`, `npx supabase link`, `npx supabase config push`, `npx supabase migrations up --linked`.
+- Backend env: copy `backend/.env.example` → `backend/.env` and supply Supabase URL/keys, JWT secret, `DATABASE_URL`, and `BACKEND_CORS_ORIGINS` for the FastAPI service.
 
 ## 5) Database Model (RLS-first)
 _All domain tables live in the `public` schema with RLS enabled. Membership determines access._
