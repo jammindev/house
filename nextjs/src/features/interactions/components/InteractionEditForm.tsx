@@ -15,7 +15,7 @@ import StructureSelector from "@interactions/components/StructureSelector";
 import InteractionTagsSelector from "@interactions/components/InteractionTagsSelector";
 import { INTERACTION_STATUSES, INTERACTION_TYPES } from "@interactions/constants";
 import { toIsoStringFromInput, toLocalDateTimeInput } from "@interactions/utils/datetime";
-import { useUpdateInteraction } from "@interactions/hooks/useUpdateInteraction";
+import { useInteraction } from "@interactions/hooks/useInteraction";
 import type { Interaction, InteractionStatus, InteractionType } from "@interactions/types";
 import { extractAmountFromMetadata, formatAmountForInput, parseAmountInput } from "@interactions/utils/amount";
 import { useContacts } from "@contacts/hooks/useContacts";
@@ -54,7 +54,7 @@ type ProjectOption = {
 export default function InteractionEditForm({ interaction, onSaved }: InteractionEditFormProps) {
     const { t } = useI18n();
     const { show } = useToast();
-    const { updateInteraction, loading, error, setError } = useUpdateInteraction();
+    const { updateInteraction, loading, error, setError } = useInteraction(interaction.id);
     const { contacts } = useContacts();
     const { structures } = useStructures();
 

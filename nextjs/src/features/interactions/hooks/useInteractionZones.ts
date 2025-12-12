@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import type { Zone } from "@/features/zones/types";
-import type { Database } from "@/lib/types";
+import { Database } from "@/lib/types-generated";
 
 type ZoneRow = Pick<Database["public"]["Tables"]["zones"]["Row"], "id" | "name" | "parent_id" | "created_by" | "note" | "surface">;
 

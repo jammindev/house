@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import ResourcePageShell from "@shared/layout/ResourcePageShell";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import InteractionTypeSelector from "@interactions/components/InteractionTypeSelector";
+import InteractionTypeSelectorGrid from "@interactions/components/InteractionTypeSelectorGrid";
 
 export default function NewInteractionPage() {
   const { t } = useI18n();
@@ -20,7 +20,7 @@ export default function NewInteractionPage() {
       hideBackButton={false}
       bodyClassName="gap-4"
     >
-      <InteractionTypeSelector projectId={projectIdParam} returnTo={redirectTo} zones={zonesParam} />
+      <InteractionTypeSelectorGrid projectId={projectIdParam} returnTo={redirectTo} zones={zonesParam} />
     </ResourcePageShell>
   );
 }

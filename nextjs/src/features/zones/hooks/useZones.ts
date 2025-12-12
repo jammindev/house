@@ -5,9 +5,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { useGlobal } from "@/lib/context/GlobalContext";
-import type { Database } from "@/lib/types";
 import type { Zone } from "../types";
 import { DEFAULT_FIRST_LEVEL_COLOR, ROOT_ZONE_COLOR, lightenHexColor, normalizeHexColor } from "@zones/lib/colors";
+import { Database } from "@/lib/types-generated";
 
 type ZoneRow = Pick<Database["public"]["Tables"]["zones"]["Row"], "id" | "name" | "parent_id" | "created_by" | "note" | "surface" | "color">;
 
