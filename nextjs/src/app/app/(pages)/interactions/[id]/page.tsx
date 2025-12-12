@@ -20,7 +20,7 @@ export default function InteractionDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useI18n();
-  const { interaction, documents, loading, error, reload } = useInteraction(id);
+  const { interaction, documents, loading, error, reload, deleteInteraction } = useInteraction(id);
   const { previews, error: fileError } = useSignedFilePreviews(documents);
 
   const returnTo = searchParams.get('returnTo');
@@ -84,6 +84,7 @@ export default function InteractionDetailPage() {
           fileError={fileError}
           onReload={reload}
           onDeleted={() => router.push(returnTo || "/app/interactions")}
+          deleteInteraction={deleteInteraction}
         />
       ) : null}
     </DetailPageLayout>

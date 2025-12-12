@@ -23,7 +23,6 @@ export type InteractionType =
   | "repair"
   | "replacement"
   | "visit"
-  | "visite"
   | "quote"
   | "upgrade"
   | "warranty"

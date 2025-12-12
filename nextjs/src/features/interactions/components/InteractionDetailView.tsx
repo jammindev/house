@@ -29,6 +29,7 @@ type InteractionDetailViewProps = {
   fileError?: string;
   onReload: () => void;
   onDeleted: () => void;
+  deleteInteraction?: (interactionId: string) => Promise<void>;
 };
 
 const DOCUMENT_TYPES = new Set(["document", "quote", "invoice", "contract", "other"]);
@@ -43,6 +44,7 @@ export default function InteractionDetailView({
   fileError,
   onReload,
   onDeleted,
+  deleteInteraction,
 }: InteractionDetailViewProps) {
   const { t, locale } = useI18n();
 
@@ -231,7 +233,7 @@ export default function InteractionDetailView({
               user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
             }),
           ]}
-          actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} />}
+          actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} deleteInteraction={deleteInteraction} />}
         />
       </div>
     </div>

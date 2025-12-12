@@ -142,7 +142,7 @@ export function SheetDialog({
               size="icon"
               className={cn(
                 "fixed left-4 top-4 rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                Z_INDEX_CLASSES.navigation.mobileMenu
+                Z_INDEX_CLASSES.overlay.drawer
               )}
               aria-label={closeLabel}
             >
