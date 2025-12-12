@@ -34,6 +34,7 @@ export interface InteractionTypeConfig {
     category: "communication" | "task" | "lifecycle" | "document" | "financial" | "other";
     hasSpecializedRoute: boolean;
     defaultStatus?: InteractionStatus | "";
+    compatibleWith: ("project" | "equipment" | "general")[];
 }
 
 export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeConfig> = {
@@ -47,6 +48,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "document",
         hasSpecializedRoute: true,
         defaultStatus: "",
+        compatibleWith: ["project", "equipment", "general"],
     },
     todo: {
         key: "todo",
@@ -58,6 +60,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "task",
         hasSpecializedRoute: true,
         defaultStatus: "pending",
+        compatibleWith: ["project", "general"],
     },
     expense: {
         key: "expense",
@@ -69,6 +72,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "financial",
         hasSpecializedRoute: true,
         defaultStatus: "",
+        compatibleWith: ["project", "equipment", "general"],
     },
     quote: {
         key: "quote",
@@ -80,6 +84,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "financial",
         hasSpecializedRoute: true,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     call: {
         key: "call",
@@ -91,6 +96,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "communication",
         hasSpecializedRoute: true,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     meeting: {
         key: "meeting",
@@ -102,6 +108,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "communication",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     visit: {
         key: "visit",
@@ -113,6 +120,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "communication",
         hasSpecializedRoute: true,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     message: {
         key: "message",
@@ -124,6 +132,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "communication",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     document: {
         key: "document",
@@ -135,6 +144,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "document",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["project", "equipment", "general"],
     },
     maintenance: {
         key: "maintenance",
@@ -146,6 +156,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     repair: {
         key: "repair",
@@ -157,6 +168,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     installation: {
         key: "installation",
@@ -168,6 +180,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     inspection: {
         key: "inspection",
@@ -179,6 +192,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     warranty: {
         key: "warranty",
@@ -190,6 +204,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     issue: {
         key: "issue",
@@ -201,6 +216,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     upgrade: {
         key: "upgrade",
@@ -212,6 +228,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     replacement: {
         key: "replacement",
@@ -223,6 +240,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     disposal: {
         key: "disposal",
@@ -234,6 +252,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "lifecycle",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["equipment"],
     },
     signature: {
         key: "signature",
@@ -245,6 +264,7 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "document",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["project", "general"],
     },
     other: {
         key: "other",
@@ -256,16 +276,25 @@ export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeCo
         category: "other",
         hasSpecializedRoute: false,
         defaultStatus: "",
+        compatibleWith: ["project", "equipment", "general"],
     },
 };
 
-// Utilitaires pour filtrer par catégorie
-export const getInteractionTypesByCategory = (category?: InteractionTypeConfig["category"]) => {
+// Utilitaires pour filtrer par catégorie et compatibilité
+export const getInteractionTypesByCategory = (category?: InteractionTypeConfig["category"], compatibleWith?: "project" | "equipment" | "general") => {
+    const allConfigs = Object.values(INTERACTION_TYPE_CONFIGS);
+    
+    // Filtrer par compatibilité si spécifié
+    const compatibleConfigs = compatibleWith 
+        ? allConfigs.filter(config => config.compatibleWith.includes(compatibleWith))
+        : allConfigs;
+    
     if (category) {
-        return Object.values(INTERACTION_TYPE_CONFIGS).filter(config => config.category === category);
+        return compatibleConfigs.filter(config => config.category === category);
     }
+    
     // Retourner toutes les configs groupées par catégorie
-    const grouped = Object.values(INTERACTION_TYPE_CONFIGS).reduce((acc, config) => {
+    const grouped = compatibleConfigs.reduce((acc, config) => {
         if (!acc[config.category]) {
             acc[config.category] = [];
         }

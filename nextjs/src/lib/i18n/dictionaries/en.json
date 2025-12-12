@@ -1063,7 +1063,7 @@
   "projects.quickActions.addExpense": "Log expense",
   "projects.quickActions.addCall": "Log call",
   "projects.quickActions.addQuote": "Add quote",
-  "projects.quickActions.linkExisting": "Link existing interaction",
+  "projects.quickActions.linkExisting": "Link interaction",
   "projects.actions.showDetails": "More details",
   "projects.actions.hideDetails": "Hide details",
   "projects.actions.editProject": "Edit project",
