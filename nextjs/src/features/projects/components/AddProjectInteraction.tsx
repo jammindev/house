@@ -27,8 +27,8 @@ export default function AddProjectInteraction({
   const { t } = useI18n();
   const [showLinkDialog, setShowLinkDialog] = useState(false);
 
-  // Récupérer toutes les configs groupées par catégorie
-  const typesByCategory = getInteractionTypesByCategory();
+  // Récupérer seulement les configs compatibles avec les projets
+  const typesByCategory = getInteractionTypesByCategory(undefined, "project");
   const interactionActions = Object.values(typesByCategory)
     .flat()
     .filter((config) => !EXCLUDED_TYPES.includes(config.type))

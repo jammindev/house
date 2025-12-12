@@ -1069,7 +1069,7 @@
   "projects.quickActions.addExpense": "Enregistrer une dépense",
   "projects.quickActions.addCall": "Consigner un appel",
   "projects.quickActions.addQuote": "Ajouter un devis",
-  "projects.quickActions.linkExisting": "Lier une interaction existante",
+  "projects.quickActions.linkExisting": "Lier interaction",
   "projects.actions.showDetails": "Plus de détails",
   "projects.actions.hideDetails": "Masquer les détails",
   "projects.actions.editProject": "Modifier le projet",

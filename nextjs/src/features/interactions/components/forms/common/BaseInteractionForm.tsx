@@ -397,6 +397,7 @@ export default function BaseInteractionForm({
                 projectOptions={projectOptions}
                 projectLoading={projectLoading}
                 projectError={projectError}
+                projectReadonly={!!defaultValues.projectId}
                 selectedTagIds={selectedTagIds}
                 onTagsChange={setSelectedTagIds}
                 selectedZones={selectedZones}

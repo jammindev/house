@@ -106,6 +106,12 @@ export default function NoteForm({
         setCurrentStep((prev) => Math.max(prev - 1, 0));
     };
 
+    const normalizeRichText = (value: string) => {
+        const trimmed = value.trim();
+        const plainText = trimmed.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
+        return { trimmed, plainText };
+    };
+
     const onSubmit = async (formValues: NoteFormValues) => {
         if (isSubmitting) return;
         if (currentStep < lastStepIndex) {
@@ -113,9 +119,9 @@ export default function NoteForm({
             return;
         }
 
-        const trimmedContent = formValues.content.trim();
-        const trimmedSubject = formValues.subject.trim() || trimmedContent.slice(0, 80);
-        const contentPayload = trimmedContent.length > 0 ? trimmedContent : null;
+        const { trimmed: trimmedContent, plainText: contentText } = normalizeRichText(formValues.content || "");
+        const trimmedSubject = formValues.subject.trim() || contentText.slice(0, 80);
+        const contentPayload = contentText.length > 0 ? trimmedContent : null;
 
         if (formValues.projectId && formValues.equipmentId) {
             setSubmitError(t("interactionsprojectEquipmentExclusive"));
@@ -289,6 +295,7 @@ export default function NoteForm({
                 projectLoading={projectLoading}
                 projectError={projectError}
                 showProject={showProjectField}
+                projectReadonly={!!defaultValues.projectId}
                 selectedEquipmentId={selectedEquipmentId}
                 onEquipmentChange={
                     showEquipmentField && householdId
@@ -315,10 +322,10 @@ export default function NoteForm({
                     zonesLocked
                         ? undefined
                         : (updater) => {
-                              const current = selectedZones;
-                              const nextValue = typeof updater === "function" ? updater(current) : updater;
-                              form.setValue("zoneIds", nextValue, { shouldDirty: true });
-                          }
+                            const current = selectedZones;
+                            const nextValue = typeof updater === "function" ? updater(current) : updater;
+                            form.setValue("zoneIds", nextValue, { shouldDirty: true });
+                        }
                 }
                 zones={zones}
                 zonesLoading={zonesLoading}
@@ -326,20 +333,20 @@ export default function NoteForm({
                 zonesLocked={
                     zonesLocked
                         ? {
-                              locked: true,
-                              zoneNames: zones
-                                  .filter((zone) =>
-                                      zonesLockedByProject
-                                          ? projectZoneIds.includes(zone.id)
-                                          : zonesLockedByEquipment && equipmentZoneId
-                                          ? zone.id === equipmentZoneId
-                                          : false
-                                  )
-                                  .map((zone) => zone.name),
-                              helper: zonesLockedByProject
-                                  ? t("forms.note.projectZonesLocked")
-                                  : t("forms.note.equipmentZonesLocked"),
-                          }
+                            locked: true,
+                            zoneNames: zones
+                                .filter((zone) =>
+                                    zonesLockedByProject
+                                        ? projectZoneIds.includes(zone.id)
+                                        : zonesLockedByEquipment && equipmentZoneId
+                                            ? zone.id === equipmentZoneId
+                                            : false
+                                )
+                                .map((zone) => zone.name),
+                            helper: zonesLockedByProject
+                                ? t("forms.note.projectZonesLocked")
+                                : t("forms.note.equipmentZonesLocked"),
+                        }
                         : undefined
                 }
                 content={content}
@@ -358,6 +365,7 @@ export default function NoteForm({
                 onPrevStep={handlePrevStep}
                 isLastStep={currentStep === lastStepIndex}
                 canProceed={canProceed}
+                onSubmitClick={() => form.handleSubmit(onSubmit)()}
             />
         </form>
     );

@@ -25,6 +25,7 @@ interface NoteFormFieldsProps {
     projectLoading: boolean;
     projectError: string;
     showProject?: boolean;
+    projectReadonly?: boolean;
     selectedEquipmentId: string | null;
     onEquipmentChange: (value: string | null) => void;
     equipmentOptions: { id: string; name: string; status: string | null }[];
@@ -58,6 +59,7 @@ interface NoteFormFieldsProps {
     onPrevStep: () => void;
     isLastStep: boolean;
     canProceed: boolean;
+    onSubmitClick: () => void;
 }
 
 export function NoteFormFields({
@@ -74,6 +76,7 @@ export function NoteFormFields({
     projectLoading,
     projectError,
     showProject = true,
+    projectReadonly = false,
     selectedEquipmentId,
     onEquipmentChange,
     equipmentOptions,
@@ -107,9 +110,9 @@ export function NoteFormFields({
     onPrevStep,
     isLastStep,
     canProceed,
+    onSubmitClick,
 }: NoteFormFieldsProps) {
     const { t } = useI18n();
-
     return (
         <>
             <div className="space-y-4">
@@ -132,6 +135,7 @@ export function NoteFormFields({
                         projectLoading={projectLoading}
                         projectError={projectError}
                         showProject={showProject}
+                        projectReadonly={projectReadonly}
                         selectedEquipmentId={selectedEquipmentId}
                         onEquipmentChange={onEquipmentChange}
                         equipmentOptions={equipmentOptions}
@@ -209,7 +213,11 @@ export function NoteFormFields({
                 </div>
                 <div className="flex gap-2">
                     {isLastStep ? (
-                        <Button type="submit" disabled={isSubmitting || zonesLoading || !hasZones}>
+                        <Button
+                            type="button"
+                            onClick={onSubmitClick}
+                            disabled={isSubmitting || zonesLoading || !hasZones}
+                        >
                             {submitLabel}
                         </Button>
                     ) : (
