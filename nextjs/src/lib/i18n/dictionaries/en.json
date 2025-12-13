@@ -117,6 +117,7 @@
   "dashboard.pinnedProjects.empty": "No pinned projects yet.",
   "dashboard.pinnedProjects.hint": "Open a project and tap the pin button to highlight it on the dashboard.",
   "dashboard.pinnedProjects.viewAll": "All projects",
+  "dashboard.pinnedProjects.openSketchup": "Open SketchUp",
   "dashboard.actions.viewProjects": "View all projects",
   "dashboard.activity.createFirst": "Create first interaction",
   "projectstatus.draft": "Draft",

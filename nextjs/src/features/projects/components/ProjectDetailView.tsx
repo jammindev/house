@@ -104,7 +104,6 @@ export default function ProjectDetailView({
         if (error) throw error;
         setStatus(nextStatus);
         onRefresh?.();
-        show({ title: t("projects.statusChange.success"), variant: "success" });
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : t("common.unexpectedError");
         show({ title: message, variant: "error" });

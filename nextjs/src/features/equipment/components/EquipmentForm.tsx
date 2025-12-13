@@ -184,12 +184,6 @@ export default function EquipmentForm({ equipment, onSaved, mode = "create" }: P
       if (!savedId) {
         throw new Error("Failed to save equipment");
       }
-
-      show({
-        title: t(equipment ? "equipment.toasts.updated" : "equipment.toasts.created"),
-        description: values.name,
-        variant: "success",
-      });
       if (onSaved) onSaved(savedId);
     } catch (err: unknown) {
       console.error(err);

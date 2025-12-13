@@ -105,7 +105,6 @@ export default function ProjectLinkInteractionModal({
         .update({ project_id: projectId })
         .in("id", Array.from(selectedIds));
       if (updateError) throw updateError;
-      show({ title: t("projects.linkInteraction.success"), variant: "success" });
       onLinked();
       onOpenChange(false);
     } catch (err: unknown) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Folder, Pin } from "lucide-react";
+import { ArrowRight, Cube, Folder, Pin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
@@ -139,12 +139,26 @@ export default function DashboardPinnedProjects() {
           <Pin className="h-4 w-4" />
           <h2 className="text-lg font-semibold text-foreground">{t("dashboard.pinnedProjects.title")}</h2>
         </div>
-        <Button asChild variant="ghost" size="sm" className="justify-start gap-1 text-primary-700">
-          <LinkWithOverlay href="/app/projects">
-            {t("dashboard.pinnedProjects.viewAll")}
-            <ArrowRight className="h-4 w-4" />
-          </LinkWithOverlay>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button asChild variant="ghost" size="sm" className="justify-start gap-1 text-primary-700">
+            <LinkWithOverlay href="/app/projects">
+              {t("dashboard.pinnedProjects.viewAll")}
+              <ArrowRight className="h-4 w-4" />
+            </LinkWithOverlay>
+          </Button>
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="text-primary-700"
+            title={t("dashboard.pinnedProjects.openSketchup")}
+          >
+            <a href="https://app.sketchup.com/app" target="_blank" rel="noreferrer">
+              <Cube className="h-4 w-4" />
+              <span className="sr-only">{t("dashboard.pinnedProjects.openSketchup")}</span>
+            </a>
+          </Button>
+        </div>
       </header>
 
       {error ? (

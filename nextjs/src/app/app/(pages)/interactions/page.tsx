@@ -48,10 +48,10 @@ export default function InteractionsPage() {
     () =>
       Boolean(
         filters.search?.trim() ||
-          filters.types.length ||
-          filters.statuses.length ||
-          filters.occurredFrom ||
-          filters.occurredTo
+        filters.types.length ||
+        filters.statuses.length ||
+        filters.occurredFrom ||
+        filters.occurredTo
       ),
     [filters]
   );
@@ -84,10 +84,6 @@ export default function InteractionsPage() {
       sp.delete("created");
       const next = `/app/interactions${sp.toString() ? `?${sp.toString()}` : ""}`;
       router.replace(next, { scroll: false });
-      show({
-        title: t("interactions.createdSuccess"),
-        variant: "success",
-      });
     }
   }, [searchParams, router, show, t]);
 

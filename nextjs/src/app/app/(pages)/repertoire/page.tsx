@@ -64,25 +64,11 @@ export default function RepertoirePage() {
     if (params.get("created") === "1") {
       params.delete("created");
       shouldReplace = true;
-      show({
-        title:
-          currentView === "structures"
-            ? t("structures.createSuccess")
-            : t("contacts.createSuccess"),
-        variant: "success",
-      });
     }
 
     if (params.get("deleted") === "1") {
       params.delete("deleted");
       shouldReplace = true;
-      show({
-        title:
-          currentView === "structures"
-            ? t("structures.deleteSuccess")
-            : t("contacts.deleteSuccess"),
-        variant: "success",
-      });
     }
 
     if (shouldReplace) {
