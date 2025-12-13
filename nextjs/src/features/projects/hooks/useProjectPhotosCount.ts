@@ -48,7 +48,6 @@ export function useProjectPhotosCount(projectId?: string) {
             if (photosError) throw photosError;
 
             const photosCount = photoDocuments?.length ?? 0;
-            console.log(`Project ${projectId}: found ${photosCount} photos`);
             setPhotosCount(photosCount);
         } catch (fetchError: unknown) {
             console.error("Error fetching photos count:", fetchError);

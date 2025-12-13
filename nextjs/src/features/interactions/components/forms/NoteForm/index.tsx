@@ -37,12 +37,12 @@ export default function NoteForm({
 }: NoteFormProps) {
     const router = useRouter();
     const { selectedHouseholdId: householdId } = useGlobal();
-    const { show } = useToast();
     const { t } = useI18n();
 
     const steps = useMemo(
         () => [
-            { title: t("forms.note.steps.details"), description: t("forms.note.steps.detailsDescription") },
+            { title: t("forms.note.steps.basics"), description: t("forms.note.steps.basicsDescription") },
+            { title: t("forms.note.steps.scope"), description: t("forms.note.steps.scopeDescription") },
             { title: t("forms.note.steps.context"), description: t("forms.note.steps.contextDescription") },
             { title: t("forms.note.steps.attachments"), description: t("forms.note.steps.attachmentsDescription") },
         ],
@@ -75,7 +75,7 @@ export default function NoteForm({
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
 
-    const canProceed = currentStep === 0 ? selectedZones.length > 0 && hasZones && !zonesLoading : true;
+    const canProceed = currentStep === 1 ? selectedZones.length > 0 && hasZones && !zonesLoading : true;
     const showProjectField = !selectedEquipmentId;
     const showEquipmentField = !selectedProjectId;
     const selectedProject = projectOptions.find((project) => project.id === selectedProjectId);
@@ -93,7 +93,7 @@ export default function NoteForm({
     }, [equipmentZoneId, form, projectZoneIds, zonesLocked, zonesLockedByProject]);
 
     const handleNextStep = () => {
-        if (currentStep === 0 && (!selectedZones.length || !hasZones || zonesLoading)) {
+        if (currentStep === 1 && (!selectedZones.length || !hasZones || zonesLoading)) {
             setSubmitError(t("interactionsselectZoneRequired"));
             return;
         }
@@ -271,7 +271,6 @@ export default function NoteForm({
             console.error(error);
             const message = error instanceof Error ? error.message : t("interactionscreateFailed");
             setSubmitError(message);
-            show({ title: t("interactionscreateFailed"), description: message, variant: "error" });
         }
     };
 

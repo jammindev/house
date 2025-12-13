@@ -55,8 +55,6 @@ export default function InteractionDetailPage() {
 
   return (
     <DetailPageLayout
-      title={title}
-      subtitle={subtitle}
       context={typeLabel}
       actions={layoutActions}
       loading={loading}

@@ -6,11 +6,20 @@ import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { AdminRole, AdminContext, SystemStats } from '../types';
 import { Database } from '@/lib/types-generated';
 
+// Admin features are optional; only check Supabase when explicitly enabled.
+const ADMIN_FEATURE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_ADMIN === 'true';
+
 export function useAdminContext(): AdminContext {
     const [adminRole, setAdminRole] = useState<AdminRole>('user');
     const [loading, setLoading] = useState(true);
 
     const checkAdminStatus = useCallback(async () => {
+        if (!ADMIN_FEATURE_ENABLED) {
+            setAdminRole('user');
+            setLoading(false);
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -38,7 +47,7 @@ export function useAdminContext(): AdminContext {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [ADMIN_FEATURE_ENABLED]);
 
     const refresh = useCallback(async () => {
         await checkAdminStatus();
@@ -48,11 +57,14 @@ export function useAdminContext(): AdminContext {
         checkAdminStatus();
     }, [checkAdminStatus]);
 
+    const isAdmin = ADMIN_FEATURE_ENABLED && (adminRole === 'admin' || adminRole === 'super_admin');
+    const isSuperAdmin = ADMIN_FEATURE_ENABLED && adminRole === 'super_admin';
+
     return {
-        isAdmin: adminRole === 'admin' || adminRole === 'super_admin',
-        isSuperAdmin: adminRole === 'super_admin',
-        adminRole,
-        loading,
+        isAdmin,
+        isSuperAdmin,
+        adminRole: ADMIN_FEATURE_ENABLED ? adminRole : 'user',
+        loading: ADMIN_FEATURE_ENABLED ? loading : false,
         refresh,
     };
 }

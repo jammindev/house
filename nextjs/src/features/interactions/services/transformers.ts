@@ -36,19 +36,19 @@ export class InteractionTransformers {
             raw.interaction_tags
                 ?.map((entry) => entry?.tag)
                 .filter((tag): tag is DbTag => Boolean(tag))
-                .map(this.transformTag) ?? [];
+                .map((tag) => InteractionTransformers.transformTag(tag)) ?? [];
 
         const contacts: InteractionContact[] =
             raw.interaction_contacts
                 ?.map((link) => link?.contact)
                 .filter((contact): contact is NonNullable<typeof contact> => Boolean(contact))
-                .map(this.transformContact) ?? [];
+                .map((contact) => InteractionTransformers.transformContact(contact)) ?? [];
 
         const structures: InteractionStructure[] =
             raw.interaction_structures
                 ?.map((link) => link?.structure)
                 .filter((structure): structure is NonNullable<typeof structure> => Boolean(structure))
-                .map(this.transformStructure) ?? [];
+                .map((structure) => InteractionTransformers.transformStructure(structure)) ?? [];
 
         return {
             id: raw.id,
@@ -134,8 +134,8 @@ export class InteractionTransformers {
                     type: InteractionServiceUtils.normalizeText(contact.structure.type),
                 }
                 : null,
-            emails: contact.emails?.map(this.transformContactEmail) ?? [],
-            phones: contact.phones?.map(this.transformContactPhone) ?? [],
+            emails: contact.emails?.map((email) => InteractionTransformers.transformContactEmail(email)) ?? [],
+            phones: contact.phones?.map((phone) => InteractionTransformers.transformContactPhone(phone)) ?? [],
         };
     }
 
@@ -149,8 +149,8 @@ export class InteractionTransformers {
             id: structure.id,
             name: InteractionServiceUtils.normalizeText(structure.name) ?? "",
             type: InteractionServiceUtils.normalizeText(structure.type),
-            emails: structure.emails?.map(this.transformStructureEmail) ?? [],
-            phones: structure.phones?.map(this.transformStructurePhone) ?? [],
+            emails: structure.emails?.map((email) => InteractionTransformers.transformStructureEmail(email)) ?? [],
+            phones: structure.phones?.map((phone) => InteractionTransformers.transformStructurePhone(phone)) ?? [],
         };
     }
 
