@@ -34,7 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <SidebarToggleProvider value={{ isSidebarOpen, toggleSidebar }}>
-            <div className="min-h-screen p-2 md:p-0 bg-gray-100 flex flex-col relative">
+            <div className="min-h-screen bg-gray-50 p-2 md:p-0 flex flex-col relative">
                 <Sidebar
                     isOpen={isSidebarOpen}
                     onClose={toggleSidebar}

@@ -4,13 +4,22 @@ import { createSSRClient } from "@/lib/supabase/server";
 import { createServerAdminClient } from "@/lib/supabase/serverAdminClient";
 
 type RouteContext = {
-  params: {
-    id: string;
-  };
+  params:
+    | {
+        id: string;
+      }
+    | Promise<{
+        id: string;
+      }>;
 };
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
+    const { id } = await params;
+    if (!id || id === "undefined") {
+      return NextResponse.json({ error: "Invalid interaction ID" }, { status: 400 });
+    }
+
     const supabase = await createSSRClient();
     const {
       data: { user },
@@ -23,7 +32,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
     const { data: interaction, error: interactionError } = await supabase
       .from("interactions")
       .select("id, household_id, created_at, created_by, updated_at, updated_by")
-      .eq("id", params.id)
+      .eq("id", id)
       .single();
 
     if (interactionError) {

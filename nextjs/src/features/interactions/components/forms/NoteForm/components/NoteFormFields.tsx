@@ -118,8 +118,9 @@ export function NoteFormFields({
             <div className="space-y-4">
                 <Stepper steps={steps} currentStep={currentStep} />
 
-                {currentStep === 0 ? (
+                {currentStep <= 1 ? (
                     <BaseInteractionFields
+                        currentStep={currentStep}
                         subject={subject}
                         onSubjectChange={onSubjectChange}
                         subjectDirty={subjectDirty}
@@ -156,7 +157,7 @@ export function NoteFormFields({
                     />
                 ) : null}
 
-                {currentStep === 1 ? (
+                {currentStep === 2 ? (
                     <div className="space-y-4">
                         <Card>
                             <CardHeader className="space-y-1">
@@ -186,7 +187,7 @@ export function NoteFormFields({
                     </div>
                 ) : null}
 
-                {currentStep === 2 ? (
+                {currentStep === 3 ? (
                     <DocumentsFields
                         files={files}
                         onFilesChange={onFilesChange}

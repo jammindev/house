@@ -106,7 +106,7 @@ export function SheetDialog({
             containerClassName,
           )}
           style={{
-            minHeight: minHeight || "auto",
+            minHeight: minHeight || "87vh",
             maxHeight: "87vh",
           }}
         >

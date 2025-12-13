@@ -1,10 +1,10 @@
-// nextjs/src/features/entries/components/InteractionRawTextEditor.tsx
+// nextjs/src/features/interactions/components/InteractionRawTextEditor.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { Pencil, X, Check } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
+import { TinyEditor } from "@/components/rich-text/TinyEditor";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useUpdateInteractionContent } from "@interactions/hooks/useUpdateInteractionContent";
 
@@ -16,68 +16,89 @@ type Props = {
 
 export default function InteractionRawTextEditor({ interactionId, initialContent, onSaved }: Props) {
   const { t } = useI18n();
-  const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(initialContent || "");
+  const [lastSavedValue, setLastSavedValue] = useState(initialContent || "");
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const { updateContent, loading } = useUpdateInteractionContent();
 
   useEffect(() => {
-    // If interaction reloads, keep editor in sync when not editing
-    if (!editing) setValue(initialContent || "");
-  }, [initialContent, editing]);
+    const nextValue = initialContent || "";
+    setValue(nextValue);
+    setLastSavedValue(nextValue);
+  }, [initialContent]);
 
-  const handleSave = async () => {
-    const trimmed = value.trim();
-    if (!trimmed) return; // keep same UX as creation requiring some text
+  const plainText = useMemo(
+    () => value.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim(),
+    [value]
+  );
+  const displayHtml = useMemo(
+    () =>
+      value && value.trim().length > 0
+        ? value
+        : `<p class="text-muted-foreground">${t("interactionsrawPlaceholder")}</p>`,
+    [t, value]
+  );
+  const trimmedValue = value.trim();
+  const isDirty = trimmedValue !== (lastSavedValue || "").trim();
+
+  const handleSave = useCallback(async () => {
+    if (!plainText || !isDirty) return;
+    const trimmed = trimmedValue;
     try {
       await updateContent(interactionId, trimmed);
-      setEditing(false);
+      setLastSavedValue(trimmed);
       onSaved?.();
     } catch {
       alert(t("interactionsupdateFailed"));
     }
-  };
+  }, [interactionId, isDirty, onSaved, plainText, trimmedValue, t, updateContent]);
 
-  const handleCancel = () => {
-    setValue(initialContent || "");
-    setEditing(false);
-  };
+  // Autosave with a small debounce window when content changes
+  useEffect(() => {
+    if (!plainText || !isDirty || loading) return;
+    const timeout = setTimeout(() => {
+      void handleSave();
+    }, 900);
+    return () => clearTimeout(timeout);
+  }, [handleSave, isDirty, loading, plainText]);
 
-  if (!editing) {
-    return (
-      <div className="group relative">
-        <div className="flex items-start justify-between gap-2">
-          <pre className="whitespace-pre-wrap text-gray-900 flex-1">{initialContent}</pre>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t("interactionseditRaw")}
-            title={t("interactionseditRaw")}
-            onClick={() => setEditing(true)}
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleSheetOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open && isDirty && !loading) {
+        void handleSave();
+      }
+      setIsEditorOpen(open);
+    },
+    [handleSave, isDirty, loading]
+  );
 
   return (
-    <div className="space-y-2">
-      <Textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        rows={6}
-        placeholder={t("interactionsrawPlaceholder")}
-      />
-      <div className="flex items-center gap-2 justify-end">
-        <Button type="button" variant="secondary" onClick={handleCancel} disabled={loading}>
-          <X className="h-4 w-4" /> {t("common.cancel")}
-        </Button>
-        <Button type="button" onClick={handleSave} disabled={loading || !value.trim()}>
-          <Check className="h-4 w-4" /> {loading ? t("common.saving") : t("common.save")}
-        </Button>
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-3">
+        <SheetDialog
+          trigger={
+            <Button size="sm" variant="outline" disabled={loading}>
+              {loading ? t("common.saving") : t("common.edit")}
+            </Button>
+          }
+          closeLabel={t("common.close")}
+          contentClassName="gap-4"
+          open={isEditorOpen}
+          onOpenChange={handleSheetOpenChange}
+        >
+          <TinyEditor
+            id="interaction-description"
+            value={value}
+            onChange={setValue}
+            textareaName="interaction-description"
+            height={600}
+          />
+        </SheetDialog>
       </div>
+      <div
+        className="mt-3 text-sm leading-relaxed text-foreground [&_a]:text-primary [&_blockquote]:border-l-4 [&_blockquote]:border-l-muted [&_blockquote]:pl-3 [&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+        dangerouslySetInnerHTML={{ __html: displayHtml }}
+      />
     </div>
   );
 }

@@ -98,7 +98,7 @@ export default function AppPageLayout({
   return (
     <div
       className={cn(
-        "mx-auto flex w-full max-w-4xl flex-1 flex-col sm:px-6 sm:py-6 lg:px-8 gap-5",
+        "mx-auto flex w-full max-w-4xl flex-1 flex-col gap-5",
         className
       )}
     >

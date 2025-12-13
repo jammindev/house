@@ -1,0 +1,35 @@
+.tox .tox-dialog {
+    border-radius: 12px;
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.18);
+    font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.tox .tox-dialog__title {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.tox .tox-form__group label {
+    color: #475569;
+    font-weight: 500;
+}
+
+.tox .tox-button {
+    border-radius: 10px;
+    background-color: #0f172a;
+    color: #fff;
+    box-shadow: none;
+}
+
+.tox .tox-button:hover {
+    background-color: #111827;
+}
+
+.tox .tox-button--secondary {
+    background-color: #e2e8f0;
+    color: #0f172a;
+}
+
+.tox .tox-button--secondary:hover {
+    background-color: #cbd5e1;
+}
