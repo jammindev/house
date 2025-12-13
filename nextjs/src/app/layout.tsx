@@ -16,12 +16,14 @@ export const metadata: Metadata = {
   description: "Centralisez la connaissance de votre foyer avec House.",
   manifest: "/manifest.json",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: productName },
-  icons: { apple: [
-    { url: "/icons/apple-touch-icon-120.png", sizes: "120x120" },
-    { url: "/icons/apple-touch-icon-152.png", sizes: "152x152" },
-    { url: "/icons/apple-touch-icon-167.png", sizes: "167x167" },
-    { url: "/icons/apple-touch-icon-180.png", sizes: "180x180" },
-  ]},
+  icons: {
+    apple: [
+      { url: "/icons/apple-touch-icon-120.png", sizes: "120x120" },
+      { url: "/icons/apple-touch-icon-152.png", sizes: "152x152" },
+      { url: "/icons/apple-touch-icon-167.png", sizes: "167x167" },
+      { url: "/icons/apple-touch-icon-180.png", sizes: "180x180" },
+    ]
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   // L’I18nProvider lit la locale côté client via le cookie 'locale' (ou 'en' fallback).
   return (
     <html lang="en">
-      <body className={theme}>
+      <body className={`m-0 ${theme}`}>
         <I18nProvider initialLocale="en">
           <NavigationOverlayProvider>
             {children}
