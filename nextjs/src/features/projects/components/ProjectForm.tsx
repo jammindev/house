@@ -218,7 +218,6 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
             if (insertZonesError) throw insertZonesError;
           }
 
-          show({ title: t("projects.form.successUpdate"), variant: "success" });
           setIsRedirecting(true);
           onSuccess?.(project.id);
         } else {
@@ -246,7 +245,6 @@ export default function ProjectForm({ project, mode = "create", onSuccess, zones
             if (insertZonesError) throw insertZonesError;
           }
 
-          show({ title: t("projects.form.successCreate"), variant: "success" });
           if (newId) {
             setIsRedirecting(true);
             onSuccess?.(newId);

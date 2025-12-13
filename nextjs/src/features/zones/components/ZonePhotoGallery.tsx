@@ -182,7 +182,6 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
           if (linkError) throw linkError;
         }
 
-        show({ title: t("zones.photos.uploadSuccess"), variant: "success" });
         await loadPhotos();
       } catch (err) {
         console.error(err);
@@ -212,7 +211,6 @@ export function ZonePhotoGallery({ zoneId, householdId }: ZonePhotoGalleryProps)
           .from("zone_documents")
           .upsert(payload, { onConflict: "zone_id,document_id" });
         if (upsertError) throw upsertError;
-        show({ title: t("zones.photos.linkSuccess"), variant: "success" });
         await loadPhotos();
       } catch (err) {
         console.error(err);

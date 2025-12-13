@@ -113,7 +113,6 @@ export default function InteractionTagsSelector({
     if (match) {
       onChange(value.includes(match.id) ? value : [...value, match.id]);
       setTagInputValue("");
-      show({ title: t("interactionstagsDuplicate"), variant: "info" });
       return;
     }
 
@@ -132,7 +131,6 @@ export default function InteractionTagsSelector({
           if (dup) {
             onChange(value.includes(dup.id) ? value : [...value, dup.id]);
             setTagInputValue("");
-            show({ title: t("interactionstagsDuplicate"), variant: "info" });
             return;
           }
         }
@@ -225,11 +223,10 @@ export default function InteractionTagsSelector({
                   key={tag.id}
                   type="button"
                   onClick={() => toggleTag(tag.id)}
-                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                    selected
-                      ? "border-indigo-200 bg-indigo-100 text-indigo-700"
-                      : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition ${selected
+                    ? "border-indigo-200 bg-indigo-100 text-indigo-700"
+                    : "border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
                   aria-pressed={selected}
                 >
                   #{tag.name}

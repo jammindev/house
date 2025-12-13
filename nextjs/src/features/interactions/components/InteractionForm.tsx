@@ -468,7 +468,6 @@ export default function InteractionForm({
       console.error(error);
       const message = error instanceof Error ? error.message : t("interactionscreateFailed");
       setError(message);
-      show({ title: t("interactionscreateFailed"), description: message, variant: "error" });
     } finally {
       setSubmitting(false);
     }

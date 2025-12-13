@@ -259,7 +259,6 @@ export default function InteractionEditForm({ interaction, onSaved }: Interactio
                 structureIds,
                 metadata: metadataPayload,
             });
-            show({ title: t("interactionsupdated"), variant: "success" });
             onSaved();
         } catch (updateError) {
             console.error(updateError);

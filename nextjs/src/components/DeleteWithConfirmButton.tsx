@@ -57,22 +57,12 @@ export default function DeleteWithConfirmButton({
     setErrorMessage("");
     try {
       await onConfirm();
-      if (successToast) {
-        show({ variant: "success", ...successToast });
-      }
       setOpen(false);
       onSuccess?.();
     } catch (error: unknown) {
       const caughtMessage = error instanceof Error ? error.message : errorFallback;
       const message = caughtMessage || errorFallback;
       setErrorMessage(message);
-      show(
-        errorToast ?? {
-          title: errorFallback,
-          description: message !== errorFallback ? message : undefined,
-          variant: "error",
-        }
-      );
     } finally {
       setLoading(false);
     }

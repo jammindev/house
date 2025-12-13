@@ -165,8 +165,6 @@ export default function ContactEditPage() {
           }
           : null,
       });
-
-      show({ title: t("contacts.updateSuccess"), variant: "success" });
       router.push("/app/repertoire?view=contacts");
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : t("contacts.updateFailed");
@@ -194,132 +192,132 @@ export default function ContactEditPage() {
 
   return (
     <form className="space-y-6" onSubmit={onSubmit}>
-        {fieldError && (
-          <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">{fieldError}</div>
-        )}
+      {fieldError && (
+        <div className="rounded border border-red-200 bg-red-50 p-3 text-sm text-red-600">{fieldError}</div>
+      )}
 
-        <section className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="contact-first-name" className="text-sm font-medium text-gray-700">
-              {t("contacts.firstName")}
-            </label>
-            <Input
-              id="contact-first-name"
-              autoFocus
-              placeholder={t("contacts.firstNamePlaceholder")}
-              {...register("firstName")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-last-name" className="text-sm font-medium text-gray-700">
-              {t("contacts.lastName")}
-            </label>
-            <Input
-              id="contact-last-name"
-              placeholder={t("contacts.lastNamePlaceholder")}
-              {...register("lastName")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-position" className="text-sm font-medium text-gray-700">
-              {t("contacts.position")}
-            </label>
-            <Input
-              id="contact-position"
-              placeholder={t("contacts.positionPlaceholder")}
-              {...register("position")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-structure" className="text-sm font-medium text-gray-700">
-              {t("contacts.structureLabel")}
-            </label>
-            <select
-              id="contact-structure"
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              disabled={structuresLoading}
-              {...register("structureId")}
-            >
-              <option value="">{t("contacts.structureNone")}</option>
-              {structureOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <p className="text-xs text-gray-500">{t("contacts.structureHelper")}</p>
-            {structuresError ? (
-              <p className="text-xs text-red-600">{structuresError}</p>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="contact-email" className="text-sm font-medium text-gray-700">
-              {t("contacts.email")}
-            </label>
-            <Input id="contact-email" type="email" placeholder={t("contacts.emailPlaceholder")} {...register("email")} />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-email-label" className="text-sm font-medium text-gray-700">
-              {t("contacts.emailLabel")}
-            </label>
-            <Input
-              id="contact-email-label"
-              placeholder={t("contacts.emailLabelPlaceholder")}
-              {...register("emailLabel")}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-phone" className="text-sm font-medium text-gray-700">
-              {t("contacts.phone")}
-            </label>
-            <Input id="contact-phone" placeholder={t("contacts.phonePlaceholder")} {...register("phone")} />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="contact-phone-label" className="text-sm font-medium text-gray-700">
-              {t("contacts.phoneLabel")}
-            </label>
-            <Input
-              id="contact-phone-label"
-              placeholder={t("contacts.phoneLabelPlaceholder")}
-              {...register("phoneLabel")}
-            />
-          </div>
-        </section>
-
+      <section className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
-          <label htmlFor="contact-notes" className="text-sm font-medium text-gray-700">
-            {t("contacts.notes")}
+          <label htmlFor="contact-first-name" className="text-sm font-medium text-gray-700">
+            {t("contacts.firstName")}
           </label>
-          <Textarea
-            id="contact-notes"
-            rows={4}
-            placeholder={t("contacts.notesPlaceholder")}
-            {...register("notes")}
+          <Input
+            id="contact-first-name"
+            autoFocus
+            placeholder={t("contacts.firstNamePlaceholder")}
+            {...register("firstName")}
           />
         </div>
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => router.push("/app/repertoire?view=contacts")}
-            disabled={isSubmitting}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t("common.saving") : t("contacts.saveChanges")}
-          </Button>
+        <div className="space-y-2">
+          <label htmlFor="contact-last-name" className="text-sm font-medium text-gray-700">
+            {t("contacts.lastName")}
+          </label>
+          <Input
+            id="contact-last-name"
+            placeholder={t("contacts.lastNamePlaceholder")}
+            {...register("lastName")}
+          />
         </div>
-      </form>
+
+        <div className="space-y-2">
+          <label htmlFor="contact-position" className="text-sm font-medium text-gray-700">
+            {t("contacts.position")}
+          </label>
+          <Input
+            id="contact-position"
+            placeholder={t("contacts.positionPlaceholder")}
+            {...register("position")}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="contact-structure" className="text-sm font-medium text-gray-700">
+            {t("contacts.structureLabel")}
+          </label>
+          <select
+            id="contact-structure"
+            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            disabled={structuresLoading}
+            {...register("structureId")}
+          >
+            <option value="">{t("contacts.structureNone")}</option>
+            {structureOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p className="text-xs text-gray-500">{t("contacts.structureHelper")}</p>
+          {structuresError ? (
+            <p className="text-xs text-red-600">{structuresError}</p>
+          ) : null}
+        </div>
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <label htmlFor="contact-email" className="text-sm font-medium text-gray-700">
+            {t("contacts.email")}
+          </label>
+          <Input id="contact-email" type="email" placeholder={t("contacts.emailPlaceholder")} {...register("email")} />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="contact-email-label" className="text-sm font-medium text-gray-700">
+            {t("contacts.emailLabel")}
+          </label>
+          <Input
+            id="contact-email-label"
+            placeholder={t("contacts.emailLabelPlaceholder")}
+            {...register("emailLabel")}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="contact-phone" className="text-sm font-medium text-gray-700">
+            {t("contacts.phone")}
+          </label>
+          <Input id="contact-phone" placeholder={t("contacts.phonePlaceholder")} {...register("phone")} />
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="contact-phone-label" className="text-sm font-medium text-gray-700">
+            {t("contacts.phoneLabel")}
+          </label>
+          <Input
+            id="contact-phone-label"
+            placeholder={t("contacts.phoneLabelPlaceholder")}
+            {...register("phoneLabel")}
+          />
+        </div>
+      </section>
+
+      <div className="space-y-2">
+        <label htmlFor="contact-notes" className="text-sm font-medium text-gray-700">
+          {t("contacts.notes")}
+        </label>
+        <Textarea
+          id="contact-notes"
+          rows={4}
+          placeholder={t("contacts.notesPlaceholder")}
+          {...register("notes")}
+        />
+      </div>
+
+      <div className="flex items-center justify-end gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => router.push("/app/repertoire?view=contacts")}
+          disabled={isSubmitting}
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? t("common.saving") : t("contacts.saveChanges")}
+        </Button>
+      </div>
+    </form>
   );
 }

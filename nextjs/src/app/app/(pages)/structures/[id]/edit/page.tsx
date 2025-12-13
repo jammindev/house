@@ -31,15 +31,15 @@ export default function StructureEditPage() {
     () =>
       structure
         ? {
-            name: structure.name ?? "",
-            type: structure.type ?? "",
-            website: structure.website ?? "",
-            description: structure.description ?? "",
-            tags: structure.tags ?? [],
-            addresses: structure.addresses ?? [],
-            emails: structure.emails ?? [],
-            phones: structure.phones ?? [],
-          }
+          name: structure.name ?? "",
+          type: structure.type ?? "",
+          website: structure.website ?? "",
+          description: structure.description ?? "",
+          tags: structure.tags ?? [],
+          addresses: structure.addresses ?? [],
+          emails: structure.emails ?? [],
+          phones: structure.phones ?? [],
+        }
         : undefined,
     [structure]
   );
@@ -66,7 +66,6 @@ export default function StructureEditPage() {
         phones: values.phones,
       });
 
-      show({ title: t("structures.updateSuccess"), variant: "success" });
       router.push("/app/repertoire?view=structures");
     },
     [router, selectedHouseholdId, show, structureId, t, updateStructure]

@@ -38,10 +38,6 @@ export default function ProjectDescriptionTab({
 
             if (result.success && result.description) {
                 onDescriptionUpdated?.(result.description);
-                show({
-                    title: t(hasDescription ? 'projects.descriptionUpdated' : 'projects.descriptionGenerated'),
-                    variant: 'success'
-                });
             } else {
                 show({
                     title: result.error || t('projects.descriptionError'),

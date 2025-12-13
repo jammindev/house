@@ -117,6 +117,7 @@
   "dashboard.pinnedProjects.empty": "Aucun projet épinglé pour le moment.",
   "dashboard.pinnedProjects.hint": "Ouvrez un projet et appuyez sur l'icône d'épingle pour le faire apparaître sur le tableau de bord.",
   "dashboard.pinnedProjects.viewAll": "Tous les projets",
+  "dashboard.pinnedProjects.openSketchup": "Ouvrir SketchUp",
   "dashboard.actions.viewProjects": "Voir tous les projets",
   "dashboard.activity.createFirst": "Créer la première interaction",
   "projectstatus.draft": "Brouillon",
