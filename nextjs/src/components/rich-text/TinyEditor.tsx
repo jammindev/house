@@ -97,7 +97,7 @@ export function TinyEditor({
 
         return `
 :root { color-scheme: ${colorScheme}; }
-body { background: ${surface}; color: ${foreground}; font-family: ${fontStack}; font-size: 14px; line-height: 1.6; margin: 0; padding: 14px 16px; }
+body { background: ${surface}; color: ${foreground}; font-family: ${fontStack}; font-size: 16px; line-height: 1.6; margin: 0; padding: 14px 16px; -webkit-text-size-adjust: 100%; }
 p { margin: 0.35rem 0 1.1rem; }
 h1 { margin: 1.4rem 0 0.95rem; font-size: 1.4rem; font-weight: 700; line-height: 1.3; color: ${foreground}; }
 h2 { margin: 1.2rem 0 0.85rem; font-size: 1.2rem; font-weight: 700; line-height: 1.35; color: ${foreground}; }
@@ -107,9 +107,9 @@ li { margin: 0.25rem 0; }
 a { color: ${primary}; text-decoration: underline; }
 a:hover { color: ${primary}; opacity: 0.9; }
 blockquote { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid ${border}; background: ${background}; color: ${muted}; border-radius: 10px; }
-code { background: ${background}; color: ${foreground}; padding: 2px 6px; border-radius: 8px; border: 1px solid ${border}; font-family: SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-pre { background: ${background}; color: ${foreground}; padding: 12px 14px; border-radius: 10px; border: 1px solid ${border}; white-space: pre-wrap; }
-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; }
+code { background: ${background}; color: ${foreground}; padding: 2px 6px; border-radius: 8px; border: 1px solid ${border}; font-family: SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.875em; }
+pre { background: ${background}; color: ${foreground}; padding: 12px 14px; border-radius: 10px; border: 1px solid ${border}; white-space: pre-wrap; font-size: 0.875em; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.875em; }
 th, td { border: 1px solid ${border}; padding: 8px 10px; }
 th { background: ${surface}; color: ${foreground}; font-weight: 600; text-align: left; }
 img { max-width: 100%; height: auto; border-radius: 12px; }
