@@ -21,17 +21,10 @@ export function DesktopUploadInterface({ onFilesSelected, disabled = false }: De
         }
 
         if (acceptedFiles.length > 0) {
-            // Convertir File[] en FileList pour maintenir la compatibilité
-            const fileList = Object.assign(acceptedFiles, {
-                item: (index: number) => acceptedFiles[index] || null,
-                [Symbol.iterator]: function* () {
-                    for (const file of acceptedFiles) {
-                        yield file;
-                    }
-                }
-            }) as FileList;
-
-            onFilesSelected(fileList);
+            // Créer une FileList simple à partir du tableau de fichiers
+            const dataTransfer = new DataTransfer();
+            acceptedFiles.forEach(file => dataTransfer.items.add(file));
+            onFilesSelected(dataTransfer.files);
         }
     }, [onFilesSelected]);
 
