@@ -14,6 +14,7 @@ import ProjectTimeline from "@projects/components/ProjectTimeline";
 import ProjectTasksPanel from "@projects/components/ProjectTasksPanel";
 import ProjectDocumentsPanel from "@projects/components/ProjectDocumentsPanel";
 import ProjectExpensesPanel from "@projects/components/ProjectExpensesPanel";
+import NoteTab from "@projects/components/NoteTab";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import ProjectDeleteButton from "@projects/components/ProjectDeleteButton";
 import ProjectCard from "@projects/components/project-card/ProjectCard";
@@ -57,7 +58,7 @@ export default function ProjectDetailView({
   const isMobile = useIsMobile();
   const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
-  const [tab, setTab] = useState<typeof TABS[number]>("timeline");
+  const [tab, setTab] = useState<typeof TABS[number]>("notes");
   const [visibleRelatedCount, setVisibleRelatedCount] = useState(RELATED_PROJECTS_PAGE_SIZE);
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [updating, setUpdating] = useState(false);
@@ -367,7 +368,7 @@ export default function ProjectDetailView({
           ) : null}
 
           {tab === "notes" ? (
-            <ProjectTimeline projectId={project.id} filterKeys={["showOnlyNotes"]} />
+            <NoteTab projectId={project.id} onRefresh={onRefresh} />
           ) : null}
 
           {tab === "tasks" ? (
