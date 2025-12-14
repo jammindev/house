@@ -72,6 +72,7 @@ export type ProjectInteractionSummary = {
   documentsByInteraction: Record<string, Document[]>;
   tasks: Interaction[];
   expenses: Interaction[];
+  links: Interaction[];
   documents: Document[];
 };
 
@@ -83,6 +84,7 @@ export function useProjectInteractions(projectId?: string) {
     documentsByInteraction: {},
     tasks: [],
     expenses: [],
+    links: [],
     documents: [],
   });
   const [loading, setLoading] = useState(false);
@@ -255,6 +257,7 @@ export function useProjectInteractions(projectId?: string) {
 
       const tasks = normalizedInteractions.filter((interaction) => interaction.type === "todo");
       const expenses = normalizedInteractions.filter((interaction) => interaction.type === "expense");
+      const links = normalizedInteractions.filter((interaction) => interaction.type === "link");
       const documents = Object.values(documentsByInteraction).flat();
 
       setData({
@@ -262,6 +265,7 @@ export function useProjectInteractions(projectId?: string) {
         documentsByInteraction,
         tasks,
         expenses,
+        links,
         documents,
       });
     } catch (err: unknown) {
@@ -272,6 +276,7 @@ export function useProjectInteractions(projectId?: string) {
         documentsByInteraction: {},
         tasks: [],
         expenses: [],
+        links: [],
         documents: [],
       });
     } finally {

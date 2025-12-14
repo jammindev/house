@@ -9,6 +9,7 @@ export const INTERACTION_TYPES: InteractionType[] = [
   "call",
   "meeting",
   "document",
+  "link",
   "expense",
   "maintenance",
   "repair",
@@ -34,6 +35,7 @@ export const INTERACTION_TYPE_COLORS: Record<InteractionType, string> = {
   call: "bg-green-100 text-green-800 border-green-200",
   meeting: "bg-indigo-100 text-indigo-800 border-indigo-200",
   document: "bg-gray-100 text-gray-800 border-gray-200",
+  link: "bg-sky-100 text-sky-800 border-sky-200",
   expense: "bg-red-100 text-red-800 border-red-200",
   maintenance: "bg-emerald-100 text-emerald-800 border-emerald-200",
   repair: "bg-orange-100 text-orange-800 border-orange-200",
@@ -97,6 +99,14 @@ const noteMetadataSchema = z
   .nullable()
   .optional();
 
+const quoteMetadataSchema = z
+  .object({
+    amount: z.number().min(0),
+    source: z.literal("quote_form").optional(),
+  })
+  .nullable()
+  .optional();
+
 export const INTERACTION_FORM_CONFIG: Partial<Record<InteractionType, InteractionFormConfig>> = {
   note: {
     type: "note",
@@ -117,6 +127,30 @@ export const INTERACTION_FORM_CONFIG: Partial<Record<InteractionType, Interactio
       },
     ],
     metadataSchema: noteMetadataSchema,
+    ui: {
+      contextStepIndex: 2,
+      attachmentsStepIndex: 3,
+    },
+  },
+  quote: {
+    type: "quote",
+    subjectStrategy: "auto",
+    requiredAssociations: {
+      zones: true,
+      contactsOrStructures: true,
+      projectOrEquipmentExclusive: true,
+    },
+    steps: (t) => [
+      { id: "basics", title: t("forms.quote.steps.basics"), description: t("forms.quote.steps.basicsDescription") },
+      { id: "scope", title: t("forms.quote.steps.scope"), description: t("forms.quote.steps.scopeDescription") },
+      { id: "details", title: t("forms.quote.steps.details"), description: t("forms.quote.steps.detailsDescription") },
+      {
+        id: "attachments",
+        title: t("forms.quote.steps.attachments"),
+        description: t("forms.quote.steps.attachmentsDescription"),
+      },
+    ],
+    metadataSchema: quoteMetadataSchema,
     ui: {
       contextStepIndex: 2,
       attachmentsStepIndex: 3,

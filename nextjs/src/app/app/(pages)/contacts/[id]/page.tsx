@@ -16,7 +16,7 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 export default function ContactDetailPage() {
   const params = useParams<{ id?: string | string[] }>();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { contacts, loading, error } = useContacts();
 
   const contactIdParam = params?.id;
@@ -70,7 +70,7 @@ export default function ContactDetailPage() {
         />
       }
     >
-      {contact ? <ContactDetailsView contact={contact} t={t} /> : null}
+      {contact ? <ContactDetailsView contact={contact} t={t} locale={locale} /> : null}
     </DetailPageLayout>
   );
 }

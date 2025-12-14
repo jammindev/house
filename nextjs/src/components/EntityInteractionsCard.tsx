@@ -17,6 +17,7 @@ type Props = {
     loading: boolean;
     error?: string | null;
     moreHref?: string;
+    locale?: string;
     t: (key: string, args?: Record<string, unknown>) => string;
 };
 
@@ -28,6 +29,7 @@ export default function EntityInteractionsCard({
     loading,
     error,
     moreHref,
+    locale,
     t,
 }: Props) {
     return (
@@ -56,7 +58,7 @@ export default function EntityInteractionsCard({
                 ) : interactions.length === 0 ? (
                     <p className="text-sm text-muted-foreground">{t("contacts.latestInteractionsEmpty")}</p>
                 ) : (
-                    <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} />
+                    <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} locale={locale} />
                 )}
             </CardContent>
         </Card>

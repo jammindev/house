@@ -35,6 +35,7 @@ import ProjectDescriptionTab from "@projects/components/ProjectDescriptionTab";
 import { PhotoGrid } from "@photos/components/PhotoGrid";
 import { useProjectPhotoDocuments } from "@projects/hooks/useProjectPhotoDocuments";
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
+import ProjectLinksPanel from "@projects/components/ProjectLinksPanel";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -43,7 +44,7 @@ interface ProjectDetailViewProps {
   onRefresh?: () => void;
 }
 
-const TABS = ["timeline", "description", "metrics", "tasks", "documents", "photos", "expenses"] as const;
+const TABS = ["timeline", "tasks", "notes", "links", "description", "documents", "photos", "metrics", "expenses"] as const;
 const RELATED_PROJECTS_PAGE_SIZE = 3;
 
 export default function ProjectDetailView({
@@ -365,6 +366,10 @@ export default function ProjectDetailView({
             <ProjectTimeline projectId={project.id} />
           ) : null}
 
+          {tab === "notes" ? (
+            <ProjectTimeline projectId={project.id} filterKeys={["showOnlyNotes"]} />
+          ) : null}
+
           {tab === "tasks" ? (
             <ProjectTasksPanel
               projectId={project.id}
@@ -373,6 +378,19 @@ export default function ProjectDetailView({
                 name: zone.name,
                 parent_id: zone.parent_id
               }))}
+            />
+          ) : null}
+
+          {tab === "links" ? (
+            <ProjectLinksPanel
+              projectId={project.id}
+              projectZones={project.zones?.map(zone => ({
+                id: zone.id,
+                name: zone.name,
+                parent_id: zone.parent_id,
+              }))}
+              links={interactionsData.links}
+              onRefresh={onRefresh}
             />
           ) : null}
 
@@ -394,7 +412,9 @@ export default function ProjectDetailView({
             <ProjectExpensesPanel expenses={interactionsData.expenses} />
           ) : null}
         </div>
-      </div>      {project.group ? (
+      </div>
+
+      {project.group ? (
         <div className="space-y-4">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-slate-900">

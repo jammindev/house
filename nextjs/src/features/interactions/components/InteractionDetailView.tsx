@@ -1,7 +1,8 @@
 // nextjs/src/features/interactions/components/InteractionDetailView.tsx
 "use client";
 
-import { AlertCircle, Folder } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, Folder, Loader2 } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
@@ -9,7 +10,7 @@ import { fr as dateFnsFr, enUS as dateFnsEn } from "date-fns/locale";
 import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
 import InteractionMetadata from "@interactions/components/detail/InteractionMetadata";
 import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
-import InteractionRawTextEditor from "@interactions/components/InteractionRawTextEditor";
+import { InteractionContentEditor } from "@interactions/components/forms/common/InteractionContentEditor";
 import InteractionZonesList from "@interactions/components/InteractionZonesList";
 import ImageGallery from "@interactions/components/gallery/ImageGallery";
 import PdfFileList from "@interactions/components/pdf/PdfFileList";
@@ -19,6 +20,7 @@ import AuditHistoryCard from "@/components/AuditHistoryCard";
 import type { Document, Interaction } from "@interactions/types";
 import { extractAmountFromMetadata } from "@interactions/utils/amount";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import { useUpdateInteractionContent } from "@interactions/hooks/useUpdateInteractionContent";
 
 type InteractionDetailViewProps = {
   interaction: Interaction;
@@ -45,8 +47,25 @@ export default function InteractionDetailView({
   deleteInteraction,
 }: InteractionDetailViewProps) {
   const { t, locale } = useI18n();
+  const { updateContent, loading: savingContent, error: saveError, setError: setSaveError } = useUpdateInteractionContent();
+  const [content, setContent] = useState(interaction.content || "");
+  const [lastSavedContent, setLastSavedContent] = useState(interaction.content || "");
 
   const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
+
+  useEffect(() => {
+    const nextValue = interaction.content || "";
+    setContent(nextValue);
+    setLastSavedContent(nextValue);
+    setSaveError("");
+  }, [interaction.content, interaction.id, setSaveError]);
+
+  const plainText = useMemo(
+    () => content.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim(),
+    [content]
+  );
+  const trimmedContent = useMemo(() => content.trim(), [content]);
+  const isDirty = trimmedContent !== (lastSavedContent || "").trim();
 
   // Helpers: localized public date and short relative time (14h, 1j, 1an)
   const getDateFnsLocale = (loc: string) => {
@@ -112,6 +131,26 @@ export default function InteractionDetailView({
   const hasFiles = pdfDocuments.length > 0 || photoDocuments.length > 0;
   const shouldShowFilesSection = hasFiles || Boolean(fileError);
 
+  const persistContent = useCallback(async () => {
+    if (!plainText || !isDirty) return;
+    const nextValue = trimmedContent;
+    try {
+      await updateContent(interaction.id, nextValue);
+      setLastSavedContent(nextValue);
+      onReload();
+    } catch {
+      // Error already set by the hook
+    }
+  }, [interaction.id, isDirty, onReload, plainText, trimmedContent, updateContent]);
+
+  useEffect(() => {
+    if (!plainText || !isDirty || savingContent) return;
+    const timeout = setTimeout(() => {
+      void persistContent();
+    }, 900);
+    return () => clearTimeout(timeout);
+  }, [isDirty, persistContent, plainText, savingContent]);
+
   return (
     <div className="mx-auto flex w-full flex-col gap-2 pb-12 md:gap-4">
       <h1 className="text-2xl font-bold text-slate-900">{interaction.subject}</h1>
@@ -148,12 +187,32 @@ export default function InteractionDetailView({
           </section>
         )}
 
-        <div className="leading-relaxed text-foreground">
-          <InteractionRawTextEditor
-            interactionId={interaction.id}
-            initialContent={interaction.content}
-            onSaved={onReload}
+        <div className="space-y-2 leading-relaxed text-foreground">
+          <InteractionContentEditor
+            id="interaction-detail-content"
+            value={content}
+            onChange={(next) => {
+              setContent(next);
+              if (saveError) setSaveError("");
+            }}
+            projectContext={
+              interaction.project
+                ? { id: interaction.project.id, title: interaction.project.title, status: interaction.project.status }
+                : null
+            }
           />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {saveError ? (
+              <span className="text-rose-600" role="alert">
+                {saveError}
+              </span>
+            ) : savingContent ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                <span>{t("common.saving")}</span>
+              </>
+            ) : null}
+          </div>
         </div>
 
         <InteractionAssociations

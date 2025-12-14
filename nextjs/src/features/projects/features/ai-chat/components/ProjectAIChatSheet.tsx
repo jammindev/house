@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MessageSquare, X } from "lucide-react";
+import { AIContextBadge } from "@ai";
 import { Button } from "@/components/ui/button";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -69,7 +70,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle, trigger: customTri
                 <>
                     <div className="flex-1 flex flex-col min-h-0">
                         {/* Thread Selector */}
-                        <div className="px-6 py-3 border-b bg-muted/30">
+                        <div className="px-6 py-3 border-b bg-muted/30 space-y-2">
                             <ProjectAIThreadList
                                 threads={threads}
                                 activeThread={activeThread}
@@ -78,6 +79,7 @@ export function ProjectAIChatSheet({ projectId, projectTitle, trigger: customTri
                                 onNewChat={createNewThread}
                                 isLoading={isLoading}
                             />
+                            <AIContextBadge label={projectTitle} className="text-muted-foreground" />
                         </div>
 
                         {/* Messages */}

@@ -1,56 +1,11 @@
 import { NextRequest } from "next/server";
-import OpenAI from "openai";
+import { AI_DEFAULT_MODEL, buildProjectChatMessages, getOpenAIClient, getProjectContext, isAIEnabled } from "@ai";
 import { createSSRClient } from "@/lib/supabase/server";
 import { createServerAdminClient } from "@/lib/supabase/serverAdminClient";
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 interface ChatRequestBody {
     threadId?: string;
     message: string;
-}
-
-// Helper function to redact PII
-function redactPII(text: string): string {
-    // Redact email patterns
-    const emailRedacted = text.replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g, '[EMAIL_REDACTED]');
-
-    // Redact phone patterns (basic)
-    const phoneRedacted = emailRedacted.replace(/\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b/g, '[PHONE_REDACTED]');
-
-    return phoneRedacted;
-}
-
-// Helper function to summarize project context to stay under token limits
-function summarizeProjectContext(project: any, interactions: any[], household: any = null): string {
-    const householdSummary = household ? `Household: ${household.name}
-${household.address ? `Address: ${household.address}` : ''}
-${household.city ? `Location: ${household.city}${household.country ? `, ${household.country}` : ''}` : ''}
-${household.context_notes ? `Context: ${household.context_notes}` : ''}
-${household.ai_prompt_context ? `AI Context: ${household.ai_prompt_context}` : ''}
-
-` : '';
-
-    const projectSummary = `Project: ${project.title}
-Description: ${project.description || 'No description provided'}
-Status: ${project.status}
-Priority: ${project.priority}/5
-Start Date: ${project.start_date || 'Not set'}
-Due Date: ${project.due_date || 'Not set'}
-Planned Budget: €${project.planned_budget || 0}
-Actual Cost: €${project.actual_cost_cached || 0}
-Tags: ${project.tags?.join(', ') || 'None'}`;
-
-    const interactionsSummary = interactions.length > 0
-        ? `\n\nRecent Project Activity (${interactions.length} items):\n` +
-        interactions.slice(0, 25).map((interaction, i) =>
-            `${i + 1}. [${interaction.type}] ${interaction.subject} (${interaction.occurred_at?.split('T')[0] || 'No date'}) - Status: ${interaction.status || 'N/A'}`
-        ).join('\n')
-        : '\n\nNo recent activity recorded.';
-
-    return redactPII(householdSummary + projectSummary + interactionsSummary);
 }
 
 export async function POST(
@@ -170,98 +125,42 @@ export async function POST(
         }
 
         // Verify OpenAI API key is configured
-        if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'your_openai_api_key_here') {
+        if (!isAIEnabled()) {
             console.error('AI Chat API: OpenAI API key not configured');
             return Response.json({ error: 'AI service not configured' }, { status: 503 });
         }
 
-        // Gather project context for real OpenAI response
         console.log('AI Chat API: Gathering project context');
+        const projectContext = await getProjectContext({
+            supabase,
+            project,
+            options: {
+                interactionsLimit: 25,
+            },
+        });
 
-        // Get household information
-        const { data: household, error: householdError } = await supabase
-            .from('households')
-            .select('name, address, city, country, context_notes, ai_prompt_context')
-            .eq('id', project.household_id)
-            .single();
-
-        if (householdError) {
-            console.warn('AI Chat API: Failed to get household context:', householdError);
+        if (!projectContext) {
+            console.error('AI Chat API: Project context unavailable');
+            return Response.json({ error: 'Project context unavailable' }, { status: 404 });
         }
 
-        const { data: interactions, error: interactionsError } = await supabase
-            .from('interactions')
-            .select(`
-        subject,
-        content,
-        type,
-        status,
-        occurred_at,
-        tags,
-        metadata,
-        interaction_zones!inner(
-          zones(name)
-        )
-      `)
-            .eq('project_id', projectId)
-            .order('occurred_at', { ascending: false })
-            .limit(25);
-
-        const contextSummary = summarizeProjectContext(project, interactions || [], household);
-
         // Build conversation for OpenAI
-        const conversationMessages = [
-            {
-                role: "system" as const,
-                content: `You are a helpful AI assistant for the "House" household management application. You help users understand and manage their home projects.
-
-Current Project Context:
-${contextSummary}
-
-OUTPUT FORMAT: Always format your responses using clean markdown for better readability:
-- **Bold text** for emphasis and important points
-- ## Headings for main sections (use ## for sections, ### for subsections)
-- - Bullet points for lists and action items
-- Plain text for paragraphs
-- NO code blocks, tables, or complex formatting
-
-Guidelines:
-- Provide helpful, actionable advice about this project
-- Reference the project's current status, budget, and timeline when relevant
-- If asked about specific interactions or activities, refer to the recent activity list
-- Keep responses concise but informative
-- Use markdown formatting for better structure and readability
-- If you don't have enough information, suggest what data might be helpful to track
-- Do not edit or modify any project data - you can only provide advice and insights
-- Focus on practical household management advice
-
-FORMATTING EXAMPLE:
-## Analysis
-[Your analysis here...]
-
-**Key Recommendations:**
-- First recommendation
-- Second recommendation
-
-## Next Steps
-[Actionable steps...]`
-            },
-            ...messages.map(msg => ({
+        const conversationMessages = buildProjectChatMessages({
+            contextSummary: projectContext.summary,
+            history: messages.map(msg => ({
                 role: msg.role as "user" | "assistant",
-                content: msg.content
+                content: msg.content,
             })),
-            {
-                role: "user" as const,
-                content: body.message
-            }
-        ];
+            userMessage: body.message,
+        });
 
         // Get OpenAI response
         console.log('AI Chat API: Getting OpenAI response');
         let completion;
         try {
+            const openai = getOpenAIClient();
             completion = await openai.chat.completions.create({
-                model: "gpt-4o-mini",
+                model: AI_DEFAULT_MODEL,
                 messages: conversationMessages,
                 temperature: 0.2,
                 stream: true,

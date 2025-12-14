@@ -29,6 +29,7 @@ export type InteractionType =
   | "disposal"
   | "message"
   | "signature"
+  | "link"
   | "other";
 
 export type InteractionStatus = "pending" | "in_progress" | "done" | "archived";

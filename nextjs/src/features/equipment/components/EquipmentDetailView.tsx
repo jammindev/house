@@ -291,7 +291,7 @@ export default function EquipmentDetailView({
           ) : interactions.length === 0 ? (
             <p className="text-sm text-gray-500">{t("equipment.interactions.empty")}</p>
           ) : (
-            <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} />
+            <InteractionList interactions={interactions} documentCounts={documentCounts} t={t} locale={locale} />
           )}
         </CardContent>
       </Card>

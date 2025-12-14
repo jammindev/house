@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { Document, Interaction } from "@interactions/types";
-import InteractionItem from "@interactions/components/InteractionItem";
+import InteractionList from "@interactions/components/InteractionList";
 import { applyFilters, DEFAULT_PROJECT_FILTERS } from "@projects/lib/interactionFilters";
 import { useProjectTimeline } from "@projects/hooks/useProjectTimeline";
 
@@ -15,7 +15,7 @@ export default function ProjectTimeline({
   projectId,
   filterKeys = DEFAULT_PROJECT_FILTERS
 }: ProjectTimelineProps) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { interactions, documentsByInteraction, loading, error } = useProjectTimeline(projectId);
 
   // Apply filters to interactions
@@ -52,19 +52,12 @@ export default function ProjectTimeline({
   }
 
   return (
-    <div className="space-y-2">
-      <ul className="space-y-3">
-        {filteredInteractions.map((interaction) => (
-          <li key={interaction.id}>
-            <InteractionItem
-              interaction={interaction}
-              documentCount={documentCounts[interaction.id] || 0}
-              t={t}
-              returnTo={`/app/projects/${projectId}`}
-            />
-          </li>
-        ))}
-      </ul>
-    </div>
+    <InteractionList
+      interactions={filteredInteractions}
+      documentCounts={documentCounts}
+      t={t}
+      locale={locale}
+      returnTo={`/app/projects/${projectId}`}
+    />
   );
 }

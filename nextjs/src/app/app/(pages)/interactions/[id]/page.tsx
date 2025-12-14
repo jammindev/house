@@ -51,13 +51,15 @@ export default function InteractionDetailPage() {
     ];
   }, [interactionId, reload]);
 
-  const isNotFound = !loading && (!id || !interaction);
+  const hasInteraction = Boolean(interaction);
+  const showLoading = loading && !hasInteraction;
+  const isNotFound = !showLoading && (!id || !interaction);
 
   return (
     <DetailPageLayout
       context={typeLabel}
       actions={layoutActions}
-      loading={loading}
+      loading={showLoading}
       error={error ?? null}
       errorTitle={t("interactionsloadFailed")}
       isNotFound={isNotFound}

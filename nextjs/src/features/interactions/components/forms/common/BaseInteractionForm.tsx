@@ -62,6 +62,9 @@ export interface BaseInteractionFormProps {
     // Additional requirements
     requiresContacts?: boolean;
     requiresStructures?: boolean;
+
+    // Editor helpers
+    aiEnabled?: boolean;
 }
 
 const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
@@ -82,6 +85,7 @@ export default function BaseInteractionForm({
     buildTypeSpecificMetadata,
     requiresContacts = false,
     requiresStructures = false,
+    aiEnabled = true,
 }: BaseInteractionFormProps) {
     const router = useRouter();
     const { selectedHouseholdId: householdId } = useGlobal();
@@ -408,6 +412,7 @@ export default function BaseInteractionForm({
                 content={content}
                 onContentChange={setContent}
                 householdId={householdId}
+                aiEnabled={aiEnabled}
             />
 
             {typeSpecificFields}

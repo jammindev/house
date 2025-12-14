@@ -30,6 +30,12 @@
       "@/*": [
         "*"
       ],
+      "@ai/*": [
+        "features/ai/*"
+      ],
+      "@ai": [
+        "features/ai"
+      ],
       "@zones/*": [
         "features/zones/*"
       ],
