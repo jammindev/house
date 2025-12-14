@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Cube, Folder, Pin } from "lucide-react";
+import { ArrowRight, Cuboid, Folder, Pin } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
@@ -154,7 +154,7 @@ export default function DashboardPinnedProjects() {
             title={t("dashboard.pinnedProjects.openSketchup")}
           >
             <a href="https://app.sketchup.com/app" target="_blank" rel="noreferrer">
-              <Cube className="h-4 w-4" />
+              <Cuboid className="h-4 w-4" />
               <span className="sr-only">{t("dashboard.pinnedProjects.openSketchup")}</span>
             </a>
           </Button>

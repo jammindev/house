@@ -4,11 +4,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
 import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
+import { INTERACTION_FORM_CONFIG } from "@interactions/constants";
 import type { Document, ZoneOption } from "@interactions/types";
 import { useProjectOptions } from "./hooks/useProjectOptions";
 import { useEquipmentOptions } from "./hooks/useEquipmentOptions";
@@ -39,15 +39,47 @@ export default function NoteForm({
     const { selectedHouseholdId: householdId } = useGlobal();
     const { t } = useI18n();
 
+    const formConfig = INTERACTION_FORM_CONFIG.note;
+
     const steps = useMemo(
-        () => [
-            { title: t("forms.note.steps.basics"), description: t("forms.note.steps.basicsDescription") },
-            { title: t("forms.note.steps.scope"), description: t("forms.note.steps.scopeDescription") },
-            { title: t("forms.note.steps.context"), description: t("forms.note.steps.contextDescription") },
-            { title: t("forms.note.steps.attachments"), description: t("forms.note.steps.attachmentsDescription") },
-        ],
-        [t]
+        () =>
+            formConfig?.steps?.(t) ?? [
+                {
+                    id: "basics",
+                    title: t("forms.note.steps.basics"),
+                    description: t("forms.note.steps.basicsDescription"),
+                },
+                {
+                    id: "scope",
+                    title: t("forms.note.steps.scope"),
+                    description: t("forms.note.steps.scopeDescription"),
+                },
+                {
+                    id: "context",
+                    title: t("forms.note.steps.context"),
+                    description: t("forms.note.steps.contextDescription"),
+                },
+                {
+                    id: "attachments",
+                    title: t("forms.note.steps.attachments"),
+                    description: t("forms.note.steps.attachmentsDescription"),
+                },
+            ],
+        [formConfig, t]
     );
+    const requiredAssociations = formConfig?.requiredAssociations ?? {
+        zones: true,
+        contactsOrStructures: false,
+        projectOrEquipmentExclusive: true,
+    };
+    const subjectStrategy = formConfig?.subjectStrategy ?? "manual";
+    const scopeStepIndexFromConfig = steps.findIndex((step) => step.id === "scope");
+    const scopeStepIndex = scopeStepIndexFromConfig >= 0 ? scopeStepIndexFromConfig : 1;
+    const contextStepIndexFromConfig = formConfig?.ui?.contextStepIndex ?? steps.findIndex((step) => step.id === "context");
+    const contextStepIndex = contextStepIndexFromConfig >= 0 ? contextStepIndexFromConfig : 2;
+    const attachmentsStepIndexFromConfig =
+        formConfig?.ui?.attachmentsStepIndex ?? steps.findIndex((step) => step.id === "attachments");
+    const attachmentsStepIndex = attachmentsStepIndexFromConfig >= 0 ? attachmentsStepIndexFromConfig : steps.length - 1;
     const lastStepIndex = steps.length - 1;
 
     const {
@@ -75,7 +107,10 @@ export default function NoteForm({
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(0);
 
-    const canProceed = currentStep === 1 ? selectedZones.length > 0 && hasZones && !zonesLoading : true;
+    const canProceed =
+        requiredAssociations.zones && currentStep === scopeStepIndex
+            ? selectedZones.length > 0 && hasZones && !zonesLoading
+            : true;
     const showProjectField = !selectedEquipmentId;
     const showEquipmentField = !selectedProjectId;
     const selectedProject = projectOptions.find((project) => project.id === selectedProjectId);
@@ -93,7 +128,11 @@ export default function NoteForm({
     }, [equipmentZoneId, form, projectZoneIds, zonesLocked, zonesLockedByProject]);
 
     const handleNextStep = () => {
-        if (currentStep === 1 && (!selectedZones.length || !hasZones || zonesLoading)) {
+        if (
+            requiredAssociations.zones &&
+            currentStep === scopeStepIndex &&
+            (!selectedZones.length || !hasZones || zonesLoading)
+        ) {
             setSubmitError(t("interactionsselectZoneRequired"));
             return;
         }
@@ -123,7 +162,7 @@ export default function NoteForm({
         const trimmedSubject = formValues.subject.trim() || contentText.slice(0, 80);
         const contentPayload = contentText.length > 0 ? trimmedContent : null;
 
-        if (formValues.projectId && formValues.equipmentId) {
+        if (requiredAssociations.projectOrEquipmentExclusive && formValues.projectId && formValues.equipmentId) {
             setSubmitError(t("interactionsprojectEquipmentExclusive"));
             return;
         }
@@ -133,7 +172,7 @@ export default function NoteForm({
             return;
         }
 
-        if (!formValues.zoneIds.length) {
+        if (requiredAssociations.zones && !formValues.zoneIds.length) {
             setSubmitError(t("interactionsselectZoneRequired"));
             return;
         }
@@ -143,6 +182,18 @@ export default function NoteForm({
             : zonesLockedByEquipment && equipmentZoneId
                 ? [equipmentZoneId]
                 : formValues.zoneIds;
+
+        const metadataPayload =
+            formValues.equipmentId && householdId
+                ? { equipment_id: formValues.equipmentId, source: "note_form" }
+                : null;
+        const parsedMetadata =
+            formConfig?.metadataSchema?.safeParse(metadataPayload) ?? ({ success: true, data: metadataPayload } as const);
+        if (!parsedMetadata.success) {
+            console.error(parsedMetadata.error);
+            setSubmitError(t("interactionscreateFailed"));
+            return;
+        }
 
         setSubmitError(null);
 
@@ -157,10 +208,6 @@ export default function NoteForm({
 
             const occurredAtValue = new Date().toISOString();
             const effectiveProjectId = formValues.equipmentId ? null : formValues.projectId ?? null;
-            const effectiveMetadata =
-                formValues.equipmentId && householdId
-                    ? { equipment_id: formValues.equipmentId, source: "note_form" }
-                    : null;
 
             const { data: createdId, error: createError } = await (client as any).rpc("create_interaction_with_zones", {
                 p_household_id: householdId,
@@ -174,7 +221,7 @@ export default function NoteForm({
                 p_contact_ids: formValues.contactIds.length ? formValues.contactIds : null,
                 p_structure_ids: formValues.structureIds.length ? formValues.structureIds : null,
                 p_project_id: effectiveProjectId,
-                p_metadata: effectiveMetadata,
+                p_metadata: parsedMetadata.data ?? null,
             });
 
             if (createError || !createdId) {
@@ -277,6 +324,7 @@ export default function NoteForm({
     return (
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <NoteFormFields
+                subjectStrategy={subjectStrategy}
                 subject={subject}
                 onSubjectChange={(value) => form.setValue("subject", value, { shouldDirty: true })}
                 subjectDirty={subjectDirty}
@@ -360,6 +408,9 @@ export default function NoteForm({
                 submitLabel={isSubmitting ? t("common.saving") : t("forms.note.createCta")}
                 steps={steps}
                 currentStep={currentStep}
+                scopeStepIndex={scopeStepIndex}
+                contextStepIndex={contextStepIndex}
+                attachmentsStepIndex={attachmentsStepIndex}
                 onNextStep={handleNextStep}
                 onPrevStep={handlePrevStep}
                 isLastStep={currentStep === lastStepIndex}
