@@ -7,11 +7,13 @@ import BaseInteractionFields from "../../common/BaseInteractionFields";
 import DocumentsFields, { type LocalFile } from "../../common/DocumentsFields";
 import ContactStructureSelector from "@interactions/components/ContactStructureSelector";
 import InteractionTagsSelector from "@interactions/components/InteractionTagsSelector";
+import type { InteractionSubjectStrategy } from "@interactions/constants";
 import type { Document, ZoneOption } from "@interactions/types";
 import type { ProjectOption } from "../types";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
 interface NoteFormFieldsProps {
+    subjectStrategy?: InteractionSubjectStrategy;
     subject: string;
     onSubjectChange: (value: string) => void;
     subjectDirty: boolean;
@@ -53,8 +55,11 @@ interface NoteFormFieldsProps {
     submitError: string | null;
     isSubmitting: boolean;
     submitLabel: string;
-    steps: { title: string; description?: string }[];
+    steps: { id?: string; title: string; description?: string }[];
     currentStep: number;
+    scopeStepIndex?: number;
+    contextStepIndex?: number;
+    attachmentsStepIndex?: number;
     onNextStep: () => void;
     onPrevStep: () => void;
     isLastStep: boolean;
@@ -63,6 +68,7 @@ interface NoteFormFieldsProps {
 }
 
 export function NoteFormFields({
+    subjectStrategy = "manual",
     subject,
     onSubjectChange,
     subjectDirty,
@@ -106,6 +112,9 @@ export function NoteFormFields({
     submitLabel,
     steps,
     currentStep,
+    scopeStepIndex = 1,
+    contextStepIndex = 2,
+    attachmentsStepIndex = 3,
     onNextStep,
     onPrevStep,
     isLastStep,
@@ -113,19 +122,23 @@ export function NoteFormFields({
     onSubmitClick,
 }: NoteFormFieldsProps) {
     const { t } = useI18n();
+    const showBaseFieldsUntilStep = scopeStepIndex ?? 1;
+    const showContextStepAt = contextStepIndex ?? 2;
+    const showAttachmentsStepAt = attachmentsStepIndex ?? steps.length - 1;
+    const isAutoSubject = subjectStrategy === "auto";
     return (
         <>
             <div className="space-y-4">
                 <Stepper steps={steps} currentStep={currentStep} />
 
-                {currentStep <= 1 ? (
+                {currentStep <= showBaseFieldsUntilStep ? (
                     <BaseInteractionFields
                         currentStep={currentStep}
                         subject={subject}
                         onSubjectChange={onSubjectChange}
                         subjectDirty={subjectDirty}
                         onSubjectDirtyChange={() => { }}
-                        isAutoSubjectType={false}
+                        isAutoSubjectType={isAutoSubject}
                         subjectPlaceholder={subjectPlaceholder}
                         occurredAt={occurredAt}
                         onOccurredAtChange={onOccurredAtChange}
@@ -157,8 +170,19 @@ export function NoteFormFields({
                     />
                 ) : null}
 
-                {currentStep === 2 ? (
+                {currentStep === showContextStepAt ? (
                     <div className="space-y-4">
+                        {householdId ? (
+                            <ContactStructureSelector
+                                householdId={householdId}
+                                selectedContactIds={selectedContactIds}
+                                onContactsChange={onContactsChange}
+                                selectedStructureIds={selectedStructureIds}
+                                onStructuresChange={onStructuresChange}
+                                autoFillStructure={true}
+                            />
+                        ) : null}
+
                         <Card>
                             <CardHeader className="space-y-1">
                                 <CardTitle className="text-lg font-semibold">{t("interactionstagsLabel")}</CardTitle>
@@ -173,21 +197,10 @@ export function NoteFormFields({
                                 />
                             </CardContent>
                         </Card>
-
-                        {householdId ? (
-                            <ContactStructureSelector
-                                householdId={householdId}
-                                selectedContactIds={selectedContactIds}
-                                onContactsChange={onContactsChange}
-                                selectedStructureIds={selectedStructureIds}
-                                onStructuresChange={onStructuresChange}
-                                autoFillStructure={true}
-                            />
-                        ) : null}
                     </div>
                 ) : null}
 
-                {currentStep === 3 ? (
+                {currentStep === showAttachmentsStepAt ? (
                     <DocumentsFields
                         files={files}
                         onFilesChange={onFilesChange}
