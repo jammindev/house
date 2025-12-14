@@ -44,7 +44,7 @@ interface ProjectDetailViewProps {
   onRefresh?: () => void;
 }
 
-const TABS = ["timeline", "tasks", "notes", "links", "description", "documents", "photos", "metrics", "expenses"] as const;
+const TABS = ["tasks", "notes", "links", "description", "documents", "photos", "timeline", "metrics", "expenses"] as const;
 const RELATED_PROJECTS_PAGE_SIZE = 3;
 
 export default function ProjectDetailView({
