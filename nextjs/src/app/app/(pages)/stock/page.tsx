@@ -2,18 +2,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import ListPageLayout from "@shared/layout/ListPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import StockList from "@/features/stock/components/StockList";
 import StockCategoryList from "@/features/stock/components/StockCategoryList";
+import StockTabSheet from "@/features/stock/components/StockTabSheet";
 import { useStockItems } from "@/features/stock/hooks/useStockItems";
 import { useStockCategories } from "@/features/stock/hooks/useStockCategories";
 import { STOCK_ITEM_STATUSES } from "@/features/stock/constants";
 import type { StockItemStatus } from "@/features/stock/types";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useZones } from "@zones/hooks/useZones";
+import { useIsMobile } from "@documents/hooks/useIsMobile";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -23,11 +25,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+
+type TabKey = "items" | "categories";
 
 export default function StockPage() {
     const { t } = useI18n();
+    const isMobile = useIsMobile();
     const { items, filters, setFilters, loading, error } = useStockItems();
     const {
         categories,
@@ -37,7 +42,7 @@ export default function StockPage() {
         deleteCategory,
     } = useStockCategories();
     const { zones } = useZones();
-    const [activeTab, setActiveTab] = useState("items");
+    const [activeTab, setActiveTab] = useState<TabKey>("items");
 
     const actions = useMemo(
         () => [
@@ -58,79 +63,105 @@ export default function StockPage() {
         }
     };
 
+    const filtersToolbar = (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <Input
+                placeholder={t("stock.filters.search")}
+                value={filters.search ?? ""}
+                onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+            />
+            <Select
+                value={filters.categoryId ?? "all"}
+                onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, categoryId: value === "all" ? null : value }))
+                }
+            >
+                <SelectTrigger>
+                    <SelectValue placeholder={t("stock.filters.category")} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t("stock.filters.anyCategory")}</SelectItem>
+                    {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                            <span className="flex items-center gap-2">
+                                <span>{cat.emoji}</span>
+                                <span>{cat.name}</span>
+                            </span>
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={filters.statuses?.[0] ?? "all"} onValueChange={handleStatusChange}>
+                <SelectTrigger>
+                    <SelectValue placeholder={t("stock.filters.status")} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t("stock.filters.anyStatus")}</SelectItem>
+                    {STOCK_ITEM_STATUSES.map((status) => (
+                        <SelectItem key={status} value={status}>
+                            {t(`stock.status.${status}`)}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select
+                value={filters.zoneId ?? "all"}
+                onValueChange={(value) =>
+                    setFilters((prev) => ({ ...prev, zoneId: value === "all" ? null : value }))
+                }
+            >
+                <SelectTrigger>
+                    <SelectValue placeholder={t("stock.filters.zone")} />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="all">{t("stock.filters.anyZone")}</SelectItem>
+                    {zones.map((zone) => (
+                        <SelectItem key={zone.id} value={zone.id}>
+                            {zone.name}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+    );
+
     const toolbar = (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
-                <TabsTrigger value="items">{t("stock.tabs.items")}</TabsTrigger>
-                <TabsTrigger value="categories">{t("stock.tabs.categories")}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="items" className="mt-0">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
-                    <Input
-                        placeholder={t("stock.filters.search")}
-                        value={filters.search ?? ""}
-                        onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+        <div className="space-y-4">
+            {/* Tabs Navigation */}
+            <div className={cn("flex flex-col rounded-lg", !isMobile && "bg-stone-50", isMobile && "space-y-2")}>
+                {/* Mobile: TabSheet */}
+                {isMobile ? (
+                    <StockTabSheet
+                        currentTab={activeTab}
+                        onSelect={setActiveTab}
                     />
-                    <Select
-                        value={filters.categoryId ?? "all"}
-                        onValueChange={(value) =>
-                            setFilters((prev) => ({ ...prev, categoryId: value === "all" ? null : value }))
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={t("stock.filters.category")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t("stock.filters.anyCategory")}</SelectItem>
-                            {categories.map((cat) => (
-                                <SelectItem key={cat.id} value={cat.id}>
-                                    <span className="flex items-center gap-2">
-                                        <span>{cat.emoji}</span>
-                                        <span>{cat.name}</span>
-                                    </span>
-                                </SelectItem>
+                ) : (
+                    /* Desktop: Horizontal tabs */
+                    <div className="border border-slate-200 bg-white overflow-x-scroll rounded-lg shadow-sm overflow-hidden">
+                        <div className="flex border-b border-slate-200 bg-slate-50/30">
+                            {(["items", "categories"] as const).map((tabKey) => (
+                                <button
+                                    key={tabKey}
+                                    type="button"
+                                    onClick={() => setActiveTab(tabKey)}
+                                    className={cn(
+                                        "flex-1 px-6 py-4 text-sm font-medium transition-all duration-200 whitespace-nowrap border-b-2 relative",
+                                        activeTab === tabKey
+                                            ? "border-primary-600 text-primary-700 font-semibold shadow-sm"
+                                            : "border-transparent text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                                    )}
+                                >
+                                    {t(`stock.tabs.${tabKey}`)}
+                                </button>
                             ))}
-                        </SelectContent>
-                    </Select>
-                    <Select value={filters.statuses?.[0] ?? "all"} onValueChange={handleStatusChange}>
-                        <SelectTrigger>
-                            <SelectValue placeholder={t("stock.filters.status")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t("stock.filters.anyStatus")}</SelectItem>
-                            {STOCK_ITEM_STATUSES.map((status) => (
-                                <SelectItem key={status} value={status}>
-                                    {t(`stock.status.${status}`)}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={filters.zoneId ?? "all"}
-                        onValueChange={(value) =>
-                            setFilters((prev) => ({ ...prev, zoneId: value === "all" ? null : value }))
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder={t("stock.filters.zone")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t("stock.filters.anyZone")}</SelectItem>
-                            {zones.map((zone) => (
-                                <SelectItem key={zone.id} value={zone.id}>
-                                    {zone.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            </TabsContent>
+                        </div>
+                    </div>
+                )}
+            </div>
 
-            <TabsContent value="categories" className="mt-0">
-                {/* Category list is shown below */}
-            </TabsContent>
-        </Tabs>
+            {/* Filters - only show for items tab */}
+            {activeTab === "items" && filtersToolbar}
+        </div>
     );
 
     const emptyState = (

@@ -1495,6 +1495,7 @@
   "stock.subtitle": "Manage your household stock and supplies",
   "stock.tabs.items": "Items",
   "stock.tabs.categories": "Categories",
+  "stock.selectTab": "Select tab",
   "stock.loadFailed": "Failed to load inventory",
   "stock.emptyTitle": "No items in stock",
   "stock.emptyDescription": "Start tracking your household supplies, materials, and goods.",
