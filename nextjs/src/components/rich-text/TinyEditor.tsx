@@ -6,6 +6,25 @@ import { useEffect, useMemo } from "react";
 import "@/styles/tinymce-overrides.css";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
+const DEFAULT_THEME_COLORS = {
+    background: "#ffffff",
+    surface: "#f8fafc",
+    foreground: "#0f172a",
+    muted: "#475569",
+    border: "#e2e8f0",
+    primary: "#0ea5e9",
+    primaryForeground: "#ffffff",
+};
+
+const toCssColor = (value: string, fallback: string) => {
+    const normalized = value.trim();
+    if (!normalized) return fallback;
+    if (/^[\d.]+\s+[\d.]+%\s+[\d.]+%/.test(normalized)) {
+        return `hsl(${normalized})`;
+    }
+    return normalized;
+};
+
 type TinyEditorProps = {
     id: string;
     value: string;
@@ -52,6 +71,53 @@ export function TinyEditor({
 }: TinyEditorProps) {
     const { t, locale } = useI18n();
 
+    const themeColors = useMemo(() => {
+        if (typeof window === "undefined") {
+            return { ...DEFAULT_THEME_COLORS, colorScheme: "light" as const };
+        }
+        const styles = getComputedStyle(document.documentElement);
+        const colorScheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+        const color = (token: string, fallback: string) => toCssColor(styles.getPropertyValue(token), fallback);
+
+        return {
+            colorScheme,
+            background: color("--background", DEFAULT_THEME_COLORS.background),
+            surface: color("--card", DEFAULT_THEME_COLORS.surface),
+            foreground: color("--foreground", DEFAULT_THEME_COLORS.foreground),
+            muted: color("--muted-foreground", DEFAULT_THEME_COLORS.muted),
+            border: color("--border", DEFAULT_THEME_COLORS.border),
+            primary: color("--primary", DEFAULT_THEME_COLORS.primary),
+            primaryForeground: color("--primary-foreground", DEFAULT_THEME_COLORS.primaryForeground),
+        };
+    }, []);
+
+    const contentStyle = useMemo(() => {
+        const { colorScheme, background, surface, foreground, muted, border, primary } = themeColors;
+        const fontStack = "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+
+        return `
+:root { color-scheme: ${colorScheme}; }
+body { background: ${surface}; color: ${foreground}; font-family: ${fontStack}; font-size: 14px; line-height: 1.6; margin: 0; padding: 14px 16px; }
+p { margin: 0.35rem 0 1.1rem; }
+h1 { margin: 1.4rem 0 0.95rem; font-size: 1.4rem; font-weight: 700; line-height: 1.3; color: ${foreground}; }
+h2 { margin: 1.2rem 0 0.85rem; font-size: 1.2rem; font-weight: 700; line-height: 1.35; color: ${foreground}; }
+h3 { margin: 1rem 0 0.75rem; font-size: 1.05rem; font-weight: 600; line-height: 1.4; color: ${foreground}; }
+ul, ol { margin: 0.8rem 0 0.9rem; padding-left: 1.25rem; }
+li { margin: 0.25rem 0; }
+a { color: ${primary}; text-decoration: underline; }
+a:hover { color: ${primary}; opacity: 0.9; }
+blockquote { margin: 1rem 0; padding: 0.75rem 1rem; border-left: 4px solid ${border}; background: ${background}; color: ${muted}; border-radius: 10px; }
+code { background: ${background}; color: ${foreground}; padding: 2px 6px; border-radius: 8px; border: 1px solid ${border}; font-family: SFMono-Regular, ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+pre { background: ${background}; color: ${foreground}; padding: 12px 14px; border-radius: 10px; border: 1px solid ${border}; white-space: pre-wrap; }
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; }
+th, td { border: 1px solid ${border}; padding: 8px 10px; }
+th { background: ${surface}; color: ${foreground}; font-weight: 600; text-align: left; }
+img { max-width: 100%; height: auto; border-radius: 12px; }
+hr { border: none; border-top: 1px solid ${border}; margin: 1.25rem 0; }
+strong { color: ${foreground}; }
+`;
+    }, [themeColors]);
+
     // Ensure TinyMCE skins/content CSS are available
     useEffect(() => {
         if (typeof document === "undefined") return;
@@ -83,8 +149,7 @@ export function TinyEditor({
             toolbar_mode: "wrap",
             statusbar: false,
             placeholder: placeholder || t("interactionsrawPlaceholder"),
-            content_style:
-                "body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; }",
+            content_style: contentStyle,
             skin: false,
             content_css: false,
             mobile: {
@@ -100,7 +165,7 @@ export function TinyEditor({
             ...baseConfig,
             ...(initOverrides || {}),
         };
-    }, [height, initOverrides, locale, placeholder, t]);
+    }, [contentStyle, height, initOverrides, locale, placeholder, t]);
 
     return (
         <Editor

@@ -17,7 +17,7 @@ import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
 
 export default function InteractionsPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { show } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,7 +128,12 @@ export default function InteractionsPage() {
           </Button>
         </div>
       ) : null}
-      <InteractionList interactions={displayedInteractions} documentCounts={documentCounts} t={t} />
+      <InteractionList
+        interactions={displayedInteractions}
+        documentCounts={documentCounts}
+        t={t}
+        locale={locale}
+      />
     </ListPageLayout>
   );
 }

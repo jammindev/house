@@ -20,6 +20,7 @@ import {
     Trash2,
     FileSignature,
     MoreHorizontal,
+    Link2,
 } from "lucide-react";
 
 import type { InteractionType, InteractionStatus } from "@interactions/types";
@@ -38,6 +39,18 @@ export interface InteractionTypeConfig {
 }
 
 export const INTERACTION_TYPE_CONFIGS: Record<InteractionType, InteractionTypeConfig> = {
+    link: {
+        key: "link",
+        type: "link",
+        labelKey: "dashboard.quickActions.addLink",
+        descriptionKey: "dashboard.quickActions.addLinkDesc",
+        icon: Link2,
+        color: "bg-sky-50 text-sky-700 border-sky-200",
+        category: "document",
+        hasSpecializedRoute: false,
+        defaultStatus: "pending",
+        compatibleWith: ["project", "equipment", "general"],
+    },
     note: {
         key: "note",
         type: "note",

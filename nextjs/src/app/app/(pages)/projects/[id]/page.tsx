@@ -29,6 +29,7 @@ export default function ProjectDetailPage() {
     documentsByInteraction,
     tasks,
     expenses,
+    links,
     documents,
     loading: interactionsLoading,
     error: interactionsError,
@@ -161,7 +162,7 @@ export default function ProjectDetailPage() {
           <ProjectDetailView
             project={project}
             relatedProjects={relatedProjects}
-            interactionsData={{ interactions, documentsByInteraction, tasks, expenses, documents }}
+            interactionsData={{ interactions, documentsByInteraction, tasks, expenses, links, documents }}
             onRefresh={handleRefresh}
           />
 

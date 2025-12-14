@@ -249,7 +249,7 @@ function StructureDetails({ structure, t }: { structure: Structure; t: Translato
 
 export default function StructureDetailPage() {
   const params = useParams<{ id?: string | string[] }>();
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { structures, loading, error, deleteStructure } = useStructures();
   const { contacts } = useContacts();
 
@@ -365,6 +365,7 @@ export default function StructureDetailPage() {
               loading={interactionsLoading}
               error={interactionsError}
               moreHref={moreInteractionsHref}
+              locale={locale}
               t={t}
             />
           </section>

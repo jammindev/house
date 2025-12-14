@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { TinyEditor } from "@/components/rich-text/TinyEditor";
+import { InteractionContentEditor } from "./InteractionContentEditor";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { ZonePicker } from "@interactions/components/ZonePicker";
 import InteractionTagsSelector from "@interactions/components/InteractionTagsSelector";
@@ -62,6 +62,7 @@ export interface BaseInteractionFieldsProps {
     // Content field
     content: string;
     onContentChange: (content: string) => void;
+    aiEnabled?: boolean;
 
     // Household ID
     householdId: string | null;
@@ -101,6 +102,7 @@ export default function BaseInteractionFields({
     zonesLocked,
     content,
     onContentChange,
+    aiEnabled = true,
     householdId,
     currentStep,
 }: BaseInteractionFieldsProps) {
@@ -114,6 +116,11 @@ export default function BaseInteractionFields({
         if (!hasZones) return t("zones.none");
         return t("interactionszoneHelper");
     }, [hasZones, t, zonesLoading]);
+
+    const selectedProject = useMemo(
+        () => projectOptions.find((project) => project.id === selectedProjectId) ?? null,
+        [projectOptions, selectedProjectId]
+    );
 
     const hasDetailContent = (status !== undefined && !!onStatusChange) || showOccurredAt || showTags;
     const displayDetailCard = showDetailsStep && hasDetailContent;
@@ -145,11 +152,21 @@ export default function BaseInteractionFields({
                         )}
                     </div>
 
-                    <TinyEditor
+                    <InteractionContentEditor
                         id="interaction-description"
                         value={content}
                         onChange={onContentChange}
                         textareaName="interaction-description"
+                        projectContext={
+                            selectedProjectId
+                                ? {
+                                      id: selectedProjectId,
+                                      title: selectedProject?.title,
+                                      status: selectedProject?.status,
+                                  }
+                                : null
+                        }
+                        aiEnabled={aiEnabled}
                     />
                 </>
             ) : null}

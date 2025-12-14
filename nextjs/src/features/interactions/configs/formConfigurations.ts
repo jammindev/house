@@ -238,7 +238,7 @@ export const quoteFormConfig: InteractionFormConfig = {
     type: {
         visible: false,
         required: false,
-        defaultValue: "expense"
+        defaultValue: "quote"
     },
 
     status: {
@@ -276,12 +276,12 @@ export const quoteFormConfig: InteractionFormConfig = {
 
     contacts: {
         visible: true,
-        required: false,
+        required: true,
         label: "Artisan/Entreprise"
     },
 
     structures: {
-        visible: false,
+        visible: true,
         required: false,
         defaultValue: []
     },

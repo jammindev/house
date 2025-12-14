@@ -17,6 +17,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@ai": path.resolve(__dirname, "./src/features/ai"),
       "@dashboard": path.resolve(__dirname, "./src/features/dashboard"),
       "@zones": path.resolve(__dirname, "./src/features/zones"),
       "@interactions": path.resolve(__dirname, "./src/features/interactions"),

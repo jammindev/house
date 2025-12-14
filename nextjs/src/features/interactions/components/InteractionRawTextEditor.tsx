@@ -96,7 +96,7 @@ export default function InteractionRawTextEditor({ interactionId, initialContent
         </SheetDialog>
       </div>
       <div
-        className="mt-3 text-sm leading-relaxed text-foreground [&_a]:text-primary [&_blockquote]:border-l-4 [&_blockquote]:border-l-muted [&_blockquote]:pl-3 [&_h1]:text-xl [&_h2]:text-lg [&_h3]:text-base [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
+        className="mt-3 text-sm leading-relaxed text-foreground [&_a]:text-primary [&_blockquote]:border-l-4 [&_blockquote]:border-l-muted [&_blockquote]:pl-3 [&_h1]:text-xl [&_h1]:mt-6 [&_h1]:mb-3 [&_h2]:text-lg [&_h2]:mt-5 [&_h2]:mb-3 [&_h3]:text-base [&_h3]:mt-4 [&_h3]:mb-2.5 [&_li]:ml-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mt-1.5 [&_p]:mb-3 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-5"
         dangerouslySetInnerHTML={{ __html: displayHtml }}
       />
     </div>

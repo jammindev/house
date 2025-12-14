@@ -17,6 +17,7 @@ import { formatAddress, formatFullName } from "../lib/format";
 
 type ContactDetailsViewProps = {
   contact: Contact;
+  locale?: string;
   t: (key: string, values?: Record<string, string | number>) => string;
 };
 
@@ -117,7 +118,7 @@ function buildSections(contact: Contact, t: ContactDetailsViewProps["t"]): Detai
   return sections;
 }
 
-export default function ContactDetailsView({ contact, t }: ContactDetailsViewProps) {
+export default function ContactDetailsView({ contact, locale, t }: ContactDetailsViewProps) {
   const sections = buildSections(contact, t);
   const fullName = formatFullName(contact) || t("contacts.unnamedContact");
   const {
@@ -180,6 +181,7 @@ export default function ContactDetailsView({ contact, t }: ContactDetailsViewPro
         loading={interactionsLoading}
         error={interactionsError}
         moreHref={moreInteractionsHref}
+        locale={locale}
         t={t}
       />
       <AuditHistoryCard
