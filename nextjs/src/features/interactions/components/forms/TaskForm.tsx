@@ -1,27 +1,22 @@
 // nextjs/src/features/interactions/components/forms/TaskForm.tsx
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ToastProvider";
 import { useI18n } from "@/lib/i18n/I18nProvider";
-import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
-import BaseInteractionFields from "./common/BaseInteractionFields";
-import DocumentsFields, { type LocalFile } from "./common/DocumentsFields";
-import { getCurrentLocalDateTimeInput } from "@interactions/utils/datetime";
-import type { Document, InteractionStatus, ZoneOption } from "@interactions/types";
 import { useGlobal } from "@/lib/context/GlobalContext";
+import { createSPASassClientAuthenticated as createSPASassClient } from "@/lib/supabase/client";
 import { buildDocumentMetadata, compressFileForUpload } from "@documents/utils/fileCompression";
-
-interface TaskFormDefaults {
-    status?: InteractionStatus | "";
-    occurredAt?: string;
-    projectId?: string | null;
-    selectedZones?: string[];
-}
+import { INTERACTION_FORM_CONFIG } from "@interactions/constants";
+import type { Document, ZoneOption } from "@interactions/types";
+import { useProjectOptions } from "./NoteForm/hooks/useProjectOptions";
+import TaskFormFields from "./TaskForm/components/TaskFormFields";
+import type { TaskFormDefaults, TaskFormValues } from "./TaskForm/types";
+import type { LocalFile } from "./common/DocumentsFields";
+import { useTaskFormState } from "./TaskForm/hooks/useTaskFormState";
+import { sanitizeFilename } from "./TaskForm/utils/sanitizeFilename";
+import { useToast } from "@/components/ToastProvider";
 
 interface TaskFormProps {
     zones: ZoneOption[];
@@ -31,8 +26,6 @@ interface TaskFormProps {
     redirectOnSuccess?: boolean;
     redirectTo?: string | null;
 }
-
-const sanitizeFilename = (value: string) => value.replace(/[^0-9a-zA-Z._-]/g, "_");
 
 export default function TaskForm({
     zones,
@@ -44,114 +37,139 @@ export default function TaskForm({
 }: TaskFormProps) {
     const router = useRouter();
     const { selectedHouseholdId: householdId } = useGlobal();
-    const { show } = useToast();
     const { t } = useI18n();
+    const { show } = useToast();
 
-    const initialOccurredAt = useMemo(
-        () => defaultValues.occurredAt ?? getCurrentLocalDateTimeInput(),
-        [defaultValues.occurredAt]
+    const formConfig = INTERACTION_FORM_CONFIG.todo ?? INTERACTION_FORM_CONFIG.task ?? INTERACTION_FORM_CONFIG.note;
+
+    const steps = useMemo(
+        () =>
+            formConfig?.steps?.(t) ?? [
+                {
+                    id: "basics",
+                    title: t("forms.task.steps.basics"),
+                    description: t("forms.task.steps.basicsDescription"),
+                },
+                {
+                    id: "scope",
+                    title: t("forms.task.steps.scope"),
+                    description: t("forms.task.steps.scopeDescription"),
+                },
+                {
+                    id: "context",
+                    title: t("forms.task.steps.context"),
+                    description: t("forms.task.steps.contextDescription"),
+                },
+                {
+                    id: "attachments",
+                    title: t("forms.task.steps.attachments"),
+                    description: t("forms.task.steps.attachmentsDescription"),
+                },
+            ],
+        [formConfig, t]
     );
 
-    // Base form state
-    const [subject, setSubject] = useState("");
-    const [subjectDirty, setSubjectDirty] = useState(false);
-    const [content, setContent] = useState("");
-    const [status, setStatus] = useState<InteractionStatus | "">(defaultValues.status ?? "pending");
-    const [occurredAt, setOccurredAt] = useState<string>(initialOccurredAt);
-    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(defaultValues.projectId ?? null);
-    const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-    const [selectedZones, setSelectedZones] = useState<string[]>(defaultValues.selectedZones ?? []);
-    const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
-    const [selectedStructureIds, setSelectedStructureIds] = useState<string[]>([]);
+    const requiredAssociations = formConfig?.requiredAssociations ?? {
+        zones: true,
+        contactsOrStructures: false,
+        projectOrEquipmentExclusive: true,
+    };
+    const subjectStrategy = formConfig?.subjectStrategy ?? "manual";
 
-    // Files and documents
+    const scopeStepIndexFromConfig = steps.findIndex((step) => step.id === "scope");
+    const scopeStepIndex = scopeStepIndexFromConfig >= 0 ? scopeStepIndexFromConfig : 1;
+    const contextStepIndexFromConfig = formConfig?.ui?.contextStepIndex ?? steps.findIndex((step) => step.id === "context");
+    const contextStepIndex = contextStepIndexFromConfig >= 0 ? contextStepIndexFromConfig : 2;
+    const attachmentsStepIndexFromConfig =
+        formConfig?.ui?.attachmentsStepIndex ?? steps.findIndex((step) => step.id === "attachments");
+    const attachmentsStepIndex = attachmentsStepIndexFromConfig >= 0 ? attachmentsStepIndexFromConfig : steps.length - 1;
+    const lastStepIndex = steps.length - 1;
+
+    const {
+        form,
+        subject,
+        content,
+        occurredAt,
+        status,
+        selectedProjectId,
+        selectedTagIds,
+        selectedZones,
+        selectedContactIds,
+        selectedStructureIds,
+        subjectDirty,
+        hasZones,
+        isSubmitting,
+        resetForm,
+    } = useTaskFormState({ defaultValues, zones });
+
+    const { projectOptions, projectLoading, projectError } = useProjectOptions(householdId, t);
+
     const [files, setFiles] = useState<LocalFile[]>([]);
     const [libraryDocuments, setLibraryDocuments] = useState<Document[]>([]);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [currentStep, setCurrentStep] = useState(0);
 
-    // Form state
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const canProceed =
+        requiredAssociations.zones && currentStep === scopeStepIndex
+            ? selectedZones.length > 0 && hasZones && !zonesLoading
+            : requiredAssociations.contactsOrStructures && currentStep === contextStepIndex
+                ? selectedContactIds.length > 0 || selectedStructureIds.length > 0
+                : true;
 
-    // Projects (simplified without types issues)
-    const [projectOptions, setProjectOptions] = useState<Array<{ id: string; title: string; status: string }>>([]);
-    const [projectLoading, setProjectLoading] = useState(false);
-    const [projectError, setProjectError] = useState("");
-
-    // Load projects
-    useEffect(() => {
-        if (!householdId) {
-            setProjectOptions([]);
+    const handleNextStep = () => {
+        if (
+            requiredAssociations.zones &&
+            currentStep === scopeStepIndex &&
+            (!selectedZones.length || !hasZones || zonesLoading)
+        ) {
+            setSubmitError(t("interactionsselectZoneRequired"));
             return;
         }
-        let active = true;
-        const loadProjects = async () => {
-            setProjectLoading(true);
-            setProjectError("");
-            try {
-                const supa = await createSPASassClient();
-                const client = supa.getSupabaseClient();
-                // Using raw query to avoid type issues
-                const { data, error: loadError } = await (client as any)
-                    .from("projects")
-                    .select("id, title, status")
-                    .eq("household_id", householdId)
-                    .order("updated_at", { ascending: false })
-                    .limit(100);
-                if (loadError) throw loadError;
-                if (!active) return;
-                setProjectOptions(data ?? []);
-            } catch (err: unknown) {
-                if (!active) return;
-                const message = err instanceof Error ? err.message : t("common.unexpectedError");
-                setProjectError(message);
-                setProjectOptions([]);
-            } finally {
-                if (active) setProjectLoading(false);
-            }
-        };
-        void loadProjects();
-        return () => {
-            active = false;
-        };
-    }, [householdId, t]);
-
-    const hasZones = zones.length > 0;
-
-    const resetForm = () => {
-        setSubject("");
-        setSubjectDirty(false);
-        setContent("");
-        setStatus(defaultValues.status ?? "pending");
-        setOccurredAt(defaultValues.occurredAt ?? getCurrentLocalDateTimeInput());
-        setSelectedProjectId(defaultValues.projectId ?? null);
-        setSelectedTagIds([]);
-        setSelectedZones(defaultValues.selectedZones ?? []);
-        setSelectedContactIds([]);
-        setSelectedStructureIds([]);
-        setFiles([]);
-        setLibraryDocuments([]);
+        if (
+            requiredAssociations.contactsOrStructures &&
+            currentStep === contextStepIndex &&
+            selectedContactIds.length + selectedStructureIds.length === 0
+        ) {
+            setSubmitError(t("interactionsquoteAssociationRequired"));
+            return;
+        }
+        setSubmitError(null);
+        setCurrentStep((prev) => Math.min(prev + 1, lastStepIndex));
     };
 
-    const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (submitting) return;
+    const handlePrevStep = () => {
+        setSubmitError(null);
+        setCurrentStep((prev) => Math.max(prev - 1, 0));
+    };
 
-        const trimmedContent = content.trim();
-        const trimmedSubject = subject.trim() || trimmedContent.slice(0, 80);
-        const contentPayload = trimmedContent.length > 0 ? trimmedContent : null;
+    const normalizeRichText = (value: string) => {
+        const trimmed = value.trim();
+        const plainText = trimmed.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim();
+        return { trimmed, plainText };
+    };
+
+    const onSubmit = async (formValues: TaskFormValues) => {
+        if (isSubmitting) return;
+        if (currentStep < lastStepIndex) {
+            handleNextStep();
+            return;
+        }
+
+        const { trimmed: trimmedContent, plainText: contentText } = normalizeRichText(formValues.content || "");
+        const trimmedSubject = formValues.subject.trim() || contentText.slice(0, 80);
+        const contentPayload = contentText.length > 0 ? trimmedContent : null;
 
         if (!trimmedSubject) {
-            setError(t("interactionssubjectRequired"));
+            setSubmitError(t("interactionssubjectRequired"));
             return;
         }
 
-        if (!selectedZones.length) {
-            setError(t("interactionsselectZoneRequired"));
+        if (requiredAssociations.zones && !formValues.zoneIds.length) {
+            setSubmitError(t("interactionsselectZoneRequired"));
             return;
         }
 
-        setSubmitting(true);
-        setError(null);
+        setSubmitError(null);
 
         try {
             const supa = await createSPASassClient();
@@ -162,21 +180,20 @@ export default function TaskForm({
             const userId = userData.user?.id;
             if (!userId) throw new Error(t("auth.notAuthenticated"));
 
-            const occurredAtValue = occurredAt ? new Date(occurredAt).toISOString() : null;
+            const occurredAtValue = formValues.occurredAt ? new Date(formValues.occurredAt).toISOString() : null;
 
-            // Using raw RPC call to avoid type issues
             const { data: createdId, error: createError } = await (client as any).rpc("create_interaction_with_zones", {
                 p_household_id: householdId,
                 p_subject: trimmedSubject,
-                p_zone_ids: selectedZones,
+                p_zone_ids: formValues.zoneIds,
                 p_content: contentPayload,
                 p_type: "todo",
-                p_status: status || null,
+                p_status: formValues.status || null,
                 p_occurred_at: occurredAtValue,
-                p_tag_ids: selectedTagIds.length ? selectedTagIds : null,
-                p_contact_ids: selectedContactIds.length ? selectedContactIds : null,
-                p_structure_ids: selectedStructureIds.length ? selectedStructureIds : null,
-                p_project_id: selectedProjectId ?? null,
+                p_tag_ids: formValues.tagIds.length ? formValues.tagIds : null,
+                p_contact_ids: formValues.contactIds.length ? formValues.contactIds : null,
+                p_structure_ids: formValues.structureIds.length ? formValues.structureIds : null,
+                p_project_id: formValues.projectId ?? null,
                 p_metadata: null,
             });
 
@@ -186,14 +203,14 @@ export default function TaskForm({
 
             const interactionId = createdId as string;
 
-            // Handle file uploads (simplified)
             if (files.length > 0) {
                 for (const item of files) {
                     try {
                         const compressionResult = await compressFileForUpload(item.file);
                         const fileForUpload = compressionResult.file;
                         const safeBaseName = sanitizeFilename(fileForUpload.name || item.file.name || "document");
-                        const uniquePrefix = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+                        const uniquePrefix =
+                            crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
                         const storagePath = `${userId}/${interactionId}/${uniquePrefix}_${safeBaseName}`;
 
                         const { error: uploadError } = await client.storage
@@ -213,6 +230,7 @@ export default function TaskForm({
                                 type: item.type,
                                 name: item.customName || item.file.name,
                                 notes: item.notes ?? "",
+                                household_id: householdId,
                                 metadata: {
                                     ...buildDocumentMetadata(item.file, compressionResult),
                                     uploadSource: "task_form",
@@ -237,7 +255,6 @@ export default function TaskForm({
                 }
             }
 
-            // Handle library documents
             if (libraryDocuments.length > 0) {
                 const existingPayload = libraryDocuments.map((doc) => ({
                     interaction_id: interactionId,
@@ -252,6 +269,9 @@ export default function TaskForm({
             }
 
             resetForm();
+            setFiles([]);
+            setLibraryDocuments([]);
+            setCurrentStep(0);
             onCreated?.(interactionId);
             if (redirectOnSuccess) {
                 const target = redirectTo && redirectTo.startsWith("/") ? redirectTo : "/app/interactions?created=1";
@@ -260,62 +280,64 @@ export default function TaskForm({
         } catch (error: unknown) {
             console.error(error);
             const message = error instanceof Error ? error.message : t("interactionscreateFailed");
-            setError(message);
+            setSubmitError(message);
             show({ title: t("interactionscreateFailed"), description: message, variant: "error" });
-        } finally {
-            setSubmitting(false);
         }
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <BaseInteractionFields
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <TaskFormFields
+                subjectStrategy={subjectStrategy}
                 subject={subject}
-                onSubjectChange={setSubject}
+                onSubjectChange={(value) => form.setValue("subject", value, { shouldDirty: true })}
                 subjectDirty={subjectDirty}
-                onSubjectDirtyChange={setSubjectDirty}
-                isAutoSubjectType={false}
                 subjectPlaceholder={t("forms.task.subjectPlaceholder")}
-                status={status}
-                onStatusChange={setStatus}
                 occurredAt={occurredAt}
-                onOccurredAtChange={setOccurredAt}
+                onOccurredAtChange={(value) => form.setValue("occurredAt", value, { shouldDirty: true })}
+                status={status}
+                onStatusChange={(value) => form.setValue("status", value, { shouldDirty: true })}
                 selectedProjectId={selectedProjectId}
-                onProjectChange={setSelectedProjectId}
+                onProjectChange={(value) => form.setValue("projectId", value, { shouldDirty: true })}
                 projectOptions={projectOptions}
                 projectLoading={projectLoading}
                 projectError={projectError}
                 selectedTagIds={selectedTagIds}
-                onTagsChange={setSelectedTagIds}
+                onTagsChange={(value) => form.setValue("tagIds", value, { shouldDirty: true })}
                 selectedZones={selectedZones}
-                onZonesChange={setSelectedZones}
+                onZonesChange={(updater) => {
+                    const current = selectedZones;
+                    const nextValue = typeof updater === "function" ? updater(current) : updater;
+                    form.setValue("zoneIds", nextValue, { shouldDirty: true });
+                }}
                 zones={zones}
                 zonesLoading={zonesLoading}
                 hasZones={hasZones}
                 content={content}
-                onContentChange={setContent}
+                onContentChange={(value) => form.setValue("content", value, { shouldDirty: true })}
                 householdId={householdId}
-            />
-
-            <DocumentsFields
+                selectedContactIds={selectedContactIds}
+                onContactsChange={(value) => form.setValue("contactIds", value, { shouldDirty: true })}
+                selectedStructureIds={selectedStructureIds}
+                onStructuresChange={(value) => form.setValue("structureIds", value, { shouldDirty: true })}
                 files={files}
                 onFilesChange={setFiles}
                 libraryDocuments={libraryDocuments}
                 onLibraryDocumentsChange={setLibraryDocuments}
-                householdId={householdId}
+                submitError={submitError}
+                isSubmitting={isSubmitting}
+                submitLabel={isSubmitting ? t("common.saving") : t("forms.task.createCta")}
+                steps={steps}
+                currentStep={currentStep}
+                scopeStepIndex={scopeStepIndex}
+                contextStepIndex={contextStepIndex}
+                attachmentsStepIndex={attachmentsStepIndex}
+                onNextStep={handleNextStep}
+                onPrevStep={handlePrevStep}
+                isLastStep={currentStep === lastStepIndex}
+                canProceed={canProceed}
+                onSubmitClick={() => form.handleSubmit(onSubmit)()}
             />
-
-            {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                    {error}
-                </div>
-            )}
-
-            <div className="flex justify-end gap-2">
-                <Button type="submit" disabled={submitting || zonesLoading || !hasZones}>
-                    {submitting ? t("common.saving") : t("forms.task.createCta")}
-                </Button>
-            </div>
         </form>
     );
 }

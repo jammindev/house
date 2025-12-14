@@ -108,6 +108,54 @@ const quoteMetadataSchema = z
   .optional();
 
 export const INTERACTION_FORM_CONFIG: Partial<Record<InteractionType, InteractionFormConfig>> = {
+  task: {
+    type: "todo",
+    subjectStrategy: "manual",
+    requiredAssociations: {
+      zones: true,
+      contactsOrStructures: false,
+      projectOrEquipmentExclusive: true,
+    },
+    steps: (t) => [
+      { id: "basics", title: t("forms.task.steps.basics"), description: t("forms.task.steps.basicsDescription") },
+      { id: "scope", title: t("forms.task.steps.scope"), description: t("forms.task.steps.scopeDescription") },
+      { id: "context", title: t("forms.task.steps.context"), description: t("forms.task.steps.contextDescription") },
+      {
+        id: "attachments",
+        title: t("forms.task.steps.attachments"),
+        description: t("forms.task.steps.attachmentsDescription"),
+      },
+    ],
+    metadataSchema: z.null().optional(),
+    ui: {
+      contextStepIndex: 2,
+      attachmentsStepIndex: 3,
+    },
+  },
+  todo: {
+    type: "todo",
+    subjectStrategy: "manual",
+    requiredAssociations: {
+      zones: true,
+      contactsOrStructures: false,
+      projectOrEquipmentExclusive: true,
+    },
+    steps: (t) => [
+      { id: "basics", title: t("forms.task.steps.basics"), description: t("forms.task.steps.basicsDescription") },
+      { id: "scope", title: t("forms.task.steps.scope"), description: t("forms.task.steps.scopeDescription") },
+      { id: "context", title: t("forms.task.steps.context"), description: t("forms.task.steps.contextDescription") },
+      {
+        id: "attachments",
+        title: t("forms.task.steps.attachments"),
+        description: t("forms.task.steps.attachmentsDescription"),
+      },
+    ],
+    metadataSchema: z.null().optional(),
+    ui: {
+      contextStepIndex: 2,
+      attachmentsStepIndex: 3,
+    },
+  },
   note: {
     type: "note",
     subjectStrategy: "manual",
