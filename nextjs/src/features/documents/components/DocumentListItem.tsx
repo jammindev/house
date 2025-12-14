@@ -72,7 +72,7 @@ export default function DocumentListItem({ doc, viewUrl, downloadUrl, onEdit, on
     return (
         <li
             role="listitem"
-            className="space-y-2 border-gray-200 rounded-md bg-white px-3 py-2 transition-shadow hover:shadow-sm w-full overflow-hidden"
+            className="space-y-2 border border-gray-200 rounded-lg bg-white px-3 py-2 shadow-md hover:shadow-lg transition-shadow w-full overflow-hidden"
         >
             <div className="flex items-center gap-3">
                 {/* Name + icon */}

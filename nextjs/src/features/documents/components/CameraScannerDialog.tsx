@@ -7,14 +7,7 @@ import { PDFDocument } from "pdf-lib";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+import { SheetDialog } from "@/components/ui/sheet-dialog";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 
@@ -208,51 +201,79 @@ export function CameraScannerDialog({ open, onOpenChange, onComplete }: CameraSc
     }, [pages.length, t]);
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-3xl">
-                <DialogHeader>
-                    <DialogTitle>{t("storage.cameraScanner.title")}</DialogTitle>
-                    <DialogDescription>{t("storage.cameraScanner.description")}</DialogDescription>
-                </DialogHeader>
+        <SheetDialog
+            open={open}
+            onOpenChange={onOpenChange}
+            title={t("storage.cameraScanner.title")}
+            description={t("storage.cameraScanner.description")}
+            contentClassName="p-0 gap-0"
+            containerClassName="max-h-[95vh]"
+            trigger={<div style={{ display: 'none' }} />} // Hidden trigger as it's controlled
+        >
+            <div className="flex flex-col h-full min-h-0">
+                {/* Camera Section - Takes most of the space */}
+                <div className="relative flex-1 min-h-[60vh]">
+                    {isSupported ? (
+                        <>
+                            <video
+                                ref={videoRef}
+                                className="w-full h-full object-cover rounded-lg"
+                                playsInline
+                                muted
+                                autoPlay
+                            />
+                            <div className="absolute top-4 left-4 right-4 rounded-lg border border-white/40 bg-black/60 px-4 py-2 text-center text-sm text-white shadow-md">
+                                <p className="text-xs text-white/90">{t("storage.cameraScanner.instructions")}</p>
+                            </div>
 
-                <div className="space-y-4">
+                            {/* Capture Button - Fixed position */}
+                            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2">
+                                <Button
+                                    type="button"
+                                    onClick={() => void handleCapture()}
+                                    disabled={isInitializing || isSaving || !isSupported}
+                                    size="lg"
+                                    className="rounded-full w-16 h-16 bg-white text-black hover:bg-gray-100 shadow-lg"
+                                >
+                                    {isInitializing ? (
+                                        <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
+                                    ) : (
+                                        <Camera className="h-8 w-8" aria-hidden="true" />
+                                    )}
+                                </Button>
+                            </div>
+
+                            {/* Pages count indicator */}
+                            {pages.length > 0 && (
+                                <div className="absolute bottom-6 right-4 rounded-lg bg-black/60 px-3 py-2 text-sm text-white">
+                                    {pagesCountLabel}
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center h-full bg-slate-100 rounded-lg">
+                            <div className="text-center">
+                                <Camera className="h-16 w-16 text-slate-400 mx-auto mb-4" />
+                                <p className="text-sm text-slate-500">{t("storage.cameraScanner.unsupported")}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Scrollable Content Section */}
+                <div className="flex-shrink-0 mt-4 space-y-4 max-h-[35vh] overflow-y-auto">
                     {error && (
                         <Alert variant="destructive">
                             <AlertDescription>{error}</AlertDescription>
                         </Alert>
                     )}
 
-                    <div
-                        className={cn(
-                            "relative overflow-hidden rounded-xl border bg-black/80",
-                            !isSupported && "bg-slate-100"
-                        )}
-                    >
-                        {isSupported ? (
-                            <>
-                                <video
-                                    ref={videoRef}
-                                    className="h-64 w-full object-contain sm:h-80"
-                                    playsInline
-                                    muted
-                                    autoPlay
-                                />
-                                <div className="absolute inset-x-4 bottom-4 rounded-lg border border-white/40 bg-black/60 px-4 py-2 text-center text-sm text-white shadow-md">
-                                    {t("storage.cameraScanner.instructions")}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="p-6 text-center text-sm text-slate-500">
-                                {t("storage.cameraScanner.unsupported")}
-                            </div>
-                        )}
-                    </div>
-
                     <div className="flex flex-wrap items-center gap-2">
                         <Button
                             type="button"
                             onClick={() => void handleCapture()}
                             disabled={isInitializing || isSaving || !isSupported}
+                            variant="outline"
                         >
                             {isInitializing ? (
                                 <span className="flex items-center gap-2">
@@ -277,7 +298,6 @@ export function CameraScannerDialog({ open, onOpenChange, onComplete }: CameraSc
                                 {t("storage.cameraScanner.reset")}
                             </Button>
                         )}
-                        <p className="text-sm text-slate-500">{pagesCountLabel}</p>
                     </div>
 
                     {pages.length > 0 && (
@@ -303,35 +323,36 @@ export function CameraScannerDialog({ open, onOpenChange, onComplete }: CameraSc
                             ))}
                         </div>
                     )}
+
+                    {/* Footer with actions */}
+                    <div className="flex justify-between gap-3 pt-4 border-t">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={isSaving}
+                        >
+                            {t("storage.cameraScanner.cancel")}
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={() => void handleSave()}
+                            disabled={!pages.length || isSaving}
+                        >
+                            {isSaving ? (
+                                <span className="flex items-center gap-2">
+                                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                                    {t("storage.cameraScanner.saving")}
+                                </span>
+                            ) : (
+                                t("storage.cameraScanner.save")
+                            )}
+                        </Button>
+                    </div>
                 </div>
 
-                <DialogFooter className="pt-4">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={isSaving}
-                    >
-                        {t("storage.cameraScanner.cancel")}
-                    </Button>
-                    <Button
-                        type="button"
-                        onClick={() => void handleSave()}
-                        disabled={!pages.length || isSaving}
-                    >
-                        {isSaving ? (
-                            <span className="flex items-center gap-2">
-                                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                                {t("storage.cameraScanner.saving")}
-                            </span>
-                        ) : (
-                            t("storage.cameraScanner.save")
-                        )}
-                    </Button>
-                </DialogFooter>
-
                 <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
-            </DialogContent>
-        </Dialog>
+            </div>
+        </SheetDialog>
     );
 }
