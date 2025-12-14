@@ -1498,6 +1498,7 @@
   "stock.subtitle": "Gérez vos stocks et fournitures",
   "stock.tabs.items": "Articles",
   "stock.tabs.categories": "Catégories",
+  "stock.selectTab": "Sélectionner un onglet",
   "stock.loadFailed": "Échec du chargement de l'inventaire",
   "stock.emptyTitle": "Aucun article en stock",
   "stock.emptyDescription": "Commencez à suivre vos fournitures, matériaux et marchandises.",
