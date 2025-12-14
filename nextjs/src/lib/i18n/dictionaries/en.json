@@ -763,6 +763,8 @@
   "storage.cameraScanner.saveError": "Unable to create the PDF. Please try again.",
   "documents.title": "Documents",
   "documents.subtitle": "Browse and manage every document stored for this household.",
+  "documents.upload.title": "Upload Documents",
+  "documents.upload.subtitle": "Add files to your household library",
   "documents.noHousehold": "Select a household to view the stored documents.",
   "documents.loadFailed": "Unable to load documents.",
   "documents.loading": "Loading documents...",

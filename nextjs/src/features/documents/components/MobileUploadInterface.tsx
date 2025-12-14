@@ -65,7 +65,6 @@ export function MobileUploadInterface({ onFilesSelected, onScannerOpen, disabled
                             <ScanLine className="h-5 w-5 text-blue-600" />
                             <span className="font-medium">{t("storage.cameraScanner.action")}</span>
                         </div>
-                        <span className="text-xs text-gray-500">{t("storage.cameraScanner.helper")}</span>
                     </div>
                 </Button>                {/* Choisir des photos de la galerie */}
                 <Button
@@ -81,7 +80,6 @@ export function MobileUploadInterface({ onFilesSelected, onScannerOpen, disabled
                             <Image className="h-5 w-5 text-green-600" />
                             <span className="font-medium">{t("storage.mobile.choosePhotos")}</span>
                         </div>
-                        <span className="text-xs text-gray-500">{t("storage.mobile.fromGallery")}</span>
                     </div>
                 </Button>
 
@@ -99,7 +97,6 @@ export function MobileUploadInterface({ onFilesSelected, onScannerOpen, disabled
                             <File className="h-5 w-5 text-purple-600" />
                             <span className="font-medium">{t("storage.mobile.chooseFiles")}</span>
                         </div>
-                        <span className="text-xs text-gray-500">{t("storage.mobile.documentsAndMore")}</span>
                     </div>
                     <input
                         ref={documentInputRef}
@@ -111,21 +108,6 @@ export function MobileUploadInterface({ onFilesSelected, onScannerOpen, disabled
                         disabled={isDisabled}
                     />
                 </Button>
-            </div>
-
-            {/* Info sur les fonctionnalités mobiles */}
-            <div className="rounded-lg bg-blue-50 border border-blue-200 p-3">
-                <div className="flex items-start gap-2">
-                    <Smartphone className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-blue-800">
-                        <p className="font-medium mb-1">{t("storage.mobile.features.title")}</p>
-                        <ul className="space-y-0.5 text-blue-700">
-                            <li>• {t("storage.mobile.features.scanner")}</li>
-                            <li>• {t("storage.mobile.features.gallery")}</li>
-                            <li>• {t("storage.mobile.features.files")}</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
 
             {/* Inputs cachés */}

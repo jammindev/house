@@ -80,14 +80,18 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
             onClick={handleCardClick}
             className={!isMobile && isCollapsed ? "cursor-pointer" : undefined}
         >
-            <CardHeader>
-                <div className="flex items-start justify-between gap-4">
-                    <div>
-                        <CardTitle className="text-lg">{t("storage.uploadCardTitle")}</CardTitle>
-                        <CardDescription>{t("storage.uploadCardSubtitle")}</CardDescription>
+            <CardHeader className={isMobile ? "px-3 py-4" : undefined}>
+                <div className={`flex items-start justify-between ${isMobile ? "gap-2" : "gap-4"}`}>
+                    <div className="min-w-0 flex-1">
+                        <CardTitle className={`${isMobile ? "text-base" : "text-lg"} truncate`}>
+                            {t("storage.uploadCardTitle")}
+                        </CardTitle>
+                        <CardDescription className={`${isMobile ? "text-xs" : ""} mt-1`}>
+                            {t("storage.uploadCardSubtitle")}
+                        </CardDescription>
                     </div>
                     {/* Desktop-only collapse toggle */}
-                    {!isMobile && <div className="md:flex items-center">
+                    {!isMobile && <div className="md:flex items-center flex-shrink-0">
                         <Button
                             variant="ghost"
                             size="sm"
@@ -110,7 +114,7 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
             </CardHeader>
 
             {isMobile || !isCollapsed ? (
-                <CardContent className="space-y-4">
+                <CardContent className={`${isMobile ? "px-3 pb-4 space-y-3" : "space-y-4"}`}>
                     {/* Adaptive upload interface */}
                     {isMobile ? (
                         <MobileUploadInterface
@@ -126,23 +130,25 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
                     )}
 
                     {error && (
-                        <Alert variant="destructive">
+                        <Alert variant="destructive" className={isMobile ? "text-sm" : undefined}>
                             <AlertCircle className="h-4 w-4" aria-hidden="true" />
-                            <AlertDescription>{error}</AlertDescription>
+                            <AlertDescription className={isMobile ? "text-xs" : undefined}>{error}</AlertDescription>
                         </Alert>
                     )}
 
                     {success && (
-                        <Alert className="border-green-200 bg-green-50 text-green-800">
+                        <Alert className={`border-green-200 bg-green-50 text-green-800 ${isMobile ? "text-sm" : ""}`}>
                             <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                            <AlertDescription>{success}</AlertDescription>
+                            <AlertDescription className={isMobile ? "text-xs" : undefined}>{success}</AlertDescription>
                         </Alert>
                     )}
 
                     {stagedFiles.length === 0 ? (
-                        <p className="text-sm text-gray-500">{t("storage.stageEmpty")}</p>
+                        <p className={`text-gray-500 ${isMobile ? "text-xs px-1" : "text-sm"}`}>
+                            {t("storage.stageEmpty")}
+                        </p>
                     ) : (
-                        <div className="space-y-4">
+                        <div className={isMobile ? "space-y-3" : "space-y-4"}>
                             {stagedFiles.map((staged) => (
                                 <StagedFileItem
                                     key={staged.id}
@@ -155,12 +161,13 @@ export function DocumentUploadSection({ onUploadSuccess, defaultCollapsed = true
                         </div>
                     )}
 
-                    <div className="flex items-center justify-end border-t pt-4">
+                    <div className={`flex items-center border-t pt-4 ${isMobile ? "justify-center pt-3" : "justify-end"}`}>
                         <Button
                             type="button"
                             onClick={() => void handleUpload()}
                             disabled={uploadDisabled}
-                            className="min-w-[10rem]"
+                            className={isMobile ? "w-full text-sm" : "min-w-[10rem]"}
+                            size={isMobile ? "default" : undefined}
                         >
                             {uploading ? (
                                 <span className="flex items-center gap-2">

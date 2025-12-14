@@ -44,13 +44,6 @@ export default function ProjectDetailPage() {
   }, [reloadProject, reloadInteractions]);
 
   const statusLabel = project?.status ? t(`projects.status.${project.status}`) : undefined;
-  const projectSubtitleParts = project
-    ? [
-      project.group ? project.group.name : null,
-      statusLabel ?? null,
-    ].filter((part): part is string => Boolean(part))
-    : [];
-  const projectSubtitle = projectSubtitleParts.length ? projectSubtitleParts.join(" • ") : undefined;
   const isLoading = loading || interactionsLoading;
   const combinedError = error || interactionsError || null;
   const isNotFound = !isLoading && (!id || !project);

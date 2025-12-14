@@ -4,6 +4,7 @@
 export { DocumentsList } from "./components/DocumentsList";
 export { DocumentsFilters } from "./components/DocumentsFilters";
 export { DocumentUploadSection } from "./components/DocumentUploadSection";
+export { DocumentUploadButton } from "./components/DocumentUploadButton";
 export { DocumentsSection } from "./components/DocumentsSection";
 export { EditDocumentModal } from "./components/EditDocumentModal";
 export { AddDocumentsModal } from "./components/AddDocumentModal";

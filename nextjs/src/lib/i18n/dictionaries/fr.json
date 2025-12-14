@@ -764,6 +764,8 @@
   "storage.cameraScanner.saveError": "Impossible de créer le PDF. Réessaie.",
   "documents.title": "Documents",
   "documents.subtitle": "Parcours et gère tous les documents stockés pour ce foyer.",
+  "documents.upload.title": "Téléverser des Documents",
+  "documents.upload.subtitle": "Ajouter des fichiers à votre bibliothèque du foyer",
   "documents.noHousehold": "Sélectionne un foyer pour afficher les documents stockés.",
   "documents.loadFailed": "Impossible de charger les documents.",
   "documents.loading": "Chargement des documents...",
