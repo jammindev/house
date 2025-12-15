@@ -30,6 +30,7 @@ type RawInteraction = {
   project?: RawProject | null;
   metadata: Interaction["metadata"];
   enriched_text: Interaction["enriched_text"];
+  is_private: boolean;
   created_at: string;
   updated_at: string;
   created_by?: string | null;
@@ -239,6 +240,7 @@ export function useInteractions() {
               household_id,
               metadata,
               enriched_text,
+              is_private,
               created_by,
               updated_by,
               interaction_tags:interaction_tags(
@@ -362,6 +364,7 @@ export function useInteractions() {
                 })) ?? [],
             metadata: item.metadata,
             enriched_text: item.enriched_text,
+            is_private: item.is_private ?? false,
             created_at: item.created_at,
             updated_at: item.updated_at,
             created_by: item.created_by ?? null,

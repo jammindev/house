@@ -62,6 +62,7 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
             cover_interaction_id,
             project_group_id,
             is_pinned,
+            is_private,
             project_group:project_groups (
               id,
               name
@@ -220,6 +221,7 @@ export async function fetchProjectsByGroup(
             cover_interaction_id,
             project_group_id,
             is_pinned,
+            is_private,
             project_group:project_groups (
               id,
               name

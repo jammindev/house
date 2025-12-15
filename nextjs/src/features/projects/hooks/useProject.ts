@@ -47,6 +47,7 @@ export function useProject(projectId?: string) {
             cover_interaction_id,
             project_group_id,
             is_pinned,
+            is_private,
             project_group:project_groups (
               id,
               name
@@ -208,7 +209,7 @@ export function useProject(projectId?: string) {
         setInteractionsCount(interactionsCountResult ?? 0);
       } catch (err) {
         // non-fatal: log and continue (we still surface the project)
-         
+
         console.warn("Failed to load interactions count for project", projectData.id, err);
         setInteractionsCount(undefined);
       }

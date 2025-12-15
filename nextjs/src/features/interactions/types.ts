@@ -69,6 +69,7 @@ export type Interaction = {
   structures: InteractionStructure[];
   metadata?: Record<string, unknown> | null;
   enriched_text?: string | null;
+  is_private: boolean;
   created_at: string;
   updated_at: string;
   created_by?: string | null;

@@ -9,6 +9,7 @@ import { ProjectAIChatSheet } from "@projects/features/ai-chat";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { useGlobal } from "@/lib/context/GlobalContext";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import ProjectDetailView from "@projects/components/ProjectDetailView";
@@ -19,10 +20,14 @@ import { useProjectInteractions } from "@projects/hooks/useProjectInteractions";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import { SheetDialog } from "@/components/ui/sheet-dialog";
 import AddProjectInteraction from "@projects/components/AddProjectInteraction";
+import VisibilityToggleButton from "@shared/components/VisibilityToggleButton";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
+  const { show } = useToast();
+  const { user } = useGlobal();
   const { project, relatedProjects, loading, error, reload: reloadProject } = useProject(id);
   const {
     interactions,
@@ -52,6 +57,17 @@ export default function ProjectDetailPage() {
     () =>
       project
         ? [
+          ...(user && project.created_by === user.id ? [{
+            element: (
+              <VisibilityToggleButton
+                entityType="project"
+                entityId={project.id}
+                isPrivate={project.is_private}
+                onToggled={handleRefresh}
+                showToast={show}
+              />
+            ),
+          }] : []),
           {
             element: (
               <ProjectPinButton
@@ -124,7 +140,7 @@ export default function ProjectDetailPage() {
           },
         ]
         : undefined,
-    [handleRefresh, project, setLinkOpen, t]
+    [handleRefresh, project, setLinkOpen, show, t, user]
   );
 
   return (

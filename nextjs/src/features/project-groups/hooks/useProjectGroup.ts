@@ -32,6 +32,7 @@ export function useProjectGroup(groupId?: string) {
             name,
             description,
             tags,
+            is_private,
             created_at,
             updated_at,
             created_by,

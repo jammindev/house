@@ -6,6 +6,7 @@ import CountBadge from "@/components/ui/CountBadge";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { Interaction } from "@interactions/types";
+import VisibilityBadge from "@/features/_shared/components/VisibilityBadge";
 
 interface Props {
   interaction: Interaction;
@@ -37,7 +38,6 @@ const typeBadgeStyles: Partial<Record<Interaction["type"], string>> = {
   replacement: "bg-indigo-100 text-indigo-800",
   upgrade: "bg-purple-100 text-purple-800",
   visit: "bg-orange-100 text-orange-800",
-  visite: "bg-orange-100 text-orange-800",
   disposal: "bg-gray-100 text-gray-800",
   quote: "bg-emerald-100 text-emerald-800",
   message: "bg-teal-100 text-teal-800",
@@ -70,11 +70,12 @@ export default function InteractionItem({ interaction, documentCount, t, returnT
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 w-full space-y-1">
             <div className="flex flex-nowrap justify-between gap-4">
-              <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
                 <span className="flex items-center gap-1 font-medium text-gray-900 text-xs">
                   <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
                   {occurredDateLabel}
                 </span>
+                <VisibilityBadge isPrivate={interaction.is_private} size="sm" />
               </div>
               <span className={`inline-flex items-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold h-fit ${typeBadgeClass}`}>
                 {t(`interactionstypes.${interaction.type}`)}
