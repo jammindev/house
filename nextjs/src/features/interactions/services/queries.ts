@@ -43,6 +43,7 @@ export class InteractionQueries {
           project_id,
           metadata,
           enriched_text,
+          is_private,
           created_at,
           updated_at,
           household_id,

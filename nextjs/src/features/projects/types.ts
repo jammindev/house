@@ -29,6 +29,7 @@ export type Project = {
   cover_interaction_id: string | null;
   project_group_id: string | null;
   is_pinned: boolean;
+  is_private: boolean;
   created_at: string;
   updated_at: string;
   created_by: string | null;

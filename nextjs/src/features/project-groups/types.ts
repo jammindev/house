@@ -4,6 +4,7 @@ export type ProjectGroup = {
   name: string;
   description: string;
   tags: string[];
+  is_private: boolean;
   created_at: string;
   updated_at: string;
   created_by: string | null;

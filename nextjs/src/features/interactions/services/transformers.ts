@@ -65,6 +65,7 @@ export class InteractionTransformers {
             structures,
             metadata: raw.metadata as Interaction["metadata"],
             enriched_text: raw.enriched_text,
+            is_private: raw.is_private ?? false,
             created_at: raw.created_at ?? "",
             updated_at: raw.updated_at ?? "",
             created_by: raw.created_by,

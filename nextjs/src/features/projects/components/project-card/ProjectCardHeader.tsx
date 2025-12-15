@@ -6,6 +6,7 @@ import CountBadge from "@/components/ui/CountBadge";
 import OverdueBadge from "@/components/ui/OverdueBadge";
 import DueSoonBadge from "@/components/ui/DueSoonBadge";
 import ProjectStatusBadge from "@projects/components/ProjectStatusBadge";
+import VisibilityBadge from "@shared/components/VisibilityBadge";
 import type { ProjectWithMetrics } from "@projects/types";
 import type { ProjectTypeDefinition } from "@projects/constants";
 import { formatDate } from "@projects/utils/projectCard";
@@ -48,6 +49,7 @@ export default function ProjectCardHeader({
             <h3 className="text-base font-semibold text-slate-900 line-clamp-2">{project.title}</h3>
           </div>
           <div className="flex flex-wrap gap-2 items-center">
+            <VisibilityBadge isPrivate={project.is_private} size="sm" />
             <ProjectStatusBadge status={project.status} />
             {project.isOverdue ? (
               <OverdueBadge label={t("projects.badges.overdue")} />
@@ -90,8 +92,8 @@ export default function ProjectCardHeader({
           <span>
             {t("projects.fields.budget")}:{" "}
             <span className={`font-medium ${project.actual_cost_cached > project.planned_budget && project.planned_budget > 0
-                ? "text-rose-600"
-                : "text-slate-700"
+              ? "text-rose-600"
+              : "text-slate-700"
               }`}>
               {new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(
                 project.planned_budget > 0 ? project.planned_budget : project.actual_cost_cached

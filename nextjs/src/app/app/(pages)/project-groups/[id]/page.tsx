@@ -1,22 +1,27 @@
 // nextjs/src/app/app/(pages)/project-groups/[id]/page.tsx
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { FolderX } from "lucide-react";
+import { FolderX, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { useGlobal } from "@/lib/context/GlobalContext";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import DetailPageLayout from "@shared/layout/DetailPageLayout";
 import EmptyState from "@shared/components/EmptyState";
 import { useProjectsByGroup } from "@projects/hooks/useProjects";
 import { useProjectGroup } from "@project-groups/hooks/useProjectGroup";
 import ProjectGroupDetailsView from "@project-groups/components/ProjectGroupDetailsView";
+import VisibilityToggleButton from "@shared/components/VisibilityToggleButton";
+import { useToast } from "@/components/ToastProvider";
 
 export default function ProjectGroupDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useI18n();
+  const { show } = useToast();
+  const { user } = useGlobal();
   const { group, loading, error, reload } = useProjectGroup(id);
   const {
     projects,
@@ -30,6 +35,31 @@ export default function ProjectGroupDetailPage() {
     void reloadProjects();
   }, [reload, reloadProjects]);
 
+  const actions = useMemo(
+    () =>
+      group
+        ? [
+          ...(user && group.created_by === user.id ? [{
+            element: (
+              <VisibilityToggleButton
+                entityType="project_group"
+                entityId={group.id}
+                isPrivate={group.is_private}
+                onToggled={handleRefresh}
+                showToast={show}
+              />
+            ),
+          }] : []),
+          {
+            icon: Pencil,
+            href: `/app/project-groups/${group.id}/edit`,
+            label: t("projectGroups.editTitle"),
+          } as const,
+        ]
+        : undefined,
+    [group, handleRefresh, show, t, user]
+  );
+
   const isLoading = loading || projectsLoading;
   const combinedError = error || projectsError || null;
   const isNotFound = !isLoading && (!id || !group);
@@ -38,6 +68,7 @@ export default function ProjectGroupDetailPage() {
     <DetailPageLayout
       title={group ? group.name : t("projectGroups.notFound")}
       subtitle={group?.description || undefined}
+      actions={actions}
       loading={isLoading}
       error={combinedError}
       errorTitle={t("projectGroups.loadFailed")}

@@ -2,6 +2,7 @@
 
 import { ArrowRight, FileText, FolderKanban, GaugeCircle } from "lucide-react";
 import CountBadge from "@/components/ui/CountBadge";
+import VisibilityBadge from "@shared/components/VisibilityBadge";
 
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n/I18nProvider";
@@ -46,6 +47,7 @@ export default function ProjectGroupCard({ group }: ProjectGroupCardProps) {
             <div className="flex flex-col gap-2">
               <h3 className="text-lg font-semibold text-slate-900 line-clamp-2">{group.name}</h3>
               <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                <VisibilityBadge isPrivate={group.is_private} size="sm" />
                 <CountBadge
                   icon={<FolderKanban className="h-4 w-4" />}
                   count={group.projectsCount}
