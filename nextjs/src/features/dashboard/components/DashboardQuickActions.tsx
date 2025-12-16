@@ -9,12 +9,10 @@ import ActionsGrid from "@/components/ui/actions-grid";
 import InteractionAttachmentImport from "@/features/interactions/components/InteractionAttachmentImport";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import {
-  INTERACTION_TYPE_CONFIGS,
   getInteractionTypesByCategory,
 } from "@interactions/constants/interactionTypes";
 import type { InteractionType } from "@interactions/types";
 
-// Types à afficher dans les actions rapides (exclut "visite" redondant)
 const QUICK_ACTION_TYPES: InteractionType[] = [
   "note",
   "expense",

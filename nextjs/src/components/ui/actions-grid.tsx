@@ -159,13 +159,13 @@ export default function ActionsGrid({
   if (showCategoryHeaders) {
     return (
       <div className="space-y-6">
-        <div className={`grid gap-6 ${responsive && !isMobile ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <div className={`grid gap-6 grid-cols-1`}>
           {Object.entries(filteredCategories).map(([category, actions]) => (
             <div key={category} className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+              <h3 className="text-sm font-medium text-center text-muted-foreground uppercase tracking-wider">
                 {t(`dashboard.quickActions.categories.${category}`)}
               </h3>
-              <div className="grid gap-3 grid-cols-4">
+              <div className="flex flex-wrap gap-3">
                 {actions.map((action) => {
                   const Icon = action.icon;
                   return (
@@ -173,7 +173,7 @@ export default function ActionsGrid({
                       key={action.key}
                       role="button"
                       tabIndex={0}
-                      className="group cursor-pointer border shadow-sm transition-all duration-200 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary-600 aspect-square"
+                      className="w-24 h-24 group cursor-pointer border shadow-sm transition-all duration-200 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary-600"
                       onClick={() => handleActionClick(action)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
@@ -211,7 +211,7 @@ export default function ActionsGrid({
             key={action.key}
             role="button"
             tabIndex={0}
-            className="group cursor-pointer border shadow-sm transition-all duration-200 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary-600 aspect-square"
+            className="h-28 w-28 flex-none group cursor-pointer border shadow-sm transition-all duration-200 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-primary-600"
             onClick={() => handleActionClick(action)}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
