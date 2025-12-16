@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Plus, FileText, Paperclip } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Search, Plus, FileText, Paperclip, ChevronLeft, Loader2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProjectNotes } from "@projects/hooks/useProjectNotes";
+import { InteractionContentEditor } from "@interactions/components/forms/common/InteractionContentEditor";
+import { useUpdateInteractionContent } from "@interactions/hooks/useUpdateInteractionContent";
 import type { Interaction } from "@interactions/types";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 import { cn } from "@/lib/utils";
@@ -74,13 +76,13 @@ function NoteItem({ note, documentCount, isSelected, onClick }: NoteItemProps) {
                     </div>
 
                     {preview && (
-                        <p className={cn(
-                            "text-xs leading-relaxed line-clamp-2",
-                            isSelected ? "text-yellow-700" : "text-gray-600"
-                        )}>
-                            {preview}
-                            {note.content && note.content.length > 100 && "..."}
-                        </p>
+                        <p
+                            className={cn(
+                                "text-xs leading-relaxed line-clamp-2",
+                                isSelected ? "text-yellow-700" : "text-gray-600"
+                            )}
+                            dangerouslySetInnerHTML={{ __html: preview }}
+                        />
                     )}
 
                     {note.tags.length > 0 && (
@@ -134,21 +136,85 @@ function NoteItem({ note, documentCount, isSelected, onClick }: NoteItemProps) {
 export default function NoteTab({ projectId, onRefresh }: NoteTabProps) {
     const { t } = useI18n();
     const { notes, documentsByNote, loading, error } = useProjectNotes(projectId);
+    const { updateContent, loading: savingContent, error: saveError, setError: setSaveError } = useUpdateInteractionContent();
+    const [content, setContent] = useState("");
+    const [lastSavedContent, setLastSavedContent] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
 
-    // Filter notes based on search query
-    const filteredNotes = notes.filter(note => {
-        if (!searchQuery) return true;
+    useEffect(() => {
+        const mediaQuery = window.matchMedia("(max-width: 768px)");
+        const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+
+        updateIsMobile();
+        mediaQuery.addEventListener("change", updateIsMobile);
+
+        return () => mediaQuery.removeEventListener("change", updateIsMobile);
+    }, []);
+
+    const selectedNoteBase = selectedNoteId ? notes.find((n) => n.id === selectedNoteId) : null;
+
+    useEffect(() => {
+        if (!selectedNoteBase) {
+            setContent("");
+            setLastSavedContent("");
+            setSaveError("");
+            return;
+        }
+
+        const nextContent = selectedNoteBase.content || "";
+        setContent(nextContent);
+        setLastSavedContent(nextContent);
+        setSaveError("");
+    }, [selectedNoteBase?.id, setSaveError]);
+
+    const hydratedNotes = useMemo(() => {
+        if (!selectedNoteId) return notes;
+        return notes.map((note) => (note.id === selectedNoteId ? { ...note, content } : note));
+    }, [content, notes, selectedNoteId]);
+
+    const filteredNotes = useMemo(() => {
+        if (!searchQuery) return hydratedNotes;
         const query = searchQuery.toLowerCase();
-        return (
+        return hydratedNotes.filter((note) =>
             note.subject.toLowerCase().includes(query) ||
             note.content?.toLowerCase().includes(query) ||
-            note.tags.some(tag => tag.name.toLowerCase().includes(query))
+            note.tags.some((tag) => tag.name.toLowerCase().includes(query))
         );
-    });
+    }, [hydratedNotes, searchQuery]);
 
-    const selectedNote = selectedNoteId ? notes.find(n => n.id === selectedNoteId) : null;
+    const selectedNote = selectedNoteId ? hydratedNotes.find((n) => n.id === selectedNoteId) : null;
+    const trimmedContent = content.trim();
+    const isDirty = Boolean(selectedNoteId) && trimmedContent !== (lastSavedContent || "").trim();
+
+    const handleSelectNote = useCallback((note: Interaction) => {
+        setSelectedNoteId(note.id);
+        const nextContent = note.content || "";
+        setContent(nextContent);
+        setLastSavedContent(nextContent);
+        setSaveError("");
+    }, [setSaveError]);
+
+    const persistContent = useCallback(async () => {
+        if (!selectedNoteId || !isDirty) return;
+        const nextValue = trimmedContent;
+        try {
+            await updateContent(selectedNoteId, nextValue);
+            setLastSavedContent(nextValue);
+        } catch {
+            // error handled by hook
+        }
+    }, [isDirty, selectedNoteId, trimmedContent, updateContent]);
+
+    useEffect(() => {
+        if (!selectedNoteId || !isDirty || savingContent) return;
+        const timeout = setTimeout(() => {
+            void persistContent();
+        }, 900);
+
+        return () => clearTimeout(timeout);
+    }, [isDirty, persistContent, savingContent, selectedNoteId]);
 
     if (loading) {
         return (
@@ -173,30 +239,31 @@ export default function NoteTab({ projectId, onRefresh }: NoteTabProps) {
     }
 
     return (
-        <div className="h-[600px] rounded-xl bg-white border border-gray-200 shadow-sm overflow-hidden flex">
+        <div className="h-full overflow-hidden flex flex-col md:flex-row">
             {/* Sidebar - Notes List */}
-            <div className="w-80 border-r border-gray-200 flex flex-col bg-gray-50/50">
+            <div className={cn(
+                "w-full h-full md:w-80 border-r border-gray-200 flex flex-col bg-gray-50/50 pr-2",
+                isMobile && selectedNoteId && "hidden"
+            )}>
                 {/* Header */}
-                <div className="p-4 border-b border-gray-200 bg-white">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-lg font-semibold text-gray-900">Notes</h2>
+                <div className="border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-3 gap-2">
+                        {/* Search */}
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                type="text"
+                                placeholder={t("projects.notes.searchPlaceholder")}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10 bg-gray-100 border-gray-200 focus:bg-white text-sm"
+                            />
+                        </div>
                         <LinkWithOverlay href={`/app/interactions/new?projectId=${projectId}&type=note`}>
                             <Button size="sm" className="bg-yellow-400 hover:bg-yellow-500 text-yellow-900 shadow-sm">
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </LinkWithOverlay>
-                    </div>
-
-                    {/* Search */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                            type="text"
-                            placeholder={t("projects.notes.searchPlaceholder")}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10 bg-gray-100 border-gray-200 focus:bg-white text-sm"
-                        />
                     </div>
                 </div>
 
@@ -204,7 +271,7 @@ export default function NoteTab({ projectId, onRefresh }: NoteTabProps) {
                 <div className="flex-1 overflow-y-auto">
                     {filteredNotes.length === 0 ? (
                         <div className="p-6 text-center">
-                            {notes.length === 0 ? (
+                            {hydratedNotes.length === 0 ? (
                                 <div className="space-y-3">
                                     <FileText className="h-12 w-12 text-gray-300 mx-auto" />
                                     <div className="space-y-1">
@@ -234,7 +301,7 @@ export default function NoteTab({ projectId, onRefresh }: NoteTabProps) {
                                 note={note}
                                 documentCount={documentsByNote[note.id]?.length || 0}
                                 isSelected={selectedNoteId === note.id}
-                                onClick={() => setSelectedNoteId(note.id)}
+                                onClick={() => handleSelectNote(note)}
                             />
                         ))
                     )}
@@ -242,55 +309,91 @@ export default function NoteTab({ projectId, onRefresh }: NoteTabProps) {
             </div>
 
             {/* Main Content - Note Detail */}
-            <div className="flex-1 flex flex-col">
+            <div className={cn(
+                "flex-1 flex flex-col lg:ml-2 min-h-72",
+                isMobile && !selectedNoteId && "hidden"
+            )}>
                 {selectedNote ? (
                     <>
-                        {/* Note Header */}
-                        <div className="p-6 border-b border-gray-100 bg-white">
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="min-w-0 flex-1">
-                                    <h1 className="text-xl font-semibold text-gray-900 mb-2">{selectedNote.subject}</h1>
-                                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                        {/* Note Header - compact to keep editor visible */}
+                        {isMobile && <div className="px-3 py-2 border-b border-gray-100 bg-white">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0 flex-1 space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="md:hidden h-8 w-8"
+                                            onClick={() => {
+                                                setSelectedNoteId(null);
+                                                setContent("");
+                                                setLastSavedContent("");
+                                                setSaveError("");
+                                            }}
+                                            aria-label={t("projects.notes.backToList")}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <p className="truncate text-sm font-semibold text-gray-900">{selectedNote.subject}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-gray-500">
                                         <time>
-                                            {new Intl.DateTimeFormat('fr', {
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
+                                            {new Intl.DateTimeFormat("fr", {
+                                                year: "numeric",
+                                                month: "long",
+                                                day: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
                                             }).format(new Date(selectedNote.occurred_at))}
                                         </time>
                                         {documentsByNote[selectedNote.id]?.length > 0 && (
                                             <span className="flex items-center gap-1">
-                                                <Paperclip className="h-4 w-4" />
+                                                <Paperclip className="h-3.5 w-3.5" />
                                                 {documentsByNote[selectedNote.id].length} {t("projects.notes.attachments")}
                                             </span>
                                         )}
                                     </div>
                                 </div>
-                                <LinkWithOverlay href={`/app/interactions/${selectedNote.id}`}>
-                                    <Button variant="outline" size="sm">
-                                        {t("projects.notes.viewDetails")}
-                                    </Button>
-                                </LinkWithOverlay>
+                                <div className="flex items-center gap-2">
+                                    <LinkWithOverlay href={`/app/interactions/${selectedNote.id}`}>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-600">
+                                            <FileText className="h-4 w-4" />
+                                        </Button>
+                                    </LinkWithOverlay>
+                                </div>
                             </div>
-                        </div>
+                        </div>}
 
                         {/* Note Content */}
-                        <div className="flex-1 p-6 overflow-y-auto">
-                            <div className="max-w-none prose prose-sm">
-                                {selectedNote.content ? (
-                                    <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                                        {selectedNote.content}
-                                    </div>
-                                ) : (
-                                    <p className="text-gray-500 italic">{t("projects.notes.noContent")}</p>
-                                )}
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="max-w-none space-y-3">
+                                <InteractionContentEditor
+                                    id={`project-note-${selectedNote.id}`}
+                                    value={content}
+                                    onChange={(next) => {
+                                        setContent(next);
+                                        if (saveError) setSaveError("");
+                                    }}
+                                    projectContext={{ id: projectId }}
+                                    forceEditing
+                                    onSave={persistContent}
+                                    saving={savingContent}
+                                />
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                    {saveError ? (
+                                        <span className="text-red-600" role="alert">{saveError}</span>
+                                    ) : savingContent ? (
+                                        <>
+                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            <span>{t("common.saving")}</span>
+                                        </>
+                                    ) : null}
+                                </div>
                             </div>
 
                             {/* Tags */}
                             {selectedNote.tags.length > 0 && (
-                                <div className="mt-6 pt-4 border-t border-gray-100">
+                                <div className="mt-2 pt-4 border-t border-gray-100 px-6 pb-6">
                                     <h3 className="text-sm font-medium text-gray-700 mb-2">{t("projects.notes.tags")}</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {selectedNote.tags.map((tag) => (

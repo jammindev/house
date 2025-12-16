@@ -13,8 +13,13 @@
     color: var(--tiny-foreground);
 }
 
+.tox.tox-tinymce {
+    border: none;
+    box-shadow: none;
+}
+
 .tox .tox-editor-container {
-    border: 1px solid var(--tiny-border);
+    border: none;
     border-radius: var(--tiny-radius);
     overflow: hidden;
     background-color: var(--tiny-surface);
