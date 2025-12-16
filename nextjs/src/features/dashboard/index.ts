@@ -5,6 +5,7 @@ export { default as DashboardActivityFeed } from "./components/DashboardActivity
 export { default as DashboardQuickActions } from "./components/DashboardQuickActions";
 export { default as DashboardInProgressPanel } from "./components/DashboardInProgressPanel";
 export { default as DashboardPinnedProjects } from "./components/DashboardPinnedProjects";
+export { default as DashboardUpcomingInteractions } from "./components/DashboardUpcomingInteractions";
 export { useDashboardData } from "./hooks/useDashboardData";
 export type {
   DashboardData,
