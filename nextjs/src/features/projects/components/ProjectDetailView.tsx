@@ -37,6 +37,7 @@ import { PhotoGrid } from "@photos/components/PhotoGrid";
 import { useProjectPhotoDocuments } from "@projects/hooks/useProjectPhotoDocuments";
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 import ProjectLinksPanel from "@projects/components/ProjectLinksPanel";
+import { useProjectTabState } from "@projects/hooks/useProjectTabState";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -58,7 +59,7 @@ export default function ProjectDetailView({
   const isMobile = useIsMobile();
   const { selectedHouseholdId: householdId } = useGlobal();
   const { show } = useToast();
-  const [tab, setTab] = useState<typeof TABS[number]>("notes");
+  const { tab, setTab } = useProjectTabState(project.id, "notes");
   const [visibleRelatedCount, setVisibleRelatedCount] = useState(RELATED_PROJECTS_PAGE_SIZE);
   const [status, setStatus] = useState<ProjectStatus>(project.status);
   const [updating, setUpdating] = useState(false);
@@ -415,7 +416,7 @@ export default function ProjectDetailView({
         </div>
       </div>
 
-      {project.group ? (
+      {/* {project.group ? (
         <div className="space-y-4">
           <div className="space-y-1">
             <h2 className="text-lg font-semibold text-slate-900">
@@ -469,7 +470,7 @@ export default function ProjectDetailView({
             </div>
           )}
         </div>
-      ) : null}
+      ) : null} */}
 
       <AuditHistoryCard
         lines={auditLines}

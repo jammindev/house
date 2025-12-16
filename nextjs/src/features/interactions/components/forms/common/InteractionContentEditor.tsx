@@ -23,6 +23,10 @@ type InteractionContentEditorProps = {
     placeholder?: string;
     aiEnabled?: boolean;
     projectContext?: ProjectContext | null;
+    forceEditing?: boolean;
+    onSave?: () => void | Promise<void>;
+    saving?: boolean;
+    saveDisabled?: boolean;
 };
 
 const hasHtmlTags = (input: string) => /<\/?[a-z][\s\S]*>/i.test(input);
@@ -66,14 +70,21 @@ export function InteractionContentEditor({
     placeholder,
     aiEnabled = true,
     projectContext,
+    forceEditing = false,
+    onSave,
+    saving,
+    saveDisabled = false,
 }: InteractionContentEditorProps) {
     const { t } = useI18n();
-    const [isEditing, setIsEditing] = useState(false);
+    const [isEditingState, setIsEditingState] = useState(false);
     const [showPrompt, setShowPrompt] = useState(false);
     const [aiPrompt, setAiPrompt] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [previousContent, setPreviousContent] = useState<string | null>(null);
+    const [isSavingInternal, setIsSavingInternal] = useState(false);
+
+    const isEditing = forceEditing || isEditingState;
 
     const projectStatusLabel = useMemo(() => {
         if (!projectContext?.status) return null;
@@ -134,11 +145,33 @@ export function InteractionContentEditor({
         setPreviousContent(null);
     }, [onChange, previousContent]);
 
+    const isSaving = saving ?? isSavingInternal;
+
+    const handleSave = useCallback(async () => {
+        if (!onSave || isSaving || saveDisabled) return;
+        const shouldManage = saving === undefined;
+        if (shouldManage) setIsSavingInternal(true);
+        try {
+            await onSave();
+        } finally {
+            if (shouldManage) setIsSavingInternal(false);
+        }
+    }, [isSaving, onSave, saveDisabled, saving]);
+
     return (
         <div className="space-y-3">
             {isEditing ? (
                 <div>
                     <div className="space-y-3">
+                        <TinyEditor
+                            id={id}
+                            value={value}
+                            onChange={onChange}
+                            textareaName={textareaName}
+                            placeholder={placeholder}
+                            height={520}
+                        />
+
                         {aiEnabled ? (
                             <div className="space-y-1.5">
                                 <div className="overflow-hidden">
@@ -245,15 +278,6 @@ export function InteractionContentEditor({
                                 </div>
                             </div>
                         ) : null}
-
-                        <TinyEditor
-                            id={id}
-                            value={value}
-                            onChange={onChange}
-                            textareaName={textareaName}
-                            placeholder={placeholder}
-                            height={520}
-                        />
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-3 py-2">
@@ -274,15 +298,34 @@ export function InteractionContentEditor({
                                     {t("interactions.editor.aiRestore")}
                                 </Button>
                             ) : null}
-                            <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setIsEditing(false)}
-                                disabled={isSubmitting}
-                            >
-                                {t("interactions.editor.backToPreview")}
-                            </Button>
+                            {onSave ? (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    onClick={handleSave}
+                                    disabled={isSubmitting || isSaving || saveDisabled}
+                                >
+                                    {isSaving ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            {t("common.saving")}
+                                        </>
+                                    ) : (
+                                        t("common.save")
+                                    )}
+                                </Button>
+                            ) : null}
+                            {!forceEditing && (
+                                <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setIsEditingState(false)}
+                                    disabled={isSubmitting}
+                                >
+                                    {t("interactions.editor.backToPreview")}
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -291,7 +334,7 @@ export function InteractionContentEditor({
                     type="button"
                     className="w-full rounded-lg border border-dashed border-slate-300 bg-white p-4 text-left shadow-sm transition hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     onClick={() => {
-                        setIsEditing(true);
+                        setIsEditingState(true);
                         setShowPrompt(false);
                         setError(null);
                     }}

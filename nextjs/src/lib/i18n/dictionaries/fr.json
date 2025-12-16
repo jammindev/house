@@ -1179,6 +1179,7 @@
   "projects.notes.newNote": "Nouvelle note",
   "projects.notes.selectNote": "Sélectionnez une note",
   "projects.notes.selectNoteDescription": "Choisissez une note dans la liste pour voir son contenu",
+  "projects.notes.backToList": "Retour à la liste",
   "projects.notes.viewDetails": "Voir les détails",
   "projects.notes.attachments": "pièce(s) jointe(s)",
   "projects.notes.tags": "Étiquettes",

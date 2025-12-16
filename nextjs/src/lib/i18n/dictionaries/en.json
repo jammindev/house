@@ -1173,6 +1173,7 @@
   "projects.notes.newNote": "New note",
   "projects.notes.selectNote": "Select a note",
   "projects.notes.selectNoteDescription": "Choose a note from the list to view its content",
+  "projects.notes.backToList": "Back to list",
   "projects.notes.viewDetails": "View details",
   "projects.notes.attachments": "attachment(s)",
   "projects.notes.tags": "Tags",
