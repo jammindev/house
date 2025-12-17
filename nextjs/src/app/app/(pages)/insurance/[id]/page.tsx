@@ -36,7 +36,7 @@ export default function InsuranceDetailPage() {
   }
 
   return (
-    <ResourcePageShell title={contract.name} bodyClassName="mt-4 pb-6">
+    <ResourcePageShell bodyClassName="mt-4 pb-6">
       <InsuranceDetailView contract={contract} onRefresh={reload} />
     </ResourcePageShell>
   );

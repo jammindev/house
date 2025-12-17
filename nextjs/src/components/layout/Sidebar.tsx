@@ -22,6 +22,7 @@ import {
     Bug,
     Shield,
     Warehouse,
+    ShieldCheck,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -61,6 +62,7 @@ export default function Sidebar({
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
         { name: t("nav.equipment"), href: "/app/equipment", icon: Wrench },
         { name: t("nav.stock"), href: "/app/stock", icon: Warehouse },
+        { name: t("nav.insurance"), href: "/app/insurance", icon: ShieldCheck },
         { name: t("nav.zones"), href: "/app/zones", icon: MapPin },
         { name: t("nav.directory"), href: "/app/repertoire", icon: Users },
         { name: t("nav.documents"), href: "/app/documents", icon: FileText },
