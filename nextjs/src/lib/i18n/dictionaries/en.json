@@ -1630,5 +1630,15 @@
   "stock.categories.deleteFailed": "Failed to delete category",
   "stock.errors.noHousehold": "Select a household first",
   "stock.errors.nameRequired": "Item name is required",
-  "stock.errors.categoryRequired": "Please select a category"
+  "stock.errors.categoryRequired": "Please select a category",
+  "settings.theme": "Theme",
+  "settings.themeDescription": "Choose a color theme for your interface",
+  "settings.themeUpdated": "Theme updated",
+  "theme.blue": "Blue",
+  "theme.sass": "Sass Pink",
+  "theme.sass2": "Sage Green",
+  "theme.sass3": "Ocean (Default)",
+  "theme.house": "House Green",
+  "theme.purple": "Purple",
+  "theme.green": "Green"
 }
