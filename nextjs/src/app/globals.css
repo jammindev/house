@@ -407,3 +407,16 @@ html {
         /* Safari et Chrome */
     }
 }
+
+@layer utilities {
+    /* Reusable frosted glass panel (Apple-like) */
+    .glass-panel {
+        @apply rounded-2xl bg-[rgba(255,255,255,0.06)] backdrop-blur-[15px] backdrop-saturate-[180%] border border-[rgba(255,255,255,0.15)] shadow-lg shadow-[rgba(0,0,0,0.15)] ring-1 ring-[rgba(255,255,255,0.3)];
+    }
+    .bg-glass {
+        @apply
+            bg-[rgba(255,255,255,0.06)]
+            backdrop-blur-[15px]
+            backdrop-saturate-[180%]
+    }
+}
