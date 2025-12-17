@@ -10,6 +10,12 @@ Contexte projet — House (Next.js + Supabase)
 - Multi-tenant : appartenance via `household_members`, toutes les requêtes filtrées par `household_id`.
 - i18n custom (`I18nProvider`) avec dictionnaires `en/fr`, persistance dans `localStorage`.
 
+🎨 Pattern UI de référence (création/édition)
+- Tous les formulaires « nouveau » et « édition » s'ouvrent dans un SheetDialog (pas de navigation page pleine).
+- Un même composant de formulaire alimente les deux cas, initialisé soit avec des valeurs par défaut soit avec les données existantes.
+- Les CTA de liste (bouton + (sans label), actions par carte) et les boutons d'édition en détail ouvrent ce SheetDialog.
+- Garder la page liste/détail visible derrière le sheet pour préserver le contexte utilisateur.
+
 ✅ Fonctionnalités livrées
 - Création/gestion de foyers via l'API `create_household_with_owner` (RPC SEC DEF, exécuté depuis le client SSR).
 - Dashboard `/app` : sélecteur de foyer, indicateurs (interactions, zones) et raccourcis vers interactions, zones, paramètres et foyers.
