@@ -92,11 +92,11 @@ export default function InsuranceDetailView({ contract, onRefresh }: InsuranceDe
 
       if (error) throw error;
 
-      show({ message: t("insurance.deleteSuccess"), variant: "success" });
+      show({ title: t("insurance.deleteSuccess"), variant: "success" });
       router.push("/app/insurance");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t("insurance.deleteFailed");
-      show({ message, variant: "error" });
+      show({ title: message, variant: "error" });
     } finally {
       setIsDeleting(false);
       setShowDeleteDialog(false);
@@ -107,6 +107,19 @@ export default function InsuranceDetailView({ contract, onRefresh }: InsuranceDe
     setIsEditOpen(false);
     onRefresh?.();
   };
+
+  const auditLines = [
+    contract.created_at
+      ? t("insurance.auditCreated", {
+          date: new Date(contract.created_at).toLocaleString(locale),
+        })
+      : null,
+    contract.updated_at
+      ? t("insurance.auditUpdated", {
+          date: new Date(contract.updated_at).toLocaleString(locale),
+        })
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
     <div className="space-y-6">
@@ -282,12 +295,7 @@ export default function InsuranceDetailView({ contract, onRefresh }: InsuranceDe
       )}
 
       {/* Audit History */}
-      <AuditHistoryCard
-        createdAt={contract.created_at}
-        updatedAt={contract.updated_at}
-        createdBy={contract.created_by}
-        updatedBy={contract.updated_by}
-      />
+      <AuditHistoryCard lines={auditLines} />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

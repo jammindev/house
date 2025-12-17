@@ -1688,5 +1688,7 @@
   "insurance.detail.coverage": "Coverage Details",
   "insurance.detail.dates": "Important Dates",
   "insurance.detail.costs": "Costs & Payment",
-  "insurance.detail.notes": "Notes"
+  "insurance.detail.notes": "Notes",
+  "insurance.auditCreated": "Created on {date}",
+  "insurance.auditUpdated": "Last updated on {date}"
 }
