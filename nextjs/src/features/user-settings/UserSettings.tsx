@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { compressFileForUpload } from '@documents/utils/fileCompression';
 import { usePageLayoutConfig } from '@/app/app/(pages)/usePageLayoutConfig';
 import { HouseholdManagement } from './components/HouseholdManagement';
+import { AVAILABLE_THEMES, getDefaultTheme } from '@/lib/themes/themes.config';
 
 export function UserSettings() {
     const { user, refreshUser } = useGlobal();
@@ -34,11 +35,6 @@ export function UserSettings() {
     }, [user?.displayName]);
 
     useEffect(() => {
-        const getDefaultTheme = () => {
-            const envTheme = process.env.NEXT_PUBLIC_THEME;
-            return envTheme?.startsWith('theme-') ? envTheme.slice(6) : (envTheme ?? 'sass3');
-        };
-
         const fetchUserTheme = async () => {
             try {
                 const supabase = await createSPASassClient();
@@ -393,22 +389,25 @@ export function UserSettings() {
                             <CardDescription>{t('settings.themeDescription')}</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="flex items-center gap-3">
+                            <div className="space-y-3">
                                 <select
                                     value={selectedTheme}
                                     onChange={(e) => handleThemeChange(e.target.value)}
                                     disabled={themeLoading}
-                                    className="h-10 px-3 border rounded-md text-sm disabled:opacity-50"
+                                    className="w-full h-10 px-3 border rounded-md text-sm disabled:opacity-50"
                                     aria-label={t('settings.theme')}
                                 >
-                                    <option value="blue">{t('theme.blue')}</option>
-                                    <option value="sass">{t('theme.sass')}</option>
-                                    <option value="sass2">{t('theme.sass2')}</option>
-                                    <option value="sass3">{t('theme.sass3')}</option>
-                                    <option value="house">{t('theme.house')}</option>
-                                    <option value="purple">{t('theme.purple')}</option>
-                                    <option value="green">{t('theme.green')}</option>
+                                    {AVAILABLE_THEMES.map((theme) => (
+                                        <option key={theme.value} value={theme.value}>
+                                            {t(theme.label)}
+                                        </option>
+                                    ))}
                                 </select>
+                                {selectedTheme && (
+                                    <div className="text-xs text-gray-500">
+                                        {t(`${AVAILABLE_THEMES.find(t => t.value === selectedTheme)?.label}Description` as any) || ''}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

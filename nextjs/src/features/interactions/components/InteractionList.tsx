@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import InteractionItem from "./InteractionItem";
 import type { Interaction } from "@interactions/types";
+import { INTERACTION_TYPE_COLORS } from "@interactions/constants";
 
 interface Props {
   interactions: Interaction[];
@@ -32,6 +33,18 @@ const getTodayLabel = (locale?: string) => {
   } catch {
     return "Today";
   }
+};
+
+const getInteractionDotColor = (type: string) => {
+  const colorClasses = INTERACTION_TYPE_COLORS[type as keyof typeof INTERACTION_TYPE_COLORS];
+  if (!colorClasses) return "bg-primary-500";
+  
+  // Extract the bg-* class and convert to a dot color
+  // e.g., "bg-blue-100 text-blue-800 border-blue-200" -> "bg-blue-500"
+  const bgMatch = colorClasses.match(/bg-(\w+)-\d+/);
+  if (!bgMatch) return "bg-primary-500";
+  
+  return `bg-${bgMatch[1]}-500`;
 };
 
 export default function InteractionList({ interactions, documentCounts, t, locale, returnTo }: Props) {
@@ -100,7 +113,7 @@ export default function InteractionList({ interactions, documentCounts, t, local
                 ) : (
                   <>
                     <span
-                      className="absolute left-[7px] top-6 h-2.5 w-2.5 rounded-full bg-primary-500 ring-2 ring-white shadow-sm"
+                      className={`absolute left-[7px] top-6 h-2.5 w-2.5 rounded-full ring-2 ring-white shadow-sm ${getInteractionDotColor(entry.interaction.type)}`}
                       aria-hidden="true"
                     />
                     <InteractionItem
