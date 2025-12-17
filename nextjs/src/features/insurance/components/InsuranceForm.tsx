@@ -147,7 +147,7 @@ export default function InsuranceForm({
           if (updateError) throw updateError;
           if (!updated?.id) throw new Error(t("common.unexpectedError"));
 
-          show({ message: t("insurance.form.successUpdate"), variant: "success" });
+          show({ title: t("insurance.form.successUpdate"), variant: "success" });
           onSuccess?.(contract.id);
         } else {
           const { data: inserted, error: insertError } = await client
@@ -159,7 +159,7 @@ export default function InsuranceForm({
           if (insertError) throw insertError;
           if (!inserted?.id) throw new Error(t("common.unexpectedError"));
 
-          show({ message: t("insurance.form.successCreate"), variant: "success" });
+          show({ title: t("insurance.form.successCreate"), variant: "success" });
           onSuccess?.(inserted.id);
         }
       } catch (err: unknown) {
