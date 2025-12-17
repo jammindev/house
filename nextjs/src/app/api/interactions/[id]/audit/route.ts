@@ -57,10 +57,11 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
     const auditUsers = new Map<
       string,
-      { email: string | null; username: string | null } | null
+      { email: string | null; username: string | null; avatar_url: string | null } | null
     >();
     if (uniqueUserIds.length > 0) {
       const adminClient = await createServerAdminClient();
+      const supabase = await createSSRClient();
 
       await Promise.all(
         uniqueUserIds.map(async (identifier) => {
@@ -78,8 +79,24 @@ export async function GET(_request: Request, { params }: RouteContext) {
             const username =
               (user as any)?.user_metadata?.username ?? (user as any)?.user_metadata?.display_name ?? null;
             const email = user?.email ?? null;
+            const avatarPath = (user as any)?.user_metadata?.avatar_path ?? null;
 
-            auditUsers.set(identifier, { email, username });
+            // Generate signed URL for avatar if path exists
+            let avatarUrl: string | null = null;
+            if (avatarPath) {
+              try {
+                const { data: signedData, error: signedError } = await supabase.storage
+                  .from('avatars')
+                  .createSignedUrl(avatarPath, 60 * 60 * 6); // 6 hours
+                if (!signedError && signedData?.signedUrl) {
+                  avatarUrl = signedData.signedUrl;
+                }
+              } catch (err) {
+                console.warn("Failed to generate avatar signed URL:", err);
+              }
+            }
+
+            auditUsers.set(identifier, { email, username, avatar_url: avatarUrl });
           } catch (error) {
             console.error("Unexpected error while loading audit user:", error);
             auditUsers.set(identifier, null);
@@ -96,6 +113,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           id: interaction.created_by,
           email: auditUsers.get(interaction.created_by)?.email ?? null,
           username: auditUsers.get(interaction.created_by)?.username ?? null,
+          avatar_url: auditUsers.get(interaction.created_by)?.avatar_url ?? null,
         }
         : null,
       updated_by: interaction.updated_by
@@ -103,6 +121,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           id: interaction.updated_by,
           email: auditUsers.get(interaction.updated_by)?.email ?? null,
           username: auditUsers.get(interaction.updated_by)?.username ?? null,
+          avatar_url: auditUsers.get(interaction.updated_by)?.avatar_url ?? null,
         }
         : null,
     });

@@ -6,6 +6,7 @@ type AuditUser = {
   id: string;
   email: string | null;
   username: string | null;
+  avatar_url: string | null;
 };
 
 type AuditResponse = {

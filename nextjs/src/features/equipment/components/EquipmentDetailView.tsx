@@ -299,14 +299,20 @@ export default function EquipmentDetailView({
       <AuditHistoryCard
         loading={auditLoading}
         lines={[
-          t("equipment.audit.created", {
-            date: formatPublicDate(equipment.created_at, locale),
-            user: audit?.created_by?.username ?? audit?.created_by?.email ?? t("equipment.audit.unknownUser"),
-          }),
-          t("equipment.audit.updated", {
-            date: formatRelativeShort(equipment.updated_at, locale),
-            user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("equipment.audit.unknownUser"),
-          }),
+          {
+            prefix: t("equipment.audit.createdPrefix", {
+              date: formatPublicDate(equipment.created_at, locale),
+            }),
+            user: audit?.created_by ?? null,
+            fallbackText: t("equipment.audit.unknownUser"),
+          },
+          {
+            prefix: t("equipment.audit.updatedPrefix", {
+              date: formatRelativeShort(equipment.updated_at, locale),
+            }),
+            user: audit?.updated_by ?? null,
+            fallbackText: t("equipment.audit.unknownUser"),
+          },
         ]}
         actions={<EquipmentDeleteButton equipmentId={equipment.id} equipmentName={equipment.name} onDeleted={onDeleted} />}
       />

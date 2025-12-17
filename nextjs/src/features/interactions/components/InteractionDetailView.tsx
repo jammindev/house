@@ -259,14 +259,16 @@ export default function InteractionDetailView({
       <AuditHistoryCard
         loading={auditLoading}
         lines={[
-          t("interactiondetail.auditCreated", {
-            date: createdAt,
-            user: audit?.created_by?.username ?? audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
-          }),
-          t("interactiondetail.auditUpdated", {
-            date: updatedAt,
-            user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
-          }),
+          {
+            prefix: t("interactiondetail.auditCreatedPrefix", { date: createdAt }),
+            user: audit?.created_by ?? null,
+            fallbackText: t("interactiondetail.unknownUser"),
+          },
+          {
+            prefix: t("interactiondetail.auditUpdatedPrefix", { date: updatedAt }),
+            user: audit?.updated_by ?? null,
+            fallbackText: t("interactiondetail.unknownUser"),
+          },
         ]}
         actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} deleteInteraction={deleteInteraction} />}
       />
