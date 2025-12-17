@@ -103,8 +103,9 @@ export default function AppPageLayout({
       )}
     >
       <Card className={cn(
-        "sticky top-0 z-20 border-b border-gray-200 bg-white/90 p-2 rounded-none",
-        "supports-[backdrop-filter]:bg-white/70 supports-[backdrop-filter]:backdrop-blur"
+        "sticky top-0 z-20 border-b border-gray-200 p-2 rounded-none",
+        "bg-gradient-to-b from-primary-50/80 to-white/90",
+        "supports-[backdrop-filter]:backdrop-blur"
       )}>
         <header
         >
