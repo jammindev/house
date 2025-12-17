@@ -22,14 +22,32 @@ export function UserSettings() {
     const [loading, setLoading] = useState(false);
     const [displayNameLoading, setDisplayNameLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
+    const [themeLoading, setThemeLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [displayName, setDisplayName] = useState(user?.displayName ?? '');
+    const [selectedTheme, setSelectedTheme] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         setDisplayName(user?.displayName ?? '');
     }, [user?.displayName]);
+
+    useEffect(() => {
+        const fetchUserTheme = async () => {
+            try {
+                const supabase = await createSPASassClient();
+                const client = supabase.getSupabaseClient();
+                const { data: { user: authUser } } = await client.auth.getUser();
+                const theme = authUser?.user_metadata?.theme ?? (process.env.NEXT_PUBLIC_THEME?.replace('theme-', '') ?? 'sass3');
+                setSelectedTheme(theme);
+            } catch (err) {
+                console.warn('Failed to fetch user theme:', err);
+                setSelectedTheme(process.env.NEXT_PUBLIC_THEME?.replace('theme-', '') ?? 'sass3');
+            }
+        };
+        fetchUserTheme();
+    }, []);
 
     useEffect(() => {
         setLayout({ title: t('settings.title'), subtitle: t('settings.subtitle'), hideBackButton: true });
@@ -163,6 +181,37 @@ export function UserSettings() {
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
+        }
+    };
+
+    const handleThemeChange = async (newTheme: string) => {
+        setThemeLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const supabase = await createSPASassClient();
+            const client = supabase.getSupabaseClient();
+            const { error } = await client.auth.updateUser({
+                data: { theme: newTheme }
+            });
+            if (error) throw error;
+            
+            setSelectedTheme(newTheme);
+            setSuccess(t('settings.themeUpdated'));
+            
+            // Reload the page to apply the new theme
+            window.location.reload();
+        } catch (err: Error | unknown) {
+            if (err instanceof Error) {
+                console.error('Error updating theme:', err);
+                setError(err.message);
+            } else {
+                console.error('Error updating theme:', err);
+                setError('Failed to update theme');
+            }
+        } finally {
+            setThemeLoading(false);
         }
     };
 
@@ -329,6 +378,32 @@ export function UserSettings() {
                                         </Button>
                                     ) : null}
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className='text-base'>{t('settings.theme')}</CardTitle>
+                            <CardDescription>{t('settings.themeDescription')}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="flex items-center gap-3">
+                                <select
+                                    value={selectedTheme}
+                                    onChange={(e) => handleThemeChange(e.target.value)}
+                                    disabled={themeLoading}
+                                    className="h-10 px-3 border rounded-md text-sm disabled:opacity-50"
+                                    aria-label={t('settings.theme')}
+                                >
+                                    <option value="blue">{t('theme.blue')}</option>
+                                    <option value="sass">{t('theme.sass')}</option>
+                                    <option value="sass2">{t('theme.sass2')}</option>
+                                    <option value="sass3">{t('theme.sass3')}</option>
+                                    <option value="house">{t('theme.house')}</option>
+                                    <option value="purple">{t('theme.purple')}</option>
+                                    <option value="green">{t('theme.green')}</option>
+                                </select>
                             </div>
                         </CardContent>
                     </Card>

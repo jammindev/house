@@ -7,6 +7,7 @@ import CookieConsent from "@/components/Cookies";
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { NavigationOverlayProvider } from "@/components/layout/NavigationOverlayProvider";
+import { createSSRClient } from "@/lib/supabase/server";
 
 const productName = process.env.NEXT_PUBLIC_PRODUCTNAME ?? "House";
 
@@ -26,8 +27,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  const theme = process.env.NEXT_PUBLIC_THEME ?? "theme-sass3";
+async function getUserTheme(): Promise<string> {
+  const defaultTheme = process.env.NEXT_PUBLIC_THEME ?? "theme-sass3";
+  
+  try {
+    const supabase = await createSSRClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user?.user_metadata?.theme) {
+      return `theme-${user.user_metadata.theme}`;
+    }
+  } catch (error) {
+    console.warn('Failed to fetch user theme:', error);
+  }
+  
+  return defaultTheme;
+}
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const theme = await getUserTheme();
   const gaID = process.env.NEXT_PUBLIC_GOOGLE_TAG;
 
   // On ne lit plus cookies()/headers() ici.

@@ -1633,5 +1633,15 @@
   "stock.categories.deleteFailed": "Échec de la suppression de la catégorie",
   "stock.errors.noHousehold": "Sélectionnez d'abord un foyer",
   "stock.errors.nameRequired": "Le nom de l'article est requis",
-  "stock.errors.categoryRequired": "Veuillez sélectionner une catégorie"
+  "stock.errors.categoryRequired": "Veuillez sélectionner une catégorie",
+  "settings.theme": "Thème",
+  "settings.themeDescription": "Choisissez un thème de couleur pour votre interface",
+  "settings.themeUpdated": "Thème mis à jour",
+  "theme.blue": "Bleu",
+  "theme.sass": "Rose Sass",
+  "theme.sass2": "Vert Sauge",
+  "theme.sass3": "Océan (par défaut)",
+  "theme.house": "Vert Maison",
+  "theme.purple": "Violet",
+  "theme.green": "Vert"
 }
