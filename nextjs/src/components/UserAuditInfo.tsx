@@ -11,20 +11,20 @@ type UserAuditInfoProps = {
 
 function getInitials(username?: string | null, email?: string | null): string {
   if (username && username.trim().length > 0) {
-    const parts = username.trim().split(/\s+/);
-    if (parts.length === 1 && parts[0].length > 0) {
+    const parts = username.trim().split(/\s+/).filter(p => p.length > 0);
+    if (parts.length === 1 && parts[0] && parts[0].length > 0) {
       return parts[0].slice(0, Math.min(2, parts[0].length)).toUpperCase();
     }
-    if (parts.length > 1 && parts[0].length > 0 && parts[1].length > 0) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+    if (parts.length > 1 && parts[0] && parts[0].length > 0 && parts[1] && parts[1].length > 0) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
     }
   }
   if (email) {
-    const emailParts = email.split("@")[0].split(/[._-]/);
-    if (emailParts.length > 1 && emailParts[0].length > 0 && emailParts[1].length > 0) {
-      return (emailParts[0][0] + emailParts[1][0]).toUpperCase();
+    const emailParts = email.split("@")[0].split(/[._-]/).filter(p => p.length > 0);
+    if (emailParts.length > 1 && emailParts[0] && emailParts[0].length > 0 && emailParts[1] && emailParts[1].length > 0) {
+      return (emailParts[0].charAt(0) + emailParts[1].charAt(0)).toUpperCase();
     }
-    if (emailParts.length > 0 && emailParts[0].length > 0) {
+    if (emailParts.length > 0 && emailParts[0] && emailParts[0].length > 0) {
       return emailParts[0].slice(0, Math.min(2, emailParts[0].length)).toUpperCase();
     }
   }

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { createSSRClient } from "@/lib/supabase/server";
 import { createServerAdminClient } from "@/lib/supabase/serverAdminClient";
 
+const AVATAR_SIGNED_URL_TTL_SECONDS = 60 * 60 * 6; // 6 hours
+
 type RouteContext = {
   params:
     | {
@@ -86,7 +88,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
               try {
                 const { data: signedData, error: signedError } = await supabase.storage
                   .from('avatars')
-                  .createSignedUrl(avatarPath, 60 * 60 * 6); // 6 hours
+                  .createSignedUrl(avatarPath, AVATAR_SIGNED_URL_TTL_SECONDS);
                 if (!signedError && signedData?.signedUrl) {
                   avatarUrl = signedData.signedUrl;
                 }
