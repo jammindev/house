@@ -61,7 +61,6 @@ export async function GET(_request: Request, { params }: RouteContext) {
     >();
     if (uniqueUserIds.length > 0) {
       const adminClient = await createServerAdminClient();
-      const supabase = await createSSRClient();
 
       await Promise.all(
         uniqueUserIds.map(async (identifier) => {
