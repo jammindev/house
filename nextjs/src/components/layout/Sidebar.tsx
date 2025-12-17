@@ -56,7 +56,7 @@ export default function Sidebar({
     }, [pathname]);
 
     const navigation = [
-        { name: t("nav.dashboard"), href: "/app", icon: Home },
+        { name: t("nav.dashboard"), href: "/app/dashboard", icon: Home },
         { name: t("nav.tasks"), href: "/app/tasks", icon: LucideListTodo },
         { name: t("nav.projectGroups"), href: "/app/project-groups", icon: FolderKanban },
         { name: t("nav.projects"), href: "/app/projects", icon: LayoutDashboard },
@@ -110,13 +110,13 @@ export default function Sidebar({
         <>
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
+                    className="fixed inset-0 bg-gray-600 bg-opacity-75 z-overlay-backdrop bg-glass lg:hidden"
                     onClick={onClose}
                 />
             )}
 
             <div
-                className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-30 flex flex-col justify-between
+                className={`fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-overlay-drawer flex flex-col justify-between
         ${isOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
             >
                 <div className="h-16 flex items-center justify-between px-4 border-b">

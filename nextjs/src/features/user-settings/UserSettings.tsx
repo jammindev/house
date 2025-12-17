@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { compressFileForUpload } from '@documents/utils/fileCompression';
 import { usePageLayoutConfig } from '@/app/app/(pages)/usePageLayoutConfig';
 import { HouseholdManagement } from './components/HouseholdManagement';
+import { AVAILABLE_THEMES, getDefaultTheme } from '@/lib/themes/themes.config';
 
 export function UserSettings() {
     const { user, refreshUser } = useGlobal();
@@ -22,14 +23,32 @@ export function UserSettings() {
     const [loading, setLoading] = useState(false);
     const [displayNameLoading, setDisplayNameLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
+    const [themeLoading, setThemeLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [displayName, setDisplayName] = useState(user?.displayName ?? '');
+    const [selectedTheme, setSelectedTheme] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         setDisplayName(user?.displayName ?? '');
     }, [user?.displayName]);
+
+    useEffect(() => {
+        const fetchUserTheme = async () => {
+            try {
+                const supabase = await createSPASassClient();
+                const client = supabase.getSupabaseClient();
+                const { data: { user: authUser } } = await client.auth.getUser();
+                const theme = authUser?.user_metadata?.theme ?? getDefaultTheme();
+                setSelectedTheme(theme);
+            } catch (err) {
+                console.warn('Failed to fetch user theme:', err);
+                setSelectedTheme(getDefaultTheme());
+            }
+        };
+        fetchUserTheme();
+    }, []);
 
     useEffect(() => {
         setLayout({ title: t('settings.title'), subtitle: t('settings.subtitle'), hideBackButton: true });
@@ -163,6 +182,37 @@ export function UserSettings() {
             if (fileInputRef.current) {
                 fileInputRef.current.value = '';
             }
+        }
+    };
+
+    const handleThemeChange = async (newTheme: string) => {
+        setThemeLoading(true);
+        setError('');
+        setSuccess('');
+
+        try {
+            const supabase = await createSPASassClient();
+            const client = supabase.getSupabaseClient();
+            const { error } = await client.auth.updateUser({
+                data: { theme: newTheme }
+            });
+            if (error) throw error;
+            
+            setSelectedTheme(newTheme);
+            setSuccess(t('settings.themeUpdated'));
+            
+            // Reload the page to apply the new theme
+            window.location.reload();
+        } catch (err: Error | unknown) {
+            if (err instanceof Error) {
+                console.error('Error updating theme:', err);
+                setError(err.message);
+            } else {
+                console.error('Error updating theme:', err);
+                setError('Failed to update theme');
+            }
+        } finally {
+            setThemeLoading(false);
         }
     };
 
@@ -329,6 +379,35 @@ export function UserSettings() {
                                         </Button>
                                     ) : null}
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className='text-base'>{t('settings.theme')}</CardTitle>
+                            <CardDescription>{t('settings.themeDescription')}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                <select
+                                    value={selectedTheme}
+                                    onChange={(e) => handleThemeChange(e.target.value)}
+                                    disabled={themeLoading}
+                                    className="w-full h-10 px-3 border rounded-md text-sm disabled:opacity-50"
+                                    aria-label={t('settings.theme')}
+                                >
+                                    {AVAILABLE_THEMES.map((theme) => (
+                                        <option key={theme.value} value={theme.value}>
+                                            {t(theme.label)}
+                                        </option>
+                                    ))}
+                                </select>
+                                {selectedTheme && (
+                                    <div className="text-xs text-gray-500">
+                                        {t(`${AVAILABLE_THEMES.find(t => t.value === selectedTheme)?.label}Description` as any) || ''}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

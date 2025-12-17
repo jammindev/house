@@ -7,6 +7,7 @@ import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
 
 import type { Interaction } from "@interactions/types";
 import VisibilityBadge from "@/features/_shared/components/VisibilityBadge";
+import { INTERACTION_TYPE_COLORS } from "@interactions/constants";
 
 interface Props {
   interaction: Interaction;
@@ -22,29 +23,6 @@ const statusBadgeStyles: Partial<Record<NonNullable<Interaction["status"]>, stri
   archived: "border-gray-200 bg-gray-50 text-gray-600",
 };
 
-const typeBadgeStyles: Partial<Record<Interaction["type"], string>> = {
-  note: "bg-slate-100 text-slate-800",
-  todo: "bg-amber-100 text-amber-800",
-  call: "bg-indigo-100 text-indigo-800",
-  meeting: "bg-purple-100 text-purple-800",
-  document: "bg-blue-100 text-blue-800",
-  expense: "bg-rose-100 text-rose-800",
-  maintenance: "bg-emerald-100 text-emerald-800",
-  repair: "bg-orange-100 text-orange-800",
-  installation: "bg-sky-100 text-sky-800",
-  inspection: "bg-amber-100 text-amber-800",
-  issue: "bg-rose-100 text-rose-800",
-  warranty: "bg-cyan-100 text-cyan-800",
-  replacement: "bg-indigo-100 text-indigo-800",
-  upgrade: "bg-purple-100 text-purple-800",
-  visit: "bg-orange-100 text-orange-800",
-  disposal: "bg-gray-100 text-gray-800",
-  quote: "bg-emerald-100 text-emerald-800",
-  message: "bg-teal-100 text-teal-800",
-  signature: "bg-fuchsia-100 text-fuchsia-800",
-  other: "bg-gray-100 text-gray-800",
-};
-
 export default function InteractionItem({ interaction, documentCount, t, returnTo }: Props) {
   const occurredDate = new Date(interaction.occurred_at);
   const occurredDateLabel = occurredDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
@@ -55,7 +33,7 @@ export default function InteractionItem({ interaction, documentCount, t, returnT
   const projectStatusLabel = interaction.project ? t(`projects.status.${interaction.project.status}`) : null;
   const statusBadgeClass =
     interaction.status ? statusBadgeStyles[interaction.status] ?? "border-gray-200 bg-gray-50 text-gray-600" : "border-gray-200 bg-gray-50 text-gray-600";
-  const typeBadgeClass = typeBadgeStyles[interaction.type] ?? "bg-slate-100 text-slate-800";
+  const typeBadgeClass = INTERACTION_TYPE_COLORS[interaction.type] ?? "bg-slate-100 text-slate-800 border-slate-200";
 
   const href = returnTo
     ? `/app/interactions/${interaction.id}?returnTo=${encodeURIComponent(returnTo)}`
