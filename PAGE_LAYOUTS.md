@@ -71,6 +71,13 @@ Located in `nextjs/src/features/_shared/components`:
    - Avoid manipulating `usePageLayoutConfig` directly unless you need a custom flow—otherwise stick to the shells.
 4. Add locale strings (`en.json`, `fr.json`) for titles, subtitles, empty/error messages, and actions.
 
+## 6. SheetDialog Pattern (canonical for create/edit)
+
+- New and edit forms must live in a SheetDialog to avoid full-page navigation and keep context visible.
+- Reuse a single form component for both modes; pass defaults for create and fetched values for edit.
+- Triggers: list-level CTAs (primary button or per-card action) and detail page "Edit" buttons should open the sheet.
+- Keep list/detail surfaces visible behind the sheet so users can reference current data while editing.
+
 ## 6. Examples
 
 - **Contacts list**: `app/(pages)/contacts/page.tsx` -> `ListPageLayout`.
