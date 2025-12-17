@@ -25,6 +25,10 @@ interface InsuranceFormProps {
   onCancel?: () => void;
 }
 
+const formatCostForInput = (cost: number | null | undefined): string => {
+  return cost != null ? cost.toString() : "";
+};
+
 export default function InsuranceForm({ 
   contract, 
   mode = "create", 
@@ -80,8 +84,8 @@ export default function InsuranceForm({
       renewal_date: contract?.renewal_date ?? "",
       status: contract?.status ?? "active",
       payment_frequency: contract?.payment_frequency ?? "monthly",
-      monthly_cost: contract?.monthly_cost != null ? contract.monthly_cost.toString() : "",
-      yearly_cost: contract?.yearly_cost != null ? contract.yearly_cost.toString() : "",
+      monthly_cost: formatCostForInput(contract?.monthly_cost),
+      yearly_cost: formatCostForInput(contract?.yearly_cost),
       coverage_summary: contract?.coverage_summary ?? "",
       notes: contract?.notes ?? "",
     },
@@ -100,8 +104,8 @@ export default function InsuranceForm({
         renewal_date: contract.renewal_date ?? "",
         status: contract.status ?? "active",
         payment_frequency: contract.payment_frequency ?? "monthly",
-        monthly_cost: contract.monthly_cost != null ? contract.monthly_cost.toString() : "",
-        yearly_cost: contract.yearly_cost != null ? contract.yearly_cost.toString() : "",
+        monthly_cost: formatCostForInput(contract.monthly_cost),
+        yearly_cost: formatCostForInput(contract.yearly_cost),
         coverage_summary: contract.coverage_summary ?? "",
         notes: contract.notes ?? "",
       });
