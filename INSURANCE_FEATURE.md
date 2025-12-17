@@ -4,6 +4,15 @@
 
 The Insurance feature allows users to manage their insurance contracts within the household management system. It provides a complete CRUD interface for tracking insurance policies, renewals, costs, and coverage details.
 
+## Reference Pattern for Future Feature Pages
+
+Use the Insurance feature as the blueprint for new domains. Key expectations:
+- **Create/Edit in SheetDialog**: Both new and update flows live inside a SheetDialog, triggered from list cards or detail actions; no full-page navigation.
+- **Shared form component**: A single form component powers both create and edit, initialized with defaults or existing values.
+- **List + detail pairing**: Keep a fast list/grid surface plus a focused detail view; avoid building isolated forms without list context.
+- **Feature-first placement**: Route files stay thin and delegate to `nextjs/src/features/<domain>/` components/hooks.
+- **RLS-first data access**: All Supabase calls validate household membership and stay within the household scope.
+
 ## Features
 
 ### List View (`/app/insurance`)
@@ -16,7 +25,7 @@ The Insurance feature allows users to manage their insurance contracts within th
   - Renewal date
   - "Renewal Soon" badge for contracts expiring within 60 days
 - Empty state with call-to-action button
-- Create new contracts using the "+" button (opens in SheetDialog)
+- Create new contracts using the "+" button (opens in SheetDialog; this is the canonical pattern for new resources)
 
 ### Detail View (`/app/insurance/[id]`)
 - Comprehensive contract information organized in sections:
