@@ -34,16 +34,21 @@ export function UserSettings() {
     }, [user?.displayName]);
 
     useEffect(() => {
+        const getDefaultTheme = () => {
+            const envTheme = process.env.NEXT_PUBLIC_THEME;
+            return envTheme?.startsWith('theme-') ? envTheme.slice(6) : (envTheme ?? 'sass3');
+        };
+
         const fetchUserTheme = async () => {
             try {
                 const supabase = await createSPASassClient();
                 const client = supabase.getSupabaseClient();
                 const { data: { user: authUser } } = await client.auth.getUser();
-                const theme = authUser?.user_metadata?.theme ?? (process.env.NEXT_PUBLIC_THEME?.replace('theme-', '') ?? 'sass3');
+                const theme = authUser?.user_metadata?.theme ?? getDefaultTheme();
                 setSelectedTheme(theme);
             } catch (err) {
                 console.warn('Failed to fetch user theme:', err);
-                setSelectedTheme(process.env.NEXT_PUBLIC_THEME?.replace('theme-', '') ?? 'sass3');
+                setSelectedTheme(getDefaultTheme());
             }
         };
         fetchUserTheme();
