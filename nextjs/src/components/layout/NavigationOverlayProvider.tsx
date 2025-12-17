@@ -56,7 +56,7 @@ function NavigationOverlay({ isVisible }: { isVisible: boolean }) {
             className={`fixed inset-0 lg:left-64 ${Z_INDEX_CLASSES.system.loading} flex items-center justify-center  ${isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
             aria-hidden={!isVisible}
         >
-            <div className="absolute inset-0 overflow-hidden backdrop-blur-md">
+            <div className="absolute inset-0 overflow-hidden bg-glass">
             </div>
             <Spinner />
         </div>

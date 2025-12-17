@@ -102,11 +102,12 @@ export default function AppPageLayout({
         className
       )}
     >
-      <Card className={cn(
-        "sticky top-0 z-20 border-b border-gray-200 p-2 rounded-none",
-        "bg-gradient-to-b from-primary-50/80 to-white/90",
-        "supports-[backdrop-filter]:backdrop-blur"
-      )}>
+<Card
+  className={cn(
+    "sticky top-4 z-20 p-3",
+    "glass-panel"
+  )}
+>
         <header
         >
           {/* Header uses grid to keep side buttons fixed while the title truncates */}
