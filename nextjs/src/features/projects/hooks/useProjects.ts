@@ -41,6 +41,20 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
+      
+      // Get current user's pinned projects
+      const { data: { user } } = await client.auth.getUser();
+      const pinnedProjectIds: string[] = [];
+      if (user) {
+        const { data: pinnedData, error: pinnedError } = await client
+          .from("user_pinned_projects")
+          .select("project_id")
+          .eq("user_id", user.id)
+          .eq("household_id", householdId);
+        if (!pinnedError && pinnedData) {
+          pinnedProjectIds.push(...pinnedData.map((item) => item.project_id));
+        }
+      }
 
       let query = client
         .from("projects")
@@ -74,7 +88,6 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
           `
         )
         .eq("household_id", householdId)
-        .order("is_pinned", { ascending: false })
         .order("updated_at", { ascending: false });
 
       if (filters.statuses && filters.statuses.length) {
@@ -149,8 +162,11 @@ export function useProjects(initialFilters: ProjectListFilters = DEFAULT_PROJECT
         const groupRecord = (project.project_group as { id: string; name: string } | null) ?? null;
         const projectsCount = groupRecord ? groupCountsById.get(groupRecord.id) : undefined;
         const group = groupRecord ? { ...groupRecord, projectsCount } : null;
+        // Override is_pinned with user-specific pin status
+        const isPinnedByUser = pinnedProjectIds.includes(project.id);
         return {
           ...project,
+          is_pinned: isPinnedByUser,
           metrics,
           ...flags,
           group,
@@ -200,6 +216,20 @@ export async function fetchProjectsByGroup(
 
   const supa = await createSPASassClient();
   const client = supa.getSupabaseClient();
+  
+  // Get current user's pinned projects
+  const { data: { user } } = await client.auth.getUser();
+  const pinnedProjectIds: string[] = [];
+  if (user) {
+    const { data: pinnedData, error: pinnedError } = await client
+      .from("user_pinned_projects")
+      .select("project_id")
+      .eq("user_id", user.id)
+      .eq("household_id", householdId);
+    if (!pinnedError && pinnedData) {
+      pinnedProjectIds.push(...pinnedData.map((item) => item.project_id));
+    }
+  }
 
   const query = client
     .from("projects")
@@ -233,7 +263,6 @@ export async function fetchProjectsByGroup(
           `
     )
     .eq("household_id", householdId)
-    .order("is_pinned", { ascending: false })
     .order("updated_at", { ascending: false });
 
   if (projectGroupId) {
@@ -287,8 +316,11 @@ export async function fetchProjectsByGroup(
     const groupRecord = (project.project_group as { id: string; name: string } | null) ?? null;
     const projectsCount = groupRecord ? groupCountsById.get(groupRecord.id) : undefined;
     const group = groupRecord ? { ...groupRecord, projectsCount } : null;
+    // Override is_pinned with user-specific pin status
+    const isPinnedByUser = pinnedProjectIds.includes(project.id);
     return {
       ...project,
+      is_pinned: isPinnedByUser,
       metrics,
       ...flags,
       group,

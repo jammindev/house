@@ -26,6 +26,20 @@ export function useProject(projectId?: string) {
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
+      
+      // Get current user's pinned projects
+      const { data: { user } } = await client.auth.getUser();
+      const pinnedProjectIds: string[] = [];
+      if (user) {
+        const { data: pinnedData, error: pinnedError } = await client
+          .from("user_pinned_projects")
+          .select("project_id")
+          .eq("user_id", user.id)
+          .eq("household_id", householdId);
+        if (!pinnedError && pinnedData) {
+          pinnedProjectIds.push(...pinnedData.map((item) => item.project_id));
+        }
+      }
 
       const { data: projectRow, error: projectError } = await client
         .from("projects")
@@ -84,6 +98,7 @@ export function useProject(projectId?: string) {
         ...rawProject,
         zones,
         project_zones: undefined, // Remove the raw join data
+        is_pinned: pinnedProjectIds.includes(projectId), // Override with user-specific pin status
       };
 
       const { data: metricsRow, error: metricsError } = await client
@@ -159,6 +174,7 @@ export function useProject(projectId?: string) {
           ...rawRelated,
           zones: rawRelated.project_zones?.map((pz: any) => pz.zone) || [],
           project_zones: undefined, // Remove the raw join data
+          is_pinned: pinnedProjectIds.includes(rawRelated.id), // Override with user-specific pin status
         })) as Project[];
         const relatedIds = relatedProjectsRaw.map((item) => item.id);
 
