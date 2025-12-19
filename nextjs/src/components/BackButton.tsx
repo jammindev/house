@@ -83,7 +83,7 @@ export default function BackButton() {
     <Button
       type="button"
       variant="outline"
-      size="sm"
+      size="icon"
       onClick={handleBack}
     >
       <ArrowLeft className="h-5 w-5" />
