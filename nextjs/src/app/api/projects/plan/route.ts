@@ -138,15 +138,16 @@ Ensure all tasks have clear subjects and detailed content. Assign tasks to appro
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
-        response_format: { type: 'json_object' },
-        temperature: 0.7,
-        max_tokens: 2000,
+        max_completion_tokens: 8000, // Increased for reasoning models that use tokens internally
       });
+
+      console.log('OpenAI completion:', JSON.stringify(completion, null, 2));
 
       const response = completion.choices[0]?.message?.content;
       
       if (!response) {
-        throw new Error('No response from AI');
+        console.error('No content in AI response. Full completion:', completion);
+        throw new Error(`No response from AI. Finish reason: ${completion.choices[0]?.finish_reason || 'unknown'}. The model may need more tokens for reasoning.`);
       }
 
       const plan: PlanResponse = JSON.parse(response);
@@ -191,34 +192,12 @@ Ensure all tasks have clear subjects and detailed content. Assign tasks to appro
     } catch (aiError) {
       console.error('OpenAI API error:', aiError);
       
-      // Fallback: return structured but minimal plan if AI fails
-      const fallbackPlan: PlanResponse = {
-        title: body.title || `Project - ${zoneNames}`,
-        refinedDescription: body.description || `Project: ${body.title || zoneNames}\n\nZones: ${zoneNames}${body.plannedBudget ? `\nBudget: $${body.plannedBudget.toLocaleString()}` : ''}`,
-        todos: [
-          {
-            subject: 'Plan project scope',
-            content: 'Define detailed scope, milestones, and success criteria for this project.',
-            zoneIds: body.zoneIds,
-            priority: 5,
-          },
-          {
-            subject: 'Research and gather quotes',
-            content: 'Contact vendors and gather multiple quotes for comparison.',
-            zoneIds: body.zoneIds,
-            priority: 4,
-          },
-        ],
-        notes: [
-          {
-            subject: 'Budget considerations',
-            content: `Planned budget: ${body.plannedBudget ? `$${body.plannedBudget.toLocaleString()}` : 'not specified'}. Track expenses as they occur.`,
-            zoneIds: body.zoneIds,
-          },
-        ],
-      };
-
-      return Response.json(fallbackPlan);
+      // Return error to user instead of fallback
+      const errorMessage = aiError instanceof Error ? aiError.message : 'Failed to generate project plan';
+      return Response.json(
+        { error: `AI generation failed: ${errorMessage}` },
+        { status: 500 }
+      );
     }
 
   } catch (error) {
