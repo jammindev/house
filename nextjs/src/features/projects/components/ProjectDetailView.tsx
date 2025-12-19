@@ -1,7 +1,7 @@
 // nextjs/src/features/projects/components/ProjectDetailView.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 import AuditHistoryCard from "@/components/AuditHistoryCard";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ import { useProjectPhotoDocuments } from "@projects/hooks/useProjectPhotoDocumen
 import { useSignedFilePreviews } from "@interactions/hooks/useSignedFilePreviews";
 import ProjectLinksPanel from "@projects/components/ProjectLinksPanel";
 import { useProjectTabState } from "@projects/hooks/useProjectTabState";
+import { useProjectDocuments } from "@projects/hooks/useProjectDocuments";
 
 interface ProjectDetailViewProps {
   project: ProjectWithMetrics;
@@ -72,6 +73,33 @@ export default function ProjectDetailView({
   } = useProjectPhotoDocuments(project.id);
   const { previews: photoPreviews, error: photoPreviewError } = useSignedFilePreviews(projectPhotos);
   const combinedPhotoError = projectPhotosError ?? (photoPreviewError || null);
+  
+  // Get documents directly linked to the project via project_documents
+  const {
+    documents: directProjectDocuments,
+    loading: directDocsLoading,
+    error: directDocsError,
+    refresh: refreshDirectDocs,
+  } = useProjectDocuments(project.id);
+
+  // Combine documents from interactions and direct project documents
+  const allDocuments = useMemo(() => {
+    const docMap = new Map<string, typeof interactionsData.documents[number]>();
+    
+    // Add documents from interactions
+    interactionsData.documents.forEach(doc => {
+      docMap.set(doc.id, doc);
+    });
+    
+    // Add direct project documents (won't duplicate if already in interactions)
+    directProjectDocuments.forEach(doc => {
+      if (!docMap.has(doc.id)) {
+        docMap.set(doc.id, doc);
+      }
+    });
+    
+    return Array.from(docMap.values());
+  }, [interactionsData.documents, directProjectDocuments]);
 
   // Update local description when project changes
   useEffect(() => {
@@ -397,7 +425,7 @@ export default function ProjectDetailView({
           ) : null}
 
           {tab === "documents" ? (
-            <ProjectDocumentsPanel documents={interactionsData.documents} />
+            <ProjectDocumentsPanel documents={allDocuments} />
           ) : null}
 
           {tab === "photos" ? (
