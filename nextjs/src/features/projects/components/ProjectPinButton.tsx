@@ -35,12 +35,31 @@ export default function ProjectPinButton({ projectId, isPinned, onPinnedChange }
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
-      const { error } = await client
-        .from("projects")
-        .update({ is_pinned: nextPinned })
-        .eq("id", projectId)
-        .eq("household_id", selectedHouseholdId);
-      if (error) throw error;
+      
+      // Get current user
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
+      if (nextPinned) {
+        // Pin: insert into user_pinned_projects
+        const { error } = await client
+          .from("user_pinned_projects")
+          .insert({
+            user_id: user.id,
+            project_id: projectId,
+            household_id: selectedHouseholdId,
+          });
+        if (error) throw error;
+      } else {
+        // Unpin: delete from user_pinned_projects
+        const { error } = await client
+          .from("user_pinned_projects")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("project_id", projectId);
+        if (error) throw error;
+      }
+
       setPinned(nextPinned);
       onPinnedChange?.(nextPinned);
       show({

@@ -31,6 +31,31 @@ export default function DashboardPinnedProjects() {
     try {
       const supa = await createSPASassClient();
       const client = supa.getSupabaseClient();
+      
+      // Get current user
+      const { data: { user } } = await client.auth.getUser();
+      if (!user) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get user's pinned project IDs
+      const { data: pinnedData, error: pinnedError } = await client
+        .from("user_pinned_projects")
+        .select("project_id")
+        .eq("user_id", user.id)
+        .eq("household_id", selectedHouseholdId);
+
+      if (pinnedError) throw pinnedError;
+      
+      const pinnedProjectIds = (pinnedData ?? []).map((item) => item.project_id);
+      
+      if (!pinnedProjectIds.length) {
+        setProjects([]);
+        setLoading(false);
+        return;
+      }
 
       const { data: projectRows, error: projectsError } = await client
         .from("projects")
@@ -63,7 +88,7 @@ export default function DashboardPinnedProjects() {
           `
         )
         .eq("household_id", selectedHouseholdId)
-        .eq("is_pinned", true)
+        .in("id", pinnedProjectIds)
         .order("updated_at", { ascending: false });
 
       if (projectsError) throw projectsError;
