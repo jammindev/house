@@ -2,7 +2,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 
 import ProjectFilters from "@projects/components/ProjectFilters";
 import TextSearch from "@projects/components/TextSearch";
@@ -14,10 +14,11 @@ import EmptyState from "@shared/components/EmptyState";
 import FiltersActionSheet from "@shared/components/FiltersActionSheet";
 import { Button } from "@/components/ui/button";
 import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import { ProjectWizardDialog } from "@projects/components/wizard";
 
 export default function ProjectsPage() {
   const { t } = useI18n();
-  const { projects, loading, error, filters, setFilters, resetFilters } = useProjects();
+  const { projects, loading, error, filters, setFilters, resetFilters, reload } = useProjects();
 
   const hasActiveFilters = useMemo(() => {
     const defaultStatuses = DEFAULT_PROJECT_FILTERS.statuses ?? [];
@@ -50,12 +51,26 @@ export default function ProjectsPage() {
         ),
       },
       {
+        element: (
+          <ProjectWizardDialog
+            trigger={
+              <Button size="icon" variant="outline" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+              </Button>
+            }
+            onSuccess={() => {
+              reload?.();
+            }}
+          />
+        ),
+      },
+      {
         icon: Plus,
         href: "/app/projects/new",
         variant: "default" as const,
       },
     ],
-    [filters, hasActiveFilters, resetFilters, setFilters, t]
+    [filters, hasActiveFilters, resetFilters, setFilters, t, reload]
   );
 
   const toolbar = (
@@ -63,29 +78,31 @@ export default function ProjectsPage() {
   );
 
   return (
-    <ListPageLayout
-      title={t("projects.title")}
-      // subtitle={t("projects.subtitle")}
-      hideBackButton
-      actions={actions}
-      toolbar={toolbar}
-      loading={loading}
-      error={error ?? null}
-      errorTitle={t("projects.loadFailed")}
-      isEmpty={!loading && projects.length === 0}
-      emptyState={
-        <EmptyState
-          title={t("projects.emptyState")}
-          description={t("projects.newSubtitle")}
-          action={
-            <Button asChild>
-              <LinkWithOverlay href="/app/projects/new">{t("projects.new")}</LinkWithOverlay>
-            </Button>
-          }
-        />
-      }
-    >
-      <ProjectList projects={projects} />
-    </ListPageLayout>
+    <>
+      <ListPageLayout
+        title={t("projects.title")}
+        // subtitle={t("projects.subtitle")}
+        hideBackButton
+        actions={actions}
+        toolbar={toolbar}
+        loading={loading}
+        error={error ?? null}
+        errorTitle={t("projects.loadFailed")}
+        isEmpty={!loading && projects.length === 0}
+        emptyState={
+          <EmptyState
+            title={t("projects.emptyState")}
+            description={t("projects.newSubtitle")}
+            action={
+              <Button asChild>
+                <LinkWithOverlay href="/app/projects/new">{t("projects.new")}</LinkWithOverlay>
+              </Button>
+            }
+          />
+        }
+      >
+        <ProjectList projects={projects} />
+      </ListPageLayout>
+    </>
   );
 }
