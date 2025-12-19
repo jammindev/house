@@ -88,8 +88,7 @@ export async function POST(
         const completion = await openai.chat.completions.create({
             model: AI_DEFAULT_MODEL,
             messages,
-            temperature: AI_DEFAULT_TEMPERATURE,
-            max_tokens: 1200, // Increased for longer, more detailed descriptions
+            max_completion_tokens: 1200, // Increased for longer, more detailed descriptions
         });
 
         const generatedDescription: string | undefined | null = completion.choices[0]?.message?.content;

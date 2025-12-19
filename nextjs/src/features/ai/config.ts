@@ -1,4 +1,4 @@
-export const AI_DEFAULT_MODEL = "gpt-5.2-2025-12-11";
+export const AI_DEFAULT_MODEL = "gpt-5-mini-2025-08-07";
 export const AI_DEFAULT_TEMPERATURE = 0.3;
 
 export function isAIEnabled(): boolean {
