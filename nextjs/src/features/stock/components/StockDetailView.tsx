@@ -198,7 +198,7 @@ export default function StockDetailView({
                                 disabled={adjusting}
                                 aria-label={t("stock.actions.increase")}
                             >
-                                <Plus className="h-4 w-4" />
+                                <Plus className="h-4 w-" />
                             </Button>
                         </div>
                     </div>

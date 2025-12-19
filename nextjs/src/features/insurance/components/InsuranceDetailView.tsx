@@ -145,8 +145,7 @@ export default function InsuranceDetailView({ contract, onRefresh }: InsuranceDe
           <SheetDialog
             trigger={
               <Button variant="outline" size="icon">
-                <Pencil className="h-4 w-4 mr-2" />
-                {t("common.edit")}
+                <Pencil className="h-4 w-4" />
               </Button>
             }
             title={t("insurance.editTitle")}

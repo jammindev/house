@@ -80,8 +80,8 @@ export default function AppPageLayout({
     return (
       <Button
         key={i}
-        variant={action.variant ?? "outline"}
-        size={action.size ?? "icon"}
+        variant={"outline"}
+        size={"icon"}
         aria-label={action.label ?? action.href ?? "Action"}
         disabled={action.disabled}
         onClick={action.href ? undefined : action.onClick}
