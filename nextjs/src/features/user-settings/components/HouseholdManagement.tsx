@@ -340,7 +340,7 @@ export function HouseholdManagement() {
                         <h3 className="text-lg font-medium">{t('settings.currentHouseholds')}</h3>
                         <Button
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             onClick={() => setCreateDialogOpen(true)}
                             className="flex items-center gap-2"
                         >

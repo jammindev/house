@@ -29,9 +29,8 @@ export default function InsurancePage() {
         element: (
           <SheetDialog
             trigger={
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                {t("insurance.new")}
+              <Button size={'icon'} variant={'outline'}>
+                <Plus className="h-4 w-4" />
               </Button>
             }
             title={t("insurance.newTitle")}

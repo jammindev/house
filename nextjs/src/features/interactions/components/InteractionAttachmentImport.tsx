@@ -154,7 +154,7 @@ export default function InteractionAttachmentImport({ interactionId, onUploaded 
         trigger={
           <Button
             variant="outline"
-            size={isMobile ? "default" : "sm"}
+            size={"icon"}
             disabled={uploading || linking}
             aria-label={t("interactionsattachments")}
           >
