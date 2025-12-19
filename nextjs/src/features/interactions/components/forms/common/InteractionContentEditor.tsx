@@ -83,6 +83,7 @@ export function InteractionContentEditor({
     const [error, setError] = useState<string | null>(null);
     const [previousContent, setPreviousContent] = useState<string | null>(null);
     const [isSavingInternal, setIsSavingInternal] = useState(false);
+    const [isTinyLoading, setIsTinyLoading] = useState(false);
 
     const isEditing = forceEditing || isEditingState;
 
@@ -163,6 +164,26 @@ export function InteractionContentEditor({
             {isEditing ? (
                 <div>
                     <div className="space-y-3">
+                        {isTinyLoading ? (
+                            <div 
+                                className="w-full rounded-lg border border-slate-200 overflow-hidden"
+                                style={{ height: 520 }}
+                                role="status"
+                                aria-label={t("common.loading")}
+                            >
+                                <div className="border-b border-slate-200 bg-slate-50 px-2 py-1.5 flex items-center gap-1 animate-pulse">
+                                    <div className="h-7 w-7 bg-slate-200 rounded"></div>
+                                    <div className="h-7 w-7 bg-slate-200 rounded"></div>
+                                    <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                                    <div className="h-7 w-24 bg-slate-200 rounded"></div>
+                                    <div className="w-px h-5 bg-slate-200 mx-1"></div>
+                                    <div className="h-7 w-7 bg-slate-200 rounded"></div>
+                                    <div className="h-7 w-7 bg-slate-200 rounded"></div>
+                                    <div className="h-7 w-7 bg-slate-200 rounded"></div>
+                                </div>
+                                <div className="bg-white h-full"></div>
+                            </div>
+                        ) : null}
                         <TinyEditor
                             id={id}
                             value={value}
@@ -170,6 +191,7 @@ export function InteractionContentEditor({
                             textareaName={textareaName}
                             placeholder={placeholder}
                             height={520}
+                            onInit={() => setIsTinyLoading(false)}
                         />
 
                         {aiEnabled ? (
@@ -334,6 +356,7 @@ export function InteractionContentEditor({
                     type="button"
                     className="w-full rounded-lg border border-dashed border-slate-300 bg-white p-4 text-left shadow-sm transition hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                     onClick={() => {
+                        setIsTinyLoading(true);
                         setIsEditingState(true);
                         setShowPrompt(false);
                         setError(null);

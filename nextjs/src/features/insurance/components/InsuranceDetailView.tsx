@@ -144,7 +144,7 @@ export default function InsuranceDetailView({ contract, onRefresh }: InsuranceDe
         <div className="flex gap-2">
           <SheetDialog
             trigger={
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="icon">
                 <Pencil className="h-4 w-4 mr-2" />
                 {t("common.edit")}
               </Button>

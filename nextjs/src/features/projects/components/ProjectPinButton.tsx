@@ -80,7 +80,7 @@ export default function ProjectPinButton({ projectId, isPinned, onPinnedChange }
     <Button
       type="button"
       variant="outline"
-      size="sm"
+      size="icon"
       aria-pressed={pinned}
       aria-label={label}
       title={label}

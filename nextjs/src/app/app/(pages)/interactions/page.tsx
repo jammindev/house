@@ -123,7 +123,7 @@ export default function InteractionsPage() {
               ? t("interactions.filteredByContact", { name: contactName })
               : t("interactions.filteredByContactUnknown")}
           </span>
-          <Button size="sm" variant="ghost" onClick={handleClearContactFilter} className="self-start sm:self-auto">
+          <Button size="icon" variant="ghost" onClick={handleClearContactFilter} className="self-start sm:self-auto">
             {t("interactions.filteredByContactClear")}
           </Button>
         </div>

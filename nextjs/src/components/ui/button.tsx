@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-br from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 shadow-primary-500/20 hover:shadow-primary-600/30 backdrop-blur-xl border border-primary-400/20 hover:border-primary-300/30",
+          "bg-gradient-to-br from-primary-500 to-primary-600 text-white hover:from-primary-600 hover:to-primary-700 shadow-primary-500/20 hover:shadow-primary-600/30 backdrop-blur-xl ",
         destructive:
           "bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 shadow-red-500/20 hover:shadow-red-600/30 backdrop-blur-xl border border-red-400/20 hover:border-red-300/30",
         outline:
@@ -28,7 +28,7 @@ const buttonVariants = cva(
         default: "h-10 px-5 py-2.5",
         sm: "h-9 px-4 py-2",
         lg: "h-12 px-8 py-3 text-base",
-        icon: "h-10 w-10",
+        icon: "h-12 w-12 rounded-full bg-glass",
       },
     },
     defaultVariants: {

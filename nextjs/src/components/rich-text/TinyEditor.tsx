@@ -33,6 +33,7 @@ type TinyEditorProps = {
     placeholder?: string;
     height?: number;
     initOverrides?: Record<string, unknown>;
+    onInit?: () => void;
 };
 
 const Editor = dynamic(
@@ -68,6 +69,7 @@ export function TinyEditor({
     placeholder,
     height = 640,
     initOverrides,
+    onInit,
 }: TinyEditorProps) {
     const { t, locale } = useI18n();
 
@@ -174,6 +176,7 @@ strong { color: ${foreground}; }
             init={editorInit}
             value={value}
             onEditorChange={(nextValue) => onChange(nextValue)}
+            onInit={onInit}
             textareaName={textareaName}
         />
     );

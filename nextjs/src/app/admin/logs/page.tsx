@@ -93,7 +93,7 @@ export default function AdminLogsPage() {
                                     <option value="storage">Stockage</option>
                                     <option value="system">Système</option>
                                 </select>
-                                <Button variant="outline" size="sm">
+                                <Button variant="outline" size="icon">
                                     <Filter className="h-4 w-4 mr-2" />
                                     Filtrer
                                 </Button>
