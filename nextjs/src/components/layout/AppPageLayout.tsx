@@ -118,7 +118,7 @@ export default function AppPageLayout({
     >
 <div
   className={cn(
-    "sticky top-4 z-20 p-3 transition-all duration-300",
+    "sticky top-4 z-20 p-2 transition-all duration-300",
   )}
   style={{
     backgroundColor: 'transparent',
