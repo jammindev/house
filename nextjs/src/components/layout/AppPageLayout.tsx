@@ -116,18 +116,12 @@ export default function AppPageLayout({
         className
       )}
     >
-<Card
+<div
   className={cn(
     "sticky top-4 z-20 p-3 transition-all duration-300",
-    "glass-panel"
   )}
   style={{
-    backgroundColor: `rgba(255, 255, 255, ${scrollOpacity * 0.8})`,
-    backdropFilter: scrollOpacity > 0.1 ? "blur(8px)" : "none",
-    borderColor: `rgba(229, 231, 235, ${scrollOpacity})`,
-    boxShadow: scrollOpacity > 0.1 
-      ? `0 1px 3px 0 rgba(0, 0, 0, ${0.1 * scrollOpacity}), 0 1px 2px -1px rgba(0, 0, 0, ${0.1 * scrollOpacity})`
-      : "none",
+    backgroundColor: 'transparent',
   }}
 >
         <header
@@ -181,7 +175,7 @@ export default function AppPageLayout({
             </p>
           )}
         </header>
-      </Card>
+      </div>
 
       {/* 💡 Ajout d’un loader global */}
       {
