@@ -45,6 +45,7 @@ export default function ProjectsPage() {
             title={t("projects.filters.title")}
             ariaLabel={t("common.filter")}
             isActive={hasActiveFilters}
+            buttonSize={'icon'}
           >
             <ProjectFilters filters={filters} onChange={setFilters} onReset={resetFilters} />
           </FiltersActionSheet>

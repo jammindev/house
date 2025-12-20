@@ -26,7 +26,7 @@ export default function FiltersActionSheet({
   description,
   icon: Icon = Filter,
   buttonVariant = "outline",
-  buttonSize = "sm",
+  buttonSize = "icon",
   ariaLabel,
   isActive = false,
 }: FiltersActionSheetProps) {
