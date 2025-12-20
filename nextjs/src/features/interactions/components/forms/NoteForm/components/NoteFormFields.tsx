@@ -226,6 +226,16 @@ export function NoteFormFields({
                     ) : null}
                 </div>
                 <div className="flex gap-2">
+                    {!isLastStep && canProceed ? (
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onSubmitClick}
+                            disabled={isSubmitting || zonesLoading || !hasZones}
+                        >
+                            {t("forms.note.createNow")}
+                        </Button>
+                    ) : null}
                     {isLastStep ? (
                         <Button
                             type="button"

@@ -153,10 +153,6 @@ export default function NoteForm({
 
     const onSubmit = async (formValues: NoteFormValues) => {
         if (isSubmitting) return;
-        if (currentStep < lastStepIndex) {
-            handleNextStep();
-            return;
-        }
 
         const { trimmed: trimmedContent, plainText: contentText } = normalizeRichText(formValues.content || "");
         const trimmedSubject = formValues.subject.trim() || contentText.slice(0, 80);
