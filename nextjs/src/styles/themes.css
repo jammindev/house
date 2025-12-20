@@ -1,7 +1,21 @@
 /* nextjs/src/styles/themes.css */
-/* Fichier dédié aux thèmes de l'application */
+/* ============================================
+   THÈMES PERSONNALISÉS
+   Définit les palettes de couleurs pour chaque thème
+   ============================================ */
 
-/* === THÈME 1: BLUE === */
+/* UTILISATION :
+   Appliquer une classe .theme-* sur <body> ou un container
+   Ex: <body className="theme-house">
+   
+   Les tokens suivants sont définis pour chaque thème:
+   - --color-primary-{50-900}: Couleur principale
+   - --color-secondary-{50-900}: Couleur secondaire/gris
+   - --color-accent-{50-900}: Couleur d'accent
+   - --ring: Focus ring (format HSL)
+*/
+
+/* === THÈME 1: BLUE (Défaut) === */
 .theme-blue {
     --color-primary-50: #f0f9ff;
     --color-primary-100: #e0f2fe;
@@ -13,6 +27,9 @@
     --color-primary-700: #0369a1;
     --color-primary-800: #075985;
     --color-primary-900: #0c4a6e;
+
+    /* Focus ring adapté au thème */
+    --ring: 199 89% 48%;
 
     --color-secondary-50: #f8fafc;
     --color-secondary-100: #f1f5f9;
@@ -50,6 +67,9 @@
     --color-primary-800: #802d59;
     --color-primary-900: #621b3f;
 
+    /* Focus ring adapté au thème */
+    --ring: 333 39% 58%;
+
     --color-secondary-50: #f8fafc;
     --color-secondary-100: #f1f5f9;
     --color-secondary-200: #e2e8f0;
@@ -85,6 +105,9 @@
     --color-primary-700: #3d5c3d;
     --color-primary-800: #314831;
     --color-primary-900: #253825;
+
+    /* Focus ring adapté au thème */
+    --ring: 120 20% 45%;
 
     --color-secondary-50: #fafaf9;
     --color-secondary-100: #f5f5f4;
@@ -122,6 +145,9 @@
     --color-primary-800: #065b86;
     --color-primary-900: #074563;
 
+    /* Focus ring adapté au thème */
+    --ring: 196 91% 43%;
+
     --color-secondary-50: #fdfcfb;
     --color-secondary-100: #f8f6f4;
     --color-secondary-200: #f0ece7;
@@ -157,6 +183,9 @@
     --color-primary-700: #1f6a4c;
     --color-primary-800: #19543c;
     --color-primary-900: #123829;
+
+    /* Focus ring adapté au thème */
+    --ring: 153 52% 41%;
 
     --color-secondary-50: #fdf8f4;
     --color-secondary-100: #f6ede2;
@@ -194,6 +223,9 @@
     --color-primary-800: #6b21a8;
     --color-primary-900: #581c87;
 
+    /* Focus ring adapté au thème */
+    --ring: 271 81% 66%;
+
     --color-secondary-50: #fafafa;
     --color-secondary-100: #f4f4f5;
     --color-secondary-200: #e4e4e7;
@@ -229,6 +261,9 @@
     --color-primary-700: #15803d;
     --color-primary-800: #166534;
     --color-primary-900: #14532d;
+
+    /* Focus ring adapté au thème */
+    --ring: 142 71% 45%;
 
     --color-secondary-50: #fafaf9;
     --color-secondary-100: #f5f5f4;
@@ -266,6 +301,9 @@
     --color-primary-800: #991b1b;
     --color-primary-900: #7f1d1d;
 
+    /* Focus ring adapté au thème */
+    --ring: 0 84% 60%;
+
     --color-secondary-50: #fafafa;
     --color-secondary-100: #f4f4f5;
     --color-secondary-200: #e4e4e7;
@@ -301,6 +339,9 @@
     --color-primary-700: #0f766e;
     --color-primary-800: #115e59;
     --color-primary-900: #134e4a;
+
+    /* Focus ring adapté au thème */
+    --ring: 172 66% 50%;
 
     --color-secondary-50: #f8fafc;
     --color-secondary-100: #f1f5f9;
@@ -338,6 +379,9 @@
     --color-primary-800: #92400e;
     --color-primary-900: #78350f;
 
+    /* Focus ring adapté au thème */
+    --ring: 38 92% 50%;
+
     --color-secondary-50: #fafaf9;
     --color-secondary-100: #f5f5f4;
     --color-secondary-200: #e7e5e4;
@@ -373,6 +417,9 @@
     --color-primary-700: #4338ca;
     --color-primary-800: #3730a3;
     --color-primary-900: #312e81;
+
+    /* Focus ring adapté au thème */
+    --ring: 239 84% 67%;
 
     --color-secondary-50: #f9fafb;
     --color-secondary-100: #f3f4f6;
@@ -410,6 +457,9 @@
     --color-primary-800: #9f1239;
     --color-primary-900: #881337;
 
+    /* Focus ring adapté au thème */
+    --ring: 351 83% 60%;
+
     --color-secondary-50: #fafafa;
     --color-secondary-100: #f4f4f5;
     --color-secondary-200: #e4e4e7;
@@ -445,6 +495,9 @@
     --color-primary-700: #0e7490;
     --color-primary-800: #155e75;
     --color-primary-900: #164e63;
+
+    /* Focus ring adapté au thème */
+    --ring: 188 94% 42%;
 
     --color-secondary-50: #f8fafc;
     --color-secondary-100: #f1f5f9;
@@ -482,6 +535,9 @@
     --color-primary-800: #1e293b;
     --color-primary-900: #0f172a;
 
+    /* Focus ring adapté au thème */
+    --ring: 215 16% 47%;
+
     --color-secondary-50: #fafafa;
     --color-secondary-100: #f4f4f5;
     --color-secondary-200: #e4e4e7;
@@ -517,6 +573,9 @@
     --color-primary-700: #047857;
     --color-primary-800: #065f46;
     --color-primary-900: #064e3b;
+
+    /* Focus ring adapté au thème */
+    --ring: 160 84% 39%;
 
     --color-secondary-50: #fafaf9;
     --color-secondary-100: #f5f5f4;
@@ -554,6 +613,9 @@
     --color-primary-800: #6b21a8;
     --color-primary-900: #581c87;
 
+    /* Focus ring adapté au thème */
+    --ring: 271 81% 66%;
+
     --color-secondary-50: #f9fafb;
     --color-secondary-100: #f3f4f6;
     --color-secondary-200: #e5e7eb;
@@ -589,6 +651,9 @@
     --color-primary-700: #3730a3;
     --color-primary-800: #312e81;
     --color-primary-900: #1e1b4b;
+
+    /* Focus ring adapté au thème */
+    --ring: 243 75% 59%;
 
     --color-secondary-50: #f9fafb;
     --color-secondary-100: #f3f4f6;

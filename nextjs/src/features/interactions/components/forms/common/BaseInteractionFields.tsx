@@ -167,6 +167,7 @@ export default function BaseInteractionFields({
                                 : null
                         }
                         aiEnabled={aiEnabled}
+                        forceEditing
                     />
                 </>
             ) : null}

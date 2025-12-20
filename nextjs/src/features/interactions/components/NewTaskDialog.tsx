@@ -52,7 +52,7 @@ export default function NewTaskDialog({
     };
 
     const defaultTrigger = (
-        <Button size="icon" variant="outline">
+        <Button size="sm" variant="outline">
             <Plus className="h-4 w-4 mr-2" />
             {t("projects.tasks.addQuick")}
         </Button>

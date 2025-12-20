@@ -86,6 +86,7 @@ export function InteractionContentEditor({
     const [isTinyLoading, setIsTinyLoading] = useState(false);
 
     const isEditing = forceEditing || isEditingState;
+    const hasContent = Boolean(value?.trim());
 
     const projectStatusLabel = useMemo(() => {
         if (!projectContext?.status) return null;
@@ -216,7 +217,7 @@ export function InteractionContentEditor({
                                                 }}
                                                 disabled={isSubmitting}
                                             >
-                                                {t("interactions.editor.aiCta")}
+                                                {t(hasContent ? "interactions.editor.aiCtaImprove" : "interactions.editor.aiCtaWrite")}
                                             </Button>
                                         </div>
                                     </div>
@@ -230,13 +231,13 @@ export function InteractionContentEditor({
                                         }`}
                                         aria-hidden={!showPrompt}
                                     >
-                                        <div className="min-h-0 space-y-2">
+                                        <div className="min-h-0 space-y-2 p-2">
                                             <div className="flex items-center justify-between gap-2">
                                             <label
                                                 className="text-sm font-medium text-slate-900"
                                                 htmlFor={`${id}-ai-prompt`}
                                             >
-                                                {t("interactions.editor.aiPromptLabel")}
+                                                {t(hasContent ? "interactions.editor.aiPromptLabelImprove" : "interactions.editor.aiPromptLabelWrite")}
                                             </label>
                                             {projectContext?.title ? (
                                                 <AIContextBadge
@@ -250,12 +251,12 @@ export function InteractionContentEditor({
                                             id={`${id}-ai-prompt`}
                                             value={aiPrompt}
                                                 onChange={(event) => setAiPrompt(event.target.value)}
-                                                placeholder={t("interactions.editor.aiPromptPlaceholder")}
+                                                placeholder={t(hasContent ? "interactions.editor.aiPromptPlaceholderImprove" : "interactions.editor.aiPromptPlaceholderWrite")}
                                                 rows={3}
                                                 disabled={isSubmitting}
                                             />
                                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                                <AIHelperText>{t("interactions.editor.aiHelper")}</AIHelperText>
+                                                <AIHelperText>{t(hasContent ? "interactions.editor.aiHelperImprove" : "interactions.editor.aiHelperWrite")}</AIHelperText>
                                                 <div className="flex items-center gap-2">
                                                     <Button
                                                         type="button"
@@ -284,7 +285,7 @@ export function InteractionContentEditor({
                                                         ) : (
                                                             <>
                                                                 <Sparkles className="mr-2 h-4 w-4" aria-hidden="true" />
-                                                                {t("interactions.editor.aiSend")}
+                                                                {t(hasContent ? "interactions.editor.aiSendImprove" : "interactions.editor.aiSendGenerate")}
                                                             </>
                                                         )}
                                                     </Button>
@@ -303,10 +304,6 @@ export function InteractionContentEditor({
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-3 py-2">
-                        <div>
-                            <p className="text-sm font-medium text-slate-900">{t("interactions.editor.editing")}</p>
-                            <p className="text-xs text-slate-600">{t("interactions.editor.editingHelper")}</p>
-                        </div>
                         <div className="flex flex-wrap items-center gap-2">
                             {previousContent !== null && previousContent !== value ? (
                                 <Button

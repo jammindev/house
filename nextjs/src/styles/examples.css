@@ -1,0 +1,430 @@
+/* Exemples d'utilisation des Design Tokens */
+
+/* ============================================
+   EXEMPLE 1: Composant Card avec thème
+   ============================================ */
+
+.custom-card {
+    /* Utilise les couleurs du thème actif */
+    background: var(--color-primary-50);
+    border: 2px solid var(--color-primary-200);
+    color: var(--color-primary-900);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.custom-card:hover {
+    background: var(--color-primary-100);
+    border-color: var(--color-primary-300);
+}
+
+/* Équivalent Tailwind */
+/* <div className="bg-primary-50 border-2 border-primary-200 text-primary-900 rounded-lg p-6 hover:bg-primary-100 hover:border-primary-300"> */
+
+
+/* ============================================
+   EXEMPLE 2: Composant avec tokens shadcn
+   ============================================ */
+
+.semantic-card {
+    /* Tokens sémantiques (s'adaptent au dark mode) */
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.semantic-card-title {
+    color: hsl(var(--foreground));
+    font-weight: 600;
+}
+
+.semantic-card-description {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+}
+
+/* Équivalent Tailwind */
+/* <div className="bg-card text-card-foreground border border-border rounded-lg p-6">
+     <h3 className="text-foreground font-semibold">Titre</h3>
+     <p className="text-muted-foreground text-sm">Description</p>
+   </div> */
+
+
+/* ============================================
+   EXEMPLE 3: Bouton avec variantes
+   ============================================ */
+
+/* Bouton primaire - couleurs du thème */
+.btn-theme-primary {
+    background: var(--color-primary-600);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--radius) - 2px);
+    font-weight: 500;
+    transition: background-color 200ms;
+}
+
+.btn-theme-primary:hover {
+    background: var(--color-primary-700);
+}
+
+.btn-theme-primary:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+}
+
+/* Bouton sémantique shadcn */
+.btn-semantic-primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--radius) - 2px);
+    font-weight: 500;
+}
+
+/* Bouton destructif */
+.btn-destructive {
+    background: hsl(var(--destructive));
+    color: hsl(var(--destructive-foreground));
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--radius) - 2px);
+}
+
+
+/* ============================================
+   EXEMPLE 4: Input personnalisé
+   ============================================ */
+
+.custom-input {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--input));
+    border-radius: calc(var(--radius) - 2px);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    transition: border-color 150ms, box-shadow 150ms;
+}
+
+.custom-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+}
+
+.custom-input::placeholder {
+    color: hsl(var(--muted-foreground));
+}
+
+
+/* ============================================
+   EXEMPLE 5: Badge avec couleurs d'accent
+   ============================================ */
+
+.badge-accent {
+    display: inline-flex;
+    align-items: center;
+    background: var(--color-accent-100);
+    color: var(--color-accent-900);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge-accent-outline {
+    background: transparent;
+    color: var(--color-accent-700);
+    border: 1px solid var(--color-accent-300);
+}
+
+
+/* ============================================
+   EXEMPLE 6: Layout avec glass morphism
+   ============================================ */
+
+.glass-sidebar {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(15px) saturate(180%);
+    -webkit-backdrop-filter: blur(15px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Version dark mode */
+.dark .glass-sidebar {
+    background: rgba(0, 0, 0, 0.2);
+    border-right-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Équivalent avec utility */
+/* <aside className="glass-panel"> */
+
+
+/* ============================================
+   EXEMPLE 7: Gradient avec tokens
+   ============================================ */
+
+.gradient-header {
+    background: linear-gradient(
+        135deg,
+        var(--color-primary-600),
+        var(--color-accent-600)
+    );
+    color: white;
+    padding: 3rem 1.5rem;
+    border-radius: var(--radius);
+}
+
+.gradient-text {
+    background: linear-gradient(
+        90deg,
+        var(--color-primary-600),
+        var(--color-accent-600)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+
+/* ============================================
+   EXEMPLE 8: Dark mode adaptatif
+   ============================================ */
+
+/* Light mode */
+.adaptive-panel {
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode - automatiquement adapté via les tokens */
+/* Pas besoin de .dark .adaptive-panel, les tokens changent ! */
+
+
+/* ============================================
+   EXEMPLE 9: Navigation avec thème
+   ============================================ */
+
+.nav-link {
+    color: var(--color-secondary-700);
+    padding: 0.5rem 1rem;
+    border-radius: calc(var(--radius) - 2px);
+    transition: all 150ms;
+}
+
+.nav-link:hover {
+    background: var(--color-primary-50);
+    color: var(--color-primary-700);
+}
+
+.nav-link.active {
+    background: var(--color-primary-600);
+    color: white;
+    font-weight: 500;
+}
+
+
+/* ============================================
+   EXEMPLE 10: Alert/Notification
+   ============================================ */
+
+.alert-info {
+    background: var(--color-primary-50);
+    border-left: 4px solid var(--color-primary-500);
+    color: var(--color-primary-900);
+    padding: 1rem;
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.alert-warning {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    color: #92400e;
+}
+
+.alert-error {
+    background: hsl(var(--destructive) / 0.1);
+    border-left: 4px solid hsl(var(--destructive));
+    color: hsl(var(--destructive));
+}
+
+
+/* ============================================
+   EXEMPLE 11: Tableau avec tokens
+   ============================================ */
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.custom-table th {
+    background: var(--color-primary-50);
+    color: var(--color-primary-900);
+    font-weight: 600;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--color-primary-200);
+}
+
+.custom-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+}
+
+.custom-table tr:hover td {
+    background: hsl(var(--muted));
+}
+
+
+/* ============================================
+   EXEMPLE 12: Form avec validation
+   ============================================ */
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    color: hsl(var(--foreground));
+    font-weight: 500;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-input {
+    width: 100%;
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--input));
+    color: hsl(var(--foreground));
+    padding: 0.5rem 0.75rem;
+    border-radius: calc(var(--radius) - 2px);
+}
+
+.form-input:focus {
+    border-color: var(--color-primary-500);
+    ring: 2px;
+    ring-color: hsl(var(--ring) / 0.2);
+    outline: none;
+}
+
+.form-input.error {
+    border-color: hsl(var(--destructive));
+}
+
+.form-input.success {
+    border-color: #10b981;
+}
+
+.form-error {
+    color: hsl(var(--destructive));
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+
+/* ============================================
+   EXEMPLE 13: Modal/Dialog
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+    padding: 1.5rem;
+    max-width: 32rem;
+    width: 90%;
+}
+
+.modal-header {
+    color: hsl(var(--foreground));
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.modal-description {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+}
+
+
+/* ============================================
+   EXEMPLE 14: Progress Bar
+   ============================================ */
+
+.progress-container {
+    width: 100%;
+    height: 0.5rem;
+    background: hsl(var(--muted));
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        var(--color-primary-500),
+        var(--color-primary-600)
+    );
+    border-radius: 9999px;
+    transition: width 300ms ease;
+}
+
+/* Variante avec accent */
+.progress-bar-accent {
+    background: linear-gradient(
+        90deg,
+        var(--color-accent-500),
+        var(--color-accent-600)
+    );
+}
+
+
+/* ============================================
+   EXEMPLE 15: Tooltip
+   ============================================ */
+
+.tooltip {
+    position: absolute;
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) - 4px);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.tooltip::after {
+    /* Arrow */
+    content: '';
+    position: absolute;
+    border: 4px solid transparent;
+    border-top-color: hsl(var(--popover));
+}
