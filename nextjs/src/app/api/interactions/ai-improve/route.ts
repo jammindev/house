@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AI_DEFAULT_MODEL, AI_DEFAULT_TEMPERATURE, buildInteractionImprovementMessages, getOpenAIClient, getProjectContext, isAIEnabled } from "@ai";
+import { AI_DEFAULT_MODEL, buildInteractionImprovementMessages, getOpenAIClient, getProjectContext, isAIEnabled } from "@ai";
 import { createSSRClient } from "@/lib/supabase/server";
 
 interface ImproveInteractionBody {
@@ -60,8 +60,7 @@ export async function POST(request: NextRequest) {
         const completion = await openai.chat.completions.create({
             model: AI_DEFAULT_MODEL,
             messages,
-            temperature: AI_DEFAULT_TEMPERATURE,
-            max_completion_tokens: 800,
+            max_completion_tokens: 8000,
         });
 
         const aiResponse = completion.choices[0]?.message?.content?.trim();
