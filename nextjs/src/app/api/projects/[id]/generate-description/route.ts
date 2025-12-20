@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { AI_DEFAULT_MODEL, AI_DEFAULT_TEMPERATURE, buildProjectDescriptionMessages, getOpenAIClient, getProjectContext, isAIEnabled } from "@ai";
+import { AI_DEFAULT_MODEL, buildProjectDescriptionMessages, getOpenAIClient, getProjectContext, isAIEnabled } from "@ai";
 import { createSSRClient } from "@/lib/supabase/server";
 import { createServerAdminClient } from "@/lib/supabase/serverAdminClient";
 
