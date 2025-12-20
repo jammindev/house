@@ -163,6 +163,7 @@ export async function POST(
                 model: AI_DEFAULT_MODEL,
                 messages: conversationMessages,
                 temperature: 0.2,
+                max_completion_tokens: 2000,
                 stream: true,
             });
         } catch (openaiError: any) {

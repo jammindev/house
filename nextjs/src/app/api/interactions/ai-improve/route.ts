@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
             model: AI_DEFAULT_MODEL,
             messages,
             temperature: AI_DEFAULT_TEMPERATURE,
+            max_completion_tokens: 800,
         });
 
         const aiResponse = completion.choices[0]?.message?.content?.trim();
