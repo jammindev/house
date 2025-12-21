@@ -22,6 +22,7 @@ interface ProjectTasksPanelProps {
   statusFilter?: InteractionStatus[];
   hideArchived?: boolean;
   withProjectLabel?: boolean;
+  showAddButton?: boolean;
 }
 
 const ACTIVE_TASK_STATUSES: InteractionStatus[] = ["pending", "in_progress", "done"];
@@ -83,6 +84,7 @@ export default function ProjectTasksPanel({
   statusFilter,
   hideArchived = false,
   withProjectLabel = false,
+  showAddButton = true,
 }: ProjectTasksPanelProps) {
   const { t } = useI18n();
   const { updateStatus, loading: updateLoading } = useUpdateInteractionStatus();
@@ -215,11 +217,13 @@ export default function ProjectTasksPanel({
       <div className="space-y-4">
         <div className="rounded-lg border border-dashed border-slate-200 p-6 text-center">
           <p className="text-sm text-slate-500 mb-4">{t("projects.tasks.empty")}</p>
-          <NewTaskDialog
-            projectId={projectId}
-            defaultStatus="pending"
-            onCreated={handleTaskCreated}
-          />
+          {showAddButton && (
+            <NewTaskDialog
+              projectId={projectId}
+              defaultStatus="pending"
+              onCreated={handleTaskCreated}
+            />
+          )}
         </div>
       </div>
     );
@@ -253,12 +257,14 @@ export default function ProjectTasksPanel({
         </div>
 
         {/* Quick Add Task Button */}
-        <NewTaskDialog
-          projectId={projectId}
-          defaultStatus="pending"
-          preSelectedZones={projectZones}
-          onCreated={handleTaskCreated}
-        />
+        {showAddButton && (
+          <NewTaskDialog
+            projectId={projectId}
+            defaultStatus="pending"
+            preSelectedZones={projectZones}
+            onCreated={handleTaskCreated}
+          />
+        )}
       </div>
 
       {/* Tasks List */}
