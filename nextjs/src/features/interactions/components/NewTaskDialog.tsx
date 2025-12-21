@@ -19,6 +19,7 @@ interface NewTaskDialogProps {
     preSelectedZones?: ZoneOption[];
     onCreated?: (interactionId: string) => void;
     trigger?: React.ReactElement<{ onClick?: (event: React.MouseEvent<HTMLElement>) => void }>;
+    variant?: "default" | "icon-only";
 }
 
 export default function NewTaskDialog({
@@ -26,7 +27,8 @@ export default function NewTaskDialog({
     defaultStatus = "pending",
     preSelectedZones,
     onCreated,
-    trigger
+    trigger,
+    variant = "default"
 }: NewTaskDialogProps) {
     const { t } = useI18n();
     const [open, setOpen] = useState(false);
@@ -51,7 +53,11 @@ export default function NewTaskDialog({
         onCreated?.(interactionId);
     };
 
-    const defaultTrigger = (
+    const defaultTrigger = variant === "icon-only" ? (
+        <Button size="icon" variant="outline" aria-label={t("projects.tasks.addQuick")}>
+            <Plus className="h-4 w-4" />
+        </Button>
+    ) : (
         <Button size="sm" variant="outline">
             <Plus className="h-4 w-4 mr-2" />
             {t("projects.tasks.addQuick")}
