@@ -102,7 +102,7 @@ export function SheetDialog({
           }}
           aria-describedby={description ? undefined : ""}
           className={cn(
-            "rounded-t-3xl bg-background p-2 shadow-2xl max-w-4xl mx-auto flex flex-col justify-between",
+            "rounded-t-3xl bg-background p-2 shadow-2xl max-w-2xl mx-auto lg:mx-0 lg:ml-[22rem] xl:ml-[30rem]  flex flex-col justify-between",
             containerClassName,
           )}
           style={{
@@ -141,7 +141,7 @@ export function SheetDialog({
               variant="ghost"
               size="icon"
               className={cn(
-                "fixed left-4 top-4 rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                "fixed left-4 lg:left-[30rem] top-4 rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                 Z_INDEX_CLASSES.overlay.drawer
               )}
               aria-label={closeLabel}
