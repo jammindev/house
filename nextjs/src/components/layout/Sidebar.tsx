@@ -23,6 +23,10 @@ import {
     Shield,
     Warehouse,
     ShieldCheck,
+    User2,
+    ShieldOff,
+    ArrowLeftRight,
+    Loader2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { useGlobal } from "@/lib/context/GlobalContext";
@@ -30,6 +34,15 @@ import UserAvatar from "./UserAvatar";
 import LinkWithOverlay from "./LinkWithOverlay";
 import { Button } from "../ui/button";
 import { useAdminContext } from "@/features/admin/hooks/useAdmin";
+import {
+    clearImpersonationState,
+    IMPERSONATION_EVENT,
+    readImpersonationOrigin,
+    readImpersonationTarget,
+    type StoredImpersonationOrigin,
+    type StoredImpersonationTarget,
+} from "@/features/admin/lib/impersonationStorage";
+import { createSPASassClientAuthenticated } from "@/lib/supabase/client";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -46,14 +59,27 @@ export default function Sidebar({
     onChangePassword,
 }: SidebarProps) {
     const pathname = usePathname();
-    const { user } = useGlobal();
+    const { user, refreshUser } = useGlobal();
     const { t } = useI18n();
     const [loadingRoute, setLoadingRoute] = useState<string | null>(null);
-    const { isAdmin } = useAdminContext();
+    const { isAdmin, refresh: refreshAdmin } = useAdminContext();
+    const [impersonationOrigin, setImpersonationOrigin] = useState<StoredImpersonationOrigin | null>(null);
+    const [impersonationTarget, setImpersonationTarget] = useState<StoredImpersonationTarget | null>(null);
+    const [restoringAdmin, setRestoringAdmin] = useState(false);
 
     useEffect(() => {
         setLoadingRoute(null);
     }, [pathname]);
+
+    useEffect(() => {
+        const sync = () => {
+            setImpersonationOrigin(readImpersonationOrigin());
+            setImpersonationTarget(readImpersonationTarget());
+        };
+        sync();
+        window.addEventListener(IMPERSONATION_EVENT, sync);
+        return () => window.removeEventListener(IMPERSONATION_EVENT, sync);
+    }, []);
 
     const navigation = [
         { name: t("nav.dashboard"), href: "/app/dashboard", icon: Home },
@@ -71,12 +97,40 @@ export default function Sidebar({
         { name: t("nav.userSettings"), href: "/app/user-settings", icon: User },
         { name: t("nav.tutorial"), href: "/app/tutorial", icon: BookOpen },
         ...(isAdmin ? [
-            { name: "Administration", href: "/admin", icon: Shield }
+            { name: "Administration", href: "/admin", icon: Shield },
+            { name: t("nav.impersonation"), href: "/admin/impersonation", icon: User2 },
         ] : []),
         ...(process.env.NODE_ENV === 'development' ? [
             { name: "Debug", href: "/app/debug", icon: Bug }
         ] : [])
     ];
+
+    const handleStopImpersonation = async () => {
+        const origin = readImpersonationOrigin();
+        if (!origin || restoringAdmin) return;
+
+        try {
+            setRestoringAdmin(true);
+            const supa = await createSPASassClientAuthenticated();
+            const client = supa.getSupabaseClient();
+
+            const { error } = await client.auth.setSession({
+                access_token: origin.access_token,
+                refresh_token: origin.refresh_token,
+            });
+            if (error) throw error;
+
+            clearImpersonationState();
+            setImpersonationOrigin(null);
+            setImpersonationTarget(null);
+            await refreshUser();
+            await refreshAdmin();
+        } catch (error) {
+            console.error("Failed to restore admin session", error);
+        } finally {
+            setRestoringAdmin(false);
+        }
+    };
 
     const productName = process.env.NEXT_PUBLIC_PRODUCTNAME;
 
@@ -130,6 +184,28 @@ export default function Sidebar({
                         <X className="h-5 w-5" />
                     </button>
                 </div>
+
+                {impersonationOrigin && (
+                    <div className="mx-3 mt-3 rounded-2xl border border-amber-200 bg-amber-50/70 p-3 text-amber-900 shadow-sm">
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide">
+                            <ArrowLeftRight className="h-4 w-4" />
+                            {t("nav.impersonation")}
+                        </div>
+                        <div className="mt-2 text-sm">
+                            {impersonationTarget?.email || t("nav.impersonation")}
+                        </div>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-3 w-full gap-2 border-amber-300 text-amber-900 hover:bg-amber-100"
+                            onClick={handleStopImpersonation}
+                            disabled={restoringAdmin}
+                        >
+                            {restoringAdmin ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
+                            {t("nav.stopImpersonation")}
+                        </Button>
+                    </div>
+                )}
 
                 {/* Navigation */}
                 <nav className="flex-1 mt-3 px-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300/50 scrollbar-track-transparent">

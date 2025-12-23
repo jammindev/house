@@ -11,6 +11,8 @@
   "nav.table": "Table",
   "nav.tasks": "Tâches",
   "nav.userSettings": "Paramètres utilisateur",
+  "nav.impersonation": "Impersonation",
+  "nav.stopImpersonation": "Revenir sur le compte admin",
   "nav.createHousehold": "Créer un nouveau foyer",
   "nav.selectHousehold": "Sélectionner un foyer",
   "nav.changePassword": "Changer le mot de passe",
