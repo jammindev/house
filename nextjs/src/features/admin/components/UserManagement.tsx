@@ -18,7 +18,6 @@ import {
     Users, Search, UserPlus, Shield, ShieldCheck, Mail,
     Calendar, Home, FileText, MoreHorizontal, Ban, CheckCircle
 } from 'lucide-react';
-import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { AdminBadge } from './AdminGuard';
 import { UserWithStats } from '../types';
 
@@ -31,61 +30,19 @@ export function UserManagement() {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const supabase = await createSPASassClientAuthenticated();
-            const client = supabase.getSupabaseClient();
 
-            // Récupérer les utilisateurs via les tables accessibles
-            // On ne peut pas accéder directement à auth.users, donc on utilise les household_members
-            const { data: members, error: membersError } = await client
-                .from('household_members')
-                .select(`
-                    user_id,
-                    households(id, name)
-                `);
+            const params = new URLSearchParams();
+            if (searchTerm.trim().length > 0) {
+                params.set('search', searchTerm.trim());
+            }
 
-            if (membersError) throw membersError;
+            const response = await fetch(`/api/admin/users${params.toString() ? `?${params.toString()}` : ''}`, { cache: 'no-store' });
+            const payload = await response.json();
+            if (!response.ok) {
+                throw new Error(payload?.error || 'Impossible de charger les utilisateurs');
+            }
 
-            // Récupérer les admins système
-            const { data: admins, error: adminsError } = await client
-                .from('system_admins')
-                .select('user_id, role');
-
-            if (adminsError) throw adminsError;
-
-            // Agréger les données par utilisateur
-            const userStats = new Map<string, { households_count: number; is_admin: boolean; admin_role?: string }>();
-
-            members?.forEach(member => {
-                const userId = member.user_id;
-                if (!userStats.has(userId)) {
-                    userStats.set(userId, { households_count: 0, is_admin: false });
-                }
-                userStats.get(userId)!.households_count++;
-            });
-
-            admins?.forEach(admin => {
-                if (!userStats.has(admin.user_id)) {
-                    userStats.set(admin.user_id, { households_count: 0, is_admin: false });
-                }
-                userStats.get(admin.user_id)!.is_admin = true;
-                userStats.get(admin.user_id)!.admin_role = admin.role;
-            });
-
-            // Créer des utilisateurs fictifs avec les stats réelles pour la démo
-            const mockUsers: UserWithStats[] = Array.from(userStats.entries()).map(([userId, stats], index) => ({
-                id: userId,
-                email: `user${index + 1}@example.com`,
-                display_name: `Utilisateur ${index + 1}`,
-                created_at: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-                last_sign_in_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-                email_confirmed_at: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
-                households_count: stats.households_count,
-                interactions_count: Math.floor(Math.random() * 50) + 1,
-                is_admin: stats.is_admin,
-                admin_role: (stats.admin_role as 'admin' | 'super_admin') || undefined
-            }));
-
-            setUsers(mockUsers);
+            setUsers((payload?.users as UserWithStats[]) || []);
         } catch (err) {
             console.error('Error fetching users:', err);
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des utilisateurs');
@@ -96,10 +53,11 @@ export function UserManagement() {
 
     useEffect(() => {
         fetchUsers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const filteredUsers = users.filter(user =>
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (user.display_name && user.display_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 

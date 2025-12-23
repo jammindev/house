@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
     Shield, Home, Users, UserCheck, Database, Settings,
-    Activity, FileText, BarChart3, AlertTriangle, ArrowLeft
+    Activity, FileText, BarChart3, AlertTriangle, ArrowLeft, User2
 } from 'lucide-react';
 
 interface AdminNavProps {
@@ -40,6 +40,12 @@ const adminNavItems = [
         href: '/admin/admins',
         icon: UserCheck,
         description: 'Gestion des admins'
+    },
+    {
+        title: 'Impersonation',
+        href: '/admin/impersonation',
+        icon: User2,
+        description: 'Basculer sur un autre compte'
     },
     {
         title: 'Base de données',

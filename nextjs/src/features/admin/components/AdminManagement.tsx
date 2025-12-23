@@ -19,7 +19,6 @@ import {
     ShieldCheck, Shield, UserPlus, Search, Crown,
     Calendar, Mail, Trash2, AlertTriangle
 } from 'lucide-react';
-import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { SystemAdmin } from '../types';
 import { AdminGuard, AdminBadge } from './AdminGuard';
 
@@ -37,43 +36,21 @@ export function AdminManagement() {
     const fetchAdmins = async () => {
         try {
             setLoading(true);
-            const supabase = await createSPASassClientAuthenticated();
-            const client = supabase.getSupabaseClient();
+            const response = await fetch('/api/admin/system-admins', { cache: 'no-store' });
+            if (!response.ok) {
+                const payload = await response.json().catch(() => ({}));
+                throw new Error(payload.error || 'Impossible de charger les administrateurs');
+            }
 
-            // Récupérer les administrateurs système
-            const { data: admins, error: adminsError } = await client
-                .from('system_admins')
-                .select(`
-                    id,
-                    user_id,
-                    role,
-                    granted_by,
-                    granted_at,
-                    notes,
-                    created_at,
-                    updated_at
-                `);
-
-            if (adminsError) throw adminsError;
+            const payload = await response.json();
+            const admins = payload?.admins as SystemAdmin[] | undefined;
 
             if (!admins) {
                 setAdmins([]);
                 return;
             }
 
-            // Enrichir avec des données utilisateur fictives (car on ne peut pas accéder à auth.users)
-            const enrichedAdmins: SystemAdmin[] = admins.map((admin, index) => ({
-                ...admin,
-                role: admin.role as 'admin' | 'super_admin',
-                granted_by: admin.granted_by || undefined,
-                notes: admin.notes || undefined,
-                created_at: admin.created_at || new Date().toISOString(),
-                updated_at: admin.updated_at || new Date().toISOString(),
-                user_email: `admin${index + 1}@example.com`,
-                user_display_name: `Administrateur ${index + 1}`
-            }));
-
-            setAdmins(enrichedAdmins);
+            setAdmins(admins);
         } catch (err) {
             console.error('Error fetching admins:', err);
             setError(err instanceof Error ? err.message : 'Erreur lors du chargement des administrateurs');

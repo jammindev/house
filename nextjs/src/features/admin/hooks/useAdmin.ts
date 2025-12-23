@@ -4,7 +4,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createSPASassClientAuthenticated } from '@/lib/supabase/client';
 import { AdminRole, AdminContext, SystemStats } from '../types';
-import { Database } from '@/lib/types-generated';
 
 // Admin features are optional; only check Supabase when explicitly enabled.
 const ADMIN_FEATURE_ENABLED = process.env.NEXT_PUBLIC_ENABLE_ADMIN === 'true';
@@ -23,24 +22,14 @@ export function useAdminContext(): AdminContext {
         try {
             setLoading(true);
 
-            const supabase = await createSPASassClientAuthenticated();
-            const client = supabase.getSupabaseClient();
-
-            const { data: user } = await client.auth.getUser();
-            if (!user?.user?.id) {
+            const response = await fetch('/api/admin/role', { cache: 'no-store' });
+            if (!response.ok) {
                 setAdminRole('user');
                 return;
             }
-
-            // Vérifier le rôle admin avec la fonction RPC
-            const { data: role, error } = await client.rpc('get_user_admin_role');
-
-            if (error) {
-                console.warn('User has no admin privileges:', error.message);
-                setAdminRole('user');
-            } else {
-                setAdminRole((role as AdminRole) || 'user');
-            }
+            const payload = await response.json();
+            const role = payload?.role as AdminRole | undefined;
+            setAdminRole(role || 'user');
         } catch (error) {
             console.error('Error checking admin status:', error);
             setAdminRole('user');
