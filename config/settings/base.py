@@ -2,8 +2,6 @@
 Base settings for house backend.
 """
 from pathlib import Path
-import re
-from datetime import timedelta
 
 import environ
 
@@ -25,8 +23,6 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_vite",
     "rest_framework",
-    "rest_framework_simplejwt",
-    "rest_framework_simplejwt.token_blacklist",
     "corsheaders",
     "django_filters",
     # House apps
@@ -36,6 +32,10 @@ INSTALLED_APPS = [
     "zones",
     "documents",
     "interactions",
+    "contacts",
+    "structures",
+    "tags",
+    "todo_list",
 ]
 
 MIDDLEWARE = [
@@ -115,27 +115,10 @@ AUTH_USER_MODEL = "accounts.User"
 # REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
-
-# JWT helper function
-def _parse_duration(value: str, default: timedelta) -> timedelta:
-    """Parse duration strings like '15 minutes' or '7 days' into timedelta."""
-    match = re.match(r"^(\d+)\s*(seconds?|minutes?|hours?|days?)$", value.strip(), re.IGNORECASE)
-    if not match:
-        return default
-    amount = int(match.group(1))
-    unit = match.group(2).lower()
-    if unit.startswith("second"):
-        return timedelta(seconds=amount)
-    if unit.startswith("minute"):
-        return timedelta(minutes=amount)
-    if unit.startswith("hour"):
-        return timedelta(hours=amount)
-    if unit.startswith("day"):
-        return timedelta(days=amount)
-    return default

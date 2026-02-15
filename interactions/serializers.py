@@ -2,7 +2,7 @@
 Interaction serializers for REST API.
 """
 from rest_framework import serializers
-from .models import Interaction, InteractionZone
+from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
 
 
 class InteractionSerializer(serializers.ModelSerializer):
@@ -93,3 +93,17 @@ class InteractionDetailSerializer(InteractionSerializer):
             }
             for doc in obj.documents.all()
         ]
+
+
+class InteractionContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteractionContact
+        fields = ['interaction', 'contact', 'created_at']
+        read_only_fields = ['created_at']
+
+
+class InteractionStructureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteractionStructure
+        fields = ['interaction', 'structure', 'created_at']
+        read_only_fields = ['created_at']

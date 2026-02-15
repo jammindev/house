@@ -7,9 +7,9 @@ export default function DashboardPage() {
   const { user, households, selectedHouseholdId, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login/');
   };
 
   const selectedHousehold = households.find(h => h.id === selectedHouseholdId);

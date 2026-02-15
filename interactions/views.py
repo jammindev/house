@@ -4,12 +4,19 @@ Interaction views for REST API.
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 
-from core.permissions import IsHouseholdMember
-from .models import Interaction, InteractionZone
-from .serializers import InteractionSerializer, InteractionDetailSerializer
+from core.permissions import IsHouseholdMember, resolve_request_household
+from zones.models import Zone
+from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
+from .serializers import (
+    InteractionSerializer,
+    InteractionDetailSerializer,
+    InteractionContactSerializer,
+    InteractionStructureSerializer,
+)
 
 
 class InteractionViewSet(viewsets.ModelViewSet):
@@ -25,10 +32,14 @@ class InteractionViewSet(viewsets.ModelViewSet):
     ordering = ['-occurred_at']
     
     def get_queryset(self):
-        """Filter to household with prefetch."""
-        queryset = Interaction.objects.filter(
-            household=self.request.household
-        ).select_related('created_by').prefetch_related('zones', 'documents')  # TODO: Add 'project' after projects app
+        """Filter interactions to households where current user is a member."""
+        queryset = Interaction.objects.for_user_households(self.request.user).select_related(
+            'created_by'
+        ).prefetch_related('zones', 'documents')  # TODO: Add 'project' after projects app
+
+        selected_household = resolve_request_household(self.request, required=False)
+        if selected_household:
+            queryset = queryset.filter(household=selected_household)
         
         # Filter by zone
         zone_id = self.request.query_params.get('zone')
@@ -57,10 +68,30 @@ class InteractionViewSet(viewsets.ModelViewSet):
         return InteractionSerializer
     
     def perform_create(self, serializer):
-        """Set household and created_by from request."""
+        """Set household and created_by with legacy RLS-style validation."""
+        zone_ids = self.request.data.get('zone_ids') or []
+        if not isinstance(zone_ids, list) or not zone_ids:
+            raise ValidationError({'zone_ids': 'At least one zone is required.'})
+
+        zones = list(
+            Zone.objects.for_user_households(self.request.user).filter(id__in=zone_ids)
+        )
+
+        if len(zones) != len(zone_ids):
+            raise ValidationError({'zone_ids': 'One or more zones are invalid or inaccessible.'})
+
+        household_ids = {str(zone.household_id) for zone in zones}
+        if len(household_ids) != 1:
+            raise ValidationError({'zone_ids': 'All zones must belong to the same household.'})
+
+        zone_household_id = next(iter(household_ids))
+        selected_household = resolve_request_household(self.request, required=False)
+        if selected_household and str(selected_household.id) != zone_household_id:
+            raise ValidationError({'household_id': 'Selected household does not match provided zones.'})
+
         serializer.save(
-            household=self.request.household,
-            created_by=self.request.user
+            household_id=zone_household_id,
+            created_by=self.request.user,
         )
     
     @action(detail=False, methods=['get'])
@@ -111,3 +142,32 @@ class InteractionViewSet(viewsets.ModelViewSet):
         return Response(
             InteractionSerializer(interaction, context={'request': request}).data
         )
+
+
+class _InteractionLinkBaseViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsHouseholdMember]
+
+    def get_queryset(self):
+        queryset = self.model.objects.filter(
+            interaction__household_id__in=self.request.user.householdmember_set.values_list('household_id', flat=True)
+        )
+        selected_household = resolve_request_household(self.request, required=False)
+        if selected_household:
+            queryset = queryset.filter(interaction__household=selected_household)
+        return queryset
+
+    def perform_create(self, serializer):
+        interaction = serializer.validated_data.get('interaction')
+        if not Interaction.objects.for_user_households(self.request.user).filter(id=interaction.id).exists():
+            raise ValidationError({'interaction': 'Invalid interaction or access denied.'})
+        serializer.save()
+
+
+class InteractionContactViewSet(_InteractionLinkBaseViewSet):
+    model = InteractionContact
+    serializer_class = InteractionContactSerializer
+
+
+class InteractionStructureViewSet(_InteractionLinkBaseViewSet):
+    model = InteractionStructure
+    serializer_class = InteractionStructureSerializer

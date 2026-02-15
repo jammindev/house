@@ -9,8 +9,8 @@ class TestAuthViewSet:
     """Test authentication API endpoints."""
     
     def test_login_with_valid_credentials(self, api_client):
-        """Test JWT login with valid credentials."""
-        user = UserFactory(email="api@example.com", password="testpass123")
+        """Test session login with valid credentials."""
+        UserFactory(email="api@example.com", password="testpass123")
         url = reverse("auth-login")
         
         response = api_client.post(url, {
@@ -19,11 +19,11 @@ class TestAuthViewSet:
         })
         
         assert response.status_code == status.HTTP_200_OK
-        assert "access" in response.data
-        assert "refresh" in response.data
+        assert response.data["detail"] == "Login successful."
+        assert response.data["user"]["email"] == "api@example.com"
     
     def test_login_with_invalid_credentials(self, api_client):
-        """Test JWT login with invalid credentials."""
+        """Test session login with invalid credentials."""
         url = reverse("auth-login")
         
         response = api_client.post(url, {
@@ -32,27 +32,24 @@ class TestAuthViewSet:
         })
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-    
-    def test_refresh_token(self, api_client):
-        """Test JWT token refresh."""
-        user = UserFactory(email="refresh@example.com", password="testpass123")
-        
-        # Get initial tokens
-        login_url = reverse("auth-login")
-        login_response = api_client.post(login_url, {
-            "email": "refresh@example.com",
-            "password": "testpass123",
-        })
-        refresh_token = login_response.data["refresh"]
-        
-        # Refresh token
-        refresh_url = reverse("auth-refresh")
-        response = api_client.post(refresh_url, {
-            "refresh": refresh_token,
-        })
-        
+
+    def test_logout_requires_authentication(self, api_client):
+        """Test logout endpoint requires authentication."""
+        url = reverse("auth-logout")
+        response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_logout_authenticated_user(self, api_client):
+        """Test authenticated user can logout."""
+        user = UserFactory()
+        api_client.force_authenticate(user=user)
+
+        url = reverse("auth-logout")
+        response = api_client.post(url)
+
         assert response.status_code == status.HTTP_200_OK
-        assert "access" in response.data
+        assert response.data["detail"] == "Logout successful."
 
 
 @pytest.mark.django_db

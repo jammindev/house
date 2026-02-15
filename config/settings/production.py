@@ -2,7 +2,6 @@
 Production settings.
 """
 from .base import *  # noqa: F403
-from .base import _parse_duration, timedelta
 import environ
 
 env = environ.Env(DEBUG=(bool, False))
@@ -39,21 +38,6 @@ CORS_ALLOW_METHODS = ['DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT']
 # Database
 DATABASES = {
     "default": env.db(),
-}
-
-# JWT Configuration
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": _parse_duration(
-        env("JWT_ACCESS_LIFETIME", default="15 minutes"),
-        timedelta(minutes=15),  # noqa: F405
-    ),
-    "REFRESH_TOKEN_LIFETIME": _parse_duration(
-        env("JWT_REFRESH_LIFETIME", default="7 days"),
-        timedelta(days=7),  # noqa: F405
-    ),
-    "ROTATE_REFRESH_TOKENS": env.bool("JWT_ROTATE_REFRESH_TOKENS", default=True),
-    "BLACKLIST_AFTER_ROTATION": env.bool("JWT_BLACKLIST_AFTER_ROTATION", default=True),
-    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 # Security settings (enforced for production)

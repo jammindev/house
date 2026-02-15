@@ -1,36 +1,53 @@
 """API ViewSets for accounts app."""
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, TokenRefreshSerializer
+from rest_framework import status
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
 
-
-class EmailTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Custom token serializer that uses email instead of username."""
-    username_field = "email"
-
-
 class AuthViewSet(viewsets.ViewSet):
-    """ViewSet for authentication endpoints (login, refresh)."""
-    permission_classes = [AllowAny]
+    """ViewSet for session-based authentication endpoints."""
+
+    def get_permissions(self):
+        if self.action == "login":
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     @action(detail=False, methods=["post"], url_path="login")
     def login(self, request):
-        """Login endpoint that returns JWT tokens."""
-        serializer = EmailTokenObtainPairSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data)
+        """Login endpoint that creates a Django authenticated session."""
+        email = request.data.get("email")
+        password = request.data.get("password")
 
-    @action(detail=False, methods=["post"], url_path="refresh")
-    def refresh(self, request):
-        """Refresh JWT token endpoint."""
-        serializer = TokenRefreshSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.validated_data)
+        if not email or not password:
+            return Response(
+                {"detail": "Email and password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = authenticate(request=request, username=email, password=password)
+        if user is None:
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        auth_login(request, user)
+        return Response(
+            {
+                "detail": "Login successful.",
+                "user": UserSerializer(user).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=False, methods=["post"], url_path="logout")
+    def logout(self, request):
+        """Logout endpoint that clears the Django authenticated session."""
+        auth_logout(request)
+        return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):

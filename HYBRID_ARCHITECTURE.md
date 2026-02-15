@@ -1,128 +1,113 @@
 # Architecture Hybride Django + React
 
-Ce projet utilise une architecture **Django-first** avec des composants React intégrés sur les zones complexes.
+Ce dépôt suit une approche **Django-first**:
 
-## Principe
+1. Django rend les pages et les routes principales.
+2. React est ajouté uniquement pour les zones UI riches.
+3. Les assets React sont gérés par Vite et servis par Django (`django-vite`).
 
-1. **Django génère les pages HTML** (SSR rapide, SEO, accessibilité)
-2. **React s'hydrate sur des zones spécifiques** (interactivité riche où nécessaire)
+---
 
-## Structure
+## Vue d’ensemble
 
-```
-house/
-└── house/
-    ├── manage.py
-    ├── config/              # Django settings
-    ├── accounts/            # Django apps
-    ├── templates/           # Templates Django (.html)
-    │   ├── base.html       # Layout de base
-    │   └── dashboard_example.html  # Exemple intégration React
-    ├── static/              # Fichiers statiques compilés
-    │   └── react/          # Composants React buildés (par Vite)
-    └── frontend/            # Sources React (développement)
-        ├── src/
-        │   ├── components/ # Composants React exportables
-        │   └── lib/
-        │       └── mount.tsx  # Utilitaire de montage
-        └── vite.config.ts  # Build en mode library
-```
+### Côté Django
 
-## Workflow de développement
+- Rendu serveur via templates (`templates/`)
+- API REST via DRF (`/api/...`)
+- Auth session Django (pages + API)
 
-### 1. Développer un composant React
+### Côté React
 
-```tsx
-// house/frontend/src/components/MyComponent.tsx
-export default function MyComponent({ userId }: { userId: number }) {
-  return <div>Hello user {userId}!</div>;
-}
-```
+- Source: `frontend/src/`
+- Build: `static/react/`
+- Chargement dans les templates via tags `django_vite`
 
-### 2. Ajouter au build Vite
+---
 
-```ts
-// house/frontend/vite.config.ts
-lib: {
-  entry: {
-    'MyComponent': resolve(__dirname, 'src/components/MyComponent.tsx'),
-  }
-}
+## Patterns hybrides présents
+
+### 1) Page Django classique
+
+Route HTML rendue 100% côté Django (ex: login/dashboard).
+
+### 2) Django + Web Components React
+
+Pattern utilisé pour `ui-button`:
+
+- composant React `frontend/src/web-components/Button.tsx`
+- wrapper Web Component `frontend/src/web-components/createWebComponent.tsx`
+- usage direct dans template (`templates/test_components.html`)
+
+Exemple:
+
+```html
+<ui-button variant="default" text="React Default"></ui-button>
 ```
 
-### 3. Utiliser dans un template Django
+### 3) Hydratation ciblée (prévu / partiellement utilisé)
 
-```django
-{% extends "base.html" %}
-{% load static %}
+Pattern `mountComponent(elementId, Component)` disponible dans:
 
-{% block content %}
-  <h1>Ma page Django</h1>
-  <p>Contenu statique généré par Django...</p>
-  
-  <!-- Zone avec React -->
-  <div id="my-component" data-props='{"userId": {{ user.id }}}'></div>
-{% endblock %}
+- `frontend/src/lib/mount.tsx`
 
-{% block extra_js %}
-<script type="module">
-  import('{% static "react/MyComponent.js" %}')
-    .then(module => {
-      window.mountReactComponent('my-component', module.default);
-    });
-</script>
-{% endblock %}
+Il permet de monter un composant React dans une div Django avec `data-props`.
+
+---
+
+## Arborescence utile
+
+```text
+.
+├── templates/
+│   ├── base.html
+│   ├── dashboard.html
+│   ├── base_components.html
+│   └── test_components.html
+├── frontend/
+│   ├── vite.config.ts
+│   └── src/
+│       ├── web-components/
+│       │   ├── createWebComponent.tsx
+│       │   └── Button.tsx
+│       └── lib/mount.tsx
+└── static/react/   # build output
 ```
 
-## Commandes
+---
 
-### Développement
+## Workflow développement
+
+### Lancer le projet
 
 ```bash
-# Terminal 1 - Django
-cd house && python manage.py runserver
+# Terminal 1
+python manage.py runserver 8000
 
-# Terminal 2 - React (watch mode avec rebuild auto)
-cd house/frontend && npm run dev
+# Terminal 2
+npm run dev
 ```
 
 ### Build production
 
 ```bash
-# 1. Build des composants React
-cd house/frontend && npm run build
-# → Génère house/static/react/*.js
-
-# 2. Collecte des static files Django
-cd house && python manage.py collectstatic
-# → Copie vers house/staticfiles/
-
-# 3. Déployer
-python manage.py runserver  # Ou gunicorn en prod
+npm run build
+python manage.py collectstatic --noinput
 ```
 
-## Avantages de cette approche
+---
 
-✅ **Performance** : Pages Django servies rapidement (SSR)  
-✅ **SEO** : Contenu HTML indexable par défaut  
-✅ **Progressive enhancement** : Fonctionne sans JS (fallback)  
-✅ **Flexibilité** : React uniquement où c'est utile  
-✅ **Simplicité déploiement** : Un seul serveur Django  
-✅ **Pas de CORS** : Tout sur le même domaine
+## Ajouter une nouvelle zone React dans un template Django
 
-## Exemples
+1. Créer le composant React.
+2. L’exposer via Vite (entry `rollupOptions.input` si nécessaire).
+3. Charger l’asset côté template avec `django_vite`.
+4. Prévoir un fallback HTML (`noscript`) quand utile.
 
-- **Page liste simple** → 100% Django template
-- **Formulaire de recherche avec filtres** → React component
-- **Dashboard avec graphiques** → React + Chart.js
-- **Authentification** → Django templates classiques
-- **Éditeur de contenu riche** → React (TipTap, Slate)
+---
 
-## Migration progressive
+## Pourquoi ce choix
 
-Commencez avec Django partout, puis ajoutez React zone par zone :
-
-1. Page simple → Django template
-2. Zone devient complexe → Ajouter `<div id="react-zone">`
-3. Monter composant React dedans
-4. Garder fallback HTML pour no-JS
+- SSR rapide et robuste pour les pages métier
+- Intégration progressive de React
+- Déploiement simple (un service Django)
+- Bonne base pour i18n/accessibilité
