@@ -56,3 +56,34 @@ class HouseholdScopedModel(TimestampedModel):
         if not self.household_id:
             raise ValueError(f"{self.__class__.__name__} requires household")
         super().save(*args, **kwargs)
+
+
+class SystemAdmin(models.Model):
+    """Legacy administrative role table."""
+
+    class Role(models.TextChoices):
+        ADMIN = "admin", "Admin"
+        SUPER_ADMIN = "super_admin", "Super Admin"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="system_admin_roles",
+    )
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.ADMIN)
+    granted_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="system_admin_grants",
+    )
+    granted_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(default="", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "system_admins"
+        unique_together = [["user", "role"]]

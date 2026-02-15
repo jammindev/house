@@ -36,6 +36,9 @@ INSTALLED_APPS = [
     "structures",
     "tags",
     "todo_list",
+    "equipment",
+    "projects",
+    "incoming_emails",
 ]
 
 MIDDLEWARE = [

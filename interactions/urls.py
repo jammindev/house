@@ -3,12 +3,18 @@ Interaction URLs.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import InteractionViewSet, InteractionContactViewSet, InteractionStructureViewSet
+from .views import (
+    InteractionViewSet,
+    InteractionContactViewSet,
+    InteractionStructureViewSet,
+    InteractionDocumentViewSet,
+)
 
 router = DefaultRouter()
 router.register(r'interactions', InteractionViewSet, basename='interaction')
 router.register(r'interaction-contacts', InteractionContactViewSet, basename='interaction-contact')
 router.register(r'interaction-structures', InteractionStructureViewSet, basename='interaction-structure')
+router.register(r'interaction-documents', InteractionDocumentViewSet, basename='interaction-document')
 
 urlpatterns = [
     path('', include(router.urls)),

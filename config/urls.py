@@ -22,6 +22,10 @@ urlpatterns = [
     path("api/structures/", include("structures.urls")),
     path("api/tags/", include("tags.urls")),
     path("api/todo/", include("todo_list.urls")),
+    path("api/equipment/", include("equipment.urls")),
+    path("api/projects/", include("projects.urls")),
+    path("api/incoming/", include("incoming_emails.urls")),
+    path("api/core/", include("core.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 
