@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - House{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h2 class="text-2xl font-bold mb-4">Dashboard</h2>
+    <p class="text-gray-600 mb-6">Welcome, {{ user.email }}!</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Simple Django template card -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-2">Your Households</h3>
+        <ul class="space-y-2">
+            {% for household in households %}
+                <li class="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
+                    <span>{{ household.name }}</span>
+                    <span class="text-sm text-gray-500">{{ household.members.count }} members</span>
+                </li>
+            {% empty %}
+                <li class="text-gray-500">No households yet</li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Complex interactive component with React -->
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-lg font-semibold mb-4">Quick Add Household</h3>
+        
+        <!-- React component placeholder -->
+        <div 
+            id="household-form" 
+            data-props='{"userId": {{ user.id }}, "csrfToken": "{{ csrf_token }}"}'
+        ></div>
+        
+        <!-- Fallback without JS -->
+        <noscript>
+            <form method="post" action="{% url 'household-create' %}">
+                {% csrf_token %}
+                <input 
+                    type="text" 
+                    name="name" 
+                    placeholder="Household name"
+                    class="w-full px-3 py-2 border rounded"
+                    required
+                >
+                <button 
+                    type="submit"
+                    class="mt-2 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                >
+                    Create Household
+                </button>
+            </form>
+        </noscript>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script type="module">
+    // Dynamically import and mount the React component only if needed
+    import('{% static "react/HouseholdForm.js" %}')
+        .then(module => {
+            window.mountReactComponent('household-form', module.default);
+        })
+        .catch(err => {
+            console.log('React component not available, using fallback');
+        });
+</script>
+{% endblock %}

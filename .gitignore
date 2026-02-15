@@ -32,12 +32,17 @@ venv_broken_from_move_20260215/
 node_modules/
 frontend/node_modules/
 frontend/dist/
+frontend/dist-ssr/
 frontend/.vite/
+frontend/logs/
+frontend/*.local
+frontend/lerna-debug.log*
 
 # IDE
 .vscode/*
 !.vscode/settings.json
 !.vscode/extensions.json
+.idea/
 
 # Logs
 *.log

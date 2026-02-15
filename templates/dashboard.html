@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Dashboard" %} - House{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2>{% blocktrans with email=user.email %}Welcome, {{ email }}{% endblocktrans %}</h2>
+        <a href="{% url 'logout' %}" class="btn btn-danger">{% trans "Logout" %}</a>
+    </div>
+
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 4px; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 1rem;">{% trans "Account Information" %}</h3>
+        <p><strong>{% trans "Email" %}:</strong> {{ user.email }}</p>
+        <p><strong>{% trans "Name" %}:</strong> {{ user.first_name|default:"Not provided" }} {{ user.last_name|default:"" }}</p>
+        <p><strong>{% trans "Status" %}:</strong> {% if user.is_staff %}{% trans "Administrator" %}{% else %}{% trans "User" %}{% endif %}</p>
+        <p><strong>{% trans "Account created" %}:</strong> {{ user.date_joined|date:"SHORT_DATETIME_FORMAT" }}</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.5rem;">{% trans "REST API" %}</h4>
+            <p style="opacity: 0.9; font-size: 0.9rem;">{% trans "Access API endpoints to manage users and JWT authentication." %}</p>
+            <a href="/api/" style="color: white; margin-top: 1rem; display: inline-block; text-decoration: underline;">{% trans "Explore API" %} →</a>
+        </div>
+
+        <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 1.5rem; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.5rem;">{% trans "Django Admin" %}</h4>
+            <p style="opacity: 0.9; font-size: 0.9rem;">{% trans "Administration interface to manage data directly." %}</p>
+            {% if user.is_staff %}
+                <a href="/admin/" style="color: white; margin-top: 1rem; display: inline-block; text-decoration: underline;">{% trans "Open admin" %} →</a>
+            {% else %}
+                <span style="opacity: 0.7; font-size: 0.85rem; display: block; margin-top: 1rem;">{% trans "Access reserved for administrators" %}</span>
+            {% endif %}
+        </div>
+
+        <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 1.5rem; border-radius: 8px;">
+            <h4 style="margin-bottom: 0.5rem;">{% trans "Documentation" %}</h4>
+            <p style="opacity: 0.9; font-size: 0.9rem;">{% trans "Check the documentation to integrate the API in your applications." %}</p>
+            <a href="/api/" style="color: white; margin-top: 1rem; display: inline-block; text-decoration: underline;">{% trans "View docs" %} →</a>
+        </div>
+    </div>
+
+    <div style="margin-top: 2rem; padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+        <h4 style="color: #856404; margin-bottom: 0.5rem;">🚀 {% trans "Next Steps" %}</h4>
+        <ul style="color: #856404; padding-left: 1.5rem;">
+            <li>{% trans "Create new endpoints for your business needs" %}</li>
+            <li>{% trans "Configure user permissions and groups" %}</li>
+            <li>{% trans "Integrate JWT authentication in your frontend" %}</li>
+            <li>{% trans "Deploy to production with appropriate settings" %}</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+  "name": "House",
+  "short_name": "House",
+  "description": "Centralisez la connaissance de votre foyer avec House.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0f172a",
+  "background_color": "#0b1120"
+}

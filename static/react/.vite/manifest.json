@@ -1,0 +1,11 @@
+{
+  "src/web-components/Button.tsx": {
+    "file": "assets/Button-D6qBc0gC.js",
+    "name": "Button",
+    "src": "src/web-components/Button.tsx",
+    "isEntry": true,
+    "css": [
+      "assets/Button-_bmrBD7e.css"
+    ]
+  }
+}

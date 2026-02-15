@@ -1,0 +1,177 @@
+/* nextjs/src/app/globals.css */
+
+/* ============================================
+   DESIGN TOKENS - Foundation Layer
+   ============================================ */
+
+/* Import des thèmes personnalisés (doit être avant @tailwind) */
+@import '../styles/themes.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   SHADCN/UI DESIGN TOKENS
+   ============================================ */
+
+@layer base {
+    :root {
+        /* Layout & Spacing */
+        --radius: 0.5rem;
+        
+        /* Semantic Colors (HSL format pour shadcn) */
+        --background: 0 0% 100%;
+        --foreground: 222 47% 11%;
+        
+        --card: 0 0% 100%;
+        --card-foreground: 222 47% 11%;
+        
+        --popover: 0 0% 100%;
+        --popover-foreground: 222 47% 11%;
+        
+        /* Primary utilise notre thème (défini dans themes.css) */
+        --primary: 199 89% 48%;
+        --primary-foreground: 0 0% 100%;
+        
+        --secondary: 214 32% 91%;
+        --secondary-foreground: 222 47% 11%;
+        
+        --muted: 210 40% 96%;
+        --muted-foreground: 215 16% 47%;
+        
+        --accent: 210 40% 96%;
+        --accent-foreground: 222 47% 11%;
+        
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        
+        --border: 214 32% 91%;
+        --input: 214 32% 91%;
+        --ring: 199 89% 48%;
+        
+        /* Chart Colors */
+        --chart-1: 12 76% 61%;
+        --chart-2: 173 58% 39%;
+        --chart-3: 197 37% 24%;
+        --chart-4: 43 74% 66%;
+        --chart-5: 27 87% 67%;
+    }
+
+    .dark {
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+        
+        --card: 222 47% 11%;
+        --card-foreground: 210 40% 98%;
+        
+        --popover: 222 84% 5%;
+        --popover-foreground: 210 40% 98%;
+        
+        --primary: 199 89% 48%;
+        --primary-foreground: 0 0% 100%;
+        
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+        
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        
+        --accent: 217 33% 17%;
+        --accent-foreground: 210 40% 98%;
+        
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 210 40% 98%;
+        
+        --border: 217 33% 17%;
+        --input: 217 33% 17%;
+        --ring: 199 89% 48%;
+        
+        --chart-1: 220 70% 50%;
+        --chart-2: 160 60% 45%;
+        --chart-3: 30 80% 55%;
+        --chart-4: 280 65% 60%;
+        --chart-5: 340 75% 55%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+    }
+}
+
+/* ============================================
+   COMPONENT UTILITIES
+   ============================================ */
+
+@layer components {
+    /* Boutons utilisant les tokens Tailwind */
+    .btn-primary {
+        @apply bg-primary-600 text-white hover:bg-primary-700 transition-colors duration-200;
+    }
+
+    .btn-secondary {
+        @apply bg-secondary-200 text-secondary-800 hover:bg-secondary-300 transition-colors duration-200;
+    }
+
+    /* Inputs utilisant les tokens */
+    .input-primary {
+        @apply border-input focus:border-primary-500 focus:ring-primary-500 focus:ring-2 focus:ring-offset-0;
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+@layer utilities {
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+    
+    * {
+        scroll-behavior: smooth;
+    }
+
+    /* Scrollbar utilities */
+    .scrollbar-hide {
+        -ms-overflow-style: none; /* IE/Edge */
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    /* Glass morphism effects */
+    .glass-panel {
+        @apply rounded-2xl 
+               bg-white/[0.06] 
+               backdrop-blur-[15px] 
+               backdrop-saturate-[180%] 
+               border border-white/15 
+               shadow-lg shadow-black/15 
+               ring-1 ring-white/30;
+    }
+    
+    .bg-glass {
+        @apply bg-white/[0.06] 
+               backdrop-blur-[15px] 
+               backdrop-saturate-[180%];
+    }
+    
+    .glass-panel-dark {
+        @apply rounded-2xl 
+               bg-black/20 
+               backdrop-blur-[15px] 
+               backdrop-saturate-[180%] 
+               border border-white/10 
+               shadow-lg shadow-black/20;
+    }
+}
