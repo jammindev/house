@@ -1,0 +1,275 @@
+// nextjs/src/features/interactions/components/InteractionDetailView.tsx
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertCircle, Folder, Loader2 } from "lucide-react";
+
+import { useI18n } from "@/lib/i18n/I18nProvider";
+import { format, differenceInYears, differenceInMonths, differenceInDays, differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
+import { fr as dateFnsFr, enUS as dateFnsEn } from "date-fns/locale";
+import InteractionAssociations from "@interactions/components/detail/InteractionAssociations";
+import InteractionMetadata from "@interactions/components/detail/InteractionMetadata";
+import InteractionDeleteButton from "@interactions/components/InteractionDeleteButton";
+import { InteractionContentEditor } from "@interactions/components/forms/common/InteractionContentEditor";
+import InteractionZonesList from "@interactions/components/InteractionZonesList";
+import ImageGallery from "@interactions/components/gallery/ImageGallery";
+import PdfFileList from "@interactions/components/pdf/PdfFileList";
+import { useInteractionAudit } from "@interactions/hooks/useInteractionAudit";
+import type { FilePreview } from "@interactions/hooks/useSignedFilePreviews";
+import AuditHistoryCard from "@/components/AuditHistoryCard";
+import type { Document, Interaction } from "@interactions/types";
+import { extractAmountFromMetadata } from "@interactions/utils/amount";
+import LinkWithOverlay from "@/components/layout/LinkWithOverlay";
+import { useUpdateInteractionContent } from "@interactions/hooks/useUpdateInteractionContent";
+
+type InteractionDetailViewProps = {
+  interaction: Interaction;
+  documents: Document[];
+  previews: Record<string, FilePreview>;
+  fileError?: string;
+  onReload: () => void;
+  onDeleted: () => void;
+  deleteInteraction?: (interactionId: string) => Promise<void>;
+};
+
+const DOCUMENT_TYPES = new Set(["document", "quote", "invoice", "contract", "other"]);
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+export default function InteractionDetailView({
+  interaction,
+  documents,
+  previews,
+  fileError,
+  onReload,
+  onDeleted,
+  deleteInteraction,
+}: InteractionDetailViewProps) {
+  const { t, locale } = useI18n();
+  const { updateContent, loading: savingContent, error: saveError, setError: setSaveError } = useUpdateInteractionContent();
+  const [content, setContent] = useState(interaction.content || "");
+  const [lastSavedContent, setLastSavedContent] = useState(interaction.content || "");
+
+  const { audit, loading: auditLoading } = useInteractionAudit(interaction.id, interaction.updated_at);
+
+  useEffect(() => {
+    const nextValue = interaction.content || "";
+    setContent(nextValue);
+    setLastSavedContent(nextValue);
+    setSaveError("");
+  }, [interaction.content, interaction.id, setSaveError]);
+
+  const plainText = useMemo(
+    () => content.replace(/<[^>]+>/g, "").replace(/&nbsp;/gi, " ").trim(),
+    [content]
+  );
+  const trimmedContent = useMemo(() => content.trim(), [content]);
+  const isDirty = trimmedContent !== (lastSavedContent || "").trim();
+
+  // Helpers: localized public date and short relative time (14h, 1j, 1an)
+  const getDateFnsLocale = (loc: string) => {
+    if (!loc) return dateFnsEn;
+    if (loc.startsWith("fr")) return dateFnsFr;
+    return dateFnsEn;
+  };
+
+  const formatPublicDate = (isoDate?: string | null) => {
+    if (!isoDate) return "";
+    try {
+      const d = new Date(isoDate);
+      // Pp -> localized date + time, friendly for "grand public"
+      return format(d, "Pp", { locale: getDateFnsLocale(locale) });
+    } catch (e) {
+      console.error(e)
+      return new Date(isoDate).toLocaleString();
+    }
+  };
+
+  const formatRelativeShort = (isoDate?: string | null) => {
+    if (!isoDate) return "";
+    const now = new Date();
+    const d = new Date(isoDate);
+    const years = differenceInYears(now, d);
+    if (years >= 1) {
+      // French: 1an 2ans, English: 1y 2y
+      if (locale?.startsWith("fr")) return `${years}${years === 1 ? "an" : "ans"}`;
+      return `${years}y`;
+    }
+    const months = differenceInMonths(now, d);
+    if (months >= 1) {
+      if (locale?.startsWith("fr")) return `${months}${months === 1 ? "mois" : "mois"}`;
+      return `${months}mo`;
+    }
+    const days = differenceInDays(now, d);
+    if (days >= 1) {
+      if (locale?.startsWith("fr")) return `${days}j`;
+      return `${days}d`;
+    }
+    const hours = differenceInHours(now, d);
+    if (hours >= 1) return `${hours}h`;
+    const minutes = differenceInMinutes(now, d);
+    if (minutes >= 1) return `${minutes}${locale?.startsWith("fr") ? "min" : "m"}`;
+    const seconds = differenceInSeconds(now, d);
+    if (seconds >= 5) return `${seconds}${locale?.startsWith("fr") ? "s" : "s"}`;
+    // just now
+    return locale?.startsWith("fr") ? "à l'instant" : "now";
+  };
+
+  const createdAt = formatPublicDate(interaction.created_at);
+  const updatedAt = formatRelativeShort(interaction.updated_at);
+  const metadata = isObjectRecord(interaction.metadata) ? interaction.metadata : null;
+  const quoteAmount =
+    interaction.type === "quote" ? extractAmountFromMetadata(interaction.metadata) : null;
+  const formattedQuoteAmount =
+    quoteAmount !== null
+      ? new Intl.NumberFormat(locale, { style: "currency", currency: "EUR" }).format(quoteAmount)
+      : null;
+
+  const photoDocuments = documents.filter((doc) => doc.type === "photo");
+  const pdfDocuments = documents.filter((doc) => DOCUMENT_TYPES.has(doc.type));
+  const hasFiles = pdfDocuments.length > 0 || photoDocuments.length > 0;
+  const shouldShowFilesSection = hasFiles || Boolean(fileError);
+
+  const persistContent = useCallback(async () => {
+    if (!plainText || !isDirty) return;
+    const nextValue = trimmedContent;
+    try {
+      await updateContent(interaction.id, nextValue);
+      setLastSavedContent(nextValue);
+      onReload();
+    } catch {
+      // Error already set by the hook
+    }
+  }, [interaction.id, isDirty, onReload, plainText, trimmedContent, updateContent]);
+
+  useEffect(() => {
+    if (!plainText || !isDirty || savingContent) return;
+    const timeout = setTimeout(() => {
+      void persistContent();
+    }, 900);
+    return () => clearTimeout(timeout);
+  }, [isDirty, persistContent, plainText, savingContent]);
+
+  return (
+    <div className="mx-auto flex w-full flex-col gap-2 pb-12 md:gap-4">
+      <h1 className="text-2xl font-bold text-slate-900">{interaction.subject}</h1>
+
+      <div className="flex flex-col gap-2">
+        {interaction.project && (
+          <LinkWithOverlay
+            href={`/app/projects/${interaction.project.id}`}
+            className="group inline-flex max-w-full items-center w-fit gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-800 transition hover:border-purple-300 hover:bg-purple-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400"
+          >
+            <Folder className="h-4 w-4" />
+            <span className="min-w-0 truncate text-foreground/90">{interaction.project.title}</span>
+            <span className="rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-medium uppercase text-purple-700">
+              {t(`projects.status.${interaction.project.status}`)}
+            </span>
+          </LinkWithOverlay>
+        )}
+        <InteractionZonesList interactionId={interaction.id} />
+        {interaction.type === "quote" && (
+          <section className="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-5 shadow-sm transition-colors">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
+              {t("interactiondetail.quoteSectionTitle")}
+            </h2>
+            {formattedQuoteAmount ? (
+              <div className="mt-3 flex items-baseline gap-3">
+                <span className="text-xs font-medium uppercase tracking-wide text-emerald-700">
+                  {t("interactiondetail.quoteAmountLabel")}
+                </span>
+                <p className="text-2xl font-semibold text-emerald-900">{formattedQuoteAmount}</p>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-emerald-800">{t("interactiondetail.quoteAmountMissing")}</p>
+            )}
+          </section>
+        )}
+
+        <div className="space-y-2 leading-relaxed text-foreground">
+          <InteractionContentEditor
+            id="interaction-detail-content"
+            value={content}
+            onChange={(next) => {
+              setContent(next);
+              if (saveError) setSaveError("");
+            }}
+            projectContext={
+              interaction.project
+                ? { id: interaction.project.id, title: interaction.project.title, status: interaction.project.status }
+                : null
+            }
+          />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {saveError ? (
+              <span className="text-rose-600" role="alert">
+                {saveError}
+              </span>
+            ) : savingContent ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                <span>{t("common.saving")}</span>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        <InteractionAssociations
+          tags={interaction.tags}
+          contacts={interaction.contacts}
+          structures={interaction.structures}
+        />
+
+        {shouldShowFilesSection && (
+          <>
+            {pdfDocuments.length > 0 && (<section className="space-y-4 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("interactionssections.documents")}
+              </h2>
+              {fileError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4" />
+                  <span>{fileError}</span>
+                </div>
+              )}
+              <PdfFileList files={pdfDocuments} previews={previews} onDeleted={onReload} />
+            </section>)}
+            {photoDocuments.length > 0 && (<section className="space-y-4 rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm transition-colors">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("interactionssections.photoGallery")}
+              </h2>
+              {fileError && (
+                <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                  <AlertCircle className="mt-0.5 h-4 w-4" />
+                  <span>{fileError}</span>
+                </div>
+              )}
+              {photoDocuments.length > 0 && (
+                <ImageGallery files={photoDocuments} previews={previews} onDeleted={onReload} />
+              )}
+            </section>)}
+
+          </>
+        )}
+      </div>
+
+      <InteractionMetadata metadata={metadata} />
+
+      <AuditHistoryCard
+        loading={auditLoading}
+        lines={[
+          t("interactiondetail.auditCreated", {
+            date: createdAt,
+            user: audit?.created_by?.username ?? audit?.created_by?.email ?? t("interactiondetail.unknownUser"),
+          }),
+          t("interactiondetail.auditUpdated", {
+            date: updatedAt,
+            user: audit?.updated_by?.username ?? audit?.updated_by?.email ?? t("interactiondetail.unknownUser"),
+          }),
+        ]}
+        actions={<InteractionDeleteButton interactionId={interaction.id} onDeleted={onDeleted} deleteInteraction={deleteInteraction} />}
+      />
+    </div>
+  );
+}

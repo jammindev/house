@@ -1,0 +1,56 @@
+{% load i18n django_vite %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}House Backend{% endblock %}</title>
+    
+    <!-- Vite + Tailwind CSS + Web Components -->
+    {% vite_hmr_client %}
+    {% vite_react_refresh %}
+    {% vite_asset 'src/web-components/Button.tsx' %}
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="bg-background text-foreground min-h-screen">
+    <header class="border-b border-border bg-card shadow-sm">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">🏠 House Backend</h1>
+            <nav class="flex gap-4">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="text-foreground hover:text-primary transition-colors">
+                        {% trans "Dashboard" %}
+                    </a>
+                    <a href="{% url 'logout' %}" class="text-foreground hover:text-destructive transition-colors">
+                        {% trans "Logout" %}
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="text-foreground hover:text-primary transition-colors">
+                        {% trans "Login" %}
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% if messages %}
+            <div class="space-y-4 mb-6">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-destructive/10 text-destructive border border-destructive{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        <div>
+            <p class="text-3xl">Hello</p>
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Login" %} - House{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 450px; margin: 3rem auto;">
+    <h2 style="margin-bottom: 1.5rem; text-align: center;">{% trans "Login" %}</h2>
+
+    {% if form.non_field_errors %}
+        <div class="alert alert-error">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_username">{% trans "Email" %}</label>
+            <input type="email" 
+                   name="username" 
+                   id="id_username" 
+                   required 
+                   autofocus
+                   placeholder="{% trans 'your@email.com' %}"
+                   value="{{ form.username.value|default:'' }}">
+            {% if form.username.errors %}
+                <div class="alert alert-error" style="margin-top: 0.5rem;">
+                    {{ form.username.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="id_password">{% trans "Password" %}</label>
+            <input type="password" 
+                   name="password" 
+                   id="id_password" 
+                   required
+                   placeholder="••••••••">
+            {% if form.password.errors %}
+                <div class="alert alert-error" style="margin-top: 0.5rem;">
+                    {{ form.password.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%;">
+            {% trans "Sign in" %}
+        </button>
+
+        <input type="hidden" name="next" value="{{ next }}">
+    </form>
+
+    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
+        <small>Utilisez votre compte House pour vous connecter</small>
+    </p>
+</div>
+{% endblock %}
