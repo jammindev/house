@@ -3,6 +3,62 @@ Custom permissions for household-scoped access control.
 Mimics Supabase RLS at Django level.
 """
 from rest_framework import permissions
+from rest_framework.request import Request
+
+
+def _extract_household_id(request: Request):
+    """Extract household id from common request locations."""
+    header_value = request.headers.get("X-Household-Id")
+    if header_value:
+        return header_value
+
+    query_value = request.query_params.get("household_id")
+    if query_value:
+        return query_value
+
+    if isinstance(request.data, dict):
+        data_value = request.data.get("household_id") or request.data.get("household")
+        if data_value:
+            return str(data_value)
+
+    return None
+
+
+def resolve_request_household(request: Request, required: bool = False):
+    """
+    Resolve current household from request and validate membership.
+
+    Priority:
+    1) X-Household-Id header
+    2) household_id query param
+    3) household_id / household in body
+    4) if user has exactly one household, auto-select it
+    """
+    from households.models import Household, HouseholdMember
+
+    if not request.user or not request.user.is_authenticated:
+        if required:
+            return None
+        return None
+
+    household_id = _extract_household_id(request)
+    if household_id:
+        is_member = HouseholdMember.objects.filter(
+            household_id=household_id,
+            user_id=request.user.id,
+        ).exists()
+        if not is_member:
+            return None
+        return Household.objects.filter(id=household_id).first()
+
+    memberships = HouseholdMember.objects.filter(user_id=request.user.id).values_list("household_id", flat=True)
+    membership_ids = list(memberships)
+    if len(membership_ids) == 1:
+        return Household.objects.filter(id=membership_ids[0]).first()
+
+    if required:
+        return None
+    return None
 
 
 class IsHouseholdMember(permissions.BasePermission):
@@ -12,8 +68,20 @@ class IsHouseholdMember(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        """Check if user is authenticated."""
-        return request.user and request.user.is_authenticated
+        """Authenticated users + membership check when a household is explicitly targeted."""
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        household_id = _extract_household_id(request)
+        if not household_id:
+            return True
+
+        from households.models import HouseholdMember
+
+        return HouseholdMember.objects.filter(
+            household_id=household_id,
+            user_id=request.user.id,
+        ).exists()
 
     def has_object_permission(self, request, view, obj):
         """Check if user is member of object's household."""
@@ -34,15 +102,33 @@ class IsHouseholdOwner(permissions.BasePermission):
     Permission that checks if user is the owner of the household.
     """
 
+    def has_permission(self, request, view):
+        """Authenticated users + owner check when household id is provided."""
+        if not request.user or not request.user.is_authenticated:
+            return False
+
+        household_id = _extract_household_id(request)
+        if not household_id:
+            return True
+
+        from households.models import HouseholdMember
+
+        return HouseholdMember.objects.filter(
+            household_id=household_id,
+            user_id=request.user.id,
+            role='owner',
+        ).exists()
+
     def has_object_permission(self, request, view, obj):
         """Check if user is owner of object's household."""
-        if not hasattr(obj, 'household_id'):
+        household_id = getattr(obj, "household_id", None) or getattr(obj, "id", None)
+        if not household_id:
             return False
 
         from households.models import HouseholdMember
 
         return HouseholdMember.objects.filter(
-            household_id=obj.household_id,
+            household_id=household_id,
             user_id=request.user.id,
             role='owner'
         ).exists()

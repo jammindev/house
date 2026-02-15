@@ -2,7 +2,6 @@
 Test settings - optimized for fast test execution.
 """
 from .base import *  # noqa: F403
-from .base import _parse_duration, timedelta
 
 # Use in-memory SQLite for tests (faster)
 DATABASES = {
@@ -39,15 +38,6 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.MD5PasswordHasher",
 ]
-
-# JWT Configuration
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-    "ROTATE_REFRESH_TOKENS": True,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "AUTH_HEADER_TYPES": ("Bearer",),
-}
 
 # Disable logging during tests
 LOGGING_CONFIG = None

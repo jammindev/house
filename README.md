@@ -1,66 +1,133 @@
-# Backend Django Project
+# House — Django + React hybride
 
-## Setup Local
+Projet principal: backend Django (SSR + API REST) avec zones React intégrées via Vite.
+
+> Note: le dossier `legacy/` existe dans le dépôt mais n’est pas la base active de cette app.
+
+## Stack
+
+- Django 5 + Django REST Framework
+- Auth session Django (cookies + CSRF)
+- PostgreSQL (local/prod), SQLite en test
+- React 19 + Vite + TypeScript
+- `django-vite` pour charger les assets frontend côté templates
+
+## Architecture rapide
+
+- **Pages serveur**: Django templates (`/login`, `/dashboard`, etc.)
+- **API**: endpoints sous `/api/...`
+- **UI interactive**: composants React / Web Components buildés dans `static/react`
+- **i18n**: anglais + français
+
+Voir aussi: `HYBRID_ARCHITECTURE.md`.
+
+## Structure utile (hors `legacy/`)
+
+```text
+.
+├── manage.py
+├── config/                 # settings + urls
+├── accounts/               # user/auth + vues login/dashboard
+├── households/             # multi-tenant household
+├── zones/                  # hiérarchie de zones
+├── interactions/           # journal d'événements
+├── documents/              # pièces jointes / OCR
+├── contacts/               # contacts + addresses/emails/phones
+├── structures/             # structures/prestataires
+├── tags/                   # tags + liaisons interactions
+├── todo_list/              # table legacy template
+├── core/                   # modèles/permissions partagés
+├── templates/              # pages Django
+├── static/                 # assets statiques (dont build React)
+└── frontend/               # source React/Vite
+```
+
+## Setup local
+
+### 1) Backend Django
 
 ```bash
-cd backend
-
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
-
-# Copy env file
-cp .env.local .env.local   # Already populated with local DB credentials
-
-# Run migrations
+cp .env.example .env.local
 python manage.py migrate
-
-# Create superuser
 python manage.py createsuperuser
-
-# Run server (uses config.settings.local by default)
 python manage.py runserver 8000
 ```
 
-## Settings Structure
+`manage.py` utilise `config.settings.local` par défaut.
 
-- `config/settings/base.py` - Common settings
-- `config/settings/local.py` - Development (uses `.env.local`)
-- `config/settings/production.py` - Production (uses `.env`)
-
-## Running with Different Settings
+### 2) Frontend React (dans un 2e terminal)
 
 ```bash
-# Local (default for manage.py)
-python manage.py runserver
-
-# Production
-DJANGO_SETTINGS_MODULE=config.settings.production python manage.py runserver
-
-# Or export first
-export DJANGO_SETTINGS_MODULE=config.settings.production
-python manage.py runserver
+npm install
+npm run dev
 ```
 
-## Production Deployment
+Pour rebuild continu des assets de prod:
 
-1. Copy `.env.production.example` to `.env`
-2. Fill in production values (SECRET_KEY, DATABASE_URL, ALLOWED_HOSTS, etc.)
-3. Run with Gunicorn:
-   ```bash
-   DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:application --bind 0.0.0.0:8000
-   ```
+```bash
+npm run dev:watch
+```
 
-## API Endpoints
+## Build production
 
-- `POST /api/auth/login/` - JWT login (email/password)
-- `POST /api/auth/refresh/` - Refresh JWT token
-- `GET/POST /api/users/` - User list/create
-- `GET/PUT/PATCH/DELETE /api/users/{id}/` - User detail
+```bash
+npm run build
+python manage.py collectstatic --noinput
+DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:application --bind 0.0.0.0:8000
+```
 
-## Admin
+## Settings
 
-Access Django admin at `http://127.0.0.1:8000/admin/` after creating a superuser.
+- `config/settings/base.py`: socle commun
+- `config/settings/local.py`: développement (`.env.local`)
+- `config/settings/production.py`: production (`.env`)
+- `config/settings/test.py`: tests (SQLite in-memory)
+
+## Endpoints principaux
+
+### Auth / users
+
+- `POST /api/auth/login/`
+- `POST /api/auth/logout/`
+- `GET|POST /api/users/`
+- `GET|PUT|PATCH|DELETE /api/users/{id}/`
+
+### Domain API
+
+- `api/households/` (DRF ViewSet + actions `members`, `leave`, `invite`, `remove_member`, `update_role`)
+- `api/zones/` (DRF ViewSet + actions `tree`, `children`, `photos`, `attach_photo`)
+- `api/documents/documents/` (ViewSet documents)
+- `api/interactions/interactions/` (ViewSet interactions)
+- `api/contacts/contacts|addresses|emails|phones/` (CRUD legacy)
+- `api/structures/` (CRUD legacy)
+- `api/tags/tags|interaction-tags/` (CRUD legacy)
+- `api/interactions/interaction-contacts|interaction-structures/` (CRUD legacy)
+- `api/todo/` (CRUD legacy template)
+
+## Permissions multi-tenant (Django)
+
+- Modèle inspiré de la logique legacy RLS, implémenté côté DRF via `core/permissions.py`.
+- Résolution du household courant: header `X-Household-Id`, puis `household_id` (query/body), sinon auto-sélection si un seul household.
+- Règles métier:
+	- membres household: CRUD sur zones/interactions/documents de leur household
+	- owners household: gestion des membres (`invite`, `remove_member`, `update_role`) et update/delete household
+
+## Pages Django
+
+- `/login/`
+- `/dashboard/`
+- `/test-components/`
+- `/admin/`
+
+Routes i18n activées (`/fr/...`, `/en/...`, avec préfixe langue par défaut désactivé).
+
+## Tests
+
+```bash
+pytest
+```
+
+Configuration dans `pytest.ini` avec couverture sur l’app `accounts`.

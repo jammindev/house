@@ -2,22 +2,44 @@ import axios from 'axios';
 
 // Use relative URLs - Vite proxy in dev, same origin in prod
 const API_BASE_URL = '/api';
+const CSRF_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'TRACE']);
+
+function getCookie(name: string): string | null {
+  if (!document.cookie) {
+    return null;
+  }
+
+  const cookies = document.cookie.split(';');
+  for (const cookie of cookies) {
+    const trimmed = cookie.trim();
+    if (trimmed.startsWith(`${name}=`)) {
+      return decodeURIComponent(trimmed.substring(name.length + 1));
+    }
+  }
+
+  return null;
+}
 
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor to include auth token
+// Add request interceptor to include CSRF token for unsafe methods
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const method = (config.method || 'GET').toUpperCase();
+    if (!CSRF_SAFE_METHODS.has(method)) {
+      const csrfToken = getCookie('csrftoken');
+      if (csrfToken) {
+        config.headers['X-CSRFToken'] = csrfToken;
+      }
     }
+
     return config;
   },
   (error) => {
@@ -25,40 +47,12 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Add response interceptor to handle token refresh
+// Add response interceptor to handle unauthenticated requests
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't tried to refresh yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (!refreshToken) {
-          throw new Error('No refresh token');
-        }
-
-        // Try to refresh the token
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh/`, {
-          refresh: refreshToken,
-        });
-
-        const { access } = response.data;
-        localStorage.setItem('accessToken', access);
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${access}`;
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, clear tokens and redirect to login
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
-      }
+    if (error.response?.status === 401 && window.location.pathname !== '/login/') {
+      window.location.href = '/login/';
     }
 
     return Promise.reject(error);
@@ -114,8 +108,8 @@ export const authAPI = {
     return response.data;
   },
 
-  refresh: async (refresh: string) => {
-    const response = await apiClient.post('/auth/refresh/', { refresh });
+  logout: async () => {
+    const response = await apiClient.post('/auth/logout/');
     return response.data;
   },
 

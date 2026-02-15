@@ -4,12 +4,14 @@ Zones views - REST API for zone management.
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
 from .models import Zone, ZoneDocument
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
-from core.permissions import IsHouseholdMember
+from core.permissions import IsHouseholdMember, resolve_request_household
+from documents.models import Document
 
 
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -39,9 +41,12 @@ class ZoneViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Set household and created_by from request."""
-        household_id = self.request.data.get('household_id') or self.request.query_params.get('household_id')
+        household = resolve_request_household(self.request, required=True)
+        if not household:
+            raise ValidationError({'household_id': 'A valid household_id is required.'})
+
         serializer.save(
-            household_id=household_id,
+            household=household,
             created_by=self.request.user
         )
 
@@ -101,10 +106,17 @@ class ZoneViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+        document = Document.objects.filter(id=document_id, household_id=zone.household_id).first()
+        if not document:
+            return Response(
+                {"detail": "Document not found in this household."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         # Create zone document link
         zone_doc = ZoneDocument.objects.create(
             zone=zone,
-            document_id=document_id,
+            document=document,
             role='photo',
             note=note,
             created_by=request.user

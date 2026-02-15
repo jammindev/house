@@ -1,14 +1,17 @@
 """
 Document views for REST API.
 """
+from rest_framework import status
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
-from core.permissions import IsHouseholdMember
+from core.permissions import IsHouseholdMember, resolve_request_household
 from .models import Document
 from .serializers import DocumentSerializer, DocumentDetailSerializer
+from interactions.models import Interaction
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -23,10 +26,16 @@ class DocumentViewSet(viewsets.ModelViewSet):
     ordering = ['-created_at']
     
     def get_queryset(self):
-        """Filter to household from request context."""
-        return Document.objects.filter(
-            household=self.request.household
+        """Filter documents to households where current user is a member."""
+        queryset = Document.objects.filter(
+            household_id__in=self.request.user.householdmember_set.values_list('household_id', flat=True)
         ).select_related('created_by', 'interaction')
+
+        selected_household = resolve_request_household(self.request, required=False)
+        if selected_household:
+            queryset = queryset.filter(household=selected_household)
+
+        return queryset
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -34,10 +43,27 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return DocumentSerializer
     
     def perform_create(self, serializer):
-        """Set household and created_by from request."""
+        """Set household and created_by with household consistency checks."""
+        selected_household = resolve_request_household(self.request, required=False)
+        interaction_id = self.request.data.get('interaction')
+        interaction = None
+
+        if interaction_id:
+            interaction = Interaction.objects.for_user_households(self.request.user).filter(id=interaction_id).first()
+            if not interaction:
+                raise ValidationError({'interaction': 'Invalid interaction or access denied.'})
+
+        if selected_household and interaction and interaction.household_id != selected_household.id:
+            raise ValidationError({'household_id': 'Selected household does not match interaction household.'})
+
+        household = selected_household or (interaction.household if interaction else None)
+        if household is None:
+            raise ValidationError({'household_id': 'A valid household context is required.'})
+
         serializer.save(
-            household=self.request.household,
-            created_by=self.request.user
+            household=household,
+            interaction=interaction,
+            created_by=self.request.user,
         )
     
     @action(detail=False, methods=['get'])
@@ -64,4 +90,4 @@ class DocumentViewSet(viewsets.ModelViewSet):
         return Response({
             'message': 'OCR reprocessing queued',
             'document_id': document.id
-        })
+        }, status=status.HTTP_202_ACCEPTED)

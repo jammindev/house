@@ -8,7 +8,7 @@ interface AuthContextType {
   selectedHouseholdId: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   register: (data: {
     email: string;
     password: string;
@@ -48,13 +48,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const refreshUser = async () => {
+  const refreshUser = async (): Promise<User | null> => {
     try {
       const userData = await authAPI.getCurrentUser();
       setUser(userData);
+      return userData;
     } catch (error) {
       console.error('Failed to fetch user:', error);
       setUser(null);
+      return null;
     }
   };
 
@@ -81,17 +83,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize user and households on mount
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        try {
-          await refreshUser();
+      try {
+        const currentUser = await refreshUser();
+        if (currentUser) {
           await refreshHouseholds();
-        } catch (error) {
-          console.error('Auth initialization failed:', error);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
+        } else {
+          setHouseholds([]);
+          setSelectedHouseholdId(null);
         }
+      } catch (error) {
+        console.error('Auth initialization failed:', error);
+        setHouseholds([]);
+        setSelectedHouseholdId(null);
       }
+
       setLoading(false);
     };
 
@@ -99,16 +104,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await authAPI.login(email, password);
-    localStorage.setItem('accessToken', response.access);
-    localStorage.setItem('refreshToken', response.refresh);
+    await authAPI.login(email, password);
     await refreshUser();
     await refreshHouseholds();
   };
 
-  const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+  const logout = async () => {
+    await authAPI.logout();
     localStorage.removeItem('selectedHouseholdId');
     setUser(null);
     setHouseholds([]);

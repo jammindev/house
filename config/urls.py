@@ -18,6 +18,10 @@ urlpatterns = [
     path("api/zones/", include("zones.urls")),
     path("api/documents/", include("documents.urls")),
     path("api/interactions/", include("interactions.urls")),
+    path("api/contacts/", include("contacts.urls")),
+    path("api/structures/", include("structures.urls")),
+    path("api/tags/", include("tags.urls")),
+    path("api/todo/", include("todo_list.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 

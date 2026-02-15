@@ -25,6 +25,14 @@ class HouseholdViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = HouseholdSerializer
 
+    def get_permissions(self):
+        """Apply role-based permissions for management actions."""
+        if self.action in {'update', 'partial_update', 'destroy', 'invite', 'remove_member', 'update_role'}:
+            return [IsAuthenticated(), IsHouseholdOwner()]
+        if self.action in {'retrieve', 'members', 'leave'}:
+            return [IsAuthenticated(), IsHouseholdMember()]
+        return [IsAuthenticated()]
+
     def get_queryset(self):
         """Return households where user is a member."""
         return Household.objects.filter(
@@ -173,3 +181,76 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             {"detail": "Invitation system not yet implemented."},
             status=status.HTTP_501_NOT_IMPLEMENTED
         )
+
+    @action(detail=True, methods=['post'])
+    def remove_member(self, request, pk=None):
+        """Remove a member from household (owner only)."""
+        household = self.get_object()
+        user_id = request.data.get('user_id')
+        if not user_id:
+            return Response(
+                {'detail': 'user_id is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        membership = HouseholdMember.objects.filter(household=household, user_id=user_id).first()
+        if not membership:
+            return Response(
+                {'detail': 'User is not a member of this household.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if membership.role == HouseholdMember.Role.OWNER:
+            owners_count = HouseholdMember.objects.filter(
+                household=household,
+                role=HouseholdMember.Role.OWNER,
+            ).count()
+            if owners_count == 1:
+                return Response(
+                    {'detail': 'Cannot remove the last owner of the household.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        membership.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post'])
+    def update_role(self, request, pk=None):
+        """Update a member role in household (owner only)."""
+        household = self.get_object()
+        user_id = request.data.get('user_id')
+        role = request.data.get('role')
+
+        if not user_id or not role:
+            return Response(
+                {'detail': 'user_id and role are required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if role not in {HouseholdMember.Role.OWNER, HouseholdMember.Role.MEMBER}:
+            return Response(
+                {'detail': 'Invalid role. Must be owner or member.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        membership = HouseholdMember.objects.filter(household=household, user_id=user_id).first()
+        if not membership:
+            return Response(
+                {'detail': 'User is not a member of this household.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if membership.role == HouseholdMember.Role.OWNER and role == HouseholdMember.Role.MEMBER:
+            owners_count = HouseholdMember.objects.filter(
+                household=household,
+                role=HouseholdMember.Role.OWNER,
+            ).count()
+            if owners_count == 1:
+                return Response(
+                    {'detail': 'Cannot demote the last owner of the household.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        membership.role = role
+        membership.save(update_fields=['role'])
+        return Response(HouseholdMemberSerializer(membership).data, status=status.HTTP_200_OK)

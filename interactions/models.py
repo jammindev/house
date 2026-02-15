@@ -129,3 +129,53 @@ class InteractionZone(models.Model):
     
     def __str__(self):
         return f"{self.interaction.subject} - {self.zone.name}"
+
+
+class InteractionContact(models.Model):
+    """M2M link between interactions and contacts."""
+    interaction = models.ForeignKey(
+        Interaction,
+        on_delete=models.CASCADE,
+        db_column='interaction_id',
+        related_name='interaction_contacts'
+    )
+    contact = models.ForeignKey(
+        'contacts.Contact',
+        on_delete=models.CASCADE,
+        db_column='contact_id',
+        related_name='interaction_contacts'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'interaction_contacts'
+        unique_together = [['interaction', 'contact']]
+        indexes = [
+            models.Index(fields=['interaction']),
+            models.Index(fields=['contact']),
+        ]
+
+
+class InteractionStructure(models.Model):
+    """M2M link between interactions and structures."""
+    interaction = models.ForeignKey(
+        Interaction,
+        on_delete=models.CASCADE,
+        db_column='interaction_id',
+        related_name='interaction_structures'
+    )
+    structure = models.ForeignKey(
+        'structures.Structure',
+        on_delete=models.CASCADE,
+        db_column='structure_id',
+        related_name='interaction_structures'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'interaction_structures'
+        unique_together = [['interaction', 'structure']]
+        indexes = [
+            models.Index(fields=['interaction']),
+            models.Index(fields=['structure']),
+        ]

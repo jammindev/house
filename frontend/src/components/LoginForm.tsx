@@ -20,6 +20,7 @@ export default function LoginForm({ redirectUrl = '/dashboard/', csrfToken }: Lo
     try {
       const response = await fetch('/api/auth/login/', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: {
           'Content-Type': 'application/json',
           ...(csrfToken && { 'X-CSRFToken': csrfToken }),
@@ -31,12 +32,6 @@ export default function LoginForm({ redirectUrl = '/dashboard/', csrfToken }: Lo
         const data = await response.json();
         throw new Error(data.detail || 'Login failed');
       }
-
-      const data = await response.json();
-      
-      // Store tokens
-      localStorage.setItem('accessToken', data.access);
-      localStorage.setItem('refreshToken', data.refresh);
 
       // Redirect
       window.location.href = redirectUrl;
