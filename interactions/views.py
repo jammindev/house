@@ -10,12 +10,13 @@ from django.db.models import Q, Count
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 from zones.models import Zone
-from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
+from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
 from .serializers import (
     InteractionSerializer,
     InteractionDetailSerializer,
     InteractionContactSerializer,
     InteractionStructureSerializer,
+    InteractionDocumentSerializer,
 )
 
 
@@ -25,8 +26,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsHouseholdMember]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    # filterset_fields = ['type', 'status', 'project', 'created_by']  # TODO: Add 'project' after projects app
-    filterset_fields = ['type', 'status', 'created_by']
+    filterset_fields = ['type', 'status', 'project', 'created_by']
     search_fields = ['subject', 'content', 'enriched_text', 'tags']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
@@ -171,3 +171,8 @@ class InteractionContactViewSet(_InteractionLinkBaseViewSet):
 class InteractionStructureViewSet(_InteractionLinkBaseViewSet):
     model = InteractionStructure
     serializer_class = InteractionStructureSerializer
+
+
+class InteractionDocumentViewSet(_InteractionLinkBaseViewSet):
+    model = InteractionDocument
+    serializer_class = InteractionDocumentSerializer

@@ -2,7 +2,13 @@
 Interaction serializers for REST API.
 """
 from rest_framework import serializers
-from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
+from .models import (
+    Interaction,
+    InteractionZone,
+    InteractionContact,
+    InteractionStructure,
+    InteractionDocument,
+)
 
 
 class InteractionSerializer(serializers.ModelSerializer):
@@ -25,7 +31,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'household', 'subject', 'content', 'type', 'status',
             'occurred_at', 'tags', 'metadata', 'enriched_text',
-            # 'project',  # TODO: Uncomment after projects app
+            'project',
             'zone_ids', 'zone_names', 'document_count',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
@@ -106,4 +112,11 @@ class InteractionStructureSerializer(serializers.ModelSerializer):
     class Meta:
         model = InteractionStructure
         fields = ['interaction', 'structure', 'created_at']
+        read_only_fields = ['created_at']
+
+
+class InteractionDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InteractionDocument
+        fields = ['interaction', 'document', 'role', 'note', 'created_at']
         read_only_fields = ['created_at']

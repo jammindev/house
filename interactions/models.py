@@ -72,15 +72,14 @@ class Interaction(HouseholdScopedModel):
     )
     
     # Relations
-    # TODO: Uncomment after projects app is created
-    # project = models.ForeignKey(
-    #     'projects.Project',
-    #     on_delete=models.SET_NULL,
-    #     null=True,
-    #     blank=True,
-    #     related_name='interactions',
-    #     db_column='project_id'
-    # )
+    project = models.ForeignKey(
+        'projects.Project',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='interactions',
+        db_column='project_id'
+    )
     zones = models.ManyToManyField(
         'zones.Zone',
         through='InteractionZone',
@@ -95,7 +94,7 @@ class Interaction(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'type'], name='idx_int_hh_type'),
             models.Index(fields=['household', '-occurred_at'], name='idx_int_hh_date'),
-            # models.Index(fields=['project'], name='idx_int_project'),  # TODO: Uncomment after projects
+            models.Index(fields=['project'], name='idx_int_project'),
             models.Index(fields=['status'], name='idx_int_status'),
         ]
     
@@ -178,4 +177,31 @@ class InteractionStructure(models.Model):
         indexes = [
             models.Index(fields=['interaction']),
             models.Index(fields=['structure']),
+        ]
+
+
+class InteractionDocument(models.Model):
+    """M2M link between interactions and documents."""
+    interaction = models.ForeignKey(
+        Interaction,
+        on_delete=models.CASCADE,
+        db_column='interaction_id',
+        related_name='interaction_documents'
+    )
+    document = models.ForeignKey(
+        'documents.Document',
+        on_delete=models.CASCADE,
+        db_column='document_id',
+        related_name='interaction_documents'
+    )
+    role = models.TextField(default='attachment')
+    note = models.TextField(default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'interaction_documents'
+        unique_together = [['interaction', 'document']]
+        indexes = [
+            models.Index(fields=['interaction']),
+            models.Index(fields=['document']),
         ]
