@@ -1,2 +1,1 @@
-/* Import Tailwind and shadcn styles for Web Components */
-@import '../styles.css';
+/* Web Components — les styles globaux sont chargés via l'entrée styles.css de Vite */

@@ -29,6 +29,19 @@
 - `frontend/vite.config.ts`
 - `frontend/src/web-components/createWebComponent.tsx`
 
+## Système CSS / styles
+
+Documenté dans `HYBRID_ARCHITECTURE.md` → section **Système de styles**.
+
+Fichiers clés :
+- `frontend/src/styles.css` — entrée Vite, `@theme inline` (Tailwind v4)
+- `frontend/src/styles/tokens.css` — variables CSS `:root`
+- `frontend/src/styles/themes.css` — 17 thèmes `.theme-*`
+- `frontend/src/styles/components.css` — classes utilitaires composant
+- `frontend/src/styles/tinymce.css` — overrides TinyMCE
+
+Règle rapide : pour toucher aux styles, lire d'abord la section **Système de styles** de `HYBRID_ARCHITECTURE.md`.
+
 ## Test et validation
 
 - `pytest.ini`

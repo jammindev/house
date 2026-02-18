@@ -6,14 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}House Backend{% endblock %}</title>
     
-    <!-- Vite + Tailwind CSS + Web Components -->
+    <!-- Vite + Tailwind CSS -->
     {% vite_hmr_client %}
     {% vite_react_refresh %}
+    {% vite_asset 'src/styles.css' %}
+
+    <!-- Web Components -->
     {% vite_asset 'src/web-components/Button.tsx' %}
     
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-background text-foreground min-h-screen">
+<body class="theme-house house-theme bg-background text-foreground min-h-screen">
     <header class="border-b border-border bg-card shadow-sm">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-bold">🏠 House Backend</h1>
@@ -44,9 +47,27 @@
                 {% endfor %}
             </div>
         {% endif %}
-        <div>
-            <p class="text-3xl">Hello</p>
-        </div>
+        <section class="space-y-4 mb-8">
+            <h2 class="text-xl font-semibold">Style migration check</h2>
+
+            <div class="custom-card">
+                <h3 class="semantic-card-title mb-2">Legacy theme class test</h3>
+                <p class="semantic-card-description mb-4">
+                    Cette carte utilise <strong>custom-card</strong> + tokens du thème <strong>theme-house</strong>.
+                </p>
+                <div class="flex gap-3 flex-wrap">
+                    <button type="button" class="btn-theme-primary">Primary (legacy)</button>
+                    <button type="button" class="btn-semantic-primary">Primary (semantic)</button>
+                    <span class="badge-accent">Accent badge</span>
+                    <span class="badge-accent-outline">Outline badge</span>
+                </div>
+            </div>
+
+            <div class="semantic-card">
+                <label class="form-label" for="migration-style-check">Input test</label>
+                <input id="migration-style-check" class="custom-input w-full max-w-md" placeholder="Test des styles migrés" />
+            </div>
+        </section>
 
         {% block content %}{% endblock %}
     </main>
