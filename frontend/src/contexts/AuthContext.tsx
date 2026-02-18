@@ -17,7 +17,7 @@ interface AuthContextType {
     display_name?: string;
     locale?: 'en' | 'fr';
   }) => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
   refreshHouseholds: () => Promise<void>;
   setSelectedHouseholdId: (id: string | null) => void;
 }

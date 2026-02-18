@@ -17,11 +17,12 @@ export default defineConfig(({ command }) => ({
   },
   server: {
     host: 'localhost',
-    port: 5173,
+    port: Number(process.env.VITE_DEV_SERVER_PORT || 5173),
+    strictPort: true,
     cors: true,
     hmr: {
       host: 'localhost',
-      port: 5173,
+      port: Number(process.env.VITE_DEV_SERVER_PORT || 5173),
     },
     proxy: {
       '/api': {
@@ -40,6 +41,7 @@ export default defineConfig(({ command }) => ({
     manifest: '.vite/manifest.json',
     rollupOptions: {
       input: {
+        'styles': resolve(__dirname, 'src/styles.css'),
         'Button': resolve(__dirname, 'src/web-components/Button.tsx'),
       },
       output: {
@@ -50,6 +52,6 @@ export default defineConfig(({ command }) => ({
     },
   },
   css: {
-    postcss: './postcss.config.js',
+    postcss: resolve(__dirname, 'postcss.config.js'),
   },
 }))

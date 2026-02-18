@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import type { ButtonProps } from '@/components/ui/button';
 import { createWebComponent } from './createWebComponent';
-import '../styles.css';
+import './styles.css';
 
 interface ButtonWrapperProps extends Omit<ButtonProps, 'children'> {
   text?: string;

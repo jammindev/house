@@ -1,11 +1,20 @@
 {
+  "src/styles.css": {
+    "file": "assets/styles-Bb_Q0I2_.css",
+    "src": "src/styles.css",
+    "isEntry": true,
+    "name": "styles",
+    "names": [
+      "styles.css"
+    ]
+  },
   "src/web-components/Button.tsx": {
-    "file": "assets/Button-D6qBc0gC.js",
+    "file": "assets/Button-DtOJZDq5.js",
     "name": "Button",
     "src": "src/web-components/Button.tsx",
     "isEntry": true,
     "css": [
-      "assets/Button-_bmrBD7e.css"
+      "assets/Button-tn0RQdqM.css"
     ]
   }
 }
