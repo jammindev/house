@@ -1,0 +1,18 @@
+{% load i18n django_vite %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}House{% endblock %}</title>
+
+    {% vite_hmr_client %}
+    {% vite_react_refresh %}
+    {% vite_asset 'src/styles.css' %}
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="theme-house house-theme bg-background text-foreground min-h-screen">
+    {% block body %}{% endblock %}
+</body>
+</html>

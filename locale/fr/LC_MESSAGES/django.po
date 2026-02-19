@@ -65,8 +65,8 @@ msgid "REST API"
 msgstr "API REST"
 
 #: templates/dashboard.html:24
-msgid "Access API endpoints to manage users and JWT authentication."
-msgstr "Accédez aux endpoints API pour gérer les utilisateurs et l'authentification JWT."
+msgid "Access API endpoints to manage users and session authentication."
+msgstr "Accédez aux endpoints API pour gérer les utilisateurs et l'authentification par session."
 
 #: templates/dashboard.html:25
 msgid "Explore API"
@@ -113,8 +113,8 @@ msgid "Configure user permissions and groups"
 msgstr "Configurer les permissions et groupes utilisateurs"
 
 #: templates/dashboard.html:50
-msgid "Integrate JWT authentication in your frontend"
-msgstr "Intégrer l'authentification JWT dans votre frontend"
+msgid "Use CSRF session cookies in your frontend requests"
+msgstr "Utiliser les cookies CSRF de session dans vos requêtes frontend"
 
 #: templates/dashboard.html:51
 msgid "Deploy to production with appropriate settings"

@@ -1,5 +1,4 @@
 import uuid
-from django.conf import settings
 from django.contrib.auth.models import BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
@@ -67,65 +66,3 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.display_name:
             return self.display_name
         return f"{self.first_name} {self.last_name}".strip() or self.email
-
-
-class Household(models.Model):
-    """Represents a household/home that can have multiple members."""
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, help_text="Name of the household")
-    created_at = models.DateTimeField(auto_now_add=True)
-    address = models.TextField(blank=True, default='', help_text="Physical address of the household")
-    city = models.CharField(max_length=100, blank=True, default='', help_text="City where the household is located")
-    country = models.CharField(max_length=100, blank=True, default='', help_text="Country where the household is located")
-    context_notes = models.TextField(blank=True, default='', help_text="General notes and context about the household")
-    ai_prompt_context = models.TextField(
-        blank=True,
-        default='',
-        help_text="Specific context information to include in AI prompts for better responses"
-    )
-    inbound_email_alias = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True,
-        unique=True,
-        help_text="Email alias for receiving documents/quotes by email"
-    )
-    default_household = models.BooleanField(
-        default=False,
-        help_text="Indicates if this household is the default for email processing"
-    )
-
-    class Meta:
-        ordering = ['name']
-        indexes = [
-            models.Index(fields=['city'], name='idx_household_city'),
-            models.Index(fields=['country'], name='idx_household_country'),
-            models.Index(fields=['inbound_email_alias'], name='idx_household_email'),
-        ]
-
-    def __str__(self) -> str:
-        return self.name
-
-
-class HouseholdMember(models.Model):
-    """Junction table linking users to households with role information."""
-    ROLE_CHOICES = [
-        ('owner', 'Owner'),
-        ('member', 'Member'),
-    ]
-
-    household = models.ForeignKey(Household, on_delete=models.CASCADE, related_name='members')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='household_memberships')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
-    joined_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = [('household', 'user')]
-        indexes = [
-            models.Index(fields=['household', 'user'], name='idx_household_user'),
-            models.Index(fields=['user'], name='idx_member_user'),
-        ]
-        ordering = ['joined_at']
-
-    def __str__(self) -> str:
-        return f"{self.user.email} - {self.household.name} ({self.role})"

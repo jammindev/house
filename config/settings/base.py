@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     "contacts",
     "structures",
     "tags",
-    "todo_list",
     "equipment",
     "projects",
     "incoming_emails",
@@ -101,7 +100,7 @@ USE_TZ = True
 
 # Login URLs
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "dashboard"
+LOGIN_REDIRECT_URL = "app_dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
 # Static files

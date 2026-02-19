@@ -1,0 +1,113 @@
+{% load i18n django_vite %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'fr' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}House{% endblock %}</title>
+
+    <!-- Tailwind CSS via Vite -->
+    {% vite_hmr_client %}
+    {% vite_react_refresh %}
+    {% vite_asset 'src/styles.css' %}
+
+    <!-- Shell : HTMX + Alpine + Lucide (bundlé via Vite) -->
+    {% vite_asset 'src/shell.ts' %}
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+{# x-data sur body = état partagé sidebar open/close accessible partout #}
+<body class="theme-house house-theme bg-background text-foreground min-h-screen"
+      x-data="{ sidebarOpen: false }">
+
+    {# Barre de progression HTMX — visible automatiquement pendant les requêtes hx-boost #}
+    <div id="htmx-progress"
+         class="fixed top-0 left-0 h-0.5 bg-primary z-[9999] w-0 transition-none"
+         aria-hidden="true"></div>
+
+    {% include "components/_sidebar.html" %}
+
+    {# Zone principale décalée de la largeur de la sidebar sur desktop #}
+    <div class="lg:pl-72 flex flex-col min-h-screen">
+
+        {# Topbar mobile : hamburger + nom produit #}
+        <header class="lg:hidden h-16 flex items-center gap-4 px-4 border-b border-gray-200/60 bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-10">
+            <button @click="sidebarOpen = true"
+                    class="p-2 rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-gray-600"
+                    aria-label="{% trans 'Open menu' %}">
+                <i data-lucide="menu" class="h-6 w-6"></i>
+            </button>
+            <span class="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+                House
+            </span>
+        </header>
+
+        {# Contenu principal — cible des swaps HTMX #}
+        <main class="flex-1 p-6">
+            <div id="main-content">
+
+            {% if messages %}
+                <div class="space-y-2 mb-6">
+                    {% for message in messages %}
+                        <div class="p-4 rounded-xl text-sm
+                            {% if message.tags == 'error' %}bg-destructive/10 text-destructive border border-destructive/30
+                            {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+                            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+
+        // Met à jour aria-current sur les liens de la sidebar après navigation HTMX
+        function syncNavActive() {
+            const path = window.location.pathname;
+            document.querySelectorAll('nav[hx-boost] a[href]').forEach(a => {
+                if (a.getAttribute('href') === path) {
+                    a.setAttribute('aria-current', 'page');
+                } else {
+                    a.removeAttribute('aria-current');
+                }
+            });
+        }
+        document.addEventListener('htmx:pushedIntoHistory', syncNavActive);
+        document.addEventListener('htmx:replacedInHistory', syncNavActive);
+
+        // Barre de progression HTMX
+        const bar = document.getElementById('htmx-progress');
+        let timer;
+
+        document.addEventListener('htmx:beforeRequest', () => {
+            clearTimeout(timer);
+            bar.style.transition = 'none';
+            bar.style.width = '0%';
+            // Petit délai pour que le reset soit bien appliqué avant l'animation
+            requestAnimationFrame(() => {
+                bar.style.transition = 'width 8s cubic-bezier(0.1, 0.05, 0, 1)';
+                bar.style.width = '85%';
+            });
+        });
+
+        document.addEventListener('htmx:afterRequest', () => {
+            bar.style.transition = 'width 0.15s ease-out';
+            bar.style.width = '100%';
+            timer = setTimeout(() => {
+                bar.style.transition = 'opacity 0.3s ease';
+                bar.style.opacity = '0';
+                setTimeout(() => { bar.style.width = '0%'; bar.style.opacity = '1'; }, 300);
+            }, 150);
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
