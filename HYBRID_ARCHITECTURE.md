@@ -184,12 +184,8 @@ class="rounded-md border-border"          ← radius + border token
 |---|---|
 | `.custom-card` | Card avec couleurs primaires du thème |
 | `.semantic-card` | Card avec tokens shadcn/ui |
-| `.btn-theme-primary` | Bouton couleur primaire du thème |
-| `.btn-semantic-primary` | Bouton via `hsl(var(--primary))` |
-| `.badge-accent` / `.badge-accent-outline` | Badges accent |
 | `.form-label` / `.form-input` / `.form-error` | Formulaires |
 | `.glass-panel` / `.bg-glass` / `.glass-panel-dark` | Glassmorphism |
-| `.gradient-text` / `.gradient-header` | Dégradés primary → accent |
 | `.nav-link` / `.nav-link.active` | Liens de navigation |
 | `.alert-info` / `.alert-warning` / `.alert-error` | Alertes |
 | `.modal-overlay` / `.modal-content` | Modales |

@@ -1,60 +1,82 @@
-{% extends "base.html" %}
+{% extends "base_public.html" %}
 {% load i18n %}
 
-{% block title %}{% trans "Login" %} - House{% endblock %}
+{% block title %}{% trans "Connexion" %} — House{% endblock %}
 
-{% block content %}
-<div class="card" style="max-width: 450px; margin: 3rem auto;">
-    <h2 style="margin-bottom: 1.5rem; text-align: center;">{% trans "Login" %}</h2>
+{% block body %}
+<div class="min-h-screen flex flex-col items-center justify-center px-6 py-12">
 
-    {% if form.non_field_errors %}
-        <div class="alert alert-error">
+    {# ── Card ── #}
+    <div class="w-full max-w-sm">
+
+        {# Logo / Wordmark #}
+        <div class="text-center mb-8">
+            <a href="{% url 'home' %}" class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+                🏠 House
+            </a>
+            <p class="mt-2 text-sm text-gray-500">{% trans "Connectez-vous à votre espace" %}</p>
+        </div>
+
+        {# Errors #}
+        {% if form.non_field_errors %}
+        <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {{ form.non_field_errors }}
         </div>
-    {% endif %}
+        {% endif %}
 
-    <form method="post" action="{% url 'login' %}">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label for="id_username">{% trans "Email" %}</label>
-            <input type="email" 
-                   name="username" 
-                   id="id_username" 
-                   required 
-                   autofocus
-                   placeholder="{% trans 'your@email.com' %}"
-                   value="{{ form.username.value|default:'' }}">
-            {% if form.username.errors %}
-                <div class="alert alert-error" style="margin-top: 0.5rem;">
-                    {{ form.username.errors }}
+        {# Form card #}
+        <div class="rounded-2xl border border-gray-200/60 bg-white shadow-sm p-8">
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+
+                {# Email #}
+                <div class="mb-5">
+                    <label for="id_username" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        {% trans "Email" %}
+                    </label>
+                    <input type="email"
+                           name="username"
+                           id="id_username"
+                           required
+                           autofocus
+                           placeholder="votre@email.com"
+                           value="{{ form.username.value|default:'' }}"
+                           class="input w-full{% if form.username.errors %} error{% endif %}">
+                    {% if form.username.errors %}
+                    <p class="mt-1.5 text-xs text-red-600">{{ form.username.errors.0 }}</p>
+                    {% endif %}
                 </div>
-            {% endif %}
+
+                {# Password #}
+                <div class="mb-6">
+                    <label for="id_password" class="block text-sm font-medium text-gray-700 mb-1.5">
+                        {% trans "Mot de passe" %}
+                    </label>
+                    <input type="password"
+                           name="password"
+                           id="id_password"
+                           required
+                           placeholder="••••••••"
+                           class="input w-full{% if form.password.errors %} error{% endif %}">
+                    {% if form.password.errors %}
+                    <p class="mt-1.5 text-xs text-red-600">{{ form.password.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <button type="submit"
+                        class="w-full rounded-xl bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white
+                               hover:bg-primary-700 active:scale-[0.98] transition-all duration-150 shadow-sm">
+                    {% trans "Se connecter" %}
+                </button>
+            </form>
         </div>
 
-        <div class="form-group">
-            <label for="id_password">{% trans "Password" %}</label>
-            <input type="password" 
-                   name="password" 
-                   id="id_password" 
-                   required
-                   placeholder="••••••••">
-            {% if form.password.errors %}
-                <div class="alert alert-error" style="margin-top: 0.5rem;">
-                    {{ form.password.errors }}
-                </div>
-            {% endif %}
-        </div>
+        <p class="mt-6 text-center text-xs text-gray-400">
+            <a href="{% url 'home' %}" class="hover:text-gray-600 transition-colors">← {% trans "Retour à l'accueil" %}</a>
+        </p>
 
-        <button type="submit" class="btn" style="width: 100%;">
-            {% trans "Sign in" %}
-        </button>
-
-        <input type="hidden" name="next" value="{{ next }}">
-    </form>
-
-    <p style="text-align: center; margin-top: 1.5rem; color: #666;">
-        <small>Utilisez votre compte House pour vous connecter</small>
-    </p>
+    </div>
 </div>
 {% endblock %}

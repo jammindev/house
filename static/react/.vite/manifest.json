@@ -1,6 +1,12 @@
 {
+  "src/shell.ts": {
+    "file": "assets/shell-Nhwp8Zsd.js",
+    "name": "shell",
+    "src": "src/shell.ts",
+    "isEntry": true
+  },
   "src/styles.css": {
-    "file": "assets/styles-Bb_Q0I2_.css",
+    "file": "assets/styles-D_DWF-RY.css",
     "src": "src/styles.css",
     "isEntry": true,
     "name": "styles",

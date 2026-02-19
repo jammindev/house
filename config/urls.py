@@ -1,19 +1,15 @@
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.i18n import i18n_patterns
-from django.views.generic import TemplateView
-from rest_framework.routers import DefaultRouter
 
-from accounts.views import AuthViewSet, UserViewSet, login_view, dashboard_view, logout_view
-
-# API Router
-router = DefaultRouter()
-router.register("users", UserViewSet, basename="user")
-router.register("auth", AuthViewSet, basename="auth")
+from accounts.views import (
+    home_view, login_view, dashboard_view, logout_view,
+    app_dashboard_view, app_placeholder_view, app_zones_view,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),
+    path("api/accounts/", include("accounts.urls")),
     path("api/households/", include("households.urls")),
     path("api/zones/", include("zones.urls")),
     path("api/documents/", include("documents.urls")),
@@ -21,7 +17,6 @@ urlpatterns = [
     path("api/contacts/", include("contacts.urls")),
     path("api/structures/", include("structures.urls")),
     path("api/tags/", include("tags.urls")),
-    path("api/todo/", include("todo_list.urls")),
     path("api/equipment/", include("equipment.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/incoming/", include("incoming_emails.urls")),
@@ -31,10 +26,29 @@ urlpatterns = [
 
 # Internationalized URLs - Django templates with optional React components
 urlpatterns += i18n_patterns(
-    path("", login_view, name="home"),
+    # Public
+    path("", home_view, name="home"),
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
+
+    # Legacy redirect
     path("dashboard/", dashboard_view, name="dashboard"),
-    path("test-components/", TemplateView.as_view(template_name="test_components.html"), name="test_components"),
+
+    # ── App (sidebar layout) ─────────────────────────────────────────────────
+    path("app/dashboard/", app_dashboard_view, name="app_dashboard"),
+
+    # Sections implémentées (placeholder pour l'instant, vues dédiées à créer)
+    path("app/interactions/", app_placeholder_view, {"section": "interactions"}, name="app_interactions"),
+    path("app/zones/", app_zones_view, name="app_zones"),
+    path("app/contacts/", app_placeholder_view, {"section": "contacts"}, name="app_contacts"),
+    path("app/documents/", app_placeholder_view, {"section": "documents"}, name="app_documents"),
+    path("app/equipment/", app_placeholder_view, {"section": "equipment"}, name="app_equipment"),
+
+    # Sections à migrer
+    path("app/tasks/", app_placeholder_view, {"section": "tasks"}, name="app_tasks"),
+    path("app/projects/", app_placeholder_view, {"section": "projects"}, name="app_projects"),
+    path("app/photos/", app_placeholder_view, {"section": "photos"}, name="app_photos"),
+    path("app/settings/", app_placeholder_view, {"section": "settings"}, name="app_settings"),
+
     prefix_default_language=False,
 )

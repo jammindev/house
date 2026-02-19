@@ -42,6 +42,7 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       input: {
         'styles': resolve(__dirname, 'src/styles.css'),
+        'shell': resolve(__dirname, 'src/shell.ts'),
         'Button': resolve(__dirname, 'src/web-components/Button.tsx'),
       },
       output: {

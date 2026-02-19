@@ -29,7 +29,7 @@ class TestLoginView:
         })
         
         assert response.status_code == 302
-        assert response.url == reverse("dashboard")
+        assert response.url == reverse("app_dashboard")
     
     def test_login_with_invalid_credentials(self, client):
         """Test login with invalid credentials."""
@@ -52,7 +52,7 @@ class TestLoginView:
         response = client.get(url)
         
         assert response.status_code == 302
-        assert response.url == reverse("dashboard")
+        assert response.url == reverse("app_dashboard")
     
     def test_login_with_next_parameter(self, client):
         """Test login redirects to next parameter."""
@@ -69,42 +69,26 @@ class TestLoginView:
 
 @pytest.mark.django_db
 class TestDashboardView:
-    """Test dashboard view functionality."""
-    
+    """Test legacy dashboard redirect."""
+
     def test_dashboard_requires_authentication(self, client):
         """Test that unauthenticated users are redirected to login."""
         url = reverse("dashboard")
         response = client.get(url)
-        
+
         assert response.status_code == 302
         assert reverse("login") in response.url
-    
-    def test_authenticated_user_can_access_dashboard(self, client):
-        """Test that authenticated users can access dashboard."""
+
+    def test_authenticated_user_is_redirected_to_app(self, client):
+        """Test that authenticated users are redirected to app_dashboard."""
         user = UserFactory()
         client.force_login(user)
-        
+
         url = reverse("dashboard")
         response = client.get(url)
-        
-        assert response.status_code == 200
-        assert "dashboard.html" in [t.name for t in response.templates]
-        assert user.email in str(response.content)
-    
-    def test_dashboard_shows_user_info(self, client):
-        """Test dashboard displays user information."""
-        user = UserFactory(
-            email="dashboard@example.com",
-            first_name="John",
-            last_name="Doe"
-        )
-        client.force_login(user)
-        
-        url = reverse("dashboard")
-        response = client.get(url)
-        
-        content = str(response.content)
-        assert "dashboard@example.com" in content
+
+        assert response.status_code == 302
+        assert response.url == reverse("app_dashboard")
 
 
 @pytest.mark.django_db
