@@ -38,6 +38,11 @@ frontend/logs/
 frontend/*.local
 frontend/lerna-debug.log*
 
+# Django-served React build artifacts (Vite output)
+static/react/assets/
+static/react/.vite/
+static/react/vite.svg
+
 # IDE
 .vscode/*
 !.vscode/settings.json
