@@ -1,0 +1,31 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Interactions" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6">
+    <div>
+        <h1 class="text-2xl font-bold text-foreground">{% trans "Interactions" %}</h1>
+        <p class="mt-2 text-sm text-muted-foreground">
+            {% trans "Read-only list powered by DRF with loading, empty and error states." %}
+        </p>
+    </div>
+
+    <ui-interaction-list
+        title="Latest interactions"
+        limit="8"
+        empty_message="No interactions available yet.">
+    </ui-interaction-list>
+
+    <div class="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
+        {% trans "No JavaScript fallback:" %}
+        {% trans "You can still access data through the API endpoint" %}
+        <a href="/api/interactions/interactions/" class="underline">/api/interactions/interactions/</a>.
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/web-components/InteractionList.tsx' %}
+{% endblock %}
