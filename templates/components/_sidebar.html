@@ -41,7 +41,7 @@
          hx-select="#main-content"
          hx-swap="outerHTML"
          hx-push-url="true"
-         class="flex-1 mt-3 px-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+         class="flex-1 mt-3 px-3 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent [&>a]:border [&>a]:border-transparent">
 
         {% url 'app_dashboard' as url_dashboard %}
         <a href="{{ url_dashboard }}"
