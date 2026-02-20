@@ -4,7 +4,8 @@ from django.conf.urls.i18n import i18n_patterns
 
 from accounts.views import (
     home_view, login_view, dashboard_view, logout_view,
-    app_dashboard_view, app_placeholder_view, app_zones_view,
+    app_dashboard_view, app_placeholder_view, app_zones_view, app_components_view,
+    app_interactions_view,
 )
 
 urlpatterns = [
@@ -36,9 +37,10 @@ urlpatterns += i18n_patterns(
 
     # ── App (sidebar layout) ─────────────────────────────────────────────────
     path("app/dashboard/", app_dashboard_view, name="app_dashboard"),
+    path("app/components/", app_components_view, name="app_components"),
 
     # Sections implémentées (placeholder pour l'instant, vues dédiées à créer)
-    path("app/interactions/", app_placeholder_view, {"section": "interactions"}, name="app_interactions"),
+    path("app/interactions/", app_interactions_view, name="app_interactions"),
     path("app/zones/", app_zones_view, name="app_zones"),
     path("app/contacts/", app_placeholder_view, {"section": "contacts"}, name="app_contacts"),
     path("app/documents/", app_placeholder_view, {"section": "documents"}, name="app_documents"),

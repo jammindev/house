@@ -45,12 +45,18 @@ export function createWebComponent<P extends Record<string, any>>(
   class GenericWebComponent extends HTMLElement {
     private root: Root | null = null;
     private mountPoint: HTMLDivElement | null = null;
+    private initialSlotContent = '';
 
     static get observedAttributes() {
       return Object.keys(propMapping);
     }
 
     connectedCallback() {
+      // Capture initial light DOM content once (before mounting React)
+      // so we don't accidentally read the internal mount node as children.
+      this.initialSlotContent = this.innerHTML.trim();
+      this.innerHTML = '';
+
       this.mountPoint = document.createElement('div');
       this.appendChild(this.mountPoint);
       this.root = createRoot(this.mountPoint);
@@ -107,7 +113,7 @@ export function createWebComponent<P extends Record<string, any>>(
       });
 
       // Slot content (innerHTML) comme children
-      const slotContent = this.innerHTML.trim();
+      const slotContent = this.initialSlotContent;
       if (slotContent && !props.children) {
         props.children = slotContent;
       }

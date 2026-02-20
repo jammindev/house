@@ -71,6 +71,18 @@ def app_placeholder_view(request, section: str = ""):
     return render(request, 'app/placeholder.html', {'section': section, 'title': title})
 
 
+@login_required
+def app_components_view(request):
+    """Showcase des composants UI atomiques React exposés en Web Components."""
+    return render(request, 'app/components_demo.html')
+
+
+@login_required
+def app_interactions_view(request):
+    """Interactions page with Lot B read-only list component."""
+    return render(request, 'app/interactions.html')
+
+
 def logout_view(request):
     """Logout view."""
     auth_logout(request)

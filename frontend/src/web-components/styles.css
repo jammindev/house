@@ -1,1 +1,15 @@
 /* Web Components — les styles globaux sont chargés via l'entrée styles.css de Vite */
+
+/* Inline UI atoms */
+ui-button,
+ui-badge {
+	display: inline-block;
+}
+
+/* Form/layout atoms should behave like block elements */
+ui-input,
+ui-textarea,
+ui-card {
+	display: block;
+	width: 100%;
+}
