@@ -1,3 +1,4 @@
+// frontend/vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
@@ -53,6 +54,7 @@ export default defineConfig(({ command }) => ({
         'Skeleton': resolve(__dirname, 'src/web-components/Skeleton.tsx'),
         'interactions': resolve(__dirname, 'src/pages/interactions.tsx'),
         'interaction-new': resolve(__dirname, 'src/pages/interaction-new.tsx'),
+        'electricity': resolve(__dirname, 'src/electricity/mount-electricity.tsx'),
       },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',

@@ -1,0 +1,285 @@
+# specs/001-electricity-circuit-module/contracts/electricity-api.yaml
+openapi: 3.0.3
+info:
+  title: House Electricity API
+  version: 0.1.0
+  description: >-
+    Contrat API MVP pour la mini-app électricité (Django/DRF), household-scoped,
+    lecture membre du foyer, écriture owner uniquement.
+servers:
+  - url: /
+security:
+  - sessionAuth: []
+paths:
+  /api/electricity/boards/:
+    get:
+      summary: Lister les tableaux électriques du foyer
+      parameters:
+        - $ref: '#/components/parameters/HouseholdHeader'
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Créer un tableau électrique
+      parameters:
+        - $ref: '#/components/parameters/HouseholdHeader'
+      responses:
+        '201':
+          description: Created
+        '403':
+          description: Forbidden (non-owner)
+  /api/electricity/boards/{id}/:
+    get:
+      summary: Détail tableau
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: OK }
+    patch:
+      summary: Modifier tableau
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Updated }
+        '403': { description: Forbidden }
+    delete:
+      summary: Supprimer tableau
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Deleted }
+        '409': { description: Conflict (dépendances actives) }
+
+  /api/electricity/rcds/:
+    get:
+      summary: Lister les interrupteurs différentiels
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Créer un interrupteur différentiel
+      responses:
+        '201': { description: Created }
+        '403': { description: Forbidden }
+
+  /api/electricity/rcds/{id}/:
+    get:
+      summary: Détail interrupteur différentiel
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: OK }
+    patch:
+      summary: Modifier interrupteur différentiel
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Updated }
+        '403': { description: Forbidden }
+    delete:
+      summary: Supprimer interrupteur différentiel
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Deleted }
+        '409': { description: Conflict (dépendances actives) }
+
+  /api/electricity/breakers/:
+    get:
+      summary: Lister les disjoncteurs
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Créer un disjoncteur
+      responses:
+        '201': { description: Created }
+        '403': { description: Forbidden }
+
+  /api/electricity/breakers/{id}/:
+    get:
+      summary: Détail disjoncteur
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: OK }
+    patch:
+      summary: Modifier disjoncteur
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Updated }
+        '403': { description: Forbidden }
+    delete:
+      summary: Supprimer disjoncteur
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Deleted }
+        '409': { description: Conflict (dépendances actives) }
+
+  /api/electricity/circuits/:
+    get:
+      summary: Lister les circuits
+      parameters:
+        - in: query
+          name: breaker
+          schema: { type: string, format: uuid }
+        - in: query
+          name: phase
+          schema: { type: string, enum: [L1, L2, L3] }
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Créer un circuit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CircuitCreate'
+      responses:
+        '201': { description: Created }
+        '400': { description: Validation error }
+        '403': { description: Forbidden }
+
+  /api/electricity/circuits/{id}/:
+    get:
+      summary: Détail circuit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: OK }
+    patch:
+      summary: Modifier circuit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Updated }
+        '400': { description: Validation error }
+        '403': { description: Forbidden }
+    delete:
+      summary: Supprimer circuit
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Deleted }
+        '409': { description: Conflict (dépendances actives) }
+
+  /api/electricity/usage-points/:
+    get:
+      summary: Lister prises/lumières
+      parameters:
+        - in: query
+          name: kind
+          schema: { type: string, enum: [socket, light] }
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Créer un point d'usage
+      responses:
+        '201': { description: Created }
+        '403': { description: Forbidden }
+
+  /api/electricity/usage-points/{id}/:
+    get:
+      summary: Détail point d'usage
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: OK }
+    patch:
+      summary: Modifier point d'usage
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Updated }
+        '403': { description: Forbidden }
+    delete:
+      summary: Supprimer point d'usage
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '204': { description: Deleted }
+        '409': { description: Conflict (dépendances actives) }
+
+  /api/electricity/links/:
+    get:
+      summary: Lister les associations circuit <-> point d’usage
+      parameters:
+        - in: query
+          name: is_active
+          schema: { type: boolean }
+      responses:
+        '200': { description: OK }
+    post:
+      summary: Créer une association active
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LinkCreate'
+      responses:
+        '201': { description: Created }
+        '409': { description: Conflict (point déjà lié activement) }
+
+  /api/electricity/links/{id}/deactivate/:
+    patch:
+      summary: Désactiver une association (soft delete)
+      parameters:
+        - $ref: '#/components/parameters/IdPath'
+      responses:
+        '200': { description: Deactivated }
+        '403': { description: Forbidden }
+
+  /api/electricity/mapping/lookup/:
+    get:
+      summary: Recherche bidirectionnelle par repère (unique par foyer)
+      parameters:
+        - in: query
+          name: ref
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Mapping result }
+        '404': { description: Not found }
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+  parameters:
+    HouseholdHeader:
+      in: header
+      name: X-Household-Id
+      required: false
+      schema:
+        type: string
+        format: uuid
+    IdPath:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    CircuitCreate:
+      type: object
+      required: [label, name, breaker_id]
+      properties:
+        label: { type: string }
+        name: { type: string }
+        breaker_id: { type: string, format: uuid }
+        phase:
+          type: string
+          enum: [L1, L2, L3]
+          nullable: true
+        notes: { type: string }
+    LinkCreate:
+      type: object
+      required: [circuit_id, usage_point_id]
+      properties:
+        circuit_id: { type: string, format: uuid }
+        usage_point_id: { type: string, format: uuid }

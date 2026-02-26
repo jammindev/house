@@ -55,7 +55,7 @@ class Zone(HouseholdScopedModel):
         ]
         constraints = [
             models.CheckConstraint(
-                check=models.Q(surface__gte=0) | models.Q(surface__isnull=True),
+                condition=models.Q(surface__gte=0) | models.Q(surface__isnull=True),
                 name='zones_surface_check'
             )
         ]

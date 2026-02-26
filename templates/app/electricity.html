@@ -1,0 +1,110 @@
+<!-- templates/app/electricity.html -->
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Electricity" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-6">
+    <div class="flex items-center justify-between gap-3">
+        <h1 class="text-2xl font-bold text-foreground">{% trans "Electricity" %}</h1>
+    </div>
+
+    <div class="rounded-xl border border-border p-4 bg-card text-card-foreground">
+        <p class="text-sm text-muted-foreground">
+            {% trans "Mini-app electricity initialized by Django SSR, then managed via API in-app." %}
+        </p>
+    </div>
+
+    <section class="grid gap-4 md:grid-cols-2">
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Circuits" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for circuit in server_sections.circuits %}
+                    <li>{{ circuit.label }} — {{ circuit.name }}</li>
+                {% empty %}
+                    <li>{% trans "No circuits yet." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Breakers" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for breaker in server_sections.breakers %}
+                    <li>{{ breaker.label }} — {{ breaker.rating_amps }}A</li>
+                {% empty %}
+                    <li>{% trans "No breakers yet." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "RCDs" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for rcd in server_sections.rcds %}
+                    <li>{{ rcd.label }}{% if rcd.type_code %} — {{ rcd.type_code|upper }}{% endif %}</li>
+                {% empty %}
+                    <li>{% trans "No RCDs yet." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Usage points" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for point in server_sections.usage_points %}
+                    <li>{{ point.label }} — {{ point.name }}</li>
+                {% empty %}
+                    <li>{% trans "No usage points yet." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Active links" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for link in server_sections.active_links %}
+                    <li>{{ link.circuit.label }} → {{ link.usage_point.label }}</li>
+                {% empty %}
+                    <li>{% trans "No active links." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Inactive links" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for link in server_sections.inactive_links %}
+                    <li>
+                        {{ link.circuit.label }} → {{ link.usage_point.label }}
+                        {% if link.deactivated_at %} — {{ link.deactivated_at }}{% endif %}
+                    </li>
+                {% empty %}
+                    <li>{% trans "No inactive links." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card p-4">
+            <h2 class="font-semibold">{% trans "Recent changes" %}</h2>
+            <ul class="mt-2 space-y-1 text-sm text-muted-foreground">
+                {% for change in server_sections.recent_changes %}
+                    <li>{{ change.entity_type }} — {{ change.action }} — {{ change.created_at }}</li>
+                {% empty %}
+                    <li>{% trans "No recent changes." %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+
+    <div id="electricity-board-root"></div>
+    {{ electricity_page_props|json_script:"electricity-page-props" }}
+
+    <div class="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
+        {% trans "No JavaScript fallback:" %}
+        <a href="/api/electricity/health/" class="underline">/api/electricity/health/</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/electricity/mount-electricity.tsx' %}
+{% endblock %}

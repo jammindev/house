@@ -1,3 +1,4 @@
+# config/urls.py
 from django.contrib import admin
 from django.urls import include, path
 from django.conf.urls.i18n import i18n_patterns
@@ -7,6 +8,7 @@ from accounts.views import (
     app_dashboard_view, app_placeholder_view, app_zones_view, app_components_view,
     app_interactions_view, app_interaction_new_view,
 )
+from electricity.views import app_electricity_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -19,6 +21,7 @@ urlpatterns = [
     path("api/structures/", include("structures.urls")),
     path("api/tags/", include("tags.urls")),
     path("api/equipment/", include("equipment.urls")),
+    path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/incoming/", include("incoming_emails.urls")),
     path("api/core/", include("core.urls")),
@@ -43,6 +46,7 @@ urlpatterns += i18n_patterns(
     path("app/interactions/", app_interactions_view, name="app_interactions"),
     path("app/interactions/new/", app_interaction_new_view, name="app_interaction_new"),
     path("app/zones/", app_zones_view, name="app_zones"),
+    path("app/electricity/", app_electricity_view, name="app_electricity"),
     path("app/contacts/", app_placeholder_view, {"section": "contacts"}, name="app_contacts"),
     path("app/documents/", app_placeholder_view, {"section": "documents"}, name="app_documents"),
     path("app/equipment/", app_placeholder_view, {"section": "equipment"}, name="app_equipment"),

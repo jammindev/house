@@ -119,6 +119,7 @@ DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:applicati
 
 - `/login/`
 - `/dashboard/`
+- `/app/electricity/`
 - `/test-components/`
 - `/admin/`
 
@@ -131,3 +132,11 @@ pytest
 ```
 
 Configuration dans `pytest.ini` avec couverture sur l’app `accounts`.
+
+## Module Électricité (mini-app)
+
+- Route HTML template-first: `/app/electricity/`
+- API: `/api/electricity/boards|rcds|breakers|circuits|usage-points|links|change-logs/`
+- Lookup bidirectionnel: `/api/electricity/mapping/lookup/?ref=<label>`
+- Soft delete lien: `POST /api/electricity/links/<id>/deactivate/`
+- Permissions: owner écriture, member lecture (même foyer uniquement)

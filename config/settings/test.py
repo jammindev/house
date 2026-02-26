@@ -1,15 +1,33 @@
+# config/settings/test.py
 """
 Test settings - optimized for fast test execution.
 """
 from .base import *  # noqa: F403
+import environ
 
-# Use in-memory SQLite for tests (faster)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
+env = environ.Env(USE_SQLITE_TEST_DB=(bool, False))
+environ.Env.read_env(BASE_DIR / ".env.local")  # noqa: F405
+
+# Default to PostgreSQL for test compatibility (ArrayField support).
+# Set USE_SQLITE_TEST_DB=true to force SQLite for constrained environments.
+if env.bool("USE_SQLITE_TEST_DB", default=False):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
     }
-}
+else:
+    postgres_db = env.db(default="postgres://house_user:house_password@localhost:5432/house")
+    postgres_db.setdefault(
+        "TEST",
+        {
+            "NAME": env("TEST_DATABASE_NAME", default=postgres_db.get("NAME", "house")),
+        },
+    )
+    DATABASES = {
+        "default": postgres_db,
+    }
 
 # Test secret key
 SECRET_KEY = "test-secret-key-not-for-production"
@@ -46,3 +64,14 @@ LOGGING_CONFIG = None
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
+
+# Django Vite in test mode (avoid manifest requirement during template rendering)
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": True,
+        "dev_server_host": "localhost",
+        "dev_server_port": 5173,
+        "static_url_prefix": "react",
+        "manifest_path": BASE_DIR / "static" / "react" / ".vite" / "manifest.json",  # noqa: F405
+    }
+}
