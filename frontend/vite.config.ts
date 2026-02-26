@@ -51,7 +51,8 @@ export default defineConfig(({ command }) => ({
         'Select': resolve(__dirname, 'src/web-components/Select.tsx'),
         'Alert': resolve(__dirname, 'src/web-components/Alert.tsx'),
         'Skeleton': resolve(__dirname, 'src/web-components/Skeleton.tsx'),
-        'InteractionList': resolve(__dirname, 'src/web-components/InteractionList.tsx'),
+        'interactions': resolve(__dirname, 'src/pages/interactions.tsx'),
+        'interaction-new': resolve(__dirname, 'src/pages/interaction-new.tsx'),
       },
       output: {
         entryFileNames: 'assets/[name]-[hash].js',

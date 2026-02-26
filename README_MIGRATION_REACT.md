@@ -135,6 +135,42 @@ Après portage:
 - montage template -> `frontend/src/lib/mount.tsx`
 - web component réutilisable -> `frontend/src/web-components/*`
 - page de démo Django -> `templates/app/components_demo.html`
+- composant feature complexe -> `templates/app/*.html` + point de montage `<div id=...>` + entry `frontend/src/pages/*` (pas de Web Component)
+
+## 6.1) Pattern validé pour les lots B (comment c’est fait)
+
+Pour un composant B (liste, formulaire, feature légère), on applique ce flux:
+
+1. **Vue Django**: fetch initial côté serveur (household + dataset principal).
+2. **Template Django**:
+	- ajouter un point de montage `<div id="...">`
+	- injecter les props initiales via `{{ props|json_script:"..." }}`
+3. **Entry frontend page** (`frontend/src/pages/*.tsx`):
+	- utiliser le helper partagé de montage (`frontend/src/lib/mount.tsx`)
+	- `onDomReady(() => mountWithJsonScriptProps(...))`
+	- éviter de dupliquer `createRoot` + parsing `json_script` dans chaque page
+4. **Composant React feature**:
+	- accepter `initial*` (`initialItems`, `initialZones`, `initialLoaded`, etc.)
+	- éviter un fetch initial redondant quand les données serveur existent déjà
+5. **Service API frontend**:
+	- garder les appels DRF pour rafraîchissement / interactions utilisateur (submit, reload, filtres)
+
+Ce pattern est celui utilisé pour:
+- `InteractionList` (`/app/interactions/`)
+- `InteractionCreateForm` (`/app/interactions/new/`)
+
+### 6.2) Convention obligatoire pour les lots B (montage React)
+
+Pour tout nouveau lot B, le montage doit passer par les helpers partagés:
+
+- `onDomReady`
+- `mountWithJsonScriptProps`
+
+Objectif:
+
+- réduire le boilerplate dans `frontend/src/pages/*`
+- standardiser l’injection des props Django (`json_script`)
+- limiter les divergences de comportement entre pages B
 
 ---
 
@@ -149,7 +185,8 @@ Après portage:
 | `legacy/nextjs/src/components/ui/select.tsx` | A | dépendances primitives UI à simplifier | M | `frontend/src/components/ui/select.tsx` + `frontend/src/web-components/Select.tsx` + `templates/app/components_demo.html` | DONE |
 | `legacy/nextjs/src/components/ui/alert.tsx` | A | aucune (UI pure) | S | `frontend/src/components/ui/alert.tsx` + `frontend/src/web-components/Alert.tsx` + `templates/app/components_demo.html` | DONE |
 | `legacy/nextjs/src/components/ui/skeleton.tsx` | A | aucune (UI pure) | S | `frontend/src/components/ui/skeleton.tsx` + `frontend/src/web-components/Skeleton.tsx` + `templates/app/components_demo.html` | DONE |
-| `legacy/nextjs/src/features/interactions/components/InteractionList.tsx` | B | dépend de la donnée interactions + i18n legacy à simplifier | M | `frontend/src/components/features/InteractionList.tsx` + `frontend/src/lib/api/interactions.ts` + `frontend/src/web-components/InteractionList.tsx` + `templates/app/interactions.html` | DONE |
+| `legacy/nextjs/src/features/interactions/components/InteractionList.tsx` | B | dépend de la donnée interactions + i18n legacy à simplifier | M | `frontend/src/components/features/InteractionList.tsx` + `frontend/src/lib/api/interactions.ts` + `frontend/src/pages/interactions.tsx` + `templates/app/interactions.html` + fetch serveur initial + filtres `type/status` + pagination/"voir plus" | DONE |
+| `legacy` interaction creation flow (`/app/interactions/new`) | B | dépend création DRF + zones + validation | M | `frontend/src/components/features/InteractionCreateForm.tsx` + `frontend/src/lib/api/interactions.ts` + `frontend/src/lib/api/zones.ts` + `frontend/src/pages/interaction-new.tsx` + `templates/app/interaction_new.html` + fetch serveur initial + redirection/rafraîchissement liste | DONE |
 
 Légende statut: `TODO`, `IN_PROGRESS`, `DONE`, `BLOCKED`
 
@@ -259,7 +296,7 @@ Prochaine étape:
 	Fichiers modifiés:
 	- `frontend/src/lib/api/interactions.ts`
 	- `frontend/src/components/features/InteractionList.tsx`
-	- `frontend/src/web-components/InteractionList.tsx`
+	- `frontend/src/pages/interactions.tsx`
 	- `frontend/vite.config.ts`
 	- `templates/app/interactions.html`
 	- `accounts/views/template_views.py`
@@ -269,13 +306,80 @@ Prochaine étape:
 	Décisions techniques:
 	- Premier lot B branché sur endpoint DRF existant: `GET /api/interactions/interactions/`.
 	- Service API frontend dédié (`fetchInteractions`) avec normalisation pagination DRF (`results`) ou tableau brut.
-	- Composant exposé en Web Component `ui-interaction-list` pour usage direct en template Django.
+	- Composant complexe monté directement dans un `<div>` (pas de Web Component), via entry `src/pages/interactions.tsx`.
+	- Données initiales préchargées côté serveur (household + interactions) pour le premier rendu.
 	- États UI gérés explicitement: chargement (`Skeleton`), erreur (`Alert`), vide (message), succès (liste).
 	Risques restants:
 	- Le contexte household peut nécessiter `X-Household-Id` explicite si l’utilisateur appartient à plusieurs households.
 	- Version actuelle en lecture seule (pas de filtres avancés/pagination serveur visible).
 	Prochaine étape:
 	- Lot B2: ajouter filtres simples (`type`, `status`) côté template + option de pagination/"voir plus".
+
+- Date: 2026-02-20
+	Lot: B2 — Formulaire de création interactions (priorité demandée)
+	Composants migrés: `InteractionCreateForm`
+	Fichiers modifiés:
+	- `frontend/src/lib/api/interactions.ts`
+	- `frontend/src/lib/api/zones.ts`
+	- `frontend/src/components/features/InteractionCreateForm.tsx`
+	- `frontend/src/pages/interaction-new.tsx`
+	- `frontend/vite.config.ts`
+	- `templates/app/interaction_new.html`
+	- `templates/app/interactions.html`
+	- `accounts/views/template_views.py`
+	- `accounts/views/__init__.py`
+	- `config/urls.py`
+	- `core/permissions.py`
+	- `README_MIGRATION_REACT.md`
+	Décisions techniques:
+	- Passage en priorité sur le formulaire de création, comme demandé, avant les filtres avancés de liste.
+	- **Règle appliquée**: composant complexe monté directement dans un `<div>` (pas de Web Component).
+	- Données initiales fetch côté serveur (household + zones) et injectées pour le rendu initial.
+	- Formulaire connecté à `POST /api/interactions/interactions/` avec session auth + CSRF + gestion `X-Household-Id`.
+	- États UI complets: loading zones (fallback), erreur validation/API, succès après création.
+	Risques restants:
+	- En multi-households, la sélection explicite du household peut rester nécessaire selon le contexte utilisateur.
+	- Pas encore de redirection automatique vers le détail après création.
+	Prochaine étape:
+	- Lot B3: enrichir liste interactions avec filtres `type/status` + rafraîchissement après création.
+
+- Date: 2026-02-20
+	Lot: B3 — Filtres interactions + rafraîchissement post-création
+	Composants migrés: `InteractionList` (filtres `type/status`), `InteractionCreateForm` (redirection post-création)
+	Fichiers modifiés:
+	- `frontend/src/components/features/InteractionList.tsx`
+	- `frontend/src/components/features/InteractionCreateForm.tsx`
+	- `accounts/views/template_views.py`
+	- `README_MIGRATION_REACT.md`
+	Décisions techniques:
+	- Filtres `type` et `status` gérés côté composant React via `GET /api/interactions/interactions/?type=...&status=...`.
+	- Conservation du pattern initial SSR (`initialItems`) avec option `forceReloadOnMount` pour forcer un refetch si nécessaire.
+	- Après création réussie, redirection automatique vers `/app/interactions/?refresh=1` pour déclencher un rafraîchissement explicite de la liste.
+	Risques restants:
+	- Les options de filtres sont actuellement statiques (alignées modèle) et non pilotées dynamiquement par l’API.
+	- Pas encore de persistance des filtres dans l’URL lors de manipulations côté client.
+	Prochaine étape:
+	- Lot B4: pagination côté serveur/"voir plus" + conservation optionnelle des filtres dans l’URL.
+
+- Date: 2026-02-20
+	Lot: B4 — Pagination interactions + persistance filtres URL
+	Composants migrés: `InteractionList` (pagination `limit/offset` + bouton "Voir plus"), API interactions DRF paginée
+	Fichiers modifiés:
+	- `interactions/views.py`
+	- `frontend/src/lib/api/interactions.ts`
+	- `frontend/src/components/features/InteractionList.tsx`
+	- `accounts/views/template_views.py`
+	- `README_MIGRATION_REACT.md`
+	Décisions techniques:
+	- Activation pagination DRF sur `InteractionViewSet` via `LimitOffsetPagination` (default `8`, max `100`).
+	- Service frontend `fetchInteractions` enrichi pour gérer `limit/offset` et métadonnées (`count`, `next`, `previous`).
+	- `InteractionList` ajoute un mode "voir plus" avec append progressif et déduplication défensive des items.
+	- Les filtres `type/status` sont synchronisés dans l’URL via `history.replaceState` pour conserver le contexte de navigation.
+	Risques restants:
+	- Le backend n’expose pas encore dynamiquement la liste des types/status disponibles pour alimenter les selects.
+	- La synchro URL est actuellement unidirectionnelle (état -> URL), pas encore enrichie pour restaurer un état complexe depuis toute query custom.
+	Prochaine étape:
+	- Lot B5: alimenter les filtres depuis métadonnées API + améliorer UX (compteur total/filtres actifs/clear chips).
 
 ---
 

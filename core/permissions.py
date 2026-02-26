@@ -8,18 +8,30 @@ from rest_framework.request import Request
 
 def _extract_household_id(request: Request):
     """Extract household id from common request locations."""
-    header_value = request.headers.get("X-Household-Id")
+    headers = getattr(request, "headers", {}) or {}
+    header_value = headers.get("X-Household-Id")
     if header_value:
         return header_value
 
-    query_value = request.query_params.get("household_id")
+    query_params = getattr(request, "query_params", None)
+    if query_params is None:
+        query_params = getattr(request, "GET", {})
+
+    query_value = query_params.get("household_id")
     if query_value:
         return query_value
 
-    if isinstance(request.data, dict):
-        data_value = request.data.get("household_id") or request.data.get("household")
+    data = getattr(request, "data", None)
+    if isinstance(data, dict):
+        data_value = data.get("household_id") or data.get("household")
         if data_value:
             return str(data_value)
+
+    post_data = getattr(request, "POST", None)
+    if post_data is not None:
+        post_value = post_data.get("household_id") or post_data.get("household")
+        if post_value:
+            return str(post_value)
 
     return None
 

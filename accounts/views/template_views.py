@@ -5,7 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
+from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+
+from core.permissions import resolve_request_household
+from interactions.models import Interaction
+from zones.models import Zone
 
 
 def home_view(request):
@@ -79,8 +84,108 @@ def app_components_view(request):
 
 @login_required
 def app_interactions_view(request):
-    """Interactions page with Lot B read-only list component."""
-    return render(request, 'app/interactions.html')
+    """Interactions page with server-side initial data for first render."""
+    selected_type = (request.GET.get('type') or '').strip()
+    selected_status = (request.GET.get('status') or '').strip()
+    force_reload_on_mount = bool((request.GET.get('refresh') or '').strip())
+
+    selected_household = resolve_request_household(request, required=False)
+    if not selected_household:
+        membership = (
+            request.user.householdmember_set
+            .select_related('household')
+            .order_by('household__name')
+            .first()
+        )
+        selected_household = membership.household if membership else None
+
+    queryset = Interaction.objects.for_user_households(request.user).select_related('created_by').prefetch_related('zones', 'documents')
+    if selected_household:
+        queryset = queryset.filter(household=selected_household)
+    if selected_type:
+        queryset = queryset.filter(type=selected_type)
+    if selected_status:
+        queryset = queryset.filter(status=selected_status)
+
+    total_count = queryset.count()
+    interactions = list(queryset.order_by('-occurred_at')[:8])
+    initial_items = [
+        {
+            'id': str(item.id),
+            'subject': item.subject,
+            'content': item.content,
+            'type': item.type,
+            'status': item.status,
+            'occurred_at': item.occurred_at.isoformat(),
+            'tags': item.tags or [],
+            'zone_names': [zone.name for zone in item.zones.all()],
+            'document_count': item.documents.count(),
+            'created_by_name': item.created_by.get_full_name() if item.created_by else '',
+        }
+        for item in interactions
+    ]
+
+    interactions_list_props = {
+        'title': 'Latest interactions',
+        'type': selected_type,
+        'status': selected_status,
+        'limit': 8,
+        'emptyMessage': 'No interactions available yet.',
+        'householdId': str(selected_household.id) if selected_household else None,
+        'initialItems': initial_items,
+        'initialCount': total_count,
+        'initialLoaded': not force_reload_on_mount,
+        'forceReloadOnMount': force_reload_on_mount,
+    }
+
+    return render(request, 'app/interactions.html', {'interactions_list_props': interactions_list_props})
+
+
+@login_required
+def app_interaction_new_view(request):
+    """Interaction creation page (Lot B form-first) with server-side initial data."""
+    selected_household = resolve_request_household(request, required=False)
+    if not selected_household:
+        membership = (
+            request.user.householdmember_set
+            .select_related('household')
+            .order_by('household__name')
+            .first()
+        )
+        selected_household = membership.household if membership else None
+
+    zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
+    if selected_household:
+        zones_queryset = zones_queryset.filter(household=selected_household)
+
+    zones_payload = [
+        {
+            'id': str(zone.id),
+            'name': zone.name,
+            'full_path': zone.full_path,
+            'color': zone.color,
+        }
+        for zone in zones_queryset.order_by('name')
+    ]
+
+    interaction_create_props = {
+        'title': 'Create interaction',
+        'submitLabel': 'Create',
+        'successMessage': 'Interaction created successfully.',
+        'defaultType': request.GET.get('type', 'note'),
+        'householdId': str(selected_household.id) if selected_household else None,
+        'initialZones': zones_payload,
+        'initialZonesLoaded': True,
+        'redirectToListUrl': f"{reverse('app_interactions')}?refresh=1",
+    }
+
+    return render(
+        request,
+        'app/interaction_new.html',
+        {
+            'interaction_create_props': interaction_create_props,
+        }
+    )
 
 
 def logout_view(request):

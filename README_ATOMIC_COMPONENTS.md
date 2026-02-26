@@ -97,6 +97,16 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
 - `Alert.tsx` → `ui-alert`
 - `Skeleton.tsx` → `ui-skeleton`
 
+### Features complexes déjà migrées (montage direct, sans Web Component)
+- `InteractionList`
+   - template: `templates/app/interactions.html`
+   - entry: `frontend/src/pages/interactions.tsx`
+   - fetch initial serveur: `accounts/views/template_views.py`
+- `InteractionCreateForm`
+   - template: `templates/app/interaction_new.html`
+   - entry: `frontend/src/pages/interaction-new.tsx`
+   - fetch initial serveur: `accounts/views/template_views.py`
+
 ---
 
 ## 5) Suggestions de prochains composants
@@ -137,6 +147,8 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
 - Accessibilité obligatoire (`label`, `focus-visible`, `disabled`, rôles ARIA quand nécessaire).
 - Pas de refactor large non demandé.
 - Lots petits (1–2 composants max).
+- Important: cette règle s’applique aux **composants atomiques**.
+   Les composants **features complexes** (ex: formulaires métier) doivent être montés directement dans un `div` depuis `frontend/src/pages/*`, avec données initiales fetch côté serveur, sans Web Component.
 
 ---
 

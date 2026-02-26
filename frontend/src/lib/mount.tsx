@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 
 /**
@@ -41,4 +41,40 @@ export function autoMount() {
     // You'll need to register components here or use dynamic imports
     console.log(`Auto-mounting ${componentName} with props:`, props);
   });
+}
+
+export function onDomReady(callback: () => void) {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', callback, { once: true });
+    return;
+  }
+
+  callback();
+}
+
+export function mountWithJsonScriptProps<P extends object>(
+  mountNodeId: string,
+  propsScriptId: string,
+  Component: React.ComponentType<P>
+) {
+  const mountNode = document.getElementById(mountNodeId);
+  if (!mountNode) return;
+
+  const propsNode = document.getElementById(propsScriptId);
+  let props: Partial<P> = {};
+
+  if (propsNode?.textContent) {
+    try {
+      props = JSON.parse(propsNode.textContent) as Partial<P>;
+    } catch {
+      props = {};
+    }
+  }
+
+  const root = createRoot(mountNode);
+  root.render(
+    <StrictMode>
+      {createElement(Component, props as P)}
+    </StrictMode>
+  );
 }
