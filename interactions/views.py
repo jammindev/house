@@ -3,6 +3,7 @@ Interaction views for REST API.
 """
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
@@ -30,6 +31,12 @@ class InteractionViewSet(viewsets.ModelViewSet):
     search_fields = ['subject', 'content', 'enriched_text', 'tags']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
+
+    class Pagination(LimitOffsetPagination):
+        default_limit = 8
+        max_limit = 100
+
+    pagination_class = Pagination
     
     def get_queryset(self):
         """Filter interactions to households where current user is a member."""

@@ -10,6 +10,7 @@ from .template_views import (
     app_zones_view,
     app_components_view,
     app_interactions_view,
+    app_interaction_new_view,
 )
 
 __all__ = [
@@ -24,4 +25,5 @@ __all__ = [
     'app_zones_view',
     'app_components_view',
     'app_interactions_view',
+    'app_interaction_new_view',
 ]
