@@ -1,3 +1,4 @@
+# config/settings/base.py
 """
 Base settings for house backend.
 """
@@ -36,6 +37,7 @@ INSTALLED_APPS = [
     "structures",
     "tags",
     "equipment",
+    "electricity",
     "projects",
     "incoming_emails",
 ]

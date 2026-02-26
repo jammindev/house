@@ -80,6 +80,19 @@ Encore principalement côté `legacy` (pas porté complètement côté Django):
 - `GET|POST|... /api/interactions/interaction-contacts/`
 - `GET|POST|... /api/interactions/interaction-structures/`
 - `GET|POST|... /api/todo/`
+- `GET|POST|... /api/electricity/boards/`
+- `GET|POST|... /api/electricity/rcds/`
+- `GET|POST|... /api/electricity/breakers/`
+- `GET|POST|... /api/electricity/circuits/`
+- `GET|POST|... /api/electricity/usage-points/`
+- `GET|POST|... /api/electricity/links/`
+- `GET /api/electricity/change-logs/`
+- `GET /api/electricity/mapping/lookup/`
+- `POST /api/electricity/links/{id}/deactivate/`
+
+### Page mini-app
+
+- `/app/electricity/`: page Django template-first avec nœud React de lookup ciblé
 
 ### Permissions (legacy RLS -> Django)
 
