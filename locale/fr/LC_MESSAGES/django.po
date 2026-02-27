@@ -359,13 +359,8 @@ msgstr "Tableau de bord"
 
 #: templates/app/dashboard.html:11
 #, python-format
-msgid ""
-"\n"
-"                Welcome back, %(name)s\n"
-"            "
-msgstr "
-                Bienvenue, %(name)s
-            "
+msgid "Welcome back, %(name)s"
+msgstr "Bienvenue, %(name)s"
 
 #: templates/app/dashboard.html:15
 msgid "Here's an overview of your house."
@@ -398,13 +393,8 @@ msgstr "En cours"
 
 #: templates/app/placeholder.html:21
 #, python-format
-msgid ""
-"\n"
-"                The <strong>%(section)s</strong> section is being migrated from the legacy app.\n"
-"            "
-msgstr "
-                La section <strong>%(section)s</strong> est en cours de migration depuis l'ancienne application.
-            "
+msgid "The <strong>%(section)s</strong> section is being migrated from the legacy app."
+msgstr "La section <strong>%(section)s</strong> est en cours de migration depuis l'ancienne application."
 
 #: templates/base_app.html:39
 msgid "Open menu"

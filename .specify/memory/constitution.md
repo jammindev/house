@@ -1,18 +1,17 @@
 <!--
 Sync Impact Report
-- Version change: 1.1.0 → 1.2.0
-- Modified principles:
-  - III. Contract-First API & UI Boundary: ajout mention client API généré (gen:api OpenAPI)
-  - V. Migration Safety: correction du chemin `frontend/` → `ui/`
-- Added sections: None
+- Version change: 1.2.0 → 1.3.0
+- Modified principles: None
+- Added sections:
+  - VI. Internationalisation & Localisation (nouveau principe MUST)
 - Removed sections: None
 - Technical Standards enrichis:
-  - Alpine.js, HTMX, Tailwind CSS, Lucide ajoutés
-  - Pattern mini-SPA par page explicité (web-components supprimés, ne pas réintroduire)
-  - Client API (gen:api OpenAPI) formalisé comme source de vérité des types React
-  - Détails scoping multi-tenant (HouseholdScopedModel, résolution X-Household-Id)
+  - Couche i18n Django (LocaleMiddleware, i18n_patterns, {% trans %}, locale/.po/.mo)
+  - Couche i18n React (i18next, react-i18next, ui/src/locales/{en,fr,de,es}/translation.json)
+  - Règle de synchronisation des 4 langues simultanément
+  - Mécanisme de détection (html[lang] → i18next)
 - Templates requiring updates:
-  - ✅ no change needed: .specify/templates/plan-template.md (templates génériques)
+  - ✅ no change needed: .specify/templates/plan-template.md
   - ✅ no change needed: .specify/templates/spec-template.md
   - ✅ no change needed: .specify/templates/tasks-template.md
   - ✅ no change needed: .specify/templates/checklist-template.md
@@ -60,6 +59,35 @@ Sync Impact Report
 - Les implémentations DOIVENT respecter le code actif (`config/`, apps Django, `templates/`, `ui/`).
 - Les refactors larges hors périmètre DOIVENT être évités.
 
+### VI. Internationalisation & Localisation (MUST)
+
+**Langues supportées** : `en` (référence), `fr`, `de`, `es`.
+
+**Couche Django (templates SSR)**
+- `USE_I18N = True` + `LocaleMiddleware` DOIVENT rester actifs.
+- Toutes les chaînes visibles dans les templates DOIVENT utiliser `{% trans %}` ou `{% blocktrans %}`.
+  Aucune chaîne UI codée en dur en dehors de ces balises n'est admise.
+- Les fichiers `.po` vivent dans `locale/<lang>/LC_MESSAGES/django.po` et DOIVENT être compilés
+  (`.mo`) avant tout déploiement (`python manage.py compilemessages`).
+- Les nouvelles chaînes DOIVENT être ajoutées dans les 4 fichiers `.po` (ou via `fill_translations.py`).
+- Toutes les URLs web DOIVENT rester sous `i18n_patterns` → préfixe langue dans l'URL (`/fr/app/...`).
+- Le sélecteur de langue expose `/i18n/` (inclus depuis `django.conf.urls.i18n`).
+
+**Couche React (mini-SPAs)**
+- `i18next` + `react-i18next` sont les seules bibliothèques de traduction autorisées côté React.
+- La langue DOIT être détectée une seule fois depuis l'attribut `lang` de `<html>`, positionné par
+  Django via `{% get_current_language %}` — aucune détection navigateur indépendante ne DOIT être
+  introduite.
+- Chaque clé de traduction DOIT exister simultanément dans les 4 fichiers JSON :
+  `ui/src/locales/{en,fr,de,es}/translation.json`.
+- Les clés DOIVENT être organisées par namespace d'app (`electricity.*`, `interactions.*`, etc.) pour
+  limiter les risques de collision.
+- Aucune chaîne UI codée en dur dans les composants React — DOIT toujours passer par `useTranslation`.
+
+**Synchronisation entre les deux couches**
+- Les contrats de feature DOIVENT lister les chaînes nouvelles à ajouter dans les deux couches
+  (`.po` et JSON) pour éviter les oublis de traduction en livraison.
+
 ## Technical Standards
 
 - **Backend**: Django 5 + DRF; auth session Django (cookies + CSRF); permissions via `core.permissions`.
@@ -97,4 +125,4 @@ Sync Impact Report
 - Une revue de conformité constitutionnelle DOIT être effectuée à minima lors de chaque
   cycle de planification feature (`spec`/`plan`/`tasks`).
 
-**Version**: 1.2.0 | **Ratified**: 2026-02-26 | **Last Amended**: 2026-02-27
+**Version**: 1.3.0 | **Ratified**: 2026-02-26 | **Last Amended**: 2026-02-27

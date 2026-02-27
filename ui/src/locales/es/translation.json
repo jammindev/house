@@ -1,0 +1,119 @@
+{
+  "common": {
+    "yes": "sí",
+    "no": "no"
+  },
+  "electricity": {
+    "api_workspace_title": "Área de trabajo de la API de electricidad",
+    "api_workspace_desc": "El SSR inicializa los datos, todas las acciones en la aplicación llaman a la API.",
+    "owner_label": "Propietario",
+    "circuits_label": "Circuitos",
+    "breakers_label": "Disyuntores",
+    "usage_points_label": "Puntos de uso",
+    "panel_board": "Cuadro",
+    "panel_breaker": "Disyuntor",
+    "panel_circuit": "Circuito",
+    "panel_usage_point": "Punto de uso y enlace",
+    "active_links": "Vínculos activos",
+    "btn_create": "Crear",
+    "btn_create_usage_point": "Crear punto de uso",
+    "btn_create_link": "Crear enlace",
+    "btn_deactivate": "Desactivar",
+    "btn_lookup": "Buscar",
+    "btn_loading": "Cargando...",
+    "lookup_placeholder": "Buscar por etiqueta (disyuntor/circuito/punto de uso)",
+    "select_breaker": "Seleccionar disyuntor",
+    "no_phase": "Sin fase",
+    "select_circuit": "Seleccionar circuito",
+    "select_usage_point": "Seleccionar punto de uso",
+    "circuit_name_placeholder": "Nombre del circuito",
+    "usage_name_placeholder": "Nombre del punto de uso",
+    "default_board_name": "Cuadro principal",
+    "error_reference_required": "Referencia requerida.",
+    "error_not_found": "No encontrado.",
+    "error_lookup_failed": "Búsqueda fallida.",
+    "error_board_exists": "Ya existe un cuadro activo para este hogar.",
+    "error_create_board_first": "Cree primero el cuadro.",
+    "error_circuit_fields": "La etiqueta y el nombre del circuito son requeridos.",
+    "error_select_breaker": "Seleccione un disyuntor antes de crear un circuito.",
+    "error_select_phase": "Seleccione una fase (L1/L2/L3) para un cuadro trifásico.",
+    "error_request_failed": "Solicitud fallida.",
+    "success_board_created": "Cuadro creado.",
+    "success_breaker_created": "Disyuntor creado.",
+    "success_circuit_created": "Circuito creado.",
+    "success_usage_point_created": "Punto de uso creado.",
+    "success_link_created": "Enlace creado.",
+    "success_link_deactivated": "Enlace desactivado."
+  },
+  "interactions": {
+    "form_title": "Crear interacción",
+    "submit_label": "Crear interacción",
+    "success_message": "Interacción creada con éxito.",
+    "subject_label": "Asunto",
+    "subject_placeholder": "Resumen breve",
+    "type_label": "Tipo",
+    "status_label": "Estado (tarea)",
+    "date_label": "Fecha y hora",
+    "description_label": "Descripción",
+    "description_placeholder": "Detalles",
+    "tags_label": "Etiquetas (separadas por comas)",
+    "tags_placeholder": "urgente, caldera, factura",
+    "zones_legend": "Zonas",
+    "zones_loading": "Cargando zonas\u2026",
+    "zones_empty": "No hay zonas disponibles.",
+    "zones_error": "No se pudieron cargar las zonas.",
+    "error_subject_required": "El asunto es requerido.",
+    "error_zone_required": "Seleccione al menos una zona.",
+    "error_invalid_date": "Fecha inválida.",
+    "error_create_failed": "No se pudo crear la interacción. Verifique los campos y el contexto del hogar.",
+    "error_title": "Error de creación",
+    "success_title": "Éxito",
+    "redirect_notice": "Redirigiendo a interacciones\u2026",
+    "creating": "Creando\u2026",
+    "list_title": "Últimas interacciones",
+    "list_empty": "No se encontraron interacciones para este filtro.",
+    "filter_type": "Tipo",
+    "filter_status": "Estado",
+    "all_types": "Todos los tipos",
+    "all_statuses": "Todos los estados",
+    "reset_filters": "Restablecer",
+    "error_load_failed": "No se pudieron cargar las interacciones.",
+    "error_load_more_failed": "No se pudieron cargar más interacciones.",
+    "loading_error_title": "Error de carga",
+    "load_more": "Ver más",
+    "loading_more": "Cargando\u2026"
+  },
+  "zones": {
+    "app_title": "Mini-app Zonas",
+    "count_loaded": "{{count}} zona(s) cargada(s) desde las props SSR.",
+    "no_zones": "Todavía no hay zonas."
+  },
+  "tasks": {
+    "app_title": "Mini-app Tareas",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "settings": {
+    "app_title": "Mini-app Configuración",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "photos": {
+    "app_title": "Mini-app Fotos",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "contacts": {
+    "app_title": "Mini-app Contactos",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "documents": {
+    "app_title": "Mini-app Documentos",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "equipment": {
+    "app_title": "Mini-app Equipos",
+    "section_label": "Nodo Django de sección: {{section}}"
+  },
+  "projects": {
+    "app_title": "Mini-app Proyectos",
+    "section_label": "Nodo Django de sección: {{section}}"
+  }
+}

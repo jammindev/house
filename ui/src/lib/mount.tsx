@@ -1,3 +1,5 @@
+import './i18n'; // Initialize i18next before any component renders
+
 import { StrictMode, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 

@@ -1,16 +1,10 @@
-{% load i18n %}
+{% load i18n i18n_extras %}
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as AVAILABLE_LANGUAGES %}
 {# Sidebar — portage Sidebar.tsx. Alpine.js = mobile toggle, hx-boost = nav SPA-like, request.path = active link #}
 
 {# ── Overlay backdrop mobile ────────────────────────────────────────────────── #}
 <div x-show="sidebarOpen"
-     x-transition:enter="transition-opacity duration-300"
-     x-transition:enter-start="opacity-0"
-     x-transition:enter-end="opacity-100"
-     x-transition:leave="transition-opacity duration-300"
-     x-transition:leave-start="opacity-100"
-     x-transition:leave-end="opacity-0"
      @click="sidebarOpen = false"
      class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
      x-cloak>
@@ -21,7 +15,6 @@
      class="fixed inset-y-0 left-0 w-72
             bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-2xl
             border-r border-gray-200/50 shadow-2xl
-            transform transition-all duration-300 ease-out
             z-50 flex flex-col
             lg:translate-x-0">
 
@@ -31,7 +24,7 @@
             House
         </span>
         <button @click="sidebarOpen = false"
-                class="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100/80 active:scale-95 transition-all duration-200"
+                class="lg:hidden text-gray-500 hover:text-gray-700 p-2 rounded-xl hover:bg-gray-100/80 active:scale-95"
                 aria-label="{% trans 'Close menu' %}">
             <i data-lucide="x" class="h-5 w-5"></i>
         </button>
@@ -49,12 +42,12 @@
         <a href="{{ url_dashboard }}"
            {% if request.path == url_dashboard %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="layout-dashboard"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Dashboard" %}
@@ -64,12 +57,12 @@
         <a href="{{ url_tasks }}"
            {% if request.path == url_tasks %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="list-todo"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Tasks" %}
@@ -79,12 +72,12 @@
         <a href="{{ url_projects }}"
            {% if request.path == url_projects %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="folder-kanban"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Projects" %}
@@ -94,27 +87,42 @@
         <a href="{{ url_equipment }}"
            {% if request.path == url_equipment %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="wrench"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Equipment" %}
+        </a>
+
+        {% url 'app_electricity' as url_electricity %}
+        <a href="{{ url_electricity }}"
+           {% if request.path == url_electricity %}aria-current="page"{% endif %}
+           @click="sidebarOpen = false"
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
+                  text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
+                  aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
+                  aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
+            <i data-lucide="zap"
+               class="mr-3 h-5 w-5 shrink-0
+                      text-gray-400 group-hover:text-gray-600
+                      group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
+            {% trans "Electricity" %}
         </a>
 
         {% url 'app_zones' as url_zones %}
         <a href="{{ url_zones }}"
            {% if request.path == url_zones %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="map-pin"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Zones" %}
@@ -124,12 +132,12 @@
         <a href="{{ url_contacts }}"
            {% if request.path == url_contacts %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="users"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Directory" %}
@@ -139,12 +147,12 @@
         <a href="{{ url_documents }}"
            {% if request.path == url_documents %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="file-text"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Documents" %}
@@ -154,12 +162,12 @@
         <a href="{{ url_photos }}"
            {% if request.path == url_photos %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="image"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Photos" %}
@@ -169,12 +177,12 @@
         <a href="{{ url_interactions }}"
            {% if request.path == url_interactions %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="notebook"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Interactions" %}
@@ -184,12 +192,12 @@
         <a href="{{ url_settings }}"
            {% if request.path == url_settings %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
-           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl transition-[background-color,border-color,color,box-shadow,transform] duration-200 ease-out
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]
                   aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
                   aria-[current=page]:text-primary-700 aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary-200/50">
             <i data-lucide="user"
-               class="mr-3 h-5 w-5 shrink-0 transition-all duration-300
+               class="mr-3 h-5 w-5 shrink-0
                       text-gray-400 group-hover:text-gray-600
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Settings" %}
@@ -215,13 +223,13 @@
 
         {# Language switcher #}
         <div class="mb-3">
-            <form method="post" action="{% url 'set_language' %}" id="language-switcher-form">
+            <form id="language-switcher-form" method="post" action="{% url 'set_language' %}">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                <input name="next" type="hidden" value="{{ request.get_full_path|strip_lang_prefix }}">
                 <div class="flex gap-1 rounded-xl bg-gray-100/60 p-1">
                     {% for lang_code, lang_name in AVAILABLE_LANGUAGES %}
                     <button type="submit" name="language" value="{{ lang_code }}"
-                            class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-all duration-150 active:scale-95
+                            class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium active:scale-95
                                    {% if lang_code == CURRENT_LANGUAGE %}bg-white shadow-sm text-primary-700 font-semibold{% else %}text-gray-500 hover:text-gray-700{% endif %}">
                         {{ lang_code|upper }}
                     </button>
@@ -235,7 +243,7 @@
             {% csrf_token %}
             <button type="submit"
                     class="flex items-center w-full px-4 py-2.5 text-sm font-medium text-red-600
-                           hover:bg-red-50/80 hover:text-red-700 rounded-xl transition-all duration-200 active:scale-[0.98]">
+                           hover:bg-red-50/80 hover:text-red-700 rounded-xl active:scale-[0.98]">
                 <i data-lucide="log-out" class="mr-3 h-4 w-4 text-red-400 shrink-0"></i>
                 {% trans "Sign out" %}
             </button>

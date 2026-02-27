@@ -18,7 +18,7 @@
             {% trans "In progress" %}
         </h2>
         <p class="text-sm text-gray-400 max-w-xs mx-auto">
-            {% blocktrans with section=title %}
+            {% blocktrans trimmed with section=title %}
                 The <strong>{{ section }}</strong> section is being migrated from the legacy app.
             {% endblocktrans %}
         </p>

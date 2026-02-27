@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -46,17 +47,21 @@ function nowLocalDateTimeInput(): string {
 }
 
 export function InteractionCreateForm({
-  title = 'Create interaction',
+  title,
   householdId,
   defaultType = 'note',
-  submitLabel = 'Create interaction',
-  successMessage = 'Interaction created successfully.',
+  submitLabel,
+  successMessage,
   initialZones = [],
   initialZonesLoaded = false,
   onCreated,
   redirectToListUrl,
   redirectDelayMs = 800,
 }: InteractionCreateFormProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('interactions.form_title');
+  const resolvedSubmitLabel = submitLabel ?? t('interactions.submit_label');
+  const resolvedSuccessMessage = successMessage ?? t('interactions.success_message');
   const [zones, setZones] = React.useState<ZoneOption[]>(initialZones);
   const [zonesLoading, setZonesLoading] = React.useState(!initialZonesLoaded);
   const [zonesError, setZonesError] = React.useState<string | null>(null);
@@ -88,7 +93,7 @@ export function InteractionCreateForm({
         const data = await fetchZones(householdId);
         if (isMounted) setZones(data);
       } catch {
-        if (isMounted) setZonesError('Unable to load zones.');
+        if (isMounted) setZonesError(t('interactions.zones_error'));
       } finally {
         if (isMounted) setZonesLoading(false);
       }
@@ -116,18 +121,18 @@ export function InteractionCreateForm({
     setSuccess(null);
 
     if (!subject.trim()) {
-      setError('Subject is required.');
+      setError(t('interactions.error_subject_required'));
       return;
     }
 
     if (zoneIds.length === 0) {
-      setError('Select at least one zone.');
+      setError(t('interactions.error_zone_required'));
       return;
     }
 
     const occurredISO = new Date(occurredAt).toISOString();
     if (Number.isNaN(new Date(occurredISO).getTime())) {
-      setError('Invalid date.');
+      setError(t('interactions.error_invalid_date'));
       return;
     }
 
@@ -150,7 +155,7 @@ export function InteractionCreateForm({
         householdId
       );
 
-      setSuccess(successMessage);
+      setSuccess(resolvedSuccessMessage);
       setSubject('');
       setContent('');
       setTagsText('');
@@ -167,7 +172,7 @@ export function InteractionCreateForm({
         }, redirectDelayMs);
       }
     } catch {
-      setError('Unable to create interaction. Please verify fields and household context.');
+      setError(t('interactions.error_create_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -176,19 +181,19 @@ export function InteractionCreateForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base">{resolvedTitle}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label htmlFor="interaction-subject" className="text-sm font-medium">
-              Subject
+              {t('interactions.subject_label')}
             </label>
             <Input
               id="interaction-subject"
               value={subject}
               onChange={(event) => setSubject(event.target.value)}
-              placeholder="Short summary"
+              placeholder={t('interactions.subject_placeholder')}
               required
             />
           </div>
@@ -196,7 +201,7 @@ export function InteractionCreateForm({
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="interaction-type" className="text-sm font-medium">
-                Type
+                {t('interactions.type_label')}
               </label>
               <select
                 id="interaction-type"
@@ -214,7 +219,7 @@ export function InteractionCreateForm({
 
             <div className="space-y-2">
               <label htmlFor="interaction-status" className="text-sm font-medium">
-                Status (todo)
+                {t('interactions.status_label')}
               </label>
               <select
                 id="interaction-status"
@@ -234,7 +239,7 @@ export function InteractionCreateForm({
 
           <div className="space-y-2">
             <label htmlFor="interaction-occurred-at" className="text-sm font-medium">
-              Date and time
+              {t('interactions.date_label')}
             </label>
             <Input
               id="interaction-occurred-at"
@@ -247,37 +252,37 @@ export function InteractionCreateForm({
 
           <div className="space-y-2">
             <label htmlFor="interaction-content" className="text-sm font-medium">
-              Description
+              {t('interactions.description_label')}
             </label>
             <Textarea
               id="interaction-content"
               rows={5}
               value={content}
               onChange={(event) => setContent(event.target.value)}
-              placeholder="Details"
+              placeholder={t('interactions.description_placeholder')}
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="interaction-tags" className="text-sm font-medium">
-              Tags (comma separated)
+              {t('interactions.tags_label')}
             </label>
             <Input
               id="interaction-tags"
               value={tagsText}
               onChange={(event) => setTagsText(event.target.value)}
-              placeholder="urgent, boiler, invoice"
+              placeholder={t('interactions.tags_placeholder')}
             />
           </div>
 
           <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Zones</legend>
+            <legend className="text-sm font-medium">{t('interactions.zones_legend')}</legend>
 
-            {zonesLoading ? <p className="text-xs text-muted-foreground">Loading zones…</p> : null}
+            {zonesLoading ? <p className="text-xs text-muted-foreground">{t('interactions.zones_loading')}</p> : null}
             {zonesError ? <p className="text-xs text-destructive">{zonesError}</p> : null}
 
             {!zonesLoading && !zonesError && zones.length === 0 ? (
-              <p className="text-xs text-muted-foreground">No zones available.</p>
+              <p className="text-xs text-muted-foreground">{t('interactions.zones_empty')}</p>
             ) : null}
 
             {!zonesLoading && !zonesError && zones.length > 0 ? (
@@ -301,7 +306,7 @@ export function InteractionCreateForm({
 
           {error ? (
             <Alert variant="destructive">
-              <AlertTitle>Creation error</AlertTitle>
+              <AlertTitle>{t('interactions.error_title')}</AlertTitle>
               <AlertDescription>
                 <p>{error}</p>
               </AlertDescription>
@@ -310,11 +315,11 @@ export function InteractionCreateForm({
 
           {success ? (
             <Alert>
-              <AlertTitle>Success</AlertTitle>
+              <AlertTitle>{t('interactions.success_title')}</AlertTitle>
               <AlertDescription>
                 <p>{success}</p>
                 {redirectToListUrl ? (
-                  <p className="mt-1 text-xs text-muted-foreground">Redirecting to interactions…</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t('interactions.redirect_notice')}</p>
                 ) : null}
               </AlertDescription>
             </Alert>
@@ -322,7 +327,7 @@ export function InteractionCreateForm({
 
           <div className="flex items-center justify-end">
             <Button type="submit" disabled={submitting || zonesLoading}>
-              {submitting ? 'Creating…' : submitLabel}
+              {submitting ? t('interactions.creating') : resolvedSubmitLabel}
             </Button>
           </div>
         </form>
