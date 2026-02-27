@@ -360,13 +360,8 @@ msgstr "Übersicht"
 
 #: templates/app/dashboard.html:11
 #, python-format
-msgid ""
-"\n"
-"                Welcome back, %(name)s\n"
-"            "
-msgstr "
-                Willkommen zurück, %(name)s
-            "
+msgid "Welcome back, %(name)s"
+msgstr "Willkommen zurück, %(name)s"
 
 #: templates/app/dashboard.html:15
 msgid "Here's an overview of your house."
@@ -399,13 +394,8 @@ msgstr "In Bearbeitung"
 
 #: templates/app/placeholder.html:21
 #, python-format
-msgid ""
-"\n"
-"                The <strong>%(section)s</strong> section is being migrated from the legacy app.\n"
-"            "
-msgstr "
-                Der Abschnitt <strong>%(section)s</strong> wird von der Legacy-App migriert.
-            "
+msgid "The <strong>%(section)s</strong> section is being migrated from the legacy app."
+msgstr "Der Abschnitt <strong>%(section)s</strong> wird von der Legacy-App migriert."
 
 #: templates/base_app.html:39
 msgid "Open menu"

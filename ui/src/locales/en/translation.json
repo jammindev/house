@@ -1,0 +1,119 @@
+{
+  "common": {
+    "yes": "yes",
+    "no": "no"
+  },
+  "electricity": {
+    "api_workspace_title": "Electricity API workspace",
+    "api_workspace_desc": "SSR initializes data, all in-app actions call the API.",
+    "owner_label": "Owner",
+    "circuits_label": "Circuits",
+    "breakers_label": "Breakers",
+    "usage_points_label": "Usage points",
+    "panel_board": "Board",
+    "panel_breaker": "Breaker",
+    "panel_circuit": "Circuit",
+    "panel_usage_point": "Usage point and link",
+    "active_links": "Active links",
+    "btn_create": "Create",
+    "btn_create_usage_point": "Create usage point",
+    "btn_create_link": "Create link",
+    "btn_deactivate": "Deactivate",
+    "btn_lookup": "Lookup",
+    "btn_loading": "Loading...",
+    "lookup_placeholder": "Find by label (breaker/circuit/usage point)",
+    "select_breaker": "Select breaker",
+    "no_phase": "No phase",
+    "select_circuit": "Select circuit",
+    "select_usage_point": "Select usage point",
+    "circuit_name_placeholder": "Circuit name",
+    "usage_name_placeholder": "Usage point name",
+    "default_board_name": "Main board",
+    "error_reference_required": "Reference required.",
+    "error_not_found": "Not found.",
+    "error_lookup_failed": "Lookup failed.",
+    "error_board_exists": "An active board already exists for this household.",
+    "error_create_board_first": "Create board first.",
+    "error_circuit_fields": "Circuit label and name are required.",
+    "error_select_breaker": "Select a breaker before creating a circuit.",
+    "error_select_phase": "Select a phase (L1/L2/L3) for a three-phase board.",
+    "error_request_failed": "Request failed.",
+    "success_board_created": "Board created.",
+    "success_breaker_created": "Breaker created.",
+    "success_circuit_created": "Circuit created.",
+    "success_usage_point_created": "Usage point created.",
+    "success_link_created": "Link created.",
+    "success_link_deactivated": "Link deactivated."
+  },
+  "interactions": {
+    "form_title": "Create interaction",
+    "submit_label": "Create interaction",
+    "success_message": "Interaction created successfully.",
+    "subject_label": "Subject",
+    "subject_placeholder": "Short summary",
+    "type_label": "Type",
+    "status_label": "Status (todo)",
+    "date_label": "Date and time",
+    "description_label": "Description",
+    "description_placeholder": "Details",
+    "tags_label": "Tags (comma separated)",
+    "tags_placeholder": "urgent, boiler, invoice",
+    "zones_legend": "Zones",
+    "zones_loading": "Loading zones\u2026",
+    "zones_empty": "No zones available.",
+    "zones_error": "Unable to load zones.",
+    "error_subject_required": "Subject is required.",
+    "error_zone_required": "Select at least one zone.",
+    "error_invalid_date": "Invalid date.",
+    "error_create_failed": "Unable to create interaction. Please verify fields and household context.",
+    "error_title": "Creation error",
+    "success_title": "Success",
+    "redirect_notice": "Redirecting to interactions\u2026",
+    "creating": "Creating\u2026",
+    "list_title": "Latest interactions",
+    "list_empty": "No interactions found for this filter.",
+    "filter_type": "Type",
+    "filter_status": "Status",
+    "all_types": "All types",
+    "all_statuses": "All statuses",
+    "reset_filters": "Reset",
+    "error_load_failed": "Unable to load interactions.",
+    "error_load_more_failed": "Unable to load more interactions.",
+    "loading_error_title": "Loading error",
+    "load_more": "Load more",
+    "loading_more": "Loading\u2026"
+  },
+  "zones": {
+    "app_title": "Zones mini-app",
+    "count_loaded": "{{count}} zone(s) loaded from SSR props.",
+    "no_zones": "No zones yet."
+  },
+  "tasks": {
+    "app_title": "Tasks mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "settings": {
+    "app_title": "Settings mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "photos": {
+    "app_title": "Photos mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "contacts": {
+    "app_title": "Contacts mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "documents": {
+    "app_title": "Documents mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "equipment": {
+    "app_title": "Equipment mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  },
+  "projects": {
+    "app_title": "Projects mini-app",
+    "section_label": "Django app scoped node: {{section}}"
+  }
+}

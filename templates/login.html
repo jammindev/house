@@ -1,5 +1,5 @@
 {% extends "base_public.html" %}
-{% load i18n %}
+{% load i18n i18n_extras %}
 {% get_current_language as CURRENT_LANGUAGE %}
 {% get_available_languages as AVAILABLE_LANGUAGES %}
 
@@ -83,7 +83,7 @@
         <div class="mt-4 flex justify-center">
             <form method="post" action="{% url 'set_language' %}" class="flex gap-1 rounded-xl bg-gray-100/60 p-1">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                <input name="next" type="hidden" value="{{ request.get_full_path|strip_lang_prefix }}">
                 {% for lang_code, lang_name in AVAILABLE_LANGUAGES %}
                 <button type="submit" name="language" value="{{ lang_code }}"
                         class="rounded-lg px-3 py-1.5 text-xs font-medium transition-all duration-150

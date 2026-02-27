@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
@@ -60,18 +61,21 @@ function LoadingState() {
 }
 
 export function InteractionList({
-  title = 'Latest interactions',
+  title,
   type,
   status,
   limit = 8,
   householdId,
-  emptyMessage = 'No interactions found for this filter.',
+  emptyMessage,
   initialItems = [],
   initialCount,
   initialLoaded = false,
   forceReloadOnMount = false,
   syncFiltersWithUrl = true,
 }: InteractionListProps) {
+  const { t } = useTranslation();
+  const resolvedTitle = title ?? t('interactions.list_title');
+  const resolvedEmptyMessage = emptyMessage ?? t('interactions.list_empty');
   const initialType = type ?? '';
   const initialStatus = status ?? '';
 
@@ -125,7 +129,7 @@ export function InteractionList({
         }
       } catch {
         if (isMounted) {
-          setError('Unable to load interactions.');
+          setError(t('interactions.error_load_failed'));
         }
       } finally {
         if (isMounted) {
@@ -198,7 +202,7 @@ export function InteractionList({
       setItems((previous) => [...previous, ...appended]);
       setTotalCount(data.count);
     } catch {
-      setError('Unable to load more interactions.');
+      setError(t('interactions.error_load_more_failed'));
     } finally {
       setLoadingMore(false);
     }
@@ -209,7 +213,7 @@ export function InteractionList({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle className="text-base">{resolvedTitle}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
@@ -218,7 +222,7 @@ export function InteractionList({
               htmlFor="interactions-filter-type"
               className="text-xs font-medium text-muted-foreground"
             >
-              Type
+              {t('interactions.filter_type')}
             </label>
             <select
               id="interactions-filter-type"
@@ -226,7 +230,7 @@ export function InteractionList({
               value={selectedType}
               onChange={(event) => setSelectedType(event.target.value)}
             >
-              <option value="">All types</option>
+              <option value="">{t('interactions.all_types')}</option>
               {TYPE_OPTIONS.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -240,7 +244,7 @@ export function InteractionList({
               htmlFor="interactions-filter-status"
               className="text-xs font-medium text-muted-foreground"
             >
-              Status
+              {t('interactions.filter_status')}
             </label>
             <select
               id="interactions-filter-status"
@@ -248,7 +252,7 @@ export function InteractionList({
               value={selectedStatus}
               onChange={(event) => setSelectedStatus(event.target.value)}
             >
-              <option value="">All statuses</option>
+              <option value="">{t('interactions.all_statuses')}</option>
               {STATUS_OPTIONS.map((value) => (
                 <option key={value} value={value}>
                   {value}
@@ -263,7 +267,7 @@ export function InteractionList({
             onClick={resetFilters}
             disabled={!selectedType && !selectedStatus}
           >
-            Reset
+            {t('interactions.reset_filters')}
           </button>
         </div>
 
@@ -271,7 +275,7 @@ export function InteractionList({
 
         {!loading && error ? (
           <Alert variant="destructive">
-            <AlertTitle>Loading error</AlertTitle>
+            <AlertTitle>{t('interactions.loading_error_title')}</AlertTitle>
             <AlertDescription>
               <p>{error}</p>
             </AlertDescription>
@@ -279,7 +283,7 @@ export function InteractionList({
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+          <p className="text-sm text-muted-foreground">{resolvedEmptyMessage}</p>
         ) : null}
 
         {!loading && !error && items.length > 0 ? (
@@ -307,7 +311,7 @@ export function InteractionList({
             {hasMore ? (
               <div className="flex items-center justify-center">
                 <Button type="button" variant="outline" onClick={loadMore} disabled={loadingMore}>
-                  {loadingMore ? 'Loading…' : 'Voir plus'}
+                  {loadingMore ? t('interactions.loading_more') : t('interactions.load_more')}
                 </Button>
               </div>
             ) : null}

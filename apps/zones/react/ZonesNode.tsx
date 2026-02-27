@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 type ZoneItem = {
   id: string;
   name: string;
@@ -12,10 +14,11 @@ type ZonesPageProps = {
 };
 
 export default function ZonesNode({ initialZones }: ZonesPageProps) {
+  const { t } = useTranslation();
   return (
     <section className="rounded-xl border border-border bg-card p-4 text-card-foreground">
-      <h2 className="text-lg font-semibold">Zones mini-app</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{initialZones.length} zone(s) loaded from SSR props.</p>
+      <h2 className="text-lg font-semibold">{t('zones.app_title')}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t('zones.count_loaded', { count: initialZones.length })}</p>
 
       <ul className="mt-3 space-y-1 text-sm text-muted-foreground">
         {initialZones.length ? (
@@ -29,7 +32,7 @@ export default function ZonesNode({ initialZones }: ZonesPageProps) {
             </li>
           ))
         ) : (
-          <li>No zones yet.</li>
+          <li>{t('zones.no_zones')}</li>
         )}
       </ul>
     </section>

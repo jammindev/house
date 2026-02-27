@@ -1,0 +1,119 @@
+{
+  "common": {
+    "yes": "ja",
+    "no": "nein"
+  },
+  "electricity": {
+    "api_workspace_title": "Elektrizitäts-API-Arbeitsbereich",
+    "api_workspace_desc": "SSR initialisiert die Daten, alle In-App-Aktionen rufen die API auf.",
+    "owner_label": "Eigentümer",
+    "circuits_label": "Stromkreise",
+    "breakers_label": "Leitungsschutzschalter",
+    "usage_points_label": "Nutzungspunkte",
+    "panel_board": "Tableau",
+    "panel_breaker": "Leitungsschutzschalter",
+    "panel_circuit": "Stromkreis",
+    "panel_usage_point": "Nutzungspunkt und Verbindung",
+    "active_links": "Aktive Verbindungen",
+    "btn_create": "Erstellen",
+    "btn_create_usage_point": "Nutzungspunkt erstellen",
+    "btn_create_link": "Verbindung erstellen",
+    "btn_deactivate": "Deaktivieren",
+    "btn_lookup": "Suchen",
+    "btn_loading": "Laden...",
+    "lookup_placeholder": "Nach Etikett suchen (Schalter/Stromkreis/Nutzungspunkt)",
+    "select_breaker": "Leitungsschutzschalter auswählen",
+    "no_phase": "Keine Phase",
+    "select_circuit": "Stromkreis auswählen",
+    "select_usage_point": "Nutzungspunkt auswählen",
+    "circuit_name_placeholder": "Stromkreisname",
+    "usage_name_placeholder": "Name des Nutzungspunkts",
+    "default_board_name": "Hauptverteilerkasten",
+    "error_reference_required": "Referenz erforderlich.",
+    "error_not_found": "Nicht gefunden.",
+    "error_lookup_failed": "Suche fehlgeschlagen.",
+    "error_board_exists": "Für diesen Haushalt existiert bereits ein aktives Tableau.",
+    "error_create_board_first": "Erstellen Sie zuerst das Tableau.",
+    "error_circuit_fields": "Etikett und Name des Stromkreises sind erforderlich.",
+    "error_select_breaker": "Wählen Sie einen Leitungsschutzschalter, bevor Sie einen Stromkreis erstellen.",
+    "error_select_phase": "Wählen Sie eine Phase (L1/L2/L3) für ein dreiphasiges Tableau.",
+    "error_request_failed": "Anfrage fehlgeschlagen.",
+    "success_board_created": "Tableau erstellt.",
+    "success_breaker_created": "Leitungsschutzschalter erstellt.",
+    "success_circuit_created": "Stromkreis erstellt.",
+    "success_usage_point_created": "Nutzungspunkt erstellt.",
+    "success_link_created": "Verbindung erstellt.",
+    "success_link_deactivated": "Verbindung deaktiviert."
+  },
+  "interactions": {
+    "form_title": "Interaktion erstellen",
+    "submit_label": "Interaktion erstellen",
+    "success_message": "Interaktion erfolgreich erstellt.",
+    "subject_label": "Betreff",
+    "subject_placeholder": "Kurze Zusammenfassung",
+    "type_label": "Typ",
+    "status_label": "Status (Aufgabe)",
+    "date_label": "Datum und Uhrzeit",
+    "description_label": "Beschreibung",
+    "description_placeholder": "Details",
+    "tags_label": "Tags (kommagetrennt)",
+    "tags_placeholder": "dringend, Heizkessel, Rechnung",
+    "zones_legend": "Zonen",
+    "zones_loading": "Zonen werden geladen\u2026",
+    "zones_empty": "Keine Zonen verfügbar.",
+    "zones_error": "Zonen konnten nicht geladen werden.",
+    "error_subject_required": "Betreff ist erforderlich.",
+    "error_zone_required": "Wählen Sie mindestens eine Zone aus.",
+    "error_invalid_date": "Ungültiges Datum.",
+    "error_create_failed": "Interaktion konnte nicht erstellt werden. Bitte Felder und Haushaltskontext prüfen.",
+    "error_title": "Erstellungsfehler",
+    "success_title": "Erfolg",
+    "redirect_notice": "Weiterleitung zu Interaktionen\u2026",
+    "creating": "Wird erstellt\u2026",
+    "list_title": "Neueste Interaktionen",
+    "list_empty": "Keine Interaktionen für diesen Filter gefunden.",
+    "filter_type": "Typ",
+    "filter_status": "Status",
+    "all_types": "Alle Typen",
+    "all_statuses": "Alle Status",
+    "reset_filters": "Zurücksetzen",
+    "error_load_failed": "Interaktionen konnten nicht geladen werden.",
+    "error_load_more_failed": "Weitere Interaktionen konnten nicht geladen werden.",
+    "loading_error_title": "Ladefehler",
+    "load_more": "Mehr laden",
+    "loading_more": "Laden\u2026"
+  },
+  "zones": {
+    "app_title": "Zonen-Mini-App",
+    "count_loaded": "{{count}} Zone(n) aus SSR-Props geladen.",
+    "no_zones": "Noch keine Zonen."
+  },
+  "tasks": {
+    "app_title": "Aufgaben-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "settings": {
+    "app_title": "Einstellungen-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "photos": {
+    "app_title": "Fotos-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "contacts": {
+    "app_title": "Kontakte-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "documents": {
+    "app_title": "Dokumente-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "equipment": {
+    "app_title": "Geräte-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  },
+  "projects": {
+    "app_title": "Projekte-Mini-App",
+    "section_label": "Django-App-Knoten: {{section}}"
+  }
+}

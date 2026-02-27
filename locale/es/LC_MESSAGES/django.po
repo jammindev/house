@@ -360,13 +360,8 @@ msgstr "Panel de control"
 
 #: templates/app/dashboard.html:11
 #, python-format
-msgid ""
-"\n"
-"                Welcome back, %(name)s\n"
-"            "
-msgstr "
-                Bienvenido de nuevo, %(name)s
-            "
+msgid "Welcome back, %(name)s"
+msgstr "Bienvenido de nuevo, %(name)s"
 
 #: templates/app/dashboard.html:15
 msgid "Here's an overview of your house."
@@ -399,13 +394,8 @@ msgstr "En progreso"
 
 #: templates/app/placeholder.html:21
 #, python-format
-msgid ""
-"\n"
-"                The <strong>%(section)s</strong> section is being migrated from the legacy app.\n"
-"            "
-msgstr "
-                La sección <strong>%(section)s</strong> está siendo migrada desde la aplicación heredada.
-            "
+msgid "The <strong>%(section)s</strong> section is being migrated from the legacy app."
+msgstr "La sección <strong>%(section)s</strong> está siendo migrada desde la aplicación heredada."
 
 #: templates/base_app.html:39
 msgid "Open menu"
