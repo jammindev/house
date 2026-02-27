@@ -65,3 +65,5 @@ DJANGO_VITE = {
         "manifest_path": BASE_DIR / "static" / "react" / ".vite" / "manifest.json",  # noqa: F405
     }
 }
+
+ENABLE_API_SCHEMA = True

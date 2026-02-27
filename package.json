@@ -4,11 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --config frontend/vite.config.ts",
-    "dev:watch": "vite build --watch --config frontend/vite.config.ts",
-    "build": "tsc -b frontend/tsconfig.json && vite build --config frontend/vite.config.ts",
-    "lint": "eslint frontend --config frontend/eslint.config.js",
-    "preview": "vite preview --config frontend/vite.config.ts"
+    "dev": "vite --config ui/vite.config.ts",
+    "dev:watch": "vite build --watch --config ui/vite.config.ts",
+    "build": "tsc -b ui/tsconfig.json && vite build --config ui/vite.config.ts",
+    "lint": "eslint ui/src --config ui/eslint.config.js",
+    "preview": "vite preview --config ui/vite.config.ts",
+    "gen:api": "openapi --input http://127.0.0.1:8000/api/schema/ --output ui/src/gen/api --client fetch --useUnionTypes",
+    "gen:api:clean": "rm -rf ui/src/gen/api",
+    "gen:api:refresh": "npm run gen:api:clean && npm run gen:api"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
@@ -39,6 +42,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",

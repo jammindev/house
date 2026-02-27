@@ -1,0 +1,39 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Zones" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-6">
+    <div class="flex items-center justify-between gap-3">
+        <h1 class="text-2xl font-bold text-foreground">{% trans "Zones" %}</h1>
+    </div>
+
+    <div class="rounded-xl border border-border p-4 bg-card text-card-foreground">
+        <p class="text-sm text-muted-foreground">
+            {% trans "Zones are rendered by Django with a dedicated React mini-app for progressive enhancements." %}
+        </p>
+    </div>
+
+    <section class="rounded-xl border border-border bg-card p-4">
+        <h2 class="font-semibold mb-2">{% trans "Server-side fallback" %}</h2>
+        <ul class="space-y-1 text-sm text-muted-foreground">
+            {% for zone in zones %}
+                <li>
+                    <span class="inline-block w-2 h-2 rounded-full mr-2 align-middle" style="background-color: {{ zone.color }};"></span>
+                    {{ zone.full_path }}
+                </li>
+            {% empty %}
+                <li>{% trans "No zones yet." %}</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <div id="zones-root"></div>
+    {{ zones_page_props|json_script:"zones-page-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset '../apps/zones/react/mount-zones.tsx' %}
+{% endblock %}
