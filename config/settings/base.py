@@ -3,11 +3,16 @@
 Base settings for house backend.
 """
 from pathlib import Path
+import sys
 
 import environ
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+APPS_DIR = BASE_DIR / "apps"
+
+if str(APPS_DIR) not in sys.path:
+    sys.path.insert(0, str(APPS_DIR))
 
 # Core settings
 ROOT_URLCONF = "config.urls"
@@ -24,6 +29,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_vite",
     "rest_framework",
+    "drf_spectacular",
     "corsheaders",
     "django_filters",
     # House apps
@@ -39,6 +45,9 @@ INSTALLED_APPS = [
     "equipment",
     "electricity",
     "projects",
+    "tasks",
+    "photos",
+    "app_settings",
     "incoming_emails",
 ]
 
@@ -92,6 +101,8 @@ LANGUAGE_CODE = "en-us"
 LANGUAGES = [
     ("en", "English"),
     ("fr", "Français"),
+    ("de", "Deutsch"),
+    ("es", "Español"),
 ]
 LOCALE_PATHS = [
     BASE_DIR / "locale",
@@ -125,4 +136,13 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "House API",
+    "DESCRIPTION": "OpenAPI schema for House Django REST API.",
+    "VERSION": "1.0.0",
+}
+
+ENABLE_API_SCHEMA = False

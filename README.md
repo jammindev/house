@@ -1,8 +1,14 @@
 # House — Django + React hybride
 
-Projet principal: backend Django (SSR + API REST) avec zones React intégrées via Vite.
+Projet principal: backend Django (SSR + API REST) avec mini-SPA React par page via Vite.
 
 > Note: le dossier `legacy/` existe dans le dépôt mais n’est pas la base active de cette app.
+
+## Documentation
+
+- Hub documentation active: `docs/README.md`
+- Contexte dépôt et conventions: `AGENTS.md`
+- Politique archive legacy: `docs/LEGACY_ARCHIVE_POLICY.md`
 
 ## Stack
 
@@ -16,10 +22,10 @@ Projet principal: backend Django (SSR + API REST) avec zones React intégrées v
 
 - **Pages serveur**: Django templates (`/login`, `/dashboard`, etc.)
 - **API**: endpoints sous `/api/...`
-- **UI interactive**: composants React / Web Components buildés dans `static/react`
+- **UI interactive**: mini-SPA et composants React / Web Components buildés dans `static/react`
 - **i18n**: anglais + français
 
-Voir aussi: `HYBRID_ARCHITECTURE.md`.
+Voir aussi: `docs/HYBRID_ARCHITECTURE.md`.
 
 ## Structure utile (hors `legacy/`)
 
@@ -27,19 +33,10 @@ Voir aussi: `HYBRID_ARCHITECTURE.md`.
 .
 ├── manage.py
 ├── config/                 # settings + urls
-├── accounts/               # user/auth + vues login/dashboard
-├── households/             # multi-tenant household
-├── zones/                  # hiérarchie de zones
-├── interactions/           # journal d'événements
-├── documents/              # pièces jointes / OCR
-├── contacts/               # contacts + addresses/emails/phones
-├── structures/             # structures/prestataires
-├── tags/                   # tags + liaisons interactions
-├── todo_list/              # table legacy template
-├── core/                   # modèles/permissions partagés
+├── apps/                   # toutes les apps Django (accounts, zones, ...)
 ├── templates/              # pages Django
 ├── static/                 # assets statiques (dont build React)
-└── frontend/               # source React/Vite
+└── ui/                     # source React/Vite + configs UI
 ```
 
 ## Setup local
@@ -90,10 +87,9 @@ DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:applicati
 
 ### Auth / users
 
-- `POST /api/auth/login/`
-- `POST /api/auth/logout/`
-- `GET|POST /api/users/`
-- `GET|PUT|PATCH|DELETE /api/users/{id}/`
+- `POST /api/accounts/login/`
+- `POST /api/accounts/logout/`
+- `GET|POST /api/accounts/users/`
 
 ### Domain API
 
@@ -118,9 +114,9 @@ DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:applicati
 ## Pages Django
 
 - `/login/`
-- `/dashboard/`
+- `/app/dashboard/`
 - `/app/electricity/`
-- `/test-components/`
+- `/app/components/`
 - `/admin/`
 
 Routes i18n activées (`/fr/...`, `/en/...`, avec préfixe langue par défaut désactivé).

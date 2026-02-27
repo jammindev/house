@@ -1,5 +1,11 @@
 # 🏠 House - Household Knowledge Management System
 
+> ⚠️ Historical archive notice: this document describes the **legacy Next.js/Supabase implementation**.
+> For active runtime documentation, use:
+> - `../docs/README.md`
+> - `../AGENTS.md`
+> - `../docs/LEGACY_ARCHIVE_POLICY.md`
+
 A comprehensive household knowledge management system built with Next.js 15, Supabase, and modern web technologies. House helps you centralize and organize all your household information including interactions, documents, zones, projects, contacts, and more.
 
 ## 🎯 Overview

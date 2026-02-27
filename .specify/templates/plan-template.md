@@ -31,7 +31,12 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+- [ ] Django remains route/auth/permission authority for this feature.
+- [ ] Server/client boundary is explicit per screen (SSR shell, React mount, runtime API).
+- [ ] Every new/changed API has an updated contract in `contracts/`.
+- [ ] Household scope and access control rules are specified and testable.
+- [ ] User stories are independently testable with measurable success criteria.
+- [ ] Hybrid pages include tasks for mount point, initial data contract, and bundle budget.
 
 ## Project Structure
 

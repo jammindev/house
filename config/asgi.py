@@ -1,5 +1,13 @@
 """ASGI config for config project."""
 import os
+import sys
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+APPS_DIR = BASE_DIR / "apps"
+
+if str(APPS_DIR) not in sys.path:
+	sys.path.insert(0, str(APPS_DIR))
 
 from django.core.asgi import get_asgi_application
 

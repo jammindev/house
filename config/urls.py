@@ -1,14 +1,14 @@
 # config/urls.py
 from django.contrib import admin
+from django.conf import settings
 from django.urls import include, path
 from django.conf.urls.i18n import i18n_patterns
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from accounts.views import (
     home_view, login_view, dashboard_view, logout_view,
-    app_dashboard_view, app_placeholder_view, app_zones_view, app_components_view,
-    app_interactions_view, app_interaction_new_view,
+    app_dashboard_view,
 )
-from electricity.views import app_electricity_view
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -24,9 +24,15 @@ urlpatterns = [
     path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/incoming/", include("incoming_emails.urls")),
-    path("api/core/", include("core.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
+
+if settings.ENABLE_API_SCHEMA:
+    urlpatterns += [
+        path("api/schema/", SpectacularAPIView.as_view(), name="api-schema"),
+        path("api/schema/swagger/", SpectacularSwaggerView.as_view(url_name="api-schema"), name="api-swagger"),
+        path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
+    ]
 
 # Internationalized URLs - Django templates with optional React components
 urlpatterns += i18n_patterns(
@@ -40,22 +46,20 @@ urlpatterns += i18n_patterns(
 
     # ── App (sidebar layout) ─────────────────────────────────────────────────
     path("app/dashboard/", app_dashboard_view, name="app_dashboard"),
-    path("app/components/", app_components_view, name="app_components"),
 
     # Sections implémentées (placeholder pour l'instant, vues dédiées à créer)
-    path("app/interactions/", app_interactions_view, name="app_interactions"),
-    path("app/interactions/new/", app_interaction_new_view, name="app_interaction_new"),
-    path("app/zones/", app_zones_view, name="app_zones"),
-    path("app/electricity/", app_electricity_view, name="app_electricity"),
-    path("app/contacts/", app_placeholder_view, {"section": "contacts"}, name="app_contacts"),
-    path("app/documents/", app_placeholder_view, {"section": "documents"}, name="app_documents"),
-    path("app/equipment/", app_placeholder_view, {"section": "equipment"}, name="app_equipment"),
+    path("app/interactions/", include("interactions.web_urls")),
+    path("app/zones/", include("zones.web_urls")),
+    path("app/electricity/", include("electricity.web_urls")),
+    path("app/contacts/", include("contacts.web_urls")),
+    path("app/documents/", include("documents.web_urls")),
+    path("app/equipment/", include("equipment.web_urls")),
 
     # Sections à migrer
-    path("app/tasks/", app_placeholder_view, {"section": "tasks"}, name="app_tasks"),
-    path("app/projects/", app_placeholder_view, {"section": "projects"}, name="app_projects"),
-    path("app/photos/", app_placeholder_view, {"section": "photos"}, name="app_photos"),
-    path("app/settings/", app_placeholder_view, {"section": "settings"}, name="app_settings"),
+    path("app/tasks/", include("tasks.web_urls")),
+    path("app/projects/", include("projects.web_urls")),
+    path("app/photos/", include("photos.web_urls")),
+    path("app/settings/", include("app_settings.web_urls")),
 
     prefix_default_language=False,
 )

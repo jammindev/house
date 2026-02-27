@@ -2,74 +2,110 @@
 
 Ce document donne le contexte rapide pour toute IA intervenant sur ce repo.
 
+> Dernière mise à jour : février 2026
+
 ## 1) Scope
 
-- **Code actif principal**: racine Django + `frontend/`
+- **Code actif principal**: racine Django + `apps/` + `ui/`
 - **Contexte produit/migration**: `legacy/` (source documentaire)
-- **Règle**: on implémente dans le code actif; on consulte `legacy/` pour comprendre l’intention fonctionnelle
+- **Règle**: on implémente dans le code actif; on consulte `legacy/` pour comprendre l'intention fonctionnelle
 
 ## 1.1) Statut du projet (important)
 
-Le projet est en **migration progressive de Next.js/Supabase vers Django/DRF + templates + React ciblé**.
+Le projet est en **migration progressive de Next.js/Supabase vers Django/DRF + templates + mini-SPA React ciblés par page**.
 
-Conséquence pour l’IA:
+Conséquence pour l'IA:
 
 - Les docs `legacy/` décrivent souvent des features plus avancées que le code Django actuel.
-- Elles servent de **référence métier**, pas de vérité technique d’implémentation.
-- En cas d’écart: la vérité runtime est dans `config/`, les apps Django, `templates/`, `frontend/`.
+- Elles servent de **référence métier**, pas de vérité technique d'implémentation.
+- En cas d'écart: la vérité runtime est dans `config/`, les apps Django dans `apps/`, `templates/`, et `ui/`.
 
 ## 2) Stack
 
-- Backend: Django 5, DRF, auth session Django, django-filter
+- Backend: Django 5, DRF, auth session Django, django-filter, drf-spectacular (OpenAPI)
 - DB: PostgreSQL (local/prod), SQLite in-memory (tests)
 - Frontend: React 19, TypeScript, Vite
 - Intégration Django/React: `django-vite`
+- Templates: Alpine.js (interactions UI mobiles), HTMX (hx-boost navigation SPA-like), Tailwind CSS, Lucide icons
 
 ## 3) Apps Django
 
-- `accounts`: utilisateur custom + auth session Django
+### Apps avec modèles + API DRF + pages web
+
+- `accounts`: utilisateur custom + auth session Django + vues home/login/dashboard
 - `households`: entité multi-tenant de base
 - `zones`: hiérarchie spatiale
-- `interactions`: journal (note, todo, expense, maintenance...)
-- `documents`: fichiers/ocr/métadonnées
+- `interactions`: journal (note, todo, expense, maintenance...) + liens contacts/structures/documents
+- `documents`: fichiers/OCR/métadonnées
 - `contacts`: contacts + addresses/emails/phones
 - `structures`: structures/prestataires/organisations
 - `tags`: tags + liens interaction-tags
-- `todo_list`: table legacy template `todo_list`
-- `core`: modèles abstraits, managers, permissions
+- `equipment`: équipements, cycle de vie, liens avec interactions (`EquipmentInteraction`)
+- `projects`: projets (`Project`, `ProjectGroup`, `ProjectZone`), threads IA (`ProjectAIThread`, `ProjectAIMessage`)
+- `electricity`: tableau électrique, RCDs, disjoncteurs, circuits, points d'usage, liens, changelog
+- `incoming_emails`: emails entrants + pièces jointes, pipeline de traitement (pending/processing/processed/failed)
+
+### Apps web-only (pas de modèles propres — utilisent les APIs existantes)
+
+- `tasks`: mini-app tasks (web + React), s'appuie sur l'API interactions
+- `photos`: mini-app photos (web + React)
+- `app_settings`: mini-app paramètres
+
+### App transverse
+
+- `core`: modèles abstraits (`HouseholdScopedModel`), managers (`HouseholdScopedManager`), permissions (`IsHouseholdMember`)
 
 ## 3.1) Correspondance migration (legacy -> actif)
+
+Porté côté Django :
 
 - `legacy` interactions/timeline -> `interactions` Django
 - `legacy` zones hiérarchiques -> `zones` Django
 - `legacy` documents/files -> `documents` Django
 - `legacy` households/multi-tenant -> `households` + permissions `core`
 - `legacy` auth Supabase -> `accounts` (session Django)
+- `legacy` contacts -> `contacts` Django (modèles + API + page web)
+- `legacy` structures -> `structures` Django (modèles + API)
+- `legacy` equipment -> `equipment` Django (modèles + API + page web)
+- `legacy` projects -> `projects` Django (modèles + API + page web, dont threads IA)
+- `legacy` incoming emails -> `incoming_emails` Django (modèles + API)
+- `legacy` electricity -> `electricity` Django (modèles + API + mini-SPA React)
 
-Encore principalement côté `legacy` (pas porté complètement côté Django):
+Encore principalement côté `legacy` (pas porté complètement côté Django) :
 
-- modules `projects`, `contacts`, `structures`, `equipment`
-- pipeline IA avancé (threads/messages projet), OCR/ingestion complet
-- certaines pages shell/layout feature-first Next.js
+- Pipeline IA avancé complet (LLM, ingestion intelligente) pour `incoming_emails` et `projects`
+- OCR/ingestion document complet
+- Certaines pages shell/layout feature-first Next.js
 
 ## 4) Conventions techniques importantes
 
 - Modèle user custom: `AUTH_USER_MODEL = "accounts.User"`
-- Les modèles métier utilisent souvent `HouseholdScopedModel`
+- Les modèles métier utilisent `HouseholdScopedModel` (champ `household` + manager scopé)
 - Permissions multi-tenant via `IsHouseholdMember`
 - Résolution household API: `X-Household-Id` -> `household_id` (query/body) -> auto-select si membership unique
-- Routes API principales dans `config/urls.py`
-- Pages SSR dans `templates/`
+- Routes API dans `config/urls.py` sous `api/<app>/`
+- Routes web dans `config/urls.py` sous `i18n_patterns` -> `app/<section>/`
+- Pages web dans `templates/app/` ou `apps/<app>/templates/`
+- Chaque app avec page web a un `web_urls.py` + `views_web.py` séparés des vues API
+- API schema (Swagger/Redoc) disponible si `ENABLE_API_SCHEMA=True` -> `/api/schema/swagger/`
 
 ## 5) Endpoints clés
 
-- `POST /api/auth/login/`
-- `POST /api/auth/logout/`
-- `GET|POST /api/users/`
+### Auth + Users
+
+- `POST /api/accounts/login/`
+- `POST /api/accounts/logout/`
+- `GET|POST /api/accounts/users/`
+
+### Entités métier
+
 - `GET|POST|... /api/households/`
 - `GET|POST|... /api/zones/`
-- `GET|POST|... /api/documents/documents/`
 - `GET|POST|... /api/interactions/interactions/`
+- `GET|POST|... /api/interactions/interaction-contacts/`
+- `GET|POST|... /api/interactions/interaction-structures/`
+- `GET|POST|... /api/interactions/interaction-documents/`
+- `GET|POST|... /api/documents/documents/`
 - `GET|POST|... /api/contacts/contacts/`
 - `GET|POST|... /api/contacts/addresses/`
 - `GET|POST|... /api/contacts/emails/`
@@ -77,9 +113,16 @@ Encore principalement côté `legacy` (pas porté complètement côté Django):
 - `GET|POST|... /api/structures/`
 - `GET|POST|... /api/tags/tags/`
 - `GET|POST|... /api/tags/interaction-tags/`
-- `GET|POST|... /api/interactions/interaction-contacts/`
-- `GET|POST|... /api/interactions/interaction-structures/`
-- `GET|POST|... /api/todo/`
+- `GET|POST|... /api/equipment/`
+- `GET|POST|... /api/equipment/equipment-interactions/`
+- `GET|POST|... /api/projects/projects/`
+- `GET|POST|... /api/projects/project-groups/`
+- `GET|POST|... /api/projects/project-zones/`
+- `GET|POST|... /api/projects/project-ai-threads/`
+- `GET|POST|... /api/projects/project-ai-messages/`
+
+### Électricité
+
 - `GET|POST|... /api/electricity/boards/`
 - `GET|POST|... /api/electricity/rcds/`
 - `GET|POST|... /api/electricity/breakers/`
@@ -90,22 +133,55 @@ Encore principalement côté `legacy` (pas porté complètement côté Django):
 - `GET /api/electricity/mapping/lookup/`
 - `POST /api/electricity/links/{id}/deactivate/`
 
-### Page mini-app
+### Emails entrants
 
-- `/app/electricity/`: page Django template-first avec nœud React de lookup ciblé
+- `GET|POST|... /api/incoming/incoming-emails/`
+- `GET|POST|... /api/incoming/incoming-email-attachments/`
+
+### Pages web (`/app/`)
+
+- `/app/dashboard/`: tableau de bord
+- `/app/interactions/`: journal d'interactions (avec mini-SPA React — `InteractionList`, `InteractionCreateForm`)
+- `/app/interactions/new/`: création d'interaction
+- `/app/zones/`: hiérarchie spatiale
+- `/app/contacts/`: contacts
+- `/app/documents/`: documents
+- `/app/equipment/`: équipements
+- `/app/electricity/`: tableau électrique (mini-SPA React — `ElectricityBoardNode`)
+- `/app/projects/`: projets
+- `/app/tasks/`: tâches (mini-SPA React)
+- `/app/photos/`: photos (mini-SPA React)
+- `/app/settings/`: paramètres
+- `/app/components/`: démo du design system
 
 ### Permissions (legacy RLS -> Django)
 
-- `zones`, `interactions`, `documents`: accès membre household (lecture/écriture)
+- `zones`, `interactions`, `documents`, `equipment`, `projects`: accès membre household
 - `households`:
 	- membre: `retrieve`, `members`, `leave`
 	- owner: `update`, `delete`, `invite`, `remove_member`, `update_role`
 
 ## 6) Frontend hybride
 
-- `frontend/src/web-components/*`: composants React exposés en Web Components
-- `templates/test_components.html`: exemple réel d’usage `<ui-button>`
-- `frontend/src/lib/mount.tsx`: utilitaire de montage React ciblé
+### Design system partagé (`ui/src/`)
+
+- `ui/src/design-system/*`: composants atomiques (Button, Input, Card, Select, Textarea, Badge, Alert, Skeleton)
+- `ui/src/web-components/*`: mêmes composants exposés en Web Components custom elements (`<ui-button>`, etc.) + `InteractionCreateForm`, `InteractionList`
+- `ui/src/lib/mount.tsx`: utilitaire de montage React ciblé dans un nœud DOM
+- `ui/src/lib/api/`: client API généré (fetch typé vers les endpoints DRF)
+
+### Composants React par app
+
+- `apps/interactions/react/`: `InteractionList.tsx`, `InteractionCreateForm.tsx`, `mount-interactions.tsx`, `mount-interaction-new.tsx`
+- `apps/electricity/react/`: `ElectricityBoardNode.tsx`, `mount-electricity.tsx`
+- `apps/projects/react/`: composants projet
+- `apps/equipment/react/`: composants équipement
+- `apps/tasks/react/`: composants tâches
+- `apps/photos/react/`: composants photos
+
+### Pattern de montage ciblé
+
+Chaque page Django inclut un `<div id="react-root">` que le script `mount-<app>.tsx` cible via `ui/src/lib/mount.tsx`.
 
 ## 7) Démarrage local
 
@@ -131,10 +207,12 @@ pytest
 
 ## 9) Règles IA recommandées
 
-- Lire d’abord `config/urls.py`, les `views.py` et `serializers.py` concernés
+- Lire d'abord `config/urls.py`, les `views.py`/`views_web.py` et `serializers.py` concernés
 - Éviter les refactors larges sans demande explicite
-- Préserver le pattern Django-first + React ciblé
+- Préserver le pattern Django-routed + mini-SPA React ciblés
+- Chaque nouvelle app web doit avoir `web_urls.py` + `views_web.py` distincts des vues API
 - Utiliser `legacy/` comme documentation fonctionnelle de migration, pas comme base de code à copier
+- Le `i18n_patterns` dans `config/urls.py` enveloppe toutes les URLs web (`/app/...`)
 
 ## 10) Docs legacy à consulter quand on manque de contexte
 
