@@ -25,13 +25,20 @@ class AcceptLanguageRedirectMiddleware:
         lang_codes.discard(settings.LANGUAGE_CODE.split("-")[0])  # retirer la langue par défaut
         self.non_default_langs = lang_codes  # ex. {'fr', 'de', 'es'}
 
+    # Prefixes that must never be language-redirected
+    BYPASS_PREFIXES = ('/api/', '/admin/', '/static/', '/media/', '/i18n/')
+
     def __call__(self, request):
+        # Ignorer les chemins non-web (API, admin, assets…)
+        path = request.path_info
+        if any(path.startswith(p) for p in self.BYPASS_PREFIXES):
+            return self.get_response(request)
+
         # Ignorer si un cookie de langue est déjà posé
         if request.COOKIES.get(LANGUAGE_COOKIE_NAME):
             return self.get_response(request)
 
         # Ignorer si l'URL a déjà un préfixe de langue (ex. /fr/...)
-        path = request.path_info
         parts = path.split("/", 2)
         if len(parts) >= 2 and parts[1] in self.non_default_langs:
             return self.get_response(request)

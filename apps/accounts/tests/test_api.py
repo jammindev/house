@@ -167,3 +167,159 @@ class TestUserSerializer:
         user = User.objects.get(email="hash@example.com")
         assert user.check_password("plainpass123")
         assert user.password != "plainpass123"
+
+
+@pytest.mark.django_db
+class TestMeEndpoint:
+    """Test GET + PATCH /api/accounts/users/me/ — US1, US5."""
+
+    def test_me_get_returns_current_user(self, authenticated_client, user):
+        """GET /me/ returns the authenticated user's data."""
+        url = reverse("user-me")
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["email"] == user.email
+        assert "theme" in response.data
+        assert "avatar" in response.data
+
+    def test_me_get_requires_auth(self, api_client):
+        """GET /me/ without auth returns 401."""
+        url = reverse("user-me")
+        response = api_client.get(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_me_patch_updates_display_name(self, authenticated_client, user):
+        """PATCH /me/ updates display_name."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"display_name": "Alice"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["display_name"] == "Alice"
+        user.refresh_from_db()
+        assert user.display_name == "Alice"
+
+    def test_me_patch_updates_locale(self, authenticated_client, user):
+        """PATCH /me/ updates locale."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"locale": "fr"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["locale"] == "fr"
+        user.refresh_from_db()
+        assert user.locale == "fr"
+
+    def test_me_patch_updates_theme(self, authenticated_client, user):
+        """PATCH /me/ updates theme — US5."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"theme": "dark"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["theme"] == "dark"
+        user.refresh_from_db()
+        assert user.theme == "dark"
+
+    def test_me_patch_rejects_invalid_locale(self, authenticated_client):
+        """PATCH /me/ with invalid locale returns 400."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"locale": "xx"}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_me_patch_ignores_email(self, authenticated_client, user):
+        """PATCH /me/ cannot change email (read-only)."""
+        original_email = user.email
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"email": "hacked@evil.com"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.email == original_email
+
+
+@pytest.mark.django_db
+class TestChangePassword:
+    """Test POST /api/accounts/users/me/change-password/ — US3."""
+
+    def test_change_password_success(self, authenticated_client, user):
+        """Successful password change returns 200."""
+        url = reverse("user-change-password")
+        response = authenticated_client.post(
+            url,
+            {"new_password": "NewS3curePass!", "confirm_password": "NewS3curePass!"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.check_password("NewS3curePass!")
+
+    def test_change_password_mismatch(self, authenticated_client):
+        """Mismatched passwords return 400."""
+        url = reverse("user-change-password")
+        response = authenticated_client.post(
+            url,
+            {"new_password": "Password1!", "confirm_password": "Different1!"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_change_password_too_short(self, authenticated_client):
+        """Password under 8 chars returns 400."""
+        url = reverse("user-change-password")
+        response = authenticated_client.post(
+            url,
+            {"new_password": "short", "confirm_password": "short"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_change_password_requires_auth(self, api_client):
+        """Unauthenticated request returns 401."""
+        url = reverse("user-change-password")
+        response = api_client.post(
+            url,
+            {"new_password": "irrelevant", "confirm_password": "irrelevant"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+class TestAvatarEndpoints:
+    """Test POST/DELETE /api/accounts/users/me/avatar/ — US4."""
+
+    def _make_image(self, name="test.png"):
+        """Create a minimal valid PNG file in memory."""
+        import io
+        from PIL import Image as PilImage
+        img = PilImage.new("RGB", (10, 10), color="red")
+        buf = io.BytesIO()
+        img.save(buf, format="PNG")
+        buf.seek(0)
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        return SimpleUploadedFile(name, buf.read(), content_type="image/png")
+
+    def test_upload_avatar_success(self, authenticated_client, user):
+        """POST /me/avatar/ with valid image returns 200 with avatar_url."""
+        url = reverse("user-avatar")
+        img = self._make_image()
+        response = authenticated_client.post(url, {"avatar": img}, format="multipart")
+        assert response.status_code == status.HTTP_200_OK
+        assert "avatar_url" in response.data
+        user.refresh_from_db()
+        assert user.avatar
+
+    def test_delete_avatar_success(self, authenticated_client, user):
+        """DELETE /me/avatar/ removes the avatar."""
+        # First upload
+        url = reverse("user-avatar")
+        img = self._make_image("avatar2.png")
+        authenticated_client.post(url, {"avatar": img}, format="multipart")
+
+        response = authenticated_client.delete(url)
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert not user.avatar
+
+    def test_delete_avatar_no_avatar(self, authenticated_client, user):
+        """DELETE /me/avatar/ when no avatar returns 400."""
+        user.avatar = None
+        user.save()
+        url = reverse("user-avatar")
+        response = authenticated_client.delete(url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+

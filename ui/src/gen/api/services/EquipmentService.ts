@@ -1,0 +1,207 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
+import type { Equipment } from '../models/Equipment';
+import type { EquipmentInteraction } from '../models/EquipmentInteraction';
+import type { PatchedEquipment } from '../models/PatchedEquipment';
+import type { PatchedEquipmentInteraction } from '../models/PatchedEquipmentInteraction';
+import type { CancelablePromise } from '../core/CancelablePromise';
+import { OpenAPI } from '../core/OpenAPI';
+import { request as __request } from '../core/request';
+export class EquipmentService {
+    /**
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentList(): CancelablePromise<Array<Equipment>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/equipment/',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentCreate(
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id A UUID string identifying this equipment.
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentRetrieve(
+        id: string,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/equipment/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id A UUID string identifying this equipment.
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentUpdate(
+        id: string,
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/equipment/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id A UUID string identifying this equipment.
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentPartialUpdate(
+        id: string,
+        requestBody?: PatchedEquipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/equipment/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id A UUID string identifying this equipment.
+     * @returns void
+     * @throws ApiError
+     */
+    public static equipmentDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/equipment/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns EquipmentInteraction
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsList(): CancelablePromise<Array<EquipmentInteraction>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/equipment/equipment-interactions/',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns EquipmentInteraction
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsCreate(
+        requestBody: EquipmentInteraction,
+    ): CancelablePromise<EquipmentInteraction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/equipment-interactions/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns EquipmentInteraction
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsRetrieve(
+        id: string,
+    ): CancelablePromise<EquipmentInteraction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/equipment/equipment-interactions/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns EquipmentInteraction
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsUpdate(
+        id: string,
+        requestBody: EquipmentInteraction,
+    ): CancelablePromise<EquipmentInteraction> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/equipment/equipment-interactions/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns EquipmentInteraction
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsPartialUpdate(
+        id: string,
+        requestBody?: PatchedEquipmentInteraction,
+    ): CancelablePromise<EquipmentInteraction> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/equipment/equipment-interactions/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static equipmentEquipmentInteractionsDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/equipment/equipment-interactions/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+}

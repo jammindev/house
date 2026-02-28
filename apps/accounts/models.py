@@ -54,6 +54,24 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("User's preferred language")
     )
     avatar_url = models.CharField(max_length=255, blank=True, help_text=_("URL to user's avatar image"))
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        null=True,
+        blank=True,
+        help_text=_("User's avatar image file")
+    )
+    THEME_CHOICES = [
+        ('light', 'Light'),
+        ('dark', 'Dark'),
+        ('system', 'System'),
+    ]
+    theme = models.CharField(
+        max_length=20,
+        choices=THEME_CHOICES,
+        default='system',
+        blank=True,
+        help_text=_("User's preferred theme")
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

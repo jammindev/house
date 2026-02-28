@@ -125,6 +125,10 @@ STATICFILES_DIRS = [
 ]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Media files (user-uploaded content, e.g. avatars)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 # Custom user model
 AUTH_USER_MODEL = "accounts.User"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-27 21:52+0000\n"
+"POT-Creation-Date: 2026-02-28 20:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,15 +45,42 @@ msgstr "Bevorzugte Sprache des Benutzers"
 msgid "URL to user's avatar image"
 msgstr "URL zum Avatar-Bild des Benutzers"
 
-#: apps/accounts/models.py:67
+#: apps/accounts/models.py:61
+#, fuzzy
+#| msgid "URL to user's avatar image"
+msgid "User's avatar image file"
+msgstr "URL zum Avatar-Bild des Benutzers"
+
+#: apps/accounts/models.py:73
+#, fuzzy
+#| msgid "User's preferred language"
+msgid "User's preferred theme"
+msgstr "Bevorzugte Sprache des Benutzers"
+
+#: apps/accounts/models.py:85
 msgid "user"
 msgstr "Benutzer"
 
-#: apps/accounts/models.py:68
+#: apps/accounts/models.py:86
 msgid "users"
 msgstr "Benutzer"
 
-#: apps/app_settings/templates/app_settings/app/settings.html:14
+#: apps/app_settings/views_web.py:22 templates/components/_sidebar.html:203
+msgid "Settings"
+msgstr "Einstellungen"
+
+#: apps/app_settings/views_web.py:23
+msgid "Manage your profile, households, and preferences."
+msgstr "Verwalten Sie Ihr Profil, Haushalte und Einstellungen."
+
+#: apps/contacts/models.py:27
+msgid "contact"
+msgstr "Kontakt"
+
+#: apps/contacts/models.py:28
+msgid "contacts"
+msgstr "Kontakte"
+
 #: apps/contacts/templates/contacts/app/contacts.html:14
 #: apps/documents/templates/documents/app/documents.html:14
 #: apps/equipment/templates/equipment/app/equipment.html:14
@@ -63,7 +90,6 @@ msgstr "Benutzer"
 msgid "Migration-ready section"
 msgstr "Migrationsfertige Sektion"
 
-#: apps/app_settings/templates/app_settings/app/settings.html:15
 #: apps/contacts/templates/contacts/app/contacts.html:15
 #: apps/documents/templates/documents/app/documents.html:15
 #: apps/equipment/templates/equipment/app/equipment.html:15
@@ -72,14 +98,6 @@ msgstr "Migrationsfertige Sektion"
 #: apps/tasks/templates/tasks/app/tasks.html:15
 msgid "This screen is routed and rendered by Django, with a dedicated React mount node for progressive migration."
 msgstr "Dieser Bildschirm wird von Django geroutet und gerendert, mit einem dedizierten React-Mount-Knoten für die progressive Migration."
-
-#: apps/contacts/models.py:27
-msgid "contact"
-msgstr "Kontakt"
-
-#: apps/contacts/models.py:28
-msgid "contacts"
-msgstr "Kontakte"
 
 #: apps/documents/models.py:68
 msgid "document"
@@ -212,6 +230,7 @@ msgstr "Der Akteur muss Mitglied des Haushalts sein."
 
 #: apps/electricity/templates/electricity/app/electricity.html:4
 #: apps/electricity/templates/electricity/app/electricity.html:9
+#: templates/components/_sidebar.html:113
 msgid "Electricity"
 msgstr "Elektrizität"
 
@@ -312,7 +331,7 @@ msgstr "Zurück zu Interaktionen"
 
 #: apps/interactions/templates/interactions/app/interactions.html:4
 #: apps/interactions/templates/interactions/app/interactions.html:9
-#: templates/app/dashboard.html:26 templates/components/_sidebar.html:180
+#: templates/app/dashboard.html:26 templates/components/_sidebar.html:188
 msgid "Interactions"
 msgstr "Interaktionen"
 
@@ -338,7 +357,7 @@ msgstr "Die übergeordnete Zone muss zum selben Haushalt gehören"
 
 #: apps/zones/templates/zones/app/zones.html:4
 #: apps/zones/templates/zones/app/zones.html:9
-#: templates/components/_sidebar.html:120 templates/home.html:73
+#: templates/components/_sidebar.html:128 templates/home.html:73
 msgid "Zones"
 msgstr "Zonen"
 
@@ -354,7 +373,7 @@ msgstr "Serverseitiger Fallback"
 msgid "No zones yet."
 msgstr "Noch keine Zonen."
 
-#: templates/app/dashboard.html:4 templates/components/_sidebar.html:60
+#: templates/app/dashboard.html:4 templates/components/_sidebar.html:53
 msgid "Dashboard"
 msgstr "Übersicht"
 
@@ -371,7 +390,7 @@ msgstr "Hier ist eine Übersicht Ihres Hauses."
 msgid "Recent events"
 msgstr "Letzte Ereignisse"
 
-#: templates/app/dashboard.html:37 templates/components/_sidebar.html:75
+#: templates/app/dashboard.html:37 templates/components/_sidebar.html:68
 msgid "Tasks"
 msgstr "Aufgaben"
 
@@ -379,7 +398,7 @@ msgstr "Aufgaben"
 msgid "Pending tasks"
 msgstr "Ausstehende Aufgaben"
 
-#: templates/app/dashboard.html:48 templates/components/_sidebar.html:150
+#: templates/app/dashboard.html:48 templates/components/_sidebar.html:158
 #: templates/home.html:61
 msgid "Documents"
 msgstr "Dokumente"
@@ -401,31 +420,27 @@ msgstr "Der Abschnitt <strong>%(section)s</strong> wird von der Legacy-App migri
 msgid "Open menu"
 msgstr "Menü öffnen"
 
-#: templates/components/_sidebar.html:35
+#: templates/components/_sidebar.html:28
 msgid "Close menu"
 msgstr "Menü schließen"
 
-#: templates/components/_sidebar.html:90
+#: templates/components/_sidebar.html:83
 msgid "Projects"
 msgstr "Projekte"
 
-#: templates/components/_sidebar.html:105 templates/home.html:67
+#: templates/components/_sidebar.html:98 templates/home.html:67
 msgid "Equipment"
 msgstr "Geräte"
 
-#: templates/components/_sidebar.html:135
+#: templates/components/_sidebar.html:143
 msgid "Directory"
 msgstr "Verzeichnis"
 
-#: templates/components/_sidebar.html:165
+#: templates/components/_sidebar.html:173
 msgid "Photos"
 msgstr "Fotos"
 
-#: templates/components/_sidebar.html:195
-msgid "Settings"
-msgstr "Einstellungen"
-
-#: templates/components/_sidebar.html:240
+#: templates/components/_sidebar.html:248
 msgid "Sign out"
 msgstr "Abmelden"
 
