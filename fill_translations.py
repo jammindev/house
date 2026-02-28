@@ -289,6 +289,180 @@ TRANSLATIONS = {
     "Email": {"fr": "Email", "de": "E-Mail", "es": "Correo electrónico"},
     "Password": {"fr": "Mot de passe", "de": "Passwort", "es": "Contraseña"},
     "Back to home": {"fr": "Retour à l'accueil", "de": "Zurück zur Startseite", "es": "Volver al inicio"},
+    # ---------------------------------------------------------------------------
+    # API response strings — accounts
+    # ---------------------------------------------------------------------------
+    "Email and password are required.": {
+        "fr": "L'email et le mot de passe sont requis.",
+        "de": "E-Mail und Passwort sind erforderlich.",
+        "es": "El correo electrónico y la contraseña son obligatorios.",
+    },
+    "Invalid credentials.": {
+        "fr": "Identifiants invalides.",
+        "de": "Ungültige Anmeldedaten.",
+        "es": "Credenciales inválidas.",
+    },
+    "Login successful.": {
+        "fr": "Connexion réussie.",
+        "de": "Anmeldung erfolgreich.",
+        "es": "Inicio de sesión exitoso.",
+    },
+    "Logout successful.": {
+        "fr": "Déconnexion réussie.",
+        "de": "Abmeldung erfolgreich.",
+        "es": "Cierre de sesión exitoso.",
+    },
+    "new_password and confirm_password are required.": {
+        "fr": "new_password et confirm_password sont requis.",
+        "de": "new_password und confirm_password sind erforderlich.",
+        "es": "new_password y confirm_password son obligatorios.",
+    },
+    "Password must be at least 8 characters.": {
+        "fr": "Le mot de passe doit contenir au moins 8 caractères.",
+        "de": "Das Passwort muss mindestens 8 Zeichen lang sein.",
+        "es": "La contraseña debe tener al menos 8 caracteres.",
+    },
+    "Passwords do not match.": {
+        "fr": "Les mots de passe ne correspondent pas.",
+        "de": "Die Passwörter stimmen nicht überein.",
+        "es": "Las contraseñas no coinciden.",
+    },
+    "Password updated successfully.": {
+        "fr": "Mot de passe mis à jour avec succès.",
+        "de": "Passwort erfolgreich aktualisiert.",
+        "es": "Contraseña actualizada correctamente.",
+    },
+    "No avatar to delete.": {
+        "fr": "Aucun avatar à supprimer.",
+        "de": "Kein Avatar zum Löschen.",
+        "es": "No hay avatar que eliminar.",
+    },
+    "Avatar removed.": {
+        "fr": "Avatar supprimé.",
+        "de": "Avatar entfernt.",
+        "es": "Avatar eliminado.",
+    },
+    "No file was submitted.": {
+        "fr": "Aucun fichier n'a été soumis.",
+        "de": "Es wurde keine Datei übermittelt.",
+        "es": "No se envió ningún archivo.",
+    },
+    "File size exceeds 2 MB limit.": {
+        "fr": "La taille du fichier dépasse la limite de 2 Mo.",
+        "de": "Die Dateigröße überschreitet das Limit von 2 MB.",
+        "es": "El tamaño del archivo supera el límite de 2 MB.",
+    },
+    # ---------------------------------------------------------------------------
+    # API response strings — households
+    # ---------------------------------------------------------------------------
+    "Only household owners can update.": {
+        "fr": "Seuls les propriétaires du foyer peuvent modifier.",
+        "de": "Nur Haushaltsinhaber können aktualisieren.",
+        "es": "Solo los propietarios del hogar pueden actualizar.",
+    },
+    "Only household owners can delete.": {
+        "fr": "Seuls les propriétaires du foyer peuvent supprimer.",
+        "de": "Nur Haushaltsinhaber können löschen.",
+        "es": "Solo los propietarios del hogar pueden eliminar.",
+    },
+    "You are not a member of this household.": {
+        "fr": "Vous n'êtes pas membre de ce foyer.",
+        "de": "Sie sind kein Mitglied dieses Haushalts.",
+        "es": "No es miembro de este hogar.",
+    },
+    "Cannot leave household as the last owner.": {
+        "fr": "Impossible de quitter le foyer en tant que dernier propriétaire.",
+        "de": "Als letzter Inhaber kann der Haushalt nicht verlassen werden.",
+        "es": "No puede abandonar el hogar siendo el último propietario.",
+    },
+    "Only household owners can invite members.": {
+        "fr": "Seuls les propriétaires du foyer peuvent inviter des membres.",
+        "de": "Nur Haushaltsinhaber können Mitglieder einladen.",
+        "es": "Solo los propietarios del hogar pueden invitar miembros.",
+    },
+    "Email is required.": {
+        "fr": "L'email est requis.",
+        "de": "E-Mail ist erforderlich.",
+        "es": "El correo electrónico es obligatorio.",
+    },
+    "No user found with that email address.": {
+        "fr": "Aucun utilisateur trouvé avec cette adresse email.",
+        "de": "Kein Benutzer mit dieser E-Mail-Adresse gefunden.",
+        "es": "No se encontró ningún usuario con esa dirección de correo electrónico.",
+    },
+    "User is already a member of this household.": {
+        "fr": "L'utilisateur est déjà membre de ce foyer.",
+        "de": "Der Benutzer ist bereits Mitglied dieses Haushalts.",
+        "es": "El usuario ya es miembro de este hogar.",
+    },
+    "User successfully added to household.": {
+        "fr": "Utilisateur ajouté au foyer avec succès.",
+        "de": "Benutzer erfolgreich zum Haushalt hinzugefügt.",
+        "es": "Usuario añadido al hogar correctamente.",
+    },
+    "user_id is required.": {
+        "fr": "user_id est requis.",
+        "de": "user_id ist erforderlich.",
+        "es": "user_id es obligatorio.",
+    },
+    "User is not a member of this household.": {
+        "fr": "L'utilisateur n'est pas membre de ce foyer.",
+        "de": "Der Benutzer ist kein Mitglied dieses Haushalts.",
+        "es": "El usuario no es miembro de este hogar.",
+    },
+    "Cannot remove the last owner of the household.": {
+        "fr": "Impossible de supprimer le dernier propriétaire du foyer.",
+        "de": "Der letzte Inhaber des Haushalts kann nicht entfernt werden.",
+        "es": "No se puede eliminar al último propietario del hogar.",
+    },
+    "user_id and role are required.": {
+        "fr": "user_id et role sont requis.",
+        "de": "user_id und role sind erforderlich.",
+        "es": "user_id y role son obligatorios.",
+    },
+    "Invalid role. Must be owner or member.": {
+        "fr": "Rôle invalide. Doit être owner ou member.",
+        "de": "Ungültige Rolle. Muss owner oder member sein.",
+        "es": "Rol inválido. Debe ser owner o member.",
+    },
+    "Cannot demote the last owner of the household.": {
+        "fr": "Impossible de rétrograder le dernier propriétaire du foyer.",
+        "de": "Der letzte Inhaber des Haushalts kann nicht herabgestuft werden.",
+        "es": "No se puede degradar al último propietario del hogar.",
+    },
+    # ---------------------------------------------------------------------------
+    # API response strings — electricity
+    # ---------------------------------------------------------------------------
+    "electricity api ready": {
+        "fr": "API électricité prête",
+        "de": "Elektrizitäts-API bereit",
+        "es": "API de electricidad lista",
+    },
+    "Cannot delete breaker with active circuits.": {
+        "fr": "Impossible de supprimer un disjoncteur avec des circuits actifs.",
+        "de": "Ein Leitungsschutzschalter mit aktiven Stromkreisen kann nicht gelöscht werden.",
+        "es": "No se puede eliminar un disyuntor con circuitos activos.",
+    },
+    "Cannot delete circuit with active usage point links.": {
+        "fr": "Impossible de supprimer un circuit avec des liens de points d'usage actifs.",
+        "de": "Ein Stromkreis mit aktiven Nutzungspunktverbindungen kann nicht gelöscht werden.",
+        "es": "No se puede eliminar un circuito con enlaces de puntos de uso activos.",
+    },
+    "Cannot delete usage point with active circuit link.": {
+        "fr": "Impossible de supprimer un point d'usage avec un lien de circuit actif.",
+        "de": "Ein Nutzungspunkt mit aktiver Stromkreisverbindung kann nicht gelöscht werden.",
+        "es": "No se puede eliminar un punto de uso con un enlace de circuito activo.",
+    },
+    "Cannot delete resource with active dependencies.": {
+        "fr": "Impossible de supprimer une ressource avec des dépendances actives.",
+        "de": "Eine Ressource mit aktiven Abhängigkeiten kann nicht gelöscht werden.",
+        "es": "No se puede eliminar un recurso con dependencias activas.",
+    },
+    "Not found.": {
+        "fr": "Introuvable.",
+        "de": "Nicht gefunden.",
+        "es": "No encontrado.",
+    },
 }
 
 MULTILINE_WELCOME = {

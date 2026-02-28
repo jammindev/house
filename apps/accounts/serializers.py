@@ -17,16 +17,16 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "display_name",
             "locale",
-            "avatar_url",
             "avatar",
             "theme",
+            "color_theme",
             "full_name",
             "password",
             "is_active",
             "is_staff",
             "date_joined",
         ]
-        read_only_fields = ["id", "is_staff", "date_joined", "full_name", "avatar_url"]
+        read_only_fields = ["id", "is_staff", "date_joined", "full_name"]
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)

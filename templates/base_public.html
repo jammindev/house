@@ -1,11 +1,15 @@
 {% load i18n django_vite %}
 {% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="{{ CURRENT_LANGUAGE }}">
+<html lang="{{ CURRENT_LANGUAGE }}"
+      class="{% if user.is_authenticated and user.theme == 'dark' %}dark{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}House{% endblock %}</title>
+    {% if user.is_authenticated and user.theme == 'system' %}
+    <script>if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.classList.add('dark')}</script>
+    {% endif %}
 
     {% vite_hmr_client %}
     {% vite_react_refresh %}
@@ -13,7 +17,7 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="theme-house house-theme bg-background text-foreground min-h-screen">
+<body class="{{ user.color_theme|default:'theme-house' }} house-theme bg-background text-foreground min-h-screen">
     {% block body %}{% endblock %}
 </body>
 </html>

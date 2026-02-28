@@ -2,6 +2,12 @@ import './i18n'; // Initialize i18next before any component renders
 
 import { StrictMode, createElement } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Toaster } from '@/design-system/toast';
+
+interface MountOptions {
+  /** Inject a <Toaster /> portal into this React root. Default: false. */
+  withToaster?: boolean
+}
 
 /**
  * Mount a React component to a DOM element
@@ -54,10 +60,28 @@ export function onDomReady(callback: () => void) {
   callback();
 }
 
+/**
+ * Render a React element into a DOM node, optionally injecting a <Toaster />.
+ * Use this for custom mounts that read their own props (e.g. multiple JSON scripts).
+ */
+export function renderRoot(
+  mountNode: HTMLElement,
+  element: React.ReactElement,
+  options: MountOptions = {}
+) {
+  const root = createRoot(mountNode);
+  root.render(
+    <StrictMode>
+      {options.withToaster ? <>{element}<Toaster /></> : element}
+    </StrictMode>
+  );
+}
+
 export function mountWithJsonScriptProps<P extends object>(
   mountNodeId: string,
   propsScriptId: string,
-  Component: React.ComponentType<P>
+  Component: React.ComponentType<P>,
+  options: MountOptions = {}
 ) {
   const mountNode = document.getElementById(mountNodeId);
   if (!mountNode) return;
@@ -73,10 +97,5 @@ export function mountWithJsonScriptProps<P extends object>(
     }
   }
 
-  const root = createRoot(mountNode);
-  root.render(
-    <StrictMode>
-      {createElement(Component, props as P)}
-    </StrictMode>
-  );
+  renderRoot(mountNode, createElement(Component, props as P), options);
 }

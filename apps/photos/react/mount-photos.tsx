@@ -7,5 +7,5 @@ type PhotosProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<PhotosProps>('photos-root', 'photos-props', PhotosNode);
+  mountWithJsonScriptProps<PhotosProps>('photos-root', 'photos-props', PhotosNode, { withToaster: true });
 });

@@ -7,5 +7,5 @@ import ZonesNode from './ZonesNode';
 type ZonesNodeProps = ComponentProps<typeof ZonesNode>;
 
 onDomReady(() => {
-  mountWithJsonScriptProps<ZonesNodeProps>('zones-root', 'zones-page-props', ZonesNode);
+  mountWithJsonScriptProps<ZonesNodeProps>('zones-root', 'zones-page-props', ZonesNode, { withToaster: true });
 });

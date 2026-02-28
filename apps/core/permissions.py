@@ -63,6 +63,16 @@ def resolve_request_household(request: Request, required: bool = False):
             return None
         return Household.objects.filter(id=household_id).first()
 
+    # FK on User.active_household (set via switch-household view)
+    active_hid = getattr(request.user, 'active_household_id', None)
+    if active_hid:
+        is_member = HouseholdMember.objects.filter(
+            household_id=active_hid,
+            user_id=request.user.id,
+        ).exists()
+        if is_member:
+            return Household.objects.filter(id=active_hid).first()
+
     memberships = HouseholdMember.objects.filter(user_id=request.user.id).values_list("household_id", flat=True)
     membership_ids = list(memberships)
     if len(membership_ids) == 1:

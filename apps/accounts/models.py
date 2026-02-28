@@ -53,7 +53,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         default='en',
         help_text=_("User's preferred language")
     )
-    avatar_url = models.CharField(max_length=255, blank=True, help_text=_("URL to user's avatar image"))
     avatar = models.ImageField(
         upload_to='avatars/',
         null=True,
@@ -70,8 +69,44 @@ class User(AbstractBaseUser, PermissionsMixin):
         choices=THEME_CHOICES,
         default='system',
         blank=True,
-        help_text=_("User's preferred theme")
+        help_text=_("User's preferred theme (light/dark/system)")
     )
+    COLOR_THEME_CHOICES = [
+        ('theme-house', 'House'),
+        ('theme-blue', 'Blue'),
+        ('theme-sass', 'Sass'),
+        ('theme-sass2', 'Sass 2'),
+        ('theme-sass3', 'Sass 3'),
+        ('theme-purple', 'Purple'),
+        ('theme-green', 'Green'),
+        ('theme-crimson', 'Crimson'),
+        ('theme-teal', 'Teal'),
+        ('theme-amber', 'Amber'),
+        ('theme-indigo', 'Indigo'),
+        ('theme-rose', 'Rose'),
+        ('theme-cyan', 'Cyan'),
+        ('theme-slate', 'Slate'),
+        ('theme-emerald', 'Emerald'),
+        ('theme-lavender', 'Lavender'),
+        ('theme-midnight', 'Midnight'),
+    ]
+    color_theme = models.CharField(
+        max_length=30,
+        choices=COLOR_THEME_CHOICES,
+        default='theme-house',
+        blank=True,
+        help_text=_("User's preferred color palette")
+    )
+    active_household = models.ForeignKey(
+        'households.Household',
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='active_for_users',
+        help_text=_("User's currently active household"),
+        verbose_name=_("active household"),
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

@@ -4,6 +4,7 @@ import os
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -31,18 +32,18 @@ class AuthViewSet(viewsets.ViewSet):
 
         if not email or not password:
             return Response(
-                {"detail": "Email and password are required."},
+                {"detail": _("Email and password are required.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         user = authenticate(request=request, username=email, password=password)
         if user is None:
-            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"detail": _("Invalid credentials.")}, status=status.HTTP_401_UNAUTHORIZED)
 
         auth_login(request, user)
         return Response(
             {
-                "detail": "Login successful.",
+                "detail": _("Login successful."),
                 "user": UserSerializer(user).data,
             },
             status=status.HTTP_200_OK,
@@ -52,7 +53,7 @@ class AuthViewSet(viewsets.ViewSet):
     def logout(self, request):
         """Logout endpoint that clears the Django authenticated session."""
         auth_logout(request)
-        return Response({"detail": "Logout successful."}, status=status.HTTP_200_OK)
+        return Response({"detail": _("Logout successful.")}, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -82,8 +83,8 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
 
-        # PATCH — only allow display_name, locale, theme
-        allowed_fields = {'display_name', 'locale', 'theme'}
+        # PATCH — only allow display_name, locale, theme, color_theme
+        allowed_fields = {'display_name', 'locale', 'theme', 'color_theme'}
         data = {k: v for k, v in request.data.items() if k in allowed_fields}
         serializer = self.get_serializer(
             request.user, data=data, partial=True
@@ -109,19 +110,19 @@ class UserViewSet(viewsets.ModelViewSet):
 
         if not new_password or not confirm_password:
             return Response(
-                {'detail': 'new_password and confirm_password are required.'},
+                {'detail': _('new_password and confirm_password are required.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if len(new_password) < 8:
             return Response(
-                {'detail': 'Password must be at least 8 characters.'},
+                {'detail': _('Password must be at least 8 characters.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if new_password != confirm_password:
             return Response(
-                {'detail': 'Passwords do not match.'},
+                {'detail': _('Passwords do not match.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -135,7 +136,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
         request.user.set_password(new_password)
         request.user.save(update_fields=['password'])
-        return Response({'detail': 'Password updated successfully.'}, status=status.HTTP_200_OK)
+        return Response({'detail': _('Password updated successfully.')}, status=status.HTTP_200_OK)
 
     @action(
         detail=False,
@@ -153,7 +154,7 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'DELETE':
             if not request.user.avatar:
                 return Response(
-                    {'detail': 'No avatar to delete.'},
+                    {'detail': _('No avatar to delete.')},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             # Delete the file from storage
@@ -165,20 +166,21 @@ class UserViewSet(viewsets.ModelViewSet):
                     os.remove(old_path.path)
             except OSError:
                 pass
-            return Response({'detail': 'Avatar removed.'}, status=status.HTTP_200_OK)
+            return Response({'detail': _('Avatar removed.')}, status=status.HTTP_200_OK)
 
         # POST — upload
         avatar_file = request.FILES.get('avatar')
         if not avatar_file:
             return Response(
-                {'avatar': ['No file was submitted.']},
+                {'avatar': [_('No file was submitted.')]},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         max_size = 2 * 1024 * 1024  # 2 MB
         if avatar_file.size > max_size:
             return Response(
-                {'avatar': ['File size exceeds 2 MB limit.']},
+                {'avatar': [_('File size exceeds 2 MB limit.')]},
+
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
