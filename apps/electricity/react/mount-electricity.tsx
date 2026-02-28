@@ -9,6 +9,7 @@ onDomReady(() => {
   mountWithJsonScriptProps<ElectricityBoardNodeProps>(
     'electricity-board-root',
     'electricity-page-props',
-    ElectricityBoardNode
+    ElectricityBoardNode,
+    { withToaster: true }
   );
 });

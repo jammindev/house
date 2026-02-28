@@ -7,9 +7,9 @@ export interface UserProfile {
   last_name: string;
   display_name: string;
   locale: string;
-  avatar_url: string;
   avatar: string | null;
   theme: string;
+  color_theme: string;
   full_name: string;
   is_active: boolean;
   is_staff: boolean;
@@ -17,12 +17,31 @@ export interface UserProfile {
 }
 
 export type Theme = 'light' | 'dark' | 'system';
+export type ColorTheme =
+  | 'theme-house'
+  | 'theme-blue'
+  | 'theme-sass'
+  | 'theme-sass2'
+  | 'theme-sass3'
+  | 'theme-purple'
+  | 'theme-green'
+  | 'theme-crimson'
+  | 'theme-teal'
+  | 'theme-amber'
+  | 'theme-indigo'
+  | 'theme-rose'
+  | 'theme-cyan'
+  | 'theme-slate'
+  | 'theme-emerald'
+  | 'theme-lavender'
+  | 'theme-midnight';
 export type Locale = 'en' | 'fr' | 'de' | 'es';
 
 export interface UpdateProfileInput {
   display_name?: string;
   locale?: Locale;
   theme?: Theme;
+  color_theme?: ColorTheme;
 }
 
 function getCsrfToken(): string {

@@ -152,7 +152,91 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
 
 ---
 
-## 7) Modèle d’entrée journal (rappel)
+## 7) Système de notifications toast (Radix UI)
+
+### Présentation
+
+Un système de toast global est disponible pour toutes les mini-SPA React.
+Il remplace les `<Alert>` inline et les états `*Msg` locaux dans les composants.
+
+- Store : `ui/src/lib/toast.ts` (Zustand)
+- Composant : `ui/src/design-system/toast.tsx` (Radix UI `@radix-ui/react-toast`)
+- Variants : `default` | `destructive` | `success`
+- Auto-dismiss : 4 secondes (configurable via `duration`)
+
+### Usage dans un composant React
+
+```tsx
+import { useToast } from '@/lib/toast';
+
+function MyComponent() {
+  const { toast } = useToast();
+
+  async function handleAction() {
+    try {
+      await doSomething();
+      toast({ description: 'Succès !', variant: 'success' });
+    } catch {
+      toast({ description: 'Échec.', variant: 'destructive' });
+    }
+  }
+}
+```
+
+Avec titre :
+
+```tsx
+toast({ title: 'Profil mis à jour', description: 'Vos modifications ont été sauvegardées.', variant: 'success' });
+```
+
+### Usage hors composant (catch utilitaire, fichier API…)
+
+```ts
+import { toast } from '@/lib/toast';
+
+toast({ description: 'Erreur réseau.', variant: 'destructive' });
+```
+
+### Brancher le Toaster dans une nouvelle mini-SPA
+
+**Cas standard** — app qui utilise `mountWithJsonScriptProps` :
+
+```tsx
+import { mountWithJsonScriptProps, onDomReady } from '@/lib/mount';
+import MyApp from './MyApp';
+
+onDomReady(() => {
+  mountWithJsonScriptProps('my-root', 'my-props', MyApp, { withToaster: true });
+});
+```
+
+**Cas custom** — app qui lit plusieurs scripts JSON ou a une logique de montage particulière, utiliser `renderRoot` :
+
+```tsx
+import { createElement } from 'react';
+import { onDomReady, renderRoot } from '@/lib/mount';
+import MyApp from './MyApp';
+
+onDomReady(() => {
+  const mountNode = document.getElementById('my-root');
+  if (!mountNode) return;
+  // ... lecture/merge de plusieurs scripts ...
+  renderRoot(mountNode, createElement(MyApp, props), { withToaster: true });
+});
+```
+
+`withToaster` est `false` par défaut — ne rien passer si l'app n'a pas besoin de toasts.
+
+**Important** : ne pas importer `<Toaster />` manuellement dans les `mount-*.tsx` — passer `{ withToaster: true }` suffit.
+
+### Règle
+
+Ne pas utiliser `<Alert>` inline pour des retours d'action utilisateur (save, delete, invite…).
+Réserver `<Alert>` aux messages persistants liés à l'état de la page (ex: erreur de chargement initial).
+
+---
+
+## 8) Modèle d'entrée journal (rappel)
 
 Date:
 Lot:

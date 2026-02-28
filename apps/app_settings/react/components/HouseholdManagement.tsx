@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
-import { Alert, AlertDescription } from '@/design-system/alert';
 import type { Household } from '@/lib/api/households';
+import { useToast } from '@/lib/toast';
 import {
   fetchHouseholds,
   createHousehold,
@@ -18,18 +18,23 @@ import {
 interface HouseholdManagementProps {
   initialHouseholds: Household[];
   currentUserId: string;
+  activeHouseholdId?: string | null;
+  switchHouseholdUrl?: string;
 }
 
 export function HouseholdManagement({
   initialHouseholds,
   currentUserId,
+  activeHouseholdId,
+  switchHouseholdUrl,
 }: HouseholdManagementProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const [households, setHouseholds] = React.useState<Household[]>(initialHouseholds);
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [success, setSuccess] = React.useState<string | null>(null);
+  const [activeId, setActiveId] = React.useState<string | null>(activeHouseholdId ?? null);
+  const [switching, setSwitching] = React.useState(false);
 
   // Create new household
   const [newName, setNewName] = React.useState('');
@@ -45,20 +50,6 @@ export function HouseholdManagement({
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [inviting, setInviting] = React.useState(false);
 
-  function flash(msg: string, isError = false) {
-    if (isError) {
-      setError(msg);
-      setSuccess(null);
-    } else {
-      setSuccess(msg);
-      setError(null);
-    }
-    setTimeout(() => {
-      setError(null);
-      setSuccess(null);
-    }, 4000);
-  }
-
   async function reload() {
     try {
       const data = await fetchHouseholds();
@@ -68,11 +59,41 @@ export function HouseholdManagement({
     }
   }
 
+  function getCsrfToken(): string {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  async function handleSwitch(id: string) {
+    if (id === activeId) return;
+    if (!switchHouseholdUrl) return;
+    setSwitching(true);
+    try {
+      const csrfToken = getCsrfToken();
+      const res = await fetch(switchHouseholdUrl, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+        },
+        body: JSON.stringify({ household_id: id }),
+      });
+      if (!res.ok) throw new Error('Failed');
+      setActiveId(id);
+      toast({ description: t('settings.householdSwitched', { defaultValue: 'Active household changed.' }), variant: 'success' });
+    } catch {
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Request failed.' }), variant: 'destructive' });
+    } finally {
+      setSwitching(false);
+    }
+  }
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = newName.trim();
     if (!trimmed) {
-      flash(t('settings.householdNameRequired'), true);
+      toast({ description: t('settings.householdNameRequired'), variant: 'destructive' });
       return;
     }
     setCreating(true);
@@ -80,9 +101,9 @@ export function HouseholdManagement({
       await createHousehold({ name: trimmed });
       setNewName('');
       await reload();
-      flash(t('settings.householdCreated'));
+      toast({ description: t('settings.householdCreated'), variant: 'success' });
     } catch {
-      flash(t('settings.householdCreateFailed'), true);
+      toast({ description: t('settings.householdCreateFailed'), variant: 'destructive' });
     } finally {
       setCreating(false);
     }
@@ -94,9 +115,9 @@ export function HouseholdManagement({
     try {
       await deleteHousehold(id);
       await reload();
-      flash(t('settings.householdDeleted'));
+      toast({ description: t('settings.householdDeleted'), variant: 'success' });
     } catch {
-      flash(t('settings.requestFailed', { defaultValue: 'Request failed.' }), true);
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Request failed.' }), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -108,9 +129,9 @@ export function HouseholdManagement({
     try {
       await leaveHousehold(id);
       await reload();
-      flash(t('settings.householdLeft', { defaultValue: 'Left household.' }));
+      toast({ description: t('settings.householdLeft', { defaultValue: 'Left household.' }), variant: 'success' });
     } catch {
-      flash(t('settings.requestFailed', { defaultValue: 'Request failed.' }), true);
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Request failed.' }), variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -129,9 +150,9 @@ export function HouseholdManagement({
       await updateHousehold(id, { name: trimmed });
       await reload();
       setEditingId(null);
-      flash(t('settings.householdUpdated', { defaultValue: 'Household updated.' }));
+      toast({ description: t('settings.householdUpdated', { defaultValue: 'Household updated.' }), variant: 'success' });
     } catch {
-      flash(t('settings.requestFailed', { defaultValue: 'Request failed.' }), true);
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Request failed.' }), variant: 'destructive' });
     } finally {
       setEditSaving(false);
     }
@@ -146,9 +167,9 @@ export function HouseholdManagement({
       setInviteEmail('');
       setInvitingId(null);
       await reload();
-      flash(t('settings.memberInvited', { defaultValue: 'Member invited.' }));
+      toast({ description: t('settings.memberInvited', { defaultValue: 'Member invited.' }), variant: 'success' });
     } catch {
-      flash(t('settings.inviteFailed', { defaultValue: 'Failed to invite member.' }), true);
+      toast({ description: t('settings.inviteFailed', { defaultValue: 'Failed to invite member.' }), variant: 'destructive' });
     } finally {
       setInviting(false);
     }
@@ -163,17 +184,6 @@ export function HouseholdManagement({
         <CardTitle>{t('settings.householdsTitle', { defaultValue: 'Households' })}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        {success && (
-          <Alert>
-            <AlertDescription>{success}</AlertDescription>
-          </Alert>
-        )}
-
         {/* Household list */}
         {households.length === 0 ? (
           <p className="text-sm text-muted-foreground">
@@ -204,13 +214,28 @@ export function HouseholdManagement({
                   </div>
                 ) : (
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex items-center gap-2">
                       <span className="font-medium">{h.name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {h.members_count} {t('settings.members', { defaultValue: 'members' })}
                       </span>
+                      {activeId === h.id && (
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          {t('settings.activeHousehold', { defaultValue: 'Active' })}
+                        </span>
+                      )}
                     </div>
                     <div className="flex gap-1">
+                      {switchHouseholdUrl && households.length > 1 && activeId !== h.id && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => void handleSwitch(h.id)}
+                          disabled={switching}
+                        >
+                          {t('settings.setActiveHousehold', { defaultValue: 'Set as active' })}
+                        </Button>
+                      )}
                       {isOwner(h) && (
                         <>
                           <Button size="sm" variant="outline" onClick={() => startEdit(h)}>

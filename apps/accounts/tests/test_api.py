@@ -215,6 +215,37 @@ class TestMeEndpoint:
         user.refresh_from_db()
         assert user.theme == "dark"
 
+    def test_me_get_returns_color_theme(self, authenticated_client, user):
+        """GET /me/ includes color_theme field with default value."""
+        url = reverse("user-me")
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert "color_theme" in response.data
+        assert response.data["color_theme"] == "theme-house"
+
+    def test_me_patch_updates_color_theme(self, authenticated_client, user):
+        """PATCH /me/ updates color_theme."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"color_theme": "theme-blue"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["color_theme"] == "theme-blue"
+        user.refresh_from_db()
+        assert user.color_theme == "theme-blue"
+
+    def test_me_patch_rejects_invalid_color_theme(self, authenticated_client):
+        """PATCH /me/ with unknown color_theme value returns 400."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"color_theme": "theme-nonexistent"}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_me_patch_ignores_is_staff(self, authenticated_client, user):
+        """PATCH /me/ cannot elevate to staff via allowed_fields filter."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"is_staff": True}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.is_staff is False
+
     def test_me_patch_rejects_invalid_locale(self, authenticated_client):
         """PATCH /me/ with invalid locale returns 400."""
         url = reverse("user-me")
@@ -322,4 +353,55 @@ class TestAvatarEndpoints:
         url = reverse("user-avatar")
         response = authenticated_client.delete(url)
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_upload_avatar_no_file(self, authenticated_client):
+        """POST /me/avatar/ without a file returns 400."""
+        url = reverse("user-avatar")
+        response = authenticated_client.post(url, {}, format="multipart")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "avatar" in response.data
+
+    def test_upload_avatar_too_large(self, authenticated_client):
+        """POST /me/avatar/ with file > 2 MB returns 400."""
+        import io
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        large_content = b"a" * (2 * 1024 * 1024 + 1)
+        large_file = SimpleUploadedFile("big.png", large_content, content_type="image/png")
+        url = reverse("user-avatar")
+        response = authenticated_client.post(url, {"avatar": large_file}, format="multipart")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "avatar" in response.data
+
+    def test_upload_avatar_replaces_existing(self, authenticated_client, user):
+        """POST /me/avatar/ when user already has an avatar replaces it."""
+        url = reverse("user-avatar")
+
+        # First upload
+        img1 = self._make_image("first.png")
+        authenticated_client.post(url, {"avatar": img1}, format="multipart")
+        user.refresh_from_db()
+        first_name = user.avatar.name
+
+        # Second upload
+        img2 = self._make_image("second.png")
+        response = authenticated_client.post(url, {"avatar": img2}, format="multipart")
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        # Avatar must have changed
+        assert user.avatar.name != first_name
+        assert "avatar_url" in response.data
+
+    def test_upload_avatar_requires_auth(self, api_client):
+        """POST /me/avatar/ without authentication returns 401."""
+        url = reverse("user-avatar")
+        img = self._make_image()
+        response = api_client.post(url, {"avatar": img}, format="multipart")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_avatar_requires_auth(self, api_client):
+        """DELETE /me/avatar/ without authentication returns 401."""
+        url = reverse("user-avatar")
+        response = api_client.delete(url)
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 

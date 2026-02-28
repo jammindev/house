@@ -9,8 +9,7 @@
         <h1 class="text-2xl font-bold text-gray-900">{{ title }}</h1>
         <p class="text-sm text-gray-500">{{ description }}</p>
     </div>
-    {{ initial_user|json_script:"settings-initial-user" }}
-    {{ initial_households|json_script:"settings-initial-households" }}
+    {{ settings_props|json_script:"settings-props" }}
     <div id="{{ mount_id }}" class="min-h-16"></div>
 </div>
 {% endblock %}

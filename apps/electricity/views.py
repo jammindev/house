@@ -3,6 +3,7 @@
 
 from django.db.models import ProtectedError
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from rest_framework import status, viewsets
@@ -191,7 +192,7 @@ class ElectricityHealthView(APIView):
     permission_classes = [IsAuthenticated, IsElectricityOwnerWriteMemberRead]
 
     def get(self, request):
-        return Response({"message": "electricity api ready"})
+        return Response({"message": _("electricity api ready")})
 
 
 class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
@@ -223,7 +224,7 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
             ).exists()
             if has_active_circuits:
                 return Response(
-                    {"detail": "Cannot delete breaker with active circuits."},
+                    {"detail": _("Cannot delete breaker with active circuits.")},
                     status=status.HTTP_409_CONFLICT,
                 )
 
@@ -234,7 +235,7 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
             ).exists()
             if has_active_links:
                 return Response(
-                    {"detail": "Cannot delete circuit with active usage point links."},
+                    {"detail": _("Cannot delete circuit with active usage point links.")},
                     status=status.HTTP_409_CONFLICT,
                 )
 
@@ -245,7 +246,7 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
             ).exists()
             if has_active_links:
                 return Response(
-                    {"detail": "Cannot delete usage point with active circuit link."},
+                    {"detail": _("Cannot delete usage point with active circuit link.")},
                     status=status.HTTP_409_CONFLICT,
                 )
 
@@ -253,7 +254,7 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
             return super().destroy(request, *args, **kwargs)
         except ProtectedError:
             return Response(
-                {"detail": "Cannot delete resource with active dependencies."},
+                {"detail": _("Cannot delete resource with active dependencies.")},
                 status=status.HTTP_409_CONFLICT,
             )
 
@@ -419,4 +420,4 @@ class MappingLookupView(APIView):
                 }
             )
 
-        return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": _("Not found.")}, status=status.HTTP_404_NOT_FOUND)

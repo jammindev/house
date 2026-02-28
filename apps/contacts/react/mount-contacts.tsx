@@ -7,5 +7,5 @@ type ContactsProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<ContactsProps>('contacts-root', 'contacts-props', ContactsNode);
+  mountWithJsonScriptProps<ContactsProps>('contacts-root', 'contacts-props', ContactsNode, { withToaster: true });
 });

@@ -7,5 +7,5 @@ type TasksProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<TasksProps>('tasks-root', 'tasks-props', TasksNode);
+  mountWithJsonScriptProps<TasksProps>('tasks-root', 'tasks-props', TasksNode, { withToaster: true });
 });

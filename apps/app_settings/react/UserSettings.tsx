@@ -4,15 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/design-system/card';
-import { Alert, AlertDescription } from '@/design-system/alert';
-import type { UserProfile, Theme, Locale } from '@/lib/api/users';
+import type { UserProfile, Theme, ColorTheme, Locale } from '@/lib/api/users';
 import { patchMe, changePassword, uploadAvatar, deleteAvatar } from '@/lib/api/users';
 import type { Household } from '@/lib/api/households';
+import { useToast } from '@/lib/toast';
 import { HouseholdManagement } from './components/HouseholdManagement';
 
 interface UserSettingsProps {
   initialUser: UserProfile;
   initialHouseholds: Household[];
+  activeHouseholdId?: string | null;
+  switchHouseholdUrl?: string;
 }
 
 const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
@@ -28,48 +30,82 @@ const THEME_OPTIONS: { value: Theme; label: string }[] = [
   { value: 'system', label: 'System' },
 ];
 
-export default function UserSettings({ initialUser, initialHouseholds }: UserSettingsProps) {
+const COLOR_THEME_OPTIONS: { value: ColorTheme; label: string; swatch: string }[] = [
+  { value: 'theme-house',    label: 'House',    swatch: '#7c6d5a' },
+  { value: 'theme-blue',     label: 'Blue',     swatch: '#0ea5e9' },
+  { value: 'theme-sass',     label: 'Sass',     swatch: '#cd5c8e' },
+  { value: 'theme-sass2',    label: 'Sage',     swatch: '#5c8a5c' },
+  { value: 'theme-sass3',    label: 'Sky',      swatch: '#60a5fa' },
+  { value: 'theme-purple',   label: 'Purple',   swatch: '#a855f7' },
+  { value: 'theme-green',    label: 'Green',    swatch: '#22c55e' },
+  { value: 'theme-crimson',  label: 'Crimson',  swatch: '#dc2626' },
+  { value: 'theme-teal',     label: 'Teal',     swatch: '#14b8a6' },
+  { value: 'theme-amber',    label: 'Amber',    swatch: '#f59e0b' },
+  { value: 'theme-indigo',   label: 'Indigo',   swatch: '#6366f1' },
+  { value: 'theme-rose',     label: 'Rose',     swatch: '#f43f5e' },
+  { value: 'theme-cyan',     label: 'Cyan',     swatch: '#06b6d4' },
+  { value: 'theme-slate',    label: 'Slate',    swatch: '#64748b' },
+  { value: 'theme-emerald',  label: 'Emerald',  swatch: '#10b981' },
+  { value: 'theme-lavender', label: 'Lavender', swatch: '#a78bfa' },
+  { value: 'theme-midnight', label: 'Midnight', swatch: '#4338ca' },
+];
+
+/** Apply dark/light/system to <html> classList (Tailwind darkMode: ["class"]) */
+function applyDarkMode(theme: string) {
+  const html = document.documentElement;
+  html.classList.remove('dark');
+  if (theme === 'dark') {
+    html.classList.add('dark');
+  } else if (theme === 'system') {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      html.classList.add('dark');
+    }
+  }
+}
+
+/** Swap the color palette class on <body> */
+function applyColorTheme(colorTheme: string) {
+  document.body.classList.forEach((cls) => {
+    if (cls.startsWith('theme-')) document.body.classList.remove(cls);
+  });
+  document.body.classList.add(colorTheme);
+}
+
+export default function UserSettings({ initialUser, initialHouseholds, activeHouseholdId, switchHouseholdUrl }: UserSettingsProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
 
   const [user, setUser] = React.useState<UserProfile>(initialUser);
   const [households] = React.useState<Household[]>(initialHouseholds);
 
   // Apply initial theme to <html>
   React.useEffect(() => {
-    const theme = initialUser.theme ?? 'system';
-    document.documentElement.setAttribute('data-theme', theme);
+    applyDarkMode(initialUser.theme ?? 'system');
   }, [initialUser.theme]);
+
+  // Theme state
+  const [theme, setTheme] = React.useState<Theme>((initialUser.theme as Theme) ?? 'system');
+  const [themeSaving, setThemeSaving] = React.useState(false);
+
+  // Color theme state
+  const [colorTheme, setColorTheme] = React.useState<ColorTheme>(
+    (initialUser.color_theme as ColorTheme) ?? 'theme-house',
+  );
+  const [colorThemeSaving, setColorThemeSaving] = React.useState(false);
 
   // Profile state
   const [displayName, setDisplayName] = React.useState(initialUser.display_name ?? '');
   const [locale, setLocale] = React.useState<Locale>((initialUser.locale as Locale) ?? 'en');
   const [profileSaving, setProfileSaving] = React.useState(false);
-  const [profileMsg, setProfileMsg] = React.useState<{ text: string; isError: boolean } | null>(null);
-
-  // Theme state
-  const [theme, setTheme] = React.useState<Theme>((initialUser.theme as Theme) ?? 'system');
-  const [themeSaving, setThemeSaving] = React.useState(false);
-  const [themeMsg, setThemeMsg] = React.useState<{ text: string; isError: boolean } | null>(null);
 
   // Avatar state
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [avatarSaving, setAvatarSaving] = React.useState(false);
-  const [avatarMsg, setAvatarMsg] = React.useState<{ text: string; isError: boolean } | null>(null);
 
   // Password state
   const [newPassword, setNewPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
   const [passwordSaving, setPasswordSaving] = React.useState(false);
-  const [passwordMsg, setPasswordMsg] = React.useState<{ text: string; isError: boolean } | null>(null);
-
-  function flash(
-    setter: React.Dispatch<React.SetStateAction<{ text: string; isError: boolean } | null>>,
-    text: string,
-    isError = false
-  ) {
-    setter({ text, isError });
-    setTimeout(() => setter(null), 4000);
-  }
 
   // --- Profile save ---
   async function handleProfileSave(e: React.FormEvent) {
@@ -89,9 +125,10 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
         return;
       }
 
-      flash(setProfileMsg, t('settings.profileUpdated', { defaultValue: 'Profile updated.' }));
+      document.body.dispatchEvent(new CustomEvent('profile-updated'));
+      toast({ description: t('settings.profileUpdated', { defaultValue: 'Profile updated.' }), variant: 'success' });
     } catch {
-      flash(setProfileMsg, t('settings.requestFailed', { defaultValue: 'Save failed.' }), true);
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Save failed.' }), variant: 'destructive' });
     } finally {
       setProfileSaving(false);
     }
@@ -100,16 +137,32 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
   // --- Theme save ---
   async function handleThemeChange(newTheme: Theme) {
     setTheme(newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
+    applyDarkMode(newTheme);
     setThemeSaving(true);
     try {
       const updated = await patchMe({ theme: newTheme });
       setUser(updated);
-      flash(setThemeMsg, t('settings.themeUpdated'));
+      toast({ description: t('settings.themeUpdated'), variant: 'success' });
     } catch {
-      flash(setThemeMsg, t('settings.requestFailed', { defaultValue: 'Save failed.' }), true);
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Save failed.' }), variant: 'destructive' });
     } finally {
       setThemeSaving(false);
+    }
+  }
+
+  // --- Color theme save ---
+  async function handleColorThemeChange(newColorTheme: ColorTheme) {
+    setColorTheme(newColorTheme);
+    applyColorTheme(newColorTheme);
+    setColorThemeSaving(true);
+    try {
+      const updated = await patchMe({ color_theme: newColorTheme });
+      setUser(updated);
+      toast({ description: t('settings.themeUpdated'), variant: 'success' });
+    } catch {
+      toast({ description: t('settings.requestFailed', { defaultValue: 'Save failed.' }), variant: 'destructive' });
+    } finally {
+      setColorThemeSaving(false);
     }
   }
 
@@ -118,16 +171,17 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      flash(setAvatarMsg, t('settings.avatarUnsupportedType'), true);
+      toast({ description: t('settings.avatarUnsupportedType'), variant: 'destructive' });
       return;
     }
     setAvatarSaving(true);
     try {
       const result = await uploadAvatar(file);
-      setUser((prev) => ({ ...prev, avatar_url: result.avatar_url, avatar: result.avatar_url }));
-      flash(setAvatarMsg, t('settings.avatarUpdated'));
+      setUser((prev) => ({ ...prev, avatar: result.avatar_url }));
+      document.body.dispatchEvent(new CustomEvent('profile-updated'));
+      toast({ description: t('settings.avatarUpdated'), variant: 'success' });
     } catch (err) {
-      flash(setAvatarMsg, err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Upload failed.' }), true);
+      toast({ description: err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Upload failed.' }), variant: 'destructive' });
     } finally {
       setAvatarSaving(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -138,10 +192,11 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
     setAvatarSaving(true);
     try {
       await deleteAvatar();
-      setUser((prev) => ({ ...prev, avatar_url: '', avatar: null }));
-      flash(setAvatarMsg, t('settings.avatarRemoved'));
+      setUser((prev) => ({ ...prev, avatar: null }));
+      document.body.dispatchEvent(new CustomEvent('profile-updated'));
+      toast({ description: t('settings.avatarRemoved'), variant: 'success' });
     } catch (err) {
-      flash(setAvatarMsg, err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Delete failed.' }), true);
+      toast({ description: err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Delete failed.' }), variant: 'destructive' });
     } finally {
       setAvatarSaving(false);
     }
@@ -151,7 +206,7 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      flash(setPasswordMsg, t('settings.passwordMismatch'), true);
+      toast({ description: t('settings.passwordMismatch'), variant: 'destructive' });
       return;
     }
     setPasswordSaving(true);
@@ -159,19 +214,15 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
       await changePassword(newPassword, confirmPassword);
       setNewPassword('');
       setConfirmPassword('');
-      flash(setPasswordMsg, t('settings.passwordUpdated'));
+      toast({ description: t('settings.passwordUpdated'), variant: 'success' });
     } catch (err) {
-      flash(
-        setPasswordMsg,
-        err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Failed.' }),
-        true
-      );
+      toast({ description: err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Failed.' }), variant: 'destructive' });
     } finally {
       setPasswordSaving(false);
     }
   }
 
-  const currentAvatarUrl = user.avatar || user.avatar_url;
+  const currentAvatarUrl = user.avatar;
   const initials = (user.display_name || user.email).slice(0, 2).toUpperCase();
 
   return (
@@ -180,6 +231,8 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
       <HouseholdManagement
         initialHouseholds={households}
         currentUserId={user.id}
+        activeHouseholdId={activeHouseholdId}
+        switchHouseholdUrl={switchHouseholdUrl}
       />
 
       {/* Profile */}
@@ -210,11 +263,6 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
                 ))}
               </select>
             </div>
-            {profileMsg && (
-              <Alert variant={profileMsg.isError ? 'destructive' : 'default'}>
-                <AlertDescription>{profileMsg.text}</AlertDescription>
-              </Alert>
-            )}
             <Button type="submit" disabled={profileSaving}>
               {profileSaving ? t('settings.updating') : t('common.save', { defaultValue: 'Save' })}
             </Button>
@@ -272,11 +320,6 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
             className="hidden"
             onChange={(e) => void handleAvatarChange(e)}
           />
-          {avatarMsg && (
-            <Alert variant={avatarMsg.isError ? 'destructive' : 'default'}>
-              <AlertDescription>{avatarMsg.text}</AlertDescription>
-            </Alert>
-          )}
         </CardContent>
       </Card>
 
@@ -286,7 +329,8 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
           <CardTitle>{t('settings.theme')}</CardTitle>
           <CardDescription>{t('settings.themeDescription')}</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-5">
+          {/* Light / Dark / System */}
           <div className="flex gap-2">
             {THEME_OPTIONS.map((opt) => (
               <Button
@@ -300,11 +344,29 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
               </Button>
             ))}
           </div>
-          {themeMsg && (
-            <Alert variant={themeMsg.isError ? 'destructive' : 'default'}>
-              <AlertDescription>{themeMsg.text}</AlertDescription>
-            </Alert>
-          )}
+
+          {/* Color palette */}
+          <div>
+            <p className="text-sm font-medium mb-2">{t('settings.colorPalette', { defaultValue: 'Color palette' })}</p>
+            <div className="flex flex-wrap gap-2">
+              {COLOR_THEME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  title={opt.label}
+                  disabled={colorThemeSaving}
+                  onClick={() => void handleColorThemeChange(opt.value)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    colorTheme === opt.value
+                      ? 'border-foreground scale-110 shadow-md'
+                      : 'border-transparent hover:scale-105'
+                  }`}
+                  style={{ backgroundColor: opt.swatch }}
+                  aria-pressed={colorTheme === opt.value}
+                  aria-label={opt.label}
+                />
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -334,11 +396,6 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
                 autoComplete="new-password"
               />
             </div>
-            {passwordMsg && (
-              <Alert variant={passwordMsg.isError ? 'destructive' : 'default'}>
-                <AlertDescription>{passwordMsg.text}</AlertDescription>
-              </Alert>
-            )}
             <Button type="submit" disabled={passwordSaving}>
               {passwordSaving ? t('settings.updating') : t('settings.updatePasswordCta')}
             </Button>

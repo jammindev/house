@@ -207,16 +207,12 @@
     <div class="border-t border-gray-200/60 p-4 bg-gradient-to-t from-white/60 to-transparent shrink-0">
 
         {# Avatar + email #}
-        <div class="flex items-center gap-3 p-3 rounded-2xl bg-white/60 border border-gray-200/40 shadow-sm mb-3">
-            <div class="h-9 w-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                {{ request.user.email|first|upper }}
-            </div>
-            <div class="min-w-0">
-                <p class="text-sm font-semibold text-gray-900 truncate">
-                    {{ request.user.get_full_name|default:request.user.email }}
-                </p>
-                <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
-            </div>
+        <div id="sidebar-user-info"
+             hx-get="{% url 'sidebar_user_fragment' %}"
+             hx-trigger="profile-updated from:body"
+             hx-swap="innerHTML"
+             class="flex items-center gap-3 p-3 rounded-2xl bg-white/60 border border-gray-200/40 shadow-sm mb-3">
+            {% include 'components/_sidebar_user_fragment.html' %}
         </div>
 
         {# Logout : form POST (CSRF-safe) #}

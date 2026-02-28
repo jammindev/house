@@ -9,6 +9,7 @@ onDomReady(() => {
   mountWithJsonScriptProps<InteractionCreateFormProps>(
     'interaction-create-root',
     'interaction-create-props',
-    InteractionCreateForm
+    InteractionCreateForm,
+    { withToaster: true }
   );
 });

@@ -1,6 +1,7 @@
 """
 Households views - REST API for household management.
 """
+from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -81,7 +82,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             role=HouseholdMember.Role.OWNER
         ).exists():
             return Response(
-                {"detail": "Only household owners can update."},
+                {"detail": _("Only household owners can update.")},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -98,7 +99,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             role=HouseholdMember.Role.OWNER
         ).exists():
             return Response(
-                {"detail": "Only household owners can delete."},
+                {"detail": _("Only household owners can delete.")},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -127,7 +128,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             )
         except HouseholdMember.DoesNotExist:
             return Response(
-                {"detail": "You are not a member of this household."},
+                {"detail": _("You are not a member of this household.")},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -140,7 +141,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             
             if owners_count == 1:
                 return Response(
-                    {"detail": "Cannot leave household as the last owner."},
+                    {"detail": _("Cannot leave household as the last owner.")},
                     status=status.HTTP_400_BAD_REQUEST
                 )
         
@@ -162,7 +163,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             role=HouseholdMember.Role.OWNER
         ).exists():
             return Response(
-                {"detail": "Only household owners can invite members."},
+                {"detail": _("Only household owners can invite members.")},
                 status=status.HTTP_403_FORBIDDEN
             )
         
@@ -171,7 +172,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         
         if not email:
             return Response(
-                {"detail": "Email is required."},
+                {"detail": _("Email is required.")},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -180,13 +181,13 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             invited_user = User.objects.get(email=email)
         except User.DoesNotExist:
             return Response(
-                {"detail": "No user found with that email address."},
+                {"detail": _("No user found with that email address.")},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         if HouseholdMember.objects.filter(household=household, user=invited_user).exists():
             return Response(
-                {"detail": "User is already a member of this household."},
+                {"detail": _("User is already a member of this household.")},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -196,7 +197,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             role=role,
         )
         return Response(
-            {"detail": "User successfully added to household.", "user_id": str(invited_user.id)},
+            {"detail": _("User successfully added to household."), "user_id": str(invited_user.id)},
             status=status.HTTP_201_CREATED
         )
 
@@ -207,14 +208,14 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         user_id = request.data.get('user_id')
         if not user_id:
             return Response(
-                {'detail': 'user_id is required.'},
+                {'detail': _('user_id is required.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         membership = HouseholdMember.objects.filter(household=household, user_id=user_id).first()
         if not membership:
             return Response(
-                {'detail': 'User is not a member of this household.'},
+                {'detail': _('User is not a member of this household.')},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -225,7 +226,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             ).count()
             if owners_count == 1:
                 return Response(
-                    {'detail': 'Cannot remove the last owner of the household.'},
+                    {'detail': _('Cannot remove the last owner of the household.')},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -241,20 +242,20 @@ class HouseholdViewSet(viewsets.ModelViewSet):
 
         if not user_id or not role:
             return Response(
-                {'detail': 'user_id and role are required.'},
+                {'detail': _('user_id and role are required.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         if role not in {HouseholdMember.Role.OWNER, HouseholdMember.Role.MEMBER}:
             return Response(
-                {'detail': 'Invalid role. Must be owner or member.'},
+                {'detail': _('Invalid role. Must be owner or member.')},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         membership = HouseholdMember.objects.filter(household=household, user_id=user_id).first()
         if not membership:
             return Response(
-                {'detail': 'User is not a member of this household.'},
+                {'detail': _('User is not a member of this household.')},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -265,7 +266,7 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             ).count()
             if owners_count == 1:
                 return Response(
-                    {'detail': 'Cannot demote the last owner of the household.'},
+                    {'detail': _('Cannot demote the last owner of the household.')},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 

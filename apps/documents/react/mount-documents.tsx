@@ -7,5 +7,5 @@ type DocumentsProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<DocumentsProps>('documents-root', 'documents-props', DocumentsNode);
+  mountWithJsonScriptProps<DocumentsProps>('documents-root', 'documents-props', DocumentsNode, { withToaster: true });
 });

@@ -7,5 +7,5 @@ type ProjectsProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<ProjectsProps>('projects-root', 'projects-props', ProjectsNode);
+  mountWithJsonScriptProps<ProjectsProps>('projects-root', 'projects-props', ProjectsNode, { withToaster: true });
 });

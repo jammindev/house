@@ -7,5 +7,5 @@ type EquipmentProps = {
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<EquipmentProps>('equipment-root', 'equipment-props', EquipmentNode);
+  mountWithJsonScriptProps<EquipmentProps>('equipment-root', 'equipment-props', EquipmentNode, { withToaster: true });
 });

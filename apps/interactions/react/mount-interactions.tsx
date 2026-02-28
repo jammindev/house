@@ -9,6 +9,7 @@ onDomReady(() => {
   mountWithJsonScriptProps<InteractionListProps>(
     'interactions-list-root',
     'interactions-list-props',
-    InteractionList
+    InteractionList,
+    { withToaster: true }
   );
 });
