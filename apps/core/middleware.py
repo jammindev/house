@@ -1,9 +1,56 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.utils.translation import get_language_from_request
+from django.utils.translation import activate, get_language_from_request
 
 
 LANGUAGE_COOKIE_NAME = settings.LANGUAGE_COOKIE_NAME  # 'django_language'
+
+
+class UserLocaleMiddleware:
+    """
+    Pour les utilisateurs connectés, active la langue stockée dans User.locale
+    et synchronise le cookie django_language en conséquence.
+
+    Ce middleware doit être déclaré APRÈS AuthenticationMiddleware dans MIDDLEWARE.
+    Il prend le dessus sur LocaleMiddleware pour les utilisateurs authentifiés,
+    garantissant une source de vérité unique : User.locale.
+    """
+
+    BYPASS_PREFIXES = ('/api/', '/admin/', '/static/', '/media/', '/i18n/')
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        path = request.path_info
+        if any(path.startswith(p) for p in self.BYPASS_PREFIXES):
+            return self.get_response(request)
+
+        if request.user.is_authenticated:
+            user_locale = getattr(request.user, 'locale', None)
+            if user_locale:
+                activate(user_locale)
+                request.LANGUAGE_CODE = user_locale
+
+        response = self.get_response(request)
+
+        # Synchronise le cookie pour que les prochaines requêtes (et
+        # AcceptLanguageRedirectMiddleware) voient la bonne langue.
+        if request.user.is_authenticated:
+            user_locale = getattr(request.user, 'locale', None)
+            if user_locale:
+                response.set_cookie(
+                    LANGUAGE_COOKIE_NAME,
+                    user_locale,
+                    max_age=getattr(settings, 'LANGUAGE_COOKIE_AGE', 365 * 24 * 3600),
+                    path=getattr(settings, 'LANGUAGE_COOKIE_PATH', '/'),
+                    domain=getattr(settings, 'LANGUAGE_COOKIE_DOMAIN', None),
+                    secure=getattr(settings, 'LANGUAGE_COOKIE_SECURE', False),
+                    httponly=getattr(settings, 'LANGUAGE_COOKIE_HTTPONLY', False),
+                    samesite=getattr(settings, 'LANGUAGE_COOKIE_SAMESITE', 'Lax'),
+                )
+
+        return response
 
 
 class AcceptLanguageRedirectMiddleware:
@@ -32,6 +79,11 @@ class AcceptLanguageRedirectMiddleware:
         # Ignorer les chemins non-web (API, admin, assets…)
         path = request.path_info
         if any(path.startswith(p) for p in self.BYPASS_PREFIXES):
+            return self.get_response(request)
+
+        # Les utilisateurs connectés sont gérés par UserLocaleMiddleware
+        # (qui active User.locale et synchronise le cookie) → pas de redirect ici.
+        if request.user.is_authenticated:
             return self.get_response(request)
 
         # Ignorer si un cookie de langue est déjà posé

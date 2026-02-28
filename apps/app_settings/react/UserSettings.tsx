@@ -75,9 +75,20 @@ export default function UserSettings({ initialUser, initialHouseholds }: UserSet
   async function handleProfileSave(e: React.FormEvent) {
     e.preventDefault();
     setProfileSaving(true);
+    const prevLocale = user.locale as Locale;
     try {
       const updated = await patchMe({ display_name: displayName.trim(), locale });
       setUser(updated);
+
+      // Si la langue a changé, rediriger vers la page paramètres avec le bon
+      // préfixe d'URL (ex. /fr/app/settings/ ou /app/settings/ pour l'anglais).
+      // UserLocaleMiddleware activera la bonne langue côté serveur dès cette requête.
+      if (locale !== prevLocale) {
+        const langPrefix = locale === 'en' ? '' : `/${locale}`;
+        window.location.href = `${langPrefix}/app/settings/`;
+        return;
+      }
+
       flash(setProfileMsg, t('settings.profileUpdated', { defaultValue: 'Profile updated.' }));
     } catch {
       flash(setProfileMsg, t('settings.requestFailed', { defaultValue: 'Save failed.' }), true);

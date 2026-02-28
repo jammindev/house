@@ -1,6 +1,4 @@
-{% load i18n i18n_extras %}
-{% get_current_language as CURRENT_LANGUAGE %}
-{% get_available_languages as AVAILABLE_LANGUAGES %}
+{% load i18n %}
 {# Sidebar — portage Sidebar.tsx. Alpine.js = mobile toggle, hx-boost = nav SPA-like, request.path = active link #}
 
 {# ── Overlay backdrop mobile ────────────────────────────────────────────────── #}
@@ -219,23 +217,6 @@
                 </p>
                 <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
             </div>
-        </div>
-
-        {# Language switcher #}
-        <div class="mb-3">
-            <form id="language-switcher-form" method="post" action="{% url 'set_language' %}">
-                {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path|strip_lang_prefix }}">
-                <div class="flex gap-1 rounded-xl bg-gray-100/60 p-1">
-                    {% for lang_code, lang_name in AVAILABLE_LANGUAGES %}
-                    <button type="submit" name="language" value="{{ lang_code }}"
-                            class="flex-1 rounded-lg px-2 py-1.5 text-xs font-medium active:scale-95
-                                   {% if lang_code == CURRENT_LANGUAGE %}bg-white shadow-sm text-primary-700 font-semibold{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-                        {{ lang_code|upper }}
-                    </button>
-                    {% endfor %}
-                </div>
-            </form>
         </div>
 
         {# Logout : form POST (CSRF-safe) #}
