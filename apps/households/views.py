@@ -175,11 +175,29 @@ class HouseholdViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # TODO: Implement invitation system (email + token)
-        # For now, just return placeholder response
+        from accounts.models import User
+        try:
+            invited_user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "No user found with that email address."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if HouseholdMember.objects.filter(household=household, user=invited_user).exists():
+            return Response(
+                {"detail": "User is already a member of this household."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        membership = HouseholdMember.objects.create(
+            household=household,
+            user=invited_user,
+            role=role,
+        )
         return Response(
-            {"detail": "Invitation system not yet implemented."},
-            status=status.HTTP_501_NOT_IMPLEMENTED
+            {"detail": "User successfully added to household.", "user_id": str(invited_user.id)},
+            status=status.HTTP_201_CREATED
         )
 
     @action(detail=True, methods=['post'])

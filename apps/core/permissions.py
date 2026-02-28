@@ -97,14 +97,16 @@ class IsHouseholdMember(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         """Check if user is member of object's household."""
-        if not hasattr(obj, 'household_id'):
+        # Support both household-scoped objects (obj.household_id) and Household objects themselves (obj.id)
+        household_id = getattr(obj, "household_id", None) or getattr(obj, "id", None)
+        if not household_id:
             return False
 
         # Import here to avoid circular imports
         from households.models import HouseholdMember
 
         return HouseholdMember.objects.filter(
-            household_id=obj.household_id,
+            household_id=household_id,
             user_id=request.user.id
         ).exists()
 
