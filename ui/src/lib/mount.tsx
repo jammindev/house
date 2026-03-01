@@ -54,10 +54,13 @@ export function autoMount() {
 export function onDomReady(callback: () => void) {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', callback, { once: true });
-    return;
+  } else {
+    callback();
   }
 
-  callback();
+  // Re-run after each HTMX swap (hx-boost navigation replaces #main-content
+  // but module scripts aren't re-executed by the browser — we re-mount here).
+  document.addEventListener('htmx:afterSwap', callback);
 }
 
 /**
