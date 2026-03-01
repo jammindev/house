@@ -1,7 +1,13 @@
 {
   "common": {
     "yes": "sí",
-    "no": "no"
+    "no": "no",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "confirmDelete": "¿Estás seguro?",
+    "confirmLeave": "¿Salir de este hogar?"
   },
   "electricity": {
     "api_workspace_title": "Área de trabajo de la API de electricidad",
@@ -153,7 +159,8 @@
     "invite": "Invitar",
     "inviteEmailPlaceholder": "miembro@ejemplo.com",
     "memberInvited": "Miembro invitado",
-    "inviteFailed": "No se pudo invitar al miembro"
+    "inviteFailed": "No se pudo invitar al miembro",
+    "createHousehold": "Crear"
   },
   "photos": {
     "app_title": "Mini-app Fotos",
