@@ -13,7 +13,7 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
-        return Notification.objects.filter(user=self.request.user)
+        return Notification.objects.filter(user=self.request.user, deleted_at__isnull=True)
 
     @action(detail=False, methods=["get"], url_path="unread-count")
     def unread_count(self, request):

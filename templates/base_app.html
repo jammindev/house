@@ -1,4 +1,4 @@
-{% load i18n django_vite %}
+{% load i18n django_vite notification_tags %}
 {% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
 <html lang="{{ CURRENT_LANGUAGE }}"
@@ -51,12 +51,8 @@
                     House
                 </span>
             </div>
-            {# Bell mobile — rechargée toutes les 30s via HTMX polling #}
-            <div id="notification-bell-mobile"
-                 hx-get="{% url 'notification_bell' %}"
-                 hx-trigger="load, every 30s"
-                 hx-swap="innerHTML">
-            </div>
+            {# Bell mobile — rechargée toutes les 30s ou après un mark-read #}
+            {% notification_bell element_id="notification-bell-mobile" %}
         </header>
 
         {# Contenu principal — cible des swaps HTMX #}

@@ -6,22 +6,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/des
 import { Badge } from '@/design-system/badge';
 import type { HouseholdInvitation } from '@/lib/api/households';
 import { acceptInvitation, declineInvitation } from '@/lib/api/households';
+import { triggerBellRefresh } from '@/lib/notifications';
 import { useToast } from '@/lib/toast';
 
 interface PendingInvitationsProps {
   initialInvitations: HouseholdInvitation[];
+  /** If null/undefined, the user has no active household → show only "Accept & join" */
+  activeHouseholdId?: string | null;
   /** Called after accept so other parts of the page can refresh households list */
   onAccepted?: (householdId: string, switched: boolean) => void;
 }
 
 type ActionState = 'idle' | 'accepting' | 'accepting-switch' | 'declining';
 
-export function PendingInvitations({ initialInvitations, onAccepted }: PendingInvitationsProps) {
+export function PendingInvitations({ initialInvitations, activeHouseholdId, onAccepted }: PendingInvitationsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
 
   const [invitations, setInvitations] = React.useState<HouseholdInvitation[]>(initialInvitations);
   const [busy, setBusy] = React.useState<Record<string, ActionState>>({});
+
+  // If user has no active household, accepting always auto-switches — no need for separate buttons
+  const hasActiveHousehold = Boolean(activeHouseholdId);
 
   if (invitations.length === 0) return null;
 
@@ -33,6 +39,7 @@ export function PendingInvitations({ initialInvitations, onAccepted }: PendingIn
     try {
       const result = await acceptInvitation(invitation.id, shouldSwitch);
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
+      triggerBellRefresh();
       toast({
         description: t('invitations.accepted', {
           name: invitation.household_name,
@@ -64,6 +71,7 @@ export function PendingInvitations({ initialInvitations, onAccepted }: PendingIn
     try {
       await declineInvitation(invitation.id);
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
+      triggerBellRefresh();
       toast({
         description: t('invitations.declined', {
           name: invitation.household_name,
@@ -131,20 +139,22 @@ export function PendingInvitations({ initialInvitations, onAccepted }: PendingIn
                     ? t('common.loading', { defaultValue: '…' })
                     : t('invitations.decline', { defaultValue: 'Decline' })}
                 </Button>
+                {hasActiveHousehold && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={isLoading}
+                    onClick={() => handleAccept(inv, false)}
+                  >
+                    {state === 'accepting'
+                      ? t('common.loading', { defaultValue: '…' })
+                      : t('invitations.accept', { defaultValue: 'Accept' })}
+                  </Button>
+                )}
                 <Button
                   size="sm"
-                  variant="outline"
                   disabled={isLoading}
-                  onClick={() => handleAccept(inv, false)}
-                >
-                  {state === 'accepting'
-                    ? t('common.loading', { defaultValue: '…' })
-                    : t('invitations.accept', { defaultValue: 'Accept' })}
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={isLoading}
-                  onClick={() => handleAccept(inv, true)}
+                  onClick={() => handleAccept(inv, hasActiveHousehold)}
                 >
                   {state === 'accepting-switch'
                     ? t('common.loading', { defaultValue: '…' })

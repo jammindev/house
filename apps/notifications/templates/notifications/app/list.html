@@ -8,10 +8,12 @@
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold">{% trans "Notifications" %}</h1>
         {% if unread_count > 0 %}
-        <form method="post" action="{% url 'notification-mark-all-read' %}">
+        <form hx-post="{% url 'notification-mark-all-read-web' %}"
+              hx-target="#main-content"
+              hx-select="#main-content"
+              hx-swap="outerHTML">
             {% csrf_token %}
-            <button type="submit"
-                    class="text-sm text-primary-600 hover:underline">
+            <button type="submit" class="text-sm text-primary-600 hover:underline">
                 {% trans "Mark all as read" %}
             </button>
         </form>
@@ -21,104 +23,7 @@
     {% if notifications %}
     <ul class="space-y-2">
         {% for notif in notifications %}
-        <li class="rounded-xl border p-4 {% if not notif.is_read %}bg-primary-50/60 border-primary-200/60{% else %}bg-white{% endif %}">
-            <div class="flex items-start justify-between gap-3">
-                <div class="flex-1 min-w-0">
-                    <p class="font-medium text-sm {% if not notif.is_read %}text-primary-800{% endif %}">
-                        {{ notif.title }}
-                    </p>
-                    {% if notif.body %}
-                    <p class="text-sm text-muted-foreground mt-0.5">{{ notif.body }}</p>
-                    {% endif %}
-                    <p class="text-xs text-gray-400 mt-1">{% blocktrans with time=notif.created_at|timesince %}{{ time }} ago{% endblocktrans %}</p>
-
-                    {# --- Household invitation actions --- #}
-                    {% if notif.type == "household_invitation" and notif.payload.invitation_id %}
-                    <div
-                        x-data="{
-                            done: false,
-                            doneMsg: '',
-                            loading: '',
-                            csrfToken() {
-                                const m = document.cookie.match(/csrftoken=([^;]+)/);
-                                return m ? decodeURIComponent(m[1]) : '';
-                            },
-                            async act(action, shouldSwitch) {
-                                this.loading = action;
-                                const url = '/api/households/invitations/{{ notif.payload.invitation_id }}/' + action + '/';
-                                try {
-                                    const r = await fetch(url, {
-                                        method: 'POST',
-                                        credentials: 'include',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'X-CSRFToken': this.csrfToken(),
-                                        },
-                                        body: JSON.stringify({ switch: shouldSwitch }),
-                                    });
-                                    if (!r.ok) throw new Error();
-                                    if (action === 'decline') {
-                                        this.doneMsg = '{% trans "Invitation declined." %}';
-                                    } else {
-                                        const data = await r.json();
-                                        this.doneMsg = '{% trans "Joined!" %}';
-                                        if (data.switched) { window.location.reload(); return; }
-                                    }
-                                    this.done = true;
-                                } catch {
-                                    alert('{% trans "Action failed. Please try again." %}');
-                                } finally {
-                                    this.loading = '';
-                                }
-                            }
-                        }"
-                        class="mt-3"
-                    >
-                        <template x-if="!done">
-                            <div class="flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
-                                    :disabled="loading !== ''"
-                                    @click="act('decline', false)"
-                                >
-                                    <span x-text="loading === 'decline' ? '…' : '{% trans "Decline" %}'"></span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50"
-                                    :disabled="loading !== ''"
-                                    @click="act('accept', false)"
-                                >
-                                    <span x-text="loading === 'accept' ? '…' : '{% trans "Accept" %}'"></span>
-                                </button>
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                                    :disabled="loading !== ''"
-                                    @click="act('accept', true)"
-                                >
-                                    <span x-text="loading === 'accept-switch' ? '…' : '{% trans "Accept & join" %}'"></span>
-                                </button>
-                            </div>
-                        </template>
-                        <template x-if="done">
-                            <p class="text-xs text-muted-foreground" x-text="doneMsg"></p>
-                        </template>
-                    </div>
-                    {% endif %}
-                </div>
-
-                {% if not notif.is_read %}
-                <form method="post" action="{% url 'notification-mark-read' notif.id %}">
-                    {% csrf_token %}
-                    <button type="submit" class="text-xs text-gray-400 hover:text-gray-600 shrink-0">
-                        {% trans "Mark read" %}
-                    </button>
-                </form>
-                {% endif %}
-            </div>
-        </li>
+            {% include "notifications/partials/_notification_item.html" %}
         {% endfor %}
     </ul>
     {% else %}

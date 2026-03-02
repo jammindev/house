@@ -34,6 +34,11 @@ export function HouseholdManagement({
   const [households, setHouseholds] = React.useState<Household[]>(initialHouseholds);
   const [loading, setLoading] = React.useState(false);
   const [activeId, setActiveId] = React.useState<string | null>(activeHouseholdId ?? null);
+
+  // Sync when parent refreshes the list (e.g. after accepting an invitation)
+  React.useEffect(() => {
+    setHouseholds(initialHouseholds);
+  }, [initialHouseholds]);
   const [switching, setSwitching] = React.useState(false);
 
   // Create new household
