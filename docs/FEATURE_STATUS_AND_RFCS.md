@@ -34,6 +34,20 @@ This page maps legacy feature documents to their status in the active Django cod
 - Active status: **RFC/Archive**
 - Notes: documents a Supabase/Next.js implementation milestone; current `projects` app should be treated independently in Django runtime.
 
+## Security features (active)
+
+### Rate limiting — login endpoint
+
+- Active status: **Active**
+- Implementation: `apps/accounts/throttles.py`
+- Rules:
+  - `LoginIPRateThrottle`: 20 attempts/min per IP (blocks scans/bots)
+  - `LoginEmailRateThrottle`: 5 attempts/min per email (blocks targeted brute-force)
+- Config: `REST_FRAMEWORK.DEFAULT_THROTTLE_RATES` in `config/settings/base.py`
+- Cache: DRF default (`LocMemCache` in dev). For prod with multiple Gunicorn workers, set `CACHES` to Redis (`django-redis`) so the counter is shared across processes.
+- Response: `HTTP 429 Too Many Requests` when limit is exceeded.
+- Only applied to `POST /api/accounts/auth/login/`; all other endpoints are unaffected.
+
 ## Active modules (runtime)
 
 The following modules are active in current runtime and should be documented from Django code, not legacy behavior:

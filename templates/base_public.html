@@ -11,6 +11,9 @@
     <script>if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.classList.add('dark')}</script>
     {% endif %}
 
+    <!-- Anti-FOUC -->
+    <style>html { visibility: hidden; }</style>
+
     {% vite_hmr_client %}
     {% vite_react_refresh %}
     {% vite_asset 'src/styles.css' %}

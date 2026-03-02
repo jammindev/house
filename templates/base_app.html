@@ -11,6 +11,9 @@
     <script>if(window.matchMedia('(prefers-color-scheme:dark)').matches){document.documentElement.classList.add('dark')}</script>
     {% endif %}
 
+    <!-- Anti-FOUC : masque le rendu HTML brut jusqu'à l'injection des styles Vite -->
+    <style>html { visibility: hidden; }</style>
+
     <!-- Tailwind CSS via Vite -->
     {% vite_hmr_client %}
     {% vite_react_refresh %}
@@ -36,16 +39,24 @@
     {# Zone principale décalée de la largeur de la sidebar sur desktop #}
     <div class="lg:pl-72 flex flex-col min-h-screen">
 
-        {# Topbar mobile : hamburger + nom produit #}
-        <header class="lg:hidden h-16 flex items-center gap-4 px-4 border-b border-gray-200/60 bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-10">
-            <button @click="sidebarOpen = true"
-                    class="p-2 rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-gray-600"
-                    aria-label="{% trans 'Open menu' %}">
-                <i data-lucide="menu" class="h-6 w-6"></i>
-            </button>
-            <span class="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
-                House
-            </span>
+        {# Topbar mobile : hamburger + nom produit + cloche #}
+        <header class="lg:hidden h-16 flex items-center justify-between px-4 border-b border-gray-200/60 bg-white/80 backdrop-blur-xl shadow-sm sticky top-0 z-10">
+            <div class="flex items-center gap-3">
+                <button @click="sidebarOpen = true"
+                        class="p-2 rounded-xl hover:bg-gray-100 active:scale-95 transition-all text-gray-600"
+                        aria-label="{% trans 'Open menu' %}">
+                    <i data-lucide="menu" class="h-6 w-6"></i>
+                </button>
+                <span class="text-lg font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+                    House
+                </span>
+            </div>
+            {# Bell mobile — rechargée toutes les 30s via HTMX polling #}
+            <div id="notification-bell-mobile"
+                 hx-get="{% url 'notification_bell' %}"
+                 hx-trigger="load, every 30s"
+                 hx-swap="innerHTML">
+            </div>
         </header>
 
         {# Contenu principal — cible des swaps HTMX #}

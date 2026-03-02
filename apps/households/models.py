@@ -83,3 +83,58 @@ class HouseholdMember(models.Model):
 
     def __str__(self):
         return f"{self.user.email} - {self.household.name} ({self.role})"
+
+
+class HouseholdInvitation(models.Model):
+    """
+    Pending invitation to join a household.
+    Created when an owner invites a user; stays pending until accepted or declined.
+    """
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("Pending")
+        ACCEPTED = "accepted", _("Accepted")
+        DECLINED = "declined", _("Declined")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    household = models.ForeignKey(
+        Household,
+        on_delete=models.CASCADE,
+        related_name="invitations",
+        db_column="household_id",
+    )
+    invited_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="household_invitations",
+        db_column="invited_user_id",
+    )
+    invited_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sent_household_invitations",
+        db_column="invited_by_id",
+    )
+    role = models.CharField(
+        max_length=20,
+        choices=HouseholdMember.Role.choices,
+        default=HouseholdMember.Role.MEMBER,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "household_invitations"
+        indexes = [
+            models.Index(fields=["invited_user", "status"], name="hhinv_user_status_idx"),
+            models.Index(fields=["household", "status"], name="hhinv_hh_status_idx"),
+        ]
+
+    def __str__(self):
+        return f"Invitation: {self.invited_user.email} → {self.household.name} [{self.status}]"

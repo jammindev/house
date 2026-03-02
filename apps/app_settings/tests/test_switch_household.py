@@ -283,7 +283,7 @@ def test_create_household_via_api_sets_active():
 
 @pytest.mark.django_db
 def test_invite_via_api_sets_active_for_new_member():
-    """POST /api/households/<id>/invite/ → invited user has no active_household → signal assigns it."""
+    """Invite → pending invitation; accept (no switch) → active_household auto-set when user had none."""
     from rest_framework.test import APIClient
     from django.urls import reverse as drf_reverse
 
@@ -298,10 +298,22 @@ def test_invite_via_api_sets_active_for_new_member():
     assert resp.status_code == 201
     h_id = resp.data["id"]
 
-    # Owner invites the other user
+    # Owner invites the other user → creates a pending invitation, no membership yet
     invite_url = drf_reverse("household-invite", kwargs={"pk": h_id})
     resp2 = api_owner.post(invite_url, {"email": invited.email, "role": "member"}, format="json")
     assert resp2.status_code == 201
+    invitation_id = resp2.data["invitation_id"]
+
+    # Invite does NOT set active_household
+    invited.refresh_from_db()
+    assert invited.active_household_id is None
+
+    # Invited user accepts (without explicit switch) → auto-set because they had no active household
+    api_invited = APIClient()
+    api_invited.force_authenticate(user=invited)
+    accept_url = drf_reverse("household-invitation-accept", kwargs={"pk": invitation_id})
+    resp3 = api_invited.post(accept_url, {"switch": False}, format="json")
+    assert resp3.status_code == 200
 
     invited.refresh_from_db()
     assert str(invited.active_household_id) == str(h_id)
