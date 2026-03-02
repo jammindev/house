@@ -1,4 +1,5 @@
 import pytest
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
 from .factories import UserFactory, StaffUserFactory
@@ -405,3 +406,66 @@ class TestAvatarEndpoints:
         response = api_client.delete(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+
+@pytest.mark.django_db
+class TestLoginThrottling:
+    """Test rate-limiting on the login endpoint."""
+
+    @pytest.fixture(autouse=True)
+    def clear_cache(self):
+        """Isolate throttle state between tests."""
+        cache.clear()
+        yield
+        cache.clear()
+
+    def _set_low_rates(self, monkeypatch, ip_rate="3/min", email_rate="3/min"):
+        """Patch throttle classes to use low limits so tests run fast."""
+        from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle
+        monkeypatch.setattr(LoginIPRateThrottle, "get_rate", lambda self: ip_rate)
+        monkeypatch.setattr(LoginEmailRateThrottle, "get_rate", lambda self: email_rate)
+
+    def test_ip_throttle_blocks_after_limit(self, api_client, monkeypatch):
+        """After N attempts from the same IP the endpoint returns 429."""
+        self._set_low_rates(monkeypatch, ip_rate="3/min", email_rate="100/min")
+        url = reverse("auth-login")
+
+        for _ in range(3):
+            api_client.post(url, {"email": "attacker@example.com", "password": "wrong"})
+
+        response = api_client.post(url, {"email": "attacker@example.com", "password": "wrong"})
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    def test_email_throttle_blocks_targeted_attack(self, api_client, monkeypatch):
+        """Repeated attempts against the same email are blocked even within IP limit."""
+        self._set_low_rates(monkeypatch, ip_rate="100/min", email_rate="3/min")
+        url = reverse("auth-login")
+
+        for _ in range(3):
+            api_client.post(url, {"email": "victim@example.com", "password": "wrong"})
+
+        response = api_client.post(url, {"email": "victim@example.com", "password": "wrong"})
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    def test_email_throttle_is_per_address(self, api_client, monkeypatch):
+        """Throttle on one email does not block a different email."""
+        self._set_low_rates(monkeypatch, ip_rate="100/min", email_rate="3/min")
+        url = reverse("auth-login")
+
+        for _ in range(3):
+            api_client.post(url, {"email": "victim@example.com", "password": "wrong"})
+
+        # A completely different email should still get a normal response (401, not 429)
+        response = api_client.post(url, {"email": "innocent@example.com", "password": "wrong"})
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_throttle_not_applied_to_logout(self, api_client, monkeypatch):
+        """Logout endpoint has no throttle; many calls should not return 429."""
+        self._set_low_rates(monkeypatch, ip_rate="3/min", email_rate="3/min")
+        user = UserFactory()
+        api_client.force_authenticate(user=user)
+        url = reverse("auth-logout")
+
+        for _ in range(10):
+            response = api_client.post(url)
+
+        assert response.status_code == status.HTTP_200_OK

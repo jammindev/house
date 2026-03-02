@@ -8,8 +8,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
-from .models import Household, HouseholdMember
-from .serializers import HouseholdSerializer, HouseholdDetailSerializer, HouseholdMemberSerializer
+from .models import Household, HouseholdMember, HouseholdInvitation
+from .serializers import HouseholdSerializer, HouseholdDetailSerializer, HouseholdMemberSerializer, HouseholdInvitationSerializer
 from core.permissions import IsHouseholdMember, IsHouseholdOwner
 
 
@@ -191,13 +191,45 @@ class HouseholdViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        membership = HouseholdMember.objects.create(
+        if HouseholdInvitation.objects.filter(
             household=household,
-            user=invited_user,
+            invited_user=invited_user,
+            status=HouseholdInvitation.Status.PENDING,
+        ).exists():
+            return Response(
+                {"detail": _("An invitation is already pending for this user.")},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        invitation = HouseholdInvitation.objects.create(
+            household=household,
+            invited_user=invited_user,
+            invited_by=request.user,
             role=role,
+            status=HouseholdInvitation.Status.PENDING,
         )
+
+        from notifications.service import create_notification
+        from django.utils import translation
+        inviter_name = request.user.display_name or request.user.email
+        user_locale = getattr(invited_user, "locale", "en") or "en"
+        with translation.override(user_locale):
+            notif_title = _("You've been invited to join %(name)s") % {"name": household.name}
+            notif_body = _("%(inviter)s invited you to join their household.") % {"inviter": inviter_name}
+        create_notification(
+            user=invited_user,
+            notification_type="household_invitation",
+            title=notif_title,
+            body=notif_body,
+            payload={
+                "household_id": str(household.id),
+                "household_name": household.name,
+                "invitation_id": str(invitation.id),
+            },
+        )
+
         return Response(
-            {"detail": _("User successfully added to household."), "user_id": str(invited_user.id)},
+            {"detail": _("Invitation sent."), "invitation_id": str(invitation.id)},
             status=status.HTTP_201_CREATED
         )
 
@@ -273,3 +305,101 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         membership.role = role
         membership.save(update_fields=['role'])
         return Response(HouseholdMemberSerializer(membership).data, status=status.HTTP_200_OK)
+
+
+class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ViewSet for the invited user to list, accept, or decline pending invitations.
+    Only the invited user sees their own invitations.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = HouseholdInvitationSerializer
+
+    def get_queryset(self):
+        return HouseholdInvitation.objects.filter(
+            invited_user=self.request.user,
+            status=HouseholdInvitation.Status.PENDING,
+        ).select_related('household', 'invited_by').order_by('-created_at')
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        """
+        Accept an invitation.
+        Body: {"switch": true} optionally switches active_household_id to the new household.
+        """
+        invitation = self.get_object()
+
+        if invitation.status != HouseholdInvitation.Status.PENDING:
+            return Response(
+                {"detail": _("This invitation is no longer pending.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create membership
+        _member, created = HouseholdMember.objects.get_or_create(
+            household=invitation.household,
+            user=request.user,
+            defaults={"role": invitation.role},
+        )
+
+        # Mark invitation accepted
+        invitation.status = HouseholdInvitation.Status.ACCEPTED
+        invitation.save(update_fields=["status"])
+
+        # Optionally switch active household; always set if the user has none yet
+        should_switch = request.data.get("switch", False)
+        had_no_active = not request.user.active_household_id
+        if should_switch or had_no_active:
+            request.user.active_household_id = invitation.household.id
+            request.user.save(update_fields=["active_household_id"])
+        switched = bool(should_switch or had_no_active)
+
+        # Mark related notification(s) as read
+        from notifications.models import Notification
+        from django.utils import timezone as tz
+        Notification.objects.filter(
+            user=request.user,
+            type="household_invitation",
+            payload__invitation_id=str(invitation.id),
+            is_read=False,
+        ).update(is_read=True, read_at=tz.now())
+
+        return Response(
+            {
+                "detail": _("You have joined %(name)s.") % {"name": invitation.household.name},
+                "household_id": str(invitation.household.id),
+                "switched": switched,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'])
+    def decline(self, request, pk=None):
+        """Decline an invitation."""
+        invitation = self.get_object()
+
+        if invitation.status != HouseholdInvitation.Status.PENDING:
+            return Response(
+                {"detail": _("This invitation is no longer pending.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        invitation.status = HouseholdInvitation.Status.DECLINED
+        invitation.save(update_fields=["status"])
+
+        # Mark related notification(s) as read
+        from notifications.models import Notification
+        from django.utils import timezone as tz
+        Notification.objects.filter(
+            user=request.user,
+            type="household_invitation",
+            payload__invitation_id=str(invitation.id),
+            is_read=False,
+        ).update(is_read=True, read_at=tz.now())
+
+        return Response(
+            {"detail": _("Invitation declined.")},
+            status=status.HTTP_200_OK,
+        )

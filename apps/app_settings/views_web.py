@@ -8,8 +8,8 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from accounts.serializers import UserSerializer
-from households.serializers import HouseholdDetailSerializer
-from households.models import Household, HouseholdMember
+from households.serializers import HouseholdDetailSerializer, HouseholdInvitationSerializer
+from households.models import Household, HouseholdMember, HouseholdInvitation
 
 
 @login_required
@@ -27,6 +27,13 @@ def app_settings_view(request):
         else None
     )
 
+    # Pending invitations for this user
+    pending_invitations_qs = HouseholdInvitation.objects.filter(
+        invited_user=request.user,
+        status=HouseholdInvitation.Status.PENDING,
+    ).select_related('household', 'invited_by').order_by('-created_at')
+    pending_invitations_data = HouseholdInvitationSerializer(pending_invitations_qs, many=True).data
+
     return render(
         request,
         'app_settings/app/settings.html',
@@ -40,6 +47,9 @@ def app_settings_view(request):
                 'initialHouseholds': households_data,
                 'activeHouseholdId': active_household_id,
                 'switchHouseholdUrl': reverse('app_settings_switch_household'),
+                'initialPendingInvitations': pending_invitations_data,
+                'acceptInvitationUrlTemplate': '/api/households/invitations/{id}/accept/',
+                'declineInvitationUrlTemplate': '/api/households/invitations/{id}/decline/',
             },
         },
     )

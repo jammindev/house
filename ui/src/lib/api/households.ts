@@ -134,3 +134,47 @@ export async function removeMember(householdId: string, userId: string): Promise
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
 }
+
+// --- Invitations ---
+
+export interface HouseholdInvitation {
+  id: string;
+  household: string;
+  household_name: string;
+  invited_by_name: string | null;
+  role: 'owner' | 'member';
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
+}
+
+export async function acceptInvitation(
+  invitationId: string,
+  switchToHousehold = false
+): Promise<{ household_id: string; switched: boolean }> {
+  const csrfToken = getCsrfToken();
+  const response = await fetch(`/api/households/invitations/${invitationId}/accept/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: jsonHeaders(csrfToken),
+    body: JSON.stringify({ switch: switchToHousehold }),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(JSON.stringify(error));
+  }
+  return response.json();
+}
+
+export async function declineInvitation(invitationId: string): Promise<void> {
+  const csrfToken = getCsrfToken();
+  const response = await fetch(`/api/households/invitations/${invitationId}/decline/`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: jsonHeaders(csrfToken),
+    body: JSON.stringify({}),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(JSON.stringify(error));
+  }
+}

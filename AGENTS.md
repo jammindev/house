@@ -32,7 +32,7 @@ Conséquence pour l'IA:
 
 ### Apps avec modèles + API DRF + pages web
 
-- `accounts`: utilisateur custom + auth session Django + vues home/login/dashboard
+- `accounts`: utilisateur custom + auth session Django + vues home/login/dashboard; `throttles.py` (rate limiting login: 20/min/IP, 5/min/email)
 - `households`: entité multi-tenant de base
 - `zones`: hiérarchie spatiale
 - `interactions`: journal (note, todo, expense, maintenance...) + liens contacts/structures/documents
@@ -83,6 +83,8 @@ Encore principalement côté `legacy` (pas porté complètement côté Django) :
 - Les modèles métier utilisent `HouseholdScopedModel` (champ `household` + manager scopé)
 - Permissions multi-tenant via `IsHouseholdMember`
 - Résolution household API: `X-Household-Id` -> `household_id` (query/body) -> auto-select si membership unique
+- Rate limiting login: `accounts/throttles.py` — `LoginIPRateThrottle` (20/min par IP) + `LoginEmailRateThrottle` (5/min par email), configurable via `DEFAULT_THROTTLE_RATES` dans `REST_FRAMEWORK`
+- Cache throttle: `LocMemCache` en dev; brancher Redis (`django-redis`) en prod pour cohérence multi-workers
 - Routes API dans `config/urls.py` sous `api/<app>/`
 - Routes web dans `config/urls.py` sous `i18n_patterns` -> `app/<section>/`
 - Pages web dans `templates/app/` ou `apps/<app>/templates/`
@@ -93,7 +95,7 @@ Encore principalement côté `legacy` (pas porté complètement côté Django) :
 
 ### Auth + Users
 
-- `POST /api/accounts/login/`
+- `POST /api/accounts/login/` — rate-limited (20/min par IP, 5/min par email)
 - `POST /api/accounts/logout/`
 - `GET|POST /api/accounts/users/`
 

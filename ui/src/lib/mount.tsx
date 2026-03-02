@@ -1,8 +1,21 @@
 import './i18n'; // Initialize i18next before any component renders
 
 import { StrictMode, createElement } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import { Toaster } from '@/design-system/toast';
+
+// Cache des roots React par élément DOM — évite les double createRoot() lors des
+// swaps HTMX (polling cloche, hx-boost navigation…)
+const rootCache = new WeakMap<Element, Root>();
+
+function getOrCreateRoot(element: Element): Root {
+  if (rootCache.has(element)) {
+    return rootCache.get(element)!;
+  }
+  const root = createRoot(element);
+  rootCache.set(element, root);
+  return root;
+}
 
 interface MountOptions {
   /** Inject a <Toaster /> portal into this React root. Default: false. */
@@ -31,7 +44,7 @@ export function mountComponent(elementId: string, Component: React.ComponentType
   const propsJson = element.getAttribute('data-props');
   const props = propsJson ? JSON.parse(propsJson) : {};
 
-  const root = createRoot(element);
+  const root = getOrCreateRoot(element);
   root.render(
     <StrictMode>
       <Component {...props} />
@@ -72,7 +85,7 @@ export function renderRoot(
   element: React.ReactElement,
   options: MountOptions = {}
 ) {
-  const root = createRoot(mountNode);
+  const root = getOrCreateRoot(mountNode);
   root.render(
     <StrictMode>
       {options.withToaster ? <>{element}<Toaster /></> : element}

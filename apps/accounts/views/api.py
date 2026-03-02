@@ -15,6 +15,7 @@ from rest_framework import status
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
+from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle
 
 class AuthViewSet(viewsets.ViewSet):
     """ViewSet for session-based authentication endpoints."""
@@ -24,7 +25,12 @@ class AuthViewSet(viewsets.ViewSet):
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    @action(detail=False, methods=["post"], url_path="login")
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="login",
+        throttle_classes=[LoginIPRateThrottle, LoginEmailRateThrottle],
+    )
     def login(self, request):
         """Login endpoint that creates a Django authenticated session."""
         email = request.data.get("email")

@@ -9,6 +9,12 @@
 @import "./styles/components.css";
 @import "./styles/tinymce.css";
 
+/* Anti-FOUC : rend la page visible dès que ce fichier CSS est appliqué.
+   L'inline <style>html{visibility:hidden}</style> dans base_app.html cache
+   le rendu non-stylé ; cette règle (cascade plus tardive) le lève.
+   Doit être APRÈS les @import (contrainte PostCSS/CSS spec). */
+html { visibility: visible; }
+
 /* ── Tailwind v4 directives ──────────────────────── */
 
 /* Scan Django templates for class usage */

@@ -25,6 +25,7 @@ urlpatterns = [
     path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/incoming/", include("incoming_emails.urls")),
+    path("api/notifications/", include("notifications.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 
@@ -61,6 +62,7 @@ urlpatterns += i18n_patterns(
     path("app/projects/", include("projects.web_urls")),
     path("app/photos/", include("photos.web_urls")),
     path("app/settings/", include("app_settings.web_urls")),
+    path("app/notifications/", include("notifications.web_urls")),
 
     prefix_default_language=False,
 )

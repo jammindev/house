@@ -2,7 +2,7 @@
 Households serializers.
 """
 from rest_framework import serializers
-from .models import Household, HouseholdMember
+from .models import Household, HouseholdMember, HouseholdInvitation
 
 
 class HouseholdMemberSerializer(serializers.ModelSerializer):
@@ -39,3 +39,19 @@ class HouseholdDetailSerializer(HouseholdSerializer):
 
     class Meta(HouseholdSerializer.Meta):
         fields = HouseholdSerializer.Meta.fields + ['members']
+
+
+class HouseholdInvitationSerializer(serializers.ModelSerializer):
+    """Serializer for pending household invitations (user-facing)."""
+    household_name = serializers.CharField(source='household.name', read_only=True)
+    invited_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HouseholdInvitation
+        fields = ['id', 'household', 'household_name', 'invited_by_name', 'role', 'status', 'created_at']
+        read_only_fields = fields
+
+    def get_invited_by_name(self, obj):
+        if obj.invited_by:
+            return obj.invited_by.display_name or obj.invited_by.email
+        return None

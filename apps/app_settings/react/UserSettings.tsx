@@ -6,15 +6,17 @@ import { Input } from '@/design-system/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/design-system/card';
 import type { UserProfile, Theme, ColorTheme, Locale } from '@/lib/api/users';
 import { patchMe, changePassword, uploadAvatar, deleteAvatar } from '@/lib/api/users';
-import type { Household } from '@/lib/api/households';
+import type { Household, HouseholdInvitation } from '@/lib/api/households';
 import { useToast } from '@/lib/toast';
 import { HouseholdManagement } from './components/HouseholdManagement';
+import { PendingInvitations } from './components/PendingInvitations';
 
 interface UserSettingsProps {
   initialUser: UserProfile;
   initialHouseholds: Household[];
   activeHouseholdId?: string | null;
   switchHouseholdUrl?: string;
+  initialPendingInvitations?: HouseholdInvitation[];
 }
 
 const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
@@ -71,7 +73,7 @@ function applyColorTheme(colorTheme: string) {
   document.body.classList.add(colorTheme);
 }
 
-export default function UserSettings({ initialUser, initialHouseholds, activeHouseholdId, switchHouseholdUrl }: UserSettingsProps) {
+export default function UserSettings({ initialUser, initialHouseholds, activeHouseholdId, switchHouseholdUrl, initialPendingInvitations = [] }: UserSettingsProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
 
@@ -227,6 +229,9 @@ export default function UserSettings({ initialUser, initialHouseholds, activeHou
 
   return (
     <div className="space-y-6 max-w-2xl">
+      {/* Pending invitations */}
+      <PendingInvitations initialInvitations={initialPendingInvitations} />
+
       {/* Household Management */}
       <HouseholdManagement
         initialHouseholds={households}

@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from accounts.tests.factories import UserFactory
-from households.models import Household, HouseholdMember
+from households.models import Household, HouseholdMember, HouseholdInvitation
 
 
 @pytest.fixture
@@ -109,7 +109,11 @@ class TestInviteHousehold:
         url = reverse("household-invite", kwargs={"pk": household.pk})
         response = owner_client.post(url, {"email": new_user.email, "role": "member"}, format="json")
         assert response.status_code in (status.HTTP_200_OK, status.HTTP_201_CREATED)
-        assert HouseholdMember.objects.filter(household=household, user=new_user).exists()
+        # Invite now creates a pending invitation, NOT a direct membership
+        assert HouseholdInvitation.objects.filter(
+            household=household, invited_user=new_user, status=HouseholdInvitation.Status.PENDING
+        ).exists()
+        assert not HouseholdMember.objects.filter(household=household, user=new_user).exists()
 
     def test_invite_nonexistent_user(self, owner_client, household):
         url = reverse("household-invite", kwargs={"pk": household.pk})
