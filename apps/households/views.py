@@ -71,40 +71,6 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-    def update(self, request, *args, **kwargs):
-        """Only owners can update household."""
-        household = self.get_object()
-        
-        # Check if user is owner
-        if not HouseholdMember.objects.filter(
-            household=household,
-            user=request.user,
-            role=HouseholdMember.Role.OWNER
-        ).exists():
-            return Response(
-                {"detail": _("Only household owners can update.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        return super().update(request, *args, **kwargs)
-
-    def destroy(self, request, *args, **kwargs):
-        """Only owners can delete household."""
-        household = self.get_object()
-        
-        # Check if user is owner
-        if not HouseholdMember.objects.filter(
-            household=household,
-            user=request.user,
-            role=HouseholdMember.Role.OWNER
-        ).exists():
-            return Response(
-                {"detail": _("Only household owners can delete.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        return super().destroy(request, *args, **kwargs)
-
     @action(detail=True, methods=['get'])
     def members(self, request, pk=None):
         """Get all members of a household."""
@@ -150,23 +116,9 @@ class HouseholdViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def invite(self, request, pk=None):
-        """
-        Invite a user to household (by email).
-        Only owners can invite.
-        """
+        """Invite a user to household (by email)."""
         household = self.get_object()
-        
-        # Check if user is owner
-        if not HouseholdMember.objects.filter(
-            household=household,
-            user=request.user,
-            role=HouseholdMember.Role.OWNER
-        ).exists():
-            return Response(
-                {"detail": _("Only household owners can invite members.")},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
+
         email = request.data.get('email')
         role = request.data.get('role', HouseholdMember.Role.MEMBER)
         
@@ -356,14 +308,8 @@ class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
         switched = bool(should_switch or had_no_active)
 
         # Mark related notification(s) as read
-        from notifications.models import Notification
-        from django.utils import timezone as tz
-        Notification.objects.filter(
-            user=request.user,
-            type="household_invitation",
-            payload__invitation_id=str(invitation.id),
-            is_read=False,
-        ).update(is_read=True, read_at=tz.now())
+        from notifications.service import mark_read_by_payload
+        mark_read_by_payload(request.user, "household_invitation", invitation_id=str(invitation.id))
 
         return Response(
             {
@@ -390,14 +336,8 @@ class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
         invitation.save(update_fields=["status"])
 
         # Mark related notification(s) as read
-        from notifications.models import Notification
-        from django.utils import timezone as tz
-        Notification.objects.filter(
-            user=request.user,
-            type="household_invitation",
-            payload__invitation_id=str(invitation.id),
-            is_read=False,
-        ).update(is_read=True, read_at=tz.now())
+        from notifications.service import mark_read_by_payload
+        mark_read_by_payload(request.user, "household_invitation", invitation_id=str(invitation.id))
 
         return Response(
             {"detail": _("Invitation declined.")},

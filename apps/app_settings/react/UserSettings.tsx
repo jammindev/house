@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/des
 import type { UserProfile, Theme, ColorTheme, Locale } from '@/lib/api/users';
 import { patchMe, changePassword, uploadAvatar, deleteAvatar } from '@/lib/api/users';
 import type { Household, HouseholdInvitation } from '@/lib/api/households';
+import { fetchHouseholds } from '@/lib/api/households';
 import { useToast } from '@/lib/toast';
 import { HouseholdManagement } from './components/HouseholdManagement';
 import { PendingInvitations } from './components/PendingInvitations';
@@ -78,7 +79,21 @@ export default function UserSettings({ initialUser, initialHouseholds, activeHou
   const { toast } = useToast();
 
   const [user, setUser] = React.useState<UserProfile>(initialUser);
-  const [households] = React.useState<Household[]>(initialHouseholds);
+  const [households, setHouseholds] = React.useState<Household[]>(initialHouseholds);
+
+  // --- Invitation accepted ---
+  async function handleInvitationAccepted(_householdId: string, switched: boolean) {
+    // The switched case triggers window.location.reload() in PendingInvitations,
+    // so we only need to refresh state for the non-switch case.
+    if (!switched) {
+      try {
+        const updated = await fetchHouseholds();
+        setHouseholds(updated);
+      } catch {
+        // silently ignore — the user can reload if needed
+      }
+    }
+  }
 
   // Apply initial theme to <html>
   React.useEffect(() => {
@@ -230,7 +245,11 @@ export default function UserSettings({ initialUser, initialHouseholds, activeHou
   return (
     <div className="space-y-6 max-w-2xl">
       {/* Pending invitations */}
-      <PendingInvitations initialInvitations={initialPendingInvitations} />
+      <PendingInvitations
+        initialInvitations={initialPendingInvitations}
+        activeHouseholdId={activeHouseholdId}
+        onAccepted={(id, switched) => void handleInvitationAccepted(id, switched)}
+      />
 
       {/* Household Management */}
       <HouseholdManagement
