@@ -6,7 +6,9 @@
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar",
+    "archive": "Archivar",
     "confirmDelete": "¿Estás seguro?",
+    "confirmArchive": "¿Archivar este hogar? Ya no será accesible.",
     "confirmLeave": "¿Salir de este hogar?"
   },
   "electricity": {
@@ -187,7 +189,21 @@
     "inviteEmailPlaceholder": "Correo del miembro (ej.: miembro@ejemplo.com)",
     "memberInvited": "Miembro invitado",
     "inviteFailed": "No se pudo invitar al miembro",
-    "createHousehold": "Crear"
+    "createHousehold": "Crear",
+    "editHousehold": "Editar hogar",
+    "householdName": "Nombre del hogar",
+    "householdArchived": "Hogar archivado.",
+    "sectionLocation": "Ubicación",
+    "address": "Dirección",
+    "city": "Ciudad",
+    "postalCode": "Código postal",
+    "country": "País",
+    "countryPlaceholder": "\u2014 Seleccionar país \u2014",
+    "timezone": "Zona horaria",
+    "timezonePlaceholder": "\u2014 Seleccionar zona horaria \u2014",
+    "sectionContext": "Contexto e IA",
+    "contextNotes": "Notas del hogar",
+    "aiPromptContext": "Contexto para IA"
   },
   "photos": {
     "app_title": "Mini-app Fotos",

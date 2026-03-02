@@ -1,6 +1,1 @@
-from django.contrib import admin
-
-from .models import IncomingEmail, IncomingEmailAttachment
-
-admin.site.register(IncomingEmail)
-admin.site.register(IncomingEmailAttachment)
+"""Admin registrations for incoming_emails app (currently none)."""

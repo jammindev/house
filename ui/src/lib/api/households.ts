@@ -14,7 +14,9 @@ export interface Household {
   created_at: string;
   address: string;
   city: string;
+  postal_code: string;
   country: string;
+  timezone: string;
   context_notes: string;
   ai_prompt_context: string;
   inbound_email_alias: string | null;
@@ -29,7 +31,9 @@ export interface CreateHouseholdInput {
   name: string;
   address?: string;
   city?: string;
+  postal_code?: string;
   country?: string;
+  timezone?: string;
   context_notes?: string;
   ai_prompt_context?: string;
 }
@@ -38,7 +42,9 @@ export interface UpdateHouseholdInput {
   name?: string;
   address?: string;
   city?: string;
+  postal_code?: string;
   country?: string;
+  timezone?: string;
   context_notes?: string;
   ai_prompt_context?: string;
   default_household?: boolean;

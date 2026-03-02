@@ -55,6 +55,44 @@ class TestCreateHousehold:
         response = owner_client.post(url, {}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_create_with_location_fields(self, owner_client):
+        url = reverse("household-list")
+        payload = {
+            "name": "Full House",
+            "address": "12 rue de la Paix",
+            "city": "Paris",
+            "postal_code": "75001",
+            "country": "FR",
+            "timezone": "Europe/Paris",
+        }
+        response = owner_client.post(url, payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        data = response.data
+        assert data["postal_code"] == "75001"
+        assert data["country"] == "FR"
+        assert data["timezone"] == "Europe/Paris"
+
+    def test_update_location_fields(self, owner_client, household):
+        url = reverse("household-detail", kwargs={"pk": household.pk})
+        response = owner_client.patch(
+            url,
+            {"postal_code": "69001", "country": "FR", "timezone": "Europe/Paris"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        household.refresh_from_db()
+        assert household.postal_code == "69001"
+        assert household.country == "FR"
+        assert household.timezone == "Europe/Paris"
+
+    def test_country_max_length(self, owner_client):
+        """country must be ISO 3166-1 alpha-2 (max 2 chars)."""
+        url = reverse("household-list")
+        response = owner_client.post(
+            url, {"name": "X", "country": "TOOLONG"}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
 
 @pytest.mark.django_db
 class TestListHouseholds:

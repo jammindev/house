@@ -25,7 +25,7 @@ class HouseholdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Household
         fields = [
-            'id', 'name', 'created_at', 'address', 'city', 'country',
+            'id', 'name', 'created_at', 'address', 'city', 'postal_code', 'country', 'timezone',
             'context_notes', 'ai_prompt_context', 'inbound_email_alias',
             'members_count', 'current_user_role', 'members', 'archived_at'
         ]

@@ -68,11 +68,25 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
   const [themeSaving, setThemeSaving] = React.useState(false);
   const [colorThemeSaving, setColorThemeSaving] = React.useState(false);
 
+  const currentTheme = (user.theme as Theme) ?? 'system';
+  const currentColorTheme = (user.color_theme as ColorTheme) ?? 'theme-house';
+
+  React.useEffect(() => {
+    setTheme(currentTheme);
+  }, [currentTheme]);
+
+  React.useEffect(() => {
+    setColorTheme(currentColorTheme);
+  }, [currentColorTheme]);
+
   React.useEffect(() => {
     applyDarkMode(user.theme ?? 'system');
   }, [user.theme]);
 
   async function handleThemeChange(newTheme: Theme) {
+    if (newTheme === currentTheme) {
+      return;
+    }
     setTheme(newTheme);
     applyDarkMode(newTheme);
     setThemeSaving(true);
@@ -88,6 +102,9 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
   }
 
   async function handleColorThemeChange(newColorTheme: ColorTheme) {
+    if (newColorTheme === currentColorTheme) {
+      return;
+    }
     setColorTheme(newColorTheme);
     applyColorTheme(newColorTheme);
     setColorThemeSaving(true);
@@ -130,7 +147,7 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
               <button
                 key={opt.value}
                 title={t(opt.labelKey)}
-                disabled={colorThemeSaving}
+                disabled={colorThemeSaving || currentColorTheme === opt.value}
                 onClick={() => void handleColorThemeChange(opt.value)}
                 className={`w-8 h-8 rounded-full border-2 transition-all ${
                   colorTheme === opt.value

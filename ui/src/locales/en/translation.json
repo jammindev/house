@@ -6,7 +6,9 @@
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
+    "archive": "Archive",
     "confirmDelete": "Are you sure?",
+    "confirmArchive": "Archive this household? It will no longer be accessible.",
     "confirmLeave": "Leave this household?"
   },
   "electricity": {
@@ -187,7 +189,21 @@
     "inviteEmailPlaceholder": "Member email address (e.g. member@example.com)",
     "memberInvited": "Member invited",
     "inviteFailed": "Failed to invite member",
-    "createHousehold": "Create"
+    "createHousehold": "Create",
+    "editHousehold": "Edit household",
+    "householdName": "Household name",
+    "householdArchived": "Household archived.",
+    "sectionLocation": "Location",
+    "address": "Address",
+    "city": "City",
+    "postalCode": "Postal code",
+    "country": "Country",
+    "countryPlaceholder": "\u2014 Select country \u2014",
+    "timezone": "Timezone",
+    "timezonePlaceholder": "\u2014 Select timezone \u2014",
+    "sectionContext": "Context & AI",
+    "contextNotes": "Household notes",
+    "aiPromptContext": "AI prompt context"
   },
   "photos": {
     "app_title": "Photos mini-app",

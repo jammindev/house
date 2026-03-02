@@ -6,7 +6,9 @@
     "cancel": "Abbrechen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
+    "archive": "Archivieren",
     "confirmDelete": "Sind Sie sicher?",
+    "confirmArchive": "Diesen Haushalt archivieren? Er wird nicht mehr zugänglich sein.",
     "confirmLeave": "Diesen Haushalt verlassen?"
   },
   "electricity": {
@@ -187,7 +189,21 @@
     "inviteEmailPlaceholder": "E-Mail des Mitglieds (z. B. mitglied@beispiel.de)",
     "memberInvited": "Mitglied eingeladen",
     "inviteFailed": "Einladung fehlgeschlagen",
-    "createHousehold": "Erstellen"
+    "createHousehold": "Erstellen",
+    "editHousehold": "Haushalt bearbeiten",
+    "householdName": "Haushaltsname",
+    "householdArchived": "Haushalt archiviert.",
+    "sectionLocation": "Standort",
+    "address": "Adresse",
+    "city": "Stadt",
+    "postalCode": "Postleitzahl",
+    "country": "Land",
+    "countryPlaceholder": "\u2014 Land auswählen \u2014",
+    "timezone": "Zeitzone",
+    "timezonePlaceholder": "\u2014 Zeitzone auswählen \u2014",
+    "sectionContext": "Kontext & KI",
+    "contextNotes": "Haushaltsnotizen",
+    "aiPromptContext": "KI-Prompt-Kontext"
   },
   "photos": {
     "app_title": "Fotos-Mini-App",
