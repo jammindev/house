@@ -17,6 +17,10 @@ from accounts.models import User
 from accounts.serializers import UserSerializer
 from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle
 
+AVATAR_MAX_SIZE = 2 * 1024 * 1024  # 2 MB
+ALLOWED_AVATAR_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+
+
 class AuthViewSet(viewsets.ViewSet):
     """ViewSet for session-based authentication endpoints."""
 
@@ -182,8 +186,13 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        max_size = 2 * 1024 * 1024  # 2 MB
-        if avatar_file.size > max_size:
+        if avatar_file.content_type not in ALLOWED_AVATAR_TYPES:
+            return Response(
+                {'avatar': [_('File must be an image (JPEG, PNG, WebP or GIF).')]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if avatar_file.size > AVATAR_MAX_SIZE:
             return Response(
                 {'avatar': [_('File size exceeds 2 MB limit.')]},
 

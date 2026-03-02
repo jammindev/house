@@ -11,7 +11,7 @@
 {# ── Sidebar ─────────────────────────────────────────────────────────────────── #}
 <div :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
      class="fixed inset-y-0 left-0 w-72
-            bg-gradient-to-b from-white/95 to-white/90 backdrop-blur-2xl
+          bg-gradient-to-b from-primary-500/20 via-primary-500/14 to-primary-500/8 backdrop-blur-2xl
             border-r border-gray-200/50 shadow-2xl
             z-50 flex flex-col
             lg:translate-x-0">
@@ -202,6 +202,21 @@
                       group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
             {% trans "Settings" %}
         </a>
+
+        {% if show_django_admin_link %}
+            {% url 'admin:index' as url_admin %}
+            <a href="{{ url_admin }}"
+               hx-boost="false"
+                    target="_blank"
+                    rel="noopener noreferrer"
+               @click="sidebarOpen = false"
+               class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
+                      text-gray-600 hover:bg-white/60 hover:text-gray-900 hover:shadow-sm active:scale-[0.98]">
+                <i data-lucide="shield"
+                   class="mr-3 h-5 w-5 shrink-0 text-gray-400 group-hover:text-gray-600"></i>
+                {% trans "Django Admin" %}
+            </a>
+        {% endif %}
 
     </nav>
 

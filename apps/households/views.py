@@ -1,6 +1,7 @@
 """
 Households views - REST API for household management.
 """
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -35,9 +36,10 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         return [IsAuthenticated()]
 
     def get_queryset(self):
-        """Return households where user is a member."""
+        """Return non-archived households where user is a member."""
         return Household.objects.filter(
-            householdmember__user=self.request.user
+            householdmember__user=self.request.user,
+            archived_at__isnull=True,
         ).distinct()
 
     def get_serializer_class(self):
@@ -70,6 +72,16 @@ class HouseholdViewSet(viewsets.ModelViewSet):
             HouseholdDetailSerializer(household).data,
             status=status.HTTP_201_CREATED
         )
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Soft-delete: mark as archived instead of removing from DB.
+        Only owners can archive (enforced by get_permissions).
+        """
+        household = self.get_object()
+        household.archived_at = timezone.now()
+        household.save(update_fields=['archived_at'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['get'])
     def members(self, request, pk=None):

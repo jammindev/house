@@ -3,7 +3,6 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
-from django.conf.urls.i18n import i18n_patterns
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
 from accounts.views import (
@@ -36,8 +35,8 @@ if settings.ENABLE_API_SCHEMA:
         path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
     ]
 
-# Internationalized URLs - Django templates with optional React components
-urlpatterns += i18n_patterns(
+# Web URLs - language is managed via cookie/session (no URL prefix)
+urlpatterns += [
     # Public
     path("", home_view, name="home"),
     path("login/", login_view, name="login"),
@@ -63,9 +62,7 @@ urlpatterns += i18n_patterns(
     path("app/photos/", include("photos.web_urls")),
     path("app/settings/", include("app_settings.web_urls")),
     path("app/notifications/", include("notifications.web_urls")),
-
-    prefix_default_language=False,
-)
+]
 
 # Serve media files in development
 if settings.DEBUG:

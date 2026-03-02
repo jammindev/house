@@ -30,8 +30,8 @@ class Household(models.Model):
     # Email ingestion
     inbound_email_alias = models.CharField(max_length=255, unique=True, blank=True, null=True)
     
-    # Default household flag (per-user, enforced via triggers in Supabase)
-    default_household = models.BooleanField(default=False)
+    # Soft-delete
+    archived_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         db_table = 'households'
@@ -45,6 +45,10 @@ class Household(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_archived(self) -> bool:
+        return self.archived_at is not None
 
 
 class HouseholdMember(models.Model):

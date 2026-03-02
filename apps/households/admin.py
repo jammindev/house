@@ -8,11 +8,15 @@ from .models import Household, HouseholdMember
 @admin.register(Household)
 class HouseholdAdmin(admin.ModelAdmin):
     """Admin for Household model."""
-    list_display = ['name', 'city', 'country', 'created_at', 'default_household']
-    list_filter = ['country', 'city', 'default_household', 'created_at']
+    list_display = ['name', 'city', 'country', 'created_at', 'get_is_archived']
+    list_filter = ['country', 'city', 'created_at']
     search_fields = ['name', 'city', 'country', 'inbound_email_alias']
-    readonly_fields = ['id', 'created_at', 'inbound_email_alias']
-    
+    readonly_fields = ['id', 'created_at', 'inbound_email_alias', 'archived_at']
+
+    @admin.display(boolean=True, description='Archived')
+    def get_is_archived(self, obj):
+        return obj.is_archived
+
     fieldsets = (
         ('Basic Info', {
             'fields': ('id', 'name', 'created_at')
@@ -28,8 +32,8 @@ class HouseholdAdmin(admin.ModelAdmin):
             'fields': ('inbound_email_alias',),
             'classes': ('collapse',)
         }),
-        ('Settings', {
-            'fields': ('default_household',)
+        ('Archive', {
+            'fields': ('archived_at',),
         }),
     )
 

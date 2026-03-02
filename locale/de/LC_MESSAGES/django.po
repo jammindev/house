@@ -134,6 +134,14 @@ msgstr "Einstellungen"
 msgid "Manage your profile, households, and preferences."
 msgstr "Verwalten Sie Ihr Profil, Haushalte und Einstellungen."
 
+#: apps/app_settings/views_web.py:73
+msgid "Invalid JSON"
+msgstr "Ungültiges JSON"
+
+#: apps/app_settings/views_web.py:76
+msgid "household_id required"
+msgstr "household_id erforderlich"
+
 #: apps/contacts/models.py:27
 msgid "contact"
 msgstr "Kontakt"
@@ -1794,7 +1802,7 @@ msgstr[1] ""
 
 #: venv/lib/python3.12/site-packages/django/views/csrf.py:29
 msgid "Forbidden"
-msgstr ""
+msgstr "Verboten"
 
 #: venv/lib/python3.12/site-packages/django/views/csrf.py:30
 msgid "CSRF verification failed. Request aborted."

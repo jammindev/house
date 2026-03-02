@@ -19,26 +19,35 @@ class HouseholdMemberSerializer(serializers.ModelSerializer):
 class HouseholdSerializer(serializers.ModelSerializer):
     """Serializer for households."""
     members_count = serializers.SerializerMethodField()
+    current_user_role = serializers.SerializerMethodField()
+    members = HouseholdMemberSerializer(source='householdmember_set', many=True, read_only=True)
 
     class Meta:
         model = Household
         fields = [
             'id', 'name', 'created_at', 'address', 'city', 'country',
             'context_notes', 'ai_prompt_context', 'inbound_email_alias',
-            'default_household', 'members_count'
+            'members_count', 'current_user_role', 'members', 'archived_at'
         ]
-        read_only_fields = ['id', 'created_at', 'inbound_email_alias']
+        read_only_fields = ['id', 'created_at', 'inbound_email_alias', 'archived_at']
 
     def get_members_count(self, obj):
         return obj.householdmember_set.count()
 
+    def get_current_user_role(self, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or user.is_anonymous:
+            return None
+
+        membership = obj.householdmember_set.filter(user=user).first()
+        return membership.role if membership else None
+
 
 class HouseholdDetailSerializer(HouseholdSerializer):
     """Detailed serializer with members list."""
-    members = HouseholdMemberSerializer(source='householdmember_set', many=True, read_only=True)
-
     class Meta(HouseholdSerializer.Meta):
-        fields = HouseholdSerializer.Meta.fields + ['members']
+        fields = HouseholdSerializer.Meta.fields
 
 
 class HouseholdInvitationSerializer(serializers.ModelSerializer):
