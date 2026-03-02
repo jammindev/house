@@ -6,8 +6,8 @@
     </div>
 {% endif %}
 <div class="min-w-0">
-    <p class="text-sm font-semibold text-gray-900 truncate">
+    <p class="text-sm font-semibold text-foreground truncate">
         {{ request.user.display_name|default:request.user.email }}
     </p>
-    <p class="text-xs text-gray-500 truncate">{{ request.user.email }}</p>
+    <p class="text-xs text-muted-foreground truncate">{{ request.user.email }}</p>
 </div>

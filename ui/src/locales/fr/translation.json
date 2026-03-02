@@ -6,7 +6,9 @@
     "cancel": "Annuler",
     "edit": "Modifier",
     "delete": "Supprimer",
+    "archive": "Archiver",
     "confirmDelete": "Êtes-vous sûr ?",
+    "confirmArchive": "Archiver ce foyer ? Il ne sera plus accessible.",
     "confirmLeave": "Quitter ce foyer ?"
   },
   "electricity": {
@@ -187,7 +189,21 @@
     "inviteEmailPlaceholder": "E-mail du membre (ex. membre@exemple.com)",
     "memberInvited": "Membre invité",
     "inviteFailed": "Impossible d'inviter le membre",
-    "createHousehold": "Créer"
+    "createHousehold": "Créer",
+    "editHousehold": "Modifier le foyer",
+    "householdName": "Nom du foyer",
+    "householdArchived": "Foyer archivé.",
+    "sectionLocation": "Localisation",
+    "address": "Adresse",
+    "city": "Ville",
+    "postalCode": "Code postal",
+    "country": "Pays",
+    "countryPlaceholder": "\u2014 Sélectionner un pays \u2014",
+    "timezone": "Fuseau horaire",
+    "timezonePlaceholder": "\u2014 Sélectionner un fuseau \u2014",
+    "sectionContext": "Contexte & IA",
+    "contextNotes": "Notes du foyer",
+    "aiPromptContext": "Contexte pour l'IA"
   },
   "photos": {
     "app_title": "Mini-app Photos",

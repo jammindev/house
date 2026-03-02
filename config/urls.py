@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 
+from . import admin_ordering as _admin_ordering
 from accounts.views import (
     home_view, login_view, dashboard_view, logout_view,
     app_dashboard_view,
@@ -23,7 +24,6 @@ urlpatterns = [
     path("api/equipment/", include("equipment.urls")),
     path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
-    path("api/incoming/", include("incoming_emails.urls")),
     path("api/notifications/", include("notifications.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]

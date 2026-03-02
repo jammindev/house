@@ -78,7 +78,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
               ))}
             </select>
           </div>
-          <Button type="submit" disabled={saving}>
+          <Button size="sm" type="submit" disabled={saving}>
             {saving ? t('settings.updating') : t('common.save', { defaultValue: 'Save' })}
           </Button>
         </form>

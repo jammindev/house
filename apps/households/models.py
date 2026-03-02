@@ -21,7 +21,11 @@ class Household(models.Model):
     # Optional address fields
     address = models.TextField(default='', blank=True)
     city = models.TextField(default='', blank=True)
-    country = models.TextField(default='', blank=True)
+    postal_code = models.CharField(max_length=20, default='', blank=True)
+    country = models.CharField(max_length=2, default='', blank=True,
+                               help_text=_("ISO 3166-1 alpha-2 country code (e.g. FR, DE, US)"))
+    timezone = models.CharField(max_length=64, default='', blank=True,
+                                help_text=_("IANA timezone (e.g. Europe/Paris). Leave blank for UTC."))
     
     # AI/context fields
     context_notes = models.TextField(default='', blank=True)

@@ -16,7 +16,9 @@ export interface HouseholdEditFormValues {
   name: string;
   address: string;
   city: string;
+  postal_code: string;
   country: string;
+  timezone: string;
   context_notes: string;
   ai_prompt_context: string;
 }

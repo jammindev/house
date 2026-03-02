@@ -24,7 +24,9 @@ function initialEditForm(household: Household): HouseholdEditFormValues {
     name: household.name ?? '',
     address: household.address ?? '',
     city: household.city ?? '',
+    postal_code: household.postal_code ?? '',
     country: household.country ?? '',
+    timezone: household.timezone ?? '',
     context_notes: household.context_notes ?? '',
     ai_prompt_context: household.ai_prompt_context ?? '',
   };
@@ -35,7 +37,9 @@ function emptyHouseholdForm(): HouseholdEditFormValues {
     name: '',
     address: '',
     city: '',
+    postal_code: '',
     country: '',
+    timezone: '',
     context_notes: '',
     ai_prompt_context: '',
   };
@@ -127,7 +131,9 @@ export function useHouseholdManagement({
         name: trimmed,
         address: createForm.address.trim(),
         city: createForm.city.trim(),
+        postal_code: createForm.postal_code.trim(),
         country: createForm.country.trim(),
+        timezone: createForm.timezone.trim(),
         context_notes: createForm.context_notes.trim(),
         ai_prompt_context: createForm.ai_prompt_context.trim(),
       });
@@ -205,7 +211,9 @@ export function useHouseholdManagement({
         name: trimmedName,
         address: editForm.address.trim(),
         city: editForm.city.trim(),
+        postal_code: editForm.postal_code.trim(),
         country: editForm.country.trim(),
+        timezone: editForm.timezone.trim(),
         context_notes: editForm.context_notes.trim(),
         ai_prompt_context: editForm.ai_prompt_context.trim(),
       });

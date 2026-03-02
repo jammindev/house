@@ -6,6 +6,7 @@ import { SheetDialog } from '@/design-system/sheet-dialog';
 import type { Household } from '@/lib/api/households';
 import type { HouseholdEditFormValues } from '../types';
 import { HouseholdFormFields } from './HouseholdFormFields';
+import type { HouseholdFormFieldsLabels } from './HouseholdFormFields';
 
 interface HouseholdEditSheetProps {
   household: Household;
@@ -17,17 +18,8 @@ interface HouseholdEditSheetProps {
   onClose: () => void;
   onFieldChange: <K extends keyof HouseholdEditFormValues>(field: K, value: HouseholdEditFormValues[K]) => void;
   onSubmit: (householdId: string) => Promise<void>;
-  labels: {
-    edit: string;
-    save: string;
-    saving: string;
-    name: string;
-    address: string;
-    city: string;
-    country: string;
-    contextNotes: string;
-    aiPromptContext: string;
-  };
+  labels: HouseholdFormFieldsLabels & { edit: string };
+  trigger?: React.ReactElement<{ onClick?: React.MouseEventHandler<HTMLElement> }>;
 }
 
 export function HouseholdEditSheet({
@@ -41,10 +33,11 @@ export function HouseholdEditSheet({
   onFieldChange,
   onSubmit,
   labels,
+  trigger,
 }: HouseholdEditSheetProps) {
   return (
     <SheetDialog
-      trigger={
+      trigger={trigger ?? (
         <Button
           size="sm"
           variant="outline"
@@ -52,7 +45,7 @@ export function HouseholdEditSheet({
         >
           {labels.edit}
         </Button>
-      }
+      )}
       title={title}
       open={isOpen}
       onOpenChange={(open) => {
@@ -63,16 +56,7 @@ export function HouseholdEditSheet({
       <HouseholdFormFields
         values={values}
         isSaving={isSaving}
-        labels={{
-          submit: labels.save,
-          submitting: labels.saving,
-          name: labels.name,
-          address: labels.address,
-          city: labels.city,
-          country: labels.country,
-          contextNotes: labels.contextNotes,
-          aiPromptContext: labels.aiPromptContext,
-        }}
+        labels={labels}
         onFieldChange={onFieldChange}
         onSubmit={() => onSubmit(household.id)}
       />
