@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.serializers import UserSerializer
@@ -16,7 +16,8 @@ from households.models import Household, HouseholdMember, HouseholdInvitation
 def app_settings_view(request):
     user_data = UserSerializer(request.user).data
     households_qs = Household.objects.filter(
-        householdmember__user=request.user
+        householdmember__user=request.user,
+        archived_at__isnull=True,
     ).distinct()
     households_data = HouseholdDetailSerializer(households_qs, many=True).data
 
@@ -69,16 +70,16 @@ def switch_household_view(request):
         body = json.loads(request.body)
         household_id = str(body.get('household_id', '')).strip()
     except (json.JSONDecodeError, AttributeError):
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': _('Invalid JSON')}, status=400)
 
     if not household_id:
-        return JsonResponse({'error': 'household_id required'}, status=400)
+        return JsonResponse({'error': _('household_id required')}, status=400)
 
     is_member = HouseholdMember.objects.filter(
         household_id=household_id, user_id=request.user.id
     ).exists()
     if not is_member:
-        return JsonResponse({'error': 'Forbidden'}, status=403)
+        return JsonResponse({'error': _('Forbidden')}, status=403)
 
     request.user.active_household_id = household_id
     request.user.save(update_fields=['active_household_id'])

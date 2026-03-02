@@ -20,7 +20,9 @@ export interface Household {
   inbound_email_alias: string | null;
   default_household: boolean;
   members_count: number;
+  current_user_role: 'owner' | 'member' | null;
   members?: HouseholdMember[];
+  archived_at: string | null;
 }
 
 export interface CreateHouseholdInput {
@@ -28,6 +30,18 @@ export interface CreateHouseholdInput {
   address?: string;
   city?: string;
   country?: string;
+  context_notes?: string;
+  ai_prompt_context?: string;
+}
+
+export interface UpdateHouseholdInput {
+  name?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  context_notes?: string;
+  ai_prompt_context?: string;
+  default_household?: boolean;
 }
 
 function getCsrfToken(): string {
@@ -70,7 +84,7 @@ export async function createHousehold(input: CreateHouseholdInput): Promise<Hous
   return response.json() as Promise<Household>;
 }
 
-export async function updateHousehold(id: string, input: Partial<CreateHouseholdInput>): Promise<Household> {
+export async function updateHousehold(id: string, input: UpdateHouseholdInput): Promise<Household> {
   const csrfToken = getCsrfToken();
   const response = await fetch(`/api/households/${id}/`, {
     method: 'PATCH',
@@ -82,7 +96,7 @@ export async function updateHousehold(id: string, input: Partial<CreateHousehold
   return response.json() as Promise<Household>;
 }
 
-export async function deleteHousehold(id: string): Promise<void> {
+export async function archiveHousehold(id: string): Promise<void> {
   const csrfToken = getCsrfToken();
   const response = await fetch(`/api/households/${id}/`, {
     method: 'DELETE',
@@ -94,6 +108,9 @@ export async function deleteHousehold(id: string): Promise<void> {
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
 }
+
+/** @deprecated use archiveHousehold */
+export const deleteHousehold = archiveHousehold;
 
 export async function leaveHousehold(id: string): Promise<void> {
   const csrfToken = getCsrfToken();

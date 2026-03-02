@@ -114,8 +114,8 @@ export function SheetDialog({
       {triggerWithHandler}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          variant="mobileSheet"
-          hideDefaultCloseButton
+          variant={isMobile ? "mobileSheet" : "default"}
+          hideDefaultCloseButton={isMobile}
           onInteractOutside={(event) => {
             const originalTarget = (event as CustomEvent).detail?.originalEvent?.target
             if (originalTarget instanceof Element && originalTarget.closest("[data-allow-interact]")) {
@@ -124,12 +124,14 @@ export function SheetDialog({
           }}
           aria-describedby={description ? undefined : ""}
           className={cn(
-            "rounded-t-3xl bg-background p-2 shadow-2xl max-w-2xl mx-auto lg:mx-0 lg:ml-[22rem] xl:ml-[30rem] flex flex-col justify-between",
+            isMobile
+              ? "rounded-t-3xl bg-background p-2 shadow-2xl max-w-2xl mx-auto flex flex-col justify-between"
+              : "bg-background",
             containerClassName,
           )}
           style={{
             minHeight: minHeight,
-            maxHeight: "87vh",
+            maxHeight: isMobile ? "87vh" : undefined,
           }}
         >
           <div className={cn("flex flex-col gap-4 overflow-y-auto p-5", contentClassName)}>
@@ -151,13 +153,13 @@ export function SheetDialog({
           </div>
         </DialogContent>
 
-        {open && closeLabel && (
+        {isMobile && open && closeLabel && (
           <DialogClose asChild data-allow-interact>
             <Button
               data-allow-interact
               variant="ghost"
               size="icon"
-              className="fixed left-4 lg:left-[30rem] top-4 z-[70] rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="fixed left-4 top-4 z-[70] rounded-full border border-border/40 bg-background/80 p-2 opacity-80 shadow-lg backdrop-blur transition-all duration-200 hover:bg-background hover:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               aria-label={closeLabel}
             >
               <X />

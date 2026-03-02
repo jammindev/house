@@ -57,16 +57,44 @@ class TestCreateHousehold:
 
 
 @pytest.mark.django_db
-class TestDeleteHousehold:
-    """DELETE /api/households/{id}/ — owner can delete."""
+class TestListHouseholds:
+    """GET /api/households/ — includes current role for UI action gating."""
 
-    def test_owner_can_delete(self, owner_client, household):
+    def test_list_includes_current_user_role(self, owner_client, household):
+        list_url = reverse("household-list")
+        response = owner_client.get(list_url)
+
+        assert response.status_code == status.HTTP_200_OK
+        payload_by_id = {item["id"]: item for item in response.data}
+        assert str(household.id) in payload_by_id
+        assert payload_by_id[str(household.id)]["current_user_role"] == HouseholdMember.Role.OWNER
+        assert payload_by_id[str(household.id)]["members"][0]["role"] == HouseholdMember.Role.OWNER
+
+
+@pytest.mark.django_db
+class TestArchiveHousehold:
+    """DELETE /api/households/{id}/ — owner can archive (soft-delete)."""
+
+    def test_owner_can_archive(self, owner_client, household):
         url = reverse("household-detail", kwargs={"pk": household.pk})
         response = owner_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not Household.objects.filter(pk=household.pk).exists()
+        # Record still exists but is archived
+        household.refresh_from_db()
+        assert household.archived_at is not None
 
-    def test_member_cannot_delete(self, db, household):
+    def test_archived_household_hidden_from_list(self, owner_client, household):
+        # Archive it
+        url = reverse("household-detail", kwargs={"pk": household.pk})
+        owner_client.delete(url)
+        # Should not appear in list
+        list_url = reverse("household-list")
+        response = owner_client.get(list_url)
+        assert response.status_code == status.HTTP_200_OK
+        ids = [h["id"] for h in response.data]
+        assert str(household.pk) not in ids
+
+    def test_member_cannot_archive(self, db, household):
         member_user = UserFactory()
         HouseholdMember.objects.create(
             household=household, user=member_user, role=HouseholdMember.Role.MEMBER
@@ -76,6 +104,9 @@ class TestDeleteHousehold:
         url = reverse("household-detail", kwargs={"pk": household.pk})
         response = client.delete(url)
         assert response.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND)
+        # Record untouched
+        household.refresh_from_db()
+        assert household.archived_at is None
 
 
 @pytest.mark.django_db
