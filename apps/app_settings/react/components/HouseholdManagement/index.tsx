@@ -29,6 +29,8 @@ export function HouseholdManagement({
     switching,
     createForm,
     creating,
+    isCreateSheetOpen,
+    setIsCreateSheetOpen,
     activePanel,
     editForm,
     editSaving,
@@ -74,41 +76,41 @@ export function HouseholdManagement({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <HouseholdCreateSheet
-              title={t('settings.createHousehold', { defaultValue: 'Create household' })}
-              isSaving={creating}
-              values={createForm}
-              onOpen={startCreate}
-              onFieldChange={setCreateField}
-              onSubmit={handleCreate}
-              trigger={
-                <DropdownMenuItem>
-                  {t('settings.createHousehold', { defaultValue: 'Create' })}
-                </DropdownMenuItem>
-              }
-              labels={{
-                create: t('settings.createHousehold', { defaultValue: 'Create' }),
-                creating: t('settings.creating', { defaultValue: 'Creating…' }),
-                submit: t('settings.createHousehold', { defaultValue: 'Create' }),
-                submitting: t('settings.creating', { defaultValue: 'Creating\u2026' }),
-                name: t('settings.householdName', { defaultValue: 'Household name' }),
-                sectionLocation: t('settings.sectionLocation', { defaultValue: 'Location' }),
-                address: t('settings.address', { defaultValue: 'Address' }),
-                city: t('settings.city', { defaultValue: 'City' }),
-                postalCode: t('settings.postalCode', { defaultValue: 'Postal code' }),
-                country: t('settings.country', { defaultValue: 'Country' }),
-                countryPlaceholder: t('settings.countryPlaceholder', { defaultValue: '— Select country —' }),
-                timezone: t('settings.timezone', { defaultValue: 'Timezone' }),
-                timezonePlaceholder: t('settings.timezonePlaceholder', { defaultValue: '— Select timezone —' }),
-                sectionContext: t('settings.sectionContext', { defaultValue: 'Context & AI' }),
-                contextNotes: t('settings.contextNotes', { defaultValue: 'Household notes' }),
-                aiPromptContext: t('settings.aiPromptContext', { defaultValue: 'AI prompt context' }),
-              }}
-            />
+            <DropdownMenuItem onSelect={startCreate}>
+              {t('settings.createHousehold', { defaultValue: 'Create' })}
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
       <CardContent className="space-y-4">
+        <HouseholdCreateSheet
+          title={t('settings.createHousehold', { defaultValue: 'Create household' })}
+          isSaving={creating}
+          values={createForm}
+          open={isCreateSheetOpen}
+          onOpenChange={setIsCreateSheetOpen}
+          onOpen={startCreate}
+          onFieldChange={setCreateField}
+          onSubmit={handleCreate}
+          labels={{
+            create: t('settings.createHousehold', { defaultValue: 'Create' }),
+            creating: t('settings.creating', { defaultValue: 'Creating…' }),
+            submit: t('settings.createHousehold', { defaultValue: 'Create' }),
+            submitting: t('settings.creating', { defaultValue: 'Creating\u2026' }),
+            name: t('settings.householdName', { defaultValue: 'Household name' }),
+            sectionLocation: t('settings.sectionLocation', { defaultValue: 'Location' }),
+            address: t('settings.address', { defaultValue: 'Address' }),
+            city: t('settings.city', { defaultValue: 'City' }),
+            postalCode: t('settings.postalCode', { defaultValue: 'Postal code' }),
+            country: t('settings.country', { defaultValue: 'Country' }),
+            countryPlaceholder: t('settings.countryPlaceholder', { defaultValue: '— Select country —' }),
+            timezone: t('settings.timezone', { defaultValue: 'Timezone' }),
+            timezonePlaceholder: t('settings.timezonePlaceholder', { defaultValue: '— Select timezone —' }),
+            sectionContext: t('settings.sectionContext', { defaultValue: 'Context & AI' }),
+            contextNotes: t('settings.contextNotes', { defaultValue: 'Household notes' }),
+            aiPromptContext: t('settings.aiPromptContext', { defaultValue: 'AI prompt context' }),
+          }}
+        />
         {households.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {t('settings.noHouseholds', { defaultValue: 'No households yet.' })}

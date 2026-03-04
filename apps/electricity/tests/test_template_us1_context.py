@@ -17,7 +17,7 @@ def test_app_electricity_template_renders_context(client):
     response = client.get(reverse("app_electricity"), HTTP_X_HOUSEHOLD_ID=str(household.id))
 
     assert response.status_code == 200
-    assert "app/electricity.html" in [template.name for template in response.templates]
+    assert "electricity/app/electricity.html" in [template.name for template in response.templates]
 
     assert "electricity_page_props" in response.context
     assert "server_sections" in response.context

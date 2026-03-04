@@ -11,7 +11,9 @@ interface HouseholdCreateSheetProps {
   title: string;
   isSaving: boolean;
   values: HouseholdEditFormValues;
+  open?: boolean;
   onOpen: () => void;
+  onOpenChange?: (open: boolean) => void;
   onFieldChange: <K extends keyof HouseholdEditFormValues>(field: K, value: HouseholdEditFormValues[K]) => void;
   onSubmit: () => Promise<boolean>;
   labels: HouseholdFormFieldsLabels & { create: string; creating: string };
@@ -22,7 +24,9 @@ export function HouseholdCreateSheet({
   title,
   isSaving,
   values,
+  open,
   onOpen,
+  onOpenChange,
   onFieldChange,
   onSubmit,
   labels,
@@ -30,6 +34,8 @@ export function HouseholdCreateSheet({
 }: HouseholdCreateSheetProps) {
   return (
     <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
       trigger={trigger ?? (
         <Button onClick={onOpen} size="sm">
           {labels.create}

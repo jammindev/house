@@ -142,7 +142,7 @@ class InteractionContact(models.Model):
         related_name='interaction_contacts'
     )
     contact = models.ForeignKey(
-        'contacts.Contact',
+        'directory.Contact',
         on_delete=models.CASCADE,
         db_column='contact_id',
         related_name='interaction_contacts'
@@ -167,7 +167,7 @@ class InteractionStructure(models.Model):
         related_name='interaction_structures'
     )
     structure = models.ForeignKey(
-        'structures.Structure',
+        'directory.Structure',
         on_delete=models.CASCADE,
         db_column='structure_id',
         related_name='interaction_structures'

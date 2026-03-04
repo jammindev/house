@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from core.permissions import IsHouseholdMember, resolve_request_household
-from .models import Contact, Address, Email, Phone
-from .serializers import ContactSerializer, AddressSerializer, EmailSerializer, PhoneSerializer
+from .models import Contact, Address, Email, Phone, Structure
+from .serializers import ContactSerializer, AddressSerializer, EmailSerializer, PhoneSerializer, StructureSerializer
 
 
 class HouseholdScopedViewSet(viewsets.ModelViewSet):
@@ -26,6 +26,11 @@ class HouseholdScopedViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+
+class StructureViewSet(HouseholdScopedViewSet):
+    model = Structure
+    serializer_class = StructureSerializer
 
 
 class ContactViewSet(HouseholdScopedViewSet):
