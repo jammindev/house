@@ -1,3 +1,5 @@
+import type { MouseEvent, ReactElement } from 'react';
+
 import { Button } from '@/design-system/button';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 
@@ -13,6 +15,7 @@ interface HouseholdCreateSheetProps {
   onFieldChange: <K extends keyof HouseholdEditFormValues>(field: K, value: HouseholdEditFormValues[K]) => void;
   onSubmit: () => Promise<boolean>;
   labels: HouseholdFormFieldsLabels & { create: string; creating: string };
+  trigger?: ReactElement<{ onClick?: (event: MouseEvent<HTMLElement>) => void }>;
 }
 
 export function HouseholdCreateSheet({
@@ -23,14 +26,15 @@ export function HouseholdCreateSheet({
   onFieldChange,
   onSubmit,
   labels,
+  trigger,
 }: HouseholdCreateSheetProps) {
   return (
     <SheetDialog
-      trigger={
+      trigger={trigger ?? (
         <Button onClick={onOpen} size="sm">
           {labels.create}
         </Button>
-      }
+      )}
       title={title}
       contentClassName="gap-3"
     >
