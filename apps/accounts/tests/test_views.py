@@ -114,7 +114,8 @@ class TestLogoutView:
         # Verify user is logged in
         dashboard_url = reverse("dashboard")
         response = client.get(dashboard_url)
-        assert response.status_code == 200
+        assert response.status_code == 302
+        assert response.url == reverse("app_dashboard")
         
         # Logout
         logout_url = reverse("logout")

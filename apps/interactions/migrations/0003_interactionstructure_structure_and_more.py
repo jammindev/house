@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('interactions', '0002_interactioncontact_interactionstructure'),
-        ('structures', '0001_initial'),
+        ('directory', '0005_squashed_contacts_0004_structure'),
     ]
 
     operations = [

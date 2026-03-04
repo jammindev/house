@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('contacts', '0001_initial'),
+        ('directory', '0005_squashed_contacts_0004_structure'),
         ('interactions', '0001_initial'),
     ]
 
@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('contact', models.ForeignKey(db_column='contact_id', on_delete=django.db.models.deletion.CASCADE, related_name='interaction_contacts', to='contacts.contact')),
+                ('contact', models.ForeignKey(db_column='contact_id', on_delete=django.db.models.deletion.CASCADE, related_name='interaction_contacts', to='directory.contact')),
                 ('interaction', models.ForeignKey(db_column='interaction_id', on_delete=django.db.models.deletion.CASCADE, related_name='interaction_contacts', to='interactions.interaction')),
             ],
             options={

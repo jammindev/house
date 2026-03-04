@@ -66,6 +66,7 @@ export function useHouseholdManagement({
 
   const [createForm, setCreateForm] = React.useState<HouseholdEditFormValues>(emptyHouseholdForm());
   const [creating, setCreating] = React.useState(false);
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = React.useState(false);
 
   const [activePanel, setActivePanel] = React.useState<ActivePanel | null>(null);
   const [editForm, setEditForm] = React.useState<HouseholdEditFormValues>(emptyHouseholdForm());
@@ -113,6 +114,7 @@ export function useHouseholdManagement({
 
   function startCreate() {
     setCreateForm(emptyHouseholdForm());
+    setIsCreateSheetOpen(true);
   }
 
   function setCreateField<K extends keyof HouseholdEditFormValues>(field: K, value: HouseholdEditFormValues[K]) {
@@ -252,6 +254,8 @@ export function useHouseholdManagement({
     switching,
     createForm,
     creating,
+    isCreateSheetOpen,
+    setIsCreateSheetOpen,
     activePanel,
     editForm,
     editSaving,
