@@ -2057,3 +2057,18 @@ msgstr ""
 
 #~ msgid "your@email.com"
 #~ msgstr "votre@email.com"
+
+msgid "A valid household context is required."
+msgstr "Un contexte de foyer valide est requis."
+
+msgid "Interaction household must match equipment household."
+msgstr "Le foyer de l'interaction doit correspondre au foyer de l'équipement."
+
+msgid "Invalid interaction or access denied."
+msgstr "Interaction invalide ou accès refusé."
+
+msgid "Invalid zone or access denied."
+msgstr "Zone invalide ou accès refusé."
+
+msgid "Zone must belong to the same household as equipment."
+msgstr "La zone doit appartenir au même foyer que l'équipement."

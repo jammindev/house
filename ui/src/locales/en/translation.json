@@ -280,7 +280,149 @@
   },
   "equipment": {
     "app_title": "Equipment mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "title": "Equipment",
+    "search": "Search",
+    "search_placeholder": "Name, serial, notes...",
+    "apply": "Apply",
+    "status_label": "Status",
+    "zone_label": "Zone",
+    "all_statuses": "All statuses",
+    "all_zones": "All zones",
+    "reset": "Reset",
+    "new": "New",
+    "loading": "Loading…",
+    "unable_to_load": "Unable to load equipment",
+    "error_loading_list": "Failed to load equipment list.",
+    "empty_list": "No equipment found.",
+    "unknown_maker": "Unknown maker",
+    "zone": "Zone",
+    "warranty": "Warranty",
+    "next_service": "Next service",
+    "not_available": "—",
+    "no_zone": "No zone",
+    "error_title": "Error",
+    "status": {
+      "active": "Active",
+      "maintenance": "Maintenance",
+      "storage": "Storage",
+      "retired": "Retired",
+      "lost": "Lost",
+      "ordered": "Ordered"
+    },
+    "form": {
+      "title_create": "Create equipment",
+      "title_edit": "Edit equipment",
+      "fields": {
+        "name": "Name",
+        "category": "Category",
+        "status": "Status",
+        "zone": "Zone",
+        "manufacturer": "Manufacturer",
+        "model": "Model",
+        "serial_number": "Serial number",
+        "condition": "Condition",
+        "purchase_date": "Purchase date",
+        "purchase_price": "Purchase price",
+        "purchase_vendor": "Vendor",
+        "warranty_expires_on": "Warranty expires",
+        "warranty_provider": "Warranty provider",
+        "maintenance_interval_months": "Maintenance interval (months)",
+        "last_service_at": "Last service",
+        "installed_at": "Installed at",
+        "retired_at": "Retired at",
+        "tags": "Tags (comma-separated)",
+        "warranty_notes": "Warranty notes",
+        "notes": "Notes"
+      },
+      "actions": {
+        "save": "Save",
+        "create": "Create",
+        "cancel": "Cancel",
+        "saving": "Saving…"
+      }
+    },
+    "errors": {
+      "load_failed": "Failed to load equipment.",
+      "name_required": "Name is required.",
+      "update_failed": "Failed to update equipment.",
+      "create_failed": "Failed to create equipment."
+    },
+    "detail": {
+      "title": "Equipment details",
+      "confirm_delete": "Delete equipment \"{{name}}\"?",
+      "errors": {
+        "load_failed": "Unable to load equipment details.",
+        "delete_failed": "Failed to delete equipment."
+      },
+      "fields": {
+        "category": "Category",
+        "zone": "Zone",
+        "manufacturer": "Manufacturer",
+        "model": "Model",
+        "serial_number": "Serial",
+        "condition": "Condition",
+        "purchase_date": "Purchase date",
+        "warranty": "Warranty",
+        "last_service": "Last service",
+        "next_service": "Next service",
+        "created_by": "Created by",
+        "updated_by": "Updated by"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleting": "Deleting…"
+      },
+      "interaction": {
+        "linked_title": "Linked interactions",
+        "empty": "No interactions linked yet.",
+        "default_role": "log",
+        "occurred_at": "Occurred",
+        "create_title": "Create and link interaction",
+        "error_title": "Interaction error",
+        "fields": {
+          "subject": "Subject",
+          "type": "Type",
+          "status": "Status",
+          "occurred_at": "Occurred at",
+          "zone": "Zone",
+          "select_zone": "Select zone",
+          "role": "Equipment role",
+          "content": "Interaction content",
+          "note": "Link note"
+        },
+        "errors": {
+          "subject_required": "Subject is required.",
+          "zone_required": "A zone is required to create an interaction.",
+          "invalid_occurrence_date": "Invalid occurrence date.",
+          "create_and_link_failed": "Failed to create and link interaction."
+        },
+        "actions": {
+          "create_and_link": "Create and link",
+          "creating": "Creating…"
+        }
+      }
+    },
+    "interaction_type": {
+      "maintenance": "Maintenance",
+      "repair": "Repair",
+      "inspection": "Inspection",
+      "installation": "Installation",
+      "issue": "Issue",
+      "warranty": "Warranty",
+      "replacement": "Replacement",
+      "upgrade": "Upgrade",
+      "disposal": "Disposal",
+      "expense": "Expense"
+    },
+    "interaction_status": {
+      "backlog": "Backlog",
+      "pending": "Pending",
+      "in_progress": "In progress",
+      "done": "Done",
+      "archived": "Archived"
+    }
   },
   "projects": {
     "app_title": "Projects mini-app",

@@ -280,7 +280,149 @@
   },
   "equipment": {
     "app_title": "Geräte-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "section_label": "Django-App-Knoten: {{section}}",
+    "title": "Geräte",
+    "search": "Suchen",
+    "search_placeholder": "Name, Seriennummer, Notizen...",
+    "apply": "Anwenden",
+    "status_label": "Status",
+    "zone_label": "Zone",
+    "all_statuses": "Alle Status",
+    "all_zones": "Alle Zonen",
+    "reset": "Zurücksetzen",
+    "new": "Neu",
+    "loading": "Laden…",
+    "unable_to_load": "Geräte konnten nicht geladen werden",
+    "error_loading_list": "Geräteliste konnte nicht geladen werden.",
+    "empty_list": "Keine Geräte gefunden.",
+    "unknown_maker": "Unbekannter Hersteller",
+    "zone": "Zone",
+    "warranty": "Garantie",
+    "next_service": "Nächste Wartung",
+    "not_available": "—",
+    "no_zone": "Keine Zone",
+    "error_title": "Fehler",
+    "status": {
+      "active": "Aktiv",
+      "maintenance": "Wartung",
+      "storage": "Lagerung",
+      "retired": "Außer Betrieb",
+      "lost": "Verloren",
+      "ordered": "Bestellt"
+    },
+    "form": {
+      "title_create": "Gerät erstellen",
+      "title_edit": "Gerät bearbeiten",
+      "fields": {
+        "name": "Name",
+        "category": "Kategorie",
+        "status": "Status",
+        "zone": "Zone",
+        "manufacturer": "Hersteller",
+        "model": "Modell",
+        "serial_number": "Seriennummer",
+        "condition": "Zustand",
+        "purchase_date": "Kaufdatum",
+        "purchase_price": "Kaufpreis",
+        "purchase_vendor": "Händler",
+        "warranty_expires_on": "Garantie bis",
+        "warranty_provider": "Garantieanbieter",
+        "maintenance_interval_months": "Wartungsintervall (Monate)",
+        "last_service_at": "Letzte Wartung",
+        "installed_at": "Installiert am",
+        "retired_at": "Stillgelegt am",
+        "tags": "Tags (kommagetrennt)",
+        "warranty_notes": "Garantienotizen",
+        "notes": "Notizen"
+      },
+      "actions": {
+        "save": "Speichern",
+        "create": "Erstellen",
+        "cancel": "Abbrechen",
+        "saving": "Wird gespeichert…"
+      }
+    },
+    "errors": {
+      "load_failed": "Gerät konnte nicht geladen werden.",
+      "name_required": "Name ist erforderlich.",
+      "update_failed": "Gerät konnte nicht aktualisiert werden.",
+      "create_failed": "Gerät konnte nicht erstellt werden."
+    },
+    "detail": {
+      "title": "Gerätedetails",
+      "confirm_delete": "Gerät \"{{name}}\" löschen?",
+      "errors": {
+        "load_failed": "Gerätedetails konnten nicht geladen werden.",
+        "delete_failed": "Gerät konnte nicht gelöscht werden."
+      },
+      "fields": {
+        "category": "Kategorie",
+        "zone": "Zone",
+        "manufacturer": "Hersteller",
+        "model": "Modell",
+        "serial_number": "Serie",
+        "condition": "Zustand",
+        "purchase_date": "Kaufdatum",
+        "warranty": "Garantie",
+        "last_service": "Letzte Wartung",
+        "next_service": "Nächste Wartung",
+        "created_by": "Erstellt von",
+        "updated_by": "Aktualisiert von"
+      },
+      "actions": {
+        "edit": "Bearbeiten",
+        "delete": "Löschen",
+        "deleting": "Wird gelöscht…"
+      },
+      "interaction": {
+        "linked_title": "Verknüpfte Interaktionen",
+        "empty": "Noch keine verknüpften Interaktionen.",
+        "default_role": "Protokoll",
+        "occurred_at": "Zeitpunkt",
+        "create_title": "Interaktion erstellen und verknüpfen",
+        "error_title": "Interaktionsfehler",
+        "fields": {
+          "subject": "Betreff",
+          "type": "Typ",
+          "status": "Status",
+          "occurred_at": "Zeitpunkt",
+          "zone": "Zone",
+          "select_zone": "Zone auswählen",
+          "role": "Geräterolle",
+          "content": "Interaktionsinhalt",
+          "note": "Verknüpfungsnotiz"
+        },
+        "errors": {
+          "subject_required": "Betreff ist erforderlich.",
+          "zone_required": "Für die Erstellung einer Interaktion ist eine Zone erforderlich.",
+          "invalid_occurrence_date": "Ungültiges Ereignisdatum.",
+          "create_and_link_failed": "Interaktion konnte nicht erstellt und verknüpft werden."
+        },
+        "actions": {
+          "create_and_link": "Erstellen und verknüpfen",
+          "creating": "Wird erstellt…"
+        }
+      }
+    },
+    "interaction_type": {
+      "maintenance": "Wartung",
+      "repair": "Reparatur",
+      "inspection": "Inspektion",
+      "installation": "Installation",
+      "issue": "Problem",
+      "warranty": "Garantie",
+      "replacement": "Ersatz",
+      "upgrade": "Upgrade",
+      "disposal": "Entsorgung",
+      "expense": "Ausgabe"
+    },
+    "interaction_status": {
+      "backlog": "Backlog",
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "done": "Erledigt",
+      "archived": "Archiviert"
+    }
   },
   "projects": {
     "app_title": "Projekte-Mini-App",

@@ -1,0 +1,25 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Create equipment" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-4">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Create equipment" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {% trans "Create a new equipment item with warranty and maintenance details." %}
+            </p>
+        </div>
+        <a href="{% url 'app_equipment' %}" class="text-sm underline text-muted-foreground">{% trans "Back to equipment" %}</a>
+    </div>
+
+    <div id="equipment-form-root"></div>
+    {{ equipment_form_props|json_script:"equipment-form-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/equipment-new.tsx' %}
+{% endblock %}

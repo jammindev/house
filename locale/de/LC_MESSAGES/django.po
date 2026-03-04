@@ -1999,3 +1999,18 @@ msgstr ""
 
 #~ msgid "URL to user's avatar image"
 #~ msgstr "URL zum Avatar-Bild des Benutzers"
+
+msgid "A valid household context is required."
+msgstr "Ein gültiger Haushaltskontext ist erforderlich."
+
+msgid "Interaction household must match equipment household."
+msgstr "Der Haushalt der Interaktion muss mit dem Haushalt der Ausstattung übereinstimmen."
+
+msgid "Invalid interaction or access denied."
+msgstr "Ungültige Interaktion oder Zugriff verweigert."
+
+msgid "Invalid zone or access denied."
+msgstr "Ungültige Zone oder Zugriff verweigert."
+
+msgid "Zone must belong to the same household as equipment."
+msgstr "Die Zone muss zum selben Haushalt wie die Ausstattung gehören."

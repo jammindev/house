@@ -9,12 +9,12 @@ from core.managers import HouseholdScopedManager
 
 class Equipment(HouseholdScopedModel):
     class Status(models.TextChoices):
-        ACTIVE = "active", "Active"
-        MAINTENANCE = "maintenance", "Maintenance"
-        STORAGE = "storage", "Storage"
-        RETIRED = "retired", "Retired"
-        LOST = "lost", "Lost"
-        ORDERED = "ordered", "Ordered"
+        ACTIVE = "active", _("Active")
+        MAINTENANCE = "maintenance", _("Maintenance")
+        STORAGE = "storage", _("Storage")
+        RETIRED = "retired", _("Retired")
+        LOST = "lost", _("Lost")
+        ORDERED = "ordered", _("Ordered")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     zone = models.ForeignKey("zones.Zone", on_delete=models.SET_NULL, null=True, blank=True, related_name="equipment")

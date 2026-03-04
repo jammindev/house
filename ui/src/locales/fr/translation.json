@@ -280,7 +280,149 @@
   },
   "equipment": {
     "app_title": "Mini-app Équipements",
-    "section_label": "Nœud Django scopé : {{section}}"
+    "section_label": "Nœud Django scopé : {{section}}",
+    "title": "Équipements",
+    "search": "Rechercher",
+    "search_placeholder": "Nom, série, notes...",
+    "apply": "Appliquer",
+    "status_label": "Statut",
+    "zone_label": "Zone",
+    "all_statuses": "Tous les statuts",
+    "all_zones": "Toutes les zones",
+    "reset": "Réinitialiser",
+    "new": "Nouveau",
+    "loading": "Chargement…",
+    "unable_to_load": "Impossible de charger les équipements",
+    "error_loading_list": "Impossible de charger la liste des équipements.",
+    "empty_list": "Aucun équipement trouvé.",
+    "unknown_maker": "Fabricant inconnu",
+    "zone": "Zone",
+    "warranty": "Garantie",
+    "next_service": "Prochaine maintenance",
+    "not_available": "—",
+    "no_zone": "Aucune zone",
+    "error_title": "Erreur",
+    "status": {
+      "active": "Actif",
+      "maintenance": "Maintenance",
+      "storage": "Stockage",
+      "retired": "Retiré",
+      "lost": "Perdu",
+      "ordered": "Commandé"
+    },
+    "form": {
+      "title_create": "Créer un équipement",
+      "title_edit": "Modifier l’équipement",
+      "fields": {
+        "name": "Nom",
+        "category": "Catégorie",
+        "status": "Statut",
+        "zone": "Zone",
+        "manufacturer": "Fabricant",
+        "model": "Modèle",
+        "serial_number": "Numéro de série",
+        "condition": "État",
+        "purchase_date": "Date d’achat",
+        "purchase_price": "Prix d’achat",
+        "purchase_vendor": "Vendeur",
+        "warranty_expires_on": "Fin de garantie",
+        "warranty_provider": "Fournisseur de garantie",
+        "maintenance_interval_months": "Intervalle de maintenance (mois)",
+        "last_service_at": "Dernière maintenance",
+        "installed_at": "Installé le",
+        "retired_at": "Retiré le",
+        "tags": "Tags (séparés par des virgules)",
+        "warranty_notes": "Notes de garantie",
+        "notes": "Notes"
+      },
+      "actions": {
+        "save": "Enregistrer",
+        "create": "Créer",
+        "cancel": "Annuler",
+        "saving": "Enregistrement…"
+      }
+    },
+    "errors": {
+      "load_failed": "Impossible de charger l’équipement.",
+      "name_required": "Le nom est requis.",
+      "update_failed": "Impossible de mettre à jour l’équipement.",
+      "create_failed": "Impossible de créer l’équipement."
+    },
+    "detail": {
+      "title": "Détails de l’équipement",
+      "confirm_delete": "Supprimer l’équipement \"{{name}}\" ?",
+      "errors": {
+        "load_failed": "Impossible de charger les détails de l’équipement.",
+        "delete_failed": "Impossible de supprimer l’équipement."
+      },
+      "fields": {
+        "category": "Catégorie",
+        "zone": "Zone",
+        "manufacturer": "Fabricant",
+        "model": "Modèle",
+        "serial_number": "Série",
+        "condition": "État",
+        "purchase_date": "Date d’achat",
+        "warranty": "Garantie",
+        "last_service": "Dernière maintenance",
+        "next_service": "Prochaine maintenance",
+        "created_by": "Créé par",
+        "updated_by": "Mis à jour par"
+      },
+      "actions": {
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "deleting": "Suppression…"
+      },
+      "interaction": {
+        "linked_title": "Interactions liées",
+        "empty": "Aucune interaction liée pour le moment.",
+        "default_role": "journal",
+        "occurred_at": "Date",
+        "create_title": "Créer et lier une interaction",
+        "error_title": "Erreur interaction",
+        "fields": {
+          "subject": "Sujet",
+          "type": "Type",
+          "status": "Statut",
+          "occurred_at": "Date de l’événement",
+          "zone": "Zone",
+          "select_zone": "Sélectionner une zone",
+          "role": "Rôle équipement",
+          "content": "Contenu de l’interaction",
+          "note": "Note de liaison"
+        },
+        "errors": {
+          "subject_required": "Le sujet est requis.",
+          "zone_required": "Une zone est requise pour créer une interaction.",
+          "invalid_occurrence_date": "Date d’événement invalide.",
+          "create_and_link_failed": "Impossible de créer et lier l’interaction."
+        },
+        "actions": {
+          "create_and_link": "Créer et lier",
+          "creating": "Création…"
+        }
+      }
+    },
+    "interaction_type": {
+      "maintenance": "Maintenance",
+      "repair": "Réparation",
+      "inspection": "Inspection",
+      "installation": "Installation",
+      "issue": "Incident",
+      "warranty": "Garantie",
+      "replacement": "Remplacement",
+      "upgrade": "Amélioration",
+      "disposal": "Mise au rebut",
+      "expense": "Dépense"
+    },
+    "interaction_status": {
+      "backlog": "Backlog",
+      "pending": "En attente",
+      "in_progress": "En cours",
+      "done": "Terminé",
+      "archived": "Archivé"
+    }
   },
   "projects": {
     "app_title": "Mini-app Projets",

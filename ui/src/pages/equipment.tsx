@@ -1,1 +1,1 @@
-import '../../../apps/equipment/react/mount-equipment'
+import '../../../apps/equipment/react/mount-equipment-list'

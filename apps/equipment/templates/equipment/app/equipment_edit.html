@@ -1,0 +1,25 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Edit equipment" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-4">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Edit equipment" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {% trans "Update equipment lifecycle, warranty and maintenance information." %}
+            </p>
+        </div>
+        <a href="{{ equipment_form_props.cancelUrl }}" class="text-sm underline text-muted-foreground">{% trans "Back to detail" %}</a>
+    </div>
+
+    <div id="equipment-form-root"></div>
+    {{ equipment_form_props|json_script:"equipment-form-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/equipment-edit.tsx' %}
+{% endblock %}
