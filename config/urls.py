@@ -23,6 +23,7 @@ urlpatterns = [
     path("api/tags/", include("tags.urls")),
     path("api/equipment/", include("equipment.urls")),
     path("api/stock/", include("stock.urls")),
+    path("api/insurance/", include("insurance.urls")),
     path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/notifications/", include("notifications.urls")),
@@ -56,6 +57,7 @@ urlpatterns += [
     path("app/contacts/", include("directory.web_urls")),
     path("app/documents/", include("documents.web_urls")),
     path("app/equipment/", include("equipment.web_urls")),
+    path("app/insurance/", include("insurance.web_urls")),
 
     # Sections à migrer
     path("app/tasks/", include("tasks.web_urls")),

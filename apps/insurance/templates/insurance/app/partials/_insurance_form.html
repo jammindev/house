@@ -1,0 +1,93 @@
+{% load i18n %}
+<form method="post" class="space-y-4 rounded-xl border border-border bg-card p-4">
+    {% csrf_token %}
+
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-1 md:col-span-2">
+            <label for="insurance-name" class="text-sm font-medium">{% trans "Contract name" %}</label>
+            <input id="insurance-name" name="name" value="{{ contract.name|default:'' }}" required class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-provider" class="text-sm font-medium">{% trans "Provider" %}</label>
+            <input id="insurance-provider" name="provider" value="{{ contract.provider|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-contract-number" class="text-sm font-medium">{% trans "Contract number" %}</label>
+            <input id="insurance-contract-number" name="contract_number" value="{{ contract.contract_number|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-type" class="text-sm font-medium">{% trans "Insurance type" %}</label>
+            <select id="insurance-type" name="type" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                {% for value, label in type_choices %}
+                    <option value="{{ value }}" {% if contract.type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-status" class="text-sm font-medium">{% trans "Status" %}</label>
+            <select id="insurance-status" name="status" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if contract.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="space-y-1 md:col-span-2">
+            <label for="insurance-insured-item" class="text-sm font-medium">{% trans "Insured item" %}</label>
+            <input id="insurance-insured-item" name="insured_item" value="{{ contract.insured_item|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-start-date" class="text-sm font-medium">{% trans "Start date" %}</label>
+            <input id="insurance-start-date" type="date" name="start_date" value="{{ contract.start_date|date:'Y-m-d'|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-end-date" class="text-sm font-medium">{% trans "End date" %}</label>
+            <input id="insurance-end-date" type="date" name="end_date" value="{{ contract.end_date|date:'Y-m-d'|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-renewal-date" class="text-sm font-medium">{% trans "Renewal date" %}</label>
+            <input id="insurance-renewal-date" type="date" name="renewal_date" value="{{ contract.renewal_date|date:'Y-m-d'|default:'' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-payment-frequency" class="text-sm font-medium">{% trans "Payment frequency" %}</label>
+            <select id="insurance-payment-frequency" name="payment_frequency" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
+                {% for value, label in payment_frequency_choices %}
+                    <option value="{{ value }}" {% if contract.payment_frequency == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-monthly-cost" class="text-sm font-medium">{% trans "Monthly cost" %}</label>
+            <input id="insurance-monthly-cost" type="number" min="0" step="0.01" name="monthly_cost" value="{{ contract.monthly_cost|default:'0' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1">
+            <label for="insurance-yearly-cost" class="text-sm font-medium">{% trans "Yearly cost" %}</label>
+            <input id="insurance-yearly-cost" type="number" min="0" step="0.01" name="yearly_cost" value="{{ contract.yearly_cost|default:'0' }}" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" />
+        </div>
+
+        <div class="space-y-1 md:col-span-2">
+            <label for="insurance-coverage-summary" class="text-sm font-medium">{% trans "Coverage summary" %}</label>
+            <textarea id="insurance-coverage-summary" name="coverage_summary" rows="3" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{{ contract.coverage_summary|default:'' }}</textarea>
+        </div>
+
+        <div class="space-y-1 md:col-span-2">
+            <label for="insurance-notes" class="text-sm font-medium">{% trans "Notes" %}</label>
+            <textarea id="insurance-notes" name="notes" rows="4" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{{ contract.notes|default:'' }}</textarea>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button type="submit" class="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">{{ submit_label }}</button>
+        <a href="{% if contract.id %}{% url 'app_insurance_detail' contract.id %}{% else %}{% url 'app_insurance' %}{% endif %}" class="text-sm underline text-muted-foreground">{% trans "Cancel" %}</a>
+    </div>
+</form>

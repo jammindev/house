@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "stock",
     "electricity",
     "projects",
+    "insurance",
     "tasks",
     "photos",
     "app_settings",

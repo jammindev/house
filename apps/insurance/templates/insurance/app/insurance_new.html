@@ -1,0 +1,19 @@
+{% extends "base_app.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Create insurance contract" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-4">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Create insurance contract" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">{% trans "Add a new household insurance contract." %}</p>
+        </div>
+        <a href="{% url 'app_insurance' %}" class="text-sm underline text-muted-foreground">{% trans "Back to insurance" %}</a>
+    </div>
+
+    {% trans "Create" as insurance_submit_label %}
+    {% include "insurance/app/partials/_insurance_form.html" with submit_label=insurance_submit_label %}
+</div>
+{% endblock %}

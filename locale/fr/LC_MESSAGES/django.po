@@ -2072,3 +2072,111 @@ msgstr "Zone invalide ou accès refusé."
 
 msgid "Zone must belong to the same household as equipment."
 msgstr "La zone doit appartenir au même foyer que l'équipement."
+
+msgid "Insurance"
+msgstr "Assurance"
+
+msgid "Manage household insurance contracts, providers and renewals."
+msgstr "Gérez les contrats d'assurance du foyer, les assureurs et les renouvellements."
+
+msgid "Create contract"
+msgstr "Créer un contrat"
+
+msgid "No insurance contracts yet."
+msgstr "Aucun contrat d'assurance pour le moment."
+
+msgid "Insurance contract details"
+msgstr "Détails du contrat d'assurance"
+
+msgid "No provider specified"
+msgstr "Aucun assureur renseigné"
+
+msgid "Back to insurance"
+msgstr "Retour aux assurances"
+
+msgid "Contract number"
+msgstr "Numéro de contrat"
+
+msgid "Insured item"
+msgstr "Bien assuré"
+
+msgid "Start date"
+msgstr "Date de début"
+
+msgid "End date"
+msgstr "Date de fin"
+
+msgid "Renewal date"
+msgstr "Date de renouvellement"
+
+msgid "Payment frequency"
+msgstr "Fréquence de paiement"
+
+msgid "Monthly cost"
+msgstr "Coût mensuel"
+
+msgid "Yearly cost"
+msgstr "Coût annuel"
+
+msgid "Coverage summary"
+msgstr "Résumé des garanties"
+
+msgid "Delete contract"
+msgstr "Supprimer le contrat"
+
+msgid "Contract name"
+msgstr "Nom du contrat"
+
+msgid "Insurance type"
+msgstr "Type d'assurance"
+
+msgid "Create insurance contract"
+msgstr "Créer un contrat d'assurance"
+
+msgid "Add a new household insurance contract."
+msgstr "Ajouter un nouveau contrat d'assurance du foyer."
+
+msgid "Edit insurance contract"
+msgstr "Modifier le contrat d'assurance"
+
+msgid "Update policy information and coverage details."
+msgstr "Mettre à jour les informations de police et les détails de couverture."
+
+msgid "Back to detail"
+msgstr "Retour au détail"
+
+msgid "Save changes"
+msgstr "Enregistrer les modifications"
+
+msgid "insurance contract"
+msgstr "contrat d'assurance"
+
+msgid "insurance contracts"
+msgstr "contrats d'assurance"
+
+msgid "End date must be after or equal to start date."
+msgstr "La date de fin doit être postérieure ou égale à la date de début."
+
+msgid "Monthly cost must be non-negative."
+msgstr "Le coût mensuel doit être positif ou nul."
+
+msgid "Yearly cost must be non-negative."
+msgstr "Le coût annuel doit être positif ou nul."
+
+msgid "Invalid amount."
+msgstr "Montant invalide."
+
+msgid "Amount must be non-negative."
+msgstr "Le montant doit être positif ou nul."
+
+msgid "No household selected."
+msgstr "Aucun foyer sélectionné."
+
+msgid "Insurance contract created."
+msgstr "Contrat d'assurance créé."
+
+msgid "Insurance contract updated."
+msgstr "Contrat d'assurance mis à jour."
+
+msgid "Insurance contract deleted."
+msgstr "Contrat d'assurance supprimé."

@@ -1,0 +1,53 @@
+{% extends "base_app.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Insurance" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl space-y-6">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Insurance" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {% trans "Manage household insurance contracts, providers and renewals." %}
+            </p>
+        </div>
+        <a href="{% url 'app_insurance_new' %}" class="text-sm underline text-muted-foreground">{% trans "Create contract" %}</a>
+    </div>
+
+    <div class="rounded-xl border border-border bg-card">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b border-border text-left text-muted-foreground">
+                    <th class="px-4 py-3">{% trans "Name" %}</th>
+                    <th class="px-4 py-3">{% trans "Type" %}</th>
+                    <th class="px-4 py-3">{% trans "Provider" %}</th>
+                    <th class="px-4 py-3">{% trans "Status" %}</th>
+                    <th class="px-4 py-3">{% trans "Renewal" %}</th>
+                    <th class="px-4 py-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts %}
+                    <tr class="border-b border-border/60 last:border-0">
+                        <td class="px-4 py-3 font-medium text-foreground">{{ contract.name }}</td>
+                        <td class="px-4 py-3 text-muted-foreground">{{ contract.get_type_display }}</td>
+                        <td class="px-4 py-3 text-muted-foreground">{{ contract.provider|default:"—" }}</td>
+                        <td class="px-4 py-3 text-muted-foreground">{{ contract.get_status_display }}</td>
+                        <td class="px-4 py-3 text-muted-foreground">{{ contract.renewal_date|date:"Y-m-d"|default:"—" }}</td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="{% url 'app_insurance_detail' contract.id %}" class="underline text-muted-foreground">{% trans "Open" %}</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-muted-foreground">
+                            {% trans "No insurance contracts yet." %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+from decimal import Decimal, InvalidOperation
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
+
+from core.permissions import resolve_request_household
+
+from .models import InsuranceContract
+
+
+def _resolve_selected_household(request):
+    selected_household = resolve_request_household(request, required=False)
+    if selected_household:
+        return selected_household
+
+    membership = request.user.householdmember_set.select_related("household").order_by("household__name").first()
+    return membership.household if membership else None
+
+
+def _parse_optional_date(value):
+    value = (value or "").strip()
+    return value or None
+
+
+def _parse_optional_decimal(value):
+    value = (value or "").strip()
+    if not value:
+        return Decimal("0")
+    try:
+        parsed = Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError(_("Invalid amount.")) from exc
+    if parsed < 0:
+        raise ValueError(_("Amount must be non-negative."))
+    return parsed
+
+
+def _hydrate_contract_from_post(contract, request):
+    contract.name = (request.POST.get("name") or "").strip()
+    contract.provider = (request.POST.get("provider") or "").strip()
+    contract.contract_number = (request.POST.get("contract_number") or "").strip()
+    contract.type = (request.POST.get("type") or InsuranceContract.InsuranceType.OTHER).strip()
+    contract.insured_item = (request.POST.get("insured_item") or "").strip()
+    contract.start_date = _parse_optional_date(request.POST.get("start_date"))
+    contract.end_date = _parse_optional_date(request.POST.get("end_date"))
+    contract.renewal_date = _parse_optional_date(request.POST.get("renewal_date"))
+    contract.status = (request.POST.get("status") or InsuranceContract.InsuranceStatus.ACTIVE).strip()
+    contract.payment_frequency = (request.POST.get("payment_frequency") or InsuranceContract.PaymentFrequency.MONTHLY).strip()
+    contract.monthly_cost = _parse_optional_decimal(request.POST.get("monthly_cost"))
+    contract.yearly_cost = _parse_optional_decimal(request.POST.get("yearly_cost"))
+    contract.coverage_summary = (request.POST.get("coverage_summary") or "").strip()
+    contract.notes = (request.POST.get("notes") or "").strip()
+
+
+def _form_choices():
+    return {
+        "type_choices": InsuranceContract.InsuranceType.choices,
+        "status_choices": InsuranceContract.InsuranceStatus.choices,
+        "payment_frequency_choices": InsuranceContract.PaymentFrequency.choices,
+    }
+
+
+@login_required
+def app_insurance_view(request):
+    selected_household = _resolve_selected_household(request)
+    contracts = InsuranceContract.objects.for_user_households(request.user)
+    if selected_household:
+        contracts = contracts.filter(household=selected_household)
+
+    return render(
+        request,
+        "insurance/app/insurance.html",
+        {
+            "contracts": contracts.order_by("renewal_date", "name"),
+            "household": selected_household,
+        },
+    )
+
+
+@login_required
+def app_insurance_new_view(request):
+    selected_household = _resolve_selected_household(request)
+    if selected_household is None:
+        messages.error(request, _("No household selected."))
+        return redirect("app_dashboard")
+
+    contract = InsuranceContract(household=selected_household)
+
+    if request.method == "POST":
+        try:
+            _hydrate_contract_from_post(contract, request)
+            if not contract.name:
+                raise ValueError(_("Name is required."))
+            contract.created_by = request.user
+            contract.updated_by = request.user
+            contract.full_clean()
+            contract.save()
+            messages.success(request, _("Insurance contract created."))
+            return redirect("app_insurance_detail", contract_id=contract.id)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+
+    return render(
+        request,
+        "insurance/app/insurance_new.html",
+        {
+            "contract": contract,
+            "household": selected_household,
+            **_form_choices(),
+        },
+    )
+
+
+@login_required
+def app_insurance_detail_view(request, contract_id):
+    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+    return render(
+        request,
+        "insurance/app/insurance_detail.html",
+        {
+            "contract": contract,
+        },
+    )
+
+
+@login_required
+def app_insurance_edit_view(request, contract_id):
+    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+
+    if request.method == "POST":
+        try:
+            _hydrate_contract_from_post(contract, request)
+            if not contract.name:
+                raise ValueError(_("Name is required."))
+            contract.updated_by = request.user
+            contract.full_clean()
+            contract.save()
+            messages.success(request, _("Insurance contract updated."))
+            return redirect("app_insurance_detail", contract_id=contract.id)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+
+    return render(
+        request,
+        "insurance/app/insurance_edit.html",
+        {
+            "contract": contract,
+            **_form_choices(),
+        },
+    )
+
+
+@login_required
+def app_insurance_delete_view(request, contract_id):
+    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+
+    if request.method == "POST":
+        contract.delete()
+        messages.success(request, _("Insurance contract deleted."))
+        return redirect("app_insurance")
+
+    return redirect("app_insurance_detail", contract_id=contract.id)
