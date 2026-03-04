@@ -14,7 +14,6 @@ class Migration(migrations.Migration):
         ('contacts', '0001_initial'),
         ('contacts', '0002_initial'),
         ('contacts', '0003_alter_contact_options'),
-        ('contacts', '0004_structure'),
     ]
 
     dependencies = [
@@ -42,7 +41,7 @@ class Migration(migrations.Migration):
                 'verbose_name': 'contact',
                 'verbose_name_plural': 'contacts',
                 'ordering': ['last_name', 'first_name', 'created_at'],
-                'indexes': [models.Index(fields=['household', 'last_name'], name='idx_contacts_hh_last'), models.Index(fields=['structure'], name='idx_contacts_structure')],
+                'indexes': [models.Index(fields=['household', 'last_name'], name='idx_contacts_hh_last')],
             },
         ),
         migrations.CreateModel(
@@ -137,5 +136,9 @@ class Migration(migrations.Migration):
             model_name='contact',
             name='structure',
             field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='contacts', to='directory.structure'),
+        ),
+        migrations.AddIndex(
+            model_name='contact',
+            index=models.Index(fields=['structure'], name='idx_contacts_structure'),
         ),
     ]
