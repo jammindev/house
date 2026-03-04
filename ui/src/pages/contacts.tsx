@@ -1,1 +1,1 @@
-import '../../../apps/contacts/react/mount-contacts'
+import '../../../apps/directory/react/mount-contacts'

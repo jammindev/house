@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Zones Migration Parity Contract
+  version: 1.0.0
+  description: Contract for Zones list/tree/detail/photo flows during legacy-to-Django parity migration.
+paths:
+  /api/zones/:
+    get:
+      summary: List zones (flat)
+      parameters:
+        - in: query
+          name: household_id
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Flat zone list for household context
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zone'
+    post:
+      summary: Create zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ZoneCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+        '400': { description: Validation error }
+
+  /api/zones/{id}/:
+    patch:
+      summary: Update zone
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/ZoneUpdate'
+                - type: object
+                  properties:
+                    last_known_updated_at:
+                      type: string
+                      format: date-time
+                      description: Required for optimistic concurrency checks.
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Zone'
+        '409':
+          description: Conflict - stale update, client must reload and retry
+        '400': { description: Validation error }
+    delete:
+      summary: Delete zone
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Deleted }
+        '409':
+          description: Forbidden deletion when zone has children
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorMessage'
+
+  /api/zones/tree/:
+    get:
+      summary: Get hierarchical tree
+      parameters:
+        - in: query
+          name: household_id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Root nodes with recursive children
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ZoneTreeNode'
+        '400': { description: household_id missing }
+
+  /api/zones/{id}/children/:
+    get:
+      summary: Get direct children
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Direct children list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Zone'
+
+  /api/zones/{id}/photos/:
+    get:
+      summary: Get photos attached to zone
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Zone photos list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ZonePhoto'
+
+  /api/zones/{id}/attach_photo/:
+    post:
+      summary: Attach existing document as zone photo
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [document_id]
+              properties:
+                document_id:
+                  type: string
+                  format: uuid
+                note:
+                  type: string
+      responses:
+        '201':
+          description: Photo attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ZonePhoto'
+        '404': { description: Document not found in household }
+        '400': { description: document_id missing }
+
+components:
+  schemas:
+    Zone:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, format: uuid }
+        household: { type: string, format: uuid }
+        name: { type: string }
+        parent: { type: string, format: uuid, nullable: true }
+        note: { type: string }
+        surface: { type: number, nullable: true }
+        color: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        full_path: { type: string }
+        depth: { type: integer }
+        children_count: { type: integer }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ZoneCreate:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        parent: { type: string, format: uuid, nullable: true }
+        note: { type: string }
+        surface: { type: number, nullable: true }
+        color: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+        household_id: { type: string, format: uuid }
+
+    ZoneUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        parent: { type: string, format: uuid, nullable: true }
+        note: { type: string }
+        surface: { type: number, nullable: true }
+        color: { type: string, pattern: '^#[0-9A-Fa-f]{6}$' }
+
+    ZoneTreeNode:
+      allOf:
+        - $ref: '#/components/schemas/Zone'
+        - type: object
+          properties:
+            children:
+              type: array
+              items:
+                $ref: '#/components/schemas/ZoneTreeNode'
+
+    ZonePhoto:
+      type: object
+      properties:
+        zone: { type: string, format: uuid }
+        document: { type: string, format: uuid }
+        document_name: { type: string }
+        document_file_path: { type: string }
+        role: { type: string, example: photo }
+        note: { type: string }
+        created_at: { type: string, format: date-time }
+
+    ErrorMessage:
+      type: object
+      properties:
+        detail: { type: string }

@@ -6,7 +6,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q
+from django.utils.dateparse import parse_datetime
+from django.utils import timezone
 
 from .models import Zone, ZoneDocument
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
@@ -53,6 +54,40 @@ class ZoneViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         """Set updated_by from request."""
         serializer.save(updated_by=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Reject stale writes when last_known_updated_at is provided."""
+        zone = self.get_object()
+        last_known = request.data.get('last_known_updated_at')
+        if last_known:
+            parsed = parse_datetime(str(last_known))
+            if parsed is None:
+                return Response(
+                    {'detail': 'Invalid last_known_updated_at timestamp.'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            if timezone.is_naive(parsed):
+                parsed = timezone.make_aware(parsed, timezone=timezone.utc)
+            if zone.updated_at and parsed < zone.updated_at:
+                return Response(
+                    {'detail': 'Conflict: zone has changed. Reload and retry.'},
+                    status=status.HTTP_409_CONFLICT,
+                )
+        return super().update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        """Reject stale writes when last_known_updated_at is provided."""
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """Block deletion when zone still has children."""
+        zone = self.get_object()
+        if zone.children.exists():
+            return Response(
+                {'detail': 'Cannot delete zone with children. Move or delete child zones first.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return super().destroy(request, *args, **kwargs)
 
     @action(detail=False, methods=['get'])
     def tree(self, request):
