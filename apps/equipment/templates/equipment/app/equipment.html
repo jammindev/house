@@ -12,7 +12,10 @@
                 {% trans "List powered by DRF with search and lifecycle filters." %}
             </p>
         </div>
-        <a href="{% url 'app_equipment_new' %}" class="text-sm underline text-muted-foreground">{% trans "Create equipment" %}</a>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'stock:app_equipment_stock' %}" class="text-sm underline text-muted-foreground">{% trans "Open stock" %}</a>
+            <a href="{% url 'app_equipment_new' %}" class="text-sm underline text-muted-foreground">{% trans "Create equipment" %}</a>
+        </div>
     </div>
 
     <div id="equipment-list-root"></div>

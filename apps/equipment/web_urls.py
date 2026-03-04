@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import include, path
 
 from .views_web import (
     app_equipment_detail_view,
@@ -8,6 +8,7 @@ from .views_web import (
 )
 
 urlpatterns = [
+    path("stock/", include(("stock.web_urls", "stock"), namespace="stock")),
     path("", app_equipment_view, name="app_equipment"),
     path("new/", app_equipment_new_view, name="app_equipment_new"),
     path("<uuid:equipment_id>/", app_equipment_detail_view, name="app_equipment_detail"),

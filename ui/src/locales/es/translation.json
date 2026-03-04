@@ -424,6 +424,107 @@
       "archived": "Archivado"
     }
   },
+  "stock": {
+    "title": "Inventario",
+    "tabs": {
+      "items": "Artículos",
+      "categories": "Categorías"
+    },
+    "loading": {
+      "items": "Cargando inventario...",
+      "categories": "Cargando categorías...",
+      "item": "Cargando..."
+    },
+    "errors": {
+      "title": "Error",
+      "load_failed": "No se pudieron cargar los datos de inventario.",
+      "load_item_failed": "No se pudo cargar el artículo.",
+      "name_required": "El nombre es obligatorio.",
+      "category_required": "La categoría es obligatoria.",
+      "create_failed": "No se pudo crear el artículo.",
+      "update_failed": "No se pudo actualizar el artículo.",
+      "delete_failed": "No se pudo eliminar el artículo.",
+      "adjust_failed": "No se pudo ajustar la cantidad.",
+      "adjustment_positive": "El valor de ajuste debe ser positivo."
+    },
+    "empty": {
+      "items": "No se encontró ningún artículo con los filtros actuales.",
+      "categories": "No se encontró ninguna categoría."
+    },
+    "labels": {
+      "not_available": "—",
+      "no_zone": "Sin zona",
+      "no_description": "Sin descripción"
+    },
+    "fields": {
+      "search": "Buscar",
+      "search_placeholder": "Nombre, SKU, código de barras...",
+      "status": "Estado",
+      "all_statuses": "Todos los estados",
+      "zone": "Zona",
+      "all_zones": "Todas las zonas",
+      "category": "Categoría",
+      "all_categories": "Todas las categorías",
+      "select_category": "Seleccionar categoría",
+      "name": "Nombre",
+      "emoji": "Emoji",
+      "color": "Color",
+      "description": "Descripción",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "min_quantity": "Cantidad mínima",
+      "max_quantity": "Cantidad máxima",
+      "min_max": "Min / Max",
+      "unit_price": "Precio unitario",
+      "total_value": "Valor total",
+      "purchase_date": "Fecha de compra",
+      "expiration_date": "Fecha de caducidad",
+      "last_restocked_at": "Última reposición",
+      "sku": "SKU",
+      "barcode": "Código de barras",
+      "supplier": "Proveedor",
+      "tags": "Etiquetas (separadas por comas)",
+      "notes": "Notas",
+      "adjust_by": "Ajustar por"
+    },
+    "actions": {
+      "apply": "Aplicar",
+      "reset": "Restablecer",
+      "new_item": "Nuevo",
+      "new_category": "Nueva categoría",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "deleting": "Eliminando...",
+      "decrease": "Disminuir",
+      "increase": "Aumentar",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "saving": "Guardando...",
+      "create": "Crear"
+    },
+    "status": {
+      "in_stock": "En stock",
+      "low_stock": "Stock bajo",
+      "out_of_stock": "Sin stock",
+      "ordered": "Pedido",
+      "expired": "Caducado",
+      "reserved": "Reservado"
+    },
+    "categories": {
+      "new": "Nueva categoría",
+      "create_title": "Crear categoría",
+      "edit_title": "Editar categoría",
+      "confirm_delete": "¿Eliminar la categoría \"{{name}}\"?",
+      "items_count": "Artículos",
+      "low_stock_count": "Stock bajo",
+      "out_of_stock_count": "Sin stock"
+    },
+    "form": {
+      "title_create": "Crear artículo",
+      "title_edit": "Editar artículo"
+    },
+    "confirm_delete": "¿Eliminar \"{{name}}\"?"
+  },
   "projects": {
     "app_title": "Mini-app Proyectos",
     "section_label": "Nodo Django de sección: {{section}}"

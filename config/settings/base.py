@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "directory",
     "tags",
     "equipment",
+    "stock",
     "electricity",
     "projects",
     "tasks",

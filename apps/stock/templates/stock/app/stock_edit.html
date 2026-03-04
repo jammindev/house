@@ -1,0 +1,25 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Edit stock item" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-4">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Edit stock item" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {% trans "Update quantities, thresholds and supplier data." %}
+            </p>
+        </div>
+        <a href="{{ stock_form_props.cancelUrl }}" class="text-sm underline text-muted-foreground">{% trans "Back to detail" %}</a>
+    </div>
+
+    <div id="stock-form-root"></div>
+    {{ stock_form_props|json_script:"stock-form-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/equipment-stock-edit.tsx' %}
+{% endblock %}

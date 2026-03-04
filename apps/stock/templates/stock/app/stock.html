@@ -1,0 +1,25 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Stock" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl space-y-6">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Stock" %}</h1>
+            <p class="mt-2 text-sm text-muted-foreground">
+                {% trans "Inventory items and categories with filtering and stock alerts." %}
+            </p>
+        </div>
+        <a href="{% url 'stock:app_equipment_stock_new' %}" class="text-sm underline text-muted-foreground">{% trans "Create item" %}</a>
+    </div>
+
+    <div id="stock-list-root"></div>
+    {{ stock_list_props|json_script:"stock-list-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/equipment-stock.tsx' %}
+{% endblock %}

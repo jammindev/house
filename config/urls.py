@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/structures/", include("directory.structures_urls")),
     path("api/tags/", include("tags.urls")),
     path("api/equipment/", include("equipment.urls")),
+    path("api/stock/", include("stock.urls")),
     path("api/electricity/", include("electricity.urls")),
     path("api/projects/", include("projects.urls")),
     path("api/notifications/", include("notifications.urls")),

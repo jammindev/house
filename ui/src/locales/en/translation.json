@@ -424,6 +424,107 @@
       "archived": "Archived"
     }
   },
+  "stock": {
+    "title": "Stock",
+    "tabs": {
+      "items": "Items",
+      "categories": "Categories"
+    },
+    "loading": {
+      "items": "Loading stock...",
+      "categories": "Loading categories...",
+      "item": "Loading..."
+    },
+    "errors": {
+      "title": "Error",
+      "load_failed": "Unable to load stock data.",
+      "load_item_failed": "Unable to load stock item.",
+      "name_required": "Name is required.",
+      "category_required": "Category is required.",
+      "create_failed": "Unable to create stock item.",
+      "update_failed": "Unable to update stock item.",
+      "delete_failed": "Unable to delete stock item.",
+      "adjust_failed": "Unable to adjust quantity.",
+      "adjustment_positive": "Adjustment value must be positive."
+    },
+    "empty": {
+      "items": "No stock item found with current filters.",
+      "categories": "No category found."
+    },
+    "labels": {
+      "not_available": "—",
+      "no_zone": "No zone",
+      "no_description": "No description"
+    },
+    "fields": {
+      "search": "Search",
+      "search_placeholder": "Name, SKU, barcode...",
+      "status": "Status",
+      "all_statuses": "All statuses",
+      "zone": "Zone",
+      "all_zones": "All zones",
+      "category": "Category",
+      "all_categories": "All categories",
+      "select_category": "Select category",
+      "name": "Name",
+      "emoji": "Emoji",
+      "color": "Color",
+      "description": "Description",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "min_quantity": "Min quantity",
+      "max_quantity": "Max quantity",
+      "min_max": "Min / Max",
+      "unit_price": "Unit price",
+      "total_value": "Total value",
+      "purchase_date": "Purchase date",
+      "expiration_date": "Expiration date",
+      "last_restocked_at": "Last restocked",
+      "sku": "SKU",
+      "barcode": "Barcode",
+      "supplier": "Supplier",
+      "tags": "Tags (comma separated)",
+      "notes": "Notes",
+      "adjust_by": "Adjust by"
+    },
+    "actions": {
+      "apply": "Apply",
+      "reset": "Reset",
+      "new_item": "New",
+      "new_category": "New category",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "decrease": "Decrease",
+      "increase": "Increase",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "create": "Create"
+    },
+    "status": {
+      "in_stock": "In stock",
+      "low_stock": "Low stock",
+      "out_of_stock": "Out of stock",
+      "ordered": "Ordered",
+      "expired": "Expired",
+      "reserved": "Reserved"
+    },
+    "categories": {
+      "new": "New category",
+      "create_title": "Create category",
+      "edit_title": "Edit category",
+      "confirm_delete": "Delete category \"{{name}}\"?",
+      "items_count": "Items",
+      "low_stock_count": "Low stock",
+      "out_of_stock_count": "Out of stock"
+    },
+    "form": {
+      "title_create": "Create stock item",
+      "title_edit": "Edit stock item"
+    },
+    "confirm_delete": "Delete \"{{name}}\"?"
+  },
   "projects": {
     "app_title": "Projects mini-app",
     "section_label": "Django app scoped node: {{section}}"
