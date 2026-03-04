@@ -1,0 +1,56 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{{ zone.name }} — {% trans "Zones" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-6">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{{ zone.name }}</h1>
+            <p class="text-sm text-muted-foreground">{% trans "Server-rendered fallback for zone detail." %}</p>
+        </div>
+        <a href="{% url 'app_zones' %}" class="text-sm text-primary hover:underline">{% trans "Back to zones" %}</a>
+    </div>
+
+    <section class="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground space-y-2">
+        <p>
+            <strong class="text-foreground">{% trans "Parent" %}:</strong>
+            {% if zone.parent %}
+                {{ zone.parent.name }}
+            {% else %}
+                {% trans "No parent" %}
+            {% endif %}
+        </p>
+        <p>
+            <strong class="text-foreground">{% trans "Surface" %}:</strong>
+            {% if zone.surface %}
+                {{ zone.surface }} m²
+            {% else %}
+                {% trans "Not provided" %}
+            {% endif %}
+        </p>
+        <p>
+            <strong class="text-foreground">{% trans "Children" %}:</strong> {{ children_count }}
+        </p>
+        <p>
+            <strong class="text-foreground">{% trans "Photos" %}:</strong> {{ photos_count }}
+        </p>
+        <p>
+            <strong class="text-foreground">{% trans "Notes" %}:</strong>
+            {% if zone.note %}
+                {{ zone.note }}
+            {% else %}
+                {% trans "No note yet." %}
+            {% endif %}
+        </p>
+    </section>
+
+    <div id="zone-detail-root"></div>
+    {{ zone_detail_page_props|json_script:"zone-detail-page-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/zones-detail.tsx' %}
+{% endblock %}
