@@ -3,7 +3,7 @@ Interactions models - time-based entries (notes, todos, expenses, maintenance).
 """
 import uuid
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.contenttypes.fields import GenericRelation
 from django.utils.translation import gettext_lazy as _
 from core.models import HouseholdScopedModel
 from core.managers import HouseholdScopedManager
@@ -53,14 +53,18 @@ class Interaction(HouseholdScopedModel):
         null=True,
         help_text="Status (mainly for todos)"
     )
+    is_private = models.BooleanField(
+        default=False,
+        help_text="Whether this interaction is private to the creator"
+    )
     occurred_at = models.DateTimeField(
         help_text="When this interaction occurred"
     )
-    tags = ArrayField(
-        models.CharField(max_length=100),
-        default=list,
-        blank=True,
-        help_text="Tags for categorization"
+    tags = GenericRelation(
+        'tags.TagLink',
+        content_type_field='content_type',
+        object_id_field='object_id',
+        related_query_name='interaction',
     )
     metadata = models.JSONField(
         default=dict,
@@ -99,6 +103,7 @@ class Interaction(HouseholdScopedModel):
             models.Index(fields=['household', '-occurred_at'], name='idx_int_hh_date'),
             models.Index(fields=['project'], name='idx_int_project'),
             models.Index(fields=['status'], name='idx_int_status'),
+            models.Index(fields=['is_private'], name='idx_int_private'),
         ]
     
     def __str__(self):

@@ -3,10 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from core.permissions import IsHouseholdMember, resolve_request_household
-from households.models import HouseholdMember
-from interactions.models import Interaction
-from .models import Tag, InteractionTag
-from .serializers import TagSerializer, InteractionTagSerializer
+from .models import Tag, TagLink
+from .serializers import TagSerializer, TagLinkSerializer
 
 
 class TagViewSet(viewsets.ModelViewSet):
@@ -31,30 +29,74 @@ class TagViewSet(viewsets.ModelViewSet):
         serializer.save(updated_by=self.request.user)
 
 
-class InteractionTagViewSet(viewsets.ModelViewSet):
+class TagLinkViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsHouseholdMember]
-    serializer_class = InteractionTagSerializer
+    serializer_class = TagLinkSerializer
 
     def get_queryset(self):
-        queryset = InteractionTag.objects.filter(
-            interaction__household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
-        ).select_related("interaction", "tag")
+        queryset = TagLink.objects.filter(
+            household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
+        ).select_related("tag", "content_type", "created_by", "updated_by")
         selected_household = resolve_request_household(self.request, required=False)
         if selected_household:
-            queryset = queryset.filter(interaction__household=selected_household)
+            queryset = queryset.filter(household=selected_household)
+
+        content_type_id = self.request.query_params.get("content_type")
+        object_id = self.request.query_params.get("object_id")
+        if content_type_id:
+            queryset = queryset.filter(content_type_id=content_type_id)
+        if object_id:
+            queryset = queryset.filter(object_id=object_id)
         return queryset
 
     def perform_create(self, serializer):
-        interaction = serializer.validated_data.get("interaction")
+        household = resolve_request_household(self.request, required=True)
+        if not household:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
         tag = serializer.validated_data.get("tag")
+        content_type = serializer.validated_data.get("content_type")
+        object_id = serializer.validated_data.get("object_id")
 
-        if interaction.household_id != tag.household_id:
-            raise ValidationError({"tag": "Tag household must match interaction household."})
+        if tag.household_id != household.id:
+            raise ValidationError({"tag": "Tag household must match selected household."})
 
-        if not HouseholdMember.objects.filter(
-            household_id=interaction.household_id,
-            user_id=self.request.user.id,
-        ).exists():
-            raise ValidationError({"interaction": "Invalid interaction or access denied."})
+        model_class = content_type.model_class()
+        if model_class is None:
+            raise ValidationError({"content_type": "Invalid content type."})
 
-        serializer.save(created_by=self.request.user)
+        try:
+            obj = model_class.objects.get(pk=object_id)
+        except model_class.DoesNotExist as exc:
+            raise ValidationError({"object_id": "Linked object does not exist."}) from exc
+
+        if hasattr(obj, "household_id") and obj.household_id != household.id:
+            raise ValidationError({"object_id": "Linked object household must match selected household."})
+
+        serializer.save(household=household, created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        household = resolve_request_household(self.request, required=True)
+        if not household:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        tag = serializer.validated_data.get("tag", serializer.instance.tag)
+        content_type = serializer.validated_data.get("content_type", serializer.instance.content_type)
+        object_id = serializer.validated_data.get("object_id", serializer.instance.object_id)
+
+        if tag.household_id != household.id:
+            raise ValidationError({"tag": "Tag household must match selected household."})
+
+        model_class = content_type.model_class()
+        if model_class is None:
+            raise ValidationError({"content_type": "Invalid content type."})
+
+        try:
+            obj = model_class.objects.get(pk=object_id)
+        except model_class.DoesNotExist as exc:
+            raise ValidationError({"object_id": "Linked object does not exist."}) from exc
+
+        if hasattr(obj, "household_id") and obj.household_id != household.id:
+            raise ValidationError({"object_id": "Linked object household must match selected household."})
+
+        serializer.save(household=household, updated_by=self.request.user)

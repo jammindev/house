@@ -13,19 +13,19 @@ class InteractionZoneInline(admin.TabularInline):
 
 @admin.register(Interaction)
 class InteractionAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'type', 'status', 'occurred_at', 'household', 'created_by']
-    list_filter = ['type', 'status', 'household', 'occurred_at', 'created_at']
-    search_fields = ['subject', 'content', 'enriched_text', 'tags']
+    list_display = ['subject', 'type', 'status', 'is_private', 'occurred_at', 'household', 'created_by']
+    list_filter = ['type', 'status', 'is_private', 'household', 'occurred_at', 'created_at']
+    search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     readonly_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
     # autocomplete_fields = ['project']  # TODO: Uncomment after projects app
     inlines = [InteractionZoneInline]
     
     fieldsets = [
         ('Basic Info', {
-            'fields': ['household', 'subject', 'content', 'type', 'status']
+            'fields': ['household', 'subject', 'content', 'type', 'status', 'is_private']
         }),
         ('Timeline', {
-            'fields': ['occurred_at', 'tags']
+            'fields': ['occurred_at']
         }),
         ('Metadata', {
             'fields': ['metadata', 'enriched_text'],

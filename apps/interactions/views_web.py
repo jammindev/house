@@ -42,7 +42,7 @@ def app_interactions_view(request):
             'type': item.type,
             'status': item.status,
             'occurred_at': item.occurred_at.isoformat(),
-            'tags': item.tags or [],
+            'tags': list(item.tags.select_related('tag').values_list('tag__name', flat=True)),
             'zone_names': [zone.name for zone in item.zones.all()],
             'document_count': item.documents.count(),
             'created_by_name': item.created_by.get_full_name() if item.created_by else '',

@@ -27,8 +27,8 @@ class InteractionViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsHouseholdMember]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'status', 'project', 'created_by']
-    search_fields = ['subject', 'content', 'enriched_text', 'tags']
+    filterset_fields = ['type', 'status', 'is_private', 'project', 'created_by']
+    search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
 
@@ -65,7 +65,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
         tags = self.request.query_params.get('tags')
         if tags:
             tag_list = tags.split(',')
-            queryset = queryset.filter(tags__overlap=tag_list)
+            queryset = queryset.filter(tags__tag__name__in=tag_list).distinct()
         
         return queryset
     

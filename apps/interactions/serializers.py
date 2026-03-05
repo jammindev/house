@@ -2,6 +2,7 @@
 Interaction serializers for REST API.
 """
 from rest_framework import serializers
+from tags.models import Tag, TagLink
 from .models import (
     Interaction,
     InteractionZone,
@@ -25,12 +26,17 @@ class InteractionSerializer(serializers.ModelSerializer):
     )
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
+    tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        allow_empty=True,
+    )
     
     class Meta:
         model = Interaction
         fields = [
             'id', 'household', 'subject', 'content', 'type', 'status',
-            'occurred_at', 'tags', 'metadata', 'enriched_text',
+            'is_private', 'occurred_at', 'tags', 'metadata', 'enriched_text',
             'project',
             'zone_ids', 'zone_names', 'document_count',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
@@ -42,8 +48,50 @@ class InteractionSerializer(serializers.ModelSerializer):
     
     def get_document_count(self, obj):
         return obj.documents.count()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['tags'] = list(
+            instance.tags.select_related('tag').values_list('tag__name', flat=True)
+        )
+        return data
+
+    def _sync_tags(self, interaction, tag_names):
+        if tag_names is None:
+            return
+
+        normalized_names = []
+        for name in tag_names:
+            clean_name = (name or '').strip()
+            if clean_name and clean_name not in normalized_names:
+                normalized_names.append(clean_name)
+
+        existing_links = interaction.tags.select_related('tag')
+        existing_by_name = {link.tag.name: link for link in existing_links}
+
+        for link_name, link in existing_by_name.items():
+            if link_name not in normalized_names:
+                link.delete()
+
+        for tag_name in normalized_names:
+            if tag_name in existing_by_name:
+                continue
+
+            tag, _ = Tag.objects.get_or_create(
+                household=interaction.household,
+                type=Tag.TagType.INTERACTION,
+                name=tag_name,
+                defaults={'created_by': interaction.created_by},
+            )
+            TagLink.objects.get_or_create(
+                household=interaction.household,
+                tag=tag,
+                content_object=interaction,
+                defaults={'created_by': interaction.created_by},
+            )
     
     def create(self, validated_data):
+        tag_names = validated_data.pop('tags', [])
         zone_ids = validated_data.pop('zone_ids', [])
         interaction = Interaction.objects.create(**validated_data)
         
@@ -52,10 +100,13 @@ class InteractionSerializer(serializers.ModelSerializer):
         for zone_id in zone_ids:
             zone = Zone.objects.get(id=zone_id, household=interaction.household)
             InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+        self._sync_tags(interaction, tag_names)
         
         return interaction
     
     def update(self, instance, validated_data):
+        tag_names = validated_data.pop('tags', None)
         zone_ids = validated_data.pop('zone_ids', None)
         
         # Update interaction fields
@@ -70,6 +121,8 @@ class InteractionSerializer(serializers.ModelSerializer):
             for zone_id in zone_ids:
                 zone = Zone.objects.get(id=zone_id, household=instance.household)
                 InteractionZone.objects.create(interaction=instance, zone=zone)
+
+        self._sync_tags(instance, tag_names)
         
         return instance
 

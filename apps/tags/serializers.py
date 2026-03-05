@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Tag, InteractionTag
+from .models import Tag, TagLink
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -19,8 +19,18 @@ class TagSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
 
 
-class InteractionTagSerializer(serializers.ModelSerializer):
+class TagLinkSerializer(serializers.ModelSerializer):
     class Meta:
-        model = InteractionTag
-        fields = ["interaction", "tag", "created_at", "created_by"]
-        read_only_fields = ["created_at", "created_by"]
+        model = TagLink
+        fields = [
+            "id",
+            "household",
+            "tag",
+            "content_type",
+            "object_id",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]

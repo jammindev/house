@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Tag, InteractionTag
+from .models import Tag, TagLink
 
 admin.site.register(Tag)
-admin.site.register(InteractionTag)
+admin.site.register(TagLink)
