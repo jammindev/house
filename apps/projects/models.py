@@ -50,7 +50,6 @@ class Project(HouseholdScopedModel):
     cover_interaction = models.ForeignKey("interactions.Interaction", on_delete=models.SET_NULL, null=True, blank=True, related_name="cover_for_projects")
     project_group = models.ForeignKey(ProjectGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects")
     type = models.CharField(max_length=32, choices=Type.choices, default=Type.OTHER)
-    is_pinned = models.BooleanField(default=False)
 
     objects = HouseholdScopedManager()
 
@@ -77,6 +76,28 @@ class Project(HouseholdScopedModel):
                 ),
                 name="projects_dates_consistent",
             ),
+        ]
+
+
+class UserPinnedProject(models.Model):
+    household_member = models.ForeignKey(
+        "households.HouseholdMember",
+        on_delete=models.CASCADE,
+        related_name="pinned_projects",
+    )
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="pinned_by_members",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "project_member_pins"
+        unique_together = [["household_member", "project"]]
+        indexes = [
+            models.Index(fields=["household_member"]),
+            models.Index(fields=["project"]),
         ]
 
 

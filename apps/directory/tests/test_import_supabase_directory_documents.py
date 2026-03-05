@@ -13,18 +13,15 @@ from documents.models import Document
 
 class ImportSupabaseDirectoryDocumentsCommandTests(TestCase):
     def setUp(self):
-        self.target_household_id = "ff28b251-8abc-400a-8bdc-8303b2086d70"
-        if not HouseholdFactory._meta.model.objects.filter(id=self.target_household_id).exists():
-            HouseholdFactory(id=self.target_household_id, name="Target household")
+        household = HouseholdFactory(name="Target household")
+        self.target_household_id = str(household.id)
 
         user_model = get_user_model()
-        user_model.objects.get_or_create(
-            id=1,
-            defaults={
-                "email": "fallback@example.com",
-                "is_active": True,
-            },
+        self.fallback_user, _ = user_model.objects.get_or_create(
+            email="fallback@example.com",
+            defaults={"is_active": True},
         )
+        self.fallback_user_id = self.fallback_user.id
 
     @patch("directory.management.commands.import_supabase_directory_documents.Command._fetch_source_rows")
     def test_import_structures_contacts_documents(self, fetch_source_rows_mock):
@@ -137,28 +134,28 @@ class ImportSupabaseDirectoryDocumentsCommandTests(TestCase):
             "--target-household-id",
             self.target_household_id,
             "--fallback-user-id",
-            "1",
+            str(self.fallback_user_id),
         )
 
         structure = Structure.objects.get(id=structure_id)
         self.assertEqual(str(structure.household_id), self.target_household_id)
         self.assertEqual(structure.name, "ACME")
         self.assertEqual(structure.tags, ["pro"])
-        self.assertEqual(structure.created_by_id, 1)
-        self.assertEqual(structure.updated_by_id, 1)
+        self.assertEqual(structure.created_by_id, self.fallback_user_id)
+        self.assertEqual(structure.updated_by_id, self.fallback_user_id)
 
         contact = Contact.objects.get(id=contact_id)
         self.assertEqual(str(contact.household_id), self.target_household_id)
         self.assertEqual(contact.structure_id, structure_id)
-        self.assertEqual(contact.created_by_id, 1)
-        self.assertEqual(contact.updated_by_id, 1)
+        self.assertEqual(contact.created_by_id, self.fallback_user_id)
+        self.assertEqual(contact.updated_by_id, self.fallback_user_id)
 
         doc = Document.objects.get(metadata__supabase_document_id=str(document_id))
         self.assertEqual(str(doc.household_id), self.target_household_id)
         self.assertEqual(doc.type, "document")
         self.assertIsInstance(doc.metadata, dict)
-        self.assertEqual(doc.created_by_id, 1)
-        self.assertEqual(doc.updated_by_id, 1)
+        self.assertEqual(doc.created_by_id, self.fallback_user_id)
+        self.assertEqual(doc.updated_by_id, self.fallback_user_id)
         self.assertEqual(doc.metadata.get("supabase_document_id"), str(document_id))
         self.assertEqual(Address.objects.filter(household_id=self.target_household_id).count(), 1)
         self.assertEqual(Email.objects.filter(household_id=self.target_household_id).count(), 1)
@@ -177,8 +174,8 @@ class ImportSupabaseDirectoryDocumentsCommandTests(TestCase):
             description="",
             website="",
             tags=[],
-            created_by_id=1,
-            updated_by_id=1,
+            created_by_id=self.fallback_user_id,
+            updated_by_id=self.fallback_user_id,
         )
 
         fetch_source_rows_mock.side_effect = [
@@ -211,7 +208,7 @@ class ImportSupabaseDirectoryDocumentsCommandTests(TestCase):
             "--target-household-id",
             self.target_household_id,
             "--fallback-user-id",
-            "1",
+            str(self.fallback_user_id),
         )
 
         structure = Structure.objects.get(id=structure_id)

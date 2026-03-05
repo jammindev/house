@@ -2,10 +2,12 @@
 
 This page maps legacy feature documents to their status in the active Django codebase.
 
+Current baseline: data migration from Supabase to Django is complete for active runtime modules; current priority is UI completion across all apps.
+
 ## Status labels
 
 - **Active**: feature exists in active runtime code
-- **Partial**: foundational models/APIs exist, advanced flow is incomplete
+- **UI In Progress**: backend/data are in place, UI workflows still being completed
 - **RFC/Archive**: legacy proposal or historical implementation note
 
 ## Feature mapping
@@ -13,8 +15,8 @@ This page maps legacy feature documents to their status in the active Django cod
 ### Incoming email ingestion
 
 - Legacy source: `../legacy/README-email-ingestion.md`
-- Active status: **Partial**
-- Notes: `incoming_emails` app exists (models/API foundation). Advanced automated pipeline and full UX from legacy doc are not fully ported.
+- Active status: **RFC/Archive**
+- Notes: legacy source remains useful for intent, but this domain is currently outside the active UI-first implementation scope.
 
 ### Interaction specialized routes (legacy Next.js)
 
@@ -77,3 +79,4 @@ When implementing or documenting a feature:
 1. Verify current behavior in active apps/routes.
 2. Use legacy doc only for product intent or migration hints.
 3. Mark speculative/unfinished capabilities explicitly as RFC.
+4. Prioritize end-user UI delivery in active Django apps.

@@ -45,7 +45,6 @@ SELECT
     cover_interaction_id,
     project_group_id,
     type,
-    is_pinned,
     created_at,
     updated_at,
     created_by,
@@ -266,7 +265,6 @@ class Command(BaseCommand):
                 "cover_interaction_id": cover_interaction_id,
                 "project_group_id": project_group_id,
                 "type": type_value,
-                "is_pinned": bool(row.get("is_pinned", False)),
                 "created_by_id": self._map_user_id(row.get("created_by"), fallback_user_id, existing_user_ids),
                 "updated_by_id": self._map_user_id(row.get("updated_by"), fallback_user_id, existing_user_ids),
             }

@@ -2,11 +2,13 @@
 
 Ce document sert de **plan d’exécution** et de **contexte IA évolutif** pour migrer les composants React du dossier `legacy/` vers l’app active Django + Vite.
 
+Statut mars 2026: la migration de données Supabase -> Django est finalisée sur le périmètre actif. Ce document est désormais centré sur la finalisation UI de toutes les apps actives.
+
 ---
 
 ## 1) Objectif
 
-Migrer progressivement l’UI React legacy, sans casser la prod, en respectant l’architecture actuelle :
+Construire/compléter l’UI de toutes les apps Django, en réutilisant le legacy uniquement comme référence d’intention, sans casser la prod, en respectant l’architecture actuelle :
 
 - Django-first (templates + DRF)
 - React ciblé (zones interactives)
@@ -19,6 +21,13 @@ Migrer progressivement l’UI React legacy, sans casser la prod, en respectant l
 - **Code actif** = racine projet (`config/`, `apps/`, `templates/`, `ui/`)
 - **`legacy/`** = documentation fonctionnelle et source d’intention
 - En cas de divergence, on suit le code actif
+
+## 2.1) Règle de portage UI (obligatoire)
+
+- Reprendre **exactement** les mêmes composants React de `legacy` quand ils existent déjà.
+- Conserver **la même découpe de fichiers** que `legacy`, notamment en `pages` et `features`.
+- Ne pas réinventer l'architecture des features: conserver la structure métier et les boundaries de fichiers.
+- Adapter uniquement les mécanismes Next.js/Supabase au runtime Django: routing/navigation, chargement de données, auth, server actions, `next/link`, `next/image`, etc.
 
 ---
 

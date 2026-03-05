@@ -1,6 +1,6 @@
 # AI Context — Migration Next.js/Supabase -> Django/DRF
 
-Ce fichier sert de mémo rapide pour les requêtes IA pendant la migration.
+Ce fichier sert de mémo rapide pour les requêtes IA après finalisation de la migration de données.
 
 Voir aussi:
 - `docs/README.md`
@@ -13,6 +13,7 @@ Voir aussi:
 - Historique: app Next.js + Supabase (dans `legacy/`)
 - Cible active: Django + DRF + templates + React ciblé
 - Réalité technique actuelle: racine du repo (`config/`, `apps/`, `templates/`, `ui/`)
+- Statut mars 2026: migration de données finalisée sur le périmètre actif, priorité à la construction UI de toutes les apps
 
 ## 2) Principe de travail
 
@@ -32,14 +33,11 @@ Etat actuel permissions migration:
 - logique legacy RLS reproduite côté DRF (membership household)
 - actions household sensibles réservées aux owners (`invite`, `remove_member`, `update_role`, update/delete household)
 
-## 4) Éléments majoritairement encore legacy
+## 4) État d'avancement
 
-- `projects`
-- `contacts`
-- `structures`
-- `equipment`
-- pipeline IA avancé (threads/messages projet)
-- OCR/ingestion complète
+- Données métier du périmètre actif: migrées vers le schéma Django
+- Priorité actuelle: UI Django/React par app (pages `/app/*`, composants et parcours utilisateur)
+- Les workflows IA/OCR avancés restent des chantiers produit séparés, sans bloquer la phase UI
 
 ## 5) Docs legacy prioritaires
 
@@ -59,4 +57,4 @@ Etat actuel permissions migration:
 
 - Feature demandée existe-t-elle dans le code actif?
 - Sinon: est-elle seulement documentée dans `legacy/`?
-- Réponse doit-elle proposer migration progressive plutôt qu’implémentation complète?
+- La réponse doit-elle prioriser l'implémentation UI/UX dans les apps actives?

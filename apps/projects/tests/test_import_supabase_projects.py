@@ -61,7 +61,6 @@ class ImportSupabaseProjectsCommandTests(TestCase):
                     "cover_interaction_id": None,
                     "project_group_id": group_id,
                     "type": "custom_type",
-                    "is_pinned": 1,
                     "created_at": None,
                     "updated_at": None,
                     "created_by": str(uuid.uuid4()),
@@ -98,7 +97,6 @@ class ImportSupabaseProjectsCommandTests(TestCase):
         self.assertEqual(project.tags, [])
         self.assertEqual(project.planned_budget, Decimal("0"))
         self.assertEqual(project.actual_cost_cached, Decimal("32.50"))
-        self.assertEqual(project.is_pinned, True)
         self.assertEqual(project.project_group_id, group_id)
         self.assertEqual(project.created_by_id, 1)
         self.assertEqual(project.updated_by_id, 1)
@@ -128,7 +126,6 @@ class ImportSupabaseProjectsCommandTests(TestCase):
             planned_budget=0,
             actual_cost_cached=0,
             type=Project.Type.OTHER,
-            is_pinned=False,
             created_by_id=1,
             updated_by_id=1,
         )
@@ -164,7 +161,6 @@ class ImportSupabaseProjectsCommandTests(TestCase):
                     "cover_interaction_id": None,
                     "project_group_id": group_id,
                     "type": Project.Type.REPAIR,
-                    "is_pinned": False,
                     "created_at": None,
                     "updated_at": None,
                     "created_by": None,

@@ -45,7 +45,6 @@ class ProjectSerializer(serializers.ModelSerializer):
             "cover_interaction",
             "project_group",
             "type",
-            "is_pinned",
             "created_at",
             "updated_at",
             "created_by",

@@ -44,7 +44,6 @@ class ImportSupabaseProjectLinksCommandTests(TestCase):
             planned_budget=0,
             actual_cost_cached=0,
             type=Project.Type.OTHER,
-            is_pinned=False,
             created_by_id=1,
             updated_by_id=1,
         )
@@ -117,7 +116,6 @@ class ImportSupabaseProjectLinksCommandTests(TestCase):
             planned_budget=0,
             actual_cost_cached=0,
             type=Project.Type.OTHER,
-            is_pinned=False,
             created_by_id=1,
             updated_by_id=1,
         )

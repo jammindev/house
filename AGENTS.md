@@ -2,7 +2,7 @@
 
 Ce document donne le contexte rapide pour toute IA intervenant sur ce repo.
 
-> Dernière mise à jour : février 2026
+> Dernière mise à jour : mars 2026
 
 ## 1) Scope
 
@@ -12,11 +12,13 @@ Ce document donne le contexte rapide pour toute IA intervenant sur ce repo.
 
 ## 1.1) Statut du projet (important)
 
-Le projet est en **migration progressive de Next.js/Supabase vers Django/DRF + templates + mini-SPA React ciblés par page**.
+La migration de données Supabase -> Django est **terminée sur le périmètre actif**.
+
+Le projet est maintenant en phase **UI-first**: construction/complétion des interfaces web pour toutes les apps Django, en conservant l'architecture Django/DRF + templates + mini-SPA React ciblés par page.
 
 Conséquence pour l'IA:
 
-- Les docs `legacy/` décrivent souvent des features plus avancées que le code Django actuel.
+- Les docs `legacy/` restent utiles pour l'intention produit, mais ne bloquent plus la migration de données.
 - Elles servent de **référence métier**, pas de vérité technique d'implémentation.
 - En cas d'écart: la vérité runtime est dans `config/`, les apps Django dans `apps/`, `templates/`, et `ui/`.
 
@@ -57,7 +59,7 @@ Conséquence pour l'IA:
 
 ## 3.1) Correspondance migration (legacy -> actif)
 
-Porté côté Django :
+Porté côté Django (données migrées sur le périmètre actif) :
 
 - `legacy` interactions/timeline -> `interactions` Django
 - `legacy` zones hiérarchiques -> `zones` Django
@@ -68,14 +70,21 @@ Porté côté Django :
 - `legacy` structures -> `structures` Django (modèles + API)
 - `legacy` equipment -> `equipment` Django (modèles + API + page web)
 - `legacy` projects -> `projects` Django (modèles + API + page web, dont threads IA)
-- `legacy` incoming emails -> `incoming_emails` Django (modèles + API)
+- `legacy` incoming emails -> `incoming_emails` Django (historisé, hors périmètre UI prioritaire actuel)
 - `legacy` electricity -> `electricity` Django (modèles + API + mini-SPA React)
 
-Encore principalement côté `legacy` (pas porté complètement côté Django) :
+Prochaine phase prioritaire :
 
-- Pipeline IA avancé complet (LLM, ingestion intelligente) pour `incoming_emails` et `projects`
-- OCR/ingestion document complet
-- Certaines pages shell/layout feature-first Next.js
+- Construire/compléter l'UI de toutes les apps actives côté Django
+- Uniformiser les pages `/app/*` avec le design system partagé
+- Finaliser les mini-SPA React ciblées par feature/page
+
+Règle de portage UI (stricte) :
+
+- Reprendre **exactement** les mêmes composants React que dans `legacy/` quand ils existent
+- Conserver **la même découpe de fichiers** que `legacy` (`(pages)` et `features`)
+- Adapter uniquement les éléments spécifiques Next.js/Supabase (routing, data loading, server actions, auth, image/link), vers le fonctionnement Django/DRF + Vite
+- Éviter les réécritures structurelles inutiles: même architecture fonctionnelle, adaptation technique minimale
 
 ## 4) Conventions techniques importantes
 

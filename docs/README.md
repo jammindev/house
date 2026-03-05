@@ -2,6 +2,8 @@
 
 This folder contains the **active documentation** for the Django-first House codebase.
 
+Project status (March 2026): data migration to Django is complete on active scope; primary roadmap is UI completion for all active apps.
+
 ## Scope and source of truth
 
 - Runtime source of truth: `config/`, `apps/`, `templates/`, `ui/`
