@@ -14,6 +14,13 @@
         "apps"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "chat.mcp.serverSampling": {
+        "house/.vscode/mcp.json: supabase": {
+            "allowedModels": [
+                "copilot/auto"
+            ]
+        }
+    }
 }
 
