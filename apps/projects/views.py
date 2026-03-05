@@ -1,9 +1,11 @@
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember, resolve_request_household
-from .models import Project, ProjectGroup, ProjectZone, ProjectAIThread, ProjectAIMessage
+from .models import Project, ProjectGroup, ProjectZone, ProjectAIThread, ProjectAIMessage, UserPinnedProject
 from .serializers import (
     ProjectSerializer,
     ProjectGroupSerializer,
@@ -41,6 +43,27 @@ class ProjectGroupViewSet(_HouseholdScopedViewSet):
 class ProjectViewSet(_HouseholdScopedViewSet):
     model = Project
     serializer_class = ProjectSerializer
+
+    @action(detail=True, methods=["post"], url_path="pin")
+    def pin(self, request, pk=None):
+        project = self.get_object()
+        household = resolve_request_household(request, required=False) or project.household
+        member = request.user.householdmember_set.filter(household=household).first()
+        if not member:
+            raise ValidationError({"detail": "No household membership found."})
+        UserPinnedProject.objects.get_or_create(household_member=member, project=project)
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="unpin")
+    def unpin(self, request, pk=None):
+        project = self.get_object()
+        household = resolve_request_household(request, required=False) or project.household
+        member = request.user.householdmember_set.filter(household=household).first()
+        if member:
+            UserPinnedProject.objects.filter(household_member=member, project=project).delete()
+        serializer = self.get_serializer(project)
+        return Response(serializer.data)
 
 
 class ProjectZoneViewSet(viewsets.ModelViewSet):

@@ -1,11 +1,15 @@
-import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
+import type { ComponentProps } from 'react';
 
-import ProjectsNode from './ProjectsNode';
+import ProjectList from './ProjectList';
+import { mountWithJsonScriptProps, onDomReady } from '@/lib/mount';
 
-type ProjectsProps = {
-  section?: string;
-};
+type ProjectListProps = ComponentProps<typeof ProjectList>;
 
 onDomReady(() => {
-  mountWithJsonScriptProps<ProjectsProps>('projects-root', 'projects-props', ProjectsNode, { withToaster: true });
+  mountWithJsonScriptProps<ProjectListProps>(
+    'projects-list-root',
+    'projects-list-props',
+    ProjectList,
+    { withToaster: true }
+  );
 });

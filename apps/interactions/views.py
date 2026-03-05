@@ -42,7 +42,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
         """Filter interactions to households where current user is a member."""
         queryset = Interaction.objects.for_user_households(self.request.user).select_related(
             'created_by'
-        ).prefetch_related('zones', 'documents')  # TODO: Add 'project' after projects app
+        ).prefetch_related('zones', 'documents', 'project')
 
         selected_household = resolve_request_household(self.request, required=False)
         if selected_household:

@@ -527,6 +527,124 @@
   },
   "projects": {
     "app_title": "Mini-app Projets",
-    "section_label": "Nœud Django scopé : {{section}}"
+    "section_label": "Nœud Django scopé : {{section}}",
+    "title": "Projets",
+    "new": "Nouveau projet",
+    "groups": "Groupes",
+    "search": "Recherche",
+    "search_placeholder": "Rechercher des projets...",
+    "apply": "Appliquer",
+    "status_label": "Statut",
+    "all_statuses": "Tous les statuts",
+    "type_label": "Type",
+    "all_types": "Tous les types",
+    "group_label": "Groupe",
+    "all_groups": "Tous les groupes",
+    "reset": "Réinitialiser",
+    "loading": "Chargement...",
+    "unable_to_load": "Impossible de charger",
+    "empty_list": "Aucun projet à afficher.",
+    "error_loading_list": "Impossible de charger les projets.",
+    "pin": "Épingler le projet",
+    "unpin": "Désépingler le projet",
+    "overdue": "En retard",
+    "due_soon": "Échéance proche",
+    "details": "Détails",
+    "start_date": "Date de début",
+    "due_date": "Échéance",
+    "budget": "Budget",
+    "closed_at": "Clôturé le",
+    "zones": "Zones",
+    "tags": "Tags",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "deleting": "Suppression...",
+    "delete_confirm": "Supprimer ce projet ? Cette action est irréversible.",
+    "no_description": "Aucune description renseignée.",
+    "status": {
+      "draft": "Brouillon",
+      "active": "Actif",
+      "on_hold": "En pause",
+      "completed": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "type": {
+      "renovation": "Rénovation",
+      "maintenance": "Maintenance",
+      "repair": "Réparation",
+      "purchase": "Achat",
+      "relocation": "Déménagement",
+      "vacation": "Vacances",
+      "leisure": "Loisirs",
+      "other": "Autre"
+    },
+    "tabs": {
+      "description": "Description",
+      "tasks": "Tâches",
+      "notes": "Notes",
+      "expenses": "Dépenses",
+      "documents": "Documents",
+      "timeline": "Historique",
+      "metrics": "Indicateurs"
+    },
+    "metrics": {
+      "planned_budget": "Budget prévisionnel",
+      "actual_cost": "Coût réel",
+      "budget_used": "{{pct}} % du budget utilisé",
+      "over_budget": "Dépassement de budget"
+    },
+    "detail": {
+      "error_loading": "Impossible de charger le projet."
+    },
+    "form": {
+      "title_create": "Créer un projet",
+      "title_edit": "Modifier le projet",
+      "error": "Erreur",
+      "no_group": "Aucun groupe",
+      "tags_placeholder": "Tags (séparés par des virgules)",
+      "errors": {
+        "load_failed": "Impossible de charger le projet.",
+        "title_required": "Un titre est requis.",
+        "create_failed": "Impossible de créer le projet.",
+        "update_failed": "Impossible de mettre à jour le projet."
+      },
+      "fields": {
+        "title": "Titre",
+        "description": "Description",
+        "status": "Statut",
+        "type": "Type",
+        "priority": "Priorité",
+        "start_date": "Date de début",
+        "due_date": "Échéance",
+        "planned_budget": "Budget prévisionnel",
+        "project_group": "Groupe",
+        "tags": "Tags",
+        "zones": "Zones"
+      },
+      "actions": {
+        "create": "Créer le projet",
+        "save": "Enregistrer",
+        "saving": "Enregistrement...",
+        "cancel": "Annuler"
+      }
+    },
+    "groups": {
+      "title": "Groupes de projets",
+      "new": "Nouveau groupe",
+      "cancel": "Annuler",
+      "empty": "Aucun groupe pour l'instant.",
+      "error_loading": "Impossible de charger les groupes.",
+      "name_required": "Un nom est requis.",
+      "create_failed": "Impossible de créer le groupe.",
+      "update_failed": "Impossible de mettre à jour le groupe.",
+      "delete_confirm": "Supprimer le groupe \"{{name}}\" ? Les projets associés ne seront pas supprimés.",
+      "projects_count": "projets",
+      "form": {
+        "name": "Nom",
+        "description": "Description",
+        "saving": "Enregistrement...",
+        "create": "Créer le groupe"
+      }
+    }
   }
 }

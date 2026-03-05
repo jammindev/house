@@ -6,10 +6,13 @@ from .models import (
     ProjectZone,
     ProjectAIThread,
     ProjectAIMessage,
+    UserPinnedProject,
 )
 
 
 class ProjectGroupSerializer(serializers.ModelSerializer):
+    projects_count = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectGroup
         fields = [
@@ -18,6 +21,7 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "tags",
+            "projects_count",
             "created_at",
             "updated_at",
             "created_by",
@@ -25,8 +29,15 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
 
+    def get_projects_count(self, obj):
+        return obj.projects.count()
+
 
 class ProjectSerializer(serializers.ModelSerializer):
+    is_pinned = serializers.SerializerMethodField()
+    zones = serializers.SerializerMethodField()
+    project_group_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
         fields = [
@@ -44,13 +55,35 @@ class ProjectSerializer(serializers.ModelSerializer):
             "actual_cost_cached",
             "cover_interaction",
             "project_group",
+            "project_group_name",
             "type",
+            "is_pinned",
+            "zones",
             "created_at",
             "updated_at",
             "created_by",
             "updated_by",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+
+    def get_is_pinned(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        return UserPinnedProject.objects.filter(
+            project=obj,
+            household_member__user=request.user,
+            household_member__household=obj.household,
+        ).exists()
+
+    def get_zones(self, obj):
+        return [
+            {"id": str(pz.zone.id), "name": pz.zone.name, "color": pz.zone.color}
+            for pz in obj.project_zones.select_related("zone").all()
+        ]
+
+    def get_project_group_name(self, obj):
+        return obj.project_group.name if obj.project_group else None
 
 
 class ProjectZoneSerializer(serializers.ModelSerializer):

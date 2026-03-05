@@ -527,6 +527,124 @@
   },
   "projects": {
     "app_title": "Projects mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "title": "Projects",
+    "new": "New project",
+    "groups": "Groups",
+    "search": "Search",
+    "search_placeholder": "Search projects...",
+    "apply": "Apply",
+    "status_label": "Status",
+    "all_statuses": "All statuses",
+    "type_label": "Type",
+    "all_types": "All types",
+    "group_label": "Group",
+    "all_groups": "All groups",
+    "reset": "Reset",
+    "loading": "Loading...",
+    "unable_to_load": "Unable to load",
+    "empty_list": "No projects to display.",
+    "error_loading_list": "Failed to load projects.",
+    "pin": "Pin project",
+    "unpin": "Unpin project",
+    "overdue": "Overdue",
+    "due_soon": "Due soon",
+    "details": "Details",
+    "start_date": "Start date",
+    "due_date": "Due date",
+    "budget": "Budget",
+    "closed_at": "Completed on",
+    "zones": "Zones",
+    "tags": "Tags",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "delete_confirm": "Delete this project? This action cannot be undone.",
+    "no_description": "No description provided.",
+    "status": {
+      "draft": "Draft",
+      "active": "Active",
+      "on_hold": "On hold",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "type": {
+      "renovation": "Renovation",
+      "maintenance": "Maintenance",
+      "repair": "Repair",
+      "purchase": "Purchase",
+      "relocation": "Relocation",
+      "vacation": "Vacation",
+      "leisure": "Leisure",
+      "other": "Other"
+    },
+    "tabs": {
+      "description": "Description",
+      "tasks": "Tasks",
+      "notes": "Notes",
+      "expenses": "Expenses",
+      "documents": "Documents",
+      "timeline": "Timeline",
+      "metrics": "Metrics"
+    },
+    "metrics": {
+      "planned_budget": "Planned budget",
+      "actual_cost": "Actual cost",
+      "budget_used": "{{pct}}% of budget used",
+      "over_budget": "Over budget"
+    },
+    "detail": {
+      "error_loading": "Failed to load project."
+    },
+    "form": {
+      "title_create": "Create a project",
+      "title_edit": "Edit project",
+      "error": "Error",
+      "no_group": "No group",
+      "tags_placeholder": "Tags (comma-separated)",
+      "errors": {
+        "load_failed": "Failed to load project.",
+        "title_required": "A title is required.",
+        "create_failed": "Failed to create project.",
+        "update_failed": "Failed to update project."
+      },
+      "fields": {
+        "title": "Title",
+        "description": "Description",
+        "status": "Status",
+        "type": "Type",
+        "priority": "Priority",
+        "start_date": "Start date",
+        "due_date": "Due date",
+        "planned_budget": "Planned budget",
+        "project_group": "Group",
+        "tags": "Tags",
+        "zones": "Zones"
+      },
+      "actions": {
+        "create": "Create project",
+        "save": "Save changes",
+        "saving": "Saving...",
+        "cancel": "Cancel"
+      }
+    },
+    "groups": {
+      "title": "Project groups",
+      "new": "New group",
+      "cancel": "Cancel",
+      "empty": "No groups yet.",
+      "error_loading": "Failed to load groups.",
+      "name_required": "A name is required.",
+      "create_failed": "Failed to create group.",
+      "update_failed": "Failed to update group.",
+      "delete_confirm": "Delete group \"{{name}}\"? Projects inside will not be deleted.",
+      "projects_count": "projects",
+      "form": {
+        "name": "Name",
+        "description": "Description",
+        "saving": "Saving...",
+        "create": "Create group"
+      }
+    }
   }
 }

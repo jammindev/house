@@ -527,6 +527,124 @@
   },
   "projects": {
     "app_title": "Mini-app Proyectos",
-    "section_label": "Nodo Django de sección: {{section}}"
+    "section_label": "Nodo Django de sección: {{section}}",
+    "title": "Proyectos",
+    "new": "Nuevo proyecto",
+    "groups": "Grupos",
+    "search": "Buscar",
+    "search_placeholder": "Buscar proyectos...",
+    "apply": "Aplicar",
+    "status_label": "Estado",
+    "all_statuses": "Todos los estados",
+    "type_label": "Tipo",
+    "all_types": "Todos los tipos",
+    "group_label": "Grupo",
+    "all_groups": "Todos los grupos",
+    "reset": "Restablecer",
+    "loading": "Cargando...",
+    "unable_to_load": "No se pudo cargar",
+    "empty_list": "No hay proyectos que mostrar.",
+    "error_loading_list": "No se pudieron cargar los proyectos.",
+    "pin": "Fijar proyecto",
+    "unpin": "Desfijar proyecto",
+    "overdue": "Vencido",
+    "due_soon": "Vence pronto",
+    "details": "Detalles",
+    "start_date": "Fecha de inicio",
+    "due_date": "Fecha límite",
+    "budget": "Presupuesto",
+    "closed_at": "Completado el",
+    "zones": "Zonas",
+    "tags": "Etiquetas",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "deleting": "Eliminando...",
+    "delete_confirm": "¿Eliminar este proyecto? Esta acción no se puede deshacer.",
+    "no_description": "Sin descripción.",
+    "status": {
+      "draft": "Borrador",
+      "active": "Activo",
+      "on_hold": "En pausa",
+      "completed": "Completado",
+      "cancelled": "Cancelado"
+    },
+    "type": {
+      "renovation": "Renovación",
+      "maintenance": "Mantenimiento",
+      "repair": "Reparación",
+      "purchase": "Compra",
+      "relocation": "Mudanza",
+      "vacation": "Vacaciones",
+      "leisure": "Ocio",
+      "other": "Otro"
+    },
+    "tabs": {
+      "description": "Descripción",
+      "tasks": "Tareas",
+      "notes": "Notas",
+      "expenses": "Gastos",
+      "documents": "Documentos",
+      "timeline": "Historial",
+      "metrics": "Métricas"
+    },
+    "metrics": {
+      "planned_budget": "Presupuesto planificado",
+      "actual_cost": "Coste real",
+      "budget_used": "{{pct}} % del presupuesto usado",
+      "over_budget": "Presupuesto superado"
+    },
+    "detail": {
+      "error_loading": "No se pudo cargar el proyecto."
+    },
+    "form": {
+      "title_create": "Crear proyecto",
+      "title_edit": "Editar proyecto",
+      "error": "Error",
+      "no_group": "Sin grupo",
+      "tags_placeholder": "Etiquetas (separadas por comas)",
+      "errors": {
+        "load_failed": "No se pudo cargar el proyecto.",
+        "title_required": "Se requiere un título.",
+        "create_failed": "No se pudo crear el proyecto.",
+        "update_failed": "No se pudo actualizar el proyecto."
+      },
+      "fields": {
+        "title": "Título",
+        "description": "Descripción",
+        "status": "Estado",
+        "type": "Tipo",
+        "priority": "Prioridad",
+        "start_date": "Fecha de inicio",
+        "due_date": "Fecha límite",
+        "planned_budget": "Presupuesto planificado",
+        "project_group": "Grupo",
+        "tags": "Etiquetas",
+        "zones": "Zonas"
+      },
+      "actions": {
+        "create": "Crear proyecto",
+        "save": "Guardar cambios",
+        "saving": "Guardando...",
+        "cancel": "Cancelar"
+      }
+    },
+    "groups": {
+      "title": "Grupos de proyectos",
+      "new": "Nuevo grupo",
+      "cancel": "Cancelar",
+      "empty": "Aún no hay grupos.",
+      "error_loading": "No se pudieron cargar los grupos.",
+      "name_required": "Se requiere un nombre.",
+      "create_failed": "No se pudo crear el grupo.",
+      "update_failed": "No se pudo actualizar el grupo.",
+      "delete_confirm": "¿Eliminar el grupo \"{{name}}\"? Los proyectos no se eliminarán.",
+      "projects_count": "proyectos",
+      "form": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "saving": "Guardando...",
+        "create": "Crear grupo"
+      }
+    }
   }
 }

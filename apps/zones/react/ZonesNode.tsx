@@ -21,7 +21,7 @@ export default function ZonesNode(props: ZonesPageProps) {
   const [formOpen, setFormOpen] = useState(false);
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
-  const { zonesById, sortedZones, zoneDepths, zoneStats } = useMemo(() => computeZoneTree(zones), [zones]);
+  const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
 
   async function handleDelete(zone: Zone) {
     const confirmed = window.confirm(t('zones.deleteConfirmDescription', { name: zone.name }));

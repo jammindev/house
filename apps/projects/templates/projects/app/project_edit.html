@@ -1,0 +1,22 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Edit project" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl space-y-4">
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">{% trans "Edit project" %}</h1>
+        </div>
+        <a href="{% url 'app_projects' %}" class="text-sm underline text-muted-foreground hover:text-foreground">{% trans "Back to projects" %}</a>
+    </div>
+
+    <div id="projects-form-root"></div>
+    {{ projects_form_props|json_script:"projects-form-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/project-edit.tsx' %}
+{% endblock %}

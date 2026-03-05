@@ -527,6 +527,124 @@
   },
   "projects": {
     "app_title": "Projekte-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "section_label": "Django-App-Knoten: {{section}}",
+    "title": "Projekte",
+    "new": "Neues Projekt",
+    "groups": "Gruppen",
+    "search": "Suche",
+    "search_placeholder": "Projekte suchen...",
+    "apply": "Anwenden",
+    "status_label": "Status",
+    "all_statuses": "Alle Status",
+    "type_label": "Typ",
+    "all_types": "Alle Typen",
+    "group_label": "Gruppe",
+    "all_groups": "Alle Gruppen",
+    "reset": "Zurücksetzen",
+    "loading": "Laden...",
+    "unable_to_load": "Laden fehlgeschlagen",
+    "empty_list": "Keine Projekte vorhanden.",
+    "error_loading_list": "Projekte konnten nicht geladen werden.",
+    "pin": "Projekt anheften",
+    "unpin": "Projekt loslösen",
+    "overdue": "Überfällig",
+    "due_soon": "Bald fällig",
+    "details": "Details",
+    "start_date": "Startdatum",
+    "due_date": "Fälligkeitsdatum",
+    "budget": "Budget",
+    "closed_at": "Abgeschlossen am",
+    "zones": "Zonen",
+    "tags": "Tags",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "deleting": "Wird gelöscht...",
+    "delete_confirm": "Dieses Projekt löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    "no_description": "Keine Beschreibung vorhanden.",
+    "status": {
+      "draft": "Entwurf",
+      "active": "Aktiv",
+      "on_hold": "Pausiert",
+      "completed": "Abgeschlossen",
+      "cancelled": "Abgebrochen"
+    },
+    "type": {
+      "renovation": "Renovierung",
+      "maintenance": "Wartung",
+      "repair": "Reparatur",
+      "purchase": "Kauf",
+      "relocation": "Umzug",
+      "vacation": "Urlaub",
+      "leisure": "Freizeit",
+      "other": "Sonstiges"
+    },
+    "tabs": {
+      "description": "Beschreibung",
+      "tasks": "Aufgaben",
+      "notes": "Notizen",
+      "expenses": "Ausgaben",
+      "documents": "Dokumente",
+      "timeline": "Verlauf",
+      "metrics": "Kennzahlen"
+    },
+    "metrics": {
+      "planned_budget": "Geplantes Budget",
+      "actual_cost": "Tatsächliche Kosten",
+      "budget_used": "{{pct}} % des Budgets verwendet",
+      "over_budget": "Budget überschritten"
+    },
+    "detail": {
+      "error_loading": "Projekt konnte nicht geladen werden."
+    },
+    "form": {
+      "title_create": "Projekt erstellen",
+      "title_edit": "Projekt bearbeiten",
+      "error": "Fehler",
+      "no_group": "Keine Gruppe",
+      "tags_placeholder": "Tags (kommagetrennt)",
+      "errors": {
+        "load_failed": "Projekt konnte nicht geladen werden.",
+        "title_required": "Ein Titel ist erforderlich.",
+        "create_failed": "Projekt konnte nicht erstellt werden.",
+        "update_failed": "Projekt konnte nicht aktualisiert werden."
+      },
+      "fields": {
+        "title": "Titel",
+        "description": "Beschreibung",
+        "status": "Status",
+        "type": "Typ",
+        "priority": "Priorität",
+        "start_date": "Startdatum",
+        "due_date": "Fälligkeitsdatum",
+        "planned_budget": "Geplantes Budget",
+        "project_group": "Gruppe",
+        "tags": "Tags",
+        "zones": "Zonen"
+      },
+      "actions": {
+        "create": "Projekt erstellen",
+        "save": "Änderungen speichern",
+        "saving": "Wird gespeichert...",
+        "cancel": "Abbrechen"
+      }
+    },
+    "groups": {
+      "title": "Projektgruppen",
+      "new": "Neue Gruppe",
+      "cancel": "Abbrechen",
+      "empty": "Noch keine Gruppen.",
+      "error_loading": "Gruppen konnten nicht geladen werden.",
+      "name_required": "Ein Name ist erforderlich.",
+      "create_failed": "Gruppe konnte nicht erstellt werden.",
+      "update_failed": "Gruppe konnte nicht aktualisiert werden.",
+      "delete_confirm": "Gruppe \"{{name}}\" löschen? Die enthaltenen Projekte werden nicht gelöscht.",
+      "projects_count": "Projekte",
+      "form": {
+        "name": "Name",
+        "description": "Beschreibung",
+        "saving": "Wird gespeichert...",
+        "create": "Gruppe erstellen"
+      }
+    }
   }
 }
