@@ -60,7 +60,11 @@ class Zone(HouseholdScopedModel):
             models.CheckConstraint(
                 condition=models.Q(surface__gte=0) | models.Q(surface__isnull=True),
                 name='zones_surface_check'
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(color__regex=r'^#[0-9A-Fa-f]{6}$'),
+                name='zones_color_hex_check',
+            ),
         ]
 
     def __str__(self):

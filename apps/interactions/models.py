@@ -105,6 +105,32 @@ class Interaction(HouseholdScopedModel):
             models.Index(fields=['status'], name='idx_int_status'),
             models.Index(fields=['is_private'], name='idx_int_private'),
         ]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(
+                    type__in=[
+                        'note',
+                        'todo',
+                        'expense',
+                        'maintenance',
+                        'repair',
+                        'installation',
+                        'inspection',
+                        'warranty',
+                        'issue',
+                        'upgrade',
+                        'replacement',
+                        'disposal',
+                    ]
+                ),
+                name='interactions_type_check',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(status__isnull=True)
+                | models.Q(status__in=['backlog', 'pending', 'in_progress', 'done', 'archived']),
+                name='interactions_status_check',
+            ),
+        ]
     
     def __str__(self):
         return f"{self.subject} ({self.type})"
