@@ -10,7 +10,6 @@ User = get_user_model()
 class TimestampedModel(models.Model):
     """
     Abstract base model with audit timestamps.
-    Matches Supabase pattern for created_at/updated_at/created_by/updated_by.
     """
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

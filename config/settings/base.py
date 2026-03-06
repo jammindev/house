@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     "tasks",
     "photos",
     "app_settings",
-    "incoming_emails",
     "notifications",
 ]
 

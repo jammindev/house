@@ -1,8 +1,8 @@
 # Feature Status and RFC Sources
 
-This page maps legacy feature documents to their status in the active Django codebase.
+This page maps feature documents to their status in the active Django codebase.
 
-Current baseline: data migration from Supabase to Django is complete for active runtime modules; current priority is UI completion across all apps.
+Current baseline: Django stack fully active for all runtime modules; current priority is UI completion across all apps.
 
 ## Status labels
 
@@ -18,11 +18,11 @@ Current baseline: data migration from Supabase to Django is complete for active 
 - Active status: **RFC/Archive**
 - Notes: legacy source remains useful for intent, but this domain is currently outside the active UI-first implementation scope.
 
-### Interaction specialized routes (legacy Next.js)
+### Interaction specialized routes (archive)
 
 - Legacy source: `../legacy/INTERACTION_ROUTES.md`
 - Active status: **RFC/Archive**
-- Notes: route/component names in this file are Next.js-era references; use Django/React active routes instead.
+- Notes: route/component names in this file are archive references; use Django/React active routes instead.
 
 ### Insurance feature
 

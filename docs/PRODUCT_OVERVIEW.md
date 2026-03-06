@@ -40,8 +40,8 @@ This design enables progressive product growth without deep schema rewrites for 
 
 ## Product boundaries (important)
 
-- Legacy Next.js/Supabase docs often describe advanced or planned workflows.
-- In this repository, those docs are **reference intent**, not active implementation.
+- The `legacy/` archive may describe advanced or planned workflows.
+- Those docs are **reference intent**, not active implementation.
 - Active behavior must always be validated against Django apps and routes.
 
 ## Long-term direction

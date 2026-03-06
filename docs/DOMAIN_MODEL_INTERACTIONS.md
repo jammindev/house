@@ -54,6 +54,6 @@ See `../AGENTS.md` for current permission conventions.
 - Rich modules (projects/electricity/equipment) still integrate with interaction history.
 - AI workflows benefit from a single contextual substrate rather than scattered domain logs.
 
-## Migration note
+## Historical note
 
-Legacy documentation describes a similar interaction-first intent, but storage/auth details there target Supabase-era patterns. For implementation, rely on Django models, serializers, and DRF permissions in active apps.
+The `legacy/` archive describes a similar interaction-first intent, but storage/auth details there target the archived stack. For implementation, rely on Django models, serializers, and DRF permissions in active apps.

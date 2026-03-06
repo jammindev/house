@@ -1,4 +1,4 @@
-# README — Guide composants atomiques (migration progressive)
+# README — Guide composants atomiques (ajout progressif)
 
 Ce guide explique comment ajouter des composants atomiques **au fil de l’eau** dans l’architecture Django hybride.
 
@@ -23,17 +23,12 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
 
 ## 2) Workflow standard (à répéter pour chaque composant)
 
-### Étape A — Vérifier le candidat
-1. Prendre le composant source dans `legacy/nextjs/src/components/ui/`.
-2. Vérifier qu’il est bien catégorie A.
-3. Identifier les dépendances bloquantes (`next/*`, `useRouter`, Supabase, Radix trop couplé, etc.).
-
-### Étape B — Porter le composant React UI
+### Étape A — Créer le composant React UI
 1. Créer le composant dans `ui/src/components/ui/<Nom>.tsx`.
 2. Conserver une API simple (props minimales utiles).
 3. Préserver les classes utilitaires existantes et l’accessibilité (`label`, `aria-*`, `disabled`, `focus`).
 
-### Étape C — Exposer en Web Component
+### Étape B — Exposer en Web Component
 1. Créer `ui/src/web-components/<Nom>.tsx`.
 2. Utiliser `createWebComponent()`.
 3. Déclarer:
@@ -41,21 +36,20 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
    - `propMapping` (`string`, `number`, `boolean`, `json`),
    - `events` si interactions (`ui-change`, `ui-click`, etc.).
 
-### Étape D — Brancher la build
+### Étape C — Brancher la build
 1. Ajouter l’entry dans `ui/vite.config.ts` (`rollupOptions.input`).
 
-### Étape E — Démo Django
+### Étape D — Démo Django
 1. Ajouter un exemple dans `templates/app/components_demo.html`.
 2. Ajouter l’asset `vite_asset` du Web Component dans `extra_js`.
 
-### Étape F — Documentation migration
-1. Mettre à jour `README_MIGRATION_REACT.md`:
-   - tableau de tri (statut),
-   - journal d’implémentation,
-   - risques restants,
-   - prochaine étape.
+### Étape E — Documentation
+1. Mettre à jour `README_REACT_UI.md`:
+	- tableau des composants actifs (statut),
+	- journal d'implémentation,
+	- prochaine étape.
 
-### Étape G — Validation
+### Étape F — Validation
 1. Vérifier les erreurs TypeScript/lint éventuelles.
 2. Exécuter le build frontend (`npm run build`).
 3. Contrôler visuellement la page `/app/components/`.
@@ -65,12 +59,11 @@ Exemples: `Button`, `Input`, `Badge`, `Card`, `Textarea`, `Select`, `Alert`, `Sk
 ## 3) Checklist rapide (copier/coller)
 
 - [ ] Le composant est bien atomique (catégorie A)
-- [ ] Aucune dépendance runtime Next/Supabase
 - [ ] Fichier UI créé dans `ui/src/components/ui/`
 - [ ] Web Component créé dans `ui/src/web-components/`
 - [ ] Entry ajoutée dans `ui/vite.config.ts`
 - [ ] Démo ajoutée dans `templates/app/components_demo.html`
-- [ ] `README_MIGRATION_REACT.md` mis à jour (table + journal)
+- [ ] `README_REACT_UI.md` mis à jour (table + journal)
 - [ ] Build frontend OK
 
 ---

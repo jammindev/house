@@ -12,13 +12,12 @@
    - `*/views.py`
    - `*/urls.py`
 
-## Contexte migration (à lire si besoin produit)
+## Archive historique (référence métier)
 
 1. `legacy/AGENTS.md` (source la plus complète sur la vision historique)
 2. `legacy/README.md` (inventaire des fonctionnalités)
-3. `legacy/STRUCTURE.md` (architecture feature-first Next.js)
-4. `legacy/RESUME-PROJECT.md` (modèle métier centré sur l’interaction)
-5. `legacy/AI_UPDATE_WORKFLOW.md` (checklist qualité/sécurité)
+3. `legacy/STRUCTURE.md` (organisation feature-first de l'archive)
+4. `legacy/RESUME-PROJECT.md` (modèle métier centré sur l'interaction)
 
 ## Fichiers transverses
 
@@ -50,5 +49,4 @@ Règle rapide : pour toucher aux styles, lire d'abord la section **Système de s
 ## Règle de scope
 
 - Implémenter dans le code actif Django/React.
-- Utiliser `legacy/` pour récupérer le contexte fonctionnel lors de la migration.
-- Ne jamais supposer qu’une feature décrite dans `legacy/` existe déjà côté Django.
+- Utiliser `legacy/` pour récupérer le contexte fonctionnel historique si besoin.

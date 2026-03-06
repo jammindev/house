@@ -2,12 +2,12 @@
 
 This folder contains the **active documentation** for the Django-first House codebase.
 
-Project status (March 2026): data migration to Django is complete on active scope; primary roadmap is UI completion for all active apps.
+Project status (March 2026): Django stack fully active; primary roadmap is UI completion for all apps.
 
 ## Scope and source of truth
 
 - Runtime source of truth: `config/`, `apps/`, `templates/`, `ui/`
-- Historical reference: `legacy/` (kept for migration context)
+- Historical archive: `legacy/` (kept for reference)
 - If legacy docs conflict with runtime code, runtime code wins.
 
 ## Read first
@@ -15,7 +15,7 @@ Project status (March 2026): data migration to Django is complete on active scop
 - `../AGENTS.md` — repository-wide context, app map, conventions
 - `./HYBRID_ARCHITECTURE.md` — Django + React integration model
 - `./AI_CONTEXT_API.md` — API context and endpoint references
-- `./AI_CONTEXT_MIGRATION.md` — migration context (legacy -> active)
+- `./AI_CONTEXT_MIGRATION.md` — stack active context and working principles
 
 ## Product and domain
 
@@ -27,12 +27,11 @@ Project status (March 2026): data migration to Django is complete on active scop
 
 - `./CONTRIBUTING_AI.md` — AI-safe contribution workflow for this Django repo
 - `./OPENAPI_TYPESCRIPT.md` — OpenAPI and TypeScript client generation
-- `./README_MIGRATION_REACT.md` — progressive React migration patterns
+- `./README_REACT_UI.md` — React UI architecture and patterns
 - `./README_ATOMIC_COMPONENTS.md` — design-system component usage
 
-## Legacy archive policy
+## Historical archive
 
-- `./LEGACY_ARCHIVE_POLICY.md` — how legacy docs are retained and consumed
 - `../legacy/README.md` — legacy archive entrypoint
 
 ## App-level docs

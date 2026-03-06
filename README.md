@@ -2,13 +2,11 @@
 
 Projet principal: backend Django (SSR + API REST) avec mini-SPA React par page via Vite.
 
-> Note: le dossier `legacy/` existe dans le dépôt mais n’est pas la base active de cette app.
 
 ## Documentation
 
 - Hub documentation active: `docs/README.md`
 - Contexte dépôt et conventions: `AGENTS.md`
-- Politique archive legacy: `docs/LEGACY_ARCHIVE_POLICY.md`
 
 ## Stack
 
@@ -105,7 +103,7 @@ DJANGO_SETTINGS_MODULE=config.settings.production gunicorn config.wsgi:applicati
 
 ## Permissions multi-tenant (Django)
 
-- Modèle inspiré de la logique legacy RLS, implémenté côté DRF via `core/permissions.py`.
+- Géré via `core/permissions.py` (DRF).
 - Résolution du household courant: header `X-Household-Id`, puis `household_id` (query/body), sinon auto-sélection si un seul household.
 - Règles métier:
 	- membres household: CRUD sur zones/interactions/documents de leur household

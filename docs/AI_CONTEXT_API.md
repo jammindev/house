@@ -93,7 +93,7 @@ Base:
 
 ## Notes de vigilance
 
-- Résolution du household côté API: `X-Household-Id` (header) puis `household_id` (query/body), sinon auto-sélection si l’utilisateur n’a qu’un seul household.- Rate limiting login uniquement (pas appliqué aux autres endpoints). Cache DRF : `LocMemCache` en dev, Redis recommandé en prod.- Permissions alignées migration legacy RLS:
+- Résolution du household côté API: `X-Household-Id` (header) puis `household_id` (query/body), sinon auto-sélection si l’utilisateur n’a qu’un seul household.- Rate limiting login uniquement (pas appliqué aux autres endpoints). Cache DRF : `LocMemCache` en dev, Redis recommandé en prod.- Permissions modèle household:
 	- membre household: accès CRUD sur zones/interactions/documents du household
 	- owner household: opérations de gestion des membres (`invite`, `remove_member`, `update_role`) + update/delete household
 - `documents` et `interactions` ont un double segment de route (actuel).

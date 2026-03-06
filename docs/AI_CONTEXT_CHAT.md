@@ -6,16 +6,16 @@
 
 Permettre à l'utilisateur de poser des questions en langage naturel à une IA qui a accès à **toutes les données du household** : interactions, projets, documents, équipements, zones, contacts, structures. L'IA répond avec des informations précises tirées du contexte réel de la maison.
 
-## Référence legacy (déjà résolu conceptuellement)
+## Référence historique (archive `legacy/`)
 
-Le pipeline complet existe côté legacy Next.js/Supabase :
+L'implémentation de référence existe dans l'archive `legacy/` :
 
 - **Context builder** : `legacy/nextjs/src/features/ai/lib/context.ts` — fonction `getProjectContext()` qui assemble en parallèle projet + interactions + zones + équipements + documents + notes household
-- **Endpoint chat** : `legacy/nextjs/src/app/api/projects/[id]/ai-chat/route.ts` — reçoit la question, appelle le context builder, appelle OpenAI, stream la réponse
+- **Endpoint chat** : `legacy/nextjs/src/app/api/projects/[id]/ai-chat/route.ts`
 - **Hook client** : `legacy/nextjs/src/features/projects/features/ai-chat/hooks/useProjectAIChat.ts`
 - **Composants UI** : `legacy/nextjs/src/features/projects/features/ai-chat/components/`
 
-Ces fichiers sont la **référence métier** pour le portage Django. Ne pas copier le code, s'en inspirer.
+Ces fichiers sont la **référence métier** pour l'implémentation Django. Le code est en TypeScript/Next.js — s'en inspirer pour la logique, pas pour la syntaxe.
 
 ## Ce qui est déjà porté côté Django
 

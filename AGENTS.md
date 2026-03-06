@@ -7,20 +7,23 @@ Ce document donne le contexte rapide pour toute IA intervenant sur ce repo.
 ## 1) Scope
 
 - **Code actif principal**: racine Django + `apps/` + `ui/`
-- **Contexte produit/migration**: `legacy/` (source documentaire)
-- **Règle**: on implémente dans le code actif; on consulte `legacy/` pour comprendre l'intention fonctionnelle
+- **Archive historique**: `legacy/` (référence métier uniquement)
+- **Règle**: on implémente dans le code actif; on consulte `legacy/` uniquement pour comprendre l'intention fonctionnelle
 
 ## 1.1) Statut du projet (important)
 
-La migration de données Supabase -> Django est **terminée sur le périmètre actif**.
+Le projet est en phase **UI-first**: construction/complétion des interfaces web pour toutes les apps Django, en conservant l'architecture Django/DRF + templates + mini-SPA React ciblés par page.
 
-Le projet est maintenant en phase **UI-first**: construction/complétion des interfaces web pour toutes les apps Django, en conservant l'architecture Django/DRF + templates + mini-SPA React ciblés par page.
+Objectifs actuels:
 
-Conséquence pour l'IA:
+- Construire/compléter l'UI de toutes les apps actives côté Django
+- Uniformiser les pages `/app/*` avec le design system partagé
+- Finaliser les mini-SPA React ciblées par feature/page
 
-- Les docs `legacy/` restent utiles pour l'intention produit, mais ne bloquent plus la migration de données.
-- Elles servent de **référence métier**, pas de vérité technique d'implémentation.
-- En cas d'écart: la vérité runtime est dans `config/`, les apps Django dans `apps/`, `templates/`, et `ui/`.
+Pour l'IA:
+
+- Les docs `legacy/` sont une archive métier, pas la source de vérité technique.
+- La vérité runtime est dans `config/`, les apps Django dans `apps/`, `templates/`, et `ui/`.
 
 ## 2) Stack
 
@@ -56,35 +59,6 @@ Conséquence pour l'IA:
 ### App transverse
 
 - `core`: modèles abstraits (`HouseholdScopedModel`), managers (`HouseholdScopedManager`), permissions (`IsHouseholdMember`)
-
-## 3.1) Correspondance migration (legacy -> actif)
-
-Porté côté Django (données migrées sur le périmètre actif) :
-
-- `legacy` interactions/timeline -> `interactions` Django
-- `legacy` zones hiérarchiques -> `zones` Django
-- `legacy` documents/files -> `documents` Django
-- `legacy` households/multi-tenant -> `households` + permissions `core`
-- `legacy` auth Supabase -> `accounts` (session Django)
-- `legacy` contacts -> `contacts` Django (modèles + API + page web)
-- `legacy` structures -> `structures` Django (modèles + API)
-- `legacy` equipment -> `equipment` Django (modèles + API + page web)
-- `legacy` projects -> `projects` Django (modèles + API + page web, dont threads IA)
-- `legacy` incoming emails -> `incoming_emails` Django (historisé, hors périmètre UI prioritaire actuel)
-- `legacy` electricity -> `electricity` Django (modèles + API + mini-SPA React)
-
-Prochaine phase prioritaire :
-
-- Construire/compléter l'UI de toutes les apps actives côté Django
-- Uniformiser les pages `/app/*` avec le design system partagé
-- Finaliser les mini-SPA React ciblées par feature/page
-
-Règle de portage UI (stricte) :
-
-- Reprendre **exactement** les mêmes composants React que dans `legacy/` quand ils existent
-- Conserver **la même découpe de fichiers** que `legacy` (`(pages)` et `features`)
-- Adapter uniquement les éléments spécifiques Next.js/Supabase (routing, data loading, server actions, auth, image/link), vers le fonctionnement Django/DRF + Vite
-- Éviter les réécritures structurelles inutiles: même architecture fonctionnelle, adaptation technique minimale
 
 ## 4) Conventions techniques importantes
 
@@ -165,7 +139,7 @@ Règle de portage UI (stricte) :
 - `/app/settings/`: paramètres
 - `/app/components/`: démo du design system
 
-### Permissions (legacy RLS -> Django)
+### Permissions
 
 - `zones`, `interactions`, `documents`, `equipment`, `projects`: accès membre household
 - `households`:
@@ -222,13 +196,11 @@ pytest
 - Éviter les refactors larges sans demande explicite
 - Préserver le pattern Django-routed + mini-SPA React ciblés
 - Chaque nouvelle app web doit avoir `web_urls.py` + `views_web.py` distincts des vues API
-- Utiliser `legacy/` comme documentation fonctionnelle de migration, pas comme base de code à copier
+- Consulter `legacy/` uniquement pour la compréhension métier, jamais comme référence technique
 - Le `i18n_patterns` dans `config/urls.py` enveloppe toutes les URLs web (`/app/...`)
 
-## 10) Docs legacy à consulter quand on manque de contexte
+## 10) Archive legacy (référence métier uniquement)
 
 - `legacy/AGENTS.md`: contexte produit complet historique (haute valeur)
 - `legacy/README.md`: vision produit/features globales
-- `legacy/STRUCTURE.md`: organisation feature-first Next.js
-- `legacy/AI_UPDATE_WORKFLOW.md`: checklist de modification utile
 - `legacy/RESUME-PROJECT.md`: intention métier centrée sur le modèle interaction
