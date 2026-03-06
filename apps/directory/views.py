@@ -4,7 +4,11 @@ from rest_framework.exceptions import ValidationError
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 from .models import Contact, Address, Email, Phone, Structure
-from .serializers import ContactSerializer, AddressSerializer, EmailSerializer, PhoneSerializer, StructureSerializer
+from .serializers import (
+    ContactSerializer, ContactNestedSerializer,
+    AddressSerializer, EmailSerializer, PhoneSerializer,
+    StructureSerializer, StructureNestedSerializer,
+)
 
 
 class HouseholdScopedViewSet(viewsets.ModelViewSet):
@@ -32,10 +36,20 @@ class StructureViewSet(HouseholdScopedViewSet):
     model = Structure
     serializer_class = StructureSerializer
 
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return StructureNestedSerializer
+        return StructureSerializer
+
 
 class ContactViewSet(HouseholdScopedViewSet):
     model = Contact
     serializer_class = ContactSerializer
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return ContactNestedSerializer
+        return ContactSerializer
 
 
 class AddressViewSet(HouseholdScopedViewSet):

@@ -52,7 +52,17 @@ class InteractionViewSet(viewsets.ModelViewSet):
         zone_id = self.request.query_params.get('zone')
         if zone_id:
             queryset = queryset.filter(zones__id=zone_id)
-        
+
+        # Filter by contact
+        contact_id = self.request.query_params.get('contact')
+        if contact_id:
+            queryset = queryset.filter(interaction_contacts__contact_id=contact_id)
+
+        # Filter by structure
+        structure_id = self.request.query_params.get('structure')
+        if structure_id:
+            queryset = queryset.filter(interaction_structures__structure_id=structure_id)
+
         # Filter by date range
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')

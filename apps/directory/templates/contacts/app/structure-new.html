@@ -1,0 +1,19 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "New structure" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-6">
+    <div>
+        <a href="{% url 'app_directory' %}?view=structures" class="text-sm text-muted-foreground hover:underline">← {% trans "Directory" %}</a>
+        <h1 class="mt-2 text-2xl font-bold text-foreground">{% trans "New structure" %}</h1>
+    </div>
+    <div id="structure-new-root"></div>
+    {{ react_props|json_script:"structure-new-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/structure-new.tsx' %}
+{% endblock %}

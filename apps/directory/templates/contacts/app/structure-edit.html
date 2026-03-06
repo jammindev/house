@@ -1,0 +1,15 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Edit structure" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-6">
+    <div id="structure-edit-root"></div>
+    {{ react_props|json_script:"structure-edit-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/structure-edit.tsx' %}
+{% endblock %}

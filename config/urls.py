@@ -54,7 +54,7 @@ urlpatterns += [
     path("app/interactions/", include("interactions.web_urls")),
     path("app/zones/", include("zones.web_urls")),
     path("app/electricity/", include("electricity.web_urls")),
-    path("app/contacts/", include("directory.web_urls")),
+    path("app/directory/", include("directory.web_urls")),
     path("app/documents/", include("documents.web_urls")),
     path("app/equipment/", include("equipment.web_urls")),
     path("app/insurance/", include("insurance.web_urls")),

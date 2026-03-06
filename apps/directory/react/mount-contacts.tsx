@@ -1,11 +1,11 @@
 import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
+import DirectoryPage from './DirectoryPage';
 
-import ContactsNode from './ContactsNode';
-
-type ContactsProps = {
-  section?: string;
+type DirectoryPageProps = {
+  householdId?: string | null;
+  initialView?: string;
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<ContactsProps>('contacts-root', 'contacts-props', ContactsNode, { withToaster: true });
+  mountWithJsonScriptProps<DirectoryPageProps>('directory-root', 'directory-props', DirectoryPage, { withToaster: true });
 });

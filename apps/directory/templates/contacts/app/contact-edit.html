@@ -1,0 +1,15 @@
+{% extends "base_app.html" %}
+{% load i18n django_vite %}
+
+{% block title %}{% trans "Edit contact" %} — House{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl space-y-6">
+    <div id="contact-edit-root"></div>
+    {{ react_props|json_script:"contact-edit-props" }}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {% vite_asset 'src/pages/contact-edit.tsx' %}
+{% endblock %}

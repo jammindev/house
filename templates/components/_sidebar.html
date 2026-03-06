@@ -128,9 +128,9 @@
             {% trans "Zones" %}
         </a>
 
-        {% url 'app_contacts' as url_contacts %}
-        <a href="{{ url_contacts }}"
-           {% if request.path == url_contacts %}aria-current="page"{% endif %}
+        {% url 'app_directory' as url_directory %}
+        <a href="{{ url_directory }}"
+           {% if url_directory and url_directory in request.path %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
            class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-muted-foreground hover:bg-accent/60 hover:text-foreground hover:shadow-sm active:scale-[0.98]
@@ -175,7 +175,7 @@
 
         {% url 'app_interactions' as url_interactions %}
         <a href="{{ url_interactions }}"
-           {% if request.path == url_interactions %}aria-current="page"{% endif %}
+           {% if url_interactions and url_interactions in request.path %}aria-current="page"{% endif %}
            @click="sidebarOpen = false"
            class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
                   text-muted-foreground hover:bg-accent/60 hover:text-foreground hover:shadow-sm active:scale-[0.98]

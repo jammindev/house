@@ -45,7 +45,7 @@ def app_interactions_view(request):
             'tags': list(item.tags.select_related('tag').values_list('tag__name', flat=True)),
             'zone_names': [zone.name for zone in item.zones.all()],
             'document_count': item.documents.count(),
-            'created_by_name': item.created_by.get_full_name() if item.created_by else '',
+            'created_by_name': item.created_by.full_name if item.created_by else '',
         }
         for item in interactions
     ]
