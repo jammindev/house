@@ -9,7 +9,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     """Document list/create serializer."""
     
     created_by_name = serializers.CharField(
-        source='created_by.get_full_name',
+        source='created_by.full_name',
         read_only=True
     )
     file_url = serializers.SerializerMethodField()
@@ -25,9 +25,14 @@ class DocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'household', 'created_at', 'created_by']
     
     def get_file_url(self, obj):
-        """Generate signed URL for file (to implement with storage backend)."""
-        # TODO: Implement signed URL generation
-        return f"/storage/{obj.file_path}"
+        """Return media URL for the file."""
+        if not obj.file_path:
+            return None
+        request = self.context.get('request')
+        url = f"/media/{obj.file_path}"
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class DocumentDetailSerializer(DocumentSerializer):

@@ -1,11 +1,10 @@
 import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
+import PhotosPage from './PhotosPage';
 
-import PhotosNode from './PhotosNode';
-
-type PhotosProps = {
-  section?: string;
+type PhotosPageProps = {
+  householdId?: string | null;
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<PhotosProps>('photos-root', 'photos-props', PhotosNode, { withToaster: true });
+  mountWithJsonScriptProps<PhotosPageProps>('photos-root', 'photos-props', PhotosPage, { withToaster: true });
 });
