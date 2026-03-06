@@ -16,7 +16,7 @@ class InteractionSerializer(serializers.ModelSerializer):
     """Interaction list/create serializer."""
     
     created_by_name = serializers.CharField(
-        source='created_by.get_full_name',
+        source='created_by.full_name',
         read_only=True
     )
     zone_ids = serializers.ListField(

@@ -175,7 +175,8 @@ export function InteractionList({
       url.searchParams.delete('status');
     }
 
-    window.history.replaceState({}, '', `${url.pathname}?${url.searchParams.toString()}`);
+    const qs = url.searchParams.toString();
+    window.history.replaceState({}, '', qs ? `${url.pathname}?${qs}` : url.pathname);
   }, [selectedType, selectedStatus, syncFiltersWithUrl]);
 
   function resetFilters() {

@@ -102,7 +102,8 @@ export default function EquipmentList({
       url.searchParams.delete('zone');
     }
 
-    window.history.replaceState({}, '', `${url.pathname}?${url.searchParams.toString()}`);
+    const qs = url.searchParams.toString();
+    window.history.replaceState({}, '', qs ? `${url.pathname}?${qs}` : url.pathname);
   }, [search, status, zone]);
 
   function resetFilters() {

@@ -1,11 +1,10 @@
 import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
+import TasksPage from './TasksPage';
 
-import TasksNode from './TasksNode';
-
-type TasksProps = {
-  section?: string;
+type TasksPageProps = {
+  householdId?: string | null;
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<TasksProps>('tasks-root', 'tasks-props', TasksNode, { withToaster: true });
+  mountWithJsonScriptProps<TasksPageProps>('tasks-root', 'tasks-props', TasksPage, { withToaster: true });
 });

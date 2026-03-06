@@ -97,7 +97,8 @@ export default function ProjectList({
     setOrDelete('status', status);
     setOrDelete('type', type);
     setOrDelete('group', groupId);
-    window.history.replaceState({}, '', `${url.pathname}?${url.searchParams.toString()}`);
+    const qs = url.searchParams.toString();
+    window.history.replaceState({}, '', qs ? `${url.pathname}?${qs}` : url.pathname);
   }, [search, status, type, groupId]);
 
   async function handleTogglePin(project: ProjectListItem) {
