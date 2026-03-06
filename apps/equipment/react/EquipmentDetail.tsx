@@ -20,10 +20,11 @@ import {
 } from '@/lib/api/equipment';
 import type { ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface EquipmentDetailProps {
   title?: string;
   equipmentId: string;
-  householdId?: string;
   initialZones?: ZoneOption[];
   editUrl?: string;
   listUrl?: string;
@@ -51,11 +52,11 @@ function toDateTimeLocalValue(date: Date): string {
 export default function EquipmentDetail({
   title,
   equipmentId,
-  householdId,
   initialZones = [],
   editUrl,
   listUrl = '/app/equipment/',
 }: EquipmentDetailProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [equipment, setEquipment] = React.useState<EquipmentListItem | null>(null);
   const [audit, setAudit] = React.useState<EquipmentAudit | null>(null);

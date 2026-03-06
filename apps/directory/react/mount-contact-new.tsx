@@ -2,7 +2,6 @@ import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
 import ContactCreateForm from './ContactCreateForm';
 
 type Props = {
-  householdId?: string | null;
   redirectUrl?: string;
 };
 

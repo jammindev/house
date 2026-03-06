@@ -7,13 +7,14 @@ import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { createTask, fetchZones, type Zone } from '@/lib/api/tasks';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface NewTaskDialogProps {
-  householdId?: string | null;
   onCreated: () => void;
 }
 
-export default function NewTaskDialog({ householdId, onCreated }: NewTaskDialogProps) {
+export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [subject, setSubject] = React.useState('');

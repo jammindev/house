@@ -79,6 +79,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.app_debug_admin_link",
+                "core.context_processors.active_household_context",
             ],
         },
     },

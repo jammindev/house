@@ -16,8 +16,9 @@ import {
 } from '@/lib/api/projects';
 import ProjectCard from './ProjectCard';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface ProjectListProps {
-  householdId?: string | null;
   initialSearch?: string;
   initialStatus?: string;
   initialType?: string;
@@ -40,7 +41,6 @@ const TYPE_OPTIONS = [
 ];
 
 export default function ProjectList({
-  householdId,
   initialSearch = '',
   initialStatus = '',
   initialType = '',
@@ -48,6 +48,7 @@ export default function ProjectList({
   newUrl = '/app/projects/new/',
   groupsUrl = '/app/projects/groups/',
 }: ProjectListProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
 
   const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);

@@ -10,9 +10,10 @@ import { Select } from '@/design-system/select';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface EquipmentListProps {
   title?: string;
-  householdId?: string;
   initialSearch?: string;
   initialStatus?: string;
   initialZoneId?: string;
@@ -37,12 +38,12 @@ function formatDate(value?: string | null, notAvailableLabel?: string): string {
 
 export default function EquipmentList({
   title,
-  householdId,
   initialSearch = '',
   initialStatus = '',
   initialZoneId = '',
   newUrl = '/app/equipment/new/',
 }: EquipmentListProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
   const [searchDraft, setSearchDraft] = React.useState(initialSearch);

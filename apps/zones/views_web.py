@@ -31,7 +31,6 @@ def app_zones_view(request):
     zones = list(queryset.order_by('name')[:80])
 
     zones_page_props = {
-        'householdId': str(selected_household.id) if selected_household else None,
         'initialZones': [
             {
                 'id': str(zone.id),
@@ -70,7 +69,6 @@ def app_zone_detail_view(request, zone_id):
     children_count = zone.children.count()
 
     zone_detail_page_props = {
-        'householdId': str(zone.household_id),
         'zoneId': str(zone.id),
         'initialZone': {
             'id': str(zone.id),

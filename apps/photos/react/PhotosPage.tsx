@@ -2,12 +2,12 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { fetchPhotos, type PhotoDocument } from '@/lib/api/photos';
 import PhotoGrid from './PhotoGrid';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
-interface PhotosPageProps {
-  householdId?: string | null;
-}
+type PhotosPageProps = Record<string, never>;
 
-export default function PhotosPage({ householdId }: PhotosPageProps) {
+export default function PhotosPage(_props: PhotosPageProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [photos, setPhotos] = React.useState<PhotoDocument[]>([]);
   const [loading, setLoading] = React.useState(true);

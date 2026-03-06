@@ -17,10 +17,11 @@ import {
 } from '@/lib/api/stock';
 import type { ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface StockFormProps {
   mode: 'create' | 'edit';
   itemId?: string;
-  householdId?: string;
   initialZones?: ZoneOption[];
   initialCategories?: StockCategory[];
   cancelUrl?: string;
@@ -101,12 +102,12 @@ function toNumberOrNull(value: string): number | null {
 export default function StockForm({
   mode,
   itemId,
-  householdId,
   initialZones = [],
   initialCategories = [],
   cancelUrl = '/app/equipment/stock/',
   successRedirectUrl = '/app/equipment/stock/',
 }: StockFormProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [loading, setLoading] = React.useState(mode === 'edit');

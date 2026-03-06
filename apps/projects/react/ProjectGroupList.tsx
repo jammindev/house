@@ -13,15 +13,16 @@ import {
   type ProjectGroupItem,
 } from '@/lib/api/projects';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface ProjectGroupListProps {
-  householdId?: string | null;
   projectsUrl?: string;
 }
 
 export default function ProjectGroupList({
-  householdId,
   projectsUrl = '/app/projects/',
 }: ProjectGroupListProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);
   const [loading, setLoading] = React.useState(true);

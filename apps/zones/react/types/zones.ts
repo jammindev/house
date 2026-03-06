@@ -48,7 +48,7 @@ export type ZonePhoto = {
 };
 
 export type ZonesPageProps = {
-  householdId: string | null;
+  householdId?: string | null;
   initialZones: Array<{
     id: string;
     name: string;
@@ -59,7 +59,7 @@ export type ZonesPageProps = {
 };
 
 export type ZoneDetailPageProps = {
-  householdId: string | null;
+  householdId?: string | null;
   zoneId: string;
   initialZone?: {
     id: string;

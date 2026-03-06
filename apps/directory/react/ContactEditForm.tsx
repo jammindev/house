@@ -8,7 +8,6 @@ import { fetchContact, updateContact, type Contact } from '@/lib/api/contacts';
 
 interface ContactEditFormProps {
   contactId: string;
-  householdId?: string | null;
   backUrl?: string;
 }
 

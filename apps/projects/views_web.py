@@ -45,10 +45,7 @@ def _zones_payload(request, selected_household):
 
 @login_required
 def app_projects_view(request):
-    selected_household = _resolve_selected_household(request)
-
     projects_list_props = {
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialSearch": (request.GET.get("search") or "").strip(),
         "initialStatus": (request.GET.get("status") or "").strip(),
         "initialType": (request.GET.get("type") or "").strip(),
@@ -70,7 +67,6 @@ def app_projects_new_view(request):
 
     projects_form_props = {
         "mode": "create",
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialGroups": _groups_payload(selected_household),
         "initialGroupsLoaded": True,
         "initialZones": _zones_payload(request, selected_household),
@@ -92,12 +88,9 @@ def app_projects_detail_view(request, project_id):
         Project.objects.for_user_households(request.user).select_related("project_group"),
         id=project_id,
     )
-    selected_household = _resolve_selected_household(request)
-    household = selected_household or project.household
 
     projects_detail_props = {
         "projectId": str(project.id),
-        "householdId": str(household.id),
         "editUrl": reverse("app_projects_edit", kwargs={"project_id": project.id}),
         "listUrl": reverse("app_projects"),
     }
@@ -121,7 +114,6 @@ def app_projects_edit_view(request, project_id):
     projects_form_props = {
         "mode": "edit",
         "projectId": str(project.id),
-        "householdId": str(household.id),
         "initialGroups": _groups_payload(household),
         "initialGroupsLoaded": True,
         "initialZones": _zones_payload(request, household),
@@ -139,10 +131,7 @@ def app_projects_edit_view(request, project_id):
 
 @login_required
 def app_project_groups_view(request):
-    selected_household = _resolve_selected_household(request)
-
     project_groups_props = {
-        "householdId": str(selected_household.id) if selected_household else None,
         "projectsUrl": reverse("app_projects"),
     }
 
@@ -161,11 +150,9 @@ def app_project_group_detail_view(request, group_id):
         ),
         id=group_id,
     )
-    selected_household = _resolve_selected_household(request)
 
     project_group_detail_props = {
         "groupId": str(group.id),
-        "householdId": str(selected_household.id) if selected_household else str(group.household_id),
         "backUrl": reverse("app_project_groups"),
         "editUrl": None,
     }

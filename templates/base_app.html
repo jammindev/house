@@ -23,6 +23,9 @@
     {% vite_asset 'src/shell.ts' %}
 
     {% block extra_css %}{% endblock %}
+
+    {# Global React context — read via useHouseholdId() hook, avoids passing householdId in every view #}
+    {{ active_household_id|json_script:"house-global-context" }}
 </head>
 
 {# x-data sur body = état partagé sidebar open/close accessible partout #}

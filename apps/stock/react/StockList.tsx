@@ -28,8 +28,9 @@ import {
 } from '@/lib/api/stock';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface StockListProps {
-  householdId?: string;
   initialSearch?: string;
   initialStatus?: string;
   initialZoneId?: string;
@@ -53,13 +54,13 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 }
 
 export default function StockList({
-  householdId,
   initialSearch = '',
   initialStatus = '',
   initialZoneId = '',
   initialCategoryId = '',
   newUrl = '/app/equipment/stock/new/',
 }: StockListProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [tab, setTab] = React.useState<'items' | 'categories'>('items');
 

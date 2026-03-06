@@ -9,14 +9,14 @@ import {
   type TaskColumnId,
   type TaskStatus,
 } from '@/lib/api/tasks';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 import TaskColumn from './TaskColumn';
 import NewTaskDialog from './NewTaskDialog';
 
-interface TasksPageProps {
-  householdId?: string | null;
-}
+type TasksPageProps = Record<string, never>;
 
-export default function TasksPage({ householdId }: TasksPageProps) {
+export default function TasksPage(_props: TasksPageProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -72,7 +72,7 @@ export default function TasksPage({ householdId }: TasksPageProps) {
             </p>
           )}
         </div>
-        <NewTaskDialog householdId={householdId} onCreated={loadTasks} />
+        <NewTaskDialog onCreated={loadTasks} />
       </div>
 
       {error && (

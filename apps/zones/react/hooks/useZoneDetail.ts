@@ -11,7 +11,7 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId: string | null, write = false): Record<string, string> {
+function buildHeaders(householdId: string | null | undefined, write = false): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',

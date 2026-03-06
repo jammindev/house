@@ -97,10 +97,6 @@
     <div id="electricity-board-root"></div>
     {{ electricity_page_props|json_script:"electricity-page-props" }}
 
-    <div class="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        {% trans "No JavaScript fallback:" %}
-        <a href="/api/electricity/health/" class="underline">/api/electricity/health/</a>
-    </div>
 </div>
 {% endblock %}
 

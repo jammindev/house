@@ -5,13 +5,13 @@ import { Button, buttonVariants } from '@/design-system/button';
 import { cn } from '@/lib/utils';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 import ContactList from './ContactList';
 import StructureList from './StructureList';
 
 type DirectoryView = 'contacts' | 'structures';
 
 interface DirectoryPageProps {
-  householdId?: string | null;
   initialView?: string;
 }
 
@@ -27,7 +27,8 @@ function setViewParam(view: DirectoryView) {
   window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
 }
 
-export default function DirectoryPage({ householdId }: DirectoryPageProps) {
+export default function DirectoryPage({ initialView: _initialView }: DirectoryPageProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [currentView, setCurrentView] = React.useState<DirectoryView>(getCurrentView);
 

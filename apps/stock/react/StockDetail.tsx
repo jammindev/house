@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { Input } from '@/design-system/input';
 import { adjustStockQuantity, deleteStockItem, fetchStockItem, type StockItem } from '@/lib/api/stock';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface StockDetailProps {
   itemId: string;
-  householdId?: string;
   editUrl?: string;
   listUrl?: string;
 }
@@ -37,10 +38,10 @@ function statusVariant(status: string): 'default' | 'secondary' | 'destructive' 
 
 export default function StockDetail({
   itemId,
-  householdId,
   editUrl,
   listUrl = '/app/equipment/stock/',
 }: StockDetailProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [item, setItem] = React.useState<StockItem | null>(null);
   const [loading, setLoading] = React.useState(true);

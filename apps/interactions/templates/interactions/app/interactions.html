@@ -19,11 +19,6 @@
     <div id="interactions-list-root"></div>
     {{ interactions_list_props|json_script:"interactions-list-props" }}
 
-    <div class="rounded-xl border border-dashed border-border p-4 text-xs text-muted-foreground">
-        {% trans "No JavaScript fallback:" %}
-        {% trans "You can still access data through the API endpoint" %}
-        <a href="/api/interactions/interactions/" class="underline">/api/interactions/interactions/</a>.
-    </div>
 </div>
 {% endblock %}
 

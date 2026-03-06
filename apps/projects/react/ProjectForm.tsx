@@ -17,6 +17,8 @@ import {
 } from '@/lib/api/projects';
 import type { ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface ProjectGroupOption {
   id: string;
   name: string;
@@ -25,7 +27,6 @@ interface ProjectGroupOption {
 interface ProjectFormProps {
   mode: 'create' | 'edit';
   projectId?: string;
-  householdId?: string | null;
   initialGroups?: ProjectGroupOption[];
   initialGroupsLoaded?: boolean;
   initialZones?: ZoneOption[];
@@ -87,12 +88,12 @@ function toPayload(state: FormState): ProjectPayload {
 export default function ProjectForm({
   mode,
   projectId,
-  householdId,
   initialGroups = [],
   initialZones = [],
   cancelUrl = '/app/projects/',
   successRedirectUrl = '/app/projects/',
 }: ProjectFormProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [loading, setLoading] = React.useState(mode === 'edit');

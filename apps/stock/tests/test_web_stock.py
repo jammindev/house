@@ -56,7 +56,6 @@ def test_stock_list_page_renders_with_props(client, user, household, membership)
 
     assert "stock_list_props" in response.context
     props = response.context["stock_list_props"]
-    assert props["householdId"] == str(household.id)
     assert props["newUrl"] == reverse("stock:app_equipment_stock_new")
 
 
@@ -71,7 +70,6 @@ def test_stock_new_page_renders_with_form_props(client, user, household, members
     assert "stock_form_props" in response.context
     props = response.context["stock_form_props"]
     assert props["mode"] == "create"
-    assert props["householdId"] == str(household.id)
     assert props["cancelUrl"] == reverse("stock:app_equipment_stock")
     assert len(props["initialZones"]) == 1
     assert len(props["initialCategories"]) == 1

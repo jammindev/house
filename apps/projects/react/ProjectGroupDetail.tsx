@@ -14,18 +14,19 @@ import {
 } from '@/lib/api/projects';
 import ProjectList from './ProjectList';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface ProjectGroupDetailProps {
   groupId: string;
-  householdId?: string | null;
   backUrl?: string;
   editUrl?: string | null;
 }
 
 export default function ProjectGroupDetail({
   groupId,
-  householdId,
   backUrl = '/app/projects/groups/',
 }: ProjectGroupDetailProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [group, setGroup] = React.useState<ProjectGroupItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -148,7 +149,6 @@ export default function ProjectGroupDetail({
       <div>
         <h3 className="text-base font-semibold text-foreground mb-3">{t('projects.title')}</h3>
         <ProjectList
-          householdId={householdId}
           initialGroupId={groupId}
           newUrl="/app/projects/new/"
           groupsUrl={backUrl}

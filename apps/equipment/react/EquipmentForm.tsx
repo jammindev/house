@@ -15,12 +15,13 @@ import {
 } from '@/lib/api/equipment';
 import type { ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface EquipmentFormProps {
   title?: string;
   mode: 'create' | 'edit';
   submitLabel?: string;
   equipmentId?: string;
-  householdId?: string;
   initialZones?: ZoneOption[];
   initialZonesLoaded?: boolean;
   cancelUrl?: string;
@@ -133,11 +134,11 @@ export default function EquipmentForm({
   mode,
   submitLabel,
   equipmentId,
-  householdId,
   initialZones = [],
   cancelUrl = '/app/equipment/',
   successRedirectUrl = '/app/equipment/',
 }: EquipmentFormProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [submitting, setSubmitting] = React.useState(false);

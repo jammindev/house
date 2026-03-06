@@ -53,10 +53,7 @@ def _categories_payload(request, selected_household):
 
 @login_required
 def app_equipment_stock_view(request):
-    selected_household = _resolve_selected_household(request)
-
     stock_list_props = {
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialSearch": (request.GET.get("search") or "").strip(),
         "initialStatus": (request.GET.get("status") or "").strip(),
         "initialZoneId": (request.GET.get("zone") or "").strip(),
@@ -79,7 +76,6 @@ def app_equipment_stock_new_view(request):
 
     stock_form_props = {
         "mode": "create",
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialZones": _zones_payload(request, selected_household),
         "initialCategories": _categories_payload(request, selected_household),
         "cancelUrl": reverse("stock:app_equipment_stock"),
@@ -101,11 +97,9 @@ def app_equipment_stock_detail_view(request, item_id):
         StockItem.objects.for_user_households(request.user).select_related("zone", "category", "created_by", "updated_by"),
         id=item_id,
     )
-    selected_household = _resolve_selected_household(request)
 
     stock_detail_props = {
         "itemId": str(item.id),
-        "householdId": str(selected_household.id) if selected_household else str(item.household_id),
         "editUrl": reverse("stock:app_equipment_stock_edit", kwargs={"item_id": item.id}),
         "listUrl": reverse("stock:app_equipment_stock"),
     }
@@ -130,7 +124,6 @@ def app_equipment_stock_edit_view(request, item_id):
     stock_form_props = {
         "mode": "edit",
         "itemId": str(item.id),
-        "householdId": str(selected_household.id) if selected_household else str(item.household_id),
         "initialZones": _zones_payload(request, selected_household or item.household),
         "initialCategories": _categories_payload(request, selected_household or item.household),
         "cancelUrl": reverse("stock:app_equipment_stock_detail", kwargs={"item_id": item.id}),

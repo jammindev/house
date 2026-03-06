@@ -20,7 +20,7 @@ function normalizeList(payload: unknown): Record<string, unknown>[] {
   return [];
 }
 
-function buildHeaders(householdId: string | null, write = false): Record<string, string> {
+function buildHeaders(householdId: string | null | undefined, write = false): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',

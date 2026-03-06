@@ -3,7 +3,6 @@ import ContactEditForm from './ContactEditForm';
 
 type Props = {
   contactId: string;
-  householdId?: string | null;
   backUrl?: string;
 };
 

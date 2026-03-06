@@ -9,9 +9,10 @@ import { Textarea } from '@/design-system/textarea';
 import { createInteraction } from '@/lib/api/interactions';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface InteractionCreateFormProps {
   title?: string;
-  householdId?: string;
   defaultType?: string;
   submitLabel?: string;
   successMessage?: string;
@@ -48,7 +49,6 @@ function nowLocalDateTimeInput(): string {
 
 export function InteractionCreateForm({
   title,
-  householdId,
   defaultType = 'note',
   submitLabel,
   successMessage,
@@ -59,6 +59,7 @@ export function InteractionCreateForm({
   redirectDelayMs = 800,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
+  const householdId = useHouseholdId();
   const resolvedTitle = title ?? t('interactions.form_title');
   const resolvedSubmitLabel = submitLabel ?? t('interactions.submit_label');
   const resolvedSuccessMessage = successMessage ?? t('interactions.success_message');

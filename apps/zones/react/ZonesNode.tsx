@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -14,7 +15,8 @@ import type { Zone, ZonesPageProps } from './types/zones';
 
 export default function ZonesNode(props: ZonesPageProps) {
   const { t } = useTranslation();
-  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones(props);
+  const householdId = useHouseholdId();
+  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones({ ...props, householdId });
 
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);

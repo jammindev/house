@@ -3,7 +3,6 @@ import ContactDetailsView from './ContactDetailsView';
 
 type Props = {
   contactId: string;
-  householdId?: string | null;
   editUrl?: string;
   backUrl?: string;
 };

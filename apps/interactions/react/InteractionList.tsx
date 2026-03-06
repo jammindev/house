@@ -8,12 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { Skeleton } from '@/design-system/skeleton';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 
+import { useHouseholdId } from '@/lib/useHouseholdId';
+
 interface InteractionListProps {
   title?: string;
   type?: string;
   status?: string;
   limit?: number;
-  householdId?: string;
   emptyMessage?: string;
   initialItems?: InteractionListItem[];
   initialCount?: number;
@@ -65,7 +66,6 @@ export function InteractionList({
   type,
   status,
   limit = 8,
-  householdId,
   emptyMessage,
   initialItems = [],
   initialCount,
@@ -74,6 +74,7 @@ export function InteractionList({
   syncFiltersWithUrl = true,
 }: InteractionListProps) {
   const { t } = useTranslation();
+  const householdId = useHouseholdId();
   const resolvedTitle = title ?? t('interactions.list_title');
   const resolvedEmptyMessage = emptyMessage ?? t('interactions.list_empty');
   const initialType = type ?? '';

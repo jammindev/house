@@ -88,7 +88,6 @@ def test_zones_web_view_includes_initial_props(client):
 
 	assert response.status_code == status.HTTP_200_OK
 	props = response.context['zones_page_props']
-	assert props['householdId'] == str(household.id)
 	assert len(props['initialZones']) >= 2
 	ids = {entry['id'] for entry in props['initialZones']}
 	assert str(parent.id) in ids
@@ -108,7 +107,6 @@ def test_zone_detail_web_view_includes_initial_props(client):
 
 	assert response.status_code == status.HTTP_200_OK
 	props = response.context['zone_detail_page_props']
-	assert props['householdId'] == str(household.id)
 	assert props['zoneId'] == str(zone.id)
 	assert props['initialZone']['id'] == str(zone.id)
 	assert 'initialStats' in props

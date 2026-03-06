@@ -2,7 +2,6 @@ import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
 import DirectoryPage from './DirectoryPage';
 
 type DirectoryPageProps = {
-  householdId?: string | null;
   initialView?: string;
 };
 

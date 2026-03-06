@@ -3,7 +3,6 @@ import StructureDetailView from './StructureDetailView';
 
 type Props = {
   structureId: string;
-  householdId?: string | null;
   editUrl?: string;
   backUrl?: string;
 };

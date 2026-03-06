@@ -16,7 +16,6 @@ interface Interaction {
 
 interface ContactDetailsViewProps {
   contactId: string;
-  householdId?: string | null;
   editUrl?: string;
   backUrl?: string;
 }

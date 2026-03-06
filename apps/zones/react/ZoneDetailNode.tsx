@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -15,11 +16,12 @@ import type { ZoneDetailPageProps, ZoneMutationPayload } from './types/zones';
 export default function ZoneDetailNode(props: ZoneDetailPageProps) {
   const { t } = useTranslation();
   const [editOpen, setEditOpen] = useState(false);
+  const householdId = useHouseholdId();
 
-  const { zones, updateZone } = useZones({ householdId: props.householdId, initialZones: [] });
+  const { zones, updateZone } = useZones({ householdId, initialZones: [] });
   const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
 
-  const { zone, photos, loading, error, attachPhoto, reload } = useZoneDetail(props);
+  const { zone, photos, loading, error, attachPhoto, reload } = useZoneDetail({ ...props, householdId });
 
   const childrenCount = props.initialStats?.childrenCount ?? zone?.children_count ?? 0;
 
@@ -67,7 +69,6 @@ export default function ZoneDetailNode(props: ZoneDetailPageProps) {
       <ZonePhotoGallery
         photos={photos}
         loading={loading}
-        householdId={props.householdId}
         onAttachPhoto={async (documentId, note) => {
           await attachPhoto(documentId, note);
         }}

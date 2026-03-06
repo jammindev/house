@@ -16,7 +16,6 @@ interface Interaction {
 
 interface StructureDetailViewProps {
   structureId: string;
-  householdId?: string | null;
   editUrl?: string;
   backUrl?: string;
 }

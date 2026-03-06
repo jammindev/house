@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
@@ -91,17 +92,16 @@ function useInteractions(projectId: string, householdId: string | undefined, typ
 
 function TabInteractions({
   projectId,
-  householdId,
   type,
   emptyKey,
 }: {
   projectId: string;
-  householdId?: string;
   type?: string;
   emptyKey: string;
 }) {
   const { t } = useTranslation();
-  const { items, loading, error } = useInteractions(projectId, householdId, type);
+  const householdId = useHouseholdId();
+  const { items, loading, error } = useInteractions(projectId, householdId ?? undefined, type);
   if (loading) return <p className="text-sm text-muted-foreground">{t('projects.loading')}</p>;
   if (error) return (
     <Alert variant="destructive">
@@ -204,7 +204,6 @@ function MetricsTab({ project }: { project: ProjectListItem }) {
 
 interface ProjectDetailProps {
   projectId: string;
-  householdId?: string;
   editUrl?: string;
   listUrl?: string;
 }
@@ -213,10 +212,10 @@ const TABS: Tab[] = ['description', 'tasks', 'notes', 'expenses', 'documents', '
 
 export default function ProjectDetail({
   projectId,
-  householdId,
   editUrl,
   listUrl = '/app/projects/',
 }: ProjectDetailProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [project, setProject] = React.useState<ProjectListItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -349,23 +348,23 @@ export default function ProjectDetail({
             ) : null}
 
             {activeTab === 'tasks' ? (
-              <TabInteractions projectId={projectId} householdId={householdId} type="todo" emptyKey="projects.empty_tasks" />
+              <TabInteractions projectId={projectId} type="todo" emptyKey="projects.empty_tasks" />
             ) : null}
 
             {activeTab === 'notes' ? (
-              <TabInteractions projectId={projectId} householdId={householdId} type="note" emptyKey="projects.empty_notes" />
+              <TabInteractions projectId={projectId} type="note" emptyKey="projects.empty_notes" />
             ) : null}
 
             {activeTab === 'expenses' ? (
-              <TabInteractions projectId={projectId} householdId={householdId} type="expense" emptyKey="projects.empty_expenses" />
+              <TabInteractions projectId={projectId} type="expense" emptyKey="projects.empty_expenses" />
             ) : null}
 
             {activeTab === 'documents' ? (
-              <TabInteractions projectId={projectId} householdId={householdId} type="document" emptyKey="projects.empty_documents" />
+              <TabInteractions projectId={projectId} type="document" emptyKey="projects.empty_documents" />
             ) : null}
 
             {activeTab === 'timeline' ? (
-              <TabInteractions projectId={projectId} householdId={householdId} emptyKey="projects.empty_timeline" />
+              <TabInteractions projectId={projectId} emptyKey="projects.empty_timeline" />
             ) : null}
 
             {activeTab === 'metrics' ? (

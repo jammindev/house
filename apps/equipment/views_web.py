@@ -40,9 +40,7 @@ def _zones_payload(request, selected_household):
 
 @login_required
 def app_equipment_view(request):
-    selected_household = _resolve_selected_household(request)
     equipment_list_props = {
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialSearch": (request.GET.get("search") or "").strip(),
         "initialStatus": (request.GET.get("status") or "").strip(),
         "initialZoneId": (request.GET.get("zone") or "").strip(),
@@ -64,7 +62,6 @@ def app_equipment_new_view(request):
 
     equipment_form_props = {
         "mode": "create",
-        "householdId": str(selected_household.id) if selected_household else None,
         "initialZones": _zones_payload(request, selected_household),
         "initialZonesLoaded": True,
         "cancelUrl": reverse("app_equipment"),
@@ -90,7 +87,6 @@ def app_equipment_detail_view(request, equipment_id):
 
     equipment_detail_props = {
         "equipmentId": str(equipment.id),
-        "householdId": str(selected_household.id) if selected_household else str(equipment.household_id),
         "initialZones": _zones_payload(request, selected_household or equipment.household),
         "initialZonesLoaded": True,
         "editUrl": reverse("app_equipment_edit", kwargs={"equipment_id": equipment.id}),
@@ -117,7 +113,6 @@ def app_equipment_edit_view(request, equipment_id):
     equipment_form_props = {
         "mode": "edit",
         "equipmentId": str(equipment.id),
-        "householdId": str(selected_household.id) if selected_household else str(equipment.household_id),
         "initialZones": _zones_payload(request, selected_household or equipment.household),
         "initialZonesLoaded": True,
         "cancelUrl": reverse("app_equipment_detail", kwargs={"equipment_id": equipment.id}),

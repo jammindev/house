@@ -5,11 +5,12 @@ import DocumentListItem from './DocumentListItem';
 import DocumentsFilters from './DocumentsFilters';
 import EditDocumentModal from './EditDocumentModal';
 
-interface DocumentsPageProps {
-  householdId?: string | null;
-}
+import { useHouseholdId } from '@/lib/useHouseholdId';
 
-export default function DocumentsPage({ householdId }: DocumentsPageProps) {
+type DocumentsPageProps = Record<string, never>;
+
+export default function DocumentsPage(_props: DocumentsPageProps) {
+  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [documents, setDocuments] = React.useState<DocumentItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -107,7 +108,6 @@ export default function DocumentsPage({ householdId }: DocumentsPageProps) {
             <DocumentListItem
               key={doc.id}
               doc={doc}
-              householdId={householdId}
               onEdit={setEditingDoc}
               onDeleted={handleDeleted}
             />
@@ -120,7 +120,6 @@ export default function DocumentsPage({ householdId }: DocumentsPageProps) {
         isOpen={editingDoc !== null}
         onClose={() => setEditingDoc(null)}
         onSuccess={handleEditSuccess}
-        householdId={householdId}
       />
     </div>
   );
