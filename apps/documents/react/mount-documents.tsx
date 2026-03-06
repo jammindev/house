@@ -1,11 +1,10 @@
 import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
+import DocumentsPage from './DocumentsPage';
 
-import DocumentsNode from './DocumentsNode';
-
-type DocumentsProps = {
-  section?: string;
+type DocumentsPageProps = {
+  householdId?: string | null;
 };
 
 onDomReady(() => {
-  mountWithJsonScriptProps<DocumentsProps>('documents-root', 'documents-props', DocumentsNode, { withToaster: true });
+  mountWithJsonScriptProps<DocumentsPageProps>('documents-root', 'documents-props', DocumentsPage, { withToaster: true });
 });
