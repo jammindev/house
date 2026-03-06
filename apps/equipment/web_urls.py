@@ -1,16 +1,16 @@
 from django.urls import include, path
 
 from .views_web import (
-    app_equipment_detail_view,
-    app_equipment_edit_view,
-    app_equipment_new_view,
-    app_equipment_view,
+    AppEquipmentDetailView,
+    AppEquipmentEditView,
+    AppEquipmentNewView,
+    AppEquipmentView,
 )
 
 urlpatterns = [
     path("stock/", include(("stock.web_urls", "stock"), namespace="stock")),
-    path("", app_equipment_view, name="app_equipment"),
-    path("new/", app_equipment_new_view, name="app_equipment_new"),
-    path("<uuid:equipment_id>/", app_equipment_detail_view, name="app_equipment_detail"),
-    path("<uuid:equipment_id>/edit/", app_equipment_edit_view, name="app_equipment_edit"),
+    path("", AppEquipmentView.as_view(), name="app_equipment"),
+    path("new/", AppEquipmentNewView.as_view(), name="app_equipment_new"),
+    path("<uuid:equipment_id>/", AppEquipmentDetailView.as_view(), name="app_equipment_detail"),
+    path("<uuid:equipment_id>/edit/", AppEquipmentEditView.as_view(), name="app_equipment_edit"),
 ]

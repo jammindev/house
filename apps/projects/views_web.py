@@ -1,6 +1,7 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.views.generic import TemplateView
 
 from core.permissions import resolve_request_household
 from zones.models import Zone
@@ -43,122 +44,100 @@ def _zones_payload(request, selected_household):
     ]
 
 
-@login_required
-def app_projects_view(request):
-    projects_list_props = {
-        "initialSearch": (request.GET.get("search") or "").strip(),
-        "initialStatus": (request.GET.get("status") or "").strip(),
-        "initialType": (request.GET.get("type") or "").strip(),
-        "initialGroupId": (request.GET.get("group") or "").strip(),
-        "newUrl": reverse("app_projects_new"),
-        "groupsUrl": reverse("app_project_groups"),
-    }
+class AppProjectsView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/projects.html'
 
-    return render(
-        request,
-        "projects/app/projects.html",
-        {"projects_list_props": projects_list_props},
-    )
+    def get_context_data(self, **kwargs):
+        projects_list_props = {
+            "initialSearch": (self.request.GET.get("search") or "").strip(),
+            "initialStatus": (self.request.GET.get("status") or "").strip(),
+            "initialType": (self.request.GET.get("type") or "").strip(),
+            "initialGroupId": (self.request.GET.get("group") or "").strip(),
+            "newUrl": reverse("app_projects_new"),
+            "groupsUrl": reverse("app_project_groups"),
+        }
+        return super().get_context_data(projects_list_props=projects_list_props, **kwargs)
 
 
-@login_required
-def app_projects_new_view(request):
-    selected_household = _resolve_selected_household(request)
+class AppProjectsNewView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/project_new.html'
 
-    projects_form_props = {
-        "mode": "create",
-        "initialGroups": _groups_payload(selected_household),
-        "initialGroupsLoaded": True,
-        "initialZones": _zones_payload(request, selected_household),
-        "initialZonesLoaded": True,
-        "cancelUrl": reverse("app_projects"),
-        "successRedirectUrl": reverse("app_projects"),
-    }
-
-    return render(
-        request,
-        "projects/app/project_new.html",
-        {"projects_form_props": projects_form_props},
-    )
+    def get_context_data(self, **kwargs):
+        selected_household = _resolve_selected_household(self.request)
+        projects_form_props = {
+            "mode": "create",
+            "initialGroups": _groups_payload(selected_household),
+            "initialGroupsLoaded": True,
+            "initialZones": _zones_payload(self.request, selected_household),
+            "initialZonesLoaded": True,
+            "cancelUrl": reverse("app_projects"),
+            "successRedirectUrl": reverse("app_projects"),
+        }
+        return super().get_context_data(projects_form_props=projects_form_props, **kwargs)
 
 
-@login_required
-def app_projects_detail_view(request, project_id):
-    project = get_object_or_404(
-        Project.objects.for_user_households(request.user).select_related("project_group"),
-        id=project_id,
-    )
+class AppProjectsDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/project_detail.html'
 
-    projects_detail_props = {
-        "projectId": str(project.id),
-        "editUrl": reverse("app_projects_edit", kwargs={"project_id": project.id}),
-        "listUrl": reverse("app_projects"),
-    }
-
-    return render(
-        request,
-        "projects/app/project_detail.html",
-        {"projects_detail_props": projects_detail_props},
-    )
+    def get_context_data(self, **kwargs):
+        project = get_object_or_404(
+            Project.objects.for_user_households(self.request.user).select_related("project_group"),
+            id=self.kwargs["project_id"],
+        )
+        projects_detail_props = {
+            "projectId": str(project.id),
+            "editUrl": reverse("app_projects_edit", kwargs={"project_id": project.id}),
+            "listUrl": reverse("app_projects"),
+        }
+        return super().get_context_data(projects_detail_props=projects_detail_props, **kwargs)
 
 
-@login_required
-def app_projects_edit_view(request, project_id):
-    project = get_object_or_404(
-        Project.objects.for_user_households(request.user),
-        id=project_id,
-    )
-    selected_household = _resolve_selected_household(request)
-    household = selected_household or project.household
+class AppProjectsEditView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/project_edit.html'
 
-    projects_form_props = {
-        "mode": "edit",
-        "projectId": str(project.id),
-        "initialGroups": _groups_payload(household),
-        "initialGroupsLoaded": True,
-        "initialZones": _zones_payload(request, household),
-        "initialZonesLoaded": True,
-        "cancelUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
-        "successRedirectUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
-    }
-
-    return render(
-        request,
-        "projects/app/project_edit.html",
-        {"projects_form_props": projects_form_props},
-    )
+    def get_context_data(self, **kwargs):
+        project = get_object_or_404(
+            Project.objects.for_user_households(self.request.user),
+            id=self.kwargs["project_id"],
+        )
+        selected_household = _resolve_selected_household(self.request)
+        household = selected_household or project.household
+        projects_form_props = {
+            "mode": "edit",
+            "projectId": str(project.id),
+            "initialGroups": _groups_payload(household),
+            "initialGroupsLoaded": True,
+            "initialZones": _zones_payload(self.request, household),
+            "initialZonesLoaded": True,
+            "cancelUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
+            "successRedirectUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
+        }
+        return super().get_context_data(projects_form_props=projects_form_props, **kwargs)
 
 
-@login_required
-def app_project_groups_view(request):
-    project_groups_props = {
-        "projectsUrl": reverse("app_projects"),
-    }
+class AppProjectGroupsView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/project_groups.html'
 
-    return render(
-        request,
-        "projects/app/project_groups.html",
-        {"project_groups_props": project_groups_props},
-    )
+    def get_context_data(self, **kwargs):
+        project_groups_props = {
+            "projectsUrl": reverse("app_projects"),
+        }
+        return super().get_context_data(project_groups_props=project_groups_props, **kwargs)
 
 
-@login_required
-def app_project_group_detail_view(request, group_id):
-    group = get_object_or_404(
-        ProjectGroup.objects.filter(
-            household_id__in=request.user.householdmember_set.values_list("household_id", flat=True)
-        ),
-        id=group_id,
-    )
+class AppProjectGroupDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'projects/app/project_group_detail.html'
 
-    project_group_detail_props = {
-        "groupId": str(group.id),
-        "backUrl": reverse("app_project_groups"),
-        "editUrl": None,
-    }
-
-    return render(
-        request,
-        "projects/app/project_group_detail.html",
-        {"project_group_detail_props": project_group_detail_props},
-    )
+    def get_context_data(self, **kwargs):
+        group = get_object_or_404(
+            ProjectGroup.objects.filter(
+                household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
+            ),
+            id=self.kwargs["group_id"],
+        )
+        project_group_detail_props = {
+            "groupId": str(group.id),
+            "backUrl": reverse("app_project_groups"),
+            "editUrl": None,
+        }
+        return super().get_context_data(project_group_detail_props=project_group_detail_props, **kwargs)

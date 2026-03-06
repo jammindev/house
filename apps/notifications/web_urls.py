@@ -1,16 +1,16 @@
 from django.urls import path
 from .views_web import (
-    notification_list_view,
-    notification_bell_fragment,
-    mark_read_web,
-    mark_all_read_web,
-    delete_notification_web,
+    NotificationListView,
+    NotificationBellFragment,
+    MarkReadWeb,
+    MarkAllReadWeb,
+    DeleteNotificationWeb,
 )
 
 urlpatterns = [
-    path("", notification_list_view, name="app_notifications"),
-    path("bell/", notification_bell_fragment, name="notification_bell"),
-    path("<uuid:pk>/mark-read/", mark_read_web, name="notification-mark-read-web"),
-    path("mark-all-read/", mark_all_read_web, name="notification-mark-all-read-web"),
-    path("<uuid:pk>/delete/", delete_notification_web, name="notification-delete-web"),
+    path("", NotificationListView.as_view(), name="app_notifications"),
+    path("bell/", NotificationBellFragment.as_view(), name="notification_bell"),
+    path("<uuid:pk>/mark-read/", MarkReadWeb.as_view(), name="notification-mark-read-web"),
+    path("mark-all-read/", MarkAllReadWeb.as_view(), name="notification-mark-all-read-web"),
+    path("<uuid:pk>/delete/", DeleteNotificationWeb.as_view(), name="notification-delete-web"),
 ]

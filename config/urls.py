@@ -7,8 +7,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 from . import admin_ordering as _admin_ordering
 from accounts.views import (
-    home_view, login_view, dashboard_view, logout_view,
-    app_dashboard_view,
+    HomeView, LoginView, DashboardView, LogoutView,
+    AppDashboardView,
 )
 
 urlpatterns = [
@@ -40,15 +40,15 @@ if settings.ENABLE_API_SCHEMA:
 # Web URLs - language is managed via cookie/session (no URL prefix)
 urlpatterns += [
     # Public
-    path("", home_view, name="home"),
-    path("login/", login_view, name="login"),
-    path("logout/", logout_view, name="logout"),
+    path("", HomeView.as_view(), name="home"),
+    path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 
     # Legacy redirect
-    path("dashboard/", dashboard_view, name="dashboard"),
+    path("dashboard/", DashboardView.as_view(), name="dashboard"),
 
-    # ── App (sidebar layout) ─────────────────────────────────────────────────
-    path("app/dashboard/", app_dashboard_view, name="app_dashboard"),
+    # ── App (sidebar layout) ───────────────────────────────────────────────────────────────────────
+    path("app/dashboard/", AppDashboardView.as_view(), name="app_dashboard"),
 
     # Sections implémentées (placeholder pour l'instant, vues dédiées à créer)
     path("app/interactions/", include("interactions.web_urls")),

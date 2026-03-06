@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views_web import app_photos_view
+from .views_web import AppPhotosView
 
 urlpatterns = [
-    path('', app_photos_view, name='app_photos'),
+    path('', AppPhotosView.as_view(), name='app_photos'),
 ]

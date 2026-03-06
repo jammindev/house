@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views_web import app_documents_view
+from .views_web import AppDocumentsView
 
 urlpatterns = [
-    path('', app_documents_view, name='app_documents'),
+    path('', AppDocumentsView.as_view(), name='app_documents'),
 ]

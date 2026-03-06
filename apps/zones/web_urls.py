@@ -1,8 +1,8 @@
 from django.urls import path
 
-from .views_web import app_zones_view, app_zone_detail_view
+from .views_web import AppZonesView, AppZoneDetailView
 
 urlpatterns = [
-    path("", app_zones_view, name="app_zones"),
-    path("<uuid:zone_id>/", app_zone_detail_view, name="app_zone_detail"),
+    path("", AppZonesView.as_view(), name="app_zones"),
+    path("<uuid:zone_id>/", AppZoneDetailView.as_view(), name="app_zone_detail"),
 ]

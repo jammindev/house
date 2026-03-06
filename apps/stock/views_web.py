@@ -1,6 +1,7 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.views.generic import TemplateView
 
 from core.permissions import resolve_request_household
 from zones.models import Zone
@@ -51,89 +52,66 @@ def _categories_payload(request, selected_household):
     ]
 
 
-@login_required
-def app_equipment_stock_view(request):
-    stock_list_props = {
-        "initialSearch": (request.GET.get("search") or "").strip(),
-        "initialStatus": (request.GET.get("status") or "").strip(),
-        "initialZoneId": (request.GET.get("zone") or "").strip(),
-        "initialCategoryId": (request.GET.get("category") or "").strip(),
-        "newUrl": reverse("stock:app_equipment_stock_new"),
-    }
+class AppEquipmentStockView(LoginRequiredMixin, TemplateView):
+    template_name = 'stock/app/stock.html'
 
-    return render(
-        request,
-        "stock/app/stock.html",
-        {
-            "stock_list_props": stock_list_props,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        stock_list_props = {
+            "initialSearch": (self.request.GET.get("search") or "").strip(),
+            "initialStatus": (self.request.GET.get("status") or "").strip(),
+            "initialZoneId": (self.request.GET.get("zone") or "").strip(),
+            "initialCategoryId": (self.request.GET.get("category") or "").strip(),
+            "newUrl": reverse("stock:app_equipment_stock_new"),
+        }
+        return super().get_context_data(stock_list_props=stock_list_props, **kwargs)
 
 
-@login_required
-def app_equipment_stock_new_view(request):
-    selected_household = _resolve_selected_household(request)
+class AppEquipmentStockNewView(LoginRequiredMixin, TemplateView):
+    template_name = 'stock/app/stock_new.html'
 
-    stock_form_props = {
-        "mode": "create",
-        "initialZones": _zones_payload(request, selected_household),
-        "initialCategories": _categories_payload(request, selected_household),
-        "cancelUrl": reverse("stock:app_equipment_stock"),
-        "successRedirectUrl": reverse("stock:app_equipment_stock"),
-    }
-
-    return render(
-        request,
-        "stock/app/stock_new.html",
-        {
-            "stock_form_props": stock_form_props,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        selected_household = _resolve_selected_household(self.request)
+        stock_form_props = {
+            "mode": "create",
+            "initialZones": _zones_payload(self.request, selected_household),
+            "initialCategories": _categories_payload(self.request, selected_household),
+            "cancelUrl": reverse("stock:app_equipment_stock"),
+            "successRedirectUrl": reverse("stock:app_equipment_stock"),
+        }
+        return super().get_context_data(stock_form_props=stock_form_props, **kwargs)
 
 
-@login_required
-def app_equipment_stock_detail_view(request, item_id):
-    item = get_object_or_404(
-        StockItem.objects.for_user_households(request.user).select_related("zone", "category", "created_by", "updated_by"),
-        id=item_id,
-    )
+class AppEquipmentStockDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'stock/app/stock_detail.html'
 
-    stock_detail_props = {
-        "itemId": str(item.id),
-        "editUrl": reverse("stock:app_equipment_stock_edit", kwargs={"item_id": item.id}),
-        "listUrl": reverse("stock:app_equipment_stock"),
-    }
-
-    return render(
-        request,
-        "stock/app/stock_detail.html",
-        {
-            "stock_detail_props": stock_detail_props,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        item = get_object_or_404(
+            StockItem.objects.for_user_households(self.request.user).select_related("zone", "category", "created_by", "updated_by"),
+            id=self.kwargs["item_id"],
+        )
+        stock_detail_props = {
+            "itemId": str(item.id),
+            "editUrl": reverse("stock:app_equipment_stock_edit", kwargs={"item_id": item.id}),
+            "listUrl": reverse("stock:app_equipment_stock"),
+        }
+        return super().get_context_data(stock_detail_props=stock_detail_props, **kwargs)
 
 
-@login_required
-def app_equipment_stock_edit_view(request, item_id):
-    item = get_object_or_404(
-        StockItem.objects.for_user_households(request.user).select_related("zone", "category"),
-        id=item_id,
-    )
-    selected_household = _resolve_selected_household(request)
+class AppEquipmentStockEditView(LoginRequiredMixin, TemplateView):
+    template_name = 'stock/app/stock_edit.html'
 
-    stock_form_props = {
-        "mode": "edit",
-        "itemId": str(item.id),
-        "initialZones": _zones_payload(request, selected_household or item.household),
-        "initialCategories": _categories_payload(request, selected_household or item.household),
-        "cancelUrl": reverse("stock:app_equipment_stock_detail", kwargs={"item_id": item.id}),
-        "successRedirectUrl": reverse("stock:app_equipment_stock_detail", kwargs={"item_id": item.id}),
-    }
-
-    return render(
-        request,
-        "stock/app/stock_edit.html",
-        {
-            "stock_form_props": stock_form_props,
-        },
-    )
+    def get_context_data(self, **kwargs):
+        item = get_object_or_404(
+            StockItem.objects.for_user_households(self.request.user).select_related("zone", "category"),
+            id=self.kwargs["item_id"],
+        )
+        selected_household = _resolve_selected_household(self.request)
+        stock_form_props = {
+            "mode": "edit",
+            "itemId": str(item.id),
+            "initialZones": _zones_payload(self.request, selected_household or item.household),
+            "initialCategories": _categories_payload(self.request, selected_household or item.household),
+            "cancelUrl": reverse("stock:app_equipment_stock_detail", kwargs={"item_id": item.id}),
+            "successRedirectUrl": reverse("stock:app_equipment_stock_detail", kwargs={"item_id": item.id}),
+        }
+        return super().get_context_data(stock_form_props=stock_form_props, **kwargs)

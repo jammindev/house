@@ -1,25 +1,34 @@
 """Template-based views for accounts app."""
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.generic import RedirectView, TemplateView, View
 
 
-def home_view(request):
+class HomeView(View):
     """Landing page publique."""
-    if request.user.is_authenticated:
-        return redirect('app_dashboard')
-    return render(request, 'home.html')
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('app_dashboard')
+        return render(request, 'home.html')
 
 
-def login_view(request):
+class LoginView(View):
     """Login view using Django template."""
-    if request.user.is_authenticated:
-        return redirect('app_dashboard')
 
-    if request.method == 'POST':
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('app_dashboard')
+        form = AuthenticationForm()
+        return render(request, 'login.html', {'form': form, 'next': request.GET.get('next', '')})
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            return redirect('app_dashboard')
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             username = form.cleaned_data.get('username')
@@ -38,26 +47,23 @@ def login_view(request):
                 return redirect('app_dashboard')
         else:
             messages.error(request, "Email ou mot de passe incorrect.")
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'login.html', {'form': form, 'next': request.GET.get('next', '')})
+        return render(request, 'login.html', {'form': form, 'next': request.POST.get('next', '')})
 
 
-@login_required
-def dashboard_view(request):
+class DashboardView(LoginRequiredMixin, RedirectView):
     """Legacy redirect — dashboard maintenant sous /app/dashboard/."""
-    return redirect('app_dashboard')
+    pattern_name = 'app_dashboard'
 
 
-@login_required
-def app_dashboard_view(request):
+class AppDashboardView(LoginRequiredMixin, TemplateView):
     """Dashboard principal de l'application."""
-    return render(request, 'app/dashboard.html')
+    template_name = 'app/dashboard.html'
 
 
-def logout_view(request):
+class LogoutView(View):
     """Logout view."""
-    auth_logout(request)
-    messages.info(request, "Vous avez été déconnecté.")
-    return redirect('login')
+
+    def get(self, request):
+        auth_logout(request)
+        messages.info(request, "Vous avez été déconnecté.")
+        return redirect('login')

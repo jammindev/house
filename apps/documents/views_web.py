@@ -1,7 +1,9 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView
 
 
-@login_required
-def app_documents_view(request):
-    return render(request, 'documents/app/documents.html', {'react_props': {}})
+class AppDocumentsView(LoginRequiredMixin, TemplateView):
+    template_name = 'documents/app/documents.html'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(react_props={}, **kwargs)

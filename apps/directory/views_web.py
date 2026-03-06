@@ -1,103 +1,94 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
+from django.views.generic import TemplateView
 
 
-@login_required
-def app_contacts_view(request):
-    initial_view = request.GET.get("view", "contacts")
-    if initial_view not in ("contacts", "structures"):
-        initial_view = "contacts"
-    return render(
-        request,
-        'contacts/app/contacts.html',
-        {
-            'react_props': {
-                'initialView': initial_view,
-            },
-        },
-    )
+class AppContactsView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/contacts.html'
+
+    def get_context_data(self, **kwargs):
+        initial_view = self.request.GET.get('view', 'contacts')
+        if initial_view not in ('contacts', 'structures'):
+            initial_view = 'contacts'
+        return super().get_context_data(
+            react_props={'initialView': initial_view},
+            **kwargs,
+        )
 
 
-@login_required
-def app_contact_new_view(request):
-    return render(
-        request,
-        'contacts/app/contact-new.html',
-        {
-            'react_props': {
-                'redirectUrl': reverse('app_directory'),
-            },
-        },
-    )
+class AppContactNewView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/contact-new.html'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            react_props={'redirectUrl': reverse('app_directory')},
+            **kwargs,
+        )
 
 
-@login_required
-def app_contact_detail_view(request, pk):
-    return render(
-        request,
-        'contacts/app/contact-detail.html',
-        {
-            'react_props': {
+class AppContactDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/contact-detail.html'
+
+    def get_context_data(self, **kwargs):
+        pk = self.kwargs['pk']
+        return super().get_context_data(
+            react_props={
                 'contactId': str(pk),
                 'editUrl': reverse('app_contact_edit', kwargs={'pk': pk}),
                 'backUrl': reverse('app_directory'),
             },
-        },
-    )
+            **kwargs,
+        )
 
 
-@login_required
-def app_contact_edit_view(request, pk):
-    return render(
-        request,
-        'contacts/app/contact-edit.html',
-        {
-            'react_props': {
+class AppContactEditView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/contact-edit.html'
+
+    def get_context_data(self, **kwargs):
+        pk = self.kwargs['pk']
+        return super().get_context_data(
+            react_props={
                 'contactId': str(pk),
                 'backUrl': reverse('app_contact_detail', kwargs={'pk': pk}),
             },
-        },
-    )
+            **kwargs,
+        )
 
 
-@login_required
-def app_structure_new_view(request):
-    return render(
-        request,
-        'contacts/app/structure-new.html',
-        {
-            'react_props': {
-                'redirectUrl': f"{reverse('app_directory')}?view=structures",
-            },
-        },
-    )
+class AppStructureNewView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/structure-new.html'
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(
+            react_props={'redirectUrl': f"{reverse('app_directory')}?view=structures"},
+            **kwargs,
+        )
 
 
-@login_required
-def app_structure_detail_view(request, pk):
-    return render(
-        request,
-        'contacts/app/structure-detail.html',
-        {
-            'react_props': {
+class AppStructureDetailView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/structure-detail.html'
+
+    def get_context_data(self, **kwargs):
+        pk = self.kwargs['pk']
+        return super().get_context_data(
+            react_props={
                 'structureId': str(pk),
                 'editUrl': reverse('app_structure_edit', kwargs={'pk': pk}),
                 'backUrl': f"{reverse('app_directory')}?view=structures",
             },
-        },
-    )
+            **kwargs,
+        )
 
 
-@login_required
-def app_structure_edit_view(request, pk):
-    return render(
-        request,
-        'contacts/app/structure-edit.html',
-        {
-            'react_props': {
+class AppStructureEditView(LoginRequiredMixin, TemplateView):
+    template_name = 'contacts/app/structure-edit.html'
+
+    def get_context_data(self, **kwargs):
+        pk = self.kwargs['pk']
+        return super().get_context_data(
+            react_props={
                 'structureId': str(pk),
                 'backUrl': reverse('app_structure_detail', kwargs={'pk': pk}),
             },
-        },
-    )
+            **kwargs,
+        )

@@ -4,8 +4,9 @@
 from django.db.models import ProtectedError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
+from django.views.generic import TemplateView
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -60,132 +61,130 @@ def is_household_owner(user, household):
         role=HouseholdMember.Role.OWNER,
     ).exists()
 
+class AppElectricityView(LoginRequiredMixin, TemplateView):
+    template_name = "electricity/app/electricity.html"
 
-@login_required
-def app_electricity_view(request):
-    """Dedicated Django template for electricity mini-app."""
-    selected_household = resolve_electricity_household(request)
-    owner = is_household_owner(request.user, selected_household)
+    def get_context_data(self, **kwargs):
+        request = self.request
+        selected_household = resolve_electricity_household(request)
+        owner = is_household_owner(request.user, selected_household)
 
-    board = None
-    circuits = []
-    breakers = []
-    rcds = []
-    usage_points = []
-    recent_changes = []
-    active_links = []
-    inactive_links = []
-    active_links_count = 0
-    initial_lookup = []
+        board = None
+        circuits = []
+        breakers = []
+        rcds = []
+        usage_points = []
+        recent_changes = []
+        active_links = []
+        inactive_links = []
+        active_links_count = 0
+        initial_lookup = []
 
-    if selected_household:
-        board = (
-            ElectricityBoard.objects.for_household(selected_household.id)
-            .filter(is_active=True)
-            .order_by("-updated_at")
-            .first()
-        )
-        circuits = list(
-            ElectricCircuit.objects.for_household(selected_household.id)
-            .select_related("breaker", "board")
-            .order_by("label")[:20]
-        )
-        breakers = list(
-            Breaker.objects.for_household(selected_household.id)
-            .select_related("board", "rcd")
-            .order_by("label")[:20]
-        )
-        rcds = list(
-            ResidualCurrentDevice.objects.for_household(selected_household.id)
-            .select_related("board")
-            .order_by("label")[:20]
-        )
-        usage_points = list(
-            UsagePoint.objects.for_household(selected_household.id)
-            .select_related("zone")
-            .order_by("label")[:20]
-        )
-        recent_changes = list(
-            PlanChangeLog.objects.for_household(selected_household.id)
-            .select_related("actor")
-            .order_by("-created_at")[:10]
-        )
-        active_links = list(
-            CircuitUsagePointLink.objects.for_household(selected_household.id)
-            .select_related("circuit", "usage_point")
-            .filter(is_active=True)
-            .order_by("-updated_at")[:20]
-        )
-        inactive_links = list(
-            CircuitUsagePointLink.objects.for_household(selected_household.id)
-            .select_related("circuit", "usage_point", "deactivated_by")
-            .filter(is_active=False)
-            .order_by("-deactivated_at")[:20]
-        )
-        active_links_count = CircuitUsagePointLink.objects.for_household(selected_household.id).filter(
-            is_active=True
-        ).count()
-        initial_lookup = [
-            {"kind": "breaker", "label": breaker.label} for breaker in breakers[:3]
-        ] + [
-            {"kind": "circuit", "label": circuit.label} for circuit in circuits[:3]
-        ] + [
-            {"kind": "usage_point", "label": point.label} for point in usage_points[:3]
-        ]
+        if selected_household:
+            board = (
+                ElectricityBoard.objects.for_household(selected_household.id)
+                .filter(is_active=True)
+                .order_by("-updated_at")
+                .first()
+            )
+            circuits = list(
+                ElectricCircuit.objects.for_household(selected_household.id)
+                .select_related("breaker", "board")
+                .order_by("label")[:20]
+            )
+            breakers = list(
+                Breaker.objects.for_household(selected_household.id)
+                .select_related("board", "rcd")
+                .order_by("label")[:20]
+            )
+            rcds = list(
+                ResidualCurrentDevice.objects.for_household(selected_household.id)
+                .select_related("board")
+                .order_by("label")[:20]
+            )
+            usage_points = list(
+                UsagePoint.objects.for_household(selected_household.id)
+                .select_related("zone")
+                .order_by("label")[:20]
+            )
+            recent_changes = list(
+                PlanChangeLog.objects.for_household(selected_household.id)
+                .select_related("actor")
+                .order_by("-created_at")[:10]
+            )
+            active_links = list(
+                CircuitUsagePointLink.objects.for_household(selected_household.id)
+                .select_related("circuit", "usage_point")
+                .filter(is_active=True)
+                .order_by("-updated_at")[:20]
+            )
+            inactive_links = list(
+                CircuitUsagePointLink.objects.for_household(selected_household.id)
+                .select_related("circuit", "usage_point", "deactivated_by")
+                .filter(is_active=False)
+                .order_by("-deactivated_at")[:20]
+            )
+            active_links_count = CircuitUsagePointLink.objects.for_household(selected_household.id).filter(
+                is_active=True
+            ).count()
+            initial_lookup = [
+                {"kind": "breaker", "label": breaker.label} for breaker in breakers[:3]
+            ] + [
+                {"kind": "circuit", "label": circuit.label} for circuit in circuits[:3]
+            ] + [
+                {"kind": "usage_point", "label": point.label} for point in usage_points[:3]
+            ]
 
-    electricity_page_props = {
-        "householdId": str(selected_household.id) if selected_household else None,
-        "isOwner": owner,
-        "board": (
-            {
-                "id": str(board.id),
-                "name": board.name,
-                "supplyType": board.supply_type,
-            }
-            if board
-            else None
-        ),
-        "summary": {
-            "circuitsCount": len(circuits),
-            "breakersCount": len(breakers),
-            "usagePointsCount": len(usage_points),
-            "activeLinksCount": active_links_count,
-        },
-        "initialLookup": initial_lookup,
-        "initialData": {
-            "breakers": [{"id": str(b.id), "label": b.label} for b in breakers],
-            "circuits": [{"id": str(c.id), "label": c.label, "name": c.name} for c in circuits],
-            "usagePoints": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
-            "activeLinks": [
+        electricity_page_props = {
+            "householdId": str(selected_household.id) if selected_household else None,
+            "isOwner": owner,
+            "board": (
                 {
-                    "id": str(link.id),
-                    "circuitLabel": link.circuit.label,
-                    "usagePointLabel": link.usage_point.label,
+                    "id": str(board.id),
+                    "name": board.name,
+                    "supplyType": board.supply_type,
                 }
-                for link in active_links
-            ],
-        },
-        "apiBase": "/api/electricity/",
-    }
+                if board
+                else None
+            ),
+            "summary": {
+                "circuitsCount": len(circuits),
+                "breakersCount": len(breakers),
+                "usagePointsCount": len(usage_points),
+                "activeLinksCount": active_links_count,
+            },
+            "initialLookup": initial_lookup,
+            "initialData": {
+                "breakers": [{"id": str(b.id), "label": b.label} for b in breakers],
+                "circuits": [{"id": str(c.id), "label": c.label, "name": c.name} for c in circuits],
+                "usagePoints": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
+                "activeLinks": [
+                    {
+                        "id": str(link.id),
+                        "circuitLabel": link.circuit.label,
+                        "usagePointLabel": link.usage_point.label,
+                    }
+                    for link in active_links
+                ],
+            },
+            "apiBase": "/api/electricity/",
+        }
 
-    server_sections = {
-        "circuits": circuits,
-        "breakers": breakers,
-        "rcds": rcds,
-        "usage_points": usage_points,
-        "active_links": active_links,
-        "inactive_links": inactive_links,
-        "recent_changes": recent_changes,
-    }
+        server_sections = {
+            "circuits": circuits,
+            "breakers": breakers,
+            "rcds": rcds,
+            "usage_points": usage_points,
+            "active_links": active_links,
+            "inactive_links": inactive_links,
+            "recent_changes": recent_changes,
+        }
 
-    return render(
-        request,
-        "electricity/app/electricity.html",
-        {
-            "electricity_page_props": electricity_page_props,
-            "server_sections": server_sections,
-        },
-    )
+        return super().get_context_data(
+            electricity_page_props=electricity_page_props,
+            server_sections=server_sections,
+            **kwargs,
+        )
 
 
 class ElectricityHealthView(APIView):

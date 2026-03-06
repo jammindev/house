@@ -1,7 +1,7 @@
 from django.urls import path
 
-from .views import app_electricity_view
+from .views import AppElectricityView
 
 urlpatterns = [
-    path("", app_electricity_view, name="app_electricity"),
+    path("", AppElectricityView.as_view(), name="app_electricity"),
 ]

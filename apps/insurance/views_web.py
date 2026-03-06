@@ -1,9 +1,10 @@
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
+from django.views.generic import View
 
 from core.permissions import resolve_request_household
 
@@ -61,34 +62,47 @@ def _form_choices():
         "payment_frequency_choices": InsuranceContract.PaymentFrequency.choices,
     }
 
-
-@login_required
-def app_insurance_view(request):
-    selected_household = _resolve_selected_household(request)
-    contracts = InsuranceContract.objects.for_user_households(request.user)
-    if selected_household:
-        contracts = contracts.filter(household=selected_household)
-
-    return render(
-        request,
-        "insurance/app/insurance.html",
-        {
-            "contracts": contracts.order_by("renewal_date", "name"),
-            "household": selected_household,
-        },
-    )
+class AppInsuranceView(LoginRequiredMixin, View):
+    def get(self, request):
+        selected_household = _resolve_selected_household(request)
+        contracts = InsuranceContract.objects.for_user_households(request.user)
+        if selected_household:
+            contracts = contracts.filter(household=selected_household)
+        return render(
+            request,
+            "insurance/app/insurance.html",
+            {
+                "contracts": contracts.order_by("renewal_date", "name"),
+                "household": selected_household,
+            },
+        )
 
 
-@login_required
-def app_insurance_new_view(request):
-    selected_household = _resolve_selected_household(request)
-    if selected_household is None:
-        messages.error(request, _("No household selected."))
-        return redirect("app_dashboard")
+class AppInsuranceNewView(LoginRequiredMixin, View):
+    def get(self, request, contract=None, selected_household=None):
+        if selected_household is None:
+            selected_household = _resolve_selected_household(request)
+        if selected_household is None:
+            messages.error(request, _("No household selected."))
+            return redirect("app_dashboard")
+        if contract is None:
+            contract = InsuranceContract(household=selected_household)
+        return render(
+            request,
+            "insurance/app/insurance_new.html",
+            {
+                "contract": contract,
+                "household": selected_household,
+                **_form_choices(),
+            },
+        )
 
-    contract = InsuranceContract(household=selected_household)
-
-    if request.method == "POST":
+    def post(self, request):
+        selected_household = _resolve_selected_household(request)
+        if selected_household is None:
+            messages.error(request, _("No household selected."))
+            return redirect("app_dashboard")
+        contract = InsuranceContract(household=selected_household)
         try:
             _hydrate_contract_from_post(contract, request)
             if not contract.name:
@@ -101,35 +115,34 @@ def app_insurance_new_view(request):
             return redirect("app_insurance_detail", contract_id=contract.id)
         except ValueError as exc:
             messages.error(request, str(exc))
-
-    return render(
-        request,
-        "insurance/app/insurance_new.html",
-        {
-            "contract": contract,
-            "household": selected_household,
-            **_form_choices(),
-        },
-    )
+        return self.get(request, contract=contract, selected_household=selected_household)
 
 
-@login_required
-def app_insurance_detail_view(request, contract_id):
-    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
-    return render(
-        request,
-        "insurance/app/insurance_detail.html",
-        {
-            "contract": contract,
-        },
-    )
+class AppInsuranceDetailView(LoginRequiredMixin, View):
+    def get(self, request, contract_id):
+        contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+        return render(
+            request,
+            "insurance/app/insurance_detail.html",
+            {"contract": contract},
+        )
 
 
-@login_required
-def app_insurance_edit_view(request, contract_id):
-    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+class AppInsuranceEditView(LoginRequiredMixin, View):
+    def get(self, request, contract_id, contract=None):
+        if contract is None:
+            contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
+        return render(
+            request,
+            "insurance/app/insurance_edit.html",
+            {
+                "contract": contract,
+                **_form_choices(),
+            },
+        )
 
-    if request.method == "POST":
+    def post(self, request, contract_id):
+        contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
         try:
             _hydrate_contract_from_post(contract, request)
             if not contract.name:
@@ -141,24 +154,15 @@ def app_insurance_edit_view(request, contract_id):
             return redirect("app_insurance_detail", contract_id=contract.id)
         except ValueError as exc:
             messages.error(request, str(exc))
-
-    return render(
-        request,
-        "insurance/app/insurance_edit.html",
-        {
-            "contract": contract,
-            **_form_choices(),
-        },
-    )
+        return self.get(request, contract_id, contract=contract)
 
 
-@login_required
-def app_insurance_delete_view(request, contract_id):
-    contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
-
-    if request.method == "POST":
+class AppInsuranceDeleteView(LoginRequiredMixin, View):
+    def post(self, request, contract_id):
+        contract = get_object_or_404(InsuranceContract.objects.for_user_households(request.user), id=contract_id)
         contract.delete()
         messages.success(request, _("Insurance contract deleted."))
         return redirect("app_insurance")
 
-    return redirect("app_insurance_detail", contract_id=contract.id)
+    def get(self, request, contract_id):
+        return redirect("app_insurance_detail", contract_id=contract_id)
