@@ -5,6 +5,7 @@ source =
 omit =
     */tests/*
     */test_*.py
+    */tests.py
     */migrations/*
     */legacy/*
     */ui/*
@@ -12,9 +13,16 @@ omit =
     */static/*
     */staticfiles/*
     */htmlcov/*
+    */__init__.py
+    */urls.py
+    */web_urls.py
+    */apps.py
+    */admin.py
     */manage.py
     */wsgi.py
     */asgi.py
+    */config/settings/local.py
+    */config/settings/production.py
 
 [report]
 skip_covered = True
