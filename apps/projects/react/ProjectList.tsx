@@ -23,6 +23,8 @@ interface ProjectListProps {
   initialStatus?: string;
   initialType?: string;
   initialGroupId?: string;
+  initialItems?: ProjectListItem[];
+  initialGroups?: ProjectGroupItem[];
   newUrl?: string;
   groupsUrl?: string;
 }
@@ -45,20 +47,24 @@ export default function ProjectList({
   initialStatus = '',
   initialType = '',
   initialGroupId = '',
+  initialItems,
+  initialGroups,
   newUrl = '/app/projects/new/',
   groupsUrl = '/app/projects/groups/',
 }: ProjectListProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
 
-  const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);
+  const hasServerData = initialItems !== undefined && initialGroups !== undefined;
+
+  const [groups, setGroups] = React.useState<ProjectGroupItem[]>(initialGroups ?? []);
   const [searchDraft, setSearchDraft] = React.useState(initialSearch);
   const [search, setSearch] = React.useState(initialSearch);
   const [status, setStatus] = React.useState(initialStatus);
   const [type, setType] = React.useState(initialType);
   const [groupId, setGroupId] = React.useState(initialGroupId);
-  const [items, setItems] = React.useState<ProjectListItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [items, setItems] = React.useState<ProjectListItem[]>(initialItems ?? []);
+  const [loading, setLoading] = React.useState(!hasServerData);
   const [error, setError] = React.useState<string | null>(null);
   const [pinLoadingId, setPinLoadingId] = React.useState<string | null>(null);
 
@@ -84,9 +90,17 @@ export default function ProjectList({
     }
   }, [householdId, search, status, type, groupId, t]);
 
+  // Skip the initial fetch when Django already provided server-side data.
+  // Re-fetch whenever the user changes a filter.
+  const isFirstRender = React.useRef(true);
   React.useEffect(() => {
+    if (isFirstRender.current && hasServerData) {
+      isFirstRender.current = false;
+      return;
+    }
+    isFirstRender.current = false;
     load();
-  }, [load]);
+  }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Sync URL params
   React.useEffect(() => {

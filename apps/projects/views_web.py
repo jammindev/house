@@ -2,11 +2,14 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
 
 from core.permissions import resolve_request_household
+from core.views import ReactPageView
 from zones.models import Zone
 
 from .models import Project, ProjectGroup
+from .serializers import ProjectGroupSerializer, ProjectSerializer
 
 
 def _resolve_selected_household(request):
@@ -44,19 +47,64 @@ def _zones_payload(request, selected_household):
     ]
 
 
-class AppProjectsView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/projects.html'
+class AppProjectsView(ReactPageView):
+    page_title = _("Projects")
+    page_description = _("Manage your renovation, maintenance and other projects.")
+    react_root_id = "projects-list-root"
+    props_script_id = "projects-list-props"
+    page_vite_asset = "src/pages/projects.tsx"
 
-    def get_context_data(self, **kwargs):
-        projects_list_props = {
-            "initialSearch": (self.request.GET.get("search") or "").strip(),
-            "initialStatus": (self.request.GET.get("status") or "").strip(),
-            "initialType": (self.request.GET.get("type") or "").strip(),
-            "initialGroupId": (self.request.GET.get("group") or "").strip(),
+    def get_props(self):
+        search = (self.request.GET.get("search") or "").strip()
+        status = (self.request.GET.get("status") or "").strip()
+        proj_type = (self.request.GET.get("type") or "").strip()
+        group_id = (self.request.GET.get("group") or "").strip()
+
+        selected_household = _resolve_selected_household(self.request)
+
+        projects_qs = (
+            Project.objects
+            .for_user_households(self.request.user)
+            .select_related("project_group")
+            .prefetch_related("project_zones__zone")
+        )
+        if selected_household:
+            projects_qs = projects_qs.filter(household=selected_household)
+        if search:
+            projects_qs = projects_qs.filter(title__icontains=search)
+        if status:
+            projects_qs = projects_qs.filter(status=status)
+        if proj_type:
+            projects_qs = projects_qs.filter(type=proj_type)
+        if group_id:
+            projects_qs = projects_qs.filter(project_group_id=group_id)
+
+        projects_data = ProjectSerializer(
+            projects_qs, many=True, context={"request": self.request}
+        ).data
+        # Sort: pinned first (mirrors the React sort)
+        sorted_projects = sorted(projects_data, key=lambda p: (0 if p["is_pinned"] else 1))
+
+        groups_qs = (
+            ProjectGroup.objects
+            .filter(household=selected_household)
+            .order_by("name")
+            .prefetch_related("projects")
+        ) if selected_household else ProjectGroup.objects.none()
+        groups_data = ProjectGroupSerializer(
+            groups_qs, many=True, context={"request": self.request}
+        ).data
+
+        return {
+            "initialSearch": search,
+            "initialStatus": status,
+            "initialType": proj_type,
+            "initialGroupId": group_id,
+            "initialItems": sorted_projects,
+            "initialGroups": list(groups_data),
             "newUrl": reverse("app_projects_new"),
             "groupsUrl": reverse("app_project_groups"),
         }
-        return super().get_context_data(projects_list_props=projects_list_props, **kwargs)
 
 
 class AppProjectsNewView(LoginRequiredMixin, TemplateView):

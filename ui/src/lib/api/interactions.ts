@@ -18,7 +18,7 @@ export interface CreateInteractionInput {
   status?: string | null;
   occurred_at: string;
   zone_ids: string[];
-  tags?: string[];
+  tags_input?: string[];
 }
 
 interface FetchInteractionsOptions {

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/design-system/card';
+import { SettingsSection } from './SettingsSection';
 import type { UserProfile, Theme, ColorTheme } from '@/lib/api/users';
 import { patchMe } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
@@ -120,12 +120,11 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('settings.theme')}</CardTitle>
-        <CardDescription>{t('settings.themeDescription')}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-5">
+    <SettingsSection
+      title={t('settings.theme')}
+      description={t('settings.themeDescription')}
+    >
+      <div className="space-y-5">
         <div className="flex gap-2">
           {THEME_OPTIONS.map((opt) => (
             <Button
@@ -161,7 +160,7 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
             ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SettingsSection>
   );
 }

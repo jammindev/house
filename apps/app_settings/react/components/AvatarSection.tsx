@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/design-system/card';
+import { SettingsSection } from './SettingsSection';
 import type { UserProfile } from '@/lib/api/users';
 import { uploadAvatar, deleteAvatar } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
@@ -58,12 +58,11 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('settings.avatar')}</CardTitle>
-        <CardDescription>{t('settings.avatarDescription')}</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <SettingsSection
+      title={t('settings.avatar')}
+      description={t('settings.avatarDescription')}
+    >
+      <div className="space-y-4">
         <div className="flex items-center gap-4">
           {currentAvatarUrl ? (
             <img
@@ -107,7 +106,7 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
           className="hidden"
           onChange={(e) => void handleAvatarChange(e)}
         />
-      </CardContent>
-    </Card>
+      </div>
+    </SettingsSection>
   );
 }

@@ -27,7 +27,7 @@ class AppInteractionsView(LoginRequiredMixin, TemplateView):
             )
             selected_household = membership.household if membership else None
 
-        queryset = Interaction.objects.for_user_households(request.user).select_related('created_by').prefetch_related('zones', 'documents')
+        queryset = Interaction.objects.for_user_households(request.user).select_related('created_by').prefetch_related('zones', 'documents', 'tags__tag')
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         if selected_type:
@@ -45,7 +45,7 @@ class AppInteractionsView(LoginRequiredMixin, TemplateView):
                 'type': item.type,
                 'status': item.status,
                 'occurred_at': item.occurred_at.isoformat(),
-                'tags': list(item.tags.select_related('tag').values_list('tag__name', flat=True)),
+                'tags': [link.tag.name for link in item.tags.all()],
                 'zone_names': [zone.name for zone in item.zones.all()],
                 'document_count': item.documents.count(),
                 'created_by_name': item.created_by.full_name if item.created_by else '',

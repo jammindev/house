@@ -73,6 +73,7 @@ Pour l'IA:
 - Pages web dans `templates/app/` ou `apps/<app>/templates/`
 - Chaque app avec page web a un `web_urls.py` + `views_web.py` séparés des vues API
 - API schema (Swagger/Redoc) disponible si `ENABLE_API_SCHEMA=True` -> `/api/schema/swagger/`
+- **Pattern ReactPageView** : les vues web héritent de `core.views.ReactPageView` qui fournit un template générique (`templates/core/react_page.html`). Les class attributes déclarent `page_title`, `page_description`, `react_root_id`, `props_script_id`, `page_vite_asset`. La méthode `get_props()` retourne le dict initial hydraté côté Django — **zéro fetch API React au premier rendu**. Pour un template custom, surcharger `template_name`.
 
 ## 5) Endpoints clés
 

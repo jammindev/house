@@ -148,7 +148,7 @@ export function InteractionCreateForm({
           status: type === 'todo' ? status : null,
           occurred_at: occurredISO,
           zone_ids: zoneIds,
-          tags: tagsText
+          tags_input: tagsText
             .split(',')
             .map((tag) => tag.trim())
             .filter(Boolean),

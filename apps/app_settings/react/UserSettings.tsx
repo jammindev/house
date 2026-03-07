@@ -6,7 +6,6 @@ import { fetchHouseholds } from '@/lib/api/households';
 import { HouseholdManagement } from './components/HouseholdManagement';
 import { PendingInvitations } from './components/PendingInvitations';
 import { ProfileSection } from './components/ProfileSection';
-import { AvatarSection } from './components/AvatarSection';
 import { ThemeSection } from './components/ThemeSection';
 import { ChangePasswordSection } from './components/ChangePasswordSection';
 
@@ -49,8 +48,6 @@ export default function UserSettings({ initialUser, initialHouseholds, activeHou
       />
 
       <ProfileSection user={user} onUserUpdate={setUser} />
-
-      <AvatarSection user={user} onUserUpdate={setUser} />
 
       <ThemeSection user={user} onUserUpdate={setUser} />
 

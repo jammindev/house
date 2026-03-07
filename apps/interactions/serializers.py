@@ -26,8 +26,10 @@ class InteractionSerializer(serializers.ModelSerializer):
     )
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
-    tags = serializers.ListField(
+    tags = serializers.SerializerMethodField()
+    tags_input = serializers.ListField(
         child=serializers.CharField(),
+        write_only=True,
         required=False,
         allow_empty=True,
     )
@@ -36,7 +38,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         model = Interaction
         fields = [
             'id', 'household', 'subject', 'content', 'type', 'status',
-            'is_private', 'occurred_at', 'tags', 'metadata', 'enriched_text',
+            'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
             'project',
             'zone_ids', 'zone_names', 'document_count',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
@@ -48,13 +50,9 @@ class InteractionSerializer(serializers.ModelSerializer):
     
     def get_document_count(self, obj):
         return obj.documents.count()
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        data['tags'] = list(
-            instance.tags.select_related('tag').values_list('tag__name', flat=True)
-        )
-        return data
+    
+    def get_tags(self, obj):
+        return [link.tag.name for link in obj.tags.all()]
 
     def _sync_tags(self, interaction, tag_names):
         if tag_names is None:
@@ -91,7 +89,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             )
     
     def create(self, validated_data):
-        tag_names = validated_data.pop('tags', [])
+        tag_names = validated_data.pop('tags_input', [])
         zone_ids = validated_data.pop('zone_ids', [])
         interaction = Interaction.objects.create(**validated_data)
         
@@ -106,7 +104,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         return interaction
     
     def update(self, instance, validated_data):
-        tag_names = validated_data.pop('tags', None)
+        tag_names = validated_data.pop('tags_input', None)
         zone_ids = validated_data.pop('zone_ids', None)
         
         # Update interaction fields
