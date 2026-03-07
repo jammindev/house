@@ -201,3 +201,249 @@ class TestInviteHousehold:
         response = client.post(url, {"email": invite_target.email, "role": "member"}, format="json")
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
+
+@pytest.mark.django_db
+class TestHouseholdMembersAction:
+    def test_members_returns_all_household_members(self, owner_client, household, user):
+        member_user = UserFactory(email="member-list@example.com")
+        HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        url = reverse("household-members", kwargs={"pk": household.pk})
+        response = owner_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        emails = {item["user_email"] for item in response.data}
+        assert user.email in emails
+        assert member_user.email in emails
+
+
+@pytest.mark.django_db
+class TestRemoveMemberAction:
+    def test_owner_can_remove_member(self, owner_client, household):
+        member_user = UserFactory(email="member-remove@example.com")
+        HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        url = reverse("household-remove-member", kwargs={"pk": household.pk})
+        response = owner_client.post(url, {"user_id": str(member_user.id)}, format="json")
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert not HouseholdMember.objects.filter(household=household, user=member_user).exists()
+
+    def test_remove_member_requires_user_id(self, owner_client, household):
+        url = reverse("household-remove-member", kwargs={"pk": household.pk})
+        response = owner_client.post(url, {}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_cannot_remove_last_owner(self, owner_client, household, user):
+        url = reverse("household-remove-member", kwargs={"pk": household.pk})
+        response = owner_client.post(url, {"user_id": str(user.id)}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert HouseholdMember.objects.filter(household=household, user=user).exists()
+
+    def test_member_cannot_remove_other_member(self, db, household):
+        member_user = UserFactory(email="member-remove-denied@example.com")
+        target_user = UserFactory(email="member-remove-target@example.com")
+        HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        HouseholdMember.objects.create(
+            household=household,
+            user=target_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        client = APIClient()
+        client.force_authenticate(user=member_user)
+
+        url = reverse("household-remove-member", kwargs={"pk": household.pk})
+        response = client.post(url, {"user_id": str(target_user.id)}, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert HouseholdMember.objects.filter(household=household, user=target_user).exists()
+
+
+@pytest.mark.django_db
+class TestUpdateRoleAction:
+    def test_owner_can_promote_member_to_owner(self, owner_client, household):
+        member_user = UserFactory(email="promote@example.com")
+        membership = HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        url = reverse("household-update-role", kwargs={"pk": household.pk})
+        response = owner_client.post(
+            url,
+            {"user_id": str(member_user.id), "role": HouseholdMember.Role.OWNER},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        membership.refresh_from_db()
+        assert membership.role == HouseholdMember.Role.OWNER
+
+    def test_update_role_requires_user_id_and_role(self, owner_client, household):
+        url = reverse("household-update-role", kwargs={"pk": household.pk})
+        response = owner_client.post(url, {"user_id": ""}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_update_role_rejects_invalid_role(self, owner_client, household):
+        member_user = UserFactory(email="invalid-role@example.com")
+        HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        url = reverse("household-update-role", kwargs={"pk": household.pk})
+        response = owner_client.post(
+            url,
+            {"user_id": str(member_user.id), "role": "admin"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_cannot_demote_last_owner(self, owner_client, household, user):
+        url = reverse("household-update-role", kwargs={"pk": household.pk})
+        response = owner_client.post(
+            url,
+            {"user_id": str(user.id), "role": HouseholdMember.Role.MEMBER},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_member_cannot_update_roles(self, db, household):
+        member_user = UserFactory(email="member-role@example.com")
+        target_user = UserFactory(email="member-role-target@example.com")
+        HouseholdMember.objects.create(
+            household=household,
+            user=member_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        HouseholdMember.objects.create(
+            household=household,
+            user=target_user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        client = APIClient()
+        client.force_authenticate(user=member_user)
+
+        url = reverse("household-update-role", kwargs={"pk": household.pk})
+        response = client.post(
+            url,
+            {"user_id": str(target_user.id), "role": HouseholdMember.Role.OWNER},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestHouseholdMembershipSignals:
+    def test_join_sets_active_household_when_user_has_none(self):
+        user = UserFactory(email="signal-join@example.com")
+        household = Household.objects.create(name="Signal Join")
+
+        HouseholdMember.objects.create(
+            household=household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        user.refresh_from_db()
+        assert user.active_household == household
+
+    def test_join_does_not_override_existing_active_household(self):
+        user = UserFactory(email="signal-keep@example.com")
+        first_household = Household.objects.create(name="Signal First")
+        second_household = Household.objects.create(name="Signal Second")
+        HouseholdMember.objects.create(
+            household=first_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        HouseholdMember.objects.create(
+            household=second_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+
+        user.refresh_from_db()
+        assert user.active_household == first_household
+
+    def test_leave_active_household_switches_to_another_membership(self):
+        user = UserFactory(email="signal-switch@example.com")
+        first_household = Household.objects.create(name="Signal Leave First")
+        second_household = Household.objects.create(name="Signal Leave Second")
+        first_membership = HouseholdMember.objects.create(
+            household=first_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        HouseholdMember.objects.create(
+            household=second_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        user.active_household = first_household
+        user.save(update_fields=["active_household"])
+
+        first_membership.delete()
+
+        user.refresh_from_db()
+        assert user.active_household == second_household
+
+    def test_leaving_non_active_household_keeps_current_active_household(self):
+        user = UserFactory(email="signal-noop@example.com")
+        first_household = Household.objects.create(name="Signal Noop First")
+        second_household = Household.objects.create(name="Signal Noop Second")
+        HouseholdMember.objects.create(
+            household=first_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        second_membership = HouseholdMember.objects.create(
+            household=second_household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        user.active_household = first_household
+        user.save(update_fields=["active_household"])
+
+        second_membership.delete()
+
+        user.refresh_from_db()
+        assert user.active_household == first_household
+
+    def test_leave_last_active_household_clears_active_household(self):
+        user = UserFactory(email="signal-clear@example.com")
+        household = Household.objects.create(name="Signal Clear")
+        membership = HouseholdMember.objects.create(
+            household=household,
+            user=user,
+            role=HouseholdMember.Role.MEMBER,
+        )
+        user.active_household = household
+        user.save(update_fields=["active_household"])
+
+        membership.delete()
+
+        user.refresh_from_db()
+        assert user.active_household is None
+

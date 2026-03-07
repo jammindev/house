@@ -1,31 +1,39 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
-from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
 
 from core.permissions import resolve_request_household
+from core.views import ReactPageView
 from zones.models import Zone
 
 from .models import Interaction
 
 
-class AppInteractionsView(LoginRequiredMixin, TemplateView):
-    template_name = 'interactions/app/interactions.html'
+def _resolve_selected_household(request):
+    selected_household = resolve_request_household(request, required=False)
+    if selected_household:
+        return selected_household
+    membership = (
+        request.user.householdmember_set
+        .select_related('household')
+        .order_by('household__name')
+        .first()
+    )
+    return membership.household if membership else None
 
-    def get_context_data(self, **kwargs):
+
+class AppInteractionsView(ReactPageView):
+    page_title = _("Interactions")
+    react_root_id = "interactions-list-root"
+    props_script_id = "interactions-list-props"
+    page_vite_asset = "src/pages/interactions/list.tsx"
+
+    def get_props(self):
         request = self.request
         selected_type = (request.GET.get('type') or '').strip()
         selected_status = (request.GET.get('status') or '').strip()
         force_reload_on_mount = bool((request.GET.get('refresh') or '').strip())
 
-        selected_household = resolve_request_household(request, required=False)
-        if not selected_household:
-            membership = (
-                request.user.householdmember_set
-                .select_related('household')
-                .order_by('household__name')
-                .first()
-            )
-            selected_household = membership.household if membership else None
+        selected_household = _resolve_selected_household(request)
 
         queryset = Interaction.objects.for_user_households(request.user).select_related('created_by').prefetch_related('zones', 'documents', 'tags__tag')
         if selected_household:
@@ -53,7 +61,7 @@ class AppInteractionsView(LoginRequiredMixin, TemplateView):
             for item in interactions
         ]
 
-        interactions_list_props = {
+        return {
             'title': 'Latest interactions',
             'type': selected_type,
             'status': selected_status,
@@ -65,23 +73,15 @@ class AppInteractionsView(LoginRequiredMixin, TemplateView):
             'forceReloadOnMount': force_reload_on_mount,
         }
 
-        return super().get_context_data(interactions_list_props=interactions_list_props, **kwargs)
 
+class AppInteractionNewView(ReactPageView):
+    react_root_id = "interaction-create-root"
+    props_script_id = "interaction-create-props"
+    page_vite_asset = "src/pages/interactions/new.tsx"
 
-class AppInteractionNewView(LoginRequiredMixin, TemplateView):
-    template_name = 'interactions/app/interaction_new.html'
-
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         request = self.request
-        selected_household = resolve_request_household(request, required=False)
-        if not selected_household:
-            membership = (
-                request.user.householdmember_set
-                .select_related('household')
-                .order_by('household__name')
-                .first()
-            )
-            selected_household = membership.household if membership else None
+        selected_household = _resolve_selected_household(request)
 
         zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
         if selected_household:
@@ -97,7 +97,7 @@ class AppInteractionNewView(LoginRequiredMixin, TemplateView):
             for zone in zones_queryset.order_by('name')
         ]
 
-        interaction_create_props = {
+        return {
             'title': 'Create interaction',
             'submitLabel': 'Create',
             'successMessage': 'Interaction created successfully.',
@@ -106,5 +106,3 @@ class AppInteractionNewView(LoginRequiredMixin, TemplateView):
             'initialZonesLoaded': True,
             'redirectToListUrl': f"{reverse('app_interactions')}?refresh=1",
         }
-
-        return super().get_context_data(interaction_create_props=interaction_create_props, **kwargs)

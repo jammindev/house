@@ -16,7 +16,7 @@ class TagSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
 
 class TagLinkSerializer(serializers.ModelSerializer):
@@ -33,4 +33,4 @@ class TagLinkSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]

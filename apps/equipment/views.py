@@ -78,6 +78,8 @@ class EquipmentInteractionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         equipment = serializer.validated_data["equipment"]
         interaction = serializer.validated_data["interaction"]
+        if not Equipment.objects.for_user_households(self.request.user).filter(id=equipment.id).exists():
+            raise ValidationError({"equipment": _("Invalid equipment or access denied.")})
         if equipment.household_id != interaction.household_id:
             raise ValidationError({"interaction": _("Interaction household must match equipment household.")})
         if not Interaction.objects.for_user_households(self.request.user).filter(id=interaction.id).exists():

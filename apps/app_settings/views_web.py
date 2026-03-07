@@ -4,18 +4,23 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.utils.translation import gettext as _
-from django.views.generic import TemplateView, View
+from django.utils.translation import gettext_lazy as _
+from django.views.generic import View
 
 from accounts.serializers import UserSerializer
+from core.views import ReactPageView
 from households.serializers import HouseholdDetailSerializer, HouseholdInvitationSerializer
 from households.models import Household, HouseholdMember, HouseholdInvitation
 
 
-class AppSettingsView(LoginRequiredMixin, TemplateView):
-    template_name = 'app_settings/app/settings.html'
+class AppSettingsView(ReactPageView):
+    page_title = _("Settings")
+    page_description = _("Manage your profile, households, and preferences.")
+    react_root_id = "settings-root"
+    props_script_id = "settings-props"
+    page_vite_asset = "src/pages/settings/index.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         user_data = UserSerializer(self.request.user).data
         households_qs = Household.objects.filter(
             householdmember__user=self.request.user,
@@ -35,22 +40,15 @@ class AppSettingsView(LoginRequiredMixin, TemplateView):
         ).select_related('household', 'invited_by').order_by('-created_at')
         pending_invitations_data = HouseholdInvitationSerializer(pending_invitations_qs, many=True).data
 
-        return super().get_context_data(
-            section='settings',
-            title=_('Settings'),
-            description=_('Manage your profile, households, and preferences.'),
-            mount_id='settings-root',
-            settings_props={
-                'initialUser': user_data,
-                'initialHouseholds': households_data,
-                'activeHouseholdId': active_household_id,
-                'switchHouseholdUrl': reverse('app_settings_switch_household'),
-                'initialPendingInvitations': pending_invitations_data,
-                'acceptInvitationUrlTemplate': '/api/households/invitations/{id}/accept/',
-                'declineInvitationUrlTemplate': '/api/households/invitations/{id}/decline/',
-            },
-            **kwargs,
-        )
+        return {
+            'initialUser': user_data,
+            'initialHouseholds': households_data,
+            'activeHouseholdId': active_household_id,
+            'switchHouseholdUrl': reverse('app_settings_switch_household'),
+            'initialPendingInvitations': pending_invitations_data,
+            'acceptInvitationUrlTemplate': '/api/households/invitations/{id}/accept/',
+            'declineInvitationUrlTemplate': '/api/households/invitations/{id}/decline/',
+        }
 
 
 class SidebarUserFragmentView(LoginRequiredMixin, View):

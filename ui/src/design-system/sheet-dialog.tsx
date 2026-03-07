@@ -49,7 +49,7 @@ type SheetDialogRenderProps = {
 }
 
 type SheetDialogProps = {
-  trigger: ReactElement<{ onClick?: (event: MouseEvent<HTMLElement>) => void }>
+  trigger?: ReactElement<{ onClick?: (event: MouseEvent<HTMLElement>) => void }>
   children: ReactNode | ((helpers: SheetDialogRenderProps) => ReactNode)
   title?: ReactNode
   description?: ReactNode
@@ -100,14 +100,16 @@ export function SheetDialog({
 
   const content = typeof children === "function" ? children(helpers) : children
 
-  const triggerWithHandler = cloneElement(trigger, {
-    onClick: (event: MouseEvent<HTMLElement>) => {
-      trigger.props?.onClick?.(event)
-      if (!event.defaultPrevented) {
-        setOpen(true)
-      }
-    },
-  })
+  const triggerWithHandler = trigger
+    ? cloneElement(trigger, {
+        onClick: (event: MouseEvent<HTMLElement>) => {
+          trigger.props?.onClick?.(event)
+          if (!event.defaultPrevented) {
+            setOpen(true)
+          }
+        },
+      })
+    : null
 
   return (
     <>

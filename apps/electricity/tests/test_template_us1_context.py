@@ -19,10 +19,10 @@ def test_app_electricity_template_renders_context(client):
     assert response.status_code == 200
     assert "electricity/app/electricity.html" in [template.name for template in response.templates]
 
-    assert "electricity_page_props" in response.context
+    assert "react_props" in response.context
     assert "server_sections" in response.context
 
-    props = response.context["electricity_page_props"]
+    props = response.context["react_props"]
     assert props["householdId"] == str(household.id)
     assert props["isOwner"] is True
     assert "summary" in props

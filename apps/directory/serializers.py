@@ -19,7 +19,7 @@ class StructureSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
 
 class ContactSerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class ContactSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
 
 # ── Nested serializers (for list/retrieve) ─────────────────────────────────
@@ -137,7 +137,7 @@ class AddressSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
 
 class EmailSerializer(serializers.ModelSerializer):
@@ -156,7 +156,7 @@ class EmailSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
 
 class PhoneSerializer(serializers.ModelSerializer):
@@ -175,4 +175,4 @@ class PhoneSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]

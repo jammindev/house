@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
@@ -10,13 +9,14 @@ import { createTask, fetchZones, type Zone } from '@/lib/api/tasks';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface NewTaskDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onCreated: () => void;
 }
 
-export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
+export default function NewTaskDialog({ open, onOpenChange, onCreated }: NewTaskDialogProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
-  const [open, setOpen] = React.useState(false);
   const [subject, setSubject] = React.useState('');
   const [content, setContent] = React.useState('');
   const [occurredAt, setOccurredAt] = React.useState('');
@@ -37,8 +37,7 @@ export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
       .catch(() => setZonesLoading(false));
   }, [householdId]);
 
-  const handleOpenChange = (value: boolean) => {
-    setOpen(value);
+  const handleDialogOpenChange = (value: boolean) => {
     if (value) {
       setSubject('');
       setContent('');
@@ -47,6 +46,7 @@ export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
       setError(null);
       loadZones();
     }
+    onOpenChange(value);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -68,7 +68,7 @@ export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
     )
       .then(() => {
         setLoading(false);
-        setOpen(false);
+        onOpenChange(false);
         onCreated();
       })
       .catch(() => {
@@ -80,13 +80,8 @@ export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <Button size="sm" className="gap-2" onClick={() => handleOpenChange(true)}>
-        <Plus className="h-4 w-4" />
-        {t('tasks.newTask', { defaultValue: 'New task' })}
-      </Button>
-
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      <DialogContent className="max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>{t('tasks.newTask', { defaultValue: 'New task' })}</DialogTitle>
         </DialogHeader>
@@ -158,7 +153,7 @@ export default function NewTaskDialog({ onCreated }: NewTaskDialogProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => onOpenChange(false)}
               disabled={loading}
             >
               {t('common.cancel', { defaultValue: 'Cancel' })}

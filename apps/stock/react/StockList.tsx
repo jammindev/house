@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/design-system/dialog';
+import { FilterBar } from '@/design-system/filter-bar';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
@@ -26,6 +27,7 @@ import {
   type StockCategorySummary,
   type StockItem,
 } from '@/lib/api/stock';
+import { useUrlDialog } from '@/lib/useUrlDialog';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
@@ -35,7 +37,6 @@ interface StockListProps {
   initialStatus?: string;
   initialZoneId?: string;
   initialCategoryId?: string;
-  newUrl?: string;
 }
 
 const STATUS_OPTIONS = ['', 'in_stock', 'low_stock', 'out_of_stock', 'ordered', 'expired', 'reserved'];
@@ -58,7 +59,6 @@ export default function StockList({
   initialStatus = '',
   initialZoneId = '',
   initialCategoryId = '',
-  newUrl = '/app/equipment/stock/new/',
 }: StockListProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
@@ -69,11 +69,11 @@ export default function StockList({
   const [summary, setSummary] = React.useState<StockCategorySummary[]>([]);
   const [items, setItems] = React.useState<StockItem[]>([]);
 
-  const [searchDraft, setSearchDraft] = React.useState(initialSearch);
   const [search, setSearch] = React.useState(initialSearch);
   const [status, setStatus] = React.useState(initialStatus);
   const [zone, setZone] = React.useState(initialZoneId);
   const [category, setCategory] = React.useState(initialCategoryId);
+  const [createCategoryRequested, setCreateCategoryRequested] = useUrlDialog('new-category');
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -130,6 +130,19 @@ export default function StockList({
     window.history.replaceState({}, '', `${url.pathname}?${url.searchParams.toString()}`);
   }, [search, status, zone, category]);
 
+  React.useEffect(() => {
+    if (!createCategoryRequested) return;
+    setTab('categories');
+    setEditingCategory(null);
+    setCategoryForm({
+      name: '',
+      emoji: '📦',
+      color: '#94a3b8',
+      description: '',
+    });
+    setCategoryDialogOpen(true);
+  }, [createCategoryRequested]);
+
   function openCreateCategoryDialog() {
     setEditingCategory(null);
     setCategoryForm({
@@ -139,6 +152,13 @@ export default function StockList({
       description: '',
     });
     setCategoryDialogOpen(true);
+  }
+
+  function handleCategoryDialogOpenChange(open: boolean) {
+    setCategoryDialogOpen(open);
+    if (!open) {
+      setCreateCategoryRequested(false);
+    }
   }
 
   function openEditCategoryDialog(entry: StockCategory) {
@@ -183,6 +203,7 @@ export default function StockList({
       }
 
       setCategoryDialogOpen(false);
+      setCreateCategoryRequested(false);
       await load();
     } finally {
       setCategorySaving(false);
@@ -194,6 +215,15 @@ export default function StockList({
     await deleteStockCategory(entry.id, householdId);
     await load();
   }
+
+  function resetFilters() {
+    setSearch('');
+    setStatus('');
+    setZone('');
+    setCategory('');
+  }
+
+  const hasActiveFilters = !!(search || status || zone || category);
 
   return (
     <Card>
@@ -213,55 +243,59 @@ export default function StockList({
       <CardContent className="space-y-4">
         {tab === 'items' ? (
           <>
-            <div className="grid gap-3 md:grid-cols-[1fr_180px_220px_220px_auto] md:items-end">
-              <div className="space-y-1">
-                <label htmlFor="stock-search" className="text-xs font-medium text-muted-foreground">{t('stock.fields.search')}</label>
-                <div className="flex gap-2">
-                  <Input id="stock-search" value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} placeholder={t('stock.fields.search_placeholder')} />
-                  <Button type="button" variant="outline" onClick={() => setSearch(searchDraft.trim())}>{t('stock.actions.apply')}</Button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="stock-status" className="text-xs font-medium text-muted-foreground">{t('stock.fields.status')}</label>
-                <Select id="stock-status" value={status} onChange={(event) => setStatus(event.target.value)}>
-                  {STATUS_OPTIONS.map((entry) => (
-                    <option key={entry || 'all'} value={entry}>
-                      {entry ? t(`stock.status.${entry}`) : t('stock.fields.all_statuses')}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="stock-zone" className="text-xs font-medium text-muted-foreground">{t('stock.fields.zone')}</label>
-                <Select id="stock-zone" value={zone} onChange={(event) => setZone(event.target.value)}>
-                  <option value="">{t('stock.fields.all_zones')}</option>
-                  {zones.map((entry) => (
-                    <option key={entry.id} value={entry.id}>{entry.full_path || entry.name}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="stock-category" className="text-xs font-medium text-muted-foreground">{t('stock.fields.category')}</label>
-                <Select id="stock-category" value={category} onChange={(event) => setCategory(event.target.value)}>
-                  <option value="">{t('stock.fields.all_categories')}</option>
-                  {categories.map((entry) => (
-                    <option key={entry.id} value={entry.id}>{entry.emoji} {entry.name}</option>
-                  ))}
-                </Select>
-              </div>
-
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => { setSearchDraft(''); setSearch(''); setStatus(''); setZone(''); setCategory(''); }}>
-                  {t('stock.actions.reset')}
-                </Button>
-                <a href={newUrl} className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-                  {t('stock.actions.new_item')}
-                </a>
-              </div>
-            </div>
+            <FilterBar
+              fields={[
+                {
+                  type: 'search',
+                  id: 'stock-search',
+                  label: t('stock.fields.search'),
+                  value: search,
+                  onChange: setSearch,
+                  placeholder: t('stock.fields.search_placeholder'),
+                },
+                {
+                  type: 'select',
+                  id: 'stock-status',
+                  label: t('stock.fields.status'),
+                  value: status,
+                  onChange: setStatus,
+                  options: STATUS_OPTIONS.map((entry) => ({
+                    value: entry,
+                    label: entry ? t(`stock.status.${entry}`) : t('stock.fields.all_statuses'),
+                  })),
+                },
+                {
+                  type: 'select',
+                  id: 'stock-zone',
+                  label: t('stock.fields.zone'),
+                  value: zone,
+                  onChange: setZone,
+                  options: [
+                    { value: '', label: t('stock.fields.all_zones') },
+                    ...zones.map((entry) => ({
+                      value: entry.id,
+                      label: entry.full_path || entry.name,
+                    })),
+                  ],
+                },
+                {
+                  type: 'select',
+                  id: 'stock-category',
+                  label: t('stock.fields.category'),
+                  value: category,
+                  onChange: setCategory,
+                  options: [
+                    { value: '', label: t('stock.fields.all_categories') },
+                    ...categories.map((entry) => ({
+                      value: entry.id,
+                      label: `${entry.emoji} ${entry.name}`,
+                    })),
+                  ],
+                },
+              ]}
+              onReset={resetFilters}
+              hasActiveFilters={hasActiveFilters}
+            />
 
             {loading ? <p className="text-sm text-muted-foreground">{t('stock.loading.items')}</p> : null}
 
@@ -282,7 +316,7 @@ export default function StockList({
                   <li key={item.id} className="rounded-md border p-3">
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <a href={`/app/equipment/stock/${item.id}/`} className="font-medium text-sm underline">{item.name}</a>
+                        <a href={`/app/stock/${item.id}/`} className="font-medium text-sm underline">{item.name}</a>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {item.category_name || t('stock.labels.not_available')} · {item.zone_name || t('stock.labels.no_zone')}
                         </p>
@@ -303,10 +337,6 @@ export default function StockList({
 
         {tab === 'categories' ? (
           <>
-            <div className="flex justify-end">
-              <Button type="button" onClick={openCreateCategoryDialog}>{t('stock.categories.new')}</Button>
-            </div>
-
             {loading ? <p className="text-sm text-muted-foreground">{t('stock.loading.categories')}</p> : null}
 
             {!loading && categories.length === 0 ? (
@@ -344,8 +374,8 @@ export default function StockList({
           </>
         ) : null}
 
-        <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
-          <DialogContent>
+        <Dialog open={categoryDialogOpen} onOpenChange={handleCategoryDialogOpenChange}>
+          <DialogContent aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>
                 {editingCategory ? t('stock.categories.edit_title') : t('stock.categories.create_title')}
@@ -394,7 +424,7 @@ export default function StockList({
               </div>
 
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setCategoryDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => handleCategoryDialogOpenChange(false)}>
                   {t('stock.actions.cancel')}
                 </Button>
                 <Button type="submit" disabled={categorySaving}>

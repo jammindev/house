@@ -4,9 +4,7 @@
 from django.db.models import ProtectedError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
-from django.views.generic import TemplateView
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -15,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import resolve_request_household
+from core.views import ReactPageView
 from households.models import HouseholdMember
 
 from .models import (
@@ -61,8 +60,12 @@ def is_household_owner(user, household):
         role=HouseholdMember.Role.OWNER,
     ).exists()
 
-class AppElectricityView(LoginRequiredMixin, TemplateView):
+class AppElectricityView(ReactPageView):
     template_name = "electricity/app/electricity.html"
+    page_title = _("Electricity")
+    react_root_id = "electricity-board-root"
+    props_script_id = "electricity-page-props"
+    page_vite_asset = "src/pages/electricity/board.tsx"
 
     def get_context_data(self, **kwargs):
         request = self.request
@@ -180,11 +183,10 @@ class AppElectricityView(LoginRequiredMixin, TemplateView):
             "recent_changes": recent_changes,
         }
 
-        return super().get_context_data(
-            electricity_page_props=electricity_page_props,
-            server_sections=server_sections,
-            **kwargs,
-        )
+        ctx = super().get_context_data(**kwargs)
+        ctx["react_props"] = electricity_page_props
+        ctx["server_sections"] = server_sections
+        return ctx
 
 
 class ElectricityHealthView(APIView):

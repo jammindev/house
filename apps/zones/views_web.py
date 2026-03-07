@@ -1,8 +1,8 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
-from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
 
 from core.permissions import resolve_request_household
+from core.views import ReactPageView
 
 from .models import Zone
 
@@ -20,19 +20,20 @@ def _resolve_selected_household(request):
     return membership.household if membership else None
 
 
-class AppZonesView(LoginRequiredMixin, TemplateView):
-    template_name = 'zones/app/zones.html'
+class AppZonesView(ReactPageView):
+    page_title = _("Zones")
+    page_actions_template = "zones/partials/_zones_actions.html"
+    react_root_id = "zones-root"
+    props_script_id = "zones-page-props"
+    page_vite_asset = "src/pages/zones/list.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         selected_household = _resolve_selected_household(self.request)
-
         queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
         if selected_household:
             queryset = queryset.filter(household=selected_household)
-
         zones = list(queryset.order_by('name')[:80])
-
-        zones_page_props = {
+        return {
             'initialZones': [
                 {
                     'id': str(zone.id),
@@ -45,32 +46,31 @@ class AppZonesView(LoginRequiredMixin, TemplateView):
             ],
         }
 
-        return super().get_context_data(
-            zones_page_props=zones_page_props,
-            zones=zones,
-            **kwargs,
-        )
 
-
-class AppZoneDetailView(LoginRequiredMixin, TemplateView):
+class AppZoneDetailView(ReactPageView):
     template_name = 'zones/app/zone_detail.html'
+    react_root_id = "zone-detail-root"
+    props_script_id = "zone-detail-page-props"
+    page_vite_asset = "src/pages/zones/detail.tsx"
 
-    def get_context_data(self, **kwargs):
-        selected_household = _resolve_selected_household(self.request)
-        zone_id = self.kwargs['zone_id']
+    def _fetch_zone(self):
+        if not hasattr(self, '_zone_cache'):
+            selected_household = _resolve_selected_household(self.request)
+            zone_id = self.kwargs['zone_id']
+            queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
+            if selected_household:
+                queryset = queryset.filter(household=selected_household)
+            zone = queryset.filter(id=zone_id).first()
+            if not zone:
+                raise Http404('Zone not found')
+            photos_count = zone.zonedocument_set.filter(role='photo').count()
+            children_count = zone.children.count()
+            self._zone_cache = (zone, children_count, photos_count)
+        return self._zone_cache
 
-        queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
-        if selected_household:
-            queryset = queryset.filter(household=selected_household)
-
-        zone = queryset.filter(id=zone_id).first()
-        if not zone:
-            raise Http404('Zone not found')
-
-        photos_count = zone.zonedocument_set.filter(role='photo').count()
-        children_count = zone.children.count()
-
-        zone_detail_page_props = {
+    def get_props(self):
+        zone, children_count, photos_count = self._fetch_zone()
+        return {
             'zoneId': str(zone.id),
             'initialZone': {
                 'id': str(zone.id),
@@ -89,10 +89,13 @@ class AppZoneDetailView(LoginRequiredMixin, TemplateView):
             'initialPhotos': [],
         }
 
-        return super().get_context_data(
-            zone=zone,
-            zone_detail_page_props=zone_detail_page_props,
-            children_count=children_count,
-            photos_count=photos_count,
-            **kwargs,
-        )
+    def get_context_data(self, **kwargs):
+        zone, children_count, photos_count = self._fetch_zone()
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({
+            'zone': zone,
+            'children_count': children_count,
+            'photos_count': photos_count,
+        })
+        return ctx
+

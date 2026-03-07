@@ -47,7 +47,7 @@
     </section>
 
     <div id="zone-detail-root"></div>
-    {{ zone_detail_page_props|json_script:"zone-detail-page-props" }}
+    {{ react_props|json_script:props_script_id }}
 </div>
 {% endblock %}
 

@@ -1,7 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.views.generic import TemplateView
 from django.utils.translation import gettext_lazy as _
 
 from core.permissions import resolve_request_household
@@ -106,12 +104,15 @@ class AppProjectsView(ReactPageView):
         }
 
 
-class AppProjectsNewView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/project_new.html'
+class AppProjectsNewView(ReactPageView):
+    page_title = _("New project")
+    react_root_id = "projects-form-root"
+    props_script_id = "projects-form-props"
+    page_vite_asset = "src/pages/projects/new.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         selected_household = _resolve_selected_household(self.request)
-        projects_form_props = {
+        return {
             "mode": "create",
             "initialGroups": _groups_payload(selected_household),
             "initialGroupsLoaded": True,
@@ -120,36 +121,38 @@ class AppProjectsNewView(LoginRequiredMixin, TemplateView):
             "cancelUrl": reverse("app_projects"),
             "successRedirectUrl": reverse("app_projects"),
         }
-        return super().get_context_data(projects_form_props=projects_form_props, **kwargs)
 
 
-class AppProjectsDetailView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/project_detail.html'
+class AppProjectsDetailView(ReactPageView):
+    react_root_id = "projects-detail-root"
+    props_script_id = "projects-detail-props"
+    page_vite_asset = "src/pages/projects/detail.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         project = get_object_or_404(
             Project.objects.for_user_households(self.request.user).select_related("project_group"),
             id=self.kwargs["project_id"],
         )
-        projects_detail_props = {
+        return {
             "projectId": str(project.id),
             "editUrl": reverse("app_projects_edit", kwargs={"project_id": project.id}),
             "listUrl": reverse("app_projects"),
         }
-        return super().get_context_data(projects_detail_props=projects_detail_props, **kwargs)
 
 
-class AppProjectsEditView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/project_edit.html'
+class AppProjectsEditView(ReactPageView):
+    react_root_id = "projects-form-root"
+    props_script_id = "projects-form-props"
+    page_vite_asset = "src/pages/projects/edit.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         project = get_object_or_404(
             Project.objects.for_user_households(self.request.user),
             id=self.kwargs["project_id"],
         )
         selected_household = _resolve_selected_household(self.request)
         household = selected_household or project.household
-        projects_form_props = {
+        return {
             "mode": "edit",
             "projectId": str(project.id),
             "initialGroups": _groups_payload(household),
@@ -159,32 +162,34 @@ class AppProjectsEditView(LoginRequiredMixin, TemplateView):
             "cancelUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
             "successRedirectUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
         }
-        return super().get_context_data(projects_form_props=projects_form_props, **kwargs)
 
 
-class AppProjectGroupsView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/project_groups.html'
+class AppProjectGroupsView(ReactPageView):
+    page_title = _("Project groups")
+    react_root_id = "project-groups-root"
+    props_script_id = "project-groups-props"
+    page_vite_asset = "src/pages/projects/groups.tsx"
 
-    def get_context_data(self, **kwargs):
-        project_groups_props = {
+    def get_props(self):
+        return {
             "projectsUrl": reverse("app_projects"),
         }
-        return super().get_context_data(project_groups_props=project_groups_props, **kwargs)
 
 
-class AppProjectGroupDetailView(LoginRequiredMixin, TemplateView):
-    template_name = 'projects/app/project_group_detail.html'
+class AppProjectGroupDetailView(ReactPageView):
+    react_root_id = "project-group-detail-root"
+    props_script_id = "project-group-detail-props"
+    page_vite_asset = "src/pages/projects/group-detail.tsx"
 
-    def get_context_data(self, **kwargs):
+    def get_props(self):
         group = get_object_or_404(
             ProjectGroup.objects.filter(
                 household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
             ),
             id=self.kwargs["group_id"],
         )
-        project_group_detail_props = {
+        return {
             "groupId": str(group.id),
             "backUrl": reverse("app_project_groups"),
             "editUrl": None,
         }
-        return super().get_context_data(project_group_detail_props=project_group_detail_props, **kwargs)

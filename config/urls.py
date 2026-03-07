@@ -57,6 +57,7 @@ urlpatterns += [
     path("app/directory/", include("directory.web_urls")),
     path("app/documents/", include("documents.web_urls")),
     path("app/equipment/", include("equipment.web_urls")),
+    path("app/stock/", include("stock.web_urls")),
     path("app/insurance/", include("insurance.web_urls")),
 
     # Sections à migrer

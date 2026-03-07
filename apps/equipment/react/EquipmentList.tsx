@@ -3,10 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
-import { Button } from '@/design-system/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
-import { Input } from '@/design-system/input';
-import { Select } from '@/design-system/select';
+import { FilterBar } from '@/design-system/filter-bar';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
@@ -17,7 +15,6 @@ interface EquipmentListProps {
   initialSearch?: string;
   initialStatus?: string;
   initialZoneId?: string;
-  newUrl?: string;
 }
 
 const STATUS_OPTIONS = ['', 'active', 'maintenance', 'storage', 'retired', 'lost', 'ordered'];
@@ -41,12 +38,10 @@ export default function EquipmentList({
   initialSearch = '',
   initialStatus = '',
   initialZoneId = '',
-  newUrl = '/app/equipment/new/',
 }: EquipmentListProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
-  const [searchDraft, setSearchDraft] = React.useState(initialSearch);
   const [search, setSearch] = React.useState(initialSearch);
   const [status, setStatus] = React.useState(initialStatus);
   const [zone, setZone] = React.useState(initialZoneId);
@@ -108,7 +103,6 @@ export default function EquipmentList({
   }, [search, status, zone]);
 
   function resetFilters() {
-    setSearchDraft('');
     setSearch('');
     setStatus('');
     setZone('');
@@ -120,60 +114,47 @@ export default function EquipmentList({
         <CardTitle className="text-base">{title ?? t('equipment.title')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_200px_220px_auto] md:items-end">
-          <div className="space-y-1">
-            <label htmlFor="equipment-search" className="text-xs font-medium text-muted-foreground">
-              {t('equipment.search')}
-            </label>
-            <div className="flex gap-2">
-              <Input
-                id="equipment-search"
-                value={searchDraft}
-                onChange={(event) => setSearchDraft(event.target.value)}
-                placeholder={t('equipment.search_placeholder')}
-              />
-              <Button type="button" variant="outline" onClick={() => setSearch(searchDraft.trim())}>
-                {t('equipment.apply')}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="equipment-status" className="text-xs font-medium text-muted-foreground">
-              {t('equipment.status_label')}
-            </label>
-            <Select id="equipment-status" value={status} onChange={(event) => setStatus(event.target.value)}>
-              {STATUS_OPTIONS.map((entry) => (
-                <option key={entry || 'all'} value={entry}>
-                  {entry ? t(`equipment.status.${entry}`) : t('equipment.all_statuses')}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="equipment-zone" className="text-xs font-medium text-muted-foreground">
-              {t('equipment.zone_label')}
-            </label>
-            <Select id="equipment-zone" value={zone} onChange={(event) => setZone(event.target.value)}>
-              <option value="">{t('equipment.all_zones')}</option>
-              {zones.map((entry) => (
-                <option key={entry.id} value={entry.id}>
-                  {entry.full_path || entry.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={resetFilters} disabled={!search && !status && !zone}>
-              {t('equipment.reset')}
-            </Button>
-            <a href={newUrl} className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-              {t('equipment.new')}
-            </a>
-          </div>
-        </div>
+        <FilterBar
+          fields={[
+            {
+              type: 'search',
+              id: 'equipment-search',
+              label: t('equipment.search'),
+              value: search,
+              onChange: setSearch,
+              placeholder: t('equipment.search_placeholder'),
+            },
+            {
+              type: 'select',
+              id: 'equipment-status',
+              label: t('equipment.status_label'),
+              value: status,
+              onChange: setStatus,
+              options: STATUS_OPTIONS.map((entry) => ({
+                value: entry,
+                label: entry ? t(`equipment.status.${entry}`) : t('equipment.all_statuses'),
+              })),
+            },
+            {
+              type: 'select',
+              id: 'equipment-zone',
+              label: t('equipment.zone_label'),
+              value: zone,
+              onChange: setZone,
+              options: [
+                { value: '', label: t('equipment.all_zones') },
+                ...zones.map((entry) => ({
+                  value: entry.id,
+                  label: entry.full_path || entry.name,
+                })),
+              ],
+            },
+          ]}
+          onReset={resetFilters}
+          hasActiveFilters={!!(search || status || zone)}
+          resetLabel={t('equipment.reset')}
+          applyLabel={t('equipment.apply')}
+        />
 
         {loading ? <p className="text-sm text-muted-foreground">{t('equipment.loading')}</p> : null}
 

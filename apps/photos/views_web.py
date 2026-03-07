@@ -1,9 +1,10 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
+
+from core.views import ReactPageView
 
 
-class AppPhotosView(LoginRequiredMixin, TemplateView):
-    template_name = 'photos/app/photos.html'
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(react_props={}, **kwargs)
+class AppPhotosView(ReactPageView):
+    page_title = _("Photos")
+    react_root_id = "photos-root"
+    props_script_id = "photos-props"
+    page_vite_asset = "src/pages/photos/list.tsx"

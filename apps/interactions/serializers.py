@@ -1,6 +1,7 @@
 """
 Interaction serializers for REST API.
 """
+from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from tags.models import Tag, TagLink
 from .models import (
@@ -81,10 +82,12 @@ class InteractionSerializer(serializers.ModelSerializer):
                 name=tag_name,
                 defaults={'created_by': interaction.created_by},
             )
+            interaction_content_type = ContentType.objects.get_for_model(interaction, for_concrete_model=False)
             TagLink.objects.get_or_create(
                 household=interaction.household,
                 tag=tag,
-                content_object=interaction,
+                content_type=interaction_content_type,
+                object_id=str(interaction.id),
                 defaults={'created_by': interaction.created_by},
             )
     

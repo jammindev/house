@@ -1,0 +1,21 @@
+[run]
+source =
+    apps
+    config
+omit =
+    */tests/*
+    */test_*.py
+    */migrations/*
+    */legacy/*
+    */ui/*
+    */docs/*
+    */static/*
+    */staticfiles/*
+    */htmlcov/*
+    */manage.py
+    */wsgi.py
+    */asgi.py
+
+[report]
+skip_covered = True
+show_missing = True

@@ -2,9 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
-import { Button } from '@/design-system/button';
-import { Input } from '@/design-system/input';
-import { Select } from '@/design-system/select';
+import { FilterBar } from '@/design-system/filter-bar';
 import {
   fetchProjects,
   fetchProjectGroups,
@@ -53,7 +51,6 @@ export default function ProjectList({
   const hasServerData = initialItems !== undefined && initialGroups !== undefined;
 
   const [groups, setGroups] = React.useState<ProjectGroupItem[]>(initialGroups ?? []);
-  const [searchDraft, setSearchDraft] = React.useState(initialSearch);
   const [search, setSearch] = React.useState(initialSearch);
   const [status, setStatus] = React.useState(initialStatus);
   const [type, setType] = React.useState(initialType);
@@ -130,7 +127,6 @@ export default function ProjectList({
   }
 
   function resetFilters() {
-    setSearchDraft('');
     setSearch('');
     setStatus('');
     setType('');
@@ -142,74 +138,55 @@ export default function ProjectList({
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="space-y-3">
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <label htmlFor="proj-search" className="text-xs font-medium text-muted-foreground">
-              {t('projects.search')}
-            </label>
-            <Input
-              id="proj-search"
-              value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && setSearch(searchDraft.trim())}
-              placeholder={t('projects.search_placeholder')}
-              className="mt-1"
-            />
-          </div>
-          <div className="flex items-end">
-            <Button type="button" variant="outline" onClick={() => setSearch(searchDraft.trim())}>
-              {t('projects.apply')}
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="space-y-1">
-            <label htmlFor="proj-status" className="text-xs font-medium text-muted-foreground">
-              {t('projects.status_label')}
-            </label>
-            <Select id="proj-status" value={status} onChange={(e) => setStatus(e.target.value)}>
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s || 'all'} value={s}>
-                  {s ? t(`projects.status.${s}`) : t('projects.all_statuses')}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="proj-type" className="text-xs font-medium text-muted-foreground">
-              {t('projects.type_label')}
-            </label>
-            <Select id="proj-type" value={type} onChange={(e) => setType(e.target.value)}>
-              {TYPE_OPTIONS.map((tp) => (
-                <option key={tp || 'all'} value={tp}>
-                  {tp ? t(`projects.type.${tp}`) : t('projects.all_types')}
-                </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <label htmlFor="proj-group" className="text-xs font-medium text-muted-foreground">
-              {t('projects.group_label')}
-            </label>
-            <Select id="proj-group" value={groupId} onChange={(e) => setGroupId(e.target.value)}>
-              <option value="">{t('projects.all_groups')}</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>{g.name}</option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="flex items-end">
-            <Button type="button" variant="outline" onClick={resetFilters} disabled={!hasActiveFilters} className="w-full">
-              {t('projects.reset')}
-            </Button>
-          </div>
-        </div>
-      </div>
+      <FilterBar
+        fields={[
+          {
+            type: 'search',
+            id: 'proj-search',
+            label: t('projects.search'),
+            value: search,
+            onChange: setSearch,
+            placeholder: t('projects.search_placeholder'),
+          },
+          {
+            type: 'select',
+            id: 'proj-status',
+            label: t('projects.status_label'),
+            value: status,
+            onChange: setStatus,
+            options: STATUS_OPTIONS.map((s) => ({
+              value: s,
+              label: s ? t(`projects.status.${s}`) : t('projects.all_statuses'),
+            })),
+          },
+          {
+            type: 'select',
+            id: 'proj-type',
+            label: t('projects.type_label'),
+            value: type,
+            onChange: setType,
+            options: TYPE_OPTIONS.map((tp) => ({
+              value: tp,
+              label: tp ? t(`projects.type.${tp}`) : t('projects.all_types'),
+            })),
+          },
+          {
+            type: 'select',
+            id: 'proj-group',
+            label: t('projects.group_label'),
+            value: groupId,
+            onChange: setGroupId,
+            options: [
+              { value: '', label: t('projects.all_groups') },
+              ...groups.map((g) => ({ value: g.id, label: g.name })),
+            ],
+          },
+        ]}
+        onReset={resetFilters}
+        hasActiveFilters={hasActiveFilters}
+        resetLabel={t('projects.reset')}
+        applyLabel={t('projects.apply')}
+      />
 
       {/* States */}
       {loading ? <p className="text-sm text-muted-foreground">{t('projects.loading')}</p> : null}

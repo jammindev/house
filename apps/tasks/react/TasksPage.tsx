@@ -10,6 +10,7 @@ import {
   type TaskStatus,
 } from '@/lib/api/tasks';
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import { useUrlDialog } from '@/lib/useUrlDialog';
 import TaskColumn from './TaskColumn';
 import NewTaskDialog from './NewTaskDialog';
 
@@ -18,6 +19,7 @@ type TasksPageProps = Record<string, never>;
 export default function TasksPage(_props: TasksPageProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
+  const [newTaskOpen, setNewTaskOpen] = useUrlDialog('new-task');
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -61,19 +63,13 @@ export default function TasksPage(_props: TasksPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {t('tasks.title', { defaultValue: 'Tasks' })}
-          </h1>
-          {!loading && !error && tasks.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {t('tasks.count', { count: tasks.length, defaultValue: '{{count}} tasks' })}
-            </p>
-          )}
-        </div>
-        <NewTaskDialog onCreated={loadTasks} />
-      </div>
+      {!loading && !error && tasks.length > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t('tasks.count', { count: tasks.length, defaultValue: '{{count}} tasks' })}
+        </p>
+      ) : null}
+
+      <NewTaskDialog open={newTaskOpen} onOpenChange={setNewTaskOpen} onCreated={loadTasks} />
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">

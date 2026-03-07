@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import { useUrlDialog } from '@/lib/useUrlDialog';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
-import { Button } from '@/design-system/button';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 
 import ZoneForm from './components/ZoneForm';
@@ -20,7 +19,7 @@ export default function ZonesNode(props: ZonesPageProps) {
 
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
+  const [formOpen, setFormOpen] = useUrlDialog('new-zone');
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
   const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
@@ -43,15 +42,8 @@ export default function ZonesNode(props: ZonesPageProps) {
 
   return (
     <section className="rounded-xl border border-border bg-card p-4 text-card-foreground">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <div> </div>
+      <div className="mb-4">
         <SheetDialog
-          trigger={
-            <Button variant="secondary">
-              <Plus className="mr-2 h-4 w-4" />
-              {t('zones.addZone')}
-            </Button>
-          }
           title={t('zones.addZone')}
           open={formOpen}
           onOpenChange={setFormOpen}

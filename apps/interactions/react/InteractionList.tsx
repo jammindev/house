@@ -5,6 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
+import { FilterBar } from '@/design-system/filter-bar';
 import { Skeleton } from '@/design-system/skeleton';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 
@@ -218,59 +219,36 @@ export function InteractionList({
         <CardTitle className="text-base">{resolvedTitle}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-          <div className="space-y-1">
-            <label
-              htmlFor="interactions-filter-type"
-              className="text-xs font-medium text-muted-foreground"
-            >
-              {t('interactions.filter_type')}
-            </label>
-            <select
-              id="interactions-filter-type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={selectedType}
-              onChange={(event) => setSelectedType(event.target.value)}
-            >
-              <option value="">{t('interactions.all_types')}</option>
-              {TYPE_OPTIONS.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="space-y-1">
-            <label
-              htmlFor="interactions-filter-status"
-              className="text-xs font-medium text-muted-foreground"
-            >
-              {t('interactions.filter_status')}
-            </label>
-            <select
-              id="interactions-filter-status"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={selectedStatus}
-              onChange={(event) => setSelectedStatus(event.target.value)}
-            >
-              <option value="">{t('interactions.all_statuses')}</option>
-              {STATUS_OPTIONS.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-input px-3 text-sm"
-            onClick={resetFilters}
-            disabled={!selectedType && !selectedStatus}
-          >
-            {t('interactions.reset_filters')}
-          </button>
+        <div className="mb-4">
+          <FilterBar
+            fields={[
+              {
+                type: 'select',
+                id: 'interactions-filter-type',
+                label: t('interactions.filter_type'),
+                value: selectedType,
+                onChange: setSelectedType,
+                options: [
+                  { value: '', label: t('interactions.all_types') },
+                  ...TYPE_OPTIONS.map((value) => ({ value, label: value })),
+                ],
+              },
+              {
+                type: 'select',
+                id: 'interactions-filter-status',
+                label: t('interactions.filter_status'),
+                value: selectedStatus,
+                onChange: setSelectedStatus,
+                options: [
+                  { value: '', label: t('interactions.all_statuses') },
+                  ...STATUS_OPTIONS.map((value) => ({ value, label: value })),
+                ],
+              },
+            ]}
+            onReset={resetFilters}
+            hasActiveFilters={!!(selectedType || selectedStatus)}
+            resetLabel={t('interactions.reset_filters')}
+          />
         </div>
 
         {loading ? <LoadingState /> : null}

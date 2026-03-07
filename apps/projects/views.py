@@ -44,6 +44,35 @@ class ProjectViewSet(_HouseholdScopedViewSet):
     model = Project
     serializer_class = ProjectSerializer
 
+    def perform_create(self, serializer):
+        household = resolve_request_household(self.request, required=True)
+        if not household:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        project_group = serializer.validated_data.get("project_group")
+        cover_interaction = serializer.validated_data.get("cover_interaction")
+
+        if project_group and project_group.household_id != household.id:
+            raise ValidationError({"project_group": "Project group household must match selected household."})
+
+        if cover_interaction and cover_interaction.household_id != household.id:
+            raise ValidationError({"cover_interaction": "Cover interaction household must match selected household."})
+
+        serializer.save(household=household, created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        project_group = serializer.validated_data.get("project_group", serializer.instance.project_group)
+        cover_interaction = serializer.validated_data.get("cover_interaction", serializer.instance.cover_interaction)
+
+        if project_group and project_group.household_id != household.id:
+            raise ValidationError({"project_group": "Project group household must match selected household."})
+
+        if cover_interaction and cover_interaction.household_id != household.id:
+            raise ValidationError({"cover_interaction": "Cover interaction household must match selected household."})
+
+        serializer.save(updated_by=self.request.user)
+
     @action(detail=True, methods=["post"], url_path="pin")
     def pin(self, request, pk=None):
         project = self.get_object()
@@ -82,6 +111,10 @@ class ProjectZoneViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project = serializer.validated_data["project"]
         zone = serializer.validated_data["zone"]
+        if not Project.objects.for_user_households(self.request.user).filter(id=project.id).exists():
+            raise ValidationError({"project": "Invalid project or access denied."})
+        if not zone.__class__.objects.for_user_households(self.request.user).filter(id=zone.id).exists():
+            raise ValidationError({"zone": "Invalid zone or access denied."})
         if project.household_id != zone.household_id:
             raise ValidationError({"zone": "Zone household must match project household."})
         serializer.save(created_by=self.request.user)
@@ -104,6 +137,11 @@ class ProjectAIThreadViewSet(viewsets.ModelViewSet):
         household = resolve_request_household(self.request, required=True)
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
+        project = serializer.validated_data["project"]
+        if not Project.objects.for_user_households(self.request.user).filter(id=project.id).exists():
+            raise ValidationError({"project": "Invalid project or access denied."})
+        if project.household_id != household.id:
+            raise ValidationError({"project": "Project household must match selected household."})
         serializer.save(household=household, user=self.request.user)
 
 
@@ -119,3 +157,18 @@ class ProjectAIMessageViewSet(viewsets.ModelViewSet):
         if selected_household:
             queryset = queryset.filter(thread__household=selected_household)
         return queryset
+
+    def perform_create(self, serializer):
+        thread = serializer.validated_data["thread"]
+        selected_household = resolve_request_household(self.request, required=False)
+
+        if not ProjectAIThread.objects.filter(
+            id=thread.id,
+            household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True),
+        ).exists():
+            raise ValidationError({"thread": "Invalid thread or access denied."})
+
+        if selected_household and thread.household_id != selected_household.id:
+            raise ValidationError({"thread": "Thread household must match selected household."})
+
+        serializer.save()

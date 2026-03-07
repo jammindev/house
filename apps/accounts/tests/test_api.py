@@ -34,6 +34,14 @@ class TestAuthViewSet:
         
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_login_requires_email_and_password(self, api_client):
+        """Missing credentials return 400 before auth lookup."""
+        url = reverse("auth-login")
+
+        response = api_client.post(url, {"email": ""}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
     def test_logout_requires_authentication(self, api_client):
         """Test logout endpoint requires authentication."""
         url = reverse("auth-logout")
@@ -457,6 +465,18 @@ class TestLoginThrottling:
         # A completely different email should still get a normal response (401, not 429)
         response = api_client.post(url, {"email": "innocent@example.com", "password": "wrong"})
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_email_throttle_is_case_insensitive(self, api_client, monkeypatch):
+        """Different casing for the same target email shares the same throttle bucket."""
+        self._set_low_rates(monkeypatch, ip_rate="100/min", email_rate="3/min")
+        url = reverse("auth-login")
+
+        api_client.post(url, {"email": "Victim@example.com", "password": "wrong"})
+        api_client.post(url, {"email": "victim@example.com", "password": "wrong"})
+        api_client.post(url, {"email": "VICTIM@example.com", "password": "wrong"})
+
+        response = api_client.post(url, {"email": "victim@example.com", "password": "wrong"})
+        assert response.status_code == status.HTTP_429_TOO_MANY_REQUESTS
 
     def test_throttle_not_applied_to_logout(self, api_client, monkeypatch):
         """Logout endpoint has no throttle; many calls should not return 429."""

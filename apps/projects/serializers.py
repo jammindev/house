@@ -27,7 +27,7 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
     def get_projects_count(self, obj):
         return obj.projects.count()
@@ -64,7 +64,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "created_by", "updated_by"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
     def get_is_pinned(self, obj):
         request = self.context.get("request")
@@ -106,7 +106,7 @@ class ProjectAIThreadSerializer(serializers.ModelSerializer):
             "updated_at",
             "archived_at",
         ]
-        read_only_fields = ["id", "created_at", "updated_at"]
+        read_only_fields = ["id", "household", "user", "created_at", "updated_at"]
 
 
 class ProjectAIMessageSerializer(serializers.ModelSerializer):

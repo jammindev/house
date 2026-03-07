@@ -1,9 +1,10 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
+
+from core.views import ReactPageView
 
 
-class AppDocumentsView(LoginRequiredMixin, TemplateView):
-    template_name = 'documents/app/documents.html'
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(react_props={}, **kwargs)
+class AppDocumentsView(ReactPageView):
+    page_title = _("Documents")
+    react_root_id = "documents-root"
+    props_script_id = "documents-props"
+    page_vite_asset = "src/pages/documents/list.tsx"

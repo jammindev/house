@@ -200,7 +200,7 @@ def test_settings_view_exposes_active_household_id(client):
     response = client.get(reverse("app_settings"))
 
     assert response.status_code == 200
-    assert response.context["settings_props"]["activeHouseholdId"] == str(h.id)
+    assert response.context["react_props"]["activeHouseholdId"] == str(h.id)
 
 
 @pytest.mark.django_db
@@ -210,7 +210,7 @@ def test_settings_view_active_household_id_none_when_not_set(client):
     response = client.get(reverse("app_settings"))
 
     assert response.status_code == 200
-    assert response.context["settings_props"]["activeHouseholdId"] is None
+    assert response.context["react_props"]["activeHouseholdId"] is None
 
 
 # ---------------------------------------------------------------------------

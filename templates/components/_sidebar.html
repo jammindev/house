@@ -98,6 +98,21 @@
             {% trans "Equipment" %}
         </a>
 
+        {% url 'app_stock' as url_stock %}
+        <a href="{{ url_stock }}"
+           {% if request.path == url_stock %}aria-current="page"{% endif %}
+           @click="sidebarOpen = false"
+           class="group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl
+                  text-muted-foreground hover:bg-accent/60 hover:text-foreground hover:shadow-sm active:scale-[0.98]
+                  aria-[current=page]:bg-gradient-to-br aria-[current=page]:from-primary-500/10 aria-[current=page]:to-primary-600/5
+                  aria-[current=page]:text-primary aria-[current=page]:shadow-sm aria-[current=page]:border aria-[current=page]:border-primary/40">
+            <i data-lucide="box"
+               class="mr-3 h-5 w-5 shrink-0
+                      text-muted-foreground group-hover:text-foreground
+                      group-aria-[current=page]:text-primary-600 group-aria-[current=page]:scale-110"></i>
+            {% trans "Stock" %}
+        </a>
+
         {% url 'app_electricity' as url_electricity %}
         <a href="{{ url_electricity }}"
            {% if request.path == url_electricity %}aria-current="page"{% endif %}
