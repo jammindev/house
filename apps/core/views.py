@@ -16,17 +16,19 @@ class ReactPageView(LoginRequiredMixin, TemplateView):
 
     Class attributes
     ----------------
-    page_title       : str  – displayed in <title> and <h1>
-    page_description : str  – optional subtitle / description paragraph
-    react_root_id    : str  – id of the <div> React mounts into
-    props_script_id  : str  – id of the <script> JSON tag
-    page_vite_asset  : str  – Vite entry path, e.g. 'src/pages/projects.tsx'
-    template_name    : str  – override to use a custom template instead of
-                             the generic core/react_page.html
+    page_title           : str  – displayed in <title> and <h1>
+    page_description     : str  – optional subtitle / description paragraph
+    page_actions_template: str  – path to a partial template for page actions
+    react_root_id        : str  – id of the <div> React mounts into
+    props_script_id      : str  – id of the <script> JSON tag
+    page_vite_asset      : str  – Vite entry path, e.g. 'src/pages/projects.tsx'
+    template_name        : str  – override to use a custom template instead of
+                                 the generic core/react_page.html
     """
 
     page_title: str = ""
     page_description: str = ""
+    page_actions_template: str = ""
     react_root_id: str = ""
     props_script_id: str = ""
     page_vite_asset: str = ""
@@ -46,6 +48,7 @@ class ReactPageView(LoginRequiredMixin, TemplateView):
             {
                 "page_title": self.page_title,
                 "page_description": self.page_description,
+                "page_actions_template": self.page_actions_template,
                 "react_root_id": self.react_root_id,
                 "props_script_id": self.props_script_id,
                 "page_vite_asset": self.page_vite_asset,

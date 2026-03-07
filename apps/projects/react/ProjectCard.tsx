@@ -74,22 +74,26 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project, detailUrl, onTogglePin, pinLoading }: ProjectCardProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = React.useState(false);
   const overdue = isOverdue(project);
   const dueSoon = isDueSoon(project);
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground hover:shadow-sm transition-shadow">
-      {/* Header */}
-      <div className="p-4 pb-3">
+    <a
+      href={detailUrl}
+      className="block rounded-lg border bg-card text-card-foreground hover:shadow-md transition-all"
+    >
+      <div className="p-4">
         <div className="flex items-start gap-2">
-          <a href={detailUrl} className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm leading-tight truncate">{project.title}</h3>
-          </a>
+            {project.description ? (
+              <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{project.description}</p>
+            ) : null}
+          </div>
           {onTogglePin ? (
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onTogglePin(project); }}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onTogglePin(project); }}
               disabled={pinLoading}
               className="shrink-0 text-muted-foreground hover:text-foreground disabled:opacity-40"
               aria-label={project.is_pinned ? t('projects.unpin') : t('projects.pin')}
@@ -110,7 +114,7 @@ export default function ProjectCard({ project, detailUrl, onTogglePin, pinLoadin
           ) : null}
         </div>
 
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap gap-1.5">
           <span className={`inline-flex items-center rounded border px-2 py-0.5 text-[10px] font-medium ${typeColor(project.type)}`}>
             {t(`projects.type.${project.type}`)}
           </span>
@@ -131,83 +135,26 @@ export default function ProjectCard({ project, detailUrl, onTogglePin, pinLoadin
             </span>
           ) : null}
         </div>
-      </div>
 
-      {/* Collapsible body */}
-      <div className="border-t">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-2 text-[11px] text-muted-foreground hover:text-foreground"
-        >
-          <span>{t('projects.details')}</span>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            className={`transition-transform ${open ? 'rotate-180' : ''}`}
-          >
-            <path d="M6 9l6 6 6-6" />
-          </svg>
-        </button>
+        {project.due_date ? (
+          <div className="mt-3 text-xs text-muted-foreground">
+            <span className="font-medium">{t('projects.due_date')}: </span>
+            {formatDate(project.due_date)}
+          </div>
+        ) : null}
 
-        {open ? (
-          <div className="px-4 pb-4 space-y-2 text-xs text-muted-foreground">
-            {project.description ? (
-              <p className="text-foreground/80 leading-relaxed line-clamp-3">{project.description}</p>
-            ) : null}
-
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <div>
-                <span className="font-medium text-foreground/60">{t('projects.start_date')}: </span>
-                {formatDate(project.start_date)}
-              </div>
-              <div>
-                <span className="font-medium text-foreground/60">{t('projects.due_date')}: </span>
-                {formatDate(project.due_date)}
-              </div>
+        {(Number(project.planned_budget) > 0 || Number(project.actual_cost_cached) > 0) ? (
+          <div className="mt-3">
+            <div className="text-xs text-muted-foreground mb-1">
+              <span className="font-medium">{t('projects.budget')}</span>
             </div>
-
-            {(Number(project.planned_budget) > 0 || Number(project.actual_cost_cached) > 0) ? (
-              <div>
-                <span className="font-medium text-foreground/60">{t('projects.budget')}</span>
-                <BudgetBar
-                  planned={Number(project.planned_budget)}
-                  actual={Number(project.actual_cost_cached)}
-                />
-              </div>
-            ) : null}
-
-            {project.zones.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {project.zones.map((zone) => (
-                  <span
-                    key={zone.id}
-                    className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium border"
-                    style={zone.color ? { borderColor: zone.color, color: zone.color } : {}}
-                  >
-                    {zone.name}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-
-            {project.tags.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {project.tags.map((tag) => (
-                  <span key={tag} className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
+            <BudgetBar
+              planned={Number(project.planned_budget)}
+              actual={Number(project.actual_cost_cached)}
+            />
           </div>
         ) : null}
       </div>
-    </div>
+    </a>
   );
 }

@@ -73,7 +73,7 @@ Pour l'IA:
 - Pages web dans `templates/app/` ou `apps/<app>/templates/`
 - Chaque app avec page web a un `web_urls.py` + `views_web.py` séparés des vues API
 - API schema (Swagger/Redoc) disponible si `ENABLE_API_SCHEMA=True` -> `/api/schema/swagger/`
-- **Pattern ReactPageView** : les vues web héritent de `core.views.ReactPageView` qui fournit un template générique (`templates/core/react_page.html`). Les class attributes déclarent `page_title`, `page_description`, `react_root_id`, `props_script_id`, `page_vite_asset`. La méthode `get_props()` retourne le dict initial hydraté côté Django — **zéro fetch API React au premier rendu**. Pour un template custom, surcharger `template_name`.
+- **Pattern ReactPageView** : les vues web héritent de `core.views.ReactPageView` qui fournit un template générique (`templates/core/react_page.html`). Les class attributes déclarent `page_title`, `page_description`, `page_actions_template`, `react_root_id`, `props_script_id`, `page_vite_asset`. La méthode `get_props()` retourne le dict initial hydraté côté Django — **zéro fetch API React au premier rendu**. Pour ajouter des boutons d'action dans le header, définir `page_actions_template` vers un partial (ex: `"app/partials/_actions.html"`). Pour un template custom complet, surcharger `template_name`.
 
 ## 5) Endpoints clés
 
@@ -156,18 +156,77 @@ Pour l'IA:
 - `ui/src/lib/mount.tsx`: utilitaire de montage React ciblé dans un nœud DOM
 - `ui/src/lib/api/`: client API généré (fetch typé vers les endpoints DRF)
 
-### Composants React par app
+### Organisation du code React
 
-- `apps/interactions/react/`: `InteractionList.tsx`, `InteractionCreateForm.tsx`, `mount-interactions.tsx`, `mount-interaction-new.tsx`
-- `apps/electricity/react/`: `ElectricityBoardNode.tsx`, `mount-electricity.tsx`
-- `apps/projects/react/`: composants projet
+**Composants métier** (`apps/<app>/react/`)  
+Les composants React contenant la logique métier restent dans `apps/<app>/react/`, à proximité des modèles Django et serializers correspondants :
+- `apps/interactions/react/`: `InteractionList.tsx`, `InteractionCreateForm.tsx`
+- `apps/electricity/react/`: `ElectricityBoardNode.tsx`
+- `apps/projects/react/`: `ProjectList.tsx`, `ProjectDetail.tsx`, `ProjectForm.tsx`, `ProjectGroupList.tsx`, `ProjectGroupDetail.tsx`
 - `apps/equipment/react/`: composants équipement
-- `apps/tasks/react/`: composants tâches
-- `apps/photos/react/`: composants photos
+- `apps/stock/react/`: composants stock
+- `apps/directory/react/`: `DirectoryPage.tsx`, `ContactCreateForm.tsx`, `ContactDetailsView.tsx`, `ContactEditForm.tsx`, `StructureForm.tsx`, `StructureDetailView.tsx`
+- `apps/zones/react/`: `ZonesNode.tsx`, `ZoneDetailNode.tsx`
+- `apps/tasks/react/`: `TasksPage.tsx`
+- `apps/photos/react/`: `PhotosPage.tsx`
+- `apps/documents/react/`: `DocumentsPage.tsx`
+- `apps/app_settings/react/`: `UserSettings.tsx`
 
-### Pattern de montage ciblé
+**Points d'entrée de montage** (`ui/src/pages/<app>/`)  
+Les fichiers de montage qui hydratent les composants sont organisés par app dans `ui/src/pages/` :
 
-Chaque page Django inclut un `<div id="react-root">` que le script `mount-<app>.tsx` cible via `ui/src/lib/mount.tsx`.
+```
+ui/src/pages/
+  interactions/
+    list.tsx          # monte InteractionList
+    new.tsx           # monte InteractionCreateForm
+  projects/
+    list.tsx          # monte ProjectList
+    detail.tsx        # monte ProjectDetail
+    new.tsx           # monte ProjectForm (mode create)
+    edit.tsx          # monte ProjectForm (mode edit)
+    groups.tsx        # monte ProjectGroupList
+    group-detail.tsx  # monte ProjectGroupDetail
+  equipment/
+    list.tsx, detail.tsx, new.tsx, edit.tsx
+    stock-list.tsx, stock-detail.tsx, stock-new.tsx, stock-edit.tsx
+  contacts/
+    list.tsx, new.tsx, detail.tsx, edit.tsx
+  structures/
+    new.tsx, detail.tsx, edit.tsx
+  zones/
+    list.tsx, detail.tsx
+  electricity/
+    board.tsx
+  tasks/
+    list.tsx
+  photos/
+    list.tsx
+  documents/
+    list.tsx
+  settings/
+    index.tsx
+```
+
+Chaque fichier de montage :
+1. Importe le composant depuis `apps/<app>/react/`
+2. Utilise `mountWithJsonScriptProps` et `onDomReady` de `@/lib/mount`
+3. Cible un root DOM spécifique (ex: `'projects-list-root'`)
+4. Les props initiales sont hydratées côté Django via `ReactPageView.get_props()` — **zéro fetch API au premier rendu**
+
+**Configuration Vite**  
+Les points d'entrée dans `vite.config.ts` pointent vers `ui/src/pages/<app>/` et gardent les mêmes keys pour compatibilité avec les templates Django :
+```typescript
+'projects': resolve(__dirname, 'src/pages/projects/list.tsx'),
+'project-detail': resolve(__dirname, 'src/pages/projects/detail.tsx'),
+```
+
+### Avantages de cette organisation
+
+✅ **Composants métier près du backend** : facilite la maintenance modèle Django ↔ serializer ↔ composant React  
+✅ **Montage centralisé** : tous les points d'entrée Vite regroupés logiquement dans `ui/src/pages/`  
+✅ **Structure miroir** : `ui/src/pages/` reflète l'organisation de `apps/`  
+✅ **Scalabilité** : facile d'ajouter de nouvelles pages à une app existante
 
 ## 7) Démarrage local
 
@@ -197,6 +256,11 @@ pytest
 - Éviter les refactors larges sans demande explicite
 - Préserver le pattern Django-routed + mini-SPA React ciblés
 - Chaque nouvelle app web doit avoir `web_urls.py` + `views_web.py` distincts des vues API
+- **Pour ajouter une page React** :
+  1. Créer le composant métier dans `apps/<app>/react/`
+  2. Créer le fichier de montage dans `ui/src/pages/<app>/`
+  3. Ajouter l'entrée dans `ui/vite.config.ts`
+  4. Créer la vue Django qui hérite de `ReactPageView`
 - Consulter `legacy/` uniquement pour la compréhension métier, jamais comme référence technique
 - Le `i18n_patterns` dans `config/urls.py` enveloppe toutes les URLs web (`/app/...`)
 

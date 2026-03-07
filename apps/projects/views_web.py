@@ -50,9 +50,10 @@ def _zones_payload(request, selected_household):
 class AppProjectsView(ReactPageView):
     page_title = _("Projects")
     page_description = _("Manage your renovation, maintenance and other projects.")
+    page_actions_template = "projects/partials/_projects_actions.html"
     react_root_id = "projects-list-root"
     props_script_id = "projects-list-props"
-    page_vite_asset = "src/pages/projects.tsx"
+    page_vite_asset = "src/pages/projects/list.tsx"
 
     def get_props(self):
         search = (self.request.GET.get("search") or "").strip()
@@ -102,8 +103,6 @@ class AppProjectsView(ReactPageView):
             "initialGroupId": group_id,
             "initialItems": sorted_projects,
             "initialGroups": list(groups_data),
-            "newUrl": reverse("app_projects_new"),
-            "groupsUrl": reverse("app_project_groups"),
         }
 
 

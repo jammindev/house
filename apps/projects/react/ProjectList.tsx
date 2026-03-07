@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import {
@@ -25,8 +24,6 @@ interface ProjectListProps {
   initialGroupId?: string;
   initialItems?: ProjectListItem[];
   initialGroups?: ProjectGroupItem[];
-  newUrl?: string;
-  groupsUrl?: string;
 }
 
 const STATUS_OPTIONS = ['', 'draft', 'active', 'on_hold', 'completed', 'cancelled'];
@@ -49,8 +46,6 @@ export default function ProjectList({
   initialGroupId = '',
   initialItems,
   initialGroups,
-  newUrl = '/app/projects/new/',
-  groupsUrl = '/app/projects/groups/',
 }: ProjectListProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
@@ -145,41 +140,31 @@ export default function ProjectList({
   const hasActiveFilters = !!(search || status || type || groupId);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base">{t('projects.title')}</CardTitle>
-          <div className="flex gap-2">
-            <a href={groupsUrl} className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground">
-              {t('projects.groups')}
-            </a>
-            <a href={newUrl} className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-              {t('projects.new')}
-            </a>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="grid gap-3 md:grid-cols-[1fr_180px_180px_180px_auto] md:items-end">
-          <div className="space-y-1">
+    <div className="space-y-4">
+      {/* Filters */}
+      <div className="space-y-3">
+        <div className="flex gap-2">
+          <div className="flex-1">
             <label htmlFor="proj-search" className="text-xs font-medium text-muted-foreground">
               {t('projects.search')}
             </label>
-            <div className="flex gap-2">
-              <Input
-                id="proj-search"
-                value={searchDraft}
-                onChange={(e) => setSearchDraft(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && setSearch(searchDraft.trim())}
-                placeholder={t('projects.search_placeholder')}
-              />
-              <Button type="button" variant="outline" onClick={() => setSearch(searchDraft.trim())}>
-                {t('projects.apply')}
-              </Button>
-            </div>
+            <Input
+              id="proj-search"
+              value={searchDraft}
+              onChange={(e) => setSearchDraft(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && setSearch(searchDraft.trim())}
+              placeholder={t('projects.search_placeholder')}
+              className="mt-1"
+            />
           </div>
+          <div className="flex items-end">
+            <Button type="button" variant="outline" onClick={() => setSearch(searchDraft.trim())}>
+              {t('projects.apply')}
+            </Button>
+          </div>
+        </div>
 
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-1">
             <label htmlFor="proj-status" className="text-xs font-medium text-muted-foreground">
               {t('projects.status_label')}
@@ -218,40 +203,42 @@ export default function ProjectList({
             </Select>
           </div>
 
-          <Button type="button" variant="outline" onClick={resetFilters} disabled={!hasActiveFilters}>
-            {t('projects.reset')}
-          </Button>
-        </div>
-
-        {/* States */}
-        {loading ? <p className="text-sm text-muted-foreground">{t('projects.loading')}</p> : null}
-
-        {!loading && error ? (
-          <Alert variant="destructive">
-            <AlertTitle>{t('projects.unable_to_load')}</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
-
-        {!loading && !error && items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('projects.empty_list')}</p>
-        ) : null}
-
-        {/* Grid */}
-        {!loading && !error && items.length > 0 ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {items.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                detailUrl={`/app/projects/${project.id}/`}
-                onTogglePin={handleTogglePin}
-                pinLoading={pinLoadingId === project.id}
-              />
-            ))}
+          <div className="flex items-end">
+            <Button type="button" variant="outline" onClick={resetFilters} disabled={!hasActiveFilters} className="w-full">
+              {t('projects.reset')}
+            </Button>
           </div>
-        ) : null}
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+
+      {/* States */}
+      {loading ? <p className="text-sm text-muted-foreground">{t('projects.loading')}</p> : null}
+
+      {!loading && error ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t('projects.unable_to_load')}</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      {!loading && !error && items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t('projects.empty_list')}</p>
+      ) : null}
+
+      {/* List */}
+      {!loading && !error && items.length > 0 ? (
+        <div className="space-y-3">
+          {items.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              detailUrl={`/app/projects/${project.id}/`}
+              onTogglePin={handleTogglePin}
+              pinLoading={pinLoadingId === project.id}
+            />
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
