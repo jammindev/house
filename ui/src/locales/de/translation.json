@@ -424,6 +424,88 @@
       "archived": "Archiviert"
     }
   },
+  "dashboard": {
+    "header": {
+      "eyebrow": "Haushaltsübersicht",
+      "title": "Übersicht",
+      "subtitle": "Verfolgen Sie, was als Nächstes ansteht, was blockiert ist und was sich kürzlich geändert hat."
+    },
+    "empty": {
+      "subtitle": "Wählen oder erstellen Sie einen Haushalt, um die Organisation Ihres Zuhauses zu beginnen.",
+      "title": "Kein Haushalt verfügbar",
+      "description": "Erstellen Sie in den Einstellungen einen Haushalt, um die Übersicht freizuschalten.",
+      "cta": "Zu den Einstellungen"
+    },
+    "actions": {
+      "openSettings": "Einstellungen öffnen",
+      "newInteraction": "Neue Interaktion",
+      "newProject": "Neues Projekt",
+      "openTasks": "Offene Aufgaben",
+      "openDocuments": "Dokumente öffnen"
+    },
+    "summary": {
+      "projects": {
+        "label": "Aktive Projekte",
+        "helper": "Angeheftet: {{count}}"
+      },
+      "tasks": {
+        "label": "Offene Aufgaben",
+        "helper": "Aufgaben mit dem Status Backlog, Ausstehend oder In Bearbeitung"
+      },
+      "documents": {
+        "label": "Sichtbare Dokumente",
+        "helper": "Neueste mit diesem Haushalt verknüpfte Dateien"
+      },
+      "activity": {
+        "label": "Neueste Interaktionen",
+        "helper": "Alle sichtbaren Interaktionen in diesem Haushalt"
+      }
+    },
+    "sections": {
+      "upcoming": {
+        "title": "Bevorstehende Interaktionen",
+        "description": "Die nächsten terminierten Interaktionen für diesen Haushalt.",
+        "cta": "Alle Interaktionen anzeigen",
+        "empty": "Noch keine bevorstehenden Interaktionen."
+      },
+      "pinned": {
+        "title": "Angeheftete Projekte",
+        "description": "Projekte, die Sie als wichtig markiert haben, bleiben hier sichtbar.",
+        "cta": "Alle Projekte anzeigen",
+        "empty": "Noch keine angehefteten Projekte."
+      },
+      "tasks": {
+        "title": "Aufgabenfokus",
+        "description": "Offene Aufgaben, sortiert nach ihrem geplanten Datum.",
+        "cta": "Aufgabenboard öffnen",
+        "empty": "Zurzeit keine offenen Aufgaben."
+      },
+      "activity": {
+        "title": "Letzte Aktivität",
+        "description": "Neueste sichtbare Interaktionen im gesamten Haushalt.",
+        "cta": "Aktivitätsverlauf öffnen",
+        "empty": "Keine aktuelle Aktivität zum Anzeigen."
+      },
+      "documents": {
+        "title": "Neueste Dokumente",
+        "description": "Neueste Dateien, die in diesem Haushaltskontext sichtbar sind.",
+        "cta": "Dokumentenbibliothek öffnen",
+        "empty": "Noch keine Dokumente hochgeladen."
+      }
+    },
+    "meta": {
+      "when": "Wann",
+      "project": "Projekt",
+      "zones": "Zonen",
+      "documents": "Dokumente",
+      "type": "Typ",
+      "openTasks": "Offene Aufgaben",
+      "dueDate": "Fälligkeitsdatum",
+      "actualCost": "Tatsächliche Kosten",
+      "added": "Hinzugefügt",
+      "interaction": "Interaktion"
+    }
+  },
   "stock": {
     "title": "Bestand",
     "tabs": {
@@ -530,7 +612,7 @@
     "section_label": "Django-App-Knoten: {{section}}",
     "title": "Projekte",
     "new": "Neues Projekt",
-    "groups": "Gruppen",
+    "groups_label": "Gruppen",
     "search": "Suche",
     "search_placeholder": "Projekte suchen...",
     "apply": "Anwenden",

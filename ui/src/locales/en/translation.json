@@ -424,6 +424,88 @@
       "archived": "Archived"
     }
   },
+  "dashboard": {
+    "header": {
+      "eyebrow": "Household dashboard",
+      "title": "Dashboard",
+      "subtitle": "Track what is next, what is blocked, and what changed recently."
+    },
+    "empty": {
+      "subtitle": "Select or create a household to start organizing your home operations.",
+      "title": "No household available",
+      "description": "Create a household from settings to unlock the dashboard.",
+      "cta": "Go to settings"
+    },
+    "actions": {
+      "openSettings": "Open settings",
+      "newInteraction": "New interaction",
+      "newProject": "New project",
+      "openTasks": "Open tasks",
+      "openDocuments": "Open documents"
+    },
+    "summary": {
+      "projects": {
+        "label": "Active projects",
+        "helper": "Pinned: {{count}}"
+      },
+      "tasks": {
+        "label": "Open tasks",
+        "helper": "Todos with backlog, pending, or in progress status"
+      },
+      "documents": {
+        "label": "Visible documents",
+        "helper": "Recent files linked to this household"
+      },
+      "activity": {
+        "label": "Recent interactions",
+        "helper": "All visible interactions in this household"
+      }
+    },
+    "sections": {
+      "upcoming": {
+        "title": "Upcoming interactions",
+        "description": "The next dated interactions planned for this household.",
+        "cta": "See all interactions",
+        "empty": "No upcoming interactions yet."
+      },
+      "pinned": {
+        "title": "Pinned projects",
+        "description": "Projects you marked as important stay visible here.",
+        "cta": "See all projects",
+        "empty": "No pinned projects yet."
+      },
+      "tasks": {
+        "title": "Task focus",
+        "description": "Open todos sorted by their scheduled date.",
+        "cta": "Open task board",
+        "empty": "No open tasks right now."
+      },
+      "activity": {
+        "title": "Recent activity",
+        "description": "Latest visible interactions across the household.",
+        "cta": "Open activity stream",
+        "empty": "No recent activity to display."
+      },
+      "documents": {
+        "title": "Recent documents",
+        "description": "Latest files visible from this household context.",
+        "cta": "Open document library",
+        "empty": "No documents uploaded yet."
+      }
+    },
+    "meta": {
+      "when": "When",
+      "project": "Project",
+      "zones": "Zones",
+      "documents": "Documents",
+      "type": "Type",
+      "openTasks": "Open tasks",
+      "dueDate": "Due date",
+      "actualCost": "Actual cost",
+      "added": "Added",
+      "interaction": "Interaction"
+    }
+  },
   "stock": {
     "title": "Stock",
     "tabs": {
@@ -530,7 +612,7 @@
     "section_label": "Django app scoped node: {{section}}",
     "title": "Projects",
     "new": "New project",
-    "groups": "Groups",
+    "groups_label": "Groups",
     "search": "Search",
     "search_placeholder": "Search projects...",
     "apply": "Apply",

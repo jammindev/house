@@ -45,28 +45,20 @@ msgid "User's avatar image file"
 msgstr "URL de l'image d'avatar de l'utilisateur"
 
 #: apps/accounts/models.py:72
-#, fuzzy
-#| msgid "User's preferred theme"
 msgid "User's preferred theme (light/dark/system)"
-msgstr "Langue préférée de l'utilisateur"
+msgstr "Thème préféré de l'utilisateur (clair/sombre/système)"
 
 #: apps/accounts/models.py:98
-#, fuzzy
-#| msgid "User's preferred theme"
 msgid "User's preferred color palette"
-msgstr "Langue préférée de l'utilisateur"
+msgstr "Palette de couleurs préférée de l'utilisateur"
 
 #: apps/accounts/models.py:106
-#, fuzzy
-#| msgid "User successfully added to household."
 msgid "User's currently active household"
-msgstr "Utilisateur ajouté au foyer avec succès."
+msgstr "Foyer actuellement actif de l'utilisateur"
 
 #: apps/accounts/models.py:107
-#, fuzzy
-#| msgid "household"
 msgid "active household"
-msgstr "foyer"
+msgstr "foyer actif"
 
 #: apps/accounts/models.py:120
 msgid "user"
@@ -536,6 +528,7 @@ msgstr "La zone parente doit appartenir au même foyer"
 #: apps/zones/templates/zones/app/zones.html:4
 #: apps/zones/templates/zones/app/zones.html:9
 #: templates/components/_sidebar.html:126 templates/home.html:73
+#: apps/accounts/views/template_views.py:142
 msgid "Zones"
 msgstr "Zones"
 
@@ -582,12 +575,187 @@ msgstr "Tâches en attente"
 
 #: templates/app/dashboard.html:48 templates/components/_sidebar.html:156
 #: templates/home.html:61
+#: apps/accounts/views/template_views.py:144
 msgid "Documents"
 msgstr "Documents"
 
 #: templates/app/dashboard.html:51
 msgid "Stored files"
 msgstr "Fichiers stockés"
+
+#: apps/accounts/views/template_views.py:136
+msgid "When"
+msgstr "Quand"
+
+#: apps/accounts/views/template_views.py:139
+msgid "Project"
+msgstr "Projet"
+
+#: apps/accounts/views/template_views.py:162
+msgid "Type"
+msgstr "Type"
+
+#: apps/accounts/views/template_views.py:163
+msgid "Open tasks"
+msgstr "Tâches ouvertes"
+
+#: apps/accounts/views/template_views.py:166
+msgid "Due date"
+msgstr "Date d'échéance"
+
+#: apps/accounts/views/template_views.py:168
+msgid "Actual cost"
+msgstr "Coût réel"
+
+#: apps/accounts/views/template_views.py:268
+msgid "Open settings"
+msgstr "Ouvrir les paramètres"
+
+#: apps/accounts/views/template_views.py:262
+#: apps/accounts/views/template_views.py:330
+msgid "Household dashboard"
+msgstr "Tableau de bord du foyer"
+
+#: apps/accounts/views/template_views.py:264
+msgid "Select or create a household to start organizing your home operations."
+msgstr "Sélectionnez ou créez un foyer pour commencer à organiser la gestion de votre maison."
+
+#: apps/accounts/views/template_views.py:276
+msgid "No household available"
+msgstr "Aucun foyer disponible"
+
+#: apps/accounts/views/template_views.py:277
+msgid "Create a household from settings to unlock the dashboard."
+msgstr "Créez un foyer depuis les paramètres pour débloquer le tableau de bord."
+
+#: apps/accounts/views/template_views.py:279
+msgid "Go to settings"
+msgstr "Aller aux paramètres"
+
+#: apps/accounts/views/template_views.py:332
+msgid "Track what is next, what is blocked, and what changed recently."
+msgstr "Suivez ce qui arrive, ce qui bloque et ce qui a changé récemment."
+
+#: apps/accounts/views/template_views.py:337
+msgid "Active projects"
+msgstr "Projets actifs"
+
+#: apps/accounts/views/template_views.py:339
+#, python-format
+msgid "Pinned: %(count)s"
+msgstr "Épinglés : %(count)s"
+
+#: apps/accounts/views/template_views.py:349
+msgid "Todos with backlog, pending, or in progress status"
+msgstr "Tâches avec le statut backlog, en attente ou en cours"
+
+#: apps/accounts/views/template_views.py:356
+msgid "Visible documents"
+msgstr "Documents visibles"
+
+#: apps/accounts/views/template_views.py:358
+msgid "Recent files linked to this household"
+msgstr "Fichiers récents liés à ce foyer"
+
+#: apps/accounts/views/template_views.py:365
+msgid "Recent interactions"
+msgstr "Interactions récentes"
+
+#: apps/accounts/views/template_views.py:367
+msgid "All visible interactions in this household"
+msgstr "Toutes les interactions visibles dans ce foyer"
+
+#: apps/accounts/views/template_views.py:374
+msgid "New interaction"
+msgstr "Nouvelle interaction"
+
+#: apps/accounts/views/template_views.py:379
+msgid "New project"
+msgstr "Nouveau projet"
+
+#: apps/accounts/views/template_views.py:389
+msgid "Open documents"
+msgstr "Ouvrir les documents"
+
+#: apps/accounts/views/template_views.py:397
+msgid "Upcoming interactions"
+msgstr "Interactions à venir"
+
+#: apps/accounts/views/template_views.py:398
+msgid "The next dated interactions planned for this household."
+msgstr "Les prochaines interactions planifiées et datées pour ce foyer."
+
+#: apps/accounts/views/template_views.py:400
+msgid "See all interactions"
+msgstr "Voir toutes les interactions"
+
+#: apps/accounts/views/template_views.py:402
+msgid "No upcoming interactions yet."
+msgstr "Aucune interaction à venir pour le moment."
+
+#: apps/accounts/views/template_views.py:407
+msgid "Pinned projects"
+msgstr "Projets épinglés"
+
+#: apps/accounts/views/template_views.py:408
+msgid "Projects you marked as important stay visible here."
+msgstr "Les projets que vous avez marqués comme importants restent visibles ici."
+
+#: apps/accounts/views/template_views.py:410
+msgid "See all projects"
+msgstr "Voir tous les projets"
+
+#: apps/accounts/views/template_views.py:412
+msgid "No pinned projects yet."
+msgstr "Aucun projet épinglé pour le moment."
+
+#: apps/accounts/views/template_views.py:417
+msgid "Task focus"
+msgstr "Focus tâches"
+
+#: apps/accounts/views/template_views.py:418
+msgid "Open todos sorted by their scheduled date."
+msgstr "Tâches ouvertes triées par date prévue."
+
+#: apps/accounts/views/template_views.py:420
+msgid "Open task board"
+msgstr "Ouvrir le tableau des tâches"
+
+#: apps/accounts/views/template_views.py:422
+msgid "No open tasks right now."
+msgstr "Aucune tâche ouverte actuellement."
+
+#: apps/accounts/views/template_views.py:427
+msgid "Recent activity"
+msgstr "Activité récente"
+
+#: apps/accounts/views/template_views.py:428
+msgid "Latest visible interactions across the household."
+msgstr "Dernières interactions visibles dans l'ensemble du foyer."
+
+#: apps/accounts/views/template_views.py:430
+msgid "Open activity stream"
+msgstr "Ouvrir le flux d'activité"
+
+#: apps/accounts/views/template_views.py:432
+msgid "No recent activity to display."
+msgstr "Aucune activité récente à afficher."
+
+#: apps/accounts/views/template_views.py:437
+msgid "Recent documents"
+msgstr "Documents récents"
+
+#: apps/accounts/views/template_views.py:438
+msgid "Latest files visible from this household context."
+msgstr "Derniers fichiers visibles dans le contexte de ce foyer."
+
+#: apps/accounts/views/template_views.py:440
+msgid "Open document library"
+msgstr "Ouvrir la bibliothèque de documents"
+
+#: apps/accounts/views/template_views.py:442
+msgid "No documents uploaded yet."
+msgstr "Aucun document téléversé pour le moment."
 
 #: templates/app/notifications/list.html:4
 #: templates/app/notifications/list.html:9 templates/notifications/_bell.html:4
@@ -1049,7 +1217,7 @@ msgstr ""
 
 #: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1868
 msgid "Duration"
-msgstr "Documentation"
+msgstr "Durée"
 
 #: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1920
 msgid "Email address"
@@ -1507,7 +1675,7 @@ msgstr ""
 
 #: venv/lib/python3.12/site-packages/django/utils/dates.py:21
 msgid "Sat"
-msgstr "Statut"
+msgstr "sam."
 
 #: venv/lib/python3.12/site-packages/django/utils/dates.py:22
 msgid "Sun"

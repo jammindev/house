@@ -45,6 +45,7 @@ export default defineConfig(({ command }) => ({
       input: {
         'styles': resolve(__dirname, 'src/styles.css'),
         'shell': resolve(__dirname, 'src/shell.ts'),
+        'dashboard': resolve(__dirname, 'src/pages/dashboard/index.tsx'),
         'interactions': resolve(__dirname, 'src/pages/interactions/list.tsx'),
         'interaction-new': resolve(__dirname, 'src/pages/interactions/new.tsx'),
         'electricity': resolve(__dirname, 'src/pages/electricity/board.tsx'),

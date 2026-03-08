@@ -424,6 +424,88 @@
       "archived": "Archivado"
     }
   },
+  "dashboard": {
+    "header": {
+      "eyebrow": "Panel del hogar",
+      "title": "Panel de control",
+      "subtitle": "Siga lo que viene después, lo que está bloqueado y lo que cambió recientemente."
+    },
+    "empty": {
+      "subtitle": "Seleccione o cree un hogar para empezar a organizar la gestión de su casa.",
+      "title": "No hay ningún hogar disponible",
+      "description": "Cree un hogar desde la configuración para desbloquear el panel.",
+      "cta": "Ir a configuración"
+    },
+    "actions": {
+      "openSettings": "Abrir configuración",
+      "newInteraction": "Nueva interacción",
+      "newProject": "Nuevo proyecto",
+      "openTasks": "Abrir tareas",
+      "openDocuments": "Abrir documentos"
+    },
+    "summary": {
+      "projects": {
+        "label": "Proyectos activos",
+        "helper": "Fijados: {{count}}"
+      },
+      "tasks": {
+        "label": "Tareas abiertas",
+        "helper": "Tareas con estado de backlog, pendiente o en curso"
+      },
+      "documents": {
+        "label": "Documentos visibles",
+        "helper": "Archivos recientes vinculados a este hogar"
+      },
+      "activity": {
+        "label": "Interacciones recientes",
+        "helper": "Todas las interacciones visibles en este hogar"
+      }
+    },
+    "sections": {
+      "upcoming": {
+        "title": "Próximas interacciones",
+        "description": "Las próximas interacciones programadas con fecha para este hogar.",
+        "cta": "Ver todas las interacciones",
+        "empty": "Todavía no hay próximas interacciones."
+      },
+      "pinned": {
+        "title": "Proyectos fijados",
+        "description": "Los proyectos que marcó como importantes permanecen visibles aquí.",
+        "cta": "Ver todos los proyectos",
+        "empty": "Todavía no hay proyectos fijados."
+      },
+      "tasks": {
+        "title": "Enfoque de tareas",
+        "description": "Tareas abiertas ordenadas por su fecha programada.",
+        "cta": "Abrir tablero de tareas",
+        "empty": "No hay tareas abiertas en este momento."
+      },
+      "activity": {
+        "title": "Actividad reciente",
+        "description": "Últimas interacciones visibles en todo el hogar.",
+        "cta": "Abrir flujo de actividad",
+        "empty": "No hay actividad reciente para mostrar."
+      },
+      "documents": {
+        "title": "Documentos recientes",
+        "description": "Últimos archivos visibles en el contexto de este hogar.",
+        "cta": "Abrir biblioteca de documentos",
+        "empty": "Todavía no se ha subido ningún documento."
+      }
+    },
+    "meta": {
+      "when": "Cuándo",
+      "project": "Proyecto",
+      "zones": "Zonas",
+      "documents": "Documentos",
+      "type": "Tipo",
+      "openTasks": "Tareas abiertas",
+      "dueDate": "Fecha límite",
+      "actualCost": "Coste real",
+      "added": "Añadido",
+      "interaction": "Interacción"
+    }
+  },
   "stock": {
     "title": "Inventario",
     "tabs": {
@@ -530,7 +612,7 @@
     "section_label": "Nodo Django de sección: {{section}}",
     "title": "Proyectos",
     "new": "Nuevo proyecto",
-    "groups": "Grupos",
+    "groups_label": "Grupos",
     "search": "Buscar",
     "search_placeholder": "Buscar proyectos...",
     "apply": "Aplicar",

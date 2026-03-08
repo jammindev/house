@@ -1,17 +1,16 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# German translations for House Backend
+# Copyright (C) 2026
+# This file is distributed under the same license as the House package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-01 20:52+0000\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"PO-Revision-Date: 2026-03-08 00:00+0000\n"
+"Last-Translator: House Team\n"
+"Language-Team: German\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -46,28 +45,20 @@ msgid "User's avatar image file"
 msgstr "URL zum Avatar-Bild des Benutzers"
 
 #: apps/accounts/models.py:72
-#, fuzzy
-#| msgid "User's preferred theme"
 msgid "User's preferred theme (light/dark/system)"
-msgstr "Bevorzugte Sprache des Benutzers"
+msgstr "Bevorzugtes Thema des Benutzers (hell/dunkel/system)"
 
 #: apps/accounts/models.py:98
-#, fuzzy
-#| msgid "User's preferred theme"
 msgid "User's preferred color palette"
-msgstr "Bevorzugte Sprache des Benutzers"
+msgstr "Bevorzugte Farbpalette des Benutzers"
 
 #: apps/accounts/models.py:106
-#, fuzzy
-#| msgid "User successfully added to household."
 msgid "User's currently active household"
-msgstr "Benutzer erfolgreich zum Haushalt hinzugefügt."
+msgstr "Derzeit aktiver Haushalt des Benutzers"
 
 #: apps/accounts/models.py:107
-#, fuzzy
-#| msgid "household"
 msgid "active household"
-msgstr "Haushalt"
+msgstr "aktiver Haushalt"
 
 #: apps/accounts/models.py:120
 msgid "user"
@@ -543,6 +534,7 @@ msgstr "Die übergeordnete Zone muss zum selben Haushalt gehören"
 #: apps/zones/templates/zones/app/zones.html:4
 #: apps/zones/templates/zones/app/zones.html:9
 #: templates/components/_sidebar.html:126 templates/home.html:73
+#: apps/accounts/views/template_views.py:142
 msgid "Zones"
 msgstr "Zonen"
 
@@ -589,12 +581,187 @@ msgstr "Ausstehende Aufgaben"
 
 #: templates/app/dashboard.html:48 templates/components/_sidebar.html:156
 #: templates/home.html:61
+#: apps/accounts/views/template_views.py:144
 msgid "Documents"
 msgstr "Dokumente"
 
 #: templates/app/dashboard.html:51
 msgid "Stored files"
 msgstr "Gespeicherte Dateien"
+
+#: apps/accounts/views/template_views.py:136
+msgid "When"
+msgstr "Wann"
+
+#: apps/accounts/views/template_views.py:139
+msgid "Project"
+msgstr "Projekt"
+
+#: apps/accounts/views/template_views.py:162
+msgid "Type"
+msgstr "Typ"
+
+#: apps/accounts/views/template_views.py:163
+msgid "Open tasks"
+msgstr "Offene Aufgaben"
+
+#: apps/accounts/views/template_views.py:166
+msgid "Due date"
+msgstr "Fälligkeitsdatum"
+
+#: apps/accounts/views/template_views.py:168
+msgid "Actual cost"
+msgstr "Tatsächliche Kosten"
+
+#: apps/accounts/views/template_views.py:268
+msgid "Open settings"
+msgstr "Einstellungen öffnen"
+
+#: apps/accounts/views/template_views.py:262
+#: apps/accounts/views/template_views.py:330
+msgid "Household dashboard"
+msgstr "Haushaltsübersicht"
+
+#: apps/accounts/views/template_views.py:264
+msgid "Select or create a household to start organizing your home operations."
+msgstr "Wählen oder erstellen Sie einen Haushalt, um die Organisation Ihres Zuhauses zu beginnen."
+
+#: apps/accounts/views/template_views.py:276
+msgid "No household available"
+msgstr "Kein Haushalt verfügbar"
+
+#: apps/accounts/views/template_views.py:277
+msgid "Create a household from settings to unlock the dashboard."
+msgstr "Erstellen Sie in den Einstellungen einen Haushalt, um die Übersicht freizuschalten."
+
+#: apps/accounts/views/template_views.py:279
+msgid "Go to settings"
+msgstr "Zu den Einstellungen"
+
+#: apps/accounts/views/template_views.py:332
+msgid "Track what is next, what is blocked, and what changed recently."
+msgstr "Verfolgen Sie, was als Nächstes ansteht, was blockiert ist und was sich kürzlich geändert hat."
+
+#: apps/accounts/views/template_views.py:337
+msgid "Active projects"
+msgstr "Aktive Projekte"
+
+#: apps/accounts/views/template_views.py:339
+#, python-format
+msgid "Pinned: %(count)s"
+msgstr "Angeheftet: %(count)s"
+
+#: apps/accounts/views/template_views.py:349
+msgid "Todos with backlog, pending, or in progress status"
+msgstr "Aufgaben mit dem Status Backlog, Ausstehend oder In Bearbeitung"
+
+#: apps/accounts/views/template_views.py:356
+msgid "Visible documents"
+msgstr "Sichtbare Dokumente"
+
+#: apps/accounts/views/template_views.py:358
+msgid "Recent files linked to this household"
+msgstr "Neueste mit diesem Haushalt verknüpfte Dateien"
+
+#: apps/accounts/views/template_views.py:365
+msgid "Recent interactions"
+msgstr "Neueste Interaktionen"
+
+#: apps/accounts/views/template_views.py:367
+msgid "All visible interactions in this household"
+msgstr "Alle sichtbaren Interaktionen in diesem Haushalt"
+
+#: apps/accounts/views/template_views.py:374
+msgid "New interaction"
+msgstr "Neue Interaktion"
+
+#: apps/accounts/views/template_views.py:379
+msgid "New project"
+msgstr "Neues Projekt"
+
+#: apps/accounts/views/template_views.py:389
+msgid "Open documents"
+msgstr "Dokumente öffnen"
+
+#: apps/accounts/views/template_views.py:397
+msgid "Upcoming interactions"
+msgstr "Bevorstehende Interaktionen"
+
+#: apps/accounts/views/template_views.py:398
+msgid "The next dated interactions planned for this household."
+msgstr "Die nächsten terminierten Interaktionen für diesen Haushalt."
+
+#: apps/accounts/views/template_views.py:400
+msgid "See all interactions"
+msgstr "Alle Interaktionen anzeigen"
+
+#: apps/accounts/views/template_views.py:402
+msgid "No upcoming interactions yet."
+msgstr "Noch keine bevorstehenden Interaktionen."
+
+#: apps/accounts/views/template_views.py:407
+msgid "Pinned projects"
+msgstr "Angeheftete Projekte"
+
+#: apps/accounts/views/template_views.py:408
+msgid "Projects you marked as important stay visible here."
+msgstr "Projekte, die Sie als wichtig markiert haben, bleiben hier sichtbar."
+
+#: apps/accounts/views/template_views.py:410
+msgid "See all projects"
+msgstr "Alle Projekte anzeigen"
+
+#: apps/accounts/views/template_views.py:412
+msgid "No pinned projects yet."
+msgstr "Noch keine angehefteten Projekte."
+
+#: apps/accounts/views/template_views.py:417
+msgid "Task focus"
+msgstr "Aufgabenfokus"
+
+#: apps/accounts/views/template_views.py:418
+msgid "Open todos sorted by their scheduled date."
+msgstr "Offene Aufgaben, sortiert nach ihrem geplanten Datum."
+
+#: apps/accounts/views/template_views.py:420
+msgid "Open task board"
+msgstr "Aufgabenboard öffnen"
+
+#: apps/accounts/views/template_views.py:422
+msgid "No open tasks right now."
+msgstr "Zurzeit keine offenen Aufgaben."
+
+#: apps/accounts/views/template_views.py:427
+msgid "Recent activity"
+msgstr "Letzte Aktivität"
+
+#: apps/accounts/views/template_views.py:428
+msgid "Latest visible interactions across the household."
+msgstr "Neueste sichtbare Interaktionen im gesamten Haushalt."
+
+#: apps/accounts/views/template_views.py:430
+msgid "Open activity stream"
+msgstr "Aktivitätsverlauf öffnen"
+
+#: apps/accounts/views/template_views.py:432
+msgid "No recent activity to display."
+msgstr "Keine aktuelle Aktivität zum Anzeigen."
+
+#: apps/accounts/views/template_views.py:437
+msgid "Recent documents"
+msgstr "Neueste Dokumente"
+
+#: apps/accounts/views/template_views.py:438
+msgid "Latest files visible from this household context."
+msgstr "Neueste Dateien, die in diesem Haushaltskontext sichtbar sind."
+
+#: apps/accounts/views/template_views.py:440
+msgid "Open document library"
+msgstr "Dokumentenbibliothek öffnen"
+
+#: apps/accounts/views/template_views.py:442
+msgid "No documents uploaded yet."
+msgstr "Noch keine Dokumente hochgeladen."
 
 #: templates/app/notifications/list.html:4
 #: templates/app/notifications/list.html:9 templates/notifications/_bell.html:4

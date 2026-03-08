@@ -424,6 +424,88 @@
       "archived": "Archivé"
     }
   },
+  "dashboard": {
+    "header": {
+      "eyebrow": "Tableau de bord du foyer",
+      "title": "Tableau de bord",
+      "subtitle": "Suivez ce qui arrive, ce qui bloque et ce qui a changé récemment."
+    },
+    "empty": {
+      "subtitle": "Sélectionnez ou créez un foyer pour commencer à organiser la gestion de votre maison.",
+      "title": "Aucun foyer disponible",
+      "description": "Créez un foyer depuis les paramètres pour débloquer le tableau de bord.",
+      "cta": "Aller aux paramètres"
+    },
+    "actions": {
+      "openSettings": "Ouvrir les paramètres",
+      "newInteraction": "Nouvelle interaction",
+      "newProject": "Nouveau projet",
+      "openTasks": "Ouvrir les tâches",
+      "openDocuments": "Ouvrir les documents"
+    },
+    "summary": {
+      "projects": {
+        "label": "Projets actifs",
+        "helper": "Épinglés : {{count}}"
+      },
+      "tasks": {
+        "label": "Tâches ouvertes",
+        "helper": "Tâches avec le statut backlog, en attente ou en cours"
+      },
+      "documents": {
+        "label": "Documents visibles",
+        "helper": "Fichiers récents liés à ce foyer"
+      },
+      "activity": {
+        "label": "Interactions récentes",
+        "helper": "Toutes les interactions visibles dans ce foyer"
+      }
+    },
+    "sections": {
+      "upcoming": {
+        "title": "Interactions à venir",
+        "description": "Les prochaines interactions planifiées et datées pour ce foyer.",
+        "cta": "Voir toutes les interactions",
+        "empty": "Aucune interaction à venir pour le moment."
+      },
+      "pinned": {
+        "title": "Projets épinglés",
+        "description": "Les projets que vous avez marqués comme importants restent visibles ici.",
+        "cta": "Voir tous les projets",
+        "empty": "Aucun projet épinglé pour le moment."
+      },
+      "tasks": {
+        "title": "Focus tâches",
+        "description": "Tâches ouvertes triées par date prévue.",
+        "cta": "Ouvrir le tableau des tâches",
+        "empty": "Aucune tâche ouverte actuellement."
+      },
+      "activity": {
+        "title": "Activité récente",
+        "description": "Dernières interactions visibles dans l'ensemble du foyer.",
+        "cta": "Ouvrir le flux d'activité",
+        "empty": "Aucune activité récente à afficher."
+      },
+      "documents": {
+        "title": "Documents récents",
+        "description": "Derniers fichiers visibles dans le contexte de ce foyer.",
+        "cta": "Ouvrir la bibliothèque de documents",
+        "empty": "Aucun document téléversé pour le moment."
+      }
+    },
+    "meta": {
+      "when": "Quand",
+      "project": "Projet",
+      "zones": "Zones",
+      "documents": "Documents",
+      "type": "Type",
+      "openTasks": "Tâches ouvertes",
+      "dueDate": "Date d'échéance",
+      "actualCost": "Coût réel",
+      "added": "Ajouté",
+      "interaction": "Interaction"
+    }
+  },
   "stock": {
     "title": "Stock",
     "tabs": {
@@ -530,7 +612,7 @@
     "section_label": "Nœud Django scopé : {{section}}",
     "title": "Projets",
     "new": "Nouveau projet",
-    "groups": "Groupes",
+    "groups_label": "Groupes",
     "search": "Recherche",
     "search_placeholder": "Rechercher des projets...",
     "apply": "Appliquer",
