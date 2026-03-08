@@ -22,6 +22,12 @@ Project status (March 2026): Django stack fully active; primary roadmap is UI co
 - `./PRODUCT_OVERVIEW.md` — product intent, capabilities, and boundaries in current stack
 - `./DOMAIN_MODEL_INTERACTIONS.md` — interaction-centric domain model and entities
 - `./FEATURE_STATUS_AND_RFCS.md` — active modules vs RFC/legacy feature docs
+- `./JOURNAL_PRODUIT.md` — living product journal and current state hub
+- `./IDEES_FUTURES.md` — backlog of future ideas, RFCs, and deferred product directions
+- `./PARCOURS_METIER_PRIORITAIRES.md` — recommended first business journeys and weekly delivery cadence
+- `./PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md` — detailed product brief for the first business journey
+- `./PARCOURS_01_BACKLOG_TECHNIQUE.md` — concrete technical backlog for implementing the first business journey
+- `./PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md` — future-facing note on AI-assisted event capture aligned with journey 1
 
 ## Engineering process
 

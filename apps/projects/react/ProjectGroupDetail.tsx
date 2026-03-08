@@ -150,8 +150,6 @@ export default function ProjectGroupDetail({
         <h3 className="text-base font-semibold text-foreground mb-3">{t('projects.title')}</h3>
         <ProjectList
           initialGroupId={groupId}
-          newUrl="/app/projects/new/"
-          groupsUrl={backUrl}
         />
       </div>
     </div>

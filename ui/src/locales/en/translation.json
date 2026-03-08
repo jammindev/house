@@ -54,42 +54,89 @@
     "success_link_deactivated": "Link deactivated."
   },
   "interactions": {
-    "form_title": "Create interaction",
-    "submit_label": "Create interaction",
-    "success_message": "Interaction created successfully.",
+    "form_title": "Add event",
+    "submit_label": "Add event",
+    "success_message": "Event added successfully.",
     "subject_label": "Subject",
     "subject_placeholder": "Short summary",
     "type_label": "Type",
     "status_label": "Status (todo)",
+    "selected_type_label": "Selected type",
     "date_label": "Date and time",
+    "date_only_label": "Date",
+    "date_time_label": "Date and time",
+    "time_label": "Time",
+    "add_time_label": "Add a time",
     "description_label": "Description",
     "description_placeholder": "Details",
-    "tags_label": "Tags (comma separated)",
-    "tags_placeholder": "urgent, boiler, invoice",
+    "expense_amount_label": "Amount",
+    "expense_amount_placeholder": "e.g. 149.90",
+    "tags_label": "Tags",
+    "tags_placeholder": "Add a tag",
+    "tags_help": "Press Enter or comma to add a tag, then reuse suggestions when available.",
     "zones_legend": "Zones",
+    "zones_selected_count": "{{count}} selected",
+    "zones_search_label": "Find a zone",
+    "zones_search_placeholder": "Search by zone name or path",
+    "zones_search_empty": "No zones match this search.",
+    "zones_root_label": "Root",
+    "zones_depth_label": "Level {{depth}}",
+    "zones_parent_path_label": "Inside",
+    "zones_expand_all": "Expand all",
+    "zones_collapse_all": "Collapse all",
+    "zones_expand_branch": "Expand {{name}}",
+    "zones_collapse_branch": "Collapse {{name}}",
+    "zones_select_zone": "Select {{name}}",
+    "zones_unselect_zone": "Unselect {{name}}",
+    "zones_select_short": "Select",
+    "zones_selected_short": "Selected",
     "zones_loading": "Loading zones\u2026",
     "zones_empty": "No zones available.",
     "zones_error": "Unable to load zones.",
     "error_subject_required": "Subject is required.",
     "error_zone_required": "Select at least one zone.",
     "error_invalid_date": "Invalid date.",
-    "error_create_failed": "Unable to create interaction. Please verify fields and household context.",
+    "error_expense_amount_required": "Enter an amount for this expense.",
+    "error_expense_amount_invalid": "Enter a valid amount.",
+    "error_create_failed": "Unable to add the event. Please verify fields and household context.",
     "error_title": "Creation error",
     "success_title": "Success",
-    "redirect_notice": "Redirecting to interactions\u2026",
+    "redirect_notice": "Redirecting to activity\u2026",
+    "created_notice_title": "Event added",
+    "created_notice_body": "\"{{subject}}\" was added and highlighted below.",
+    "created_badge": "New",
     "creating": "Creating\u2026",
-    "list_title": "Latest interactions",
-    "list_empty": "No interactions found for this filter.",
+    "list_title": "Activity",
+    "list_empty": "No activity found for this filter.",
+    "meta_zones": "Zones",
+    "meta_documents": "{{count}} document",
+    "meta_documents_one": "{{count}} document",
+    "meta_documents_other": "{{count}} documents",
+    "search_label": "Search",
+    "search_placeholder": "Search by title, description, or tag",
     "filter_type": "Type",
     "filter_status": "Status",
     "all_types": "All types",
     "all_statuses": "All statuses",
     "reset_filters": "Reset",
+    "apply_filters": "Apply",
     "error_load_failed": "Unable to load interactions.",
     "error_load_more_failed": "Unable to load more interactions.",
     "loading_error_title": "Loading error",
     "load_more": "Load more",
     "loading_more": "Loading\u2026"
+  },
+  "tagSelector": {
+    "selected_count": "{{count}} selected",
+    "search_label": "Find or create a tag",
+    "placeholder": "Add a tag",
+    "helper": "Press Enter or comma to add a tag.",
+    "loading": "Loading tags\u2026",
+    "error": "Unable to load tags.",
+    "suggestions_label": "Suggested tags",
+    "create_tag": "Add tag \"{{name}}\"",
+    "empty": "No tag matches this search.",
+    "remove_tag": "Remove {{name}}"
   },
   "zones": {
     "app_title": "Zones mini-app",
@@ -405,6 +452,8 @@
       }
     },
     "interaction_type": {
+      "note": "Note",
+      "todo": "Task",
       "maintenance": "Maintenance",
       "repair": "Repair",
       "inspection": "Inspection",
@@ -437,11 +486,68 @@
       "cta": "Go to settings"
     },
     "actions": {
+      "add": "Add",
       "openSettings": "Open settings",
       "newInteraction": "New interaction",
       "newProject": "New project",
       "openTasks": "Open tasks",
       "openDocuments": "Open documents"
+    },
+    "typePicker": {
+      "title": "What would you like to add?",
+      "description": "Choose the type of event to add to the household history.",
+      "primaryTitle": "Common types",
+      "secondaryTitle": "More options",
+      "types": {
+        "note": {
+          "label": "Note",
+          "description": "Capture a free-form note."
+        },
+        "todo": {
+          "label": "Task",
+          "description": "Track something that needs to be done."
+        },
+        "expense": {
+          "label": "Expense",
+          "description": "Record a cost or purchase."
+        },
+        "maintenance": {
+          "label": "Maintenance",
+          "description": "Log routine care or an intervention."
+        },
+        "repair": {
+          "label": "Repair",
+          "description": "Track a fix for something broken."
+        },
+        "installation": {
+          "label": "Installation",
+          "description": "Record a new setup or fitting."
+        },
+        "inspection": {
+          "label": "Inspection",
+          "description": "Keep a trace of a check or review."
+        },
+        "warranty": {
+          "label": "Warranty",
+          "description": "Store a warranty-related event."
+        },
+        "issue": {
+          "label": "Issue",
+          "description": "Log a problem that needs attention."
+        },
+        "upgrade": {
+          "label": "Upgrade",
+          "description": "Track an improvement or enhancement."
+        },
+        "replacement": {
+          "label": "Replacement",
+          "description": "Record when something is replaced."
+        },
+        "disposal": {
+          "label": "Disposal",
+          "description": "Keep a trace of removal or disposal."
+        }
+      }
     },
     "summary": {
       "projects": {

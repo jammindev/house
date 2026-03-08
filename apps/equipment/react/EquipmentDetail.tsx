@@ -133,7 +133,6 @@ export default function EquipmentDetail({
           status,
           occurred_at: parsedDate.toISOString(),
           zone_ids: [zoneId],
-          tags: [],
         },
         householdId
       );

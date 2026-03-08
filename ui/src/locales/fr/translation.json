@@ -54,42 +54,89 @@
     "success_link_deactivated": "Lien désactivé."
   },
   "interactions": {
-    "form_title": "Créer une interaction",
-    "submit_label": "Créer une interaction",
-    "success_message": "Interaction créée avec succès.",
+    "form_title": "Ajouter un événement",
+    "submit_label": "Ajouter un événement",
+    "success_message": "Événement ajouté avec succès.",
     "subject_label": "Sujet",
     "subject_placeholder": "Résumé court",
     "type_label": "Type",
     "status_label": "Statut (tâche)",
+    "selected_type_label": "Type sélectionné",
     "date_label": "Date et heure",
+    "date_only_label": "Date",
+    "date_time_label": "Date et heure",
+    "time_label": "Heure",
+    "add_time_label": "Ajouter une heure",
     "description_label": "Description",
     "description_placeholder": "Détails",
-    "tags_label": "Tags (séparés par des virgules)",
-    "tags_placeholder": "urgent, chaudière, facture",
+    "expense_amount_label": "Montant",
+    "expense_amount_placeholder": "ex. 149,90",
+    "tags_label": "Tags",
+    "tags_placeholder": "Ajouter un tag",
+    "tags_help": "Appuyez sur Entrée ou une virgule pour ajouter un tag, puis réutilisez les suggestions si elles existent.",
     "zones_legend": "Zones",
+    "zones_selected_count": "{{count}} sélectionnée(s)",
+    "zones_search_label": "Trouver une zone",
+    "zones_search_placeholder": "Chercher par nom ou chemin de zone",
+    "zones_search_empty": "Aucune zone ne correspond à cette recherche.",
+    "zones_root_label": "Racine",
+    "zones_depth_label": "Niveau {{depth}}",
+    "zones_parent_path_label": "Dans",
+    "zones_expand_all": "Tout déplier",
+    "zones_collapse_all": "Tout replier",
+    "zones_expand_branch": "Déplier {{name}}",
+    "zones_collapse_branch": "Replier {{name}}",
+    "zones_select_zone": "Sélectionner {{name}}",
+    "zones_unselect_zone": "Désélectionner {{name}}",
+    "zones_select_short": "Choisir",
+    "zones_selected_short": "Choisie",
     "zones_loading": "Chargement des zones\u2026",
     "zones_empty": "Aucune zone disponible.",
     "zones_error": "Impossible de charger les zones.",
     "error_subject_required": "Le sujet est requis.",
     "error_zone_required": "Sélectionnez au moins une zone.",
     "error_invalid_date": "Date invalide.",
-    "error_create_failed": "Impossible de créer l'interaction. Vérifiez les champs et le contexte du foyer.",
+    "error_expense_amount_required": "Renseignez un montant pour cette dépense.",
+    "error_expense_amount_invalid": "Renseignez un montant valide.",
+    "error_create_failed": "Impossible d'ajouter l'événement. Vérifiez les champs et le contexte du foyer.",
     "error_title": "Erreur de création",
     "success_title": "Succès",
-    "redirect_notice": "Redirection vers les interactions\u2026",
+    "redirect_notice": "Redirection vers l'activité\u2026",
+    "created_notice_title": "Événement ajouté",
+    "created_notice_body": "\"{{subject}}\" a été ajouté et mis en avant ci-dessous.",
+    "created_badge": "Nouveau",
     "creating": "Création en cours\u2026",
-    "list_title": "Dernières interactions",
-    "list_empty": "Aucune interaction trouvée pour ce filtre.",
+    "list_title": "Activité",
+    "list_empty": "Aucune activité trouvée pour ce filtre.",
+    "meta_zones": "Zones",
+    "meta_documents": "{{count}} document",
+    "meta_documents_one": "{{count}} document",
+    "meta_documents_other": "{{count}} documents",
+    "search_label": "Recherche",
+    "search_placeholder": "Chercher par titre, description ou tag",
     "filter_type": "Type",
     "filter_status": "Statut",
     "all_types": "Tous les types",
     "all_statuses": "Tous les statuts",
     "reset_filters": "Réinitialiser",
+    "apply_filters": "Appliquer",
     "error_load_failed": "Impossible de charger les interactions.",
     "error_load_more_failed": "Impossible de charger plus d'interactions.",
     "loading_error_title": "Erreur de chargement",
     "load_more": "Voir plus",
     "loading_more": "Chargement\u2026"
+  },
+  "tagSelector": {
+    "selected_count": "{{count}} sélectionné(s)",
+    "search_label": "Trouver ou créer un tag",
+    "placeholder": "Ajouter un tag",
+    "helper": "Appuyez sur Entrée ou une virgule pour ajouter un tag.",
+    "loading": "Chargement des tags\u2026",
+    "error": "Impossible de charger les tags.",
+    "suggestions_label": "Tags suggérés",
+    "create_tag": "Ajouter le tag \"{{name}}\"",
+    "empty": "Aucun tag ne correspond à cette recherche.",
+    "remove_tag": "Retirer {{name}}"
   },
   "zones": {
     "app_title": "Mini-app Zones",
@@ -405,6 +452,8 @@
       }
     },
     "interaction_type": {
+      "note": "Note",
+      "todo": "Tâche",
       "maintenance": "Maintenance",
       "repair": "Réparation",
       "inspection": "Inspection",
@@ -437,11 +486,68 @@
       "cta": "Aller aux paramètres"
     },
     "actions": {
+      "add": "Ajouter",
       "openSettings": "Ouvrir les paramètres",
       "newInteraction": "Nouvelle interaction",
       "newProject": "Nouveau projet",
       "openTasks": "Ouvrir les tâches",
       "openDocuments": "Ouvrir les documents"
+    },
+    "typePicker": {
+      "title": "Que voulez-vous ajouter ?",
+      "description": "Choisissez le type d'événement à ajouter dans l'historique du foyer.",
+      "primaryTitle": "Types fréquents",
+      "secondaryTitle": "Autres options",
+      "types": {
+        "note": {
+          "label": "Note",
+          "description": "Consigner une information libre."
+        },
+        "todo": {
+          "label": "Tâche",
+          "description": "Suivre quelque chose à faire."
+        },
+        "expense": {
+          "label": "Dépense",
+          "description": "Enregistrer un coût ou un achat."
+        },
+        "maintenance": {
+          "label": "Maintenance",
+          "description": "Garder la trace d'un entretien ou d'une intervention."
+        },
+        "repair": {
+          "label": "Réparation",
+          "description": "Suivre une correction sur quelque chose de cassé."
+        },
+        "installation": {
+          "label": "Installation",
+          "description": "Enregistrer une nouvelle pose ou mise en place."
+        },
+        "inspection": {
+          "label": "Inspection",
+          "description": "Garder la trace d'un contrôle ou d'une vérification."
+        },
+        "warranty": {
+          "label": "Garantie",
+          "description": "Enregistrer un événement lié à une garantie."
+        },
+        "issue": {
+          "label": "Incident",
+          "description": "Consigner un problème qui demande une attention."
+        },
+        "upgrade": {
+          "label": "Amélioration",
+          "description": "Suivre une amélioration ou une montée en gamme."
+        },
+        "replacement": {
+          "label": "Remplacement",
+          "description": "Enregistrer le remplacement d'un élément."
+        },
+        "disposal": {
+          "label": "Mise au rebut",
+          "description": "Garder la trace d'un retrait ou d'une évacuation."
+        }
+      }
     },
     "summary": {
       "projects": {

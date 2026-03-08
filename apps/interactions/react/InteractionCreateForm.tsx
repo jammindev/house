@@ -1,13 +1,15 @@
 import * as React from 'react';
+import { Clock3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { createInteraction } from '@/lib/api/interactions';
-import { fetchZones, type ZoneOption } from '@/lib/api/zones';
+import { TagSelector } from '@/lib/components/TagSelector';
+import { ZoneTreeSelector } from '@/lib/components/ZoneTreeSelector';
+import type { ZoneOption } from '@/lib/api/zones';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
@@ -40,15 +42,51 @@ const TYPE_OPTIONS = [
 
 const STATUS_OPTIONS = ['backlog', 'pending', 'in_progress', 'done', 'archived'];
 
-function nowLocalDateTimeInput(): string {
+function translateInteractionType(t: ReturnType<typeof useTranslation>['t'], value: string): string {
+  return t(`interaction_type.${value}`, { defaultValue: value });
+}
+
+function translateInteractionStatus(t: ReturnType<typeof useTranslation>['t'], value: string): string {
+  return t(`interaction_status.${value}`, { defaultValue: value });
+}
+
+function todayLocalDateInput(): string {
   const now = new Date();
   const pad = (v: number) => String(v).padStart(2, '0');
 
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+function nowLocalTimeInput(): string {
+  const now = new Date();
+  const pad = (v: number) => String(v).padStart(2, '0');
+
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+}
+
+function buildOccurredAtValue(dateValue: string, includeTime: boolean, timeValue: string): string | null {
+  if (!dateValue) {
+    return null;
+  }
+
+  const resolvedTime = includeTime ? timeValue || '12:00' : '12:00';
+  return `${dateValue}T${resolvedTime}`;
+}
+
+function buildRedirectUrl(baseUrl: string, createdId: string): string {
+  if (typeof window === 'undefined') {
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    return `${baseUrl}${separator}created=${encodeURIComponent(createdId)}`;
+  }
+
+  const url = new URL(baseUrl, window.location.origin);
+  url.searchParams.set('created', createdId);
+
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 export function InteractionCreateForm({
-  title,
+  title: _title,
   defaultType = 'note',
   submitLabel,
   successMessage,
@@ -60,60 +98,26 @@ export function InteractionCreateForm({
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
   const householdId = useHouseholdId();
-  const resolvedTitle = title ?? t('interactions.form_title');
   const resolvedSubmitLabel = submitLabel ?? t('interactions.submit_label');
   const resolvedSuccessMessage = successMessage ?? t('interactions.success_message');
-  const [zones, setZones] = React.useState<ZoneOption[]>(initialZones);
-  const [zonesLoading, setZonesLoading] = React.useState(!initialZonesLoaded);
-  const [zonesError, setZonesError] = React.useState<string | null>(null);
 
   const [subject, setSubject] = React.useState('');
   const [content, setContent] = React.useState('');
   const [type, setType] = React.useState(defaultType);
   const [status, setStatus] = React.useState('pending');
-  const [occurredAt, setOccurredAt] = React.useState(nowLocalDateTimeInput());
-  const [tagsText, setTagsText] = React.useState('');
+  const [expenseAmount, setExpenseAmount] = React.useState('');
+  const [occurredOn, setOccurredOn] = React.useState(todayLocalDateInput());
+  const [includeTime, setIncludeTime] = React.useState(false);
+  const [occurredTime, setOccurredTime] = React.useState(nowLocalTimeInput());
+  const [tagNames, setTagNames] = React.useState<string[]>([]);
   const [zoneIds, setZoneIds] = React.useState<string[]>([]);
 
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [success, setSuccess] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    if (initialZonesLoaded) {
-      return;
-    }
-
-    let isMounted = true;
-
-    async function loadZones() {
-      setZonesLoading(true);
-      setZonesError(null);
-
-      try {
-        const data = await fetchZones(householdId);
-        if (isMounted) setZones(data);
-      } catch {
-        if (isMounted) setZonesError(t('interactions.zones_error'));
-      } finally {
-        if (isMounted) setZonesLoading(false);
-      }
-    }
-
-    loadZones();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [householdId, initialZonesLoaded]);
-
-  function toggleZone(zoneId: string) {
-    setZoneIds((previous) =>
-      previous.includes(zoneId)
-        ? previous.filter((id) => id !== zoneId)
-        : [...previous, zoneId]
-    );
-  }
+  const isTodo = type === 'todo';
+  const isExpense = type === 'expense';
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -131,10 +135,33 @@ export function InteractionCreateForm({
       return;
     }
 
+    const occurredAt = buildOccurredAtValue(occurredOn, includeTime, occurredTime);
+    if (!occurredAt) {
+      setError(t('interactions.error_invalid_date'));
+      return;
+    }
+
     const occurredISO = new Date(occurredAt).toISOString();
     if (Number.isNaN(new Date(occurredISO).getTime())) {
       setError(t('interactions.error_invalid_date'));
       return;
+    }
+
+    let metadata: Record<string, unknown> = {};
+
+    if (isExpense) {
+      if (!expenseAmount.trim()) {
+        setError(t('interactions.error_expense_amount_required'));
+        return;
+      }
+
+      const parsedAmount = Number.parseFloat(expenseAmount.replace(',', '.'));
+      if (Number.isNaN(parsedAmount) || parsedAmount < 0) {
+        setError(t('interactions.error_expense_amount_invalid'));
+        return;
+      }
+
+      metadata = { amount: parsedAmount };
     }
 
     setSubmitting(true);
@@ -145,13 +172,11 @@ export function InteractionCreateForm({
           subject: subject.trim(),
           content,
           type,
-          status: type === 'todo' ? status : null,
+          status: isTodo ? status : null,
           occurred_at: occurredISO,
           zone_ids: zoneIds,
-          tags_input: tagsText
-            .split(',')
-            .map((tag) => tag.trim())
-            .filter(Boolean),
+          metadata,
+          tags_input: tagNames,
         },
         householdId
       );
@@ -159,9 +184,13 @@ export function InteractionCreateForm({
       setSuccess(resolvedSuccessMessage);
       setSubject('');
       setContent('');
-      setTagsText('');
+      setExpenseAmount('');
+      setTagNames([]);
       setZoneIds([]);
-      setOccurredAt(nowLocalDateTimeInput());
+      setStatus('pending');
+      setOccurredOn(todayLocalDateInput());
+      setIncludeTime(false);
+      setOccurredTime(nowLocalTimeInput());
 
       if (onCreated) {
         onCreated(created.id);
@@ -169,7 +198,7 @@ export function InteractionCreateForm({
 
       if (redirectToListUrl && typeof window !== 'undefined') {
         window.setTimeout(() => {
-          window.location.assign(redirectToListUrl);
+          window.location.assign(buildRedirectUrl(redirectToListUrl, created.id));
         }, redirectDelayMs);
       }
     } catch {
@@ -180,160 +209,173 @@ export function InteractionCreateForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{resolvedTitle}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+    <form className="space-y-5" onSubmit={handleSubmit}>
+      <div className="space-y-2">
+        <label htmlFor="interaction-subject" className="text-sm font-medium">
+          {t('interactions.subject_label')}
+        </label>
+        <Input
+          id="interaction-subject"
+          value={subject}
+          onChange={(event) => setSubject(event.target.value)}
+          placeholder={t('interactions.subject_placeholder')}
+          required
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <label htmlFor="interaction-type" className="text-sm font-medium">
+            {t('interactions.type_label')}
+          </label>
+          <select
+            id="interaction-type"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={type}
+            onChange={(event) => setType(event.target.value)}
+          >
+            {TYPE_OPTIONS.map((value) => (
+              <option key={value} value={value}>
+                {translateInteractionType(t, value)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {isTodo ? (
           <div className="space-y-2">
-            <label htmlFor="interaction-subject" className="text-sm font-medium">
-              {t('interactions.subject_label')}
+            <label htmlFor="interaction-status" className="text-sm font-medium">
+              {t('interactions.status_label')}
             </label>
+            <select
+              id="interaction-status"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={status}
+              onChange={(event) => setStatus(event.target.value)}
+            >
+              {STATUS_OPTIONS.map((value) => (
+                <option key={value} value={value}>
+                  {translateInteractionStatus(t, value)}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <label htmlFor="interaction-occurred-on" className="text-sm font-medium">
+            {includeTime ? t('interactions.date_time_label') : t('interactions.date_only_label')}
+          </label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-pressed={includeTime}
+            onClick={() => setIncludeTime((current) => !current)}
+            className="h-auto gap-1 px-0 py-0 text-xs font-medium text-muted-foreground hover:bg-transparent hover:text-foreground"
+          >
+            <Clock3 className="h-3.5 w-3.5" />
+            {includeTime ? t('interactions.time_label') : t('interactions.add_time_label')}
+          </Button>
+        </div>
+
+        <div className={`grid gap-3 ${includeTime ? 'md:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]' : ''}`}>
+          <Input
+            id="interaction-occurred-on"
+            type="date"
+            value={occurredOn}
+            onChange={(event) => setOccurredOn(event.target.value)}
+            required
+          />
+
+          {includeTime ? (
             <Input
-              id="interaction-subject"
-              value={subject}
-              onChange={(event) => setSubject(event.target.value)}
-              placeholder={t('interactions.subject_placeholder')}
-              required
+              id="interaction-occurred-time"
+              type="time"
+              aria-label={t('interactions.time_label')}
+              value={occurredTime}
+              onChange={(event) => setOccurredTime(event.target.value)}
             />
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="interaction-type" className="text-sm font-medium">
-                {t('interactions.type_label')}
-              </label>
-              <select
-                id="interaction-type"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={type}
-                onChange={(event) => setType(event.target.value)}
-              >
-                {TYPE_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="interaction-status" className="text-sm font-medium">
-                {t('interactions.status_label')}
-              </label>
-              <select
-                id="interaction-status"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={status}
-                onChange={(event) => setStatus(event.target.value)}
-                disabled={type !== 'todo'}
-              >
-                {STATUS_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="interaction-occurred-at" className="text-sm font-medium">
-              {t('interactions.date_label')}
-            </label>
-            <Input
-              id="interaction-occurred-at"
-              type="datetime-local"
-              value={occurredAt}
-              onChange={(event) => setOccurredAt(event.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="interaction-content" className="text-sm font-medium">
-              {t('interactions.description_label')}
-            </label>
-            <Textarea
-              id="interaction-content"
-              rows={5}
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder={t('interactions.description_placeholder')}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="interaction-tags" className="text-sm font-medium">
-              {t('interactions.tags_label')}
-            </label>
-            <Input
-              id="interaction-tags"
-              value={tagsText}
-              onChange={(event) => setTagsText(event.target.value)}
-              placeholder={t('interactions.tags_placeholder')}
-            />
-          </div>
-
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">{t('interactions.zones_legend')}</legend>
-
-            {zonesLoading ? <p className="text-xs text-muted-foreground">{t('interactions.zones_loading')}</p> : null}
-            {zonesError ? <p className="text-xs text-destructive">{zonesError}</p> : null}
-
-            {!zonesLoading && !zonesError && zones.length === 0 ? (
-              <p className="text-xs text-muted-foreground">{t('interactions.zones_empty')}</p>
-            ) : null}
-
-            {!zonesLoading && !zonesError && zones.length > 0 ? (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {zones.map((zone) => (
-                  <label
-                    key={zone.id}
-                    className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={zoneIds.includes(zone.id)}
-                      onChange={() => toggleZone(zone.id)}
-                    />
-                    <span>{zone.full_path || zone.name}</span>
-                  </label>
-                ))}
-              </div>
-            ) : null}
-          </fieldset>
-
-          {error ? (
-            <Alert variant="destructive">
-              <AlertTitle>{t('interactions.error_title')}</AlertTitle>
-              <AlertDescription>
-                <p>{error}</p>
-              </AlertDescription>
-            </Alert>
           ) : null}
+        </div>
+      </div>
 
-          {success ? (
-            <Alert>
-              <AlertTitle>{t('interactions.success_title')}</AlertTitle>
-              <AlertDescription>
-                <p>{success}</p>
-                {redirectToListUrl ? (
-                  <p className="mt-1 text-xs text-muted-foreground">{t('interactions.redirect_notice')}</p>
-                ) : null}
-              </AlertDescription>
-            </Alert>
-          ) : null}
+      <div className="space-y-2">
+        <label htmlFor="interaction-content" className="text-sm font-medium">
+          {t('interactions.description_label')}
+        </label>
+        <Textarea
+          id="interaction-content"
+          rows={5}
+          value={content}
+          onChange={(event) => setContent(event.target.value)}
+          placeholder={t('interactions.description_placeholder')}
+        />
+      </div>
 
-          <div className="flex items-center justify-end">
-            <Button type="submit" disabled={submitting || zonesLoading}>
-              {submitting ? t('interactions.creating') : resolvedSubmitLabel}
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      {isExpense ? (
+        <div className="space-y-2">
+          <label htmlFor="interaction-expense-amount" className="text-sm font-medium">
+            {t('interactions.expense_amount_label')}
+          </label>
+          <Input
+            id="interaction-expense-amount"
+            inputMode="decimal"
+            value={expenseAmount}
+            onChange={(event) => setExpenseAmount(event.target.value)}
+            placeholder={t('interactions.expense_amount_placeholder')}
+          />
+        </div>
+      ) : null}
+
+      <TagSelector
+        householdId={householdId}
+        tagType="interaction"
+        selectedTagNames={tagNames}
+        onChange={setTagNames}
+        legend={t('interactions.tags_label')}
+        placeholder={t('interactions.tags_placeholder')}
+        helperText={t('interactions.tags_help')}
+      />
+
+      <ZoneTreeSelector
+        householdId={householdId}
+        selectedZoneIds={zoneIds}
+        onChange={setZoneIds}
+        initialZones={initialZones}
+        initialZonesLoaded={initialZonesLoaded}
+        storageKey="interaction-create-form:expanded-zones"
+      />
+
+      {error ? (
+        <Alert variant="destructive">
+          <AlertTitle>{t('interactions.error_title')}</AlertTitle>
+          <AlertDescription>
+            <p>{error}</p>
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      {success ? (
+        <Alert>
+          <AlertTitle>{t('interactions.success_title')}</AlertTitle>
+          <AlertDescription>
+            <p>{success}</p>
+            {redirectToListUrl ? (
+              <p className="mt-1 text-xs text-muted-foreground">{t('interactions.redirect_notice')}</p>
+            ) : null}
+          </AlertDescription>
+        </Alert>
+      ) : null}
+
+      <div className="flex items-center justify-end border-t border-border/60 pt-2">
+        <Button type="submit" disabled={submitting}>
+          {submitting ? t('interactions.creating') : resolvedSubmitLabel}
+        </Button>
+      </div>
+    </form>
   );
 }
 

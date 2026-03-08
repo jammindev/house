@@ -8,15 +8,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { FilterBar } from '@/design-system/filter-bar';
 import { Skeleton } from '@/design-system/skeleton';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
+import { cn } from '@/lib/utils';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface InteractionListProps {
   title?: string;
+  search?: string;
   type?: string;
   status?: string;
   limit?: number;
   emptyMessage?: string;
+  highlightedId?: string;
   initialItems?: InteractionListItem[];
   initialCount?: number;
   initialLoaded?: boolean;
@@ -41,6 +44,14 @@ const TYPE_OPTIONS = [
 
 const STATUS_OPTIONS = ['backlog', 'pending', 'in_progress', 'done', 'archived'];
 
+function translateInteractionType(t: ReturnType<typeof useTranslation>['t'], value: string): string {
+  return t(`interaction_type.${value}`, { defaultValue: value });
+}
+
+function translateInteractionStatus(t: ReturnType<typeof useTranslation>['t'], value: string): string {
+  return t(`interaction_status.${value}`, { defaultValue: value });
+}
+
 function formatDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -64,10 +75,12 @@ function LoadingState() {
 
 export function InteractionList({
   title,
+  search,
   type,
   status,
   limit = 8,
   emptyMessage,
+  highlightedId,
   initialItems = [],
   initialCount,
   initialLoaded = false,
@@ -78,9 +91,11 @@ export function InteractionList({
   const householdId = useHouseholdId();
   const resolvedTitle = title ?? t('interactions.list_title');
   const resolvedEmptyMessage = emptyMessage ?? t('interactions.list_empty');
+  const initialSearch = search ?? '';
   const initialType = type ?? '';
   const initialStatus = status ?? '';
 
+  const [selectedSearch, setSelectedSearch] = React.useState(initialSearch);
   const [selectedType, setSelectedType] = React.useState(initialType);
   const [selectedStatus, setSelectedStatus] = React.useState(initialStatus);
   const [items, setItems] = React.useState<InteractionListItem[]>(initialItems);
@@ -96,6 +111,7 @@ export function InteractionList({
       const shouldUseInitialData =
         initialLoaded &&
         !forceReloadOnMount &&
+        selectedSearch === initialSearch &&
         selectedType === initialType &&
         selectedStatus === initialStatus;
 
@@ -118,6 +134,7 @@ export function InteractionList({
 
       try {
         const data = await fetchInteractions({
+          search: selectedSearch || undefined,
           type: selectedType || undefined,
           status: selectedStatus || undefined,
           limit,
@@ -146,12 +163,14 @@ export function InteractionList({
       isMounted = false;
     };
   }, [
+    selectedSearch,
     selectedType,
     selectedStatus,
     limit,
     householdId,
     initialLoaded,
     forceReloadOnMount,
+    initialSearch,
     initialType,
     initialStatus,
     initialItems,
@@ -164,6 +183,12 @@ export function InteractionList({
     }
 
     const url = new URL(window.location.href);
+
+    if (selectedSearch) {
+      url.searchParams.set('search', selectedSearch);
+    } else {
+      url.searchParams.delete('search');
+    }
 
     if (selectedType) {
       url.searchParams.set('type', selectedType);
@@ -179,9 +204,10 @@ export function InteractionList({
 
     const qs = url.searchParams.toString();
     window.history.replaceState({}, '', qs ? `${url.pathname}?${qs}` : url.pathname);
-  }, [selectedType, selectedStatus, syncFiltersWithUrl]);
+  }, [selectedSearch, selectedType, selectedStatus, syncFiltersWithUrl]);
 
   function resetFilters() {
+    setSelectedSearch('');
     setSelectedType('');
     setSelectedStatus('');
   }
@@ -192,6 +218,7 @@ export function InteractionList({
 
     try {
       const data = await fetchInteractions({
+        search: selectedSearch || undefined,
         type: selectedType || undefined,
         status: selectedStatus || undefined,
         limit,
@@ -212,6 +239,7 @@ export function InteractionList({
   }
 
   const hasMore = items.length < totalCount;
+  const highlightedItem = highlightedId ? items.find((item) => item.id === highlightedId) : null;
 
   return (
     <Card>
@@ -219,9 +247,27 @@ export function InteractionList({
         <CardTitle className="text-base">{resolvedTitle}</CardTitle>
       </CardHeader>
       <CardContent>
+        {highlightedItem ? (
+          <Alert className="mb-4 border-sky-200 bg-sky-50/70 text-sky-950">
+            <AlertTitle>{t('interactions.created_notice_title')}</AlertTitle>
+            <AlertDescription>
+              <p>{t('interactions.created_notice_body', { subject: highlightedItem.subject })}</p>
+            </AlertDescription>
+          </Alert>
+        ) : null}
+
         <div className="mb-4">
           <FilterBar
             fields={[
+              {
+                type: 'search',
+                id: 'interactions-filter-search',
+                label: t('interactions.search_label'),
+                value: selectedSearch,
+                onChange: setSelectedSearch,
+                placeholder: t('interactions.search_placeholder'),
+                className: 'max-w-2xl',
+              },
               {
                 type: 'select',
                 id: 'interactions-filter-type',
@@ -230,7 +276,7 @@ export function InteractionList({
                 onChange: setSelectedType,
                 options: [
                   { value: '', label: t('interactions.all_types') },
-                  ...TYPE_OPTIONS.map((value) => ({ value, label: value })),
+                  ...TYPE_OPTIONS.map((value) => ({ value, label: translateInteractionType(t, value) })),
                 ],
               },
               {
@@ -241,13 +287,14 @@ export function InteractionList({
                 onChange: setSelectedStatus,
                 options: [
                   { value: '', label: t('interactions.all_statuses') },
-                  ...STATUS_OPTIONS.map((value) => ({ value, label: value })),
+                  ...STATUS_OPTIONS.map((value) => ({ value, label: translateInteractionStatus(t, value) })),
                 ],
               },
             ]}
             onReset={resetFilters}
-            hasActiveFilters={!!(selectedType || selectedStatus)}
+            hasActiveFilters={!!(selectedSearch || selectedType || selectedStatus)}
             resetLabel={t('interactions.reset_filters')}
+            applyLabel={t('interactions.apply_filters')}
           />
         </div>
 
@@ -270,16 +317,37 @@ export function InteractionList({
           <div className="space-y-3">
             <ul className="space-y-3">
               {items.map((item) => (
-                <li key={item.id} className="rounded-md border p-3">
+                <li
+                  key={item.id}
+                  className={cn(
+                    'rounded-md border p-3 transition-colors',
+                    item.id === highlightedId ? 'border-sky-300 bg-sky-50/60 ring-1 ring-sky-200' : 'border-border'
+                  )}
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-medium text-sm">{item.subject}</p>
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline">{item.type}</Badge>
-                      {item.status ? <Badge>{item.status}</Badge> : null}
+                      {item.id === highlightedId ? <Badge variant="secondary">{t('interactions.created_badge')}</Badge> : null}
+                      <Badge variant="outline">{translateInteractionType(t, item.type)}</Badge>
+                      {item.status ? <Badge>{translateInteractionStatus(t, item.status)}</Badge> : null}
                     </div>
                   </div>
                   {item.content ? (
                     <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
+                  ) : null}
+                  {item.zone_names.length > 0 || item.document_count > 0 ? (
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      {item.zone_names.length > 0 ? (
+                        <span>
+                          {t('interactions.meta_zones')}: {item.zone_names.join(', ')}
+                        </span>
+                      ) : null}
+                      {item.document_count > 0 ? (
+                        <span>
+                          {t('interactions.meta_documents', { count: item.document_count })}
+                        </span>
+                      ) : null}
+                    </div>
                   ) : null}
                   <div className="mt-2 text-xs text-muted-foreground">
                     {formatDate(item.occurred_at)}

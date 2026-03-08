@@ -98,6 +98,21 @@ class TestInteractionCrud:
         assert Tag.objects.filter(household=household, name="urgent", type=Tag.TagType.INTERACTION).exists()
         assert TagLink.objects.filter(household=household, object_id=str(interaction.id)).count() == 2
 
+    def test_create_expense_persists_metadata(self, owner_client, household, owner, primary_zone):
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload([primary_zone.id], type="expense", metadata={"amount": 149.9, "currency": "EUR"}),
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        interaction = Interaction.objects.get(id=response.data["id"])
+        assert interaction.type == "expense"
+        assert interaction.metadata["amount"] == 149.9
+        assert interaction.metadata["currency"] == "EUR"
+
     def test_create_requires_at_least_one_zone(self, owner_client, household):
         url = reverse("interaction-list")
         payload = _interaction_payload([])

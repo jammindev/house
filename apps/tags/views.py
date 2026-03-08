@@ -16,6 +16,16 @@ class TagViewSet(viewsets.ModelViewSet):
         selected_household = resolve_request_household(self.request, required=False)
         if selected_household:
             queryset = queryset.filter(household=selected_household)
+
+        selected_type = (self.request.query_params.get("type") or "").strip()
+        if selected_type:
+            queryset = queryset.filter(type=selected_type)
+
+        selected_search = (self.request.query_params.get("search") or "").strip()
+        if selected_search:
+            queryset = queryset.filter(name__icontains=selected_search)
+
+        queryset = queryset.order_by("name")
         return queryset
 
     def perform_create(self, serializer):

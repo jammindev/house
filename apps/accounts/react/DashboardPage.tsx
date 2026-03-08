@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { buttonVariants } from '@/design-system/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/design-system/card';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { cn } from '@/lib/utils';
 
 type DashboardTone = 'slate' | 'sky' | 'amber' | 'emerald' | 'rose';
@@ -62,6 +63,7 @@ interface DashboardQuickAction {
   labelKey?: string;
   href: string;
   icon: DashboardIconName;
+  actionType?: 'link' | 'typePicker';
 }
 
 interface DashboardHeader {
@@ -116,6 +118,114 @@ const SECTION_LAYOUT: Record<string, string> = {
   activity: 'xl:col-span-4',
   documents: 'xl:col-span-4',
 };
+
+interface InteractionTypeOption {
+  value: string;
+  labelKey: string;
+  fallbackLabel: string;
+  descriptionKey: string;
+  fallbackDescription: string;
+  primary: boolean;
+}
+
+const INTERACTION_TYPE_OPTIONS: InteractionTypeOption[] = [
+  {
+    value: 'note',
+    labelKey: 'dashboard.typePicker.types.note.label',
+    fallbackLabel: 'Note',
+    descriptionKey: 'dashboard.typePicker.types.note.description',
+    fallbackDescription: 'Capture a free-form note.',
+    primary: true,
+  },
+  {
+    value: 'todo',
+    labelKey: 'dashboard.typePicker.types.todo.label',
+    fallbackLabel: 'Task',
+    descriptionKey: 'dashboard.typePicker.types.todo.description',
+    fallbackDescription: 'Track something that needs to be done.',
+    primary: true,
+  },
+  {
+    value: 'expense',
+    labelKey: 'dashboard.typePicker.types.expense.label',
+    fallbackLabel: 'Expense',
+    descriptionKey: 'dashboard.typePicker.types.expense.description',
+    fallbackDescription: 'Record a cost or purchase.',
+    primary: true,
+  },
+  {
+    value: 'maintenance',
+    labelKey: 'dashboard.typePicker.types.maintenance.label',
+    fallbackLabel: 'Maintenance',
+    descriptionKey: 'dashboard.typePicker.types.maintenance.description',
+    fallbackDescription: 'Log routine care or an intervention.',
+    primary: true,
+  },
+  {
+    value: 'repair',
+    labelKey: 'dashboard.typePicker.types.repair.label',
+    fallbackLabel: 'Repair',
+    descriptionKey: 'dashboard.typePicker.types.repair.description',
+    fallbackDescription: 'Track a fix for something broken.',
+    primary: false,
+  },
+  {
+    value: 'installation',
+    labelKey: 'dashboard.typePicker.types.installation.label',
+    fallbackLabel: 'Installation',
+    descriptionKey: 'dashboard.typePicker.types.installation.description',
+    fallbackDescription: 'Record a new setup or fitting.',
+    primary: false,
+  },
+  {
+    value: 'inspection',
+    labelKey: 'dashboard.typePicker.types.inspection.label',
+    fallbackLabel: 'Inspection',
+    descriptionKey: 'dashboard.typePicker.types.inspection.description',
+    fallbackDescription: 'Keep a trace of a check or review.',
+    primary: false,
+  },
+  {
+    value: 'warranty',
+    labelKey: 'dashboard.typePicker.types.warranty.label',
+    fallbackLabel: 'Warranty',
+    descriptionKey: 'dashboard.typePicker.types.warranty.description',
+    fallbackDescription: 'Store a warranty-related event.',
+    primary: false,
+  },
+  {
+    value: 'issue',
+    labelKey: 'dashboard.typePicker.types.issue.label',
+    fallbackLabel: 'Issue',
+    descriptionKey: 'dashboard.typePicker.types.issue.description',
+    fallbackDescription: 'Log a problem that needs attention.',
+    primary: false,
+  },
+  {
+    value: 'upgrade',
+    labelKey: 'dashboard.typePicker.types.upgrade.label',
+    fallbackLabel: 'Upgrade',
+    descriptionKey: 'dashboard.typePicker.types.upgrade.description',
+    fallbackDescription: 'Track an improvement or enhancement.',
+    primary: false,
+  },
+  {
+    value: 'replacement',
+    labelKey: 'dashboard.typePicker.types.replacement.label',
+    fallbackLabel: 'Replacement',
+    descriptionKey: 'dashboard.typePicker.types.replacement.description',
+    fallbackDescription: 'Record when something is replaced.',
+    primary: false,
+  },
+  {
+    value: 'disposal',
+    labelKey: 'dashboard.typePicker.types.disposal.label',
+    fallbackLabel: 'Disposal',
+    descriptionKey: 'dashboard.typePicker.types.disposal.description',
+    fallbackDescription: 'Keep a trace of removal or disposal.',
+    primary: false,
+  },
+];
 
 function DashboardIcon({ name, className }: { name: DashboardIconName; className?: string }) {
   const Icon = ICONS[name];
@@ -235,6 +345,125 @@ function SectionPanel({ section }: { section: DashboardSection }) {
   );
 }
 
+function buildTypedCreateUrl(baseHref: string, type: string): string {
+  if (typeof window === 'undefined') {
+    const separator = baseHref.includes('?') ? '&' : '?';
+    return `${baseHref}${separator}type=${encodeURIComponent(type)}&return_to=dashboard`;
+  }
+
+  const url = new URL(baseHref, window.location.origin);
+  url.searchParams.set('type', type);
+  url.searchParams.set('return_to', 'dashboard');
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function TypePickerAction({ action }: { action: DashboardQuickAction }) {
+  const resolveText = useDashboardText();
+  const primaryOptions = INTERACTION_TYPE_OPTIONS.filter((option) => option.primary);
+  const secondaryOptions = INTERACTION_TYPE_OPTIONS.filter((option) => !option.primary);
+
+  function navigateToType(type: string, close: () => void) {
+    close();
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.location.assign(buildTypedCreateUrl(action.href, type));
+  }
+
+  return (
+    <SheetDialog
+      title={resolveText('dashboard.typePicker.title', 'What would you like to add?')}
+      description={resolveText(
+        'dashboard.typePicker.description',
+        'Choose the type of event to add to the household history.'
+      )}
+      trigger={
+        <button
+          type="button"
+          className={buttonVariants({ variant: 'default', size: 'sm' })}
+        >
+          <DashboardIcon name={action.icon} className="mr-2 h-4 w-4" />
+          {resolveText(action.labelKey, action.label)}
+        </button>
+      }
+    >
+      {({ close }) => (
+        <div className="space-y-6">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {resolveText('dashboard.typePicker.primaryTitle', 'Common types')}
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {primaryOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => navigateToType(option.value, close)}
+                  className="rounded-2xl border border-border/70 bg-card p-4 text-left transition-colors hover:border-border hover:bg-muted/40"
+                >
+                  <p className="text-sm font-semibold text-foreground">
+                    {resolveText(option.labelKey, option.fallbackLabel)}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {resolveText(option.descriptionKey, option.fallbackDescription)}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+              {resolveText('dashboard.typePicker.secondaryTitle', 'More options')}
+            </p>
+            <div className="grid gap-2">
+              {secondaryOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => navigateToType(option.value, close)}
+                  className="flex items-start justify-between gap-3 rounded-2xl border border-border/70 bg-background px-4 py-3 text-left transition-colors hover:border-border hover:bg-muted/30"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">
+                      {resolveText(option.labelKey, option.fallbackLabel)}
+                    </p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">
+                      {resolveText(option.descriptionKey, option.fallbackDescription)}
+                    </p>
+                  </div>
+                  <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </SheetDialog>
+  );
+}
+
+function QuickActionButton({ action, index }: { action: DashboardQuickAction; index: number }) {
+  const resolveText = useDashboardText();
+
+  if (action.actionType === 'typePicker') {
+    return <TypePickerAction action={action} />;
+  }
+
+  return (
+    <a
+      href={action.href}
+      className={buttonVariants({ variant: index === 0 ? 'default' : 'outline', size: 'sm' })}
+    >
+      <DashboardIcon name={action.icon} className="mr-2 h-4 w-4" />
+      {resolveText(action.labelKey, action.label)}
+    </a>
+  );
+}
+
 export default function DashboardPage({ header, summary, quickActions, sections, emptyState }: DashboardPageProps) {
   const resolveText = useDashboardText();
 
@@ -266,14 +495,7 @@ export default function DashboardPage({ header, summary, quickActions, sections,
           </div>
           <div className="flex flex-wrap gap-2">
             {quickActions.map((action, index) => (
-              <a
-                key={`${action.label}-${index}`}
-                href={action.href}
-                className={buttonVariants({ variant: index === 0 ? 'default' : 'outline', size: 'sm' })}
-              >
-                <DashboardIcon name={action.icon} className="mr-2 h-4 w-4" />
-                {resolveText(action.labelKey, action.label)}
-              </a>
+              <QuickActionButton key={`${action.label}-${index}`} action={action} index={index} />
             ))}
           </div>
         </div>

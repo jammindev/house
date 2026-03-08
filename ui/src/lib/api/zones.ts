@@ -1,8 +1,10 @@
 export interface ZoneOption {
   id: string;
   name: string;
+  parentId?: string | null;
   full_path?: string;
   color?: string;
+  depth?: number;
 }
 
 interface PaginatedResponse<T> {
@@ -14,17 +16,24 @@ interface PaginatedResponse<T> {
 
 function normalizeList(payload: unknown): ZoneOption[] {
   if (Array.isArray(payload)) {
-    return payload as ZoneOption[];
+    return payload.map(normalizeZone);
   }
 
   if (payload && typeof payload === 'object') {
     const paginated = payload as PaginatedResponse<ZoneOption>;
     if (Array.isArray(paginated.results)) {
-      return paginated.results;
+      return paginated.results.map(normalizeZone);
     }
   }
 
   return [];
+}
+
+function normalizeZone(zone: ZoneOption & { parent?: string | null }): ZoneOption {
+  return {
+    ...zone,
+    parentId: zone.parentId ?? zone.parent ?? null,
+  };
 }
 
 export async function fetchZones(householdId?: string): Promise<ZoneOption[]> {

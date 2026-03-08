@@ -14,7 +14,6 @@ import {
 } from '@/design-system/dialog';
 import { FilterBar } from '@/design-system/filter-bar';
 import { Input } from '@/design-system/input';
-import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import {
   createStockCategory,
@@ -142,17 +141,6 @@ export default function StockList({
     });
     setCategoryDialogOpen(true);
   }, [createCategoryRequested]);
-
-  function openCreateCategoryDialog() {
-    setEditingCategory(null);
-    setCategoryForm({
-      name: '',
-      emoji: '📦',
-      color: '#94a3b8',
-      description: '',
-    });
-    setCategoryDialogOpen(true);
-  }
 
   function handleCategoryDialogOpenChange(open: boolean) {
     setCategoryDialogOpen(open);

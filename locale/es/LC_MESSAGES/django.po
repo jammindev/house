@@ -736,6 +736,26 @@ msgstr "Últimas interacciones visibles en todo el hogar."
 msgid "Open activity stream"
 msgstr "Abrir flujo de actividad"
 
+#: apps/accounts/views/template_views.py:392
+msgid "Add"
+msgstr "Añadir"
+
+#: apps/interactions/views_web.py:90 apps/interactions/views_web.py:116
+msgid "Add event"
+msgstr "Añadir evento"
+
+#: apps/interactions/views_web.py:117
+msgid "Event added successfully."
+msgstr "Evento añadido con éxito."
+
+#: apps/interactions/views_web.py:25 apps/interactions/views_web.py:72
+msgid "Activity"
+msgstr "Actividad"
+
+#: apps/interactions/views_web.py:77
+msgid "No activity available yet."
+msgstr "Todavía no hay actividad disponible."
+
 #: apps/accounts/views/template_views.py:432
 msgid "No recent activity to display."
 msgstr "No hay actividad reciente para mostrar."

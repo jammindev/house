@@ -19,9 +19,11 @@ export interface CreateInteractionInput {
   occurred_at: string;
   zone_ids: string[];
   tags_input?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 interface FetchInteractionsOptions {
+  search?: string;
   type?: string;
   status?: string;
   limit?: number;
@@ -87,10 +89,11 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { type, status, limit = 8, offset = 0, householdId } = options;
+  const { search, type, status, limit = 8, offset = 0, householdId } = options;
 
   const params = new URLSearchParams();
   params.set('ordering', '-occurred_at');
+  if (search) params.set('search', search);
   if (type) params.set('type', type);
   if (status) params.set('status', status);
   if (limit > 0) params.set('limit', String(limit));
@@ -130,10 +133,9 @@ export async function createInteraction(
     },
     body: JSON.stringify({
       ...input,
-      tags: input.tags ?? [],
       content: input.content ?? '',
       status: input.status ?? null,
-      metadata: {},
+      metadata: input.metadata ?? {},
       enriched_text: '',
     }),
   });

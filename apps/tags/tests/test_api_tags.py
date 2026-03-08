@@ -87,6 +87,21 @@ class TestTagsApi:
         assert response.status_code == status.HTTP_200_OK
         assert [item["name"] for item in response.data] == [visible.name]
 
+    def test_list_tags_can_filter_by_type_and_search(self, owner_client, owner, household):
+        Tag.objects.create(household=household, created_by=owner, name="urgent", type=Tag.TagType.INTERACTION)
+        Tag.objects.create(household=household, created_by=owner, name="warranty", type=Tag.TagType.DOCUMENT)
+        Tag.objects.create(household=household, created_by=owner, name="roof leak", type=Tag.TagType.INTERACTION)
+
+        url = reverse("tag-list")
+        response = owner_client.get(
+            url,
+            {"type": Tag.TagType.INTERACTION, "search": "roof"},
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [item["name"] for item in response.data] == ["roof leak"]
+
 
 @pytest.mark.django_db
 class TestTagLinksApi:

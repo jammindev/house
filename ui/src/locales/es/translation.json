@@ -54,42 +54,89 @@
     "success_link_deactivated": "Enlace desactivado."
   },
   "interactions": {
-    "form_title": "Crear interacción",
-    "submit_label": "Crear interacción",
-    "success_message": "Interacción creada con éxito.",
+    "form_title": "Añadir evento",
+    "submit_label": "Añadir evento",
+    "success_message": "Evento añadido con éxito.",
     "subject_label": "Asunto",
     "subject_placeholder": "Resumen breve",
     "type_label": "Tipo",
     "status_label": "Estado (tarea)",
+    "selected_type_label": "Tipo seleccionado",
     "date_label": "Fecha y hora",
+    "date_only_label": "Fecha",
+    "date_time_label": "Fecha y hora",
+    "time_label": "Hora",
+    "add_time_label": "Añadir una hora",
     "description_label": "Descripción",
     "description_placeholder": "Detalles",
-    "tags_label": "Etiquetas (separadas por comas)",
-    "tags_placeholder": "urgente, caldera, factura",
+    "expense_amount_label": "Importe",
+    "expense_amount_placeholder": "p. ej. 149,90",
+    "tags_label": "Tags",
+    "tags_placeholder": "Añadir un tag",
+    "tags_help": "Pulsa Intro o una coma para añadir un tag y reutiliza las sugerencias cuando existan.",
     "zones_legend": "Zonas",
+    "zones_selected_count": "{{count}} seleccionada(s)",
+    "zones_search_label": "Encontrar una zona",
+    "zones_search_placeholder": "Buscar por nombre o ruta de zona",
+    "zones_search_empty": "Ninguna zona coincide con esta búsqueda.",
+    "zones_root_label": "Raíz",
+    "zones_depth_label": "Nivel {{depth}}",
+    "zones_parent_path_label": "En",
+    "zones_expand_all": "Desplegar todo",
+    "zones_collapse_all": "Plegar todo",
+    "zones_expand_branch": "Desplegar {{name}}",
+    "zones_collapse_branch": "Plegar {{name}}",
+    "zones_select_zone": "Seleccionar {{name}}",
+    "zones_unselect_zone": "Deseleccionar {{name}}",
+    "zones_select_short": "Elegir",
+    "zones_selected_short": "Elegida",
     "zones_loading": "Cargando zonas\u2026",
     "zones_empty": "No hay zonas disponibles.",
     "zones_error": "No se pudieron cargar las zonas.",
     "error_subject_required": "El asunto es requerido.",
     "error_zone_required": "Seleccione al menos una zona.",
     "error_invalid_date": "Fecha inválida.",
-    "error_create_failed": "No se pudo crear la interacción. Verifique los campos y el contexto del hogar.",
+    "error_expense_amount_required": "Indique un importe para este gasto.",
+    "error_expense_amount_invalid": "Indique un importe válido.",
+    "error_create_failed": "No se pudo añadir el evento. Verifique los campos y el contexto del hogar.",
     "error_title": "Error de creación",
     "success_title": "Éxito",
-    "redirect_notice": "Redirigiendo a interacciones\u2026",
+    "redirect_notice": "Redirigiendo a la actividad\u2026",
+    "created_notice_title": "Evento añadido",
+    "created_notice_body": "\"{{subject}}\" se añadió y se destacó debajo.",
+    "created_badge": "Nuevo",
     "creating": "Creando\u2026",
-    "list_title": "Últimas interacciones",
-    "list_empty": "No se encontraron interacciones para este filtro.",
+    "list_title": "Actividad",
+    "list_empty": "No se encontró actividad para este filtro.",
+    "meta_zones": "Zonas",
+    "meta_documents": "{{count}} documento",
+    "meta_documents_one": "{{count}} documento",
+    "meta_documents_other": "{{count}} documentos",
+    "search_label": "Buscar",
+    "search_placeholder": "Buscar por título, descripción o tag",
     "filter_type": "Tipo",
     "filter_status": "Estado",
     "all_types": "Todos los tipos",
     "all_statuses": "Todos los estados",
     "reset_filters": "Restablecer",
+    "apply_filters": "Aplicar",
     "error_load_failed": "No se pudieron cargar las interacciones.",
     "error_load_more_failed": "No se pudieron cargar más interacciones.",
     "loading_error_title": "Error de carga",
     "load_more": "Ver más",
     "loading_more": "Cargando\u2026"
+  },
+  "tagSelector": {
+    "selected_count": "{{count}} seleccionado(s)",
+    "search_label": "Encontrar o crear un tag",
+    "placeholder": "Añadir un tag",
+    "helper": "Pulsa Intro o una coma para añadir un tag.",
+    "loading": "Cargando tags\u2026",
+    "error": "No se pudieron cargar los tags.",
+    "suggestions_label": "Tags sugeridos",
+    "create_tag": "Añadir el tag \"{{name}}\"",
+    "empty": "Ningún tag coincide con esta búsqueda.",
+    "remove_tag": "Quitar {{name}}"
   },
   "zones": {
     "app_title": "Mini-app Zonas",
@@ -405,6 +452,8 @@
       }
     },
     "interaction_type": {
+      "note": "Nota",
+      "todo": "Tarea",
       "maintenance": "Mantenimiento",
       "repair": "Reparación",
       "inspection": "Inspección",
@@ -437,11 +486,68 @@
       "cta": "Ir a configuración"
     },
     "actions": {
+      "add": "Añadir",
       "openSettings": "Abrir configuración",
       "newInteraction": "Nueva interacción",
       "newProject": "Nuevo proyecto",
       "openTasks": "Abrir tareas",
       "openDocuments": "Abrir documentos"
+    },
+    "typePicker": {
+      "title": "¿Qué quieres añadir?",
+      "description": "Elige el tipo de evento que quieres añadir al historial del hogar.",
+      "primaryTitle": "Tipos frecuentes",
+      "secondaryTitle": "Más opciones",
+      "types": {
+        "note": {
+          "label": "Nota",
+          "description": "Guardar una información libre."
+        },
+        "todo": {
+          "label": "Tarea",
+          "description": "Seguir algo que debe hacerse."
+        },
+        "expense": {
+          "label": "Gasto",
+          "description": "Registrar un coste o una compra."
+        },
+        "maintenance": {
+          "label": "Mantenimiento",
+          "description": "Guardar el rastro de un cuidado o una intervención."
+        },
+        "repair": {
+          "label": "Reparación",
+          "description": "Seguir una solución para algo roto."
+        },
+        "installation": {
+          "label": "Instalación",
+          "description": "Registrar un montaje o una puesta en marcha."
+        },
+        "inspection": {
+          "label": "Inspección",
+          "description": "Guardar el rastro de una revisión o comprobación."
+        },
+        "warranty": {
+          "label": "Garantía",
+          "description": "Registrar un evento relacionado con una garantía."
+        },
+        "issue": {
+          "label": "Incidencia",
+          "description": "Anotar un problema que requiere atención."
+        },
+        "upgrade": {
+          "label": "Mejora",
+          "description": "Seguir una mejora o evolución."
+        },
+        "replacement": {
+          "label": "Reemplazo",
+          "description": "Registrar cuando se sustituye algo."
+        },
+        "disposal": {
+          "label": "Desecho",
+          "description": "Guardar el rastro de una retirada o eliminación."
+        }
+      }
     },
     "summary": {
       "projects": {

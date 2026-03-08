@@ -1,5 +1,7 @@
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.db.models import Q
+from urllib.parse import urlencode
 
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
@@ -22,7 +24,7 @@ def _resolve_selected_household(request):
 
 
 class AppInteractionsView(ReactPageView):
-    page_title = _("Interactions")
+    page_title = _("Activity")
     react_root_id = "interactions-list-root"
     props_script_id = "interactions-list-props"
     page_vite_asset = "src/pages/interactions/list.tsx"
@@ -31,6 +33,8 @@ class AppInteractionsView(ReactPageView):
         request = self.request
         selected_type = (request.GET.get('type') or '').strip()
         selected_status = (request.GET.get('status') or '').strip()
+        selected_search = (request.GET.get('search') or '').strip()
+        highlighted_id = (request.GET.get('created') or '').strip()
         force_reload_on_mount = bool((request.GET.get('refresh') or '').strip())
 
         selected_household = _resolve_selected_household(request)
@@ -42,6 +46,13 @@ class AppInteractionsView(ReactPageView):
             queryset = queryset.filter(type=selected_type)
         if selected_status:
             queryset = queryset.filter(status=selected_status)
+        if selected_search:
+            queryset = queryset.filter(
+                Q(subject__icontains=selected_search)
+                | Q(content__icontains=selected_search)
+                | Q(enriched_text__icontains=selected_search)
+                | Q(tags__tag__name__icontains=selected_search)
+            ).distinct()
 
         total_count = queryset.count()
         interactions = list(queryset.order_by('-occurred_at')[:8])
@@ -62,11 +73,13 @@ class AppInteractionsView(ReactPageView):
         ]
 
         return {
-            'title': 'Latest interactions',
+            'title': str(_('Activity')),
+            'search': selected_search,
             'type': selected_type,
             'status': selected_status,
             'limit': 8,
-            'emptyMessage': 'No interactions available yet.',
+            'emptyMessage': str(_('No activity available yet.')),
+            'highlightedId': highlighted_id,
             'initialItems': initial_items,
             'initialCount': total_count,
             'initialLoaded': not force_reload_on_mount,
@@ -75,6 +88,7 @@ class AppInteractionsView(ReactPageView):
 
 
 class AppInteractionNewView(ReactPageView):
+    page_title = _("Add event")
     react_root_id = "interaction-create-root"
     props_script_id = "interaction-create-props"
     page_vite_asset = "src/pages/interactions/new.tsx"
@@ -82,6 +96,7 @@ class AppInteractionNewView(ReactPageView):
     def get_props(self):
         request = self.request
         selected_household = _resolve_selected_household(request)
+        return_to = (request.GET.get('return_to') or '').strip()
 
         zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
         if selected_household:
@@ -91,18 +106,28 @@ class AppInteractionNewView(ReactPageView):
             {
                 'id': str(zone.id),
                 'name': zone.name,
+                'parentId': str(zone.parent_id) if zone.parent_id else None,
                 'full_path': zone.full_path,
                 'color': zone.color,
+                'depth': zone.depth,
             }
-            for zone in zones_queryset.order_by('name')
+            for zone in sorted(zones_queryset, key=lambda zone: zone.full_path.lower())
         ]
 
+        if return_to == 'dashboard':
+            redirect_to = reverse('app_dashboard')
+        else:
+            redirect_to = reverse('app_interactions')
+
+        redirect_query = {'refresh': '1'} if return_to != 'dashboard' else {}
+        redirect_to_list_url = f"{redirect_to}?{urlencode(redirect_query)}" if redirect_query else redirect_to
+
         return {
-            'title': 'Create interaction',
-            'submitLabel': 'Create',
-            'successMessage': 'Interaction created successfully.',
+            'title': str(_('Add event')),
+            'submitLabel': str(_('Add event')),
+            'successMessage': str(_('Event added successfully.')),
             'defaultType': request.GET.get('type', 'note'),
             'initialZones': zones_payload,
             'initialZonesLoaded': True,
-            'redirectToListUrl': f"{reverse('app_interactions')}?refresh=1",
+            'redirectToListUrl': redirect_to_list_url,
         }

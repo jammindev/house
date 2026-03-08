@@ -54,42 +54,89 @@
     "success_link_deactivated": "Verbindung deaktiviert."
   },
   "interactions": {
-    "form_title": "Interaktion erstellen",
-    "submit_label": "Interaktion erstellen",
-    "success_message": "Interaktion erfolgreich erstellt.",
+    "form_title": "Ereignis hinzufügen",
+    "submit_label": "Ereignis hinzufügen",
+    "success_message": "Ereignis erfolgreich hinzugefügt.",
     "subject_label": "Betreff",
     "subject_placeholder": "Kurze Zusammenfassung",
     "type_label": "Typ",
     "status_label": "Status (Aufgabe)",
+    "selected_type_label": "Ausgewählter Typ",
     "date_label": "Datum und Uhrzeit",
+    "date_only_label": "Datum",
+    "date_time_label": "Datum und Uhrzeit",
+    "time_label": "Uhrzeit",
+    "add_time_label": "Uhrzeit hinzufügen",
     "description_label": "Beschreibung",
     "description_placeholder": "Details",
-    "tags_label": "Tags (kommagetrennt)",
-    "tags_placeholder": "dringend, Heizkessel, Rechnung",
+    "expense_amount_label": "Betrag",
+    "expense_amount_placeholder": "z. B. 149,90",
+    "tags_label": "Tags",
+    "tags_placeholder": "Tag hinzufügen",
+    "tags_help": "Drücken Sie Enter oder ein Komma, um ein Tag hinzuzufügen, und nutzen Sie vorhandene Vorschläge wieder.",
     "zones_legend": "Zonen",
+    "zones_selected_count": "{{count}} ausgewählt",
+    "zones_search_label": "Zone finden",
+    "zones_search_placeholder": "Nach Zonenname oder -pfad suchen",
+    "zones_search_empty": "Keine Zonen entsprechen dieser Suche.",
+    "zones_root_label": "Wurzel",
+    "zones_depth_label": "Ebene {{depth}}",
+    "zones_parent_path_label": "In",
+    "zones_expand_all": "Alle ausklappen",
+    "zones_collapse_all": "Alle einklappen",
+    "zones_expand_branch": "{{name}} ausklappen",
+    "zones_collapse_branch": "{{name}} einklappen",
+    "zones_select_zone": "{{name}} auswählen",
+    "zones_unselect_zone": "{{name}} abwählen",
+    "zones_select_short": "Wählen",
+    "zones_selected_short": "Gewählt",
     "zones_loading": "Zonen werden geladen\u2026",
     "zones_empty": "Keine Zonen verfügbar.",
     "zones_error": "Zonen konnten nicht geladen werden.",
     "error_subject_required": "Betreff ist erforderlich.",
     "error_zone_required": "Wählen Sie mindestens eine Zone aus.",
     "error_invalid_date": "Ungültiges Datum.",
-    "error_create_failed": "Interaktion konnte nicht erstellt werden. Bitte Felder und Haushaltskontext prüfen.",
+    "error_expense_amount_required": "Geben Sie einen Betrag für diese Ausgabe ein.",
+    "error_expense_amount_invalid": "Geben Sie einen gültigen Betrag ein.",
+    "error_create_failed": "Das Ereignis konnte nicht hinzugefügt werden. Bitte prüfen Sie die Felder und den Haushaltskontext.",
     "error_title": "Erstellungsfehler",
     "success_title": "Erfolg",
-    "redirect_notice": "Weiterleitung zu Interaktionen\u2026",
+    "redirect_notice": "Weiterleitung zur Aktivität\u2026",
+    "created_notice_title": "Ereignis hinzugefügt",
+    "created_notice_body": "\"{{subject}}\" wurde hinzugefügt und unten hervorgehoben.",
+    "created_badge": "Neu",
     "creating": "Wird erstellt\u2026",
-    "list_title": "Neueste Interaktionen",
-    "list_empty": "Keine Interaktionen für diesen Filter gefunden.",
+    "list_title": "Aktivität",
+    "list_empty": "Für diesen Filter wurde keine Aktivität gefunden.",
+    "meta_zones": "Zonen",
+    "meta_documents": "{{count}} Dokument",
+    "meta_documents_one": "{{count}} Dokument",
+    "meta_documents_other": "{{count}} Dokumente",
+    "search_label": "Suche",
+    "search_placeholder": "Nach Titel, Beschreibung oder Tag suchen",
     "filter_type": "Typ",
     "filter_status": "Status",
     "all_types": "Alle Typen",
     "all_statuses": "Alle Status",
     "reset_filters": "Zurücksetzen",
+    "apply_filters": "Anwenden",
     "error_load_failed": "Interaktionen konnten nicht geladen werden.",
     "error_load_more_failed": "Weitere Interaktionen konnten nicht geladen werden.",
     "loading_error_title": "Ladefehler",
     "load_more": "Mehr laden",
     "loading_more": "Laden\u2026"
+  },
+  "tagSelector": {
+    "selected_count": "{{count}} ausgewählt",
+    "search_label": "Tag finden oder erstellen",
+    "placeholder": "Tag hinzufügen",
+    "helper": "Drücken Sie Enter oder ein Komma, um ein Tag hinzuzufügen.",
+    "loading": "Tags werden geladen\u2026",
+    "error": "Tags konnten nicht geladen werden.",
+    "suggestions_label": "Vorgeschlagene Tags",
+    "create_tag": "Tag \"{{name}}\" hinzufügen",
+    "empty": "Kein Tag entspricht dieser Suche.",
+    "remove_tag": "{{name}} entfernen"
   },
   "zones": {
     "app_title": "Zonen-Mini-App",
@@ -405,6 +452,8 @@
       }
     },
     "interaction_type": {
+      "note": "Notiz",
+      "todo": "Aufgabe",
       "maintenance": "Wartung",
       "repair": "Reparatur",
       "inspection": "Inspektion",
@@ -437,11 +486,68 @@
       "cta": "Zu den Einstellungen"
     },
     "actions": {
+      "add": "Hinzufügen",
       "openSettings": "Einstellungen öffnen",
       "newInteraction": "Neue Interaktion",
       "newProject": "Neues Projekt",
       "openTasks": "Offene Aufgaben",
       "openDocuments": "Dokumente öffnen"
+    },
+    "typePicker": {
+      "title": "Was möchten Sie hinzufügen?",
+      "description": "Wählen Sie den Ereignistyp aus, den Sie im Haushaltsverlauf erfassen möchten.",
+      "primaryTitle": "Häufige Typen",
+      "secondaryTitle": "Weitere Optionen",
+      "types": {
+        "note": {
+          "label": "Notiz",
+          "description": "Eine freie Information festhalten."
+        },
+        "todo": {
+          "label": "Aufgabe",
+          "description": "Etwas erfassen, das erledigt werden muss."
+        },
+        "expense": {
+          "label": "Ausgabe",
+          "description": "Einen Kauf oder Kostenpunkt erfassen."
+        },
+        "maintenance": {
+          "label": "Wartung",
+          "description": "Eine Pflege oder Intervention protokollieren."
+        },
+        "repair": {
+          "label": "Reparatur",
+          "description": "Die Behebung eines Defekts festhalten."
+        },
+        "installation": {
+          "label": "Installation",
+          "description": "Eine neue Montage oder Einrichtung erfassen."
+        },
+        "inspection": {
+          "label": "Inspektion",
+          "description": "Eine Kontrolle oder Prüfung dokumentieren."
+        },
+        "warranty": {
+          "label": "Garantie",
+          "description": "Ein garantiespezifisches Ereignis speichern."
+        },
+        "issue": {
+          "label": "Problem",
+          "description": "Ein Problem festhalten, das Aufmerksamkeit erfordert."
+        },
+        "upgrade": {
+          "label": "Verbesserung",
+          "description": "Eine Verbesserung oder Aufwertung nachverfolgen."
+        },
+        "replacement": {
+          "label": "Ersatz",
+          "description": "Festhalten, wenn etwas ersetzt wird."
+        },
+        "disposal": {
+          "label": "Entsorgung",
+          "description": "Den Ausbau oder die Entsorgung dokumentieren."
+        }
+      }
     },
     "summary": {
       "projects": {

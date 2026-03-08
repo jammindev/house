@@ -180,6 +180,8 @@ class TestAppDashboardView:
         props = _dashboard_props(response)
 
         assert props['header']['title'] == 'Maison principale'
+        assert props['quickActions'][0]['labelKey'] == 'dashboard.actions.add'
+        assert props['quickActions'][0]['actionType'] == 'typePicker'
         assert {section['id'] for section in props['sections']} == {
             'upcoming',
             'pinned-projects',

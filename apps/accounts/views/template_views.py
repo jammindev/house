@@ -389,10 +389,11 @@ class AppDashboardView(ReactPageView):
             ],
             'quickActions': [
                 {
-                    'label': _('New interaction'),
-                    'labelKey': 'dashboard.actions.newInteraction',
-                    'href': reverse('app_interaction_new'),
+                    'label': _('Add'),
+                    'labelKey': 'dashboard.actions.add',
+                    'href': f"{reverse('app_interaction_new')}?return_to=dashboard",
                     'icon': 'plus',
+                    'actionType': 'typePicker',
                 },
                 {
                     'label': _('New project'),
