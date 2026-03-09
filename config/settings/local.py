@@ -17,7 +17,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 CSRF_TRUSTED_ORIGINS = env.list(
     "CSRF_TRUSTED_ORIGINS",
-    default=["http://localhost:5173",]
+    default=["http://localhost:5174",]
 )
 
 # CORS Configuration for local development
@@ -60,7 +60,7 @@ DJANGO_VITE = {
     "default": {
         "dev_mode": True,
         "dev_server_host": "localhost",
-        "dev_server_port": env.int("VITE_DEV_SERVER_PORT", default=5173),
+        "dev_server_port": env.int("VITE_DEV_SERVER_PORT", default=5174),
         "static_url_prefix": "react",
         "manifest_path": BASE_DIR / "static" / "react" / ".vite" / "manifest.json",  # noqa: F405
     }

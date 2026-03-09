@@ -15,6 +15,8 @@
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.terminal.activateEnvironment": false,
+    "python.terminal.activateEnvInCurrentTerminal": false,
     "chat.mcp.serverSampling": {
         "house/.vscode/mcp.json: supabase": {
             "allowedModels": [

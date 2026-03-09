@@ -9,7 +9,7 @@
     "build": "tsc -b ui/tsconfig.json && vite build --config ui/vite.config.ts",
     "lint": "eslint ui/src --config ui/eslint.config.js",
     "preview": "vite preview --config ui/vite.config.ts",
-    "gen:api": "openapi --input http://127.0.0.1:8000/api/schema/ --output ui/src/gen/api --client fetch --useUnionTypes",
+    "gen:api": "openapi --input http://127.0.0.1:8001/api/schema/ --output ui/src/gen/api --client fetch --useUnionTypes",
     "gen:api:clean": "rm -rf ui/src/gen/api",
     "gen:api:refresh": "npm run gen:api:clean && npm run gen:api"
   },

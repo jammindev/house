@@ -19,20 +19,20 @@ export default defineConfig(({ command }) => ({
   },
   server: {
     host: 'localhost',
-    port: Number(process.env.VITE_DEV_SERVER_PORT || 5173),
+    port: Number(process.env.VITE_DEV_SERVER_PORT || 5174),
     strictPort: true,
     cors: true,
     hmr: {
       host: 'localhost',
-      port: Number(process.env.VITE_DEV_SERVER_PORT || 5173),
+      port: Number(process.env.VITE_DEV_SERVER_PORT || 5174),
     },
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8001',
         changeOrigin: true,
       },
       '/admin': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:8001',
         changeOrigin: true,
       },
     },

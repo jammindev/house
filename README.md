@@ -48,10 +48,12 @@ pip install -r requirements.txt
 cp .env.example .env.local
 python manage.py migrate
 python manage.py createsuperuser
-python manage.py runserver 8000
+python manage.py runserver
 ```
 
 `manage.py` utilise `config.settings.local` par défaut.
+
+`runserver` démarre désormais sur `127.0.0.1:8001` par défaut.
 
 ### 2) Frontend React (dans un 2e terminal)
 

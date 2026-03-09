@@ -14,6 +14,8 @@ if str(APPS_DIR) not in sys.path:
 def main() -> None:
     """Run administrative tasks."""
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
+    if len(sys.argv) == 2 and sys.argv[1] == "runserver":
+        sys.argv.append("8001")
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
