@@ -55,7 +55,7 @@ export default function DocumentCreatePage({ allowedTypes, cancelUrl, defaultTyp
   };
 
   return (
-    <Card className="max-w-3xl">
+    <Card>
       <CardHeader>
         <CardTitle>{t('documents.new.title')}</CardTitle>
         <CardDescription>{t('documents.new.subtitle')}</CardDescription>

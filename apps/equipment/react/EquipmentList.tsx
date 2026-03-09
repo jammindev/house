@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { FilterBar } from '@/design-system/filter-bar';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
@@ -11,7 +10,6 @@ import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface EquipmentListProps {
-  title?: string;
   initialSearch?: string;
   initialStatus?: string;
   initialZoneId?: string;
@@ -34,7 +32,6 @@ function formatDate(value?: string | null, notAvailableLabel?: string): string {
 }
 
 export default function EquipmentList({
-  title,
   initialSearch = '',
   initialStatus = '',
   initialZoneId = '',
@@ -109,11 +106,7 @@ export default function EquipmentList({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title ?? t('equipment.title')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <div className="space-y-4">
         <FilterBar
           fields={[
             {
@@ -200,7 +193,6 @@ export default function EquipmentList({
             ))}
           </ul>
         ) : null}
-      </CardContent>
-    </Card>
+    </div>
   );
 }

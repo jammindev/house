@@ -32,19 +32,12 @@ export default function PhotosPage(_props: PhotosPageProps) {
   }, [loadPhotos]);
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {t('photos.title', { defaultValue: 'Photos' })}
-          </h1>
-          {!loading && !error && photos.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {t('photos.count', { count: photos.length, defaultValue: '{{count}} photos' })}
-            </p>
-          )}
-        </div>
-      </div>
+    <div className="space-y-6">
+      {!loading && !error && photos.length > 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t('photos.count', { count: photos.length, defaultValue: '{{count}} photos' })}
+        </p>
+      ) : null}
 
       <PhotoGrid
         photos={photos}

@@ -12,6 +12,30 @@ from zones.models import Zone
 from .models import Interaction
 
 
+def _build_source_document_prefill(document):
+    subject = (document.name or '').strip()
+
+    notes = (document.notes or '').strip()
+    ocr_text = (document.ocr_text or '').strip()
+    ocr_excerpt = ''
+    if ocr_text:
+        ocr_excerpt = ocr_text[:280].strip()
+        if len(ocr_text) > 280:
+            ocr_excerpt = f"{ocr_excerpt}..."
+
+    initial_content = notes or ocr_excerpt
+
+    return {
+        'id': str(document.id),
+        'name': document.name,
+        'type': document.type,
+        'notes': notes,
+        'ocrExcerpt': ocr_excerpt,
+        'suggestedSubject': subject,
+        'suggestedContent': initial_content,
+    }
+
+
 def _resolve_selected_household(request):
     selected_household = resolve_request_household(request, required=False)
     if selected_household:
@@ -138,14 +162,14 @@ class AppInteractionNewView(ReactPageView):
         source_document_payload = None
         linked_document_ids = []
         redirect_after_success_url = None
+        initial_subject = ''
+        initial_content = ''
         if source_document:
-            source_document_payload = {
-                'id': str(source_document.id),
-                'name': source_document.name,
-                'type': source_document.type,
-            }
+            source_document_payload = _build_source_document_prefill(source_document)
             linked_document_ids = [str(source_document.id)]
             redirect_after_success_url = reverse('app_documents_detail', kwargs={'document_id': source_document.id})
+            initial_subject = source_document_payload['suggestedSubject']
+            initial_content = source_document_payload['suggestedContent']
 
         return {
             'title': str(_('Add event')),
@@ -158,4 +182,6 @@ class AppInteractionNewView(ReactPageView):
             'sourceDocument': source_document_payload,
             'linkedDocumentIds': linked_document_ids,
             'redirectAfterSuccessUrl': redirect_after_success_url,
+            'initialSubject': initial_subject,
+            'initialContent': initial_content,
         }

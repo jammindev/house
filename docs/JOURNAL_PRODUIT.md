@@ -25,7 +25,7 @@ Dernière mise à jour : 2026-03-09
 ### Parcours métier
 
 - Parcours 01 — Capturer un événement du foyer et le retrouver facilement : **socle V1 livré**
-- Parcours 02 — Traiter un document entrant et le relier au bon contexte : **cadrage initial documenté**
+- Parcours 02 — Traiter un document entrant et le relier au bon contexte : **V1 manuelle en pré-livraison**
 - Parcours 03 — Transformer un besoin en action suivie : **à venir**
 - Parcours 04 — Suivre un projet de bout en bout : **à venir**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **à venir**
@@ -35,6 +35,8 @@ Dernière mise à jour : 2026-03-09
 - entrée rapide depuis le dashboard via un CTA unique
 - sélecteur de type avant création
 - formulaire unique avec variantes utiles par type
+- possibilité de lier des documents existants directement depuis le formulaire activité
+- possibilité d'ajouter un document simple depuis le formulaire activité puis de le lier immédiatement
 - vocabulaire produit plus naturel
 - tags et zones mieux outillés
 - recherche visible dans l'historique
@@ -57,7 +59,7 @@ Références :
 
 ## Prochain focus recommandé
 
-Parcours 02 : document entrant -> compréhension -> rattachement au bon contexte métier.
+Finaliser la livraison V1 manuelle du parcours 02 : recette bout en bout, polish UX léger, documentation réalignée.
 
 Références de cadrage :
 
@@ -69,6 +71,8 @@ Références de cadrage :
 
 - [docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md)
 - [docs/journal/2026-03-09_parcours-02_cadrage_initial.md](/Users/benjaminvandamme/Dev/house/docs/journal/2026-03-09_parcours-02_cadrage_initial.md)
+- [docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md)
+- [docs/journal/2026-03-09_formulaire-activite_documents.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_formulaire-activite_documents.md)
 
 ## Backlog d'idées futures
 

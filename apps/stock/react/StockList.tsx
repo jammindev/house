@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import {
   Dialog,
   DialogContent,
@@ -214,10 +213,8 @@ export default function StockList({
   const hasActiveFilters = !!(search || status || zone || category);
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="text-base">{t('stock.title')}</CardTitle>
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex items-center gap-2">
             <Button type="button" variant={tab === 'items' ? 'default' : 'outline'} onClick={() => setTab('items')}>
               {t('stock.tabs.items')}
@@ -226,9 +223,9 @@ export default function StockList({
               {t('stock.tabs.categories')}
             </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
+      </div>
+
+      <div className="space-y-4">
         {tab === 'items' ? (
           <>
             <FilterBar
@@ -422,7 +419,7 @@ export default function StockList({
             </form>
           </DialogContent>
         </Dialog>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

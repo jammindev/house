@@ -20,6 +20,19 @@ Livrer une première version utilisable sans refactor large, en réutilisant au 
 - API `interactions` déjà en production locale dans le repo
 - design system déjà équipé avec `SheetDialog`
 
+## État de réalisation au 2026-03-09
+
+Le socle V1 du parcours 01 est livré.
+
+En complément, le formulaire activité a été étendu comme point d'entrée transverse pour mieux raccorder les documents au flux de création :
+
+- sélection de documents existants directement dans le formulaire
+- priorisation visuelle des documents sans activité
+- filtre simple par type de document
+- ajout d'un document simple inline puis rattachement immédiat à l'activité en cours
+
+Cette évolution reste volontairement légère : elle réutilise le contrat API `document_ids` déjà en place et n'ajoute pas de recherche serveur dédiée.
+
 ## Principe d'exécution
 
 Le backlog est organisé en lots techniques verticaux.
@@ -143,6 +156,7 @@ Faire évoluer le formulaire de création pour qu'il s'adapte au type choisi, sa
 3. Faire apparaître les champs spécifiques selon le type.
 4. Masquer ou désactiver proprement le statut quand il n'est pas pertinent.
 5. Garder la possibilité de changer le type sans casser le formulaire.
+6. Permettre en enrichissement optionnel de lier un ou plusieurs documents depuis le formulaire activité.
 
 ### Variantes V1 recommandées
 
@@ -160,6 +174,7 @@ Le type `expense` aura besoin d'un champ supplémentaire côté payload. Le plus
 - le formulaire change réellement selon le type
 - l'expérience reste lisible et rapide
 - aucun besoin de créer une page distincte par type
+- les documents restent un enrichissement optionnel et n'alourdissent pas le flux principal
 
 ## Lot 5 — Support minimal des champs spécifiques côté API
 

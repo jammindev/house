@@ -82,16 +82,8 @@ export default function DocumentsPage(props: DocumentsPageProps) {
   };
 
   return (
-    <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
-            {props.title || t('documents.title', { defaultValue: 'Documents' })}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t('documents.subtitle')}
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div className="flex justify-end">
         {props.createUrl && (
           <a
             href={props.createUrl}

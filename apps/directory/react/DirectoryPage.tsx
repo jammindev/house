@@ -88,13 +88,9 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
   const error = isContacts ? contactsError : structuresError;
 
   return (
-    <div className="max-w-3xl space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            {t('repertoire.title', { defaultValue: 'Directory' })}
-          </h1>
+        <div className="min-w-0">
           <p className="mt-1 text-sm text-gray-500">
             {t('repertoire.subtitle', { defaultValue: 'Manage household contacts and structures.' })}
           </p>
@@ -110,7 +106,6 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
         </a>
       </div>
 
-      {/* Tab toolbar */}
       <div className="flex justify-end">
         <div className="inline-flex gap-2">
           <Button
@@ -134,7 +129,6 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
         </div>
       </div>
 
-      {/* Content */}
       {loading && (
         <p className="text-sm text-muted-foreground">
           {t('common.loading', { defaultValue: 'Loading…' })}

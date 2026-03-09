@@ -64,7 +64,7 @@ Document détaillé : `docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER
 
 Note complémentaire : `docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md`
 
-Statut actuel : **cadrage initial documenté**
+Statut actuel : **V1 manuelle en pré-livraison**
 
 ### Pourquoi en deuxième
 
@@ -77,6 +77,20 @@ Les documents ont une forte valeur pratique, mais ils deviennent vraiment utiles
 ### Résultat attendu
 
 L'utilisateur peut ajouter un document, comprendre ce qu'il représente, puis le rattacher au bon contexte métier sans ressaisie inutile.
+
+### Périmètre de livraison V1 retenu
+
+- ajout manuel ou upload simple d'un document
+- liste documents avec repérage des documents sans activité
+- détail document avec contexte actuel lisible
+- rattachement à une activité existante
+- création d'une activité depuis un document avec préremplissage minimal puis retour au détail document
+
+Hors périmètre V1 :
+
+- ingestion email entrante comme surface active de runtime
+- compréhension assistée par IA
+- création guidée depuis le détail document vers tous les autres contextes métier
 
 ### Stories initiales
 

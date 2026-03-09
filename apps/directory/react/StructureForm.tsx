@@ -180,7 +180,7 @@ export default function StructureForm({ mode, structureId, redirectUrl, backUrl 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-xl space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-8">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

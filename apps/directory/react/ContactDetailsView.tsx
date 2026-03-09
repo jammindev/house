@@ -83,7 +83,7 @@ export default function ContactDetailsView({
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ') || t('contacts.noName', { defaultValue: 'Unnamed contact' });
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-8">
       {/* Back + Actions */}
       <div className="flex items-center justify-between gap-4">
         <a href={backUrl} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>

@@ -152,7 +152,7 @@ export default function DocumentDetailPage({
   }
 
   return (
-    <Card className="max-w-4xl">
+    <Card>
       <CardHeader>
         <CardTitle>{document?.name || t('documents.detail.title')}</CardTitle>
         <CardDescription>{t('documents.detail.subtitle')}</CardDescription>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
+import { Card, CardContent } from '@/design-system/card';
 import { FilterBar } from '@/design-system/filter-bar';
 import { Skeleton } from '@/design-system/skeleton';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
@@ -74,7 +74,6 @@ function LoadingState() {
 }
 
 export function InteractionList({
-  title,
   search,
   type,
   status,
@@ -89,7 +88,6 @@ export function InteractionList({
 }: InteractionListProps) {
   const { t } = useTranslation();
   const householdId = useHouseholdId();
-  const resolvedTitle = title ?? t('interactions.list_title');
   const resolvedEmptyMessage = emptyMessage ?? t('interactions.list_empty');
   const initialSearch = search ?? '';
   const initialType = type ?? '';
@@ -243,10 +241,7 @@ export function InteractionList({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{resolvedTitle}</CardTitle>
-      </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         {highlightedItem ? (
           <Alert className="mb-4 border-sky-200 bg-sky-50/70 text-sky-950">
             <AlertTitle>{t('interactions.created_notice_title')}</AlertTitle>

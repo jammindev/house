@@ -92,7 +92,7 @@ export default function ContactEditForm({ contactId, backUrl }: ContactEditFormP
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>

@@ -81,7 +81,7 @@ export default function StructureDetailView({
   }
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="space-y-8">
       {/* Back + Actions */}
       <div className="flex items-center justify-between gap-4">
         <a href={backUrl} className={buttonVariants({ variant: 'ghost', size: 'sm' })}>

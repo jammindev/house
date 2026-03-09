@@ -7,6 +7,7 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { createInteraction } from '@/lib/api/interactions';
+import { DocumentSelector } from '@/lib/components/DocumentSelector';
 import { TagSelector } from '@/lib/components/TagSelector';
 import { ZoneTreeSelector } from '@/lib/components/ZoneTreeSelector';
 import type { ZoneOption } from '@/lib/api/zones';
@@ -24,10 +25,16 @@ interface InteractionCreateFormProps {
   redirectToListUrl?: string;
   linkedDocumentIds?: string[];
   redirectAfterSuccessUrl?: string;
+  initialSubject?: string;
+  initialContent?: string;
   sourceDocument?: {
     id: string;
     name: string;
     type: string;
+    notes?: string;
+    ocrExcerpt?: string;
+    suggestedSubject?: string;
+    suggestedContent?: string;
   } | null;
   redirectDelayMs?: number;
 }
@@ -103,6 +110,8 @@ export function InteractionCreateForm({
   redirectToListUrl,
   linkedDocumentIds = [],
   redirectAfterSuccessUrl,
+  initialSubject = '',
+  initialContent = '',
   sourceDocument = null,
   redirectDelayMs = 800,
 }: InteractionCreateFormProps) {
@@ -111,8 +120,8 @@ export function InteractionCreateForm({
   const resolvedSubmitLabel = submitLabel ?? t('interactions.submit_label');
   const resolvedSuccessMessage = successMessage ?? t('interactions.success_message');
 
-  const [subject, setSubject] = React.useState('');
-  const [content, setContent] = React.useState('');
+  const [subject, setSubject] = React.useState(initialSubject);
+  const [content, setContent] = React.useState(initialContent);
   const [type, setType] = React.useState(defaultType);
   const [status, setStatus] = React.useState('pending');
   const [expenseAmount, setExpenseAmount] = React.useState('');
@@ -121,6 +130,7 @@ export function InteractionCreateForm({
   const [occurredTime, setOccurredTime] = React.useState(nowLocalTimeInput());
   const [tagNames, setTagNames] = React.useState<string[]>([]);
   const [zoneIds, setZoneIds] = React.useState<string[]>([]);
+  const [selectedDocumentIds, setSelectedDocumentIds] = React.useState<string[]>(linkedDocumentIds);
 
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -187,7 +197,7 @@ export function InteractionCreateForm({
           zone_ids: zoneIds,
           metadata,
           tags_input: tagNames,
-          document_ids: linkedDocumentIds,
+          document_ids: selectedDocumentIds,
         },
         householdId
       );
@@ -198,6 +208,7 @@ export function InteractionCreateForm({
       setExpenseAmount('');
       setTagNames([]);
       setZoneIds([]);
+      setSelectedDocumentIds(linkedDocumentIds);
       setStatus('pending');
       setOccurredOn(todayLocalDateInput());
       setIncludeTime(false);
@@ -231,6 +242,12 @@ export function InteractionCreateForm({
           <p className="mt-1 text-sm text-muted-foreground">
             {sourceDocument.name} · {t(`documents.type.${sourceDocument.type}`, { defaultValue: sourceDocument.type })}
           </p>
+          {sourceDocument.notes ? (
+            <p className="mt-2 text-xs text-muted-foreground">{sourceDocument.notes}</p>
+          ) : null}
+          {!sourceDocument.notes && sourceDocument.ocrExcerpt ? (
+            <p className="mt-2 text-xs text-muted-foreground">{sourceDocument.ocrExcerpt}</p>
+          ) : null}
           <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_document_help')}</p>
         </div>
       ) : null}
@@ -372,6 +389,13 @@ export function InteractionCreateForm({
         initialZones={initialZones}
         initialZonesLoaded={initialZonesLoaded}
         storageKey="interaction-create-form:expanded-zones"
+      />
+
+      <DocumentSelector
+        householdId={householdId}
+        selectedDocumentIds={selectedDocumentIds}
+        onChange={setSelectedDocumentIds}
+        legend={t('interactions.documents_legend', { defaultValue: 'Linked documents' })}
       />
 
       {error ? (

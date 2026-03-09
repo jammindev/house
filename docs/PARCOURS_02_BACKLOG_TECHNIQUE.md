@@ -21,6 +21,26 @@ Livrer une première version utilisable sans refactor large, en réutilisant au 
 - parcours 01 déjà en place pour la création et la consultation des activités
 - modèles de lien déjà présents pour plusieurs contextes métier
 
+## État de réalisation au 2026-03-09
+
+Les lots coeur de la V1 manuelle sont majoritairement implémentés dans le runtime actif.
+
+Considérés comme déjà couverts ou très avancés :
+
+- lot 0 : ajout manuel et upload simple d'un document
+- lot 1 : page documents recentrée sur les documents à relier
+- lot 2 : vue détail document
+- lot 3 : payload de détail document enrichi
+- lot 4 : rattachement à une activité existante
+- lot 5 : création d'activité depuis un document avec rattachement et retour au détail document
+- extension transverse : le formulaire activité peut maintenant sélectionner des documents existants et en ajouter un simple inline, ce qui réduit la friction entre parcours 01 et parcours 02
+
+Le reste du travail avant livraison V1 porte surtout sur :
+
+- recette bout en bout
+- polish UX léger
+- documentation et statut produit réalignés
+
 ## Principe d'exécution
 
 Le backlog est organisé en lots techniques verticaux.

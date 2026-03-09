@@ -32,6 +32,8 @@ def test_interaction_new_page_accepts_source_document_props(client, user, househ
         name='Source document',
         mime_type='application/pdf',
         type='document',
+        notes='Existing context from the document.',
+        ocr_text='OCR content that should not override explicit notes.',
     )
     client.force_login(user)
 
@@ -46,9 +48,40 @@ def test_interaction_new_page_accepts_source_document_props(client, user, househ
         'id': str(document.id),
         'name': 'Source document',
         'type': 'document',
+        'notes': 'Existing context from the document.',
+        'ocrExcerpt': 'OCR content that should not override explicit notes.',
+        'suggestedSubject': 'Source document',
+        'suggestedContent': 'Existing context from the document.',
     }
     assert props['linkedDocumentIds'] == [str(document.id)]
     assert props['redirectAfterSuccessUrl'] == reverse('app_documents_detail', kwargs={'document_id': document.id})
+    assert props['initialSubject'] == 'Source document'
+    assert props['initialContent'] == 'Existing context from the document.'
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_uses_ocr_excerpt_when_document_has_no_notes(client, user, household, membership):
+    document = Document.objects.create(
+        household=household,
+        created_by=user,
+        file_path='docs/ocr-source.pdf',
+        name='OCR source',
+        mime_type='application/pdf',
+        type='document',
+        ocr_text='A' * 300,
+    )
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?source_document_id={document.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['initialSubject'] == 'OCR source'
+    assert props['initialContent'] == f"{'A' * 280}..."
+    assert props['sourceDocument']['ocrExcerpt'] == f"{'A' * 280}..."
 
 
 @pytest.mark.django_db

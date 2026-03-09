@@ -56,6 +56,24 @@ Permettre à un membre du foyer de :
 4. le rattacher au bon contexte métier sans ressaisie inutile
 5. naviguer facilement entre le document et les entités liées
 
+## Périmètre de livraison V1 retenu
+
+La livraison visée à court terme pour le parcours 02 est une V1 manuelle recentrée sur le lien document <-> activité.
+
+Elle couvre explicitement :
+
+- l'ajout manuel ou l'upload simple d'un document
+- la liste documents avec mise en avant des documents sans activité
+- le détail document avec état de rattachement actuel
+- le rattachement à une activité existante
+- la création d'une activité depuis un document avec préremplissage minimal et retour au détail document
+
+Elle n'inclut pas dans cette livraison :
+
+- l'ingestion email entrante comme flux runtime principal
+- une couche de compréhension assistée par IA
+- une orchestration complète des rattachements contact, structure, projet ou zone depuis le détail document
+
 ## Décisions de cadrage MVP réaliste
 
 Pour rendre le parcours 02 effectivement réalisable dans le code actif, la V1 doit assumer explicitement les décisions suivantes :
@@ -122,24 +140,28 @@ Si le document n'est pas encore relié, il doit pouvoir le rattacher sans avoir 
 
 ## Ce que le projet a déjà aujourd'hui
 
-Le repo contient déjà un socle réutilisable pour ce parcours, mais pas encore un flux produit complet.
+Le repo contient désormais l'essentiel du flux manuel V1, avec encore un travail de pré-livraison sur la recette, le polish et la documentation.
 
 ## Pages web existantes
 
 - `/app/documents/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
-
-À ce stade, il n'existe pas encore de page web de détail document dans le code actif.
+- `/app/documents/new/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
+- `/app/documents/<id>/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
 
 ## Composants React existants
 
 - liste : [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentsPage.tsx)
 - item de liste : [apps/documents/react/DocumentListItem.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentListItem.tsx)
+- création : [apps/documents/react/DocumentCreatePage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentCreatePage.tsx)
+- détail : [apps/documents/react/DocumentDetailPage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentDetailPage.tsx)
 - modal d'édition légère : [apps/documents/react/EditDocumentModal.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/EditDocumentModal.tsx)
 - point de montage : [ui/src/pages/documents/list.tsx](/Users/benjaminvandamme/Dev/house/ui/src/pages/documents/list.tsx)
+- points de montage complémentaires : [ui/src/pages/documents/new.tsx](/Users/benjaminvandamme/Dev/house/ui/src/pages/documents/new.tsx), [ui/src/pages/documents/detail.tsx](/Users/benjaminvandamme/Dev/house/ui/src/pages/documents/detail.tsx)
 
 ## API existante
 
 - CRUD principal : `/api/documents/documents/`
+- upload simple : `/api/documents/documents/upload/`
 - regroupement par type : `/api/documents/documents/by_type/`
 - relance OCR placeholder : `/api/documents/documents/{id}/reprocess_ocr/`
 
@@ -147,15 +169,18 @@ Implémentation principale : [apps/documents/views.py](/Users/benjaminvandamme/D
 
 ## Capacité métier déjà présente
 
-- création et édition d'un document avec type, notes, OCR, métadonnées et household scoping
+- création, upload et édition d'un document avec type, notes, OCR, métadonnées et household scoping
 - présence de deux mécanismes de lien activité : `Document.interaction` et `InteractionDocument`
-- filtre simple côté UI pour isoler les documents non reliés via le lien direct actuel
+- filtre simple côté UI pour isoler les documents non reliés
 - liens déjà existants au niveau du modèle vers certaines entités métier
 - cohérence household déjà en place côté API
+- détail document avec activités liées, zones, projets et candidats récents
+- rattachement à une activité existante depuis le détail document
+- création d'activité depuis le document avec rattachement automatique et retour au détail document
 
 ## Point important de scope actuel
 
-L'upload ou l'ajout manuel de document n'a pas encore été migré comme flux web produit complet.
+L'upload ou l'ajout manuel de document est maintenant disponible dans le runtime actif.
 
 Cela implique que le parcours 02 doit désormais couvrir explicitement deux promesses :
 
@@ -181,18 +206,19 @@ Aujourd'hui, on a surtout :
 
 - une liste de documents
 - un filtre `non reliés`
+- un ajout manuel ou upload simple
 - une édition légère du nom, du type et des notes
 - une suppression
-- un affichage encore centré sur un lien direct unique vers une interaction
+- un détail document avec lecture du contexte actuel
+- un rattachement à une activité existante
+- une création d'activité depuis le document avec préremplissage minimal
 
 Ce qui manque pour rendre le parcours vraiment fort :
 
-- une vue de détail document claire
-- un état de rattachement lisible
-- un flux guidé de liaison vers une activité existante
-- un flux guidé de création d'activité depuis le document
-- une navigation propre entre document et contexte lié
-- une stratégie claire sur les autres contextes métier au-delà de l'interaction
+- une recette bout en bout explicite de pré-livraison
+- un dernier passage de polish UX et de wording produit
+- une clarification du statut de livraison dans la documentation transversale
+- une stratégie plus complète sur les autres contextes métier au-delà de l'interaction
 
 ## Problème utilisateur précis
 
