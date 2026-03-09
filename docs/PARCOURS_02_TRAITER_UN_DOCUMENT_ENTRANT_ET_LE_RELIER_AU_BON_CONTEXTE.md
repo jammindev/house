@@ -56,6 +56,18 @@ Permettre à un membre du foyer de :
 4. le rattacher au bon contexte métier sans ressaisie inutile
 5. naviguer facilement entre le document et les entités liées
 
+## Décisions de cadrage MVP réaliste
+
+Pour rendre le parcours 02 effectivement réalisable dans le code actif, la V1 doit assumer explicitement les décisions suivantes :
+
+- le rattachement document -> activité est géré côté métier par `InteractionDocument`
+- un document peut donc être relié à zéro, une ou plusieurs activités
+- `Document.interaction` doit être traité comme un héritage technique du runtime, pas comme la vérité produit de la V1
+- la page document devient la surface canonique de lecture et d'action
+- le parcours 02 V1 ne dépend pas de l'existence d'une page web de détail activité
+- la continuité de navigation minimale est : liste documents -> détail document -> création ou rattachement -> retour au détail document
+- les liens projet et zone restent visibles en lecture si on peut les résoudre simplement, mais leur création complète n'entre pas dans le coeur de la V1
+
 ## Répartition des rôles entre page documents et pages métier liées
 
 Le parcours s'appuie sur deux surfaces complémentaires.
@@ -136,8 +148,8 @@ Implémentation principale : [apps/documents/views.py](/Users/benjaminvandamme/D
 ## Capacité métier déjà présente
 
 - création et édition d'un document avec type, notes, OCR, métadonnées et household scoping
-- possibilité d'associer directement un document à une interaction via le champ `interaction`
-- filtre simple côté UI pour isoler les documents non reliés à une interaction
+- présence de deux mécanismes de lien activité : `Document.interaction` et `InteractionDocument`
+- filtre simple côté UI pour isoler les documents non reliés via le lien direct actuel
 - liens déjà existants au niveau du modèle vers certaines entités métier
 - cohérence household déjà en place côté API
 
@@ -154,12 +166,14 @@ Cela implique que le parcours 02 doit désormais couvrir explicitement deux prom
 
 Le code actif contient déjà plusieurs formes de rattachement de documents :
 
-- document -> interaction via `Document.interaction`
 - interaction <-> document via `InteractionDocument`
+- document -> interaction via `Document.interaction` (héritage runtime, non retenu comme contrat produit V1)
 - zone <-> document via `ZoneDocument`
 - projet <-> document via `ProjectDocument`
 
 Cela veut dire qu'on n'est pas face à un vide technique, mais à un flux produit encore incomplet et hétérogène.
+
+Pour une V1 réaliste avec plusieurs activités possibles par document, le contrat produit doit se recentrer sur `InteractionDocument`.
 
 ## Limites actuelles du runtime
 
@@ -169,7 +183,7 @@ Aujourd'hui, on a surtout :
 - un filtre `non reliés`
 - une édition légère du nom, du type et des notes
 - une suppression
-- un lien direct vers une interaction quand elle existe
+- un affichage encore centré sur un lien direct unique vers une interaction
 
 Ce qui manque pour rendre le parcours vraiment fort :
 
@@ -194,7 +208,7 @@ Le système doit répondre à cette hésitation par un flux simple :
 - j'ouvre le document
 - je comprends son état actuel
 - je le relie au bon sujet
-- je peux revenir ensuite vers ce sujet ou vers le document sans perdre le fil
+- je peux revenir ensuite vers le document sans perdre le fil, même si le détail activité n'est pas encore une page dédiée du runtime
 
 ## Utilisateur cible
 
@@ -235,10 +249,10 @@ Le parcours de référence pour la V1 est le suivant.
 3. L'utilisateur repère ensuite ce document récent ou non relié dans la liste.
 4. Il ouvre une vue de détail claire du document.
 5. Le système lui montre les métadonnées utiles, le type, les notes et l'état de rattachement actuel.
-6. Il choisit soit de relier le document à une activité existante, soit de créer une activité à partir du document.
+6. Il choisit soit de relier le document à une ou plusieurs activités existantes, soit de créer une activité à partir du document.
 7. Le système préremplit au maximum les informations disponibles sans imposer de ressaisie inutile.
 8. Le document est ensuite visible comme rattaché à un contexte métier exploitable.
-9. L'utilisateur peut revenir vers le document ou vers l'activité liée sans trou de navigation.
+9. L'utilisateur revient au détail document avec un feedback clair sur le rattachement créé ou ajouté.
 
 ## Règles produit
 
@@ -276,13 +290,17 @@ Le bon modèle produit pour la V1 est :
 
 ## Règle 3 — Le premier contexte à prioriser est l'activité
 
-Le rattachement le plus structurant pour la V1 est le lien `document -> activité`.
+Le rattachement le plus structurant pour la V1 est le lien `document <-> activité`.
 
 Pourquoi :
 
 - il est déjà cohérent avec le coeur interaction-first du produit
 - il transforme immédiatement le document en élément retrouvé dans l'historique
 - il crée un pont naturel vers les autres parcours
+
+Pour cette V1, il faut assumer qu'un document peut être relié à plusieurs activités.
+
+Le bon support métier de ce besoin est `InteractionDocument`, pas `Document.interaction`.
 
 Les liens zone et projet existent déjà dans le code ou le modèle, mais n'ont pas besoin d'être tous exposés dès la première itération du parcours 02.
 
@@ -305,8 +323,15 @@ Il faut garder une hiérarchie simple :
 Après un rattachement ou une création d'activité, l'utilisateur doit pouvoir :
 
 - revenir au document
-- ouvrir l'activité liée
 - comprendre visuellement que le lien a bien été créé
+
+Dans le runtime actuel, cette règle ne doit pas être interprétée comme une obligation de livrer immédiatement une page web de détail activité.
+
+Pour la MVP, la continuité minimale suffisante est :
+
+- retour au détail document après action
+- affichage immédiat des activités liées
+- possibilité ultérieure d'ajouter un vrai détail activité sans remettre en cause le parcours document
 
 ## Règle 6 — Le flux doit rester compatible avec une future ingestion email ou IA
 
@@ -371,7 +396,7 @@ afin d'éviter les doublons et de retrouver le document depuis l'historique.
 
 - le choix d'une activité existante est simple
 - le rattachement est confirmé visuellement
-- le lien devient visible depuis le document
+- le ou les liens deviennent visibles depuis le document
 
 ## Story 4 — Créer une activité depuis un document
 
@@ -385,6 +410,8 @@ afin de transformer immédiatement un justificatif ou une pièce en élément ex
 - certaines données sont préremplies ou reportées quand c'est utile
 - le document reste relié à l'activité créée
 
+Pour rester réaliste avec le runtime actuel, la création d'activité peut conserver l'étape de choix de zone si le formulaire existant l'exige encore.
+
 ## Story 5 — Garder une navigation continue
 
 En tant qu'utilisateur,
@@ -393,8 +420,8 @@ afin de ne pas perdre le fil après rattachement.
 
 ### Critères d'acceptation
 
-- un document lié permet d'ouvrir l'activité associée
-- l'activité ou le feedback de création permet de revenir au document si besoin
+- le détail document affiche clairement les activités liées après action
+- le feedback de création ou de rattachement permet de revenir au document si besoin
 - le produit donne une impression de continuité plutôt que de modules séparés
 
 ## Recommandation d'interface pour la V1
@@ -428,7 +455,7 @@ L'ajout initial peut rester minimal tant que l'étape suivante de qualification 
 
 ### Bloc 3 — Contexte actuel
 
-- activité liée si elle existe
+- activités liées si elles existent
 - autres rattachements visibles plus tard si disponibles
 - état `sans contexte` sinon
 
@@ -443,8 +470,9 @@ L'ajout initial peut rester minimal tant que l'étape suivante de qualification 
 
 Le bon compromis actuel est :
 
-- ne pas faire de refactor large du modèle document
-- s'appuyer d'abord sur le lien activité déjà exploitable dans le runtime
+- ne pas faire de refactor large du domaine document
+- utiliser `InteractionDocument` comme vérité produit pour document <-> activité
+- considérer `Document.interaction` comme un héritage de compatibilité éventuelle, pas comme la source principale de la V1
 - garder les autres liens existants comme extensions naturelles du parcours
 
 Autrement dit, la première promesse à tenir est :
@@ -468,6 +496,8 @@ La page documents expose :
 - le compteur global
 - le compteur de documents non reliés
 - un filtre simple `Afficher seulement les documents sans contexte`
+
+Dans la V1 réalisable, la notion `sans contexte` doit être calculée à partir des liens activités effectivement exposés au produit, et non seulement à partir du champ hérité `Document.interaction`.
 
 ## 1 bis. Ajout minimal du document
 
@@ -494,7 +524,7 @@ Pourquoi ce choix :
 
 La page montre clairement :
 
-- si le document est déjà relié à une activité
+- si le document est déjà relié à une ou plusieurs activités
 - sinon qu'il est encore `sans contexte`
 - quelles actions sont possibles ensuite
 
@@ -503,6 +533,10 @@ La page montre clairement :
 Cette action ouvre un sélecteur ou une surface simple de recherche d'activité.
 
 L'objectif V1 n'est pas de construire un moteur avancé, mais de proposer une sélection lisible et rapide.
+
+Cette action ajoute un lien `InteractionDocument`.
+
+Elle ne doit pas être pensée comme le remplacement d'une activité unique déjà stockée sur le document.
 
 ## 5. Action `Créer une activité depuis ce document`
 
@@ -513,6 +547,8 @@ Pourquoi cette option est bonne pour la V1 :
 - elle réutilise le parcours 01 déjà présent
 - elle évite de reconstruire un gros formulaire dans la page documents
 - elle renforce la cohérence du produit autour de l'historique
+
+Dans la V1 réalisable, la fin du flux doit prioritairement ramener l'utilisateur vers le détail document avec le nouveau lien visible.
 
 ## Risques à éviter
 
@@ -528,6 +564,6 @@ La V1 du parcours 02 peut être considérée comme crédible si :
 1. l'utilisateur peut ajouter un document simplement
 2. l'utilisateur repère facilement les documents non reliés
 3. il peut ouvrir un document et comprendre son état actuel
-4. il peut relier un document à une activité existante
+4. il peut relier un document à une ou plusieurs activités existantes
 5. il peut créer une activité à partir d'un document
-6. la navigation document <-> activité devient claire et fiable
+6. le retour au document après action est clair et fiable

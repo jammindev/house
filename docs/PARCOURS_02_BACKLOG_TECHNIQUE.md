@@ -9,8 +9,8 @@ Flow cible :
 3. repérage des documents sans contexte
 4. ouverture d'un détail document
 5. visualisation du contexte actuel
-6. rattachement à une activité existante ou création d'une activité depuis le document
-7. retour fluide entre document et activité
+6. rattachement à une ou plusieurs activités existantes ou création d'une activité depuis le document
+7. retour fluide vers le détail document
 
 ## Objectif d'implémentation
 
@@ -26,6 +26,17 @@ Livrer une première version utilisable sans refactor large, en réutilisant au 
 Le backlog est organisé en lots techniques verticaux.
 
 Chaque lot doit produire un incrément testable.
+
+## Décisions de cadrage MVP réalisable
+
+Pour rendre cette V1 livrable sans dépendre d'un refactor large, ce backlog fixe les décisions suivantes :
+
+- le lien canonique document <-> activité côté produit est `InteractionDocument`
+- `Document.interaction` n'est pas la vérité métier de la V1, même s'il peut rester présent pour compatibilité technique transitoire
+- un document peut être relié à plusieurs activités
+- le parcours 02 ne dépend pas d'une page web de détail activité
+- le retour UX minimal après création ou rattachement est un retour au détail document
+- la création de zone/projet depuis le détail document n'entre pas dans le coeur de la V1
 
 ## Lot 0 — Entrée minimale du document dans le système
 
@@ -45,7 +56,7 @@ Spécifier puis migrer un flux d'ajout ou d'upload simple permettant de faire ex
 
 1. Définir le point d'entrée UI `Ajouter un document`.
 2. Définir le contrat minimal d'ajout : fichier, nom, type, household.
-3. Décider si la V1 passe par un vrai upload fichier ou par un flux de création minimale compatible avec le stockage actuel.
+3. Implémenter un vrai upload fichier minimal via multipart, en réutilisant les patterns déjà présents dans le repo pour les uploads simples.
 4. Garantir qu'un document peut être créé sans contexte métier immédiat.
 5. Faire réapparaître le document ajouté dans la liste active.
 
@@ -53,6 +64,7 @@ Spécifier puis migrer un flux d'ajout ou d'upload simple permettant de faire ex
 
 - L'API CRUD `documents` existe déjà mais le flux web d'ajout n'est pas encore migré comme expérience produit.
 - Il faut privilégier un incrément minimal crédible, pas une refonte complète du stockage.
+- L'objectif V1 n'est pas une GED complète, mais un upload réel stocké de façon compatible avec le runtime Django actuel.
 - Le document ajouté doit pouvoir rester `sans contexte` avant qualification.
 
 ### Critères de validation
@@ -144,9 +156,19 @@ Exposer un payload de détail plus utile pour afficher l'état réel du document
 ### Tâches
 
 1. Étendre le serializer de détail du document.
-2. Exposer l'activité liée de façon claire si elle existe déjà.
+2. Exposer les activités liées de façon claire via `InteractionDocument`.
 3. Prévoir des champs de résumé pour les autres rattachements disponibles ou futurs.
 4. Ajouter une fonction frontend de récupération du détail document.
+
+### Décision de contrat V1
+
+Le payload de détail doit exposer explicitement :
+
+- une liste `linked_interactions`
+- un booléen ou indicateur dérivé `has_activity_context`
+- les résumés de liens zone/projet si simples à résoudre
+
+Le champ `interaction` du document peut rester présent à titre transitoire, mais il ne doit plus structurer la page détail ni le filtre principal côté produit.
 
 ### Recommandation V1
 
@@ -155,7 +177,7 @@ Afficher au minimum :
 - identité du document
 - notes
 - OCR ou extrait OCR
-- activité liée actuelle
+- activités liées actuelles
 - indicateurs simples sur les autres liens éventuels si disponibles
 
 ### Critères de validation
@@ -181,24 +203,30 @@ Permettre depuis le document de le relier simplement à une activité déjà pr�
 
 1. Définir l'action UI `Relier à une activité existante`.
 2. Prévoir une sélection simple d'activité existante.
-3. Mettre à jour le document avec l'activité choisie.
+3. Créer un `InteractionDocument` avec l'activité choisie.
 4. Rafraîchir le détail document après rattachement.
 
 ### Recommandation V1
 
 - ne pas construire tout de suite un moteur avancé de recherche multi-critères
 - privilégier un sélecteur simple, lisible, éventuellement limité aux activités récentes ou filtrées
-- s'appuyer d'abord sur le lien `Document.interaction` déjà actif dans le runtime
+- s'appuyer sur `InteractionDocument` comme contrat de rattachement principal
 
 ### Point de vigilance
 
-Une table `InteractionDocument` existe déjà. Pour la V1, il vaut mieux éviter un refactor large de la stratégie de lien tant que le flux produit cible n'est pas validé.
+Le runtime utilise encore par endroits `Document.interaction`.
+
+La V1 doit donc :
+
+- rendre `InteractionDocument` visible dans l'API document et l'UI document
+- éviter d'étendre encore le flux produit sur la FK unique historique
+- traiter la compatibilité résiduelle comme un sujet d'implémentation, pas comme le contrat cible
 
 ### Critères de validation
 
 - le rattachement à une activité existante fonctionne depuis le document
 - le document reflète immédiatement son nouveau contexte
-- l'utilisateur peut ouvrir l'activité liée ensuite
+- plusieurs activités peuvent être visibles sur un même document
 
 ## Lot 5 — Création d'activité depuis un document
 
@@ -218,7 +246,7 @@ Réutiliser le parcours 01 pour transformer un document en activité exploitable
 1. Définir l'action `Créer une activité depuis ce document` dans le détail document.
 2. Passer les informations utiles au flux de création d'activité.
 3. Prévoir un préremplissage minimal cohérent.
-4. Assurer le rattachement du document à l'activité créée.
+4. Assurer la création du lien `InteractionDocument` avec l'activité créée.
 
 ### Recommandation V1
 
@@ -227,12 +255,14 @@ Le plus simple est de :
 - rediriger vers la page de création d'activité existante
 - transmettre l'identifiant du document et éventuellement quelques valeurs de contexte
 - traiter le rattachement final côté backend ou dans le flux de confirmation
+- assumer qu'une zone peut encore devoir être choisie tant que le formulaire activité existant la rend obligatoire
 
 ### Critères de validation
 
 - le document peut servir de point d'entrée au parcours activité
 - la ressaisie manuelle est réduite
 - le document est bien relié à l'activité créée à la fin du flux
+- le retour se fait vers le détail document avec le nouveau lien visible
 
 ## Lot 6 — Affichage du contexte élargi
 
@@ -259,6 +289,8 @@ Préparer l'ouverture vers les autres contextes métier sans alourdir la premiè
 - garder l'action active principale sur l'activité
 - traiter projet et zone comme enrichissements utiles mais non bloquants
 
+La création de liens zone/projet depuis le détail document reste hors scope MVP.
+
 ### Critères de validation
 
 - le document n'est plus vu seulement sous l'angle activité si d'autres rattachements existent
@@ -283,7 +315,8 @@ Faire de la liste documents un bon point de tri et de suivi des éléments à qu
 1. Vérifier la lisibilité des badges ou indicateurs de rattachement.
 2. Clarifier les labels pour les documents sans contexte.
 3. Étudier si une recherche visible doit entrer dans la V1.
-4. Vérifier si le filtre `non reliés` doit être synchronisé dans l'URL ou rester local dans un premier temps.
+4. Recalculer le filtre `non reliés` sur le contrat produit réel des liens activités exposés.
+5. Vérifier si le filtre `non reliés` doit être synchronisé dans l'URL ou rester local dans un premier temps.
 
 ### Recommandation
 
@@ -319,9 +352,9 @@ Sécuriser le flux sans multiplier les tests inutiles.
 3. ouvrir un document
 4. lire son état actuel
 5. le relier à une activité existante
-6. revenir au document
+6. vérifier que le document affiche une ou plusieurs activités liées
 7. créer une activité depuis un autre document
-8. vérifier le retour fluide entre document et activité
+8. vérifier le retour fluide vers le détail document
 
 ## Ordre recommandé d'implémentation
 
@@ -362,9 +395,10 @@ Si tu veux garder de petites itérations propres, je découperais en 3 sessions 
 
 - ne pas lancer une GED complète trop tôt
 - ne pas ouvrir tous les types de liens au même niveau dès la première itération
-- ne pas refactorer massivement la stratégie de lien document avant validation du flux produit
+- ne pas refactorer massivement tout le domaine document, mais assumer clairement `InteractionDocument` comme contrat produit V1 pour les activités
 - ne pas dépendre d'un pipeline email entrant qui n'est pas encore une surface active du runtime
 - garder un vocabulaire produit cohérent entre liste, détail et rattachement
+- ne pas promettre un détail activité web si ce chantier n'est pas explicitement pris dans le scope
 
 ## Définition de done technique
 
@@ -374,7 +408,7 @@ La V1 peut être considérée terminée si :
 2. la page documents sert réellement à identifier les documents à traiter
 3. un document peut être ouvert dans une page de détail utile
 4. l'état actuel du document est lisible
-5. le document peut être relié à une activité existante
+5. le document peut être relié à une ou plusieurs activités existantes
 6. une activité peut être créée depuis le document
-7. la navigation document <-> activité est claire
+7. le retour vers le document après action est clair
 8. les tests essentiels sont à jour

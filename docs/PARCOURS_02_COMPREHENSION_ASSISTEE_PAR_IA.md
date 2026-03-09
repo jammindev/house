@@ -17,7 +17,7 @@ Le bon modèle est :
 - un document entre dans le système
 - le système conserve la pièce source
 - une couche de compréhension produit des propositions structurées
-- l'utilisateur valide ou corrige le rattachement et les données importantes
+- l'utilisateur valide ou corrige les rattachements et les données importantes
 
 ## Ce qui colle déjà avec cette vision
 
@@ -40,7 +40,7 @@ Elle devra pouvoir :
 2. suggérer ce qu'elle représente
 3. proposer un type ou une catégorie utile
 4. proposer un contexte probable
-5. suggérer un rattachement ou une création d'activité
+5. suggérer un ou plusieurs rattachements ou une création d'activité
 6. conserver la provenance et le niveau de confiance
 
 Le bon modèle cible est donc :
@@ -73,7 +73,7 @@ Sans changer la vérité métier, une couche d'IA pourrait plus tard :
 
 - suggérer le type du document : facture, devis, manuel, garantie, autre
 - extraire des informations utiles : montant, date, fournisseur, référence, garantie
-- proposer une activité candidate à lier
+- proposer une ou plusieurs activités candidates à lier
 - suggérer la création d'une activité si aucun rattachement n'existe
 - proposer un projet ou une zone probable si le contexte peut être inféré
 - résumer rapidement le document pour l'utilisateur
