@@ -20,12 +20,12 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-03-08
+Dernière mise à jour : 2026-03-09
 
 ### Parcours métier
 
 - Parcours 01 — Capturer un événement du foyer et le retrouver facilement : **socle V1 livré**
-- Parcours 02 — Traiter un document entrant et le relier au bon contexte : **prochaine priorité recommandée**
+- Parcours 02 — Traiter un document entrant et le relier au bon contexte : **cadrage initial documenté**
 - Parcours 03 — Transformer un besoin en action suivie : **à venir**
 - Parcours 04 — Suivre un projet de bout en bout : **à venir**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **à venir**
@@ -59,9 +59,16 @@ Références :
 
 Parcours 02 : document entrant -> compréhension -> rattachement au bon contexte métier.
 
+Références de cadrage :
+
+- [docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md)
+- [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)
+- [docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md)
+
 ## Journal des sessions
 
 - [docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md)
+- [docs/journal/2026-03-09_parcours-02_cadrage_initial.md](/Users/benjaminvandamme/Dev/house/docs/journal/2026-03-09_parcours-02_cadrage_initial.md)
 
 ## Backlog d'idées futures
 

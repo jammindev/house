@@ -83,7 +83,7 @@ Il permet de monter un composant React dans une div Django avec `data-props`.
 
 ```bash
 # Terminal 1
-python manage.py runserver 8000
+python manage.py runserver
 
 # Terminal 2
 npm run dev

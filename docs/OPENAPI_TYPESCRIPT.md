@@ -6,7 +6,7 @@ Ce projet génère un client API TypeScript depuis le schéma OpenAPI exposé pa
 
 - Environnement Python installé (`pip install -r requirements.txt`)
 - Environnement Node installé (`npm install`)
-- Backend Django démarré en local sur `http://127.0.0.1:8000`
+- Backend Django démarré en local sur `http://127.0.0.1:8001`
 
 ## Endpoints OpenAPI (dev uniquement)
 

@@ -60,6 +60,12 @@ Le point d'entrée recommandé est un CTA unique d'ajout, suivi d'un sélecteur 
 
 ## 2. Traiter un document entrant et le relier au bon contexte
 
+Document détaillé : `docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md`
+
+Note complémentaire : `docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md`
+
+Statut actuel : **cadrage initial documenté**
+
 ### Pourquoi en deuxième
 
 Les documents ont une forte valeur pratique, mais ils deviennent vraiment utiles seulement s'ils sont reliés à une interaction, un contact, une structure, un projet ou une zone.
