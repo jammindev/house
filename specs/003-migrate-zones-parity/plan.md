@@ -1,7 +1,7 @@
 # Implementation Plan: Migration Zones 1:1 Legacy vers Django
 
-**Branch**: `001-migrate-zones-parity` | **Date**: 2026-03-04 | **Spec**: `/specs/001-migrate-zones-parity/spec.md`
-**Input**: Feature specification from `/specs/001-migrate-zones-parity/spec.md`
+**Branch**: `003-migrate-zones-parity` | **Date**: 2026-03-04 | **Spec**: `/specs/003-migrate-zones-parity/spec.md`
+**Input**: Feature specification from `/specs/003-migrate-zones-parity/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
@@ -47,7 +47,7 @@ Porter l'expérience Zones legacy Next.js vers le runtime Django hybride en cons
 ### Documentation (this feature)
 
 ```text
-specs/001-migrate-zones-parity/
+specs/003-migrate-zones-parity/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)

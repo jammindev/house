@@ -1,6 +1,7 @@
 """
 Interaction views for REST API.
 """
+from django.db import IntegrityError
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -10,6 +11,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 
 from core.permissions import IsHouseholdMember, resolve_request_household
+from documents.models import Document
 from zones.models import Zone
 from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
 from .serializers import (
@@ -87,8 +89,11 @@ class InteractionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Set household and created_by with legacy RLS-style validation."""
         zone_ids = self.request.data.get('zone_ids') or []
+        document_ids = self.request.data.get('document_ids') or []
         if not isinstance(zone_ids, list) or not zone_ids:
             raise ValidationError({'zone_ids': 'At least one zone is required.'})
+        if not isinstance(document_ids, list):
+            raise ValidationError({'document_ids': 'Documents must be provided as a list.'})
 
         zones = list(
             Zone.objects.for_user_households(self.request.user).filter(id__in=zone_ids)
@@ -105,6 +110,17 @@ class InteractionViewSet(viewsets.ModelViewSet):
         selected_household = resolve_request_household(self.request, required=False)
         if selected_household and str(selected_household.id) != zone_household_id:
             raise ValidationError({'household_id': 'Selected household does not match provided zones.'})
+
+        documents = list(
+            Document.objects.filter(
+                household_id__in=self.request.user.householdmember_set.values_list('household_id', flat=True),
+                id__in=document_ids,
+            )
+        )
+        if len(documents) != len(document_ids):
+            raise ValidationError({'document_ids': 'One or more documents are invalid or inaccessible.'})
+        if any(str(document.household_id) != zone_household_id for document in documents):
+            raise ValidationError({'document_ids': 'All documents must belong to the same household as the selected zones.'})
 
         serializer.save(
             household_id=zone_household_id,
@@ -193,3 +209,32 @@ class InteractionStructureViewSet(_InteractionLinkBaseViewSet):
 class InteractionDocumentViewSet(_InteractionLinkBaseViewSet):
     model = InteractionDocument
     serializer_class = InteractionDocumentSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        interaction = serializer.validated_data['interaction']
+        document = serializer.validated_data['document']
+        if InteractionDocument.objects.filter(interaction=interaction, document=document).exists():
+            return Response(
+                {
+                    'code': 'already_linked',
+                    'detail': 'Exact document-interaction link already exists.',
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        try:
+            self.perform_create(serializer)
+        except IntegrityError:
+            return Response(
+                {
+                    'code': 'already_linked',
+                    'detail': 'Exact document-interaction link already exists.',
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

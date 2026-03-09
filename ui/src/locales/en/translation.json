@@ -100,6 +100,8 @@
     "error_expense_amount_invalid": "Enter a valid amount.",
     "error_create_failed": "Unable to add the event. Please verify fields and household context.",
     "error_title": "Creation error",
+    "source_document_label": "Source document",
+    "source_document_help": "This activity will be linked to the selected document after creation.",
     "success_title": "Success",
     "redirect_notice": "Redirecting to activity\u2026",
     "created_notice_title": "Event added",
@@ -323,7 +325,89 @@
   },
   "documents": {
     "app_title": "Documents mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "title": "Documents",
+    "subtitle": "Review incoming files and qualify them with the right activity context.",
+    "add": "Add document",
+    "empty": "No documents yet.",
+    "emptyUnlinked": "No documents without activity context.",
+    "loadFailed": "Failed to load documents.",
+    "edit": "Edit document",
+    "editFailed": "Failed to save changes.",
+    "openOriginal": "Open original file",
+    "noFileAvailable": "Original file unavailable",
+    "interactionNoSubject": "Activity",
+    "noLinkedInteractions": "No linked activity",
+    "fieldName": "Name",
+    "fieldType": "Type",
+    "fieldNotes": "Notes",
+    "fieldNotesPlaceholder": "Optional notes…",
+    "count": {
+      "all": "{{count}} documents",
+      "unlinked": "{{count}} without activity context"
+    },
+    "filter": {
+      "unlinked": "Show without activity only",
+      "unlinkedActive": "Showing without activity"
+    },
+    "type": {
+      "document": "Document",
+      "invoice": "Invoice",
+      "manual": "Manual",
+      "warranty": "Warranty",
+      "receipt": "Receipt",
+      "plan": "Plan",
+      "certificate": "Certificate",
+      "other": "Other"
+    },
+    "qualification": {
+      "withoutActivity": "Without context",
+      "activityLinked": "Activity linked"
+    },
+    "new": {
+      "title": "Add document",
+      "subtitle": "Upload a file first, then qualify it from its detail page.",
+      "placeholder": "The upload form is being connected to the new multipart API.",
+      "selectFile": "Select file",
+      "selectedFile": "Selected file",
+      "submit": "Upload document",
+      "submitting": "Uploading…"
+    },
+    "detail": {
+      "title": "Document details",
+      "subtitle": "Identity, OCR, and current context for this document.",
+      "placeholder": "The enriched document detail view is being connected.",
+      "backToList": "Back to documents",
+      "identity": "Identity",
+      "qualification": "Qualification",
+      "linkedCount": "{{count}} linked activities",
+      "ocr": "OCR",
+      "currentContext": "Current context",
+      "secondaryContext": "Secondary context",
+      "zones": "Zones",
+      "projects": "Projects",
+      "actions": "Actions"
+    },
+    "attach": {
+      "title": "Link to an existing activity",
+      "recent": "Recent activities",
+      "search": "Search an activity",
+      "searchPlaceholder": "Search by subject or content",
+      "searchButton": "Search",
+      "searchResults": "Search results",
+      "searchFailed": "Failed to search activities.",
+      "submit": "Link activity",
+      "linking": "Linking…",
+      "success": "Activity linked",
+      "failed": "Failed to link the activity.",
+      "noRecent": "No recent activity available.",
+      "noneFound": "No matching activity found.",
+      "empty": "No activity linked yet."
+    },
+    "createActivity": {
+      "title": "Create an activity from this document",
+      "cta": "Create activity"
+    }
   },
   "equipment": {
     "app_title": "Equipment mini-app",

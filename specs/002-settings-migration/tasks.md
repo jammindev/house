@@ -1,6 +1,6 @@
 # Tasks: Settings Migration — Legacy Next.js → Django app_settings
 
-**Input**: Design documents from `specs/001-settings-migration/`
+**Input**: Design documents from `specs/002-settings-migration/`
 **Prerequisites**: plan.md ✅, spec.md ✅, research.md ✅, data-model.md ✅, contracts/ ✅, quickstart.md ✅
 
 ## Format: `[ID] [P?] [Story?] Description`

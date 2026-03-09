@@ -1,0 +1,387 @@
+openapi: 3.1.0
+info:
+  title: Document Context Linking API
+  version: 0.1.0
+  description: >-
+    Contract for feature 001-document-context-linking. Covers minimal document upload,
+    enriched document detail/list payloads, explicit document-activity linking, and
+    interaction creation from a document.
+servers:
+  - url: /
+paths:
+  /api/documents/documents/:
+    get:
+      summary: List documents for the active household
+      description: >-
+        Returns the active documents list for the selected household. The response
+        includes derived qualification fields so the UI does not infer product state
+        from legacy `interaction` alone.
+      parameters:
+        - in: header
+          name: X-Household-Id
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: ordering
+          required: false
+          schema:
+            type: string
+            example: -created_at
+      responses:
+        '200':
+          description: Documents list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentListItem'
+  /api/documents/documents/upload/:
+    post:
+      summary: Upload a new document with a real file
+      description: >-
+        Minimal entry flow for a document. Requires a multipart file upload and an
+        active household context. On success, the response is sufficient to redirect
+        directly to the document detail page.
+      parameters:
+        - in: header
+          name: X-Household-Id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                type:
+                  type: string
+                  enum: [document, invoice, manual, warranty, receipt, plan, certificate, other]
+                notes:
+                  type: string
+      responses:
+        '201':
+          description: Document created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadResponse'
+        '400':
+          description: Invalid upload payload or household context
+  /api/documents/documents/{documentId}/:
+    get:
+      summary: Retrieve enriched document detail
+      parameters:
+        - in: path
+          name: documentId
+          required: true
+          schema:
+            type: string
+        - in: header
+          name: X-Household-Id
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enriched document detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentDetail'
+        '404':
+          description: Document not found or inaccessible
+  /api/interactions/interaction-documents/:
+    post:
+      summary: Link an existing document to an existing interaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionDocumentCreate'
+      responses:
+        '201':
+          description: Link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionDocumentLink'
+        '400':
+          description: Household mismatch, inaccessible document, or invalid interaction
+        '409':
+          description: Exact document-interaction link already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: already_linked
+                  detail:
+                    type: string
+  /api/interactions/interactions/:
+    post:
+      summary: Create an interaction, optionally linked to one or more documents
+      description: >-
+        Existing interaction creation contract extended with optional `document_ids`.
+        When provided, the interaction and `InteractionDocument` links are created atomically.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InteractionCreateRequest'
+      responses:
+        '201':
+          description: Interaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InteractionCreateResponse'
+        '400':
+          description: Invalid zones, invalid document(s), or household mismatch
+components:
+  schemas:
+    DocumentQualification:
+      type: object
+      required:
+        - has_activity_context
+        - qualification_state
+        - linked_interactions_count
+        - has_secondary_context
+      properties:
+        has_activity_context:
+          type: boolean
+        qualification_state:
+          type: string
+          enum: [without_activity, activity_linked]
+        linked_interactions_count:
+          type: integer
+        has_secondary_context:
+          type: boolean
+    LinkedInteractionSummary:
+      type: object
+      required:
+        - id
+        - subject
+        - type
+        - occurred_at
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        type:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+    ZoneLinkSummary:
+      type: object
+      required: [zone_id, zone_name]
+      properties:
+        zone_id:
+          type: string
+        zone_name:
+          type: string
+    ProjectLinkSummary:
+      type: object
+      required: [project_id, project_name]
+      properties:
+        project_id:
+          type: string
+        project_name:
+          type: string
+    DocumentListItem:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - created_at
+        - file_url
+        - qualification
+        - linked_interactions
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        file_path:
+          type: string
+        file_url:
+          type: string
+          nullable: true
+        mime_type:
+          type: string
+        type:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        created_by_name:
+          type: string
+          nullable: true
+        qualification:
+          $ref: '#/components/schemas/DocumentQualification'
+        linked_interactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkedInteractionSummary'
+        legacy_interaction:
+          type: string
+          nullable: true
+        legacy_interaction_subject:
+          type: string
+          nullable: true
+    DocumentDetail:
+      allOf:
+        - $ref: '#/components/schemas/DocumentListItem'
+        - type: object
+          properties:
+            ocr_text:
+              type: string
+              nullable: true
+            metadata:
+              type: object
+              additionalProperties: true
+            zone_links:
+              type: array
+              items:
+                $ref: '#/components/schemas/ZoneLinkSummary'
+            project_links:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProjectLinkSummary'
+            recent_interaction_candidates:
+              type: array
+              items:
+                $ref: '#/components/schemas/LinkedInteractionSummary'
+    DocumentUploadResponse:
+      type: object
+      required:
+        - document
+        - detail_url
+      properties:
+        document:
+          $ref: '#/components/schemas/DocumentDetail'
+        detail_url:
+          type: string
+          example: /app/documents/123/
+    InteractionDocumentCreate:
+      type: object
+      required:
+        - interaction
+        - document
+      properties:
+        interaction:
+          type: string
+          format: uuid
+        document:
+          type: string
+        role:
+          type: string
+          default: attachment
+        note:
+          type: string
+          default: ''
+    InteractionDocumentLink:
+      type: object
+      required:
+        - interaction
+        - document
+        - created_at
+      properties:
+        interaction:
+          type: string
+          format: uuid
+        document:
+          type: string
+        role:
+          type: string
+        note:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    InteractionCreateRequest:
+      type: object
+      required:
+        - subject
+        - type
+        - occurred_at
+        - zone_ids
+      properties:
+        subject:
+          type: string
+        content:
+          type: string
+          default: ''
+        type:
+          type: string
+        status:
+          type: string
+          nullable: true
+        occurred_at:
+          type: string
+          format: date-time
+        zone_ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+        metadata:
+          type: object
+          additionalProperties: true
+        tags_input:
+          type: array
+          items:
+            type: string
+        document_ids:
+          type: array
+          items:
+            type: string
+    InteractionCreateResponse:
+      type: object
+      required:
+        - id
+        - subject
+        - type
+        - occurred_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        subject:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+          nullable: true
+        occurred_at:
+          type: string
+          format: date-time
+        linked_document_ids:
+          type: array
+          items:
+            type: string

@@ -1,9 +1,15 @@
 """
 Documents app models - file attachments with OCR text extraction.
 """
+from pathlib import Path, PurePosixPath
+from uuid import uuid4
+
+from django.core.files.storage import default_storage
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.text import get_valid_filename
 from core.models import TimestampedModel, HouseholdScopedModel
 
 
@@ -73,3 +79,26 @@ class Document(HouseholdScopedModel):
             models.Index(fields=['interaction'], name='idx_docs_interaction'),
             models.Index(fields=['created_by'], name='idx_docs_creator'),
         ]
+
+    @classmethod
+    def build_upload_path(cls, *, household_id, filename: str) -> str:
+        original_name = Path(filename or 'document').name
+        safe_name = get_valid_filename(original_name) or 'document'
+        stamp = timezone.now().strftime('%Y/%m')
+        return str(
+            PurePosixPath('documents')
+            / str(household_id)
+            / stamp
+            / f'{uuid4().hex}-{safe_name}'
+        )
+
+    def delete(self, *args, **kwargs):
+        file_path = self.file_path
+        super().delete(*args, **kwargs)
+        if not file_path:
+            return
+        try:
+            if default_storage.exists(file_path):
+                default_storage.delete(file_path)
+        except OSError:
+            pass

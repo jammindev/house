@@ -100,6 +100,8 @@
     "error_expense_amount_invalid": "Geben Sie einen gültigen Betrag ein.",
     "error_create_failed": "Das Ereignis konnte nicht hinzugefügt werden. Bitte prüfen Sie die Felder und den Haushaltskontext.",
     "error_title": "Erstellungsfehler",
+    "source_document_label": "Quelldokument",
+    "source_document_help": "Diese Aktivität wird nach dem Erstellen mit dem ausgewählten Dokument verknüpft.",
     "success_title": "Erfolg",
     "redirect_notice": "Weiterleitung zur Aktivität\u2026",
     "created_notice_title": "Ereignis hinzugefügt",
@@ -323,7 +325,89 @@
   },
   "documents": {
     "app_title": "Dokumente-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "section_label": "Django-App-Knoten: {{section}}",
+    "title": "Dokumente",
+    "subtitle": "Prüfe eingehende Dateien und verknüpfe sie mit der richtigen Aktivität.",
+    "add": "Dokument hinzufügen",
+    "empty": "Noch keine Dokumente.",
+    "emptyUnlinked": "Keine Dokumente ohne Aktivitätskontext.",
+    "loadFailed": "Dokumente konnten nicht geladen werden.",
+    "edit": "Dokument bearbeiten",
+    "editFailed": "Änderungen konnten nicht gespeichert werden.",
+    "openOriginal": "Originaldatei öffnen",
+    "noFileAvailable": "Originaldatei nicht verfügbar",
+    "interactionNoSubject": "Aktivität",
+    "noLinkedInteractions": "Keine verknüpfte Aktivität",
+    "fieldName": "Name",
+    "fieldType": "Typ",
+    "fieldNotes": "Notizen",
+    "fieldNotesPlaceholder": "Optionale Notizen…",
+    "count": {
+      "all": "{{count}} Dokumente",
+      "unlinked": "{{count}} ohne Aktivitätskontext"
+    },
+    "filter": {
+      "unlinked": "Nur ohne Aktivität anzeigen",
+      "unlinkedActive": "Zeige ohne Aktivität"
+    },
+    "type": {
+      "document": "Dokument",
+      "invoice": "Rechnung",
+      "manual": "Handbuch",
+      "warranty": "Garantie",
+      "receipt": "Beleg",
+      "plan": "Plan",
+      "certificate": "Zertifikat",
+      "other": "Sonstiges"
+    },
+    "qualification": {
+      "withoutActivity": "Ohne Kontext",
+      "activityLinked": "Aktivität verknüpft"
+    },
+    "new": {
+      "title": "Dokument hinzufügen",
+      "subtitle": "Lade zuerst eine Datei hoch und qualifiziere sie dann auf der Detailseite.",
+      "placeholder": "Das Upload-Formular wird gerade an die neue Multipart-API angeschlossen.",
+      "selectFile": "Datei auswählen",
+      "selectedFile": "Ausgewählte Datei",
+      "submit": "Dokument hochladen",
+      "submitting": "Wird hochgeladen…"
+    },
+    "detail": {
+      "title": "Dokumentdetails",
+      "subtitle": "Identität, OCR und aktueller Kontext dieses Dokuments.",
+      "placeholder": "Die angereicherte Dokumentdetailansicht wird gerade angeschlossen.",
+      "backToList": "Zurück zu den Dokumenten",
+      "identity": "Identität",
+      "qualification": "Qualifikation",
+      "linkedCount": "{{count}} verknüpfte Aktivitäten",
+      "ocr": "OCR",
+      "currentContext": "Aktueller Kontext",
+      "secondaryContext": "Sekundäre Kontexte",
+      "zones": "Zonen",
+      "projects": "Projekte",
+      "actions": "Aktionen"
+    },
+    "attach": {
+      "title": "Mit vorhandener Aktivität verknüpfen",
+      "recent": "Letzte Aktivitäten",
+      "search": "Aktivität suchen",
+      "searchPlaceholder": "Nach Betreff oder Inhalt suchen",
+      "searchButton": "Suchen",
+      "searchResults": "Suchergebnisse",
+      "searchFailed": "Aktivitäten konnten nicht gesucht werden.",
+      "submit": "Aktivität verknüpfen",
+      "linking": "Verknüpfen…",
+      "success": "Aktivität verknüpft",
+      "failed": "Aktivität konnte nicht verknüpft werden.",
+      "noRecent": "Keine aktuellen Aktivitäten verfügbar.",
+      "noneFound": "Keine passende Aktivität gefunden.",
+      "empty": "Noch keine Aktivität verknüpft."
+    },
+    "createActivity": {
+      "title": "Aktivität aus diesem Dokument erstellen",
+      "cta": "Aktivität erstellen"
+    }
   },
   "equipment": {
     "app_title": "Geräte-Mini-App",

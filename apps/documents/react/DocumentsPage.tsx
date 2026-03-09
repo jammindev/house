@@ -7,21 +7,34 @@ import EditDocumentModal from './EditDocumentModal';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
-type DocumentsPageProps = Record<string, never>;
+type DocumentsPageProps = {
+  title?: string;
+  createUrl?: string;
+  initialDocuments?: DocumentItem[];
+  initialLoaded?: boolean;
+  initialCounts?: {
+    total: number;
+    withoutActivity: number;
+  };
+  filterDefaults?: {
+    withoutActivityOnly: boolean;
+  };
+};
 
-export default function DocumentsPage(_props: DocumentsPageProps) {
+export default function DocumentsPage(props: DocumentsPageProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
-  const [documents, setDocuments] = React.useState<DocumentItem[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [documents, setDocuments] = React.useState<DocumentItem[]>(props.initialDocuments ?? []);
+  const [loading, setLoading] = React.useState(!(props.initialLoaded ?? false));
   const [error, setError] = React.useState<string | null>(null);
-  const [unlinkedOnly, setUnlinkedOnly] = React.useState(false);
+  const [unlinkedOnly, setUnlinkedOnly] = React.useState(props.filterDefaults?.withoutActivityOnly ?? false);
   const [editingDoc, setEditingDoc] = React.useState<DocumentItem | null>(null);
+  const hasSkippedInitialRefresh = React.useRef(false);
 
   const loadDocuments = React.useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchDocuments(householdId)
+    fetchDocuments(householdId, { withoutActivityOnly: unlinkedOnly })
       .then((list) => {
         setDocuments(list);
         setLoading(false);
@@ -30,19 +43,33 @@ export default function DocumentsPage(_props: DocumentsPageProps) {
         setError(t('documents.loadFailed', { defaultValue: 'Failed to load documents.' }));
         setLoading(false);
       });
-  }, [householdId, t]);
+  }, [householdId, t, unlinkedOnly]);
 
   React.useEffect(() => {
+    if (props.initialLoaded) {
+      return;
+    }
     loadDocuments();
-  }, [loadDocuments]);
+  }, [loadDocuments, props.initialLoaded]);
+
+  React.useEffect(() => {
+    if (!props.initialLoaded) {
+      return;
+    }
+    if (!hasSkippedInitialRefresh.current) {
+      hasSkippedInitialRefresh.current = true;
+      return;
+    }
+    loadDocuments();
+  }, [loadDocuments, props.initialLoaded]);
 
   const filteredDocuments = React.useMemo(() => {
     if (!unlinkedOnly) return documents;
-    return documents.filter((d) => !d.interaction);
+    return documents.filter((d) => d.qualification.qualification_state === 'without_activity');
   }, [documents, unlinkedOnly]);
 
   const unlinkedCount = React.useMemo(
-    () => documents.filter((d) => !d.interaction).length,
+    () => documents.filter((d) => d.qualification.qualification_state === 'without_activity').length,
     [documents],
   );
 
@@ -59,9 +86,20 @@ export default function DocumentsPage(_props: DocumentsPageProps) {
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            {t('documents.title', { defaultValue: 'Documents' })}
+            {props.title || t('documents.title', { defaultValue: 'Documents' })}
           </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('documents.subtitle')}
+          </p>
         </div>
+        {props.createUrl && (
+          <a
+            href={props.createUrl}
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            {t('documents.add')}
+          </a>
+        )}
       </div>
 
       <DocumentsFilters
@@ -96,8 +134,8 @@ export default function DocumentsPage(_props: DocumentsPageProps) {
         <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-10 text-center">
           <p className="text-sm text-gray-500">
             {unlinkedOnly
-              ? t('documents.emptyUnlinked', { defaultValue: 'No unlinked documents.' })
-              : t('documents.empty', { defaultValue: 'No documents yet.' })}
+              ? t('documents.emptyUnlinked')
+              : t('documents.empty')}
           </p>
         </div>
       )}

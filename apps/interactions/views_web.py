@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.db.models import Q
@@ -5,6 +6,7 @@ from urllib.parse import urlencode
 
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
+from documents.models import Document
 from zones.models import Zone
 
 from .models import Interaction
@@ -97,6 +99,17 @@ class AppInteractionNewView(ReactPageView):
         request = self.request
         selected_household = _resolve_selected_household(request)
         return_to = (request.GET.get('return_to') or '').strip()
+        source_document_id = (request.GET.get('source_document_id') or '').strip()
+
+        source_document = None
+        if source_document_id:
+            source_queryset = Document.objects.filter(
+                household_id__in=request.user.householdmember_set.values_list('household_id', flat=True)
+            )
+            if selected_household:
+                source_queryset = source_queryset.filter(household=selected_household)
+            source_document = get_object_or_404(source_queryset, id=source_document_id)
+            selected_household = selected_household or source_document.household
 
         zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
         if selected_household:
@@ -122,6 +135,18 @@ class AppInteractionNewView(ReactPageView):
         redirect_query = {'refresh': '1'} if return_to != 'dashboard' else {}
         redirect_to_list_url = f"{redirect_to}?{urlencode(redirect_query)}" if redirect_query else redirect_to
 
+        source_document_payload = None
+        linked_document_ids = []
+        redirect_after_success_url = None
+        if source_document:
+            source_document_payload = {
+                'id': str(source_document.id),
+                'name': source_document.name,
+                'type': source_document.type,
+            }
+            linked_document_ids = [str(source_document.id)]
+            redirect_after_success_url = reverse('app_documents_detail', kwargs={'document_id': source_document.id})
+
         return {
             'title': str(_('Add event')),
             'submitLabel': str(_('Add event')),
@@ -130,4 +155,7 @@ class AppInteractionNewView(ReactPageView):
             'initialZones': zones_payload,
             'initialZonesLoaded': True,
             'redirectToListUrl': redirect_to_list_url,
+            'sourceDocument': source_document_payload,
+            'linkedDocumentIds': linked_document_ids,
+            'redirectAfterSuccessUrl': redirect_after_success_url,
         }

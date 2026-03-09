@@ -1,7 +1,20 @@
 import { onDomReady, mountWithJsonScriptProps } from '@/lib/mount';
-import DocumentsPage from '../../../../apps/documents/react/DocumentsPage';
+import type { DocumentItem } from '@/lib/api/documents';
+import DocumentsPage from '@apps/documents/react/DocumentsPage';
 
-type DocumentsPageProps = Record<string, never>;
+type DocumentsPageProps = {
+  title?: string;
+  createUrl?: string;
+  initialDocuments?: DocumentItem[];
+  initialLoaded?: boolean;
+  initialCounts?: {
+    total: number;
+    withoutActivity: number;
+  };
+  filterDefaults?: {
+    withoutActivityOnly: boolean;
+  };
+};
 
 onDomReady(() => {
   mountWithJsonScriptProps<DocumentsPageProps>('documents-root', 'documents-props', DocumentsPage, { withToaster: true });

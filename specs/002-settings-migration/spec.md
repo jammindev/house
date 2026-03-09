@@ -1,6 +1,6 @@
 # Feature Specification: Settings Migration — Legacy Next.js → Django app_settings
 
-**Feature Branch**: `001-settings-migration`  
+**Feature Branch**: `002-settings-migration`  
 **Created**: 2026-02-27  
 **Status**: Draft  
 **Input**: Migrer la page settings de legacy Next.js vers l'app Django app_settings avec le même composant UserSettings (profil, household, mot de passe)

@@ -22,6 +22,13 @@ interface InteractionCreateFormProps {
   initialZonesLoaded?: boolean;
   onCreated?: (interactionId: string) => void;
   redirectToListUrl?: string;
+  linkedDocumentIds?: string[];
+  redirectAfterSuccessUrl?: string;
+  sourceDocument?: {
+    id: string;
+    name: string;
+    type: string;
+  } | null;
   redirectDelayMs?: number;
 }
 
@@ -73,14 +80,14 @@ function buildOccurredAtValue(dateValue: string, includeTime: boolean, timeValue
   return `${dateValue}T${resolvedTime}`;
 }
 
-function buildRedirectUrl(baseUrl: string, createdId: string): string {
+function buildRedirectUrl(baseUrl: string, createdId: string, createdParamName = 'created'): string {
   if (typeof window === 'undefined') {
     const separator = baseUrl.includes('?') ? '&' : '?';
-    return `${baseUrl}${separator}created=${encodeURIComponent(createdId)}`;
+    return `${baseUrl}${separator}${createdParamName}=${encodeURIComponent(createdId)}`;
   }
 
   const url = new URL(baseUrl, window.location.origin);
-  url.searchParams.set('created', createdId);
+  url.searchParams.set(createdParamName, createdId);
 
   return `${url.pathname}${url.search}${url.hash}`;
 }
@@ -94,6 +101,9 @@ export function InteractionCreateForm({
   initialZonesLoaded = false,
   onCreated,
   redirectToListUrl,
+  linkedDocumentIds = [],
+  redirectAfterSuccessUrl,
+  sourceDocument = null,
   redirectDelayMs = 800,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
@@ -177,6 +187,7 @@ export function InteractionCreateForm({
           zone_ids: zoneIds,
           metadata,
           tags_input: tagNames,
+          document_ids: linkedDocumentIds,
         },
         householdId
       );
@@ -196,7 +207,11 @@ export function InteractionCreateForm({
         onCreated(created.id);
       }
 
-      if (redirectToListUrl && typeof window !== 'undefined') {
+      if (redirectAfterSuccessUrl && typeof window !== 'undefined') {
+        window.setTimeout(() => {
+          window.location.assign(buildRedirectUrl(redirectAfterSuccessUrl, created.id, 'created_interaction'));
+        }, redirectDelayMs);
+      } else if (redirectToListUrl && typeof window !== 'undefined') {
         window.setTimeout(() => {
           window.location.assign(buildRedirectUrl(redirectToListUrl, created.id));
         }, redirectDelayMs);
@@ -210,6 +225,16 @@ export function InteractionCreateForm({
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {sourceDocument ? (
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium text-foreground">{t('interactions.source_document_label')}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {sourceDocument.name} · {t(`documents.type.${sourceDocument.type}`, { defaultValue: sourceDocument.type })}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_document_help')}</p>
+        </div>
+      ) : null}
+
       <div className="space-y-2">
         <label htmlFor="interaction-subject" className="text-sm font-medium">
           {t('interactions.subject_label')}
@@ -363,7 +388,7 @@ export function InteractionCreateForm({
           <AlertTitle>{t('interactions.success_title')}</AlertTitle>
           <AlertDescription>
             <p>{success}</p>
-            {redirectToListUrl ? (
+            {redirectAfterSuccessUrl || redirectToListUrl ? (
               <p className="mt-1 text-xs text-muted-foreground">{t('interactions.redirect_notice')}</p>
             ) : null}
           </AlertDescription>

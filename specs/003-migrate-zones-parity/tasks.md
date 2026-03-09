@@ -1,6 +1,6 @@
 # Tasks: Migration Zones 1:1 Legacy vers Django
 
-**Input**: Design documents from `/specs/001-migrate-zones-parity/`
+**Input**: Design documents from `/specs/003-migrate-zones-parity/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
 ## Phase 1: Setup

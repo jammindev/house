@@ -25,6 +25,10 @@ export default function DocumentListItem({
 
   const fileSize = typeof doc.metadata?.size === 'number' ? formatFileSize(doc.metadata.size) : null;
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
+  const detailUrl = `/app/documents/${doc.id}/`;
+  const linkedLabel = doc.qualification.qualification_state === 'without_activity'
+    ? t('documents.qualification.withoutActivity')
+    : t('documents.qualification.activityLinked');
 
   const handleDelete = () => {
     if (!confirmOpen) {
@@ -57,18 +61,15 @@ export default function DocumentListItem({
       {/* Name + meta */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          {doc.file_url ? (
-            <a
-              href={doc.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="truncate text-sm font-medium text-gray-900 hover:underline"
-            >
-              {fileName}
-            </a>
-          ) : (
-            <span className="truncate text-sm font-medium text-gray-900">{fileName}</span>
-          )}
+          <a
+            href={detailUrl}
+            className="truncate text-sm font-medium text-gray-900 hover:underline"
+          >
+            {fileName}
+          </a>
+          <span className="inline-flex rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+            {linkedLabel}
+          </span>
           {fileSize && (
             <span className="text-xs text-gray-500 flex-shrink-0">{fileSize}</span>
           )}
@@ -76,21 +77,42 @@ export default function DocumentListItem({
         {doc.notes && (
           <p className="mt-0.5 text-xs text-gray-500 line-clamp-2">{doc.notes}</p>
         )}
-        {/* Linked interaction */}
         <div className="mt-1.5 flex flex-wrap gap-2">
-          {doc.interaction ? (
+          {doc.linked_interactions.length > 0 ? (
+            doc.linked_interactions.map((interaction) => (
+              <a
+                key={interaction.id}
+                href={`/app/interactions/?created=${interaction.id}`}
+                className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+              >
+                <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                {interaction.subject}
+              </a>
+            ))
+          ) : doc.file_url ? (
             <a
-              href={`/app/interactions/${doc.interaction}/`}
-              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+              href={doc.file_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-xs text-gray-600 transition hover:bg-gray-100"
             >
               <ExternalLink className="h-3 w-3" aria-hidden="true" />
-              {doc.interaction_subject || t('documents.interactionNoSubject', { defaultValue: 'Interaction' })}
+              {t('documents.openOriginal')}
             </a>
           ) : (
             <span className="text-xs text-gray-400">
-              {t('documents.noLinkedInteractions', { defaultValue: 'No linked interaction' })}
+              {t('documents.noFileAvailable')}
             </span>
           )}
+          {doc.legacy_interaction && doc.linked_interactions.length === 0 ? (
+            <a
+              href={`/app/interactions/?created=${doc.legacy_interaction}`}
+              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+            >
+              <ExternalLink className="h-3 w-3" aria-hidden="true" />
+              {doc.legacy_interaction_subject || t('documents.interactionNoSubject', { defaultValue: 'Interaction' })}
+            </a>
+          ) : null}
         </div>
       </div>
 

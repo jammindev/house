@@ -43,8 +43,10 @@ export type Interaction = {
     enriched_text?: string;
     project?: string | null;
     zone_ids: Array<string>;
+    document_ids?: Array<string>;
     readonly zone_names: string;
     readonly document_count: string;
+    readonly linked_document_ids?: Array<string>;
     readonly created_at: string;
     readonly updated_at: string;
     readonly created_by: number | null;

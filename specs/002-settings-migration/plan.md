@@ -1,7 +1,7 @@
 # Implementation Plan: Settings Migration — Legacy Next.js → Django app_settings
 
-**Branch**: `001-settings-migration` | **Date**: 2026-02-27 | **Spec**: [spec.md](./spec.md)
-**Input**: Feature specification from `/specs/001-settings-migration/spec.md`
+**Branch**: `002-settings-migration` | **Date**: 2026-02-27 | **Spec**: [spec.md](./spec.md)
+**Input**: Feature specification from `/specs/002-settings-migration/spec.md`
 
 ## Summary
 
@@ -35,7 +35,7 @@ Remplacer le composant placeholder `SettingsNode` dans `apps/app_settings/react/
 ### Documentation (this feature)
 
 ```text
-specs/001-settings-migration/
+specs/002-settings-migration/
 ├── plan.md              ← ce fichier
 ├── spec.md              ← spécification fonctionnelle
 ├── research.md          ← Phase 0 output

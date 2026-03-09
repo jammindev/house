@@ -1,8 +1,11 @@
 """
 Interaction serializers for REST API.
 """
+from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
+from core.permissions import resolve_request_household
+from documents.models import Document
 from tags.models import Tag, TagLink
 from .models import (
     Interaction,
@@ -28,7 +31,14 @@ class InteractionSerializer(serializers.ModelSerializer):
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
+    linked_document_ids = serializers.SerializerMethodField()
     tags_input = serializers.ListField(
+        child=serializers.CharField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
+    document_ids = serializers.ListField(
         child=serializers.CharField(),
         write_only=True,
         required=False,
@@ -41,19 +51,27 @@ class InteractionSerializer(serializers.ModelSerializer):
             'id', 'household', 'subject', 'content', 'type', 'status',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
             'project',
-            'zone_ids', 'zone_names', 'document_count',
+            'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
     
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
+
+    def _get_linked_document_ids(self, obj):
+        document_ids = {str(document_id) for document_id in obj.interaction_documents.values_list('document_id', flat=True)}
+        document_ids.update(str(document_id) for document_id in obj.documents.values_list('id', flat=True))
+        return sorted(document_ids)
     
     def get_document_count(self, obj):
-        return obj.documents.count()
+        return len(self._get_linked_document_ids(obj))
     
     def get_tags(self, obj):
         return [link.tag.name for link in obj.tags.all()]
+
+    def get_linked_document_ids(self, obj):
+        return self._get_linked_document_ids(obj)
 
     def _sync_tags(self, interaction, tag_names):
         if tag_names is None:
@@ -94,21 +112,28 @@ class InteractionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tag_names = validated_data.pop('tags_input', [])
         zone_ids = validated_data.pop('zone_ids', [])
-        interaction = Interaction.objects.create(**validated_data)
-        
-        # Link zones
-        from zones.models import Zone
-        for zone_id in zone_ids:
-            zone = Zone.objects.get(id=zone_id, household=interaction.household)
-            InteractionZone.objects.create(interaction=interaction, zone=zone)
+        document_ids = validated_data.pop('document_ids', [])
 
-        self._sync_tags(interaction, tag_names)
-        
+        with transaction.atomic():
+            interaction = Interaction.objects.create(**validated_data)
+
+            from zones.models import Zone
+            for zone_id in zone_ids:
+                zone = Zone.objects.get(id=zone_id, household=interaction.household)
+                InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+            for document_id in document_ids:
+                document = Document.objects.get(id=document_id, household=interaction.household)
+                InteractionDocument.objects.create(interaction=interaction, document=document)
+
+            self._sync_tags(interaction, tag_names)
+
         return interaction
     
     def update(self, instance, validated_data):
         tag_names = validated_data.pop('tags_input', None)
         zone_ids = validated_data.pop('zone_ids', None)
+        validated_data.pop('document_ids', None)
         
         # Update interaction fields
         for attr, value in validated_data.items():
@@ -144,6 +169,9 @@ class InteractionDetailSerializer(InteractionSerializer):
         ]
     
     def get_documents(self, obj):
+        legacy_documents = list(obj.documents.all())
+        linked_documents = [link.document for link in obj.interaction_documents.select_related('document').all() if link.document]
+        unique_documents = {document.id: document for document in [*legacy_documents, *linked_documents]}.values()
         return [
             {
                 'id': str(doc.id),
@@ -151,7 +179,7 @@ class InteractionDetailSerializer(InteractionSerializer):
                 'type': doc.type,
                 'file_path': doc.file_path
             }
-            for doc in obj.documents.all()
+            for doc in unique_documents
         ]
 
 
@@ -170,7 +198,36 @@ class InteractionStructureSerializer(serializers.ModelSerializer):
 
 
 class InteractionDocumentSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        request = self.context.get('request')
+        interaction = attrs.get('interaction')
+        document = attrs.get('document')
+
+        if request is None or interaction is None or document is None:
+            return attrs
+
+        if not Interaction.objects.for_user_households(request.user).filter(id=interaction.id).exists():
+            raise serializers.ValidationError({'interaction': 'Invalid interaction or access denied.'})
+
+        if not Document.objects.filter(
+            household_id__in=request.user.householdmember_set.values_list('household_id', flat=True),
+            id=document.id,
+        ).exists():
+            raise serializers.ValidationError({'document': 'Invalid document or access denied.'})
+
+        if interaction.household_id != document.household_id:
+            raise serializers.ValidationError({'document': 'Document must belong to the same household as the interaction.'})
+
+        selected_household = resolve_request_household(request, required=False)
+        if selected_household and (
+            interaction.household_id != selected_household.id or document.household_id != selected_household.id
+        ):
+            raise serializers.ValidationError({'household_id': 'Selected household does not match interaction or document.'})
+
+        return attrs
+
     class Meta:
         model = InteractionDocument
         fields = ['interaction', 'document', 'role', 'note', 'created_at']
         read_only_fields = ['created_at']
+        validators = []

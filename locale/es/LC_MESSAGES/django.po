@@ -2300,3 +2300,18 @@ msgstr "Contrato de seguro actualizado."
 
 msgid "Insurance contract deleted."
 msgstr "Contrato de seguro eliminado."
+
+msgid "Review recent files and identify which documents still need an activity context."
+msgstr "Revise los archivos recientes e identifique qué documentos todavía necesitan un contexto de actividad."
+
+msgid "Add document"
+msgstr "Añadir documento"
+
+msgid "Upload a document now and qualify it later by linking it to the right activity."
+msgstr "Suba un documento ahora y califíquelo más tarde vinculándolo con la actividad correcta."
+
+msgid "Document details"
+msgstr "Detalle del documento"
+
+msgid "Check the current context of this document, then attach it to the right activity."
+msgstr "Revise el contexto actual de este documento y luego vincúlelo con la actividad correcta."

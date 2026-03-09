@@ -4,8 +4,12 @@
 /* eslint-disable */
 import type { Interaction } from '../models/Interaction';
 import type { InteractionContact } from '../models/InteractionContact';
+import type { InteractionCreateRequest } from '../models/InteractionCreateRequest';
+import type { InteractionCreateResponse } from '../models/InteractionCreateResponse';
 import type { InteractionDetail } from '../models/InteractionDetail';
 import type { InteractionDocument } from '../models/InteractionDocument';
+import type { InteractionDocumentCreate } from '../models/InteractionDocumentCreate';
+import type { InteractionDocumentLink } from '../models/InteractionDocumentLink';
 import type { InteractionStructure } from '../models/InteractionStructure';
 import type { PaginatedInteractionList } from '../models/PaginatedInteractionList';
 import type { PatchedInteraction } from '../models/PatchedInteraction';
@@ -129,8 +133,8 @@ export class InteractionsService {
      * @throws ApiError
      */
     public static interactionsInteractionDocumentsCreate(
-        requestBody: InteractionDocument,
-    ): CancelablePromise<InteractionDocument> {
+        requestBody: InteractionDocumentCreate,
+    ): CancelablePromise<InteractionDocumentLink> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/interactions/interaction-documents/',
@@ -369,8 +373,8 @@ export class InteractionsService {
      * @throws ApiError
      */
     public static interactionsInteractionsCreate(
-        requestBody: Interaction,
-    ): CancelablePromise<Interaction> {
+        requestBody: InteractionCreateRequest,
+    ): CancelablePromise<InteractionCreateResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/interactions/interactions/',

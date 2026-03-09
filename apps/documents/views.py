@@ -1,17 +1,85 @@
-"""
-Document views for REST API.
-"""
+"""Document views for REST API."""
+from pathlib import Path
+
+from django.core.files.storage import default_storage
+from django.db import transaction
+from django.db.models import Prefetch
 from rest_framework import status
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 from .models import Document
-from .serializers import DocumentSerializer, DocumentDetailSerializer
+from .serializers import (
+    DocumentSerializer,
+    DocumentDetailSerializer,
+    DocumentUploadSerializer,
+)
 from interactions.models import Interaction
+from interactions.models import InteractionDocument
+from projects.models import ProjectDocument
+from zones.models import ZoneDocument
+from django.urls import reverse
+
+
+def get_documents_queryset_for_request(request):
+    query_params = getattr(request, 'query_params', request.GET)
+    queryset = Document.objects.filter(
+        household_id__in=request.user.householdmember_set.values_list('household_id', flat=True)
+    ).select_related(
+        'created_by',
+        'interaction',
+    ).prefetch_related(
+        Prefetch(
+            'interaction_documents',
+            queryset=InteractionDocument.objects.select_related('interaction').order_by('-created_at'),
+            to_attr='prefetched_interaction_documents',
+        ),
+        Prefetch(
+            'zonedocument_set',
+            queryset=ZoneDocument.objects.select_related('zone').order_by('-created_at'),
+            to_attr='prefetched_zone_documents',
+        ),
+        Prefetch(
+            'project_documents',
+            queryset=ProjectDocument.objects.select_related('project').order_by('-created_at'),
+            to_attr='prefetched_project_documents',
+        ),
+    )
+
+    selected_household = resolve_request_household(request, required=False)
+    if selected_household:
+        queryset = queryset.filter(household=selected_household)
+
+    qualification_state = (query_params.get('qualification_state') or '').strip()
+    without_activity = (query_params.get('without_activity') or '').strip().lower()
+    if qualification_state == 'without_activity' or without_activity in {'1', 'true', 'yes'}:
+        queryset = queryset.filter(interaction_documents__isnull=True)
+
+    return queryset.distinct()
+
+
+def get_recent_interaction_candidates(request, household, *, document_id=None, limit=5):
+    if household is None:
+        return []
+
+    queryset = Interaction.objects.for_user_households(request.user).filter(household=household)
+    if document_id:
+        queryset = queryset.exclude(interaction_documents__document_id=document_id)
+    queryset = queryset.order_by('-occurred_at')[:limit]
+    return [
+        {
+            'id': str(item.id),
+            'subject': item.subject,
+            'type': item.type,
+            'occurred_at': item.occurred_at,
+        }
+        for item in queryset
+    ]
 
 
 class DocumentViewSet(viewsets.ModelViewSet):
@@ -27,20 +95,32 @@ class DocumentViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Filter documents to households where current user is a member."""
-        queryset = Document.objects.filter(
-            household_id__in=self.request.user.householdmember_set.values_list('household_id', flat=True)
-        ).select_related('created_by', 'interaction')
-
-        selected_household = resolve_request_household(self.request, required=False)
-        if selected_household:
-            queryset = queryset.filter(household=selected_household)
-
-        return queryset
+        return get_documents_queryset_for_request(self.request)
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return DocumentDetailSerializer
         return DocumentSerializer
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        if self.action == 'retrieve':
+            document = getattr(self, '_cached_document', None)
+            if document is None:
+                document = self.get_object()
+                self._cached_document = document
+            context['recent_interaction_candidates'] = get_recent_interaction_candidates(
+                self.request,
+                document.household,
+                document_id=document.id,
+            )
+        return context
+
+    def get_object(self):
+        if hasattr(self, '_cached_document'):
+            return self._cached_document
+        self._cached_document = super().get_object()
+        return self._cached_document
     
     def perform_create(self, serializer):
         """Set household and created_by with household consistency checks."""
@@ -65,6 +145,61 @@ class DocumentViewSet(viewsets.ModelViewSet):
             interaction=interaction,
             created_by=self.request.user,
         )
+
+    @action(
+        detail=False,
+        methods=['post'],
+        url_path='upload',
+        url_name='upload',
+        parser_classes=[MultiPartParser, FormParser],
+    )
+    def upload(self, request):
+        serializer = DocumentUploadSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        household = resolve_request_household(request, required=False)
+        if household is None:
+            raise ValidationError({'household_id': 'A valid household context is required.'})
+
+        uploaded_file = serializer.validated_data['file']
+        storage_path = Document.build_upload_path(
+            household_id=household.id,
+            filename=uploaded_file.name,
+        )
+        saved_path = default_storage.save(storage_path, uploaded_file)
+
+        try:
+            with transaction.atomic():
+                document = Document.objects.create(
+                    household=household,
+                    created_by=request.user,
+                    file_path=saved_path,
+                    name=(serializer.validated_data.get('name') or Path(uploaded_file.name).name or 'Document')[:255],
+                    mime_type=getattr(uploaded_file, 'content_type', '') or '',
+                    type=serializer.validated_data.get('type') or 'document',
+                    notes=serializer.validated_data.get('notes', ''),
+                    metadata={
+                        'size': uploaded_file.size,
+                    },
+                )
+        except Exception:
+            if default_storage.exists(saved_path):
+                default_storage.delete(saved_path)
+            raise
+
+        recent_candidates = get_recent_interaction_candidates(request, household)
+        response_payload = {
+            'document': DocumentDetailSerializer(
+                document,
+                context={
+                    'request': request,
+                    'recent_interaction_candidates': recent_candidates,
+                },
+            ).data,
+            'detail_url': reverse('app_documents_detail', kwargs={'document_id': document.id}),
+        }
+
+        return Response(response_payload, status=status.HTTP_201_CREATED)
     
     @action(detail=False, methods=['get'])
     def by_type(self, request):

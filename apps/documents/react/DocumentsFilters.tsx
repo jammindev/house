@@ -20,13 +20,10 @@ export default function DocumentsFilters({
     <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="text-sm font-medium text-gray-900">
-          {t('documents.count.all', { count: totalCount, defaultValue: '{{count}} documents' })}
+          {t('documents.count.all', { count: totalCount })}
         </p>
         <p className="text-xs text-gray-500">
-          {t('documents.count.unlinked', {
-            count: unlinkedCount,
-            defaultValue: '{{count}} not linked to an interaction',
-          })}
+          {t('documents.count.unlinked', { count: unlinkedCount })}
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -38,8 +35,8 @@ export default function DocumentsFilters({
           className="min-w-[10rem]"
         >
           {unlinkedOnly
-            ? t('documents.filter.unlinkedActive', { defaultValue: 'Showing unlinked' })
-            : t('documents.filter.unlinked', { defaultValue: 'Show unlinked only' })}
+            ? t('documents.filter.unlinkedActive')
+            : t('documents.filter.unlinked')}
         </Button>
       </div>
     </div>

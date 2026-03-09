@@ -7,9 +7,10 @@ from rest_framework import status
 from rest_framework.test import APIClient
 
 from accounts.tests.factories import UserFactory
+from documents.models import Document
 from directory.models import Contact
 from households.models import Household, HouseholdMember
-from interactions.models import Interaction, InteractionContact
+from interactions.models import Interaction, InteractionContact, InteractionDocument
 from tags.models import Tag, TagLink
 from zones.models import Zone
 
@@ -112,6 +113,53 @@ class TestInteractionCrud:
         assert interaction.type == "expense"
         assert interaction.metadata["amount"] == 149.9
         assert interaction.metadata["currency"] == "EUR"
+
+    def test_create_interaction_links_documents_atomically(self, owner_client, household, owner, primary_zone):
+        document = Document.objects.create(
+            household=household,
+            created_by=owner,
+            file_path='docs/invoice.pdf',
+            name='Invoice',
+            mime_type='application/pdf',
+            type='invoice',
+        )
+
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload([primary_zone.id], document_ids=[str(document.id)]),
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        interaction = Interaction.objects.get(id=response.data["id"])
+        assert InteractionDocument.objects.filter(interaction=interaction, document=document).exists()
+        assert response.data["linked_document_ids"] == [str(document.id)]
+
+    def test_create_interaction_rejects_document_from_another_household_atomically(self, owner_client, household, owner, primary_zone):
+        other_household = _create_household("Other Document House")
+        _add_membership(owner, other_household)
+        foreign_document = Document.objects.create(
+            household=other_household,
+            created_by=owner,
+            file_path='docs/foreign.pdf',
+            name='Foreign',
+            mime_type='application/pdf',
+            type='document',
+        )
+
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload([primary_zone.id], subject="Reject foreign doc", document_ids=[str(foreign_document.id)]),
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "document_ids" in response.data
+        assert not Interaction.objects.filter(subject="Reject foreign doc", household=household).exists()
 
     def test_create_requires_at_least_one_zone(self, owner_client, household):
         url = reverse("interaction-list")
@@ -440,3 +488,96 @@ class TestInteractionLinks:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "interaction" in response.data
+
+    def test_create_interaction_document_link_for_owned_resources(self, owner_client, household, owner, primary_zone):
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject="Attach receipt",
+            type="expense",
+            occurred_at=timezone.now(),
+        )
+        interaction.zones.add(primary_zone)
+        document = Document.objects.create(
+            household=household,
+            created_by=owner,
+            file_path='docs/receipt.pdf',
+            name='Receipt',
+            mime_type='application/pdf',
+            type='receipt',
+        )
+
+        url = reverse("interaction-document-list")
+        response = owner_client.post(
+            url,
+            {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert InteractionDocument.objects.filter(interaction=interaction, document=document).exists()
+
+    def test_create_interaction_document_rejects_household_mismatch(self, owner_client, household, owner, primary_zone):
+        other_household = _create_household("Documents Elsewhere")
+        _add_membership(owner, other_household)
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject="Attach invoice",
+            type="expense",
+            occurred_at=timezone.now(),
+        )
+        interaction.zones.add(primary_zone)
+        document = Document.objects.create(
+            household=other_household,
+            created_by=owner,
+            file_path='docs/other-invoice.pdf',
+            name='Other invoice',
+            mime_type='application/pdf',
+            type='invoice',
+        )
+
+        url = reverse("interaction-document-list")
+        response = owner_client.post(
+            url,
+            {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "document" in response.data
+
+    def test_create_interaction_document_returns_conflict_for_duplicate_link(self, owner_client, household, owner, primary_zone):
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject="Already linked",
+            type="note",
+            occurred_at=timezone.now(),
+        )
+        interaction.zones.add(primary_zone)
+        document = Document.objects.create(
+            household=household,
+            created_by=owner,
+            file_path='docs/already-linked.pdf',
+            name='Already linked',
+            mime_type='application/pdf',
+            type='document',
+        )
+        InteractionDocument.objects.create(interaction=interaction, document=document, role='attachment')
+
+        url = reverse("interaction-document-list")
+        response = owner_client.post(
+            url,
+            {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_409_CONFLICT
+        assert response.data == {
+            'code': 'already_linked',
+            'detail': 'Exact document-interaction link already exists.',
+        }

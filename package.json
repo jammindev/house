@@ -7,6 +7,7 @@
     "dev": "vite --config ui/vite.config.ts",
     "dev:watch": "vite build --watch --config ui/vite.config.ts",
     "build": "tsc -b ui/tsconfig.json && vite build --config ui/vite.config.ts",
+    "build:documents:budget": "npm run build && node ui/scripts/check-document-bundles.mjs",
     "lint": "eslint ui/src --config ui/eslint.config.js",
     "preview": "vite preview --config ui/vite.config.ts",
     "gen:api": "openapi --input http://127.0.0.1:8001/api/schema/ --output ui/src/gen/api --client fetch --useUnionTypes",

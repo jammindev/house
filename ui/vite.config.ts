@@ -41,6 +41,7 @@ export default defineConfig(({ command }) => ({
     outDir: '../static/react',
     emptyOutDir: true,
     manifest: '.vite/manifest.json',
+    chunkSizeWarningLimit: 400,
     rollupOptions: {
       input: {
         'styles': resolve(__dirname, 'src/styles.css'),
@@ -59,6 +60,8 @@ export default defineConfig(({ command }) => ({
         'structure-detail': resolve(__dirname, 'src/pages/structures/detail.tsx'),
         'structure-edit': resolve(__dirname, 'src/pages/structures/edit.tsx'),
         'documents': resolve(__dirname, 'src/pages/documents/list.tsx'),
+        'document-new': resolve(__dirname, 'src/pages/documents/new.tsx'),
+        'document-detail': resolve(__dirname, 'src/pages/documents/detail.tsx'),
         'equipment': resolve(__dirname, 'src/pages/equipment/list.tsx'),
         'equipment-detail': resolve(__dirname, 'src/pages/equipment/detail.tsx'),
         'equipment-new': resolve(__dirname, 'src/pages/equipment/new.tsx'),

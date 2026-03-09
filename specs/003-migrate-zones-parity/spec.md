@@ -1,6 +1,6 @@
 # Feature Specification: Migration Zones 1:1 Legacy vers Django
 
-**Feature Branch**: `001-migrate-zones-parity`  
+**Feature Branch**: `003-migrate-zones-parity`  
 **Created**: 2026-03-04  
 **Status**: Draft  
 **Input**: User description: "Migration 1:1 des pages Zones Next.js vers Django avec split React legacy conservé, adaptation de contrat de données localisée, parité en deux paliers (liste/arbre puis détail/photos)."

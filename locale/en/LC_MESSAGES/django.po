@@ -1,0 +1,47 @@
+# English translations for House Backend
+# Copyright (C) 2026
+# This file is distributed under the same license as the House package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: House Backend 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-09 00:00+0000\n"
+"PO-Revision-Date: 2026-03-09 00:00+0000\n"
+"Last-Translator: House Team\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Activity"
+msgstr "Activity"
+
+msgid "No activity available yet."
+msgstr "No activity available yet."
+
+msgid "Add event"
+msgstr "Add event"
+
+msgid "Event added successfully."
+msgstr "Event added successfully."
+
+msgid "Documents"
+msgstr "Documents"
+
+msgid "Review recent files and identify which documents still need an activity context."
+msgstr "Review recent files and identify which documents still need an activity context."
+
+msgid "Add document"
+msgstr "Add document"
+
+msgid "Upload a document now and qualify it later by linking it to the right activity."
+msgstr "Upload a document now and qualify it later by linking it to the right activity."
+
+msgid "Document details"
+msgstr "Document details"
+
+msgid "Check the current context of this document, then attach it to the right activity."
+msgstr "Check the current context of this document, then attach it to the right activity."

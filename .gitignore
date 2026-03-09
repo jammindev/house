@@ -30,6 +30,10 @@ venv_broken_from_move_20260215/
 
 # Node / Frontend
 node_modules/
+dist/
+build/
+.vite/
+ui/.vite/
 frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
@@ -55,3 +59,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Temp files
+*.tmp
+*.swp
+Thumbs.db

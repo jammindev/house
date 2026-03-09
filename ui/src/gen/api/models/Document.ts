@@ -2,6 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { DocumentQualification } from './DocumentQualification';
+import type { LinkedInteractionSummary } from './LinkedInteractionSummary';
 import type { Type029Enum } from './Type029Enum';
 /**
  * Document list/create serializer.
@@ -33,5 +35,9 @@ export type Document = {
     readonly created_by: number | null;
     readonly created_by_name: string;
     readonly file_url: string;
+    readonly qualification: DocumentQualification;
+    readonly linked_interactions: Array<LinkedInteractionSummary>;
+    readonly legacy_interaction?: string | null;
+    readonly legacy_interaction_subject?: string | null;
 };
 

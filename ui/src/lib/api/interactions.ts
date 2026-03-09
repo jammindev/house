@@ -20,6 +20,14 @@ export interface CreateInteractionInput {
   zone_ids: string[];
   tags_input?: string[];
   metadata?: Record<string, unknown>;
+  document_ids?: string[];
+}
+
+export interface LinkDocumentToInteractionInput {
+  interactionId: string;
+  documentId: string;
+  role?: string;
+  note?: string;
 }
 
 interface FetchInteractionsOptions {
@@ -116,10 +124,20 @@ export async function fetchInteractions(
   return normalize(payload);
 }
 
+export async function searchInteractions(
+  search: string,
+  options: Omit<FetchInteractionsOptions, 'search'> = {}
+): Promise<FetchInteractionsResult> {
+  return fetchInteractions({
+    ...options,
+    search,
+  });
+}
+
 export async function createInteraction(
   input: CreateInteractionInput,
   householdId?: string
-): Promise<InteractionListItem> {
+): Promise<InteractionListItem & { linked_document_ids?: string[] }> {
   const csrfToken = getCookie('csrftoken');
 
   const response = await fetch('/api/interactions/interactions/', {
@@ -136,6 +154,7 @@ export async function createInteraction(
       content: input.content ?? '',
       status: input.status ?? null,
       metadata: input.metadata ?? {},
+      document_ids: input.document_ids ?? [],
       enriched_text: '',
     }),
   });
@@ -152,4 +171,43 @@ export async function createInteraction(
   }
 
   return (await response.json()) as InteractionListItem;
+}
+
+export async function linkDocumentToInteraction(
+  input: LinkDocumentToInteractionInput,
+  householdId?: string
+): Promise<void> {
+  const csrfToken = getCookie('csrftoken');
+
+  const response = await fetch('/api/interactions/interaction-documents/', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
+      ...(householdId ? { 'X-Household-Id': householdId } : {}),
+    },
+    body: JSON.stringify({
+      interaction: input.interactionId,
+      document: input.documentId,
+      role: input.role ?? 'attachment',
+      note: input.note ?? '',
+    }),
+  });
+
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const errorPayload = (await response.json()) as { detail?: string } | Record<string, unknown>;
+      if (typeof errorPayload.detail === 'string') {
+        detail = errorPayload.detail;
+      } else {
+        detail = JSON.stringify(errorPayload);
+      }
+    } catch {
+      detail = '';
+    }
+    throw new Error(detail || `API error ${response.status}`);
+  }
 }

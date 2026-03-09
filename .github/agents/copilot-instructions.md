@@ -3,10 +3,12 @@
 Auto-generated from all feature plans. Last updated: 2026-02-26
 
 ## Active Technologies
-- Python 3.11, TypeScript 5.x + Django 5 + DRF, React 19, i18next + react-i18next, Tailwind CSS, Lucide icons, django-vite (001-settings-migration)
-- PostgreSQL (profil utilisateur + households), media file system Django (`MEDIA_ROOT`) pour les avatars (001-settings-migration)
-- Python 3.x (Django 5), TypeScript (React 19) + Django, DRF, django-filter, drf-spectacular, React, Vite, django-vite, Tailwind (001-migrate-zones-parity)
-- PostgreSQL (runtime), SQLite in-memory (tests) (001-migrate-zones-parity)
+- Python 3.11, TypeScript 5.x + Django 5 + DRF, React 19, i18next + react-i18next, Tailwind CSS, Lucide icons, django-vite (002-settings-migration)
+- PostgreSQL (profil utilisateur + households), media file system Django (`MEDIA_ROOT`) pour les avatars (002-settings-migration)
+- Python 3.x (Django 5), TypeScript (React 19) + Django, DRF, django-filter, drf-spectacular, React, Vite, django-vite, Tailwind (003-migrate-zones-parity)
+- PostgreSQL (runtime), SQLite in-memory (tests) (003-migrate-zones-parity)
+- Python 3.x (Django 5.2.11), TypeScript 5.9.x (React 19) + Django, DRF, django-filter, drf-spectacular, django-vite, React, i18next/react-i18next, Tailwind CSS, Lucide (001-document-context-linking)
+- PostgreSQL au runtime, SQLite in-memory pour les tests, fichiers stockés dans `MEDIA_ROOT` avec persistance du chemin dans `Document.file_path` (001-document-context-linking)
 
 - Python 3.11 (backend), TypeScript 5 + React 19 (frontend ciblé) + Django 5, Django REST Framework, django-filter, django-vite, React 19, Vite (001-electricity-circuit-module)
 
@@ -26,10 +28,10 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11 (backend), TypeScript 5 + React 19 (frontend ciblé): Follow standard conventions
 
 ## Recent Changes
-- 001-migrate-zones-parity: Added Python 3.x (Django 5), TypeScript (React 19) + Django, DRF, django-filter, drf-spectacular, React, Vite, django-vite, Tailwind
-- 001-settings-migration: Added Python 3.11, TypeScript 5.x + Django 5 + DRF, React 19, i18next + react-i18next, Tailwind CSS, Lucide icons, django-vite
+- 001-document-context-linking: Added Python 3.x (Django 5.2.11), TypeScript 5.9.x (React 19) + Django, DRF, django-filter, drf-spectacular, django-vite, React, i18next/react-i18next, Tailwind CSS, Lucide
+- 003-migrate-zones-parity: Added Python 3.x (Django 5), TypeScript (React 19) + Django, DRF, django-filter, drf-spectacular, React, Vite, django-vite, Tailwind
+- 002-settings-migration: Added Python 3.11, TypeScript 5.x + Django 5 + DRF, React 19, i18next + react-i18next, Tailwind CSS, Lucide icons, django-vite
 
-- 001-electricity-circuit-module: Added Python 3.11 (backend), TypeScript 5 + React 19 (frontend ciblé) + Django 5, Django REST Framework, django-filter, django-vite, React 19, Vite
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

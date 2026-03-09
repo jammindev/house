@@ -1,6 +1,25 @@
-export interface DocumentLink {
-  interactionId: string;
-  subject: string | null;
+export interface LinkedInteractionSummary {
+  id: string;
+  subject: string;
+  type: string;
+  occurred_at: string;
+}
+
+export interface DocumentQualification {
+  has_activity_context: boolean;
+  qualification_state: 'without_activity' | 'activity_linked';
+  linked_interactions_count: number;
+  has_secondary_context: boolean;
+}
+
+export interface ZoneLinkSummary {
+  zone_id: string;
+  zone_name: string;
+}
+
+export interface ProjectLinkSummary {
+  project_id: string;
+  project_name: string;
 }
 
 export interface DocumentItem {
@@ -17,6 +36,28 @@ export interface DocumentItem {
   created_by_name?: string | null;
   interaction?: string | null;
   interaction_subject?: string | null;
+  qualification: DocumentQualification;
+  linked_interactions: LinkedInteractionSummary[];
+  legacy_interaction?: string | null;
+  legacy_interaction_subject?: string | null;
+}
+
+export interface DocumentDetail extends DocumentItem {
+  zone_links: ZoneLinkSummary[];
+  project_links: ProjectLinkSummary[];
+  recent_interaction_candidates: LinkedInteractionSummary[];
+}
+
+export interface UploadDocumentInput {
+  file: File;
+  name?: string;
+  type?: DocumentType | '';
+  notes?: string;
+}
+
+export interface DocumentUploadResponse {
+  document: DocumentDetail;
+  detail_url: string;
 }
 
 function buildHeaders(householdId?: string | null): Record<string, string> {
@@ -34,11 +75,12 @@ function getCsrfToken(): string {
 
 export async function fetchDocuments(
   householdId?: string | null,
-  opts?: { unlinkedOnly?: boolean },
+  opts?: { withoutActivityOnly?: boolean },
 ): Promise<DocumentItem[]> {
   const params = new URLSearchParams({ ordering: '-created_at' });
-  // Exclude photos — photos are managed in the photos section
-  params.set('type__neq_photo', 'true');
+  if (opts?.withoutActivityOnly) {
+    params.set('qualification_state', 'without_activity');
+  }
 
   const res = await fetch(
     `/api/documents/documents/?${params.toString()}`,
@@ -47,16 +89,56 @@ export async function fetchDocuments(
   if (!res.ok) throw new Error(`Failed to fetch documents: ${res.status}`);
   const data = (await res.json()) as unknown;
   const list: DocumentItem[] = Array.isArray(data)
-    ? (data as DocumentItem[])
-    : ((data as { results?: DocumentItem[] }).results ?? []);
+    ? (data as Array<DocumentItem & { id: string | number }>)
+    : (((data as { results?: Array<DocumentItem & { id: string | number }> }).results) ?? []);
 
-  // Exclude photos client-side (the API doesn't support neq filter directly)
-  const nonPhoto = list.filter((d) => d.type !== 'photo');
+  return list
+    .filter((d) => d.type !== 'photo')
+    .map((d) => ({
+      ...d,
+      id: String(d.id),
+    }));
+}
 
-  if (opts?.unlinkedOnly) {
-    return nonPhoto.filter((d) => !d.interaction);
-  }
-  return nonPhoto;
+export async function fetchDocumentDetail(
+  id: string,
+  householdId?: string | null,
+): Promise<DocumentDetail> {
+  const res = await fetch(`/api/documents/documents/${id}/`, {
+    headers: buildHeaders(householdId),
+  });
+  if (!res.ok) throw new Error(`Failed to fetch document detail: ${res.status}`);
+  const payload = (await res.json()) as DocumentDetail & { id: string | number };
+  return {
+    ...payload,
+    id: String(payload.id),
+  };
+}
+
+export async function uploadDocument(
+  input: UploadDocumentInput,
+  householdId?: string | null,
+): Promise<DocumentUploadResponse> {
+  const formData = new FormData();
+  formData.set('file', input.file);
+  if (input.name) formData.set('name', input.name);
+  if (input.type) formData.set('type', input.type);
+  if (input.notes) formData.set('notes', input.notes);
+
+  const res = await fetch('/api/documents/documents/upload/', {
+    method: 'POST',
+    headers: buildHeaders(householdId),
+    body: formData,
+  });
+  if (!res.ok) throw new Error(`Failed to upload document: ${res.status}`);
+  const payload = (await res.json()) as DocumentUploadResponse;
+  return {
+    ...payload,
+    document: {
+      ...payload.document,
+      id: String(payload.document.id),
+    },
+  };
 }
 
 export async function updateDocument(
@@ -73,7 +155,8 @@ export async function updateDocument(
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error(`Failed to update document: ${res.status}`);
-  return (await res.json()) as DocumentItem;
+  const payload = (await res.json()) as DocumentItem & { id: string | number };
+  return { ...payload, id: String(payload.id) };
 }
 
 export async function deleteDocument(

@@ -100,6 +100,8 @@
     "error_expense_amount_invalid": "Renseignez un montant valide.",
     "error_create_failed": "Impossible d'ajouter l'événement. Vérifiez les champs et le contexte du foyer.",
     "error_title": "Erreur de création",
+    "source_document_label": "Document source",
+    "source_document_help": "Cette activité sera liée au document sélectionné après la création.",
     "success_title": "Succès",
     "redirect_notice": "Redirection vers l'activité\u2026",
     "created_notice_title": "Événement ajouté",
@@ -323,7 +325,89 @@
   },
   "documents": {
     "app_title": "Mini-app Documents",
-    "section_label": "Nœud Django scopé : {{section}}"
+    "section_label": "Nœud Django scopé : {{section}}",
+    "title": "Documents",
+    "subtitle": "Consultez les fichiers entrants et qualifiez-les avec la bonne activité.",
+    "add": "Ajouter un document",
+    "empty": "Aucun document pour le moment.",
+    "emptyUnlinked": "Aucun document sans contexte d'activité.",
+    "loadFailed": "Impossible de charger les documents.",
+    "edit": "Modifier le document",
+    "editFailed": "Impossible d'enregistrer les changements.",
+    "openOriginal": "Ouvrir le fichier original",
+    "noFileAvailable": "Fichier original indisponible",
+    "interactionNoSubject": "Activité",
+    "noLinkedInteractions": "Aucune activité liée",
+    "fieldName": "Nom",
+    "fieldType": "Type",
+    "fieldNotes": "Notes",
+    "fieldNotesPlaceholder": "Notes facultatives…",
+    "count": {
+      "all": "{{count}} documents",
+      "unlinked": "{{count}} sans contexte d'activité"
+    },
+    "filter": {
+      "unlinked": "Afficher seulement sans activité",
+      "unlinkedActive": "Affichage sans activité"
+    },
+    "type": {
+      "document": "Document",
+      "invoice": "Facture",
+      "manual": "Manuel",
+      "warranty": "Garantie",
+      "receipt": "Reçu",
+      "plan": "Plan",
+      "certificate": "Certificat",
+      "other": "Autre"
+    },
+    "qualification": {
+      "withoutActivity": "Sans contexte",
+      "activityLinked": "Activité liée"
+    },
+    "new": {
+      "title": "Ajouter un document",
+      "subtitle": "Téléversez d'abord un fichier, puis qualifiez-le depuis sa page détail.",
+      "placeholder": "Le formulaire d'upload est en cours de raccordement à la nouvelle API multipart.",
+      "selectFile": "Choisir un fichier",
+      "selectedFile": "Fichier sélectionné",
+      "submit": "Téléverser le document",
+      "submitting": "Téléversement…"
+    },
+    "detail": {
+      "title": "Détail du document",
+      "subtitle": "Identité, OCR et contexte actuel de ce document.",
+      "placeholder": "La vue détail enrichie du document est en cours de raccordement.",
+      "backToList": "Retour aux documents",
+      "identity": "Identité",
+      "qualification": "Qualification",
+      "linkedCount": "{{count}} activités liées",
+      "ocr": "OCR",
+      "currentContext": "Contexte actuel",
+      "secondaryContext": "Contextes secondaires",
+      "zones": "Zones",
+      "projects": "Projets",
+      "actions": "Actions"
+    },
+    "attach": {
+      "title": "Relier à une activité existante",
+      "recent": "Activités récentes",
+      "search": "Rechercher une activité",
+      "searchPlaceholder": "Rechercher par libellé ou contenu",
+      "searchButton": "Rechercher",
+      "searchResults": "Résultats de recherche",
+      "searchFailed": "Impossible de rechercher les activités.",
+      "submit": "Relier l'activité",
+      "linking": "Liaison…",
+      "success": "Activité liée",
+      "failed": "Impossible de lier l'activité.",
+      "noRecent": "Aucune activité récente disponible.",
+      "noneFound": "Aucune activité correspondante.",
+      "empty": "Aucune activité liée pour le moment."
+    },
+    "createActivity": {
+      "title": "Créer une activité depuis ce document",
+      "cta": "Créer une activité"
+    }
   },
   "equipment": {
     "app_title": "Mini-app Équipements",
