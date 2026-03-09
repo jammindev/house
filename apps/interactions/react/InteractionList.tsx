@@ -347,6 +347,19 @@ export function InteractionList({
                   <div className="mt-2 text-xs text-muted-foreground">
                     {formatDate(item.occurred_at)}
                   </div>
+                  <div className="mt-2 flex justify-end">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        window.location.assign(`/app/interactions/new/?type=todo&source_interaction_id=${item.id}`);
+                      }}
+                    >
+                      {t('interactions.createTask', { defaultValue: 'Create task' })}
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>

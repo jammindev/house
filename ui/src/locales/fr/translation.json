@@ -127,7 +127,10 @@
     "error_load_more_failed": "Impossible de charger plus d'interactions.",
     "loading_error_title": "Erreur de chargement",
     "load_more": "Voir plus",
-    "loading_more": "Chargement\u2026"
+    "loading_more": "Chargement\u2026",
+    "createTask": "Créer une tâche",
+    "source_interaction_label": "Événement source",
+    "source_interaction_help": "Cette tâche sera liée à l'événement d'origine."
   },
   "tagSelector": {
     "selected_count": "{{count}} sélectionné(s)",
@@ -217,11 +220,11 @@
       "empty": "Aucune photo associée à cette zone pour le moment.",
       "loadFailed": "Échec du chargement des photos.",
       "linkSuccess": "Photo associée",
-      "linkFailed": "Échec de l’association de la photo.",
+      "linkFailed": "Échec de l'association de la photo.",
       "openPhoto": "Ouvrir la photo"
     },
     "detail": {
-      "subtitle": "Vue d’ensemble, photos et activité pour cet espace",
+      "subtitle": "Vue d'ensemble, photos et activité pour cet espace",
       "infoTitle": "Aperçu de la zone",
       "infoSubtitle": "Informations clés sur cette zone",
       "parentLabel": "Zone parente",
@@ -238,7 +241,62 @@
   },
   "tasks": {
     "app_title": "Mini-app Tâches",
-    "section_label": "Nœud Django scopé : {{section}}"
+    "section_label": "Nœud Django scopé : {{section}}",
+    "pageTitle": "Tâches",
+    "addTask": "Ajouter une tâche",
+    "newTask": "Nouvelle tâche",
+    "editTitle": "Modifier la tâche",
+    "loadFailed": "Échec du chargement des tâches.",
+    "count": "{{count}} tâche",
+    "count_other": "{{count}} tâches",
+    "untitledTask": "Tâche sans titre",
+    "noDate": "Pas de date",
+    "noZone": "Sans zone",
+    "empty": "Aucune tâche.",
+    "overdueBadge": "En retard",
+    "sourceEvent": "Événement",
+    "sourceDocumentLink": "Document",
+    "advanceStatus": "Avancer le statut",
+    "editTask": "Modifier",
+    "zoneRequired": "Veuillez sélectionner une zone.",
+    "createFailed": "Échec de la création de la tâche.",
+    "updateFailed": "Échec de la modification de la tâche.",
+    "fieldSubject": "Sujet",
+    "fieldSubjectPlaceholder": "Titre de la tâche…",
+    "fieldZone": "Zone",
+    "loadingZones": "Chargement des zones…",
+    "selectZone": "Sélectionner une zone",
+    "fieldDate": "Date d'échéance",
+    "fieldContent": "Notes",
+    "fieldContentPlaceholder": "Notes optionnelles…",
+    "sections": {
+      "overdue": "En retard",
+      "in_progress": "En cours",
+      "pending": "À faire",
+      "backlog": "Backlog",
+      "done": "Fait"
+    },
+    "filter": {
+      "all": "Tout",
+      "pending": "À faire",
+      "in_progress": "En cours",
+      "backlog": "Backlog",
+      "done": "Fait"
+    },
+    "statusLabels": {
+      "backlog": "Backlog",
+      "pending": "À faire",
+      "in_progress": "En cours",
+      "done": "Fait"
+    },
+    "columns": {
+      "backlog": { "title": "Backlog" },
+      "pending": { "title": "À faire" },
+      "in_progress": { "title": "En cours" },
+      "done": { "title": "Fait" }
+    },
+    "movePrev": "Colonne précédente",
+    "moveNext": "Colonne suivante"
   },
   "settings": {
     "app_title": "Mini-app Paramètres",
@@ -437,7 +495,8 @@
     "createActivity": {
       "title": "Créer une activité depuis ce document",
       "cta": "Créer une activité"
-    }
+    },
+    "createTask": "Créer une tâche"
   },
   "equipment": {
     "app_title": "Mini-app Équipements",
@@ -473,7 +532,7 @@
     },
     "form": {
       "title_create": "Créer un équipement",
-      "title_edit": "Modifier l’équipement",
+      "title_edit": "Modifier l'équipement",
       "fields": {
         "name": "Nom",
         "category": "Catégorie",
@@ -483,8 +542,8 @@
         "model": "Modèle",
         "serial_number": "Numéro de série",
         "condition": "État",
-        "purchase_date": "Date d’achat",
-        "purchase_price": "Prix d’achat",
+        "purchase_date": "Date d'achat",
+        "purchase_price": "Prix d'achat",
         "purchase_vendor": "Vendeur",
         "warranty_expires_on": "Fin de garantie",
         "warranty_provider": "Fournisseur de garantie",
@@ -504,17 +563,17 @@
       }
     },
     "errors": {
-      "load_failed": "Impossible de charger l’équipement.",
+      "load_failed": "Impossible de charger l'équipement.",
       "name_required": "Le nom est requis.",
-      "update_failed": "Impossible de mettre à jour l’équipement.",
-      "create_failed": "Impossible de créer l’équipement."
+      "update_failed": "Impossible de mettre à jour l'équipement.",
+      "create_failed": "Impossible de créer l'équipement."
     },
     "detail": {
-      "title": "Détails de l’équipement",
-      "confirm_delete": "Supprimer l’équipement \"{{name}}\" ?",
+      "title": "Détails de l'équipement",
+      "confirm_delete": "Supprimer l'équipement \"{{name}}\" ?",
       "errors": {
-        "load_failed": "Impossible de charger les détails de l’équipement.",
-        "delete_failed": "Impossible de supprimer l’équipement."
+        "load_failed": "Impossible de charger les détails de l'équipement.",
+        "delete_failed": "Impossible de supprimer l'équipement."
       },
       "fields": {
         "category": "Catégorie",
@@ -523,7 +582,7 @@
         "model": "Modèle",
         "serial_number": "Série",
         "condition": "État",
-        "purchase_date": "Date d’achat",
+        "purchase_date": "Date d'achat",
         "warranty": "Garantie",
         "last_service": "Dernière maintenance",
         "next_service": "Prochaine maintenance",
@@ -546,18 +605,18 @@
           "subject": "Sujet",
           "type": "Type",
           "status": "Statut",
-          "occurred_at": "Date de l’événement",
+          "occurred_at": "Date de l'événement",
           "zone": "Zone",
           "select_zone": "Sélectionner une zone",
           "role": "Rôle équipement",
-          "content": "Contenu de l’interaction",
+          "content": "Contenu de l'interaction",
           "note": "Note de liaison"
         },
         "errors": {
           "subject_required": "Le sujet est requis.",
           "zone_required": "Une zone est requise pour créer une interaction.",
-          "invalid_occurrence_date": "Date d’événement invalide.",
-          "create_and_link_failed": "Impossible de créer et lier l’interaction."
+          "invalid_occurrence_date": "Date d'événement invalide.",
+          "create_and_link_failed": "Impossible de créer et lier l'interaction."
         },
         "actions": {
           "create_and_link": "Créer et lier",
@@ -740,14 +799,14 @@
     "errors": {
       "title": "Erreur",
       "load_failed": "Impossible de charger les données de stock.",
-      "load_item_failed": "Impossible de charger l’article.",
+      "load_item_failed": "Impossible de charger l'article.",
       "name_required": "Le nom est requis.",
       "category_required": "La catégorie est requise.",
-      "create_failed": "Impossible de créer l’article.",
-      "update_failed": "Impossible de mettre à jour l’article.",
-      "delete_failed": "Impossible de supprimer l’article.",
-      "adjust_failed": "Impossible d’ajuster la quantité.",
-      "adjustment_positive": "La valeur d’ajustement doit être positive."
+      "create_failed": "Impossible de créer l'article.",
+      "update_failed": "Impossible de mettre à jour l'article.",
+      "delete_failed": "Impossible de supprimer l'article.",
+      "adjust_failed": "Impossible d'ajuster la quantité.",
+      "adjustment_positive": "La valeur d'ajustement doit être positive."
     },
     "empty": {
       "items": "Aucun article trouvé avec ces filtres.",
@@ -779,8 +838,8 @@
       "min_max": "Min / Max",
       "unit_price": "Prix unitaire",
       "total_value": "Valeur totale",
-      "purchase_date": "Date d’achat",
-      "expiration_date": "Date d’expiration",
+      "purchase_date": "Date d'achat",
+      "expiration_date": "Date d'expiration",
       "last_restocked_at": "Dernier réappro",
       "sku": "SKU",
       "barcode": "Code-barres",
@@ -823,7 +882,7 @@
     },
     "form": {
       "title_create": "Créer un article",
-      "title_edit": "Modifier l’article"
+      "title_edit": "Modifier l'article"
     },
     "confirm_delete": "Supprimer \"{{name}}\" ?"
   },

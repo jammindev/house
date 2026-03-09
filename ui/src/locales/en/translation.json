@@ -127,7 +127,10 @@
     "error_load_more_failed": "Unable to load more interactions.",
     "loading_error_title": "Loading error",
     "load_more": "Load more",
-    "loading_more": "Loading\u2026"
+    "loading_more": "Loading\u2026",
+    "createTask": "Create task",
+    "source_interaction_label": "Source event",
+    "source_interaction_help": "This task will be linked to the source event."
   },
   "tagSelector": {
     "selected_count": "{{count}} selected",
@@ -238,7 +241,62 @@
   },
   "tasks": {
     "app_title": "Tasks mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "pageTitle": "Tasks",
+    "addTask": "Add task",
+    "newTask": "New task",
+    "editTitle": "Edit task",
+    "loadFailed": "Failed to load tasks.",
+    "count": "{{count}} task",
+    "count_other": "{{count}} tasks",
+    "untitledTask": "Untitled task",
+    "noDate": "No date",
+    "noZone": "No zone",
+    "empty": "No tasks yet.",
+    "overdueBadge": "Overdue",
+    "sourceEvent": "Event",
+    "sourceDocumentLink": "Document",
+    "advanceStatus": "Advance status",
+    "editTask": "Edit",
+    "zoneRequired": "Please select a zone.",
+    "createFailed": "Failed to create task.",
+    "updateFailed": "Failed to update task.",
+    "fieldSubject": "Subject",
+    "fieldSubjectPlaceholder": "Task title…",
+    "fieldZone": "Zone",
+    "loadingZones": "Loading zones…",
+    "selectZone": "Select a zone",
+    "fieldDate": "Due date",
+    "fieldContent": "Notes",
+    "fieldContentPlaceholder": "Optional notes…",
+    "sections": {
+      "overdue": "Overdue",
+      "in_progress": "In progress",
+      "pending": "To do",
+      "backlog": "Backlog",
+      "done": "Done"
+    },
+    "filter": {
+      "all": "All",
+      "pending": "To do",
+      "in_progress": "In progress",
+      "backlog": "Backlog",
+      "done": "Done"
+    },
+    "statusLabels": {
+      "backlog": "Backlog",
+      "pending": "To do",
+      "in_progress": "In progress",
+      "done": "Done"
+    },
+    "columns": {
+      "backlog": { "title": "Backlog" },
+      "pending": { "title": "To do" },
+      "in_progress": { "title": "In progress" },
+      "done": { "title": "Done" }
+    },
+    "movePrev": "Move to previous column",
+    "moveNext": "Move to next column"
   },
   "settings": {
     "app_title": "Settings mini-app",
@@ -437,7 +495,8 @@
     "createActivity": {
       "title": "Create an activity from this document",
       "cta": "Create activity"
-    }
+    },
+    "createTask": "Create task"
   },
   "equipment": {
     "app_title": "Equipment mini-app",

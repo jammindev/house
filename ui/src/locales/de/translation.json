@@ -127,7 +127,10 @@
     "error_load_more_failed": "Weitere Interaktionen konnten nicht geladen werden.",
     "loading_error_title": "Ladefehler",
     "load_more": "Mehr laden",
-    "loading_more": "Laden\u2026"
+    "loading_more": "Laden\u2026",
+    "createTask": "Aufgabe erstellen",
+    "source_interaction_label": "Quell-Ereignis",
+    "source_interaction_help": "Diese Aufgabe wird mit dem Quell-Ereignis verknüpft."
   },
   "tagSelector": {
     "selected_count": "{{count}} ausgewählt",
@@ -237,8 +240,63 @@
     }
   },
   "tasks": {
-    "app_title": "Aufgaben-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "app_title": "Aufgaben-App",
+    "section_label": "Django App Knoten: {{section}}",
+    "pageTitle": "Aufgaben",
+    "addTask": "Aufgabe hinzufügen",
+    "newTask": "Neue Aufgabe",
+    "editTitle": "Aufgabe bearbeiten",
+    "loadFailed": "Aufgaben konnten nicht geladen werden.",
+    "count": "{{count}} Aufgabe",
+    "count_other": "{{count}} Aufgaben",
+    "untitledTask": "Unbenannte Aufgabe",
+    "noDate": "Kein Datum",
+    "noZone": "Keine Zone",
+    "empty": "Keine Aufgaben.",
+    "overdueBadge": "Überfällig",
+    "sourceEvent": "Ereignis",
+    "sourceDocumentLink": "Dokument",
+    "advanceStatus": "Status voranbringen",
+    "editTask": "Bearbeiten",
+    "zoneRequired": "Bitte eine Zone auswählen.",
+    "createFailed": "Aufgabe konnte nicht erstellt werden.",
+    "updateFailed": "Aufgabe konnte nicht aktualisiert werden.",
+    "fieldSubject": "Betreff",
+    "fieldSubjectPlaceholder": "Aufgabentitel…",
+    "fieldZone": "Zone",
+    "loadingZones": "Zonen werden geladen…",
+    "selectZone": "Zone auswählen",
+    "fieldDate": "Fälligkeitsdatum",
+    "fieldContent": "Notizen",
+    "fieldContentPlaceholder": "Optionale Notizen…",
+    "sections": {
+      "overdue": "Überfällig",
+      "in_progress": "In Bearbeitung",
+      "pending": "Ausstehend",
+      "backlog": "Rückstand",
+      "done": "Erledigt"
+    },
+    "filter": {
+      "all": "Alle",
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "backlog": "Rückstand",
+      "done": "Erledigt"
+    },
+    "statusLabels": {
+      "backlog": "Rückstand",
+      "pending": "Ausstehend",
+      "in_progress": "In Bearbeitung",
+      "done": "Erledigt"
+    },
+    "columns": {
+      "backlog": { "title": "Rückstand" },
+      "pending": { "title": "Ausstehend" },
+      "in_progress": { "title": "In Bearbeitung" },
+      "done": { "title": "Erledigt" }
+    },
+    "movePrev": "In vorherige Spalte verschieben",
+    "moveNext": "In nächste Spalte verschieben"
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",
@@ -437,7 +495,8 @@
     "createActivity": {
       "title": "Aktivität aus diesem Dokument erstellen",
       "cta": "Aktivität erstellen"
-    }
+    },
+    "createTask": "Aufgabe erstellen"
   },
   "equipment": {
     "app_title": "Geräte-Mini-App",

@@ -108,6 +108,7 @@ class AppDocumentDetailView(ReactPageView):
             'fileUrl': file_url,
             'attachInteractionApiUrl': reverse('interaction-document-list'),
             'createInteractionUrl': f"{reverse('app_interaction_new')}?source_document_id={document_id}",
+            'createTaskUrl': f"{reverse('app_interaction_new')}?type=todo&source_document_id={document_id}",
             'initialDocument': initial_document,
             'initialRecentInteractionCandidates': recent_candidates,
             'initialLoaded': True,

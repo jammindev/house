@@ -1,4 +1,4 @@
-export type TaskStatus = 'pending' | 'in_progress' | 'done' | 'archived' | null;
+export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived' | null;
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
 
 export interface Task {
@@ -9,6 +9,9 @@ export interface Task {
   occurred_at: string | null;
   created_at: string;
   project: string | null;
+  zone_names: string[];
+  metadata: Record<string, unknown>;
+  document_count: number;
 }
 
 export interface Zone {
@@ -42,7 +45,8 @@ export function groupTasksByColumn(tasks: Task[]): Record<TaskColumnId, Task[]> 
 
 export function nextStatus(current: TaskStatus): TaskStatus {
   switch (current) {
-    case null: return 'pending';
+    case null:
+    case 'backlog': return 'pending';
     case 'pending': return 'in_progress';
     case 'in_progress': return 'done';
     default: return current;
@@ -51,10 +55,35 @@ export function nextStatus(current: TaskStatus): TaskStatus {
 
 export function prevStatus(current: TaskStatus): TaskStatus {
   switch (current) {
-    case 'pending': return null;
-    case 'in_progress': return 'pending';
     case 'done': return 'in_progress';
     default: return current;
+  }
+}
+
+export function isTaskOverdue(task: Task): boolean {
+  if (!task.occurred_at) return false;
+  if (task.status === 'done' || task.status === 'archived') return false;
+  const due = new Date(task.occurred_at);
+  const today = new Date();
+  // Comparaison par jour uniquement — une tâche est en retard si sa date est STRICTEMENT avant aujourd'hui
+  due.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+export function formatRelativeDate(dateStr: string | null): string | null {
+  if (!dateStr) return null;
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return null;
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+  try {
+    const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+    if (Math.abs(diffDays) < 1) return rtf.format(0, 'day');
+    return rtf.format(diffDays, 'day');
+  } catch {
+    return date.toLocaleDateString();
   }
 }
 
@@ -97,8 +126,22 @@ export async function updateTaskStatus(
   return (await res.json()) as Task;
 }
 
+export async function updateTask(
+  id: string,
+  data: { subject?: string; content?: string; occurred_at?: string; zone_ids?: string[] },
+  householdId?: string | null,
+): Promise<Task> {
+  const res = await fetch(`/api/interactions/interactions/${id}/`, {
+    method: 'PATCH',
+    headers: { ...buildHeaders(householdId), 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Failed to update task: ${res.status}`);
+  return (await res.json()) as Task;
+}
+
 export async function createTask(
-  data: { subject: string; content?: string; occurred_at?: string; zone_ids: string[] },
+  data: { subject: string; content?: string; occurred_at?: string; zone_ids: string[]; metadata?: Record<string, unknown> },
   householdId?: string | null,
 ): Promise<Task> {
   const res = await fetch('/api/interactions/interactions/', {

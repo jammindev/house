@@ -105,3 +105,59 @@ def test_interaction_new_page_rejects_inaccessible_source_document(client, user,
     )
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_with_source_interaction_id(client, user, household, membership):
+    from interactions.models import Interaction
+    from zones.models import Zone
+
+    zone = Zone.objects.create(household=household, name='Living room')
+    source = Interaction.objects.create(
+        household=household,
+        created_by=user,
+        subject='Water leak in kitchen',
+        type='issue',
+        occurred_at='2026-03-01T10:00:00Z',
+    )
+    source.zones.add(zone)
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?type=todo&source_interaction_id={source.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['sourceInteraction'] == {
+        'id': str(source.id),
+        'subject': 'Water leak in kitchen',
+        'type': 'issue',
+    }
+    assert props['initialSubject'] == 'Water leak in kitchen'
+    assert str(zone.id) in props['initialZoneIds']
+    assert props['defaultType'] == 'todo'
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_with_type_todo_and_source_document(client, user, household, membership):
+    document = Document.objects.create(
+        household=household,
+        created_by=user,
+        file_path='docs/invoice.pdf',
+        name='Maintenance invoice',
+        mime_type='application/pdf',
+        type='document',
+    )
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?type=todo&source_document_id={document.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['defaultType'] == 'todo'
+    assert props['linkedDocumentIds'] == [str(document.id)]

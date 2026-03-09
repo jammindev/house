@@ -1,118 +1,162 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CheckCircle2, FileText, Link, Pencil, RotateCcw } from 'lucide-react';
 import { Button } from '@/design-system/button';
-import type { Task, TaskColumnId, TaskStatus } from '@/lib/api/tasks';
-import { nextStatus, prevStatus, COLUMN_SEQUENCE } from '@/lib/api/tasks';
-
-const STATUS_BADGE: Record<TaskColumnId, string> = {
-  backlog: 'bg-slate-100 text-slate-600',
-  pending: 'bg-amber-100 text-amber-700',
-  in_progress: 'bg-blue-100 text-blue-700',
-  done: 'bg-emerald-100 text-emerald-700',
-};
-
-const STATUS_LABEL_KEY: Record<TaskColumnId, string> = {
-  backlog: 'tasks.statusLabels.backlog',
-  pending: 'tasks.statusLabels.pending',
-  in_progress: 'tasks.statusLabels.in_progress',
-  done: 'tasks.statusLabels.done',
-};
-
-const STATUS_LABEL_DEFAULT: Record<TaskColumnId, string> = {
-  backlog: 'Backlog',
-  pending: 'Pending',
-  in_progress: 'In progress',
-  done: 'Done',
-};
+import type { Task, TaskStatus } from '@/lib/api/tasks';
+import { nextStatus, prevStatus, isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
 
 interface TaskCardProps {
   task: Task;
-  columnId: TaskColumnId;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
+  onEdit: (task: Task) => void;
+  interactionsBaseUrl?: string;
+  documentsBaseUrl?: string;
 }
 
-export default function TaskCard({ task, columnId, onStatusChange }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  onStatusChange,
+  onEdit,
+  interactionsBaseUrl = '/app/interactions/',
+  documentsBaseUrl = '/app/documents/',
+}: TaskCardProps) {
   const { t } = useTranslation();
   const [moving, setMoving] = React.useState(false);
 
-  const formattedDate = React.useMemo(() => {
-    if (!task.occurred_at) return null;
-    const date = new Date(task.occurred_at);
-    if (Number.isNaN(date.getTime())) return null;
-    try {
-      return new Intl.DateTimeFormat(undefined, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      }).format(date);
-    } catch {
-      return date.toLocaleDateString();
-    }
-  }, [task.occurred_at]);
+  const overdue = isTaskOverdue(task);
+  const isDone = task.status === 'done';
+  const relativeDate = formatRelativeDate(task.occurred_at);
 
-  const currentIdx = COLUMN_SEQUENCE.indexOf(columnId);
-  const canGoLeft = currentIdx > 0;
-  const canGoRight = currentIdx < COLUMN_SEQUENCE.length - 1;
+  const sourceInteractionId = task.metadata?.source_interaction_id as string | undefined;
+  const hasLinkedDocument = task.document_count > 0;
+  const zoneName = task.zone_names?.[0];
 
-  const handleMove = (direction: 'left' | 'right') => {
-    const newStatus = direction === 'right' ? nextStatus(task.status) : prevStatus(task.status);
+  const canGoBack = task.status === 'done';
+
+  const handleAdvance = async () => {
+    const newStatus = nextStatus(task.status);
     if (newStatus === task.status) return;
     setMoving(true);
-    onStatusChange(task.id, newStatus).finally(() => setMoving(false));
+    try {
+      await onStatusChange(task.id, newStatus);
+    } finally {
+      setMoving(false);
+    }
+  };
+
+  const handleRevert = async () => {
+    const newStatus = prevStatus(task.status);
+    if (newStatus === task.status) return;
+    setMoving(true);
+    try {
+      await onStatusChange(task.id, newStatus);
+    } finally {
+      setMoving(false);
+    }
   };
 
   return (
     <div
-      className={`space-y-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${
-        moving ? 'opacity-60' : ''
-      }`}
+      className={[
+        'rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md',
+        overdue ? 'border-orange-300 bg-orange-50/30' : 'border-slate-200',
+        isDone ? 'opacity-70' : '',
+      ].join(' ')}
     >
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-medium text-slate-900 leading-snug">
-          {task.subject || t('tasks.untitledTask', { defaultValue: 'Untitled task' })}
-        </h3>
-        <span
-          className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${STATUS_BADGE[columnId]}`}
-        >
-          {t(STATUS_LABEL_KEY[columnId], { defaultValue: STATUS_LABEL_DEFAULT[columnId] })}
-        </span>
-      </div>
+      <div className="flex items-start gap-2">
+        <div className="min-w-0 flex-1">
+          <p className={`text-sm font-medium leading-snug ${overdue ? 'text-orange-900' : 'text-slate-900'} ${isDone ? 'line-through' : ''}`}>
+            {task.subject || t('tasks.untitledTask', { defaultValue: 'Untitled task' })}
+          </p>
 
-      {task.content ? (
-        <p className="text-xs text-slate-600 line-clamp-3 whitespace-pre-wrap">{task.content}</p>
-      ) : null}
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+            {zoneName ? (
+              <span className="font-medium text-slate-600">{zoneName}</span>
+            ) : (
+              <span className="text-slate-400">{t('tasks.noZone', { defaultValue: 'No zone' })}</span>
+            )}
 
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] text-slate-400">
-          {formattedDate ?? t('tasks.noDate', { defaultValue: 'No date' })}
-        </span>
+            {relativeDate ? (
+              <>
+                <span className="text-slate-300">·</span>
+                <span className={overdue ? 'font-medium text-orange-600' : ''}>{relativeDate}</span>
+              </>
+            ) : null}
 
-        <div className="flex items-center gap-1">
-          {canGoLeft && (
+            {overdue ? (
+              <>
+                <span className="text-slate-300">·</span>
+                <span className="font-semibold text-orange-600">
+                  {t('tasks.overdueBadge', { defaultValue: 'Overdue' })}
+                </span>
+              </>
+            ) : null}
+          </div>
+
+          {(sourceInteractionId || hasLinkedDocument) ? (
+            <div className="mt-1.5 flex items-center gap-2">
+              {sourceInteractionId ? (
+                <a
+                  href={`${interactionsBaseUrl}?created=${sourceInteractionId}`}
+                  className="inline-flex items-center gap-1 text-[11px] text-sky-600 hover:text-sky-800 hover:underline"
+                  title={t('tasks.sourceEvent', { defaultValue: 'Source event' })}
+                >
+                  <Link className="h-3 w-3" />
+                  {t('tasks.sourceEvent', { defaultValue: 'Event' })}
+                </a>
+              ) : null}
+              {hasLinkedDocument ? (
+                <span
+                  className="inline-flex items-center gap-1 text-[11px] text-violet-600"
+                  title={t('tasks.sourceDocumentLink', { defaultValue: 'Linked document' })}
+                >
+                  <FileText className="h-3 w-3" />
+                  {t('tasks.sourceDocumentLink', { defaultValue: 'Document' })}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="flex flex-shrink-0 items-center gap-0.5">
+          {canGoBack ? (
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-slate-400 hover:text-slate-700"
+              className="h-7 w-7 text-slate-300 hover:text-slate-500"
+              onClick={handleRevert}
               disabled={moving}
-              onClick={() => handleMove('left')}
-              aria-label={t('tasks.movePrev', { defaultValue: 'Move to previous column' })}
+              aria-label={t('tasks.revertStatus', { defaultValue: 'Revert status' })}
+              type="button"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <RotateCcw className="h-3 w-3" />
             </Button>
-          )}
-          {canGoRight && (
+          ) : null}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-slate-400 hover:text-slate-600"
+            onClick={() => onEdit(task)}
+            aria-label={t('tasks.editTask', { defaultValue: 'Edit task' })}
+            type="button"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+
+          {!isDone ? (
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-slate-400 hover:text-slate-700"
+              className="h-7 w-7 text-slate-400 hover:text-emerald-600"
+              onClick={handleAdvance}
               disabled={moving}
-              onClick={() => handleMove('right')}
-              aria-label={t('tasks.moveNext', { defaultValue: 'Move to next column' })}
+              aria-label={t('tasks.advanceStatus', { defaultValue: 'Advance status' })}
+              type="button"
             >
-              <ChevronRight className="h-3.5 w-3.5" />
+              <CheckCircle2 className="h-4 w-4" />
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

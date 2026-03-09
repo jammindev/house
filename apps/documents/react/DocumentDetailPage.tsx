@@ -17,6 +17,7 @@ type AttachableInteraction = {
 
 export default function DocumentDetailPage({
   createInteractionUrl,
+  createTaskUrl,
   documentId,
   initialDocument,
   initialRecentInteractionCandidates,
@@ -288,7 +289,14 @@ export default function DocumentDetailPage({
 
             <div className="rounded-xl border border-border bg-background p-4">
               <p className="text-xs uppercase tracking-wide text-muted-foreground">{t('documents.detail.actions')}</p>
-              <p className="mt-2 text-sm text-muted-foreground">{t('documents.createActivity.title')}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={() => window.location.assign(createInteractionUrl)}>
+                  {t('documents.createActivity.cta')}
+                </Button>
+                <Button type="button" onClick={() => window.location.assign(createTaskUrl)}>
+                  {t('documents.createTask', { defaultValue: 'Create task' })}
+                </Button>
+              </div>
             </div>
           </div>
         ) : null}
@@ -305,8 +313,8 @@ export default function DocumentDetailPage({
           <Button type="button" variant="outline" onClick={refresh}>
             {t('common.retry', { defaultValue: 'Refresh' })}
           </Button>
-          <Button type="button" onClick={() => window.location.assign(createInteractionUrl)}>
-            {t('documents.createActivity.cta')}
+          <Button type="button" onClick={() => window.location.assign(createTaskUrl)}>
+            {t('documents.createTask', { defaultValue: 'Create task' })}
           </Button>
         </div>
       </CardContent>

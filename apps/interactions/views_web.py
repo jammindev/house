@@ -124,6 +124,7 @@ class AppInteractionNewView(ReactPageView):
         selected_household = _resolve_selected_household(request)
         return_to = (request.GET.get('return_to') or '').strip()
         source_document_id = (request.GET.get('source_document_id') or '').strip()
+        source_interaction_id = (request.GET.get('source_interaction_id') or '').strip()
 
         source_document = None
         if source_document_id:
@@ -134,6 +135,17 @@ class AppInteractionNewView(ReactPageView):
                 source_queryset = source_queryset.filter(household=selected_household)
             source_document = get_object_or_404(source_queryset, id=source_document_id)
             selected_household = selected_household or source_document.household
+
+        source_interaction = None
+        if source_interaction_id:
+            interaction_queryset = Interaction.objects.for_user_households(request.user).prefetch_related('zones')
+            if selected_household:
+                interaction_queryset = interaction_queryset.filter(household=selected_household)
+            try:
+                source_interaction = interaction_queryset.get(id=source_interaction_id)
+                selected_household = selected_household or source_interaction.household
+            except Interaction.DoesNotExist:
+                pass
 
         zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
         if selected_household:
@@ -171,6 +183,18 @@ class AppInteractionNewView(ReactPageView):
             initial_subject = source_document_payload['suggestedSubject']
             initial_content = source_document_payload['suggestedContent']
 
+        source_interaction_payload = None
+        initial_zone_ids = []
+        if source_interaction:
+            source_interaction_payload = {
+                'id': str(source_interaction.id),
+                'subject': source_interaction.subject,
+                'type': source_interaction.type,
+            }
+            initial_zone_ids = [str(zone.id) for zone in source_interaction.zones.all()]
+            if not source_document:
+                initial_subject = source_interaction.subject or ''
+
         return {
             'title': str(_('Add event')),
             'submitLabel': str(_('Add event')),
@@ -180,8 +204,10 @@ class AppInteractionNewView(ReactPageView):
             'initialZonesLoaded': True,
             'redirectToListUrl': redirect_to_list_url,
             'sourceDocument': source_document_payload,
+            'sourceInteraction': source_interaction_payload,
             'linkedDocumentIds': linked_document_ids,
             'redirectAfterSuccessUrl': redirect_after_success_url,
             'initialSubject': initial_subject,
             'initialContent': initial_content,
+            'initialZoneIds': initial_zone_ids,
         }

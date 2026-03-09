@@ -5,18 +5,28 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
-import { createTask, fetchZones, type Zone } from '@/lib/api/tasks';
+import { createTask, fetchZones, updateTask, type Zone, type Task } from '@/lib/api/tasks';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface NewTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
+  existingTask?: Task;
+  onUpdated?: (task: Task) => void;
 }
 
-export default function NewTaskDialog({ open, onOpenChange, onCreated }: NewTaskDialogProps) {
+export default function NewTaskDialog({
+  open,
+  onOpenChange,
+  onCreated,
+  existingTask,
+  onUpdated,
+}: NewTaskDialogProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
+  const isEditing = Boolean(existingTask);
+
   const [subject, setSubject] = React.useState('');
   const [content, setContent] = React.useState('');
   const [occurredAt, setOccurredAt] = React.useState('');
@@ -31,23 +41,38 @@ export default function NewTaskDialog({ open, onOpenChange, onCreated }: NewTask
     fetchZones(householdId)
       .then((list) => {
         setZones(list);
-        if (list.length === 1) setZoneId(list[0].id);
         setZonesLoading(false);
       })
       .catch(() => setZonesLoading(false));
   }, [householdId]);
 
-  const handleDialogOpenChange = (value: boolean) => {
-    if (value) {
+  // Préremplissage quand la dialog s'ouvre
+  React.useEffect(() => {
+    if (!open) return;
+    if (existingTask) {
+      setSubject(existingTask.subject || '');
+      setContent(existingTask.content || '');
+      setOccurredAt(existingTask.occurred_at ? existingTask.occurred_at.split('T')[0] : '');
+    } else {
       setSubject('');
       setContent('');
       setOccurredAt('');
       setZoneId('');
-      setError(null);
-      loadZones();
     }
-    onOpenChange(value);
-  };
+    setError(null);
+    loadZones();
+  }, [open, existingTask?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sélection de zone une fois les zones chargées
+  React.useEffect(() => {
+    if (zones.length === 0) return;
+    if (existingTask?.zone_names?.length) {
+      const match = zones.find((z) => existingTask.zone_names.includes(z.name));
+      if (match) setZoneId(match.id);
+    } else if (!existingTask && zones.length === 1) {
+      setZoneId(zones[0].id);
+    }
+  }, [zones]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,33 +82,60 @@ export default function NewTaskDialog({ open, onOpenChange, onCreated }: NewTask
     }
     setLoading(true);
     setError(null);
-    createTask(
-      {
-        subject,
-        content: content || undefined,
-        occurred_at: occurredAt || undefined,
-        zone_ids: [zoneId],
-      },
-      householdId,
-    )
-      .then(() => {
-        setLoading(false);
-        onOpenChange(false);
-        onCreated();
-      })
-      .catch(() => {
-        setLoading(false);
-        setError(t('tasks.createFailed', { defaultValue: 'Failed to create task.' }));
-      });
+
+    if (isEditing && existingTask) {
+      updateTask(
+        existingTask.id,
+        {
+          subject,
+          content: content || undefined,
+          occurred_at: occurredAt ? `${occurredAt}T12:00:00` : undefined,
+          zone_ids: [zoneId],
+        },
+        householdId,
+      )
+        .then((updated) => {
+          setLoading(false);
+          onOpenChange(false);
+          if (onUpdated) onUpdated(updated);
+        })
+        .catch(() => {
+          setLoading(false);
+          setError(t('tasks.updateFailed', { defaultValue: 'Failed to update task.' }));
+        });
+    } else {
+      createTask(
+        {
+          subject,
+          content: content || undefined,
+          occurred_at: occurredAt ? `${occurredAt}T12:00:00` : undefined,
+          zone_ids: [zoneId],
+        },
+        householdId,
+      )
+        .then(() => {
+          setLoading(false);
+          onOpenChange(false);
+          onCreated();
+        })
+        .catch(() => {
+          setLoading(false);
+          setError(t('tasks.createFailed', { defaultValue: 'Failed to create task.' }));
+        });
+    }
   };
 
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>{t('tasks.newTask', { defaultValue: 'New task' })}</DialogTitle>
+          <DialogTitle>
+            {isEditing
+              ? t('tasks.editTitle', { defaultValue: 'Edit task' })
+              : t('tasks.newTask', { defaultValue: 'New task' })}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">

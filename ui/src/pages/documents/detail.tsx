@@ -9,6 +9,7 @@ export interface DocumentDetailPageProps {
   fileUrl: string | null;
   attachInteractionApiUrl: string;
   createInteractionUrl: string;
+  createTaskUrl: string;
   initialDocument: DocumentDetail | null;
   initialRecentInteractionCandidates: InteractionListItem[];
   initialLoaded: boolean;

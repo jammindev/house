@@ -36,6 +36,12 @@ interface InteractionCreateFormProps {
     suggestedSubject?: string;
     suggestedContent?: string;
   } | null;
+  sourceInteraction?: {
+    id: string;
+    subject: string;
+    type: string;
+  } | null;
+  initialZoneIds?: string[];
   redirectDelayMs?: number;
 }
 
@@ -113,6 +119,8 @@ export function InteractionCreateForm({
   initialSubject = '',
   initialContent = '',
   sourceDocument = null,
+  sourceInteraction = null,
+  initialZoneIds = [],
   redirectDelayMs = 800,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
@@ -129,7 +137,7 @@ export function InteractionCreateForm({
   const [includeTime, setIncludeTime] = React.useState(false);
   const [occurredTime, setOccurredTime] = React.useState(nowLocalTimeInput());
   const [tagNames, setTagNames] = React.useState<string[]>([]);
-  const [zoneIds, setZoneIds] = React.useState<string[]>([]);
+  const [zoneIds, setZoneIds] = React.useState<string[]>(initialZoneIds);
   const [selectedDocumentIds, setSelectedDocumentIds] = React.useState<string[]>(linkedDocumentIds);
 
   const [submitting, setSubmitting] = React.useState(false);
@@ -168,6 +176,10 @@ export function InteractionCreateForm({
     }
 
     let metadata: Record<string, unknown> = {};
+
+    if (sourceInteraction) {
+      metadata = { ...metadata, source_interaction_id: sourceInteraction.id };
+    }
 
     if (isExpense) {
       if (!expenseAmount.trim()) {
@@ -236,6 +248,16 @@ export function InteractionCreateForm({
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {sourceInteraction ? (
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium text-foreground">{t('interactions.source_interaction_label', { defaultValue: 'Source event' })}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {sourceInteraction.subject} · {t(`interaction_type.${sourceInteraction.type}`, { defaultValue: sourceInteraction.type })}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_interaction_help', { defaultValue: 'This task will be linked to the source event.' })}</p>
+        </div>
+      ) : null}
+
       {sourceDocument ? (
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
           <p className="text-sm font-medium text-foreground">{t('interactions.source_document_label')}</p>
