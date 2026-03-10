@@ -28,7 +28,9 @@ Dernière mise à jour : 2026-03-10
 - Parcours 02 — Traiter un document entrant et le relier au bon contexte : **V1 manuelle en pré-livraison**
 - Parcours 03 — Transformer un besoin en action suivie : **V1 livrée**
 - Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
-- Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **à venir**
+- Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **V1 livrée**
+
+**Tous les parcours V1 sont livrés.** Le produit couvre l'ensemble du flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer.
 
 ## Ce qui est considéré comme livré sur le parcours 01
 
@@ -92,16 +94,36 @@ Références :
 - [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
 - [docs/journal/2026-03-10_parcours-04_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_v1_livree.md)
 
-## Prochain focus recommandé
+## Ce qui est considéré comme livré sur le parcours 05
 
-Implémenter le parcours 05 — Naviguer par zone ou équipement pour comprendre et agir.
+- filtre `?zone=<id>` ajouté sur `/api/projects/projects/`
+- `ZoneDetailNode` : sections contextuelles (sous-zones, équipements, tâches ouvertes, activité récente, projets actifs)
+- boutons `Ajouter une activité` et `Ajouter une tâche` dans le détail zone avec zone pré-liée
+- zone parente cliquable dans le header du détail zone
+- `EquipmentDetail` : zone cliquable, badge garantie tricoloré, date prochaine maintenance
+- bouton `Enregistrer une intervention` depuis la fiche équipement
+- support `equipment_id` dans `AppInteractionNewView` : props, zone automatique, redirection
+- bandeau contexte équipement dans `InteractionCreateForm`
+- création du lien `EquipmentInteraction` post-création
+- 5 tests backend couvrant les nouveaux flux
 
-Priorité : vérification des filtres API manquants, puis lot 0 — sections contextuelles dans le détail zone.
-
-Références de cadrage :
+Références :
 
 - [docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
 - [docs/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_BACKLOG_TECHNIQUE.md)
+- [docs/journal/2026-03-10_parcours-05_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-05_v1_livree.md)
+
+## Prochain focus recommandé
+
+Tous les parcours V1 sont livrés. Les prochains axes possibles sont dans `docs/IDEES_FUTURES.md`.
+
+Candidats naturels pour une V2 :
+
+- couche IA : capture assistée depuis WhatsApp / email (parcours 01 — RFC documentée)
+- chat IA global household : questions en langage naturel sur le foyer (RFC documentée)
+- parcours 02 V1 complète : traitement automatisé des documents entrants
+- amélioration de la navigation et des performances frontend (chunks, pagination)
+- notifications et rappels (maintenance, garanties, tâches en retard)
 
 ## Journal des sessions
 
