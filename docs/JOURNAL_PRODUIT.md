@@ -75,16 +75,33 @@ Références :
 - [docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md)
 - [docs/PARCOURS_03_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_BACKLOG_TECHNIQUE.md)
 
-## Prochain focus recommandé
+## Ce qui est considéré comme livré sur le parcours 04
 
-Implémenter le parcours 04 — Suivre un projet de travaux ou de maintenance de bout en bout.
+- boutons de création rapide (tâche, note, dépense, activité) dans chaque onglet du détail projet avec contexte pré-lié
+- `AppInteractionNewView` enrichi avec `project_id` : zones pré-remplies, redirection vers le projet avec `?tab=<onglet>`
+- `InteractionCreateForm` : bandeau projet en mode contexte, sélecteur projet en mode général
+- bloc de synthèse en tête du détail projet : tâches ouvertes, tâches en retard, budget
+- `project_title` exposé dans `InteractionSerializer`
+- nom du projet visible et cliquable dans `TaskCard` et `InteractionList`
+- tab initial lu depuis l'URL (`?tab=`) dans `ProjectDetail`
+- 5 tests backend couvrant les nouveaux flux
 
-Priorité : lot 0 du backlog technique — boutons de création rapide dans les onglets du détail projet et transmission du `project_id` vers le formulaire d'interaction.
-
-Références de cadrage :
+Références :
 
 - [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
 - [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
+- [docs/journal/2026-03-10_parcours-04_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_v1_livree.md)
+
+## Prochain focus recommandé
+
+Implémenter le parcours 05 — Naviguer par zone ou équipement pour comprendre et agir.
+
+Priorité : vérification des filtres API manquants, puis lot 0 — sections contextuelles dans le détail zone.
+
+Références de cadrage :
+
+- [docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
+- [docs/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_BACKLOG_TECHNIQUE.md)
 
 ## Journal des sessions
 
@@ -94,6 +111,7 @@ Références de cadrage :
 - [docs/journal/2026-03-09_formulaire-activite_documents.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_formulaire-activite_documents.md)
 - [docs/journal/2026-03-09_parcours-03_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-03_v1_livree.md)
 - [docs/journal/2026-03-10_parcours-04_cadrage_initial.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_cadrage_initial.md)
+- [docs/journal/2026-03-10_parcours-04_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_v1_livree.md)
 
 ## Backlog d'idées futures
 

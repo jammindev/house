@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from documents.models import Document
+from equipment.models import Equipment
 from projects.models import Project
 from zones.models import Zone
 
@@ -229,6 +230,30 @@ class AppInteractionNewView(ReactPageView):
             project_url = reverse('app_projects_detail', kwargs={'project_id': source_project.id})
             redirect_after_success_url = f"{project_url}?tab={tab}"
 
+        equipment_id = (request.GET.get('equipment_id') or '').strip()
+        source_equipment = None
+        if equipment_id:
+            equipment_queryset = Equipment.objects.filter(
+                household_id__in=request.user.householdmember_set.values_list('household_id', flat=True)
+            )
+            if selected_household:
+                equipment_queryset = equipment_queryset.filter(household=selected_household)
+            try:
+                source_equipment = equipment_queryset.get(id=equipment_id)
+                if not initial_zone_ids and source_equipment.zone_id:
+                    initial_zone_ids = [str(source_equipment.zone_id)]
+            except Exception:
+                pass
+
+        initial_equipment_id = str(source_equipment.id) if source_equipment else None
+        initial_equipment_name = source_equipment.name if source_equipment else None
+        if source_equipment and not redirect_after_success_url:
+            redirect_after_success_url = reverse('app_equipment_detail', kwargs={'equipment_id': source_equipment.id})
+
+        zone_ids_param = (request.GET.get('zone_ids') or '').strip()
+        if zone_ids_param and not initial_zone_ids:
+            initial_zone_ids = [z.strip() for z in zone_ids_param.split(',') if z.strip()]
+
         return {
             'title': str(_('Add event')),
             'submitLabel': str(_('Add event')),
@@ -246,4 +271,6 @@ class AppInteractionNewView(ReactPageView):
             'initialZoneIds': initial_zone_ids,
             'initialProjectId': initial_project_id,
             'initialProjectTitle': initial_project_title,
+            'initialEquipmentId': initial_equipment_id,
+            'initialEquipmentName': initial_equipment_name,
         }

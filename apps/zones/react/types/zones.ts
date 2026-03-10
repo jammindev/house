@@ -76,6 +76,8 @@ export type ZoneDetailPageProps = {
     photosCount: number;
   };
   initialPhotos?: ZonePhoto[];
+  createActivityUrl?: string | null;
+  createTaskUrl?: string | null;
 };
 
 export type ZoneMutationPayload = {

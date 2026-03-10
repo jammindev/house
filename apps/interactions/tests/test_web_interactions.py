@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from documents.models import Document
+from equipment.models import Equipment
 from households.models import Household, HouseholdMember
 from projects.models import Project
 
@@ -216,3 +217,71 @@ def test_interaction_new_page_ignores_project_from_other_household(client, user,
     props = response.context['react_props']
     assert props['initialProjectId'] is None
     assert props['initialProjectTitle'] is None
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_with_equipment_id(client, user, household, membership):
+    from zones.models import Zone
+
+    zone = Zone.objects.create(household=household, name='Cuisine')
+    equipment = Equipment.objects.create(
+        household=household,
+        name='Lave-vaisselle',
+        category='appliance',
+        status='active',
+        zone=zone,
+    )
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?equipment_id={equipment.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['initialEquipmentId'] == str(equipment.id)
+    assert props['initialEquipmentName'] == 'Lave-vaisselle'
+    assert str(zone.id) in props['initialZoneIds']
+    assert props['redirectAfterSuccessUrl'] == reverse('app_equipment_detail', kwargs={'equipment_id': equipment.id})
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_ignores_equipment_from_other_household(client, user, household, membership):
+    other_user = User.objects.create_user(email='other-eq@test.dev', password='secret')
+    other_household = Household.objects.create(name='Other home')
+    HouseholdMember.objects.create(user=other_user, household=other_household, role=HouseholdMember.Role.OWNER)
+    equipment = Equipment.objects.create(
+        household=other_household,
+        name='Équipement privé',
+        category='other',
+        status='active',
+    )
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?equipment_id={equipment.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['initialEquipmentId'] is None
+    assert props['initialEquipmentName'] is None
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_with_zone_ids_param(client, user, household, membership):
+    from zones.models import Zone
+
+    zone = Zone.objects.create(household=household, name='Salon')
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?zone_ids={zone.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert str(zone.id) in props['initialZoneIds']

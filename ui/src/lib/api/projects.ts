@@ -109,6 +109,7 @@ interface FetchProjectsOptions {
   search?: string;
   status?: string;
   type?: string;
+  zone?: string;
   groupId?: string;
   ordering?: string;
   limit?: number;
@@ -120,6 +121,7 @@ export async function fetchProjects(options: FetchProjectsOptions = {}): Promise
   if (options.search) params.set('search', options.search);
   if (options.status) params.set('status', options.status);
   if (options.type) params.set('type', options.type);
+  if (options.zone) params.set('zone', options.zone);
   if (options.groupId) params.set('project_group', options.groupId);
   params.set('ordering', options.ordering ?? '-updated_at');
   params.set('limit', String(options.limit ?? 200));

@@ -37,6 +37,19 @@ function formatDate(value?: string | null): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
 }
 
+type WarrantyStatus = 'ok' | 'soon' | 'expired' | null;
+
+function warrantyStatus(warrantyDate?: string | null): WarrantyStatus {
+  if (!warrantyDate) return null;
+  const expires = new Date(warrantyDate);
+  if (Number.isNaN(expires.getTime())) return null;
+  const now = new Date();
+  if (expires < now) return 'expired';
+  const sixMonthsLater = new Date(now);
+  sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+  return expires <= sixMonthsLater ? 'soon' : 'ok';
+}
+
 function formatDateTime(value?: string | null): string {
   if (!value) return '';
   const date = new Date(value);
@@ -199,9 +212,32 @@ export default function EquipmentDetail({
                 <div>
                   <CardTitle className="text-base">{title ?? t('equipment.detail.title')}</CardTitle>
                   <p className="mt-1 text-sm text-muted-foreground">{equipment.name}</p>
+                  {equipment.zone && equipment.zone_name ? (
+                    <a
+                      href={`/app/zones/${equipment.zone}/`}
+                      className="mt-1 inline-block text-sm text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      {equipment.zone_name}
+                    </a>
+                  ) : null}
                 </div>
-                <Badge>{t(`equipment.status.${equipment.status}`)}</Badge>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge>{t(`equipment.status.${equipment.status}`)}</Badge>
+                  {warrantyStatus(equipment.warranty_expires_on) === 'ok' ? (
+                    <Badge variant="secondary">{t('equipment.detail.warranty_ok', { defaultValue: 'Garantie active' })}</Badge>
+                  ) : warrantyStatus(equipment.warranty_expires_on) === 'soon' ? (
+                    <Badge variant="outline" className="border-amber-400 text-amber-600">{t('equipment.detail.warranty_soon', { defaultValue: 'Garantie bientôt expirée' })}</Badge>
+                  ) : warrantyStatus(equipment.warranty_expires_on) === 'expired' ? (
+                    <Badge variant="destructive">{t('equipment.detail.warranty_expired', { defaultValue: 'Garantie expirée' })}</Badge>
+                  ) : null}
+                </div>
               </div>
+              {equipment.next_service_due ? (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t('equipment.detail.next_service_label', { defaultValue: 'Prochaine maintenance :' })}{' '}
+                  <span className="font-medium text-foreground">{formatDate(equipment.next_service_due)}</span>
+                </p>
+              ) : null}
             </CardHeader>
             <CardContent>
               <div className="grid gap-3 text-sm md:grid-cols-2">
@@ -224,7 +260,15 @@ export default function EquipmentDetail({
 
               {equipment.notes ? <p className="mt-3 text-sm text-muted-foreground">{equipment.notes}</p> : null}
 
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                {equipment.status !== 'retired' && equipment.status !== 'lost' ? (
+                  <a
+                    href={`/app/interactions/new/?equipment_id=${equipment.id}${equipment.zone ? `&zone_ids=${equipment.zone}` : ''}`}
+                    className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                  >
+                    {t('equipment.detail.actions.record_intervention', { defaultValue: 'Enregistrer une intervention' })}
+                  </a>
+                ) : null}
                 <a
                   href={editUrl || `/app/equipment/${equipment.id}/edit/`}
                   className="inline-flex h-10 items-center rounded-md border border-input px-4 text-sm"

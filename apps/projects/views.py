@@ -44,6 +44,16 @@ class ProjectViewSet(_HouseholdScopedViewSet):
     model = Project
     serializer_class = ProjectSerializer
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        zone_id = self.request.query_params.get('zone', '').strip()
+        if zone_id:
+            queryset = queryset.filter(project_zones__zone_id=zone_id).distinct()
+        status = self.request.query_params.get('status', '').strip()
+        if status:
+            queryset = queryset.filter(status=status)
+        return queryset
+
     def perform_create(self, serializer):
         household = resolve_request_household(self.request, required=True)
         if not household:

@@ -1,4 +1,5 @@
 from django.http import Http404
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from core.permissions import resolve_request_household
@@ -70,6 +71,8 @@ class AppZoneDetailView(ReactPageView):
 
     def get_props(self):
         zone, children_count, photos_count = self._fetch_zone()
+        interaction_new_url = reverse('app_interaction_new')
+        zone_id_str = str(zone.id)
         return {
             'zoneId': str(zone.id),
             'initialZone': {
@@ -87,6 +90,8 @@ class AppZoneDetailView(ReactPageView):
                 'photosCount': photos_count,
             },
             'initialPhotos': [],
+            'createActivityUrl': f"{interaction_new_url}?zone_ids={zone_id_str}",
+            'createTaskUrl': f"{interaction_new_url}?type=todo&zone_ids={zone_id_str}",
         }
 
     def get_context_data(self, **kwargs):

@@ -7,6 +7,7 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { createInteraction } from '@/lib/api/interactions';
+import { linkEquipmentInteraction } from '@/lib/api/equipment';
 import { fetchProjects, type ProjectListItem } from '@/lib/api/projects';
 import { DocumentSelector } from '@/lib/components/DocumentSelector';
 import { TagSelector } from '@/lib/components/TagSelector';
@@ -46,6 +47,8 @@ interface InteractionCreateFormProps {
   redirectDelayMs?: number;
   initialProjectId?: string | null;
   initialProjectTitle?: string | null;
+  initialEquipmentId?: string | null;
+  initialEquipmentName?: string | null;
 }
 
 const TYPE_OPTIONS = [
@@ -127,6 +130,8 @@ export function InteractionCreateForm({
   redirectDelayMs = 800,
   initialProjectId = null,
   initialProjectTitle = null,
+  initialEquipmentId = null,
+  initialEquipmentName = null,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
   const householdId = useHouseholdId();
@@ -230,6 +235,10 @@ export function InteractionCreateForm({
         householdId
       );
 
+      if (initialEquipmentId) {
+        await linkEquipmentInteraction(initialEquipmentId, created.id, { role: 'intervention' }, householdId);
+      }
+
       setSuccess(resolvedSuccessMessage);
       setSubject('');
       setContent('');
@@ -271,6 +280,14 @@ export function InteractionCreateForm({
             {sourceInteraction.subject} · {t(`interaction_type.${sourceInteraction.type}`, { defaultValue: sourceInteraction.type })}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_interaction_help', { defaultValue: 'This task will be linked to the source event.' })}</p>
+        </div>
+      ) : null}
+
+      {initialEquipmentId && initialEquipmentName ? (
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium text-foreground">{t('interactions.source_equipment_label', { defaultValue: 'Équipement' })}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{initialEquipmentName}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_equipment_help', { defaultValue: 'Cette intervention sera liée à cet équipement.' })}</p>
         </div>
       ) : null}
 

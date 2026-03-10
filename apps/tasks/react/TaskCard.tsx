@@ -10,7 +10,6 @@ interface TaskCardProps {
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
   onEdit: (task: Task) => void;
   interactionsBaseUrl?: string;
-  documentsBaseUrl?: string;
 }
 
 export default function TaskCard({
@@ -18,7 +17,6 @@ export default function TaskCard({
   onStatusChange,
   onEdit,
   interactionsBaseUrl = '/app/interactions/',
-  documentsBaseUrl = '/app/documents/',
 }: TaskCardProps) {
   const { t } = useTranslation();
   const [moving, setMoving] = React.useState(false);

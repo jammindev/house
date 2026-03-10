@@ -37,6 +37,7 @@ interface FetchInteractionsOptions {
   search?: string;
   type?: string;
   status?: string;
+  zone?: string;
   limit?: number;
   offset?: number;
   householdId?: string;
@@ -100,13 +101,14 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { search, type, status, limit = 8, offset = 0, householdId } = options;
+  const { search, type, status, zone, limit = 8, offset = 0, householdId } = options;
 
   const params = new URLSearchParams();
   params.set('ordering', '-occurred_at');
   if (search) params.set('search', search);
   if (type) params.set('type', type);
   if (status) params.set('status', status);
+  if (zone) params.set('zone', zone);
   if (limit > 0) params.set('limit', String(limit));
   if (offset > 0) params.set('offset', String(offset));
 

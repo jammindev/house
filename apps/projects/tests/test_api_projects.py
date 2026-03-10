@@ -368,3 +368,68 @@ class TestProjectAI:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "thread" in response.data
+
+@pytest.mark.django_db
+class TestProjectZoneFilter:
+    def test_list_projects_filtered_by_zone(self, owner_client, owner, household):
+        zone_a = Zone.objects.create(household=household, name='Cuisine', created_by=owner)
+        zone_b = Zone.objects.create(household=household, name='Salon', created_by=owner)
+
+        project_a = Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet cuisine',
+            type=Project.Type.RENOVATION,
+            status=Project.Status.ACTIVE,
+        )
+        ProjectZone.objects.create(project=project_a, zone=zone_a, created_by=owner)
+
+        Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet salon',
+            type=Project.Type.RENOVATION,
+            status=Project.Status.ACTIVE,
+        )
+
+        url = reverse('project-list')
+        response = owner_client.get(
+            url,
+            {'zone': str(zone_a.id)},
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.data
+        results = data['results'] if isinstance(data, dict) else data
+        ids = [r['id'] for r in results]
+        assert str(project_a.id) in ids
+        assert all(pid == str(project_a.id) for pid in ids)
+
+    def test_list_projects_filtered_by_status(self, owner_client, owner, household):
+        Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet actif',
+            type=Project.Type.RENOVATION,
+            status=Project.Status.ACTIVE,
+        )
+        Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet terminé',
+            type=Project.Type.RENOVATION,
+            status=Project.Status.COMPLETED,
+        )
+
+        url = reverse('project-list')
+        response = owner_client.get(
+            url,
+            {'status': 'active'},
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.data
+        results = data['results'] if isinstance(data, dict) else data
+        assert all(r['status'] == 'active' for r in results)
