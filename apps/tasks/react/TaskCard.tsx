@@ -93,6 +93,17 @@ export default function TaskCard({
             ) : null}
           </div>
 
+          {task.project && task.project_title ? (
+            <div className="mt-1">
+              <a
+                href={`/app/projects/${task.project}/`}
+                className="text-[11px] text-muted-foreground hover:text-foreground hover:underline"
+              >
+                {task.project_title}
+              </a>
+            </div>
+          ) : null}
+
           {(sourceInteractionId || hasLinkedDocument) ? (
             <div className="mt-1.5 flex items-center gap-2">
               {sourceInteractionId ? (

@@ -330,7 +330,7 @@ export function InteractionList({
                   {item.content ? (
                     <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
                   ) : null}
-                  {item.zone_names.length > 0 || item.document_count > 0 ? (
+                  {(item.zone_names.length > 0 || item.document_count > 0 || item.project_title) ? (
                     <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                       {item.zone_names.length > 0 ? (
                         <span>
@@ -341,6 +341,14 @@ export function InteractionList({
                         <span>
                           {t('interactions.meta_documents', { count: item.document_count })}
                         </span>
+                      ) : null}
+                      {item.project && item.project_title ? (
+                        <a
+                          href={`/app/projects/${item.project}/`}
+                          className="hover:text-foreground hover:underline"
+                        >
+                          {item.project_title}
+                        </a>
                       ) : null}
                     </div>
                   ) : null}

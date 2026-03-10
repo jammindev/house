@@ -4,6 +4,7 @@ from django.urls import reverse
 from accounts.models import User
 from documents.models import Document
 from households.models import Household, HouseholdMember
+from projects.models import Project
 
 
 @pytest.fixture
@@ -161,3 +162,57 @@ def test_interaction_new_page_with_type_todo_and_source_document(client, user, h
     props = response.context['react_props']
     assert props['defaultType'] == 'todo'
     assert props['linkedDocumentIds'] == [str(document.id)]
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_with_project_id(client, user, household, membership):
+    from zones.models import Zone
+
+    zone = Zone.objects.create(household=household, name='Salle de bain')
+    project = Project.objects.create(
+        household=household,
+        created_by=user,
+        title='Rénovation salle de bain',
+        type='renovation',
+        status='active',
+    )
+    project.project_zones.create(zone=zone, created_by=user)
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?type=todo&project_id={project.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['initialProjectId'] == str(project.id)
+    assert props['initialProjectTitle'] == 'Rénovation salle de bain'
+    assert str(zone.id) in props['initialZoneIds']
+    assert props['defaultType'] == 'todo'
+    assert props['redirectAfterSuccessUrl'] == reverse('app_projects_detail', kwargs={'project_id': project.id}) + '?tab=tasks'
+
+
+@pytest.mark.django_db
+def test_interaction_new_page_ignores_project_from_other_household(client, user, household, membership):
+    other_user = User.objects.create_user(email='other-proj@test.dev', password='secret')
+    other_household = Household.objects.create(name='Other home')
+    HouseholdMember.objects.create(user=other_user, household=other_household, role=HouseholdMember.Role.OWNER)
+    project = Project.objects.create(
+        household=other_household,
+        created_by=other_user,
+        title='Projet privé',
+        type='other',
+        status='active',
+    )
+    client.force_login(user)
+
+    response = client.get(
+        f"{reverse('app_interaction_new')}?project_id={project.id}",
+        HTTP_X_HOUSEHOLD_ID=str(household.id),
+    )
+
+    assert response.status_code == 200
+    props = response.context['react_props']
+    assert props['initialProjectId'] is None
+    assert props['initialProjectTitle'] is None

@@ -9,6 +9,7 @@ export interface Task {
   occurred_at: string | null;
   created_at: string;
   project: string | null;
+  project_title?: string | null;
   zone_names: string[];
   metadata: Record<string, unknown>;
   document_count: number;

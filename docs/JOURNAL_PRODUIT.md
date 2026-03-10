@@ -20,14 +20,14 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-03-09
+Dernière mise à jour : 2026-03-10
 
 ### Parcours métier
 
 - Parcours 01 — Capturer un événement du foyer et le retrouver facilement : **socle V1 livré**
 - Parcours 02 — Traiter un document entrant et le relier au bon contexte : **V1 manuelle en pré-livraison**
-- Parcours 03 — Transformer un besoin en action suivie : **à venir**
-- Parcours 04 — Suivre un projet de bout en bout : **à venir**
+- Parcours 03 — Transformer un besoin en action suivie : **V1 livrée**
+- Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **à venir**
 
 ## Ce qui est considéré comme livré sur le parcours 01
@@ -57,15 +57,34 @@ Références :
 - la page interactions est la source de vérité du parcours
 - la future couche IA devra produire une interaction candidate structurée, pas remplir un formulaire visuellement
 
+## Ce qui est considéré comme livré sur le parcours 03
+
+- page tâches reconstruite en liste mobile-first avec sections par statut (En retard, En cours, À faire, Backlog, Fait)
+- chips de filtre rapides par statut
+- carte tâche enrichie : zone, date relative, badge retard, indicateurs événement/document source
+- création de tâche standalone depuis la page tâches
+- création de tâche depuis un événement de l'historique avec lien stocké dans `metadata`
+- création de tâche depuis un document avec lien `InteractionDocument`
+- édition d'une tâche après création via dialog prérempli
+- tâches en retard détectées côté frontend et signalées en tête de liste
+- traductions Django et frontend réalignées (fr, en, de, es)
+- 2 tests backend couvrant les nouveaux points d'entrée
+
+Références :
+
+- [docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md)
+- [docs/PARCOURS_03_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_BACKLOG_TECHNIQUE.md)
+
 ## Prochain focus recommandé
 
-Finaliser la livraison V1 manuelle du parcours 02 : recette bout en bout, polish UX léger, documentation réalignée.
+Implémenter le parcours 04 — Suivre un projet de travaux ou de maintenance de bout en bout.
+
+Priorité : lot 0 du backlog technique — boutons de création rapide dans les onglets du détail projet et transmission du `project_id` vers le formulaire d'interaction.
 
 Références de cadrage :
 
-- [docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md)
-- [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)
-- [docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md)
+- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
+- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
 
 ## Journal des sessions
 
@@ -73,6 +92,8 @@ Références de cadrage :
 - [docs/journal/2026-03-09_parcours-02_cadrage_initial.md](/Users/benjaminvandamme/Dev/house/docs/journal/2026-03-09_parcours-02_cadrage_initial.md)
 - [docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md)
 - [docs/journal/2026-03-09_formulaire-activite_documents.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_formulaire-activite_documents.md)
+- [docs/journal/2026-03-09_parcours-03_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-03_v1_livree.md)
+- [docs/journal/2026-03-10_parcours-04_cadrage_initial.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_cadrage_initial.md)
 
 ## Backlog d'idées futures
 

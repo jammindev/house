@@ -28,6 +28,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True
     )
+    project_title = serializers.SerializerMethodField()
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
@@ -50,12 +51,17 @@ class InteractionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'household', 'subject', 'content', 'type', 'status',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
-            'project',
+            'project', 'project_title',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
     
+    def get_project_title(self, obj):
+        if obj.project_id:
+            return obj.project.title if obj.project else None
+        return None
+
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
 

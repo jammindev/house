@@ -7,6 +7,7 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { createInteraction } from '@/lib/api/interactions';
+import { fetchProjects, type ProjectListItem } from '@/lib/api/projects';
 import { DocumentSelector } from '@/lib/components/DocumentSelector';
 import { TagSelector } from '@/lib/components/TagSelector';
 import { ZoneTreeSelector } from '@/lib/components/ZoneTreeSelector';
@@ -43,6 +44,8 @@ interface InteractionCreateFormProps {
   } | null;
   initialZoneIds?: string[];
   redirectDelayMs?: number;
+  initialProjectId?: string | null;
+  initialProjectTitle?: string | null;
 }
 
 const TYPE_OPTIONS = [
@@ -122,6 +125,8 @@ export function InteractionCreateForm({
   sourceInteraction = null,
   initialZoneIds = [],
   redirectDelayMs = 800,
+  initialProjectId = null,
+  initialProjectTitle = null,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
   const householdId = useHouseholdId();
@@ -139,6 +144,16 @@ export function InteractionCreateForm({
   const [tagNames, setTagNames] = React.useState<string[]>([]);
   const [zoneIds, setZoneIds] = React.useState<string[]>(initialZoneIds);
   const [selectedDocumentIds, setSelectedDocumentIds] = React.useState<string[]>(linkedDocumentIds);
+
+  const [selectedProjectId, setSelectedProjectId] = React.useState(initialProjectId ?? '');
+  const [projects, setProjects] = React.useState<ProjectListItem[]>([]);
+
+  React.useEffect(() => {
+    if (initialProjectId || !householdId) return;
+    fetchProjects({ householdId, limit: 100 })
+      .then((all) => setProjects(all.filter((p) => p.status === 'active' || p.status === 'on_hold')))
+      .catch(() => {});
+  }, [initialProjectId, householdId]);
 
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -210,6 +225,7 @@ export function InteractionCreateForm({
           metadata,
           tags_input: tagNames,
           document_ids: selectedDocumentIds,
+          ...(selectedProjectId ? { project: selectedProjectId } : {}),
         },
         householdId
       );
@@ -255,6 +271,31 @@ export function InteractionCreateForm({
             {sourceInteraction.subject} · {t(`interaction_type.${sourceInteraction.type}`, { defaultValue: sourceInteraction.type })}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_interaction_help', { defaultValue: 'This task will be linked to the source event.' })}</p>
+        </div>
+      ) : null}
+
+      {initialProjectId && initialProjectTitle ? (
+        <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
+          <p className="text-sm font-medium text-foreground">{t('interactions.source_project_label', { defaultValue: 'Projet' })}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{initialProjectTitle}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t('interactions.source_project_help', { defaultValue: 'Cet élément sera rattaché à ce projet.' })}</p>
+        </div>
+      ) : projects.length > 0 ? (
+        <div className="space-y-2">
+          <label htmlFor="interaction-project" className="text-sm font-medium">
+            {t('interactions.project_label', { defaultValue: 'Projet (optionnel)' })}
+          </label>
+          <select
+            id="interaction-project"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+          >
+            <option value="">{t('interactions.project_none', { defaultValue: 'Aucun projet' })}</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.title}</option>
+            ))}
+          </select>
         </div>
       ) : null}
 

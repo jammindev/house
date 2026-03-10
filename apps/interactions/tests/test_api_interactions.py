@@ -11,6 +11,7 @@ from documents.models import Document
 from directory.models import Contact
 from households.models import Household, HouseholdMember
 from interactions.models import Interaction, InteractionContact, InteractionDocument
+from projects.models import Project
 from tags.models import Tag, TagLink
 from zones.models import Zone
 
@@ -581,3 +582,95 @@ class TestInteractionLinks:
             'code': 'already_linked',
             'detail': 'Exact document-interaction link already exists.',
         }
+
+@pytest.mark.django_db
+class TestInteractionProjectLink:
+    def test_create_interaction_with_project_links_correctly(self, owner_client, household, owner, primary_zone):
+        project = Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Rénovation cuisine',
+            type='renovation',
+            status='active',
+        )
+
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload([primary_zone.id], type="todo", project=str(project.id)),
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        interaction = Interaction.objects.get(id=response.data["id"])
+        assert interaction.project == project
+
+    def test_list_interactions_filtered_by_project(self, owner_client, household, owner, primary_zone):
+        project = Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet filtrage',
+            type='other',
+            status='active',
+        )
+        linked = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject='Tâche du projet',
+            type='todo',
+            occurred_at=timezone.now(),
+            project=project,
+        )
+        linked.zones.add(primary_zone)
+        unlinked = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject='Tâche sans projet',
+            type='todo',
+            occurred_at=timezone.now(),
+        )
+        unlinked.zones.add(primary_zone)
+
+        url = reverse("interaction-list")
+        response = owner_client.get(
+            url,
+            {"project": str(project.id)},
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        result_ids = {item["id"] for item in response.data.get("results", response.data)}
+        assert str(linked.id) in result_ids
+        assert str(unlinked.id) not in result_ids
+
+    def test_patch_interaction_does_not_erase_project(self, owner_client, household, owner, primary_zone):
+        project = Project.objects.create(
+            household=household,
+            created_by=owner,
+            title='Projet stable',
+            type='other',
+            status='active',
+        )
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject='Tâche initiale',
+            type='todo',
+            occurred_at=timezone.now(),
+            project=project,
+        )
+        interaction.zones.add(primary_zone)
+
+        url = reverse("interaction-detail", kwargs={"pk": interaction.id})
+        response = owner_client.patch(
+            url,
+            {"subject": "Tâche mise à jour"},
+            format="json",
+            HTTP_X_HOUSEHOLD_ID=str(household.id),
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        interaction.refresh_from_db()
+        assert interaction.subject == "Tâche mise à jour"
+        assert interaction.project == project

@@ -90,14 +90,26 @@ function useInteractions(projectId: string, householdId: string | undefined, typ
   return { items, loading, error };
 }
 
+function buildAddUrl(projectId: string, zoneIds: string[], type?: string): string {
+  const params = new URLSearchParams();
+  if (type) params.set('type', type);
+  params.set('project_id', projectId);
+  if (zoneIds.length > 0) params.set('zone_ids', zoneIds.join(','));
+  return `/app/interactions/new/?${params.toString()}`;
+}
+
 function TabInteractions({
   projectId,
+  projectZoneIds,
   type,
   emptyKey,
+  addLabel,
 }: {
   projectId: string;
+  projectZoneIds: string[];
   type?: string;
   emptyKey: string;
+  addLabel?: string;
 }) {
   const { t } = useTranslation();
   const householdId = useHouseholdId();
@@ -109,27 +121,103 @@ function TabInteractions({
       <AlertDescription>{error}</AlertDescription>
     </Alert>
   );
-  if (items.length === 0) return <p className="text-sm text-muted-foreground">{t(emptyKey)}</p>;
   return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.id} className="rounded-md border p-3 text-sm">
-          <div className="flex items-start justify-between gap-2">
-            <span className="font-medium">{item.subject || '—'}</span>
-            <div className="flex gap-1 shrink-0">
-              {item.type ? (
-                <Badge variant="outline" className="text-[10px] h-5">{t(`interactions.type.${item.type}`, { defaultValue: item.type })}</Badge>
-              ) : null}
-              {item.status ? (
-                <Badge variant="secondary" className="text-[10px] h-5">{t(`interactions.status.${item.status}`, { defaultValue: item.status })}</Badge>
-              ) : null}
-            </div>
-          </div>
-          {item.content ? <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{item.content}</p> : null}
-          {item.occurred_at ? <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p> : null}
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-3">
+      {addLabel ? (
+        <div className="flex justify-end">
+          <a
+            href={buildAddUrl(projectId, projectZoneIds, type)}
+            className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
+          >
+            {addLabel}
+          </a>
+        </div>
+      ) : null}
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{t(emptyKey)}</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-md border p-3 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-medium">{item.subject || '—'}</span>
+                <div className="flex gap-1 shrink-0">
+                  {item.type ? (
+                    <Badge variant="outline" className="text-[10px] h-5">{t(`interactions.type.${item.type}`, { defaultValue: item.type })}</Badge>
+                  ) : null}
+                  {item.status ? (
+                    <Badge variant="secondary" className="text-[10px] h-5">{t(`interactions.status.${item.status}`, { defaultValue: item.status })}</Badge>
+                  ) : null}
+                </div>
+              </div>
+              {item.content ? <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{item.content}</p> : null}
+              {item.occurred_at ? <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function isOverdue(item: InteractionItem): boolean {
+  if (!item.occurred_at) return false;
+  if (item.status === 'done' || item.status === 'archived') return false;
+  const due = new Date(item.occurred_at);
+  const today = new Date();
+  due.setHours(0, 0, 0, 0);
+  today.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+function ProjectSummaryBlock({
+  project,
+  tasks,
+  tasksLoading,
+}: {
+  project: ProjectListItem;
+  tasks: InteractionItem[];
+  tasksLoading: boolean;
+}) {
+  const { t } = useTranslation();
+  const planned = Number(project.planned_budget);
+  const actual = Number(project.actual_cost_cached);
+  const overBudget = actual > planned && planned > 0;
+  const pct = planned > 0 ? Math.min((actual / planned) * 100, 100) : 0;
+
+  const openCount = tasksLoading ? null : tasks.filter(
+    (item) => item.status !== 'done' && item.status !== 'archived'
+  ).length;
+  const overdueCount = tasksLoading ? null : tasks.filter(isOverdue).length;
+
+  const hasSummary = planned > 0 || openCount !== null;
+  if (!hasSummary) return null;
+
+  return (
+    <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm flex flex-wrap gap-x-5 gap-y-2 items-center">
+      {openCount !== null ? (
+        <span className="text-foreground">
+          <span className="font-medium">{openCount}</span>{' '}
+          {t('projects.summary.open_tasks', { count: openCount, defaultValue: 'tâche(s) ouverte(s)' })}
+          {overdueCount !== null && overdueCount > 0 ? (
+            <span className="ml-2 text-destructive font-medium">
+              · {overdueCount} {t('projects.summary.overdue', { count: overdueCount, defaultValue: 'en retard' })}
+            </span>
+          ) : null}
+        </span>
+      ) : null}
+      {planned > 0 ? (
+        <span className="text-foreground">
+          {t('projects.summary.budget', { defaultValue: 'Budget' })}{' '}
+          <span className={`font-medium ${overBudget ? 'text-destructive' : ''}`}>
+            {actual > 0 ? `${actual.toFixed(0)} €` : '0 €'}
+          </span>
+          {' / '}{planned.toFixed(0)} €
+          {' '}
+          <span className="text-muted-foreground text-xs">({pct.toFixed(0)} %)</span>
+        </span>
+      ) : null}
+    </div>
   );
 }
 
@@ -220,9 +308,24 @@ export default function ProjectDetail({
   const [project, setProject] = React.useState<ProjectListItem | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<Tab>('description');
+  const [activeTab, setActiveTab] = React.useState<Tab>(() => {
+    if (typeof window !== 'undefined') {
+      const param = new URLSearchParams(window.location.search).get('tab');
+      if (param && (['description', 'tasks', 'notes', 'expenses', 'documents', 'timeline', 'metrics'] as string[]).includes(param)) {
+        return param as Tab;
+      }
+    }
+    return 'description';
+  });
   const [deleting, setDeleting] = React.useState(false);
   const [pinLoading, setPinLoading] = React.useState(false);
+
+  const projectZoneIds = React.useMemo(
+    () => (project?.zones ?? []).map((z) => z.id),
+    [project]
+  );
+
+  const { items: todoItems, loading: todoLoading } = useInteractions(projectId, householdId ?? undefined, 'todo');
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -320,6 +423,9 @@ export default function ProjectDetail({
         </div>
       </div>
 
+      {/* Summary */}
+      <ProjectSummaryBlock project={project} tasks={todoItems} tasksLoading={todoLoading} />
+
       {/* Tabs */}
       <div>
         <div className="flex gap-1 overflow-x-auto border-b pb-px">
@@ -348,23 +454,23 @@ export default function ProjectDetail({
             ) : null}
 
             {activeTab === 'tasks' ? (
-              <TabInteractions projectId={projectId} type="todo" emptyKey="projects.empty_tasks" />
+              <TabInteractions projectId={projectId} projectZoneIds={projectZoneIds} type="todo" emptyKey="projects.empty_tasks" addLabel={t('projects.add_task', { defaultValue: 'Ajouter une tâche' })} />
             ) : null}
 
             {activeTab === 'notes' ? (
-              <TabInteractions projectId={projectId} type="note" emptyKey="projects.empty_notes" />
+              <TabInteractions projectId={projectId} projectZoneIds={projectZoneIds} type="note" emptyKey="projects.empty_notes" addLabel={t('projects.add_note', { defaultValue: 'Ajouter une note' })} />
             ) : null}
 
             {activeTab === 'expenses' ? (
-              <TabInteractions projectId={projectId} type="expense" emptyKey="projects.empty_expenses" />
+              <TabInteractions projectId={projectId} projectZoneIds={projectZoneIds} type="expense" emptyKey="projects.empty_expenses" addLabel={t('projects.add_expense', { defaultValue: 'Ajouter une dépense' })} />
             ) : null}
 
             {activeTab === 'documents' ? (
-              <TabInteractions projectId={projectId} type="document" emptyKey="projects.empty_documents" />
+              <TabInteractions projectId={projectId} projectZoneIds={projectZoneIds} type="document" emptyKey="projects.empty_documents" />
             ) : null}
 
             {activeTab === 'timeline' ? (
-              <TabInteractions projectId={projectId} emptyKey="projects.empty_timeline" />
+              <TabInteractions projectId={projectId} projectZoneIds={projectZoneIds} emptyKey="projects.empty_timeline" addLabel={t('projects.add_activity', { defaultValue: 'Ajouter une activité' })} />
             ) : null}
 
             {activeTab === 'metrics' ? (

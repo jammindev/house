@@ -7,6 +7,7 @@ from urllib.parse import urlencode
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from documents.models import Document
+from projects.models import Project
 from zones.models import Zone
 
 from .models import Interaction
@@ -125,6 +126,7 @@ class AppInteractionNewView(ReactPageView):
         return_to = (request.GET.get('return_to') or '').strip()
         source_document_id = (request.GET.get('source_document_id') or '').strip()
         source_interaction_id = (request.GET.get('source_interaction_id') or '').strip()
+        project_id = (request.GET.get('project_id') or '').strip()
 
         source_document = None
         if source_document_id:
@@ -195,6 +197,38 @@ class AppInteractionNewView(ReactPageView):
             if not source_document:
                 initial_subject = source_interaction.subject or ''
 
+        source_project = None
+        if project_id:
+            project_queryset = Project.objects.filter(
+                household_id__in=request.user.householdmember_set.values_list('household_id', flat=True)
+            )
+            if selected_household:
+                project_queryset = project_queryset.filter(household=selected_household)
+            try:
+                source_project = project_queryset.get(id=project_id)
+                selected_household = selected_household or source_project.household
+                if not initial_zone_ids:
+                    initial_zone_ids = [
+                        str(pz.zone_id)
+                        for pz in source_project.project_zones.select_related('zone').all()
+                    ]
+            except Exception:
+                pass
+
+        initial_project_id = str(source_project.id) if source_project else None
+        initial_project_title = source_project.title if source_project else None
+        if source_project and not redirect_after_success_url:
+            interaction_type = (request.GET.get('type') or '').strip()
+            _TYPE_TO_TAB = {
+                'todo': 'tasks',
+                'note': 'notes',
+                'expense': 'expenses',
+                'document': 'documents',
+            }
+            tab = _TYPE_TO_TAB.get(interaction_type, 'timeline')
+            project_url = reverse('app_projects_detail', kwargs={'project_id': source_project.id})
+            redirect_after_success_url = f"{project_url}?tab={tab}"
+
         return {
             'title': str(_('Add event')),
             'submitLabel': str(_('Add event')),
@@ -210,4 +244,6 @@ class AppInteractionNewView(ReactPageView):
             'initialSubject': initial_subject,
             'initialContent': initial_content,
             'initialZoneIds': initial_zone_ids,
+            'initialProjectId': initial_project_id,
+            'initialProjectTitle': initial_project_title,
         }
