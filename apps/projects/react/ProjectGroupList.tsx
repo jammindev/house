@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { FolderKanban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -137,7 +139,11 @@ export default function ProjectGroupList({
         ) : null}
 
         {!loading && !error && groups.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('projects.groups.empty')}</p>
+          <EmptyState
+            icon={FolderKanban}
+            title={t('projects.groups.empty')}
+            description={t('projects.groups.empty_description', { defaultValue: 'Use the button above to create your first group.' })}
+          />
         ) : null}
 
         {!loading && !error && groups.length > 0 ? (

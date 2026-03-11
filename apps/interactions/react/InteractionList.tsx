@@ -10,8 +10,10 @@ import { Skeleton } from '@/design-system/skeleton';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { cn } from '@/lib/utils';
 
+import { MessageSquare } from 'lucide-react';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 interface InteractionListProps {
   title?: string;
@@ -20,6 +22,8 @@ interface InteractionListProps {
   status?: string;
   limit?: number;
   emptyMessage?: string;
+  emptyActionHref?: string;
+  emptyActionLabel?: string;
   highlightedId?: string;
   initialItems?: InteractionListItem[];
   initialCount?: number;
@@ -81,6 +85,8 @@ export function InteractionList({
   status,
   limit = 8,
   emptyMessage,
+  emptyActionHref,
+  emptyActionLabel,
   highlightedId,
   initialItems = [],
   initialCount,
@@ -309,7 +315,11 @@ export function InteractionList({
         ) : null}
 
         {!loading && !error && items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{resolvedEmptyMessage}</p>
+          <EmptyState
+            icon={MessageSquare}
+            title={resolvedEmptyMessage}
+            action={emptyActionHref && emptyActionLabel ? { label: emptyActionLabel, href: emptyActionHref } : undefined}
+          />
         ) : null}
 
         {!loading && !error && items.length > 0 ? (

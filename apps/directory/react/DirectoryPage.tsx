@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Building2, Plus, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button, buttonVariants } from '@/design-system/button';
-import { cn } from '@/lib/utils';
+import { Button } from '@/design-system/button';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 import ContactList from './ContactList';
 import StructureList from './StructureList';
 
@@ -136,33 +136,21 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
       )}
 
       {!loading && !error && isContacts && contacts.length === 0 && (
-        <div className="rounded-md border border-dashed border-gray-200 bg-white p-8 text-center">
-          <UserPlus className="mx-auto mb-3 h-10 w-10 text-gray-300" aria-hidden />
-          <p className="text-sm font-medium text-gray-600">
-            {t('contacts.empty', { defaultValue: 'No contacts yet.' })}
-          </p>
-          <p className="mt-1 text-xs text-gray-400">
-            {t('contacts.createDescription', { defaultValue: 'Add your first contact to get started.' })}
-          </p>
-          <a href="/app/directory/contacts/new/" className={cn(buttonVariants({ size: 'sm' }), 'mt-4')}>
-              {t('contacts.addContact', { defaultValue: 'Add contact' })}
-            </a>
-        </div>
+        <EmptyState
+          icon={UserPlus}
+          title={t('contacts.empty', { defaultValue: 'No contacts yet.' })}
+          description={t('contacts.createDescription', { defaultValue: 'Add your first contact to get started.' })}
+          action={{ label: t('contacts.addContact', { defaultValue: 'Add contact' }), href: '/app/directory/contacts/new/' }}
+        />
       )}
 
       {!loading && !error && !isContacts && structures.length === 0 && (
-        <div className="rounded-md border border-dashed border-gray-200 bg-white p-8 text-center">
-          <Building2 className="mx-auto mb-3 h-10 w-10 text-gray-300" aria-hidden />
-          <p className="text-sm font-medium text-gray-600">
-            {t('structures.empty', { defaultValue: 'No structures yet.' })}
-          </p>
-          <p className="mt-1 text-xs text-gray-400">
-            {t('structures.createDescription', { defaultValue: 'Add your first structure to get started.' })}
-          </p>
-          <a href="/app/directory/structures/new/" className={cn(buttonVariants({ size: 'sm' }), 'mt-4')}>
-              {t('structures.addStructure', { defaultValue: 'Add structure' })}
-            </a>
-        </div>
+        <EmptyState
+          icon={Building2}
+          title={t('structures.empty', { defaultValue: 'No structures yet.' })}
+          description={t('structures.createDescription', { defaultValue: 'Add your first structure to get started.' })}
+          action={{ label: t('structures.addStructure', { defaultValue: 'Add structure' }), href: '/app/directory/structures/new/' }}
+        />
       )}
 
       {!loading && !error && isContacts && contacts.length > 0 && (

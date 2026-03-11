@@ -6,6 +6,7 @@ from core.permissions import resolve_request_household
 from core.views import ReactPageView
 
 from .models import Zone
+from .serializers import ZoneDetailPropsSerializer, ZoneListPropsSerializer
 
 
 def _resolve_selected_household(request):
@@ -31,18 +32,9 @@ class AppZonesView(ReactPageView):
         queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
         if selected_household:
             queryset = queryset.filter(household=selected_household)
-        zones = list(queryset.order_by('name')[:80])
+        zones = queryset.order_by('name')[:80]
         return {
-            'initialZones': [
-                {
-                    'id': str(zone.id),
-                    'name': zone.name,
-                    'fullPath': zone.full_path,
-                    'color': zone.color,
-                    'parentId': str(zone.parent_id) if zone.parent_id else None,
-                }
-                for zone in zones
-            ],
+            'initialZones': ZoneListPropsSerializer(zones, many=True).data,
         }
 
 
@@ -73,16 +65,7 @@ class AppZoneDetailView(ReactPageView):
         zone_id_str = str(zone.id)
         return {
             'zoneId': str(zone.id),
-            'initialZone': {
-                'id': str(zone.id),
-                'name': zone.name,
-                'parentId': str(zone.parent_id) if zone.parent_id else None,
-                'parentName': zone.parent.name if zone.parent else None,
-                'note': zone.note,
-                'surface': float(zone.surface) if zone.surface is not None else None,
-                'color': zone.color,
-                'updatedAt': zone.updated_at.isoformat() if zone.updated_at else None,
-            },
+            'initialZone': ZoneDetailPropsSerializer(zone).data,
             'initialStats': {
                 'childrenCount': children_count,
                 'photosCount': photos_count,

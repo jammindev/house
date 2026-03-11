@@ -10,6 +10,14 @@ from .models import (
 )
 
 
+class ProjectGroupPickerSerializer(serializers.ModelSerializer):
+    """Minimal serializer for group picker dropdowns in forms."""
+
+    class Meta:
+        model = ProjectGroup
+        fields = ["id", "name"]
+
+
 class ProjectGroupSerializer(serializers.ModelSerializer):
     projects_count = serializers.SerializerMethodField()
 

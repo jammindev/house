@@ -10,6 +10,14 @@ from core.permissions import resolve_request_household
 from .models import StockCategory, StockItem
 
 
+class StockCategoryPickerSerializer(serializers.ModelSerializer):
+    """Minimal serializer for category picker dropdowns in forms."""
+
+    class Meta:
+        model = StockCategory
+        fields = ["id", "name", "emoji", "color", "description", "sort_order"]
+
+
 class StockCategorySerializer(serializers.ModelSerializer):
     item_count = serializers.IntegerField(read_only=True)
 

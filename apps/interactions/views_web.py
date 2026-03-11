@@ -10,8 +10,10 @@ from documents.models import Document
 from equipment.models import Equipment
 from projects.models import Project
 from zones.models import Zone
+from zones.serializers import ZonePickerDetailSerializer
 
 from .models import Interaction
+from .serializers import InteractionListPropsSerializer
 
 
 def _build_source_document_prefill(document):
@@ -82,22 +84,8 @@ class AppInteractionsView(ReactPageView):
             ).distinct()
 
         total_count = queryset.count()
-        interactions = list(queryset.order_by('-occurred_at')[:8])
-        initial_items = [
-            {
-                'id': str(item.id),
-                'subject': item.subject,
-                'content': item.content,
-                'type': item.type,
-                'status': item.status,
-                'occurred_at': item.occurred_at.isoformat(),
-                'tags': [link.tag.name for link in item.tags.all()],
-                'zone_names': [zone.name for zone in item.zones.all()],
-                'document_count': item.documents.count(),
-                'created_by_name': item.created_by.full_name if item.created_by else '',
-            }
-            for item in interactions
-        ]
+        interactions = queryset.order_by('-occurred_at')[:8]
+        initial_items = InteractionListPropsSerializer(interactions, many=True).data
 
         return {
             'title': str(_('Activity')),
@@ -152,17 +140,8 @@ class AppInteractionNewView(ReactPageView):
         if selected_household:
             zones_queryset = zones_queryset.filter(household=selected_household)
 
-        zones_payload = [
-            {
-                'id': str(zone.id),
-                'name': zone.name,
-                'parentId': str(zone.parent_id) if zone.parent_id else None,
-                'full_path': zone.full_path,
-                'color': zone.color,
-                'depth': zone.depth,
-            }
-            for zone in sorted(zones_queryset, key=lambda zone: zone.full_path.lower())
-        ]
+        zones_sorted = sorted(zones_queryset, key=lambda zone: zone.full_path.lower())
+        zones_payload = ZonePickerDetailSerializer(zones_sorted, many=True).data
 
         if return_to == 'dashboard':
             redirect_to = reverse('app_dashboard')

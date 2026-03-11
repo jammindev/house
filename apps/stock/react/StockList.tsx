@@ -26,8 +26,10 @@ import {
   type StockItem,
 } from '@/lib/api/stock';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
+import { Package, Tag } from 'lucide-react';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 interface StockListProps {
   initialSearch?: string;
@@ -309,7 +311,11 @@ export default function StockList({
             ) : null}
 
             {!loading && !error && items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('stock.empty.items')}</p>
+              <EmptyState
+                icon={Package}
+                title={t('stock.empty.items')}
+                action={{ label: t('stock.actions.new_item', { defaultValue: 'New item' }), href: newUrl }}
+              />
             ) : null}
 
             {!loading && !error && items.length > 0 ? (
@@ -342,7 +348,14 @@ export default function StockList({
             {loading ? <p className="text-sm text-muted-foreground">{t('stock.loading.categories')}</p> : null}
 
             {!loading && categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('stock.empty.categories')}</p>
+              <EmptyState
+                icon={Tag}
+                title={t('stock.empty.categories')}
+                action={{
+                  label: t('stock.actions.new_category', { defaultValue: 'New category' }),
+                  onClick: () => { setCreateCategoryRequested(true); },
+                }}
+              />
             ) : null}
 
             {!loading && categories.length > 0 ? (

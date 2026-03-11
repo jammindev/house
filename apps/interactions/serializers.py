@@ -16,6 +16,30 @@ from .models import (
 )
 
 
+class InteractionListPropsSerializer(serializers.ModelSerializer):
+    """Minimal serializer for the interactions list page initial props."""
+    tags = serializers.SerializerMethodField()
+    zone_names = serializers.SerializerMethodField()
+    document_count = serializers.SerializerMethodField()
+    created_by_name = serializers.CharField(source='created_by.full_name', read_only=True, default='')
+
+    class Meta:
+        model = Interaction
+        fields = [
+            'id', 'subject', 'content', 'type', 'status',
+            'occurred_at', 'tags', 'zone_names', 'document_count', 'created_by_name',
+        ]
+
+    def get_tags(self, obj):
+        return [link.tag.name for link in obj.tags.all()]
+
+    def get_zone_names(self, obj):
+        return [zone.name for zone in obj.zones.all()]
+
+    def get_document_count(self, obj):
+        return obj.documents.count()
+
+
 class InteractionSerializer(serializers.ModelSerializer):
     """Interaction list/create serializer."""
     

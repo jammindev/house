@@ -5,8 +5,10 @@ from django.utils.translation import gettext_lazy as _
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from zones.models import Zone
+from zones.serializers import ZonePickerSerializer
 
 from .models import StockCategory, StockItem
+from .serializers import StockCategoryPickerSerializer
 
 
 def _resolve_selected_household(request):
@@ -17,36 +19,18 @@ def _resolve_selected_household(request):
     return membership.household if membership else None
 
 
-def _zones_payload(request, selected_household):
-    zones_queryset = Zone.objects.for_user_households(request.user).select_related("parent")
+def _zones_props(request, selected_household):
+    qs = Zone.objects.for_user_households(request.user).select_related("parent")
     if selected_household:
-        zones_queryset = zones_queryset.filter(household=selected_household)
-    return [
-        {
-            "id": str(zone.id),
-            "name": zone.name,
-            "full_path": zone.full_path,
-            "color": zone.color,
-        }
-        for zone in zones_queryset.order_by("name")
-    ]
+        qs = qs.filter(household=selected_household)
+    return ZonePickerSerializer(qs.order_by("name"), many=True).data
 
 
-def _categories_payload(request, selected_household):
-    queryset = StockCategory.objects.for_user_households(request.user)
+def _categories_props(request, selected_household):
+    qs = StockCategory.objects.for_user_households(request.user)
     if selected_household:
-        queryset = queryset.filter(household=selected_household)
-    return [
-        {
-            "id": str(category.id),
-            "name": category.name,
-            "emoji": category.emoji,
-            "color": category.color,
-            "description": category.description,
-            "sort_order": category.sort_order,
-        }
-        for category in queryset.order_by("sort_order", "name")
-    ]
+        qs = qs.filter(household=selected_household)
+    return StockCategoryPickerSerializer(qs.order_by("sort_order", "name"), many=True).data
 
 
 class AppStockView(ReactPageView):
@@ -73,8 +57,8 @@ class AppStockNewView(ReactPageView):
         selected_household = _resolve_selected_household(self.request)
         return {
             "mode": "create",
-            "initialZones": _zones_payload(self.request, selected_household),
-            "initialCategories": _categories_payload(self.request, selected_household),
+            "initialZones": _zones_props(self.request, selected_household),
+            "initialCategories": _categories_props(self.request, selected_household),
             "cancelUrl": reverse("app_stock"),
             "successRedirectUrl": reverse("app_stock"),
         }
@@ -108,13 +92,12 @@ class AppStockEditView(ReactPageView):
             id=self.kwargs["item_id"],
         )
         selected_household = _resolve_selected_household(self.request)
+        household = selected_household or item.household
         return {
             "mode": "edit",
             "itemId": str(item.id),
-            "initialZones": _zones_payload(self.request, selected_household or item.household),
-            "initialCategories": _categories_payload(self.request, selected_household or item.household),
+            "initialZones": _zones_props(self.request, household),
+            "initialCategories": _categories_props(self.request, household),
             "cancelUrl": reverse("app_stock_detail", kwargs={"item_id": item.id}),
             "successRedirectUrl": reverse("app_stock_detail", kwargs={"item_id": item.id}),
         }
-
-

@@ -1,6 +1,6 @@
 import * as React from 'react';
+import { CheckSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   fetchTasks,
   updateTaskStatus,
@@ -9,73 +9,22 @@ import {
   type TaskStatus,
 } from '@/lib/api/tasks';
 import { useHouseholdId } from '@/lib/useHouseholdId';
-import PageHeader from '@/components/PageHeader';
-import TaskCard from './TaskCard';
+import ListPage from '@/components/ListPage';
 import NewTaskDialog from './NewTaskDialog';
-
+import TaskSection from './TaskSection';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
-interface SectionProps {
-  title: string;
-  tasks: Task[];
-  onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
-  onEdit: (task: Task) => void;
-  defaultCollapsed?: boolean;
-  highlightHeader?: boolean;
+interface TasksPageProps {
+  initialTasks?: Task[];
 }
 
-function TaskSection({ title, tasks, onStatusChange, onEdit, defaultCollapsed = false, highlightHeader = false }: SectionProps) {
-  const [collapsed, setCollapsed] = React.useState(defaultCollapsed);
-
-  if (tasks.length === 0) return null;
-
-  return (
-    <div className="space-y-2">
-      <button
-        type="button"
-        className={`flex w-full items-center justify-between rounded-md px-1 py-0.5 text-left text-sm font-semibold transition-colors hover:bg-slate-50 ${
-          highlightHeader ? 'text-orange-700' : 'text-slate-700'
-        }`}
-        onClick={() => setCollapsed((c) => !c)}
-      >
-        <span>
-          {title}
-          <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${highlightHeader ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-500'}`}>
-            {tasks.length}
-          </span>
-        </span>
-        {collapsed ? (
-          <ChevronRight className="h-4 w-4 text-slate-400" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-slate-400" />
-        )}
-      </button>
-
-      {!collapsed ? (
-        <div className="space-y-2">
-          {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              onStatusChange={onStatusChange}
-              onEdit={onEdit}
-            />
-          ))}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-type TasksPageProps = Record<string, never>;
-
-export default function TasksPage(_props: TasksPageProps) {
+export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
-  const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const [tasks, setTasks] = React.useState<Task[]>(() => initialTasks.filter((task) => task.status !== 'archived'));
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [activeFilter, setActiveFilter] = React.useState<FilterKey>('all');
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
@@ -93,10 +42,6 @@ export default function TasksPage(_props: TasksPageProps) {
         setLoading(false);
       });
   }, [householdId, t]);
-
-  React.useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
 
   const handleStatusChange = React.useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
@@ -166,105 +111,113 @@ export default function TasksPage(_props: TasksPageProps) {
     };
   }, [activeFilter, overdueTasks, inProgressTasks, pendingTasks, backlogTasks, doneTasks]);
 
+  const isEmpty = !loading && !error && tasks.length === 0;
+
   return (
-    <div className="space-y-4">
-      <PageHeader title={t('tasks.title', { defaultValue: 'Tasks' })}>
-        <button
-          type="button"
-          onClick={() => setNewTaskOpen(true)}
-          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-        >
-          {t('tasks.new', { defaultValue: 'New task' })}
-        </button>
-      </PageHeader>
-
-      {/* Filter chips */}
-      <div className="flex flex-wrap gap-1.5">
-        {FILTERS.map(({ key, label }) => (
+    <>
+      <ListPage
+        title={t('tasks.title')}
+        isEmpty={isEmpty}
+        emptyState={{
+          icon: CheckSquare,
+          title: t('tasks.empty'),
+          description: t('tasks.empty_description'),
+          action: { label: t('tasks.new'), onClick: () => setNewTaskOpen(true) },
+        }}
+        actions={
           <button
-            key={key}
             type="button"
-            onClick={() => setActiveFilter(key)}
-            className={[
-              'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-              activeFilter === key
-                ? 'border-slate-800 bg-slate-800 text-white'
-                : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
-            ].join(' ')}
+            onClick={() => setNewTaskOpen(true)}
+            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
           >
-            {label}
+            {t('tasks.new')}
           </button>
-        ))}
-      </div>
+        }
+      >
+        <div className="space-y-4">
+          {/* Filter chips */}
+          <div className="flex flex-wrap gap-1.5">
+            {FILTERS.map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setActiveFilter(key)}
+                className={[
+                  'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                  activeFilter === key
+                    ? 'border-slate-800 bg-slate-800 text-white'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+                ].join(' ')}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-      {/* Error */}
-      {error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          {error}
-          <button type="button" onClick={loadTasks} className="ml-2 underline hover:no-underline">
-            {t('common.retry', { defaultValue: 'Retry' })}
-          </button>
-        </div>
-      ) : null}
+          {/* Error */}
+          {error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {error}
+              <button type="button" onClick={loadTasks} className="ml-2 underline hover:no-underline">
+                {t('common.retry', { defaultValue: 'Retry' })}
+              </button>
+            </div>
+          ) : null}
 
-      {/* Loading skeleton */}
-      {loading ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
-          ))}
-        </div>
-      ) : null}
+          {/* Loading skeleton */}
+          {loading ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+              ))}
+            </div>
+          ) : null}
 
-      {/* Sections */}
-      {!loading && !error ? (
-        <div className="space-y-5">
-          <TaskSection
-            key="overdue"
-            title={t('tasks.sections.overdue', { defaultValue: 'En retard' })}
-            tasks={visibleBySection.overdue}
-            onStatusChange={handleStatusChange}
-            onEdit={setEditingTask}
-            highlightHeader
-          />
-          <TaskSection
-            key="in_progress"
-            title={t('tasks.sections.in_progress', { defaultValue: 'En cours' })}
-            tasks={visibleBySection.in_progress}
-            onStatusChange={handleStatusChange}
-            onEdit={setEditingTask}
-          />
-          <TaskSection
-            key="pending"
-            title={t('tasks.sections.pending', { defaultValue: 'À faire' })}
-            tasks={visibleBySection.pending}
-            onStatusChange={handleStatusChange}
-            onEdit={setEditingTask}
-          />
-          <TaskSection
-            key="backlog"
-            title={t('tasks.sections.backlog', { defaultValue: 'Backlog' })}
-            tasks={visibleBySection.backlog}
-            onStatusChange={handleStatusChange}
-            onEdit={setEditingTask}
-            defaultCollapsed
-          />
-          <TaskSection
-            key="done"
-            title={t('tasks.sections.done', { defaultValue: 'Fait' })}
-            tasks={visibleBySection.done}
-            onStatusChange={handleStatusChange}
-            onEdit={setEditingTask}
-            defaultCollapsed
-          />
-
-          {tasks.length === 0 ? (
-            <p className="text-center text-sm text-slate-400 py-8">
-              {t('tasks.empty', { defaultValue: 'No tasks yet.' })}
-            </p>
+          {/* Sections */}
+          {!loading && !error ? (
+            <div className="space-y-5">
+              <TaskSection
+                key="overdue"
+                title={t('tasks.sections.overdue', { defaultValue: 'En retard' })}
+                tasks={visibleBySection.overdue}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingTask}
+                highlightHeader
+              />
+              <TaskSection
+                key="in_progress"
+                title={t('tasks.sections.in_progress', { defaultValue: 'En cours' })}
+                tasks={visibleBySection.in_progress}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingTask}
+              />
+              <TaskSection
+                key="pending"
+                title={t('tasks.sections.pending', { defaultValue: 'À faire' })}
+                tasks={visibleBySection.pending}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingTask}
+              />
+              <TaskSection
+                key="backlog"
+                title={t('tasks.sections.backlog', { defaultValue: 'Backlog' })}
+                tasks={visibleBySection.backlog}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingTask}
+                defaultCollapsed
+              />
+              <TaskSection
+                key="done"
+                title={t('tasks.sections.done', { defaultValue: 'Fait' })}
+                tasks={visibleBySection.done}
+                onStatusChange={handleStatusChange}
+                onEdit={setEditingTask}
+                defaultCollapsed
+              />
+            </div>
           ) : null}
         </div>
-      ) : null}
+      </ListPage>
 
       {/* Create dialog */}
       <NewTaskDialog
@@ -281,6 +234,6 @@ export default function TasksPage(_props: TasksPageProps) {
         existingTask={editingTask ?? undefined}
         onUpdated={handleTaskUpdated}
       />
-    </div>
+    </>
   );
 }

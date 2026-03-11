@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { LayoutGrid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { SheetDialog } from '@/design-system/sheet-dialog';
@@ -86,7 +88,11 @@ export default function ZonesNode(props: ZonesPageProps) {
       {loading ? (
         <p className="text-sm text-muted-foreground">{t('zones.loading')}</p>
       ) : sortedZones.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('zones.none')}</p>
+        <EmptyState
+          icon={LayoutGrid}
+          title={t('zones.none')}
+          description={t('zones.empty_description', { defaultValue: 'Use the button above to add your first zone.' })}
+        />
       ) : (
         <ZoneList
           zones={sortedZones}

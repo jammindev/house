@@ -4,11 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
 import { FilterBar } from '@/design-system/filter-bar';
+import { Wrench } from 'lucide-react';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
-import PageHeader from '@/components/PageHeader';
+import ListPage from '@/components/ListPage';
 
 interface EquipmentListProps {
   initialSearch?: string;
@@ -106,17 +107,28 @@ export default function EquipmentList({
     setZone('');
   }
 
+  const isEmpty = !loading && !error && items.length === 0;
+
   return (
-    <div className="space-y-4">
-      <PageHeader title={t('equipment.title', { defaultValue: 'Equipment' })}>
+    <ListPage
+      title={t('equipment.title', { defaultValue: 'Equipment' })}
+      isEmpty={isEmpty}
+      emptyState={{
+        icon: Wrench,
+        title: t('equipment.empty_list'),
+        description: t('equipment.empty_description', { defaultValue: 'Add your first piece of equipment to get started.' }),
+        action: { label: t('equipment.new', { defaultValue: 'New equipment' }), href: '/app/equipment/new/' },
+      }}
+      actions={
         <a
           href="/app/equipment/new/"
           className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
         >
           {t('equipment.new', { defaultValue: 'New equipment' })}
         </a>
-      </PageHeader>
-
+      }
+    >
+      <div className="space-y-4">
       <FilterBar
           fields={[
             {
@@ -168,10 +180,6 @@ export default function EquipmentList({
           </Alert>
         ) : null}
 
-        {!loading && !error && items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('equipment.empty_list')}</p>
-        ) : null}
-
         {!loading && !error && items.length > 0 ? (
           <ul className="space-y-3">
             {items.map((item) => (
@@ -203,6 +211,7 @@ export default function EquipmentList({
             ))}
           </ul>
         ) : null}
-    </div>
+      </div>
+    </ListPage>
   );
 }

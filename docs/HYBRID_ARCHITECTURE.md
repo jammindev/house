@@ -46,6 +46,27 @@ class AppTasksView(ReactPageView):
         return { ... }  # données initiales sérialisées en JSON
 ```
 
+**Convention : toujours utiliser un serializer pour les données modèles**
+
+Toute donnée issue d'un modèle Django dans `get_props()` **doit** passer par un serializer DRF dédié. Ne jamais construire des dicts manuellement à partir de champs modèles.
+
+- Créer un serializer dans `apps/<app>/serializers.py` (ex: `TaskPropsSerializer`, `ZonePickerSerializer`)
+- Les serializers des props de page sont distincts des serializers API (ils exposent uniquement les champs nécessaires au composant React)
+- Les données non-modèles (URLs `reverse()`, params GET, flags booléens) n'ont pas besoin de serializer
+
+```python
+# ✅ Correct
+class AppTasksView(ReactPageView):
+    def get_props(self):
+        tasks = Interaction.objects.filter(...)
+        return {'initialTasks': TaskPropsSerializer(tasks, many=True).data}
+
+# ❌ Incorrect — dict manuel à partir de champs modèles
+class AppTasksView(ReactPageView):
+    def get_props(self):
+        return {'initialTasks': [{'id': str(t.id), 'subject': t.subject, ...} for t in tasks]}
+```
+
 ### 2) Template shell (`core/react_page.html`)
 
 Django rend uniquement le point de montage React et les props :

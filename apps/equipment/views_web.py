@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from zones.models import Zone
+from zones.serializers import ZonePickerSerializer
 
 from .models import Equipment
 
@@ -22,19 +23,11 @@ def _resolve_selected_household(request):
     return membership.household if membership else None
 
 
-def _zones_payload(request, selected_household):
-    zones_queryset = Zone.objects.for_user_households(request.user).select_related("parent")
+def _zones_props(request, selected_household):
+    qs = Zone.objects.for_user_households(request.user).select_related("parent")
     if selected_household:
-        zones_queryset = zones_queryset.filter(household=selected_household)
-    return [
-        {
-            "id": str(zone.id),
-            "name": zone.name,
-            "full_path": zone.full_path,
-            "color": zone.color,
-        }
-        for zone in zones_queryset.order_by("name")
-    ]
+        qs = qs.filter(household=selected_household)
+    return ZonePickerSerializer(qs.order_by("name"), many=True).data
 
 
 class AppEquipmentView(ReactPageView):
@@ -59,7 +52,7 @@ class AppEquipmentNewView(ReactPageView):
         selected_household = _resolve_selected_household(self.request)
         return {
             "mode": "create",
-            "initialZones": _zones_payload(self.request, selected_household),
+            "initialZones": _zones_props(self.request, selected_household),
             "initialZonesLoaded": True,
             "cancelUrl": reverse("app_equipment"),
             "successRedirectUrl": reverse("app_equipment"),
@@ -79,7 +72,7 @@ class AppEquipmentDetailView(ReactPageView):
         selected_household = _resolve_selected_household(self.request)
         return {
             "equipmentId": str(equipment.id),
-            "initialZones": _zones_payload(self.request, selected_household or equipment.household),
+            "initialZones": _zones_props(self.request, selected_household or equipment.household),
             "initialZonesLoaded": True,
             "editUrl": reverse("app_equipment_edit", kwargs={"equipment_id": equipment.id}),
             "listUrl": reverse("app_equipment"),
@@ -100,39 +93,8 @@ class AppEquipmentEditView(ReactPageView):
         return {
             "mode": "edit",
             "equipmentId": str(equipment.id),
-            "initialZones": _zones_payload(self.request, selected_household or equipment.household),
+            "initialZones": _zones_props(self.request, selected_household or equipment.household),
             "initialZonesLoaded": True,
             "cancelUrl": reverse("app_equipment_detail", kwargs={"equipment_id": equipment.id}),
             "successRedirectUrl": reverse("app_equipment_detail", kwargs={"equipment_id": equipment.id}),
         }
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-
-    membership = (
-        request.user.householdmember_set
-        .select_related("household")
-        .order_by("household__name")
-        .first()
-    )
-    return membership.household if membership else None
-
-
-def _zones_payload(request, selected_household):
-    zones_queryset = Zone.objects.for_user_households(request.user).select_related("parent")
-    if selected_household:
-        zones_queryset = zones_queryset.filter(household=selected_household)
-
-    return [
-        {
-            "id": str(zone.id),
-            "name": zone.name,
-            "full_path": zone.full_path,
-            "color": zone.color,
-        }
-        for zone in zones_queryset.order_by("name")
-    ]
-

@@ -5,9 +5,10 @@ from django.utils.translation import gettext_lazy as _
 from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from zones.models import Zone
+from zones.serializers import ZonePickerSerializer
 
 from .models import Project, ProjectGroup
-from .serializers import ProjectGroupSerializer, ProjectSerializer
+from .serializers import ProjectGroupPickerSerializer, ProjectGroupSerializer, ProjectSerializer
 
 
 def _resolve_selected_household(request):
@@ -23,26 +24,18 @@ def _resolve_selected_household(request):
     return membership.household if membership else None
 
 
-def _groups_payload(household):
-    return [
-        {"id": str(g.id), "name": g.name}
-        for g in ProjectGroup.objects.filter(household=household).order_by("name")
-    ] if household else []
+def _groups_props(household):
+    if not household:
+        return []
+    qs = ProjectGroup.objects.filter(household=household).order_by("name")
+    return ProjectGroupPickerSerializer(qs, many=True).data
 
 
-def _zones_payload(request, selected_household):
-    zones_queryset = Zone.objects.for_user_households(request.user).select_related("parent")
+def _zones_props(request, selected_household):
+    qs = Zone.objects.for_user_households(request.user).select_related("parent")
     if selected_household:
-        zones_queryset = zones_queryset.filter(household=selected_household)
-    return [
-        {
-            "id": str(zone.id),
-            "name": zone.name,
-            "full_path": zone.full_path,
-            "color": zone.color,
-        }
-        for zone in zones_queryset.order_by("name")
-    ]
+        qs = qs.filter(household=selected_household)
+    return ZonePickerSerializer(qs.order_by("name"), many=True).data
 
 
 class AppProjectsView(ReactPageView):
@@ -110,9 +103,9 @@ class AppProjectsNewView(ReactPageView):
         selected_household = _resolve_selected_household(self.request)
         return {
             "mode": "create",
-            "initialGroups": _groups_payload(selected_household),
+            "initialGroups": _groups_props(selected_household),
             "initialGroupsLoaded": True,
-            "initialZones": _zones_payload(self.request, selected_household),
+            "initialZones": _zones_props(self.request, selected_household),
             "initialZonesLoaded": True,
             "cancelUrl": reverse("app_projects"),
             "successRedirectUrl": reverse("app_projects"),
@@ -151,9 +144,9 @@ class AppProjectsEditView(ReactPageView):
         return {
             "mode": "edit",
             "projectId": str(project.id),
-            "initialGroups": _groups_payload(household),
+            "initialGroups": _groups_props(household),
             "initialGroupsLoaded": True,
-            "initialZones": _zones_payload(self.request, household),
+            "initialZones": _zones_props(self.request, household),
             "initialZonesLoaded": True,
             "cancelUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),
             "successRedirectUrl": reverse("app_projects_detail", kwargs={"project_id": project.id}),

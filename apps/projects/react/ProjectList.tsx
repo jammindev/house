@@ -1,9 +1,10 @@
 import * as React from 'react';
+import { FolderOpen } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { FilterBar } from '@/design-system/filter-bar';
-import PageHeader from '@/components/PageHeader';
+import ListPage from '@/components/ListPage';
 import {
   fetchProjects,
   fetchProjectGroups,
@@ -135,27 +136,43 @@ export default function ProjectList({
   }
 
   const hasActiveFilters = !!(search || status || type || groupId);
+  const isEmpty = !loading && !error && items.length === 0;
+  const emptyState = hasActiveFilters
+    ? {
+        icon: FolderOpen,
+        title: t('projects.no_filter_results', { defaultValue: 'No projects match your filters.' }),
+      }
+    : {
+        icon: FolderOpen,
+        title: t('projects.empty_list'),
+        description: t('projects.description', { defaultValue: 'Manage your renovation, maintenance and other projects.' }),
+        action: { label: t('projects.new', { defaultValue: 'New project' }), href: '/app/projects/new/' },
+      };
 
   return (
-    <div className="space-y-4">
-      <PageHeader
-        title={t('projects.title', { defaultValue: 'Projects' })}
-        description={t('projects.description', { defaultValue: 'Manage your renovation, maintenance and other projects.' })}
-      >
-        <a
-          href="/app/projects/groups/"
-          className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
-          {t('projects.groups', { defaultValue: 'Groups' })}
-        </a>
-        <a
-          href="/app/projects/new/"
-          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-        >
-          {t('projects.new', { defaultValue: 'New project' })}
-        </a>
-      </PageHeader>
-
+    <ListPage
+      title={t('projects.title', { defaultValue: 'Projects' })}
+      description={t('projects.description', { defaultValue: 'Manage your renovation, maintenance and other projects.' })}
+      isEmpty={isEmpty}
+      emptyState={emptyState}
+      actions={
+        <>
+          <a
+            href="/app/projects/groups/"
+            className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+          >
+            {t('projects.groups', { defaultValue: 'Groups' })}
+          </a>
+          <a
+            href="/app/projects/new/"
+            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+          >
+            {t('projects.new', { defaultValue: 'New project' })}
+          </a>
+        </>
+      }
+    >
+      <div className="space-y-4">
       {/* Filters */}
       <FilterBar
         fields={[
@@ -217,10 +234,6 @@ export default function ProjectList({
         </Alert>
       ) : null}
 
-      {!loading && !error && items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('projects.empty_list')}</p>
-      ) : null}
-
       {/* List */}
       {!loading && !error && items.length > 0 ? (
         <div className="space-y-3">
@@ -235,6 +248,7 @@ export default function ProjectList({
           ))}
         </div>
       ) : null}
-    </div>
+      </div>
+    </ListPage>
   );
 }
