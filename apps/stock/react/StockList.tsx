@@ -25,16 +25,16 @@ import {
   type StockCategorySummary,
   type StockItem,
 } from '@/lib/api/stock';
-import { useUrlDialog } from '@/lib/useUrlDialog';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
-
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 
 interface StockListProps {
   initialSearch?: string;
   initialStatus?: string;
   initialZoneId?: string;
   initialCategoryId?: string;
+  newUrl?: string;
 }
 
 const STATUS_OPTIONS = ['', 'in_stock', 'low_stock', 'out_of_stock', 'ordered', 'expired', 'reserved'];
@@ -57,6 +57,7 @@ export default function StockList({
   initialStatus = '',
   initialZoneId = '',
   initialCategoryId = '',
+  newUrl = '/app/stock/new/',
 }: StockListProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
@@ -71,7 +72,7 @@ export default function StockList({
   const [status, setStatus] = React.useState(initialStatus);
   const [zone, setZone] = React.useState(initialZoneId);
   const [category, setCategory] = React.useState(initialCategoryId);
-  const [createCategoryRequested, setCreateCategoryRequested] = useUrlDialog('new-category');
+  const [createCategoryRequested, setCreateCategoryRequested] = React.useState(false);
 
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -214,6 +215,22 @@ export default function StockList({
 
   return (
     <div className="space-y-4">
+      <PageHeader title={t('stock.title', { defaultValue: 'Stock' })}>
+        <button
+          type="button"
+          onClick={() => { setTab('categories'); setCreateCategoryRequested(true); }}
+          className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          {t('stock.actions.new_category', { defaultValue: 'New category' })}
+        </button>
+        <a
+          href={newUrl}
+          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t('stock.actions.new_item', { defaultValue: 'New item' })}
+        </a>
+      </PageHeader>
+
       <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex items-center gap-2">
             <Button type="button" variant={tab === 'items' ? 'default' : 'outline'} onClick={() => setTab('items')}>

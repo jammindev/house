@@ -52,7 +52,6 @@ def _resolve_selected_household(request):
 
 
 class AppInteractionsView(ReactPageView):
-    page_title = _("Activity")
     react_root_id = "interactions-list-root"
     props_script_id = "interactions-list-props"
     page_vite_asset = "src/pages/interactions/list.tsx"
@@ -116,7 +115,6 @@ class AppInteractionsView(ReactPageView):
 
 
 class AppInteractionNewView(ReactPageView):
-    page_title = _("Add event")
     react_root_id = "interaction-create-root"
     props_script_id = "interaction-create-props"
     page_vite_asset = "src/pages/interactions/new.tsx"

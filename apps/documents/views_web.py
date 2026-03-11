@@ -24,8 +24,6 @@ def _resolve_selected_household(request):
 
 
 class AppDocumentsView(ReactPageView):
-    page_title = _("Documents")
-    page_description = _("Review recent files and identify which documents still need an activity context.")
     react_root_id = "documents-root"
     props_script_id = "documents-props"
     page_vite_asset = "src/pages/documents/list.tsx"
@@ -40,7 +38,6 @@ class AppDocumentsView(ReactPageView):
         without_activity_count = queryset.filter(interaction_documents__isnull=True).distinct().count()
 
         return {
-            'title': str(self.page_title),
             'createUrl': reverse('app_documents_new'),
             'initialDocuments': list(initial_documents),
             'initialLoaded': True,
@@ -55,8 +52,6 @@ class AppDocumentsView(ReactPageView):
 
 
 class AppDocumentCreateView(ReactPageView):
-    page_title = _("Add document")
-    page_description = _("Upload a document now and qualify it later by linking it to the right activity.")
     react_root_id = "document-create-root"
     props_script_id = "document-create-props"
     page_vite_asset = "src/pages/documents/new.tsx"
@@ -68,7 +63,6 @@ class AppDocumentCreateView(ReactPageView):
             if value != 'photo'
         ]
         return {
-            'title': str(self.page_title),
             'cancelUrl': reverse('app_documents'),
             'allowedTypes': allowed_types,
             'defaultType': None,
@@ -78,8 +72,6 @@ class AppDocumentCreateView(ReactPageView):
 
 
 class AppDocumentDetailView(ReactPageView):
-    page_title = _("Document details")
-    page_description = _("Check the current context of this document, then attach it to the right activity.")
     react_root_id = "document-detail-root"
     props_script_id = "document-detail-props"
     page_vite_asset = "src/pages/documents/detail.tsx"

@@ -11,6 +11,7 @@ import { fetchInteractions, type InteractionListItem } from '@/lib/api/interacti
 import { cn } from '@/lib/utils';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 
 interface InteractionListProps {
   title?: string;
@@ -74,6 +75,7 @@ function LoadingState() {
 }
 
 export function InteractionList({
+  title,
   search,
   type,
   status,
@@ -240,6 +242,8 @@ export function InteractionList({
   const highlightedItem = highlightedId ? items.find((item) => item.id === highlightedId) : null;
 
   return (
+    <>
+      {title ? <PageHeader title={title} /> : null}
     <Card>
       <CardContent className="pt-6">
         {highlightedItem ? (
@@ -387,6 +391,7 @@ export function InteractionList({
         ) : null}
       </CardContent>
     </Card>
+    </>
   );
 }
 

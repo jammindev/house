@@ -38,8 +38,6 @@ def _zones_payload(request, selected_household):
 
 
 class AppEquipmentView(ReactPageView):
-    page_title = _("Equipment")
-    page_actions_template = "equipment/partials/_equipment_actions.html"
     react_root_id = "equipment-list-root"
     props_script_id = "equipment-list-props"
     page_vite_asset = "src/pages/equipment/list.tsx"

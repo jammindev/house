@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 import ContactList from './ContactList';
 import StructureList from './StructureList';
 
@@ -89,12 +90,7 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="mt-1 text-sm text-gray-500">
-            {t('repertoire.subtitle', { defaultValue: 'Manage household contacts and structures.' })}
-          </p>
-        </div>
+      <PageHeader title={t('repertoire.title', { defaultValue: 'Directory' })}>
         <a
           href={isContacts ? '/app/directory/contacts/new/' : '/app/directory/structures/new/'}
           className={cn(buttonVariants({ size: 'sm' }))}
@@ -104,7 +100,7 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
             ? t('contacts.addContact', { defaultValue: 'Add contact' })
             : t('structures.addStructure', { defaultValue: 'Add structure' })}
         </a>
-      </div>
+      </PageHeader>
 
       <div className="flex justify-end">
         <div className="inline-flex gap-2">

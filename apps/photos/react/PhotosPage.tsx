@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchPhotos, type PhotoDocument } from '@/lib/api/photos';
 import PhotoGrid from './PhotoGrid';
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 
 type PhotosPageProps = Record<string, never>;
 
@@ -33,6 +34,7 @@ export default function PhotosPage(_props: PhotosPageProps) {
 
   return (
     <div className="space-y-6">
+      <PageHeader title={t('photos.title', { defaultValue: 'Photos' })} />
       {!loading && !error && photos.length > 0 ? (
         <p className="text-sm text-muted-foreground">
           {t('photos.count', { count: photos.length, defaultValue: '{{count}} photos' })}

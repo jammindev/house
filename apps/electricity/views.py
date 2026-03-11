@@ -62,7 +62,6 @@ def is_household_owner(user, household):
 
 class AppElectricityView(ReactPageView):
     template_name = "electricity/app/electricity.html"
-    page_title = _("Electricity")
     react_root_id = "electricity-board-root"
     props_script_id = "electricity-page-props"
     page_vite_asset = "src/pages/electricity/board.tsx"

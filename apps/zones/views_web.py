@@ -22,8 +22,6 @@ def _resolve_selected_household(request):
 
 
 class AppZonesView(ReactPageView):
-    page_title = _("Zones")
-    page_actions_template = "zones/partials/_zones_actions.html"
     react_root_id = "zones-root"
     props_script_id = "zones-page-props"
     page_vite_asset = "src/pages/zones/list.tsx"

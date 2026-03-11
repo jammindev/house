@@ -46,9 +46,6 @@ def _zones_payload(request, selected_household):
 
 
 class AppProjectsView(ReactPageView):
-    page_title = _("Projects")
-    page_description = _("Manage your renovation, maintenance and other projects.")
-    page_actions_template = "projects/partials/_projects_actions.html"
     react_root_id = "projects-list-root"
     props_script_id = "projects-list-props"
     page_vite_asset = "src/pages/projects/list.tsx"
@@ -105,7 +102,6 @@ class AppProjectsView(ReactPageView):
 
 
 class AppProjectsNewView(ReactPageView):
-    page_title = _("New project")
     react_root_id = "projects-form-root"
     props_script_id = "projects-form-props"
     page_vite_asset = "src/pages/projects/new.tsx"
@@ -165,7 +161,6 @@ class AppProjectsEditView(ReactPageView):
 
 
 class AppProjectGroupsView(ReactPageView):
-    page_title = _("Project groups")
     react_root_id = "project-groups-root"
     props_script_id = "project-groups-props"
     page_vite_asset = "src/pages/projects/groups.tsx"

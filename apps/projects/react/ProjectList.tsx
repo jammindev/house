@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { FilterBar } from '@/design-system/filter-bar';
+import PageHeader from '@/components/PageHeader';
 import {
   fetchProjects,
   fetchProjectGroups,
@@ -137,6 +138,24 @@ export default function ProjectList({
 
   return (
     <div className="space-y-4">
+      <PageHeader
+        title={t('projects.title', { defaultValue: 'Projects' })}
+        description={t('projects.description', { defaultValue: 'Manage your renovation, maintenance and other projects.' })}
+      >
+        <a
+          href="/app/projects/groups/"
+          className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          {t('projects.groups', { defaultValue: 'Groups' })}
+        </a>
+        <a
+          href="/app/projects/new/"
+          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t('projects.new', { defaultValue: 'New project' })}
+        </a>
+      </PageHeader>
+
       {/* Filters */}
       <FilterBar
         fields={[

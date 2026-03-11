@@ -1,5 +1,7 @@
 // frontend/src/electricity/ElectricityBoardNode.tsx
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import PageHeader from '@/components/PageHeader';
 
 type RefItem = { id: string; label: string; name?: string };
 type ActiveLinkItem = { id: string; circuitLabel: string; usagePointLabel: string };
@@ -45,6 +47,7 @@ function extractList<T>(payload: unknown): T[] {
 }
 
 export default function ElectricityBoardNode(props: ElectricityPageProps) {
+  const { t } = useTranslation();
   const apiBase = props.apiBase.replace(/\/+$/, '');
 
   const [board, setBoard] = useState(props.board);
@@ -193,6 +196,8 @@ export default function ElectricityBoardNode(props: ElectricityPageProps) {
   }
 
   return (
+    <>
+    <PageHeader title={t('electricity.title', { defaultValue: 'Electricity' })} />
     <section className="rounded-xl border border-border bg-card p-4 text-card-foreground">
       <h2 className="text-lg font-semibold">Electricity API workspace</h2>
       <p className="mt-2 text-sm text-muted-foreground">SSR initializes data, all in-app actions call the API.</p>
@@ -404,5 +409,6 @@ export default function ElectricityBoardNode(props: ElectricityPageProps) {
         </pre>
       ) : null}
     </section>
+    </>
   );
 }

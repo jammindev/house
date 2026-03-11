@@ -5,7 +5,6 @@ from core.views import ReactPageView
 
 
 class AppContactsView(ReactPageView):
-    page_title = _("Directory")
     react_root_id = "directory-root"
     props_script_id = "directory-props"
     page_vite_asset = "src/pages/contacts/list.tsx"

@@ -242,7 +242,6 @@ def _serialize_document_item(document, list_url):
 class AppDashboardView(ReactPageView):
     """Dashboard principal de l'application."""
 
-    page_title = _('Dashboard')
     react_root_id = 'dashboard-root'
     props_script_id = 'dashboard-props'
     page_vite_asset = 'src/pages/dashboard/index.tsx'

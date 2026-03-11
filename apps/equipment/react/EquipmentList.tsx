@@ -8,6 +8,7 @@ import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment'
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 
 interface EquipmentListProps {
   initialSearch?: string;
@@ -107,7 +108,16 @@ export default function EquipmentList({
 
   return (
     <div className="space-y-4">
-        <FilterBar
+      <PageHeader title={t('equipment.title', { defaultValue: 'Equipment' })}>
+        <a
+          href="/app/equipment/new/"
+          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t('equipment.new', { defaultValue: 'New equipment' })}
+        </a>
+      </PageHeader>
+
+      <FilterBar
           fields={[
             {
               type: 'search',

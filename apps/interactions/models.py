@@ -58,7 +58,7 @@ class Interaction(HouseholdScopedModel):
         help_text="Whether this interaction is private to the creator"
     )
     occurred_at = models.DateTimeField(
-        help_text="When this interaction occurred"
+        help_text="When this interaction occurred",
     )
     tags = GenericRelation(
         'tags.TagLink',
@@ -88,7 +88,7 @@ class Interaction(HouseholdScopedModel):
     zones = models.ManyToManyField(
         'zones.Zone',
         through='InteractionZone',
-        related_name='interactions'
+        related_name='interactions',
     )
     
     objects = HouseholdScopedManager()

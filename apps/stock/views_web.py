@@ -50,8 +50,6 @@ def _categories_payload(request, selected_household):
 
 
 class AppStockView(ReactPageView):
-    page_title = _("Stock")
-    page_actions_template = "stock/partials/_stock_actions.html"
     react_root_id = "stock-list-root"
     props_script_id = "stock-list-props"
     page_vite_asset = "src/pages/stock/list.tsx"

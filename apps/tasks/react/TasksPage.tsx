@@ -9,9 +9,10 @@ import {
   type TaskStatus,
 } from '@/lib/api/tasks';
 import { useHouseholdId } from '@/lib/useHouseholdId';
-import { useUrlDialog } from '@/lib/useUrlDialog';
+import PageHeader from '@/components/PageHeader';
 import TaskCard from './TaskCard';
 import NewTaskDialog from './NewTaskDialog';
+
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
@@ -72,7 +73,7 @@ type TasksPageProps = Record<string, never>;
 export default function TasksPage(_props: TasksPageProps) {
   const householdId = useHouseholdId();
   const { t } = useTranslation();
-  const [newTaskOpen, setNewTaskOpen] = useUrlDialog('new-task');
+  const [newTaskOpen, setNewTaskOpen] = React.useState(false);
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -167,6 +168,16 @@ export default function TasksPage(_props: TasksPageProps) {
 
   return (
     <div className="space-y-4">
+      <PageHeader title={t('tasks.title', { defaultValue: 'Tasks' })}>
+        <button
+          type="button"
+          onClick={() => setNewTaskOpen(true)}
+          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t('tasks.new', { defaultValue: 'New task' })}
+        </button>
+      </PageHeader>
+
       {/* Filter chips */}
       <div className="flex flex-wrap gap-1.5">
         {FILTERS.map(({ key, label }) => (

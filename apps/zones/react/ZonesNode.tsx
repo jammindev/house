@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHouseholdId } from '@/lib/useHouseholdId';
-import { useUrlDialog } from '@/lib/useUrlDialog';
+import PageHeader from '@/components/PageHeader';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { SheetDialog } from '@/design-system/sheet-dialog';
@@ -19,7 +19,7 @@ export default function ZonesNode(props: ZonesPageProps) {
 
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [formOpen, setFormOpen] = useUrlDialog('new-zone');
+  const [formOpen, setFormOpen] = useState(false);
 
   const numberFormatter = useMemo(() => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }), []);
   const { zonesById, sortedZones, zoneDepths } = useMemo(() => computeZoneTree(zones), [zones]);
@@ -41,7 +41,18 @@ export default function ZonesNode(props: ZonesPageProps) {
   }
 
   return (
-    <section className="rounded-xl border border-border bg-card p-4 text-card-foreground">
+    <>
+      <PageHeader title={t('zones.title', { defaultValue: 'Zones' })}>
+        <button
+          type="button"
+          onClick={() => setFormOpen(true)}
+          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t('zones.addZone')}
+        </button>
+      </PageHeader>
+
+      <section className="rounded-xl border border-border bg-card p-4 text-card-foreground">
       <div className="mb-4">
         <SheetDialog
           title={t('zones.addZone')}
@@ -100,5 +111,6 @@ export default function ZonesNode(props: ZonesPageProps) {
 
       {pendingDelete ? <span className="sr-only">{pendingDelete.id}</span> : null}
     </section>
+    </>
   );
 }

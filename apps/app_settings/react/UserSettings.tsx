@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import type { UserProfile } from '@/lib/api/users';
+import PageHeader from '@/components/PageHeader';
 import type { Household, HouseholdInvitation } from '@/lib/api/households';
 import { fetchHouseholds } from '@/lib/api/households';
 import { HouseholdManagement } from './components/HouseholdManagement';
@@ -18,6 +20,7 @@ interface UserSettingsProps {
 }
 
 export default function UserSettings({ initialUser, initialHouseholds, activeHouseholdId, switchHouseholdUrl, initialPendingInvitations = [] }: UserSettingsProps) {
+  const { t } = useTranslation();
   const [user, setUser] = React.useState<UserProfile>(initialUser);
   const [households, setHouseholds] = React.useState<Household[]>(initialHouseholds);
 
@@ -34,6 +37,10 @@ export default function UserSettings({ initialUser, initialHouseholds, activeHou
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        title={t('settings.title', { defaultValue: 'Settings' })}
+        description={t('settings.description', { defaultValue: 'Manage your profile, households, and preferences.' })}
+      />
       <PendingInvitations
         initialInvitations={initialPendingInvitations}
         activeHouseholdId={activeHouseholdId}

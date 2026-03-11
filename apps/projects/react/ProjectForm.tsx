@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
+import { Card, CardContent } from '@/design-system/card';
+import PageHeader from '@/components/PageHeader';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
@@ -198,10 +199,9 @@ export default function ProjectForm({
   const submitLabel = mode === 'edit' ? t('projects.form.actions.save') : t('projects.form.actions.create');
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-      </CardHeader>
+    <>
+      <PageHeader title={title} />
+      <Card>
       <CardContent>
         {loading ? <p className="text-sm text-muted-foreground">{t('projects.loading')}</p> : null}
 
@@ -321,6 +321,7 @@ export default function ProjectForm({
         ) : null}
       </CardContent>
     </Card>
+    </>
   );
 }
 

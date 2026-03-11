@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import PageHeader from '@/components/PageHeader';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -85,21 +86,23 @@ export default function ProjectGroupList({
   }
 
   return (
+    <>
+      <PageHeader
+        title={t('projects.groups.title', { defaultValue: 'Project groups' })}
+      >
+        <a
+          href={projectsUrl}
+          className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
+        >
+          {t('projects.groups.back', { defaultValue: '← Projects' })}
+        </a>
+      </PageHeader>
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base">{t('projects.groups.title')}</CardTitle>
-          <div className="flex gap-2">
-            <a
-              href={projectsUrl}
-              className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
-            >
-              {t('projects.title')}
-            </a>
-            <Button type="button" onClick={() => setShowForm((v) => !v)}>
-              {showForm ? t('projects.groups.cancel') : t('projects.groups.new')}
-            </Button>
-          </div>
+        <div className="flex justify-end">
+          <Button type="button" onClick={() => setShowForm((v) => !v)}>
+            {showForm ? t('projects.groups.cancel') : t('projects.groups.new')}
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -172,5 +175,6 @@ export default function ProjectGroupList({
         ) : null}
       </CardContent>
     </Card>
+    </>
   );
 }

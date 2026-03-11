@@ -15,6 +15,7 @@ import { ZoneTreeSelector } from '@/lib/components/ZoneTreeSelector';
 import type { ZoneOption } from '@/lib/api/zones';
 
 import { useHouseholdId } from '@/lib/useHouseholdId';
+import PageHeader from '@/components/PageHeader';
 
 interface InteractionCreateFormProps {
   title?: string;
@@ -272,7 +273,9 @@ export function InteractionCreateForm({
   }
 
   return (
-    <form className="space-y-5" onSubmit={handleSubmit}>
+    <>
+      {title ? <PageHeader title={title} /> : null}
+      <form className="space-y-5" onSubmit={handleSubmit}>
       {sourceInteraction ? (
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
           <p className="text-sm font-medium text-foreground">{t('interactions.source_interaction_label', { defaultValue: 'Source event' })}</p>
@@ -505,6 +508,7 @@ export function InteractionCreateForm({
         </Button>
       </div>
     </form>
+    </>
   );
 }
 

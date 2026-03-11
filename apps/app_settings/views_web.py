@@ -14,8 +14,6 @@ from households.models import Household, HouseholdMember, HouseholdInvitation
 
 
 class AppSettingsView(ReactPageView):
-    page_title = _("Settings")
-    page_description = _("Manage your profile, households, and preferences.")
     react_root_id = "settings-root"
     props_script_id = "settings-props"
     page_vite_asset = "src/pages/settings/index.tsx"

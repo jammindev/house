@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { fetchDocuments, type DocumentItem } from '@/lib/api/documents';
+import PageHeader from '@/components/PageHeader';
 import DocumentListItem from './DocumentListItem';
 import DocumentsFilters from './DocumentsFilters';
 import EditDocumentModal from './EditDocumentModal';
@@ -83,16 +84,19 @@ export default function DocumentsPage(props: DocumentsPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
-        {props.createUrl && (
+      <PageHeader
+        title={t('documents.title', { defaultValue: 'Documents' })}
+        description={t('documents.description', { defaultValue: 'Review recent files and identify which documents still need an activity context.' })}
+      >
+        {props.createUrl ? (
           <a
             href={props.createUrl}
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
           >
             {t('documents.add')}
           </a>
-        )}
-      </div>
+        ) : null}
+      </PageHeader>
 
       <DocumentsFilters
         unlinkedOnly={unlinkedOnly}
