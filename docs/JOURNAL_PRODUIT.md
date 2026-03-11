@@ -29,8 +29,9 @@ Dernière mise à jour : 2026-03-10
 - Parcours 03 — Transformer un besoin en action suivie : **V1 livrée**
 - Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **V1 livrée**
+- Parcours 06 — Recevoir les bons rappels au bon moment pour ne rien rater : **cadrage initial — à démarrer**
 
-**Tous les parcours V1 sont livrés.** Le produit couvre l'ensemble du flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer.
+Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention.
 
 ## Ce qui est considéré comme livré sur le parcours 01
 
@@ -115,15 +116,19 @@ Références :
 
 ## Prochain focus recommandé
 
-Tous les parcours V1 sont livrés. Les prochains axes possibles sont dans `docs/IDEES_FUTURES.md`.
+**Parcours 06 — Alertes et rappels proactifs** est le prochain parcours à démarrer.
 
-Candidats naturels pour une V2 :
+Références :
+
+- [docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md)
+- [docs/PARCOURS_06_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_06_BACKLOG_TECHNIQUE.md)
+
+Axes suivants après le parcours 06 :
 
 - couche IA : capture assistée depuis WhatsApp / email (parcours 01 — RFC documentée)
 - chat IA global household : questions en langage naturel sur le foyer (RFC documentée)
 - parcours 02 V1 complète : traitement automatisé des documents entrants
 - amélioration de la navigation et des performances frontend (chunks, pagination)
-- notifications et rappels (maintenance, garanties, tâches en retard)
 
 ## Journal des sessions
 

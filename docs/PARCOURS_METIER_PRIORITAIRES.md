@@ -19,7 +19,7 @@ Un parcours est prioritaire s'il coche au moins deux de ces critères :
 - effet structurant sur plusieurs modules du produit
 - complexité raisonnable pour livrer un premier flux complet
 
-## Les 5 premiers parcours recommandés
+## Les 6 premiers parcours recommandés
 
 ## 1. Capturer un événement du foyer et le retrouver facilement
 
@@ -190,6 +190,51 @@ Depuis une zone ou un équipement, l'utilisateur peut voir l'historique utile, l
 - l'utilisateur peut agir depuis le contexte consulté
 - les liens entre espace, équipement et historique sont lisibles
 
+## 6. Recevoir les bons rappels au bon moment pour ne rien rater
+
+Document détaillé : `docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md`
+
+Statut actuel : **à démarrer**
+
+### Pourquoi en sixième
+
+Les cinq premiers parcours ont construit la mémoire du foyer. Le produit capture, organise et relie les informations. Mais il ne signale pas. Les alertes proactives ferment la boucle : l'utilisateur sait immédiatement ce qui mérite son attention sans fouiller.
+
+### Déclencheur utilisateur
+
+"Je veux savoir ce qui mérite mon attention dans la maison sans avoir à tout parcourir manuellement."
+
+### Résultat attendu
+
+L'utilisateur arrive dans l'application et voit immédiatement ses tâches en retard, ses garanties qui expirent et ses maintenances à planifier. Il peut agir en un clic depuis cette vue.
+
+### Périmètre de livraison V1 retenu
+
+- section "À surveiller" sur le dashboard avec les alertes les plus urgentes
+- page Alertes dédiée organisée en trois catégories : tâches en retard, garanties à surveiller, maintenances à planifier
+- badge de navigation indiquant le nombre d'alertes actives
+- endpoint backend `GET /api/alerts/summary/` agrégant les alertes en un seul appel
+
+Hors périmètre V1 :
+
+- emails ou push notifications de rappel
+- configuration des fenêtres d'alerte par l'utilisateur
+- alertes sur les projets sans activité récente
+- snooze ou report d'une alerte
+
+### Stories initiales
+
+- Voir un résumé des alertes actives sur le dashboard sans fouiller.
+- Accéder à la page Alertes pour voir toutes les catégories.
+- Naviguer depuis une alerte vers l'entité concernée et agir.
+- Voir le badge de navigation refléter le nombre d'alertes actives.
+
+### Définition de done
+
+- les alertes actives sont visibles sans navigation préalable
+- chaque alerte mène à une action en un clic
+- les alertes résolues disparaissent automatiquement
+
 ## Ce que je ne mettrais pas dans les 5 premiers
 
 - flux avancés d'email entrant tant que le parcours document + interaction n'est pas solide
@@ -217,6 +262,10 @@ Parcours 4 : suivre un projet de bout en bout
 ### Semaine 5
 
 Parcours 5 : naviguer par zone ou équipement pour comprendre et agir
+
+### Semaine 6
+
+Parcours 6 : recevoir les bons rappels au bon moment pour ne rien rater
 
 ## Template de travail pour une semaine
 
