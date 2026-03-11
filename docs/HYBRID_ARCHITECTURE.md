@@ -2,10 +2,10 @@
 
 > Canonical doc index: `docs/README.md`
 
-Ce dépôt suit une approche **Django-first**:
+Ce dépôt suit une approche **Django shell + React mini-SPA** :
 
-1. Django rend les pages et les routes principales.
-2. React est ajouté uniquement pour les zones UI riches.
+1. Django gère les routes, l’auth, l’API REST, et rend des pages shell minimales.
+2. Chaque page applicative est une mini-SPA React : titre, description, boutons d’action, et toute l’UI sont gérés par React.
 3. Les assets React sont gérés par Vite et servis par Django (`django-vite`).
 
 ---
@@ -14,45 +14,94 @@ Ce dépôt suit une approche **Django-first**:
 
 ### Côté Django
 
-- Rendu serveur via templates (`templates/`)
+- Shell HTML par page via `ReactPageView` (`core/views.py`)
 - API REST via DRF (`/api/...`)
 - Auth session Django (pages + API)
+- Props initiales sérialisées en JSON dans la page (`<script type="application/json">`)
 
 ### Côté React
 
 - Source: `ui/src/`
 - Build: `static/react/`
 - Chargement dans les templates via tags `django_vite`
+- Hydratation via `mountWithJsonScriptProps()` (`ui/src/lib/mount.tsx`)
 
 ---
 
-## Patterns hybrides présents
+## Pattern de page standard : mini-SPA
 
-### 1) Page Django classique
+Chaque page applicative suit ce pattern :
 
-Route HTML rendue 100% côté Django (ex: login/dashboard).
+### 1) Vue Django (`ReactPageView`)
 
-### 2) Django + Web Components React
+`ReactPageView` (dans `core/views.py`) rend un template shell et passe des props JSON :
 
-Pattern utilisé pour `ui-button`:
+```python
+class AppTasksView(ReactPageView):
+    react_root_id = "tasks-root"
+    props_script_id = "tasks-props"
+    page_vite_asset = "src/pages/tasks/list.tsx"
+
+    def get_props(self):
+        return { ... }  # données initiales sérialisées en JSON
+```
+
+### 2) Template shell (`core/react_page.html`)
+
+Django rend uniquement le point de montage React et les props :
+
+```html
+{% extends "base_app.html" %}
+{% block content %}
+<div id="{{ react_root_id }}"></div>
+{{ react_props|json_script:props_script_id }}
+{% endblock %}
+{% block extra_js %}
+    {% vite_asset page_vite_asset %}
+{% endblock %}
+```
+
+### 3) Entry point Vite (`ui/src/pages/<app>/list.tsx`)
+
+Monte le composant React dans le div avec les props Django :
+
+```ts
+onDomReady(() => {
+  mountWithJsonScriptProps(‘tasks-root’, ‘tasks-props’, TasksPage);
+});
+```
+
+### 4) Composant React (mini-SPA)
+
+Le composant gère tout : titre, actions, état, UI.
+Le composant `PageHeader` (`ui/src/components/PageHeader.tsx`) gère le titre de page et les boutons d’action :
+
+```tsx
+<PageHeader title={t(‘tasks.title’, { defaultValue: ‘Tasks’ })}>
+  <button onClick={() => setNewTaskOpen(true)}>New task</button>
+</PageHeader>
+```
+
+`PageHeader` met aussi à jour `document.title` via `useEffect`.
+
+---
+
+## Autres patterns présents
+
+### Page Django classique
+
+Route HTML rendue 100% côté Django (ex: login, onboarding).
+
+### Web Components React
+
+Pattern utilisé pour `ui-button` :
 
 - composant React `ui/src/web-components/Button.tsx`
 - wrapper Web Component `ui/src/web-components/createWebComponent.tsx`
-- usage direct dans template (`templates/test_components.html`)
-
-Exemple:
 
 ```html
 <ui-button variant="default" text="React Default"></ui-button>
 ```
-
-### 3) Hydratation ciblée (prévu / partiellement utilisé)
-
-Pattern `mountComponent(elementId, Component)` disponible dans:
-
-- `ui/src/lib/mount.tsx`
-
-Il permet de monter un composant React dans une div Django avec `data-props`.
 
 ---
 
@@ -61,18 +110,17 @@ Il permet de monter un composant React dans une div Django avec `data-props`.
 ```text
 .
 ├── templates/
-│   ├── base.html
-│   ├── dashboard.html
-│   ├── base_components.html
-│   └── test_components.html
-├── ui/
-│   ├── vite.config.ts
-│   └── src/
-│       ├── web-components/
-│       │   ├── createWebComponent.tsx
-│       │   └── Button.tsx
-│       └── lib/mount.tsx
-└── static/react/   # build output
+│   ├── base_app.html              ← layout app (nav, sidebar)
+│   └── core/react_page.html      ← shell mini-SPA
+├── apps/
+│   └── <app>/
+│       ├── views_web.py           ← ReactPageView subclass + get_props()
+│       └── react/                 ← composants React de l’app
+├── ui/src/
+│   ├── pages/<app>/list.tsx       ← entry points Vite (montage React)
+│   ├── components/PageHeader.tsx  ← header de page partagé
+│   └── lib/mount.tsx              ← utilitaire mountWithJsonScriptProps
+└── static/react/                  ← build output
 ```
 
 ---
@@ -98,12 +146,13 @@ python manage.py collectstatic --noinput
 
 ---
 
-## Ajouter une nouvelle zone React dans un template Django
+## Ajouter une nouvelle page mini-SPA
 
-1. Créer le composant React.
-2. L’exposer via Vite (entry `rollupOptions.input` si nécessaire).
-3. Charger l’asset côté template avec `django_vite`.
-4. Prévoir un fallback HTML (`noscript`) quand utile.
+1. Créer le composant React dans `apps/<app>/react/`.
+2. Créer l’entry Vite dans `ui/src/pages/<app>/` (montage via `mountWithJsonScriptProps`).
+3. Créer la vue Django (`ReactPageView`) avec `react_root_id`, `props_script_id`, `page_vite_asset`, et `get_props()`.
+4. Ajouter `PageHeader` dans le composant React avec titre et boutons d’action.
+5. Enregistrer la route Django dans `urls.py`.
 
 ---
 
