@@ -16,16 +16,15 @@ import {
   type ProjectGroupItem,
 } from '@/lib/api/projects';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface ProjectGroupListProps {
   projectsUrl?: string;
+  onNavigate?: (url: string) => void;
 }
 
 export default function ProjectGroupList({
   projectsUrl = '/app/projects/',
+  onNavigate,
 }: ProjectGroupListProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -44,14 +43,14 @@ export default function ProjectGroupList({
     setLoading(true);
     setError(null);
     try {
-      const items = await fetchProjectGroups(householdId);
+      const items = await fetchProjectGroups();
       setGroups(items);
     } catch {
       setError(t('projects.groups.error_loading'));
     } finally {
       setLoading(false);
     }
-  }, [householdId, t]);
+  }, [t]);
 
   React.useEffect(() => { load(); }, [load]);
 
@@ -64,7 +63,7 @@ export default function ProjectGroupList({
     setSaving(true);
     setFormError(null);
     try {
-      const created = await createProjectGroup({ name: name.trim(), description }, householdId);
+      const created = await createProjectGroup({ name: name.trim(), description });
       setGroups((prev) => [...prev, created]);
       setName('');
       setDescription('');
@@ -80,7 +79,7 @@ export default function ProjectGroupList({
     if (!window.confirm(t('projects.groups.delete_confirm', { name: group.name }))) return;
     setDeletingId(group.id);
     try {
-      await deleteProjectGroup(group.id, householdId);
+      await deleteProjectGroup(group.id);
       setGroups((prev) => prev.filter((g) => g.id !== group.id));
     } finally {
       setDeletingId(null);
@@ -94,6 +93,7 @@ export default function ProjectGroupList({
       >
         <a
           href={projectsUrl}
+          onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(projectsUrl); } : undefined}
           className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
         >
           {t('projects.groups.back', { defaultValue: '← Projects' })}
@@ -154,6 +154,7 @@ export default function ProjectGroupList({
                   <div className="flex-1 min-w-0">
                     <a
                       href={`/app/projects/groups/${group.id}/`}
+                      onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(`/app/projects/groups/${group.id}/`); } : undefined}
                       className="font-medium text-sm underline underline-offset-2 hover:text-foreground"
                     >
                       {group.name}

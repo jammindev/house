@@ -12,7 +12,6 @@ import {
   type StructureFormValues,
 } from '@/lib/api/structures';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface StructureFormProps {
   mode: 'create' | 'edit';
@@ -78,7 +77,6 @@ function structureToForm(s: Structure): { core: CoreForm; emails: EmailRow[]; ph
 }
 
 export default function StructureForm({ mode, structureId, redirectUrl, backUrl }: StructureFormProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [loading, setLoading] = React.useState(mode === 'edit');
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -155,7 +153,7 @@ export default function StructureForm({ mode, structureId, redirectUrl, backUrl 
 
     try {
       if (mode === 'create') {
-        await createStructure(payload, householdId ?? undefined);
+        await createStructure(payload);
       } else {
         await updateStructure(structureId!, payload);
       }

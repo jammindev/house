@@ -68,16 +68,15 @@ function getCookie(name: string): string {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId?: string | null): Record<string, string> {
+function buildHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
-function buildJsonHeaders(householdId?: string | null): Record<string, string> {
+function buildJsonHeaders(): Record<string, string> {
   return {
-    ...buildHeaders(householdId),
+    ...buildHeaders(),
     'Content-Type': 'application/json',
     'X-CSRFToken': getCookie('csrftoken'),
   };
@@ -93,12 +92,12 @@ function sortContacts(contacts: Contact[]): Contact[] {
   });
 }
 
-export async function fetchContacts(householdId?: string | null): Promise<Contact[]> {
+export async function fetchContacts(): Promise<Contact[]> {
   const params = new URLSearchParams({ ordering: 'last_name,first_name' });
   const response = await fetch(`/api/contacts/contacts/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   const payload = await response.json() as unknown;
@@ -106,11 +105,11 @@ export async function fetchContacts(householdId?: string | null): Promise<Contac
   return sortContacts(list as Contact[]);
 }
 
-export async function fetchContact(id: string, householdId?: string | null): Promise<Contact> {
+export async function fetchContact(id: string): Promise<Contact> {
   const response = await fetch(`/api/contacts/contacts/${id}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return response.json() as Promise<Contact>;
@@ -118,14 +117,13 @@ export async function fetchContact(id: string, householdId?: string | null): Pro
 
 export async function createContact(
   input: CreateContactInput,
-  householdId?: string | null,
   email?: { email: string; label?: string } | null,
   phone?: { phone: string; label?: string } | null,
 ): Promise<Contact> {
   const response = await fetch('/api/contacts/contacts/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildJsonHeaders(householdId),
+    headers: buildJsonHeaders(),
     body: JSON.stringify(input),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -139,7 +137,7 @@ export async function createContact(
       fetch('/api/contacts/emails/', {
         method: 'POST',
         credentials: 'include',
-        headers: buildJsonHeaders(householdId),
+        headers: buildJsonHeaders(),
         body: JSON.stringify({
           contact: contact.id,
           email: email.email,
@@ -155,7 +153,7 @@ export async function createContact(
       fetch('/api/contacts/phones/', {
         method: 'POST',
         credentials: 'include',
-        headers: buildJsonHeaders(householdId),
+        headers: buildJsonHeaders(),
         body: JSON.stringify({
           contact: contact.id,
           phone: phone.phone,
@@ -173,23 +171,22 @@ export async function createContact(
 export async function updateContact(
   id: string,
   input: UpdateContactInput,
-  householdId?: string | null,
 ): Promise<Contact> {
   const response = await fetch(`/api/contacts/contacts/${id}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildJsonHeaders(householdId),
+    headers: buildJsonHeaders(),
     body: JSON.stringify(input),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return response.json() as Promise<Contact>;
 }
 
-export async function deleteContact(id: string, householdId?: string | null): Promise<void> {
+export async function deleteContact(id: string): Promise<void> {
   const response = await fetch(`/api/contacts/contacts/${id}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
     body: JSON.stringify({}),
   });
   if (!response.ok && response.status !== 204) throw new Error(`API error ${response.status}`);
@@ -197,7 +194,6 @@ export async function deleteContact(id: string, householdId?: string | null): Pr
 
 export async function fetchContactInteractions(
   contactId: string,
-  householdId?: string | null,
   limit = 5,
 ): Promise<import('./interactions').InteractionListItem[]> {
   const params = new URLSearchParams({
@@ -208,7 +204,7 @@ export async function fetchContactInteractions(
   const response = await fetch(`/api/interactions/interactions/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) return [];
   const payload = await response.json() as unknown;

@@ -1,12 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 
 from .models import Document
-from .serializers import DocumentDetailSerializer, DocumentSerializer
-from .views import get_documents_queryset_for_request, get_recent_interaction_candidates
 
 
 class AppDocumentsView(ReactPageView):
@@ -15,22 +12,8 @@ class AppDocumentsView(ReactPageView):
     page_vite_asset = "src/pages/documents/list.tsx"
 
     def get_props(self):
-        queryset = get_documents_queryset_for_request(self.request)
-        initial_documents = DocumentSerializer(
-            queryset[:12],
-            many=True,
-            context={'request': self.request},
-        ).data
-        without_activity_count = queryset.filter(interaction_documents__isnull=True).distinct().count()
-
         return {
             'createUrl': reverse('app_documents_new'),
-            'initialDocuments': list(initial_documents),
-            'initialLoaded': True,
-            'initialCounts': {
-                'total': queryset.count(),
-                'withoutActivity': without_activity_count,
-            },
             'filterDefaults': {
                 'withoutActivityOnly': False,
             },
@@ -63,31 +46,14 @@ class AppDocumentDetailView(ReactPageView):
     page_vite_asset = "src/pages/documents/detail.tsx"
 
     def get_props(self):
+        from .views import get_documents_queryset_for_request
         queryset = get_documents_queryset_for_request(self.request)
         document = get_object_or_404(queryset, id=self.kwargs['document_id'])
-        selected_household = resolve_selected_household(self.request) or document.household
-        recent_candidates = get_recent_interaction_candidates(
-            self.request,
-            selected_household,
-            document_id=document.id,
-        )
-        initial_document = DocumentDetailSerializer(
-            document,
-            context={
-                'request': self.request,
-                'recent_interaction_candidates': recent_candidates,
-            },
-        ).data
-        file_url = initial_document.get('file_url')
         document_id = str(document.id)
         return {
             'documentId': document_id,
             'listUrl': reverse('app_documents'),
-            'fileUrl': file_url,
             'attachInteractionApiUrl': reverse('interaction-document-list'),
             'createInteractionUrl': f"{reverse('app_interaction_new')}?source_document_id={document_id}",
             'createTaskUrl': f"{reverse('app_interaction_new')}?type=todo&source_document_id={document_id}",
-            'initialDocument': initial_document,
-            'initialRecentInteractionCandidates': recent_candidates,
-            'initialLoaded': True,
         }

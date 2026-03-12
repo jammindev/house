@@ -58,6 +58,8 @@ class Interaction(HouseholdScopedModel):
         help_text="Whether this interaction is private to the creator"
     )
     occurred_at = models.DateTimeField(
+        null=True,
+        blank=True,
         help_text="When this interaction occurred",
     )
     tags = GenericRelation(
@@ -129,6 +131,10 @@ class Interaction(HouseholdScopedModel):
                 condition=models.Q(status__isnull=True)
                 | models.Q(status__in=['backlog', 'pending', 'in_progress', 'done', 'archived']),
                 name='interactions_status_check',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(type='todo') | models.Q(occurred_at__isnull=False),
+                name='interactions_occurred_at_required_for_non_todo',
             ),
         ]
     

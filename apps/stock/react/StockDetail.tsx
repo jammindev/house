@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/design-system/card';
 import { Input } from '@/design-system/input';
 import { adjustStockQuantity, deleteStockItem, fetchStockItem, type StockItem } from '@/lib/api/stock';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface StockDetailProps {
   itemId: string;
@@ -41,7 +40,6 @@ export default function StockDetail({
   editUrl,
   listUrl = '/app/equipment/stock/',
 }: StockDetailProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [item, setItem] = React.useState<StockItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -54,14 +52,14 @@ export default function StockDetail({
     setLoading(true);
     setError(null);
     try {
-      const loaded = await fetchStockItem(itemId, householdId);
+      const loaded = await fetchStockItem(itemId);
       setItem(loaded);
     } catch {
       setError(t('stock.errors.load_item_failed'));
     } finally {
       setLoading(false);
     }
-  }, [itemId, householdId, t]);
+  }, [itemId, t]);
 
   React.useEffect(() => {
     load();
@@ -78,7 +76,7 @@ export default function StockDetail({
     setAdjusting(true);
     setError(null);
     try {
-      const updated = await adjustStockQuantity(item.id, direction * parsed, householdId);
+      const updated = await adjustStockQuantity(item.id, direction * parsed);
       setItem(updated);
     } catch {
       setError(t('stock.errors.adjust_failed'));
@@ -94,7 +92,7 @@ export default function StockDetail({
     setDeleting(true);
     setError(null);
     try {
-      await deleteStockItem(item.id, householdId);
+      await deleteStockItem(item.id);
       window.location.assign(listUrl);
     } catch {
       setError(t('stock.errors.delete_failed'));

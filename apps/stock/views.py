@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 
 from .models import StockCategory, StockItem
 from .serializers import (
@@ -32,13 +32,13 @@ class StockCategoryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = StockCategory.objects.for_user_households(self.request.user).select_related("created_by", "updated_by")
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": _("A valid household context is required.")})
         serializer.save(household=household, created_by=self.request.user)
@@ -67,13 +67,13 @@ class StockItemViewSet(viewsets.ModelViewSet):
         queryset = StockItem.objects.for_user_households(self.request.user).select_related(
             "category", "zone", "created_by", "updated_by"
         )
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": _("A valid household context is required.")})
 

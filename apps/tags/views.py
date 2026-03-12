@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from .models import Tag, TagLink
 from .serializers import TagSerializer, TagLinkSerializer
 
@@ -13,7 +13,7 @@ class TagViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Tag.objects.for_user_households(self.request.user)
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
 
@@ -29,7 +29,7 @@ class TagViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
 
@@ -47,7 +47,7 @@ class TagLinkViewSet(viewsets.ModelViewSet):
         queryset = TagLink.objects.filter(
             household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
         ).select_related("tag", "content_type", "created_by", "updated_by")
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
 
@@ -60,7 +60,7 @@ class TagLinkViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
 
@@ -86,7 +86,7 @@ class TagLinkViewSet(viewsets.ModelViewSet):
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
 

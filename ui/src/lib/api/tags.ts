@@ -14,7 +14,6 @@ interface PaginatedResponse<T> {
 }
 
 interface FetchTagsOptions {
-  householdId?: string;
   type?: TagType;
   search?: string;
 }
@@ -35,7 +34,7 @@ function normalizeList(payload: unknown): TagOption[] {
 }
 
 export async function fetchTags(options: FetchTagsOptions = {}): Promise<TagOption[]> {
-  const { householdId, type, search } = options;
+  const { type, search } = options;
   const params = new URLSearchParams();
 
   if (type) {
@@ -51,7 +50,6 @@ export async function fetchTags(options: FetchTagsOptions = {}): Promise<TagOpti
     credentials: 'include',
     headers: {
       Accept: 'application/json',
-      ...(householdId ? { 'X-Household-Id': householdId } : {}),
     },
   });
 

@@ -53,6 +53,37 @@ class UserLocaleMiddleware:
         return response
 
 
+class ActiveHouseholdMiddleware:
+    """
+    Résout le household actif de l'utilisateur une seule fois par requête
+    et l'expose via request.household.
+
+    Doit être déclaré APRÈS AuthenticationMiddleware dans MIDDLEWARE.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request.household = None
+        user = getattr(request, 'user', None)
+        if user and user.is_authenticated:
+            active_id = getattr(user, 'active_household_id', None)
+            if active_id:
+                from households.models import Household
+                request.household = Household.objects.filter(id=active_id).first()
+            if not request.household:
+                membership = (
+                    user.householdmember_set
+                    .select_related('household')
+                    .order_by('household__name')
+                    .first()
+                )
+                if membership:
+                    request.household = membership.household
+        return self.get_response(request)
+
+
 class AcceptLanguageRedirectMiddleware:
     """
     Quand un utilisateur arrive sur une URL sans préfixe de langue ET sans cookie

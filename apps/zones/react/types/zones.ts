@@ -47,35 +47,10 @@ export type ZonePhoto = {
   created_at?: string;
 };
 
-export type ZonesPageProps = {
-  householdId?: string | null;
-  initialZones: Array<{
-    id: string;
-    name: string;
-    fullPath: string;
-    color: string;
-    parentId: string | null;
-  }>;
-};
+export type ZonesPageProps = Record<string, never>;
 
 export type ZoneDetailPageProps = {
-  householdId?: string | null;
   zoneId: string;
-  initialZone?: {
-    id: string;
-    name: string;
-    parentId: string | null;
-    parentName?: string | null;
-    note?: string | null;
-    surface?: number | null;
-    color?: string | null;
-    updatedAt?: string | null;
-  };
-  initialStats?: {
-    childrenCount: number;
-    photosCount: number;
-  };
-  initialPhotos?: ZonePhoto[];
   createActivityUrl?: string | null;
   createTaskUrl?: string | null;
 };

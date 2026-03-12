@@ -60,7 +60,7 @@ def test_stock_list_page_renders_with_props(client, user, household, membership)
 
 
 @pytest.mark.django_db
-def test_stock_new_page_renders_with_form_props(client, user, household, membership, zone, category):
+def test_stock_new_page_renders_with_form_props(client, user, household, membership):
     client.force_login(user)
     response = client.get(reverse("app_stock_new"), HTTP_X_HOUSEHOLD_ID=str(household.id))
 
@@ -71,8 +71,8 @@ def test_stock_new_page_renders_with_form_props(client, user, household, members
     props = response.context["react_props"]
     assert props["mode"] == "create"
     assert props["cancelUrl"] == reverse("app_stock")
-    assert len(props["initialZones"]) == 1
-    assert len(props["initialCategories"]) == 1
+    assert "initialZones" not in props
+    assert "initialCategories" not in props
 
 
 @pytest.mark.django_db

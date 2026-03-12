@@ -15,7 +15,6 @@ import {
 } from '@/lib/api/equipment';
 import type { ZoneOption } from '@/lib/api/zones';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface EquipmentFormProps {
   title?: string;
@@ -138,7 +137,6 @@ export default function EquipmentForm({
   cancelUrl = '/app/equipment/',
   successRedirectUrl = '/app/equipment/',
 }: EquipmentFormProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [submitting, setSubmitting] = React.useState(false);
@@ -160,7 +158,7 @@ export default function EquipmentForm({
       setLoading(true);
       setError(null);
       try {
-        const item = await fetchEquipment(resolvedEquipmentId, householdId);
+        const item = await fetchEquipment(resolvedEquipmentId);
         if (mounted) {
           setForm(fromApi(item));
         }
@@ -175,7 +173,7 @@ export default function EquipmentForm({
     return () => {
       mounted = false;
     };
-  }, [mode, equipmentId, householdId, t]);
+  }, [mode, equipmentId, t]);
 
   function updateField<Key extends keyof FormState>(key: Key, value: FormState[Key]) {
     setForm((previous) => ({ ...previous, [key]: value }));
@@ -193,9 +191,9 @@ export default function EquipmentForm({
     setSubmitting(true);
     try {
       if (mode === 'edit' && equipmentId) {
-        await updateEquipment(equipmentId, toPayload(form), householdId);
+        await updateEquipment(equipmentId, toPayload(form));
       } else {
-        await createEquipment(toPayload(form), householdId);
+        await createEquipment(toPayload(form));
       }
 
       if (typeof window !== 'undefined') {

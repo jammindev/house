@@ -11,12 +11,11 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId: string | null | undefined, write = false): Record<string, string> {
+function buildHeaders(write = false): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   };
-  if (householdId) headers['X-Household-Id'] = householdId;
   if (write) {
     headers['Content-Type'] = 'application/json';
     const csrf = getCookie('csrftoken');
@@ -26,28 +25,8 @@ function buildHeaders(householdId: string | null | undefined, write = false): Re
 }
 
 export function useZoneDetail(props: ZoneDetailPageProps) {
-  const [zone, setZone] = useState<ZoneDetail | null>(
-    props.initialZone
-      ? {
-          id: props.initialZone.id,
-          name: props.initialZone.name,
-          parent_id: props.initialZone.parentId,
-          note: props.initialZone.note ?? '',
-          surface: props.initialZone.surface ?? null,
-          color: props.initialZone.color ?? '#f4f4f5',
-          household_id: props.householdId ?? '',
-          parent: props.initialZone.parentId
-            ? {
-                id: props.initialZone.parentId,
-                name: props.initialZone.parentName ?? '',
-                color: null,
-              }
-            : null,
-          updated_at: props.initialZone.updatedAt ?? undefined,
-        }
-      : null
-  );
-  const [photos, setPhotos] = useState<ZonePhoto[]>(props.initialPhotos ?? []);
+  const [zone, setZone] = useState<ZoneDetail | null>(null);
+  const [photos, setPhotos] = useState<ZonePhoto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -65,12 +44,12 @@ export function useZoneDetail(props: ZoneDetailPageProps) {
         fetch(`/api/zones/${props.zoneId}/`, {
           method: 'GET',
           credentials: 'same-origin',
-          headers: buildHeaders(props.householdId),
+          headers: buildHeaders(),
         }),
         fetch(`/api/zones/${props.zoneId}/photos/`, {
           method: 'GET',
           credentials: 'same-origin',
-          headers: buildHeaders(props.householdId),
+          headers: buildHeaders(),
         }),
       ]);
 
@@ -82,10 +61,7 @@ export function useZoneDetail(props: ZoneDetailPageProps) {
       }
 
       const zonePayload = (await zoneResponse.json()) as ApiZone;
-      const mapped = mapApiZoneToZoneDetail({
-        ...zonePayload,
-        parent_name: zone?.parent?.name ?? props.initialZone?.parentName ?? null,
-      });
+      const mapped = mapApiZoneToZoneDetail(zonePayload);
       setZone(mapped);
 
       const photosPayload = (await photosResponse.json()) as Array<Record<string, unknown>>;
@@ -95,7 +71,7 @@ export function useZoneDetail(props: ZoneDetailPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [props.zoneId, props.householdId, props.initialZone?.parentName, zone?.parent?.name]);
+  }, [props.zoneId]);
 
   useEffect(() => {
     void load();
@@ -107,7 +83,7 @@ export function useZoneDetail(props: ZoneDetailPageProps) {
       const response = await fetch(`/api/zones/${props.zoneId}/attach_photo/`, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: buildHeaders(props.householdId, true),
+        headers: buildHeaders(true),
         body: JSON.stringify({ document_id: documentId, note }),
       });
 
@@ -126,7 +102,7 @@ export function useZoneDetail(props: ZoneDetailPageProps) {
       setPhotos((prev) => [created, ...prev]);
       return created;
     },
-    [props.zoneId, props.householdId]
+    [props.zoneId]
   );
 
   return {

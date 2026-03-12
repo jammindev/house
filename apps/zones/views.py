@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from .models import Zone, ZoneDocument
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from documents.models import Document
 
 
@@ -42,7 +42,7 @@ class ZoneViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """Set household and created_by from request."""
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({'household_id': 'A valid household_id is required.'})
 

@@ -1,18 +1,31 @@
 export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived' | null;
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
+export type TaskPriority = 1 | 2 | 3 | null;
 
 export interface Task {
   id: string;
   subject: string;
   content: string;
   status: TaskStatus;
-  occurred_at: string | null;
+  priority: TaskPriority;
+  due_date: string | null;           // YYYY-MM-DD
+  is_private: boolean;
+  assigned_to: string | null;        // UUID user assigné
+  assigned_to_name: string | null;
+  completed_by: string | null;
+  completed_by_name: string | null;
+  completed_at: string | null;
   created_at: string;
   project: string | null;
   project_title?: string | null;
   zone_names: string[];
-  metadata: Record<string, unknown>;
-  document_count: number;
+  source_interaction: string | null;
+}
+
+export interface HouseholdMember {
+  userId: string;
+  name: string;
+  role: 'owner' | 'member';
 }
 
 export interface Zone {
@@ -62,11 +75,10 @@ export function prevStatus(current: TaskStatus): TaskStatus {
 }
 
 export function isTaskOverdue(task: Task): boolean {
-  if (!task.occurred_at) return false;
+  if (!task.due_date) return false;
   if (task.status === 'done' || task.status === 'archived') return false;
-  const due = new Date(task.occurred_at);
+  const due = new Date(task.due_date);
   const today = new Date();
-  // Comparaison par jour uniquement — une tâche est en retard si sa date est STRICTEMENT avant aujourd'hui
   due.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
   return due < today;
@@ -93,18 +105,17 @@ function getCsrfToken(): string {
   return match ? match[1] : '';
 }
 
-function buildHeaders(householdId?: string | null): Record<string, string> {
+function buildHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
     'X-CSRFToken': getCsrfToken(),
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
-export async function fetchTasks(householdId?: string | null): Promise<Task[]> {
+export async function fetchTasks(): Promise<Task[]> {
   const res = await fetch(
-    '/api/interactions/interactions/?type=todo&limit=200&ordering=occurred_at',
-    { headers: buildHeaders(householdId) },
+    '/api/tasks/tasks/?limit=200&ordering=due_date,created_at',
+    { headers: buildHeaders() },
   );
   if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.status}`);
   const data = (await res.json()) as unknown;
@@ -116,11 +127,10 @@ export async function fetchTasks(householdId?: string | null): Promise<Task[]> {
 export async function updateTaskStatus(
   id: string,
   status: TaskStatus,
-  householdId?: string | null,
 ): Promise<Task> {
-  const res = await fetch(`/api/interactions/interactions/${id}/`, {
+  const res = await fetch(`/api/tasks/tasks/${id}/`, {
     method: 'PATCH',
-    headers: { ...buildHeaders(householdId), 'Content-Type': 'application/json' },
+    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify({ status }),
   });
   if (!res.ok) throw new Error(`Failed to update task: ${res.status}`);
@@ -129,12 +139,19 @@ export async function updateTaskStatus(
 
 export async function updateTask(
   id: string,
-  data: { subject?: string; content?: string; occurred_at?: string; zone_ids?: string[] },
-  householdId?: string | null,
+  data: {
+    subject?: string;
+    content?: string;
+    zone_ids?: string[];
+    due_date?: string | null;
+    priority?: TaskPriority;
+    assigned_to_id?: string | null;
+    status?: TaskStatus;
+  },
 ): Promise<Task> {
-  const res = await fetch(`/api/interactions/interactions/${id}/`, {
+  const res = await fetch(`/api/tasks/tasks/${id}/`, {
     method: 'PATCH',
-    headers: { ...buildHeaders(householdId), 'Content-Type': 'application/json' },
+    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error(`Failed to update task: ${res.status}`);
@@ -142,32 +159,48 @@ export async function updateTask(
 }
 
 export async function createTask(
-  data: { subject: string; content?: string; occurred_at?: string; zone_ids: string[]; metadata?: Record<string, unknown> },
-  householdId?: string | null,
+  data: {
+    subject: string;
+    content?: string;
+    zone_ids: string[];
+    due_date?: string | null;
+    priority?: TaskPriority;
+    assigned_to_id?: string | null;
+  },
 ): Promise<Task> {
-  const res = await fetch('/api/interactions/interactions/', {
+  const res = await fetch('/api/tasks/tasks/', {
     method: 'POST',
-    headers: { ...buildHeaders(householdId), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'todo', status: 'pending', ...data }),
+    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: 'pending', ...data }),
   });
   if (!res.ok) throw new Error(`Failed to create task: ${res.status}`);
   return (await res.json()) as Task;
 }
 
-export async function deleteTask(id: string, householdId?: string | null): Promise<void> {
-  const res = await fetch(`/api/interactions/interactions/${id}/`, {
+export async function deleteTask(id: string): Promise<void> {
+  const res = await fetch(`/api/tasks/tasks/${id}/`, {
     method: 'DELETE',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
-  // 404 = already deleted — treat as success (idempotent DELETE)
   if (!res.ok && res.status !== 404) throw new Error(`Failed to delete task: ${res.status}`);
 }
 
-export async function fetchZones(householdId?: string | null): Promise<Zone[]> {
-  const res = await fetch('/api/zones/', { headers: buildHeaders(householdId) });
+export async function fetchZones(): Promise<Zone[]> {
+  const res = await fetch('/api/zones/', { headers: buildHeaders() });
   if (!res.ok) throw new Error(`Failed to fetch zones: ${res.status}`);
   const data = (await res.json()) as unknown;
   return Array.isArray(data)
     ? (data as Zone[])
     : ((data as { results?: Zone[] }).results ?? []);
+}
+
+export async function fetchHouseholdMembers(): Promise<HouseholdMember[]> {
+  const res = await fetch('/api/households/active-members/', { headers: buildHeaders() });
+  if (!res.ok) throw new Error(`Failed to fetch members: ${res.status}`);
+  const data = (await res.json()) as Array<{ user: string; user_display_name: string; role: string }>;
+  return (Array.isArray(data) ? data : []).map((m) => ({
+    userId: m.user,
+    name: m.user_display_name,
+    role: m.role as HouseholdMember['role'],
+  }));
 }

@@ -89,7 +89,6 @@ interface FetchEquipmentOptions {
   status?: string;
   zone?: string;
   ordering?: string;
-  householdId?: string;
 }
 
 function getCookie(name: string): string | null {
@@ -102,14 +101,13 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId?: string, withJson = false) {
+function buildHeaders(withJson = false) {
   const csrfToken = getCookie('csrftoken');
 
   return {
     Accept: 'application/json',
     ...(withJson ? { 'Content-Type': 'application/json' } : {}),
     ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
@@ -138,7 +136,7 @@ export async function fetchEquipmentList(options: FetchEquipmentOptions = {}): P
   const response = await fetch(`/api/equipment/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(options.householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -149,11 +147,11 @@ export async function fetchEquipmentList(options: FetchEquipmentOptions = {}): P
   return normalizeList<EquipmentListItem>(payload);
 }
 
-export async function fetchEquipment(id: string, householdId?: string): Promise<EquipmentListItem> {
+export async function fetchEquipment(id: string): Promise<EquipmentListItem> {
   const response = await fetch(`/api/equipment/${id}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -163,11 +161,11 @@ export async function fetchEquipment(id: string, householdId?: string): Promise<
   return (await response.json()) as EquipmentListItem;
 }
 
-export async function createEquipment(input: EquipmentPayload, householdId?: string): Promise<EquipmentListItem> {
+export async function createEquipment(input: EquipmentPayload): Promise<EquipmentListItem> {
   const response = await fetch('/api/equipment/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...input,
       tags: input.tags ?? [],
@@ -189,11 +187,11 @@ export async function createEquipment(input: EquipmentPayload, householdId?: str
   return (await response.json()) as EquipmentListItem;
 }
 
-export async function updateEquipment(id: string, input: EquipmentPayload, householdId?: string): Promise<EquipmentListItem> {
+export async function updateEquipment(id: string, input: EquipmentPayload): Promise<EquipmentListItem> {
   const response = await fetch(`/api/equipment/${id}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...input,
       tags: input.tags ?? [],
@@ -215,11 +213,11 @@ export async function updateEquipment(id: string, input: EquipmentPayload, house
   return (await response.json()) as EquipmentListItem;
 }
 
-export async function deleteEquipment(id: string, householdId?: string): Promise<void> {
+export async function deleteEquipment(id: string): Promise<void> {
   const response = await fetch(`/api/equipment/${id}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -227,11 +225,11 @@ export async function deleteEquipment(id: string, householdId?: string): Promise
   }
 }
 
-export async function fetchEquipmentAudit(id: string, householdId?: string): Promise<EquipmentAudit> {
+export async function fetchEquipmentAudit(id: string): Promise<EquipmentAudit> {
   const response = await fetch(`/api/equipment/${id}/audit/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -241,7 +239,7 @@ export async function fetchEquipmentAudit(id: string, householdId?: string): Pro
   return (await response.json()) as EquipmentAudit;
 }
 
-export async function fetchEquipmentInteractions(equipmentId: string, householdId?: string): Promise<EquipmentInteractionItem[]> {
+export async function fetchEquipmentInteractions(equipmentId: string): Promise<EquipmentInteractionItem[]> {
   const params = new URLSearchParams();
   params.set('equipment', equipmentId);
   params.set('ordering', '-created_at');
@@ -249,7 +247,7 @@ export async function fetchEquipmentInteractions(equipmentId: string, householdI
   const response = await fetch(`/api/equipment/equipment-interactions/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) {
@@ -264,12 +262,11 @@ export async function linkEquipmentInteraction(
   equipmentId: string,
   interactionId: string,
   input: { role?: string; note?: string },
-  householdId?: string
 ): Promise<EquipmentInteractionItem> {
   const response = await fetch('/api/equipment/equipment-interactions/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       equipment: equipmentId,
       interaction: interactionId,

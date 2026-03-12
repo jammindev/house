@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Zone, ZoneMutationPayload, ZonesPageProps } from '../types/zones';
 import { DEFAULT_FIRST_LEVEL_COLOR, ROOT_ZONE_COLOR, lightenHexColor, normalizeHexColor } from '../lib/colors';
@@ -20,13 +20,12 @@ function normalizeList(payload: unknown): Record<string, unknown>[] {
   return [];
 }
 
-function buildHeaders(householdId: string | null | undefined, write = false): Record<string, string> {
+function buildHeaders(write = false): Record<string, string> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'X-Requested-With': 'XMLHttpRequest',
   };
 
-  if (householdId) headers['X-Household-Id'] = householdId;
   if (write) {
     headers['Content-Type'] = 'application/json';
     const csrf = getCookie('csrftoken');
@@ -56,23 +55,9 @@ function resolveColorForZone({
   return lightenHexColor(parentColor);
 }
 
-export function useZones({ householdId, initialZones }: ZonesPageProps) {
-  const initialMapped = useMemo<Zone[]>(
-    () =>
-      initialZones.map((zone) => ({
-        id: zone.id,
-        name: zone.name,
-        parent_id: zone.parentId,
-        note: '',
-        surface: null,
-        color: zone.color,
-        full_path: zone.fullPath,
-      })),
-    [initialZones]
-  );
-
-  const [zonesState, setZonesState] = useState<Zone[]>(initialMapped);
-  const zonesRef = useRef<Zone[]>(initialMapped);
+export function useZones(_props: ZonesPageProps = {}) {
+  const [zonesState, setZonesState] = useState<Zone[]>([]);
+  const zonesRef = useRef<Zone[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
@@ -85,18 +70,13 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
   }, []);
 
   const reload = useCallback(async () => {
-    if (!householdId) {
-      setZones([]);
-      return;
-    }
-
     setLoading(true);
     setError('');
     try {
       const response = await fetch('/api/zones/', {
         method: 'GET',
         credentials: 'same-origin',
-        headers: buildHeaders(householdId),
+        headers: buildHeaders(),
       });
       if (!response.ok) {
         throw new Error(`API error ${response.status}`);
@@ -110,7 +90,7 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [householdId, setZones]);
+  }, [setZones]);
 
   useEffect(() => {
     void reload();
@@ -118,8 +98,6 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
 
   const createZone = useCallback(
     async (payload: ZoneMutationPayload) => {
-      if (!householdId) throw new Error('No household selected');
-
       const parentZone = payload.parent_id ? zonesRef.current.find((z) => z.id === payload.parent_id) ?? null : null;
       if (payload.parent_id && !parentZone) {
         throw new Error('Selected parent zone no longer exists.');
@@ -137,11 +115,10 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
       const response = await fetch('/api/zones/', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: buildHeaders(householdId, true),
+        headers: buildHeaders(true),
         body: JSON.stringify({
           ...mapLegacyPayloadToApi(payload),
           color: resolvedColor,
-          household_id: householdId,
         }),
       });
 
@@ -154,13 +131,11 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
       setZones((prev) => [...prev, created]);
       return created;
     },
-    [householdId, setZones]
+    [setZones]
   );
 
   const updateZone = useCallback(
     async (id: string, payload: ZoneMutationPayload) => {
-      if (!householdId) throw new Error('No household selected');
-
       const existing = zonesRef.current.find((zone) => zone.id === id);
       if (!existing) {
         throw new Error('Zone not found');
@@ -181,7 +156,7 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
       const response = await fetch(`/api/zones/${id}/`, {
         method: 'PATCH',
         credentials: 'same-origin',
-        headers: buildHeaders(householdId, true),
+        headers: buildHeaders(true),
         body: JSON.stringify({
           ...mapLegacyPayloadToApi(payload),
           color: resolvedColor,
@@ -204,16 +179,15 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
       setZones((prev) => prev.map((zone) => (zone.id === id ? updated : zone)));
       return updated;
     },
-    [householdId, setZones]
+    [setZones]
   );
 
   const deleteZone = useCallback(
     async (id: string) => {
-      if (!householdId) throw new Error('No household selected');
       const response = await fetch(`/api/zones/${id}/`, {
         method: 'DELETE',
         credentials: 'same-origin',
-        headers: buildHeaders(householdId, true),
+        headers: buildHeaders(true),
       });
 
       if (!response.ok) {
@@ -229,7 +203,7 @@ export function useZones({ householdId, initialZones }: ZonesPageProps) {
 
       setZones((prev) => prev.filter((zone) => zone.id !== id));
     },
-    [householdId, setZones]
+    [setZones]
   );
 
   return { zones: zonesState, loading, error, setError, reload, createZone, updateZone, deleteZone };

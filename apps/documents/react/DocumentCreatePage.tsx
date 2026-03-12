@@ -6,12 +6,10 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { uploadDocument, type DocumentType } from '@/lib/api/documents';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import type { DocumentCreatePageProps } from '@/pages/documents/new';
 
 export default function DocumentCreatePage({ allowedTypes, cancelUrl, defaultType }: DocumentCreatePageProps) {
   const { t } = useTranslation();
-  const householdId = useHouseholdId();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [name, setName] = React.useState('');
   const [type, setType] = React.useState<DocumentType | ''>((defaultType as DocumentType | null) ?? '');
@@ -38,15 +36,12 @@ export default function DocumentCreatePage({ allowedTypes, cancelUrl, defaultTyp
     setSubmitting(true);
     setError(null);
     try {
-      const response = await uploadDocument(
-        {
-          file: selectedFile,
-          name,
-          type,
-          notes,
-        },
-        householdId,
-      );
+      const response = await uploadDocument({
+        file: selectedFile,
+        name,
+        type,
+        notes,
+      });
       window.location.assign(response.detail_url);
     } catch {
       setError(t('documents.loadFailed'));

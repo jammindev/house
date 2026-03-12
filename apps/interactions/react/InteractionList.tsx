@@ -11,7 +11,6 @@ import { fetchInteractions, type InteractionListItem } from '@/lib/api/interacti
 import { cn } from '@/lib/utils';
 
 import { MessageSquare } from 'lucide-react';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 
@@ -95,7 +94,6 @@ export function InteractionList({
   syncFiltersWithUrl = true,
 }: InteractionListProps) {
   const { t } = useTranslation();
-  const householdId = useHouseholdId();
   const resolvedEmptyMessage = emptyMessage ?? t('interactions.list_empty');
   const initialSearch = search ?? '';
   const initialType = type ?? '';
@@ -145,7 +143,6 @@ export function InteractionList({
           status: selectedStatus || undefined,
           limit,
           offset: 0,
-          householdId,
         });
 
         if (isMounted) {
@@ -173,7 +170,6 @@ export function InteractionList({
     selectedType,
     selectedStatus,
     limit,
-    householdId,
     initialLoaded,
     forceReloadOnMount,
     initialSearch,
@@ -229,7 +225,6 @@ export function InteractionList({
         status: selectedStatus || undefined,
         limit,
         offset: items.length,
-        householdId,
       });
 
       const knownIds = new Set(items.map((item) => item.id));

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Button } from '@/design-system/button';
@@ -42,14 +41,13 @@ function formatRelativeDate(dateStr: string): string {
 export default function ZoneDetailNode(props: ZoneDetailPageProps) {
   const { t } = useTranslation();
   const [editOpen, setEditOpen] = React.useState(false);
-  const householdId = useHouseholdId();
 
-  const { zones, updateZone } = useZones({ householdId, initialZones: [] });
+  const { zones, updateZone } = useZones();
   const { zonesById, sortedZones, zoneDepths } = React.useMemo(() => computeZoneTree(zones), [zones]);
 
-  const { zone, photos, loading, error, attachPhoto, reload } = useZoneDetail({ ...props, householdId });
+  const { zone, photos, loading, error, attachPhoto, reload } = useZoneDetail(props);
 
-  const childrenCount = props.initialStats?.childrenCount ?? zone?.children_count ?? 0;
+  const childrenCount = zone?.children_count ?? 0;
 
   const [contextual, setContextual] = React.useState<ContextualData>({
     subZones: [],
@@ -61,7 +59,7 @@ export default function ZoneDetailNode(props: ZoneDetailPageProps) {
   const [contextualLoading, setContextualLoading] = React.useState(true);
 
   React.useEffect(() => {
-    if (!props.zoneId || !householdId) return;
+    if (!props.zoneId) return;
 
     const zoneId = props.zoneId;
 
@@ -69,24 +67,24 @@ export default function ZoneDetailNode(props: ZoneDetailPageProps) {
 
     const subZonesFetch = fetch(`/api/zones/${zoneId}/children/`, {
       credentials: 'include',
-      headers: { Accept: 'application/json', 'X-Household-Id': householdId },
+      headers: { Accept: 'application/json' },
     })
       .then((r) => r.ok ? r.json() as Promise<SubZone[]> : Promise.resolve([]))
       .catch(() => []);
 
-    const equipmentFetch = fetchEquipmentList({ zone: zoneId, householdId, ordering: 'name' });
+    const equipmentFetch = fetchEquipmentList({ zone: zoneId, ordering: 'name' });
 
-    const tasksFetch = fetchInteractions({ zone: zoneId, type: 'todo', limit: 20, householdId })
+    const tasksFetch = fetchInteractions({ zone: zoneId, type: 'todo', limit: 20 })
       .then((result) =>
         result.items.filter(
           (item) => item.status !== 'done' && item.status !== 'archived'
         )
       );
 
-    const activityFetch = fetchInteractions({ zone: zoneId, limit: 10, householdId })
+    const activityFetch = fetchInteractions({ zone: zoneId, limit: 10 })
       .then((result) => result.items.filter((item) => item.type !== 'todo').slice(0, 5));
 
-    const projectsFetch = fetchProjects({ zone: zoneId, status: 'active', householdId, limit: 20 });
+    const projectsFetch = fetchProjects({ zone: zoneId, status: 'active', limit: 20 });
 
     Promise.allSettled([subZonesFetch, equipmentFetch, tasksFetch, activityFetch, projectsFetch])
       .then(([subZonesRes, equipmentRes, tasksRes, activityRes, projectsRes]) => {
@@ -99,7 +97,7 @@ export default function ZoneDetailNode(props: ZoneDetailPageProps) {
         });
       })
       .finally(() => setContextualLoading(false));
-  }, [props.zoneId, householdId]);
+  }, [props.zoneId]);
 
   async function handleEdit(zoneId: string, payload: ZoneMutationPayload) {
     await updateZone(zoneId, payload);

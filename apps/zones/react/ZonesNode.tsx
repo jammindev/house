@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LayoutGrid } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 
@@ -16,8 +15,7 @@ import type { Zone, ZonesPageProps } from './types/zones';
 
 export default function ZonesNode(props: ZonesPageProps) {
   const { t } = useTranslation();
-  const householdId = useHouseholdId();
-  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones({ ...props, householdId });
+  const { zones, loading, error, setError, createZone, updateZone, deleteZone } = useZones(props);
 
   const [pendingDelete, setPendingDelete] = useState<Zone | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);

@@ -3,30 +3,27 @@ import { CheckSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   fetchTasks,
+  fetchHouseholdMembers,
   updateTaskStatus,
   deleteTask,
   isTaskOverdue,
   type Task,
   type TaskStatus,
+  type HouseholdMember,
 } from '@/lib/api/tasks';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import ListPage from '@/components/ListPage';
 import NewTaskDialog from './NewTaskDialog';
 import TaskSection from './TaskSection';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
-interface TasksPageProps {
-  initialTasks?: Task[];
-}
-
-export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
-  const householdId = useHouseholdId();
+export default function TasksPage() {
   const { t } = useTranslation();
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
-  const [tasks, setTasks] = React.useState<Task[]>(() => initialTasks.filter((task) => task.status !== 'archived'));
-  const [loading, setLoading] = React.useState(false);
+  const [tasks, setTasks] = React.useState<Task[]>([]);
+  const [householdMembers, setHouseholdMembers] = React.useState<HouseholdMember[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [activeFilter, setActiveFilter] = React.useState<FilterKey>('all');
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
@@ -34,7 +31,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
   const loadTasks = React.useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchTasks(householdId)
+    fetchTasks()
       .then((list) => {
         setTasks(list.filter((task) => task.status !== 'archived'));
         setLoading(false);
@@ -43,7 +40,15 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
         setError(t('tasks.loadFailed'));
         setLoading(false);
       });
-  }, [householdId, t]);
+  }, [t]);
+
+  React.useEffect(() => {
+    loadTasks();
+  }, [loadTasks]);
+
+  React.useEffect(() => {
+    fetchHouseholdMembers().then(setHouseholdMembers).catch(() => {});
+  }, []);
 
   const handleStatusChange = React.useCallback(
     async (taskId: string, newStatus: TaskStatus) => {
@@ -51,12 +56,12 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
         prev.map((task) => (task.id === taskId ? { ...task, status: newStatus } : task)),
       );
       try {
-        await updateTaskStatus(taskId, newStatus, householdId);
+        await updateTaskStatus(taskId, newStatus);
       } catch {
         loadTasks();
       }
     },
-    [householdId, loadTasks],
+    [loadTasks],
   );
 
   const handleTaskUpdated = React.useCallback((updatedTask: Task) => {
@@ -65,7 +70,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
 
   const { deleteWithUndo } = useDeleteWithUndo({
     label: t('tasks.deleted', { defaultValue: 'Tâche supprimée' }),
-    onDelete: (id) => deleteTask(id, householdId),
+    onDelete: (id) => deleteTask(id),
   });
 
   const handleTaskDeleted = React.useCallback(
@@ -114,12 +119,10 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
     { key: 'done', label: t('tasks.filter.done') },
   ];
 
-  // Tâches visibles selon le filtre actif
   const visibleBySection = React.useMemo(() => {
     if (activeFilter === 'all') {
       return { overdue: overdueTasks, in_progress: inProgressTasks, pending: pendingTasks, backlog: backlogTasks, done: doneTasks };
     }
-    // Quand un filtre est actif, "En retard" reste visible dans tous les cas sauf "Fait"
     const overdueVisible = activeFilter !== 'done' ? overdueTasks : [];
     return {
       overdue: overdueVisible,
@@ -245,6 +248,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
         open={newTaskOpen}
         onOpenChange={setNewTaskOpen}
         onCreated={loadTasks}
+        householdMembers={householdMembers}
       />
 
       {/* Edit dialog */}
@@ -254,6 +258,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
         onCreated={loadTasks}
         existingTask={editingTask ?? undefined}
         onUpdated={handleTaskUpdated}
+        householdMembers={householdMembers}
       />
     </>
   );

@@ -1,19 +1,14 @@
-from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from urllib.parse import urlencode
 
-from core.permissions import resolve_selected_household
-from core.views import HouseholdListView, ReactPageView
+from core.views import ReactPageView
 from documents.models import Document
 from equipment.models import Equipment
 from projects.models import Project
-from zones.models import Zone
-from zones.serializers import ZonePickerDetailSerializer
 
 from .models import Interaction
-from .serializers import InteractionListPropsSerializer
 
 
 def _build_source_document_prefill(document):
@@ -40,18 +35,10 @@ def _build_source_document_prefill(document):
     }
 
 
-class AppInteractionsView(HouseholdListView):
-    model = Interaction
+class AppInteractionsView(ReactPageView):
     react_root_id = "interactions-list-root"
     props_script_id = "interactions-list-props"
     page_vite_asset = "src/pages/interactions/list.tsx"
-
-    def get_queryset(self):
-        return (
-            super().get_queryset()
-            .select_related('created_by')
-            .prefetch_related('zones', 'documents', 'tags__tag')
-        )
 
     def get_props(self):
         request = self.request
@@ -59,24 +46,6 @@ class AppInteractionsView(HouseholdListView):
         selected_status = (request.GET.get('status') or '').strip()
         selected_search = (request.GET.get('search') or '').strip()
         highlighted_id = (request.GET.get('created') or '').strip()
-        force_reload_on_mount = bool((request.GET.get('refresh') or '').strip())
-
-        queryset = self.object_list
-        if selected_type:
-            queryset = queryset.filter(type=selected_type)
-        if selected_status:
-            queryset = queryset.filter(status=selected_status)
-        if selected_search:
-            queryset = queryset.filter(
-                Q(subject__icontains=selected_search)
-                | Q(content__icontains=selected_search)
-                | Q(enriched_text__icontains=selected_search)
-                | Q(tags__tag__name__icontains=selected_search)
-            ).distinct()
-
-        total_count = queryset.count()
-        interactions = queryset.order_by('-occurred_at')[:8]
-        initial_items = InteractionListPropsSerializer(interactions, many=True).data
 
         return {
             'title': str(_('Activity')),
@@ -86,10 +55,6 @@ class AppInteractionsView(HouseholdListView):
             'limit': 8,
             'emptyMessage': str(_('No activity available yet.')),
             'highlightedId': highlighted_id,
-            'initialItems': initial_items,
-            'initialCount': total_count,
-            'initialLoaded': not force_reload_on_mount,
-            'forceReloadOnMount': force_reload_on_mount,
         }
 
 
@@ -100,7 +65,7 @@ class AppInteractionNewView(ReactPageView):
 
     def get_props(self):
         request = self.request
-        selected_household = resolve_selected_household(request)
+        selected_household = request.household
         return_to = (request.GET.get('return_to') or '').strip()
         source_document_id = (request.GET.get('source_document_id') or '').strip()
         source_interaction_id = (request.GET.get('source_interaction_id') or '').strip()
@@ -126,13 +91,6 @@ class AppInteractionNewView(ReactPageView):
                 selected_household = selected_household or source_interaction.household
             except Interaction.DoesNotExist:
                 pass
-
-        zones_queryset = Zone.objects.for_user_households(request.user).select_related('parent')
-        if selected_household:
-            zones_queryset = zones_queryset.filter(household=selected_household)
-
-        zones_sorted = sorted(zones_queryset, key=lambda zone: zone.full_path.lower())
-        zones_payload = ZonePickerDetailSerializer(zones_sorted, many=True).data
 
         if return_to == 'dashboard':
             redirect_to = reverse('app_dashboard')
@@ -227,8 +185,6 @@ class AppInteractionNewView(ReactPageView):
             'submitLabel': str(_('Add event')),
             'successMessage': str(_('Event added successfully.')),
             'defaultType': request.GET.get('type', 'note'),
-            'initialZones': zones_payload,
-            'initialZonesLoaded': True,
             'redirectToListUrl': redirect_to_list_url,
             'sourceDocument': source_document_payload,
             'sourceInteraction': source_interaction_payload,

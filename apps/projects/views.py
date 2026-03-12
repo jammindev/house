@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from .models import Project, ProjectGroup, ProjectZone, ProjectAIThread, ProjectAIMessage, UserPinnedProject
 from .serializers import (
     ProjectSerializer,
@@ -20,13 +20,13 @@ class _HouseholdScopedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.model.objects.for_user_households(self.request.user)
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         serializer.save(household=household, created_by=self.request.user)
@@ -55,7 +55,7 @@ class ProjectViewSet(_HouseholdScopedViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
 
@@ -71,7 +71,7 @@ class ProjectViewSet(_HouseholdScopedViewSet):
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        household = self.request.household or serializer.instance.household
         project_group = serializer.validated_data.get("project_group", serializer.instance.project_group)
         cover_interaction = serializer.validated_data.get("cover_interaction", serializer.instance.cover_interaction)
 
@@ -86,7 +86,7 @@ class ProjectViewSet(_HouseholdScopedViewSet):
     @action(detail=True, methods=["post"], url_path="pin")
     def pin(self, request, pk=None):
         project = self.get_object()
-        household = resolve_request_household(request, required=False) or project.household
+        household = request.household or project.household
         member = request.user.householdmember_set.filter(household=household).first()
         if not member:
             raise ValidationError({"detail": "No household membership found."})
@@ -97,7 +97,7 @@ class ProjectViewSet(_HouseholdScopedViewSet):
     @action(detail=True, methods=["post"], url_path="unpin")
     def unpin(self, request, pk=None):
         project = self.get_object()
-        household = resolve_request_household(request, required=False) or project.household
+        household = request.household or project.household
         member = request.user.householdmember_set.filter(household=household).first()
         if member:
             UserPinnedProject.objects.filter(household_member=member, project=project).delete()
@@ -113,7 +113,7 @@ class ProjectZoneViewSet(viewsets.ModelViewSet):
         queryset = ProjectZone.objects.filter(
             project__household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
         )
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(project__household=selected_household)
         return queryset
@@ -138,13 +138,13 @@ class ProjectAIThreadViewSet(viewsets.ModelViewSet):
         queryset = ProjectAIThread.objects.filter(
             household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
         )
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         project = serializer.validated_data["project"]
@@ -163,14 +163,14 @@ class ProjectAIMessageViewSet(viewsets.ModelViewSet):
         queryset = ProjectAIMessage.objects.filter(
             thread__household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
         )
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(thread__household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
         thread = serializer.validated_data["thread"]
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
 
         if not ProjectAIThread.objects.filter(
             id=thread.id,

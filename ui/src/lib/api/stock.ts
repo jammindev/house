@@ -66,7 +66,6 @@ interface PaginatedResponse<T> {
 }
 
 interface StockListFilters {
-  householdId?: string;
   search?: string;
   status?: string;
   zone?: string;
@@ -111,14 +110,13 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId?: string, withJson = false) {
+function buildHeaders(withJson = false) {
   const csrfToken = getCookie('csrftoken');
 
   return {
     Accept: 'application/json',
     ...(withJson ? { 'Content-Type': 'application/json' } : {}),
     ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
@@ -142,7 +140,7 @@ export async function fetchStockItems(filters: StockListFilters = {}): Promise<S
   const response = await fetch(`/api/stock/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(filters.householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -150,22 +148,22 @@ export async function fetchStockItems(filters: StockListFilters = {}): Promise<S
   return normalizeList<StockItem>(payload);
 }
 
-export async function fetchStockItem(itemId: string, householdId?: string): Promise<StockItem> {
+export async function fetchStockItem(itemId: string): Promise<StockItem> {
   const response = await fetch(`/api/stock/${itemId}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as StockItem;
 }
 
-export async function createStockItem(payload: StockItemPayload, householdId?: string): Promise<StockItem> {
+export async function createStockItem(payload: StockItemPayload): Promise<StockItem> {
   const response = await fetch('/api/stock/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...payload,
       zone: payload.zone || null,
@@ -185,11 +183,11 @@ export async function createStockItem(payload: StockItemPayload, householdId?: s
   return (await response.json()) as StockItem;
 }
 
-export async function updateStockItem(itemId: string, payload: StockItemPayload, householdId?: string): Promise<StockItem> {
+export async function updateStockItem(itemId: string, payload: StockItemPayload): Promise<StockItem> {
   const response = await fetch(`/api/stock/${itemId}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...payload,
       zone: payload.zone || null,
@@ -209,21 +207,21 @@ export async function updateStockItem(itemId: string, payload: StockItemPayload,
   return (await response.json()) as StockItem;
 }
 
-export async function deleteStockItem(itemId: string, householdId?: string): Promise<void> {
+export async function deleteStockItem(itemId: string): Promise<void> {
   const response = await fetch(`/api/stock/${itemId}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
 }
 
-export async function adjustStockQuantity(itemId: string, delta: number, householdId?: string): Promise<StockItem> {
+export async function adjustStockQuantity(itemId: string, delta: number): Promise<StockItem> {
   const response = await fetch(`/api/stock/${itemId}/adjust-quantity/`, {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({ delta }),
   });
 
@@ -231,11 +229,11 @@ export async function adjustStockQuantity(itemId: string, delta: number, househo
   return (await response.json()) as StockItem;
 }
 
-export async function fetchStockCategories(householdId?: string): Promise<StockCategory[]> {
+export async function fetchStockCategories(): Promise<StockCategory[]> {
   const response = await fetch('/api/stock/categories/?ordering=sort_order,name', {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -243,11 +241,11 @@ export async function fetchStockCategories(householdId?: string): Promise<StockC
   return normalizeList<StockCategory>(payload);
 }
 
-export async function fetchStockCategorySummary(householdId?: string): Promise<StockCategorySummary[]> {
+export async function fetchStockCategorySummary(): Promise<StockCategorySummary[]> {
   const response = await fetch('/api/stock/categories/summary/', {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -255,11 +253,11 @@ export async function fetchStockCategorySummary(householdId?: string): Promise<S
   return payload;
 }
 
-export async function createStockCategory(payload: StockCategoryPayload, householdId?: string): Promise<StockCategory> {
+export async function createStockCategory(payload: StockCategoryPayload): Promise<StockCategory> {
   const response = await fetch('/api/stock/categories/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify(payload),
   });
 
@@ -270,12 +268,11 @@ export async function createStockCategory(payload: StockCategoryPayload, househo
 export async function updateStockCategory(
   categoryId: string,
   payload: Partial<StockCategoryPayload>,
-  householdId?: string
 ): Promise<StockCategory> {
   const response = await fetch(`/api/stock/categories/${categoryId}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify(payload),
   });
 
@@ -283,11 +280,11 @@ export async function updateStockCategory(
   return (await response.json()) as StockCategory;
 }
 
-export async function deleteStockCategory(categoryId: string, householdId?: string): Promise<void> {
+export async function deleteStockCategory(categoryId: string): Promise<void> {
   const response = await fetch(`/api/stock/categories/${categoryId}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);

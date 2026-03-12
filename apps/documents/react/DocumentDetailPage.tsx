@@ -6,7 +6,6 @@ import { Input } from '@/design-system/input';
 import { fetchDocumentDetail, type DocumentDetail } from '@/lib/api/documents';
 import { linkDocumentToInteraction, searchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { useToast } from '@/lib/toast';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import type { DocumentDetailPageProps } from '@/pages/documents/detail';
 
 type AttachableInteraction = {
@@ -25,7 +24,6 @@ export default function DocumentDetailPage({
 }: DocumentDetailPageProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const householdId = useHouseholdId();
   const [document, setDocument] = React.useState<DocumentDetail | null>(initialDocument);
   const [loading, setLoading] = React.useState(!initialDocument);
   const [error, setError] = React.useState<string | null>(null);
@@ -38,7 +36,7 @@ export default function DocumentDetailPage({
   const refresh = React.useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchDocumentDetail(documentId, householdId)
+    fetchDocumentDetail(documentId)
       .then((payload) => {
         setDocument(payload);
         setLoading(false);
@@ -47,7 +45,7 @@ export default function DocumentDetailPage({
         setError(t('documents.loadFailed'));
         setLoading(false);
       });
-  }, [documentId, householdId, t]);
+  }, [documentId, t]);
 
   React.useEffect(() => {
     if (initialDocument) {
@@ -77,7 +75,7 @@ export default function DocumentDetailPage({
     setAttachingInteractionId(interactionId);
 
     try {
-      await linkDocumentToInteraction({ interactionId, documentId }, householdId);
+      await linkDocumentToInteraction({ interactionId, documentId });
       toast({ title: t('documents.attach.success'), variant: 'success' });
       setSearchResults((current) => current.filter((item) => item.id !== interactionId));
       refresh();
@@ -94,7 +92,7 @@ export default function DocumentDetailPage({
     } finally {
       setAttachingInteractionId(null);
     }
-  }, [documentId, householdId, refresh, t, toast]);
+  }, [documentId, refresh, t, toast]);
 
   const handleSearch = React.useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -108,7 +106,7 @@ export default function DocumentDetailPage({
     setSearching(true);
     setAttachError(null);
     try {
-      const payload = await searchInteractions(query, { householdId, limit: 8 });
+      const payload = await searchInteractions(query, { limit: 8 });
       setSearchResults(payload.items);
     } catch {
       setAttachError(t('documents.attach.searchFailed'));
@@ -116,7 +114,7 @@ export default function DocumentDetailPage({
     } finally {
       setSearching(false);
     }
-  }, [householdId, searchTerm, t]);
+  }, [searchTerm, t]);
 
   const qualificationLabel = document?.qualification.qualification_state === 'activity_linked'
     ? t('documents.qualification.activityLinked')

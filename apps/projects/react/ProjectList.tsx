@@ -15,15 +15,8 @@ import {
 } from '@/lib/api/projects';
 import ProjectCard from './ProjectCard';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface ProjectListProps {
-  initialSearch?: string;
-  initialStatus?: string;
-  initialType?: string;
-  initialGroupId?: string;
-  initialItems?: ProjectListItem[];
-  initialGroups?: ProjectGroupItem[];
+  onNavigate?: (url: string) => void;
 }
 
 const STATUS_OPTIONS = ['', 'draft', 'active', 'on_hold', 'completed', 'cancelled'];
@@ -39,26 +32,16 @@ const TYPE_OPTIONS = [
   'other',
 ];
 
-export default function ProjectList({
-  initialSearch = '',
-  initialStatus = '',
-  initialType = '',
-  initialGroupId = '',
-  initialItems,
-  initialGroups,
-}: ProjectListProps) {
-  const householdId = useHouseholdId();
+export default function ProjectList({ onNavigate }: ProjectListProps) {
   const { t } = useTranslation();
 
-  const hasServerData = initialItems !== undefined && initialGroups !== undefined;
-
-  const [groups, setGroups] = React.useState<ProjectGroupItem[]>(initialGroups ?? []);
-  const [search, setSearch] = React.useState(initialSearch);
-  const [status, setStatus] = React.useState(initialStatus);
-  const [type, setType] = React.useState(initialType);
-  const [groupId, setGroupId] = React.useState(initialGroupId);
-  const [items, setItems] = React.useState<ProjectListItem[]>(initialItems ?? []);
-  const [loading, setLoading] = React.useState(!hasServerData);
+  const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);
+  const [search, setSearch] = React.useState('');
+  const [status, setStatus] = React.useState('');
+  const [type, setType] = React.useState('');
+  const [groupId, setGroupId] = React.useState('');
+  const [items, setItems] = React.useState<ProjectListItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [pinLoadingId, setPinLoadingId] = React.useState<string | null>(null);
 
@@ -67,8 +50,8 @@ export default function ProjectList({
     setError(null);
     try {
       const [loadedGroups, loadedItems] = await Promise.all([
-        fetchProjectGroups(householdId),
-        fetchProjects({ householdId, search: search || undefined, status: status || undefined, type: type || undefined, groupId: groupId || undefined }),
+        fetchProjectGroups(),
+        fetchProjects({ search: search || undefined, status: status || undefined, type: type || undefined, groupId: groupId || undefined }),
       ]);
       setGroups(loadedGroups);
       // Sort: pinned first, then by updated_at desc
@@ -82,17 +65,9 @@ export default function ProjectList({
     } finally {
       setLoading(false);
     }
-  }, [householdId, search, status, type, groupId, t]);
+  }, [search, status, type, groupId, t]);
 
-  // Skip the initial fetch when Django already provided server-side data.
-  // Re-fetch whenever the user changes a filter.
-  const isFirstRender = React.useRef(true);
   React.useEffect(() => {
-    if (isFirstRender.current && hasServerData) {
-      isFirstRender.current = false;
-      return;
-    }
-    isFirstRender.current = false;
     load();
   }, [load]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -114,8 +89,8 @@ export default function ProjectList({
     setPinLoadingId(project.id);
     try {
       const updated = project.is_pinned
-        ? await unpinProject(project.id, householdId)
-        : await pinProject(project.id, householdId);
+        ? await unpinProject(project.id)
+        : await pinProject(project.id);
       setItems((prev) => {
         const next = prev.map((p) => (p.id === project.id ? updated : p));
         return [...next].sort((a, b) => {
@@ -146,7 +121,9 @@ export default function ProjectList({
         icon: FolderOpen,
         title: t('projects.empty_list'),
         description: t('projects.description', { defaultValue: 'Manage your renovation, maintenance and other projects.' }),
-        action: { label: t('projects.new', { defaultValue: 'New project' }), href: '/app/projects/new/' },
+        action: onNavigate
+          ? { label: t('projects.new', { defaultValue: 'New project' }), onClick: () => onNavigate('/app/projects/new/') }
+          : { label: t('projects.new', { defaultValue: 'New project' }), href: '/app/projects/new/' },
       };
 
   return (
@@ -159,12 +136,14 @@ export default function ProjectList({
         <>
           <a
             href="/app/projects/groups/"
+            onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate('/app/projects/groups/'); } : undefined}
             className="text-sm text-muted-foreground underline underline-offset-2 hover:text-foreground"
           >
             {t('projects.groups', { defaultValue: 'Groups' })}
           </a>
           <a
             href="/app/projects/new/"
+            onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate('/app/projects/new/'); } : undefined}
             className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
           >
             {t('projects.new', { defaultValue: 'New project' })}
@@ -244,6 +223,7 @@ export default function ProjectList({
               detailUrl={`/app/projects/${project.id}/`}
               onTogglePin={handleTogglePin}
               pinLoading={pinLoadingId === project.id}
+              onNavigate={onNavigate}
             />
           ))}
         </div>

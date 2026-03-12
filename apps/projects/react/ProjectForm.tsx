@@ -11,29 +11,21 @@ import { Textarea } from '@/design-system/textarea';
 import {
   createProject,
   fetchProject,
+  fetchProjectGroups,
   updateProject,
+  type ProjectGroupItem,
   type ProjectPayload,
   type ProjectStatus,
   type ProjectType,
 } from '@/lib/api/projects';
-import type { ZoneOption } from '@/lib/api/zones';
-
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
-interface ProjectGroupOption {
-  id: string;
-  name: string;
-}
+import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
 interface ProjectFormProps {
   mode: 'create' | 'edit';
   projectId?: string;
-  initialGroups?: ProjectGroupOption[];
-  initialGroupsLoaded?: boolean;
-  initialZones?: ZoneOption[];
-  initialZonesLoaded?: boolean;
   cancelUrl?: string;
   successRedirectUrl?: string;
+  onNavigate?: (url: string) => void;
 }
 
 const STATUS_OPTIONS: ProjectStatus[] = ['draft', 'active', 'on_hold', 'completed', 'cancelled'];
@@ -89,41 +81,45 @@ function toPayload(state: FormState): ProjectPayload {
 export default function ProjectForm({
   mode,
   projectId,
-  initialGroups = [],
-  initialZones = [],
   cancelUrl = '/app/projects/',
   successRedirectUrl = '/app/projects/',
+  onNavigate,
 }: ProjectFormProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
-  const [loading, setLoading] = React.useState(mode === 'edit');
+  const [loading, setLoading] = React.useState(true);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [groups, setGroups] = React.useState<ProjectGroupItem[]>([]);
+  const [zones, setZones] = React.useState<ZoneOption[]>([]);
 
   React.useEffect(() => {
-    if (mode !== 'edit' || !projectId) {
-      setLoading(false);
-      return;
-    }
     let mounted = true;
     async function load() {
       try {
-        const item = await fetchProject(projectId!, householdId);
+        const [loadedGroups, loadedZones, loadedProject] = await Promise.all([
+          fetchProjectGroups(),
+          fetchZones(),
+          mode === 'edit' && projectId ? fetchProject(projectId) : Promise.resolve(null),
+        ]);
         if (!mounted) return;
-        setForm({
-          title: item.title || '',
-          description: item.description || '',
-          status: item.status || 'draft',
-          priority: String(item.priority ?? 3),
-          type: item.type || 'other',
-          start_date: item.start_date || '',
-          due_date: item.due_date || '',
-          planned_budget: item.planned_budget ? String(Number(item.planned_budget)) : '',
-          tags: (item.tags || []).join(', '),
-          project_group: item.project_group || '',
-          zone_ids: item.zones.map((z) => z.id),
-        });
+        setGroups(loadedGroups);
+        setZones(loadedZones);
+        if (loadedProject) {
+          setForm({
+            title: loadedProject.title || '',
+            description: loadedProject.description || '',
+            status: loadedProject.status || 'draft',
+            priority: String(loadedProject.priority ?? 3),
+            type: loadedProject.type || 'other',
+            start_date: loadedProject.start_date || '',
+            due_date: loadedProject.due_date || '',
+            planned_budget: loadedProject.planned_budget ? String(Number(loadedProject.planned_budget)) : '',
+            tags: (loadedProject.tags || []).join(', '),
+            project_group: loadedProject.project_group || '',
+            zone_ids: loadedProject.zones.map((z) => z.id),
+          });
+        }
       } catch {
         if (mounted) setError(t('projects.form.errors.load_failed'));
       } finally {
@@ -132,7 +128,7 @@ export default function ProjectForm({
     }
     load();
     return () => { mounted = false; };
-  }, [mode, projectId, householdId, t]);
+  }, [mode, projectId, t]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -159,9 +155,9 @@ export default function ProjectForm({
       const payload = toPayload(form);
       let saved;
       if (mode === 'edit' && projectId) {
-        saved = await updateProject(projectId, payload, householdId);
+        saved = await updateProject(projectId, payload);
       } else {
-        saved = await createProject(payload, householdId);
+        saved = await createProject(payload);
       }
 
       // Sync zones: delete removed, add new
@@ -174,7 +170,6 @@ export default function ProjectForm({
               headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
-                ...(householdId ? { 'X-Household-Id': householdId } : {}),
                 ...(getCsrf() ? { 'X-CSRFToken': getCsrf()! } : {}),
               },
               body: JSON.stringify({ project: saved.id, zone: zoneId }),
@@ -183,11 +178,10 @@ export default function ProjectForm({
         );
       }
 
-      window.location.assign(
-        successRedirectUrl.includes('{id}')
-          ? successRedirectUrl.replace('{id}', saved.id)
-          : successRedirectUrl
-      );
+      const redirectUrl = successRedirectUrl.includes('{id}')
+        ? successRedirectUrl.replace('{id}', saved.id)
+        : successRedirectUrl;
+      if (onNavigate) { onNavigate(redirectUrl); } else { window.location.assign(redirectUrl); }
     } catch {
       setError(mode === 'edit' ? t('projects.form.errors.update_failed') : t('projects.form.errors.create_failed'));
     } finally {
@@ -273,7 +267,7 @@ export default function ProjectForm({
                 <label htmlFor="proj-group" className="text-sm font-medium">{t('projects.form.fields.project_group')}</label>
                 <Select id="proj-group" value={form.project_group} onChange={(e) => set('project_group', e.target.value)}>
                   <option value="">{t('projects.form.no_group')}</option>
-                  {initialGroups.map((g) => (
+                  {groups.map((g) => (
                     <option key={g.id} value={g.id}>{g.name}</option>
                   ))}
                 </Select>
@@ -284,11 +278,11 @@ export default function ProjectForm({
               </div>
             </div>
 
-            {initialZones.length > 0 ? (
+            {zones.length > 0 ? (
               <div className="space-y-1">
                 <p className="text-sm font-medium">{t('projects.form.fields.zones')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {initialZones.map((zone) => {
+                  {zones.map((zone) => {
                     const selected = form.zone_ids.includes(zone.id);
                     return (
                       <button
@@ -313,7 +307,11 @@ export default function ProjectForm({
               <Button type="submit" disabled={submitting}>
                 {submitting ? t('projects.form.actions.saving') : submitLabel}
               </Button>
-              <a href={cancelUrl} className="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent">
+              <a
+                href={cancelUrl}
+                onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(cancelUrl); } : undefined}
+                className="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
+              >
                 {t('projects.form.actions.cancel')}
               </a>
             </div>

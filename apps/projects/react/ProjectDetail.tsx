@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 import { Alert, AlertDescription, AlertTitle } from '@/design-system/alert';
 import { Badge } from '@/design-system/badge';
@@ -49,7 +48,7 @@ interface InteractionItem {
   content?: string;
 }
 
-function useInteractions(projectId: string, householdId: string | undefined, type?: string) {
+function useInteractions(projectId: string, type?: string) {
   const [items, setItems] = React.useState<InteractionItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -66,12 +65,9 @@ function useInteractions(projectId: string, householdId: string | undefined, typ
         params.set('limit', '100');
         if (type) params.set('type', type);
 
-        const headers: Record<string, string> = { Accept: 'application/json' };
-        if (householdId) headers['X-Household-Id'] = householdId;
-
         const res = await fetch(`/api/interactions/interactions/?${params.toString()}`, {
           credentials: 'include',
-          headers,
+          headers: { Accept: 'application/json' },
         });
         if (!res.ok) throw new Error();
         const data = (await res.json()) as { results?: InteractionItem[] } | InteractionItem[];
@@ -85,7 +81,7 @@ function useInteractions(projectId: string, householdId: string | undefined, typ
     }
     load();
     return () => { mounted = false; };
-  }, [projectId, householdId, type]);
+  }, [projectId, type]);
 
   return { items, loading, error };
 }
@@ -112,8 +108,7 @@ function TabInteractions({
   addLabel?: string;
 }) {
   const { t } = useTranslation();
-  const householdId = useHouseholdId();
-  const { items, loading, error } = useInteractions(projectId, householdId ?? undefined, type);
+  const { items, loading, error } = useInteractions(projectId, type);
   if (loading) return <p className="text-sm text-muted-foreground">{t('projects.loading')}</p>;
   if (error) return (
     <Alert variant="destructive">
@@ -294,6 +289,7 @@ interface ProjectDetailProps {
   projectId: string;
   editUrl?: string;
   listUrl?: string;
+  onNavigate?: (url: string) => void;
 }
 
 const TABS: Tab[] = ['description', 'tasks', 'notes', 'expenses', 'documents', 'timeline', 'metrics'];
@@ -302,8 +298,8 @@ export default function ProjectDetail({
   projectId,
   editUrl,
   listUrl = '/app/projects/',
+  onNavigate,
 }: ProjectDetailProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [project, setProject] = React.useState<ProjectListItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -325,20 +321,20 @@ export default function ProjectDetail({
     [project]
   );
 
-  const { items: todoItems, loading: todoLoading } = useInteractions(projectId, householdId ?? undefined, 'todo');
+  const { items: todoItems, loading: todoLoading } = useInteractions(projectId, 'todo');
 
   const load = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const item = await fetchProject(projectId, householdId);
+      const item = await fetchProject(projectId);
       setProject(item);
     } catch {
       setError(t('projects.detail.error_loading'));
     } finally {
       setLoading(false);
     }
-  }, [projectId, householdId, t]);
+  }, [projectId, t]);
 
   React.useEffect(() => { load(); }, [load]);
 
@@ -347,8 +343,8 @@ export default function ProjectDetail({
     if (!window.confirm(t('projects.delete_confirm'))) return;
     setDeleting(true);
     try {
-      await deleteProject(project.id, householdId);
-      window.location.assign(listUrl);
+      await deleteProject(project.id);
+      if (onNavigate) { onNavigate(listUrl); } else { window.location.assign(listUrl); }
     } catch {
       setDeleting(false);
     }
@@ -359,8 +355,8 @@ export default function ProjectDetail({
     setPinLoading(true);
     try {
       const updated = project.is_pinned
-        ? await unpinProject(project.id, householdId)
-        : await pinProject(project.id, householdId);
+        ? await unpinProject(project.id)
+        : await pinProject(project.id);
       setProject(updated);
     } finally {
       setPinLoading(false);
@@ -393,7 +389,11 @@ export default function ProjectDetail({
               P{project.priority}
             </span>
             {project.project_group_name ? (
-              <a href="/app/projects/groups/" className="text-xs text-muted-foreground underline underline-offset-2">
+              <a
+                href="/app/projects/groups/"
+                onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate('/app/projects/groups/'); } : undefined}
+                className="text-xs text-muted-foreground underline underline-offset-2"
+              >
                 {project.project_group_name}
               </a>
             ) : null}
@@ -413,7 +413,11 @@ export default function ProjectDetail({
             </svg>
           </Button>
           {editUrl ? (
-            <a href={editUrl} className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent">
+            <a
+              href={editUrl}
+              onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(editUrl); } : undefined}
+              className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium hover:bg-accent"
+            >
               {t('projects.edit')}
             </a>
           ) : null}

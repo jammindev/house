@@ -57,16 +57,15 @@ function getCookie(name: string): string {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId?: string | null): Record<string, string> {
+function buildHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
-function buildJsonHeaders(householdId?: string | null): Record<string, string> {
+function buildJsonHeaders(): Record<string, string> {
   return {
-    ...buildHeaders(householdId),
+    ...buildHeaders(),
     'Content-Type': 'application/json',
     'X-CSRFToken': getCookie('csrftoken'),
   };
@@ -74,12 +73,12 @@ function buildJsonHeaders(householdId?: string | null): Record<string, string> {
 
 const collator = new Intl.Collator(undefined, { sensitivity: 'base' });
 
-export async function fetchStructures(householdId?: string | null): Promise<Structure[]> {
+export async function fetchStructures(): Promise<Structure[]> {
   const params = new URLSearchParams({ ordering: 'name' });
   const response = await fetch(`/api/contacts/structures/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   const payload = await response.json() as unknown;
@@ -87,11 +86,11 @@ export async function fetchStructures(householdId?: string | null): Promise<Stru
   return [...(list as Structure[])].sort((a, b) => collator.compare(a.name ?? '', b.name ?? ''));
 }
 
-export async function fetchStructure(id: string, householdId?: string | null): Promise<Structure> {
+export async function fetchStructure(id: string): Promise<Structure> {
   const response = await fetch(`/api/contacts/structures/${id}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return response.json() as Promise<Structure>;
@@ -99,11 +98,10 @@ export async function fetchStructure(id: string, householdId?: string | null): P
 
 async function syncStructureRelations(
   structureId: string,
-  householdId: string | null | undefined,
   values: StructureFormValues,
   existingStructure?: Structure,
 ) {
-  const jsonHeaders = buildJsonHeaders(householdId);
+  const jsonHeaders = buildJsonHeaders();
 
   // ── Addresses ──────────────────────────────────────────────────────────
   const existingAddressIds = new Set((existingStructure?.addresses ?? []).map((a) => a.id).filter(Boolean) as string[]);
@@ -207,45 +205,43 @@ async function syncStructureRelations(
 
 export async function createStructure(
   values: StructureFormValues,
-  householdId?: string | null,
 ): Promise<Structure> {
   const { addresses: _a, emails: _e, phones: _p, ...base } = values;
   const response = await fetch('/api/contacts/structures/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildJsonHeaders(householdId),
+    headers: buildJsonHeaders(),
     body: JSON.stringify(base),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   const structure = await response.json() as Structure;
-  await syncStructureRelations(structure.id, householdId, values);
+  await syncStructureRelations(structure.id, values);
   return structure;
 }
 
 export async function updateStructure(
   id: string,
   values: StructureFormValues,
-  householdId?: string | null,
   existing?: Structure,
 ): Promise<Structure> {
   const { addresses: _a, emails: _e, phones: _p, ...base } = values;
   const response = await fetch(`/api/contacts/structures/${id}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildJsonHeaders(householdId),
+    headers: buildJsonHeaders(),
     body: JSON.stringify(base),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   const structure = await response.json() as Structure;
-  await syncStructureRelations(structure.id, householdId, values, existing);
+  await syncStructureRelations(structure.id, values, existing);
   return structure;
 }
 
-export async function deleteStructure(id: string, householdId?: string | null): Promise<void> {
+export async function deleteStructure(id: string): Promise<void> {
   const response = await fetch(`/api/contacts/structures/${id}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
     body: JSON.stringify({}),
   });
   if (!response.ok && response.status !== 204) throw new Error(`API error ${response.status}`);
@@ -253,7 +249,6 @@ export async function deleteStructure(id: string, householdId?: string | null): 
 
 export async function fetchStructureInteractions(
   structureId: string,
-  householdId?: string | null,
   limit = 5,
 ): Promise<import('./interactions').InteractionListItem[]> {
   const params = new URLSearchParams({
@@ -264,7 +259,7 @@ export async function fetchStructureInteractions(
   const response = await fetch(`/api/interactions/interactions/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) return [];
   const payload = await response.json() as unknown;

@@ -6,8 +6,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.generic import View
 
-from core.permissions import resolve_selected_household
-
 from .models import InsuranceContract
 
 
@@ -55,7 +53,7 @@ def _form_choices():
 
 class AppInsuranceView(LoginRequiredMixin, View):
     def get(self, request):
-        selected_household = resolve_selected_household(request)
+        selected_household = request.household
         contracts = InsuranceContract.objects.for_user_households(request.user)
         if selected_household:
             contracts = contracts.filter(household=selected_household)
@@ -72,7 +70,7 @@ class AppInsuranceView(LoginRequiredMixin, View):
 class AppInsuranceNewView(LoginRequiredMixin, View):
     def get(self, request, contract=None, selected_household=None):
         if selected_household is None:
-            selected_household = resolve_selected_household(request)
+            selected_household = request.household
         if selected_household is None:
             messages.error(request, _("No household selected."))
             return redirect("app_dashboard")
@@ -89,7 +87,7 @@ class AppInsuranceNewView(LoginRequiredMixin, View):
         )
 
     def post(self, request):
-        selected_household = resolve_selected_household(request)
+        selected_household = request.household
         if selected_household is None:
             messages.error(request, _("No household selected."))
             return redirect("app_dashboard")

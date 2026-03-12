@@ -20,7 +20,6 @@ import {
 } from '@/lib/api/equipment';
 import type { ZoneOption } from '@/lib/api/zones';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface EquipmentDetailProps {
   title?: string;
@@ -69,7 +68,6 @@ export default function EquipmentDetail({
   editUrl,
   listUrl = '/app/equipment/',
 }: EquipmentDetailProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [equipment, setEquipment] = React.useState<EquipmentListItem | null>(null);
   const [audit, setAudit] = React.useState<EquipmentAudit | null>(null);
@@ -94,9 +92,9 @@ export default function EquipmentDetail({
     setError(null);
     try {
       const [item, itemAudit, itemLinks] = await Promise.all([
-        fetchEquipment(equipmentId, householdId),
-        fetchEquipmentAudit(equipmentId, householdId),
-        fetchEquipmentInteractions(equipmentId, householdId),
+        fetchEquipment(equipmentId),
+        fetchEquipmentAudit(equipmentId),
+        fetchEquipmentInteractions(equipmentId),
       ]);
       setEquipment(item);
       setAudit(itemAudit);
@@ -109,7 +107,7 @@ export default function EquipmentDetail({
     } finally {
       setLoading(false);
     }
-  }, [equipmentId, householdId, t]);
+  }, [equipmentId, t]);
 
   React.useEffect(() => {
     load();
@@ -147,7 +145,6 @@ export default function EquipmentDetail({
           occurred_at: parsedDate.toISOString(),
           zone_ids: [zoneId],
         },
-        householdId
       );
 
       await linkEquipmentInteraction(
@@ -157,7 +154,6 @@ export default function EquipmentDetail({
           role,
           note,
         },
-        householdId
       );
 
       setSubject('');
@@ -182,7 +178,7 @@ export default function EquipmentDetail({
 
     setDeleting(true);
     try {
-      await deleteEquipment(equipment.id, householdId);
+      await deleteEquipment(equipment.id);
       if (typeof window !== 'undefined') {
         window.location.assign(listUrl);
       }

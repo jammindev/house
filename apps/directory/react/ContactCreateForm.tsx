@@ -5,8 +5,6 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Alert, AlertDescription } from '@/design-system/alert';
 import { createContact } from '@/lib/api/contacts';
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface ContactCreateFormProps {
   redirectUrl?: string;
 }
@@ -34,7 +32,6 @@ const EMPTY: FormState = {
 };
 
 export default function ContactCreateForm({ redirectUrl = '/app/directory/?view=contacts' }: ContactCreateFormProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY);
   const [submitting, setSubmitting] = React.useState(false);
@@ -60,7 +57,6 @@ export default function ContactCreateForm({ redirectUrl = '/app/directory/?view=
           position: form.position.trim() || undefined,
           notes: form.notes.trim() || undefined,
         },
-        householdId ?? undefined,
         form.email.trim() ? {
           email: form.email.trim(),
           label: form.emailLabel.trim() || 'main',

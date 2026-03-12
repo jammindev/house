@@ -58,9 +58,7 @@ class HouseholdListView(ReactPageMixin, LoginRequiredMixin, ListView):
     """
 
     def get_queryset(self):
-        from core.permissions import resolve_selected_household
-
-        self.selected_household = resolve_selected_household(self.request)
+        self.selected_household = self.request.household
         return (
             super().get_queryset()
             .for_user_households(self.request.user)

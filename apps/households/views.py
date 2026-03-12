@@ -91,6 +91,16 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         serializer = HouseholdMemberSerializer(members, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='active-members')
+    def active_members(self, request):
+        """Get members of the active household (resolved by middleware, no ID required)."""
+        household = request.household
+        if not household:
+            return Response([])
+        members = HouseholdMember.objects.filter(household=household).select_related('user')
+        serializer = HouseholdMemberSerializer(members, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['post'])
     def leave(self, request, pk=None):
         """

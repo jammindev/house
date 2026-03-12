@@ -7,7 +7,6 @@ import { fetchTags, type TagOption, type TagType } from '@/lib/api/tags';
 import { cn } from '@/lib/utils';
 
 interface TagSelectorProps {
-  householdId?: string;
   tagType: TagType;
   selectedTagNames: string[];
   onChange: (tagNames: string[]) => void;
@@ -46,7 +45,6 @@ function sortTagsByRelevance(tags: TagOption[], query: string): TagOption[] {
 }
 
 export function TagSelector({
-  householdId,
   tagType,
   selectedTagNames,
   onChange,
@@ -102,7 +100,7 @@ export function TagSelector({
       setError(null);
 
       try {
-        const data = await fetchTags({ householdId, type: tagType });
+        const data = await fetchTags({ type: tagType });
         if (isMounted) {
           setAvailableTags(data);
         }
@@ -122,7 +120,7 @@ export function TagSelector({
     return () => {
       isMounted = false;
     };
-  }, [householdId, tagType, t]);
+  }, [tagType, t]);
 
   function addTag(rawName: string) {
     const nextName = normalizeTagName(rawName);

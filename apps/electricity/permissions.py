@@ -3,7 +3,6 @@
 
 from rest_framework import permissions
 
-from core.permissions import resolve_request_household
 from households.models import HouseholdMember
 
 
@@ -16,7 +15,7 @@ class IsElectricityOwnerWriteMemberRead(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
-        household = resolve_request_household(request, required=False)
+        household = request.household
         if household is None:
             return request.method in permissions.SAFE_METHODS
 

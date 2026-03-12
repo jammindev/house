@@ -8,7 +8,6 @@ import { Wrench } from 'lucide-react';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import ListPage from '@/components/ListPage';
 
 interface EquipmentListProps {
@@ -38,7 +37,6 @@ export default function EquipmentList({
   initialStatus = '',
   initialZoneId = '',
 }: EquipmentListProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
   const [search, setSearch] = React.useState(initialSearch);
@@ -54,9 +52,8 @@ export default function EquipmentList({
     setError(null);
     try {
       const [loadedZones, loadedItems] = await Promise.all([
-        fetchZones(householdId),
+        fetchZones(),
         fetchEquipmentList({
-          householdId,
           search: search || undefined,
           status: status || undefined,
           zone: zone || undefined,
@@ -69,7 +66,7 @@ export default function EquipmentList({
     } finally {
       setLoading(false);
     }
-  }, [householdId, search, status, t, zone]);
+  }, [search, status, t, zone]);
 
   React.useEffect(() => {
     load();

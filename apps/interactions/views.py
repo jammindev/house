@@ -10,7 +10,7 @@ from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from documents.models import Document
 from zones.models import Zone
 from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
@@ -46,7 +46,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
             'created_by'
         ).prefetch_related('zones', 'documents', 'project', 'tags__tag')
 
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         
@@ -107,7 +107,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
             raise ValidationError({'zone_ids': 'All zones must belong to the same household.'})
 
         zone_household_id = next(iter(household_ids))
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household and str(selected_household.id) != zone_household_id:
             raise ValidationError({'household_id': 'Selected household does not match provided zones.'})
 
@@ -184,7 +184,7 @@ class _InteractionLinkBaseViewSet(viewsets.ModelViewSet):
         queryset = self.model.objects.filter(
             interaction__household_id__in=self.request.user.householdmember_set.values_list('household_id', flat=True)
         )
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(interaction__household=selected_household)
         return queryset

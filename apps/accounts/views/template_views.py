@@ -13,7 +13,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.generic import RedirectView, View
 
-from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 from documents.models import Document
 from interactions.models import Interaction
@@ -234,7 +233,7 @@ class AppDashboardView(ReactPageView):
     template_name = 'app/dashboard.html'
 
     def get_props(self):
-        selected_household = resolve_selected_household(self.request)
+        selected_household = self.request.household
         interactions_url = reverse('app_interactions')
         projects_url = reverse('app_projects')
         tasks_url = reverse('app_tasks')

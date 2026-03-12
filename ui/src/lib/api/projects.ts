@@ -83,13 +83,12 @@ function getCookie(name: string): string | null {
   return decodeURIComponent(match.split('=').slice(1).join('='));
 }
 
-function buildHeaders(householdId?: string | null, withJson = false) {
+function buildHeaders(withJson = false) {
   const csrfToken = getCookie('csrftoken');
   return {
     Accept: 'application/json',
     ...(withJson ? { 'Content-Type': 'application/json' } : {}),
     ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
@@ -105,7 +104,6 @@ function normalizeList<T>(payload: unknown): T[] {
 // ── Projects ───────────────────────────────────────────────
 
 interface FetchProjectsOptions {
-  householdId?: string | null;
   search?: string;
   status?: string;
   type?: string;
@@ -130,7 +128,7 @@ export async function fetchProjects(options: FetchProjectsOptions = {}): Promise
   const response = await fetch(`/api/projects/projects/?${params.toString()}`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(options.householdId),
+    headers: buildHeaders(),
   });
 
   if (!response.ok) throw new Error(`API error ${response.status}`);
@@ -138,21 +136,21 @@ export async function fetchProjects(options: FetchProjectsOptions = {}): Promise
   return normalizeList<ProjectListItem>(payload);
 }
 
-export async function fetchProject(id: string, householdId?: string | null): Promise<ProjectListItem> {
+export async function fetchProject(id: string): Promise<ProjectListItem> {
   const response = await fetch(`/api/projects/projects/${id}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectListItem;
 }
 
-export async function createProject(input: ProjectPayload, householdId?: string | null): Promise<ProjectListItem> {
+export async function createProject(input: ProjectPayload): Promise<ProjectListItem> {
   const response = await fetch('/api/projects/projects/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...input,
       description: input.description ?? '',
@@ -166,11 +164,11 @@ export async function createProject(input: ProjectPayload, householdId?: string 
   return (await response.json()) as ProjectListItem;
 }
 
-export async function updateProject(id: string, input: Partial<ProjectPayload>, householdId?: string | null): Promise<ProjectListItem> {
+export async function updateProject(id: string, input: Partial<ProjectPayload>): Promise<ProjectListItem> {
   const response = await fetch(`/api/projects/projects/${id}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({
       ...input,
       ...(input.tags !== undefined ? { tags: input.tags } : {}),
@@ -183,30 +181,30 @@ export async function updateProject(id: string, input: Partial<ProjectPayload>, 
   return (await response.json()) as ProjectListItem;
 }
 
-export async function deleteProject(id: string, householdId?: string | null): Promise<void> {
+export async function deleteProject(id: string): Promise<void> {
   const response = await fetch(`/api/projects/projects/${id}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
 }
 
-export async function pinProject(id: string, householdId?: string | null): Promise<ProjectListItem> {
+export async function pinProject(id: string): Promise<ProjectListItem> {
   const response = await fetch(`/api/projects/projects/${id}/pin/`, {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectListItem;
 }
 
-export async function unpinProject(id: string, householdId?: string | null): Promise<ProjectListItem> {
+export async function unpinProject(id: string): Promise<ProjectListItem> {
   const response = await fetch(`/api/projects/projects/${id}/unpin/`, {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectListItem;
@@ -214,54 +212,54 @@ export async function unpinProject(id: string, householdId?: string | null): Pro
 
 // ── Project Groups ─────────────────────────────────────────
 
-export async function fetchProjectGroups(householdId?: string | null): Promise<ProjectGroupItem[]> {
+export async function fetchProjectGroups(): Promise<ProjectGroupItem[]> {
   const response = await fetch('/api/projects/project-groups/', {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   const payload = (await response.json()) as unknown;
   return normalizeList<ProjectGroupItem>(payload);
 }
 
-export async function fetchProjectGroup(id: string, householdId?: string | null): Promise<ProjectGroupItem> {
+export async function fetchProjectGroup(id: string): Promise<ProjectGroupItem> {
   const response = await fetch(`/api/projects/project-groups/${id}/`, {
     method: 'GET',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectGroupItem;
 }
 
-export async function createProjectGroup(input: ProjectGroupPayload, householdId?: string | null): Promise<ProjectGroupItem> {
+export async function createProjectGroup(input: ProjectGroupPayload): Promise<ProjectGroupItem> {
   const response = await fetch('/api/projects/project-groups/', {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify({ ...input, description: input.description ?? '', tags: input.tags ?? [] }),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectGroupItem;
 }
 
-export async function updateProjectGroup(id: string, input: Partial<ProjectGroupPayload>, householdId?: string | null): Promise<ProjectGroupItem> {
+export async function updateProjectGroup(id: string, input: Partial<ProjectGroupPayload>): Promise<ProjectGroupItem> {
   const response = await fetch(`/api/projects/project-groups/${id}/`, {
     method: 'PATCH',
     credentials: 'include',
-    headers: buildHeaders(householdId, true),
+    headers: buildHeaders(true),
     body: JSON.stringify(input),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
   return (await response.json()) as ProjectGroupItem;
 }
 
-export async function deleteProjectGroup(id: string, householdId?: string | null): Promise<void> {
+export async function deleteProjectGroup(id: string): Promise<void> {
   const response = await fetch(`/api/projects/project-groups/${id}/`, {
     method: 'DELETE',
     credentials: 'include',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!response.ok) throw new Error(`API error ${response.status}`);
 }

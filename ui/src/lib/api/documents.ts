@@ -60,11 +60,10 @@ export interface DocumentUploadResponse {
   detail_url: string;
 }
 
-function buildHeaders(householdId?: string | null): Record<string, string> {
+function buildHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
     'X-CSRFToken': getCsrfToken(),
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
@@ -74,7 +73,6 @@ function getCsrfToken(): string {
 }
 
 export async function fetchDocuments(
-  householdId?: string | null,
   opts?: { withoutActivityOnly?: boolean },
 ): Promise<DocumentItem[]> {
   const params = new URLSearchParams({ ordering: '-created_at' });
@@ -84,7 +82,7 @@ export async function fetchDocuments(
 
   const res = await fetch(
     `/api/documents/documents/?${params.toString()}`,
-    { headers: buildHeaders(householdId) },
+    { headers: buildHeaders() },
   );
   if (!res.ok) throw new Error(`Failed to fetch documents: ${res.status}`);
   const data = (await res.json()) as unknown;
@@ -102,10 +100,9 @@ export async function fetchDocuments(
 
 export async function fetchDocumentDetail(
   id: string,
-  householdId?: string | null,
 ): Promise<DocumentDetail> {
   const res = await fetch(`/api/documents/documents/${id}/`, {
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to fetch document detail: ${res.status}`);
   const payload = (await res.json()) as DocumentDetail & { id: string | number };
@@ -117,7 +114,6 @@ export async function fetchDocumentDetail(
 
 export async function uploadDocument(
   input: UploadDocumentInput,
-  householdId?: string | null,
 ): Promise<DocumentUploadResponse> {
   const formData = new FormData();
   formData.set('file', input.file);
@@ -127,7 +123,7 @@ export async function uploadDocument(
 
   const res = await fetch('/api/documents/documents/upload/', {
     method: 'POST',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
     body: formData,
   });
   if (!res.ok) throw new Error(`Failed to upload document: ${res.status}`);
@@ -144,12 +140,11 @@ export async function uploadDocument(
 export async function updateDocument(
   id: string,
   data: { name?: string; notes?: string; type?: string },
-  householdId?: string | null,
 ): Promise<DocumentItem> {
   const res = await fetch(`/api/documents/documents/${id}/`, {
     method: 'PATCH',
     headers: {
-      ...buildHeaders(householdId),
+      ...buildHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(data),
@@ -161,11 +156,10 @@ export async function updateDocument(
 
 export async function deleteDocument(
   id: string,
-  householdId?: string | null,
 ): Promise<void> {
   const res = await fetch(`/api/documents/documents/${id}/`, {
     method: 'DELETE',
-    headers: buildHeaders(householdId),
+    headers: buildHeaders(),
   });
   if (!res.ok) throw new Error(`Failed to delete document: ${res.status}`);
 }

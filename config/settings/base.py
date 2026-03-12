@@ -63,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Langue : après AuthenticationMiddleware pour avoir accès à request.user
     "core.middleware.UserLocaleMiddleware",
+    "core.middleware.ActiveHouseholdMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]

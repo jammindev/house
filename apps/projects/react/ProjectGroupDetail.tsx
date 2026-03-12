@@ -14,19 +14,18 @@ import {
 } from '@/lib/api/projects';
 import ProjectList from './ProjectList';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface ProjectGroupDetailProps {
   groupId: string;
   backUrl?: string;
   editUrl?: string | null;
+  onNavigate?: (url: string) => void;
 }
 
 export default function ProjectGroupDetail({
   groupId,
   backUrl = '/app/projects/groups/',
+  onNavigate,
 }: ProjectGroupDetailProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [group, setGroup] = React.useState<ProjectGroupItem | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -44,7 +43,7 @@ export default function ProjectGroupDetail({
       setLoading(true);
       setError(null);
       try {
-        const item = await fetchProjectGroup(groupId, householdId);
+        const item = await fetchProjectGroup(groupId);
         if (!mounted) return;
         setGroup(item);
         setName(item.name);
@@ -57,7 +56,7 @@ export default function ProjectGroupDetail({
     }
     load();
     return () => { mounted = false; };
-  }, [groupId, householdId, t]);
+  }, [groupId, t]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -65,7 +64,7 @@ export default function ProjectGroupDetail({
     setSaving(true);
     setSaveError(null);
     try {
-      const updated = await updateProjectGroup(groupId, { name: name.trim(), description }, householdId);
+      const updated = await updateProjectGroup(groupId, { name: name.trim(), description });
       setGroup(updated);
       setEditing(false);
     } catch {
@@ -80,8 +79,8 @@ export default function ProjectGroupDetail({
     if (!window.confirm(t('projects.groups.delete_confirm', { name: group.name }))) return;
     setDeleting(true);
     try {
-      await deleteProjectGroup(groupId, householdId);
-      window.location.assign(backUrl);
+      await deleteProjectGroup(groupId);
+      if (onNavigate) { onNavigate(backUrl); } else { window.location.assign(backUrl); }
     } catch {
       setDeleting(false);
     }

@@ -1,8 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from core.permissions import resolve_request_household
-
 from .models import InsuranceContract
 
 
@@ -54,7 +52,7 @@ class InsuranceContractSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get("request")
-        household = resolve_request_household(request, required=True) if request else None
+        household = request.household if request else None
         if household is None:
             raise serializers.ValidationError({"household_id": _("A valid household context is required.")})
         validated_data["household"] = household

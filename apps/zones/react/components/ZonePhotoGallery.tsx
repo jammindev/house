@@ -1,8 +1,6 @@
 import { type FormEvent, useState } from 'react';
 import { Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { useToast } from '@/lib/toast';
@@ -23,7 +21,7 @@ export default function ZonePhotoGallery({ photos, loading = false, onAttachPhot
   const [note, setNote] = useState('');
   const [working, setWorking] = useState(false);
 
-  const canManage = Boolean(useHouseholdId());
+  const canManage = true;
 
   async function handleAttach(event: FormEvent) {
     event.preventDefault();

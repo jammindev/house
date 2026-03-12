@@ -7,7 +7,6 @@ type RefItem = { id: string; label: string; name?: string };
 type ActiveLinkItem = { id: string; circuitLabel: string; usagePointLabel: string };
 
 type ElectricityPageProps = {
-  householdId: string | null;
   isOwner: boolean;
   board: { id: string; name: string; supplyType: string } | null;
   summary: {
@@ -91,13 +90,11 @@ export default function ElectricityBoardNode(props: ElectricityPageProps) {
 
   function buildQuery(params?: Record<string, string>): string {
     const searchParams = new URLSearchParams(params ?? {});
-    if (props.householdId) searchParams.set('household_id', props.householdId);
     return searchParams.toString();
   }
 
   async function apiRequest(path: string, method: 'GET' | 'POST', body?: Record<string, unknown>): Promise<Response> {
     const headers: Record<string, string> = { 'X-Requested-With': 'XMLHttpRequest' };
-    if (props.householdId) headers['X-Household-Id'] = props.householdId;
     if (method !== 'GET') {
       headers['Content-Type'] = 'application/json';
       headers['X-CSRFToken'] = getCookie('csrftoken');

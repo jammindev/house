@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 import { Button, buttonVariants } from '@/design-system/button';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ContactList from './ContactList';
@@ -30,7 +29,6 @@ function setViewParam(view: DirectoryView) {
 }
 
 export default function DirectoryPage({ initialView: _initialView }: DirectoryPageProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [currentView, setCurrentView] = React.useState<DirectoryView>(getCurrentView);
 
@@ -45,20 +43,20 @@ export default function DirectoryPage({ initialView: _initialView }: DirectoryPa
   React.useEffect(() => {
     let cancelled = false;
     setContactsLoading(true);
-    fetchContacts(householdId)
+    fetchContacts()
       .then((list) => { if (!cancelled) { setContacts(list); setContactsLoading(false); } })
       .catch(() => { if (!cancelled) { setContactsError(t('contacts.loadFailed', { defaultValue: 'Failed to load contacts.' })); setContactsLoading(false); } });
     return () => { cancelled = true; };
-  }, [householdId, t]);
+  }, [t]);
 
   React.useEffect(() => {
     let cancelled = false;
     setStructuresLoading(true);
-    fetchStructures(householdId)
+    fetchStructures()
       .then((list) => { if (!cancelled) { setStructures(list); setStructuresLoading(false); } })
       .catch(() => { if (!cancelled) { setStructuresError(t('structures.loadFailed', { defaultValue: 'Failed to load structures.' })); setStructuresLoading(false); } });
     return () => { cancelled = true; };
-  }, [householdId, t]);
+  }, [t]);
 
   // Clean up URL params after redirect notifications
   React.useEffect(() => {

@@ -3,8 +3,6 @@ import calendar
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
-
 from .models import Equipment, EquipmentInteraction
 
 
@@ -80,7 +78,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         if household is None:
             request = self.context.get("request")
             if request is not None:
-                household = resolve_request_household(request, required=False)
+                household = request.household
 
         if zone and household and zone.household_id != household.id:
             raise serializers.ValidationError({"zone": _("Zone must belong to the same household as equipment.")})

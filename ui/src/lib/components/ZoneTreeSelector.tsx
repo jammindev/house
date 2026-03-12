@@ -13,7 +13,6 @@ interface ZoneTreeNode {
 }
 
 interface ZoneTreeSelectorProps {
-  householdId?: string;
   selectedZoneIds: string[];
   onChange: (zoneIds: string[]) => void;
   initialZones?: ZoneOption[];
@@ -100,7 +99,6 @@ function readPersistedExpandedZoneIds(storageKey: string): string[] {
 }
 
 export function ZoneTreeSelector({
-  householdId,
   selectedZoneIds,
   onChange,
   initialZones = [],
@@ -160,7 +158,7 @@ export function ZoneTreeSelector({
       setZonesError(null);
 
       try {
-        const data = await fetchZones(householdId);
+        const data = await fetchZones();
         if (isMounted) {
           setZones(data);
         }
@@ -180,7 +178,7 @@ export function ZoneTreeSelector({
     return () => {
       isMounted = false;
     };
-  }, [householdId, initialZones, initialZonesLoaded, t]);
+  }, [initialZones, initialZonesLoaded, t]);
 
   React.useEffect(() => {
     setExpandedZoneIds((previous) => {

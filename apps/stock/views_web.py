@@ -1,27 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 
-from core.permissions import resolve_selected_household
 from core.views import ReactPageView
-from zones.models import Zone
-from zones.serializers import ZonePickerSerializer
 
-from .models import StockCategory, StockItem
-from .serializers import StockCategoryPickerSerializer
-
-
-def _zones_props(request, selected_household):
-    qs = Zone.objects.for_user_households(request.user).select_related("parent")
-    if selected_household:
-        qs = qs.filter(household=selected_household)
-    return ZonePickerSerializer(qs.order_by("name"), many=True).data
-
-
-def _categories_props(request, selected_household):
-    qs = StockCategory.objects.for_user_households(request.user)
-    if selected_household:
-        qs = qs.filter(household=selected_household)
-    return StockCategoryPickerSerializer(qs.order_by("sort_order", "name"), many=True).data
+from .models import StockItem
 
 
 class AppStockView(ReactPageView):
@@ -45,11 +27,8 @@ class AppStockNewView(ReactPageView):
     page_vite_asset = "src/pages/stock/new.tsx"
 
     def get_props(self):
-        selected_household = resolve_selected_household(self.request)
         return {
             "mode": "create",
-            "initialZones": _zones_props(self.request, selected_household),
-            "initialCategories": _categories_props(self.request, selected_household),
             "cancelUrl": reverse("app_stock"),
             "successRedirectUrl": reverse("app_stock"),
         }
@@ -82,13 +61,9 @@ class AppStockEditView(ReactPageView):
             StockItem.objects.for_user_households(self.request.user).select_related("zone", "category"),
             id=self.kwargs["item_id"],
         )
-        selected_household = resolve_selected_household(self.request)
-        household = selected_household or item.household
         return {
             "mode": "edit",
             "itemId": str(item.id),
-            "initialZones": _zones_props(self.request, household),
-            "initialCategories": _categories_props(self.request, household),
             "cancelUrl": reverse("app_stock_detail", kwargs={"item_id": item.id}),
             "successRedirectUrl": reverse("app_stock_detail", kwargs={"item_id": item.id}),
         }

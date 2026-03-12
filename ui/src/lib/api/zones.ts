@@ -36,13 +36,12 @@ function normalizeZone(zone: ZoneOption & { parent?: string | null }): ZoneOptio
   };
 }
 
-export async function fetchZones(householdId?: string): Promise<ZoneOption[]> {
+export async function fetchZones(): Promise<ZoneOption[]> {
   const response = await fetch('/api/zones/', {
     method: 'GET',
     credentials: 'include',
     headers: {
       Accept: 'application/json',
-      ...(householdId ? { 'X-Household-Id': householdId } : {}),
     },
   });
 

@@ -10,17 +10,16 @@ export interface PhotoDocument {
   created_by_name?: string | null;
 }
 
-function buildHeaders(householdId?: string | null): Record<string, string> {
+function buildHeaders(): Record<string, string> {
   return {
     Accept: 'application/json',
-    ...(householdId ? { 'X-Household-Id': householdId } : {}),
   };
 }
 
-export async function fetchPhotos(householdId?: string | null): Promise<PhotoDocument[]> {
+export async function fetchPhotos(): Promise<PhotoDocument[]> {
   const res = await fetch(
     '/api/documents/documents/?type=photo&ordering=-created_at',
-    { headers: buildHeaders(householdId) },
+    { headers: buildHeaders() },
   );
   if (!res.ok) throw new Error(`Failed to fetch photos: ${res.status}`);
   const data = await res.json() as unknown;

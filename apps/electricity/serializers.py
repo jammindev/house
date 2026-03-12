@@ -4,7 +4,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from core.permissions import resolve_request_household
 from households.models import HouseholdMember
 
 from .models import (
@@ -56,7 +55,7 @@ class HouseholdScopedModelSerializer(serializers.ModelSerializer):
         if not household_id:
             request = self.context.get("request")
             if request is not None:
-                selected_household = resolve_request_household(request, required=False)
+                selected_household = request.household
                 if selected_household is not None:
                     household_id = selected_household.id
 
@@ -79,7 +78,7 @@ class ElectricityBoardSerializer(HouseholdScopedModelSerializer):
         if request is None:
             return attrs
 
-        selected_household = resolve_request_household(request, required=False)
+        selected_household = request.household
         if selected_household is None:
             return attrs
 

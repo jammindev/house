@@ -27,7 +27,6 @@ import {
 } from '@/lib/api/stock';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { Package, Tag } from 'lucide-react';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 
@@ -61,7 +60,6 @@ export default function StockList({
   initialCategoryId = '',
   newUrl = '/app/stock/new/',
 }: StockListProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [tab, setTab] = React.useState<'items' | 'categories'>('items');
 
@@ -93,11 +91,10 @@ export default function StockList({
     setError(null);
     try {
       const [loadedZones, loadedCategories, loadedSummary, loadedItems] = await Promise.all([
-        fetchZones(householdId),
-        fetchStockCategories(householdId),
-        fetchStockCategorySummary(householdId),
+        fetchZones(),
+        fetchStockCategories(),
+        fetchStockCategorySummary(),
         fetchStockItems({
-          householdId,
           search: search || undefined,
           status: status || undefined,
           zone: zone || undefined,
@@ -113,7 +110,7 @@ export default function StockList({
     } finally {
       setLoading(false);
     }
-  }, [householdId, search, status, zone, category, t]);
+  }, [search, status, zone, category, t]);
 
   React.useEffect(() => {
     load();
@@ -177,7 +174,6 @@ export default function StockList({
             color: categoryForm.color.trim() || '#94a3b8',
             description: categoryForm.description.trim(),
           },
-          householdId
         );
       } else {
         await createStockCategory(
@@ -188,7 +184,6 @@ export default function StockList({
             description: categoryForm.description.trim(),
             sort_order: categories.length,
           },
-          householdId
         );
       }
 
@@ -202,7 +197,7 @@ export default function StockList({
 
   async function handleDeleteCategory(entry: StockCategory) {
     if (!window.confirm(t('stock.categories.confirm_delete', { name: entry.name }))) return;
-    await deleteStockCategory(entry.id, householdId);
+    await deleteStockCategory(entry.id);
     await load();
   }
 

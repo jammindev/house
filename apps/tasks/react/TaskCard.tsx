@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, FileText, Link, Pencil, RotateCcw, Trash2 } from 'lucide-react';
+import { CheckCircle2, FileText, Link, Pencil, RotateCcw, Trash2, User } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import type { Task, TaskStatus } from '@/lib/api/tasks';
 import { nextStatus, prevStatus, isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
@@ -25,13 +25,12 @@ export default function TaskCard({
 
   const overdue = isTaskOverdue(task);
   const isDone = task.status === 'done';
-  const relativeDate = formatRelativeDate(task.occurred_at);
+  const relativeDate = formatRelativeDate(task.due_date);
 
-  const sourceInteractionId = task.metadata?.source_interaction_id as string | undefined;
-  const hasLinkedDocument = task.document_count > 0;
+  const hasLinkedDocument = false; // tasks don't have documents yet
   const zoneName = task.zone_names?.[0];
-
   const canGoBack = task.status === 'done';
+  const isHighPriority = task.priority === 1;
 
   const handleAdvance = async () => {
     const newStatus = nextStatus(task.status);
@@ -65,9 +64,14 @@ export default function TaskCard({
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className={`text-sm font-medium leading-snug ${overdue ? 'text-orange-900' : 'text-slate-900'} ${isDone ? 'line-through' : ''}`}>
-            {task.subject || t('tasks.untitledTask')}
-          </p>
+          <div className="flex items-start gap-1.5">
+            {isHighPriority && !isDone && (
+              <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-red-500" title={t('tasks.priorityHigh', { defaultValue: 'High priority' })} />
+            )}
+            <p className={`text-sm font-medium leading-snug ${overdue ? 'text-orange-900' : 'text-slate-900'} ${isDone ? 'line-through' : ''}`}>
+              {task.subject || t('tasks.untitledTask')}
+            </p>
+          </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
             {zoneName ? (
@@ -93,6 +97,19 @@ export default function TaskCard({
             ) : null}
           </div>
 
+          {task.assigned_to_name ? (
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
+              <User className="h-3 w-3" />
+              <span>{task.assigned_to_name}</span>
+            </div>
+          ) : null}
+
+          {isDone && task.completed_by_name ? (
+            <div className="mt-1 text-[11px] text-emerald-600">
+              {t('tasks.completedBy', { name: task.completed_by_name, defaultValue: `Done by ${task.completed_by_name}` })}
+            </div>
+          ) : null}
+
           {task.project && task.project_title ? (
             <div className="mt-1">
               <a
@@ -104,11 +121,11 @@ export default function TaskCard({
             </div>
           ) : null}
 
-          {(sourceInteractionId || hasLinkedDocument) ? (
+          {(task.source_interaction || hasLinkedDocument) ? (
             <div className="mt-1.5 flex items-center gap-2">
-              {sourceInteractionId ? (
+              {task.source_interaction ? (
                 <a
-                  href={`${interactionsBaseUrl}?created=${sourceInteractionId}`}
+                  href={`${interactionsBaseUrl}?created=${task.source_interaction}`}
                   className="inline-flex items-center gap-1 text-[11px] text-sky-600 hover:text-sky-800 hover:underline"
                   title={t('tasks.sourceEvent', { defaultValue: 'Source event' })}
                 >
@@ -117,10 +134,7 @@ export default function TaskCard({
                 </a>
               ) : null}
               {hasLinkedDocument ? (
-                <span
-                  className="inline-flex items-center gap-1 text-[11px] text-violet-600"
-                  title={t('tasks.sourceDocumentLink', { defaultValue: 'Linked document' })}
-                >
+                <span className="inline-flex items-center gap-1 text-[11px] text-violet-600">
                   <FileText className="h-3 w-3" />
                   {t('tasks.sourceDocumentLink', { defaultValue: 'Document' })}
                 </span>

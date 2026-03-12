@@ -4,7 +4,6 @@ Interaction serializers for REST API.
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
-from core.permissions import resolve_request_household
 from documents.models import Document
 from tags.models import Tag, TagLink
 from .models import (
@@ -14,30 +13,6 @@ from .models import (
     InteractionStructure,
     InteractionDocument,
 )
-
-
-class InteractionListPropsSerializer(serializers.ModelSerializer):
-    """Minimal serializer for the interactions list page initial props."""
-    tags = serializers.SerializerMethodField()
-    zone_names = serializers.SerializerMethodField()
-    document_count = serializers.SerializerMethodField()
-    created_by_name = serializers.CharField(source='created_by.full_name', read_only=True, default='')
-
-    class Meta:
-        model = Interaction
-        fields = [
-            'id', 'subject', 'content', 'type', 'status',
-            'occurred_at', 'tags', 'zone_names', 'document_count', 'created_by_name',
-        ]
-
-    def get_tags(self, obj):
-        return [link.tag.name for link in obj.tags.all()]
-
-    def get_zone_names(self, obj):
-        return [zone.name for zone in obj.zones.all()]
-
-    def get_document_count(self, obj):
-        return obj.documents.count()
 
 
 class InteractionSerializer(serializers.ModelSerializer):
@@ -80,6 +55,13 @@ class InteractionSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
+
+    def validate(self, data):
+        data = super().validate(data)
+        interaction_type = data.get('type') or (self.instance.type if self.instance else None)
+        if interaction_type != 'todo' and not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
+            raise serializers.ValidationError({'occurred_at': 'This field is required for this interaction type.'})
+        return data
     
     def get_project_title(self, obj):
         if obj.project_id:
@@ -248,7 +230,7 @@ class InteractionDocumentSerializer(serializers.ModelSerializer):
         if interaction.household_id != document.household_id:
             raise serializers.ValidationError({'document': 'Document must belong to the same household as the interaction.'})
 
-        selected_household = resolve_request_household(request, required=False)
+        selected_household = request.household
         if selected_household and (
             interaction.household_id != selected_household.id or document.household_id != selected_household.id
         ):

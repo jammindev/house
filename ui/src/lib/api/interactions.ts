@@ -40,7 +40,6 @@ interface FetchInteractionsOptions {
   zone?: string;
   limit?: number;
   offset?: number;
-  householdId?: string;
 }
 
 interface PaginatedResponse<T> {
@@ -101,7 +100,7 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { search, type, status, zone, limit = 8, offset = 0, householdId } = options;
+  const { search, type, status, zone, limit = 8, offset = 0 } = options;
 
   const params = new URLSearchParams();
   params.set('ordering', '-occurred_at');
@@ -117,7 +116,6 @@ export async function fetchInteractions(
     credentials: 'include',
     headers: {
       Accept: 'application/json',
-      ...(householdId ? { 'X-Household-Id': householdId } : {}),
     },
   });
 
@@ -141,7 +139,6 @@ export async function searchInteractions(
 
 export async function createInteraction(
   input: CreateInteractionInput,
-  householdId?: string
 ): Promise<InteractionListItem & { linked_document_ids?: string[] }> {
   const csrfToken = getCookie('csrftoken');
 
@@ -152,7 +149,6 @@ export async function createInteraction(
       Accept: 'application/json',
       'Content-Type': 'application/json',
       ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-      ...(householdId ? { 'X-Household-Id': householdId } : {}),
     },
     body: JSON.stringify({
       ...input,
@@ -180,7 +176,6 @@ export async function createInteraction(
 
 export async function linkDocumentToInteraction(
   input: LinkDocumentToInteractionInput,
-  householdId?: string
 ): Promise<void> {
   const csrfToken = getCookie('csrftoken');
 
@@ -191,7 +186,6 @@ export async function linkDocumentToInteraction(
       Accept: 'application/json',
       'Content-Type': 'application/json',
       ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-      ...(householdId ? { 'X-Household-Id': householdId } : {}),
     },
     body: JSON.stringify({
       interaction: input.interactionId,

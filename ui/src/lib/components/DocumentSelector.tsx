@@ -16,7 +16,6 @@ import {
 } from '@/lib/api/documents';
 
 interface DocumentSelectorProps {
-  householdId?: string;
   selectedDocumentIds: string[];
   onChange: (documentIds: string[]) => void;
   legend?: string;
@@ -41,7 +40,6 @@ function sortDocuments(left: DocumentItem, right: DocumentItem): number {
 }
 
 export function DocumentSelector({
-  householdId,
   selectedDocumentIds,
   onChange,
   legend,
@@ -75,7 +73,7 @@ export function DocumentSelector({
       setError(null);
 
       try {
-        const payload = await fetchDocuments(householdId);
+        const payload = await fetchDocuments();
         if (isMounted) {
           setDocuments([...payload].sort(sortDocuments));
         }
@@ -95,7 +93,7 @@ export function DocumentSelector({
     return () => {
       isMounted = false;
     };
-  }, [householdId, t]);
+  }, [t]);
 
   const selectedDocuments = React.useMemo(
     () => documents.filter((document) => selectedDocumentIds.includes(document.id)).sort(sortDocuments),
@@ -147,15 +145,12 @@ export function DocumentSelector({
     setUploadError(null);
 
     try {
-      const response = await uploadDocument(
-        {
-          file: selectedFile,
-          name: uploadName || selectedFile.name,
-          type: uploadType,
-          notes: uploadNotes,
-        },
-        householdId,
-      );
+      const response = await uploadDocument({
+        file: selectedFile,
+        name: uploadName || selectedFile.name,
+        type: uploadType,
+        notes: uploadNotes,
+      });
 
       const createdDocument: DocumentItem = response.document;
       setDocuments((current) => {

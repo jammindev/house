@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from .models import Document
 from .serializers import (
     DocumentSerializer,
@@ -51,7 +51,7 @@ def get_documents_queryset_for_request(request):
         ),
     )
 
-    selected_household = resolve_request_household(request, required=False)
+    selected_household = request.household
     if selected_household:
         queryset = queryset.filter(household=selected_household)
 
@@ -124,7 +124,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         """Set household and created_by with household consistency checks."""
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         interaction_id = self.request.data.get('interaction')
         interaction = None
 
@@ -157,7 +157,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         serializer = DocumentUploadSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        household = resolve_request_household(request, required=False)
+        household = request.household
         if household is None:
             raise ValidationError({'household_id': 'A valid household context is required.'})
 

@@ -12,7 +12,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.permissions import resolve_request_household
 from core.views import ReactPageView
 from households.models import HouseholdMember
 
@@ -40,15 +39,8 @@ from .serializers import (
 
 
 def resolve_electricity_household(request):
-    """Resolve selected household with fallback to first membership."""
-    household = resolve_request_household(request, required=False)
-    if household:
-        return household
-
-    membership = (
-        request.user.householdmember_set.select_related("household").order_by("household__name").first()
-    )
-    return membership.household if membership else None
+    """Resolve selected household — now delegated to the middleware-set request.household."""
+    return request.household
 
 
 def is_household_owner(user, household):
@@ -206,7 +198,7 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         serializer.save(household=household, created_by=self.request.user, updated_by=self.request.user)

@@ -5,8 +5,6 @@ import { Button } from '@/design-system/button';
 import type { DocumentItem } from '@/lib/api/documents';
 import { deleteDocument, formatFileSize } from '@/lib/api/documents';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface DocumentListItemProps {
   doc: DocumentItem;
   onEdit?: (doc: DocumentItem) => void;
@@ -18,7 +16,6 @@ export default function DocumentListItem({
   onEdit,
   onDeleted,
 }: DocumentListItemProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [confirmOpen, setConfirmOpen] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
@@ -36,7 +33,7 @@ export default function DocumentListItem({
       return;
     }
     setDeleting(true);
-    deleteDocument(doc.id, householdId)
+    deleteDocument(doc.id)
       .then(() => {
         onDeleted?.(doc.id);
         setConfirmOpen(false);

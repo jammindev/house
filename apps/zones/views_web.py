@@ -1,27 +1,18 @@
 from django.http import Http404
 from django.urls import reverse
 
-from core.permissions import resolve_selected_household
-from core.views import HouseholdListView, ReactPageView
+from core.views import ReactPageView
 
 from .models import Zone
-from .serializers import ZoneDetailPropsSerializer, ZoneListPropsSerializer
 
 
-class AppZonesView(HouseholdListView):
-    model = Zone
+class AppZonesView(ReactPageView):
     react_root_id = "zones-root"
     props_script_id = "zones-page-props"
     page_vite_asset = "src/pages/zones/list.tsx"
 
-    def get_queryset(self):
-        return super().get_queryset().select_related('parent')
-
     def get_props(self):
-        zones = self.object_list.order_by('name')[:80]
-        return {
-            'initialZones': ZoneListPropsSerializer(zones, many=True).data,
-        }
+        return {}
 
 
 class AppZoneDetailView(ReactPageView):
@@ -32,7 +23,7 @@ class AppZoneDetailView(ReactPageView):
 
     def _fetch_zone(self):
         if not hasattr(self, '_zone_cache'):
-            selected_household = resolve_selected_household(self.request)
+            selected_household = self.request.household
             zone_id = self.kwargs['zone_id']
             queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
             if selected_household:
@@ -46,17 +37,11 @@ class AppZoneDetailView(ReactPageView):
         return self._zone_cache
 
     def get_props(self):
-        zone, children_count, photos_count = self._fetch_zone()
+        zone, _children_count, _photos_count = self._fetch_zone()
         interaction_new_url = reverse('app_interaction_new')
         zone_id_str = str(zone.id)
         return {
-            'zoneId': str(zone.id),
-            'initialZone': ZoneDetailPropsSerializer(zone).data,
-            'initialStats': {
-                'childrenCount': children_count,
-                'photosCount': photos_count,
-            },
-            'initialPhotos': [],
+            'zoneId': zone_id_str,
             'createActivityUrl': f"{interaction_new_url}?zone_ids={zone_id_str}",
             'createTaskUrl': f"{interaction_new_url}?type=todo&zone_ids={zone_id_str}",
         }

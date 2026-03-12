@@ -6,8 +6,6 @@ import DocumentListItem from './DocumentListItem';
 import DocumentsFilters from './DocumentsFilters';
 import EditDocumentModal from './EditDocumentModal';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 type DocumentsPageProps = {
   title?: string;
   createUrl?: string;
@@ -23,7 +21,6 @@ type DocumentsPageProps = {
 };
 
 export default function DocumentsPage(props: DocumentsPageProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [documents, setDocuments] = React.useState<DocumentItem[]>(props.initialDocuments ?? []);
   const [loading, setLoading] = React.useState(!(props.initialLoaded ?? false));
@@ -35,7 +32,7 @@ export default function DocumentsPage(props: DocumentsPageProps) {
   const loadDocuments = React.useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchDocuments(householdId, { withoutActivityOnly: unlinkedOnly })
+    fetchDocuments({ withoutActivityOnly: unlinkedOnly })
       .then((list) => {
         setDocuments(list);
         setLoading(false);
@@ -44,7 +41,7 @@ export default function DocumentsPage(props: DocumentsPageProps) {
         setError(t('documents.loadFailed', { defaultValue: 'Failed to load documents.' }));
         setLoading(false);
       });
-  }, [householdId, t, unlinkedOnly]);
+  }, [t, unlinkedOnly]);
 
   React.useEffect(() => {
     if (props.initialLoaded) {

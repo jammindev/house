@@ -17,7 +17,6 @@ import {
 } from '@/lib/api/stock';
 import type { ZoneOption } from '@/lib/api/zones';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 
 interface StockFormProps {
   mode: 'create' | 'edit';
@@ -107,7 +106,6 @@ export default function StockForm({
   cancelUrl = '/app/equipment/stock/',
   successRedirectUrl = '/app/equipment/stock/',
 }: StockFormProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [loading, setLoading] = React.useState(mode === 'edit');
@@ -130,7 +128,7 @@ export default function StockForm({
       setLoading(true);
       setError(null);
       try {
-        const item = await fetchStockItem(resolvedItemId, householdId);
+        const item = await fetchStockItem(resolvedItemId);
         if (mounted) {
           setForm(fromApi(item));
         }
@@ -143,7 +141,7 @@ export default function StockForm({
 
     load();
     return () => { mounted = false; };
-  }, [mode, itemId, householdId, initialCategories, form.category, t]);
+  }, [mode, itemId, initialCategories, form.category, t]);
 
   function updateField<Key extends keyof FormState>(key: Key, value: FormState[Key]) {
     setForm((previous) => ({ ...previous, [key]: value }));
@@ -185,9 +183,9 @@ export default function StockForm({
       };
 
       if (mode === 'edit' && itemId) {
-        await updateStockItem(itemId, payload, householdId);
+        await updateStockItem(itemId, payload);
       } else {
-        await createStockItem(payload, householdId);
+        await createStockItem(payload);
       }
 
       window.location.assign(successRedirectUrl);

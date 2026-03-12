@@ -5,8 +5,6 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from core.permissions import resolve_request_household
-
 from .models import StockCategory, StockItem
 
 
@@ -114,7 +112,7 @@ class StockItemSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         household = getattr(self.instance, "household", None) or attrs.get("household")
         if household is None and request:
-            household = resolve_request_household(request, required=False)
+            household = request.household
 
         if category and household and category.household_id != household.id:
             raise serializers.ValidationError({"category": _("Category must belong to the same household as item.")})

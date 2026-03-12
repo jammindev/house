@@ -13,8 +13,6 @@ import { Button } from '@/design-system/button';
 import type { DocumentItem } from '@/lib/api/documents';
 import { updateDocument, DOCUMENT_TYPES } from '@/lib/api/documents';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
-
 interface EditDocumentModalProps {
   document: DocumentItem | null;
   isOpen: boolean;
@@ -28,7 +26,6 @@ export default function EditDocumentModal({
   onClose,
   onSuccess,
 }: EditDocumentModalProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [name, setName] = React.useState('');
   const [notes, setNotes] = React.useState('');
@@ -55,7 +52,7 @@ export default function EditDocumentModal({
     if (!document) return;
     setLoading(true);
     setError(null);
-    updateDocument(document.id, { name, notes, type }, householdId)
+    updateDocument(document.id, { name, notes, type })
       .then((updated) => {
         setLoading(false);
         onSuccess(updated);

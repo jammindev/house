@@ -5,8 +5,16 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
-import { createTask, fetchZones, updateTask, type Zone, type Task } from '@/lib/api/tasks';
-import { useHouseholdId } from '@/lib/useHouseholdId';
+import {
+  createTask, fetchZones, updateTask,
+  type Zone, type Task, type HouseholdMember, type TaskPriority,
+} from '@/lib/api/tasks';
+
+const PRIORITY_OPTIONS = [
+  { value: '1', label: 'Haute' },
+  { value: '2', label: 'Normale' },
+  { value: '3', label: 'Basse' },
+];
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -14,6 +22,7 @@ interface NewTaskDialogProps {
   onCreated: () => void;
   existingTask?: Task;
   onUpdated?: (task: Task) => void;
+  householdMembers?: HouseholdMember[];
 }
 
 export default function NewTaskDialog({
@@ -22,14 +31,16 @@ export default function NewTaskDialog({
   onCreated,
   existingTask,
   onUpdated,
+  householdMembers = [],
 }: NewTaskDialogProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const isEditing = Boolean(existingTask);
 
   const [subject, setSubject] = React.useState('');
   const [content, setContent] = React.useState('');
-  const [occurredAt, setOccurredAt] = React.useState('');
+  const [dueDate, setDueDate] = React.useState('');
+  const [priority, setPriority] = React.useState<string>('2');
+  const [assignedToId, setAssignedToId] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
   const [zones, setZones] = React.useState<Zone[]>([]);
   const [zonesLoading, setZonesLoading] = React.useState(false);
@@ -38,32 +49,34 @@ export default function NewTaskDialog({
 
   const loadZones = React.useCallback(() => {
     setZonesLoading(true);
-    fetchZones(householdId)
+    fetchZones()
       .then((list) => {
         setZones(list);
         setZonesLoading(false);
       })
       .catch(() => setZonesLoading(false));
-  }, [householdId]);
+  }, []);
 
-  // Préremplissage quand la dialog s'ouvre
   React.useEffect(() => {
     if (!open) return;
     if (existingTask) {
       setSubject(existingTask.subject || '');
       setContent(existingTask.content || '');
-      setOccurredAt(existingTask.occurred_at ? existingTask.occurred_at.split('T')[0] : '');
+      setDueDate(existingTask.due_date ?? '');
+      setPriority(String(existingTask.priority ?? 2));
+      setAssignedToId(existingTask.assigned_to ?? '');
     } else {
       setSubject('');
       setContent('');
-      setOccurredAt('');
+      setDueDate('');
+      setPriority('2');
+      setAssignedToId('');
       setZoneId('');
     }
     setError(null);
     loadZones();
   }, [open, existingTask?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sélection de zone une fois les zones chargées
   React.useEffect(() => {
     if (zones.length === 0) return;
     if (existingTask?.zone_names?.length) {
@@ -83,17 +96,17 @@ export default function NewTaskDialog({
     setLoading(true);
     setError(null);
 
+    const payload = {
+      subject,
+      content: content || undefined,
+      zone_ids: [zoneId],
+      due_date: dueDate || null,
+      priority: (Number(priority) || null) as TaskPriority,
+      assigned_to_id: assignedToId || null,
+    };
+
     if (isEditing && existingTask) {
-      updateTask(
-        existingTask.id,
-        {
-          subject,
-          content: content || undefined,
-          occurred_at: occurredAt ? `${occurredAt}T12:00:00` : undefined,
-          zone_ids: [zoneId],
-        },
-        householdId,
-      )
+      updateTask(existingTask.id, payload)
         .then((updated) => {
           setLoading(false);
           onOpenChange(false);
@@ -104,15 +117,7 @@ export default function NewTaskDialog({
           setError(t('tasks.updateFailed', { defaultValue: 'Failed to update task.' }));
         });
     } else {
-      createTask(
-        {
-          subject,
-          content: content || undefined,
-          occurred_at: occurredAt ? `${occurredAt}T12:00:00` : undefined,
-          zone_ids: [zoneId],
-        },
-        householdId,
-      )
+      createTask(payload)
         .then(() => {
           setLoading(false);
           onOpenChange(false);
@@ -126,6 +131,7 @@ export default function NewTaskDialog({
   };
 
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
+  const memberOptions = householdMembers.map((m) => ({ value: m.userId, label: m.name }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -158,34 +164,65 @@ export default function NewTaskDialog({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="task-zone">
-              {t('tasks.fieldZone', { defaultValue: 'Zone' })}
-            </label>
-            <Select
-              id="task-zone"
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              options={zoneOptions}
-              placeholder={
-                zonesLoading
-                  ? t('tasks.loadingZones', { defaultValue: 'Loading zones…' })
-                  : t('tasks.selectZone', { defaultValue: 'Select a zone' })
-              }
-              required
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="task-zone">
+                {t('tasks.fieldZone', { defaultValue: 'Zone' })}
+              </label>
+              <Select
+                id="task-zone"
+                value={zoneId}
+                onChange={(e) => setZoneId(e.target.value)}
+                options={zoneOptions}
+                placeholder={
+                  zonesLoading
+                    ? t('tasks.loadingZones', { defaultValue: 'Loading…' })
+                    : t('tasks.selectZone', { defaultValue: 'Select a zone' })
+                }
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="task-priority">
+                {t('tasks.fieldPriority', { defaultValue: 'Priority' })}
+              </label>
+              <Select
+                id="task-priority"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                options={PRIORITY_OPTIONS}
+              />
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="task-date">
-              {t('tasks.fieldDate', { defaultValue: 'Due date' })}
-            </label>
-            <Input
-              id="task-date"
-              type="date"
-              value={occurredAt}
-              onChange={(e) => setOccurredAt(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="task-date">
+                {t('tasks.fieldDate', { defaultValue: 'Due date' })}
+              </label>
+              <Input
+                id="task-date"
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+              />
+            </div>
+
+            {memberOptions.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
+                  {t('tasks.fieldAssignedTo', { defaultValue: 'Assign to' })}
+                </label>
+                <Select
+                  id="task-assigned"
+                  value={assignedToId}
+                  onChange={(e) => setAssignedToId(e.target.value)}
+                  options={memberOptions}
+                  placeholder={t('tasks.noAssignee', { defaultValue: 'No assignee' })}
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-1.5">

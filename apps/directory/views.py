@@ -2,7 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
-from core.permissions import IsHouseholdMember, resolve_request_household
+from core.permissions import IsHouseholdMember
 from .models import Contact, Address, Email, Phone, Structure
 from .serializers import (
     ContactSerializer, ContactNestedSerializer,
@@ -16,13 +16,13 @@ class HouseholdScopedViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.model.objects.for_user_households(self.request.user)
-        selected_household = resolve_request_household(self.request, required=False)
+        selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
         return queryset
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
 
@@ -58,14 +58,14 @@ class ContactViewSet(HouseholdScopedViewSet):
         return ContactSerializer
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         _validate_related_household(serializer, household, "structure")
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        household = self.request.household or serializer.instance.household
         _validate_related_household(serializer, household, "structure")
         serializer.save(updated_by=self.request.user)
 
@@ -75,7 +75,7 @@ class AddressViewSet(HouseholdScopedViewSet):
     serializer_class = AddressSerializer
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         _validate_related_household(serializer, household, "contact")
@@ -83,7 +83,7 @@ class AddressViewSet(HouseholdScopedViewSet):
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        household = self.request.household or serializer.instance.household
         _validate_related_household(serializer, household, "contact")
         _validate_related_household(serializer, household, "structure")
         serializer.save(updated_by=self.request.user)
@@ -94,7 +94,7 @@ class EmailViewSet(HouseholdScopedViewSet):
     serializer_class = EmailSerializer
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         _validate_related_household(serializer, household, "contact")
@@ -102,7 +102,7 @@ class EmailViewSet(HouseholdScopedViewSet):
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        household = self.request.household or serializer.instance.household
         _validate_related_household(serializer, household, "contact")
         _validate_related_household(serializer, household, "structure")
         serializer.save(updated_by=self.request.user)
@@ -113,7 +113,7 @@ class PhoneViewSet(HouseholdScopedViewSet):
     serializer_class = PhoneSerializer
 
     def perform_create(self, serializer):
-        household = resolve_request_household(self.request, required=True)
+        household = self.request.household
         if not household:
             raise ValidationError({"household_id": "A valid household context is required."})
         _validate_related_household(serializer, household, "contact")
@@ -121,7 +121,7 @@ class PhoneViewSet(HouseholdScopedViewSet):
         serializer.save(household=household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        household = resolve_request_household(self.request, required=False) or serializer.instance.household
+        household = self.request.household or serializer.instance.household
         _validate_related_household(serializer, household, "contact")
         _validate_related_household(serializer, household, "structure")
         serializer.save(updated_by=self.request.user)

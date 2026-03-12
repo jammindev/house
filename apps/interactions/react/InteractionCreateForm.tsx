@@ -14,7 +14,6 @@ import { TagSelector } from '@/lib/components/TagSelector';
 import { ZoneTreeSelector } from '@/lib/components/ZoneTreeSelector';
 import type { ZoneOption } from '@/lib/api/zones';
 
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 
 interface InteractionCreateFormProps {
@@ -113,7 +112,7 @@ function buildRedirectUrl(baseUrl: string, createdId: string, createdParamName =
 }
 
 export function InteractionCreateForm({
-  title: _title,
+  title,
   defaultType = 'note',
   submitLabel,
   successMessage,
@@ -135,7 +134,6 @@ export function InteractionCreateForm({
   initialEquipmentName = null,
 }: InteractionCreateFormProps) {
   const { t } = useTranslation();
-  const householdId = useHouseholdId();
   const resolvedSubmitLabel = submitLabel ?? t('interactions.submit_label');
   const resolvedSuccessMessage = successMessage ?? t('interactions.success_message');
 
@@ -155,11 +153,11 @@ export function InteractionCreateForm({
   const [projects, setProjects] = React.useState<ProjectListItem[]>([]);
 
   React.useEffect(() => {
-    if (initialProjectId || !householdId) return;
-    fetchProjects({ householdId, limit: 100 })
+    if (initialProjectId) return;
+    fetchProjects({ limit: 100 })
       .then((all) => setProjects(all.filter((p) => p.status === 'active' || p.status === 'on_hold')))
       .catch(() => {});
-  }, [initialProjectId, householdId]);
+  }, [initialProjectId]);
 
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -233,11 +231,10 @@ export function InteractionCreateForm({
           document_ids: selectedDocumentIds,
           ...(selectedProjectId ? { project: selectedProjectId } : {}),
         },
-        householdId
       );
 
       if (initialEquipmentId) {
-        await linkEquipmentInteraction(initialEquipmentId, created.id, { role: 'intervention' }, householdId);
+        await linkEquipmentInteraction(initialEquipmentId, created.id, { role: 'intervention' });
       }
 
       setSuccess(resolvedSuccessMessage);
@@ -456,7 +453,6 @@ export function InteractionCreateForm({
       ) : null}
 
       <TagSelector
-        householdId={householdId}
         tagType="interaction"
         selectedTagNames={tagNames}
         onChange={setTagNames}
@@ -466,7 +462,6 @@ export function InteractionCreateForm({
       />
 
       <ZoneTreeSelector
-        householdId={householdId}
         selectedZoneIds={zoneIds}
         onChange={setZoneIds}
         initialZones={initialZones}
@@ -475,7 +470,6 @@ export function InteractionCreateForm({
       />
 
       <DocumentSelector
-        householdId={householdId}
         selectedDocumentIds={selectedDocumentIds}
         onChange={setSelectedDocumentIds}
         legend={t('interactions.documents_legend', { defaultValue: 'Linked documents' })}

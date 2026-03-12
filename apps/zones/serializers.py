@@ -11,11 +11,12 @@ class ZoneSerializer(serializers.ModelSerializer):
     full_path = serializers.ReadOnlyField()
     depth = serializers.ReadOnlyField()
     children_count = serializers.SerializerMethodField()
+    parent_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Zone
         fields = [
-            'id', 'household', 'name', 'parent', 'note', 'surface', 'color',
+            'id', 'household', 'name', 'parent', 'parent_name', 'note', 'surface', 'color',
             'full_path', 'depth', 'children_count',
             'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
@@ -23,6 +24,9 @@ class ZoneSerializer(serializers.ModelSerializer):
 
     def get_children_count(self, obj):
         return obj.children.count()
+
+    def get_parent_name(self, obj):
+        return obj.parent.name if obj.parent_id and obj.parent else None
 
     def validate(self, data):
         """Validate parent belongs to same household."""
@@ -58,55 +62,6 @@ class ZoneTreeSerializer(ZoneSerializer):
         """Recursively serialize children."""
         children = obj.children.all()
         return ZoneTreeSerializer(children, many=True, context=self.context).data
-
-
-class ZonePickerSerializer(serializers.ModelSerializer):
-    """Minimal serializer for zone picker dropdowns in forms (snake_case)."""
-    full_path = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Zone
-        fields = ['id', 'name', 'full_path', 'color']
-
-
-class ZonePickerDetailSerializer(serializers.ModelSerializer):
-    """Zone picker with parent info and depth, for forms that need hierarchy."""
-    full_path = serializers.ReadOnlyField()
-    depth = serializers.ReadOnlyField()
-    parentId = serializers.UUIDField(source='parent_id', allow_null=True, read_only=True)
-
-    class Meta:
-        model = Zone
-        fields = ['id', 'name', 'parentId', 'full_path', 'color', 'depth']
-
-
-class ZoneListPropsSerializer(serializers.ModelSerializer):
-    """Serializer for the zones list page props (camelCase keys)."""
-    full_path = serializers.ReadOnlyField()
-    fullPath = serializers.ReadOnlyField(source='full_path')
-    parentId = serializers.UUIDField(source='parent_id', allow_null=True, read_only=True)
-
-    class Meta:
-        model = Zone
-        fields = ['id', 'name', 'fullPath', 'color', 'parentId']
-
-
-class ZoneDetailPropsSerializer(serializers.ModelSerializer):
-    """Serializer for the zone detail page initialZone prop (camelCase keys)."""
-    parentId = serializers.UUIDField(source='parent_id', allow_null=True, read_only=True)
-    parentName = serializers.SerializerMethodField()
-    surface = serializers.SerializerMethodField()
-    updatedAt = serializers.DateTimeField(source='updated_at', read_only=True)
-
-    class Meta:
-        model = Zone
-        fields = ['id', 'name', 'parentId', 'parentName', 'note', 'surface', 'color', 'updatedAt']
-
-    def get_parentName(self, obj):
-        return obj.parent.name if obj.parent else None
-
-    def get_surface(self, obj):
-        return float(obj.surface) if obj.surface is not None else None
 
 
 class ZoneDocumentSerializer(serializers.ModelSerializer):

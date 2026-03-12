@@ -2,13 +2,11 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { fetchPhotos, type PhotoDocument } from '@/lib/api/photos';
 import PhotoGrid from './PhotoGrid';
-import { useHouseholdId } from '@/lib/useHouseholdId';
 import PageHeader from '@/components/PageHeader';
 
 type PhotosPageProps = Record<string, never>;
 
 export default function PhotosPage(_props: PhotosPageProps) {
-  const householdId = useHouseholdId();
   const { t } = useTranslation();
   const [photos, setPhotos] = React.useState<PhotoDocument[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -17,7 +15,7 @@ export default function PhotosPage(_props: PhotosPageProps) {
   const loadPhotos = React.useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchPhotos(householdId)
+    fetchPhotos()
       .then((list) => {
         setPhotos(list);
         setLoading(false);
@@ -26,7 +24,7 @@ export default function PhotosPage(_props: PhotosPageProps) {
         setError(t('photos.loadFailed', { defaultValue: 'Failed to load photos.' }));
         setLoading(false);
       });
-  }, [householdId, t]);
+  }, [t]);
 
   React.useEffect(() => {
     loadPhotos();

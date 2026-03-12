@@ -70,15 +70,20 @@ interface ProjectCardProps {
   detailUrl: string;
   onTogglePin?: (project: ProjectListItem) => void;
   pinLoading?: boolean;
+  onNavigate?: (url: string) => void;
 }
 
-export default function ProjectCard({ project, detailUrl, onTogglePin, pinLoading }: ProjectCardProps) {
+export default function ProjectCard({ project, detailUrl, onTogglePin, pinLoading, onNavigate }: ProjectCardProps) {
   const { t } = useTranslation();
   const overdue = isOverdue(project);
   const dueSoon = isDueSoon(project);
 
   return (
-    <a href={detailUrl} className="block">
+    <a
+      href={detailUrl}
+      onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(detailUrl); } : undefined}
+      className="block"
+    >
       <Card className="rounded-lg border border-2 bg-card text-card-foreground hover:shadow-md transition-all">
         <div className="p-4">
           <div className="flex items-start gap-2">

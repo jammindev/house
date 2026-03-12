@@ -75,10 +75,8 @@ def test_stale_update_returns_conflict():
 
 
 @pytest.mark.django_db
-def test_zones_web_view_includes_initial_props(client):
+def test_zones_web_view_renders(client):
 	owner, household = _create_household_with_owner('Maison Zones Web')
-	parent = Zone.objects.create(household=household, name='Maison', created_by=owner)
-	child = Zone.objects.create(household=household, name='Garage', parent=parent, created_by=owner)
 
 	owner.active_household = household
 	owner.save(update_fields=['active_household'])
@@ -88,14 +86,11 @@ def test_zones_web_view_includes_initial_props(client):
 
 	assert response.status_code == status.HTTP_200_OK
 	props = response.context['react_props']
-	assert len(props['initialZones']) >= 2
-	ids = {entry['id'] for entry in props['initialZones']}
-	assert str(parent.id) in ids
-	assert str(child.id) in ids
+	assert props == {}
 
 
 @pytest.mark.django_db
-def test_zone_detail_web_view_includes_initial_props(client):
+def test_zone_detail_web_view_renders(client):
 	owner, household = _create_household_with_owner('Maison Zone Detail Web')
 	zone = Zone.objects.create(household=household, name='Chambre', created_by=owner)
 
@@ -108,5 +103,7 @@ def test_zone_detail_web_view_includes_initial_props(client):
 	assert response.status_code == status.HTTP_200_OK
 	props = response.context['react_props']
 	assert props['zoneId'] == str(zone.id)
-	assert props['initialZone']['id'] == str(zone.id)
-	assert 'initialStats' in props
+	assert 'createActivityUrl' in props
+	assert 'createTaskUrl' in props
+	assert 'initialZone' not in props
+	assert 'initialStats' not in props
