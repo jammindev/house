@@ -23,6 +23,7 @@
                 "copilot/auto"
             ]
         }
-    }
+    },
+    "files.autoSave": "onFocusChange"
 }
 
