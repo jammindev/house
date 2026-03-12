@@ -13,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.generic import RedirectView, View
 
-from core.permissions import resolve_request_household
+from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 from documents.models import Document
 from interactions.models import Interaction
@@ -68,20 +68,6 @@ class DashboardView(LoginRequiredMixin, RedirectView):
 
 
 TASK_OPEN_STATUSES = ['backlog', 'pending', 'in_progress']
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-
-    membership = (
-        request.user.householdmember_set
-        .select_related('household')
-        .order_by('household__name')
-        .first()
-    )
-    return membership.household if membership else None
 
 
 def _visible_interactions_queryset(request, household):
@@ -248,7 +234,7 @@ class AppDashboardView(ReactPageView):
     template_name = 'app/dashboard.html'
 
     def get_props(self):
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         interactions_url = reverse('app_interactions')
         projects_url = reverse('app_projects')
         tasks_url = reverse('app_tasks')

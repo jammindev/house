@@ -38,7 +38,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
         setLoading(false);
       })
       .catch(() => {
-        setError(t('tasks.loadFailed', { defaultValue: 'Failed to load tasks.' }));
+        setError(t('tasks.loadFailed'));
         setLoading(false);
       });
   }, [householdId, t]);
@@ -88,11 +88,11 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
   );
 
   const FILTERS: { key: FilterKey; label: string }[] = [
-    { key: 'all', label: t('tasks.filter.all', { defaultValue: 'All' }) },
-    { key: 'pending', label: t('tasks.filter.pending', { defaultValue: 'To do' }) },
-    { key: 'in_progress', label: t('tasks.filter.in_progress', { defaultValue: 'In progress' }) },
-    { key: 'backlog', label: t('tasks.filter.backlog', { defaultValue: 'Backlog' }) },
-    { key: 'done', label: t('tasks.filter.done', { defaultValue: 'Done' }) },
+    { key: 'all', label: t('tasks.filter.all') },
+    { key: 'pending', label: t('tasks.filter.pending') },
+    { key: 'in_progress', label: t('tasks.filter.in_progress') },
+    { key: 'backlog', label: t('tasks.filter.backlog') },
+    { key: 'done', label: t('tasks.filter.done') },
   ];
 
   // Tâches visibles selon le filtre actif
@@ -159,7 +159,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
             <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               {error}
               <button type="button" onClick={loadTasks} className="ml-2 underline hover:no-underline">
-                {t('common.retry', { defaultValue: 'Retry' })}
+                {t('common.retry')}
               </button>
             </div>
           ) : null}
@@ -178,41 +178,38 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
             <div className="space-y-5">
               <TaskSection
                 key="overdue"
-                title={t('tasks.sections.overdue', { defaultValue: 'En retard' })}
+                title={t('tasks.sections.overdue')}
                 tasks={visibleBySection.overdue}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
-                highlightHeader
               />
               <TaskSection
                 key="in_progress"
-                title={t('tasks.sections.in_progress', { defaultValue: 'En cours' })}
+                title={t('tasks.sections.in_progress')}
                 tasks={visibleBySection.in_progress}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
               />
               <TaskSection
                 key="pending"
-                title={t('tasks.sections.pending', { defaultValue: 'À faire' })}
+                title={t('tasks.sections.pending')}
                 tasks={visibleBySection.pending}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
               />
               <TaskSection
                 key="backlog"
-                title={t('tasks.sections.backlog', { defaultValue: 'Backlog' })}
+                title={t('tasks.sections.backlog')}
                 tasks={visibleBySection.backlog}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
-                defaultCollapsed
               />
               <TaskSection
                 key="done"
-                title={t('tasks.sections.done', { defaultValue: 'Fait' })}
+                title={t('tasks.sections.done')}
                 tasks={visibleBySection.done}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
-                defaultCollapsed
               />
             </div>
           ) : null}

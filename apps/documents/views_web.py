@@ -1,26 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
+from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 
 from .models import Document
 from .serializers import DocumentDetailSerializer, DocumentSerializer
 from .views import get_documents_queryset_for_request, get_recent_interaction_candidates
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = (
-        request.user.householdmember_set
-        .select_related('household')
-        .order_by('household__name')
-        .first()
-    )
-    return membership.household if membership else None
 
 
 class AppDocumentsView(ReactPageView):
@@ -79,7 +65,7 @@ class AppDocumentDetailView(ReactPageView):
     def get_props(self):
         queryset = get_documents_queryset_for_request(self.request)
         document = get_object_or_404(queryset, id=self.kwargs['document_id'])
-        selected_household = _resolve_selected_household(self.request) or document.household
+        selected_household = resolve_selected_household(self.request) or document.household
         recent_candidates = get_recent_interaction_candidates(
             self.request,
             selected_household,

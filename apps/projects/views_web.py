@@ -1,27 +1,13 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
-from core.views import ReactPageView
+from core.permissions import resolve_selected_household
+from core.views import HouseholdListView, ReactPageView
 from zones.models import Zone
 from zones.serializers import ZonePickerSerializer
 
 from .models import Project, ProjectGroup
 from .serializers import ProjectGroupPickerSerializer, ProjectGroupSerializer, ProjectSerializer
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = (
-        request.user.householdmember_set
-        .select_related("household")
-        .order_by("household__name")
-        .first()
-    )
-    return membership.household if membership else None
 
 
 def _groups_props(household):
@@ -38,10 +24,18 @@ def _zones_props(request, selected_household):
     return ZonePickerSerializer(qs.order_by("name"), many=True).data
 
 
-class AppProjectsView(ReactPageView):
+class AppProjectsView(HouseholdListView):
+    model = Project
     react_root_id = "projects-list-root"
     props_script_id = "projects-list-props"
     page_vite_asset = "src/pages/projects/list.tsx"
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .select_related("project_group")
+            .prefetch_related("project_zones__zone")
+        )
 
     def get_props(self):
         search = (self.request.GET.get("search") or "").strip()
@@ -49,16 +43,7 @@ class AppProjectsView(ReactPageView):
         proj_type = (self.request.GET.get("type") or "").strip()
         group_id = (self.request.GET.get("group") or "").strip()
 
-        selected_household = _resolve_selected_household(self.request)
-
-        projects_qs = (
-            Project.objects
-            .for_user_households(self.request.user)
-            .select_related("project_group")
-            .prefetch_related("project_zones__zone")
-        )
-        if selected_household:
-            projects_qs = projects_qs.filter(household=selected_household)
+        projects_qs = self.object_list
         if search:
             projects_qs = projects_qs.filter(title__icontains=search)
         if status:
@@ -71,15 +56,14 @@ class AppProjectsView(ReactPageView):
         projects_data = ProjectSerializer(
             projects_qs, many=True, context={"request": self.request}
         ).data
-        # Sort: pinned first (mirrors the React sort)
         sorted_projects = sorted(projects_data, key=lambda p: (0 if p["is_pinned"] else 1))
 
         groups_qs = (
             ProjectGroup.objects
-            .filter(household=selected_household)
+            .filter(household=self.selected_household)
             .order_by("name")
             .prefetch_related("projects")
-        ) if selected_household else ProjectGroup.objects.none()
+        ) if self.selected_household else ProjectGroup.objects.none()
         groups_data = ProjectGroupSerializer(
             groups_qs, many=True, context={"request": self.request}
         ).data
@@ -100,7 +84,7 @@ class AppProjectsNewView(ReactPageView):
     page_vite_asset = "src/pages/projects/new.tsx"
 
     def get_props(self):
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         return {
             "mode": "create",
             "initialGroups": _groups_props(selected_household),
@@ -139,7 +123,7 @@ class AppProjectsEditView(ReactPageView):
             Project.objects.for_user_households(self.request.user),
             id=self.kwargs["project_id"],
         )
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         household = selected_household or project.household
         return {
             "mode": "edit",

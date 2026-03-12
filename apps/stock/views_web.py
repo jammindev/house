@@ -1,22 +1,13 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
+from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 from zones.models import Zone
 from zones.serializers import ZonePickerSerializer
 
 from .models import StockCategory, StockItem
 from .serializers import StockCategoryPickerSerializer
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = request.user.householdmember_set.select_related("household").order_by("household__name").first()
-    return membership.household if membership else None
 
 
 def _zones_props(request, selected_household):
@@ -54,7 +45,7 @@ class AppStockNewView(ReactPageView):
     page_vite_asset = "src/pages/stock/new.tsx"
 
     def get_props(self):
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         return {
             "mode": "create",
             "initialZones": _zones_props(self.request, selected_household),
@@ -91,7 +82,7 @@ class AppStockEditView(ReactPageView):
             StockItem.objects.for_user_households(self.request.user).select_related("zone", "category"),
             id=self.kwargs["item_id"],
         )
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         household = selected_household or item.household
         return {
             "mode": "edit",

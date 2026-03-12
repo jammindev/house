@@ -18,7 +18,7 @@ export default function TaskSection({ title, tasks, onStatusChange, onEdit, high
 
   return (
     <div className="space-y-2">
-      <div className={`flex w-full items-center justify-between rounded-md px-1 py-0.5 text-left text-sm font-semibold transition-colors hover:bg-slate-50 ${
+      <div className={`flex w-full items-center justify-between rounded-md px-1 py-0.5 text-left text-sm font-semibold ${
         highlightHeader ? 'text-orange-700' : 'text-slate-700'
       }`}>
         <span>

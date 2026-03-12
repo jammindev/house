@@ -1,11 +1,11 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.db.models import Q
 from urllib.parse import urlencode
 
-from core.permissions import resolve_request_household
-from core.views import ReactPageView
+from core.permissions import resolve_selected_household
+from core.views import HouseholdListView, ReactPageView
 from documents.models import Document
 from equipment.models import Equipment
 from projects.models import Project
@@ -40,23 +40,18 @@ def _build_source_document_prefill(document):
     }
 
 
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = (
-        request.user.householdmember_set
-        .select_related('household')
-        .order_by('household__name')
-        .first()
-    )
-    return membership.household if membership else None
-
-
-class AppInteractionsView(ReactPageView):
+class AppInteractionsView(HouseholdListView):
+    model = Interaction
     react_root_id = "interactions-list-root"
     props_script_id = "interactions-list-props"
     page_vite_asset = "src/pages/interactions/list.tsx"
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .select_related('created_by')
+            .prefetch_related('zones', 'documents', 'tags__tag')
+        )
 
     def get_props(self):
         request = self.request
@@ -66,11 +61,7 @@ class AppInteractionsView(ReactPageView):
         highlighted_id = (request.GET.get('created') or '').strip()
         force_reload_on_mount = bool((request.GET.get('refresh') or '').strip())
 
-        selected_household = _resolve_selected_household(request)
-
-        queryset = Interaction.objects.for_user_households(request.user).select_related('created_by').prefetch_related('zones', 'documents', 'tags__tag')
-        if selected_household:
-            queryset = queryset.filter(household=selected_household)
+        queryset = self.object_list
         if selected_type:
             queryset = queryset.filter(type=selected_type)
         if selected_status:
@@ -109,7 +100,7 @@ class AppInteractionNewView(ReactPageView):
 
     def get_props(self):
         request = self.request
-        selected_household = _resolve_selected_household(request)
+        selected_household = resolve_selected_household(request)
         return_to = (request.GET.get('return_to') or '').strip()
         source_document_id = (request.GET.get('source_document_id') or '').strip()
         source_interaction_id = (request.GET.get('source_interaction_id') or '').strip()

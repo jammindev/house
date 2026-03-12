@@ -83,6 +83,26 @@ def resolve_request_household(request: Request, required: bool = False):
     return None
 
 
+def resolve_selected_household(request):
+    """
+    Resolve the household to scope a list view to.
+
+    Same as resolve_request_household() but adds a fallback to the user's
+    first household (alphabetically) when no household can be resolved
+    explicitly. Returns None only when the user has no households at all.
+    """
+    household = resolve_request_household(request, required=False)
+    if household:
+        return household
+    membership = (
+        request.user.householdmember_set
+        .select_related("household")
+        .order_by("household__name")
+        .first()
+    )
+    return membership.household if membership else None
+
+
 class IsHouseholdMember(permissions.BasePermission):
     """
     Permission that checks if user is a member of the household.

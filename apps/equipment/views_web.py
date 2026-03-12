@@ -1,26 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
+from core.permissions import resolve_selected_household
 from core.views import ReactPageView
 from zones.models import Zone
 from zones.serializers import ZonePickerSerializer
 
 from .models import Equipment
-
-
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = (
-        request.user.householdmember_set
-        .select_related("household")
-        .order_by("household__name")
-        .first()
-    )
-    return membership.household if membership else None
 
 
 def _zones_props(request, selected_household):
@@ -49,7 +35,7 @@ class AppEquipmentNewView(ReactPageView):
     page_vite_asset = "src/pages/equipment/new.tsx"
 
     def get_props(self):
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         return {
             "mode": "create",
             "initialZones": _zones_props(self.request, selected_household),
@@ -69,7 +55,7 @@ class AppEquipmentDetailView(ReactPageView):
             Equipment.objects.for_user_households(self.request.user).select_related("zone", "created_by", "updated_by"),
             id=self.kwargs["equipment_id"],
         )
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         return {
             "equipmentId": str(equipment.id),
             "initialZones": _zones_props(self.request, selected_household or equipment.household),
@@ -89,7 +75,7 @@ class AppEquipmentEditView(ReactPageView):
             Equipment.objects.for_user_households(self.request.user).select_related("zone"),
             id=self.kwargs["equipment_id"],
         )
-        selected_household = _resolve_selected_household(self.request)
+        selected_household = resolve_selected_household(self.request)
         return {
             "mode": "edit",
             "equipmentId": str(equipment.id),

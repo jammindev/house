@@ -1,38 +1,24 @@
 from django.http import Http404
 from django.urls import reverse
-from django.utils.translation import gettext_lazy as _
 
-from core.permissions import resolve_request_household
-from core.views import ReactPageView
+from core.permissions import resolve_selected_household
+from core.views import HouseholdListView, ReactPageView
 
 from .models import Zone
 from .serializers import ZoneDetailPropsSerializer, ZoneListPropsSerializer
 
 
-def _resolve_selected_household(request):
-    selected_household = resolve_request_household(request, required=False)
-    if selected_household:
-        return selected_household
-    membership = (
-        request.user.householdmember_set
-        .select_related('household')
-        .order_by('household__name')
-        .first()
-    )
-    return membership.household if membership else None
-
-
-class AppZonesView(ReactPageView):
+class AppZonesView(HouseholdListView):
+    model = Zone
     react_root_id = "zones-root"
     props_script_id = "zones-page-props"
     page_vite_asset = "src/pages/zones/list.tsx"
 
+    def get_queryset(self):
+        return super().get_queryset().select_related('parent')
+
     def get_props(self):
-        selected_household = _resolve_selected_household(self.request)
-        queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
-        if selected_household:
-            queryset = queryset.filter(household=selected_household)
-        zones = queryset.order_by('name')[:80]
+        zones = self.object_list.order_by('name')[:80]
         return {
             'initialZones': ZoneListPropsSerializer(zones, many=True).data,
         }
@@ -46,7 +32,7 @@ class AppZoneDetailView(ReactPageView):
 
     def _fetch_zone(self):
         if not hasattr(self, '_zone_cache'):
-            selected_household = _resolve_selected_household(self.request)
+            selected_household = resolve_selected_household(self.request)
             zone_id = self.kwargs['zone_id']
             queryset = Zone.objects.for_user_households(self.request.user).select_related('parent')
             if selected_household:
@@ -84,4 +70,3 @@ class AppZoneDetailView(ReactPageView):
             'photos_count': photos_count,
         })
         return ctx
-
