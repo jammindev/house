@@ -4,10 +4,12 @@ import { useTranslation } from 'react-i18next';
 import {
   fetchTasks,
   updateTaskStatus,
+  deleteTask,
   isTaskOverdue,
   type Task,
   type TaskStatus,
 } from '@/lib/api/tasks';
+import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useHouseholdId } from '@/lib/useHouseholdId';
 import ListPage from '@/components/ListPage';
 import NewTaskDialog from './NewTaskDialog';
@@ -60,6 +62,23 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
   const handleTaskUpdated = React.useCallback((updatedTask: Task) => {
     setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
   }, []);
+
+  const { deleteWithUndo } = useDeleteWithUndo({
+    label: t('tasks.deleted', { defaultValue: 'Tâche supprimée' }),
+    onDelete: (id) => deleteTask(id, householdId),
+  });
+
+  const handleTaskDeleted = React.useCallback(
+    (taskId: string) => {
+      const task = tasks.find((t) => t.id === taskId);
+      if (!task) return;
+      deleteWithUndo(taskId, {
+        onRemove: () => setTasks((prev) => prev.filter((t) => t.id !== taskId)),
+        onRestore: () => setTasks((prev) => [...prev, task]),
+      });
+    },
+    [tasks, deleteWithUndo],
+  );
 
   // Compute sections
   const overdueTasks = React.useMemo(
@@ -182,6 +201,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
                 tasks={visibleBySection.overdue}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
+                onDelete={handleTaskDeleted}
               />
               <TaskSection
                 key="in_progress"
@@ -189,6 +209,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
                 tasks={visibleBySection.in_progress}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
+                onDelete={handleTaskDeleted}
               />
               <TaskSection
                 key="pending"
@@ -196,6 +217,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
                 tasks={visibleBySection.pending}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
+                onDelete={handleTaskDeleted}
               />
               <TaskSection
                 key="backlog"
@@ -203,6 +225,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
                 tasks={visibleBySection.backlog}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
+                onDelete={handleTaskDeleted}
               />
               <TaskSection
                 key="done"
@@ -210,6 +233,7 @@ export default function TasksPage({ initialTasks = [] }: TasksPageProps) {
                 tasks={visibleBySection.done}
                 onStatusChange={handleStatusChange}
                 onEdit={setEditingTask}
+                onDelete={handleTaskDeleted}
               />
             </div>
           ) : null}

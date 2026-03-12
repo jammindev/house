@@ -3,12 +3,18 @@ import { useShallow } from 'zustand/react/shallow'
 
 type ToastVariant = 'default' | 'destructive' | 'success'
 
+export interface ToastAction {
+  label: string
+  onClick: () => void
+}
+
 export interface ToastItem {
   id: string
   title?: string
   description?: string
   variant?: ToastVariant
   duration?: number
+  action?: ToastAction
 }
 
 interface ToastStore {

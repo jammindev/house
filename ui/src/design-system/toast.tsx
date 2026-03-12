@@ -80,12 +80,25 @@ function ToastDescription({ className, ...props }: React.ComponentPropsWithoutRe
   return <ToastPrimitives.Description className={cn('text-sm opacity-90', className)} {...props} />
 }
 
+function ToastAction({ className, altText, ...props }: React.ComponentPropsWithoutRef<typeof ToastPrimitives.Action> & { altText: string }) {
+  return (
+    <ToastPrimitives.Action
+      altText={altText}
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-md border border-current px-3 py-1.5 text-xs font-medium transition-colors hover:bg-black/5 focus:outline-none focus:ring-2 disabled:pointer-events-none disabled:opacity-50',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 /** Portail global — à inclure une fois dans chaque arbre React (mount-*.tsx) */
 export function Toaster() {
   const { toasts, dismiss } = useToastStore()
   return (
     <ToastProvider>
-      {toasts.map(({ id, title, description, variant, duration }) => (
+      {toasts.map(({ id, title, description, variant, duration, action }) => (
         <Toast
           key={id}
           variant={variant}
@@ -96,7 +109,14 @@ export function Toaster() {
             {title && <ToastTitle>{title}</ToastTitle>}
             {description && <ToastDescription>{description}</ToastDescription>}
           </div>
-          <ToastClose />
+          <div className="flex items-center gap-2">
+            {action && (
+              <ToastAction altText={action.label} onClick={action.onClick}>
+                {action.label}
+              </ToastAction>
+            )}
+            <ToastClose />
+          </div>
         </Toast>
       ))}
       <ToastViewport />

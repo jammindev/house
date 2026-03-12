@@ -8,11 +8,11 @@ interface SectionProps {
   tasks: Task[];
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
   onEdit: (task: Task) => void;
-  
+  onDelete: (taskId: string) => void;
   highlightHeader?: boolean;
 }
 
-export default function TaskSection({ title, tasks, onStatusChange, onEdit, highlightHeader = false }: SectionProps) {
+export default function TaskSection({ title, tasks, onStatusChange, onEdit, onDelete, highlightHeader = false }: SectionProps) {
 
   if (tasks.length === 0) return null;
 
@@ -36,6 +36,7 @@ export default function TaskSection({ title, tasks, onStatusChange, onEdit, high
             task={task}
             onStatusChange={onStatusChange}
             onEdit={onEdit}
+            onDelete={onDelete}
           />
         ))}
       </div>

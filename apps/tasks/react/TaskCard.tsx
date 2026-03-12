@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, FileText, Link, Pencil, RotateCcw } from 'lucide-react';
+import { CheckCircle2, FileText, Link, Pencil, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import type { Task, TaskStatus } from '@/lib/api/tasks';
 import { nextStatus, prevStatus, isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
@@ -9,6 +9,7 @@ interface TaskCardProps {
   task: Task;
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
   onEdit: (task: Task) => void;
+  onDelete: (taskId: string) => void;
   interactionsBaseUrl?: string;
 }
 
@@ -16,6 +17,7 @@ export default function TaskCard({
   task,
   onStatusChange,
   onEdit,
+  onDelete,
   interactionsBaseUrl = '/app/interactions/',
 }: TaskCardProps) {
   const { t } = useTranslation();
@@ -64,14 +66,14 @@ export default function TaskCard({
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className={`text-sm font-medium leading-snug ${overdue ? 'text-orange-900' : 'text-slate-900'} ${isDone ? 'line-through' : ''}`}>
-            {task.subject || t('tasks.untitledTask', { defaultValue: 'Untitled task' })}
+            {task.subject || t('tasks.untitledTask')}
           </p>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
             {zoneName ? (
               <span className="font-medium text-slate-600">{zoneName}</span>
             ) : (
-              <span className="text-slate-400">{t('tasks.noZone', { defaultValue: 'No zone' })}</span>
+              <span className="text-slate-400">{t('tasks.noZone')}</span>
             )}
 
             {relativeDate ? (
@@ -135,7 +137,7 @@ export default function TaskCard({
               className="h-7 w-7 text-slate-300 hover:text-slate-500"
               onClick={handleRevert}
               disabled={moving}
-              aria-label={t('tasks.revertStatus', { defaultValue: 'Revert status' })}
+              aria-label={t('tasks.revertStatus')}
               type="button"
             >
               <RotateCcw className="h-3 w-3" />
@@ -145,9 +147,20 @@ export default function TaskCard({
           <Button
             variant="ghost"
             size="icon"
+            className="h-7 w-7 text-slate-400 hover:text-rose-500"
+            onClick={() => onDelete(task.id)}
+            aria-label={t('tasks.deleteTask')}
+            type="button"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
             className="h-7 w-7 text-slate-400 hover:text-slate-600"
             onClick={() => onEdit(task)}
-            aria-label={t('tasks.editTask', { defaultValue: 'Edit task' })}
+            aria-label={t('tasks.editTask')}
             type="button"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -160,7 +173,7 @@ export default function TaskCard({
               className="h-7 w-7 text-slate-400 hover:text-emerald-600"
               onClick={handleAdvance}
               disabled={moving}
-              aria-label={t('tasks.advanceStatus', { defaultValue: 'Advance status' })}
+              aria-label={t('tasks.advanceStatus')}
               type="button"
             >
               <CheckCircle2 className="h-4 w-4" />

@@ -154,6 +154,15 @@ export async function createTask(
   return (await res.json()) as Task;
 }
 
+export async function deleteTask(id: string, householdId?: string | null): Promise<void> {
+  const res = await fetch(`/api/interactions/interactions/${id}/`, {
+    method: 'DELETE',
+    headers: buildHeaders(householdId),
+  });
+  // 404 = already deleted — treat as success (idempotent DELETE)
+  if (!res.ok && res.status !== 404) throw new Error(`Failed to delete task: ${res.status}`);
+}
+
 export async function fetchZones(householdId?: string | null): Promise<Zone[]> {
   const res = await fetch('/api/zones/', { headers: buildHeaders(householdId) });
   if (!res.ok) throw new Error(`Failed to fetch zones: ${res.status}`);
