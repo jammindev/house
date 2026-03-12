@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Building2, Plus, UserPlus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/design-system/button';
+import { Button, buttonVariants } from '@/design-system/button';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { useHouseholdId } from '@/lib/useHouseholdId';
@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ContactList from './ContactList';
 import StructureList from './StructureList';
+import { cn } from '@/lib/utils';
 
 type DirectoryView = 'contacts' | 'structures';
 
