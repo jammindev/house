@@ -21,6 +21,7 @@ Il faut juste brancher tout ça.
 1. **Backend — JWT auth**
 2. **Frontend — Fondations (QueryClient + axios + Router)**
 3. **Frontend — Auth flow**
+3bis. **Frontend — Sidebar / AppShell**
 4. **Frontend — Migration des features (pattern + exemple Tasks)**
 5. **Nettoyage — Supprimer la couche hybride Django**
 
