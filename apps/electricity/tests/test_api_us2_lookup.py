@@ -74,7 +74,6 @@ def test_lookup_by_breaker_returns_circuits_and_usage_points_for_member_read():
         "/api/electricity/mapping/lookup/",
         {"ref": "BRK-01", "household_id": str(household.id)},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_200_OK

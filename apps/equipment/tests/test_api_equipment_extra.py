@@ -40,7 +40,6 @@ def test_equipment_create_rejects_zone_from_other_household(client, user, househ
         reverse("equipment-list"),
         data={"name": "Boiler", "status": "active", "zone": str(foreign_zone.id)},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400
@@ -59,7 +58,7 @@ def test_equipment_serializer_returns_next_service_due(client, user, household, 
     )
 
     client.force_login(user)
-    response = client.get(reverse("equipment-detail", kwargs={"pk": equipment.id}), HTTP_X_HOUSEHOLD_ID=str(household.id))
+    response = client.get(reverse("equipment-detail", kwargs={"pk": equipment.id}),)
 
     assert response.status_code == 200
     assert response.json()["next_service_due"] == "2026-04-30"
@@ -83,7 +82,6 @@ def test_equipment_interaction_create_rejects_inaccessible_equipment(client, use
         reverse("equipment-interaction-list"),
         data={"equipment": str(foreign_equipment.id), "interaction": str(own_interaction.id), "role": "maintenance", "note": "x"},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400

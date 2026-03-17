@@ -71,7 +71,6 @@ def test_stock_list_filters_by_household_and_status(client, user, household, sec
     response = client.get(
         reverse("stock-item-list"),
         {"status": "in_stock"},
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 200
@@ -99,7 +98,6 @@ def test_stock_adjust_quantity_updates_status(client, user, household, dual_memb
         reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
         data={"delta": -4},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 200
@@ -125,7 +123,6 @@ def test_stock_item_create_rejects_category_from_other_household(client, user, h
             "status": "in_stock",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400

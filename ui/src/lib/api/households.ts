@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 /** Household API utilities */
 
 export interface HouseholdMember {
@@ -50,83 +52,30 @@ export interface UpdateHouseholdInput {
   default_household?: boolean;
 }
 
-function getCsrfToken(): string {
-  if (typeof document === 'undefined') return '';
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : '';
-}
-
-function jsonHeaders(csrfToken: string): Record<string, string> {
-  return {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-  };
-}
-
 export async function fetchHouseholds(): Promise<Household[]> {
-  const response = await fetch('/api/households/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const data = await response.json();
-  return Array.isArray(data) ? data : (data.results ?? []);
+  const { data } = await api.get('/households/');
+  return Array.isArray(data) ? data : ((data as { results?: Household[] }).results ?? []);
 }
 
 export async function createHousehold(input: CreateHouseholdInput): Promise<Household> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch('/api/households/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(JSON.stringify(error));
-  }
-  return response.json() as Promise<Household>;
+  const { data } = await api.post('/households/', input);
+  return data as Household;
 }
 
 export async function updateHousehold(id: string, input: UpdateHouseholdInput): Promise<Household> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/${id}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return response.json() as Promise<Household>;
+  const { data } = await api.patch(`/households/${id}/`, input);
+  return data as Household;
 }
 
 export async function archiveHousehold(id: string): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/${id}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.delete(`/households/${id}/`);
 }
 
 /** @deprecated use archiveHousehold */
 export const deleteHousehold = archiveHousehold;
 
 export async function leaveHousehold(id: string): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/${id}/leave/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.post(`/households/${id}/leave/`, {});
 }
 
 export async function inviteMember(
@@ -134,28 +83,11 @@ export async function inviteMember(
   email: string,
   role: 'owner' | 'member' = 'member'
 ): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/${householdId}/invite/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify({ email, role }),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(JSON.stringify(error));
-  }
+  await api.post(`/households/${householdId}/invite/`, { email, role });
 }
 
 export async function removeMember(householdId: string, userId: string): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/${householdId}/remove-member/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify({ user_id: userId }),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.post(`/households/${householdId}/remove-member/`, { user_id: userId });
 }
 
 // --- Invitations ---
@@ -174,30 +106,10 @@ export async function acceptInvitation(
   invitationId: string,
   switchToHousehold = false
 ): Promise<{ household_id: string; switched: boolean }> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/invitations/${invitationId}/accept/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify({ switch: switchToHousehold }),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(JSON.stringify(error));
-  }
-  return response.json();
+  const { data } = await api.post(`/households/invitations/${invitationId}/accept/`, { switch: switchToHousehold });
+  return data as { household_id: string; switched: boolean };
 }
 
 export async function declineInvitation(invitationId: string): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch(`/api/households/invitations/${invitationId}/decline/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: jsonHeaders(csrfToken),
-    body: JSON.stringify({}),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(JSON.stringify(error));
-  }
+  await api.post(`/households/invitations/${invitationId}/decline/`, {});
 }

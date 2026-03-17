@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived' | null;
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
 export type TaskPriority = 1 | 2 | 3 | null;
@@ -100,25 +102,10 @@ export function formatRelativeDate(dateStr: string | null): string | null {
   }
 }
 
-function getCsrfToken(): string {
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : '';
-}
-
-function buildHeaders(): Record<string, string> {
-  return {
-    Accept: 'application/json',
-    'X-CSRFToken': getCsrfToken(),
-  };
-}
-
 export async function fetchTasks(): Promise<Task[]> {
-  const res = await fetch(
-    '/api/tasks/tasks/?limit=200&ordering=due_date,created_at',
-    { headers: buildHeaders() },
-  );
-  if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.status}`);
-  const data = (await res.json()) as unknown;
+  const { data } = await api.get('/tasks/tasks/', {
+    params: { limit: 200, ordering: 'due_date,created_at' },
+  });
   return Array.isArray(data)
     ? (data as Task[])
     : ((data as { results?: Task[] }).results ?? []);
@@ -128,18 +115,13 @@ export async function updateTaskStatus(
   id: string,
   status: TaskStatus,
 ): Promise<Task> {
-  const res = await fetch(`/api/tasks/tasks/${id}/`, {
-    method: 'PATCH',
-    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
-  });
-  if (!res.ok) throw new Error(`Failed to update task: ${res.status}`);
-  return (await res.json()) as Task;
+  const { data } = await api.patch(`/tasks/tasks/${id}/`, { status });
+  return data as Task;
 }
 
 export async function updateTask(
   id: string,
-  data: {
+  payload: {
     subject?: string;
     content?: string;
     zone_ids?: string[];
@@ -149,17 +131,12 @@ export async function updateTask(
     status?: TaskStatus;
   },
 ): Promise<Task> {
-  const res = await fetch(`/api/tasks/tasks/${id}/`, {
-    method: 'PATCH',
-    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error(`Failed to update task: ${res.status}`);
-  return (await res.json()) as Task;
+  const { data } = await api.patch(`/tasks/tasks/${id}/`, payload);
+  return data as Task;
 }
 
 export async function createTask(
-  data: {
+  payload: {
     subject: string;
     content?: string;
     zone_ids: string[];
@@ -168,37 +145,25 @@ export async function createTask(
     assigned_to_id?: string | null;
   },
 ): Promise<Task> {
-  const res = await fetch('/api/tasks/tasks/', {
-    method: 'POST',
-    headers: { ...buildHeaders(), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status: 'pending', ...data }),
-  });
-  if (!res.ok) throw new Error(`Failed to create task: ${res.status}`);
-  return (await res.json()) as Task;
+  const { data } = await api.post('/tasks/tasks/', { status: 'pending', ...payload });
+  return data as Task;
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const res = await fetch(`/api/tasks/tasks/${id}/`, {
-    method: 'DELETE',
-    headers: buildHeaders(),
-  });
-  if (!res.ok && res.status !== 404) throw new Error(`Failed to delete task: ${res.status}`);
+  await api.delete(`/tasks/tasks/${id}/`);
 }
 
 export async function fetchZones(): Promise<Zone[]> {
-  const res = await fetch('/api/zones/', { headers: buildHeaders() });
-  if (!res.ok) throw new Error(`Failed to fetch zones: ${res.status}`);
-  const data = (await res.json()) as unknown;
+  const { data } = await api.get('/zones/');
   return Array.isArray(data)
     ? (data as Zone[])
     : ((data as { results?: Zone[] }).results ?? []);
 }
 
 export async function fetchHouseholdMembers(): Promise<HouseholdMember[]> {
-  const res = await fetch('/api/households/active-members/', { headers: buildHeaders() });
-  if (!res.ok) throw new Error(`Failed to fetch members: ${res.status}`);
-  const data = (await res.json()) as Array<{ user: string; user_display_name: string; role: string }>;
-  return (Array.isArray(data) ? data : []).map((m) => ({
+  const { data } = await api.get('/households/active-members/');
+  const list = Array.isArray(data) ? data : [];
+  return (list as Array<{ user: string; user_display_name: string; role: string }>).map((m) => ({
     userId: m.user,
     name: m.user_display_name,
     role: m.role as HouseholdMember['role'],

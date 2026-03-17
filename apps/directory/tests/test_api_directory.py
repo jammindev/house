@@ -49,7 +49,6 @@ class TestDirectoryApi:
             url,
             {"name": "Plumber Inc", "type": "contractor", "website": "https://example.com", "tags": ["plumbing"]},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -65,7 +64,6 @@ class TestDirectoryApi:
             url,
             {"structure": str(foreign_structure.id), "first_name": "Jane", "last_name": "Doe"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -77,14 +75,13 @@ class TestDirectoryApi:
             reverse("contact-list"),
             {"structure": str(structure.id), "first_name": "Anna", "last_name": "Smith", "position": "Manager"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         contact = Contact.objects.get(id=contact_response.data["id"])
         Email.objects.create(household=household, created_by=owner, contact=contact, email="anna@example.com", is_primary=True)
         Phone.objects.create(household=household, created_by=owner, contact=contact, phone="12345", is_primary=True)
         Address.objects.create(household=household, created_by=owner, contact=contact, address_1="1 Main St", city="Paris", is_primary=True)
 
-        response = owner_client.get(reverse("contact-list"), HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(reverse("contact-list"))
 
         assert response.status_code == status.HTTP_200_OK
         entry = response.data[0]
@@ -103,7 +100,6 @@ class TestDirectoryApi:
             url,
             {"contact": str(foreign_contact.id), "address_1": "2 Elsewhere", "city": "Lyon"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST

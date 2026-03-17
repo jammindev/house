@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export interface LinkedInteractionSummary {
   id: string;
   subject: string;
@@ -53,6 +55,7 @@ export interface UploadDocumentInput {
   name?: string;
   type?: DocumentType | '';
   notes?: string;
+  zone?: string;
 }
 
 export interface DocumentUploadResponse {
@@ -60,74 +63,61 @@ export interface DocumentUploadResponse {
   detail_url: string;
 }
 
-function buildHeaders(): Record<string, string> {
-  return {
-    Accept: 'application/json',
-    'X-CSRFToken': getCsrfToken(),
-  };
+export interface DocumentFilters {
+  search?: string;
+  type?: string;
+  zone?: string;
+  [key: string]: string | undefined;
 }
 
-function getCsrfToken(): string {
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? match[1] : '';
+function normalizeId(d: DocumentItem & { id: string | number }): DocumentItem {
+  return { ...d, id: String(d.id) };
 }
 
-export async function fetchDocuments(
-  opts?: { withoutActivityOnly?: boolean },
-): Promise<DocumentItem[]> {
-  const params = new URLSearchParams({ ordering: '-created_at' });
-  if (opts?.withoutActivityOnly) {
-    params.set('qualification_state', 'without_activity');
-  }
+export async function fetchDocuments(filters: DocumentFilters = {}): Promise<DocumentItem[]> {
+  const params: Record<string, string> = { ordering: '-created_at' };
+  if (filters.search) params.search = filters.search;
+  if (filters.type) params.type = filters.type;
+  if (filters.zone) params.zone = filters.zone;
 
-  const res = await fetch(
-    `/api/documents/documents/?${params.toString()}`,
-    { headers: buildHeaders() },
-  );
-  if (!res.ok) throw new Error(`Failed to fetch documents: ${res.status}`);
-  const data = (await res.json()) as unknown;
-  const list: DocumentItem[] = Array.isArray(data)
-    ? (data as Array<DocumentItem & { id: string | number }>)
-    : (((data as { results?: Array<DocumentItem & { id: string | number }> }).results) ?? []);
+  const { data } = await api.get('/documents/documents/', { params });
+  const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)
+    ? data
+    : ((data as { results?: Array<DocumentItem & { id: string | number }> }).results ?? []);
 
-  return list
-    .filter((d) => d.type !== 'photo')
-    .map((d) => ({
-      ...d,
-      id: String(d.id),
-    }));
+  return list.filter((d) => d.type !== 'photo').map(normalizeId);
 }
 
-export async function fetchDocumentDetail(
-  id: string,
-): Promise<DocumentDetail> {
-  const res = await fetch(`/api/documents/documents/${id}/`, {
-    headers: buildHeaders(),
-  });
-  if (!res.ok) throw new Error(`Failed to fetch document detail: ${res.status}`);
-  const payload = (await res.json()) as DocumentDetail & { id: string | number };
-  return {
-    ...payload,
-    id: String(payload.id),
-  };
+export async function fetchPhotoDocuments(filters: Omit<DocumentFilters, 'type'> = {}): Promise<DocumentItem[]> {
+  const params: Record<string, string> = { ordering: '-created_at', type: 'photo' };
+  if (filters.search) params.search = filters.search;
+  if (filters.zone) params.zone = filters.zone;
+
+  const { data } = await api.get('/documents/documents/', { params });
+  const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)
+    ? data
+    : ((data as { results?: Array<DocumentItem & { id: string | number }> }).results ?? []);
+
+  return list.map(normalizeId);
 }
 
-export async function uploadDocument(
-  input: UploadDocumentInput,
-): Promise<DocumentUploadResponse> {
+export async function fetchDocumentDetail(id: string): Promise<DocumentDetail> {
+  const { data } = await api.get(`/documents/documents/${id}/`);
+  return { ...(data as DocumentDetail & { id: string | number }), id: String((data as { id: string | number }).id) };
+}
+
+export async function uploadDocument(input: UploadDocumentInput): Promise<DocumentUploadResponse> {
   const formData = new FormData();
   formData.set('file', input.file);
   if (input.name) formData.set('name', input.name);
   if (input.type) formData.set('type', input.type);
   if (input.notes) formData.set('notes', input.notes);
+  if (input.zone) formData.set('zone', input.zone);
 
-  const res = await fetch('/api/documents/documents/upload/', {
-    method: 'POST',
-    headers: buildHeaders(),
-    body: formData,
+  const { data } = await api.post('/documents/documents/upload/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
-  if (!res.ok) throw new Error(`Failed to upload document: ${res.status}`);
-  const payload = (await res.json()) as DocumentUploadResponse;
+  const payload = data as DocumentUploadResponse;
   return {
     ...payload,
     document: {
@@ -139,29 +129,14 @@ export async function uploadDocument(
 
 export async function updateDocument(
   id: string,
-  data: { name?: string; notes?: string; type?: string },
+  payload: { name?: string; notes?: string; type?: string },
 ): Promise<DocumentItem> {
-  const res = await fetch(`/api/documents/documents/${id}/`, {
-    method: 'PATCH',
-    headers: {
-      ...buildHeaders(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) throw new Error(`Failed to update document: ${res.status}`);
-  const payload = (await res.json()) as DocumentItem & { id: string | number };
-  return { ...payload, id: String(payload.id) };
+  const { data } = await api.patch(`/documents/documents/${id}/`, payload);
+  return normalizeId(data as DocumentItem & { id: string | number });
 }
 
-export async function deleteDocument(
-  id: string,
-): Promise<void> {
-  const res = await fetch(`/api/documents/documents/${id}/`, {
-    method: 'DELETE',
-    headers: buildHeaders(),
-  });
-  if (!res.ok) throw new Error(`Failed to delete document: ${res.status}`);
+export async function deleteDocument(id: string): Promise<void> {
+  await api.delete(`/documents/documents/${id}/`);
 }
 
 export function formatFileSize(bytes?: number | null): string {

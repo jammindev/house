@@ -32,7 +32,7 @@ def test_delete_parent_zone_with_children_returns_conflict():
 	client = APIClient()
 	client.force_authenticate(user=owner)
 
-	response = client.delete(f'/api/zones/{parent.id}/', format='json', HTTP_X_HOUSEHOLD_ID=str(household.id))
+	response = client.delete(f'/api/zones/{parent.id}/', format='json')
 
 	assert response.status_code == status.HTTP_409_CONFLICT
 	assert 'children' in str(response.data.get('detail', '')).lower()
@@ -56,7 +56,6 @@ def test_stale_update_returns_conflict():
 			'last_known_updated_at': zone.updated_at.isoformat(),
 		},
 		format='json',
-		HTTP_X_HOUSEHOLD_ID=str(household.id),
 	)
 	assert first_update.status_code == status.HTTP_200_OK
 
@@ -67,7 +66,6 @@ def test_stale_update_returns_conflict():
 			'last_known_updated_at': zone.updated_at.isoformat(),
 		},
 		format='json',
-		HTTP_X_HOUSEHOLD_ID=str(household.id),
 	)
 
 	assert stale_update.status_code == status.HTTP_409_CONFLICT

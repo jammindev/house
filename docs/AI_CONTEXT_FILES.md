@@ -3,7 +3,7 @@
 ## Démarrage rapide (ordre recommandé)
 
 1. `README.md`
-2. `HYBRID_ARCHITECTURE.md`
+2. `docs/ARCHITECTURE.md`
 3. `config/urls.py`
 4. `config/settings/base.py`
 5. App concernée:
@@ -24,13 +24,31 @@
 - `core/models.py`
 - `core/managers.py`
 - `core/permissions.py`
-- `templates/base.html`
 - `ui/vite.config.ts`
-- `ui/src/web-components/createWebComponent.tsx`
+- `ui/src/lib/axios.ts`
+- `ui/src/lib/queryClient.ts`
+- `ui/src/router.tsx`
+
+## Structure frontend
+
+```
+ui/src/
+  features/<nom>/
+    api.ts        # queryKeys + fonctions fetch axios
+    hooks.ts      # useQuery / useMutation
+    <Page>.tsx    # composants page
+  lib/
+    axios.ts      # instance axios + intercepteurs JWT
+    queryClient.ts
+    auth/
+      context.tsx
+  components/     # composants partagés (AppShell, Sidebar, PageLayout…)
+  design-system/
+  router.tsx
+  main.tsx
+```
 
 ## Système CSS / styles
-
-Documenté dans `HYBRID_ARCHITECTURE.md` → section **Système de styles**.
 
 Fichiers clés :
 - `ui/src/styles.css` — entrée Vite, `@theme inline` (Tailwind v4)
@@ -38,8 +56,6 @@ Fichiers clés :
 - `ui/src/styles/themes.css` — 17 thèmes `.theme-*`
 - `ui/src/styles/components.css` — classes utilitaires composant
 - `ui/src/styles/tinymce.css` — overrides TinyMCE
-
-Règle rapide : pour toucher aux styles, lire d'abord la section **Système de styles** de `HYBRID_ARCHITECTURE.md`.
 
 ## Test et validation
 

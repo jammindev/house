@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export type TagType = 'interaction' | 'document' | 'contact' | 'structure';
 
 export interface TagOption {
@@ -35,28 +37,11 @@ function normalizeList(payload: unknown): TagOption[] {
 
 export async function fetchTags(options: FetchTagsOptions = {}): Promise<TagOption[]> {
   const { type, search } = options;
-  const params = new URLSearchParams();
+  const params: Record<string, string> = {};
 
-  if (type) {
-    params.set('type', type);
-  }
+  if (type) params.type = type;
+  if (search) params.search = search;
 
-  if (search) {
-    params.set('search', search);
-  }
-
-  const response = await fetch(`/api/tags/tags/${params.toString() ? `?${params.toString()}` : ''}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  return normalizeList(payload);
+  const { data } = await api.get('/tags/tags/', { params });
+  return normalizeList(data);
 }

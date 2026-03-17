@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export interface InteractionListItem {
   id: string;
   subject: string;
@@ -56,16 +58,6 @@ export interface FetchInteractionsResult {
   previous: string | null;
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-
-  const cookies = document.cookie ? document.cookie.split('; ') : [];
-  const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
-  if (!match) return null;
-
-  return decodeURIComponent(match.split('=').slice(1).join('='));
-}
-
 function normalize(payload: unknown): FetchInteractionsResult {
   if (Array.isArray(payload)) {
     const items = payload as InteractionListItem[];
@@ -102,29 +94,16 @@ export async function fetchInteractions(
 ): Promise<FetchInteractionsResult> {
   const { search, type, status, zone, limit = 8, offset = 0 } = options;
 
-  const params = new URLSearchParams();
-  params.set('ordering', '-occurred_at');
-  if (search) params.set('search', search);
-  if (type) params.set('type', type);
-  if (status) params.set('status', status);
-  if (zone) params.set('zone', zone);
-  if (limit > 0) params.set('limit', String(limit));
-  if (offset > 0) params.set('offset', String(offset));
+  const params: Record<string, string | number> = { ordering: '-occurred_at' };
+  if (search) params.search = search;
+  if (type) params.type = type;
+  if (status) params.status = status;
+  if (zone) params.zone = zone;
+  if (limit > 0) params.limit = limit;
+  if (offset > 0) params.offset = offset;
 
-  const response = await fetch(`/api/interactions/interactions/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  return normalize(payload);
+  const { data } = await api.get('/interactions/interactions/', { params });
+  return normalize(data);
 }
 
 export async function searchInteractions(
@@ -140,73 +119,28 @@ export async function searchInteractions(
 export async function createInteraction(
   input: CreateInteractionInput,
 ): Promise<InteractionListItem & { linked_document_ids?: string[] }> {
-  const csrfToken = getCookie('csrftoken');
-
-  const response = await fetch('/api/interactions/interactions/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-    body: JSON.stringify({
-      ...input,
-      content: input.content ?? '',
-      status: input.status ?? null,
-      metadata: input.metadata ?? {},
-      document_ids: input.document_ids ?? [],
-      enriched_text: '',
-    }),
+  const { data } = await api.post('/interactions/interactions/', {
+    ...input,
+    content: input.content ?? '',
+    status: input.status ?? null,
+    metadata: input.metadata ?? {},
+    document_ids: input.document_ids ?? [],
+    enriched_text: '',
   });
+  return data as InteractionListItem;
+}
 
-  if (!response.ok) {
-    let detail = '';
-    try {
-      const errorPayload = (await response.json()) as Record<string, unknown>;
-      detail = JSON.stringify(errorPayload);
-    } catch {
-      detail = '';
-    }
-    throw new Error(`API error ${response.status}${detail ? `: ${detail}` : ''}`);
-  }
-
-  return (await response.json()) as InteractionListItem;
+export async function deleteInteraction(id: string): Promise<void> {
+  await api.delete(`/interactions/interactions/${id}/`);
 }
 
 export async function linkDocumentToInteraction(
   input: LinkDocumentToInteractionInput,
 ): Promise<void> {
-  const csrfToken = getCookie('csrftoken');
-
-  const response = await fetch('/api/interactions/interaction-documents/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-    body: JSON.stringify({
-      interaction: input.interactionId,
-      document: input.documentId,
-      role: input.role ?? 'attachment',
-      note: input.note ?? '',
-    }),
+  await api.post('/interactions/interaction-documents/', {
+    interaction: input.interactionId,
+    document: input.documentId,
+    role: input.role ?? 'attachment',
+    note: input.note ?? '',
   });
-
-  if (!response.ok) {
-    let detail = '';
-    try {
-      const errorPayload = (await response.json()) as { detail?: string } | Record<string, unknown>;
-      if (typeof errorPayload.detail === 'string') {
-        detail = errorPayload.detail;
-      } else {
-        detail = JSON.stringify(errorPayload);
-      }
-    } catch {
-      detail = '';
-    }
-    throw new Error(detail || `API error ${response.status}`);
-  }
 }

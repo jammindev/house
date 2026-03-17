@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export interface ContactEmail {
   id: string;
   email: string;
@@ -60,28 +62,6 @@ export interface UpdateContactInput {
   structure?: string | null;
 }
 
-function getCookie(name: string): string {
-  if (typeof document === 'undefined') return '';
-  const cookies = document.cookie ? document.cookie.split('; ') : [];
-  const match = cookies.find((c) => c.startsWith(`${name}=`));
-  if (!match) return '';
-  return decodeURIComponent(match.split('=').slice(1).join('='));
-}
-
-function buildHeaders(): Record<string, string> {
-  return {
-    Accept: 'application/json',
-  };
-}
-
-function buildJsonHeaders(): Record<string, string> {
-  return {
-    ...buildHeaders(),
-    'Content-Type': 'application/json',
-    'X-CSRFToken': getCookie('csrftoken'),
-  };
-}
-
 const collator = new Intl.Collator(undefined, { sensitivity: 'base' });
 
 function sortContacts(contacts: Contact[]): Contact[] {
@@ -93,26 +73,16 @@ function sortContacts(contacts: Contact[]): Contact[] {
 }
 
 export async function fetchContacts(): Promise<Contact[]> {
-  const params = new URLSearchParams({ ordering: 'last_name,first_name' });
-  const response = await fetch(`/api/contacts/contacts/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
+  const { data } = await api.get('/contacts/contacts/', {
+    params: { ordering: 'last_name,first_name' },
   });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = await response.json() as unknown;
-  const list = Array.isArray(payload) ? payload : ((payload as { results?: Contact[] }).results ?? []);
+  const list = Array.isArray(data) ? data : ((data as { results?: Contact[] }).results ?? []);
   return sortContacts(list as Contact[]);
 }
 
 export async function fetchContact(id: string): Promise<Contact> {
-  const response = await fetch(`/api/contacts/contacts/${id}/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return response.json() as Promise<Contact>;
+  const { data } = await api.get(`/contacts/contacts/${id}/`);
+  return data as Contact;
 }
 
 export async function createContact(
@@ -120,46 +90,30 @@ export async function createContact(
   email?: { email: string; label?: string } | null,
   phone?: { phone: string; label?: string } | null,
 ): Promise<Contact> {
-  const response = await fetch('/api/contacts/contacts/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildJsonHeaders(),
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const contact = await response.json() as Contact;
+  const { data } = await api.post('/contacts/contacts/', input);
+  const contact = data as Contact;
 
   // Create email and phone if provided
   const sideEffects: Promise<unknown>[] = [];
 
   if (email?.email) {
     sideEffects.push(
-      fetch('/api/contacts/emails/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: buildJsonHeaders(),
-        body: JSON.stringify({
-          contact: contact.id,
-          email: email.email,
-          label: email.label ?? '',
-          is_primary: true,
-        }),
+      api.post('/contacts/emails/', {
+        contact: contact.id,
+        email: email.email,
+        label: email.label ?? '',
+        is_primary: true,
       })
     );
   }
 
   if (phone?.phone) {
     sideEffects.push(
-      fetch('/api/contacts/phones/', {
-        method: 'POST',
-        credentials: 'include',
-        headers: buildJsonHeaders(),
-        body: JSON.stringify({
-          contact: contact.id,
-          phone: phone.phone,
-          label: phone.label ?? '',
-          is_primary: true,
-        }),
+      api.post('/contacts/phones/', {
+        contact: contact.id,
+        phone: phone.phone,
+        label: phone.label ?? '',
+        is_primary: true,
       })
     );
   }
@@ -172,42 +126,21 @@ export async function updateContact(
   id: string,
   input: UpdateContactInput,
 ): Promise<Contact> {
-  const response = await fetch(`/api/contacts/contacts/${id}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildJsonHeaders(),
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return response.json() as Promise<Contact>;
+  const { data } = await api.patch(`/contacts/contacts/${id}/`, input);
+  return data as Contact;
 }
 
 export async function deleteContact(id: string): Promise<void> {
-  const response = await fetch(`/api/contacts/contacts/${id}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-    body: JSON.stringify({}),
-  });
-  if (!response.ok && response.status !== 204) throw new Error(`API error ${response.status}`);
+  await api.delete(`/contacts/contacts/${id}/`);
 }
 
 export async function fetchContactInteractions(
   contactId: string,
   limit = 5,
 ): Promise<import('./interactions').InteractionListItem[]> {
-  const params = new URLSearchParams({
-    contact: contactId,
-    ordering: '-occurred_at',
-    limit: String(limit),
+  const { data } = await api.get('/interactions/interactions/', {
+    params: { contact: contactId, ordering: '-occurred_at', limit: String(limit) },
   });
-  const response = await fetch(`/api/interactions/interactions/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) return [];
-  const payload = await response.json() as unknown;
-  const list = Array.isArray(payload) ? payload : ((payload as { results?: unknown[] }).results ?? []);
+  const list = Array.isArray(data) ? data : ((data as { results?: unknown[] }).results ?? []);
   return list as import('./interactions').InteractionListItem[];
 }

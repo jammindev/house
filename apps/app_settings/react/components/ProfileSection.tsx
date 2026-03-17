@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
+import i18n from '@/lib/i18n';
 import { Pencil, X, Check } from 'lucide-react';
 
 import { Button } from '@/design-system/button';
@@ -9,11 +11,11 @@ import type { UserProfile, Locale } from '@/lib/api/users';
 import { patchMe, uploadAvatar, deleteAvatar } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
 
-const LOCALE_OPTIONS: { value: Locale; labelKey: string }[] = [
-  { value: 'en', labelKey: 'settings.localeEn' },
-  { value: 'fr', labelKey: 'settings.localeFr' },
-  { value: 'de', labelKey: 'settings.localeDe' },
-  { value: 'es', labelKey: 'settings.localeEs' },
+const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'Français' },
+  { value: 'de', label: 'Deutsch' },
+  { value: 'es', label: 'Español' },
 ];
 
 interface ProfileSectionProps {
@@ -24,6 +26,7 @@ interface ProfileSectionProps {
 export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const qc = useQueryClient();
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = React.useState(false);
@@ -48,10 +51,11 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
     try {
       const updated = await patchMe({ display_name: displayName.trim(), locale });
       onUserUpdate(updated);
+      qc.setQueryData(['settings', 'me'], updated);
 
       if (locale !== prevLocale) {
-        window.location.reload();
-        return;
+        localStorage.setItem('lang', locale);
+        await i18n.changeLanguage(locale);
       }
 
       document.body.dispatchEvent(new CustomEvent('profile-updated'));
@@ -109,7 +113,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
     }
   }
 
-  const localeLabel = LOCALE_OPTIONS.find(opt => opt.value === locale)?.labelKey;
+  const localeLabel = LOCALE_OPTIONS.find(opt => opt.value === locale)?.label;
 
   return (
     <SettingsSection
@@ -180,7 +184,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">{localeLabel ? t(localeLabel) : locale}</p>
+              <p className="text-sm text-muted-foreground">{localeLabel ?? locale}</p>
             </div>
           </div>
         )}
@@ -204,7 +208,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
                 className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
               >
                 {LOCALE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
                 ))}
               </select>
             </div>

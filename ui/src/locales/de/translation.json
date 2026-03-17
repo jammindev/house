@@ -3,13 +3,16 @@
     "yes": "ja",
     "no": "nein",
     "save": "Speichern",
+    "saving": "Wird gespeichert…",
     "cancel": "Abbrechen",
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "archive": "Archivieren",
     "confirmDelete": "Sind Sie sicher?",
     "confirmArchive": "Diesen Haushalt archivieren? Er wird nicht mehr zugänglich sein.",
-    "confirmLeave": "Diesen Haushalt verlassen?"
+    "confirmLeave": "Diesen Haushalt verlassen?",
+    "retry": "Erneut versuchen",
+    "saveFailed": "Speichern fehlgeschlagen."
   },
   "electricity": {
     "api_workspace_title": "Elektrizitäts-API-Arbeitsbereich",
@@ -91,7 +94,7 @@
     "zones_unselect_zone": "{{name}} abwählen",
     "zones_select_short": "Wählen",
     "zones_selected_short": "Gewählt",
-    "zones_loading": "Zonen werden geladen\u2026",
+    "zones_loading": "Zonen werden geladen…",
     "zones_empty": "Keine Zonen verfügbar.",
     "zones_error": "Zonen konnten nicht geladen werden.",
     "error_subject_required": "Betreff ist erforderlich.",
@@ -104,11 +107,11 @@
     "source_document_label": "Quelldokument",
     "source_document_help": "Diese Aktivität wird nach dem Erstellen mit dem ausgewählten Dokument verknüpft.",
     "success_title": "Erfolg",
-    "redirect_notice": "Weiterleitung zur Aktivität\u2026",
+    "redirect_notice": "Weiterleitung zur Aktivität…",
     "created_notice_title": "Ereignis hinzugefügt",
     "created_notice_body": "\"{{subject}}\" wurde hinzugefügt und unten hervorgehoben.",
     "created_badge": "Neu",
-    "creating": "Wird erstellt\u2026",
+    "creating": "Wird erstellt…",
     "list_title": "Aktivität",
     "list_empty": "Für diesen Filter wurde keine Aktivität gefunden.",
     "meta_zones": "Zonen",
@@ -127,17 +130,27 @@
     "error_load_more_failed": "Weitere Interaktionen konnten nicht geladen werden.",
     "loading_error_title": "Ladefehler",
     "load_more": "Mehr laden",
-    "loading_more": "Laden\u2026",
+    "loading_more": "Laden…",
     "createTask": "Aufgabe erstellen",
     "source_interaction_label": "Quell-Ereignis",
-    "source_interaction_help": "Diese Aufgabe wird mit dem Quell-Ereignis verknüpft."
+    "source_interaction_help": "Diese Aufgabe wird mit dem Quell-Ereignis verknüpft.",
+    "title": "Aktivität",
+    "new": "Neues Ereignis",
+    "new_title": "Neues Ereignis",
+    "empty": "Noch keine Ereignisse.",
+    "empty_description": "Erfassen Sie eine Wartung, Reparatur oder andere Aktivität, um die Geschichte Ihres Hauses festzuhalten.",
+    "deleted": "Ereignis gelöscht",
+    "zone_label": "Zone",
+    "zone_placeholder": "Zone auswählen",
+    "tags_input_placeholder": "Tag1, Tag2, Tag3",
+    "tags_input_help": "Tags durch Kommas trennen."
   },
   "tagSelector": {
     "selected_count": "{{count}} ausgewählt",
     "search_label": "Tag finden oder erstellen",
     "placeholder": "Tag hinzufügen",
     "helper": "Drücken Sie Enter oder ein Komma, um ein Tag hinzuzufügen.",
-    "loading": "Tags werden geladen\u2026",
+    "loading": "Tags werden geladen…",
     "error": "Tags konnten nicht geladen werden.",
     "suggestions_label": "Vorgeschlagene Tags",
     "create_tag": "Tag \"{{name}}\" hinzufügen",
@@ -176,6 +189,13 @@
   "zones": {
     "app_title": "Zonen-Mini-App",
     "title": "Zonen",
+    "new": "Neue Zone",
+    "newTitle": "Neue Zone",
+    "editTitle": "Zone bearbeiten",
+    "deleted": "Zone gelöscht",
+    "empty_description": "Füge deine erste Zone hinzu, um die Räume deines Hauses zu organisieren.",
+    "fieldName": "Name",
+    "fieldParent": "Übergeordnete Zone",
     "loading": "Zonen werden geladen…",
     "none": "Keine Zonen in diesem Haushalt.",
     "count_loaded": "{{count}} Zone(n) aus SSR-Props geladen.",
@@ -290,10 +310,18 @@
       "done": "Erledigt"
     },
     "columns": {
-      "backlog": { "title": "Rückstand" },
-      "pending": { "title": "Ausstehend" },
-      "in_progress": { "title": "In Bearbeitung" },
-      "done": { "title": "Erledigt" }
+      "backlog": {
+        "title": "Rückstand"
+      },
+      "pending": {
+        "title": "Ausstehend"
+      },
+      "in_progress": {
+        "title": "In Bearbeitung"
+      },
+      "done": {
+        "title": "Erledigt"
+      }
     },
     "movePrev": "In vorherige Spalte verschieben",
     "moveNext": "In nächste Spalte verschieben"
@@ -396,20 +424,77 @@
     "city": "Stadt",
     "postalCode": "Postleitzahl",
     "country": "Land",
-    "countryPlaceholder": "\u2014 Land auswählen \u2014",
+    "countryPlaceholder": "— Land auswählen —",
     "timezone": "Zeitzone",
-    "timezonePlaceholder": "\u2014 Zeitzone auswählen \u2014",
+    "timezonePlaceholder": "— Zeitzone auswählen —",
     "sectionContext": "Kontext & KI",
     "contextNotes": "Haushaltsnotizen",
     "aiPromptContext": "KI-Prompt-Kontext"
   },
   "photos": {
     "app_title": "Fotos-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "section_label": "Django-App-Knoten: {{section}}",
+    "title": "Fotos",
+    "empty": "Noch keine Fotos vorhanden.",
+    "empty_description": "Lade Fotos über die Dokumentenbibliothek hoch, um sie hier zu sehen.",
+    "loadFailed": "Fotos konnten nicht geladen werden.",
+    "deleted": "Foto gelöscht.",
+    "search": "Suche",
+    "search_placeholder": "Fotos suchen…",
+    "untitled": "Ohne Titel",
+    "addedOn": "Hinzugefügt am {{date}}",
+    "view": "Ansehen",
+    "download": "Herunterladen"
+  },
+  "directory": {
+    "title": "Verzeichnis",
+    "tabContacts": "Kontakte",
+    "tabStructures": "Strukturen"
   },
   "contacts": {
     "app_title": "Kontakte-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}"
+    "section_label": "Django-App-Knoten: {{section}}",
+    "title": "Kontakte",
+    "new": "Neuer Kontakt",
+    "newTitle": "Neuer Kontakt",
+    "editTitle": "Kontakt bearbeiten",
+    "empty": "Noch keine Kontakte.",
+    "empty_description": "Füge deinen ersten Kontakt hinzu, um dein Verzeichnis aufzubauen.",
+    "deleted": "Kontakt gelöscht",
+    "loadFailed": "Kontakte konnten nicht geladen werden.",
+    "searchPlaceholder": "Nach Name, E-Mail oder Struktur suchen…",
+    "nameRequired": "Bitte gib mindestens einen Vor- oder Nachnamen ein.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "structure": "Struktur",
+    "noStructure": "Keine Struktur",
+    "notes": "Notizen"
+  },
+  "structures": {
+    "title": "Strukturen",
+    "new": "Neue Struktur",
+    "newTitle": "Neue Struktur",
+    "editTitle": "Struktur bearbeiten",
+    "empty": "Noch keine Strukturen.",
+    "empty_description": "Füge deine erste Struktur hinzu, um deine Kontakte zu organisieren.",
+    "deleted": "Struktur gelöscht",
+    "loadFailed": "Strukturen konnten nicht geladen werden.",
+    "searchPlaceholder": "Nach Name, Typ oder Website suchen…",
+    "nameRequired": "Der Name der Struktur ist erforderlich.",
+    "fieldName": "Name",
+    "fieldType": "Typ",
+    "fieldWebsite": "Website",
+    "fieldNotes": "Notizen",
+    "noType": "Kein Typ",
+    "types": {
+      "company": "Unternehmen",
+      "association": "Verein",
+      "administration": "Behörde",
+      "artisan": "Handwerker",
+      "other": "Sonstiges"
+    }
   },
   "documents": {
     "app_title": "Dokumente-Mini-App",
@@ -434,9 +519,23 @@
       "all": "{{count}} Dokumente",
       "unlinked": "{{count}} ohne Aktivitätskontext"
     },
+    "deleted": "Dokument gelöscht",
+    "empty_description": "Lade deine erste Datei hoch, um mit der Verwaltung deiner Dokumente zu beginnen.",
+    "editTitle": "Dokument bearbeiten",
+    "uploadFailed": "Dokument konnte nicht hochgeladen werden.",
+    "search": "Suche",
+    "search_placeholder": "Name, Notizen…",
     "filter": {
       "unlinked": "Nur ohne Aktivität anzeigen",
-      "unlinkedActive": "Zeige ohne Aktivität"
+      "unlinkedActive": "Zeige ohne Aktivität",
+      "allTypes": "Alle Typen"
+    },
+    "upload": {
+      "title": "Dokument hochladen",
+      "submit": "Hochladen",
+      "zone": "Zone",
+      "noZone": "Keine Zone",
+      "namePlaceholder": "Dokumentname (optional)"
     },
     "type": {
       "document": "Dokument",
@@ -644,7 +743,9 @@
       "in_progress": "In Bearbeitung",
       "done": "Erledigt",
       "archived": "Archiviert"
-    }
+    },
+    "deleted": "Gerät gelöscht",
+    "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten."
   },
   "dashboard": {
     "header": {
@@ -884,7 +985,20 @@
       "title_create": "Artikel erstellen",
       "title_edit": "Artikel bearbeiten"
     },
-    "confirm_delete": "\"{{name}}\" löschen?"
+    "confirm_delete": "\"{{name}}\" löschen?",
+    "deleted": "Artikel gelöscht",
+    "empty_description": "Füge deinen ersten Artikel hinzu, um das Inventar deines Haushalts zu verwalten.",
+    "empty_categories_description": "Erstelle eine Kategorie, um deine Bestandsartikel zu organisieren."
+  },
+  "auth": {
+    "login": "Anmelden",
+    "email": "E-Mail",
+    "password": "Passwort",
+    "submit": "Anmelden",
+    "loggingIn": "Anmeldung…",
+    "invalidCredentials": "E-Mail oder Passwort falsch.",
+    "logout": "Abmelden",
+    "sessionExpired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an."
   },
   "projects": {
     "app_title": "Projekte-Mini-App",
@@ -922,6 +1036,10 @@
     "deleting": "Wird gelöscht...",
     "delete_confirm": "Dieses Projekt löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
     "no_description": "Keine Beschreibung vorhanden.",
+    "deleted": "Projekt gelöscht",
+    "no_filter_results": "Keine Projekte entsprechen Ihren Filtern.",
+    "empty_description": "Verwalten Sie Ihre Renovierungs-, Wartungs- und sonstigen Projekte.",
+    "zones_edit_note": "Zonen können über die Projektdetailseite bearbeitet werden.",
     "status": {
       "draft": "Entwurf",
       "active": "Aktiv",
@@ -992,8 +1110,10 @@
     "groups": {
       "title": "Projektgruppen",
       "new": "Neue Gruppe",
+      "edit_title": "Gruppe bearbeiten",
       "cancel": "Abbrechen",
       "empty": "Noch keine Gruppen.",
+      "empty_description": "Erstellen Sie eine Gruppe, um Ihre Projekte zu organisieren.",
       "error_loading": "Gruppen konnten nicht geladen werden.",
       "name_required": "Ein Name ist erforderlich.",
       "create_failed": "Gruppe konnte nicht erstellt werden.",

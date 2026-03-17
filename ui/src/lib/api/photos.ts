@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export interface PhotoDocument {
   id: string;
   name: string;
@@ -10,19 +12,10 @@ export interface PhotoDocument {
   created_by_name?: string | null;
 }
 
-function buildHeaders(): Record<string, string> {
-  return {
-    Accept: 'application/json',
-  };
-}
-
 export async function fetchPhotos(): Promise<PhotoDocument[]> {
-  const res = await fetch(
-    '/api/documents/documents/?type=photo&ordering=-created_at',
-    { headers: buildHeaders() },
-  );
-  if (!res.ok) throw new Error(`Failed to fetch photos: ${res.status}`);
-  const data = await res.json() as unknown;
+  const { data } = await api.get('/documents/documents/', {
+    params: { type: 'photo', ordering: '-created_at' },
+  });
   return Array.isArray(data)
     ? (data as PhotoDocument[])
     : ((data as { results?: PhotoDocument[] }).results ?? []);

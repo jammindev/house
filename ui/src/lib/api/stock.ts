@@ -1,3 +1,4 @@
+import { api } from '@/lib/axios';
 import type { ZoneOption } from './zones';
 
 export type StockItemStatus =
@@ -100,26 +101,6 @@ interface StockCategoryPayload {
   sort_order?: number;
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-
-  const cookies = document.cookie ? document.cookie.split('; ') : [];
-  const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
-  if (!match) return null;
-
-  return decodeURIComponent(match.split('=').slice(1).join('='));
-}
-
-function buildHeaders(withJson = false) {
-  const csrfToken = getCookie('csrftoken');
-
-  return {
-    Accept: 'application/json',
-    ...(withJson ? { 'Content-Type': 'application/json' } : {}),
-    ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-  };
-}
-
 function normalizeList<T>(payload: unknown): T[] {
   if (Array.isArray(payload)) return payload as T[];
   if (payload && typeof payload === 'object') {
@@ -130,164 +111,91 @@ function normalizeList<T>(payload: unknown): T[] {
 }
 
 export async function fetchStockItems(filters: StockListFilters = {}): Promise<StockItem[]> {
-  const params = new URLSearchParams();
-  if (filters.search) params.set('search', filters.search);
-  if (filters.status) params.set('status', filters.status);
-  if (filters.zone) params.set('zone', filters.zone);
-  if (filters.category) params.set('category', filters.category);
-  params.set('ordering', 'name');
+  const params: Record<string, string> = { ordering: 'name' };
+  if (filters.search) params.search = filters.search;
+  if (filters.status) params.status = filters.status;
+  if (filters.zone) params.zone = filters.zone;
+  if (filters.category) params.category = filters.category;
 
-  const response = await fetch(`/api/stock/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = (await response.json()) as unknown;
-  return normalizeList<StockItem>(payload);
+  const { data } = await api.get('/stock/', { params });
+  return normalizeList<StockItem>(data);
 }
 
 export async function fetchStockItem(itemId: string): Promise<StockItem> {
-  const response = await fetch(`/api/stock/${itemId}/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockItem;
+  const { data } = await api.get(`/stock/${itemId}/`);
+  return data as StockItem;
 }
 
 export async function createStockItem(payload: StockItemPayload): Promise<StockItem> {
-  const response = await fetch('/api/stock/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...payload,
-      zone: payload.zone || null,
-      min_quantity: payload.min_quantity ?? null,
-      max_quantity: payload.max_quantity ?? null,
-      unit_price: payload.unit_price ?? null,
-      purchase_date: payload.purchase_date || null,
-      expiration_date: payload.expiration_date || null,
-      description: payload.description ?? '',
-      supplier: payload.supplier ?? '',
-      notes: payload.notes ?? '',
-      tags: payload.tags ?? [],
-    }),
+  const { data } = await api.post('/stock/', {
+    ...payload,
+    zone: payload.zone || null,
+    min_quantity: payload.min_quantity ?? null,
+    max_quantity: payload.max_quantity ?? null,
+    unit_price: payload.unit_price ?? null,
+    purchase_date: payload.purchase_date || null,
+    expiration_date: payload.expiration_date || null,
+    description: payload.description ?? '',
+    supplier: payload.supplier ?? '',
+    notes: payload.notes ?? '',
+    tags: payload.tags ?? [],
   });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockItem;
+  return data as StockItem;
 }
 
 export async function updateStockItem(itemId: string, payload: StockItemPayload): Promise<StockItem> {
-  const response = await fetch(`/api/stock/${itemId}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...payload,
-      zone: payload.zone || null,
-      min_quantity: payload.min_quantity ?? null,
-      max_quantity: payload.max_quantity ?? null,
-      unit_price: payload.unit_price ?? null,
-      purchase_date: payload.purchase_date || null,
-      expiration_date: payload.expiration_date || null,
-      description: payload.description ?? '',
-      supplier: payload.supplier ?? '',
-      notes: payload.notes ?? '',
-      tags: payload.tags ?? [],
-    }),
+  const { data } = await api.patch(`/stock/${itemId}/`, {
+    ...payload,
+    zone: payload.zone || null,
+    min_quantity: payload.min_quantity ?? null,
+    max_quantity: payload.max_quantity ?? null,
+    unit_price: payload.unit_price ?? null,
+    purchase_date: payload.purchase_date || null,
+    expiration_date: payload.expiration_date || null,
+    description: payload.description ?? '',
+    supplier: payload.supplier ?? '',
+    notes: payload.notes ?? '',
+    tags: payload.tags ?? [],
   });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockItem;
+  return data as StockItem;
 }
 
 export async function deleteStockItem(itemId: string): Promise<void> {
-  const response = await fetch(`/api/stock/${itemId}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.delete(`/stock/${itemId}/`);
 }
 
 export async function adjustStockQuantity(itemId: string, delta: number): Promise<StockItem> {
-  const response = await fetch(`/api/stock/${itemId}/adjust-quantity/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({ delta }),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockItem;
+  const { data } = await api.post(`/stock/${itemId}/adjust-quantity/`, { delta });
+  return data as StockItem;
 }
 
 export async function fetchStockCategories(): Promise<StockCategory[]> {
-  const response = await fetch('/api/stock/categories/?ordering=sort_order,name', {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
+  const { data } = await api.get('/stock/categories/', {
+    params: { ordering: 'sort_order,name' },
   });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = (await response.json()) as unknown;
-  return normalizeList<StockCategory>(payload);
+  return normalizeList<StockCategory>(data);
 }
 
 export async function fetchStockCategorySummary(): Promise<StockCategorySummary[]> {
-  const response = await fetch('/api/stock/categories/summary/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = (await response.json()) as StockCategorySummary[];
-  return payload;
+  const { data } = await api.get('/stock/categories/summary/');
+  return data as StockCategorySummary[];
 }
 
 export async function createStockCategory(payload: StockCategoryPayload): Promise<StockCategory> {
-  const response = await fetch('/api/stock/categories/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockCategory;
+  const { data } = await api.post('/stock/categories/', payload);
+  return data as StockCategory;
 }
 
 export async function updateStockCategory(
   categoryId: string,
   payload: Partial<StockCategoryPayload>,
 ): Promise<StockCategory> {
-  const response = await fetch(`/api/stock/categories/${categoryId}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as StockCategory;
+  const { data } = await api.patch(`/stock/categories/${categoryId}/`, payload);
+  return data as StockCategory;
 }
 
 export async function deleteStockCategory(categoryId: string): Promise<void> {
-  const response = await fetch(`/api/stock/categories/${categoryId}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.delete(`/stock/categories/${categoryId}/`);
 }
 
 export function zoneLabel(zoneId: string | null | undefined, zones: ZoneOption[]): string {

@@ -74,7 +74,6 @@ def test_sc4_consistency_rules_suite():
             "is_active": True,
         },
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     second_link_response = client.post(
@@ -85,12 +84,10 @@ def test_sc4_consistency_rules_suite():
             "is_active": True,
         },
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     delete_circuit_response = client.delete(
         f"/api/electricity/circuits/{circuit.id}/",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     checks = [

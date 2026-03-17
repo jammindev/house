@@ -17,7 +17,7 @@ def test_member_can_read_boards_list():
     client = APIClient()
     client.force_authenticate(user=member)
 
-    response = client.get("/api/electricity/boards/", HTTP_X_HOUSEHOLD_ID=str(household.id))
+    response = client.get("/api/electricity/boards/")
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -37,7 +37,6 @@ def test_member_cannot_create_breaker():
         "/api/electricity/boards/",
         {"name": "Tableau P", "supply_type": "single_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert board_response.status_code == status.HTTP_201_CREATED
@@ -53,7 +52,6 @@ def test_member_cannot_create_breaker():
             "curve_type": "c",
         },
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

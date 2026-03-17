@@ -43,7 +43,7 @@ def test_insurance_list_filters_by_household(client, user, household, second_hou
     )
 
     client.force_login(user)
-    response = client.get(reverse("insurance-contract-list"), HTTP_X_HOUSEHOLD_ID=str(household.id))
+    response = client.get(reverse("insurance-contract-list"),)
 
     assert response.status_code == 200
     payload = response.json()
@@ -65,7 +65,6 @@ def test_insurance_create_contract(client, user, household, dual_membership):
             "yearly_cost": "263.88",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 201
@@ -85,7 +84,6 @@ def test_insurance_create_rejects_negative_cost(client, user, household, dual_me
             "yearly_cost": "120",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400

@@ -1,19 +1,8 @@
 """Views package for accounts app."""
-from .api import AuthViewSet, UserViewSet
-from .template_views import (
-    HomeView,
-    LoginView,
-    DashboardView,
-    LogoutView,
-    AppDashboardView,
-)
+from .api import AuthViewSet, UserViewSet, me_view
 
 __all__ = [
     'AuthViewSet',
     'UserViewSet',
-    'HomeView',
-    'LoginView',
-    'DashboardView',
-    'LogoutView',
-    'AppDashboardView',
+    'me_view',
 ]

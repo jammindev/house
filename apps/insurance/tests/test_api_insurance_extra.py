@@ -32,7 +32,6 @@ def test_insurance_create_rejects_end_date_before_start_date(client, user, house
             "end_date": "2026-03-01",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400
@@ -53,7 +52,6 @@ def test_insurance_update_sets_updated_by(client, user, household, dual_membersh
         reverse("insurance-contract-detail", kwargs={"pk": contract.id}),
         data={"name": "Updated home policy"},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 200

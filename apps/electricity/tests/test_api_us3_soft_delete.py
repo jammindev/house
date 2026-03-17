@@ -58,7 +58,6 @@ def test_owner_can_deactivate_link_and_track_actor_date():
         f"/api/electricity/links/{link.id}/deactivate/",
         {"household_id": str(household.id)},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_200_OK
@@ -120,7 +119,6 @@ def test_member_cannot_deactivate_link():
         f"/api/electricity/links/{link.id}/deactivate/",
         {"household_id": str(household.id)},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN

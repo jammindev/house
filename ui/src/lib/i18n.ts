@@ -6,12 +6,19 @@ import frTranslation from '../locales/fr/translation.json';
 import deTranslation from '../locales/de/translation.json';
 import esTranslation from '../locales/es/translation.json';
 
-// Detect language from Django's <html lang="..."> attribute set via {% get_current_language %}
-const htmlLang =
-  typeof document !== 'undefined' ? document.documentElement.lang : 'en';
-
 const supportedLanguages = ['en', 'fr', 'de', 'es'];
-const detectedLang = supportedLanguages.includes(htmlLang) ? htmlLang : 'en';
+
+function detectLanguage(): string {
+  if (typeof window === 'undefined') return 'en';
+  // 1. User preference (set after login or settings change)
+  const stored = localStorage.getItem('lang');
+  if (stored && supportedLanguages.includes(stored)) return stored;
+  // 2. Browser language
+  const browserLang = navigator.language.split('-')[0];
+  return supportedLanguages.includes(browserLang) ? browserLang : 'en';
+}
+
+const detectedLang = detectLanguage();
 
 i18n.use(initReactI18next).init({
   resources: {

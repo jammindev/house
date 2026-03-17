@@ -88,7 +88,6 @@ class TestInteractionCrud:
             url,
             _interaction_payload([primary_zone.id], tags_input=[" urgent ", "urgent", "maintenance"]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -106,7 +105,6 @@ class TestInteractionCrud:
             url,
             _interaction_payload([primary_zone.id], type="expense", metadata={"amount": 149.9, "currency": "EUR"}),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -130,7 +128,6 @@ class TestInteractionCrud:
             url,
             _interaction_payload([primary_zone.id], document_ids=[str(document.id)]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -155,7 +152,6 @@ class TestInteractionCrud:
             url,
             _interaction_payload([primary_zone.id], subject="Reject foreign doc", document_ids=[str(foreign_document.id)]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -165,7 +161,7 @@ class TestInteractionCrud:
     def test_create_requires_at_least_one_zone(self, owner_client, household):
         url = reverse("interaction-list")
         payload = _interaction_payload([])
-        response = owner_client.post(url, payload, format="json", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.post(url, payload, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "zone_ids" in response.data
@@ -181,7 +177,6 @@ class TestInteractionCrud:
             url,
             _interaction_payload([primary_zone.id, forbidden_zone.id]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -191,12 +186,14 @@ class TestInteractionCrud:
         other_household = _create_household("Mismatch House")
         _add_membership(owner, other_household)
 
+        owner.active_household = other_household
+        owner.save(update_fields=["active_household"])
+
         url = reverse("interaction-list")
         response = owner_client.post(
             url,
             _interaction_payload([primary_zone.id]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(other_household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -230,7 +227,6 @@ class TestInteractionCrud:
                 "tags_input": ["fresh", "urgent"],
             },
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -252,7 +248,7 @@ class TestInteractionCrud:
         interaction.zones.add(primary_zone)
 
         url = reverse("interaction-detail", kwargs={"pk": interaction.id})
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["zones_detail"][0]["id"] == str(primary_zone.id)
@@ -284,7 +280,7 @@ class TestInteractionQuerying:
         hidden.zones.add(hidden_zone)
 
         url = reverse("interaction-list")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         subjects = {item["subject"] for item in response.data["results"]}
@@ -316,7 +312,6 @@ class TestInteractionQuerying:
         response = owner_client.get(
             url,
             {"zone": str(primary_zone.id), "tags": "repair"},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -336,7 +331,7 @@ class TestInteractionQuerying:
         TagLink.objects.create(household=household, created_by=owner, tag=tag, content_object=interaction)
 
         url = reverse("interaction-list")
-        response = owner_client.get(url, {"search": "roof"}, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url, {"search": "roof"})
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 1
@@ -365,7 +360,7 @@ class TestInteractionCustomActions:
         todo.zones.add(primary_zone)
 
         url = reverse("interaction-by-type")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["note"]["count"] == 1
@@ -392,7 +387,7 @@ class TestInteractionCustomActions:
         done.zones.add(primary_zone)
 
         url = reverse("interaction-tasks")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert [item["subject"] for item in response.data["backlog"]] == ["Backlog task"]
@@ -414,13 +409,11 @@ class TestInteractionCustomActions:
             url,
             {"status": "invalid"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         valid = owner_client.patch(
             url,
             {"status": "done"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert invalid.status_code == status.HTTP_400_BAD_REQUEST
@@ -452,7 +445,6 @@ class TestInteractionLinks:
             url,
             {"interaction": str(interaction.id), "contact": str(contact.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -484,7 +476,6 @@ class TestInteractionLinks:
             url,
             {"interaction": str(foreign_interaction.id), "contact": str(contact.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -513,7 +504,6 @@ class TestInteractionLinks:
             url,
             {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -544,7 +534,6 @@ class TestInteractionLinks:
             url,
             {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -574,7 +563,6 @@ class TestInteractionLinks:
             url,
             {"interaction": str(interaction.id), "document": str(document.id), "role": "attachment"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_409_CONFLICT
@@ -599,7 +587,6 @@ class TestInteractionProjectLink:
             url,
             _interaction_payload([primary_zone.id], type="todo", project=str(project.id)),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -636,7 +623,6 @@ class TestInteractionProjectLink:
         response = owner_client.get(
             url,
             {"project": str(project.id)},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -667,7 +653,6 @@ class TestInteractionProjectLink:
             url,
             {"subject": "Tâche mise à jour"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK

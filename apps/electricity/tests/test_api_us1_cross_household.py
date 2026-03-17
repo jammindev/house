@@ -18,17 +18,19 @@ def test_each_household_can_have_its_own_active_board():
     client = APIClient()
     client.force_authenticate(user=owner)
 
+    owner.active_household = household_a
+    owner.save(update_fields=["active_household"])
     response_a = client.post(
         "/api/electricity/boards/",
         {"name": "Board A", "supply_type": "single_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household_a.id),
     )
+    owner.active_household = household_b
+    owner.save(update_fields=["active_household"])
     response_b = client.post(
         "/api/electricity/boards/",
         {"name": "Board B", "supply_type": "three_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household_b.id),
     )
 
     assert response_a.status_code == status.HTTP_201_CREATED

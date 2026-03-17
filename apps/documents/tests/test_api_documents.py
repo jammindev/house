@@ -71,7 +71,6 @@ class TestDocumentsApi:
             url,
             {'file': upload, 'name': 'Invoice March', 'type': 'invoice'},
             format='multipart',
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -85,7 +84,6 @@ class TestDocumentsApi:
             url,
             {"file_path": "docs/invoice.pdf", "name": "Invoice", "mime_type": "application/pdf", "type": "invoice"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -110,12 +108,14 @@ class TestDocumentsApi:
         other_household = _household("Other Docs House")
         _membership(owner, other_household)
 
+        owner.active_household = other_household
+        owner.save(update_fields=["active_household"])
+
         url = reverse("document-list")
         response = owner_client.post(
             url,
             {"file_path": "docs/bad.pdf", "name": "Bad", "mime_type": "application/pdf", "type": "document", "interaction": str(interaction.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(other_household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -126,7 +126,7 @@ class TestDocumentsApi:
         Document.objects.create(household=household, created_by=owner, file_path="docs/b.jpg", name="B", mime_type="image/jpeg", type="photo")
 
         url = reverse("document-by-type")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["document"]["count"] == 1
@@ -143,7 +143,7 @@ class TestDocumentsApi:
         )
 
         url = reverse("document-reprocess-ocr", kwargs={"pk": document.id})
-        response = owner_client.post(url, {}, format="json", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.post(url, {}, format="json")
 
         assert response.status_code == status.HTTP_202_ACCEPTED
 
@@ -177,7 +177,7 @@ class TestDocumentsApi:
         interaction.interaction_documents.create(document=linked_document)
 
         url = reverse('document-list')
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         payload_by_name = {item['name']: item for item in response.data}
@@ -226,7 +226,7 @@ class TestDocumentsApi:
         ProjectDocument.objects.create(project=project, document=document, created_by=owner)
 
         url = reverse('document-detail', kwargs={'pk': document.id})
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data['qualification']['qualification_state'] == 'activity_linked'

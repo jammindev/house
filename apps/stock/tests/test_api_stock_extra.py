@@ -35,7 +35,7 @@ def test_stock_summary_returns_counts(client, user, household, dual_membership):
     StockItem.objects.create(household=household, category=category, name="Pasta", quantity=1, min_quantity=2, unit="pcs", status="low_stock", created_by=user)
 
     client.force_login(user)
-    response = client.get(reverse("stock-category-summary"), HTTP_X_HOUSEHOLD_ID=str(household.id))
+    response = client.get(reverse("stock-category-summary"),)
 
     assert response.status_code == 200
     payload = response.json()[0]
@@ -54,7 +54,6 @@ def test_stock_adjust_quantity_rejects_negative_result(client, user, household, 
         reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
         data={"delta": -2},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400
@@ -78,7 +77,6 @@ def test_stock_create_ordered_item_sets_last_restocked_at(client, user, househol
             "status": "ordered",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 201
@@ -103,7 +101,6 @@ def test_stock_create_rejects_zone_from_other_household(client, user, household,
             "status": "in_stock",
         },
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400

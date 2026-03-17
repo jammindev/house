@@ -56,7 +56,6 @@ def test_delete_circuit_with_active_link_returns_conflict():
     response = client.delete(
         f"/api/electricity/circuits/{circuit.id}/",
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_409_CONFLICT
@@ -95,7 +94,6 @@ def test_delete_breaker_with_active_circuits_returns_conflict():
     response = client.delete(
         f"/api/electricity/breakers/{breaker.id}/",
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_409_CONFLICT

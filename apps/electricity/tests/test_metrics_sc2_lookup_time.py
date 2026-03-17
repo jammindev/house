@@ -69,7 +69,6 @@ def test_sc2_lookup_bidirectional_under_10_seconds():
         response = client.get(
             "/api/electricity/mapping/lookup/",
             {"ref": ref, "household_id": str(household.id)},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
     elapsed = time.monotonic() - started

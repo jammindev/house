@@ -2,17 +2,18 @@
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 from . import admin_ordering as _admin_ordering
-from accounts.views import (
-    HomeView, LoginView, DashboardView, LogoutView,
-    AppDashboardView,
-)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("api/auth/token/verify/", TokenVerifyView.as_view(), name="token_verify"),
     path("api/accounts/", include("accounts.urls")),
     path("api/households/", include("households.urls")),
     path("api/zones/", include("zones.urls")),
@@ -38,37 +39,12 @@ if settings.ENABLE_API_SCHEMA:
         path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
     ]
 
-# Web URLs - language is managed via cookie/session (no URL prefix)
-urlpatterns += [
-    # Public
-    path("", HomeView.as_view(), name="home"),
-    path("login/", LoginView.as_view(), name="login"),
-    path("logout/", LogoutView.as_view(), name="logout"),
-
-    # Legacy redirect
-    path("dashboard/", DashboardView.as_view(), name="dashboard"),
-
-    # ── App (sidebar layout) ───────────────────────────────────────────────────────────────────────
-    path("app/dashboard/", AppDashboardView.as_view(), name="app_dashboard"),
-
-    # Sections implémentées (placeholder pour l'instant, vues dédiées à créer)
-    path("app/interactions/", include("interactions.web_urls")),
-    path("app/zones/", include("zones.web_urls")),
-    path("app/electricity/", include("electricity.web_urls")),
-    path("app/directory/", include("directory.web_urls")),
-    path("app/documents/", include("documents.web_urls")),
-    path("app/equipment/", include("equipment.web_urls")),
-    path("app/stock/", include("stock.web_urls")),
-    path("app/insurance/", include("insurance.web_urls")),
-
-    # Sections à migrer
-    path("app/tasks/", include("tasks.web_urls")),
-    path("app/projects/", include("projects.web_urls")),
-    path("app/photos/", include("photos.web_urls")),
-    path("app/settings/", include("app_settings.web_urls")),
-    path("app/notifications/", include("notifications.web_urls")),
-]
-
 # Serve media files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+urlpatterns += [
+    re_path(r"^(?!api/|admin/|static/|media/|i18n/).*$",
+            TemplateView.as_view(template_name="index.html"),
+            name="spa_catchall"),
+]

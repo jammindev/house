@@ -68,7 +68,6 @@ class TestTagsApi:
             url,
             {"name": "urgent", "type": Tag.TagType.INTERACTION},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -82,7 +81,7 @@ class TestTagsApi:
         Tag.objects.create(household=other_household, created_by=owner, name="hidden", type=Tag.TagType.INTERACTION)
 
         url = reverse("tag-list")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert [item["name"] for item in response.data] == [visible.name]
@@ -96,7 +95,6 @@ class TestTagsApi:
         response = owner_client.get(
             url,
             {"type": Tag.TagType.INTERACTION, "search": "roof"},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -119,7 +117,6 @@ class TestTagLinksApi:
                 "object_id": str(interaction.id),
             },
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -141,7 +138,6 @@ class TestTagLinksApi:
         response = owner_client.get(
             url,
             {"content_type": link.content_type_id, "object_id": str(interaction.id)},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -163,7 +159,6 @@ class TestTagLinksApi:
                 "object_id": str(interaction.id),
             },
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -185,7 +180,6 @@ class TestTagLinksApi:
                 "object_id": str(foreign_interaction.id),
             },
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -213,7 +207,6 @@ class TestTagLinksApi:
             url,
             {"object_id": str(foreign_interaction.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST

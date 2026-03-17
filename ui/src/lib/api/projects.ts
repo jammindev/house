@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 export type ProjectStatus = 'draft' | 'active' | 'on_hold' | 'completed' | 'cancelled';
 export type ProjectType =
   | 'renovation'
@@ -75,23 +77,6 @@ interface PaginatedResponse<T> {
   results?: T[];
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const cookies = document.cookie ? document.cookie.split('; ') : [];
-  const match = cookies.find((c) => c.startsWith(`${name}=`));
-  if (!match) return null;
-  return decodeURIComponent(match.split('=').slice(1).join('='));
-}
-
-function buildHeaders(withJson = false) {
-  const csrfToken = getCookie('csrftoken');
-  return {
-    Accept: 'application/json',
-    ...(withJson ? { 'Content-Type': 'application/json' } : {}),
-    ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-  };
-}
-
 function normalizeList<T>(payload: unknown): T[] {
   if (Array.isArray(payload)) return payload as T[];
   if (payload && typeof payload === 'object') {
@@ -115,151 +100,112 @@ interface FetchProjectsOptions {
 }
 
 export async function fetchProjects(options: FetchProjectsOptions = {}): Promise<ProjectListItem[]> {
-  const params = new URLSearchParams();
-  if (options.search) params.set('search', options.search);
-  if (options.status) params.set('status', options.status);
-  if (options.type) params.set('type', options.type);
-  if (options.zone) params.set('zone', options.zone);
-  if (options.groupId) params.set('project_group', options.groupId);
-  params.set('ordering', options.ordering ?? '-updated_at');
-  params.set('limit', String(options.limit ?? 200));
-  if (options.offset) params.set('offset', String(options.offset));
+  const params: Record<string, string | number> = {
+    ordering: options.ordering ?? '-updated_at',
+    limit: options.limit ?? 200,
+  };
+  if (options.search) params.search = options.search;
+  if (options.status) params.status = options.status;
+  if (options.type) params.type = options.type;
+  if (options.zone) params.zone = options.zone;
+  if (options.groupId) params.project_group = options.groupId;
+  if (options.offset) params.offset = options.offset;
 
-  const response = await fetch(`/api/projects/projects/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = (await response.json()) as unknown;
-  return normalizeList<ProjectListItem>(payload);
+  const { data } = await api.get('/projects/projects/', { params });
+  return normalizeList<ProjectListItem>(data);
 }
 
 export async function fetchProject(id: string): Promise<ProjectListItem> {
-  const response = await fetch(`/api/projects/projects/${id}/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectListItem;
+  const { data } = await api.get(`/projects/projects/${id}/`);
+  return data as ProjectListItem;
 }
 
 export async function createProject(input: ProjectPayload): Promise<ProjectListItem> {
-  const response = await fetch('/api/projects/projects/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...input,
-      description: input.description ?? '',
-      tags: input.tags ?? [],
-      start_date: input.start_date || null,
-      due_date: input.due_date || null,
-      project_group: input.project_group || null,
-    }),
+  const { data } = await api.post('/projects/projects/', {
+    ...input,
+    description: input.description ?? '',
+    tags: input.tags ?? [],
+    start_date: input.start_date || null,
+    due_date: input.due_date || null,
+    project_group: input.project_group || null,
   });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectListItem;
+  return data as ProjectListItem;
 }
 
 export async function updateProject(id: string, input: Partial<ProjectPayload>): Promise<ProjectListItem> {
-  const response = await fetch(`/api/projects/projects/${id}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...input,
-      ...(input.tags !== undefined ? { tags: input.tags } : {}),
-      ...(typeof input.start_date !== 'undefined' ? { start_date: input.start_date || null } : {}),
-      ...(typeof input.due_date !== 'undefined' ? { due_date: input.due_date || null } : {}),
-      ...(typeof input.project_group !== 'undefined' ? { project_group: input.project_group || null } : {}),
-    }),
+  const { data } = await api.patch(`/projects/projects/${id}/`, {
+    ...input,
+    ...(input.tags !== undefined ? { tags: input.tags } : {}),
+    ...(typeof input.start_date !== 'undefined' ? { start_date: input.start_date || null } : {}),
+    ...(typeof input.due_date !== 'undefined' ? { due_date: input.due_date || null } : {}),
+    ...(typeof input.project_group !== 'undefined' ? { project_group: input.project_group || null } : {}),
   });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectListItem;
+  return data as ProjectListItem;
 }
 
 export async function deleteProject(id: string): Promise<void> {
-  const response = await fetch(`/api/projects/projects/${id}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.delete(`/projects/projects/${id}/`);
 }
 
 export async function pinProject(id: string): Promise<ProjectListItem> {
-  const response = await fetch(`/api/projects/projects/${id}/pin/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectListItem;
+  const { data } = await api.post(`/projects/projects/${id}/pin/`);
+  return data as ProjectListItem;
 }
 
 export async function unpinProject(id: string): Promise<ProjectListItem> {
-  const response = await fetch(`/api/projects/projects/${id}/unpin/`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectListItem;
+  const { data } = await api.post(`/projects/projects/${id}/unpin/`);
+  return data as ProjectListItem;
+}
+
+export interface ProjectInteractionItem {
+  id: string;
+  subject: string;
+  content: string;
+  type: string;
+  status: string | null;
+  occurred_at: string;
+}
+
+export async function fetchProjectInteractions(
+  projectId: string,
+  type?: string,
+): Promise<ProjectInteractionItem[]> {
+  const params: Record<string, string | number> = {
+    project: projectId,
+    ordering: '-occurred_at',
+    limit: 100,
+  };
+  if (type) params.type = type;
+  const { data } = await api.get('/interactions/interactions/', { params });
+  return normalizeList<ProjectInteractionItem>(data);
 }
 
 // ── Project Groups ─────────────────────────────────────────
 
 export async function fetchProjectGroups(): Promise<ProjectGroupItem[]> {
-  const response = await fetch('/api/projects/project-groups/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  const payload = (await response.json()) as unknown;
-  return normalizeList<ProjectGroupItem>(payload);
+  const { data } = await api.get('/projects/project-groups/');
+  return normalizeList<ProjectGroupItem>(data);
 }
 
 export async function fetchProjectGroup(id: string): Promise<ProjectGroupItem> {
-  const response = await fetch(`/api/projects/project-groups/${id}/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectGroupItem;
+  const { data } = await api.get(`/projects/project-groups/${id}/`);
+  return data as ProjectGroupItem;
 }
 
 export async function createProjectGroup(input: ProjectGroupPayload): Promise<ProjectGroupItem> {
-  const response = await fetch('/api/projects/project-groups/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({ ...input, description: input.description ?? '', tags: input.tags ?? [] }),
+  const { data } = await api.post('/projects/project-groups/', {
+    ...input,
+    description: input.description ?? '',
+    tags: input.tags ?? [],
   });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectGroupItem;
+  return data as ProjectGroupItem;
 }
 
 export async function updateProjectGroup(id: string, input: Partial<ProjectGroupPayload>): Promise<ProjectGroupItem> {
-  const response = await fetch(`/api/projects/project-groups/${id}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify(input),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return (await response.json()) as ProjectGroupItem;
+  const { data } = await api.patch(`/projects/project-groups/${id}/`, input);
+  return data as ProjectGroupItem;
 }
 
 export async function deleteProjectGroup(id: string): Promise<void> {
-  const response = await fetch(`/api/projects/project-groups/${id}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
+  await api.delete(`/projects/project-groups/${id}/`);
 }

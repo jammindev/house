@@ -1,54 +1,76 @@
-export interface ZoneOption {
+import { api } from '@/lib/axios';
+
+// ── Types ────────────────────────────────────────────────────────────────────
+
+export interface Zone {
   id: string;
   name: string;
+  color: string;
+  parent?: string | null;
+  /** Normalised from API `parent` field — used in new code */
   parentId?: string | null;
   full_path?: string;
-  color?: string;
   depth?: number;
+  children_count?: number;
+  note?: string | null;
+  surface?: number | null;
+  updated_at?: string;
+  created_at?: string | null;
+  household?: string;
 }
 
-interface PaginatedResponse<T> {
-  count?: number;
-  next?: string | null;
-  previous?: string | null;
-  results?: T[];
+export interface ZoneDetail extends Zone {
+  parent_info?: { id: string; name: string; color?: string | null } | null;
 }
 
-function normalizeList(payload: unknown): ZoneOption[] {
-  if (Array.isArray(payload)) {
-    return payload.map(normalizeZone);
-  }
-
-  if (payload && typeof payload === 'object') {
-    const paginated = payload as PaginatedResponse<ZoneOption>;
-    if (Array.isArray(paginated.results)) {
-      return paginated.results.map(normalizeZone);
-    }
-  }
-
-  return [];
+export interface ZonePayload {
+  name: string;
+  parent: string | null;
+  color: string;
+  note?: string | null;
+  surface?: number | null;
 }
 
-function normalizeZone(zone: ZoneOption & { parent?: string | null }): ZoneOption {
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function normalizeZone(raw: Zone & { parent?: string | null }): Zone {
   return {
-    ...zone,
-    parentId: zone.parentId ?? zone.parent ?? null,
+    ...raw,
+    parentId: raw.parentId ?? raw.parent ?? null,
   };
 }
 
-export async function fetchZones(): Promise<ZoneOption[]> {
-  const response = await fetch('/api/zones/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  return normalizeList(payload);
+function normalizeList(payload: unknown): Zone[] {
+  if (Array.isArray(payload)) return (payload as Zone[]).map(normalizeZone);
+  const p = payload as { results?: Zone[] };
+  return Array.isArray(p.results) ? p.results.map(normalizeZone) : [];
 }
+
+// ── Fetch functions ───────────────────────────────────────────────────────────
+
+export async function fetchZones(): Promise<Zone[]> {
+  const { data } = await api.get('/zones/');
+  return normalizeList(data);
+}
+
+export async function fetchZone(id: string): Promise<ZoneDetail> {
+  const { data } = await api.get(`/zones/${id}/`);
+  return normalizeZone(data as Zone) as ZoneDetail;
+}
+
+export async function createZone(payload: ZonePayload): Promise<Zone> {
+  const { data } = await api.post('/zones/', payload);
+  return normalizeZone(data as Zone);
+}
+
+export async function updateZone(id: string, payload: Partial<ZonePayload>): Promise<Zone> {
+  const { data } = await api.patch(`/zones/${id}/`, payload);
+  return normalizeZone(data as Zone);
+}
+
+export async function deleteZone(id: string): Promise<void> {
+  await api.delete(`/zones/${id}/`);
+}
+
+// Keep legacy alias for compatibility with equipment and other consumers
+export type ZoneOption = Zone;

@@ -21,7 +21,6 @@ def test_owner_can_create_board():
         "/api/electricity/boards/",
         {"name": "Tableau principal", "supply_type": "three_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_201_CREATED
@@ -42,7 +41,6 @@ def test_member_cannot_create_board():
         "/api/electricity/boards/",
         {"name": "Tableau secondaire", "supply_type": "single_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -61,7 +59,6 @@ def test_owner_cannot_create_second_active_board():
         "/api/electricity/boards/",
         {"name": "Tableau principal", "supply_type": "single_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
     assert first_response.status_code == status.HTTP_201_CREATED
 
@@ -69,7 +66,6 @@ def test_owner_cannot_create_second_active_board():
         "/api/electricity/boards/",
         {"name": "Tableau secondaire", "supply_type": "three_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert second_response.status_code == status.HTTP_400_BAD_REQUEST

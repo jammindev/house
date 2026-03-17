@@ -1,3 +1,4 @@
+import { api } from '@/lib/axios';
 import type { ZoneOption } from './zones';
 
 type EquipmentStatus = 'active' | 'maintenance' | 'storage' | 'retired' | 'lost' | 'ordered';
@@ -91,26 +92,6 @@ interface FetchEquipmentOptions {
   ordering?: string;
 }
 
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-
-  const cookies = document.cookie ? document.cookie.split('; ') : [];
-  const match = cookies.find((cookie) => cookie.startsWith(`${name}=`));
-  if (!match) return null;
-
-  return decodeURIComponent(match.split('=').slice(1).join('='));
-}
-
-function buildHeaders(withJson = false) {
-  const csrfToken = getCookie('csrftoken');
-
-  return {
-    Accept: 'application/json',
-    ...(withJson ? { 'Content-Type': 'application/json' } : {}),
-    ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-  };
-}
-
 function normalizeList<T>(payload: unknown): T[] {
   if (Array.isArray(payload)) {
     return payload as T[];
@@ -127,135 +108,66 @@ function normalizeList<T>(payload: unknown): T[] {
 }
 
 export async function fetchEquipmentList(options: FetchEquipmentOptions = {}): Promise<EquipmentListItem[]> {
-  const params = new URLSearchParams();
-  if (options.search) params.set('search', options.search);
-  if (options.status) params.set('status', options.status);
-  if (options.zone) params.set('zone', options.zone);
-  params.set('ordering', options.ordering ?? 'name');
+  const params: Record<string, string> = { ordering: options.ordering ?? 'name' };
+  if (options.search) params.search = options.search;
+  if (options.status) params.status = options.status;
+  if (options.zone) params.zone = options.zone;
 
-  const response = await fetch(`/api/equipment/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  return normalizeList<EquipmentListItem>(payload);
+  const { data } = await api.get('/equipment/', { params });
+  return normalizeList<EquipmentListItem>(data);
 }
 
 export async function fetchEquipment(id: string): Promise<EquipmentListItem> {
-  const response = await fetch(`/api/equipment/${id}/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  return (await response.json()) as EquipmentListItem;
+  const { data } = await api.get(`/equipment/${id}/`);
+  return data as EquipmentListItem;
 }
 
 export async function createEquipment(input: EquipmentPayload): Promise<EquipmentListItem> {
-  const response = await fetch('/api/equipment/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...input,
-      tags: input.tags ?? [],
-      warranty_notes: input.warranty_notes ?? '',
-      notes: input.notes ?? '',
-      zone: input.zone || null,
-      purchase_date: input.purchase_date || null,
-      warranty_expires_on: input.warranty_expires_on || null,
-      last_service_at: input.last_service_at || null,
-      installed_at: input.installed_at || null,
-      retired_at: input.retired_at || null,
-    }),
+  const { data } = await api.post('/equipment/', {
+    ...input,
+    tags: input.tags ?? [],
+    warranty_notes: input.warranty_notes ?? '',
+    notes: input.notes ?? '',
+    zone: input.zone || null,
+    purchase_date: input.purchase_date || null,
+    warranty_expires_on: input.warranty_expires_on || null,
+    last_service_at: input.last_service_at || null,
+    installed_at: input.installed_at || null,
+    retired_at: input.retired_at || null,
   });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  return (await response.json()) as EquipmentListItem;
+  return data as EquipmentListItem;
 }
 
 export async function updateEquipment(id: string, input: EquipmentPayload): Promise<EquipmentListItem> {
-  const response = await fetch(`/api/equipment/${id}/`, {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      ...input,
-      tags: input.tags ?? [],
-      warranty_notes: input.warranty_notes ?? '',
-      notes: input.notes ?? '',
-      zone: input.zone || null,
-      purchase_date: input.purchase_date || null,
-      warranty_expires_on: input.warranty_expires_on || null,
-      last_service_at: input.last_service_at || null,
-      installed_at: input.installed_at || null,
-      retired_at: input.retired_at || null,
-    }),
+  const { data } = await api.patch(`/equipment/${id}/`, {
+    ...input,
+    tags: input.tags ?? [],
+    warranty_notes: input.warranty_notes ?? '',
+    notes: input.notes ?? '',
+    zone: input.zone || null,
+    purchase_date: input.purchase_date || null,
+    warranty_expires_on: input.warranty_expires_on || null,
+    last_service_at: input.last_service_at || null,
+    installed_at: input.installed_at || null,
+    retired_at: input.retired_at || null,
   });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  return (await response.json()) as EquipmentListItem;
+  return data as EquipmentListItem;
 }
 
 export async function deleteEquipment(id: string): Promise<void> {
-  const response = await fetch(`/api/equipment/${id}/`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
+  await api.delete(`/equipment/${id}/`);
 }
 
 export async function fetchEquipmentAudit(id: string): Promise<EquipmentAudit> {
-  const response = await fetch(`/api/equipment/${id}/audit/`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  return (await response.json()) as EquipmentAudit;
+  const { data } = await api.get(`/equipment/${id}/audit/`);
+  return data as EquipmentAudit;
 }
 
 export async function fetchEquipmentInteractions(equipmentId: string): Promise<EquipmentInteractionItem[]> {
-  const params = new URLSearchParams();
-  params.set('equipment', equipmentId);
-  params.set('ordering', '-created_at');
-
-  const response = await fetch(`/api/equipment/equipment-interactions/?${params.toString()}`, {
-    method: 'GET',
-    credentials: 'include',
-    headers: buildHeaders(),
+  const { data } = await api.get('/equipment/equipment-interactions/', {
+    params: { equipment: equipmentId, ordering: '-created_at' },
   });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  return normalizeList<EquipmentInteractionItem>(payload);
+  return normalizeList<EquipmentInteractionItem>(data);
 }
 
 export async function linkEquipmentInteraction(
@@ -263,23 +175,13 @@ export async function linkEquipmentInteraction(
   interactionId: string,
   input: { role?: string; note?: string },
 ): Promise<EquipmentInteractionItem> {
-  const response = await fetch('/api/equipment/equipment-interactions/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: buildHeaders(true),
-    body: JSON.stringify({
-      equipment: equipmentId,
-      interaction: interactionId,
-      role: input.role ?? 'log',
-      note: input.note ?? '',
-    }),
+  const { data } = await api.post('/equipment/equipment-interactions/', {
+    equipment: equipmentId,
+    interaction: interactionId,
+    role: input.role ?? 'log',
+    note: input.note ?? '',
   });
-
-  if (!response.ok) {
-    throw new Error(`API error ${response.status}`);
-  }
-
-  return (await response.json()) as EquipmentInteractionItem;
+  return data as EquipmentInteractionItem;
 }
 
 export function zoneLabel(zoneId: string | null | undefined, zones: ZoneOption[]): string {

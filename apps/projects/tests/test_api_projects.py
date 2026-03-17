@@ -78,7 +78,6 @@ class TestProjectGroups:
             url,
             {"name": "Outdoor", "description": "Garden work", "tags": ["garden"]},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -92,7 +91,7 @@ class TestProjectGroups:
         ProjectGroup.objects.create(household=other_household, created_by=owner, name="Hidden")
 
         url = reverse("project-group-list")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         names = [item["name"] for item in response.data]
@@ -107,7 +106,6 @@ class TestProjects:
             url,
             _project_payload(project_group=str(group.id)),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -143,7 +141,7 @@ class TestProjects:
         )
 
         url = reverse("project-list")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         titles = [item["title"] for item in response.data]
@@ -164,13 +162,13 @@ class TestProjects:
         pin_url = reverse("project-pin", kwargs={"pk": project.id})
         unpin_url = reverse("project-unpin", kwargs={"pk": project.id})
 
-        pin_response = owner_client.post(pin_url, {}, format="json", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        pin_response = owner_client.post(pin_url, {}, format="json")
 
         assert pin_response.status_code == status.HTTP_200_OK
         assert pin_response.data["is_pinned"] is True
         assert UserPinnedProject.objects.filter(project=project, household_member__user=owner).exists()
 
-        unpin_response = owner_client.post(unpin_url, {}, format="json", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        unpin_response = owner_client.post(unpin_url, {}, format="json")
         assert unpin_response.status_code == status.HTTP_200_OK
         assert unpin_response.data["is_pinned"] is False
         assert not UserPinnedProject.objects.filter(project=project, household_member__user=owner).exists()
@@ -196,7 +194,6 @@ class TestProjectZones:
             url,
             {"project": str(project.id), "zone": str(zone.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -222,7 +219,6 @@ class TestProjectZones:
             url,
             {"project": str(project.id), "zone": str(zone.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -249,7 +245,6 @@ class TestProjectZones:
             url,
             {"project": str(foreign_project.id), "zone": str(zone.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -275,7 +270,6 @@ class TestProjectAI:
             url,
             {"project": str(project.id), "title": "Planning thread"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -302,7 +296,6 @@ class TestProjectAI:
             url,
             {"project": str(foreign_project.id), "title": "Wrong thread"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -331,7 +324,6 @@ class TestProjectAI:
             url,
             {"thread": str(thread.id), "role": ProjectAIMessage.Role.USER, "content": "What next?", "metadata": {"source": "ui"}},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -363,7 +355,6 @@ class TestProjectAI:
             url,
             {"thread": str(foreign_thread.id), "role": ProjectAIMessage.Role.USER, "content": "Leak?", "metadata": {}},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -396,7 +387,6 @@ class TestProjectZoneFilter:
         response = owner_client.get(
             url,
             {'zone': str(zone_a.id)},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -426,7 +416,6 @@ class TestProjectZoneFilter:
         response = owner_client.get(
             url,
             {'status': 'active'},
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_200_OK

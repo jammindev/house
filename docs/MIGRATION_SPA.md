@@ -22,6 +22,7 @@ Il faut juste brancher tout ça.
 2. **Frontend — Fondations (QueryClient + axios + Router)**
 3. **Frontend — Auth flow**
 3bis. **Frontend — Sidebar / AppShell**
+3ter. **Frontend — Factorisation et design system**
 4. **Frontend — Migration des features (pattern + exemple Tasks)**
 5. **Nettoyage — Supprimer la couche hybride Django**
 
@@ -470,6 +471,559 @@ export default function LoginPage() {
   );
 }
 ```
+
+---
+
+## Phase 3bis — Frontend : Sidebar / AppShell
+
+Avant de migrer les features, il faut que le shell de l'application (sidebar + layout) soit autonome et fonctionnel en SPA. C'est le composant `AppShell` référencé dans `ProtectedLayout`.
+
+### 3bis.1 Auditer la sidebar existante
+
+La sidebar actuelle est rendue côté Django (template HTML). Identifier ce qu'elle contient :
+
+- Navigation links (vers chaque feature)
+- Household switcher
+- Lien vers le profil / logout
+- Indicateurs dynamiques (badges, compteurs non lus, etc.)
+
+Lister tous les éléments qui dépendent de données dynamiques — ils devront fetcher depuis l'API au montage.
+
+### 3bis.2 Créer `ui/src/components/AppShell.tsx`
+
+Structure de base :
+
+```tsx
+import { Outlet } from 'react-router-dom';
+import Sidebar from './Sidebar';
+
+interface AppShellProps {
+  children?: React.ReactNode;
+}
+
+export default function AppShell({ children }: AppShellProps) {
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-y-auto">
+        {children ?? <Outlet />}
+      </main>
+    </div>
+  );
+}
+```
+
+### 3bis.3 Créer `ui/src/components/Sidebar.tsx`
+
+La sidebar est maintenant un composant React pur — elle n'a plus besoin de Django pour les liens ni pour le nom de l'utilisateur.
+
+```tsx
+import { NavLink } from 'react-router-dom';
+import { useAuth } from '../lib/auth/context';
+import HouseholdSwitcher from './HouseholdSwitcher';
+
+const NAV_ITEMS = [
+  { to: '/app/dashboard',    label: 'Tableau de bord' },
+  { to: '/app/tasks',        label: 'Tâches'          },
+  { to: '/app/zones',        label: 'Zones'           },
+  { to: '/app/interactions', label: 'Interventions'   },
+  { to: '/app/projects',     label: 'Projets'         },
+  { to: '/app/equipment',    label: 'Équipements'     },
+  { to: '/app/stock',        label: 'Stock'           },
+  { to: '/app/documents',    label: 'Documents'       },
+  { to: '/app/directory',    label: 'Répertoire'      },
+  { to: '/app/photos',       label: 'Photos'          },
+  { to: '/app/electricity',  label: 'Électricité'     },
+  { to: '/app/settings',     label: 'Paramètres'      },
+] as const;
+
+export default function Sidebar() {
+  const { user, logout } = useAuth();
+
+  return (
+    <aside className="w-64 flex flex-col border-r bg-sidebar">
+      {/* Logo / titre */}
+      <div className="p-4 border-b">
+        <span className="font-semibold text-lg">House</span>
+      </div>
+
+      {/* Household switcher */}
+      <div className="p-3 border-b">
+        <HouseholdSwitcher />
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        {NAV_ITEMS.map(({ to, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `block rounded px-3 py-2 text-sm transition-colors ${
+                isActive
+                  ? 'bg-primary text-primary-foreground font-medium'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`
+            }
+          >
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Footer : user + logout */}
+      <div className="p-3 border-t text-sm">
+        <p className="font-medium truncate">{user?.first_name} {user?.last_name}</p>
+        <p className="text-muted-foreground truncate text-xs">{user?.email}</p>
+        <button
+          onClick={logout}
+          className="mt-2 text-xs text-muted-foreground hover:text-foreground"
+        >
+          Se déconnecter
+        </button>
+      </div>
+    </aside>
+  );
+}
+```
+
+### 3bis.4 Créer `ui/src/components/HouseholdSwitcher.tsx`
+
+Le switcher de household doit fetcher la liste des households disponibles depuis l'API, puis appeler l'endpoint de switch.
+
+```tsx
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../lib/axios';
+
+interface Household {
+  id: string;
+  name: string;
+}
+
+interface Me {
+  active_household: string; // id
+}
+
+function fetchHouseholds() {
+  return api.get<Household[]>('/households/').then((r) => r.data);
+}
+
+function fetchMe() {
+  return api.get<Me>('/accounts/me/').then((r) => r.data);
+}
+
+export default function HouseholdSwitcher() {
+  const qc = useQueryClient();
+
+  const { data: households = [] } = useQuery({
+    queryKey: ['households'],
+    queryFn: fetchHouseholds,
+  });
+
+  const { data: me } = useQuery({
+    queryKey: ['me'],
+    queryFn: fetchMe,
+  });
+
+  const switchHousehold = useMutation({
+    mutationFn: (householdId: string) =>
+      api.post('/households/switch/', { household_id: householdId }),
+    onSuccess: () => {
+      // Invalider tout le cache — le household a changé
+      qc.invalidateQueries();
+    },
+  });
+
+  if (households.length <= 1) return null; // rien à switcher
+
+  return (
+    <select
+      value={me?.active_household ?? ''}
+      onChange={(e) => switchHousehold.mutate(e.target.value)}
+      className="w-full text-sm rounded border bg-background px-2 py-1"
+    >
+      {households.map((h) => (
+        <option key={h.id} value={h.id}>{h.name}</option>
+      ))}
+    </select>
+  );
+}
+```
+
+### 3bis.5 Adapter `/api/accounts/me/` pour inclure `active_household`
+
+Si ce n'est pas déjà le cas, enrichir la réponse de l'endpoint `/api/accounts/me/` :
+
+```python
+@api_view(['GET'])
+def me(request):
+    user = request.user
+    return Response({
+        'id': str(user.id),
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'active_household': str(user.active_household_id) if user.active_household_id else None,
+    })
+```
+
+### 3bis.6 Vérifier le rendu avant de migrer les features
+
+À ce stade, la navigation entre routes doit fonctionner sans rechargement de page. Vérifier :
+
+- [ ] La sidebar s'affiche correctement après login
+- [ ] Les `NavLink` highlight la route active
+- [ ] Le household switcher affiche le bon household sélectionné
+- [ ] Switcher de household invalide bien le cache (les données se rechargent)
+- [ ] Le bouton logout fonctionne et redirige vers `/login`
+- [ ] La sidebar n'inclut aucune donnée injectée depuis Django (aucun `window.__INITIAL__`, aucun `data-*` lu depuis le DOM)
+
+---
+
+## Phase 3ter — Frontend : Factorisation et design system
+
+Avant de migrer feature par feature, identifier les patterns récurrents, créer les composants partagés, et s'inspirer du legacy pour ne pas repartir de zéro. Cette phase produit les briques réutilisables qui accélèrent toute la Phase 4.
+
+### Référence legacy
+
+`legacy/nextjs/src/components/layout/` contient des composants bien pensés à réutiliser :
+
+| Fichier legacy | Équivalent cible |
+|----------------|-----------------|
+| `AppLayout.tsx` | `AppShell.tsx` (Phase 3bis) |
+| `AppPageLayout.tsx` | `PageLayout.tsx` (à créer ici) |
+| `Sidebar.tsx` | `Sidebar.tsx` (Phase 3bis, avec mobile overlay) |
+| `SidebarToggleContext.tsx` | `SidebarToggleContext.tsx` (à porter) |
+
+### 3ter.1 Compléter la sidebar — mobile responsive
+
+La sidebar legacy a un comportement mobile à répliquer : overlay sombre + slide-in, bouton hamburger dans le header.
+
+**Porter `SidebarToggleContext` depuis legacy :**
+
+```tsx
+// ui/src/components/SidebarToggleContext.tsx
+import { createContext, useContext, useState } from 'react';
+
+interface SidebarToggleContextValue {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  closeSidebar: () => void;
+}
+
+const SidebarToggleContext = createContext<SidebarToggleContextValue | null>(null);
+
+export function SidebarToggleProvider({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setOpen] = useState(false);
+  return (
+    <SidebarToggleContext.Provider value={{
+      isSidebarOpen,
+      toggleSidebar: () => setOpen((v) => !v),
+      closeSidebar: () => setOpen(false),
+    }}>
+      {children}
+    </SidebarToggleContext.Provider>
+  );
+}
+
+export function useSidebarToggle() {
+  const ctx = useContext(SidebarToggleContext);
+  if (!ctx) throw new Error('useSidebarToggle must be inside SidebarToggleProvider');
+  return ctx;
+}
+```
+
+**Mettre à jour `AppShell.tsx` :**
+
+```tsx
+// ui/src/components/AppShell.tsx
+import { SidebarToggleProvider } from './SidebarToggleContext';
+import Sidebar from './Sidebar';
+
+export default function AppShell({ children }: { children?: React.ReactNode }) {
+  return (
+    <SidebarToggleProvider>
+      <div className="min-h-screen bg-background flex">
+        <Sidebar />
+        <main className="flex-1 overflow-y-auto lg:pl-0">{children}</main>
+      </div>
+    </SidebarToggleProvider>
+  );
+}
+```
+
+**Mettre à jour `Sidebar.tsx`** pour gérer l'overlay mobile (voir pattern legacy `Sidebar.tsx` : backdrop `fixed inset-0 bg-black/40 backdrop-blur-sm`, sidebar `fixed inset-y-0 left-0`, `translate-x-0` / `-translate-x-full` selon `isOpen`) :
+
+```tsx
+// Dans Sidebar.tsx
+const { isSidebarOpen, closeSidebar } = useSidebarToggle();
+
+return (
+  <>
+    {/* Overlay mobile */}
+    {isSidebarOpen && (
+      <div
+        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+        onClick={closeSidebar}
+      />
+    )}
+
+    {/* Sidebar */}
+    <aside className={`
+      fixed inset-y-0 left-0 z-50 w-72 flex flex-col border-r bg-sidebar
+      transform transition-transform duration-300 ease-out
+      ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      lg:translate-x-0 lg:static lg:z-auto lg:transform-none
+    `}>
+      {/* ... contenu sidebar (Phase 3bis) ... */}
+    </aside>
+  </>
+);
+```
+
+### 3ter.2 Créer `PageLayout.tsx` — inspiré de `AppPageLayout` legacy
+
+Le legacy `AppPageLayout` a des patterns excellents à porter : sticky header avec grid 3 colonnes, scroll fade, burger menu mobile, actions icon-only.
+
+```tsx
+// ui/src/components/PageLayout.tsx
+import { useEffect, useState, type ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import { Menu } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Button } from '../design-system/button';
+import { cn } from '../lib/utils';
+import { useSidebarToggle } from './SidebarToggleContext';
+
+export type PageAction =
+  | { element: ReactNode }
+  | {
+      label: string;
+      icon: LucideIcon;
+      href?: string;
+      onClick?: () => void;
+      disabled?: boolean;
+    };
+
+interface PageLayoutProps {
+  title: string;
+  subtitle?: string;
+  actions?: PageAction[];
+  children: ReactNode;
+  className?: string;
+  contentClassName?: string;
+}
+
+export default function PageLayout({
+  title,
+  subtitle,
+  actions,
+  children,
+  className,
+  contentClassName,
+}: PageLayoutProps) {
+  const { toggleSidebar } = useSidebarToggle();
+  const [scrollOpacity, setScrollOpacity] = useState(1);
+
+  // Scroll fade — titre disparaît progressivement (inspiré du legacy)
+  useEffect(() => {
+    const onScroll = () => {
+      setScrollOpacity(Math.max(0, 1 - window.scrollY / 50));
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // document.title
+  useEffect(() => { document.title = `${title} — House`; }, [title]);
+
+  const actionButtons = actions?.map((action, i) => {
+    if ('element' in action) return <div key={i}>{action.element}</div>;
+    const btn = (
+      <Button key={i} size="icon" variant="outline" disabled={action.disabled} onClick={action.onClick} aria-label={action.label}>
+        <action.icon className="h-5 w-5" />
+        <span className="sr-only">{action.label}</span>
+      </Button>
+    );
+    return action.href ? <NavLink key={i} to={action.href}>{btn}</NavLink> : btn;
+  });
+
+  return (
+    <div className={cn('mx-auto flex w-full max-w-4xl flex-col gap-5 px-4 pb-8', className)}>
+      {/* Sticky header — grid 3 colonnes (burger | titre | actions) */}
+      <div className="sticky top-0 z-20 pt-4 pb-2 bg-background/80 backdrop-blur">
+        <div className="grid grid-cols-[auto,1fr,auto] items-center gap-2">
+          <Button size="icon" variant="ghost" onClick={toggleSidebar} aria-label="Menu" className="lg:hidden">
+            <Menu className="h-5 w-5" />
+          </Button>
+
+          <div className="min-w-0 transition-opacity duration-300" style={{ opacity: scrollOpacity }}>
+            <h1 className="text-xl font-semibold text-foreground truncate">{title}</h1>
+            {subtitle && <p className="text-sm text-muted-foreground truncate">{subtitle}</p>}
+          </div>
+
+          <div className="flex items-center gap-2">{actionButtons}</div>
+        </div>
+      </div>
+
+      <div className={cn('flex-1', contentClassName)}>{children}</div>
+    </div>
+  );
+}
+```
+
+**Usage type dans une feature :**
+
+```tsx
+import PageLayout from '../../components/PageLayout';
+import { Plus } from 'lucide-react';
+
+export default function TasksPage() {
+  return (
+    <PageLayout
+      title="Tâches"
+      actions={[{ label: 'Nouvelle tâche', icon: Plus, onClick: () => setOpen(true) }]}
+    >
+      {/* contenu */}
+    </PageLayout>
+  );
+}
+```
+
+### 3ter.3 Inventaire des patterns communs à factoriser
+
+Faire un audit des apps existantes (`apps/*/react/`) et identifier les patterns récurrents. Pour chaque pattern, créer ou vérifier qu'un composant partagé existe dans `ui/src/components/`.
+
+**Patterns identifiés :**
+
+| Pattern | Composant existant ? | Action |
+|---------|----------------------|--------|
+| Page list avec empty state | `ListPage.tsx` ✓ | Conserver, adapter à `PageLayout` |
+| Header de page avec actions | `PageHeader.tsx` ✓ | Remplacer par `PageLayout` |
+| Skeleton de liste | `design-system/skeleton.tsx` ✓ | Créer `ListSkeleton` wrapper |
+| Dialog / bottom-sheet | `design-system/sheet-dialog.tsx` ✓ | Conserver |
+| Confirmation de suppression | ✗ | Créer `ConfirmDialog` |
+| Carte d'item générique | Pas de base commune | Créer `ItemCard` si pattern très répété |
+| Filtre + recherche | `design-system/filter-bar.tsx` ✓ | Conserver |
+| Toast | `design-system/toast.tsx` ✓ | Conserver |
+| Badge statut | `design-system/badge.tsx` ✓ | Conserver |
+| Avatar utilisateur | `legacy/UserAvatar.tsx` | Porter depuis legacy si utilisé |
+
+### 3ter.4 Créer `ListSkeleton` — skeleton réutilisable
+
+Évite de répéter le même bloc de skeletons dans chaque page liste.
+
+```tsx
+// ui/src/components/ListSkeleton.tsx
+import { Skeleton } from '../design-system/skeleton';
+
+interface ListSkeletonProps {
+  count?: number;
+  className?: string;
+}
+
+export default function ListSkeleton({ count = 5, className }: ListSkeletonProps) {
+  return (
+    <div className={`space-y-3 ${className ?? ''}`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton key={i} className="h-16 w-full rounded-xl" />
+      ))}
+    </div>
+  );
+}
+```
+
+### 3ter.5 Créer `ConfirmDialog` — suppression avec confirmation
+
+Évite de répéter `window.confirm` ou d'inline un Dialog dans chaque feature.
+
+```tsx
+// ui/src/components/ConfirmDialog.tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../design-system/dialog';
+import { Button } from '../design-system/button';
+
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  loading?: boolean;
+}
+
+export default function ConfirmDialog({
+  open,
+  onOpenChange,
+  title = 'Confirmer la suppression',
+  description = 'Cette action est irréversible.',
+  confirmLabel = 'Supprimer',
+  onConfirm,
+  loading = false,
+}: ConfirmDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+            Annuler
+          </Button>
+          <Button variant="destructive" onClick={onConfirm} disabled={loading}>
+            {loading ? 'Suppression…' : confirmLabel}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+```
+
+### 3ter.6 Règles à respecter lors de la migration des features
+
+Pour chaque feature migrée en Phase 4, appliquer ces règles systématiquement :
+
+**Layout**
+- Toujours utiliser `PageLayout` pour le wrapper de page (pas de `div` ad hoc avec padding)
+- Utiliser `ListPage` quand la page est une liste avec empty state
+- Ne pas dupliquer la logique de titre / document.title
+
+**Design system**
+- Boutons : toujours `Button` du design system (avec les bons `variant` : `default`, `outline`, `ghost`, `destructive`)
+- Cartes : toujours `Card` + `CardContent` (pas de `div` avec `rounded border`)
+- Badges : toujours `Badge` (pas de `span` inline avec classes Tailwind custom pour les statuts)
+- Dialogs : toujours `SheetDialog` (modal desktop + bottom-sheet mobile)
+- Skeletons : toujours `ListSkeleton` pour les listes, `Skeleton` pour les éléments isolés
+
+**Patterns data**
+- Pas de `useEffect` + `useState` pour fetcher — utiliser les hooks TanStack Query (Phase 4)
+- `isLoading` → `<ListSkeleton />`
+- `error` → `<Alert variant="destructive">` du design system
+- Liste vide + pas loading → `<EmptyState />`
+
+**Icônes**
+- Toujours Lucide React (déjà utilisé partout)
+- Suivre les icônes du legacy pour la cohérence : `LucideListTodo` tasks, `MapPin` zones, `FolderKanban` projects, `Wrench` equipment, `Warehouse` stock, `FileText` documents, `Users` directory, `ImageIcon` photos, `Notebook` interactions
+
+### 3ter.7 Checklist avant d'attaquer Phase 4
+
+- [ ] `SidebarToggleContext` créé et branché dans `AppShell`
+- [ ] Sidebar mobile (overlay + slide-in) fonctionnelle
+- [ ] `PageLayout` créé et testé sur une page vide (ex: `/app/dashboard`)
+- [ ] `ListSkeleton` créé
+- [ ] `ConfirmDialog` créé
+- [ ] Inventaire des patterns fait — aucun composant partagé manquant identifié
+- [ ] Règles design system documentées et connues de l'équipe
 
 ---
 
@@ -1163,6 +1717,24 @@ Ordre recommandé :
 - [ ] Login page fonctionnelle
 - [ ] ProtectedLayout + redirect `/login`
 - [ ] Logout fonctionnel
+
+**Phase 3bis — Sidebar / AppShell**
+- [ ] `ui/src/components/AppShell.tsx` créé
+- [ ] `ui/src/components/Sidebar.tsx` créé avec NavLink React Router
+- [ ] `ui/src/components/HouseholdSwitcher.tsx` créé (fetch + mutation)
+- [ ] `/api/accounts/me/` retourne `active_household`
+- [ ] Navigation sans rechargement de page vérifiée
+- [ ] Logout fonctionnel depuis la sidebar
+- [ ] Aucune donnée injectée depuis Django dans la sidebar
+
+**Phase 3ter — Factorisation / design system**
+- [ ] `SidebarToggleContext` créé et branché dans `AppShell`
+- [ ] Sidebar mobile (overlay + slide-in) fonctionnelle sur tous les breakpoints
+- [ ] `PageLayout` créé (sticky header, burger mobile, scroll fade, actions)
+- [ ] `ListSkeleton` créé
+- [ ] `ConfirmDialog` créé
+- [ ] Inventaire des patterns fait — aucun composant manquant identifié avant Phase 4
+- [ ] `PageLayout` validé visuellement sur `/app/dashboard`
 
 **Phase 4 — Features**
 - [ ] Pattern `api.ts` + `hooks.ts` posé sur Tasks (exemple de référence)

@@ -23,17 +23,14 @@ def test_sc3_non_member_cannot_read_or_write_foreign_household():
     list_response = client.get(
         "/api/electricity/boards/",
         {"household_id": str(household.id)},
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
     create_response = client.post(
         "/api/electricity/boards/",
         {"name": "Hack", "supply_type": "single_phase"},
         format="json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
     detail_response = client.get(
         f"/api/electricity/boards/{board.id}/",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert list_response.status_code in {

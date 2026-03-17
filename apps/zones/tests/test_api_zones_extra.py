@@ -66,7 +66,7 @@ class TestZonesExtraApi:
         child = Zone.objects.create(household=household, name="Kitchen", parent=parent, created_by=owner)
 
         url = reverse("zone-children", kwargs={"pk": parent.id})
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert [item["id"] for item in response.data] == [str(child.id)]
@@ -81,7 +81,6 @@ class TestZonesExtraApi:
             url,
             {"name": "Should fail", "parent": str(foreign_parent.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -103,7 +102,6 @@ class TestZonesExtraApi:
             url,
             {"document_id": str(document.id), "note": "Reference photo"},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -127,7 +125,6 @@ class TestZonesExtraApi:
             url,
             {"document_id": str(foreign_document.id)},
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -145,7 +142,7 @@ class TestZonesExtraApi:
         ZoneDocument.objects.create(zone=zone, document=document, role="photo", created_by=owner)
 
         url = reverse("zone-photos", kwargs={"pk": zone.id})
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data[0]["document_name"] == "Entrance photo"

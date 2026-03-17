@@ -14,14 +14,25 @@
 - `/api/tags/` -> `tags.urls`
 - `/api/todo/` -> `todo_list.urls`
 
+## Auth
+
+JWT via `djangorestframework-simplejwt`.
+
+- `POST /api/auth/token/` — obtenir les tokens (email + password). Retourne `access` et `refresh`.
+- `POST /api/auth/token/refresh/` — renouveler l'access token avec le `refresh` token.
+- `GET /api/accounts/me/` — utilisateur courant (nécessite `Authorization: Bearer <access_token>`).
+
+Toutes les requêtes authentifiées doivent inclure le header :
+```
+Authorization: Bearer <access_token>
+```
+
+L'intercepteur axios (`ui/src/lib/axios.ts`) gère le refresh automatique sur 401.
+
 ## Accounts
 
-- `POST /api/auth/login/` — rate-limited : 20 req/min par IP (`LoginIPRateThrottle`), 5 req/min par email (`LoginEmailRateThrottle`). Retourne `HTTP 429` si dépassé.
-- `POST /api/auth/logout/`
 - `GET|POST /api/users/`
 - `GET|PUT|PATCH|DELETE /api/users/{id}/`
-
-Throttles définis dans `apps/accounts/throttles.py`, rates configurables via `REST_FRAMEWORK.DEFAULT_THROTTLE_RATES` dans `config/settings/base.py`.
 
 ## Households
 
@@ -39,7 +50,7 @@ Actions:
 Base: `/api/zones/`
 
 Actions:
-- `GET /tree/?household_id=...`
+- `GET /tree/`
 - `GET /{id}/children/`
 - `GET /{id}/photos/`
 - `POST /{id}/attach_photo/`
@@ -93,7 +104,9 @@ Base:
 
 ## Notes de vigilance
 
-- Résolution du household côté API: `X-Household-Id` (header) puis `household_id` (query/body), sinon auto-sélection si l’utilisateur n’a qu’un seul household.- Rate limiting login uniquement (pas appliqué aux autres endpoints). Cache DRF : `LocMemCache` en dev, Redis recommandé en prod.- Permissions modèle household:
+- Résolution du household côté API : middleware `ActiveHouseholdMiddleware` via `request.household`. Ne pas passer `householdId` dans les paramètres de requête.
+- Rate limiting login uniquement (pas appliqué aux autres endpoints). Cache DRF : `LocMemCache` en dev, Redis recommandé en prod.
+- Permissions modèle household:
 	- membre household: accès CRUD sur zones/interactions/documents du household
 	- owner household: opérations de gestion des membres (`invite`, `remove_member`, `update_role`) + update/delete household
 - `documents` et `interactions` ont un double segment de route (actuel).

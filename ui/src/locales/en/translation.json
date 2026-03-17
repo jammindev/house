@@ -3,13 +3,16 @@
     "yes": "yes",
     "no": "no",
     "save": "Save",
+    "saving": "Saving…",
     "cancel": "Cancel",
     "edit": "Edit",
     "delete": "Delete",
     "archive": "Archive",
     "confirmDelete": "Are you sure?",
     "confirmArchive": "Archive this household? It will no longer be accessible.",
-    "confirmLeave": "Leave this household?"
+    "confirmLeave": "Leave this household?",
+    "retry": "Retry",
+    "saveFailed": "Failed to save."
   },
   "electricity": {
     "api_workspace_title": "Electricity API workspace",
@@ -91,7 +94,7 @@
     "zones_unselect_zone": "Unselect {{name}}",
     "zones_select_short": "Select",
     "zones_selected_short": "Selected",
-    "zones_loading": "Loading zones\u2026",
+    "zones_loading": "Loading zones…",
     "zones_empty": "No zones available.",
     "zones_error": "Unable to load zones.",
     "error_subject_required": "Subject is required.",
@@ -104,11 +107,11 @@
     "source_document_label": "Source document",
     "source_document_help": "This activity will be linked to the selected document after creation.",
     "success_title": "Success",
-    "redirect_notice": "Redirecting to activity\u2026",
+    "redirect_notice": "Redirecting to activity…",
     "created_notice_title": "Event added",
     "created_notice_body": "\"{{subject}}\" was added and highlighted below.",
     "created_badge": "New",
-    "creating": "Creating\u2026",
+    "creating": "Creating…",
     "list_title": "Activity",
     "list_empty": "No activity found for this filter.",
     "meta_zones": "Zones",
@@ -127,17 +130,27 @@
     "error_load_more_failed": "Unable to load more interactions.",
     "loading_error_title": "Loading error",
     "load_more": "Load more",
-    "loading_more": "Loading\u2026",
+    "loading_more": "Loading…",
     "createTask": "Create task",
     "source_interaction_label": "Source event",
-    "source_interaction_help": "This task will be linked to the source event."
+    "source_interaction_help": "This task will be linked to the source event.",
+    "title": "Activity",
+    "new": "New event",
+    "new_title": "New event",
+    "empty": "No events yet.",
+    "empty_description": "Log a maintenance, repair, or any other activity to keep a history of your home.",
+    "deleted": "Event deleted",
+    "zone_label": "Zone",
+    "zone_placeholder": "Select a zone",
+    "tags_input_placeholder": "tag1, tag2, tag3",
+    "tags_input_help": "Separate tags with commas."
   },
   "tagSelector": {
     "selected_count": "{{count}} selected",
     "search_label": "Find or create a tag",
     "placeholder": "Add a tag",
     "helper": "Press Enter or comma to add a tag.",
-    "loading": "Loading tags\u2026",
+    "loading": "Loading tags…",
     "error": "Unable to load tags.",
     "suggestions_label": "Suggested tags",
     "create_tag": "Add tag \"{{name}}\"",
@@ -176,6 +189,13 @@
   "zones": {
     "app_title": "Zones mini-app",
     "title": "Zones",
+    "new": "New zone",
+    "newTitle": "New zone",
+    "editTitle": "Edit zone",
+    "deleted": "Zone deleted",
+    "empty_description": "Add your first zone to start organising the spaces of your home.",
+    "fieldName": "Name",
+    "fieldParent": "Parent zone",
     "loading": "Loading zones…",
     "none": "No zones in this household.",
     "count_loaded": "{{count}} zone(s) loaded from SSR props.",
@@ -290,10 +310,18 @@
       "done": "Done"
     },
     "columns": {
-      "backlog": { "title": "Backlog" },
-      "pending": { "title": "To do" },
-      "in_progress": { "title": "In progress" },
-      "done": { "title": "Done" }
+      "backlog": {
+        "title": "Backlog"
+      },
+      "pending": {
+        "title": "To do"
+      },
+      "in_progress": {
+        "title": "In progress"
+      },
+      "done": {
+        "title": "Done"
+      }
     },
     "movePrev": "Move to previous column",
     "moveNext": "Move to next column"
@@ -396,20 +424,77 @@
     "city": "City",
     "postalCode": "Postal code",
     "country": "Country",
-    "countryPlaceholder": "\u2014 Select country \u2014",
+    "countryPlaceholder": "— Select country —",
     "timezone": "Timezone",
-    "timezonePlaceholder": "\u2014 Select timezone \u2014",
+    "timezonePlaceholder": "— Select timezone —",
     "sectionContext": "Context & AI",
     "contextNotes": "Household notes",
     "aiPromptContext": "AI prompt context"
   },
   "photos": {
     "app_title": "Photos mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "title": "Photos",
+    "empty": "No photos yet.",
+    "empty_description": "Upload photos via the documents library to see them here.",
+    "loadFailed": "Failed to load photos.",
+    "deleted": "Photo deleted.",
+    "search": "Search",
+    "search_placeholder": "Search photos…",
+    "untitled": "Untitled",
+    "addedOn": "Added {{date}}",
+    "view": "View",
+    "download": "Download"
+  },
+  "directory": {
+    "title": "Directory",
+    "tabContacts": "Contacts",
+    "tabStructures": "Structures"
   },
   "contacts": {
     "app_title": "Contacts mini-app",
-    "section_label": "Django app scoped node: {{section}}"
+    "section_label": "Django app scoped node: {{section}}",
+    "title": "Contacts",
+    "new": "New contact",
+    "newTitle": "New contact",
+    "editTitle": "Edit contact",
+    "empty": "No contacts yet.",
+    "empty_description": "Add your first contact to start building your directory.",
+    "deleted": "Contact deleted",
+    "loadFailed": "Failed to load contacts.",
+    "searchPlaceholder": "Search by name, email or structure…",
+    "nameRequired": "Please enter at least a first or last name.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "email": "Email",
+    "phone": "Phone",
+    "structure": "Structure",
+    "noStructure": "No structure",
+    "notes": "Notes"
+  },
+  "structures": {
+    "title": "Structures",
+    "new": "New structure",
+    "newTitle": "New structure",
+    "editTitle": "Edit structure",
+    "empty": "No structures yet.",
+    "empty_description": "Add your first structure to organise your contacts.",
+    "deleted": "Structure deleted",
+    "loadFailed": "Failed to load structures.",
+    "searchPlaceholder": "Search by name, type or website…",
+    "nameRequired": "Structure name is required.",
+    "fieldName": "Name",
+    "fieldType": "Type",
+    "fieldWebsite": "Website",
+    "fieldNotes": "Notes",
+    "noType": "No type",
+    "types": {
+      "company": "Company",
+      "association": "Association",
+      "administration": "Administration",
+      "artisan": "Artisan",
+      "other": "Other"
+    }
   },
   "documents": {
     "app_title": "Documents mini-app",
@@ -434,9 +519,23 @@
       "all": "{{count}} documents",
       "unlinked": "{{count}} without activity context"
     },
+    "deleted": "Document deleted",
+    "empty_description": "Upload your first file to start organising your documents.",
+    "editTitle": "Edit document",
+    "uploadFailed": "Failed to upload document.",
+    "search": "Search",
+    "search_placeholder": "Name, notes…",
     "filter": {
       "unlinked": "Show without activity only",
-      "unlinkedActive": "Showing without activity"
+      "unlinkedActive": "Showing without activity",
+      "allTypes": "All types"
+    },
+    "upload": {
+      "title": "Upload document",
+      "submit": "Upload",
+      "zone": "Zone",
+      "noZone": "No zone",
+      "namePlaceholder": "Document name (optional)"
     },
     "type": {
       "document": "Document",
@@ -644,7 +743,9 @@
       "in_progress": "In progress",
       "done": "Done",
       "archived": "Archived"
-    }
+    },
+    "deleted": "Equipment deleted",
+    "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools."
   },
   "dashboard": {
     "header": {
@@ -884,7 +985,20 @@
       "title_create": "Create stock item",
       "title_edit": "Edit stock item"
     },
-    "confirm_delete": "Delete \"{{name}}\"?"
+    "confirm_delete": "Delete \"{{name}}\"?",
+    "deleted": "Item deleted",
+    "empty_description": "Add your first stock item to start tracking your household inventory.",
+    "empty_categories_description": "Create a category to organise your stock items."
+  },
+  "auth": {
+    "login": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "loggingIn": "Signing in…",
+    "invalidCredentials": "Invalid email or password.",
+    "logout": "Sign out",
+    "sessionExpired": "Your session has expired. Please sign in again."
   },
   "projects": {
     "app_title": "Projects mini-app",
@@ -922,6 +1036,10 @@
     "deleting": "Deleting...",
     "delete_confirm": "Delete this project? This action cannot be undone.",
     "no_description": "No description provided.",
+    "deleted": "Project deleted",
+    "no_filter_results": "No projects match your filters.",
+    "empty_description": "Manage your renovation, maintenance and other projects.",
+    "zones_edit_note": "Zones can be edited from the project detail page.",
     "status": {
       "draft": "Draft",
       "active": "Active",
@@ -992,8 +1110,10 @@
     "groups": {
       "title": "Project groups",
       "new": "New group",
+      "edit_title": "Edit group",
       "cancel": "Cancel",
       "empty": "No groups yet.",
+      "empty_description": "Create a group to organise your projects.",
       "error_loading": "Failed to load groups.",
       "name_required": "A name is required.",
       "create_failed": "Failed to create group.",

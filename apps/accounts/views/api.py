@@ -7,7 +7,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -213,3 +213,17 @@ class UserViewSet(viewsets.ModelViewSet):
 
         avatar_url = request.user.avatar.url if request.user.avatar else ''
         return Response({'avatar_url': avatar_url}, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def me_view(request):
+    """Lightweight me endpoint for SPA auth context."""
+    user = request.user
+    return Response({
+        'id': str(user.id),
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'active_household': str(user.active_household_id) if user.active_household_id else None,
+    })

@@ -91,6 +91,21 @@ class HouseholdViewSet(viewsets.ModelViewSet):
         serializer = HouseholdMemberSerializer(members, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['post'], url_path='switch')
+    def switch_active(self, request):
+        """Switch the active household for the current user."""
+        household_id = request.data.get('household_id')
+        if not household_id:
+            return Response({'detail': _('household_id is required.')}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            # Ensure user is a member of this household
+            HouseholdMember.objects.get(household_id=household_id, user=request.user)
+        except HouseholdMember.DoesNotExist:
+            return Response({'detail': _('Not a member of this household.')}, status=status.HTTP_403_FORBIDDEN)
+        request.user.active_household_id = household_id
+        request.user.save(update_fields=['active_household_id'])
+        return Response({'detail': 'Switched.'})
+
     @action(detail=False, methods=['get'], url_path='active-members')
     def active_members(self, request):
         """Get members of the active household (resolved by middleware, no ID required)."""

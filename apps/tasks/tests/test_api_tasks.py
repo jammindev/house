@@ -78,7 +78,6 @@ class TestTaskCrud:
             url,
             _task_payload([zone.id]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_201_CREATED
         task = Task.objects.get(id=response.data["id"])
@@ -92,7 +91,6 @@ class TestTaskCrud:
             url,
             _task_payload([zone.id]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["due_date"] is None
@@ -103,7 +101,6 @@ class TestTaskCrud:
             url,
             _task_payload([zone.id], due_date="2026-06-01"),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["due_date"] == "2026-06-01"
@@ -114,7 +111,6 @@ class TestTaskCrud:
             url,
             _task_payload([]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "zone_ids" in response.data
@@ -127,7 +123,6 @@ class TestTaskCrud:
             url,
             _task_payload([other_zone.id]),
             format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -139,7 +134,6 @@ class TestTaskCrud:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"subject": "New subject"}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()
@@ -151,7 +145,7 @@ class TestTaskCrud:
             household=household, created_by=owner, subject="To delete"
         )
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
-        response = owner_client.delete(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Task.objects.filter(id=task.id).exists()
 
@@ -169,7 +163,7 @@ class TestTaskScoping:
         Task.objects.create(household=other_hh, created_by=other_user, subject="Theirs")
 
         url = reverse("task-list")
-        response = owner_client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url)
         assert response.status_code == status.HTTP_200_OK
         subjects = [t["subject"] for t in response.data.get("results", response.data)]
         assert "Mine" in subjects
@@ -180,7 +174,7 @@ class TestTaskScoping:
         Task.objects.create(household=household, created_by=owner, subject="Pending", status="pending")
 
         url = reverse("task-list")
-        response = owner_client.get(url + "?status=done", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url + "?status=done")
         subjects = [t["subject"] for t in response.data.get("results", response.data)]
         assert "Done" in subjects
         assert "Pending" not in subjects
@@ -192,7 +186,7 @@ class TestTaskScoping:
         Task.objects.create(household=household, created_by=owner, subject="Future", due_date=tomorrow)
 
         url = reverse("task-list")
-        response = owner_client.get(url + "?overdue=true", HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = owner_client.get(url + "?overdue=true")
         subjects = [t["subject"] for t in response.data.get("results", response.data)]
         assert "Overdue" in subjects
         assert "Future" not in subjects
@@ -205,7 +199,7 @@ class TestTaskScoping:
 
         client = _client_for(owner)
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
-        response = client.get(url, HTTP_X_HOUSEHOLD_ID=str(household.id))
+        response = client.get(url)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -220,7 +214,6 @@ class TestTaskStatusTransitions:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"status": "done"}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()
@@ -236,7 +229,6 @@ class TestTaskStatusTransitions:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"status": "in_progress"}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()
@@ -250,7 +242,6 @@ class TestTaskStatusTransitions:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"status": "invalid_value"}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -268,7 +259,6 @@ class TestTaskAssignment:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"assigned_to_id": str(member.id)}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()
@@ -282,7 +272,6 @@ class TestTaskAssignment:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"assigned_to_id": str(outsider.id)}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -296,7 +285,6 @@ class TestTaskAssignment:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.patch(
             url, {"assigned_to_id": None}, format="json",
-            HTTP_X_HOUSEHOLD_ID=str(household.id),
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()

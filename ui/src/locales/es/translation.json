@@ -3,13 +3,16 @@
     "yes": "sí",
     "no": "no",
     "save": "Guardar",
+    "saving": "Guardando…",
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Eliminar",
     "archive": "Archivar",
     "confirmDelete": "¿Estás seguro?",
     "confirmArchive": "¿Archivar este hogar? Ya no será accesible.",
-    "confirmLeave": "¿Salir de este hogar?"
+    "confirmLeave": "¿Salir de este hogar?",
+    "retry": "Reintentar",
+    "saveFailed": "Error al guardar."
   },
   "electricity": {
     "api_workspace_title": "Área de trabajo de la API de electricidad",
@@ -91,7 +94,7 @@
     "zones_unselect_zone": "Deseleccionar {{name}}",
     "zones_select_short": "Elegir",
     "zones_selected_short": "Elegida",
-    "zones_loading": "Cargando zonas\u2026",
+    "zones_loading": "Cargando zonas…",
     "zones_empty": "No hay zonas disponibles.",
     "zones_error": "No se pudieron cargar las zonas.",
     "error_subject_required": "El asunto es requerido.",
@@ -104,11 +107,11 @@
     "source_document_label": "Documento de origen",
     "source_document_help": "Esta actividad se vinculará al documento seleccionado después de crearla.",
     "success_title": "Éxito",
-    "redirect_notice": "Redirigiendo a la actividad\u2026",
+    "redirect_notice": "Redirigiendo a la actividad…",
     "created_notice_title": "Evento añadido",
     "created_notice_body": "\"{{subject}}\" se añadió y se destacó debajo.",
     "created_badge": "Nuevo",
-    "creating": "Creando\u2026",
+    "creating": "Creando…",
     "list_title": "Actividad",
     "list_empty": "No se encontró actividad para este filtro.",
     "meta_zones": "Zonas",
@@ -127,17 +130,27 @@
     "error_load_more_failed": "No se pudieron cargar más interacciones.",
     "loading_error_title": "Error de carga",
     "load_more": "Ver más",
-    "loading_more": "Cargando\u2026",
+    "loading_more": "Cargando…",
     "createTask": "Crear tarea",
     "source_interaction_label": "Evento fuente",
-    "source_interaction_help": "Esta tarea se vinculará al evento fuente."
+    "source_interaction_help": "Esta tarea se vinculará al evento fuente.",
+    "title": "Actividad",
+    "new": "Nuevo evento",
+    "new_title": "Nuevo evento",
+    "empty": "Ningún evento por ahora.",
+    "empty_description": "Registra un mantenimiento, reparación u otra actividad para conservar el historial de tu hogar.",
+    "deleted": "Evento eliminado",
+    "zone_label": "Zona",
+    "zone_placeholder": "Seleccionar una zona",
+    "tags_input_placeholder": "etiqueta1, etiqueta2",
+    "tags_input_help": "Separa las etiquetas con comas."
   },
   "tagSelector": {
     "selected_count": "{{count}} seleccionado(s)",
     "search_label": "Encontrar o crear un tag",
     "placeholder": "Añadir un tag",
     "helper": "Pulsa Intro o una coma para añadir un tag.",
-    "loading": "Cargando tags\u2026",
+    "loading": "Cargando tags…",
     "error": "No se pudieron cargar los tags.",
     "suggestions_label": "Tags sugeridos",
     "create_tag": "Añadir el tag \"{{name}}\"",
@@ -176,6 +189,13 @@
   "zones": {
     "app_title": "Mini-app Zonas",
     "title": "Zonas",
+    "new": "Nueva zona",
+    "newTitle": "Nueva zona",
+    "editTitle": "Editar zona",
+    "deleted": "Zona eliminada",
+    "empty_description": "Agrega tu primera zona para empezar a organizar los espacios de tu hogar.",
+    "fieldName": "Nombre",
+    "fieldParent": "Zona padre",
     "loading": "Cargando zonas…",
     "none": "No hay zonas en este hogar.",
     "count_loaded": "{{count}} zona(s) cargada(s) desde las props SSR.",
@@ -290,10 +310,18 @@
       "done": "Hecho"
     },
     "columns": {
-      "backlog": { "title": "Backlog" },
-      "pending": { "title": "Pendiente" },
-      "in_progress": { "title": "En curso" },
-      "done": { "title": "Hecho" }
+      "backlog": {
+        "title": "Backlog"
+      },
+      "pending": {
+        "title": "Pendiente"
+      },
+      "in_progress": {
+        "title": "En curso"
+      },
+      "done": {
+        "title": "Hecho"
+      }
     },
     "movePrev": "Mover a la columna anterior",
     "moveNext": "Mover a la columna siguiente"
@@ -396,20 +424,77 @@
     "city": "Ciudad",
     "postalCode": "Código postal",
     "country": "País",
-    "countryPlaceholder": "\u2014 Seleccionar país \u2014",
+    "countryPlaceholder": "— Seleccionar país —",
     "timezone": "Zona horaria",
-    "timezonePlaceholder": "\u2014 Seleccionar zona horaria \u2014",
+    "timezonePlaceholder": "— Seleccionar zona horaria —",
     "sectionContext": "Contexto e IA",
     "contextNotes": "Notas del hogar",
     "aiPromptContext": "Contexto para IA"
   },
   "photos": {
     "app_title": "Mini-app Fotos",
-    "section_label": "Nodo Django de sección: {{section}}"
+    "section_label": "Nodo Django de sección: {{section}}",
+    "title": "Fotos",
+    "empty": "Sin fotos por el momento.",
+    "empty_description": "Sube fotos desde la biblioteca de documentos para verlas aquí.",
+    "loadFailed": "No se pudieron cargar las fotos.",
+    "deleted": "Foto eliminada.",
+    "search": "Buscar",
+    "search_placeholder": "Buscar fotos…",
+    "untitled": "Sin título",
+    "addedOn": "Añadida el {{date}}",
+    "view": "Ver",
+    "download": "Descargar"
+  },
+  "directory": {
+    "title": "Directorio",
+    "tabContacts": "Contactos",
+    "tabStructures": "Estructuras"
   },
   "contacts": {
     "app_title": "Mini-app Contactos",
-    "section_label": "Nodo Django de sección: {{section}}"
+    "section_label": "Nodo Django de sección: {{section}}",
+    "title": "Contactos",
+    "new": "Nuevo contacto",
+    "newTitle": "Nuevo contacto",
+    "editTitle": "Editar contacto",
+    "empty": "No hay contactos todavía.",
+    "empty_description": "Añade tu primer contacto para empezar a construir tu directorio.",
+    "deleted": "Contacto eliminado",
+    "loadFailed": "No se pudieron cargar los contactos.",
+    "searchPlaceholder": "Buscar por nombre, correo o estructura…",
+    "nameRequired": "Introduce al menos un nombre o apellido.",
+    "firstName": "Nombre",
+    "lastName": "Apellidos",
+    "email": "Correo electrónico",
+    "phone": "Teléfono",
+    "structure": "Estructura",
+    "noStructure": "Sin estructura",
+    "notes": "Notas"
+  },
+  "structures": {
+    "title": "Estructuras",
+    "new": "Nueva estructura",
+    "newTitle": "Nueva estructura",
+    "editTitle": "Editar estructura",
+    "empty": "No hay estructuras todavía.",
+    "empty_description": "Añade tu primera estructura para organizar tus contactos.",
+    "deleted": "Estructura eliminada",
+    "loadFailed": "No se pudieron cargar las estructuras.",
+    "searchPlaceholder": "Buscar por nombre, tipo o sitio web…",
+    "nameRequired": "El nombre de la estructura es obligatorio.",
+    "fieldName": "Nombre",
+    "fieldType": "Tipo",
+    "fieldWebsite": "Sitio web",
+    "fieldNotes": "Notas",
+    "noType": "Sin tipo",
+    "types": {
+      "company": "Empresa",
+      "association": "Asociación",
+      "administration": "Administración",
+      "artisan": "Artesano",
+      "other": "Otro"
+    }
   },
   "documents": {
     "app_title": "Mini-app Documentos",
@@ -434,9 +519,23 @@
       "all": "{{count}} documentos",
       "unlinked": "{{count}} sin contexto de actividad"
     },
+    "deleted": "Documento eliminado",
+    "empty_description": "Sube tu primer archivo para empezar a organizar tus documentos.",
+    "editTitle": "Editar documento",
+    "uploadFailed": "No se pudo subir el documento.",
+    "search": "Buscar",
+    "search_placeholder": "Nombre, notas…",
     "filter": {
       "unlinked": "Mostrar solo sin actividad",
-      "unlinkedActive": "Mostrando sin actividad"
+      "unlinkedActive": "Mostrando sin actividad",
+      "allTypes": "Todos los tipos"
+    },
+    "upload": {
+      "title": "Subir documento",
+      "submit": "Subir",
+      "zone": "Zona",
+      "noZone": "Sin zona",
+      "namePlaceholder": "Nombre del documento (opcional)"
     },
     "type": {
       "document": "Documento",
@@ -644,7 +743,9 @@
       "in_progress": "En progreso",
       "done": "Hecho",
       "archived": "Archivado"
-    }
+    },
+    "deleted": "Equipo eliminado",
+    "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas."
   },
   "dashboard": {
     "header": {
@@ -884,7 +985,20 @@
       "title_create": "Crear artículo",
       "title_edit": "Editar artículo"
     },
-    "confirm_delete": "¿Eliminar \"{{name}}\"?"
+    "confirm_delete": "¿Eliminar \"{{name}}\"?",
+    "deleted": "Artículo eliminado",
+    "empty_description": "Añade tu primer artículo para empezar a gestionar el inventario de tu hogar.",
+    "empty_categories_description": "Crea una categoría para organizar tus artículos de inventario."
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión…",
+    "invalidCredentials": "Correo o contraseña incorrectos.",
+    "logout": "Cerrar sesión",
+    "sessionExpired": "Tu sesión ha expirado. Por favor, inicia sesión de nuevo."
   },
   "projects": {
     "app_title": "Mini-app Proyectos",
@@ -922,6 +1036,10 @@
     "deleting": "Eliminando...",
     "delete_confirm": "¿Eliminar este proyecto? Esta acción no se puede deshacer.",
     "no_description": "Sin descripción.",
+    "deleted": "Proyecto eliminado",
+    "no_filter_results": "Ningún proyecto coincide con tus filtros.",
+    "empty_description": "Gestiona tus proyectos de renovación, mantenimiento y otros.",
+    "zones_edit_note": "Las zonas se pueden editar desde el detalle del proyecto.",
     "status": {
       "draft": "Borrador",
       "active": "Activo",
@@ -992,8 +1110,10 @@
     "groups": {
       "title": "Grupos de proyectos",
       "new": "Nuevo grupo",
+      "edit_title": "Editar grupo",
       "cancel": "Cancelar",
       "empty": "Aún no hay grupos.",
+      "empty_description": "Crea un grupo para organizar tus proyectos.",
       "error_loading": "No se pudieron cargar los grupos.",
       "name_required": "Se requiere un nombre.",
       "create_failed": "No se pudo crear el grupo.",

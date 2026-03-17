@@ -55,7 +55,6 @@ def test_equipment_list_filters_by_selected_household_and_status(client, user, h
     response = client.get(
         reverse("equipment-list"),
         {"status": "active"},
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 200
@@ -75,7 +74,7 @@ def test_equipment_audit_action_returns_created_and_updated_user(client, user, s
     )
 
     client.force_login(user)
-    response = client.get(reverse("equipment-audit", kwargs={"pk": equipment.id}), HTTP_X_HOUSEHOLD_ID=str(household.id))
+    response = client.get(reverse("equipment-audit", kwargs={"pk": equipment.id}),)
 
     assert response.status_code == 200
     payload = response.json()
@@ -100,7 +99,6 @@ def test_equipment_update_rejects_zone_from_other_household(client, user, househ
         reverse("equipment-detail", kwargs={"pk": equipment.id}),
         data={"zone": str(foreign_zone.id)},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400
@@ -131,7 +129,6 @@ def test_equipment_interaction_create_rejects_cross_household_interaction(
         reverse("equipment-interaction-list"),
         data={"equipment": str(equipment.id), "interaction": str(interaction.id), "role": "maintenance", "note": "x"},
         content_type="application/json",
-        HTTP_X_HOUSEHOLD_ID=str(household.id),
     )
 
     assert response.status_code == 400

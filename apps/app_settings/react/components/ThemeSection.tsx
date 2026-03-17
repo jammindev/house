@@ -6,6 +6,7 @@ import { SettingsSection } from './SettingsSection';
 import type { UserProfile, Theme, ColorTheme } from '@/lib/api/users';
 import { patchMe } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
+import { applyDarkMode, applyColorTheme } from '@/lib/theme';
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'light', labelKey: 'settings.themeLight' },
@@ -33,24 +34,6 @@ const COLOR_THEME_OPTIONS: { value: ColorTheme; labelKey: string; swatch: string
   { value: 'theme-midnight', labelKey: 'settings.colorThemeMidnight', swatch: '#4338ca' },
 ];
 
-function applyDarkMode(theme: string) {
-  const html = document.documentElement;
-  html.classList.remove('dark');
-  if (theme === 'dark') {
-    html.classList.add('dark');
-  } else if (theme === 'system') {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      html.classList.add('dark');
-    }
-  }
-}
-
-function applyColorTheme(colorTheme: string) {
-  document.body.classList.forEach((cls) => {
-    if (cls.startsWith('theme-')) document.body.classList.remove(cls);
-  });
-  document.body.classList.add(colorTheme);
-}
 
 interface ThemeSectionProps {
   user: UserProfile;

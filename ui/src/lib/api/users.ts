@@ -1,3 +1,5 @@
+import { api } from '@/lib/axios';
+
 /** User profile API utilities */
 
 export interface UserProfile {
@@ -44,94 +46,35 @@ export interface UpdateProfileInput {
   color_theme?: ColorTheme;
 }
 
-function getCsrfToken(): string {
-  if (typeof document === 'undefined') return '';
-  const match = document.cookie.match(/csrftoken=([^;]+)/);
-  return match ? decodeURIComponent(match[1]) : '';
-}
-
 export async function fetchMe(): Promise<UserProfile> {
-  const response = await fetch('/api/accounts/users/me/', {
-    method: 'GET',
-    credentials: 'include',
-    headers: { Accept: 'application/json' },
-  });
-  if (!response.ok) throw new Error(`API error ${response.status}`);
-  return response.json() as Promise<UserProfile>;
+  const { data } = await api.get('/accounts/users/me/');
+  return data as UserProfile;
 }
 
-export async function patchMe(data: UpdateProfileInput): Promise<UserProfile> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch('/api/accounts/users/me/', {
-    method: 'PATCH',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(JSON.stringify(error));
-  }
-  return response.json() as Promise<UserProfile>;
+export async function patchMe(input: UpdateProfileInput): Promise<UserProfile> {
+  const { data } = await api.patch('/accounts/users/me/', input);
+  return data as UserProfile;
 }
 
 export async function changePassword(
   newPassword: string,
   confirmPassword: string
 ): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch('/api/accounts/users/me/change-password/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-    body: JSON.stringify({ new_password: newPassword, confirm_password: confirmPassword }),
+  await api.post('/accounts/users/me/change-password/', {
+    new_password: newPassword,
+    confirm_password: confirmPassword,
   });
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { detail?: string };
-    throw new Error(error.detail ?? `API error ${response.status}`);
-  }
 }
 
 export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> {
-  const csrfToken = getCsrfToken();
   const formData = new FormData();
   formData.append('avatar', file);
-  const response = await fetch('/api/accounts/users/me/avatar/', {
-    method: 'POST',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-    body: formData,
+  const { data } = await api.post('/accounts/users/me/avatar/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { avatar?: string[] };
-    throw new Error(error.avatar?.[0] ?? `API error ${response.status}`);
-  }
-  return response.json() as Promise<{ avatar_url: string }>;
+  return data as { avatar_url: string };
 }
 
 export async function deleteAvatar(): Promise<void> {
-  const csrfToken = getCsrfToken();
-  const response = await fetch('/api/accounts/users/me/avatar/', {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: {
-      Accept: 'application/json',
-      ...(csrfToken ? { 'X-CSRFToken': csrfToken } : {}),
-    },
-  });
-  if (!response.ok) {
-    const error = (await response.json().catch(() => ({}))) as { detail?: string };
-    throw new Error(error.detail ?? `API error ${response.status}`);
-  }
+  await api.delete('/accounts/users/me/avatar/');
 }
