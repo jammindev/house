@@ -143,7 +143,29 @@
     "zone_label": "Zone",
     "zone_placeholder": "Sélectionner une zone",
     "tags_input_placeholder": "tag1, tag2, tag3",
-    "tags_input_help": "Séparez les tags par des virgules."
+    "tags_input_help": "Séparez les tags par des virgules.",
+    "project_label": "Projet",
+    "project_placeholder": "Aucun projet",
+    "equipment_label": "Équipement",
+    "edit_title": "Modifier l'activité",
+    "update_label": "Enregistrer les modifications",
+    "update_failed": "Impossible d'enregistrer les modifications.",
+    "delete_confirm": "Supprimer cette activité ?",
+    "detail_title": "Détail de l'activité",
+    "type": {
+      "note": "Note",
+      "todo": "Tâche",
+      "expense": "Dépense",
+      "maintenance": "Maintenance",
+      "repair": "Réparation",
+      "installation": "Installation",
+      "inspection": "Inspection",
+      "warranty": "Garantie",
+      "issue": "Incident",
+      "upgrade": "Amélioration",
+      "replacement": "Remplacement",
+      "disposal": "Mise au rebut"
+    }
   },
   "tagSelector": {
     "selected_count": "{{count}} sélectionné(s)",
@@ -256,7 +278,17 @@
       "noteEmpty": "Aucune note enregistrée.",
       "notFound": "Cette zone est introuvable.",
       "edit": "Modifier la zone",
-      "editDescription": "Mettez à jour le nom, la hiérarchie, la couleur ou les métadonnées de la zone."
+      "editDescription": "Mettez à jour le nom, la hiérarchie, la couleur ou les métadonnées de la zone.",
+      "equipment_title": "Équipements",
+      "equipment_empty": "Aucun équipement dans cette zone.",
+      "tasks_title": "Tâches ouvertes",
+      "tasks_empty": "Aucune tâche ouverte.",
+      "activities_title": "Activité récente",
+      "activities_empty": "Aucune activité récente.",
+      "add_activity": "Ajouter une activité",
+      "add_task": "Ajouter une tâche",
+      "projects_title": "Projets actifs",
+      "projects_empty": "Aucun projet actif pour cette zone."
     }
   },
   "tasks": {
@@ -444,7 +476,14 @@
     "untitled": "Sans titre",
     "addedOn": "Ajoutée le {{date}}",
     "view": "Voir",
-    "download": "Télécharger"
+    "download": "Télécharger",
+    "upload_title": "Téléverser des photos",
+    "upload_label": "Sélectionner des fichiers",
+    "upload_hint": "JPG, PNG, WEBP — 10 Mo max chacun",
+    "uploading": "Téléversement…",
+    "upload_success": "{{count}} photo(s) téléversée(s).",
+    "upload_failed": "Échec du téléversement.",
+    "delete_confirm": "Supprimer cette photo ?"
   },
   "directory": {
     "title": "Répertoire",
@@ -573,7 +612,12 @@
       "secondaryContext": "Contextes secondaires",
       "zones": "Zones",
       "projects": "Projets",
-      "actions": "Actions"
+      "actions": "Actions",
+      "linked_interactions": "Activités liées",
+      "no_linked_interactions": "Aucune activité liée.",
+      "add_activity": "Créer une activité depuis ce document",
+      "download": "Télécharger",
+      "not_found": "Document introuvable."
     },
     "attach": {
       "title": "Relier à une activité existante",
@@ -721,7 +765,14 @@
           "create_and_link": "Créer et lier",
           "creating": "Création…"
         }
-      }
+      },
+      "history_title": "Historique des interventions",
+      "add_intervention": "Enregistrer une intervention",
+      "no_history": "Aucune intervention enregistrée.",
+      "warranty_expired": "Expirée",
+      "warranty_ok": "Valide jusqu'au {{date}}",
+      "maintenance_due": "Prévue le {{date}}",
+      "maintenance_overdue": "En retard depuis le {{date}}"
     },
     "interaction_type": {
       "note": "Note",
@@ -759,6 +810,9 @@
       "description": "Créez un foyer depuis les paramètres pour débloquer le tableau de bord.",
       "cta": "Aller aux paramètres"
     },
+    "add_event": "Ajouter un événement",
+    "select_type": "Quel type d'événement ?",
+    "more_types": "Autres types",
     "actions": {
       "add": "Ajouter",
       "openSettings": "Ouvrir les paramètres",
@@ -1040,6 +1094,15 @@
     "no_filter_results": "Aucun projet ne correspond à vos filtres.",
     "empty_description": "Gérez vos projets de rénovation, de maintenance et autres.",
     "zones_edit_note": "Les zones peuvent être modifiées depuis le détail du projet.",
+    "empty_tasks": "Aucune tâche pour l'instant.",
+    "empty_notes": "Aucune note pour l'instant.",
+    "empty_expenses": "Aucune dépense pour l'instant.",
+    "empty_documents": "Aucun document pour l'instant.",
+    "empty_timeline": "Aucune activité pour l'instant.",
+    "add_task": "Ajouter une tâche",
+    "add_note": "Ajouter une note",
+    "add_expense": "Ajouter une dépense",
+    "add_activity": "Ajouter une activité",
     "status": {
       "draft": "Brouillon",
       "active": "Actif",
@@ -1107,6 +1170,10 @@
         "cancel": "Annuler"
       }
     },
+    "add_task": "Ajouter une tâche",
+    "add_note": "Ajouter une note",
+    "add_expense": "Ajouter une dépense",
+    "add_activity": "Ajouter une activité",
     "groups": {
       "title": "Groupes de projets",
       "new": "Nouveau groupe",

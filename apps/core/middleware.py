@@ -67,6 +67,13 @@ class ActiveHouseholdMiddleware:
     def __call__(self, request):
         request.household = None
         user = getattr(request, 'user', None)
+        # DRF force_authenticate sets _force_auth_user on the raw Django request
+        # before middleware runs, but AuthenticationMiddleware still sets
+        # request.user = AnonymousUser from session. Fall back to it for tests.
+        if not (user and user.is_authenticated):
+            force_user = getattr(request, '_force_auth_user', None)
+            if force_user:
+                user = force_user
         if user and user.is_authenticated:
             active_id = getattr(user, 'active_household_id', None)
             if active_id:

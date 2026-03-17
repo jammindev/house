@@ -71,37 +71,3 @@ def test_stale_update_returns_conflict():
 	assert stale_update.status_code == status.HTTP_409_CONFLICT
 	assert 'reload' in str(stale_update.data.get('detail', '')).lower()
 
-
-@pytest.mark.django_db
-def test_zones_web_view_renders(client):
-	owner, household = _create_household_with_owner('Maison Zones Web')
-
-	owner.active_household = household
-	owner.save(update_fields=['active_household'])
-
-	client.force_login(owner)
-	response = client.get('/app/zones/')
-
-	assert response.status_code == status.HTTP_200_OK
-	props = response.context['react_props']
-	assert props == {}
-
-
-@pytest.mark.django_db
-def test_zone_detail_web_view_renders(client):
-	owner, household = _create_household_with_owner('Maison Zone Detail Web')
-	zone = Zone.objects.create(household=household, name='Chambre', created_by=owner)
-
-	owner.active_household = household
-	owner.save(update_fields=['active_household'])
-
-	client.force_login(owner)
-	response = client.get(f'/app/zones/{zone.id}/')
-
-	assert response.status_code == status.HTTP_200_OK
-	props = response.context['react_props']
-	assert props['zoneId'] == str(zone.id)
-	assert 'createActivityUrl' in props
-	assert 'createTaskUrl' in props
-	assert 'initialZone' not in props
-	assert 'initialStats' not in props

@@ -22,7 +22,7 @@ class TaskSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True,
     )
-    assigned_to_id = serializers.UUIDField(
+    assigned_to_id = serializers.IntegerField(
         write_only=True,
         required=False,
         allow_null=True,

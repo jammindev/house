@@ -1,5 +1,5 @@
 import { useMe, useHouseholds, usePendingInvitations } from './hooks';
-import UserSettings from '@apps/app_settings/react/UserSettings';
+import UserSettings from './UserSettings';
 
 export default function SettingsPage() {
   const { data: user, isLoading: userLoading } = useMe();

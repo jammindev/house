@@ -143,7 +143,29 @@
     "zone_label": "Zona",
     "zone_placeholder": "Seleccionar una zona",
     "tags_input_placeholder": "etiqueta1, etiqueta2",
-    "tags_input_help": "Separa las etiquetas con comas."
+    "tags_input_help": "Separa las etiquetas con comas.",
+    "project_label": "Proyecto",
+    "project_placeholder": "Sin proyecto",
+    "equipment_label": "Equipo",
+    "edit_title": "Editar actividad",
+    "update_label": "Guardar cambios",
+    "update_failed": "No se pudieron guardar los cambios.",
+    "delete_confirm": "¿Eliminar esta actividad?",
+    "detail_title": "Detalle de actividad",
+    "type": {
+      "note": "Nota",
+      "todo": "Tarea",
+      "expense": "Gasto",
+      "maintenance": "Mantenimiento",
+      "repair": "Reparación",
+      "installation": "Instalación",
+      "inspection": "Inspección",
+      "warranty": "Garantía",
+      "issue": "Incidencia",
+      "upgrade": "Mejora",
+      "replacement": "Reemplazo",
+      "disposal": "Desecho"
+    }
   },
   "tagSelector": {
     "selected_count": "{{count}} seleccionado(s)",
@@ -256,7 +278,17 @@
       "noteEmpty": "Aún no hay notas registradas.",
       "notFound": "No se encontró esta zona.",
       "edit": "Editar zona",
-      "editDescription": "Actualiza el nombre, la jerarquía, el color o los metadatos de la zona."
+      "editDescription": "Actualiza el nombre, la jerarquía, el color o los metadatos de la zona.",
+      "equipment_title": "Equipos",
+      "equipment_empty": "Ningún equipo en esta zona.",
+      "tasks_title": "Tareas abiertas",
+      "tasks_empty": "No hay tareas abiertas.",
+      "activities_title": "Actividad reciente",
+      "activities_empty": "No hay actividad reciente.",
+      "add_activity": "Añadir actividad",
+      "add_task": "Añadir tarea",
+      "projects_title": "Proyectos activos",
+      "projects_empty": "No hay proyectos activos para esta zona."
     }
   },
   "tasks": {
@@ -444,7 +476,14 @@
     "untitled": "Sin título",
     "addedOn": "Añadida el {{date}}",
     "view": "Ver",
-    "download": "Descargar"
+    "download": "Descargar",
+    "upload_title": "Subir fotos",
+    "upload_label": "Seleccionar archivos",
+    "upload_hint": "JPG, PNG, WEBP — máx. 10 MB cada uno",
+    "uploading": "Subiendo…",
+    "upload_success": "{{count}} foto(s) subida(s).",
+    "upload_failed": "Error al subir.",
+    "delete_confirm": "¿Eliminar esta foto?"
   },
   "directory": {
     "title": "Directorio",
@@ -573,7 +612,12 @@
       "secondaryContext": "Contextos secundarios",
       "zones": "Zonas",
       "projects": "Proyectos",
-      "actions": "Acciones"
+      "actions": "Acciones",
+      "linked_interactions": "Actividades vinculadas",
+      "no_linked_interactions": "Aún no hay actividades vinculadas.",
+      "add_activity": "Crear actividad desde este documento",
+      "download": "Descargar",
+      "not_found": "Documento no encontrado."
     },
     "attach": {
       "title": "Vincular con una actividad existente",
@@ -721,7 +765,14 @@
           "create_and_link": "Crear y vincular",
           "creating": "Creando…"
         }
-      }
+      },
+      "history_title": "Historial de intervenciones",
+      "add_intervention": "Registrar una intervención",
+      "no_history": "Aún no hay intervenciones registradas.",
+      "warranty_expired": "Expirada",
+      "warranty_ok": "Válida hasta {{date}}",
+      "maintenance_due": "Prevista el {{date}}",
+      "maintenance_overdue": "Vencida desde {{date}}"
     },
     "interaction_type": {
       "note": "Nota",
@@ -759,6 +810,9 @@
       "description": "Cree un hogar desde la configuración para desbloquear el panel.",
       "cta": "Ir a configuración"
     },
+    "add_event": "Añadir evento",
+    "select_type": "¿Qué tipo de evento?",
+    "more_types": "Más tipos",
     "actions": {
       "add": "Añadir",
       "openSettings": "Abrir configuración",
@@ -1040,6 +1094,15 @@
     "no_filter_results": "Ningún proyecto coincide con tus filtros.",
     "empty_description": "Gestiona tus proyectos de renovación, mantenimiento y otros.",
     "zones_edit_note": "Las zonas se pueden editar desde el detalle del proyecto.",
+    "empty_tasks": "Aún no hay tareas.",
+    "empty_notes": "Aún no hay notas.",
+    "empty_expenses": "Aún no hay gastos.",
+    "empty_documents": "Aún no hay documentos.",
+    "empty_timeline": "Aún no hay actividad.",
+    "add_task": "Añadir tarea",
+    "add_note": "Añadir nota",
+    "add_expense": "Añadir gasto",
+    "add_activity": "Añadir actividad",
     "status": {
       "draft": "Borrador",
       "active": "Activo",
@@ -1107,6 +1170,10 @@
         "cancel": "Cancelar"
       }
     },
+    "add_task": "Añadir una tarea",
+    "add_note": "Añadir una nota",
+    "add_expense": "Añadir un gasto",
+    "add_activity": "Añadir una actividad",
     "groups": {
       "title": "Grupos de proyectos",
       "new": "Nuevo grupo",

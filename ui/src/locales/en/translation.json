@@ -143,7 +143,29 @@
     "zone_label": "Zone",
     "zone_placeholder": "Select a zone",
     "tags_input_placeholder": "tag1, tag2, tag3",
-    "tags_input_help": "Separate tags with commas."
+    "tags_input_help": "Separate tags with commas.",
+    "project_label": "Project",
+    "project_placeholder": "No project",
+    "equipment_label": "Equipment",
+    "edit_title": "Edit activity",
+    "update_label": "Save changes",
+    "update_failed": "Failed to save changes.",
+    "delete_confirm": "Delete this activity?",
+    "detail_title": "Activity detail",
+    "type": {
+      "note": "Note",
+      "todo": "Task",
+      "expense": "Expense",
+      "maintenance": "Maintenance",
+      "repair": "Repair",
+      "installation": "Installation",
+      "inspection": "Inspection",
+      "warranty": "Warranty",
+      "issue": "Issue",
+      "upgrade": "Upgrade",
+      "replacement": "Replacement",
+      "disposal": "Disposal"
+    }
   },
   "tagSelector": {
     "selected_count": "{{count}} selected",
@@ -256,7 +278,17 @@
       "noteEmpty": "No notes recorded yet.",
       "notFound": "This zone could not be found.",
       "edit": "Edit zone",
-      "editDescription": "Update the zone name, hierarchy, color, or metadata."
+      "editDescription": "Update the zone name, hierarchy, color, or metadata.",
+      "equipment_title": "Equipment",
+      "equipment_empty": "No equipment in this zone.",
+      "tasks_title": "Open tasks",
+      "tasks_empty": "No open tasks.",
+      "activities_title": "Recent activity",
+      "activities_empty": "No recent activity.",
+      "add_activity": "Add activity",
+      "add_task": "Add task",
+      "projects_title": "Active projects",
+      "projects_empty": "No active projects for this zone."
     }
   },
   "tasks": {
@@ -444,7 +476,14 @@
     "untitled": "Untitled",
     "addedOn": "Added {{date}}",
     "view": "View",
-    "download": "Download"
+    "download": "Download",
+    "upload_title": "Upload photos",
+    "upload_label": "Select files",
+    "upload_hint": "JPG, PNG, WEBP — max 10 MB each",
+    "uploading": "Uploading…",
+    "upload_success": "{{count}} photo(s) uploaded.",
+    "upload_failed": "Upload failed.",
+    "delete_confirm": "Delete this photo?"
   },
   "directory": {
     "title": "Directory",
@@ -573,7 +612,12 @@
       "secondaryContext": "Secondary context",
       "zones": "Zones",
       "projects": "Projects",
-      "actions": "Actions"
+      "actions": "Actions",
+      "linked_interactions": "Linked activities",
+      "no_linked_interactions": "No activities linked yet.",
+      "add_activity": "Create activity from this document",
+      "download": "Download",
+      "not_found": "Document not found."
     },
     "attach": {
       "title": "Link to an existing activity",
@@ -721,7 +765,14 @@
           "create_and_link": "Create and link",
           "creating": "Creating…"
         }
-      }
+      },
+      "history_title": "Intervention history",
+      "add_intervention": "Log an intervention",
+      "no_history": "No interventions recorded yet.",
+      "warranty_expired": "Expired",
+      "warranty_ok": "Valid until {{date}}",
+      "maintenance_due": "Due on {{date}}",
+      "maintenance_overdue": "Overdue since {{date}}"
     },
     "interaction_type": {
       "note": "Note",
@@ -759,6 +810,9 @@
       "description": "Create a household from settings to unlock the dashboard.",
       "cta": "Go to settings"
     },
+    "add_event": "Add event",
+    "select_type": "What type of event?",
+    "more_types": "More types",
     "actions": {
       "add": "Add",
       "openSettings": "Open settings",
@@ -1040,6 +1094,15 @@
     "no_filter_results": "No projects match your filters.",
     "empty_description": "Manage your renovation, maintenance and other projects.",
     "zones_edit_note": "Zones can be edited from the project detail page.",
+    "empty_tasks": "No tasks yet.",
+    "empty_notes": "No notes yet.",
+    "empty_expenses": "No expenses yet.",
+    "empty_documents": "No documents yet.",
+    "empty_timeline": "No activity yet.",
+    "add_task": "Add task",
+    "add_note": "Add note",
+    "add_expense": "Add expense",
+    "add_activity": "Add activity",
     "status": {
       "draft": "Draft",
       "active": "Active",
@@ -1107,6 +1170,10 @@
         "cancel": "Cancel"
       }
     },
+    "add_task": "Add a task",
+    "add_note": "Add a note",
+    "add_expense": "Add an expense",
+    "add_activity": "Add an activity",
     "groups": {
       "title": "Project groups",
       "new": "New group",

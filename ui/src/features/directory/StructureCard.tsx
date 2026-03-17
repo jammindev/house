@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';

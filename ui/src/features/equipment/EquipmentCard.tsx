@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
@@ -32,7 +32,12 @@ export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardP
     <li className="rounded-md border p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="font-medium text-sm">{item.name}</p>
+          <Link
+            to={`/app/equipment/${item.id}`}
+            className="font-medium text-sm hover:underline"
+          >
+            {item.name}
+          </Link>
           <p className="mt-1 text-xs text-muted-foreground">
             {item.category} · {item.manufacturer || t('equipment.unknown_maker')} {item.model || ''}
           </p>

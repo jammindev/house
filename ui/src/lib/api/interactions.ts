@@ -134,6 +134,22 @@ export async function deleteInteraction(id: string): Promise<void> {
   await api.delete(`/interactions/interactions/${id}/`);
 }
 
+export async function fetchInteraction(id: string): Promise<InteractionListItem> {
+  const { data } = await api.get(`/interactions/interactions/${id}/`);
+  return data as InteractionListItem;
+}
+
+export async function updateInteraction(
+  id: string,
+  input: Partial<CreateInteractionInput>,
+): Promise<InteractionListItem> {
+  const { data } = await api.patch(`/interactions/interactions/${id}/`, {
+    ...input,
+    content: input.content ?? '',
+  });
+  return data as InteractionListItem;
+}
+
 export async function linkDocumentToInteraction(
   input: LinkDocumentToInteractionInput,
 ): Promise<void> {

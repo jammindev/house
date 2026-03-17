@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchEquipmentList,
+  fetchEquipment,
+  fetchEquipmentInteractions,
   createEquipment,
   updateEquipment,
   deleteEquipment,
-  type EquipmentListItem,
   type EquipmentPayload,
 } from '@/lib/api/equipment';
 import { fetchZones } from '@/lib/api/zones';
@@ -25,6 +26,22 @@ export function useEquipmentList(filters: EquipmentFilters = {}) {
   return useQuery({
     queryKey: equipmentKeys.list(filters),
     queryFn: () => fetchEquipmentList(filters),
+  });
+}
+
+export function useEquipment(id: string) {
+  return useQuery({
+    queryKey: equipmentKeys.detail(id),
+    queryFn: () => fetchEquipment(id),
+    enabled: !!id,
+  });
+}
+
+export function useEquipmentHistory(id: string) {
+  return useQuery({
+    queryKey: [...equipmentKeys.detail(id), 'interactions'],
+    queryFn: () => fetchEquipmentInteractions(id),
+    enabled: !!id,
   });
 }
 

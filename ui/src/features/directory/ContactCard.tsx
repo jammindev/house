@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Mail, Phone, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import type { Contact } from '@/lib/api/contacts';

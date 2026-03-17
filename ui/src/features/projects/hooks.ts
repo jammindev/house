@@ -13,7 +13,6 @@ import {
   pinProject,
   unpinProject,
   type ProjectListItem,
-  type ProjectGroupItem,
   type ProjectInteractionItem,
   type ProjectPayload,
   type ProjectGroupPayload,

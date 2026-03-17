@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { FileText, FileX, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
@@ -33,18 +33,12 @@ export default function DocumentCard({ doc, onEdit, onDelete }: DocumentCardProp
       {/* Name + metadata */}
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          {doc.file_url ? (
-            <a
-              href={doc.file_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="truncate text-sm font-medium text-slate-900 hover:underline"
-            >
-              {fileName}
-            </a>
-          ) : (
-            <span className="truncate text-sm font-medium text-slate-900">{fileName}</span>
-          )}
+          <Link
+            to={`/app/documents/${doc.id}`}
+            className="truncate text-sm font-medium text-slate-900 hover:underline"
+          >
+            {fileName}
+          </Link>
 
           {doc.type && doc.type !== 'photo' && (
             <Badge variant="secondary" className="text-xs">

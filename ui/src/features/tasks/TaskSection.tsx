@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { type Task, type TaskStatus } from '@/lib/api/tasks';
 import TaskCard from './TaskCard';
 

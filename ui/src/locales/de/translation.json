@@ -143,7 +143,29 @@
     "zone_label": "Zone",
     "zone_placeholder": "Zone auswählen",
     "tags_input_placeholder": "Tag1, Tag2, Tag3",
-    "tags_input_help": "Tags durch Kommas trennen."
+    "tags_input_help": "Tags durch Kommas trennen.",
+    "project_label": "Projekt",
+    "project_placeholder": "Kein Projekt",
+    "equipment_label": "Gerät",
+    "edit_title": "Aktivität bearbeiten",
+    "update_label": "Änderungen speichern",
+    "update_failed": "Änderungen konnten nicht gespeichert werden.",
+    "delete_confirm": "Diese Aktivität löschen?",
+    "detail_title": "Aktivitätsdetail",
+    "type": {
+      "note": "Notiz",
+      "todo": "Aufgabe",
+      "expense": "Ausgabe",
+      "maintenance": "Wartung",
+      "repair": "Reparatur",
+      "installation": "Installation",
+      "inspection": "Inspektion",
+      "warranty": "Garantie",
+      "issue": "Problem",
+      "upgrade": "Verbesserung",
+      "replacement": "Ersatz",
+      "disposal": "Entsorgung"
+    }
   },
   "tagSelector": {
     "selected_count": "{{count}} ausgewählt",
@@ -256,7 +278,17 @@
       "noteEmpty": "Noch keine Notizen vorhanden.",
       "notFound": "Diese Zone wurde nicht gefunden.",
       "edit": "Zone bearbeiten",
-      "editDescription": "Name, Hierarchie, Farbe oder Metadaten der Zone aktualisieren."
+      "editDescription": "Name, Hierarchie, Farbe oder Metadaten der Zone aktualisieren.",
+      "equipment_title": "Geräte",
+      "equipment_empty": "Keine Geräte in dieser Zone.",
+      "tasks_title": "Offene Aufgaben",
+      "tasks_empty": "Keine offenen Aufgaben.",
+      "activities_title": "Letzte Aktivität",
+      "activities_empty": "Keine aktuellen Aktivitäten.",
+      "add_activity": "Aktivität hinzufügen",
+      "add_task": "Aufgabe hinzufügen",
+      "projects_title": "Aktive Projekte",
+      "projects_empty": "Keine aktiven Projekte für diese Zone."
     }
   },
   "tasks": {
@@ -444,7 +476,14 @@
     "untitled": "Ohne Titel",
     "addedOn": "Hinzugefügt am {{date}}",
     "view": "Ansehen",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "upload_title": "Fotos hochladen",
+    "upload_label": "Dateien auswählen",
+    "upload_hint": "JPG, PNG, WEBP — max. 10 MB pro Datei",
+    "uploading": "Hochladen…",
+    "upload_success": "{{count}} Foto(s) hochgeladen.",
+    "upload_failed": "Upload fehlgeschlagen.",
+    "delete_confirm": "Dieses Foto löschen?"
   },
   "directory": {
     "title": "Verzeichnis",
@@ -573,7 +612,12 @@
       "secondaryContext": "Sekundäre Kontexte",
       "zones": "Zonen",
       "projects": "Projekte",
-      "actions": "Aktionen"
+      "actions": "Aktionen",
+      "linked_interactions": "Verknüpfte Aktivitäten",
+      "no_linked_interactions": "Noch keine Aktivitäten verknüpft.",
+      "add_activity": "Aktivität aus diesem Dokument erstellen",
+      "download": "Herunterladen",
+      "not_found": "Dokument nicht gefunden."
     },
     "attach": {
       "title": "Mit vorhandener Aktivität verknüpfen",
@@ -721,7 +765,14 @@
           "create_and_link": "Erstellen und verknüpfen",
           "creating": "Wird erstellt…"
         }
-      }
+      },
+      "history_title": "Interventionsverlauf",
+      "add_intervention": "Intervention erfassen",
+      "no_history": "Noch keine Interventionen erfasst.",
+      "warranty_expired": "Abgelaufen",
+      "warranty_ok": "Gültig bis {{date}}",
+      "maintenance_due": "Fällig am {{date}}",
+      "maintenance_overdue": "Überfällig seit {{date}}"
     },
     "interaction_type": {
       "note": "Notiz",
@@ -759,6 +810,9 @@
       "description": "Erstellen Sie in den Einstellungen einen Haushalt, um die Übersicht freizuschalten.",
       "cta": "Zu den Einstellungen"
     },
+    "add_event": "Ereignis hinzufügen",
+    "select_type": "Welcher Ereignistyp?",
+    "more_types": "Weitere Typen",
     "actions": {
       "add": "Hinzufügen",
       "openSettings": "Einstellungen öffnen",
@@ -1040,6 +1094,15 @@
     "no_filter_results": "Keine Projekte entsprechen Ihren Filtern.",
     "empty_description": "Verwalten Sie Ihre Renovierungs-, Wartungs- und sonstigen Projekte.",
     "zones_edit_note": "Zonen können über die Projektdetailseite bearbeitet werden.",
+    "empty_tasks": "Noch keine Aufgaben.",
+    "empty_notes": "Noch keine Notizen.",
+    "empty_expenses": "Noch keine Ausgaben.",
+    "empty_documents": "Noch keine Dokumente.",
+    "empty_timeline": "Noch keine Aktivität.",
+    "add_task": "Aufgabe hinzufügen",
+    "add_note": "Notiz hinzufügen",
+    "add_expense": "Ausgabe hinzufügen",
+    "add_activity": "Aktivität hinzufügen",
     "status": {
       "draft": "Entwurf",
       "active": "Aktiv",
@@ -1107,6 +1170,10 @@
         "cancel": "Abbrechen"
       }
     },
+    "add_task": "Aufgabe hinzufügen",
+    "add_note": "Notiz hinzufügen",
+    "add_expense": "Ausgabe hinzufügen",
+    "add_activity": "Aktivität hinzufügen",
     "groups": {
       "title": "Projektgruppen",
       "new": "Neue Gruppe",

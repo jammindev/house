@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Camera } from 'lucide-react';
 import type { DocumentItem } from '@/lib/api/documents';
 

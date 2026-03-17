@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft, Plus, Star } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
@@ -49,10 +49,14 @@ function TabInteractions({
   projectId,
   type,
   emptyKey,
+  addUrl,
+  addLabel,
 }: {
   projectId: string;
   type?: string;
   emptyKey: string;
+  addUrl?: string;
+  addLabel?: string;
 }) {
   const { t } = useTranslation();
   const { data: items = [], isLoading, error } = useProjectInteractions(projectId, type);
@@ -73,38 +77,52 @@ function TabInteractions({
     );
   }
 
-  if (items.length === 0) {
-    return <p className="text-sm text-muted-foreground italic">{t(emptyKey)}</p>;
-  }
-
   return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.id} className="rounded-md border p-3 text-sm">
-          <div className="flex items-start justify-between gap-2">
-            <span className="font-medium">{item.subject || '—'}</span>
-            <div className="flex shrink-0 gap-1">
-              {item.type ? (
-                <Badge variant="outline" className="h-5 text-[10px]">
-                  {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
-                </Badge>
+    <div className="space-y-3">
+      {addUrl ? (
+        <div className="flex justify-end">
+          <Link
+            to={addUrl}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {addLabel}
+          </Link>
+        </div>
+      ) : null}
+
+      {items.length === 0 ? (
+        <p className="text-sm text-muted-foreground italic">{t(emptyKey)}</p>
+      ) : (
+        <ul className="space-y-2">
+          {items.map((item) => (
+            <li key={item.id} className="rounded-md border p-3 text-sm">
+              <div className="flex items-start justify-between gap-2">
+                <span className="font-medium">{item.subject || '—'}</span>
+                <div className="flex shrink-0 gap-1">
+                  {item.type ? (
+                    <Badge variant="outline" className="h-5 text-[10px]">
+                      {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
+                    </Badge>
+                  ) : null}
+                  {item.status ? (
+                    <Badge variant="secondary" className="h-5 text-[10px]">
+                      {t(`interactions.status.${item.status}`, { defaultValue: item.status })}
+                    </Badge>
+                  ) : null}
+                </div>
+              </div>
+              {item.content ? (
+                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
               ) : null}
-              {item.status ? (
-                <Badge variant="secondary" className="h-5 text-[10px]">
-                  {t(`interactions.status.${item.status}`, { defaultValue: item.status })}
-                </Badge>
+              {item.occurred_at ? (
+                <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p>
               ) : null}
-            </div>
-          </div>
-          {item.content ? (
-            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
-          ) : null}
-          {item.occurred_at ? (
-            <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 
@@ -376,6 +394,8 @@ export default function ProjectDetailPage() {
                   projectId={project.id}
                   type="todo"
                   emptyKey="projects.empty_tasks"
+                  addUrl={`/app/interactions/new?type=todo&project_id=${project.id}${project.zones.length > 0 ? `&zone_id=${project.zones[0].id}` : ''}`}
+                  addLabel={t('projects.add_task')}
                 />
               ) : null}
 
@@ -384,6 +404,8 @@ export default function ProjectDetailPage() {
                   projectId={project.id}
                   type="note"
                   emptyKey="projects.empty_notes"
+                  addUrl={`/app/interactions/new?type=note&project_id=${project.id}`}
+                  addLabel={t('projects.add_note')}
                 />
               ) : null}
 
@@ -392,6 +414,8 @@ export default function ProjectDetailPage() {
                   projectId={project.id}
                   type="expense"
                   emptyKey="projects.empty_expenses"
+                  addUrl={`/app/interactions/new?type=expense&project_id=${project.id}`}
+                  addLabel={t('projects.add_expense')}
                 />
               ) : null}
 
@@ -407,6 +431,8 @@ export default function ProjectDetailPage() {
                 <TabInteractions
                   projectId={project.id}
                   emptyKey="projects.empty_timeline"
+                  addUrl={`/app/interactions/new?project_id=${project.id}`}
+                  addLabel={t('projects.add_activity')}
                 />
               ) : null}
 

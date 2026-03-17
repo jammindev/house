@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import ElectricityBoardNode from '@apps/electricity/react/ElectricityBoardNode';
+import ElectricityBoardNode from './ElectricityBoardNode';
 import {
   electricityKeys,
   useElectricityBoards,

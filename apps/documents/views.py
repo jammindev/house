@@ -23,7 +23,6 @@ from interactions.models import Interaction
 from interactions.models import InteractionDocument
 from projects.models import ProjectDocument
 from zones.models import ZoneDocument
-from django.urls import reverse
 
 
 def get_documents_queryset_for_request(request):
@@ -196,7 +195,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     'recent_interaction_candidates': recent_candidates,
                 },
             ).data,
-            'detail_url': reverse('app_documents_detail', kwargs={'document_id': document.id}),
+            'detail_url': f'/app/documents/{document.id}/',
         }
 
         return Response(response_payload, status=status.HTTP_201_CREATED)

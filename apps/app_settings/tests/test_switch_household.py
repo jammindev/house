@@ -2,7 +2,6 @@
 import json
 import pytest
 from django.contrib.auth import get_user_model
-from django.urls import reverse
 
 from households.models import HouseholdMember
 
@@ -15,9 +14,12 @@ User = get_user_model()
 # Helpers
 # ---------------------------------------------------------------------------
 
+SWITCH_URL = "/api/households/switch/"
+
+
 def _post_switch(client, household_id, **extra):
     return client.post(
-        reverse("app_settings_switch_household"),
+        SWITCH_URL,
         data=json.dumps({"household_id": str(household_id)}),
         content_type="application/json",
         **extra,
@@ -40,9 +42,6 @@ def test_switch_household_sets_active_on_user(client):
     response = _post_switch(client, h2.id)
 
     assert response.status_code == 200
-    data = response.json()
-    assert data["ok"] is True
-    assert data["activeHouseholdId"] == str(h2.id)
     user.refresh_from_db()
     assert user.active_household_id == h2.id
 
@@ -83,7 +82,7 @@ def test_switch_household_returns_400_without_household_id(client):
     client.force_login(user)
 
     response = client.post(
-        reverse("app_settings_switch_household"),
+        SWITCH_URL,
         data=json.dumps({}),
         content_type="application/json",
     )
@@ -97,7 +96,7 @@ def test_switch_household_returns_400_for_invalid_json(client):
     client.force_login(user)
 
     response = client.post(
-        reverse("app_settings_switch_household"),
+        SWITCH_URL,
         data="not-json",
         content_type="application/json",
     )
@@ -111,8 +110,8 @@ def test_switch_household_requires_login(client):
 
     response = _post_switch(client, household.id)
 
-    assert response.status_code == 302
-    assert "login" in response["Location"]
+    # REST API returns 401 (not a redirect) for unauthenticated requests
+    assert response.status_code == 401
 
 
 @pytest.mark.django_db
@@ -120,7 +119,7 @@ def test_switch_household_rejects_get(client):
     user = UserFactory()
     client.force_login(user)
 
-    response = client.get(reverse("app_settings_switch_household"))
+    response = client.get(SWITCH_URL)
 
     assert response.status_code == 405
 
@@ -185,32 +184,37 @@ def test_signal_picks_other_household_on_leave():
 
 
 # ---------------------------------------------------------------------------
-# app_settings_view — activeHouseholdId in context
+# /api/accounts/me/ — active_household field
 # ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
-def test_settings_view_exposes_active_household_id(client):
+def test_me_endpoint_exposes_active_household(client):
+    from rest_framework.test import APIClient
     user = UserFactory()
     h = HouseholdFactory()
     HouseholdMemberFactory(household=h, user=user)
     user.active_household_id = h.id
     user.save(update_fields=['active_household_id'])
 
-    client.force_login(user)
-    response = client.get(reverse("app_settings"))
+    api = APIClient()
+    api.force_authenticate(user=user)
+    response = api.get("/api/accounts/me/")
 
     assert response.status_code == 200
-    assert response.context["react_props"]["activeHouseholdId"] == str(h.id)
+    assert response.data["active_household"] == str(h.id)
 
 
 @pytest.mark.django_db
-def test_settings_view_active_household_id_none_when_not_set(client):
+def test_me_endpoint_active_household_none_when_not_set(client):
+    from rest_framework.test import APIClient
     user = UserFactory()
-    client.force_login(user)
-    response = client.get(reverse("app_settings"))
+
+    api = APIClient()
+    api.force_authenticate(user=user)
+    response = api.get("/api/accounts/me/")
 
     assert response.status_code == 200
-    assert response.context["react_props"]["activeHouseholdId"] is None
+    assert response.data["active_household"] is None
 
 
 # ---------------------------------------------------------------------------

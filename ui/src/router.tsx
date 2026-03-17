@@ -6,11 +6,14 @@ import ZonesPage from './features/zones/ZonesPage';
 import ZoneDetailPage from './features/zones/ZoneDetailPage';
 import InteractionsPage from './features/interactions/InteractionsPage';
 import InteractionNewPage from './features/interactions/InteractionNewPage';
+import InteractionEditPage from './features/interactions/InteractionEditPage';
 import ProjectsPage from './features/projects/ProjectsPage';
 import ProjectDetailPage from './features/projects/ProjectDetailPage';
 import EquipmentPage from './features/equipment/EquipmentPage';
+import EquipmentDetailPage from './features/equipment/EquipmentDetailPage';
 import StockPage from './features/stock/StockPage';
 import DocumentsPage from './features/documents/DocumentsPage';
+import DocumentDetailPage from './features/documents/DocumentDetailPage';
 import DirectoryPage from './features/directory/DirectoryFeaturePage';
 import ElectricityPage from './features/electricity/ElectricityPage';
 import PhotosPage from './features/photos/PhotosPage';
@@ -33,11 +36,14 @@ export const router = createBrowserRouter([
       { path: 'zones/:id', element: <ZoneDetailPage /> },
       { path: 'interactions', element: <InteractionsPage /> },
       { path: 'interactions/new', element: <InteractionNewPage /> },
+      { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },
+      { path: 'equipment/:id', element: <EquipmentDetailPage /> },
       { path: 'stock', element: <StockPage /> },
       { path: 'documents', element: <DocumentsPage /> },
+      { path: 'documents/:id', element: <DocumentDetailPage /> },
       { path: 'directory', element: <DirectoryPage /> },
       { path: 'electricity', element: <ElectricityPage /> },
       { path: 'photos', element: <PhotosPage /> },

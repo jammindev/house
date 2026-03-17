@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { Clock3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
-import { linkEquipmentInteraction } from '@/lib/api/equipment';
-import { useCreateInteraction } from './hooks';
+import { updateInteraction } from '@/lib/api/interactions';
+import { useInteraction } from './hooks';
 
 const TYPE_OPTIONS = [
   'note',
@@ -27,51 +27,65 @@ const TYPE_OPTIONS = [
 
 const STATUS_OPTIONS = ['backlog', 'pending', 'in_progress', 'done', 'archived'];
 
-function todayDateInput(): string {
-  const now = new Date();
+function isoToDate(value: string): string {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
   const pad = (v: number) => String(v).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-function nowTimeInput(): string {
-  const now = new Date();
+function isoToTime(value: string): string {
+  if (!value) return '12:00';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '12:00';
   const pad = (v: number) => String(v).padStart(2, '0');
-  return `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-export default function InteractionNewPage() {
+export default function InteractionEditPage() {
+  const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const createMutation = useCreateInteraction();
 
-  // Read initial values from query params
-  const paramType = searchParams.get('type') ?? 'note';
-  const paramZoneId = searchParams.get('zone_id') ?? '';
-  const paramProjectId = searchParams.get('project_id') ?? '';
-  const paramEquipmentId = searchParams.get('equipment_id') ?? '';
-  const paramSourceInteractionId = searchParams.get('source_interaction_id') ?? '';
+  const { data: interaction, isLoading, error } = useInteraction(id ?? '');
 
   const [subject, setSubject] = React.useState('');
-  const [type, setType] = React.useState(paramType);
+  const [type, setType] = React.useState('note');
   const [status, setStatus] = React.useState('pending');
-  const [occurredOn, setOccurredOn] = React.useState(todayDateInput);
+  const [occurredOn, setOccurredOn] = React.useState('');
   const [includeTime, setIncludeTime] = React.useState(false);
-  const [occurredTime, setOccurredTime] = React.useState(nowTimeInput);
+  const [occurredTime, setOccurredTime] = React.useState('12:00');
   const [description, setDescription] = React.useState('');
   const [tagsInput, setTagsInput] = React.useState('');
-  const [zoneId, setZoneId] = React.useState(paramZoneId);
+  const [zoneId, setZoneId] = React.useState('');
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
   const [formError, setFormError] = React.useState<string | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+  const [initialised, setInitialised] = React.useState(false);
 
-  const isTodo = type === 'todo';
-  const zoneIsLocked = !!paramZoneId;
+  // Pre-fill form once interaction is loaded
+  React.useEffect(() => {
+    if (!interaction || initialised) return;
+    setSubject(interaction.subject ?? '');
+    setType(interaction.type ?? 'note');
+    setStatus(interaction.status ?? 'pending');
+    if (interaction.occurred_at) {
+      setOccurredOn(isoToDate(interaction.occurred_at));
+      setOccurredTime(isoToTime(interaction.occurred_at));
+    }
+    setDescription(interaction.content ?? '');
+    setTagsInput((interaction.tags ?? []).join(', '));
+    setInitialised(true);
+  }, [interaction, initialised]);
 
   React.useEffect(() => {
     fetchZones()
       .then(setZones)
       .catch(() => {});
   }, []);
+
+  const isTodo = type === 'todo';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,17 +96,12 @@ export default function InteractionNewPage() {
       return;
     }
 
-    if (!zoneId) {
-      setFormError(t('interactions.error_zone_required'));
-      return;
-    }
-
     if (!occurredOn) {
       setFormError(t('interactions.error_invalid_date'));
       return;
     }
 
-    const resolvedTime = includeTime ? occurredTime || '12:00' : '12:00';
+    const resolvedTime = includeTime ? occurredTime || '12:00' : occurredTime || '12:00';
     const occurredAt = new Date(`${occurredOn}T${resolvedTime}`);
     if (Number.isNaN(occurredAt.getTime())) {
       setFormError(t('interactions.error_invalid_date'));
@@ -105,46 +114,49 @@ export default function InteractionNewPage() {
       .filter(Boolean);
 
     try {
-      const newInteraction = await createMutation.mutateAsync({
+      setSubmitting(true);
+      await updateInteraction(id ?? '', {
         subject: subject.trim(),
         content: description,
         type,
         status: isTodo ? status : null,
         occurred_at: occurredAt.toISOString(),
-        zone_ids: [zoneId],
+        zone_ids: zoneId ? [zoneId] : [],
         tags_input: tags,
-        project: paramProjectId || null,
-        ...(paramSourceInteractionId
-          ? { metadata: { source_interaction: paramSourceInteractionId } }
-          : {}),
       });
-
-      if (paramEquipmentId) {
-        await linkEquipmentInteraction(paramEquipmentId, newInteraction.id, {});
-        navigate(`/app/equipment/${paramEquipmentId}`);
-      } else if (paramProjectId) {
-        navigate(`/app/projects/${paramProjectId}`);
-      } else {
-        navigate('/app/interactions');
-      }
+      navigate(-1);
     } catch {
-      setFormError(t('interactions.error_create_failed'));
+      setFormError(t('interactions.update_failed'));
+    } finally {
+      setSubmitting(false);
     }
   }
 
-  const submitting = createMutation.isPending;
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error || !interaction) {
+    return (
+      <div className="mx-auto max-w-2xl rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {t('interactions.update_failed')}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title={t('interactions.new_title')}>
+      <PageHeader title={t('interactions.edit_title')}>
         <Button
           type="button"
           variant="outline"
-          onClick={() => {
-            if (paramEquipmentId) navigate(`/app/equipment/${paramEquipmentId}`);
-            else if (paramProjectId) navigate(`/app/projects/${paramProjectId}`);
-            else navigate('/app/interactions');
-          }}
+          onClick={() => navigate(-1)}
           disabled={submitting}
         >
           {t('common.cancel')}
@@ -249,30 +261,21 @@ export default function InteractionNewPage() {
         {/* Zone */}
         <div className="space-y-2">
           <label htmlFor="interaction-zone" className="text-sm font-medium">
-            {t('interactions.zone_label')} <span className="text-rose-500">*</span>
+            {t('interactions.zone_label')}
           </label>
-          {zoneIsLocked ? (
-            <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
-              {zones.find((z) => z.id === zoneId)?.full_path ??
-                zones.find((z) => z.id === zoneId)?.name ??
-                zoneId}
-            </div>
-          ) : (
-            <select
-              id="interaction-zone"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              required
-            >
-              <option value="">{t('interactions.zone_placeholder')}</option>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.full_path ?? z.name}
-                </option>
-              ))}
-            </select>
-          )}
+          <select
+            id="interaction-zone"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={zoneId}
+            onChange={(e) => setZoneId(e.target.value)}
+          >
+            <option value="">{t('interactions.zone_placeholder')}</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>
+                {z.full_path ?? z.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Description */}
@@ -315,17 +318,13 @@ export default function InteractionNewPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              if (paramEquipmentId) navigate(`/app/equipment/${paramEquipmentId}`);
-              else if (paramProjectId) navigate(`/app/projects/${paramProjectId}`);
-              else navigate('/app/interactions');
-            }}
+            onClick={() => navigate(-1)}
             disabled={submitting}
           >
             {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={submitting}>
-            {submitting ? t('interactions.creating') : t('interactions.submit_label')}
+            {submitting ? t('common.saving') : t('interactions.update_label')}
           </Button>
         </div>
       </form>

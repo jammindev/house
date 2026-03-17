@@ -3,6 +3,8 @@ import {
   fetchInteractions,
   createInteraction,
   deleteInteraction,
+  fetchInteraction,
+  updateInteraction,
   type CreateInteractionInput,
 } from '@/lib/api/interactions';
 
@@ -42,6 +44,23 @@ export function useDeleteInteraction() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteInteraction(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: interactionKeys.all }),
+  });
+}
+
+export function useInteraction(id: string) {
+  return useQuery({
+    queryKey: interactionKeys.detail(id),
+    queryFn: () => fetchInteraction(id),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateInteraction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateInteractionInput> }) =>
+      updateInteraction(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: interactionKeys.all }),
   });
 }

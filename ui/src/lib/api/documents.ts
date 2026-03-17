@@ -139,6 +139,14 @@ export async function deleteDocument(id: string): Promise<void> {
   await api.delete(`/documents/documents/${id}/`);
 }
 
+export async function fetchDocumentInteractions(documentId: string): Promise<LinkedInteractionSummary[]> {
+  const { data } = await api.get('/interactions/interaction-documents/', {
+    params: { document: documentId },
+  });
+  if (Array.isArray(data)) return data as LinkedInteractionSummary[];
+  return ((data as { results?: LinkedInteractionSummary[] }).results ?? []);
+}
+
 export function formatFileSize(bytes?: number | null): string {
   if (!bytes) return '';
   if (bytes < 1024) return `${bytes} B`;

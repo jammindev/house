@@ -8,6 +8,9 @@ import {
   type Zone,
   type ZonePayload,
 } from '@/lib/api/zones';
+import { fetchEquipmentList } from '@/lib/api/equipment';
+import { fetchInteractions } from '@/lib/api/interactions';
+import { fetchProjects } from '@/lib/api/projects';
 
 export const zoneKeys = {
   all: ['zones'] as const,
@@ -52,6 +55,49 @@ export function useDeleteZone() {
   return useMutation({
     mutationFn: (id: string) => deleteZone(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
+  });
+}
+
+// ── Zone-scoped data hooks ────────────────────────────────────────────────────
+
+export const zoneEquipmentKeys = {
+  byZone: (zoneId: string) => ['zones', 'equipment', zoneId] as const,
+};
+
+export const zoneInteractionKeys = {
+  tasks: (zoneId: string) => ['zones', 'tasks', zoneId] as const,
+  activity: (zoneId: string) => ['zones', 'activity', zoneId] as const,
+};
+
+export function useEquipmentByZone(zoneId: string) {
+  return useQuery({
+    queryKey: zoneEquipmentKeys.byZone(zoneId),
+    queryFn: () => fetchEquipmentList({ zone: zoneId }),
+    enabled: !!zoneId,
+  });
+}
+
+export function useZoneTasks(zoneId: string) {
+  return useQuery({
+    queryKey: zoneInteractionKeys.tasks(zoneId),
+    queryFn: () => fetchInteractions({ zone: zoneId, type: 'todo', status: 'pending', limit: 5 }),
+    enabled: !!zoneId,
+  });
+}
+
+export function useZoneActivity(zoneId: string) {
+  return useQuery({
+    queryKey: zoneInteractionKeys.activity(zoneId),
+    queryFn: () => fetchInteractions({ zone: zoneId, limit: 5 }),
+    enabled: !!zoneId,
+  });
+}
+
+export function useZoneProjects(zoneId: string) {
+  return useQuery({
+    queryKey: ['zones', zoneId, 'projects'],
+    queryFn: () => fetchProjects({ zone: zoneId, status: 'active' }),
+    enabled: !!zoneId,
   });
 }
 

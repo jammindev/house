@@ -1,21 +1,28 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
   CalendarClock,
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
   FileText,
   FolderKanban,
   ListTodo,
   Plus,
+  Receipt,
   Settings2,
   Sparkles,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 import { api } from '@/lib/axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
-import { buttonVariants } from '@/design-system/button';
+import { Button, buttonVariants } from '@/design-system/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { cn } from '@/lib/utils';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -217,10 +224,102 @@ function SectionItemContent({ item }: { item: SectionItem }) {
   );
 }
 
+// ── Type selector dialog ───────────────────────────────────────────────────────
+
+const PRIMARY_TYPES: Array<{ type: string; Icon: LucideIcon }> = [
+  { type: 'note', Icon: FileText },
+  { type: 'todo', Icon: CheckSquare },
+  { type: 'expense', Icon: Receipt },
+  { type: 'maintenance', Icon: Wrench },
+];
+
+const SECONDARY_TYPES = [
+  'repair',
+  'installation',
+  'inspection',
+  'warranty',
+  'issue',
+  'upgrade',
+  'replacement',
+  'disposal',
+];
+
+interface AddEventDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function AddEventDialog({ open, onOpenChange }: AddEventDialogProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [showMore, setShowMore] = React.useState(false);
+
+  function handleSelect(type: string) {
+    onOpenChange(false);
+    navigate(`/app/interactions/new?type=${type}`);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>{t('dashboard.select_type')}</DialogTitle>
+        </DialogHeader>
+
+        {/* Primary types */}
+        <div className="grid grid-cols-2 gap-2">
+          {PRIMARY_TYPES.map(({ type, Icon }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => handleSelect(type)}
+              className="flex flex-col items-center gap-2 rounded-xl border border-border/70 bg-muted/30 p-4 text-sm font-medium text-foreground transition-colors hover:border-border hover:bg-muted/60"
+            >
+              <Icon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              {t(`interactions.type.${type}`)}
+            </button>
+          ))}
+        </div>
+
+        {/* Secondary types (expandable) */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            className="flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            <span>{t('dashboard.more_types')}</span>
+            {showMore ? (
+              <ChevronUp className="h-3.5 w-3.5" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+            )}
+          </button>
+          {showMore ? (
+            <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+              {SECONDARY_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleSelect(type)}
+                  className="rounded-lg border border-border/50 bg-background px-3 py-2 text-left text-xs font-medium text-foreground/80 transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground"
+                >
+                  {t(`interactions.type.${type}`)}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { t } = useTranslation();
+  const [addEventOpen, setAddEventOpen] = React.useState(false);
 
   const { data: tasks = [], isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', 'dashboard'],
@@ -256,6 +355,20 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <AddEventDialog open={addEventOpen} onOpenChange={setAddEventOpen} />
+
+      {/* Add event CTA */}
+      <div>
+        <Button
+          onClick={() => setAddEventOpen(true)}
+          className="w-full sm:w-auto"
+          size="lg"
+        >
+          <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+          {t('dashboard.add_event')}
+        </Button>
+      </div>
+
       {/* Hero */}
       <section className="overflow-hidden rounded-[28px] border border-border/70 bg-[radial-gradient(circle_at_top_left,_rgba(125,211,252,0.28),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(110,231,183,0.20),_transparent_24%),linear-gradient(135deg,_rgba(255,255,255,0.96),_rgba(248,250,252,0.98))] p-6 shadow-sm dark:bg-[radial-gradient(circle_at_top_left,_rgba(56,189,248,0.12),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(52,211,153,0.09),_transparent_24%),linear-gradient(135deg,_rgba(15,23,42,0.98),_rgba(30,41,59,0.96))] sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
@@ -271,10 +384,6 @@ export default function DashboardPage() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <a href="/app/interactions/new" className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-              <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              {t('dashboard.actions.add')}
-            </a>
             <a href="/app/projects" className={buttonVariants({ variant: 'ghost', size: 'sm' })}>
               <FolderKanban className="mr-1.5 h-4 w-4" aria-hidden="true" />
               {t('dashboard.actions.newProject')}

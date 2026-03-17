@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { Pencil, Trash2, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

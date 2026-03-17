@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Camera, Download, ExternalLink, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {

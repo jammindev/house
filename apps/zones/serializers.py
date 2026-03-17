@@ -38,11 +38,15 @@ class ZoneSerializer(serializers.ModelSerializer):
                 target_household_id = self.instance.household_id
 
             if target_household_id is None and request is not None:
-                target_household_id = (
-                    request.data.get('household_id')
-                    or request.query_params.get('household_id')
-                    or request.headers.get('X-Household-Id')
-                )
+                household = getattr(request, 'household', None)
+                if household:
+                    target_household_id = household.id
+                else:
+                    target_household_id = (
+                        request.data.get('household_id')
+                        or request.query_params.get('household_id')
+                        or request.headers.get('X-Household-Id')
+                    )
 
             if target_household_id and str(data['parent'].household_id) != str(target_household_id):
                 raise serializers.ValidationError({

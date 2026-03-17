@@ -1,16 +1,17 @@
 import * as React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Layers, NotebookText } from 'lucide-react';
 import { Button } from '@/design-system/button';
-import { useZone, useZones, zoneKeys, buildZoneTree } from './hooks';
+import { useZone, useZones, zoneKeys, buildZoneTree, useEquipmentByZone, useZoneTasks, useZoneActivity, useZoneProjects } from './hooks';
 import ZoneDialog from './ZoneDialog';
 
 export default function ZoneDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = React.useState(false);
 
@@ -39,6 +40,14 @@ export default function ZoneDetailPage() {
   const parentId = zone?.parentId ?? zone?.parent ?? null;
 
   const { depthMap } = React.useMemo(() => buildZoneTree(allZones), [allZones]);
+
+  const { data: equipmentData = [] } = useEquipmentByZone(id ?? '');
+  const { data: tasksData } = useZoneTasks(id ?? '');
+  const { data: activityData } = useZoneActivity(id ?? '');
+  const { data: projectsData = [] } = useZoneProjects(id ?? '');
+
+  const zoneTasks = tasksData?.items ?? [];
+  const zoneActivity = (activityData?.items ?? []).filter((item) => item.type !== 'todo');
 
   if (!id) return null;
 
@@ -91,9 +100,25 @@ export default function ZoneDetailPage() {
               )}
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-            {t('zones.detail.edit')}
-          </Button>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/app/interactions/new?zone_id=${id}`)}
+            >
+              {t('zones.detail.add_activity')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate(`/app/interactions/new?type=todo&zone_id=${id}`)}
+            >
+              {t('zones.detail.add_task')}
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+              {t('zones.detail.edit')}
+            </Button>
+          </div>
         </div>
 
         {/* Info card */}
@@ -190,6 +215,113 @@ export default function ZoneDetailPage() {
             </ul>
           </section>
         ) : null}
+
+        {/* Equipment in this zone */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            {t('zones.detail.equipment_title')}
+          </h3>
+          {equipmentData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('zones.detail.equipment_empty')}</p>
+          ) : (
+            <ul className="space-y-1">
+              {equipmentData.map((eq) => (
+                <li key={eq.id}>
+                  <Link
+                    to={`/app/equipment/${eq.id}`}
+                    className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+                  >
+                    <span className="truncate">{eq.name}</span>
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                      {eq.status}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Open tasks */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            {t('zones.detail.tasks_title')}
+          </h3>
+          {zoneTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('zones.detail.tasks_empty')}</p>
+          ) : (
+            <ul className="space-y-1">
+              {zoneTasks.map((task) => (
+                <li
+                  key={task.id}
+                  className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm"
+                >
+                  <span className="truncate">{task.subject}</span>
+                  {task.status ? (
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {task.status}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Recent activity */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            {t('zones.detail.activities_title')}
+          </h3>
+          {zoneActivity.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('zones.detail.activities_empty')}</p>
+          ) : (
+            <ul className="space-y-1">
+              {zoneActivity.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate">{item.subject}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(item.occurred_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                    {item.type}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Active projects */}
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">
+            {t('zones.detail.projects_title')}
+          </h3>
+          {projectsData.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('zones.detail.projects_empty')}</p>
+          ) : (
+            <ul className="space-y-1">
+              {projectsData.map((project) => (
+                <li key={project.id}>
+                  <Link
+                    to={`/app/projects/${project.id}`}
+                    className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+                  >
+                    <span className="truncate">{project.title}</span>
+                    <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {project.status}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </section>
 
       <ZoneDialog

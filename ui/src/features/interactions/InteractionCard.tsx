@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2, ListTodo } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import type { InteractionListItem } from '@/lib/api/interactions';
@@ -21,6 +21,7 @@ function formatDate(value: string): string {
 
 export default function InteractionCard({ item, onDelete }: InteractionCardProps) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   const typeLabelKey = `equipment.interaction_type.${item.type}`;
   const statusLabelKey = item.status ? `equipment.interaction_status.${item.status}` : null;
@@ -70,10 +71,45 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
             </div>
           ) : null}
 
+          {item.project && item.project_title ? (
+            <div className="mt-1 text-xs text-muted-foreground">
+              <span>{t('interactions.project_label')}: </span>
+              <a
+                href={`/app/projects/${item.project}`}
+                className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                {item.project_title}
+              </a>
+            </div>
+          ) : null}
+
           <p className="mt-1 text-xs text-muted-foreground">{formatDate(item.occurred_at)}</p>
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-0.5">
+          {item.type !== 'todo' ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-slate-400 hover:text-foreground"
+              onClick={() => navigate(`/app/interactions/new?type=todo`)}
+              aria-label={t('interactions.createTask')}
+              title={t('interactions.createTask')}
+              type="button"
+            >
+              <ListTodo className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-slate-400 hover:text-foreground"
+            onClick={() => navigate(`/app/interactions/${item.id}/edit`)}
+            aria-label={t('common.edit')}
+            type="button"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"

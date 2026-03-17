@@ -1,10 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchDocuments,
+  fetchDocumentDetail,
+  fetchDocumentInteractions,
   uploadDocument,
   updateDocument,
   deleteDocument,
-  type DocumentItem,
   type DocumentFilters,
   type UploadDocumentInput,
 } from '@/lib/api/documents';
@@ -20,6 +21,22 @@ export function useDocuments(filters: DocumentFilters = {}) {
   return useQuery({
     queryKey: documentKeys.list(filters),
     queryFn: () => fetchDocuments(filters),
+  });
+}
+
+export function useDocument(id: string) {
+  return useQuery({
+    queryKey: documentKeys.detail(id),
+    queryFn: () => fetchDocumentDetail(id),
+    enabled: !!id,
+  });
+}
+
+export function useDocumentInteractions(id: string) {
+  return useQuery({
+    queryKey: [...documentKeys.detail(id), 'interactions'],
+    queryFn: () => fetchDocumentInteractions(id),
+    enabled: !!id,
   });
 }
 
