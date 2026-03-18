@@ -18,6 +18,8 @@ export interface Task {
   completed_by_name: string | null;
   completed_at: string | null;
   created_at: string;
+  created_by: number | null;
+  created_by_name: string | null;
   project: string | null;
   project_title?: string | null;
   zone_names: string[];
@@ -129,6 +131,8 @@ export async function updateTask(
     priority?: TaskPriority;
     assigned_to_id?: string | null;
     status?: TaskStatus;
+    project?: string | null;
+    is_private?: boolean;
   },
 ): Promise<Task> {
   const { data } = await api.patch(`/tasks/tasks/${id}/`, payload);
@@ -143,10 +147,22 @@ export async function createTask(
     due_date?: string | null;
     priority?: TaskPriority;
     assigned_to_id?: string | null;
+    status?: TaskStatus;
+    project?: string | null;
+    is_private?: boolean;
   },
 ): Promise<Task> {
   const { data } = await api.post('/tasks/tasks/', { status: 'pending', ...payload });
   return data as Task;
+}
+
+export async function fetchProjectTasks(projectId: string): Promise<Task[]> {
+  const { data } = await api.get('/tasks/tasks/', {
+    params: { project: projectId, limit: 200, ordering: 'due_date,created_at' },
+  });
+  return Array.isArray(data)
+    ? (data as Task[])
+    : ((data as { results?: Task[] }).results ?? []);
 }
 
 export async function deleteTask(id: string): Promise<void> {

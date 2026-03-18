@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CheckSquare } from 'lucide-react';
+import { CheckSquare, Lock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
@@ -15,6 +15,10 @@ import NewTaskDialog from './NewTaskDialog';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
+function sortByPriority(tasks: Task[]): Task[] {
+  return [...tasks].sort((a, b) => (a.priority ?? 99) - (b.priority ?? 99));
+}
+
 export default function TasksPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -22,6 +26,7 @@ export default function TasksPage() {
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = React.useState<FilterKey>('all');
+  const [showPrivateOnly, setShowPrivateOnly] = React.useState(false);
 
   const { data: tasks = [], isLoading, error } = useTasks();
   const { data: householdMembers = [] } = useHouseholdMembers();
@@ -58,11 +63,16 @@ export default function TasksPage() {
     [tasks, deleteWithUndo, qc],
   );
 
-  const overdueTasks = React.useMemo(() => tasks.filter(isTaskOverdue), [tasks]);
-  const inProgressTasks = React.useMemo(() => tasks.filter((t) => t.status === 'in_progress' && !isTaskOverdue(t)), [tasks]);
-  const pendingTasks = React.useMemo(() => tasks.filter((t) => t.status === 'pending' && !isTaskOverdue(t)), [tasks]);
-  const backlogTasks = React.useMemo(() => tasks.filter((t) => (t.status === 'backlog' || t.status === null) && !isTaskOverdue(t)), [tasks]);
-  const doneTasks = React.useMemo(() => tasks.filter((t) => t.status === 'done'), [tasks]);
+  const filteredTasks = React.useMemo(
+    () => (showPrivateOnly ? tasks.filter((t) => t.is_private) : tasks),
+    [tasks, showPrivateOnly],
+  );
+
+  const overdueTasks = React.useMemo(() => sortByPriority(filteredTasks.filter(isTaskOverdue)), [filteredTasks]);
+  const inProgressTasks = React.useMemo(() => sortByPriority(filteredTasks.filter((t) => t.status === 'in_progress' && !isTaskOverdue(t))), [filteredTasks]);
+  const pendingTasks = React.useMemo(() => sortByPriority(filteredTasks.filter((t) => t.status === 'pending' && !isTaskOverdue(t))), [filteredTasks]);
+  const backlogTasks = React.useMemo(() => sortByPriority(filteredTasks.filter((t) => (t.status === 'backlog' || t.status === null) && !isTaskOverdue(t))), [filteredTasks]);
+  const doneTasks = React.useMemo(() => filteredTasks.filter((t) => t.status === 'done'), [filteredTasks]);
 
   const FILTERS: { key: FilterKey; label: string }[] = [
     { key: 'all', label: t('tasks.filter.all') },
@@ -101,13 +111,29 @@ export default function TasksPage() {
           action: { label: t('tasks.new'), onClick: () => setNewTaskOpen(true) },
         }}
         actions={
-          <button
-            type="button"
-            onClick={() => setNewTaskOpen(true)}
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          >
-            {t('tasks.new')}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShowPrivateOnly((v) => !v)}
+              className={[
+                'inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors',
+                showPrivateOnly
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+              ].join(' ')}
+              title={t('tasks.filterPrivate', { defaultValue: 'My private tasks' })}
+            >
+              <Lock className="h-3.5 w-3.5" />
+              {t('tasks.filterPrivate', { defaultValue: 'Private' })}
+            </button>
+            <button
+              type="button"
+              onClick={() => setNewTaskOpen(true)}
+              className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+            >
+              {t('tasks.new')}
+            </button>
+          </div>
         }
       >
         <div className="space-y-4">

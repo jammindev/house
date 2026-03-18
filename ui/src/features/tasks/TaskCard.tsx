@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, FileText, Link, Pencil, RotateCcw, Trash2, User } from 'lucide-react';
+import { CheckCircle2, FileText, Link, Lock, Pencil, RotateCcw, Trash2, User } from 'lucide-react';
 import { Button } from '@/design-system/button';
+import { useAuth } from '@/lib/auth/context';
 import type { Task, TaskStatus } from '@/lib/api/tasks';
 import { nextStatus, prevStatus, isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
 
@@ -21,6 +22,7 @@ export default function TaskCard({
   interactionsBaseUrl = '/app/interactions/',
 }: TaskCardProps) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [moving, setMoving] = React.useState(false);
 
   const overdue = isTaskOverdue(task);
@@ -31,6 +33,11 @@ export default function TaskCard({
   const zoneName = task.zone_names?.[0];
   const canGoBack = task.status === 'done';
   const isHighPriority = task.priority === 1;
+  const isCreator = user != null && String(task.created_by) === String(user.id);
+
+  const completedAtFormatted = task.completed_at
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(task.completed_at))
+    : null;
 
   const handleAdvance = async () => {
     const newStatus = nextStatus(task.status);
@@ -107,6 +114,14 @@ export default function TaskCard({
           {isDone && task.completed_by_name ? (
             <div className="mt-1 text-[11px] text-emerald-600">
               {t('tasks.completedBy', { name: task.completed_by_name, defaultValue: `Done by ${task.completed_by_name}` })}
+              {completedAtFormatted ? ` · ${completedAtFormatted}` : null}
+            </div>
+          ) : null}
+
+          {task.is_private ? (
+            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-400">
+              <Lock className="h-3 w-3" />
+              <span>{t('tasks.private', { defaultValue: 'Private' })}</span>
             </div>
           ) : null}
 
@@ -158,16 +173,18 @@ export default function TaskCard({
             </Button>
           ) : null}
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(task.id)}
-            aria-label={t('tasks.deleteTask')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          {isCreator ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-slate-400 hover:text-rose-500"
+              onClick={() => onDelete(task.id)}
+              aria-label={t('tasks.deleteTask')}
+              type="button"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          ) : null}
 
           <Button
             variant="ghost"

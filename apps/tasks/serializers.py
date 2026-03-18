@@ -15,6 +15,7 @@ class TaskSerializer(serializers.ModelSerializer):
     zone_names = serializers.SerializerMethodField()
     assigned_to_name = serializers.SerializerMethodField()
     completed_by_name = serializers.SerializerMethodField()
+    created_by_name = serializers.SerializerMethodField()
 
     # Write-only inputs
     zone_ids = serializers.ListField(
@@ -38,7 +39,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'project', 'project_title',
             'zone_ids', 'zone_names',
             'source_interaction',
-            'created_at', 'updated_at', 'created_by',
+            'created_at', 'updated_at', 'created_by', 'created_by_name',
         ]
         read_only_fields = [
             'id', 'household', 'assigned_to', 'completed_by', 'completed_at',
@@ -56,6 +57,9 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def get_completed_by_name(self, obj):
         return obj.completed_by.full_name if obj.completed_by_id and obj.completed_by else None
+
+    def get_created_by_name(self, obj):
+        return obj.created_by.full_name if obj.created_by_id and obj.created_by else None
 
     def validate_assigned_to_id(self, value):
         if value is None:

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  fetchTasks, fetchHouseholdMembers, fetchZones,
+  fetchTasks, fetchHouseholdMembers, fetchZones, fetchProjectTasks,
   updateTaskStatus, updateTask, createTask, deleteTask,
   type Task, type TaskStatus,
 } from '@/lib/api/tasks';
@@ -74,5 +74,14 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: deleteTask,
     onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+  });
+}
+
+export function useProjectTasks(projectId: string) {
+  return useQuery({
+    queryKey: [...taskKeys.all, 'project', projectId] as const,
+    queryFn: () => fetchProjectTasks(projectId),
+    enabled: Boolean(projectId),
+    select: (data) => data.filter((t) => t.status !== 'archived'),
   });
 }

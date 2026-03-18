@@ -5,10 +5,23 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { fetchProjects } from '@/lib/api/projects';
+import type { ProjectListItem } from '@/lib/api/projects';
 import {
   createTask, fetchZones, updateTask,
-  type Zone, type Task, type HouseholdMember, type TaskPriority,
+  type Zone, type Task, type HouseholdMember, type TaskPriority, type TaskStatus,
 } from '@/lib/api/tasks';
+
+const PRIORITY_OPTIONS = [
+  { value: '1', label: 'Haute' },
+  { value: '2', label: 'Normale' },
+  { value: '3', label: 'Basse' },
+];
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'À faire' },
+  { value: 'backlog', label: 'Backlog' },
+];
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -17,6 +30,8 @@ interface NewTaskDialogProps {
   existingTask?: Task;
   onUpdated?: (task: Task) => void;
   householdMembers?: HouseholdMember[];
+  /** Pre-fill project when opening from a project page */
+  defaultProjectId?: string;
 }
 
 export default function NewTaskDialog({
@@ -26,6 +41,7 @@ export default function NewTaskDialog({
   existingTask,
   onUpdated,
   householdMembers = [],
+  defaultProjectId,
 }: NewTaskDialogProps) {
   const { t } = useTranslation();
   const isEditing = Boolean(existingTask);
@@ -40,18 +56,23 @@ export default function NewTaskDialog({
   const [content, setContent] = React.useState('');
   const [dueDate, setDueDate] = React.useState('');
   const [priority, setPriority] = React.useState<string>('2');
+  const [status, setStatus] = React.useState<string>('pending');
   const [assignedToId, setAssignedToId] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
+  const [projectId, setProjectId] = React.useState('');
+  const [isPrivate, setIsPrivate] = React.useState(false);
   const [zones, setZones] = React.useState<Zone[]>([]);
+  const [projects, setProjects] = React.useState<ProjectListItem[]>([]);
   const [zonesLoading, setZonesLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const loadZones = React.useCallback(() => {
     setZonesLoading(true);
-    fetchZones()
-      .then((list) => {
-        setZones(list);
+    Promise.all([fetchZones(), fetchProjects()])
+      .then(([zoneList, projectList]) => {
+        setZones(zoneList);
+        setProjects(projectList);
         setZonesLoading(false);
       })
       .catch(() => setZonesLoading(false));
@@ -65,13 +86,18 @@ export default function NewTaskDialog({
       setDueDate(existingTask.due_date ?? '');
       setPriority(String(existingTask.priority ?? 2));
       setAssignedToId(existingTask.assigned_to ?? '');
+      setProjectId(existingTask.project ?? defaultProjectId ?? '');
+      setIsPrivate(existingTask.is_private ?? false);
     } else {
       setSubject('');
       setContent('');
       setDueDate('');
       setPriority('2');
+      setStatus('pending');
       setAssignedToId('');
       setZoneId('');
+      setProjectId(defaultProjectId ?? '');
+      setIsPrivate(false);
     }
     setError(null);
     loadZones();
@@ -103,6 +129,8 @@ export default function NewTaskDialog({
       due_date: dueDate || null,
       priority: (Number(priority) || null) as TaskPriority,
       assigned_to_id: assignedToId || null,
+      project: projectId || null,
+      is_private: isPrivate,
     };
 
     if (isEditing && existingTask) {
@@ -117,7 +145,7 @@ export default function NewTaskDialog({
           setError(t('tasks.updateFailed'));
         });
     } else {
-      createTask(payload)
+      createTask({ ...payload, status: status as TaskStatus })
         .then(() => {
           setLoading(false);
           onOpenChange(false);
@@ -132,6 +160,7 @@ export default function NewTaskDialog({
 
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
   const memberOptions = householdMembers.map((m) => ({ value: m.userId, label: m.name }));
+  const projectOptions = projects.map((p) => ({ value: p.id, label: p.title }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,21 +236,50 @@ export default function NewTaskDialog({
               />
             </div>
 
-            {memberOptions.length > 0 && (
+            {!isEditing && (
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
-                  {t('tasks.fieldAssignedTo')}
+                <label className="text-sm font-medium text-gray-700" htmlFor="task-status">
+                  {t('tasks.fieldStatus', { defaultValue: 'Status' })}
                 </label>
                 <Select
-                  id="task-assigned"
-                  value={assignedToId}
-                  onChange={(e) => setAssignedToId(e.target.value)}
-                  options={memberOptions}
-                  placeholder={t('tasks.noAssignee')}
+                  id="task-status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  options={STATUS_OPTIONS}
                 />
               </div>
             )}
           </div>
+
+          {memberOptions.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
+                {t('tasks.fieldAssignedTo', { defaultValue: 'Assign to' })}
+              </label>
+              <Select
+                id="task-assigned"
+                value={assignedToId}
+                onChange={(e) => setAssignedToId(e.target.value)}
+                options={memberOptions}
+                placeholder={t('tasks.noAssignee', { defaultValue: 'No assignee' })}
+              />
+            </div>
+          )}
+
+          {projectOptions.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-gray-700" htmlFor="task-project">
+                {t('tasks.fieldProject', { defaultValue: 'Project' })}
+              </label>
+              <Select
+                id="task-project"
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                options={projectOptions}
+                placeholder={t('tasks.noProject', { defaultValue: 'No project' })}
+              />
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700" htmlFor="task-content">
@@ -234,6 +292,19 @@ export default function NewTaskDialog({
               rows={3}
               placeholder={t('tasks.fieldContentPlaceholder')}
             />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="task-private"
+              type="checkbox"
+              checked={isPrivate}
+              onChange={(e) => setIsPrivate(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <label className="text-sm text-gray-700" htmlFor="task-private">
+              {t('tasks.fieldPrivate', { defaultValue: 'Private task (visible only to me)' })}
+            </label>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

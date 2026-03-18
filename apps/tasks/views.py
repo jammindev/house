@@ -3,7 +3,7 @@ Task REST API views.
 """
 from django.utils import timezone
 from rest_framework import viewsets, filters
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -95,3 +95,10 @@ class TaskViewSet(viewsets.ModelViewSet):
             kwargs['completed_by'] = None
 
         serializer.save(**kwargs)
+
+    def perform_destroy(self, instance):
+        if instance.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the creator can delete this task.")
+        instance.status = Task.Status.ARCHIVED
+        instance.updated_by = self.request.user
+        instance.save(update_fields=['status', 'updated_by'])
