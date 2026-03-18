@@ -14,6 +14,7 @@ import {
   equipmentKeys,
 } from './hooks';
 import EquipmentDialog from './EquipmentDialog';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -81,6 +82,8 @@ export default function EquipmentDetailPage() {
     setEditOpen(false);
   }, [qc]);
 
+  const showSkeleton = useDelayedLoading(isLoading && !equipment);
+
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
@@ -90,7 +93,7 @@ export default function EquipmentDetailPage() {
 
   if (!id) return null;
 
-  if (isLoading && !equipment) {
+  if (showSkeleton) {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
@@ -99,6 +102,7 @@ export default function EquipmentDetailPage() {
       </div>
     );
   }
+  if (isLoading && !equipment) return null;
 
   if (error || !equipment) {
     return (

@@ -10,6 +10,7 @@ import {
   useUsagePoints,
   useLinks,
 } from './hooks';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Board selector ─────────────────────────────────────────────────────────────
 
@@ -67,6 +68,7 @@ export default function ElectricityPage() {
   const isLoading =
     boardsLoading ||
     (Boolean(selectedBoardId) && (breakersLoading || circuitsLoading || usageLoading || linksLoading));
+  const showSkeleton = useDelayedLoading(isLoading);
 
   const selectedBoard = React.useMemo(
     () => boards.find((b) => b.id === selectedBoardId) ?? null,
@@ -128,7 +130,7 @@ export default function ElectricityPage() {
     );
   }
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
@@ -137,6 +139,7 @@ export default function ElectricityPage() {
       </div>
     );
   }
+  if (isLoading) return null;
 
   return (
     <>

@@ -24,6 +24,7 @@ import { Badge } from '@/design-system/badge';
 import { Button, buttonVariants } from '@/design-system/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { cn } from '@/lib/utils';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -106,6 +107,7 @@ interface SummaryCardProps {
 
 function SummaryCard({ label, value, helper, href, icon, tone, isLoading }: SummaryCardProps) {
   const Icon = ICONS[icon] ?? Sparkles;
+  const showSkeleton = useDelayedLoading(isLoading);
   return (
     <a href={href} className="block">
       <Card className="h-full overflow-hidden border-border/70 bg-card/95 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md">
@@ -118,7 +120,7 @@ function SummaryCard({ label, value, helper, href, icon, tone, isLoading }: Summ
           </div>
           <CardDescription>{label}</CardDescription>
           <CardTitle className="text-3xl font-semibold tracking-tight">
-            {isLoading ? <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-100" /> : value}
+            {showSkeleton ? <span className="inline-block h-8 w-12 animate-pulse rounded bg-slate-100" /> : value}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -151,6 +153,7 @@ interface SectionPanelProps {
 
 function SectionPanel({ id, title, description, href, hrefLabel, icon, emptyMessage, items, isLoading }: SectionPanelProps) {
   const Icon = ICONS[icon] ?? Sparkles;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <Card className={cn('border-border/70 bg-card/95', SECTION_LAYOUT[id] ?? 'xl:col-span-4')}>
@@ -171,7 +174,7 @@ function SectionPanel({ id, title, description, href, hrefLabel, icon, emptyMess
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-14 animate-pulse rounded-2xl bg-slate-100" />

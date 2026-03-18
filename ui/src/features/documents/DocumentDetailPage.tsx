@@ -10,6 +10,7 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatFileSize } from '@/lib/api/documents';
 import { useDocument, useDocumentInteractions, useDeleteDocument, documentKeys } from './hooks';
 import DocumentEditDialog from './DocumentEditDialog';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 function formatDate(value?: string | null): string {
   if (!value) return '—';
@@ -35,6 +36,8 @@ export default function DocumentDetailPage() {
     qc.invalidateQueries({ queryKey: documentKeys.all });
   }, [qc]);
 
+  const showSkeleton = useDelayedLoading(isLoading);
+
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
@@ -42,7 +45,7 @@ export default function DocumentDetailPage() {
     });
   }
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
@@ -51,6 +54,7 @@ export default function DocumentDetailPage() {
       </div>
     );
   }
+  if (isLoading) return null;
 
   if (error || !doc) {
     return (

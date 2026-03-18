@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { DOCUMENT_TYPES, type DocumentItem } from '@/lib/api/documents';
 import { useDocuments, useDeleteDocument, documentKeys } from './hooks';
 import DocumentCard from './DocumentCard';
@@ -74,6 +75,7 @@ export default function DocumentsPage() {
   ];
 
   const isEmpty = !isLoading && !error && documents.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <>
@@ -135,7 +137,7 @@ export default function DocumentsPage() {
             </div>
           ) : null}
 
-          {isLoading ? (
+          {showSkeleton ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

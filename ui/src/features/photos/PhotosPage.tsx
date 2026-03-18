@@ -8,6 +8,7 @@ import type { DocumentItem } from '@/lib/api/documents';
 import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
 import PhotoGrid from './PhotoGrid';
 import PhotoDetailPanel from './PhotoDetailPanel';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 export default function PhotosPage() {
   const { t } = useTranslation();
@@ -35,6 +36,7 @@ export default function PhotosPage() {
   );
 
   const isEmpty = !isLoading && !error && photos.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <>
@@ -74,7 +76,7 @@ export default function PhotosPage() {
           </div>
         ) : null}
 
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="aspect-square animate-pulse rounded-md bg-slate-100" />

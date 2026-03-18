@@ -16,6 +16,7 @@ import {
   projectKeys,
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
 
@@ -240,6 +241,8 @@ export default function ProjectDetailPage() {
     qc.invalidateQueries({ queryKey: projectKeys.all });
   }, [qc]);
 
+  const showSkeleton = useDelayedLoading(isLoading);
+
   function handleDelete() {
     if (!id) return;
     deleteProjectMutation.mutate(id, {
@@ -247,7 +250,7 @@ export default function ProjectDetailPage() {
     });
   }
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
@@ -256,6 +259,7 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
+  if (isLoading) return null;
 
   if (error || !project) {
     return (

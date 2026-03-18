@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { InteractionListItem } from '@/lib/api/interactions';
 import { useInteractions, useDeleteInteraction, interactionKeys } from './hooks';
 import InteractionCard from './InteractionCard';
@@ -84,6 +85,7 @@ export default function InteractionsPage() {
   }
 
   const isEmpty = !isLoading && !error && items.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <ListPage
@@ -164,7 +166,7 @@ export default function InteractionsPage() {
           </div>
         ) : null}
 
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

@@ -6,6 +6,7 @@ import { Layers, NotebookText } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { useZone, useZones, zoneKeys, buildZoneTree, useEquipmentByZone, useZoneTasks, useZoneActivity, useZoneProjects } from './hooks';
 import ZoneDialog from './ZoneDialog';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 export default function ZoneDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -48,10 +49,11 @@ export default function ZoneDetailPage() {
 
   const zoneTasks = tasksData?.items ?? [];
   const zoneActivity = (activityData?.items ?? []).filter((item) => item.type !== 'todo');
+  const showSkeleton = useDelayedLoading(isLoading && !zone);
 
   if (!id) return null;
 
-  if (isLoading && !zone) {
+  if (showSkeleton) {
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
@@ -60,6 +62,7 @@ export default function ZoneDetailPage() {
       </div>
     );
   }
+  if (isLoading && !zone) return null;
 
   if (error || !zone) {
     return (

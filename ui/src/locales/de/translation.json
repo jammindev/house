@@ -294,22 +294,27 @@
   "tasks": {
     "app_title": "Aufgaben-App",
     "section_label": "Django App Knoten: {{section}}",
-    "pageTitle": "Aufgaben",
-    "addTask": "Aufgabe hinzufügen",
+    "title": "Aufgaben",
     "newTask": "Neue Aufgabe",
+    "new": "Neue Aufgabe",
     "editTitle": "Aufgabe bearbeiten",
     "loadFailed": "Aufgaben konnten nicht geladen werden.",
+    "deleted": "Aufgabe gelöscht",
     "count": "{{count}} Aufgabe",
     "count_other": "{{count}} Aufgaben",
     "untitledTask": "Unbenannte Aufgabe",
-    "noDate": "Kein Datum",
     "noZone": "Keine Zone",
     "empty": "Keine Aufgaben.",
+    "empty_description": "Erstellen Sie Ihre erste Aufgabe, um loszulegen.",
     "overdueBadge": "Überfällig",
+    "priorityHigh": "Hohe Priorität",
+    "completedBy": "Erledigt von {{name}}",
     "sourceEvent": "Ereignis",
     "sourceDocumentLink": "Dokument",
     "advanceStatus": "Status voranbringen",
+    "revertStatus": "Status zurücksetzen",
     "editTask": "Bearbeiten",
+    "deleteTask": "Löschen",
     "zoneRequired": "Bitte eine Zone auswählen.",
     "createFailed": "Aufgabe konnte nicht erstellt werden.",
     "updateFailed": "Aufgabe konnte nicht aktualisiert werden.",
@@ -319,6 +324,12 @@
     "loadingZones": "Zonen werden geladen…",
     "selectZone": "Zone auswählen",
     "fieldDate": "Fälligkeitsdatum",
+    "fieldPriority": "Priorität",
+    "priorityHigh_label": "Hoch",
+    "priorityNormal_label": "Normal",
+    "priorityLow_label": "Niedrig",
+    "fieldAssignedTo": "Zuweisen an",
+    "noAssignee": "Nicht zugewiesen",
     "fieldContent": "Notizen",
     "fieldContentPlaceholder": "Optionale Notizen…",
     "sections": {
@@ -334,29 +345,7 @@
       "in_progress": "In Bearbeitung",
       "backlog": "Rückstand",
       "done": "Erledigt"
-    },
-    "statusLabels": {
-      "backlog": "Rückstand",
-      "pending": "Ausstehend",
-      "in_progress": "In Bearbeitung",
-      "done": "Erledigt"
-    },
-    "columns": {
-      "backlog": {
-        "title": "Rückstand"
-      },
-      "pending": {
-        "title": "Ausstehend"
-      },
-      "in_progress": {
-        "title": "In Bearbeitung"
-      },
-      "done": {
-        "title": "Erledigt"
-      }
-    },
-    "movePrev": "In vorherige Spalte verschieben",
-    "moveNext": "In nächste Spalte verschieben"
+    }
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",

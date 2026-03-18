@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { EquipmentListItem } from '@/lib/api/equipment';
 import { useEquipmentList, useDeleteEquipment, useZones, equipmentKeys } from './hooks';
 import EquipmentCard from './EquipmentCard';
@@ -71,6 +72,7 @@ export default function EquipmentPage() {
   }
 
   const isEmpty = !isLoading && !error && items.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <>
@@ -149,7 +151,7 @@ export default function EquipmentPage() {
             </div>
           ) : null}
 
-          {isLoading ? (
+          {showSkeleton ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

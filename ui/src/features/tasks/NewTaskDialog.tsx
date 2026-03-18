@@ -10,12 +10,6 @@ import {
   type Zone, type Task, type HouseholdMember, type TaskPriority,
 } from '@/lib/api/tasks';
 
-const PRIORITY_OPTIONS = [
-  { value: '1', label: 'Haute' },
-  { value: '2', label: 'Normale' },
-  { value: '3', label: 'Basse' },
-];
-
 interface NewTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -35,6 +29,12 @@ export default function NewTaskDialog({
 }: NewTaskDialogProps) {
   const { t } = useTranslation();
   const isEditing = Boolean(existingTask);
+
+  const priorityOptions = [
+    { value: '1', label: t('tasks.priorityHigh_label') },
+    { value: '2', label: t('tasks.priorityNormal_label') },
+    { value: '3', label: t('tasks.priorityLow_label') },
+  ];
 
   const [subject, setSubject] = React.useState('');
   const [content, setContent] = React.useState('');
@@ -90,7 +90,7 @@ export default function NewTaskDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!zoneId) {
-      setError(t('tasks.zoneRequired', { defaultValue: 'Please select a zone.' }));
+      setError(t('tasks.zoneRequired'));
       return;
     }
     setLoading(true);
@@ -114,7 +114,7 @@ export default function NewTaskDialog({
         })
         .catch(() => {
           setLoading(false);
-          setError(t('tasks.updateFailed', { defaultValue: 'Failed to update task.' }));
+          setError(t('tasks.updateFailed'));
         });
     } else {
       createTask(payload)
@@ -125,7 +125,7 @@ export default function NewTaskDialog({
         })
         .catch(() => {
           setLoading(false);
-          setError(t('tasks.createFailed', { defaultValue: 'Failed to create task.' }));
+          setError(t('tasks.createFailed'));
         });
     }
   };
@@ -138,9 +138,7 @@ export default function NewTaskDialog({
       <DialogContent className="max-w-md" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>
-            {isEditing
-              ? t('tasks.editTitle', { defaultValue: 'Edit task' })
-              : t('tasks.newTask', { defaultValue: 'New task' })}
+            {isEditing ? t('tasks.editTitle') : t('tasks.newTask')}
           </DialogTitle>
         </DialogHeader>
 
@@ -151,7 +149,7 @@ export default function NewTaskDialog({
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700" htmlFor="task-subject">
-              {t('tasks.fieldSubject', { defaultValue: 'Subject' })}
+              {t('tasks.fieldSubject')}
             </label>
             <Input
               id="task-subject"
@@ -160,14 +158,14 @@ export default function NewTaskDialog({
               onChange={(e) => setSubject(e.target.value)}
               required
               autoComplete="off"
-              placeholder={t('tasks.fieldSubjectPlaceholder', { defaultValue: 'Task title…' })}
+              placeholder={t('tasks.fieldSubjectPlaceholder')}
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="task-zone">
-                {t('tasks.fieldZone', { defaultValue: 'Zone' })}
+                {t('tasks.fieldZone')}
               </label>
               <Select
                 id="task-zone"
@@ -176,8 +174,8 @@ export default function NewTaskDialog({
                 options={zoneOptions}
                 placeholder={
                   zonesLoading
-                    ? t('tasks.loadingZones', { defaultValue: 'Loading…' })
-                    : t('tasks.selectZone', { defaultValue: 'Select a zone' })
+                    ? t('tasks.loadingZones')
+                    : t('tasks.selectZone')
                 }
                 required
               />
@@ -185,13 +183,13 @@ export default function NewTaskDialog({
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="task-priority">
-                {t('tasks.fieldPriority', { defaultValue: 'Priority' })}
+                {t('tasks.fieldPriority')}
               </label>
               <Select
                 id="task-priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                options={PRIORITY_OPTIONS}
+                options={priorityOptions}
               />
             </div>
           </div>
@@ -199,7 +197,7 @@ export default function NewTaskDialog({
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="task-date">
-                {t('tasks.fieldDate', { defaultValue: 'Due date' })}
+                {t('tasks.fieldDate')}
               </label>
               <Input
                 id="task-date"
@@ -212,14 +210,14 @@ export default function NewTaskDialog({
             {memberOptions.length > 0 && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
-                  {t('tasks.fieldAssignedTo', { defaultValue: 'Assign to' })}
+                  {t('tasks.fieldAssignedTo')}
                 </label>
                 <Select
                   id="task-assigned"
                   value={assignedToId}
                   onChange={(e) => setAssignedToId(e.target.value)}
                   options={memberOptions}
-                  placeholder={t('tasks.noAssignee', { defaultValue: 'No assignee' })}
+                  placeholder={t('tasks.noAssignee')}
                 />
               </div>
             )}
@@ -227,14 +225,14 @@ export default function NewTaskDialog({
 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700" htmlFor="task-content">
-              {t('tasks.fieldContent', { defaultValue: 'Notes' })}
+              {t('tasks.fieldContent')}
             </label>
             <Textarea
               id="task-content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               rows={3}
-              placeholder={t('tasks.fieldContentPlaceholder', { defaultValue: 'Optional notes…' })}
+              placeholder={t('tasks.fieldContentPlaceholder')}
             />
           </div>
 
@@ -245,12 +243,10 @@ export default function NewTaskDialog({
               onClick={() => onOpenChange(false)}
               disabled={loading}
             >
-              {t('common.cancel', { defaultValue: 'Cancel' })}
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={loading || zonesLoading}>
-              {loading
-                ? t('common.saving', { defaultValue: 'Saving…' })
-                : t('common.save', { defaultValue: 'Save' })}
+              {loading ? t('common.saving') : t('common.save')}
             </Button>
           </div>
         </form>

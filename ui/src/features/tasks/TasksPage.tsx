@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import ListPage from '@/components/ListPage';
 import {
   useTasks, useHouseholdMembers, useUpdateTaskStatus, useDeleteTask,
@@ -86,6 +87,7 @@ export default function TasksPage() {
   }, [activeFilter, overdueTasks, inProgressTasks, pendingTasks, backlogTasks, doneTasks]);
 
   const isEmpty = !isLoading && !error && tasks.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <>
@@ -140,7 +142,7 @@ export default function TasksPage() {
             </div>
           ) : null}
 
-          {isLoading ? (
+          {showSkeleton ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

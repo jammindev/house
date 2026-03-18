@@ -6,6 +6,7 @@ import ListPage from '@/components/ListPage';
 import { FilterBar } from '@/design-system/filter-bar';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { ProjectListItem, ProjectGroupItem } from '@/lib/api/projects';
 import {
   useProjects,
@@ -122,6 +123,8 @@ export default function ProjectsPage() {
   const hasActiveFilters = !!(search || status || type);
   const isProjectsEmpty = !projectsLoading && !projectsError && sortedProjects.length === 0;
   const isGroupsEmpty = !groupsLoading && !groupsError && groups.length === 0;
+  const showProjectsSkeleton = useDelayedLoading(projectsLoading);
+  const showGroupsSkeleton = useDelayedLoading(groupsLoading);
 
   const TABS: { key: TabKey; label: string }[] = [
     { key: 'projects', label: t('projects.title') },
@@ -231,7 +234,7 @@ export default function ProjectsPage() {
                 </div>
               ) : null}
 
-              {projectsLoading ? (
+              {showProjectsSkeleton ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
@@ -307,7 +310,7 @@ export default function ProjectsPage() {
                 </div>
               ) : null}
 
-              {groupsLoading ? (
+              {showGroupsSkeleton ? (
                 <div className="space-y-2">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

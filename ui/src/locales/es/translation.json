@@ -294,22 +294,27 @@
   "tasks": {
     "app_title": "Mini-app de tareas",
     "section_label": "Nodo Django: {{section}}",
-    "pageTitle": "Tareas",
-    "addTask": "Añadir tarea",
+    "title": "Tareas",
     "newTask": "Nueva tarea",
+    "new": "Nueva tarea",
     "editTitle": "Editar tarea",
     "loadFailed": "Error al cargar las tareas.",
+    "deleted": "Tarea eliminada",
     "count": "{{count}} tarea",
     "count_other": "{{count}} tareas",
     "untitledTask": "Tarea sin título",
-    "noDate": "Sin fecha",
     "noZone": "Sin zona",
     "empty": "No hay tareas.",
+    "empty_description": "Crea tu primera tarea para empezar.",
     "overdueBadge": "Vencida",
+    "priorityHigh": "Alta prioridad",
+    "completedBy": "Hecho por {{name}}",
     "sourceEvent": "Evento",
     "sourceDocumentLink": "Documento",
     "advanceStatus": "Avanzar estado",
+    "revertStatus": "Revertir estado",
     "editTask": "Editar",
+    "deleteTask": "Eliminar",
     "zoneRequired": "Por favor selecciona una zona.",
     "createFailed": "Error al crear la tarea.",
     "updateFailed": "Error al actualizar la tarea.",
@@ -319,6 +324,12 @@
     "loadingZones": "Cargando zonas…",
     "selectZone": "Seleccionar zona",
     "fieldDate": "Fecha límite",
+    "fieldPriority": "Prioridad",
+    "priorityHigh_label": "Alta",
+    "priorityNormal_label": "Normal",
+    "priorityLow_label": "Baja",
+    "fieldAssignedTo": "Asignar a",
+    "noAssignee": "Sin asignar",
     "fieldContent": "Notas",
     "fieldContentPlaceholder": "Notas opcionales…",
     "sections": {
@@ -334,29 +345,7 @@
       "in_progress": "En curso",
       "backlog": "Backlog",
       "done": "Hecho"
-    },
-    "statusLabels": {
-      "backlog": "Backlog",
-      "pending": "Pendiente",
-      "in_progress": "En curso",
-      "done": "Hecho"
-    },
-    "columns": {
-      "backlog": {
-        "title": "Backlog"
-      },
-      "pending": {
-        "title": "Pendiente"
-      },
-      "in_progress": {
-        "title": "En curso"
-      },
-      "done": {
-        "title": "Hecho"
-      }
-    },
-    "movePrev": "Mover a la columna anterior",
-    "moveNext": "Mover a la columna siguiente"
+    }
   },
   "settings": {
     "app_title": "Mini-app Configuración",

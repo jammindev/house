@@ -6,6 +6,7 @@ import ListPage from '@/components/ListPage';
 import { useZones, zoneKeys, buildZoneTree } from './hooks';
 import ZoneItem from './ZoneItem';
 import ZoneDialog from './ZoneDialog';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 export default function ZonesPage() {
   const { t } = useTranslation();
@@ -25,6 +26,7 @@ export default function ZonesPage() {
   );
 
   const isEmpty = !isLoading && !error && zones.length === 0;
+  const showSkeleton = useDelayedLoading(isLoading);
 
   return (
     <>
@@ -60,7 +62,7 @@ export default function ZonesPage() {
           </div>
         ) : null}
 
-        {isLoading ? (
+        {showSkeleton ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />

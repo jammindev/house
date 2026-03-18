@@ -9,6 +9,7 @@ import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { updateInteraction } from '@/lib/api/interactions';
 import { useInteraction } from './hooks';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 const TYPE_OPTIONS = [
   'note',
@@ -63,6 +64,7 @@ export default function InteractionEditPage() {
   const [formError, setFormError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [initialised, setInitialised] = React.useState(false);
+  const showSkeleton = useDelayedLoading(isLoading);
 
   // Pre-fill form once interaction is loaded
   React.useEffect(() => {
@@ -132,7 +134,7 @@ export default function InteractionEditPage() {
     }
   }
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
       <div className="mx-auto max-w-2xl space-y-2">
         {[1, 2, 3].map((i) => (
@@ -141,6 +143,7 @@ export default function InteractionEditPage() {
       </div>
     );
   }
+  if (isLoading) return null;
 
   if (error || !interaction) {
     return (
