@@ -5,6 +5,7 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import type { EquipmentListItem, EquipmentPayload } from '@/lib/api/equipment';
 import { useCreateEquipment, useUpdateEquipment, useZones } from './hooks';
 
@@ -188,10 +189,7 @@ export default function EquipmentDialog({
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
           {/* Row 1: name, category */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="eq-name" className="text-sm font-medium">
-                {t('equipment.form.fields.name')}
-              </label>
+            <FormField label={t('equipment.form.fields.name')} htmlFor="eq-name">
               <Input
                 id="eq-name"
                 value={form.name}
@@ -199,25 +197,19 @@ export default function EquipmentDialog({
                 required
                 autoComplete="off"
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-category" className="text-sm font-medium">
-                {t('equipment.form.fields.category')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.category')} htmlFor="eq-category">
               <Input
                 id="eq-category"
                 value={form.category}
                 onChange={(e) => updateField('category', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Row 2: status, zone */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="eq-status" className="text-sm font-medium">
-                {t('equipment.form.fields.status')}
-              </label>
+            <FormField label={t('equipment.form.fields.status')} htmlFor="eq-status">
               <Select
                 id="eq-status"
                 value={form.status}
@@ -229,11 +221,8 @@ export default function EquipmentDialog({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-zone" className="text-sm font-medium">
-                {t('equipment.form.fields.zone')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.zone')} htmlFor="eq-zone">
               <Select
                 id="eq-zone"
                 value={form.zone}
@@ -246,70 +235,52 @@ export default function EquipmentDialog({
                   </option>
                 ))}
               </Select>
-            </div>
+            </FormField>
           </div>
 
           {/* Row 3: manufacturer, model, serial_number, condition */}
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-1">
-              <label htmlFor="eq-manufacturer" className="text-sm font-medium">
-                {t('equipment.form.fields.manufacturer')}
-              </label>
+            <FormField label={t('equipment.form.fields.manufacturer')} htmlFor="eq-manufacturer">
               <Input
                 id="eq-manufacturer"
                 value={form.manufacturer}
                 onChange={(e) => updateField('manufacturer', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-model" className="text-sm font-medium">
-                {t('equipment.form.fields.model')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.model')} htmlFor="eq-model">
               <Input
                 id="eq-model"
                 value={form.model}
                 onChange={(e) => updateField('model', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-serial" className="text-sm font-medium">
-                {t('equipment.form.fields.serial_number')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.serial_number')} htmlFor="eq-serial">
               <Input
                 id="eq-serial"
                 value={form.serial_number}
                 onChange={(e) => updateField('serial_number', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-condition" className="text-sm font-medium">
-                {t('equipment.form.fields.condition')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.condition')} htmlFor="eq-condition">
               <Input
                 id="eq-condition"
                 value={form.condition}
                 onChange={(e) => updateField('condition', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Row 4: purchase_date, purchase_price, purchase_vendor */}
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-1">
-              <label htmlFor="eq-purchase-date" className="text-sm font-medium">
-                {t('equipment.form.fields.purchase_date')}
-              </label>
+            <FormField label={t('equipment.form.fields.purchase_date')} htmlFor="eq-purchase-date">
               <Input
                 id="eq-purchase-date"
                 type="date"
                 value={form.purchase_date}
                 onChange={(e) => updateField('purchase_date', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-purchase-price" className="text-sm font-medium">
-                {t('equipment.form.fields.purchase_price')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.purchase_price')} htmlFor="eq-purchase-price">
               <Input
                 id="eq-purchase-price"
                 type="number"
@@ -317,46 +288,34 @@ export default function EquipmentDialog({
                 value={form.purchase_price}
                 onChange={(e) => updateField('purchase_price', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-purchase-vendor" className="text-sm font-medium">
-                {t('equipment.form.fields.purchase_vendor')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.purchase_vendor')} htmlFor="eq-purchase-vendor">
               <Input
                 id="eq-purchase-vendor"
                 value={form.purchase_vendor}
                 onChange={(e) => updateField('purchase_vendor', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Row 5: warranty_expires_on, warranty_provider, maintenance_interval_months */}
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-1">
-              <label htmlFor="eq-warranty-date" className="text-sm font-medium">
-                {t('equipment.form.fields.warranty_expires_on')}
-              </label>
+            <FormField label={t('equipment.form.fields.warranty_expires_on')} htmlFor="eq-warranty-date">
               <Input
                 id="eq-warranty-date"
                 type="date"
                 value={form.warranty_expires_on}
                 onChange={(e) => updateField('warranty_expires_on', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-warranty-provider" className="text-sm font-medium">
-                {t('equipment.form.fields.warranty_provider')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.warranty_provider')} htmlFor="eq-warranty-provider">
               <Input
                 id="eq-warranty-provider"
                 value={form.warranty_provider}
                 onChange={(e) => updateField('warranty_provider', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-maintenance-interval" className="text-sm font-medium">
-                {t('equipment.form.fields.maintenance_interval_months')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.maintenance_interval_months')} htmlFor="eq-maintenance-interval">
               <Input
                 id="eq-maintenance-interval"
                 type="number"
@@ -364,83 +323,65 @@ export default function EquipmentDialog({
                 value={form.maintenance_interval_months}
                 onChange={(e) => updateField('maintenance_interval_months', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Row 6: last_service_at, installed_at, retired_at */}
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-1">
-              <label htmlFor="eq-last-service" className="text-sm font-medium">
-                {t('equipment.form.fields.last_service_at')}
-              </label>
+            <FormField label={t('equipment.form.fields.last_service_at')} htmlFor="eq-last-service">
               <Input
                 id="eq-last-service"
                 type="date"
                 value={form.last_service_at}
                 onChange={(e) => updateField('last_service_at', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-installed-at" className="text-sm font-medium">
-                {t('equipment.form.fields.installed_at')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.installed_at')} htmlFor="eq-installed-at">
               <Input
                 id="eq-installed-at"
                 type="date"
                 value={form.installed_at}
                 onChange={(e) => updateField('installed_at', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="eq-retired-at" className="text-sm font-medium">
-                {t('equipment.form.fields.retired_at')}
-              </label>
+            </FormField>
+            <FormField label={t('equipment.form.fields.retired_at')} htmlFor="eq-retired-at">
               <Input
                 id="eq-retired-at"
                 type="date"
                 value={form.retired_at}
                 onChange={(e) => updateField('retired_at', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Tags */}
-          <div className="space-y-1">
-            <label htmlFor="eq-tags" className="text-sm font-medium">
-              {t('equipment.form.fields.tags')}
-            </label>
+          <FormField label={t('equipment.form.fields.tags')} htmlFor="eq-tags">
             <Input
               id="eq-tags"
               value={form.tags}
               onChange={(e) => updateField('tags', e.target.value)}
             />
-          </div>
+          </FormField>
 
           {/* Warranty notes */}
-          <div className="space-y-1">
-            <label htmlFor="eq-warranty-notes" className="text-sm font-medium">
-              {t('equipment.form.fields.warranty_notes')}
-            </label>
+          <FormField label={t('equipment.form.fields.warranty_notes')} htmlFor="eq-warranty-notes">
             <Textarea
               id="eq-warranty-notes"
               rows={3}
               value={form.warranty_notes}
               onChange={(e) => updateField('warranty_notes', e.target.value)}
             />
-          </div>
+          </FormField>
 
           {/* Notes */}
-          <div className="space-y-1">
-            <label htmlFor="eq-notes" className="text-sm font-medium">
-              {t('equipment.form.fields.notes')}
-            </label>
+          <FormField label={t('equipment.form.fields.notes')} htmlFor="eq-notes">
             <Textarea
               id="eq-notes"
               rows={4}
               value={form.notes}
               onChange={(e) => updateField('notes', e.target.value)}
             />
-          </div>
+          </FormField>
 
           {error ? (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>

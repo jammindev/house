@@ -5,6 +5,7 @@ import {
   type Task, type TaskStatus,
 } from '@/lib/api/tasks';
 
+
 export const taskKeys = {
   all: ['tasks'] as const,
   list: () => [...taskKeys.all, 'list'] as const,
@@ -66,6 +67,26 @@ export function useUpdateTask() {
     mutationFn: ({ id, payload }: { id: string; payload: Parameters<typeof updateTask>[1] }) =>
       updateTask(id, payload),
     onSuccess: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
+  });
+}
+
+export function useUpdateTaskAssignee() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, assignedToId }: { id: string; assignedToId: string | null }) =>
+      updateTask(id, { assigned_to_id: assignedToId }),
+    onMutate: async ({ id, assignedToId }) => {
+      await qc.cancelQueries({ queryKey: taskKeys.list() });
+      const previous = qc.getQueryData<Task[]>(taskKeys.list());
+      qc.setQueryData<Task[]>(taskKeys.list(), (old) =>
+        old?.map((t) => (t.id === id ? { ...t, assigned_to: assignedToId } : t)) ?? old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) qc.setQueryData(taskKeys.list(), ctx.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: taskKeys.all }),
   });
 }
 

@@ -5,6 +5,7 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
+import { FormField } from '@/design-system/form-field';
 import {
   createProject,
   updateProject,
@@ -121,10 +122,7 @@ export default function ProjectDialog({
           ) : null}
 
           {/* Title */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="proj-title">
-              {t('projects.form.fields.title')} *
-            </label>
+          <FormField label={`${t('projects.form.fields.title')} *`} htmlFor="proj-title">
             <Input
               id="proj-title"
               value={title}
@@ -132,27 +130,21 @@ export default function ProjectDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Description */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="proj-description">
-              {t('projects.form.fields.description')}
-            </label>
+          <FormField label={t('projects.form.fields.description')} htmlFor="proj-description">
             <Textarea
               id="proj-description"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-          </div>
+          </FormField>
 
           {/* Status + Type */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="proj-status">
-                {t('projects.form.fields.status')}
-              </label>
+            <FormField label={t('projects.form.fields.status')} htmlFor="proj-status">
               <Select
                 id="proj-status"
                 value={status}
@@ -164,11 +156,8 @@ export default function ProjectDialog({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="proj-type">
-                {t('projects.form.fields.type')}
-              </label>
+            </FormField>
+            <FormField label={t('projects.form.fields.type')} htmlFor="proj-type">
               <Select
                 id="proj-type"
                 value={type}
@@ -180,15 +169,12 @@ export default function ProjectDialog({
                   </option>
                 ))}
               </Select>
-            </div>
+            </FormField>
           </div>
 
           {/* Zone select (first zone of existing project) — simplified: group only */}
           {groups.length > 0 ? (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="proj-group">
-                {t('projects.form.fields.project_group')}
-              </label>
+            <FormField label={t('projects.form.fields.project_group')} htmlFor="proj-group">
               <Select
                 id="proj-group"
                 value={groupId}
@@ -201,7 +187,7 @@ export default function ProjectDialog({
                   </option>
                 ))}
               </Select>
-            </div>
+            </FormField>
           ) : null}
 
           {/* Zone chips (read-only indicator when editing) */}
@@ -214,35 +200,26 @@ export default function ProjectDialog({
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="proj-start">
-                {t('projects.form.fields.start_date')}
-              </label>
+            <FormField label={t('projects.form.fields.start_date')} htmlFor="proj-start">
               <Input
                 id="proj-start"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="proj-due">
-                {t('projects.form.fields.due_date')}
-              </label>
+            </FormField>
+            <FormField label={t('projects.form.fields.due_date')} htmlFor="proj-due">
               <Input
                 id="proj-due"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Budget */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="proj-budget">
-              {t('projects.form.fields.planned_budget')}
-            </label>
+          <FormField label={t('projects.form.fields.planned_budget')} htmlFor="proj-budget">
             <Input
               id="proj-budget"
               type="number"
@@ -251,7 +228,7 @@ export default function ProjectDialog({
               value={plannedBudget}
               onChange={(e) => setPlannedBudget(e.target.value)}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

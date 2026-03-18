@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-syste
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import { createProjectGroup, updateProjectGroup, type ProjectGroupItem } from '@/lib/api/projects';
 
 interface GroupDialogProps {
@@ -76,10 +77,7 @@ export default function GroupDialog({
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
           ) : null}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="grp-name">
-              {t('projects.groups.form.name')} *
-            </label>
+          <FormField label={`${t('projects.groups.form.name')} *`} htmlFor="grp-name">
             <Input
               id="grp-name"
               value={name}
@@ -87,19 +85,16 @@ export default function GroupDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="grp-desc">
-              {t('projects.groups.form.description')}
-            </label>
+          <FormField label={t('projects.groups.form.description')} htmlFor="grp-desc">
             <Textarea
               id="grp-desc"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

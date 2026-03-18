@@ -5,6 +5,7 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
 import { useCreateStockItem, useUpdateStockItem, useStockCategories, useZones } from './hooks';
 
@@ -158,10 +159,7 @@ export default function StockItemDialog({
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
           {/* Name */}
-          <div className="space-y-1">
-            <label htmlFor="stock-item-name" className="text-sm font-medium">
-              {t('stock.fields.name')} *
-            </label>
+          <FormField label={`${t('stock.fields.name')} *`} htmlFor="stock-item-name">
             <Input
               id="stock-item-name"
               value={form.name}
@@ -169,14 +167,11 @@ export default function StockItemDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Category + Zone */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="stock-item-category" className="text-sm font-medium">
-                {t('stock.fields.category')}
-              </label>
+            <FormField label={t('stock.fields.category')} htmlFor="stock-item-category">
               <Select
                 id="stock-item-category"
                 value={form.category}
@@ -189,11 +184,8 @@ export default function StockItemDialog({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="stock-item-zone" className="text-sm font-medium">
-                {t('stock.fields.zone')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.zone')} htmlFor="stock-item-zone">
               <Select
                 id="stock-item-zone"
                 value={form.zone}
@@ -206,15 +198,12 @@ export default function StockItemDialog({
                   </option>
                 ))}
               </Select>
-            </div>
+            </FormField>
           </div>
 
           {/* Quantity + Unit + Min + Max */}
           <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-1">
-              <label htmlFor="stock-item-qty" className="text-sm font-medium">
-                {t('stock.fields.quantity')}
-              </label>
+            <FormField label={t('stock.fields.quantity')} htmlFor="stock-item-qty">
               <Input
                 id="stock-item-qty"
                 type="number"
@@ -222,21 +211,15 @@ export default function StockItemDialog({
                 value={form.quantity}
                 onChange={(e) => updateField('quantity', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="stock-item-unit" className="text-sm font-medium">
-                {t('stock.fields.unit')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.unit')} htmlFor="stock-item-unit">
               <Input
                 id="stock-item-unit"
                 value={form.unit}
                 onChange={(e) => updateField('unit', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="stock-item-min" className="text-sm font-medium">
-                {t('stock.fields.min_quantity')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.min_quantity')} htmlFor="stock-item-min">
               <Input
                 id="stock-item-min"
                 type="number"
@@ -244,11 +227,8 @@ export default function StockItemDialog({
                 value={form.min_quantity}
                 onChange={(e) => updateField('min_quantity', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="stock-item-max" className="text-sm font-medium">
-                {t('stock.fields.max_quantity')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.max_quantity')} htmlFor="stock-item-max">
               <Input
                 id="stock-item-max"
                 type="number"
@@ -256,15 +236,12 @@ export default function StockItemDialog({
                 value={form.max_quantity}
                 onChange={(e) => updateField('max_quantity', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Status + Expiration */}
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1">
-              <label htmlFor="stock-item-status" className="text-sm font-medium">
-                {t('stock.fields.status')}
-              </label>
+            <FormField label={t('stock.fields.status')} htmlFor="stock-item-status">
               <Select
                 id="stock-item-status"
                 value={form.status}
@@ -276,32 +253,26 @@ export default function StockItemDialog({
                   </option>
                 ))}
               </Select>
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="stock-item-expiry" className="text-sm font-medium">
-                {t('stock.fields.expiration_date')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.expiration_date')} htmlFor="stock-item-expiry">
               <Input
                 id="stock-item-expiry"
                 type="date"
                 value={form.expiration_date}
                 onChange={(e) => updateField('expiration_date', e.target.value)}
               />
-            </div>
+            </FormField>
           </div>
 
           {/* Notes */}
-          <div className="space-y-1">
-            <label htmlFor="stock-item-notes" className="text-sm font-medium">
-              {t('stock.fields.notes')}
-            </label>
+          <FormField label={t('stock.fields.notes')} htmlFor="stock-item-notes">
             <Textarea
               id="stock-item-notes"
               rows={3}
               value={form.notes}
               onChange={(e) => updateField('notes', e.target.value)}
             />
-          </div>
+          </FormField>
 
           {error ? (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>

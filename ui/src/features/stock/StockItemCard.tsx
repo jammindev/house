@@ -1,7 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
-import { Button } from '@/design-system/button';
+import CardActions, { type CardAction } from '@/components/CardActions';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
 
 interface StockItemCardProps {
@@ -33,11 +33,16 @@ function formatDate(value?: string | null): string {
 export default function StockItemCard({ item, onEdit, onDelete }: StockItemCardProps) {
   const { t } = useTranslation();
 
+  const actions: CardAction[] = [
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(item.id), variant: 'danger' },
+  ];
+
   return (
-    <li className="rounded-md border p-3">
+    <li className="rounded-md border border-border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-900">{item.name}</p>
+          <p className="text-sm font-medium text-foreground">{item.name}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {item.category_name || t('stock.labels.not_available')}
             {item.zone_name ? ` · ${item.zone_name}` : ` · ${t('stock.labels.no_zone')}`}
@@ -47,26 +52,7 @@ export default function StockItemCard({ item, onEdit, onDelete }: StockItemCardP
           <Badge variant={statusVariant(item.status)}>
             {t(`stock.status.${item.status}`)}
           </Badge>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            onClick={() => onEdit(item)}
-            aria-label={t('common.edit')}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(item.id)}
-            aria-label={t('common.delete')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <CardActions actions={actions} />
         </div>
       </div>
 

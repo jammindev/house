@@ -61,22 +61,6 @@ export function groupTasksByColumn(tasks: Task[]): Record<TaskColumnId, Task[]> 
   return grouped;
 }
 
-export function nextStatus(current: TaskStatus): TaskStatus {
-  switch (current) {
-    case null:
-    case 'backlog': return 'pending';
-    case 'pending': return 'in_progress';
-    case 'in_progress': return 'done';
-    default: return current;
-  }
-}
-
-export function prevStatus(current: TaskStatus): TaskStatus {
-  switch (current) {
-    case 'done': return 'in_progress';
-    default: return current;
-  }
-}
 
 export function isTaskOverdue(task: Task): boolean {
   if (!task.due_date) return false;

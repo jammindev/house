@@ -3,6 +3,7 @@ import { Users, Building2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
+import { FilterPill } from '@/design-system/filter-pill';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { Contact } from '@/lib/api/contacts';
@@ -173,19 +174,9 @@ export default function DirectoryFeaturePage() {
           {/* Tab bar */}
           <div className="flex gap-2">
             {(['contacts', 'structures'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={[
-                  'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                  activeTab === tab
-                    ? 'border-slate-800 bg-slate-800 text-white'
-                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
-                ].join(' ')}
-              >
+              <FilterPill key={tab} active={activeTab === tab} onClick={() => setActiveTab(tab)}>
                 {tab === 'contacts' ? t('directory.tabContacts') : t('directory.tabStructures')}
-              </button>
+              </FilterPill>
             ))}
           </div>
 

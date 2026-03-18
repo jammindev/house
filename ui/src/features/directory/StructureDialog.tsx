@@ -5,6 +5,8 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
+import { Label } from '@/design-system/label';
 import { createStructure, updateStructure, type Structure } from '@/lib/api/structures';
 
 const STRUCTURE_TYPES = ['company', 'association', 'administration', 'artisan', 'other'];
@@ -100,9 +102,9 @@ export default function StructureDialog({
           )}
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="structure-name">
+            <Label htmlFor="structure-name">
               {t('structures.fieldName')} <span aria-hidden className="text-red-500">*</span>
-            </label>
+            </Label>
             <Input
               id="structure-name"
               value={name}
@@ -112,10 +114,7 @@ export default function StructureDialog({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="structure-type">
-              {t('structures.fieldType')}
-            </label>
+          <FormField label={t('structures.fieldType')} htmlFor="structure-type">
             <Select
               id="structure-type"
               value={type}
@@ -123,12 +122,9 @@ export default function StructureDialog({
               options={typeOptions}
               placeholder={t('structures.noType')}
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="structure-website">
-              {t('structures.fieldWebsite')}
-            </label>
+          <FormField label={t('structures.fieldWebsite')} htmlFor="structure-website">
             <Input
               id="structure-website"
               type="url"
@@ -136,19 +132,16 @@ export default function StructureDialog({
               onChange={(e) => setWebsite(e.target.value)}
               placeholder="https://"
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="structure-notes">
-              {t('structures.fieldNotes')}
-            </label>
+          <FormField label={t('structures.fieldNotes')} htmlFor="structure-notes">
             <Textarea
               id="structure-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

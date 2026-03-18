@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/design-system/button';
+import { Card } from '@/design-system/card';
+import CardActions, { type CardAction } from '@/components/CardActions';
 import type { ProjectGroupItem } from '@/lib/api/projects';
 
 interface GroupCardProps {
@@ -12,11 +13,16 @@ interface GroupCardProps {
 export default function GroupCard({ group, onEdit, onDelete }: GroupCardProps) {
   const { t } = useTranslation();
 
+  const actions: CardAction[] = [
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(group) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(group.id), variant: 'danger' },
+  ];
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md">
+    <Card className="p-3 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-900">{group.name}</p>
+          <p className="text-sm font-medium text-foreground">{group.name}</p>
           {group.description ? (
             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
               {group.description}
@@ -27,29 +33,8 @@ export default function GroupCard({ group, onEdit, onDelete }: GroupCardProps) {
           </p>
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(group.id)}
-            aria-label={t('common.delete')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            onClick={() => onEdit(group)}
-            aria-label={t('common.edit')}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-        </div>
+        <CardActions actions={actions} />
       </div>
-    </div>
+    </Card>
   );
 }

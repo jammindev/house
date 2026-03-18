@@ -5,6 +5,7 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import { DOCUMENT_TYPES, type DocumentItem } from '@/lib/api/documents';
 import { useUpdateDocument } from './hooks';
 
@@ -73,10 +74,7 @@ export default function DocumentEditDialog({
           )}
 
           {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="edit-doc-name">
-              {t('documents.fieldName')}
-            </label>
+          <FormField label={t('documents.fieldName')} htmlFor="edit-doc-name">
             <Input
               id="edit-doc-name"
               value={name}
@@ -84,26 +82,20 @@ export default function DocumentEditDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Type */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="edit-doc-type">
-              {t('documents.fieldType')}
-            </label>
+          <FormField label={t('documents.fieldType')} htmlFor="edit-doc-type">
             <Select
               id="edit-doc-type"
               value={type}
               onChange={(e) => setType(e.target.value)}
               options={typeOptions}
             />
-          </div>
+          </FormField>
 
           {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="edit-doc-notes">
-              {t('documents.fieldNotes')}
-            </label>
+          <FormField label={t('documents.fieldNotes')} htmlFor="edit-doc-notes">
             <Textarea
               id="edit-doc-notes"
               value={notes}
@@ -111,7 +103,7 @@ export default function DocumentEditDialog({
               rows={3}
               placeholder={t('documents.fieldNotesPlaceholder')}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

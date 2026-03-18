@@ -5,6 +5,8 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
+import { CheckboxField } from '@/design-system/checkbox-field';
 import { fetchProjects } from '@/lib/api/projects';
 import type { ProjectListItem } from '@/lib/api/projects';
 import {
@@ -170,10 +172,7 @@ export default function NewTaskDialog({
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="task-subject">
-              {t('tasks.fieldSubject')}
-            </label>
+          <FormField label={t('tasks.fieldSubject')} htmlFor="task-subject">
             <Input
               id="task-subject"
               type="text"
@@ -183,13 +182,10 @@ export default function NewTaskDialog({
               autoComplete="off"
               placeholder={t('tasks.fieldSubjectPlaceholder')}
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="task-zone">
-                {t('tasks.fieldZone')}
-              </label>
+            <FormField label={t('tasks.fieldZone')} htmlFor="task-zone">
               <Select
                 id="task-zone"
                 value={zoneId}
@@ -202,54 +198,42 @@ export default function NewTaskDialog({
                 }
                 required
               />
-            </div>
+            </FormField>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="task-priority">
-                {t('tasks.fieldPriority')}
-              </label>
+            <FormField label={t('tasks.fieldPriority')} htmlFor="task-priority">
               <Select
                 id="task-priority"
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
                 options={priorityOptions}
               />
-            </div>
+            </FormField>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="task-date">
-                {t('tasks.fieldDate')}
-              </label>
+          <div className={isEditing ? undefined : 'grid grid-cols-2 gap-3'}>
+            <FormField label={t('tasks.fieldDate')} htmlFor="task-date">
               <Input
                 id="task-date"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
-            </div>
+            </FormField>
 
             {!isEditing && (
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700" htmlFor="task-status">
-                  {t('tasks.fieldStatus')}
-                </label>
+              <FormField label={t('tasks.fieldStatus')} htmlFor="task-status">
                 <Select
                   id="task-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                   options={statusOptions}
                 />
-              </div>
+              </FormField>
             )}
           </div>
 
-          {memberOptions.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
-                {t('tasks.fieldAssignedTo')}
-              </label>
+          {memberOptions.length > 1 && !isPrivate && (
+            <FormField label={t('tasks.fieldAssignedTo')} htmlFor="task-assigned">
               <Select
                 id="task-assigned"
                 value={assignedToId}
@@ -257,14 +241,11 @@ export default function NewTaskDialog({
                 options={memberOptions}
                 placeholder={t('tasks.noAssignee')}
               />
-            </div>
+            </FormField>
           )}
 
           {projectOptions.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="task-project">
-                {t('tasks.fieldProject')}
-              </label>
+            <FormField label={t('tasks.fieldProject')} htmlFor="task-project">
               <Select
                 id="task-project"
                 value={projectId}
@@ -272,13 +253,10 @@ export default function NewTaskDialog({
                 options={projectOptions}
                 placeholder={t('tasks.noProject')}
               />
-            </div>
+            </FormField>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="task-content">
-              {t('tasks.fieldContent')}
-            </label>
+          <FormField label={t('tasks.fieldContent')} htmlFor="task-content">
             <Textarea
               id="task-content"
               value={content}
@@ -286,20 +264,16 @@ export default function NewTaskDialog({
               rows={3}
               placeholder={t('tasks.fieldContentPlaceholder')}
             />
-          </div>
+          </FormField>
 
-          <div className="flex items-center gap-2">
-            <input
+          {householdMembers.length > 1 && (
+            <CheckboxField
               id="task-private"
-              type="checkbox"
+              label={t('tasks.fieldPrivate')}
               checked={isPrivate}
-              onChange={(e) => setIsPrivate(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300"
+              onChange={(val) => { setIsPrivate(val); if (val) setAssignedToId(''); }}
             />
-            <label className="text-sm text-gray-700" htmlFor="task-private">
-              {t('tasks.fieldPrivate')}
-            </label>
-          </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

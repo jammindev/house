@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import type { Zone, ZonePayload } from '@/lib/api/zones';
 import { useCreateZone, useUpdateZone, useZones, buildZoneTree, getDescendantIds } from './hooks';
 
@@ -102,10 +103,7 @@ export default function ZoneDialog({
           ) : null}
 
           {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="zone-name">
-              {t('zones.fieldName')}
-            </label>
+          <FormField label={t('zones.fieldName')} htmlFor="zone-name">
             <Input
               id="zone-name"
               value={name}
@@ -114,13 +112,10 @@ export default function ZoneDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Parent zone */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="zone-parent">
-              {t('zones.fieldParent')}
-            </label>
+          <FormField label={t('zones.fieldParent')} htmlFor="zone-parent">
             <select
               id="zone-parent"
               value={parentId}
@@ -138,13 +133,10 @@ export default function ZoneDialog({
                 );
               })}
             </select>
-          </div>
+          </FormField>
 
           {/* Color */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="zone-color">
-              {t('zones.colorLabel')}
-            </label>
+          <FormField label={t('zones.colorLabel')} htmlFor="zone-color">
             <div className="flex items-center gap-2">
               <input
                 id="zone-color"
@@ -162,7 +154,7 @@ export default function ZoneDialog({
               />
             </div>
             <p className="text-xs text-muted-foreground">{t('zones.colorHelper')}</p>
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

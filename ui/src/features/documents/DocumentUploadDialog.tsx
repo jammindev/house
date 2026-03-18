@@ -6,6 +6,8 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
+import { Label } from '@/design-system/label';
 import { fetchZones } from '@/lib/api/zones';
 import { DOCUMENT_TYPES, type DocumentType } from '@/lib/api/documents';
 import { useCreateDocument } from './hooks';
@@ -104,10 +106,10 @@ export default function DocumentUploadDialog({
 
           {/* File input */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="upload-file">
+            <Label htmlFor="upload-file">
               {t('documents.new.selectFile')}
               <span className="ml-1 text-red-500">*</span>
-            </label>
+            </Label>
             <Input
               id="upload-file"
               type="file"
@@ -122,10 +124,7 @@ export default function DocumentUploadDialog({
           </div>
 
           {/* Name */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="upload-name">
-              {t('documents.fieldName')}
-            </label>
+          <FormField label={t('documents.fieldName')} htmlFor="upload-name">
             <Input
               id="upload-name"
               value={name}
@@ -133,39 +132,30 @@ export default function DocumentUploadDialog({
               placeholder={t('documents.upload.namePlaceholder')}
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           {/* Type */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="upload-type">
-              {t('documents.fieldType')}
-            </label>
+          <FormField label={t('documents.fieldType')} htmlFor="upload-type">
             <Select
               id="upload-type"
               value={type}
               onChange={(e) => setType(e.target.value as DocumentType | '')}
               options={typeOptions}
             />
-          </div>
+          </FormField>
 
           {/* Zone */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="upload-zone">
-              {t('documents.upload.zone')}
-            </label>
+          <FormField label={t('documents.upload.zone')} htmlFor="upload-zone">
             <Select
               id="upload-zone"
               value={zone}
               onChange={(e) => setZone(e.target.value)}
               options={zoneOptions}
             />
-          </div>
+          </FormField>
 
           {/* Notes */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="upload-notes">
-              {t('documents.fieldNotes')}
-            </label>
+          <FormField label={t('documents.fieldNotes')} htmlFor="upload-notes">
             <Textarea
               id="upload-notes"
               value={notes}
@@ -173,7 +163,7 @@ export default function DocumentUploadDialog({
               rows={3}
               placeholder={t('documents.fieldNotesPlaceholder')}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

@@ -6,6 +6,7 @@ import { Pencil, X, Check } from 'lucide-react';
 
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
+import { Label } from '@/design-system/label';
 import { SettingsSection } from './SettingsSection';
 import type { UserProfile, Locale } from '@/lib/api/users';
 import { patchMe, uploadAvatar, deleteAvatar } from '@/lib/api/users';
@@ -193,7 +194,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
         {isEditing && (
           <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">{t('settings.displayName')}</label>
+              <Label className="mb-1">{t('settings.displayName')}</Label>
               <Input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -201,7 +202,7 @@ export function ProfileSection({ user, onUserUpdate }: ProfileSectionProps) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">{t('settings.language')}</label>
+              <Label className="mb-1">{t('settings.language')}</Label>
               <select
                 value={locale}
                 onChange={(e) => setLocale(e.target.value as Locale)}
