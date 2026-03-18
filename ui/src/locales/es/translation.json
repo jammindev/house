@@ -334,6 +334,9 @@
     "fieldProject": "Proyecto",
     "noProject": "Sin proyecto",
     "fieldPrivate": "Tarea privada (visible solo para mí)",
+    "private": "Privada",
+    "filterPrivate": "Privado",
+    "filterPrivateTitle": "Mis tareas privadas",
     "fieldContent": "Notas",
     "fieldContentPlaceholder": "Notas opcionales…",
     "sections": {

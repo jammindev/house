@@ -121,10 +121,10 @@ export default function TasksPage() {
                   ? 'border-slate-800 bg-slate-800 text-white'
                   : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
               ].join(' ')}
-              title={t('tasks.filterPrivate', { defaultValue: 'My private tasks' })}
+              title={t('tasks.filterPrivateTitle')}
             >
               <Lock className="h-3.5 w-3.5" />
-              {t('tasks.filterPrivate', { defaultValue: 'Private' })}
+              {t('tasks.filterPrivate')}
             </button>
             <button
               type="button"

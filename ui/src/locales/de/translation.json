@@ -334,6 +334,9 @@
     "fieldProject": "Projekt",
     "noProject": "Kein Projekt",
     "fieldPrivate": "Private Aufgabe (nur für mich sichtbar)",
+    "private": "Privat",
+    "filterPrivate": "Privat",
+    "filterPrivateTitle": "Meine privaten Aufgaben",
     "fieldContent": "Notizen",
     "fieldContentPlaceholder": "Optionale Notizen…",
     "sections": {
