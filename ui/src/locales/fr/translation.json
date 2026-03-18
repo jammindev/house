@@ -294,22 +294,27 @@
   "tasks": {
     "app_title": "Mini-app Tâches",
     "section_label": "Nœud Django scopé : {{section}}",
-    "pageTitle": "Tâches",
-    "addTask": "Ajouter une tâche",
+    "title": "Tâches",
     "newTask": "Nouvelle tâche",
+    "new": "Nouvelle tâche",
     "editTitle": "Modifier la tâche",
     "loadFailed": "Échec du chargement des tâches.",
+    "deleted": "Tâche supprimée",
     "count": "{{count}} tâche",
     "count_other": "{{count}} tâches",
     "untitledTask": "Tâche sans titre",
-    "noDate": "Pas de date",
     "noZone": "Sans zone",
     "empty": "Aucune tâche.",
+    "empty_description": "Créez votre première tâche pour commencer.",
     "overdueBadge": "En retard",
+    "priorityHigh": "Haute priorité",
+    "completedBy": "Fait par {{name}}",
     "sourceEvent": "Événement",
     "sourceDocumentLink": "Document",
     "advanceStatus": "Avancer le statut",
+    "revertStatus": "Revenir en arrière",
     "editTask": "Modifier",
+    "deleteTask": "Supprimer",
     "zoneRequired": "Veuillez sélectionner une zone.",
     "createFailed": "Échec de la création de la tâche.",
     "updateFailed": "Échec de la modification de la tâche.",
@@ -319,6 +324,12 @@
     "loadingZones": "Chargement des zones…",
     "selectZone": "Sélectionner une zone",
     "fieldDate": "Date d'échéance",
+    "fieldPriority": "Priorité",
+    "priorityHigh_label": "Haute",
+    "priorityNormal_label": "Normale",
+    "priorityLow_label": "Basse",
+    "fieldAssignedTo": "Assigner à",
+    "noAssignee": "Non assignée",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Notes optionnelles…",
     "sections": {
@@ -334,29 +345,7 @@
       "in_progress": "En cours",
       "backlog": "Backlog",
       "done": "Fait"
-    },
-    "statusLabels": {
-      "backlog": "Backlog",
-      "pending": "À faire",
-      "in_progress": "En cours",
-      "done": "Fait"
-    },
-    "columns": {
-      "backlog": {
-        "title": "Backlog"
-      },
-      "pending": {
-        "title": "À faire"
-      },
-      "in_progress": {
-        "title": "En cours"
-      },
-      "done": {
-        "title": "Fait"
-      }
-    },
-    "movePrev": "Colonne précédente",
-    "moveNext": "Colonne suivante"
+    }
   },
   "settings": {
     "app_title": "Mini-app Paramètres",

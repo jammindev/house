@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { Contact } from '@/lib/api/contacts';
 import type { Structure } from '@/lib/api/structures';
 import {
@@ -124,6 +125,7 @@ export default function DirectoryFeaturePage() {
   // ── Render helpers ──────────────────────────────────────────────────────────
   const isContacts = activeTab === 'contacts';
   const isLoading = isContacts ? contactsLoading : structuresLoading;
+  const showSkeleton = useDelayedLoading(isLoading);
   const hasError = isContacts ? Boolean(contactsError) : Boolean(structuresError);
   const isEmpty = !isLoading && !hasError && (isContacts ? contacts.length === 0 : structures.length === 0);
 
@@ -225,7 +227,7 @@ export default function DirectoryFeaturePage() {
           ) : null}
 
           {/* Skeleton */}
-          {isLoading ? (
+          {showSkeleton ? (
             <div className="space-y-2">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />

@@ -294,22 +294,27 @@
   "tasks": {
     "app_title": "Tasks mini-app",
     "section_label": "Django app scoped node: {{section}}",
-    "pageTitle": "Tasks",
-    "addTask": "Add task",
+    "title": "Tasks",
     "newTask": "New task",
+    "new": "New task",
     "editTitle": "Edit task",
     "loadFailed": "Failed to load tasks.",
+    "deleted": "Task deleted",
     "count": "{{count}} task",
     "count_other": "{{count}} tasks",
     "untitledTask": "Untitled task",
-    "noDate": "No date",
     "noZone": "No zone",
     "empty": "No tasks yet.",
+    "empty_description": "Create your first task to get started.",
     "overdueBadge": "Overdue",
+    "priorityHigh": "High priority",
+    "completedBy": "Done by {{name}}",
     "sourceEvent": "Event",
     "sourceDocumentLink": "Document",
     "advanceStatus": "Advance status",
+    "revertStatus": "Revert status",
     "editTask": "Edit",
+    "deleteTask": "Delete",
     "zoneRequired": "Please select a zone.",
     "createFailed": "Failed to create task.",
     "updateFailed": "Failed to update task.",
@@ -319,6 +324,12 @@
     "loadingZones": "Loading zones…",
     "selectZone": "Select a zone",
     "fieldDate": "Due date",
+    "fieldPriority": "Priority",
+    "priorityHigh_label": "High",
+    "priorityNormal_label": "Normal",
+    "priorityLow_label": "Low",
+    "fieldAssignedTo": "Assign to",
+    "noAssignee": "No assignee",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Optional notes…",
     "sections": {
@@ -334,29 +345,7 @@
       "in_progress": "In progress",
       "backlog": "Backlog",
       "done": "Done"
-    },
-    "statusLabels": {
-      "backlog": "Backlog",
-      "pending": "To do",
-      "in_progress": "In progress",
-      "done": "Done"
-    },
-    "columns": {
-      "backlog": {
-        "title": "Backlog"
-      },
-      "pending": {
-        "title": "To do"
-      },
-      "in_progress": {
-        "title": "In progress"
-      },
-      "done": {
-        "title": "Done"
-      }
-    },
-    "movePrev": "Move to previous column",
-    "moveNext": "Move to next column"
+    }
   },
   "settings": {
     "app_title": "Settings mini-app",
