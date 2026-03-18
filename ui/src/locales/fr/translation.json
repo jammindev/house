@@ -328,8 +328,12 @@
     "priorityHigh_label": "Haute",
     "priorityNormal_label": "Normale",
     "priorityLow_label": "Basse",
+    "fieldStatus": "Statut",
     "fieldAssignedTo": "Assigner à",
     "noAssignee": "Non assignée",
+    "fieldProject": "Projet",
+    "noProject": "Aucun projet",
+    "fieldPrivate": "Tâche privée (visible uniquement par moi)",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Notes optionnelles…",
     "sections": {

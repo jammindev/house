@@ -328,8 +328,12 @@
     "priorityHigh_label": "Alta",
     "priorityNormal_label": "Normal",
     "priorityLow_label": "Baja",
+    "fieldStatus": "Estado",
     "fieldAssignedTo": "Asignar a",
     "noAssignee": "Sin asignar",
+    "fieldProject": "Proyecto",
+    "noProject": "Sin proyecto",
+    "fieldPrivate": "Tarea privada (visible solo para mí)",
     "fieldContent": "Notas",
     "fieldContentPlaceholder": "Notas opcionales…",
     "sections": {

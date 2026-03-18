@@ -12,17 +12,6 @@ import {
   type Zone, type Task, type HouseholdMember, type TaskPriority, type TaskStatus,
 } from '@/lib/api/tasks';
 
-const PRIORITY_OPTIONS = [
-  { value: '1', label: 'Haute' },
-  { value: '2', label: 'Normale' },
-  { value: '3', label: 'Basse' },
-];
-
-const STATUS_OPTIONS = [
-  { value: 'pending', label: 'À faire' },
-  { value: 'backlog', label: 'Backlog' },
-];
-
 interface NewTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -50,6 +39,11 @@ export default function NewTaskDialog({
     { value: '1', label: t('tasks.priorityHigh_label') },
     { value: '2', label: t('tasks.priorityNormal_label') },
     { value: '3', label: t('tasks.priorityLow_label') },
+  ];
+
+  const statusOptions = [
+    { value: 'pending', label: t('tasks.sections.pending') },
+    { value: 'backlog', label: t('tasks.sections.backlog') },
   ];
 
   const [subject, setSubject] = React.useState('');
@@ -239,13 +233,13 @@ export default function NewTaskDialog({
             {!isEditing && (
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700" htmlFor="task-status">
-                  {t('tasks.fieldStatus', { defaultValue: 'Status' })}
+                  {t('tasks.fieldStatus')}
                 </label>
                 <Select
                   id="task-status"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
-                  options={STATUS_OPTIONS}
+                  options={statusOptions}
                 />
               </div>
             )}
@@ -254,14 +248,14 @@ export default function NewTaskDialog({
           {memberOptions.length > 0 && (
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="task-assigned">
-                {t('tasks.fieldAssignedTo', { defaultValue: 'Assign to' })}
+                {t('tasks.fieldAssignedTo')}
               </label>
               <Select
                 id="task-assigned"
                 value={assignedToId}
                 onChange={(e) => setAssignedToId(e.target.value)}
                 options={memberOptions}
-                placeholder={t('tasks.noAssignee', { defaultValue: 'No assignee' })}
+                placeholder={t('tasks.noAssignee')}
               />
             </div>
           )}
@@ -269,14 +263,14 @@ export default function NewTaskDialog({
           {projectOptions.length > 0 && (
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700" htmlFor="task-project">
-                {t('tasks.fieldProject', { defaultValue: 'Project' })}
+                {t('tasks.fieldProject')}
               </label>
               <Select
                 id="task-project"
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
                 options={projectOptions}
-                placeholder={t('tasks.noProject', { defaultValue: 'No project' })}
+                placeholder={t('tasks.noProject')}
               />
             </div>
           )}
@@ -303,7 +297,7 @@ export default function NewTaskDialog({
               className="h-4 w-4 rounded border-gray-300"
             />
             <label className="text-sm text-gray-700" htmlFor="task-private">
-              {t('tasks.fieldPrivate', { defaultValue: 'Private task (visible only to me)' })}
+              {t('tasks.fieldPrivate')}
             </label>
           </div>
 
