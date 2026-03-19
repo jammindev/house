@@ -19,6 +19,7 @@ import ElectricityPage from './features/electricity/ElectricityPage';
 import PhotosPage from './features/photos/PhotosPage';
 import SettingsPage from './features/settings/SettingsPage';
 import DashboardPage from './features/dashboard/DashboardPage';
+import AdminUsersPage from './features/admin/AdminUsersPage';
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: 'electricity', element: <ElectricityPage /> },
       { path: 'photos', element: <PhotosPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'admin/users', element: <AdminUsersPage /> },
     ],
   },
   {

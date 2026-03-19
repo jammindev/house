@@ -23,6 +23,7 @@ Comment modifier cette seed :
     - Ajouter un projet     → appeler Project.objects.get_or_create(...)
                               dans _create_projects()
     - Changer un utilisateur → modifier _create_users() et _get_or_create_user()
+                              (champs : email, first_name, last_name, display_name, locale)
 
 Paramètres de task() :
     subject       : str   — titre de la tâche (clé d'unicité, obligatoire)
@@ -127,6 +128,7 @@ class Command(BaseCommand):
             email="claire.mercier@demo.local",
             first_name="Claire",
             last_name="Mercier",
+            display_name="Claire",
             locale="fr",
             household=household,
         )
@@ -134,6 +136,7 @@ class Command(BaseCommand):
             email="antoine.mercier@demo.local",
             first_name="Antoine",
             last_name="Mercier",
+            display_name="Antoine",
             locale="fr",
             household=household,
         )
@@ -141,6 +144,7 @@ class Command(BaseCommand):
             email="lea.martin@demo.local",
             first_name="Léa",
             last_name="Martin",
+            display_name="Léa",
             locale="fr",
             household=household,
         )
@@ -157,12 +161,13 @@ class Command(BaseCommand):
         self.stdout.write(f"  Members: {claire.first_name}, {antoine.first_name}, {lea.first_name}")
         return claire, antoine, lea
 
-    def _get_or_create_user(self, email, first_name, last_name, locale, household):
+    def _get_or_create_user(self, email, first_name, last_name, display_name, locale, household):
         user, created = User.objects.get_or_create(
             email=email,
             defaults={
                 "first_name": first_name,
                 "last_name": last_name,
+                "display_name": display_name,
                 "locale": locale,
                 "active_household": household,
                 "is_active": True,

@@ -1062,6 +1062,23 @@
     "empty_description": "Add your first stock item to start tracking your household inventory.",
     "empty_categories_description": "Create a category to organise your stock items."
   },
+  "admin": {
+    "section_label": "Administration",
+    "users": {
+      "title": "Users",
+      "col_email": "Email",
+      "col_name": "Name",
+      "col_role": "Role",
+      "role_staff": "Admin",
+      "role_user": "User"
+    },
+    "impersonation": {
+      "start": "Impersonate",
+      "stop": "Return to my account",
+      "banner": "Connected as {{email}}",
+      "as": "impersonated by {{email}}"
+    }
+  },
   "auth": {
     "login": "Sign in",
     "email": "Email",

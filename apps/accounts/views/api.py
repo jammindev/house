@@ -9,13 +9,14 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
 from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle
+from accounts.tokens import get_impersonation_token
 
 AVATAR_MAX_SIZE = 2 * 1024 * 1024  # 2 MB
 ALLOWED_AVATAR_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
@@ -148,6 +149,22 @@ class UserViewSet(viewsets.ModelViewSet):
         request.user.save(update_fields=['password'])
         return Response({'detail': _('Password updated successfully.')}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='impersonate', permission_classes=[IsAdminUser])
+    def impersonate(self, request, pk=None):
+        """Generate a short-lived impersonation token for the target user.
+
+        POST /api/accounts/users/{id}/impersonate/
+        Only accessible to staff users.
+        """
+        target = self.get_object()
+        if target == request.user:
+            return Response(
+                {'detail': _('You cannot impersonate yourself.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        tokens = get_impersonation_token(request.user, target)
+        return Response(tokens, status=status.HTTP_200_OK)
+
     @action(
         detail=False,
         methods=['post', 'delete'],
@@ -226,4 +243,5 @@ def me_view(request):
         'first_name': user.first_name,
         'last_name': user.last_name,
         'active_household': str(user.active_household_id) if user.active_household_id else None,
+        'is_staff': user.is_staff,
     })

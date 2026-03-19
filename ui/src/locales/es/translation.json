@@ -1062,6 +1062,23 @@
     "empty_description": "Añade tu primer artículo para empezar a gestionar el inventario de tu hogar.",
     "empty_categories_description": "Crea una categoría para organizar tus artículos de inventario."
   },
+  "admin": {
+    "section_label": "Administración",
+    "users": {
+      "title": "Usuarios",
+      "col_email": "Correo",
+      "col_name": "Nombre",
+      "col_role": "Rol",
+      "role_staff": "Admin",
+      "role_user": "Usuario"
+    },
+    "impersonation": {
+      "start": "Suplantar",
+      "stop": "Volver a mi cuenta",
+      "banner": "Conectado como {{email}}",
+      "as": "suplantado por {{email}}"
+    }
+  },
   "auth": {
     "login": "Iniciar sesión",
     "email": "Correo electrónico",

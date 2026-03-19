@@ -59,21 +59,53 @@ class ActiveHouseholdMiddleware:
     et l'expose via request.household.
 
     Doit être déclaré APRÈS AuthenticationMiddleware dans MIDDLEWARE.
+
+    Priorité de résolution de l'utilisateur :
+      1. Bearer JWT (Authorization header) — couvre l'impersonation et les appels API
+      2. DRF force_authenticate (_force_auth_user) — tests unitaires
+      3. Session Django — navigation web classique
     """
 
     def __init__(self, get_response):
         self.get_response = get_response
 
+    @staticmethod
+    def _user_from_jwt(request):
+        """Tente de résoudre l'utilisateur depuis le Bearer token JWT, sans lever d'exception."""
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if not auth_header.startswith('Bearer '):
+            return None
+        token_str = auth_header[7:]
+        try:
+            from rest_framework_simplejwt.tokens import AccessToken
+            from django.contrib.auth import get_user_model
+            token = AccessToken(token_str)
+            user_id = token.get('user_id')
+            if not user_id:
+                return None
+            User = get_user_model()
+            return User.objects.filter(pk=user_id, is_active=True).first()
+        except Exception:
+            return None
+
     def __call__(self, request):
         request.household = None
-        user = getattr(request, 'user', None)
-        # DRF force_authenticate sets _force_auth_user on the raw Django request
-        # before middleware runs, but AuthenticationMiddleware still sets
-        # request.user = AnonymousUser from session. Fall back to it for tests.
+
+        # 1. JWT Bearer token (prioritaire : couvre l'impersonation)
+        user = self._user_from_jwt(request)
+
         if not (user and user.is_authenticated):
+            # 2. DRF force_authenticate sets _force_auth_user on the raw Django request
+            # before middleware runs, but AuthenticationMiddleware still sets
+            # request.user = AnonymousUser from session. Fall back to it for tests.
             force_user = getattr(request, '_force_auth_user', None)
             if force_user:
                 user = force_user
+
+        if not (user and user.is_authenticated):
+            # 3. Session Django (navigation web classique)
+            user = getattr(request, 'user', None)
+
         if user and user.is_authenticated:
             active_id = getattr(user, 'active_household_id', None)
             if active_id:

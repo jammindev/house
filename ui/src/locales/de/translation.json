@@ -1062,6 +1062,23 @@
     "empty_description": "Füge deinen ersten Artikel hinzu, um das Inventar deines Haushalts zu verwalten.",
     "empty_categories_description": "Erstelle eine Kategorie, um deine Bestandsartikel zu organisieren."
   },
+  "admin": {
+    "section_label": "Administration",
+    "users": {
+      "title": "Benutzer",
+      "col_email": "E-Mail",
+      "col_name": "Name",
+      "col_role": "Rolle",
+      "role_staff": "Admin",
+      "role_user": "Benutzer"
+    },
+    "impersonation": {
+      "start": "Imitieren",
+      "stop": "Zurück zu meinem Konto",
+      "banner": "Verbunden als {{email}}",
+      "as": "imitiert von {{email}}"
+    }
+  },
   "auth": {
     "login": "Anmelden",
     "email": "E-Mail",

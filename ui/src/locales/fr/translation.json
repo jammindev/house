@@ -1062,6 +1062,23 @@
     "empty_description": "Ajoutez votre premier article pour commencer à gérer l'inventaire de votre foyer.",
     "empty_categories_description": "Créez une catégorie pour organiser vos articles de stock."
   },
+  "admin": {
+    "section_label": "Administration",
+    "users": {
+      "title": "Utilisateurs",
+      "col_email": "Email",
+      "col_name": "Nom",
+      "col_role": "Rôle",
+      "role_staff": "Admin",
+      "role_user": "Utilisateur"
+    },
+    "impersonation": {
+      "start": "Impersoner",
+      "stop": "Retourner à mon compte",
+      "banner": "Connecté en tant que {{email}}",
+      "as": "impersoné par {{email}}"
+    }
+  },
   "auth": {
     "login": "Connexion",
     "email": "Email",

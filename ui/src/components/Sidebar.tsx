@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  LogOut, X,
+  LogOut, X, ShieldCheck,
 } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
@@ -99,6 +99,36 @@ export default function Sidebar() {
               )}
             </NavLink>
           ))}
+
+          {user?.is_staff && (
+            <>
+              <div className="pt-2 pb-1 px-4">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+                  {t('admin.section_label')}
+                </span>
+              </div>
+              <NavLink
+                to="/app/admin/users"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `group flex items-center w-full px-4 py-3 text-sm font-semibold rounded-2xl border transition-all active:scale-[0.98] ${
+                    isActive
+                      ? 'bg-gradient-to-br from-primary/10 to-primary/5 text-primary shadow-sm border-primary/40'
+                      : 'border-transparent text-muted-foreground hover:bg-accent/60 hover:text-foreground hover:shadow-sm'
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <ShieldCheck className={`mr-3 h-5 w-5 shrink-0 transition-transform ${
+                      isActive ? 'text-primary scale-110' : 'text-muted-foreground group-hover:text-foreground'
+                    }`} />
+                    {t('admin.users.title')}
+                  </>
+                )}
+              </NavLink>
+            </>
+          )}
         </nav>
 
         {/* Footer */}
