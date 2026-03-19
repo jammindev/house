@@ -17,6 +17,7 @@ import {
 import TaskSection from './TaskSection';
 import NewTaskDialog from './NewTaskDialog';
 import TaskAttachmentsDialog from './TaskAttachmentsDialog';
+import TaskDetailDialog from './TaskDetailDialog';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
@@ -31,6 +32,7 @@ export default function TasksPage() {
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [attachmentsTask, setAttachmentsTask] = React.useState<Task | null>(null);
+  const [detailTask, setDetailTask] = React.useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useSessionState<FilterKey>('tasks.filter', 'all');
   const [showPrivateOnly, setShowPrivateOnly] = useSessionState('tasks.filterPrivate', false);
   const [filterAssigneeId, setFilterAssigneeId] = useSessionState('tasks.filterAssignee', '');
@@ -143,6 +145,7 @@ export default function TasksPage() {
     onEdit: setEditingTask,
     onDelete: handleTaskDeleted,
     onManageAttachments: setAttachmentsTask,
+    onViewDetail: setDetailTask,
   };
 
   return (
@@ -265,6 +268,18 @@ export default function TasksPage() {
         task={attachmentsTask}
         open={attachmentsTask !== null}
         onOpenChange={(open) => { if (!open) setAttachmentsTask(null); }}
+      />
+
+      <TaskDetailDialog
+        task={detailTask}
+        open={detailTask !== null}
+        onOpenChange={(open) => { if (!open) setDetailTask(null); }}
+        householdMembers={householdMembers}
+        onStatusChange={handleStatusChange}
+        onAssigneeChange={handleAssigneeChange}
+        onEdit={setEditingTask}
+        onDelete={handleTaskDeleted}
+        onManageAttachments={setAttachmentsTask}
       />
     </>
   );

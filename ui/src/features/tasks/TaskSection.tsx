@@ -11,6 +11,7 @@ interface SectionProps {
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onManageAttachments?: (task: Task) => void;
+  onViewDetail?: (task: Task) => void;
   highlightHeader?: boolean;
 }
 
@@ -23,6 +24,7 @@ export default function TaskSection({
   onEdit,
   onDelete,
   onManageAttachments,
+  onViewDetail,
   highlightHeader = false,
 }: SectionProps) {
   if (tasks.length === 0) return null;
@@ -54,6 +56,7 @@ export default function TaskSection({
             onEdit={onEdit}
             onDelete={onDelete}
             onManageAttachments={onManageAttachments}
+            onViewDetail={onViewDetail}
           />
         ))}
       </div>

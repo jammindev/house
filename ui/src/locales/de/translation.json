@@ -345,6 +345,7 @@
     "assign": "Zuweisen",
     "fieldContent": "Notizen",
     "fieldContentPlaceholder": "Optionale Notizen…",
+    "noNotes": "Keine Notizen",
     "sections": {
       "overdue": "Überfällig",
       "in_progress": "In Bearbeitung",

@@ -345,6 +345,7 @@
     "assign": "Asignar",
     "fieldContent": "Notas",
     "fieldContentPlaceholder": "Notas opcionales…",
+    "noNotes": "Sin notas",
     "sections": {
       "overdue": "Vencidas",
       "in_progress": "En curso",

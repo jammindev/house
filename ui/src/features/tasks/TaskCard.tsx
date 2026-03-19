@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { useAuth } from '@/lib/auth/context';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
@@ -17,6 +17,7 @@ interface TaskCardProps {
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
   onManageAttachments?: (task: Task) => void;
+  onViewDetail?: (task: Task) => void;
   interactionsBaseUrl?: string;
 }
 
@@ -28,6 +29,7 @@ export default function TaskCard({
   onEdit,
   onDelete,
   onManageAttachments,
+  onViewDetail,
   interactionsBaseUrl = '/app/interactions/',
 }: TaskCardProps) {
   const { t } = useTranslation();
@@ -120,13 +122,27 @@ export default function TaskCard({
             {task.is_private && (
               <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
             )}
-            <p className={[
-              'text-sm font-medium leading-snug',
-              overdue ? 'text-orange-900 dark:text-orange-200' : 'text-foreground',
-              isDone ? 'line-through' : '',
-            ].join(' ')}>
-              {task.subject || t('tasks.untitledTask')}
-            </p>
+            {onViewDetail ? (
+              <button
+                type="button"
+                onClick={() => onViewDetail(task)}
+                className={[
+                  'text-left text-sm font-medium leading-snug hover:underline',
+                  overdue ? 'text-orange-900 dark:text-orange-200' : 'text-foreground',
+                  isDone ? 'line-through' : '',
+                ].join(' ')}
+              >
+                {task.subject || t('tasks.untitledTask')}
+              </button>
+            ) : (
+              <p className={[
+                'text-sm font-medium leading-snug',
+                overdue ? 'text-orange-900 dark:text-orange-200' : 'text-foreground',
+                isDone ? 'line-through' : '',
+              ].join(' ')}>
+                {task.subject || t('tasks.untitledTask')}
+              </p>
+            )}
           </div>
 
           <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -181,6 +197,13 @@ export default function TaskCard({
                 <Link className="h-3 w-3" />
                 {t('tasks.sourceEvent')}
               </a>
+            </div>
+          ) : null}
+
+          {task.content ? (
+            <div className="mt-2 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+              <FileText className="mt-0.5 h-3 w-3 flex-shrink-0" />
+              <span className="line-clamp-2 whitespace-pre-line">{task.content}</span>
             </div>
           ) : null}
         </div>

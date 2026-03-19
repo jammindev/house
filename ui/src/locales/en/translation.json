@@ -345,6 +345,7 @@
     "assign": "Assign",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Optional notes…",
+    "noNotes": "No notes",
     "sections": {
       "overdue": "Overdue",
       "in_progress": "In progress",
