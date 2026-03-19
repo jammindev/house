@@ -1,0 +1,1 @@
+- garder des hauteur de modale fix pour le sheet-dialog et avoir un preset de hauteur s/m/l
