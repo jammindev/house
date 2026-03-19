@@ -1,112 +1,160 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, FileText, Link, Pencil, RotateCcw, Trash2, User } from 'lucide-react';
-import { Button } from '@/design-system/button';
-import type { Task, TaskStatus } from '@/lib/api/tasks';
-import { nextStatus, prevStatus, isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
+import { Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { Card } from '@/design-system/card';
+import { useAuth } from '@/lib/auth/context';
+import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
+import { isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
+import CardActions, { type CardAction } from '@/components/CardActions';
+import TaskStatusBadge from './TaskStatusBadge';
+import TaskAssigneeBadge from './TaskAssigneeBadge';
 
 interface TaskCardProps {
   task: Task;
+  householdMembers: HouseholdMember[];
   onStatusChange: (taskId: string, newStatus: TaskStatus) => Promise<void>;
+  onAssigneeChange: (taskId: string, assignedToId: string | null) => Promise<void>;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onManageAttachments?: (task: Task) => void;
   interactionsBaseUrl?: string;
 }
 
 export default function TaskCard({
   task,
+  householdMembers,
   onStatusChange,
+  onAssigneeChange,
   onEdit,
   onDelete,
+  onManageAttachments,
   interactionsBaseUrl = '/app/interactions/',
 }: TaskCardProps) {
   const { t } = useTranslation();
-  const [moving, setMoving] = React.useState(false);
+  const { user } = useAuth();
+  const [statusUpdating, setStatusUpdating] = React.useState(false);
+  const [assigneeUpdating, setAssigneeUpdating] = React.useState(false);
+
+  const isUpdating = statusUpdating || assigneeUpdating;
+  const showAssignee = householdMembers.length > 1 && !task.is_private;
 
   const overdue = isTaskOverdue(task);
   const isDone = task.status === 'done';
   const relativeDate = formatRelativeDate(task.due_date);
-
-  const hasLinkedDocument = false;
   const zoneName = task.zone_names?.[0];
-  const canGoBack = task.status === 'done';
   const isHighPriority = task.priority === 1;
+  const isCreator = user != null && String(task.created_by) === String(user.id);
 
-  const handleAdvance = async () => {
-    const newStatus = nextStatus(task.status);
+  const totalAttachments = (task.linked_document_count ?? 0) + (task.linked_interaction_count ?? 0);
+
+  const completedAtFormatted = task.completed_at
+    ? new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(task.completed_at))
+    : null;
+
+  const handleStatusChange = async (newStatus: TaskStatus) => {
     if (newStatus === task.status) return;
-    setMoving(true);
+    setStatusUpdating(true);
     try {
       await onStatusChange(task.id, newStatus);
     } finally {
-      setMoving(false);
+      setStatusUpdating(false);
     }
   };
 
-  const handleRevert = async () => {
-    const newStatus = prevStatus(task.status);
-    if (newStatus === task.status) return;
-    setMoving(true);
+  const handleAssigneeChange = async (assignedToId: string | null) => {
+    if (assignedToId === task.assigned_to) return;
+    setAssigneeUpdating(true);
     try {
-      await onStatusChange(task.id, newStatus);
+      await onAssigneeChange(task.id, assignedToId);
     } finally {
-      setMoving(false);
+      setAssigneeUpdating(false);
     }
   };
+
+  const menuActions: CardAction[] = [
+    {
+      label: t('tasks.editTask'),
+      icon: Pencil,
+      onClick: () => onEdit(task),
+    },
+    ...(onManageAttachments
+      ? [
+          {
+            label: t('tasks.manageAttachments'),
+            icon: Paperclip,
+            onClick: () => onManageAttachments(task),
+          },
+        ]
+      : []),
+    ...(isCreator
+      ? [
+          {
+            label: t('tasks.deleteTask'),
+            icon: Trash2,
+            onClick: () => onDelete(task.id),
+            variant: 'danger' as const,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div
+    <Card
       className={[
-        'rounded-lg border bg-white p-3 shadow-sm transition-shadow hover:shadow-md',
-        overdue ? 'border-orange-300 bg-orange-50/30' : 'border-slate-200',
+        'p-3 transition-all hover:shadow-md',
+        overdue
+          ? 'border-orange-300 bg-orange-50/30 dark:border-orange-900 dark:bg-orange-950/20'
+          : 'border-border bg-card',
         isDone ? 'opacity-70' : '',
+        isUpdating ? 'pointer-events-none opacity-50' : '',
       ].join(' ')}
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-1.5">
             {isHighPriority && !isDone && (
-              <span className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-red-500" title={t('tasks.priorityHigh', { defaultValue: 'High priority' })} />
+              <span className="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500 ring-2 ring-red-200" title={t('tasks.priorityHigh')} />
             )}
-            <p className={`text-sm font-medium leading-snug ${overdue ? 'text-orange-900' : 'text-slate-900'} ${isDone ? 'line-through' : ''}`}>
+            {task.is_private && (
+              <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
+            )}
+            <p className={[
+              'text-sm font-medium leading-snug',
+              overdue ? 'text-orange-900 dark:text-orange-200' : 'text-foreground',
+              isDone ? 'line-through' : '',
+            ].join(' ')}>
               {task.subject || t('tasks.untitledTask')}
             </p>
           </div>
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-slate-500">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
             {zoneName ? (
-              <span className="font-medium text-slate-600">{zoneName}</span>
+              <span className="font-medium text-foreground/80">{zoneName}</span>
             ) : (
-              <span className="text-slate-400">{t('tasks.noZone')}</span>
+              <span className="text-muted-foreground/60">{t('tasks.noZone')}</span>
             )}
 
             {relativeDate ? (
               <>
-                <span className="text-slate-300">·</span>
-                <span className={overdue ? 'font-medium text-orange-600' : ''}>{relativeDate}</span>
+                <span className="text-border">·</span>
+                <span className={overdue ? 'font-medium text-orange-600 dark:text-orange-400' : ''}>{relativeDate}</span>
               </>
             ) : null}
 
             {overdue ? (
               <>
-                <span className="text-slate-300">·</span>
-                <span className="font-semibold text-orange-600">
-                  {t('tasks.overdueBadge', { defaultValue: 'Overdue' })}
+                <span className="text-border">·</span>
+                <span className="font-semibold text-orange-600 dark:text-orange-400">
+                  {t('tasks.overdueBadge')}
                 </span>
               </>
             ) : null}
           </div>
 
-          {task.assigned_to_name ? (
-            <div className="mt-1 flex items-center gap-1 text-[11px] text-slate-500">
-              <User className="h-3 w-3" />
-              <span>{task.assigned_to_name}</span>
-            </div>
-          ) : null}
-
-          {isDone && task.completed_by_name ? (
-            <div className="mt-1 text-[11px] text-emerald-600">
-              {t('tasks.completedBy', { name: task.completed_by_name, defaultValue: `Done by ${task.completed_by_name}` })}
+          {isDone && task.completed_by_name && !(user != null && String(task.completed_by) === String(user.id)) ? (
+            <div className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+              {t('tasks.completedBy', { name: task.completed_by_name })}
+              {completedAtFormatted ? ` · ${completedAtFormatted}` : null}
             </div>
           ) : null}
 
@@ -121,80 +169,44 @@ export default function TaskCard({
             </div>
           ) : null}
 
-          {(task.source_interaction || hasLinkedDocument) ? (
-            <div className="mt-1.5 flex items-center gap-2">
-              {task.source_interaction ? (
-                <a
-                  href={`${interactionsBaseUrl}?created=${task.source_interaction}`}
-                  className="inline-flex items-center gap-1 text-[11px] text-sky-600 hover:text-sky-800 hover:underline"
-                  title={t('tasks.sourceEvent', { defaultValue: 'Source event' })}
-                >
-                  <Link className="h-3 w-3" />
-                  {t('tasks.sourceEvent', { defaultValue: 'Event' })}
-                </a>
-              ) : null}
-              {hasLinkedDocument ? (
-                <span className="inline-flex items-center gap-1 text-[11px] text-violet-600">
-                  <FileText className="h-3 w-3" />
-                  {t('tasks.sourceDocumentLink', { defaultValue: 'Document' })}
-                </span>
-              ) : null}
+          {task.source_interaction ? (
+            <div className="mt-1.5">
+              <a
+                href={`${interactionsBaseUrl}?created=${task.source_interaction}`}
+                className="inline-flex items-center gap-1 text-[11px] text-sky-600 hover:text-sky-800 hover:underline dark:text-sky-400 dark:hover:text-sky-300"
+                title={t('tasks.sourceEvent')}
+              >
+                <Link className="h-3 w-3" />
+                {t('tasks.sourceEvent')}
+              </a>
             </div>
           ) : null}
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-0.5">
-          {canGoBack ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-slate-300 hover:text-slate-500"
-              onClick={handleRevert}
-              disabled={moving}
-              aria-label={t('tasks.revertStatus')}
+        <div className="flex flex-shrink-0 items-center gap-1">
+          {totalAttachments > 0 && onManageAttachments ? (
+            <button
               type="button"
+              onClick={() => onManageAttachments(task)}
+              className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+              title={t('tasks.manageAttachments')}
             >
-              <RotateCcw className="h-3 w-3" />
-            </Button>
+              <Paperclip className="h-3 w-3" />
+              {totalAttachments}
+            </button>
           ) : null}
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(task.id)}
-            aria-label={t('tasks.deleteTask')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            onClick={() => onEdit(task)}
-            aria-label={t('tasks.editTask')}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-
-          {!isDone ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-slate-400 hover:text-emerald-600"
-              onClick={handleAdvance}
-              disabled={moving}
-              aria-label={t('tasks.advanceStatus')}
-              type="button"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-            </Button>
-          ) : null}
+          {showAssignee && (
+            <TaskAssigneeBadge
+              task={task}
+              members={householdMembers}
+              onChange={handleAssigneeChange}
+              disabled={isUpdating}
+            />
+          )}
+          <TaskStatusBadge status={task.status} onChange={handleStatusChange} disabled={isUpdating} />
+          <CardActions actions={menuActions} />
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

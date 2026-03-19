@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import type { StockCategory } from '@/lib/api/stock';
 import { useCreateCategory, useUpdateCategory } from './hooks';
 
@@ -102,10 +103,7 @@ export default function StockCategoryDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
-          <div className="space-y-1">
-            <label htmlFor="cat-name" className="text-sm font-medium">
-              {t('stock.fields.name')} *
-            </label>
+          <FormField label={`${t('stock.fields.name')} *`} htmlFor="cat-name">
             <Input
               id="cat-name"
               value={form.name}
@@ -113,30 +111,24 @@ export default function StockCategoryDialog({
               required
               autoComplete="off"
             />
-          </div>
+          </FormField>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label htmlFor="cat-emoji" className="text-sm font-medium">
-                {t('stock.fields.emoji')}
-              </label>
+            <FormField label={t('stock.fields.emoji')} htmlFor="cat-emoji">
               <Input
                 id="cat-emoji"
                 value={form.emoji}
                 onChange={(e) => updateField('emoji', e.target.value)}
               />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="cat-color" className="text-sm font-medium">
-                {t('stock.fields.color')}
-              </label>
+            </FormField>
+            <FormField label={t('stock.fields.color')} htmlFor="cat-color">
               <Input
                 id="cat-color"
                 value={form.color}
                 onChange={(e) => updateField('color', e.target.value)}
                 placeholder="#94a3b8"
               />
-            </div>
+            </FormField>
           </div>
 
           {error ? (

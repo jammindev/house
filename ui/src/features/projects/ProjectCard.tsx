@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
-import { Pencil, Trash2, Star } from 'lucide-react';
+import { Pencil, Star, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
+import { Card } from '@/design-system/card';
+import CardActions, { type CardAction } from '@/components/CardActions';
 import type { ProjectListItem, ProjectStatus, ProjectType } from '@/lib/api/projects';
 
 function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'outline' | 'destructive' {
@@ -15,14 +17,14 @@ function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'outlin
 
 function typeColor(type: ProjectType): string {
   const map: Record<ProjectType, string> = {
-    renovation: 'bg-amber-50 text-amber-800 border-amber-200',
-    maintenance: 'bg-blue-50 text-blue-800 border-blue-200',
-    repair: 'bg-red-50 text-red-800 border-red-200',
-    purchase: 'bg-green-50 text-green-800 border-green-200',
-    relocation: 'bg-purple-50 text-purple-800 border-purple-200',
-    vacation: 'bg-cyan-50 text-cyan-800 border-cyan-200',
-    leisure: 'bg-pink-50 text-pink-800 border-pink-200',
-    other: 'bg-gray-50 text-gray-700 border-gray-200',
+    renovation: 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
+    maintenance: 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
+    repair: 'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800',
+    purchase: 'bg-green-50 text-green-800 border-green-200 dark:bg-green-950/40 dark:text-green-300 dark:border-green-800',
+    relocation: 'bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800',
+    vacation: 'bg-cyan-50 text-cyan-800 border-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:border-cyan-800',
+    leisure: 'bg-pink-50 text-pink-800 border-pink-200 dark:bg-pink-950/40 dark:text-pink-300 dark:border-pink-800',
+    other: 'bg-muted text-muted-foreground border-border',
   };
   return map[type] ?? map.other;
 }
@@ -86,13 +88,18 @@ export default function ProjectCard({
   const overdue = isOverdue(project);
   const dueSoon = isDueSoon(project);
 
+  const menuActions: CardAction[] = [
+    { label: t('projects.edit'), icon: Pencil, onClick: () => onEdit(project) },
+    { label: t('projects.delete'), icon: Trash2, onClick: () => onDelete(project.id), variant: 'danger' },
+  ];
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+    <Card className="p-4 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <Link
             to={`/app/projects/${project.id}`}
-            className="truncate text-sm font-semibold leading-tight text-slate-900 hover:text-primary hover:underline"
+            className="truncate text-sm font-semibold leading-tight text-foreground hover:text-primary hover:underline"
           >
             {project.title}
           </Link>
@@ -106,7 +113,7 @@ export default function ProjectCard({
             <Button
               variant="ghost"
               size="icon"
-              className={`h-7 w-7 ${project.is_pinned ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+              className={`h-7 w-7 ${project.is_pinned ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
               onClick={() => onTogglePin(project)}
               disabled={pinLoading}
               aria-label={project.is_pinned ? t('projects.unpin') : t('projects.pin')}
@@ -118,26 +125,7 @@ export default function ProjectCard({
               />
             </Button>
           ) : null}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(project.id)}
-            aria-label={t('projects.delete')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            onClick={() => onEdit(project)}
-            aria-label={t('projects.edit')}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
+          <CardActions actions={menuActions} />
         </div>
       </div>
 
@@ -199,6 +187,6 @@ export default function ProjectCard({
           />
         </div>
       ) : null}
-    </div>
+    </Card>
   );
 }

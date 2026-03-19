@@ -5,6 +5,7 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
+import { FormField } from '@/design-system/form-field';
 import { createContact, updateContact, type Contact } from '@/lib/api/contacts';
 import { useStructures } from './hooks';
 
@@ -108,34 +109,25 @@ export default function ContactDialog({
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="contact-first-name">
-                {t('contacts.firstName')}
-              </label>
+            <FormField label={t('contacts.firstName')} htmlFor="contact-first-name">
               <Input
                 id="contact-first-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 autoComplete="given-name"
               />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="contact-last-name">
-                {t('contacts.lastName')}
-              </label>
+            </FormField>
+            <FormField label={t('contacts.lastName')} htmlFor="contact-last-name">
               <Input
                 id="contact-last-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 autoComplete="family-name"
               />
-            </div>
+            </FormField>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="contact-email">
-              {t('contacts.email')}
-            </label>
+          <FormField label={t('contacts.email')} htmlFor="contact-email">
             <Input
               id="contact-email"
               type="email"
@@ -143,12 +135,9 @@ export default function ContactDialog({
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
             />
-          </div>
+          </FormField>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="contact-phone">
-              {t('contacts.phone')}
-            </label>
+          <FormField label={t('contacts.phone')} htmlFor="contact-phone">
             <Input
               id="contact-phone"
               type="tel"
@@ -156,13 +145,10 @@ export default function ContactDialog({
               onChange={(e) => setPhone(e.target.value)}
               autoComplete="tel"
             />
-          </div>
+          </FormField>
 
           {structureOptions.length > 0 && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700" htmlFor="contact-structure">
-                {t('contacts.structure')}
-              </label>
+            <FormField label={t('contacts.structure')} htmlFor="contact-structure">
               <Select
                 id="contact-structure"
                 value={structureId}
@@ -170,20 +156,17 @@ export default function ContactDialog({
                 options={structureOptions}
                 placeholder={t('contacts.noStructure')}
               />
-            </div>
+            </FormField>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700" htmlFor="contact-notes">
-              {t('contacts.notes')}
-            </label>
+          <FormField label={t('contacts.notes')} htmlFor="contact-notes">
             <Textarea
               id="contact-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
             />
-          </div>
+          </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
             <Button

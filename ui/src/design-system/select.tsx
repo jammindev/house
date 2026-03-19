@@ -1,6 +1,7 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { fieldBase } from "./field-styles"
 
 export interface SelectOption {
   value: string
@@ -23,7 +24,8 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           required={required}
           className={cn(
-            "flex h-10 w-full appearance-none items-center justify-between rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+            fieldBase,
+            "h-10 appearance-none items-center justify-between pr-10",
             className
           )}
           {...props}

@@ -12,7 +12,10 @@
     "confirmArchive": "Archive this household? It will no longer be accessible.",
     "confirmLeave": "Leave this household?",
     "retry": "Retry",
-    "saveFailed": "Failed to save."
+    "saveFailed": "Failed to save.",
+    "search": "Search",
+    "noResults": "No results",
+    "linked": "Already linked"
   },
   "electricity": {
     "api_workspace_title": "Electricity API workspace",
@@ -311,8 +314,6 @@
     "completedBy": "Done by {{name}}",
     "sourceEvent": "Event",
     "sourceDocumentLink": "Document",
-    "advanceStatus": "Advance status",
-    "revertStatus": "Revert status",
     "editTask": "Edit",
     "deleteTask": "Delete",
     "zoneRequired": "Please select a zone.",
@@ -328,8 +329,19 @@
     "priorityHigh_label": "High",
     "priorityNormal_label": "Normal",
     "priorityLow_label": "Low",
+    "fieldStatus": "Status",
     "fieldAssignedTo": "Assign to",
     "noAssignee": "No assignee",
+    "assignedToMe": "Me",
+    "fieldProject": "Project",
+    "noProject": "No project",
+    "fieldPrivate": "Private task (visible only to me)",
+    "private": "Private",
+    "filterPrivate": "Private",
+    "filterEmpty": "No tasks match this filter.",
+    "filterMember": "Member",
+    "filterMemberAll": "All members",
+    "assign": "Assign",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Optional notes…",
     "sections": {
@@ -345,7 +357,22 @@
       "in_progress": "In progress",
       "backlog": "Backlog",
       "done": "Done"
-    }
+    },
+    "manageAttachments": "Manage attachments",
+    "attachmentsTitle": "Attachments",
+    "linkedDocuments": "Documents",
+    "linkedPhotos": "Photos",
+    "linkedInteractions": "Linked interactions",
+    "addDocument": "Add document",
+    "addPhoto": "Add photo",
+    "addInteraction": "Link interaction",
+    "addAttachments": "Attachments",
+    "noLinkedDocuments": "No documents attached",
+    "noLinkedInteractions": "No interactions linked",
+    "pickDocument": "Select a document",
+    "pickInteraction": "Select an interaction",
+    "attachmentUnlinked": "Link removed",
+    "attachmentLinked": "Attachment added"
   },
   "settings": {
     "app_title": "Settings mini-app",
@@ -1088,10 +1115,10 @@
     "empty_expenses": "No expenses yet.",
     "empty_documents": "No documents yet.",
     "empty_timeline": "No activity yet.",
-    "add_task": "Add task",
-    "add_note": "Add note",
-    "add_expense": "Add expense",
-    "add_activity": "Add activity",
+    "add_task": "Add a task",
+    "add_note": "Add a note",
+    "add_expense": "Add an expense",
+    "add_activity": "Add an activity",
     "status": {
       "draft": "Draft",
       "active": "Active",
@@ -1159,10 +1186,6 @@
         "cancel": "Cancel"
       }
     },
-    "add_task": "Add a task",
-    "add_note": "Add a note",
-    "add_expense": "Add an expense",
-    "add_activity": "Add an activity",
     "groups": {
       "title": "Project groups",
       "new": "New group",

@@ -8,6 +8,13 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { ProjectStatus } from '@/lib/api/projects';
+import type { Task, TaskStatus } from '@/lib/api/tasks';
+import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import {
+  useProjectTasks, useHouseholdMembersWithMe, useUpdateTaskStatus, useDeleteTask, taskKeys,
+} from '@/features/tasks/hooks';
+import TaskCard from '@/features/tasks/TaskCard';
+import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import {
   useProject,
   useProjectInteractions,
@@ -123,6 +130,133 @@ function TabInteractions({
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+// ── Tab: tasks ─────────────────────────────────────────────
+
+function TaskTabContent({ projectId, defaultZoneId }: { projectId: string; defaultZoneId?: string }) {
+  const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [newTaskOpen, setNewTaskOpen] = React.useState(false);
+  const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+
+  const { data: tasks = [], isLoading, error } = useProjectTasks(projectId);
+  const { data: householdMembers = [] } = useHouseholdMembersWithMe();
+  const updateStatus = useUpdateTaskStatus();
+  const deleteTaskMutation = useDeleteTask();
+
+  const projectTaskKeys = [...taskKeys.all, 'project', projectId] as const;
+
+  const { deleteWithUndo } = useDeleteWithUndo({
+    label: t('tasks.deleted'),
+    onDelete: (id) => deleteTaskMutation.mutateAsync(id),
+  });
+
+  const handleStatusChange = async (taskId: string, newStatus: TaskStatus) => {
+    await updateStatus.mutateAsync({ id: taskId, status: newStatus });
+  };
+
+  const handleDelete = (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+    deleteWithUndo(taskId, {
+      onRemove: () =>
+        qc.setQueryData<Task[]>(projectTaskKeys, (old) => old?.filter((t) => t.id !== taskId)),
+      onRestore: () =>
+        qc.setQueryData<Task[]>(projectTaskKeys, (old) => (old ? [...old, task] : [task])),
+    });
+  };
+
+  const handleSaved = () => {
+    qc.invalidateQueries({ queryKey: projectTaskKeys });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className="text-sm text-destructive">{t('common.error_loading')}</p>;
+  }
+
+  const activeTasks = tasks.filter((t) => t.status !== 'done');
+  const doneTasks = tasks.filter((t) => t.status === 'done');
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => setNewTaskOpen(true)}
+          className="gap-1.5"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t('projects.add_task')}
+        </Button>
+      </div>
+
+      {tasks.length === 0 ? (
+        <p className="text-sm italic text-muted-foreground">{t('projects.empty_tasks')}</p>
+      ) : (
+        <div className="space-y-4">
+          {activeTasks.length > 0 && (
+            <div className="space-y-2">
+              {activeTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onStatusChange={handleStatusChange}
+                  onEdit={setEditingTask}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+          {doneTasks.length > 0 && (
+            <div className="space-y-2 opacity-70">
+              <p className="text-xs font-medium text-muted-foreground">
+                {t('tasks.sections.done')} ({doneTasks.length})
+              </p>
+              {doneTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  onStatusChange={handleStatusChange}
+                  onEdit={setEditingTask}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <NewTaskDialog
+        open={newTaskOpen}
+        onOpenChange={setNewTaskOpen}
+        onCreated={handleSaved}
+        householdMembers={householdMembers}
+        defaultProjectId={projectId}
+      />
+
+      <NewTaskDialog
+        open={editingTask !== null}
+        onOpenChange={(open) => { if (!open) setEditingTask(null); }}
+        onCreated={handleSaved}
+        existingTask={editingTask ?? undefined}
+        onUpdated={handleSaved}
+        householdMembers={householdMembers}
+        defaultProjectId={projectId}
+      />
     </div>
   );
 }
@@ -394,12 +528,9 @@ export default function ProjectDetailPage() {
               ) : null}
 
               {activeTab === 'tasks' ? (
-                <TabInteractions
+                <TaskTabContent
                   projectId={project.id}
-                  type="todo"
-                  emptyKey="projects.empty_tasks"
-                  addUrl={`/app/interactions/new?type=todo&project_id=${project.id}${project.zones.length > 0 ? `&zone_id=${project.zones[0].id}` : ''}`}
-                  addLabel={t('projects.add_task')}
+                  defaultZoneId={project.zones[0]?.id}
                 />
               ) : null}
 

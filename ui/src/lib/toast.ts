@@ -19,7 +19,7 @@ export interface ToastItem {
 
 interface ToastStore {
   toasts: ToastItem[]
-  toast: (options: Omit<ToastItem, 'id'>) => void
+  toast: (options: Omit<ToastItem, 'id'>) => string
   dismiss: (id: string) => void
 }
 
@@ -28,6 +28,7 @@ export const useToastStore = create<ToastStore>((set) => ({
   toast: (options) => {
     const id = Math.random().toString(36).slice(2)
     set((state) => ({ toasts: [...state.toasts, { id, ...options }] }))
+    return id
   },
   dismiss: (id) => {
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }))
@@ -39,6 +40,6 @@ export function useToast() {
   return useToastStore(useShallow((s) => ({ toast: s.toast, dismiss: s.dismiss, toasts: s.toasts })))
 }
 
-/** Appelable hors composant (ex: dans un catch utilitaire) */
-export const toast = (options: Omit<ToastItem, 'id'>) =>
+/** Appelable hors composant (ex: dans un catch utilitaire). Retourne l'id du toast. */
+export const toast = (options: Omit<ToastItem, 'id'>): string =>
   useToastStore.getState().toast(options)

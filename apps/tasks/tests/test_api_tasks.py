@@ -147,7 +147,9 @@ class TestTaskCrud:
         url = reverse("task-detail", kwargs={"pk": str(task.id)})
         response = owner_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not Task.objects.filter(id=task.id).exists()
+        # Soft delete: task is archived, not removed from DB
+        task.refresh_from_db()
+        assert task.status == Task.Status.ARCHIVED
 
 
 # ── Scoping ───────────────────────────────────────────────────────────────────
@@ -288,4 +290,97 @@ class TestTaskAssignment:
         )
         assert response.status_code == status.HTTP_200_OK
         task.refresh_from_db()
+        assert task.assigned_to is None
+
+
+# ── Contrainte : tâche privée ≠ assignée ─────────────────────────────────────
+
+@pytest.mark.django_db
+class TestPrivateTaskNotAssigned:
+    """Une tâche privée ne peut pas avoir d'assignataire (ni à la création ni en update)."""
+
+    def _member(self, household):
+        user = UserFactory(email=f"member-priv-{UserFactory._meta.model._default_manager.count()}@example.com")
+        _add_membership(user, household, role=HouseholdMember.Role.MEMBER)
+        return user
+
+    # ── Création ─────────────────────────────────────────────────────────────
+
+    def test_create_private_with_assignee_rejected(self, owner_client, household, zone):
+        member = UserFactory(email="priv-create-member@example.com")
+        _add_membership(member, household)
+        url = reverse("task-list")
+        response = owner_client.post(
+            url,
+            {**_task_payload([zone.id]), "is_private": True, "assigned_to_id": str(member.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "assigned_to_id" in response.data
+
+    def test_create_private_without_assignee_ok(self, owner_client, household, zone):
+        url = reverse("task-list")
+        response = owner_client.post(
+            url,
+            {**_task_payload([zone.id]), "is_private": True},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["is_private"] is True
+        assert response.data["assigned_to"] is None
+
+    def test_create_not_private_with_assignee_ok(self, owner_client, household, zone):
+        member = UserFactory(email="priv-nopriv-member@example.com")
+        _add_membership(member, household)
+        url = reverse("task-list")
+        response = owner_client.post(
+            url,
+            {**_task_payload([zone.id]), "is_private": False, "assigned_to_id": str(member.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    # ── Update : rendre privée une tâche assignée ─────────────────────────────
+
+    def test_make_assigned_task_private_rejected(self, owner_client, household, owner, zone):
+        member = UserFactory(email="priv-update1-member@example.com")
+        _add_membership(member, household)
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Assigned task",
+            assigned_to=member, is_private=False,
+        )
+        url = reverse("task-detail", kwargs={"pk": str(task.id)})
+        response = owner_client.patch(url, {"is_private": True}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "assigned_to_id" in response.data
+
+    def test_assign_private_task_rejected(self, owner_client, household, owner, zone):
+        member = UserFactory(email="priv-update2-member@example.com")
+        _add_membership(member, household)
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Private task",
+            is_private=True,
+        )
+        url = reverse("task-detail", kwargs={"pk": str(task.id)})
+        response = owner_client.patch(
+            url, {"assigned_to_id": str(member.id)}, format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "assigned_to_id" in response.data
+
+    def test_make_private_after_unassign_ok(self, owner_client, household, owner, zone):
+        """Passer en privée après avoir retiré l'assignation dans le même PATCH."""
+        member = UserFactory(email="priv-update3-member@example.com")
+        _add_membership(member, household)
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Will be private",
+            assigned_to=member, is_private=False,
+        )
+        url = reverse("task-detail", kwargs={"pk": str(task.id)})
+        response = owner_client.patch(
+            url, {"is_private": True, "assigned_to_id": None}, format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        task.refresh_from_db()
+        assert task.is_private is True
         assert task.assigned_to is None

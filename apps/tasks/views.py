@@ -1,16 +1,24 @@
 """
 Task REST API views.
 """
+from django.db import IntegrityError
 from django.utils import timezone
-from rest_framework import viewsets, filters
-from rest_framework.exceptions import ValidationError
+from rest_framework import viewsets, filters, status
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
+from documents.models import Document
+from interactions.models import Interaction
 from zones.models import Zone
-from .models import Task
-from .serializers import TaskSerializer
+from .models import Task, TaskDocument, TaskInteraction
+from .serializers import (
+    TaskSerializer,
+    TaskDocumentLinkSerializer,
+    TaskInteractionLinkSerializer,
+)
 
 
 class TaskViewSet(viewsets.ModelViewSet):
@@ -36,7 +44,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = Task.objects.for_user_households(self.request.user).select_related(
             'created_by', 'completed_by', 'assigned_to', 'project'
-        ).prefetch_related('zones', 'tags__tag')
+        ).prefetch_related(
+            'zones', 'tags__tag',
+            'task_documents__document',
+            'task_interactions__interaction',
+        )
 
         if self.request.household:
             qs = qs.filter(household=self.request.household)
@@ -95,3 +107,118 @@ class TaskViewSet(viewsets.ModelViewSet):
             kwargs['completed_by'] = None
 
         serializer.save(**kwargs)
+
+    def perform_destroy(self, instance):
+        if instance.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the creator can delete this task.")
+        instance.status = Task.Status.ARCHIVED
+        instance.updated_by = self.request.user
+        instance.save(update_fields=['status', 'updated_by'])
+
+
+class TaskDocumentViewSet(viewsets.ModelViewSet):
+    """CRUD for Task↔Document links."""
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = TaskDocumentLinkSerializer
+
+    def get_queryset(self):
+        qs = TaskDocument.objects.filter(
+            task__household_id__in=self.request.user.householdmember_set.values_list(
+                'household_id', flat=True
+            )
+        ).select_related('document', 'task')
+        if self.request.household:
+            qs = qs.filter(task__household=self.request.household)
+        task_id = self.request.query_params.get('task', '').strip()
+        if task_id:
+            qs = qs.filter(task_id=task_id)
+        return qs
+
+    def perform_create(self, serializer):
+        task = serializer.validated_data['task']
+        document = serializer.validated_data['document']
+        if not Task.objects.for_user_households(self.request.user).filter(id=task.id).exists():
+            raise ValidationError({'task': 'Invalid task or access denied.'})
+        if str(document.household_id) != str(task.household_id):
+            raise ValidationError(
+                {'document': 'Document must belong to the same household as the task.'}
+            )
+        serializer.save(created_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        task = serializer.validated_data['task']
+        document = serializer.validated_data['document']
+        if TaskDocument.objects.filter(task=task, document=document).exists():
+            return Response(
+                {'code': 'already_linked', 'detail': 'This document is already linked to this task.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        try:
+            self.perform_create(serializer)
+        except IntegrityError:
+            return Response(
+                {'code': 'already_linked', 'detail': 'This document is already linked to this task.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class TaskInteractionViewSet(viewsets.ModelViewSet):
+    """CRUD for Task↔Interaction links."""
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = TaskInteractionLinkSerializer
+
+    def get_queryset(self):
+        qs = TaskInteraction.objects.filter(
+            task__household_id__in=self.request.user.householdmember_set.values_list(
+                'household_id', flat=True
+            )
+        ).select_related('interaction', 'task')
+        if self.request.household:
+            qs = qs.filter(task__household=self.request.household)
+        task_id = self.request.query_params.get('task', '').strip()
+        if task_id:
+            qs = qs.filter(task_id=task_id)
+        return qs
+
+    def perform_create(self, serializer):
+        task = serializer.validated_data['task']
+        interaction = serializer.validated_data['interaction']
+        if not Task.objects.for_user_households(self.request.user).filter(id=task.id).exists():
+            raise ValidationError({'task': 'Invalid task or access denied.'})
+        if str(interaction.household_id) != str(task.household_id):
+            raise ValidationError(
+                {'interaction': 'Interaction must belong to the same household as the task.'}
+            )
+        serializer.save(created_by=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        task = serializer.validated_data['task']
+        interaction = serializer.validated_data['interaction']
+        if TaskInteraction.objects.filter(task=task, interaction=interaction).exists():
+            return Response(
+                {'code': 'already_linked', 'detail': 'This interaction is already linked to this task.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        try:
+            self.perform_create(serializer)
+        except IntegrityError:
+            return Response(
+                {'code': 'already_linked', 'detail': 'This interaction is already linked to this task.'},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

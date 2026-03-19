@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
+import { Label } from '@/design-system/label';
 import { SettingsSection } from './SettingsSection';
 import { changePassword } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
@@ -43,7 +44,7 @@ export function ChangePasswordSection() {
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1.5">{t('settings.newPassword')}</label>
+              <Label className="mb-1.5">{t('settings.newPassword')}</Label>
               <div className="relative">
                 <Input
                   type={showPasswords ? 'text' : 'password'}
@@ -55,7 +56,7 @@ export function ChangePasswordSection() {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1.5">{t('settings.confirmPassword')}</label>
+              <Label className="mb-1.5">{t('settings.confirmPassword')}</Label>
               <div className="relative">
                 <Input
                   type={showPasswords ? 'text' : 'password'}

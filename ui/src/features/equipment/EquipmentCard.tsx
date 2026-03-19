@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
-import { Button } from '@/design-system/button';
+import CardActions, { type CardAction } from '@/components/CardActions';
 import type { EquipmentListItem } from '@/lib/api/equipment';
 
 interface EquipmentCardProps {
@@ -28,13 +28,18 @@ function formatDate(value?: string | null): string {
 export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardProps) {
   const { t } = useTranslation();
 
+  const actions: CardAction[] = [
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(item.id), variant: 'danger' },
+  ];
+
   return (
-    <li className="rounded-md border p-3">
+    <li className="rounded-md border border-border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <Link
             to={`/app/equipment/${item.id}`}
-            className="font-medium text-sm hover:underline"
+            className="font-medium text-sm text-foreground hover:underline"
           >
             {item.name}
           </Link>
@@ -46,26 +51,7 @@ export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardP
           <Badge variant={statusVariant(item.status)}>
             {t(`equipment.status.${item.status}`)}
           </Badge>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-slate-600"
-            onClick={() => onEdit(item)}
-            aria-label={t('common.edit')}
-            type="button"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
-            onClick={() => onDelete(item.id)}
-            aria-label={t('common.delete')}
-            type="button"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <CardActions actions={actions} />
         </div>
       </div>
 

@@ -53,8 +53,6 @@ export function useDeleteWithUndo({ label, onDelete, duration = 5000 }: DeleteWi
         onDelete(id).catch(() => onRestore())
       }, duration)
 
-      const toastId = Math.random().toString(36).slice(2)
-
       const cancel = () => {
         const entry = pendingRef.current.get(id)
         if (!entry) return
@@ -64,13 +62,13 @@ export function useDeleteWithUndo({ label, onDelete, duration = 5000 }: DeleteWi
         onRestore()
       }
 
-      pendingRef.current.set(id, { timer, toastId, restore: onRestore })
-
-      toast({
+      const toastId = toast({
         title: label,
         duration,
         action: { label: 'Annuler', onClick: cancel },
       })
+
+      pendingRef.current.set(id, { timer, toastId, restore: onRestore })
     },
     [label, onDelete, duration, toast, dismiss],
   )

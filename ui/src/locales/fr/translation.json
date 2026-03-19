@@ -12,7 +12,10 @@
     "confirmArchive": "Archiver ce foyer ? Il ne sera plus accessible.",
     "confirmLeave": "Quitter ce foyer ?",
     "retry": "Réessayer",
-    "saveFailed": "Impossible d'enregistrer."
+    "saveFailed": "Impossible d'enregistrer.",
+    "search": "Rechercher",
+    "noResults": "Aucun résultat",
+    "linked": "Déjà lié"
   },
   "electricity": {
     "api_workspace_title": "Espace de travail API électricité",
@@ -311,8 +314,6 @@
     "completedBy": "Fait par {{name}}",
     "sourceEvent": "Événement",
     "sourceDocumentLink": "Document",
-    "advanceStatus": "Avancer le statut",
-    "revertStatus": "Revenir en arrière",
     "editTask": "Modifier",
     "deleteTask": "Supprimer",
     "zoneRequired": "Veuillez sélectionner une zone.",
@@ -328,8 +329,19 @@
     "priorityHigh_label": "Haute",
     "priorityNormal_label": "Normale",
     "priorityLow_label": "Basse",
+    "fieldStatus": "Statut",
     "fieldAssignedTo": "Assigner à",
     "noAssignee": "Non assignée",
+    "assignedToMe": "Moi",
+    "fieldProject": "Projet",
+    "noProject": "Aucun projet",
+    "fieldPrivate": "Tâche privée (visible uniquement par moi)",
+    "private": "Privée",
+    "filterPrivate": "Privé",
+    "filterEmpty": "Aucune tâche ne correspond à ce filtre.",
+    "filterMember": "Membre",
+    "filterMemberAll": "Tous les membres",
+    "assign": "Assigner",
     "fieldContent": "Notes",
     "fieldContentPlaceholder": "Notes optionnelles…",
     "sections": {
@@ -345,7 +357,22 @@
       "in_progress": "En cours",
       "backlog": "Backlog",
       "done": "Fait"
-    }
+    },
+    "manageAttachments": "Gérer les pièces jointes",
+    "attachmentsTitle": "Pièces jointes",
+    "linkedDocuments": "Documents",
+    "linkedPhotos": "Photos",
+    "linkedInteractions": "Interactions reliées",
+    "addDocument": "Ajouter un document",
+    "addPhoto": "Ajouter une photo",
+    "addInteraction": "Relier une interaction",
+    "addAttachments": "Pièces jointes",
+    "noLinkedDocuments": "Aucun document joint",
+    "noLinkedInteractions": "Aucune interaction reliée",
+    "pickDocument": "Sélectionner un document",
+    "pickInteraction": "Sélectionner une interaction",
+    "attachmentUnlinked": "Lien supprimé",
+    "attachmentLinked": "Pièce jointe ajoutée"
   },
   "settings": {
     "app_title": "Mini-app Paramètres",
@@ -1159,10 +1186,6 @@
         "cancel": "Annuler"
       }
     },
-    "add_task": "Ajouter une tâche",
-    "add_note": "Ajouter une note",
-    "add_expense": "Ajouter une dépense",
-    "add_activity": "Ajouter une activité",
     "groups": {
       "title": "Groupes de projets",
       "new": "Nouveau groupe",

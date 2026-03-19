@@ -4,6 +4,24 @@ export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archi
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
 export type TaskPriority = 1 | 2 | 3 | null;
 
+export interface LinkedDocumentSummary {
+  id: number;             // link id (TaskDocument.id)
+  document_id: string;
+  name: string;
+  type: string;
+  file_url: string | null;
+  note: string;
+}
+
+export interface LinkedInteractionSummary {
+  id: number;             // link id (TaskInteraction.id)
+  interaction_id: string;
+  subject: string;
+  type: string;
+  occurred_at: string | null;
+  note: string;
+}
+
 export interface Task {
   id: string;
   subject: string;
@@ -18,10 +36,16 @@ export interface Task {
   completed_by_name: string | null;
   completed_at: string | null;
   created_at: string;
+  created_by: number | null;
+  created_by_name: string | null;
   project: string | null;
   project_title?: string | null;
   zone_names: string[];
   source_interaction: string | null;
+  linked_documents: LinkedDocumentSummary[];
+  linked_interactions: LinkedInteractionSummary[];
+  linked_document_count: number;
+  linked_interaction_count: number;
 }
 
 export interface HouseholdMember {
@@ -59,22 +83,6 @@ export function groupTasksByColumn(tasks: Task[]): Record<TaskColumnId, Task[]> 
   return grouped;
 }
 
-export function nextStatus(current: TaskStatus): TaskStatus {
-  switch (current) {
-    case null:
-    case 'backlog': return 'pending';
-    case 'pending': return 'in_progress';
-    case 'in_progress': return 'done';
-    default: return current;
-  }
-}
-
-export function prevStatus(current: TaskStatus): TaskStatus {
-  switch (current) {
-    case 'done': return 'in_progress';
-    default: return current;
-  }
-}
 
 export function isTaskOverdue(task: Task): boolean {
   if (!task.due_date) return false;
@@ -129,6 +137,8 @@ export async function updateTask(
     priority?: TaskPriority;
     assigned_to_id?: string | null;
     status?: TaskStatus;
+    project?: string | null;
+    is_private?: boolean;
   },
 ): Promise<Task> {
   const { data } = await api.patch(`/tasks/tasks/${id}/`, payload);
@@ -143,10 +153,24 @@ export async function createTask(
     due_date?: string | null;
     priority?: TaskPriority;
     assigned_to_id?: string | null;
+    status?: TaskStatus;
+    project?: string | null;
+    is_private?: boolean;
+    document_ids?: string[];
+    interaction_ids?: string[];
   },
 ): Promise<Task> {
   const { data } = await api.post('/tasks/tasks/', { status: 'pending', ...payload });
   return data as Task;
+}
+
+export async function fetchProjectTasks(projectId: string): Promise<Task[]> {
+  const { data } = await api.get('/tasks/tasks/', {
+    params: { project: projectId, limit: 200, ordering: 'due_date,created_at' },
+  });
+  return Array.isArray(data)
+    ? (data as Task[])
+    : ((data as { results?: Task[] }).results ?? []);
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -168,4 +192,52 @@ export async function fetchHouseholdMembers(): Promise<HouseholdMember[]> {
     name: m.user_display_name,
     role: m.role as HouseholdMember['role'],
   }));
+}
+
+// ── Task attachments API ────────────────────────────────────────────────────
+
+export async function fetchTaskDocuments(taskId: string): Promise<LinkedDocumentSummary[]> {
+  const { data } = await api.get('/tasks/task-documents/', { params: { task: taskId } });
+  const list = Array.isArray(data) ? data : ((data as { results?: unknown[] }).results ?? []);
+  return list as LinkedDocumentSummary[];
+}
+
+export async function linkDocumentToTask(
+  taskId: string,
+  documentId: string | number,
+  note?: string,
+): Promise<LinkedDocumentSummary> {
+  const { data } = await api.post('/tasks/task-documents/', {
+    task: taskId,
+    document: documentId,
+    note: note ?? '',
+  });
+  return data as LinkedDocumentSummary;
+}
+
+export async function unlinkDocumentFromTask(linkId: number): Promise<void> {
+  await api.delete(`/tasks/task-documents/${linkId}/`);
+}
+
+export async function fetchTaskInteractions(taskId: string): Promise<LinkedInteractionSummary[]> {
+  const { data } = await api.get('/tasks/task-interactions/', { params: { task: taskId } });
+  const list = Array.isArray(data) ? data : ((data as { results?: unknown[] }).results ?? []);
+  return list as LinkedInteractionSummary[];
+}
+
+export async function linkInteractionToTask(
+  taskId: string,
+  interactionId: string,
+  note?: string,
+): Promise<LinkedInteractionSummary> {
+  const { data } = await api.post('/tasks/task-interactions/', {
+    task: taskId,
+    interaction: interactionId,
+    note: note ?? '',
+  });
+  return data as LinkedInteractionSummary;
+}
+
+export async function unlinkInteractionFromTask(linkId: number): Promise<void> {
+  await api.delete(`/tasks/task-interactions/${linkId}/`);
 }
