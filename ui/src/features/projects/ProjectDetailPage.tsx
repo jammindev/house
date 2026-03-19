@@ -11,7 +11,7 @@ import type { ProjectStatus } from '@/lib/api/projects';
 import type { Task, TaskStatus } from '@/lib/api/tasks';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import {
-  useProjectTasks, useHouseholdMembers, useUpdateTaskStatus, useDeleteTask, taskKeys,
+  useProjectTasks, useHouseholdMembersWithMe, useUpdateTaskStatus, useDeleteTask, taskKeys,
 } from '@/features/tasks/hooks';
 import TaskCard from '@/features/tasks/TaskCard';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
@@ -143,7 +143,7 @@ function TaskTabContent({ projectId, defaultZoneId }: { projectId: string; defau
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
 
   const { data: tasks = [], isLoading, error } = useProjectTasks(projectId);
-  const { data: householdMembers = [] } = useHouseholdMembers();
+  const { data: householdMembers = [] } = useHouseholdMembersWithMe();
   const updateStatus = useUpdateTaskStatus();
   const deleteTaskMutation = useDeleteTask();
 

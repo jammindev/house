@@ -12,7 +12,10 @@
     "confirmArchive": "Diesen Haushalt archivieren? Er wird nicht mehr zugänglich sein.",
     "confirmLeave": "Diesen Haushalt verlassen?",
     "retry": "Erneut versuchen",
-    "saveFailed": "Speichern fehlgeschlagen."
+    "saveFailed": "Speichern fehlgeschlagen.",
+    "search": "Suchen",
+    "noResults": "Keine Ergebnisse",
+    "linked": "Bereits verknüpft"
   },
   "electricity": {
     "api_workspace_title": "Elektrizitäts-API-Arbeitsbereich",
@@ -354,7 +357,22 @@
       "in_progress": "In Bearbeitung",
       "backlog": "Rückstand",
       "done": "Erledigt"
-    }
+    },
+    "manageAttachments": "Anhänge verwalten",
+    "attachmentsTitle": "Anhänge",
+    "linkedDocuments": "Dokumente",
+    "linkedPhotos": "Fotos",
+    "linkedInteractions": "Verknüpfte Ereignisse",
+    "addDocument": "Dokument hinzufügen",
+    "addPhoto": "Foto hinzufügen",
+    "addInteraction": "Ereignis verknüpfen",
+    "addAttachments": "Anhänge",
+    "noLinkedDocuments": "Keine Dokumente angehängt",
+    "noLinkedInteractions": "Keine Ereignisse verknüpft",
+    "pickDocument": "Dokument auswählen",
+    "pickInteraction": "Ereignis auswählen",
+    "attachmentUnlinked": "Verknüpfung entfernt",
+    "attachmentLinked": "Anhang hinzugefügt"
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",
@@ -1168,10 +1186,6 @@
         "cancel": "Abbrechen"
       }
     },
-    "add_task": "Aufgabe hinzufügen",
-    "add_note": "Notiz hinzufügen",
-    "add_expense": "Ausgabe hinzufügen",
-    "add_activity": "Aktivität hinzufügen",
     "groups": {
       "title": "Projektgruppen",
       "new": "Neue Gruppe",

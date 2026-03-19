@@ -3,7 +3,6 @@ import { CheckSquare, Lock, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
-import { useAuth } from '@/lib/auth/context';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
@@ -12,11 +11,12 @@ import { Button } from '@/design-system/button';
 import { FilterPill } from '@/design-system/filter-pill';
 import { DropdownSelect } from '@/design-system/dropdown-select';
 import {
-  useTasks, useHouseholdMembers, useUpdateTaskStatus, useUpdateTaskAssignee, useDeleteTask,
+  useTasks, useHouseholdMembersWithMe, useUpdateTaskStatus, useUpdateTaskAssignee, useDeleteTask,
   taskKeys,
 } from './hooks';
 import TaskSection from './TaskSection';
 import NewTaskDialog from './NewTaskDialog';
+import TaskAttachmentsDialog from './TaskAttachmentsDialog';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
@@ -27,17 +27,17 @@ function sortByPriority(tasks: Task[]): Task[] {
 export default function TasksPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const { user } = useAuth();
 
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
+  const [attachmentsTask, setAttachmentsTask] = React.useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useSessionState<FilterKey>('tasks.filter', 'all');
   const [showPrivateOnly, setShowPrivateOnly] = useSessionState('tasks.filterPrivate', false);
   const [filterAssigneeId, setFilterAssigneeId] = useSessionState('tasks.filterAssignee', '');
   const savedAssigneeFilter = React.useRef('');
 
   const { data: tasks = [], isLoading, error } = useTasks();
-  const { data: householdMembers = [] } = useHouseholdMembers();
+  const { data: householdMembers = [] } = useHouseholdMembersWithMe();
   const updateStatus = useUpdateTaskStatus();
   const updateAssignee = useUpdateTaskAssignee();
   const deleteTaskMutation = useDeleteTask();
@@ -105,23 +105,17 @@ export default function TasksPage() {
     { key: 'done', label: t('tasks.filter.done') },
   ];
 
-  const assigneeFilterOptions = React.useMemo(() => {
-    const me = user ? householdMembers.find((m) => String(m.userId) === String(user.id)) : null;
-    const others = householdMembers.filter((m) => !me || String(m.userId) !== String(user!.id));
-    return [
-      { value: '', label: t('tasks.filterMemberAll') },
-      { value: 'unassigned', label: t('tasks.noAssignee') },
-      ...(me ? [{ value: me.userId, label: t('tasks.assignedToMe') }] : []),
-      ...others.map((m) => ({ value: m.userId, label: m.name })),
-    ];
-  }, [householdMembers, user, t]);
+  const assigneeFilterOptions = React.useMemo(() => [
+    { value: '', label: t('tasks.filterMemberAll') },
+    { value: 'unassigned', label: t('tasks.noAssignee') },
+    ...householdMembers.map((m) => ({ value: m.userId, label: m.name })),
+  ], [householdMembers, t]);
 
   const assigneeFilterLabel = React.useMemo(() => {
     if (!filterAssigneeId) return t('tasks.filterMember');
     if (filterAssigneeId === 'unassigned') return t('tasks.noAssignee');
-    if (user && String(filterAssigneeId) === String(user.id)) return t('tasks.assignedToMe');
     return householdMembers.find((m) => m.userId === filterAssigneeId)?.name ?? t('tasks.filterMember');
-  }, [filterAssigneeId, householdMembers, user, t]);
+  }, [filterAssigneeId, householdMembers, t]);
 
   const visibleBySection = React.useMemo(() => {
     if (activeFilter === 'all') {
@@ -148,6 +142,7 @@ export default function TasksPage() {
     onAssigneeChange: handleAssigneeChange,
     onEdit: setEditingTask,
     onDelete: handleTaskDeleted,
+    onManageAttachments: setAttachmentsTask,
   };
 
   return (
@@ -264,6 +259,12 @@ export default function TasksPage() {
         existingTask={editingTask ?? undefined}
         onUpdated={handleTaskSaved}
         householdMembers={householdMembers}
+      />
+
+      <TaskAttachmentsDialog
+        task={attachmentsTask}
+        open={attachmentsTask !== null}
+        onOpenChange={(open) => { if (!open) setAttachmentsTask(null); }}
       />
     </>
   );

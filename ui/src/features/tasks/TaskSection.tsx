@@ -10,6 +10,7 @@ interface SectionProps {
   onAssigneeChange: (taskId: string, assignedToId: string | null) => Promise<void>;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onManageAttachments?: (task: Task) => void;
   highlightHeader?: boolean;
 }
 
@@ -21,6 +22,7 @@ export default function TaskSection({
   onAssigneeChange,
   onEdit,
   onDelete,
+  onManageAttachments,
   highlightHeader = false,
 }: SectionProps) {
   if (tasks.length === 0) return null;
@@ -51,6 +53,7 @@ export default function TaskSection({
             onAssigneeChange={onAssigneeChange}
             onEdit={onEdit}
             onDelete={onDelete}
+            onManageAttachments={onManageAttachments}
           />
         ))}
       </div>

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { ChevronDown, Paperclip } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
@@ -9,6 +10,8 @@ import { FormField } from '@/design-system/form-field';
 import { CheckboxField } from '@/design-system/checkbox-field';
 import { fetchProjects } from '@/lib/api/projects';
 import type { ProjectListItem } from '@/lib/api/projects';
+import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/api/documents';
+import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import {
   createTask, fetchZones, updateTask,
   type Zone, type Task, type HouseholdMember, type TaskPriority, type TaskStatus,
@@ -63,6 +66,13 @@ export default function NewTaskDialog({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Attachment selection state (create only)
+  const [selectedDocumentIds, setSelectedDocumentIds] = React.useState<string[]>([]);
+  const [selectedInteractionIds, setSelectedInteractionIds] = React.useState<string[]>([]);
+  const [allDocuments, setAllDocuments] = React.useState<DocumentItem[]>([]);
+  const [allInteractions, setAllInteractions] = React.useState<InteractionListItem[]>([]);
+  const [attachmentsLoaded, setAttachmentsLoaded] = React.useState(false);
+
   const loadZones = React.useCallback(() => {
     setZonesLoading(true);
     Promise.all([fetchZones(), fetchProjects()])
@@ -73,6 +83,19 @@ export default function NewTaskDialog({
       })
       .catch(() => setZonesLoading(false));
   }, []);
+
+  const loadAttachmentItems = React.useCallback(() => {
+    if (attachmentsLoaded) return;
+    setAttachmentsLoaded(true);
+    Promise.all([
+      fetchDocuments(),
+      fetchPhotoDocuments(),
+      fetchInteractions({ limit: 200 }),
+    ]).then(([docs, photos, interResult]) => {
+      setAllDocuments([...docs, ...photos]);
+      setAllInteractions(interResult.items);
+    }).catch(() => {});
+  }, [attachmentsLoaded]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -94,6 +117,9 @@ export default function NewTaskDialog({
       setZoneId('');
       setProjectId(defaultProjectId ?? '');
       setIsPrivate(false);
+      setSelectedDocumentIds([]);
+      setSelectedInteractionIds([]);
+      setAttachmentsLoaded(false);
     }
     setError(null);
     loadZones();
@@ -141,7 +167,12 @@ export default function NewTaskDialog({
           setError(t('tasks.updateFailed'));
         });
     } else {
-      createTask({ ...payload, status: status as TaskStatus })
+      createTask({
+        ...payload,
+        status: status as TaskStatus,
+        document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : undefined,
+        interaction_ids: selectedInteractionIds.length > 0 ? selectedInteractionIds : undefined,
+      } as Parameters<typeof createTask>[0])
         .then(() => {
           setLoading(false);
           onOpenChange(false);
@@ -152,6 +183,18 @@ export default function NewTaskDialog({
           setError(t('tasks.createFailed'));
         });
     }
+  };
+
+  const toggleDocumentId = (id: string) => {
+    setSelectedDocumentIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  const toggleInteractionId = (id: string) => {
+    setSelectedInteractionIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
   };
 
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
@@ -273,6 +316,69 @@ export default function NewTaskDialog({
               checked={isPrivate}
               onChange={(val) => { setIsPrivate(val); if (val) setAssignedToId(''); }}
             />
+          )}
+
+          {!isEditing && (
+            <details className="group" onToggle={(e) => {
+              if ((e.currentTarget as HTMLDetailsElement).open) loadAttachmentItems();
+            }}>
+              <summary className="flex cursor-pointer list-none items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+                <Paperclip className="h-3.5 w-3.5" />
+                {t('tasks.addAttachments')}
+                {selectedDocumentIds.length + selectedInteractionIds.length > 0 && (
+                  <span className="ml-1 rounded-full bg-slate-200 px-1.5 py-0.5 text-xs text-slate-700">
+                    {selectedDocumentIds.length + selectedInteractionIds.length}
+                  </span>
+                )}
+                <ChevronDown className="ml-auto h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+
+              <div className="mt-3 space-y-3">
+                {allDocuments.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">
+                      {t('tasks.linkedDocuments')} / {t('tasks.linkedPhotos')}
+                    </p>
+                    <div className="max-h-32 space-y-0.5 overflow-y-auto rounded-md border p-1">
+                      {allDocuments.map((d) => (
+                        <label key={d.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-slate-50">
+                          <input
+                            type="checkbox"
+                            checked={selectedDocumentIds.includes(String(d.id))}
+                            onChange={() => toggleDocumentId(String(d.id))}
+                            className="h-3.5 w-3.5"
+                          />
+                          <span className="min-w-0 flex-1 truncate text-sm">{d.name}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{d.type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {allInteractions.length > 0 && (
+                  <div>
+                    <p className="mb-1 text-xs font-medium text-muted-foreground">
+                      {t('tasks.linkedInteractions')}
+                    </p>
+                    <div className="max-h-32 space-y-0.5 overflow-y-auto rounded-md border p-1">
+                      {allInteractions.map((i) => (
+                        <label key={i.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-slate-50">
+                          <input
+                            type="checkbox"
+                            checked={selectedInteractionIds.includes(i.id)}
+                            onChange={() => toggleInteractionId(i.id)}
+                            className="h-3.5 w-3.5"
+                          />
+                          <span className="min-w-0 flex-1 truncate text-sm">{i.subject}</span>
+                          <span className="shrink-0 text-xs text-muted-foreground">{i.type}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </details>
           )}
 
           <div className="flex justify-end gap-2 pt-2">

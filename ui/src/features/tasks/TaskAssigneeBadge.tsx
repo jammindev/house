@@ -8,7 +8,6 @@ const UNASSIGNED = '';
 interface TaskAssigneeBadgeProps {
   task: Task;
   members: HouseholdMember[];
-  currentUserId: string | number | null;
   onChange: (assignedToId: string | null) => Promise<void>;
   disabled?: boolean;
 }
@@ -16,17 +15,15 @@ interface TaskAssigneeBadgeProps {
 export default function TaskAssigneeBadge({
   task,
   members,
-  currentUserId,
   onChange,
   disabled,
 }: TaskAssigneeBadgeProps) {
   const { t } = useTranslation();
 
   const isAssigned = Boolean(task.assigned_to);
-  const isAssignedToMe = currentUserId != null && String(task.assigned_to) === String(currentUserId);
-  const displayName = isAssignedToMe
-    ? t('tasks.assignedToMe')
-    : (task.assigned_to_name ?? '');
+  const displayName = members.find((m) => String(m.userId) === String(task.assigned_to))?.name
+    ?? task.assigned_to_name
+    ?? '';
 
   const options = [
     { value: UNASSIGNED, label: t('tasks.noAssignee') },

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, Lock, Pencil, Trash2 } from 'lucide-react';
+import { Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { useAuth } from '@/lib/auth/context';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
@@ -16,6 +16,7 @@ interface TaskCardProps {
   onAssigneeChange: (taskId: string, assignedToId: string | null) => Promise<void>;
   onEdit: (task: Task) => void;
   onDelete: (taskId: string) => void;
+  onManageAttachments?: (task: Task) => void;
   interactionsBaseUrl?: string;
 }
 
@@ -26,6 +27,7 @@ export default function TaskCard({
   onAssigneeChange,
   onEdit,
   onDelete,
+  onManageAttachments,
   interactionsBaseUrl = '/app/interactions/',
 }: TaskCardProps) {
   const { t } = useTranslation();
@@ -42,6 +44,8 @@ export default function TaskCard({
   const zoneName = task.zone_names?.[0];
   const isHighPriority = task.priority === 1;
   const isCreator = user != null && String(task.created_by) === String(user.id);
+
+  const totalAttachments = (task.linked_document_count ?? 0) + (task.linked_interaction_count ?? 0);
 
   const completedAtFormatted = task.completed_at
     ? new Intl.DateTimeFormat(undefined, { dateStyle: 'short' }).format(new Date(task.completed_at))
@@ -73,6 +77,15 @@ export default function TaskCard({
       icon: Pencil,
       onClick: () => onEdit(task),
     },
+    ...(onManageAttachments
+      ? [
+          {
+            label: t('tasks.manageAttachments'),
+            icon: Paperclip,
+            onClick: () => onManageAttachments(task),
+          },
+        ]
+      : []),
     ...(isCreator
       ? [
           {
@@ -171,11 +184,21 @@ export default function TaskCard({
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-1">
+          {totalAttachments > 0 && onManageAttachments ? (
+            <button
+              type="button"
+              onClick={() => onManageAttachments(task)}
+              className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+              title={t('tasks.manageAttachments')}
+            >
+              <Paperclip className="h-3 w-3" />
+              {totalAttachments}
+            </button>
+          ) : null}
           {showAssignee && (
             <TaskAssigneeBadge
               task={task}
               members={householdMembers}
-              currentUserId={user?.id ?? null}
               onChange={handleAssigneeChange}
               disabled={isUpdating}
             />

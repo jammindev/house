@@ -10,6 +10,7 @@ from core.models import HouseholdScopedModel
 from core.managers import HouseholdScopedManager
 
 
+
 class Task(HouseholdScopedModel):
     """
     A household task with optional due date, assignee, and completion tracking.
@@ -124,6 +125,11 @@ class Task(HouseholdScopedModel):
                 | models.Q(completed_by__isnull=False),
                 name='tasks_completed_integrity',
             ),
+            models.CheckConstraint(
+                condition=models.Q(is_private=False)
+                | models.Q(assigned_to__isnull=True),
+                name='tasks_private_not_assigned',
+            ),
         ]
 
     def __str__(self):
@@ -151,3 +157,65 @@ class TaskZone(models.Model):
             models.Index(fields=['task']),
             models.Index(fields=['zone']),
         ]
+
+
+class TaskDocument(models.Model):
+    """M2M through table linking tasks to documents."""
+
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='task_documents',
+    )
+    document = models.ForeignKey(
+        'documents.Document',
+        on_delete=models.CASCADE,
+        related_name='task_documents',
+    )
+    note = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = 'task_documents'
+        unique_together = [['task', 'document']]
+
+    @property
+    def household_id(self):
+        return self.task.household_id
+
+
+class TaskInteraction(models.Model):
+    """M2M through table linking tasks to interactions."""
+
+    task = models.ForeignKey(
+        Task,
+        on_delete=models.CASCADE,
+        related_name='task_interactions',
+    )
+    interaction = models.ForeignKey(
+        'interactions.Interaction',
+        on_delete=models.CASCADE,
+        related_name='task_links',
+    )
+    note = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = 'task_interactions'
+        unique_together = [['task', 'interaction']]
+
+    @property
+    def household_id(self):
+        return self.task.household_id
