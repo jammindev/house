@@ -50,8 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             ('de', _('Deutsch')),
             ('es', _('Español')),
         ],
-        default='en',
-        help_text=_("User's preferred language")
+        null=True,
+        blank=True,
+        default=None,
+        help_text=_("User's preferred language. Null means use browser detection.")
     )
     avatar = models.ImageField(
         upload_to='avatars/',

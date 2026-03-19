@@ -1,10 +1,12 @@
 import { UserX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/auth/context';
 
 export default function ImpersonationBanner() {
   const { t } = useTranslation();
   const { user, isImpersonating, stopImpersonation } = useAuth();
+  const navigate = useNavigate();
 
   if (!isImpersonating) return null;
 
@@ -27,7 +29,7 @@ export default function ImpersonationBanner() {
         </span>
       </div>
       <button
-        onClick={stopImpersonation}
+        onClick={async () => { await stopImpersonation(); navigate('/'); }}
         className="shrink-0 underline underline-offset-2 hover:no-underline"
       >
         {t('admin.impersonation.stop')}

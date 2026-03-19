@@ -244,4 +244,5 @@ def me_view(request):
         'last_name': user.last_name,
         'active_household': str(user.active_household_id) if user.active_household_id else None,
         'is_staff': user.is_staff,
+        'locale': user.locale or '',
     })

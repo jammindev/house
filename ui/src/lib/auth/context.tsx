@@ -101,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = await api.post<{ access: string }>(`/accounts/users/${userId}/impersonate/`);
     localStorage.setItem('access_token', data.access);
     localStorage.removeItem('refresh_token');
+    sessionStorage.clear();
     queryClient.clear();
     await reloadUser();
   }
@@ -116,6 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     localStorage.removeItem('_impersonator_tokens');
+    sessionStorage.clear();
     queryClient.clear();
     await reloadUser();
   }
