@@ -94,8 +94,22 @@ class TaskViewSet(viewsets.ModelViewSet):
             created_by=self.request.user,
         )
 
+    def _check_update_permission(self, instance, validated_data):
+        user = self.request.user
+        is_creator = instance.created_by_id == user.pk
+        if is_creator:
+            return
+        is_assignee = instance.assigned_to_id is not None and instance.assigned_to_id == user.pk
+        if is_assignee:
+            non_status_fields = set(validated_data.keys()) - {'status'}
+            if non_status_fields:
+                raise PermissionDenied("Assignees can only change the task status.")
+            return
+        raise PermissionDenied("Only the creator or assignee can modify this task.")
+
     def perform_update(self, serializer):
-        instance = self.get_object()
+        instance = serializer.instance
+        self._check_update_permission(instance, serializer.validated_data)
         new_status = serializer.validated_data.get('status')
         kwargs = {'updated_by': self.request.user}
 
@@ -140,11 +154,18 @@ class TaskDocumentViewSet(viewsets.ModelViewSet):
         document = serializer.validated_data['document']
         if not Task.objects.for_user_households(self.request.user).filter(id=task.id).exists():
             raise ValidationError({'task': 'Invalid task or access denied.'})
+        if task.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the task creator can manage attachments.")
         if str(document.household_id) != str(task.household_id):
             raise ValidationError(
                 {'document': 'Document must belong to the same household as the task.'}
             )
         serializer.save(created_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.task.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the task creator can manage attachments.")
+        instance.delete()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -194,11 +215,18 @@ class TaskInteractionViewSet(viewsets.ModelViewSet):
         interaction = serializer.validated_data['interaction']
         if not Task.objects.for_user_households(self.request.user).filter(id=task.id).exists():
             raise ValidationError({'task': 'Invalid task or access denied.'})
+        if task.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the task creator can manage attachments.")
         if str(interaction.household_id) != str(task.household_id):
             raise ValidationError(
                 {'interaction': 'Interaction must belong to the same household as the task.'}
             )
         serializer.save(created_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.task.created_by_id != self.request.user.pk:
+            raise PermissionDenied("Only the task creator can manage attachments.")
+        instance.delete()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

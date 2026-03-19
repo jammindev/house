@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { User, UserPlus } from 'lucide-react';
+import { ChevronDown, User, UserPlus } from 'lucide-react';
 import { DropdownSelect } from '@/design-system/dropdown-select';
 import type { HouseholdMember, Task } from '@/lib/api/tasks';
 
@@ -50,6 +50,7 @@ export default function TaskAssigneeBadge({
         >
           <User className="h-3 w-3" />
           {displayName}
+          <ChevronDown className="h-3 w-3 opacity-60" />
         </button>
       ) : (
         <button

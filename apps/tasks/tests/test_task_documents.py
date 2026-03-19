@@ -344,3 +344,90 @@ class TestTaskInteractionLinks:
         assert response.status_code == status.HTTP_201_CREATED
         task_id = response.data["id"]
         assert TaskInteraction.objects.filter(task_id=task_id, interaction=interaction).exists()
+
+
+# ── Permissions pièces jointes ────────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestAttachmentPermissions:
+    """Seul le créateur peut ajouter ou supprimer des pièces jointes."""
+
+    @pytest.fixture
+    def non_creator(self, household):
+        user = UserFactory(email="attachment-noncreator@example.com")
+        _add_membership(user, household, role=HouseholdMember.Role.MEMBER)
+        return user
+
+    @pytest.fixture
+    def task(self, household, owner, zone):
+        return _create_task(household, owner, zone)
+
+    # ── Documents ─────────────────────────────────────────────────────────────
+
+    def test_non_creator_cannot_link_document(self, non_creator, task, document):
+        client = _client_for(non_creator)
+        url = reverse("task-document-list")
+        response = client.post(
+            url,
+            {"task": str(task.id), "document": str(document.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_non_creator_cannot_delete_document_link(self, non_creator, task, document):
+        link = TaskDocument.objects.create(task=task, document=document)
+        client = _client_for(non_creator)
+        url = reverse("task-document-detail", args=[link.id])
+        response = client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert TaskDocument.objects.filter(id=link.id).exists()
+
+    def test_creator_can_link_document(self, owner_client, task, document):
+        url = reverse("task-document-list")
+        response = owner_client.post(
+            url,
+            {"task": str(task.id), "document": str(document.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_creator_can_delete_document_link(self, owner_client, task, document):
+        link = TaskDocument.objects.create(task=task, document=document)
+        url = reverse("task-document-detail", args=[link.id])
+        response = owner_client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    # ── Interactions ──────────────────────────────────────────────────────────
+
+    def test_non_creator_cannot_link_interaction(self, non_creator, task, interaction):
+        client = _client_for(non_creator)
+        url = reverse("task-interaction-list")
+        response = client.post(
+            url,
+            {"task": str(task.id), "interaction": str(interaction.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_non_creator_cannot_delete_interaction_link(self, non_creator, task, interaction):
+        link = TaskInteraction.objects.create(task=task, interaction=interaction)
+        client = _client_for(non_creator)
+        url = reverse("task-interaction-detail", args=[link.id])
+        response = client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        assert TaskInteraction.objects.filter(id=link.id).exists()
+
+    def test_creator_can_link_interaction(self, owner_client, task, interaction):
+        url = reverse("task-interaction-list")
+        response = owner_client.post(
+            url,
+            {"task": str(task.id), "interaction": str(interaction.id)},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+
+    def test_creator_can_delete_interaction_link(self, owner_client, task, interaction):
+        link = TaskInteraction.objects.create(task=task, interaction=interaction)
+        url = reverse("task-interaction-detail", args=[link.id])
+        response = owner_client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT

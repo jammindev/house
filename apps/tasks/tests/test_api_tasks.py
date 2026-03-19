@@ -384,3 +384,100 @@ class TestPrivateTaskNotAssigned:
         task.refresh_from_db()
         assert task.is_private is True
         assert task.assigned_to is None
+
+
+# ── Permissions de modification ───────────────────────────────────────────────
+
+@pytest.mark.django_db
+class TestTaskUpdatePermissions:
+    """
+    Créateur : accès complet.
+    Assigné (non-créateur) : uniquement changer le status.
+    Autre membre : aucune modification autorisée.
+    """
+
+    @pytest.fixture
+    def other_member(self, household):
+        user = UserFactory(email="perm-other@example.com")
+        _add_membership(user, household, role=HouseholdMember.Role.MEMBER)
+        return user
+
+    @pytest.fixture
+    def assignee(self, household):
+        user = UserFactory(email="perm-assignee@example.com")
+        _add_membership(user, household, role=HouseholdMember.Role.MEMBER)
+        return user
+
+    @pytest.fixture
+    def task_with_assignee(self, household, owner, zone, assignee):
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Shared task",
+            assigned_to=assignee,
+        )
+        TaskZone.objects.create(task=task, zone=zone)
+        return task
+
+    # ── Créateur : accès complet ──────────────────────────────────────────────
+
+    def test_creator_can_patch_subject(self, owner_client, task_with_assignee):
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = owner_client.patch(url, {"subject": "Updated"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_creator_can_patch_status(self, owner_client, task_with_assignee):
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = owner_client.patch(url, {"status": "done"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+
+    def test_creator_can_delete(self, owner_client, task_with_assignee):
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = owner_client.delete(url)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    # ── Assigné : uniquement status ───────────────────────────────────────────
+
+    def test_assignee_can_change_status(self, assignee, task_with_assignee):
+        client = _client_for(assignee)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.patch(url, {"status": "in_progress"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        task_with_assignee.refresh_from_db()
+        assert task_with_assignee.status == "in_progress"
+
+    def test_assignee_cannot_patch_subject(self, assignee, task_with_assignee):
+        client = _client_for(assignee)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.patch(url, {"subject": "Hacked"}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_assignee_cannot_patch_status_and_subject_together(self, assignee, task_with_assignee):
+        client = _client_for(assignee)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.patch(url, {"status": "done", "subject": "Hacked"}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_assignee_cannot_delete(self, assignee, task_with_assignee):
+        client = _client_for(assignee)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    # ── Autre membre (non-créateur, non-assigné) : aucune modification ────────
+
+    def test_other_member_cannot_patch_status(self, other_member, task_with_assignee):
+        client = _client_for(other_member)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.patch(url, {"status": "done"}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_other_member_cannot_patch_subject(self, other_member, task_with_assignee):
+        client = _client_for(other_member)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.patch(url, {"subject": "Hacked"}, format="json")
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_other_member_cannot_delete(self, other_member, task_with_assignee):
+        client = _client_for(other_member)
+        url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
+        response = client.delete(url)
+        assert response.status_code == status.HTTP_403_FORBIDDEN

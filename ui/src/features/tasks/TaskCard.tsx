@@ -44,6 +44,8 @@ export default function TaskCard({
   const zoneName = task.zone_names?.[0];
   const isHighPriority = task.priority === 1;
   const isCreator = user != null && String(task.created_by) === String(user.id);
+  const isAssignee = user != null && task.assigned_to != null && String(task.assigned_to) === String(user.id);
+  const canChangeStatus = isCreator || isAssignee;
 
   const totalAttachments = (task.linked_document_count ?? 0) + (task.linked_interaction_count ?? 0);
 
@@ -72,22 +74,22 @@ export default function TaskCard({
   };
 
   const menuActions: CardAction[] = [
-    {
-      label: t('tasks.editTask'),
-      icon: Pencil,
-      onClick: () => onEdit(task),
-    },
-    ...(onManageAttachments
-      ? [
-          {
-            label: t('tasks.manageAttachments'),
-            icon: Paperclip,
-            onClick: () => onManageAttachments(task),
-          },
-        ]
-      : []),
     ...(isCreator
       ? [
+          {
+            label: t('tasks.editTask'),
+            icon: Pencil,
+            onClick: () => onEdit(task),
+          },
+          ...(onManageAttachments
+            ? [
+                {
+                  label: t('tasks.manageAttachments'),
+                  icon: Paperclip,
+                  onClick: () => onManageAttachments(task),
+                },
+              ]
+            : []),
           {
             label: t('tasks.deleteTask'),
             icon: Trash2,
@@ -185,25 +187,32 @@ export default function TaskCard({
 
         <div className="flex flex-shrink-0 items-center gap-1">
           {totalAttachments > 0 && onManageAttachments ? (
-            <button
-              type="button"
-              onClick={() => onManageAttachments(task)}
-              className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
-              title={t('tasks.manageAttachments')}
-            >
-              <Paperclip className="h-3 w-3" />
-              {totalAttachments}
-            </button>
+            isCreator ? (
+              <button
+                type="button"
+                onClick={() => onManageAttachments(task)}
+                className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-slate-50 dark:hover:bg-slate-800"
+                title={t('tasks.manageAttachments')}
+              >
+                <Paperclip className="h-3 w-3" />
+                {totalAttachments}
+              </button>
+            ) : (
+              <span className="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs text-muted-foreground">
+                <Paperclip className="h-3 w-3" />
+                {totalAttachments}
+              </span>
+            )
           ) : null}
           {showAssignee && (
             <TaskAssigneeBadge
               task={task}
               members={householdMembers}
               onChange={handleAssigneeChange}
-              disabled={isUpdating}
+              disabled={isUpdating || !isCreator}
             />
           )}
-          <TaskStatusBadge status={task.status} onChange={handleStatusChange} disabled={isUpdating} />
+          <TaskStatusBadge status={task.status} onChange={handleStatusChange} disabled={isUpdating || !canChangeStatus} />
           <CardActions actions={menuActions} />
         </div>
       </div>
