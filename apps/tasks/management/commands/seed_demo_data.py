@@ -1,13 +1,50 @@
 """
 Management command to seed demo data for testing.
 
+Usage:
+    python manage.py seed_demo_data           # crée les données (idempotent)
+    python manage.py seed_demo_data --flush   # supprime puis recrée tout
+
+Idempotence :
+    La commande utilise get_or_create partout — la relancer sans --flush
+    ne crée pas de doublons. En revanche, modifier un champ existant (ex.
+    changer un status ou un assigned_to) ne mettra PAS à jour la ligne
+    déjà en base : seuls les champs dans `defaults` sont ignorés si l'objet
+    existe déjà. Pour forcer une mise à jour, utiliser --flush.
+
+    Exception : l'unicité des tâches repose sur (household, subject).
+    Si tu renommes un subject, une nouvelle tâche sera créée (l'ancienne
+    reste en base). Préférer --flush dans ce cas.
+
+Comment modifier cette seed :
+    - Ajouter une tâche     → appeler task(...) dans _create_tasks()
+    - Ajouter une zone      → appeler zone(...) dans _create_zones(), puis
+                              ajouter la clé au dict retourné
+    - Ajouter un projet     → appeler Project.objects.get_or_create(...)
+                              dans _create_projects()
+    - Changer un utilisateur → modifier _create_users() et _get_or_create_user()
+
+Paramètres de task() :
+    subject       : str   — titre de la tâche (clé d'unicité, obligatoire)
+    status        : Task.Status.{BACKLOG,PENDING,IN_PROGRESS,DONE,ARCHIVED}
+    priority      : Task.Priority.{HIGH=1, NORMAL=2, LOW=3}
+    created_by    : User  — obligatoire (champ HouseholdScopedModel)
+    updated_by    : User  — optionnel, prend created_by par défaut
+    assigned_to   : User  — optionnel (None si non assignée)
+    project       : Project — optionnel
+    zone_keys     : list[str] — clés du dict zones retourné par _create_zones()
+    due_date      : date  — optionnel
+    content       : str   — description longue, optionnelle
+    completed_by  : User  — obligatoire si status=DONE (contrainte DB)
+    completed_at  : datetime — obligatoire si completed_by est renseigné
+
 Creates:
 - 1 household: Famille Mercier
 - 3 users: Claire (owner), Antoine (member), Léa (member)
 - 3 HouseholdMembers
-- Hierarchical zones (maison, pièces)
+- 9 zones (salon, cuisine, sdb, chambres, bureau, garage, jardin, cave)
 - 2 projects: rénovation salle de bain, aménagement jardin
-- ~20 tasks with varied statuses, priorities, assignees, zones
+- 23 tasks avec statuts, priorités, assignations et zones variés
 """
 
 from datetime import date, datetime, timedelta
