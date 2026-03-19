@@ -150,7 +150,7 @@ function TaskTabContent({ projectId, defaultZoneId }: { projectId: string; defau
   const projectTaskKeys = [...taskKeys.all, 'project', projectId] as const;
 
   const { deleteWithUndo } = useDeleteWithUndo({
-    label: t('tasks.deleted', { defaultValue: 'Tâche supprimée' }),
+    label: t('tasks.deleted'),
     onDelete: (id) => deleteTaskMutation.mutateAsync(id),
   });
 
@@ -200,7 +200,7 @@ function TaskTabContent({ projectId, defaultZoneId }: { projectId: string; defau
           className="gap-1.5"
         >
           <Plus className="h-3.5 w-3.5" />
-          {t('projects.add_task', { defaultValue: 'New task' })}
+          {t('projects.add_task')}
         </Button>
       </div>
 
@@ -224,7 +224,7 @@ function TaskTabContent({ projectId, defaultZoneId }: { projectId: string; defau
           {doneTasks.length > 0 && (
             <div className="space-y-2 opacity-70">
               <p className="text-xs font-medium text-muted-foreground">
-                {t('tasks.sections.done', { defaultValue: 'Done' })} ({doneTasks.length})
+                {t('tasks.sections.done')} ({doneTasks.length})
               </p>
               {doneTasks.map((task) => (
                 <TaskCard
