@@ -4,26 +4,29 @@ import {
   Zap, MapPin, Users, FileText, Image, Notebook, User,
   LogOut, X,
 } from 'lucide-react';
+
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../lib/auth/context';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
 const NAV_ITEMS = [
-  { to: '/app/dashboard',    label: 'Dashboard',    Icon: LayoutDashboard },
-  { to: '/app/tasks',        label: 'Tasks',        Icon: ListTodo        },
-  { to: '/app/projects',     label: 'Projects',     Icon: FolderKanban    },
-  { to: '/app/equipment',    label: 'Equipment',    Icon: Wrench          },
-  { to: '/app/stock',        label: 'Stock',        Icon: Box             },
-  { to: '/app/electricity',  label: 'Electricity',  Icon: Zap             },
-  { to: '/app/zones',        label: 'Zones',        Icon: MapPin          },
-  { to: '/app/directory',    label: 'Directory',    Icon: Users           },
-  { to: '/app/documents',    label: 'Documents',    Icon: FileText        },
-  { to: '/app/photos',       label: 'Photos',       Icon: Image           },
-  { to: '/app/interactions', label: 'Interactions', Icon: Notebook        },
-  { to: '/app/settings',     label: 'Settings',     Icon: User            },
+  { to: '/app/dashboard',    labelKey: 'dashboard.title',    Icon: LayoutDashboard },
+  { to: '/app/tasks',        labelKey: 'tasks.title',        Icon: ListTodo        },
+  { to: '/app/projects',     labelKey: 'projects.title',     Icon: FolderKanban    },
+  { to: '/app/equipment',    labelKey: 'equipment.title',    Icon: Wrench          },
+  { to: '/app/stock',        labelKey: 'stock.title',        Icon: Box             },
+  { to: '/app/electricity',  labelKey: 'electricity.title',  Icon: Zap             },
+  { to: '/app/zones',        labelKey: 'zones.title',        Icon: MapPin          },
+  { to: '/app/directory',    labelKey: 'directory.title',    Icon: Users           },
+  { to: '/app/documents',    labelKey: 'documents.title',    Icon: FileText        },
+  { to: '/app/photos',       labelKey: 'photos.title',       Icon: Image           },
+  { to: '/app/interactions', labelKey: 'interactions.title', Icon: Notebook        },
+  { to: '/app/settings',     labelKey: 'settings.title',     Icon: User            },
 ] as const;
 
 export default function Sidebar() {
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { isSidebarOpen, closeSidebar } = useSidebarToggle();
 
@@ -71,7 +74,7 @@ export default function Sidebar() {
 
         {/* Nav */}
         <nav className="flex-1 mt-3 px-3 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map(({ to, label, Icon }) => (
+          {NAV_ITEMS.map(({ to, labelKey, Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -91,7 +94,7 @@ export default function Sidebar() {
                       ? 'text-primary scale-110'
                       : 'text-muted-foreground group-hover:text-foreground'
                   }`} />
-                  {label}
+                  {t(labelKey)}
                 </>
               )}
             </NavLink>
@@ -115,7 +118,7 @@ export default function Sidebar() {
             className="flex items-center w-full px-4 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl active:scale-[0.98] transition-all"
           >
             <LogOut className="mr-3 h-4 w-4 shrink-0" />
-            Sign out
+            {t('auth.logout')}
           </button>
         </div>
 

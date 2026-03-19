@@ -18,6 +18,7 @@
     "linked": "Ya vinculado"
   },
   "electricity": {
+    "title": "Electricidad",
     "api_workspace_title": "Área de trabajo de la API de electricidad",
     "api_workspace_desc": "El SSR inicializa los datos, todas las acciones en la aplicación llaman a la API.",
     "owner_label": "Propietario",
@@ -815,6 +816,7 @@
     "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas."
   },
   "dashboard": {
+    "title": "Panel de control",
     "header": {
       "eyebrow": "Panel del hogar",
       "title": "Panel de control",

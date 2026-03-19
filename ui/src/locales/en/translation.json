@@ -18,6 +18,7 @@
     "linked": "Already linked"
   },
   "electricity": {
+    "title": "Electricity",
     "api_workspace_title": "Electricity API workspace",
     "api_workspace_desc": "SSR initializes data, all in-app actions call the API.",
     "owner_label": "Owner",
@@ -815,6 +816,7 @@
     "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools."
   },
   "dashboard": {
+    "title": "Dashboard",
     "header": {
       "eyebrow": "Household dashboard",
       "title": "Dashboard",

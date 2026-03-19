@@ -18,6 +18,7 @@
     "linked": "Bereits verknüpft"
   },
   "electricity": {
+    "title": "Elektrizität",
     "api_workspace_title": "Elektrizitäts-API-Arbeitsbereich",
     "api_workspace_desc": "SSR initialisiert die Daten, alle In-App-Aktionen rufen die API auf.",
     "owner_label": "Eigentümer",
@@ -815,6 +816,7 @@
     "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten."
   },
   "dashboard": {
+    "title": "Übersicht",
     "header": {
       "eyebrow": "Haushaltsübersicht",
       "title": "Übersicht",

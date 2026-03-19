@@ -18,6 +18,7 @@
     "linked": "Déjà lié"
   },
   "electricity": {
+    "title": "Électricité",
     "api_workspace_title": "Espace de travail API électricité",
     "api_workspace_desc": "Le SSR initialise les données, toutes les actions en application appellent l'API.",
     "owner_label": "Propriétaire",
@@ -815,6 +816,7 @@
     "empty_description": "Ajoutez votre premier équipement pour commencer à suivre vos appareils et outils."
   },
   "dashboard": {
+    "title": "Tableau de bord",
     "header": {
       "eyebrow": "Tableau de bord du foyer",
       "title": "Tableau de bord",
