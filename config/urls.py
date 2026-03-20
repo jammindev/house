@@ -8,6 +8,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 from . import admin_ordering as _admin_ordering
+from core.views_media import serve_protected_media
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -39,9 +40,12 @@ if settings.ENABLE_API_SCHEMA:
         path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="api-schema"), name="api-redoc"),
     ]
 
-# Serve media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Media files — always served via Django for permission checks.
+# In production, Django returns X-Accel-Redirect and Nginx serves the file.
+# In development, Django serves the file directly.
+urlpatterns += [
+    re_path(r'^media/(?P<path>.+)$', serve_protected_media, name='serve_protected_media'),
+]
 
 urlpatterns += [
     re_path(r"^(?!api/|admin/|static/|media/|i18n/).*$",

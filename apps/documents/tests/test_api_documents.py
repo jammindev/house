@@ -1,7 +1,7 @@
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import Client, override_settings
 from django.urls import reverse
-from django.test import override_settings
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -186,7 +186,7 @@ class TestDocumentsApi:
         assert payload_by_name['Unlinked']['qualification']['qualification_state'] == 'without_activity'
         assert payload_by_name['Unlinked']['linked_interactions'] == []
 
-    def test_detail_exposes_linked_interactions_secondary_contexts_and_recent_candidates(self, owner_client, owner, household):
+    def test_detail_exposes_linked_interactions_secondary_contexts_and_recent_candidates(self, owner_client, owner, household):  # noqa: E501
         zone = Zone.objects.create(household=household, name='Boiler room', created_by=owner)
         document = Document.objects.create(
             household=household,
@@ -237,3 +237,187 @@ class TestDocumentsApi:
         assert {item['subject'] for item in response.data['recent_interaction_candidates']} == {
             'Heating inspection',
         }
+
+
+# ---------------------------------------------------------------------------
+# TestDocumentPrivacy
+# Covers the is_private field: upload serializer, list queryset filtering,
+# PATCH permission guard, and serve_protected_media access control.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestDocumentPrivacy:
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _create_document(self, household, created_by, *, is_private=False, file_path=None, **kwargs):
+        """Create and return a Document belonging to *household*."""
+        kwargs.setdefault("name", "Test Document")
+        kwargs.setdefault("mime_type", "application/pdf")
+        kwargs.setdefault("type", "document")
+        return Document.objects.create(
+            household=household,
+            created_by=created_by,
+            file_path=file_path or f"documents/{household.id}/2026/03/test-{created_by.id}.pdf",
+            is_private=is_private,
+            **kwargs,
+        )
+
+    def _upload_payload(self, **overrides):
+        """Return a valid multipart-style payload dict for document-upload."""
+        defaults = {
+            "name": "Private Invoice",
+            "type": "invoice",
+        }
+        defaults.update(overrides)
+        return defaults
+
+    def _add_member(self, user, household, role=HouseholdMember.Role.MEMBER):
+        """Add *user* to *household* with *role* and set active_household."""
+        HouseholdMember.objects.create(user=user, household=household, role=role)
+        user.active_household = household
+        user.save(update_fields=["active_household"])
+
+    # ------------------------------------------------------------------
+    # 1. Upload with is_private=True persists the flag
+    # ------------------------------------------------------------------
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media')
+    def test_upload_with_is_private_true_creates_private_document(self, owner_client, owner, household):
+        url = reverse("document-upload")
+        upload = SimpleUploadedFile("secret.pdf", b"%PDF-1.4 secret", content_type="application/pdf")
+        payload = self._upload_payload(is_private="true")  # multipart sends strings
+
+        response = owner_client.post(
+            url,
+            {"file": upload, **payload},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        doc = Document.objects.get(id=response.data["document"]["id"])
+        assert doc.is_private is True
+
+    # ------------------------------------------------------------------
+    # 2. Upload without is_private defaults to public
+    # ------------------------------------------------------------------
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media')
+    def test_upload_without_is_private_defaults_to_public(self, owner_client, owner, household):
+        url = reverse("document-upload")
+        upload = SimpleUploadedFile("public.pdf", b"%PDF-1.4 public", content_type="application/pdf")
+
+        response = owner_client.post(
+            url,
+            {"file": upload, "name": "Public Doc", "type": "document"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        doc = Document.objects.get(id=response.data["document"]["id"])
+        assert doc.is_private is False
+
+    # ------------------------------------------------------------------
+    # 3. Owner sees their own private documents in the list
+    # ------------------------------------------------------------------
+
+    def test_owner_sees_own_private_document_in_list(self, owner_client, owner, household):
+        private_doc = self._create_document(household, owner, is_private=True, name="Owner Private")
+
+        url = reverse("document-list")
+        response = owner_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        returned_ids = [item["id"] for item in response.data]
+        assert private_doc.id in returned_ids
+
+    # ------------------------------------------------------------------
+    # 4. Another member does NOT see private documents of other members
+    # ------------------------------------------------------------------
+
+    def test_member_cannot_see_other_members_private_document_in_list(self, owner, household):
+        private_doc = self._create_document(household, owner, is_private=True, name="Owner Private")
+
+        other_member = UserFactory()
+        self._add_member(other_member, household)
+        other_client = APIClient()
+        other_client.force_authenticate(user=other_member)
+
+        url = reverse("document-list")
+        response = other_client.get(url)
+
+        assert response.status_code == status.HTTP_200_OK
+        returned_ids = [item["id"] for item in response.data]
+        assert private_doc.id not in returned_ids
+
+    # ------------------------------------------------------------------
+    # 5. PATCH is_private: document owner can toggle the flag
+    # ------------------------------------------------------------------
+
+    def test_owner_can_patch_is_private(self, owner_client, owner, household):
+        doc = self._create_document(household, owner, is_private=False)
+
+        url = reverse("document-detail", args=[doc.id])
+        response = owner_client.patch(url, {"is_private": True}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        doc.refresh_from_db()
+        assert doc.is_private is True
+
+    # ------------------------------------------------------------------
+    # 6. PATCH is_private: non-owner household member gets 403
+    # ------------------------------------------------------------------
+
+    def test_non_owner_cannot_patch_is_private(self, owner, household):
+        doc = self._create_document(household, owner, is_private=False)
+
+        other_member = UserFactory()
+        self._add_member(other_member, household)
+        other_client = APIClient()
+        other_client.force_authenticate(user=other_member)
+
+        url = reverse("document-detail", args=[doc.id])
+        response = other_client.patch(url, {"is_private": True}, format="json")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        # DB must not have been mutated
+        doc.refresh_from_db()
+        assert doc.is_private is False
+
+    # ------------------------------------------------------------------
+    # 7. serve_protected_media: owner gets 200 + X-Accel-Redirect on their
+    #    private document
+    # ------------------------------------------------------------------
+
+    @override_settings(DEBUG=False)
+    def test_serve_protected_media_owner_can_access_private_document(self, owner, household):
+        file_path = f"documents/{household.id}/2026/03/private-owner.pdf"
+        self._create_document(household, owner, is_private=True, file_path=file_path)
+
+        django_client = Client()
+        django_client.force_login(owner)
+
+        response = django_client.get(f"/media/{file_path}")
+
+        assert response.status_code == 200
+        assert response.get("X-Accel-Redirect") == f"/_protected_media/{file_path}"
+
+    # ------------------------------------------------------------------
+    # 8. serve_protected_media: non-owner member gets 403 on private document
+    # ------------------------------------------------------------------
+
+    @override_settings(DEBUG=False)
+    def test_serve_protected_media_non_owner_gets_403_on_private_document(self, owner, household):
+        file_path = f"documents/{household.id}/2026/03/private-other.pdf"
+        self._create_document(household, owner, is_private=True, file_path=file_path)
+
+        other_member = UserFactory()
+        self._add_member(other_member, household)
+
+        django_client = Client()
+        django_client.force_login(other_member)
+
+        response = django_client.get(f"/media/{file_path}")
+
+        assert response.status_code == 403

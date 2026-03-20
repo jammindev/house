@@ -142,10 +142,39 @@ class TestUserViewSet:
     def test_delete_user(self, authenticated_client, user):
         """Test user can delete their own account."""
         url = reverse("user-detail", kwargs={"pk": user.id})
-        
+
         response = authenticated_client.delete(url)
-        
+
         assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_user_cannot_deactivate_themselves(self, authenticated_client, user):
+        """PATCH is_active=False must be ignored — is_active is read-only."""
+        url = reverse("user-detail", kwargs={"pk": user.id})
+        response = authenticated_client.patch(url, {"is_active": False}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.is_active is True
+
+    def test_user_cannot_elevate_is_active(self, api_client):
+        """A deactivated user cannot reactivate themselves via PATCH."""
+        inactive = UserFactory(is_active=False)
+        inactive.set_password("testpass123")
+        inactive.save()
+        api_client.force_authenticate(user=inactive)
+        url = reverse("user-detail", kwargs={"pk": inactive.id})
+        response = api_client.patch(url, {"is_active": True}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        inactive.refresh_from_db()
+        assert inactive.is_active is False
+
+    def test_user_list_returns_only_own_user(self, authenticated_client, user):
+        """Non-staff GET /users/ must return only the authenticated user, not others."""
+        UserFactory.create_batch(3)
+        url = reverse("user-list")
+        response = authenticated_client.get(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) == 1
+        assert response.data[0]["email"] == user.email
 
 
 @pytest.mark.django_db
@@ -489,3 +518,47 @@ class TestLoginThrottling:
             response = api_client.post(url)
 
         assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+class TestImpersonation:
+    """Tests for the impersonation endpoint."""
+
+    def test_admin_can_impersonate_other_user(self, api_client):
+        """Staff user gets tokens for the target user."""
+        admin = StaffUserFactory()
+        target = UserFactory()
+        api_client.force_authenticate(user=admin)
+        url = reverse("user-impersonate", kwargs={"pk": target.id})
+        response = api_client.post(url)
+        assert response.status_code == status.HTTP_200_OK
+        assert "access" in response.data
+
+    def test_non_staff_cannot_impersonate(self, authenticated_client):
+        """Non-staff user gets 404 — other users are not in their queryset."""
+        target = UserFactory()
+        url = reverse("user-impersonate", kwargs={"pk": target.id})
+        response = authenticated_client.post(url)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_admin_cannot_impersonate_themselves(self, api_client):
+        """Staff user trying to impersonate themselves gets 400."""
+        admin = StaffUserFactory()
+        api_client.force_authenticate(user=admin)
+        url = reverse("user-impersonate", kwargs={"pk": admin.id})
+        response = api_client.post(url)
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_impersonation_is_logged(self, api_client, caplog):
+        """Impersonation action must emit a log entry with admin and target info."""
+        import logging
+        admin = StaffUserFactory()
+        target = UserFactory()
+        api_client.force_authenticate(user=admin)
+        url = reverse("user-impersonate", kwargs={"pk": target.id})
+        with caplog.at_level(logging.INFO, logger="accounts.views.api"):
+            api_client.post(url)
+        assert any(
+            admin.email in record.message and target.email in record.message
+            for record in caplog.records
+        )

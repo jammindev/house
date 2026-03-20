@@ -2,7 +2,7 @@
 from pathlib import Path
 
 from django.core.files.storage import default_storage
-from django.db import transaction
+from django.db import models as db_models, transaction
 from django.db.models import Prefetch
 from rest_framework import status
 from rest_framework import viewsets, filters
@@ -13,6 +13,7 @@ from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
+from core.file_validation import validate_upload, ALLOWED_DOCUMENT_TYPES, DOCUMENT_MAX_SIZE
 from .models import Document
 from .serializers import (
     DocumentSerializer,
@@ -29,6 +30,8 @@ def get_documents_queryset_for_request(request):
     query_params = getattr(request, 'query_params', request.GET)
     queryset = Document.objects.filter(
         household_id__in=request.user.householdmember_set.values_list('household_id', flat=True)
+    ).filter(
+        db_models.Q(is_private=False) | db_models.Q(created_by=request.user)
     ).select_related(
         'created_by',
         'interaction',
@@ -101,6 +104,15 @@ class DocumentViewSet(viewsets.ModelViewSet):
             return DocumentDetailSerializer
         return DocumentSerializer
 
+    def perform_update(self, serializer):
+        """Only the document owner can toggle is_private."""
+        if 'is_private' in serializer.validated_data:
+            document = self.get_object()
+            if document.created_by != self.request.user:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("Only the document owner can change its privacy.")
+        serializer.save()
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         if self.action == 'retrieve':
@@ -161,6 +173,12 @@ class DocumentViewSet(viewsets.ModelViewSet):
             raise ValidationError({'household_id': 'A valid household context is required.'})
 
         uploaded_file = serializer.validated_data['file']
+        detected_mime = validate_upload(
+            uploaded_file,
+            allowed_types=ALLOWED_DOCUMENT_TYPES,
+            max_size=DOCUMENT_MAX_SIZE,
+            field_name='file',
+        )
         storage_path = Document.build_upload_path(
             household_id=household.id,
             filename=uploaded_file.name,
@@ -174,8 +192,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     created_by=request.user,
                     file_path=saved_path,
                     name=(serializer.validated_data.get('name') or Path(uploaded_file.name).name or 'Document')[:255],
-                    mime_type=getattr(uploaded_file, 'content_type', '') or '',
+                    mime_type=detected_mime,
                     type=serializer.validated_data.get('type') or 'document',
+                    is_private=serializer.validated_data.get('is_private', False),
                     notes=serializer.validated_data.get('notes', ''),
                     metadata={
                         'size': uploaded_file.size,

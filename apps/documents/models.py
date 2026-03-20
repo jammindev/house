@@ -33,7 +33,7 @@ class Document(HouseholdScopedModel):
     # File info
     file_path = models.CharField(
         max_length=500,
-        help_text="Storage path: userId/interactionId/filename"
+        help_text="Storage path: documents/{household_id}/{year}/{month}/{uuid}-{filename}"
     )
     name = models.CharField(max_length=255)
     mime_type = models.CharField(max_length=100, blank=True)
@@ -56,6 +56,12 @@ class Document(HouseholdScopedModel):
         help_text="Size, dimensions, processing status, etc."
     )
     
+    # Privacy
+    is_private = models.BooleanField(
+        default=False,
+        help_text="If True, only the uploader can see this document."
+    )
+
     # Optional notes
     notes = models.TextField(blank=True)
     
@@ -92,13 +98,3 @@ class Document(HouseholdScopedModel):
             / f'{uuid4().hex}-{safe_name}'
         )
 
-    def delete(self, *args, **kwargs):
-        file_path = self.file_path
-        super().delete(*args, **kwargs)
-        if not file_path:
-            return
-        try:
-            if default_storage.exists(file_path):
-                default_storage.delete(file_path)
-        except OSError:
-            pass

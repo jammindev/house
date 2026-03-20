@@ -1,5 +1,8 @@
 """API ViewSets for accounts app."""
+import logging
 import os
+
+logger = logging.getLogger(__name__)
 
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.password_validation import validate_password
@@ -163,6 +166,11 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         tokens = get_impersonation_token(request.user, target)
+        logger.info(
+            "Impersonation: admin=%s (id=%s) impersonating user=%s (id=%s)",
+            request.user.email, request.user.id,
+            target.email, target.id,
+        )
         return Response(tokens, status=status.HTTP_200_OK)
 
     @action(

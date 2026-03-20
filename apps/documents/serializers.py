@@ -37,6 +37,8 @@ class DocumentUploadSerializer(serializers.Serializer):
         allow_null=True,
     )
     notes = serializers.CharField(required=False, allow_blank=True)
+    is_private = serializers.BooleanField(required=False, default=False)
+
 class DocumentSerializer(serializers.ModelSerializer):
     """Document list/create serializer."""
 
@@ -51,7 +53,7 @@ class DocumentSerializer(serializers.ModelSerializer):
         model = Document
         fields = [
             'id', 'household', 'file_path', 'name', 'mime_type',
-            'type', 'notes', 'ocr_text', 'metadata',
+            'type', 'notes', 'ocr_text', 'metadata', 'is_private',
             'interaction', 'created_at', 'created_by', 'created_by_name',
             'file_url', 'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',

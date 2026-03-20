@@ -55,8 +55,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         default=None,
         help_text=_("User's preferred language. Null means use browser detection.")
     )
+    def _avatar_upload_path(instance, filename):
+        return f'avatars/{instance.pk}/{filename}'
+
     avatar = models.ImageField(
-        upload_to='avatars/',
+        upload_to=_avatar_upload_path,
         null=True,
         blank=True,
         help_text=_("User's avatar image file")
