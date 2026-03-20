@@ -10,13 +10,19 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U house_user -d house"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   web:
     build: .
     image: house:latest
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     env_file: .env
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
