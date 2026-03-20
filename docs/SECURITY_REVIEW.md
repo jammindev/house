@@ -101,20 +101,15 @@ Risque si ces settings fuitent en staging/prod : stack traces exposées, CORS ou
 
 ## Moyen
 
-### 9. Pas de Content Security Policy (CSP)
-Aucun header CSP n'est configuré → XSS non mitigé côté browser.
-
-**Action :** Ajouter `django-csp` ou configurer les headers manuellement en production.
+### ✅ 9. Pas de Content Security Policy (CSP)
+**Résolu (`c9bd501`) :** Headers ajoutés dans `nginx/default.conf` : `Content-Security-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy`, `Referrer-Policy`. `unsafe-inline` autorisé pour scripts/styles (nécessaire React/Vite — à durcir avec nonce si besoin futur).
 
 ---
 
-### 10. Rate limiting insuffisant
-Le login a un throttle (bien), mais pas `/change-password/`, ni l'inscription, ni la liste des users.
+### ✅ 10. Rate limiting insuffisant
+**Résolu (`c9bd501`) :** `ChangePasswordRateThrottle` (5/heure par user) ajouté dans `throttles.py` et appliqué sur l'action `change_password`.
 
-**Actions :**
-- `change-password` : 5 tentatives / heure
-- Inscription : 10 / heure / IP
-- Liste users : 100 / heure / utilisateur
+*Déféré :* throttle sur l'inscription et la liste users.
 
 ---
 
@@ -125,12 +120,8 @@ Le login a un throttle (bien), mais pas `/change-password/`, ni l'inscription, n
 
 ---
 
-### 12. `CORS_ALLOWED_ORIGINS` sans erreur si absent en prod
-**Fichier :** `config/settings/production.py`
-
-`default=[]` → silencieusement vide si la variable d'env est absente.
-
-**Action :** Lever une erreur au démarrage si `CORS_ALLOWED_ORIGINS` n'est pas configuré en production.
+### ✅ 12. `CORS_ALLOWED_ORIGINS` sans erreur si absent en prod
+**Résolu (`c9bd501`) :** `production.py` lève un `RuntimeError` au démarrage si `CORS_ALLOWED_ORIGINS` est vide. L'app ne démarre pas plutôt que d'être silencieusement misconfigurée.
 
 ---
 
