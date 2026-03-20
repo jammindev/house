@@ -1,5 +1,4 @@
 import { Mail, Phone, Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { Contact } from '@/lib/api/contacts';

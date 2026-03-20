@@ -1,6 +1,14 @@
 # OS
 .DS_Store
 
+# Playwright
+e2e/.auth/
+playwright-report/
+test-results/
+
+# Env files
+.env.e2e
+
 # Python
 __pycache__/
 *.py[cod]

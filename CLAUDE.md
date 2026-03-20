@@ -35,8 +35,14 @@ pytest                          # tous les tests Python (coverage inclus)
 pytest apps/<app>/              # tests d'une app spécifique
 pytest -k "nom_du_test"         # filtre par nom
 pytest -m "not slow"            # exclure les tests lents
-npm test                        # tests Vitest (frontend)
-npm run test:coverage           # tests Vitest avec couverture
+```
+
+Tests E2E Playwright (serveur Django requis sur :8001) :
+
+```bash
+npm run test:e2e                # headless
+npm run test:e2e:headed         # navigateur visible
+npm run test:e2e:ui             # interface interactive
 ```
 
 ### Génération de types API

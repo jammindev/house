@@ -14,6 +14,7 @@ import {
 export const taskKeys = {
   all: ['tasks'] as const,
   list: () => [...taskKeys.all, 'list'] as const,
+  project: (projectId: string) => [...taskKeys.all, 'project', projectId] as const,
 };
 
 export function useTasks() {
@@ -126,7 +127,7 @@ export function useDeleteTask() {
 
 export function useProjectTasks(projectId: string) {
   return useQuery({
-    queryKey: [...taskKeys.all, 'project', projectId] as const,
+    queryKey: taskKeys.project(projectId),
     queryFn: () => fetchProjectTasks(projectId),
     enabled: Boolean(projectId),
     select: (data) => data.filter((t) => t.status !== 'archived'),
@@ -158,7 +159,7 @@ export function useLinkDocument() {
 export function useUnlinkDocument() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ linkId, taskId }: { linkId: number; taskId: string }) =>
+    mutationFn: ({ linkId, taskId: _taskId }: { linkId: number; taskId: string }) =>
       unlinkDocumentFromTask(linkId),
     onSuccess: (_data, { taskId }) => {
       qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'documents'] });
@@ -190,7 +191,7 @@ export function useLinkInteraction() {
 export function useUnlinkInteraction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ linkId, taskId }: { linkId: number; taskId: string }) =>
+    mutationFn: ({ linkId, taskId: _taskId }: { linkId: number; taskId: string }) =>
       unlinkInteractionFromTask(linkId),
     onSuccess: (_data, { taskId }) => {
       qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'interactions'] });

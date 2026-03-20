@@ -246,9 +246,49 @@ npm run dev
 
 ## 8) Tests
 
+### Stratégie
+
+- **Backend** : pytest uniquement. Couvrir les models, serializers, viewsets, permissions.
+- **Frontend** : Playwright E2E uniquement. Pas de tests Vitest/unit sur les composants React — trop coûteux à maintenir pour la taille du projet.
+- **Ce qu'on ne teste pas** : composants React isolés, hooks React, logique UI pure.
+
+### Backend (pytest)
+
 ```bash
-pytest
+source .venv/bin/activate
+pytest                          # tous les tests
+pytest apps/<app>/              # tests d'une app
+pytest -k "nom_du_test"
+pytest -m "not slow"
 ```
+
+L'agent `django-drf-test-writer` est disponible pour générer les tests backend automatiquement.
+
+### Frontend E2E (Playwright)
+
+```bash
+# Le serveur Django doit tourner sur :8001 (npm run dev OU python manage.py runserver)
+npm run test:e2e            # headless
+npm run test:e2e:headed     # navigateur visible
+npm run test:e2e:ui         # interface Playwright interactive
+```
+
+**Config** : `playwright.config.ts` à la racine. Tests dans `e2e/`.
+
+**Auth** : `e2e/global.setup.ts` s'authentifie en premier et sauvegarde le state dans `e2e/.auth/user.json` (gitignored). Tous les tests réutilisent ce state — pas besoin de se re-logger.
+
+**Credentials demo** (requiert `python manage.py seed_demo_data`) :
+- Email : `claire.mercier@demo.local`
+- Mot de passe : `demo1234`
+- Ou via env : `E2E_EMAIL` / `E2E_PASSWORD`
+
+**Conventions** :
+- Sélecteurs par rôle (`getByRole`) et placeholder (`getByPlaceholder`) — jamais de classes CSS ni d'IDs
+- Un fichier par feature : `e2e/tasks.spec.ts`, `e2e/auth.spec.ts`, etc.
+- Tester les flux critiques : navigation, création, modification, suppression
+- Ne pas tester les détails visuels (couleurs, espacements)
+
+L'agent `playwright-e2e-writer` est disponible pour générer les tests E2E automatiquement après chaque nouvelle page ou feature frontend.
 
 ## 9) Règles IA recommandées
 

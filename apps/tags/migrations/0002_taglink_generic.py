@@ -9,7 +9,13 @@ def migrate_interaction_tags_to_tag_links(apps, schema_editor):
     TagLink = apps.get_model("tags", "TagLink")
     ContentType = apps.get_model("contenttypes", "ContentType")
 
-    interaction_ct = ContentType.objects.get(app_label="interactions", model="interaction")
+    if not InteractionTag.objects.exists():
+        return
+
+    try:
+        interaction_ct = ContentType.objects.get(app_label="interactions", model="interaction")
+    except ContentType.DoesNotExist:
+        return
 
     links_to_create = []
     for item in InteractionTag.objects.select_related("interaction", "tag").iterator():
