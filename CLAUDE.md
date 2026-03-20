@@ -7,7 +7,15 @@
 Toujours activer le venv avant toute commande Python/Django :
 
 ```bash
-source .venv/bin/activate
+source venv/bin/activate
+```
+
+Installation des dépendances (3 niveaux) :
+
+```bash
+pip install -r requirements/base.txt   # prod uniquement
+pip install -r requirements/test.txt   # base + pytest/coverage/factories
+pip install -r requirements/dev.txt    # test + ipython et outils dev
 ```
 
 ```bash
