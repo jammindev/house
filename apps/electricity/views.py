@@ -4,7 +4,6 @@
 from django.db.models import ProtectedError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.shortcuts import render
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError

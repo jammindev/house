@@ -51,6 +51,21 @@ export default defineConfig(({ command }) => ({
         entryFileNames: 'assets/[name]-[hash].js',
         chunkFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks(id) {
+          if (id.includes('/gen/api/')) return 'api-client';
+          if (id.includes('node_modules/react-router') || id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'vendor-react';
+          if (id.includes('node_modules/@tanstack/')) return 'vendor-query';
+          if (id.includes('node_modules/lucide-react/')) return 'vendor-icons';
+          if (id.includes('node_modules/i18next') || id.includes('node_modules/react-i18next')) return 'vendor-i18n';
+          if (id.includes('node_modules/@radix-ui/')) return 'vendor-radix';
+          if (
+            id.includes('node_modules/axios/') ||
+            id.includes('node_modules/zustand/') ||
+            id.includes('node_modules/clsx/') ||
+            id.includes('node_modules/tailwind-merge/') ||
+            id.includes('node_modules/class-variance-authority/')
+          ) return 'vendor-utils';
+        },
       },
     },
   },
