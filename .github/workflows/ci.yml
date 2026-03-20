@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, house-django]
+    branches: [house-django]
   pull_request:
-    branches: [main]
+    branches: [house-django]
 
 jobs:
   backend:
