@@ -9,6 +9,7 @@ export function useDelayedLoading(loading: boolean, delay = 200): boolean {
 
   useEffect(() => {
     if (!loading) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(false);
       return;
     }

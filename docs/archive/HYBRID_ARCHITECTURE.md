@@ -1,5 +1,7 @@
 # Architecture Hybride Django + React
 
+> **⚠️ ARCHIVÉ** — Cette architecture (Django templates + React islands via `mountWithJsonScriptProps`) a été abandonnée. L'app est désormais une SPA complète (React Router + Vite). `ui/src/lib/mount.tsx` a été supprimé.
+
 > Canonical doc index: `docs/README.md`
 
 Ce dépôt suit une approche **Django shell + React mini-SPA** :

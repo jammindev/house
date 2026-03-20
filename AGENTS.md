@@ -153,7 +153,6 @@ Pour l'IA:
 
 - `ui/src/design-system/*`: composants atomiques (Button, Input, Card, Select, Textarea, Badge, Alert, Skeleton)
 - `ui/src/web-components/*`: mêmes composants exposés en Web Components custom elements (`<ui-button>`, etc.) + `InteractionCreateForm`, `InteractionList`
-- `ui/src/lib/mount.tsx`: utilitaire de montage React ciblé dans un nœud DOM
 - `ui/src/lib/api/`: client API généré (fetch typé vers les endpoints DRF)
 
 ### Organisation du code React
@@ -210,9 +209,8 @@ ui/src/pages/
 
 Chaque fichier de montage :
 1. Importe le composant depuis `apps/<app>/react/`
-2. Utilise `mountWithJsonScriptProps` et `onDomReady` de `@/lib/mount`
-3. Cible un root DOM spécifique (ex: `'projects-list-root'`)
-4. Les props initiales sont hydratées côté Django via `ReactPageView.get_props()` — **zéro fetch API au premier rendu**
+2. Cible un root DOM spécifique (ex: `'projects-list-root'`)
+3. Les props initiales sont hydratées côté Django via `ReactPageView.get_props()` — **zéro fetch API au premier rendu**
 
 **Configuration Vite**  
 Les points d'entrée dans `vite.config.ts` pointent vers `ui/src/pages/<app>/` et gardent les mêmes keys pour compatibilité avec les templates Django :

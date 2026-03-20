@@ -1,0 +1,2 @@
+- Séparer document et photo
+- 

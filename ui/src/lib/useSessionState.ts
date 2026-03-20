@@ -15,7 +15,9 @@ export function useSessionState<T>(key: string, defaultValue: T) {
       const resolved = typeof next === 'function' ? (next as (prev: T) => T)(prev) : next;
       try {
         sessionStorage.setItem(key, JSON.stringify(resolved));
-      } catch {}
+      } catch (_error) {
+        // sessionStorage unavailable (private browsing, quota exceeded) — silently ignore
+      }
       return resolved;
     });
   }, [key]);

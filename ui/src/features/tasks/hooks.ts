@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import {
   fetchTasks, fetchHouseholdMembers, fetchZones, fetchProjectTasks,
   updateTaskStatus, updateTask, createTask, deleteTask,
@@ -37,6 +37,7 @@ export function useHouseholdMembersWithMe() {
   const { t } = useTranslation();
   const query = useHouseholdMembers();
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const data = React.useMemo(() => {
     if (!query.data) return [];
     const currentId = user?.id != null ? String(user.id) : null;
@@ -159,7 +160,7 @@ export function useLinkDocument() {
 export function useUnlinkDocument() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ linkId, taskId: _taskId }: { linkId: number; taskId: string }) =>
+    mutationFn: ({ linkId }: { linkId: number; taskId: string }) =>
       unlinkDocumentFromTask(linkId),
     onSuccess: (_data, { taskId }) => {
       qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'documents'] });
@@ -191,7 +192,7 @@ export function useLinkInteraction() {
 export function useUnlinkInteraction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ linkId, taskId: _taskId }: { linkId: number; taskId: string }) =>
+    mutationFn: ({ linkId }: { linkId: number; taskId: string }) =>
       unlinkInteractionFromTask(linkId),
     onSuccess: (_data, { taskId }) => {
       qc.invalidateQueries({ queryKey: [...taskKeys.all, taskId, 'interactions'] });

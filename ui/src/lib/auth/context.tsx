@@ -1,17 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '../axios';
 import { queryClient } from '../queryClient';
 import i18n from '../i18n';
-
-interface AuthUser {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  active_household: string | null;
-  locale?: string;
-  is_staff?: boolean;
-}
+import { AuthContext, type AuthUser } from './authContext';
 
 const SUPPORTED_LANGUAGES = ['en', 'fr', 'de', 'es'];
 
@@ -28,18 +19,6 @@ function parseJwtPayload(token: string): Record<string, unknown> | null {
     return null;
   }
 }
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  isLoading: boolean;
-  isImpersonating: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  impersonate: (userId: string) => Promise<void>;
-  stopImpersonation: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -58,6 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     if (!token) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsLoading(false);
       return;
     }
@@ -129,8 +109,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
-  return ctx;
-}

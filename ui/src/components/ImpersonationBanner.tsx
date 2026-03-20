@@ -1,7 +1,7 @@
 import { UserX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 
 export default function ImpersonationBanner() {
   const { t } = useTranslation();

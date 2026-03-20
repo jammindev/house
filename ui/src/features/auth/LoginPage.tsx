@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import { Button } from '../../design-system/button';
 import { Input } from '../../design-system/input';
 

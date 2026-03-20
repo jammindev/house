@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
-import { useAuth } from '@/lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
 import { isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
 import CardActions, { type CardAction } from '@/components/CardActions';

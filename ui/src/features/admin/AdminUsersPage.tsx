@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { UserCheck } from 'lucide-react';
 import { api } from '@/lib/axios';
-import { useAuth } from '@/lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 interface UserRow {

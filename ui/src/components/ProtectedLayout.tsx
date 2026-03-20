@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import { useMe } from '../features/settings/hooks';
 import { applyDarkMode, applyColorTheme } from '../lib/theme';
 import AppShell from './AppShell';

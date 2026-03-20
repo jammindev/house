@@ -1,5 +1,7 @@
 # README — Guide composants atomiques (ajout progressif)
 
+> **⚠️ Document partiellement obsolète** — Les sections décrivant `mountWithJsonScriptProps`, `onDomReady` et `renderRoot` de `@/lib/mount` correspondent à l'ancienne architecture hybride Django templates + React islands. Ce fichier (`mount.tsx`) a été supprimé. L'app est désormais une SPA complète (React Router). Seules les sections sur les composants atomiques (`design-system/`) restent d'actualité.
+
 Ce guide explique comment ajouter des composants atomiques **au fil de l'eau** dans l'architecture Django hybride.
 
 Objectif:

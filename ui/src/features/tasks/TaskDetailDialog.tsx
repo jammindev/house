@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { FileText, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { Button } from '@/design-system/button';
-import { useAuth } from '@/lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
 import { isTaskOverdue, formatRelativeDate } from '@/lib/api/tasks';
 import TaskStatusBadge from './TaskStatusBadge';

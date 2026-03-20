@@ -1,5 +1,7 @@
 # Quickstart: Settings Migration
 
+> **⚠️ ARCHIVÉ** — Ce spec référence `mountWithJsonScriptProps`/`onDomReady` de `@/lib/mount`, supprimé. Architecture hybride abandonnée au profit d'une SPA complète.
+
 ## Prérequis
 
 ```bash

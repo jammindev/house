@@ -21,6 +21,7 @@ export function SidebarToggleProvider({ children }: { children: React.ReactNode 
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useSidebarToggle() {
   const ctx = useContext(SidebarToggleContext);
   if (!ctx) throw new Error('useSidebarToggle must be inside SidebarToggleProvider');

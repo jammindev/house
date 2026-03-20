@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../lib/auth/context';
+import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 
