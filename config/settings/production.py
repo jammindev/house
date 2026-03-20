@@ -21,6 +21,11 @@ CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 # IMPORTANT: Specify exact frontend domains in .env via CORS_ALLOWED_ORIGINS
 # Example: CORS_ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
+if not CORS_ALLOWED_ORIGINS:
+    raise RuntimeError(
+        "CORS_ALLOWED_ORIGINS must be set in production. "
+        "Example: CORS_ALLOWED_ORIGINS=https://yourdomain.com"
+    )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
     'accept',

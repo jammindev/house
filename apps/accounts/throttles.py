@@ -11,7 +11,7 @@ Rates are configurable via settings:
         "login_email": "5/min",
     }
 """
-from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle
+from rest_framework.throttling import AnonRateThrottle, SimpleRateThrottle, UserRateThrottle
 
 
 class LoginIPRateThrottle(AnonRateThrottle):
@@ -37,3 +37,8 @@ class LoginEmailRateThrottle(SimpleRateThrottle):
             "scope": self.scope,
             "ident": email.lower().strip(),
         }
+
+
+class ChangePasswordRateThrottle(UserRateThrottle):
+    """5 password changes per hour per authenticated user."""
+    scope = "change_password"

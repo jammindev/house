@@ -150,6 +150,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "login_ip": "20/min",
         "login_email": "5/min",
+        "change_password": "5/hour",
     },
 }
 

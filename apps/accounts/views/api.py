@@ -18,11 +18,9 @@ from rest_framework import status
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
-from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle
+from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle, ChangePasswordRateThrottle
 from accounts.tokens import get_impersonation_token
-
-AVATAR_MAX_SIZE = 2 * 1024 * 1024  # 2 MB
-ALLOWED_AVATAR_TYPES = {'image/jpeg', 'image/png', 'image/webp', 'image/gif'}
+from core.file_validation import validate_upload, ALLOWED_IMAGE_TYPES, AVATAR_MAX_SIZE
 
 
 class AuthViewSet(viewsets.ViewSet):
@@ -112,6 +110,7 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=['post'],
         url_path='me/change-password',
         url_name='change-password',
+        throttle_classes=[ChangePasswordRateThrottle],
     )
     def change_password(self, request):
         """Change the current user's password.
@@ -211,18 +210,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if avatar_file.content_type not in ALLOWED_AVATAR_TYPES:
-            return Response(
-                {'avatar': [_('File must be an image (JPEG, PNG, WebP or GIF).')]},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        if avatar_file.size > AVATAR_MAX_SIZE:
-            return Response(
-                {'avatar': [_('File size exceeds 2 MB limit.')]},
-
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        validate_upload(avatar_file, allowed_types=ALLOWED_IMAGE_TYPES, max_size=AVATAR_MAX_SIZE, field_name='avatar')
 
         # Delete old avatar if exists
         if request.user.avatar:
