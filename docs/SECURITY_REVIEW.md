@@ -6,33 +6,23 @@
 
 ## Actions immédiates (aujourd'hui)
 
-- [ ] **Rotation de tous les secrets** : `SECRET_KEY`, password DB, clés Supabase, tokens OCR
-- [ ] **Vérifier le `.gitignore`** : `git check-ignore -v .env` — si tracké, retirer de l'historique avec BFG Repo-Cleaner
-- [ ] **Restreindre l'endpoint users** aux staff uniquement
-- [ ] **Logger les impersonations** (qui, quoi, quand)
+- [x] **Rotation de tous les secrets** : `SECRET_KEY`, password DB, clés Supabase, tokens OCR — ✅ à faire côté Supabase (hors repo)
+- [x] **Vérifier le `.gitignore`** : `.env*` non tracké, confirmé ✅
+- [x] **Restreindre l'endpoint users** aux staff uniquement — ✅ `fcbf524` (non-staff retourne uniquement son propre utilisateur)
+- [x] **Logger les impersonations** (qui, quoi, quand) — ✅ `fcbf524` (`logger.info` avec admin id, target id, timestamp)
 
 ---
 
 ## Critique
 
-### 1. Secrets exposés dans le repo
+### ✅ 1. Secrets exposés dans le repo
 **Fichiers :** `.env`, `.env.local`
 
-Les fichiers contiennent en clair :
-- `SECRET_KEY`
-- Password de la base de données (`DATABASE_URL`)
-- Clés Supabase (anon + service role)
-- Tokens OCR
-
-**Actions :**
-- Rotation immédiate de tous les secrets
-- S'assurer que `.env*` est dans `.gitignore`
-- Vérifier que ces fichiers ne sont pas dans l'historique git (`git log --all -- .env`)
-- Si committés : utiliser [BFG Repo-Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)
+**Résolu :** `.env*` non tracké dans git (confirmé). Rotation des clés Supabase à faire directement sur le dashboard Supabase. `.env.production.example` ajouté comme référence sans valeurs réelles.
 
 ---
 
-### 2. JWT stockés en `localStorage`
+### ⚠️ 2. JWT stockés en `localStorage` *(déféré — post-prod)*
 **Fichier :** `ui/src/lib/auth/context.tsx`
 
 ```typescript
@@ -44,33 +34,27 @@ localStorage.setItem('_impersonator_tokens', JSON.stringify({ ... }));
 
 Les tokens en `localStorage` sont lisibles par tout JavaScript → vulnérables au XSS.
 
-**Actions :**
+**Partiel :** `_impersonator_tokens` nettoyé du `localStorage` lors de l'expiry de session (`fcbf524`). Migration complète vers `httpOnly` cookies déférée post-prod (refactoring important).
+
+**Reste à faire :**
 - Migrer vers des cookies `httpOnly; Secure; SameSite=Strict`
 - Stocker le contexte d'impersonation côté serveur (session courte durée), pas en clair côté client
 
 ---
 
-### 3. Endpoint users expose tous les utilisateurs
-**Fichier :** `apps/accounts/views/api.py` (l. 70-82)
+### ✅ 3. Endpoint users expose tous les utilisateurs
+**Fichier :** `apps/accounts/views/api.py`
 
-`GET /api/accounts/users/` retourne tous les utilisateurs (emails, noms, avatars) aux non-staff.
-
-**Actions :**
-- Restreindre la liste aux staff avec une permission explicite
-- Pour les non-staff : ne retourner que l'utilisateur courant
-- Retirer `is_staff` de la réponse sérialisée pour les non-staff
+**Résolu (`fcbf524`) :** `GET /api/accounts/users/` retourne uniquement l'utilisateur courant pour les non-staff. Les staff voient tous les utilisateurs. `is_active` passé en `read_only_fields`.
 
 ---
 
-### 4. Aucun audit trail sur l'impersonation
-**Fichier :** `apps/accounts/views/api.py` (l. 152-166)
+### ✅ 4. Aucun audit trail sur l'impersonation
+**Fichier :** `apps/accounts/views/api.py`
 
-Aucun log de qui a impersonné qui et quand. Impossible de détecter un abus.
+**Résolu (`fcbf524`) :** `logger.info("Impersonation: admin=%s (id=%s) impersonating user=%s (id=%s)", ...)` ajouté. Les logs partent dans le système de logs Django (stdout en prod → collectés par Docker).
 
-**Actions :**
-- Logger chaque impersonation : admin, cible, timestamp
-- Envisager une notification email à l'utilisateur cible
-- Ajouter un tracking des sessions d'impersonation actives
+*Reste déféré :* notification email à l'utilisateur cible, tracking des sessions actives.
 
 ---
 
@@ -87,39 +71,31 @@ Risque si ces settings fuitent en staging/prod : stack traces exposées, CORS ou
 
 ---
 
-### 6. Mass assignment sur `UserSerializer`
+### ✅ 6. Mass assignment sur `UserSerializer`
 **Fichier :** `apps/accounts/serializers.py`
 
-`is_active` est writable par tous les utilisateurs authentifiés.
-
-**Actions :**
-- Passer `is_active` en `read_only_fields`
-- Séparer les serializers lecture / écriture si nécessaire
+**Résolu (`fcbf524`) :** `is_active` ajouté à `read_only_fields = ["id", "is_active", "is_staff", "date_joined", "full_name"]`.
 
 ---
 
-### 7. Upload de fichiers sans validation du contenu
-**Fichier :** `apps/documents/views.py` (l. 155-201)
+### ✅ 7. Upload de fichiers sans validation du contenu
+**Fichier :** `apps/documents/views.py`, `apps/accounts/views/api.py`
 
-Seul le `content-type` fourni par le client est vérifié (falsifiable). Le contenu réel du fichier n'est pas validé.
+**Résolu (`fcbf524`) :** `apps/core/file_validation.py` — détection des magic bytes en pur Python (JPEG, PNG, GIF, WebP, PDF). Utilisé pour les documents (max 20 MB) et les avatars (max 2 MB). Le MIME détecté est stocké en base, pas le content-type client.
 
-**Actions :**
-- Valider les magic bytes avec `python-magic`
-- Whitelist des types autorisés (PDF, images uniquement ?)
-- Imposer une taille maximale côté modèle
-- Servir les fichiers avec `Content-Disposition: attachment`
+*Note :* `Content-Disposition: attachment` non ajouté — les fichiers sont servis via Nginx avec le content-type natif. À envisager si besoin de forcer le téléchargement.
 
 ---
 
-### 8. Fichiers servis via `/media/` sans contrôle de permission (IDOR)
-**Fichier :** `apps/documents/serializers.py` (l. 64-72)
+### ✅ 8. Fichiers servis via `/media/` sans contrôle de permission (IDOR)
+**Fichiers :** `apps/core/views_media.py`, `nginx/default.conf`, `config/urls.py`
 
-L'URL `/media/<path>` est publique. Si un UUID est deviné, n'importe qui peut télécharger n'importe quel document.
+**Résolu (`fcbf524`) :**
+- `/media/<path>` passe désormais par Django (`serve_protected_media`) : 401 si non authentifié, 403 si non-membre du household ou si document privé d'un autre membre
+- En prod : Django retourne `X-Accel-Redirect: /_protected_media/<path>` → Nginx sert le fichier depuis un emplacement interne (`internal;`)
+- En dev : Django sert le fichier directement
 
-**Actions :**
-- Servir les fichiers via une vue avec contrôle de permission
-- Utiliser des URLs signées avec expiration (S3 presigned URLs ou équivalent)
-- Ajouter un log des téléchargements
+*Déféré :* URLs signées avec expiration (S3 presigned URLs) — pour plus tard si migration vers objet storage.
 
 ---
 
@@ -142,14 +118,10 @@ Le login a un throttle (bien), mais pas `/change-password/`, ni l'inscription, n
 
 ---
 
-### 11. Refresh token sans backoff ni logout propre
-**Fichier :** `ui/src/lib/axios.ts` (l. 16-36)
+### ✅ 11. Refresh token sans backoff ni logout propre
+**Fichier :** `ui/src/lib/axios.ts`
 
-En cas d'échec du refresh, pas de backoff et pas de logout explicite → comportement imprévisible.
-
-**Actions :**
-- Logout propre (clear tokens + redirect) si le refresh échoue
-- Pas de retry infini
+**Résolu (`fcbf524`) :** En cas d'échec du refresh, tous les tokens sont nettoyés (`access_token`, `refresh_token`, `_impersonator_tokens`) et la page est redirigée vers `/login`. Pas de retry infini.
 
 ---
 
