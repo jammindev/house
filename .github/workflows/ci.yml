@@ -66,3 +66,26 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  deploy:
+    name: Deploy to Mac Mini
+    runs-on: self-hosted
+    needs: [backend, frontend]
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Pull latest code
+        run: |
+          cd ~/jammin-dev/apps/house
+          git pull origin house-django
+
+      - name: Build & restart
+        run: |
+          cd ~/jammin-dev/apps/house
+          /usr/local/bin/docker compose -f docker-compose.prod.yml build
+          /usr/local/bin/docker compose -f docker-compose.prod.yml up -d
+
+      - name: Run migrations
+        run: |
+          cd ~/jammin-dev/apps/house
+          /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
