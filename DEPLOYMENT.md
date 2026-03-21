@@ -280,8 +280,8 @@ ssh ton-user@mac-mini
 ### Étape 3 — Cloner le repo
 
 ```bash
-git clone git@github.com:ton-user/house.git ~/apps/house
-cd ~/apps/house
+git clone git@github.com:ton-user/house.git ~/Developer/house
+cd ~/Developer/house
 ```
 
 ### Étape 4 — Créer le fichier `.env`
@@ -404,7 +404,7 @@ docker compose -f docker-compose.prod.yml down -v
 
 ### Backup de la base de données
 
-Les données PostgreSQL sont dans le volume Docker `media-files_postgres-data`. Il faut les exporter régulièrement.
+Les données PostgreSQL sont dans le volume Docker `house_postgres-data` (Docker préfixe avec le nom du projet). Il faut les exporter régulièrement.
 
 **Backup manuel :**
 
@@ -464,9 +464,6 @@ Nginx est configuré avec `client_max_body_size 50M`. Si l'app est amenée à re
 
 ### Priorité moyenne
 
-**Séparer les dépendances dev/prod**
-Le `requirements.txt` actuel inclut pytest, ipython, factory_boy, coverage, etc. dans l'image de production, ce qui l'alourdit inutilement (~100 Mo). À terme, créer un `requirements-prod.txt` avec uniquement les dépendances nécessaires au runtime.
-
 **Ajuster le nombre de workers Gunicorn**
 Actuellement fixé à 4. La formule recommandée est `2 × CPU + 1`. Sur un Mac Mini M2 (8 cœurs) : 17 workers est le maximum théorique, mais 4–6 est raisonnable pour une app perso. Modifier dans `docker-entrypoint.sh`.
 
@@ -475,11 +472,11 @@ Actuellement fixé à 4. La formule recommandée est `2 × CPU + 1`. Sur un Mac 
 
 ### Priorité basse
 
-**Health check Docker**
-Ajouter un health check dans `docker-compose.prod.yml` pour que Docker sache si le container est réellement opérationnel (et pas juste démarré) :
+**Health check sur le service `web`**
+Le service `db` a déjà un health check (pg_isready). Le service `web` n'en a pas encore. Pour que Docker sache si Gunicorn est réellement opérationnel :
 
 ```yaml
-# Dans le service web :
+# Dans le service web de docker-compose.prod.yml :
 healthcheck:
   test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')"]
   interval: 30s
