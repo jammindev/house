@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [house-django]
+    branches: [main]
   pull_request:
-    branches: [house-django]
+    branches: [main]
 
 jobs:
   backend:
@@ -77,7 +77,7 @@ jobs:
       - name: Pull latest code
         run: |
           cd ~/jammin-dev/apps/house
-          git pull origin house-django
+          git pull origin main
 
       - name: Build & restart
         run: |
