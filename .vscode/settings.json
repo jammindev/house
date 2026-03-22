@@ -10,11 +10,16 @@
         ".specify/scripts/bash/": true,
         ".specify/scripts/powershell/": true
     },
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
     "python.testing.pytestArgs": [
-        "apps"
+        "apps",
+        "--no-cov"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
+    "python.testing.env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings.test"
+    },
     "python.terminal.activateEnvironment": false,
     "python.terminal.activateEnvInCurrentTerminal": false,
     "chat.mcp.serverSampling": {
