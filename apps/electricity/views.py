@@ -16,22 +16,22 @@ from households.models import HouseholdMember
 from .models import (
     ChangeAction,
     ChangeEntityType,
-    Breaker,
     CircuitUsagePointLink,
     ElectricCircuit,
     ElectricityBoard,
+    MaintenanceEvent,
     PlanChangeLog,
-    ResidualCurrentDevice,
+    ProtectiveDevice,
     UsagePoint,
 )
 from .permissions import IsElectricityOwnerWriteMemberRead
 from .serializers import (
-    BreakerSerializer,
     CircuitUsagePointLinkSerializer,
     ElectricCircuitSerializer,
     ElectricityBoardSerializer,
+    MaintenanceEventSerializer,
     PlanChangeLogSerializer,
-    ResidualCurrentDeviceSerializer,
+    ProtectiveDeviceSerializer,
     UsagePointSerializer,
 )
 
@@ -49,13 +49,6 @@ def is_household_owner(user, household):
         user_id=user.id,
         role=HouseholdMember.Role.OWNER,
     ).exists()
-
-
-class ElectricityHealthView(APIView):
-    permission_classes = [IsAuthenticated, IsElectricityOwnerWriteMemberRead]
-
-    def get(self, request):
-        return Response({"message": _("electricity api ready")})
 
 
 class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
@@ -80,14 +73,14 @@ class HouseholdScopedModelViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
 
-        if isinstance(instance, Breaker):
+        if isinstance(instance, ProtectiveDevice):
             has_active_circuits = ElectricCircuit.objects.for_household(instance.household_id).filter(
-                breaker=instance,
+                protective_device=instance,
                 is_active=True,
             ).exists()
             if has_active_circuits:
                 return Response(
-                    {"detail": _("Cannot delete breaker with active circuits.")},
+                    {"detail": _("Cannot delete protective device with active circuits.")},
                     status=status.HTTP_409_CONFLICT,
                 )
 
@@ -127,14 +120,9 @@ class ElectricityBoardViewSet(HouseholdScopedModelViewSet):
     serializer_class = ElectricityBoardSerializer
 
 
-class ResidualCurrentDeviceViewSet(HouseholdScopedModelViewSet):
-    model = ResidualCurrentDevice
-    serializer_class = ResidualCurrentDeviceSerializer
-
-
-class BreakerViewSet(HouseholdScopedModelViewSet):
-    model = Breaker
-    serializer_class = BreakerSerializer
+class ProtectiveDeviceViewSet(HouseholdScopedModelViewSet):
+    model = ProtectiveDevice
+    serializer_class = ProtectiveDeviceSerializer
 
 
 class ElectricCircuitViewSet(HouseholdScopedModelViewSet):
@@ -143,12 +131,12 @@ class ElectricCircuitViewSet(HouseholdScopedModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        breaker_id = self.request.query_params.get("breaker")
+        protective_device_id = self.request.query_params.get("protective_device")
         phase = self.request.query_params.get("phase")
         is_active = self.request.query_params.get("is_active")
 
-        if breaker_id:
-            queryset = queryset.filter(breaker_id=breaker_id)
+        if protective_device_id:
+            queryset = queryset.filter(protective_device_id=protective_device_id)
         if phase:
             queryset = queryset.filter(phase=phase)
         if is_active in {"true", "false"}:
@@ -200,6 +188,11 @@ class CircuitUsagePointLinkViewSet(HouseholdScopedModelViewSet):
         return Response(self.get_serializer(link).data, status=status.HTTP_200_OK)
 
 
+class MaintenanceEventViewSet(HouseholdScopedModelViewSet):
+    model = MaintenanceEvent
+    serializer_class = MaintenanceEventSerializer
+
+
 class PlanChangeLogViewSet(HouseholdScopedModelViewSet):
     model = PlanChangeLog
     serializer_class = PlanChangeLogSerializer
@@ -218,9 +211,9 @@ class MappingLookupView(APIView):
         if not ref:
             raise ValidationError({"ref": "Lookup reference is required."})
 
-        breaker = Breaker.objects.for_household(selected_household.id).filter(label=ref).first()
-        if breaker:
-            circuits = list(ElectricCircuit.objects.for_household(selected_household.id).filter(breaker=breaker))
+        protective_device = ProtectiveDevice.objects.for_household(selected_household.id).filter(label=ref).first()
+        if protective_device:
+            circuits = list(ElectricCircuit.objects.for_household(selected_household.id).filter(protective_device=protective_device))
             usage_points = list(
                 UsagePoint.objects.for_household(selected_household.id).filter(
                     circuit_links__circuit__in=circuits,
@@ -229,9 +222,9 @@ class MappingLookupView(APIView):
             )
             return Response(
                 {
-                    "kind": "breaker",
-                    "label": breaker.label,
-                    "breaker": {"id": str(breaker.id), "label": breaker.label},
+                    "kind": "protective_device",
+                    "label": protective_device.label,
+                    "protective_device": {"id": str(protective_device.id), "label": protective_device.label},
                     "circuits": [{"id": str(c.id), "label": c.label, "name": c.name} for c in circuits],
                     "usage_points": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
                 }
@@ -241,12 +234,12 @@ class MappingLookupView(APIView):
         if usage_point:
             link = (
                 CircuitUsagePointLink.objects.for_household(selected_household.id)
-                .select_related("circuit__breaker")
+                .select_related("circuit__protective_device")
                 .filter(usage_point=usage_point, is_active=True)
                 .first()
             )
             circuit = link.circuit if link else None
-            breaker_for_point = circuit.breaker if circuit else None
+            protective_device_for_point = circuit.protective_device if circuit else None
             return Response(
                 {
                     "kind": "usage_point",
@@ -257,15 +250,15 @@ class MappingLookupView(APIView):
                         if circuit
                         else None
                     ),
-                    "breaker": (
-                        {"id": str(breaker_for_point.id), "label": breaker_for_point.label}
-                        if breaker_for_point
+                    "protective_device": (
+                        {"id": str(protective_device_for_point.id), "label": protective_device_for_point.label}
+                        if protective_device_for_point
                         else None
                     ),
                 }
             )
 
-        circuit = ElectricCircuit.objects.for_household(selected_household.id).select_related("breaker").filter(label=ref).first()
+        circuit = ElectricCircuit.objects.for_household(selected_household.id).select_related("protective_device").filter(label=ref).first()
         if circuit:
             usage_points = list(
                 UsagePoint.objects.for_household(selected_household.id).filter(
@@ -278,7 +271,7 @@ class MappingLookupView(APIView):
                     "kind": "circuit",
                     "label": circuit.label,
                     "circuit": {"id": str(circuit.id), "label": circuit.label, "name": circuit.name},
-                    "breaker": {"id": str(circuit.breaker.id), "label": circuit.breaker.label},
+                    "protective_device": {"id": str(circuit.protective_device.id), "label": circuit.protective_device.label},
                     "usage_points": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
                 }
             )

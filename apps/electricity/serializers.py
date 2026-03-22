@@ -7,29 +7,21 @@ from rest_framework import serializers
 from households.models import HouseholdMember
 
 from .models import (
-    Breaker,
     CircuitUsagePointLink,
     ElectricCircuit,
     ElectricityBoard,
+    MaintenanceEvent,
     PlanChangeLog,
-    ResidualCurrentDevice,
+    ProtectiveDevice,
     UsagePoint,
     SupplyType,
 )
 
 
-def label_exists_in_household(label: str, household_id):
-    if not label or not household_id:
-        return False
-
-    return any(
-        model.objects.filter(household_id=household_id, label=label).exists()
-        for model in (ResidualCurrentDevice, Breaker, ElectricCircuit, UsagePoint)
-    )
 
 
 def label_exists_elsewhere(label: str, household_id, current_instance):
-    models_to_scan = (ResidualCurrentDevice, Breaker, ElectricCircuit, UsagePoint)
+    models_to_scan = (ElectricityBoard, ProtectiveDevice, ElectricCircuit, UsagePoint)
     for model in models_to_scan:
         qs = model.objects.filter(household_id=household_id, label=label)
         if current_instance is not None and isinstance(current_instance, model):
@@ -69,7 +61,24 @@ class HouseholdScopedModelSerializer(serializers.ModelSerializer):
 class ElectricityBoardSerializer(HouseholdScopedModelSerializer):
     class Meta:
         model = ElectricityBoard
-        fields = ["id", "household", "name", "supply_type", "main_notes", "is_active", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "household",
+            "label",
+            "parent",
+            "zone",
+            "name",
+            "supply_type",
+            "location",
+            "rows",
+            "slots_per_row",
+            "last_inspection_date",
+            "nf_c_15100_compliant",
+            "main_notes",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["household", "created_at", "updated_at"]
 
     def validate(self, attrs):
@@ -83,56 +92,65 @@ class ElectricityBoardSerializer(HouseholdScopedModelSerializer):
             return attrs
 
         is_active = attrs.get("is_active", getattr(self.instance, "is_active", True))
+
+        parent = attrs.get("parent", getattr(self.instance, "parent", None))
+        zone = attrs.get("zone") if "zone" in attrs else getattr(self.instance, "zone", None)
+
+        if parent and parent.household_id != selected_household.id:
+            raise serializers.ValidationError({"parent": _("Parent board must belong to the same household.")})
+        if zone is None:
+            raise serializers.ValidationError({"zone": _("Zone is required.")})
+        if zone.household_id != selected_household.id:
+            raise serializers.ValidationError({"zone": _("Zone must belong to the same household.")})
+
         if not is_active:
             return attrs
 
-        existing_active = ElectricityBoard.objects.for_household(selected_household.id).filter(is_active=True)
+        # Resolve the parent: use incoming value, fall back to existing instance value
+        parent = attrs.get("parent", getattr(self.instance, "parent", None))
+        if parent is not None:
+            # Sub-boards are not subject to the one-active-root constraint
+            return attrs
+
+        existing_active_root = (
+            ElectricityBoard.objects.for_household(selected_household.id)
+            .filter(is_active=True, parent__isnull=True)
+        )
         if self.instance is not None:
-            existing_active = existing_active.exclude(id=self.instance.id)
+            existing_active_root = existing_active_root.exclude(id=self.instance.id)
 
-        if existing_active.exists():
-            raise serializers.ValidationError({"is_active": _("Only one active board is allowed per household.")})
+        if existing_active_root.exists():
+            raise serializers.ValidationError(
+                {"is_active": _("Only one active root board is allowed per household.")}
+            )
 
         return attrs
 
 
-class ResidualCurrentDeviceSerializer(HouseholdScopedModelSerializer):
+class ProtectiveDeviceSerializer(HouseholdScopedModelSerializer):
     class Meta:
-        model = ResidualCurrentDevice
+        model = ProtectiveDevice
         fields = [
             "id",
             "household",
             "board",
+            "parent_rcd",
             "label",
-            "rating_amps",
-            "sensitivity_ma",
-            "type_code",
-            "notes",
-            "created_at",
-            "updated_at",
-        ]
-        read_only_fields = ["household", "created_at", "updated_at"]
-
-    def validate(self, attrs):
-        attrs = super().validate(attrs)
-        board = attrs.get("board") or getattr(self.instance, "board", None)
-        household = attrs.get("household") or getattr(self.instance, "household", None)
-        if board and household and board.household_id != household.id:
-            raise serializers.ValidationError({"board": _("Board must belong to the same household.")})
-        return attrs
-
-
-class BreakerSerializer(HouseholdScopedModelSerializer):
-    class Meta:
-        model = Breaker
-        fields = [
-            "id",
-            "household",
-            "board",
-            "rcd",
-            "label",
+            "device_type",
+            "role",
+            "row",
+            "position",
+            "phase",
             "rating_amps",
             "curve_type",
+            "sensitivity_ma",
+            "type_code",
+            "phase_coverage",
+            "brand",
+            "model_ref",
+            "installed_at",
+            "is_spare",
+            "is_active",
             "notes",
             "created_at",
             "updated_at",
@@ -142,13 +160,25 @@ class BreakerSerializer(HouseholdScopedModelSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
         board = attrs.get("board") or getattr(self.instance, "board", None)
-        rcd = attrs.get("rcd") if "rcd" in attrs else getattr(self.instance, "rcd", None)
+        parent_rcd = attrs.get("parent_rcd") if "parent_rcd" in attrs else getattr(self.instance, "parent_rcd", None)
         household = attrs.get("household") or getattr(self.instance, "household", None)
+        phase = attrs.get("phase", getattr(self.instance, "phase", None))
+        device_type = attrs.get("device_type", getattr(self.instance, "device_type", None))
+        phase_coverage = attrs.get("phase_coverage", getattr(self.instance, "phase_coverage", None))
 
         if board and household and board.household_id != household.id:
             raise serializers.ValidationError({"board": _("Board must belong to the same household.")})
-        if rcd and household and rcd.household_id != household.id:
-            raise serializers.ValidationError({"rcd": _("RCD must belong to the same household.")})
+        if parent_rcd and household and parent_rcd.household_id != household.id:
+            raise serializers.ValidationError({"parent_rcd": _("Parent device must belong to the same household.")})
+
+        if board:
+            if board.supply_type == SupplyType.SINGLE_PHASE and phase:
+                raise serializers.ValidationError({"phase": _("Phase must be empty for single-phase board.")})
+            if board.supply_type == SupplyType.THREE_PHASE and device_type in ("breaker", "combined", "main") and not phase:
+                raise serializers.ValidationError({"phase": _("Phase is required for three-phase board.")})
+            if board.supply_type == SupplyType.SINGLE_PHASE and device_type == "rcd" and phase_coverage:
+                raise serializers.ValidationError({"phase_coverage": _("phase_coverage must be null for single-phase board.")})
+
         return attrs
 
 
@@ -159,7 +189,7 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
             "id",
             "household",
             "board",
-            "breaker",
+            "protective_device",
             "label",
             "name",
             "phase",
@@ -173,18 +203,21 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
         board = attrs.get("board") or getattr(self.instance, "board", None)
-        breaker = attrs.get("breaker") or getattr(self.instance, "breaker", None)
+        protective_device = attrs.get("protective_device") or getattr(self.instance, "protective_device", None)
         household = attrs.get("household") or getattr(self.instance, "household", None)
         phase = attrs.get("phase", getattr(self.instance, "phase", None))
 
-        if breaker and household and breaker.household_id != household.id:
-            raise serializers.ValidationError({"breaker": _("Breaker must belong to the same household.")})
-        if board and breaker and board.id != breaker.board_id:
-            raise serializers.ValidationError({"breaker": _("Breaker must belong to the selected board.")})
+        if protective_device and household and protective_device.household_id != household.id:
+            raise serializers.ValidationError({"protective_device": _("Protective device must belong to the same household.")})
+        if protective_device and protective_device.device_type == "rcd":
+            raise serializers.ValidationError(
+                {"protective_device": _("A circuit cannot be directly protected by a pure RCD (device_type=rcd).")}
+            )
+        if board and protective_device and board.id != protective_device.board_id:
+            raise serializers.ValidationError({"protective_device": _("Protective device must belong to the selected board.")})
 
         if board and board.supply_type == SupplyType.THREE_PHASE and not phase:
             raise serializers.ValidationError({"phase": _("Phase is required for three-phase board.")})
-
         if board and board.supply_type == SupplyType.SINGLE_PHASE and phase:
             raise serializers.ValidationError({"phase": _("Phase must be empty for single-phase board.")})
 
@@ -194,14 +227,28 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
 class UsagePointSerializer(HouseholdScopedModelSerializer):
     class Meta:
         model = UsagePoint
-        fields = ["id", "household", "label", "name", "kind", "zone", "notes", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "household",
+            "label",
+            "name",
+            "kind",
+            "zone",
+            "max_power_watts",
+            "is_dedicated_circuit",
+            "notes",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["household", "created_at", "updated_at"]
 
     def validate(self, attrs):
         attrs = super().validate(attrs)
         zone = attrs.get("zone") if "zone" in attrs else getattr(self.instance, "zone", None)
         household = attrs.get("household") or getattr(self.instance, "household", None)
-        if zone and household and zone.household_id != household.id:
+        if zone is None:
+            raise serializers.ValidationError({"zone": _("Zone is required.")})
+        if household and zone.household_id != household.id:
             raise serializers.ValidationError({"zone": _("Zone must belong to the same household.")})
         return attrs
 
@@ -233,7 +280,6 @@ class CircuitUsagePointLinkSerializer(HouseholdScopedModelSerializer):
             raise serializers.ValidationError({"circuit": _("Circuit must belong to the same household.")})
         if household and usage_point and usage_point.household_id != household.id:
             raise serializers.ValidationError({"usage_point": _("Usage point must belong to the same household.")})
-
         if circuit and usage_point and circuit.household_id != usage_point.household_id:
             raise serializers.ValidationError({"usage_point": _("Usage point and circuit must be in the same household.")})
 
@@ -244,6 +290,36 @@ class CircuitUsagePointLinkSerializer(HouseholdScopedModelSerializer):
             if conflict_qs.exists():
                 raise serializers.ValidationError({"usage_point": _("Usage point already has an active circuit link.")})
 
+        return attrs
+
+
+class MaintenanceEventSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = MaintenanceEvent
+        fields = [
+            "id",
+            "household",
+            "board",
+            "performed_by",
+            "event_date",
+            "description",
+            "entity_type",
+            "entity_id",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["household", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        board = attrs.get("board") if "board" in attrs else getattr(self.instance, "board", None)
+        household = getattr(self.instance, "household", None)
+        if household is None:
+            request = self.context.get("request")
+            if request is not None:
+                household = request.household
+        if board and household and board.household_id != household.id:
+            raise serializers.ValidationError({"board": _("Board must belong to the same household.")})
         return attrs
 
 

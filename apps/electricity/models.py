@@ -4,6 +4,7 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -50,17 +51,60 @@ class ChangeAction(models.TextChoices):
 
 class ChangeEntityType(models.TextChoices):
     BOARD = "board", "Board"
-    RCD = "rcd", "RCD"
-    BREAKER = "breaker", "Breaker"
+    PROTECTIVE_DEVICE = "protective_device", "Protective device"
     CIRCUIT = "circuit", "Circuit"
     USAGE_POINT = "usage_point", "Usage point"
     LINK = "link", "Link"
+    MAINTENANCE_EVENT = "maintenance_event", "Maintenance event"
+    # max_length=20 is sufficient — longest value is "protective_device" (17 chars)
+
+
+class NfC15100Compliance(models.TextChoices):
+    YES = "yes", "Yes"
+    NO = "no", "No"
+    PARTIAL = "partial", "Partial"
+
+
+class ProtectiveDeviceType(models.TextChoices):
+    BREAKER = "breaker", "Breaker"
+    RCD = "rcd", "RCD"
+    COMBINED = "combined", "Combined"
+    MAIN = "main", "Main"
+
+
+class ProtectiveDeviceRole(models.TextChoices):
+    MAIN = "main", "Main"
+    DIVISIONARY = "divisionary", "Divisionary"
+    SPARE = "spare", "Spare"
 
 
 class ElectricityBoard(HouseholdScopedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    label = models.CharField(max_length=100, null=True, blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sub_boards",
+    )
+    zone = models.ForeignKey(
+        "zones.Zone",
+        on_delete=models.PROTECT,
+        related_name="electricity_boards",
+    )
     name = models.CharField(max_length=255, default="Tableau principal")
     supply_type = models.CharField(max_length=20, choices=SupplyType.choices)
+    location = models.CharField(max_length=255, blank=True, default="")
+    rows = models.PositiveSmallIntegerField(null=True, blank=True)
+    slots_per_row = models.PositiveSmallIntegerField(null=True, blank=True)
+    last_inspection_date = models.DateField(null=True, blank=True)
+    nf_c_15100_compliant = models.CharField(
+        max_length=10,
+        choices=NfC15100Compliance.choices,
+        null=True,
+        blank=True,
+    )
     main_notes = models.TextField(blank=True, default="")
     is_active = models.BooleanField(default=True)
 
@@ -73,92 +117,147 @@ class ElectricityBoard(HouseholdScopedModel):
         constraints = [
             models.UniqueConstraint(
                 fields=["household"],
-                condition=models.Q(is_active=True),
-                name="uq_electricity_active_board_per_household",
-            )
+                condition=models.Q(is_active=True, parent__isnull=True),
+                name="uq_electricity_active_root_board_per_household",
+            ),
+            models.UniqueConstraint(
+                fields=["household", "label"],
+                condition=models.Q(label__isnull=False),
+                name="uq_electricity_board_label_per_household",
+            ),
         ]
 
     def __str__(self):
         return f"{self.name} ({self.household_id})"
 
 
-class ResidualCurrentDevice(HouseholdScopedModel):
+class ProtectiveDevice(HouseholdScopedModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     board = models.ForeignKey(
         ElectricityBoard,
         on_delete=models.CASCADE,
-        related_name="rcds",
+        related_name="protective_devices",
         db_column="board_id",
     )
-    label = models.CharField(max_length=100)
-    rating_amps = models.PositiveIntegerField(null=True, blank=True)
-    sensitivity_ma = models.PositiveIntegerField(null=True, blank=True)
-    type_code = models.CharField(
-        max_length=10,
-        choices=RCDTypeCode.choices,
-        blank=True,
-        default="",
-    )
-    notes = models.TextField(blank=True, default="")
-
-    objects = HouseholdScopedManager()
-
-    class Meta:
-        db_table = "electricity_rcds"
-        verbose_name = _("RCD")
-        verbose_name_plural = _("RCDs")
-        constraints = [
-            models.UniqueConstraint(
-                fields=["household", "label"],
-                name="uq_electricity_rcd_label_per_household",
-            )
-        ]
-
-    def __str__(self):
-        return self.label
-
-
-class Breaker(HouseholdScopedModel):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    board = models.ForeignKey(
-        ElectricityBoard,
-        on_delete=models.CASCADE,
-        related_name="breakers",
-        db_column="board_id",
-    )
-    rcd = models.ForeignKey(
-        ResidualCurrentDevice,
+    parent_rcd = models.ForeignKey(
+        "self",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="breakers",
-        db_column="rcd_id",
+        related_name="protected_devices",
     )
-    label = models.CharField(max_length=100)
-    rating_amps = models.PositiveIntegerField()
+    # Optional for device_type=rcd, should be set for breaker and combined
+    label = models.CharField(max_length=100, null=True, blank=True)
+    device_type = models.CharField(max_length=10, choices=ProtectiveDeviceType.choices)
+    role = models.CharField(
+        max_length=20,
+        choices=ProtectiveDeviceRole.choices,
+        null=True,
+        blank=True,
+    )
+    row = models.PositiveSmallIntegerField(null=True, blank=True)
+    position = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Cross-table rule: must be null if board.supply_type=single_phase — enforced in service layer, not DB
+    phase = models.CharField(
+        max_length=2,
+        choices=PhaseType.choices,
+        null=True,
+        blank=True,
+    )
+    rating_amps = models.PositiveIntegerField(null=True, blank=True)
+    # Only relevant if device_type in (breaker, combined)
     curve_type = models.CharField(
         max_length=10,
         choices=BreakerCurveType.choices,
         blank=True,
         default="",
     )
+    # Only relevant if device_type in (rcd, combined)
+    sensitivity_ma = models.PositiveIntegerField(null=True, blank=True)
+    # Only relevant if device_type in (rcd, combined)
+    type_code = models.CharField(
+        max_length=10,
+        choices=RCDTypeCode.choices,
+        blank=True,
+        default="",
+    )
+    # Only relevant if device_type in (rcd, combined).
+    # Cross-table rule: must be null if board.supply_type=single_phase — enforced in service layer
+    phase_coverage = models.JSONField(null=True, blank=True)
+    brand = models.CharField(max_length=100, blank=True, default="")
+    model_ref = models.CharField(max_length=100, blank=True, default="")
+    installed_at = models.DateField(null=True, blank=True)
+    is_spare = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True, default="")
 
     objects = HouseholdScopedManager()
 
     class Meta:
-        db_table = "electricity_breakers"
-        verbose_name = _("breaker")
-        verbose_name_plural = _("breakers")
+        db_table = "electricity_protective_devices"
+        verbose_name = _("protective device")
+        verbose_name_plural = _("protective devices")
         constraints = [
+            # label uniqueness is conditional — pure RCDs may have no label
             models.UniqueConstraint(
                 fields=["household", "label"],
-                name="uq_electricity_breaker_label_per_household",
-            )
+                condition=models.Q(label__isnull=False),
+                name="uq_electricity_protective_device_label_per_household",
+            ),
+            # physical slot uniqueness — only enforced when row/position are set
+            models.UniqueConstraint(
+                fields=["board", "row", "position"],
+                condition=models.Q(row__isnull=False, position__isnull=False),
+                name="uq_electricity_protective_device_position_per_board",
+            ),
+            # breakers must not carry RCD-specific fields
+            models.CheckConstraint(
+                check=(
+                    ~models.Q(device_type="breaker")
+                    | (models.Q(sensitivity_ma__isnull=True) & models.Q(type_code=""))
+                ),
+                name="chk_electricity_pd_breaker_no_rcd_fields",
+            ),
+            # pure RCDs must not carry a curve type
+            models.CheckConstraint(
+                check=(
+                    ~models.Q(device_type="rcd")
+                    | models.Q(curve_type="")
+                ),
+                name="chk_electricity_pd_rcd_no_curve_type",
+            ),
+            # row and position must both be set or both be null
+            models.CheckConstraint(
+                check=(
+                    (models.Q(row__isnull=True) & models.Q(position__isnull=True))
+                    | (models.Q(row__isnull=False) & models.Q(position__isnull=False))
+                ),
+                name="chk_electricity_pd_row_position_both_or_neither",
+            ),
         ]
 
+    def clean(self):
+        # Phase/supply_type cross-table validation must be done in the service layer
+        if self.device_type == ProtectiveDeviceType.RCD and self.curve_type:
+            raise ValidationError(
+                {"curve_type": _("curve_type must be empty for device_type=rcd.")}
+            )
+        if self.device_type == ProtectiveDeviceType.BREAKER:
+            if self.sensitivity_ma is not None:
+                raise ValidationError(
+                    {"sensitivity_ma": _("sensitivity_ma must be null for device_type=breaker.")}
+                )
+            if self.type_code:
+                raise ValidationError(
+                    {"type_code": _("type_code must be empty for device_type=breaker.")}
+                )
+            if self.phase_coverage is not None:
+                raise ValidationError(
+                    {"phase_coverage": _("phase_coverage must be null for device_type=breaker.")}
+                )
+
     def __str__(self):
-        return self.label
+        return self.label or str(self.id)
 
 
 class ElectricCircuit(HouseholdScopedModel):
@@ -169,14 +268,15 @@ class ElectricCircuit(HouseholdScopedModel):
         related_name="circuits",
         db_column="board_id",
     )
-    breaker = models.ForeignKey(
-        Breaker,
+    protective_device = models.ForeignKey(
+        ProtectiveDevice,
         on_delete=models.PROTECT,
         related_name="circuits",
-        db_column="breaker_id",
+        db_column="protective_device_id",
     )
     label = models.CharField(max_length=100)
     name = models.CharField(max_length=255)
+    # Cross-table rule: must be null if board.supply_type=single_phase — enforced in service layer
     phase = models.CharField(
         max_length=2,
         choices=PhaseType.choices,
@@ -199,6 +299,22 @@ class ElectricCircuit(HouseholdScopedModel):
             )
         ]
 
+    def clean(self):
+        # Pure RCDs protect groups of breakers, not individual circuits.
+        # A circuit must be protected by a breaker, combined, or main device.
+        if (
+            self.protective_device_id
+            and self.protective_device.device_type == ProtectiveDeviceType.RCD
+        ):
+            raise ValidationError(
+                {
+                    "protective_device": _(
+                        "A circuit cannot be directly protected by a pure RCD "
+                        "(device_type=rcd). Use a breaker, combined, or main device."
+                    )
+                }
+            )
+
     def __str__(self):
         return self.label
 
@@ -210,12 +326,12 @@ class UsagePoint(HouseholdScopedModel):
     kind = models.CharField(max_length=20, choices=UsagePointKind.choices)
     zone = models.ForeignKey(
         "zones.Zone",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
+        on_delete=models.PROTECT,
         related_name="electricity_usage_points",
         db_column="zone_id",
     )
+    max_power_watts = models.PositiveIntegerField(null=True, blank=True)
+    is_dedicated_circuit = models.BooleanField(default=False)
     notes = models.TextField(blank=True, default="")
 
     objects = HouseholdScopedManager()
@@ -300,3 +416,40 @@ class PlanChangeLog(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.entity_type}:{self.entity_id} ({self.action})"
+
+
+class MaintenanceEvent(HouseholdScopedModel):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    board = models.ForeignKey(
+        ElectricityBoard,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="maintenance_events",
+    )
+    performed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="electricity_maintenance_events",
+    )
+    event_date = models.DateField()
+    description = models.TextField()
+    entity_type = models.CharField(
+        max_length=20,
+        choices=ChangeEntityType.choices,
+        null=True,
+        blank=True,
+    )
+    entity_id = models.UUIDField(null=True, blank=True)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_maintenance_events"
+        verbose_name = _("maintenance event")
+        verbose_name_plural = _("maintenance events")
+
+    def __str__(self):
+        return f"{self.event_date} - {self.description[:50]}"

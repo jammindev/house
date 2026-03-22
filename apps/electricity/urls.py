@@ -3,28 +3,26 @@ from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
 from .views import (
-    BreakerViewSet,
     CircuitUsagePointLinkViewSet,
     ElectricCircuitViewSet,
     ElectricityBoardViewSet,
-    ElectricityHealthView,
+    MaintenanceEventViewSet,
     MappingLookupView,
     PlanChangeLogViewSet,
-    ResidualCurrentDeviceViewSet,
+    ProtectiveDeviceViewSet,
     UsagePointViewSet,
 )
 
 router = DefaultRouter()
 router.register(r"boards", ElectricityBoardViewSet, basename="electricity-board")
-router.register(r"rcds", ResidualCurrentDeviceViewSet, basename="electricity-rcd")
-router.register(r"breakers", BreakerViewSet, basename="electricity-breaker")
+router.register(r"protective-devices", ProtectiveDeviceViewSet, basename="electricity-protective-device")
 router.register(r"circuits", ElectricCircuitViewSet, basename="electricity-circuit")
 router.register(r"usage-points", UsagePointViewSet, basename="electricity-usage-point")
 router.register(r"links", CircuitUsagePointLinkViewSet, basename="electricity-link")
+router.register(r"maintenance-events", MaintenanceEventViewSet, basename="electricity-maintenance-event")
 router.register(r"change-logs", PlanChangeLogViewSet, basename="electricity-change-log")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("health/", ElectricityHealthView.as_view(), name="electricity-health"),
-    path("mapping/lookup/", MappingLookupView.as_view(), name="electricity-mapping-lookup"),
+path("mapping/lookup/", MappingLookupView.as_view(), name="electricity-mapping-lookup"),
 ]
