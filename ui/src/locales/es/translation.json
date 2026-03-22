@@ -17,6 +17,9 @@
     "noResults": "Sin resultados",
     "linked": "Ya vinculado"
   },
+  "sidebar": {
+    "open": "Abrir menú"
+  },
   "electricity": {
     "title": "Electricidad",
     "api_workspace_title": "Área de trabajo de la API de electricidad",
