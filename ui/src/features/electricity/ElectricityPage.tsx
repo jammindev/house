@@ -204,9 +204,6 @@ function CircuitCard({ circuit, device, linkedCount, onEdit, onDelete, t }: Circ
             <span className="font-mono text-sm font-medium">{circuit.label}</span>
             <span className="text-sm text-muted-foreground">—</span>
             <span className="text-sm">{circuit.name}</span>
-            {circuit.phase ? (
-              <Badge variant="secondary" className="text-xs">{circuit.phase}</Badge>
-            ) : null}
             {circuit.is_active === false ? (
               <Badge variant="outline" className="text-xs text-muted-foreground">
                 {t('electricity.inactive')}
