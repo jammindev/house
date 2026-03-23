@@ -110,3 +110,35 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 |---|---|
 | Affichage de la page | ❌ |
 | Modification du profil | ❌ |
+
+---
+
+## Électricité (`electricity.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page | ✅ |
+| État vide : bouton "Nouveau tableau" visible | ✅ |
+| Ouverture du BoardDialog depuis l'état vide | ✅ |
+| Création d'un tableau (BoardDialog) | ✅ |
+| Navigation onglet Tableau | ✅ |
+| Navigation onglet Circuits | ✅ |
+| Navigation onglet Points d'usage | ✅ |
+| Navigation onglet Liens | ✅ |
+| Navigation onglet Recherche | ✅ |
+| Création d'un appareil de protection (disjoncteur) | ✅ |
+| Création d'un circuit | ✅ |
+| Création d'un point d'usage (prise) | ✅ |
+| Création d'un lien circuit → point d'usage | ✅ |
+| Filtre "Tous" sur les points d'usage | ✅ |
+| Filtre "Prises" sur les points d'usage | ✅ |
+| Filtre "Luminaires" sur les points d'usage | ✅ |
+| Retour au filtre "Tous" | ✅ |
+| Modification d'un appareil via CardActions | ✅ |
+| Suppression d'un appareil via CardActions | ✅ |
+| Modification d'un point d'usage via CardActions | ✅ |
+| Suppression d'un point d'usage via CardActions | ✅ |
+| Modification du tableau via CardActions | ✅ |
+| Onglet Recherche : champ et bouton visibles | ✅ |
+| Onglet Recherche : étiquette inexistante → "Introuvable." | ✅ |
+| Déconnexion d'un lien via "Déconnecter" | ✅ |
