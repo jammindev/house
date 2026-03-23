@@ -36,6 +36,9 @@ venv/
 .venv/
 venv_broken_from_move_20260215/
 
+# Legacy Next.js
+legacy/nextjs/.next/
+
 # Node / Frontend
 node_modules/
 dist/
