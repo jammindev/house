@@ -66,7 +66,9 @@
       "zoneRequired": "Zone is required.",
       "created": "Board created.",
       "updated": "Board updated.",
-      "deleted": "Board deleted."
+      "deleted": "Board deleted.",
+      "rowLabel": "Row {{n}}",
+      "unplaced": "Unplaced"
     },
     "device": {
       "title": "Protective devices",
@@ -89,6 +91,11 @@
       "typeCode": "Type code",
       "typeCodeOther": "Other",
       "phase": "Phase",
+      "poleCount": "Pole count",
+      "row": "Row",
+      "position": "Position",
+      "positionEnd": "End position",
+      "positionConflict": "Position already taken by {{label}}",
       "brand": "Brand",
       "modelRef": "Model ref.",
       "isSpare": "Spare position",
@@ -142,7 +149,10 @@
       "nameRequired": "Name is required.",
       "created": "Usage point added.",
       "updated": "Usage point updated.",
-      "deleted": "Usage point deleted."
+      "deleted": "Usage point deleted.",
+      "quantity": "Quantity",
+      "quantityHint": "Will create {{label}}-01 … {{label}}-{{count}}",
+      "createdBulk": "{{count}} usage points created"
     },
     "link": {
       "new": "New link",

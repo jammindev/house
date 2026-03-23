@@ -145,10 +145,6 @@ test.describe('navigation par onglets', () => {
     await expect(page.getByRole('button', { name: 'Nouveau lien' })).toBeVisible();
   });
 
-  test('navigue vers l\'onglet Recherche', async ({ page }) => {
-    await page.getByRole('button', { name: 'Recherche', exact: true }).click();
-    await expect(page.getByPlaceholder('Rechercher par étiquette (disjoncteur / circuit / point d\'usage)…')).toBeVisible();
-  });
 });
 
 // ---------------------------------------------------------------------------
@@ -546,58 +542,303 @@ test('modifie le tableau via CardActions', async ({ page }) => {
   await expect(page.getByText(boardName, { exact: true })).not.toBeVisible();
 });
 
+
 // ---------------------------------------------------------------------------
-// Onglet Recherche (Lookup)
+// Nombre de pôles (pole_count) dans le DeviceDialog
 // ---------------------------------------------------------------------------
 
-test('affiche le champ de recherche dans l\'onglet Recherche', async ({ page }: { page: import('@playwright/test').Page }) => {
-  await page.goto('/app/electricity');
-
-  // Need a board to access tabs
-  const emptyState = page.getByText('Aucun tableau électrique');
-  const hasEmptyState = await emptyState.isVisible().catch(() => false);
-  if (hasEmptyState) {
-    await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
-    const dialog = page.getByRole('dialog');
-    const zoneSelect = page.locator('#board-zone');
-    const firstZone = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
-    await firstZone.waitFor({ state: 'attached', timeout: 10_000 });
-    await zoneSelect.selectOption(await firstZone.getAttribute('value') as string);
-    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+test.describe('champ Nombre de pôles dans le DeviceDialog', () => {
+  async function ensureBoardExists(page: import('@playwright/test').Page) {
+    const emptyState = page.getByText('Aucun tableau électrique');
+    const hasEmptyState = await emptyState.isVisible().catch(() => false);
+    if (hasEmptyState) {
+      await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
+      const dialog = page.getByRole('dialog');
+      const zoneSelect = page.locator('#board-zone');
+      const firstZone = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
+      await firstZone.waitFor({ state: 'attached', timeout: 10_000 });
+      await zoneSelect.selectOption(await firstZone.getAttribute('value') as string);
+      await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+      await expect(page.getByRole('button', { name: 'Ajouter un appareil' })).toBeVisible();
+    }
   }
 
-  await page.getByRole('button', { name: 'Recherche', exact: true }).click();
+  test('le champ "Nombre de pôles" est visible dans le DeviceDialog', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
 
-  const searchInput = page.getByPlaceholder(
-    'Rechercher par étiquette (disjoncteur / circuit / point d\'usage)…',
-  );
-  await expect(searchInput).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Rechercher' })).toBeVisible();
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await expect(dialog.getByLabel('Nombre de pôles')).toBeVisible();
+  });
+
+  test('disjoncteur : les 4 options de pôles (1P–4P) sont disponibles', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
+
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Type = Disjoncteur (default)
+    const poleSelect = page.locator('#dev-poles');
+    const optionValues = await poleSelect.locator('option').allTextContents();
+
+    expect(optionValues).toContain('1P');
+    expect(optionValues).toContain('2P');
+    expect(optionValues).toContain('3P');
+    expect(optionValues).toContain('4P');
+  });
+
+  test('différentiel (RCD) : seuls 2P et 4P sont disponibles', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
+
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Switch type to RCD
+    await page.locator('#dev-type').selectOption('rcd');
+
+    const poleSelect = page.locator('#dev-poles');
+    const optionValues = await poleSelect.locator('option').allTextContents();
+
+    expect(optionValues).toContain('2P');
+    expect(optionValues).toContain('4P');
+    expect(optionValues).not.toContain('1P');
+    expect(optionValues).not.toContain('3P');
+  });
+
+  test('combiné (combined) : seuls 2P et 4P sont disponibles', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
+
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await page.locator('#dev-type').selectOption('combined');
+
+    const poleSelect = page.locator('#dev-poles');
+    const optionValues = await poleSelect.locator('option').allTextContents();
+
+    expect(optionValues).toContain('2P');
+    expect(optionValues).toContain('4P');
+    expect(optionValues).not.toContain('1P');
+    expect(optionValues).not.toContain('3P');
+  });
+
+  test('crée un disjoncteur 2P et vérifie l\'affichage "2P" dans la carte', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
+
+    const suffix = Date.now();
+    const label = `BRK-2P-${suffix}`;
+
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel('Étiquette').fill(label);
+    await page.locator('#dev-poles').selectOption('2');
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    // Card should show the label and "2P" in the specs line
+    await expect(page.getByText(label)).toBeVisible();
+    // The spec "2P" appears in the card specs
+    const card = page.getByText(label).locator('xpath=ancestor::*[4]');
+    await expect(card.getByText(/2P/)).toBeVisible();
+  });
+
+  test('le champ reste optionnel — créer un disjoncteur sans pôle est valide', async ({ page }) => {
+    await page.goto('/app/electricity');
+    await ensureBoardExists(page);
+
+    const suffix = Date.now();
+    const label = `BRK-NOPOLE-${suffix}`;
+
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel('Étiquette').fill(label);
+    // Leave "Nombre de pôles" as "—" (empty)
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    // Device is created successfully
+    await expect(page.getByText(label)).toBeVisible();
+  });
 });
 
-test('la recherche d\'une étiquette inexistante affiche "Introuvable."', async ({ page }: { page: import('@playwright/test').Page }) => {
-  await page.goto('/app/electricity');
+// ---------------------------------------------------------------------------
+// Création en masse de points d'usage (champ Quantité)
+// ---------------------------------------------------------------------------
 
-  const emptyState = page.getByText('Aucun tableau électrique');
-  const hasEmptyState = await emptyState.isVisible().catch(() => false);
-  if (hasEmptyState) {
-    await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
-    const dialog = page.getByRole('dialog');
-    const zoneSelect = page.locator('#board-zone');
-    const firstZone = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
-    await firstZone.waitFor({ state: 'attached', timeout: 10_000 });
-    await zoneSelect.selectOption(await firstZone.getAttribute('value') as string);
-    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+test.describe('usage point bulk create', () => {
+  /**
+   * Ensures at least one board + one device exist (required by the empty-state
+   * chain), then navigates to the Usage Points tab.
+   */
+  async function ensureBoardAndNavigateToUsagePoints(page: import('@playwright/test').Page) {
+    await page.goto('/app/electricity');
+
+    // 1. Create a board if the no-board empty state is shown
+    const boardEmptyState = page.getByText('Aucun tableau électrique');
+    const hasNoBoard = await boardEmptyState.isVisible().catch(() => false);
+
+    if (hasNoBoard) {
+      await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
+      const boardDialog = page.getByRole('dialog');
+      await expect(boardDialog).toBeVisible();
+      const zoneSelect = page.locator('#board-zone');
+      const firstZone = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
+      await firstZone.waitFor({ state: 'attached', timeout: 10_000 });
+      await zoneSelect.selectOption(await firstZone.getAttribute('value') as string);
+      await boardDialog.getByRole('button', { name: 'Enregistrer' }).click();
+      await expect(boardEmptyState).not.toBeVisible();
+    }
+
+    // 2. Create a device if no device exists yet
+    //    (the empty-state chain prevents tab navigation without a device)
+    const deviceEmptyState = page.getByText('Aucun appareil de protection');
+    const hasNoDevice = await deviceEmptyState.isVisible().catch(() => false);
+
+    if (hasNoDevice) {
+      await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+      const deviceDialog = page.getByRole('dialog');
+      await expect(deviceDialog).toBeVisible();
+      await deviceDialog.getByLabel('Étiquette').fill(`BRK-BULK-SETUP-${Date.now()}`);
+      await deviceDialog.getByRole('button', { name: 'Enregistrer' }).click();
+      await expect(deviceEmptyState).not.toBeVisible();
+    }
+
+    // 3. Navigate to Usage Points tab
+    await page.getByRole('button', { name: 'Points d\'usage', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Ajouter un point d\'usage' })).toBeVisible();
   }
 
-  await page.getByRole('button', { name: 'Recherche', exact: true }).click();
+  test('le champ Quantité est visible lors de la création', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
 
-  await page.getByPlaceholder(
-    'Rechercher par étiquette (disjoncteur / circuit / point d\'usage)…',
-  ).fill('INEXISTANT-99999');
-  await page.getByRole('button', { name: 'Rechercher' }).click();
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
 
-  await expect(page.getByText('Introuvable.')).toBeVisible();
+    await expect(dialog.getByLabel('Quantité')).toBeVisible();
+  });
+
+  test('le champ Quantité vaut 1 par défaut', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await expect(dialog.getByLabel('Quantité')).toHaveValue('1');
+  });
+
+  test('un hint apparaît sous le champ Quantité quand la valeur est > 1', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Fill a label so the hint shows real values
+    await dialog.getByLabel('Étiquette').fill('UP-SAL');
+
+    // Set quantity to 3 — hint should appear
+    await page.locator('#up-quantity').fill('3');
+
+    // The hint pattern: "Créera UP-SAL-01 … UP-SAL-3"
+    await expect(dialog.getByText(/Créera UP-SAL-01/)).toBeVisible();
+  });
+
+  test('aucun hint n\'apparaît quand la quantité est 1', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Quantity defaults to 1 — hint must not be present
+    await expect(dialog.getByText(/Créera/)).not.toBeVisible();
+  });
+
+  test('créer avec quantité 1 crée un seul point d\'usage avec l\'étiquette exacte', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    const suffix = Date.now();
+    const upLabel = `UP-SINGLE-${suffix}`;
+    const upName = `Prise E2E single ${suffix}`;
+
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel('Étiquette').fill(upLabel);
+    await dialog.getByLabel('Nom').fill(upName);
+    // Quantity defaults to 1 — no change needed
+
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    // The usage point appears with its exact label (no suffix)
+    await expect(page.getByText(upLabel)).toBeVisible();
+    // Suffixed variants must NOT appear
+    await expect(page.getByText(`${upLabel}-01`)).not.toBeVisible();
+  });
+
+  test('créer avec quantité 3 crée 3 points d\'usage suffixés -01, -02, -03', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    const suffix = Date.now();
+    const upLabel = `UP-BULK-${suffix}`;
+    const upName = `Prise E2E bulk ${suffix}`;
+
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel('Étiquette').fill(upLabel);
+    await dialog.getByLabel('Nom').fill(upName);
+    await page.locator('#up-quantity').fill('3');
+
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    // All three suffixed usage points must appear in the list
+    await expect(page.getByText(`${upLabel}-01`)).toBeVisible();
+    await expect(page.getByText(`${upLabel}-02`)).toBeVisible();
+    await expect(page.getByText(`${upLabel}-03`)).toBeVisible();
+  });
+
+  test('le champ Quantité est absent du dialog de modification', async ({ page }) => {
+    await ensureBoardAndNavigateToUsagePoints(page);
+
+    const suffix = Date.now();
+    const upLabel = `UP-EDIT-NOQUANT-${suffix}`;
+    const upName = `Prise E2E no quant ${suffix}`;
+
+    // Create a usage point first
+    await page.getByRole('button', { name: 'Ajouter un point d\'usage' }).click();
+    let dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel('Étiquette').fill(upLabel);
+    await dialog.getByLabel('Nom').fill(upName);
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText(upName)).toBeVisible();
+
+    // Open the edit dialog via CardActions
+    await openCardMenu(page, upName, 'Modifier');
+    dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Modifier le point d\'usage' })).toBeVisible();
+
+    // The Quantité field must NOT be present in edit mode
+    await expect(dialog.getByLabel('Quantité')).not.toBeVisible();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -629,4 +870,102 @@ test('déconnecte un lien via le bouton Déconnecter', async ({ page }) => {
   // One fewer Déconnecter button after deactivation
   const linksAfter = await page.getByRole('button', { name: 'Déconnecter' }).count();
   expect(linksAfter).toBe(linksBefore - 1);
+});
+
+// ---------------------------------------------------------------------------
+// Conflit de positions d'appareils (slot grid + validation)
+// ---------------------------------------------------------------------------
+
+test.describe('conflit de positions d\'appareils', () => {
+  const suffix = Date.now();
+  const boardName = `Tableau Position E2E ${suffix}`;
+  const deviceLabel = `BRK-POS-${suffix}`;
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/app/electricity');
+
+    // Create a board with slots_per_row=12 if no board exists yet
+    const emptyState = page.getByText('Aucun tableau électrique');
+    const hasEmptyState = await emptyState.isVisible().catch(() => false);
+    if (hasEmptyState) {
+      await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
+      const dialog = page.getByRole('dialog');
+      await expect(dialog).toBeVisible();
+
+      const nameInput = dialog.getByLabel('Nom');
+      await nameInput.clear();
+      await nameInput.fill(boardName);
+
+      const zoneSelect = page.locator('#board-zone');
+      const firstZone = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
+      await firstZone.waitFor({ state: 'attached', timeout: 10_000 });
+      await zoneSelect.selectOption(await firstZone.getAttribute('value') as string);
+
+      await page.locator('#board-slots').fill('12');
+
+      await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+      await expect(page.getByRole('button', { name: 'Ajouter un appareil' })).toBeVisible();
+    }
+  });
+
+  test('crée un appareil avec une position', async ({ page }) => {
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    await dialog.getByLabel('Étiquette').fill(deviceLabel);
+    await page.locator('#dev-row').fill('1');
+    await page.locator('#dev-position').fill('3');
+
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(page.getByText(deviceLabel)).toBeVisible();
+  });
+
+  test('affiche le quadrillage des slots quand une rangée est saisie', async ({ page }) => {
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Le slot grid n'apparaît que quand row est renseigné ET slotsPerRow est défini
+    await page.locator('#dev-row').fill('1');
+
+    await expect(page.locator('[data-testid="slot-grid"]')).toBeVisible();
+
+    await dialog.getByRole('button', { name: 'Annuler' }).click();
+  });
+
+  test('bloque la création d\'un appareil à une position déjà occupée', async ({ page }) => {
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Saisir la même position que le device créé dans le test précédent (rangée 1, position 3)
+    await page.locator('#dev-row').fill('1');
+    await page.locator('#dev-position').fill('3');
+
+    // L'erreur de conflit s'affiche en temps réel (avant soumission)
+    await expect(page.getByText(/Position occupée/)).toBeVisible();
+
+    // Tenter de soumettre : le formulaire doit rester ouvert
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+    await expect(dialog).toBeVisible();
+  });
+
+  test('accepte une position adjacente non conflictuelle', async ({ page }) => {
+    await page.getByRole('button', { name: 'Ajouter un appareil' }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Position 4 est adjacente à 3 mais pas en overlap
+    await page.locator('#dev-row').fill('1');
+    await page.locator('#dev-position').fill('4');
+
+    // Aucune erreur de conflit
+    await expect(page.getByText(/Position occupée/)).not.toBeVisible();
+
+    // Le bouton Enregistrer est accessible (pas bloqué)
+    await expect(dialog.getByRole('button', { name: 'Enregistrer' })).toBeEnabled();
+
+    await dialog.getByRole('button', { name: 'Annuler' }).click();
+  });
 });

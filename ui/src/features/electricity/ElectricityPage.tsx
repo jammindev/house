@@ -1,13 +1,12 @@
 import * as React from 'react';
 import {
   Zap, Plus, Pencil, Trash2, Link2, Link2Off, Plug, Lightbulb, ShieldCheck,
-  TriangleAlert, Info, Search,
+  TriangleAlert, Info,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';
 import { Card } from '@/design-system/card';
-import { Input } from '@/design-system/input';
 import { FilterPill } from '@/design-system/filter-pill';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import PageHeader from '@/components/PageHeader';
@@ -15,7 +14,6 @@ import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
-import { lookupByLabel, type LookupResult } from '@/lib/api/electricity';
 import type { ElectricityBoard, ProtectiveDevice, ElectricCircuit, UsagePoint, CircuitUsagePointLink } from '@/lib/api/electricity';
 import {
   electricityKeys,
@@ -31,6 +29,7 @@ import {
   useDeactivateLink,
 } from './hooks';
 import BoardDialog from './BoardDialog';
+import { BoardPanel } from './BoardPanel';
 import DeviceDialog from './DeviceDialog';
 import CircuitDialog from './CircuitDialog';
 import UsagePointDialog from './UsagePointDialog';
@@ -39,7 +38,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 // ── Tab types ─────────────────────────────────────────────────────────────────
 
-type Tab = 'board' | 'circuits' | 'usagePoints' | 'links' | 'lookup';
+type Tab = 'board' | 'circuits' | 'usagePoints' | 'links';
 
 // ── Device type helpers ───────────────────────────────────────────────────────
 
@@ -134,7 +133,14 @@ function DeviceCard({ device, onEdit, onDelete, t }: DeviceCardProps) {
   ];
 
   const specs: string[] = [];
+  if (device.row != null && device.position != null) {
+    const posStr = device.position_end != null && device.position_end !== device.position
+      ? `R${device.row} P${device.position}–${device.position_end}`
+      : `R${device.row} P${device.position}`;
+    specs.push(posStr);
+  }
   if (device.rating_amps) specs.push(`${device.rating_amps}A`);
+  if (device.pole_count) specs.push(`${device.pole_count}P`);
   if (device.curve_type) specs.push(`Courbe ${device.curve_type.toUpperCase()}`);
   if (device.sensitivity_ma) specs.push(`${device.sensitivity_ma} mA`);
   if (device.type_code) specs.push(device.type_code.toUpperCase());
@@ -324,56 +330,6 @@ function LinkCard({ link: _link, circuit, usagePoint, onDeactivate, t }: LinkCar
   );
 }
 
-// ── Lookup panel ──────────────────────────────────────────────────────────────
-
-function LookupPanel({ t }: { t: (key: string) => string }) {
-  const [ref, setRef] = React.useState('');
-  const [result, setResult] = React.useState<LookupResult | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(false);
-
-  async function handleLookup(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = ref.trim();
-    if (!trimmed) { setError(t('electricity.lookup.required')); return; }
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const data = await lookupByLabel(trimmed);
-      setResult(data);
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } })?.response?.status;
-      setError(status === 404 ? t('electricity.lookup.notFound') : t('electricity.lookup.failed'));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return (
-    <div className="space-y-4">
-      <form onSubmit={(e) => void handleLookup(e)} className="flex gap-2">
-        <Input
-          value={ref}
-          onChange={(e) => setRef(e.target.value)}
-          placeholder={t('electricity.lookup.placeholder')}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={loading} className="gap-1.5">
-          <Search className="h-4 w-4" />
-          {t('electricity.lookup.button')}
-        </Button>
-      </form>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      {result ? (
-        <pre className="overflow-x-auto rounded-lg border border-border bg-muted p-4 text-xs">
-          {JSON.stringify(result, null, 2)}
-        </pre>
-      ) : null}
-    </div>
-  );
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function ElectricityPage() {
@@ -447,13 +403,21 @@ export default function ElectricityPage() {
     onDelete: (id) => deleteUsagePointMutation.mutateAsync(id),
   });
 
+  // On initial load: if board exists but no devices, redirect to 'board' tab so the user creates one first.
+  // We only redirect once (on first non-loading render) to avoid kicking the user back if they delete devices later.
+  const hasRedirectedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isLoading && boards.length > 0 && devices.length === 0 && activeTab !== 'board' && !hasRedirectedRef.current) {
+      hasRedirectedRef.current = true;
+      setActiveTab('board');
+    }
+    if (!isLoading && devices.length > 0) {
+      hasRedirectedRef.current = true;
+    }
+  }, [isLoading, boards.length, devices.length, activeTab, setActiveTab]);
+
   // Computed data
   const activeLinks = React.useMemo(() => links.filter((l) => l.is_active !== false), [links]);
-
-  const eligibleDevices = React.useMemo(
-    () => devices.filter((d) => d.is_active !== false && (d.device_type === 'breaker' || d.device_type === 'combined')),
-    [devices],
-  );
 
   const deviceMap = React.useMemo(
     () => new Map(devices.map((d) => [d.id, d])),
@@ -508,7 +472,6 @@ export default function ElectricityPage() {
     { key: 'circuits', label: t('electricity.tabs.circuits') },
     { key: 'usagePoints', label: t('electricity.tabs.usagePoints') },
     { key: 'links', label: t('electricity.tabs.links') },
-    { key: 'lookup', label: t('electricity.tabs.lookup') },
   ];
 
   // Skeleton
@@ -525,16 +488,11 @@ export default function ElectricityPage() {
     );
   }
 
-  // No board: show empty state
+  // No board: show empty state — no button in PageHeader (only in EmptyState)
   if (!isLoading && boards.length === 0) {
     return (
       <>
-        <PageHeader title={t('electricity.title')} description={t('electricity.description')}>
-          <Button onClick={openCreateBoard} className="gap-1.5">
-            <Plus className="h-4 w-4" />
-            {t('electricity.board.new')}
-          </Button>
-        </PageHeader>
+        <PageHeader title={t('electricity.title')} description={t('electricity.description')} />
         <EmptyState
           icon={Zap}
           title={t('electricity.board.empty')}
@@ -601,16 +559,25 @@ export default function ElectricityPage() {
             t={t}
           />
 
+          {/* Représentation graphique du tableau */}
+          <BoardPanel
+            board={selectedBoard}
+            devices={devices}
+            onDeviceClick={(d) => openEditDevice(d)}
+          />
+
           {/* Devices section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-muted-foreground">
                 {t('electricity.device.title')} ({devices.length})
               </h3>
-              <Button size="sm" onClick={openCreateDevice} className="gap-1">
-                <Plus className="h-3.5 w-3.5" />
-                {t('electricity.device.new')}
-              </Button>
+              {devices.length > 0 && (
+                <Button size="sm" onClick={openCreateDevice} className="gap-1">
+                  <Plus className="h-3.5 w-3.5" />
+                  {t('electricity.device.new')}
+                </Button>
+              )}
             </div>
             {devices.length === 0 ? (
               <EmptyState
@@ -650,51 +617,60 @@ export default function ElectricityPage() {
       {/* ── Circuits tab ──────────────────────────────────────────────────── */}
       {activeTab === 'circuits' && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {circuits.length} {t('electricity.circuit.title').toLowerCase()}
-            </p>
-            <Button size="sm" onClick={openCreateCircuit} className="gap-1" disabled={eligibleDevices.length === 0}>
-              <Plus className="h-3.5 w-3.5" />
-              {t('electricity.circuit.new')}
-            </Button>
-          </div>
-          {circuits.length === 0 ? (
+          {devices.length === 0 ? (
             <EmptyState
-              icon={Link2}
-              title={t('electricity.circuit.empty')}
-              description={
-                eligibleDevices.length === 0
-                  ? t('electricity.circuit.emptyNoDevices')
-                  : t('electricity.circuit.emptyDescription')
-              }
-              action={eligibleDevices.length > 0 ? { label: t('electricity.circuit.new'), onClick: openCreateCircuit } : undefined}
+              icon={Zap}
+              title={t('electricity.device.empty')}
+              description={t('electricity.device.emptyDescription')}
+              action={{ label: t('electricity.device.new'), onClick: openCreateDevice }}
             />
           ) : (
-            <div className="space-y-2">
-              {circuits.map((circuit) => (
-                <CircuitCard
-                  key={circuit.id}
-                  circuit={circuit}
-                  device={deviceMap.get(circuit.protective_device)}
-                  linkedCount={linkCountByCircuit.get(circuit.id) ?? 0}
-                  onEdit={() => openEditCircuit(circuit)}
-                  onDelete={() => {
-                    deleteCircuitWithUndo(circuit.id, {
-                      onRemove: () => qc.setQueryData<ElectricCircuit[]>(
-                        electricityKeys.circuits(boardId),
-                        (old) => old?.filter((c) => c.id !== circuit.id),
-                      ),
-                      onRestore: () => qc.setQueryData<ElectricCircuit[]>(
-                        electricityKeys.circuits(boardId),
-                        (old) => old ? [...old, circuit] : [circuit],
-                      ),
-                    });
-                  }}
-                  t={t}
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {circuits.length} {t('electricity.circuit.title').toLowerCase()}
+                </p>
+                {circuits.length > 0 && (
+                  <Button size="sm" onClick={openCreateCircuit} className="gap-1">
+                    <Plus className="h-3.5 w-3.5" />
+                    {t('electricity.circuit.new')}
+                  </Button>
+                )}
+              </div>
+              {circuits.length === 0 ? (
+                <EmptyState
+                  icon={Link2}
+                  title={t('electricity.circuit.empty')}
+                  description={t('electricity.circuit.emptyDescription')}
+                  action={{ label: t('electricity.circuit.new'), onClick: openCreateCircuit }}
                 />
-              ))}
-            </div>
+              ) : (
+                <div className="space-y-2">
+                  {circuits.map((circuit) => (
+                    <CircuitCard
+                      key={circuit.id}
+                      circuit={circuit}
+                      device={deviceMap.get(circuit.protective_device)}
+                      linkedCount={linkCountByCircuit.get(circuit.id) ?? 0}
+                      onEdit={() => openEditCircuit(circuit)}
+                      onDelete={() => {
+                        deleteCircuitWithUndo(circuit.id, {
+                          onRemove: () => qc.setQueryData<ElectricCircuit[]>(
+                            electricityKeys.circuits(boardId),
+                            (old) => old?.filter((c) => c.id !== circuit.id),
+                          ),
+                          onRestore: () => qc.setQueryData<ElectricCircuit[]>(
+                            electricityKeys.circuits(boardId),
+                            (old) => old ? [...old, circuit] : [circuit],
+                          ),
+                        });
+                      }}
+                      t={t}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -716,10 +692,12 @@ export default function ElectricityPage() {
                 </FilterPill>
               ))}
             </div>
-            <Button size="sm" onClick={openCreateUp} className="gap-1">
-              <Plus className="h-3.5 w-3.5" />
-              {t('electricity.usagePoint.new')}
-            </Button>
+            {usagePoints.length > 0 && (
+              <Button size="sm" onClick={openCreateUp} className="gap-1">
+                <Plus className="h-3.5 w-3.5" />
+                {t('electricity.usagePoint.new')}
+              </Button>
+            )}
           </div>
           {usagePoints.length === 0 ? (
             <EmptyState
@@ -771,10 +749,12 @@ export default function ElectricityPage() {
             <p className="text-sm text-muted-foreground">
               {activeLinks.length} {t('electricity.link.active').toLowerCase()}
             </p>
-            <Button size="sm" onClick={() => setLinkDialogOpen(true)} className="gap-1" disabled={circuits.length === 0 || usagePoints.length === 0}>
-              <Plus className="h-3.5 w-3.5" />
-              {t('electricity.link.new')}
-            </Button>
+            {activeLinks.length > 0 && (
+              <Button size="sm" onClick={() => setLinkDialogOpen(true)} className="gap-1" disabled={circuits.length === 0 || usagePoints.length === 0}>
+                <Plus className="h-3.5 w-3.5" />
+                {t('electricity.link.new')}
+              </Button>
+            )}
           </div>
           {activeLinks.length === 0 ? (
             <EmptyState
@@ -806,9 +786,6 @@ export default function ElectricityPage() {
         </div>
       )}
 
-      {/* ── Lookup tab ────────────────────────────────────────────────────── */}
-      {activeTab === 'lookup' && <LookupPanel t={t} />}
-
       {/* ── Dialogs ───────────────────────────────────────────────────────── */}
       <BoardDialog
         open={boardDialogOpen}
@@ -823,6 +800,7 @@ export default function ElectricityPage() {
             onOpenChange={setDeviceDialogOpen}
             boardId={selectedBoard.id}
             supplyType={selectedBoard.supply_type as 'single_phase' | 'three_phase'}
+            slotsPerRow={selectedBoard.slots_per_row}
             existing={editingDevice}
           />
           <CircuitDialog

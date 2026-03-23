@@ -17,6 +17,7 @@ import {
   updateCircuit,
   deleteCircuit,
   createUsagePoint,
+  bulkCreateUsagePoints,
   updateUsagePoint,
   deleteUsagePoint,
   createLink,
@@ -214,6 +215,23 @@ export function useCreateUsagePoint() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: electricityKeys.usagePoints() });
       toast({ description: t('electricity.usagePoint.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useBulkCreateUsagePoints() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: UsagePointPayload & { quantity: number }) =>
+      bulkCreateUsagePoints(payload),
+    onSuccess: (data) => {
+      void qc.invalidateQueries({ queryKey: electricityKeys.usagePoints() });
+      toast({
+        description: t('electricity.usagePoint.createdBulk', { count: data.length }),
+        variant: 'success',
+      });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

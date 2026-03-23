@@ -8,7 +8,7 @@ import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { fetchZones } from '@/lib/api/zones';
 import type { Zone } from '@/lib/api/zones';
-import { useCreateUsagePoint, useUpdateUsagePoint } from './hooks';
+import { useCreateUsagePoint, useBulkCreateUsagePoints, useUpdateUsagePoint } from './hooks';
 import type { UsagePoint, UsagePointKind } from '@/lib/api/electricity';
 
 interface UsagePointDialogProps {
@@ -26,12 +26,14 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
   const [kind, setKind] = React.useState<UsagePointKind>('socket');
   const [zoneId, setZoneId] = React.useState('');
   const [notes, setNotes] = React.useState('');
+  const [quantity, setQuantity] = React.useState(1);
   const [zones, setZones] = React.useState<Zone[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const createUsagePoint = useCreateUsagePoint();
+  const bulkCreateUsagePoints = useBulkCreateUsagePoints();
   const updateUsagePoint = useUpdateUsagePoint();
-  const isPending = createUsagePoint.isPending || updateUsagePoint.isPending;
+  const isPending = createUsagePoint.isPending || bulkCreateUsagePoints.isPending || updateUsagePoint.isPending;
 
   React.useEffect(() => {
     if (!open) return;
@@ -52,6 +54,7 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
       setKind('socket');
       setZoneId('');
       setNotes('');
+      setQuantity(1);
     }
     setError(null);
   }, [open, existing]);
@@ -73,6 +76,8 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
     try {
       if (isEditing && existing) {
         await updateUsagePoint.mutateAsync({ id: existing.id, payload });
+      } else if (quantity > 1) {
+        await bulkCreateUsagePoints.mutateAsync({ ...payload, quantity });
       } else {
         await createUsagePoint.mutateAsync(payload);
       }
@@ -111,7 +116,7 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
                 id="up-label"
                 value={label}
                 onChange={(e) => setLabel(e.target.value)}
-                placeholder="UP-01"
+                placeholder={quantity > 1 ? 'UP-SAL' : 'UP-01'}
                 required
               />
             </FormField>
@@ -143,6 +148,24 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
               options={zoneOptions}
             />
           </FormField>
+
+          {!isEditing && (
+            <FormField label={t('electricity.usagePoint.quantity')} htmlFor="up-quantity">
+              <Input
+                id="up-quantity"
+                type="number"
+                min={1}
+                max={50}
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, Math.min(50, Number(e.target.value))))}
+              />
+              {quantity > 1 && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t('electricity.usagePoint.quantityHint', { label: label.trim() || '…', count: quantity })}
+                </p>
+              )}
+            </FormField>
+          )}
 
           <FormField label={t('electricity.usagePoint.notes')} htmlFor="up-notes">
             <Textarea

@@ -1,6 +1,7 @@
 # electricity/views.py
 """Electricity API and template views (scaffold)."""
 
+from django.db import transaction
 from django.db.models import ProtectedError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -9,7 +10,6 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from households.models import HouseholdMember
 
@@ -155,6 +155,50 @@ class UsagePointViewSet(HouseholdScopedModelViewSet):
             queryset = queryset.filter(kind=kind)
         return queryset
 
+    @action(detail=False, methods=["post"], url_path="bulk-create")
+    def bulk_create(self, request, *args, **kwargs):
+        household = request.household
+        if not household:
+            raise ValidationError({"household_id": _("A valid household context is required.")})
+
+        try:
+            quantity = int(request.data.get("quantity", 1))
+        except (TypeError, ValueError):
+            return Response({"quantity": [_("Must be an integer.")]}, status=status.HTTP_400_BAD_REQUEST)
+        if quantity < 1 or quantity > 50:
+            return Response({"quantity": [_("Must be between 1 and 50.")]}, status=status.HTTP_400_BAD_REQUEST)
+
+        base_data = {k: v for k, v in request.data.items() if k != "quantity"}
+        base_label = (base_data.get("label") or "").strip()
+
+        if quantity > 1 and not base_label:
+            return Response({"label": [_("A label prefix is required when creating multiple usage points.")]}, status=status.HTTP_400_BAD_REQUEST)
+
+        payloads = []
+        for i in range(1, quantity + 1):
+            payload = dict(base_data)
+            if quantity > 1:
+                payload["label"] = f"{base_label}-{i:02d}"
+            payloads.append(payload)
+
+        serializers_list = []
+        for payload in payloads:
+            ser = self.get_serializer(data=payload)
+            if not ser.is_valid():
+                return Response(ser.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializers_list.append(ser)
+
+        with transaction.atomic():
+            instances = [
+                ser.save(household=household, created_by=request.user, updated_by=request.user)
+                for ser in serializers_list
+            ]
+
+        return Response(
+            self.get_serializer(instances, many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
+
 
 class CircuitUsagePointLinkViewSet(HouseholdScopedModelViewSet):
     model = CircuitUsagePointLink
@@ -199,81 +243,3 @@ class PlanChangeLogViewSet(HouseholdScopedModelViewSet):
     http_method_names = ["get", "head", "options"]
 
 
-class MappingLookupView(APIView):
-    permission_classes = [IsAuthenticated, IsElectricityOwnerWriteMemberRead]
-
-    def get(self, request):
-        selected_household = resolve_electricity_household(request)
-        if not selected_household:
-            raise ValidationError({"household_id": "A valid household context is required."})
-
-        ref = (request.query_params.get("ref") or "").strip()
-        if not ref:
-            raise ValidationError({"ref": "Lookup reference is required."})
-
-        protective_device = ProtectiveDevice.objects.for_household(selected_household.id).filter(label=ref).first()
-        if protective_device:
-            circuits = list(ElectricCircuit.objects.for_household(selected_household.id).filter(protective_device=protective_device))
-            usage_points = list(
-                UsagePoint.objects.for_household(selected_household.id).filter(
-                    circuit_links__circuit__in=circuits,
-                    circuit_links__is_active=True,
-                ).distinct()
-            )
-            return Response(
-                {
-                    "kind": "protective_device",
-                    "label": protective_device.label,
-                    "protective_device": {"id": str(protective_device.id), "label": protective_device.label},
-                    "circuits": [{"id": str(c.id), "label": c.label, "name": c.name} for c in circuits],
-                    "usage_points": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
-                }
-            )
-
-        usage_point = UsagePoint.objects.for_household(selected_household.id).filter(label=ref).first()
-        if usage_point:
-            link = (
-                CircuitUsagePointLink.objects.for_household(selected_household.id)
-                .select_related("circuit__protective_device")
-                .filter(usage_point=usage_point, is_active=True)
-                .first()
-            )
-            circuit = link.circuit if link else None
-            protective_device_for_point = circuit.protective_device if circuit else None
-            return Response(
-                {
-                    "kind": "usage_point",
-                    "label": usage_point.label,
-                    "usage_point": {"id": str(usage_point.id), "label": usage_point.label, "name": usage_point.name},
-                    "circuit": (
-                        {"id": str(circuit.id), "label": circuit.label, "name": circuit.name}
-                        if circuit
-                        else None
-                    ),
-                    "protective_device": (
-                        {"id": str(protective_device_for_point.id), "label": protective_device_for_point.label}
-                        if protective_device_for_point
-                        else None
-                    ),
-                }
-            )
-
-        circuit = ElectricCircuit.objects.for_household(selected_household.id).select_related("protective_device").filter(label=ref).first()
-        if circuit:
-            usage_points = list(
-                UsagePoint.objects.for_household(selected_household.id).filter(
-                    circuit_links__circuit=circuit,
-                    circuit_links__is_active=True,
-                ).distinct()
-            )
-            return Response(
-                {
-                    "kind": "circuit",
-                    "label": circuit.label,
-                    "circuit": {"id": str(circuit.id), "label": circuit.label, "name": circuit.name},
-                    "protective_device": {"id": str(circuit.protective_device.id), "label": circuit.protective_device.label},
-                    "usage_points": [{"id": str(u.id), "label": u.label, "name": u.name} for u in usage_points],
-                }
-            )
-
-        return Response({"detail": _("Not found.")}, status=status.HTTP_404_NOT_FOUND)

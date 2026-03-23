@@ -235,7 +235,14 @@ class TestProtectiveDeviceModel:
         pd2 = ProtectiveDeviceFactory(label="DUP")
         assert pd1.household_id != pd2.household_id
 
-    def test_two_devices_same_board_row_position_raises(self):
+    def test_two_devices_same_board_row_position_allowed_at_db_level(self):
+        """
+        Position uniqueness is enforced at the serializer layer (range overlap check),
+        not at the DB level. The unique constraint on (board, row, position) was removed
+        in favour of range-aware overlap detection in ProtectiveDeviceSerializer.
+        Two devices sharing the same start position can be created directly via the ORM
+        — the serializer is the only enforcement point.
+        """
         board = ElectricityBoardFactory()
         user = UserFactory()
         ProtectiveDevice.objects.create(
@@ -243,13 +250,13 @@ class TestProtectiveDeviceModel:
             device_type="breaker", row=1, position=1,
             created_by=user, updated_by=user,
         )
-        with pytest.raises(IntegrityError):
-            with transaction.atomic():
-                ProtectiveDevice.objects.create(
-                    household=board.household, board=board, label="D-B",
-                    device_type="breaker", row=1, position=1,
-                    created_by=user, updated_by=user,
-                )
+        # No IntegrityError at the DB level — serializer catches this instead.
+        pd_b = ProtectiveDevice.objects.create(
+            household=board.household, board=board, label="D-B",
+            device_type="breaker", row=1, position=1,
+            created_by=user, updated_by=user,
+        )
+        assert pd_b.pk is not None
 
     def test_row_set_without_position_raises(self):
         board = ElectricityBoardFactory()

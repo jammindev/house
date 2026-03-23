@@ -140,8 +140,10 @@ class ProtectiveDeviceSerializer(HouseholdScopedModelSerializer):
             "role",
             "row",
             "position",
+            "position_end",
             "phase",
             "rating_amps",
+            "pole_count",
             "curve_type",
             "sensitivity_ma",
             "type_code",
@@ -165,6 +167,10 @@ class ProtectiveDeviceSerializer(HouseholdScopedModelSerializer):
         phase = attrs.get("phase", getattr(self.instance, "phase", None))
         device_type = attrs.get("device_type", getattr(self.instance, "device_type", None))
         phase_coverage = attrs.get("phase_coverage", getattr(self.instance, "phase_coverage", None))
+        pole_count = attrs.get("pole_count", getattr(self.instance, "pole_count", None))
+        row = attrs.get("row", getattr(self.instance, "row", None))
+        position = attrs.get("position", getattr(self.instance, "position", None))
+        position_end = attrs.get("position_end", getattr(self.instance, "position_end", None))
 
         if board and household and board.household_id != household.id:
             raise serializers.ValidationError({"board": _("Board must belong to the same household.")})
@@ -178,6 +184,45 @@ class ProtectiveDeviceSerializer(HouseholdScopedModelSerializer):
                 raise serializers.ValidationError({"phase": _("Phase is required for three-phase board.")})
             if board.supply_type == SupplyType.SINGLE_PHASE and device_type == "rcd" and phase_coverage:
                 raise serializers.ValidationError({"phase_coverage": _("phase_coverage must be null for single-phase board.")})
+
+        if pole_count is not None and device_type in ("rcd", "combined") and pole_count not in (2, 4):
+            raise serializers.ValidationError(
+                {"pole_count": _("pole_count must be 2 or 4 for rcd and combined devices.")}
+            )
+
+        row_set = row is not None
+        pos_set = position is not None
+        if row_set != pos_set:
+            raise serializers.ValidationError(
+                {"row": _("row and position must both be set or both be empty.")}
+            )
+
+        if position_end is not None:
+            if position is None:
+                raise serializers.ValidationError(
+                    {"position_end": _("position_end requires position to be set.")}
+                )
+            if position_end < position:
+                raise serializers.ValidationError(
+                    {"position_end": _("position_end must be greater than or equal to position.")}
+                )
+
+        # Range overlap check: no two devices on the same board+row may share a slot.
+        # select_for_update() locks the rows for the duration of the enclosing transaction
+        # so concurrent writes cannot create overlapping positions.
+        if board and row is not None and position is not None:
+            effective_end = position_end if position_end is not None else position
+            qs = ProtectiveDevice.objects.select_for_update().filter(
+                board=board, row=row, position__isnull=False
+            )
+            if self.instance is not None:
+                qs = qs.exclude(pk=self.instance.pk)
+            for device in qs:
+                dev_end = device.position_end if device.position_end is not None else device.position
+                if position <= dev_end and device.position <= effective_end:
+                    raise serializers.ValidationError(
+                        {"position": _("Position range overlaps with an existing device on the same row.")}
+                    )
 
         return attrs
 
@@ -210,6 +255,10 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
         if protective_device and protective_device.device_type == "rcd":
             raise serializers.ValidationError(
                 {"protective_device": _("A circuit cannot be directly protected by a pure RCD (device_type=rcd).")}
+            )
+        if protective_device and protective_device.is_spare:
+            raise serializers.ValidationError(
+                {"protective_device": _("A spare device cannot protect a circuit.")}
             )
         if board and protective_device and board.id != protective_device.board_id:
             raise serializers.ValidationError({"protective_device": _("Protective device must belong to the selected board.")})

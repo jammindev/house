@@ -143,3 +143,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 | Onglet Recherche : champ et bouton visibles | ✅ |
 | Onglet Recherche : étiquette inexistante → "Introuvable." | ✅ |
 | Déconnexion d'un lien via "Déconnecter" | ✅ |
+| Création d'un appareil avec position (rangée + slot) | ✅ |
+| Affichage du quadrillage des slots (slot grid) quand rangée saisie | ✅ |
+| Blocage création si position déjà occupée (conflit détecté en temps réel) | ✅ |
+| Position adjacente non conflictuelle acceptée | ✅ |
