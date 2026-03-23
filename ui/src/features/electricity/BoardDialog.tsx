@@ -8,6 +8,7 @@ import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { fetchZones } from '@/lib/api/zones';
 import type { Zone } from '@/lib/api/zones';
+import { fetchBoards } from '@/lib/api/electricity';
 import { useCreateBoard, useUpdateBoard } from './hooks';
 import type { ElectricityBoard } from '@/lib/api/electricity';
 
@@ -21,14 +22,19 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
   const { t } = useTranslation();
   const isEditing = Boolean(existing);
 
+  const [label, setLabel] = React.useState('');
   const [name, setName] = React.useState('');
+  const [parentId, setParentId] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
   const [supplyType, setSupplyType] = React.useState<'single_phase' | 'three_phase'>('single_phase');
   const [location, setLocation] = React.useState('');
+  const [rows, setRows] = React.useState('');
+  const [slotsPerRow, setSlotsPerRow] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [lastInspection, setLastInspection] = React.useState('');
   const [compliance, setCompliance] = React.useState<'' | 'yes' | 'no' | 'partial'>('');
   const [zones, setZones] = React.useState<Zone[]>([]);
+  const [boards, setBoards] = React.useState<ElectricityBoard[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const createBoard = useCreateBoard();
@@ -38,23 +44,32 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
   React.useEffect(() => {
     if (!open) return;
     fetchZones().then(setZones).catch(() => setZones([]));
+    fetchBoards().then(setBoards).catch(() => setBoards([]));
   }, [open]);
 
   React.useEffect(() => {
     if (!open) return;
     if (existing) {
+      setLabel(existing.label ?? '');
       setName(existing.name ?? '');
+      setParentId(existing.parent ?? '');
       setZoneId(existing.zone ?? '');
       setSupplyType((existing.supply_type as 'single_phase' | 'three_phase') ?? 'single_phase');
       setLocation(existing.location ?? '');
+      setRows(existing.rows != null ? String(existing.rows) : '');
+      setSlotsPerRow(existing.slots_per_row != null ? String(existing.slots_per_row) : '');
       setNotes(existing.main_notes ?? '');
       setLastInspection(existing.last_inspection_date ?? '');
       setCompliance((existing.nf_c_15100_compliant as '' | 'yes' | 'no' | 'partial') ?? '');
     } else {
+      setLabel('');
       setName(t('electricity.board.defaultName'));
+      setParentId('');
       setZoneId('');
       setSupplyType('single_phase');
       setLocation('');
+      setRows('');
+      setSlotsPerRow('');
       setNotes('');
       setLastInspection('');
       setCompliance('');
@@ -69,10 +84,14 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
     if (!zoneId) { setError(t('electricity.board.zoneRequired')); return; }
 
     const payload = {
+      label: label.trim() || undefined,
       name: name.trim(),
+      parent: parentId || null,
       zone: zoneId,
       supply_type: supplyType,
       location: location.trim(),
+      rows: rows !== '' ? parseInt(rows, 10) : null,
+      slots_per_row: slotsPerRow !== '' ? parseInt(slotsPerRow, 10) : null,
       main_notes: notes.trim(),
       last_inspection_date: lastInspection || null,
       nf_c_15100_compliant: (compliance || null) as 'yes' | 'no' | 'partial' | null,
@@ -96,6 +115,13 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
     }
   }
 
+  const parentOptions = [
+    { value: '', label: t('electricity.board.parentNone') },
+    ...boards
+      .filter((b) => b.id !== existing?.id)
+      .map((b) => ({ value: b.id, label: b.name })),
+  ];
+
   const supplyOptions = [
     { value: 'single_phase', label: t('electricity.board.supplySingle') },
     { value: 'three_phase', label: t('electricity.board.supplyThree') },
@@ -117,14 +143,25 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
       title={isEditing ? t('electricity.board.edit') : t('electricity.board.new')}
     >
         <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-          <FormField label={t('electricity.board.name')} htmlFor="board-name">
-            <Input
-              id="board-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-          </FormField>
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label={t('electricity.board.name')} htmlFor="board-name">
+              <Input
+                id="board-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </FormField>
+
+            <FormField label={t('electricity.board.label')} htmlFor="board-label">
+              <Input
+                id="board-label"
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder={t('electricity.board.labelPlaceholder')}
+              />
+            </FormField>
+          </div>
 
           <FormField label={t('electricity.board.zone')} htmlFor="board-zone">
             <Select
@@ -134,6 +171,15 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
               options={zoneOptions}
               placeholder={t('electricity.selectZone')}
               required
+            />
+          </FormField>
+
+          <FormField label={t('electricity.board.parent')} htmlFor="board-parent">
+            <Select
+              id="board-parent"
+              value={parentId}
+              onChange={(e) => setParentId(e.target.value)}
+              options={parentOptions}
             />
           </FormField>
 
@@ -154,6 +200,28 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
               placeholder={t('electricity.board.locationPlaceholder')}
             />
           </FormField>
+
+          <div className="grid grid-cols-2 gap-3">
+            <FormField label={t('electricity.board.rows')} htmlFor="board-rows">
+              <Input
+                id="board-rows"
+                type="number"
+                min={1}
+                value={rows}
+                onChange={(e) => setRows(e.target.value)}
+              />
+            </FormField>
+
+            <FormField label={t('electricity.board.slotsPerRow')} htmlFor="board-slots">
+              <Input
+                id="board-slots"
+                type="number"
+                min={1}
+                value={slotsPerRow}
+                onChange={(e) => setSlotsPerRow(e.target.value)}
+              />
+            </FormField>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <FormField label={t('electricity.board.inspectionDate')} htmlFor="board-inspection">

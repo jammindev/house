@@ -13,6 +13,7 @@ import CardActions, { type CardAction } from '@/components/CardActions';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
 import { lookupByLabel, type LookupResult } from '@/lib/api/electricity';
 import type { ElectricityBoard, ProtectiveDevice, ElectricCircuit, UsagePoint, CircuitUsagePointLink } from '@/lib/api/electricity';
@@ -425,14 +426,37 @@ export default function ElectricityPage() {
   const [upKindFilter, setUpKindFilter] = useSessionState<'all' | 'socket' | 'light'>('electricity.upFilter', 'all');
 
   // Mutations
-  const deleteBoard = useDeleteBoard();
-  const deleteDevice = useDeleteDevice();
-  const deleteCircuit = useDeleteCircuit();
-  const deleteUsagePoint = useDeleteUsagePoint();
+  const deleteBoardMutation = useDeleteBoard();
+  const deleteDeviceMutation = useDeleteDevice();
+  const deleteCircuitMutation = useDeleteCircuit();
+  const deleteUsagePointMutation = useDeleteUsagePoint();
   const deactivateLink = useDeactivateLink();
+
+  // Delete with undo
+  const { deleteWithUndo: deleteBoardWithUndo } = useDeleteWithUndo({
+    label: t('electricity.board.deleted'),
+    onDelete: (id) => deleteBoardMutation.mutateAsync(id),
+  });
+  const { deleteWithUndo: deleteDeviceWithUndo } = useDeleteWithUndo({
+    label: t('electricity.device.deleted'),
+    onDelete: (id) => deleteDeviceMutation.mutateAsync(id),
+  });
+  const { deleteWithUndo: deleteCircuitWithUndo } = useDeleteWithUndo({
+    label: t('electricity.circuit.deleted'),
+    onDelete: (id) => deleteCircuitMutation.mutateAsync(id),
+  });
+  const { deleteWithUndo: deleteUsagePointWithUndo } = useDeleteWithUndo({
+    label: t('electricity.usagePoint.deleted'),
+    onDelete: (id) => deleteUsagePointMutation.mutateAsync(id),
+  });
 
   // Computed data
   const activeLinks = React.useMemo(() => links.filter((l) => l.is_active !== false), [links]);
+
+  const eligibleDevices = React.useMemo(
+    () => devices.filter((d) => d.is_active !== false && (d.device_type === 'breaker' || d.device_type === 'combined')),
+    [devices],
+  );
 
   const deviceMap = React.useMemo(
     () => new Map(devices.map((d) => [d.id, d])),
@@ -566,11 +590,16 @@ export default function ElectricityPage() {
             board={selectedBoard}
             onEdit={() => openEditBoard(selectedBoard)}
             onDelete={() => {
-              if (window.confirm(t('common.confirmDelete'))) {
-                void deleteBoard.mutateAsync(selectedBoard.id).then(() => {
-                  void qc.invalidateQueries({ queryKey: electricityKeys.all });
-                });
-              }
+              deleteBoardWithUndo(selectedBoard.id, {
+                onRemove: () => qc.setQueryData<ElectricityBoard[]>(
+                  electricityKeys.boards(),
+                  (old) => old?.filter((b) => b.id !== selectedBoard.id),
+                ),
+                onRestore: () => qc.setQueryData<ElectricityBoard[]>(
+                  electricityKeys.boards(),
+                  (old) => old ? [...old, selectedBoard] : [selectedBoard],
+                ),
+              });
             }}
             t={t}
           />
@@ -601,9 +630,16 @@ export default function ElectricityPage() {
                     device={device}
                     onEdit={() => openEditDevice(device)}
                     onDelete={() => {
-                      if (window.confirm(t('common.confirmDelete'))) {
-                        void deleteDevice.mutateAsync(device.id);
-                      }
+                      deleteDeviceWithUndo(device.id, {
+                        onRemove: () => qc.setQueryData<ProtectiveDevice[]>(
+                          electricityKeys.devices(boardId),
+                          (old) => old?.filter((d) => d.id !== device.id),
+                        ),
+                        onRestore: () => qc.setQueryData<ProtectiveDevice[]>(
+                          electricityKeys.devices(boardId),
+                          (old) => old ? [...old, device] : [device],
+                        ),
+                      });
                     }}
                     t={t}
                   />
@@ -621,7 +657,7 @@ export default function ElectricityPage() {
             <p className="text-sm text-muted-foreground">
               {circuits.length} {t('electricity.circuit.title').toLowerCase()}
             </p>
-            <Button size="sm" onClick={openCreateCircuit} className="gap-1" disabled={devices.length === 0}>
+            <Button size="sm" onClick={openCreateCircuit} className="gap-1" disabled={eligibleDevices.length === 0}>
               <Plus className="h-3.5 w-3.5" />
               {t('electricity.circuit.new')}
             </Button>
@@ -631,11 +667,11 @@ export default function ElectricityPage() {
               icon={Link2}
               title={t('electricity.circuit.empty')}
               description={
-                devices.length === 0
+                eligibleDevices.length === 0
                   ? t('electricity.circuit.emptyNoDevices')
                   : t('electricity.circuit.emptyDescription')
               }
-              action={devices.length > 0 ? { label: t('electricity.circuit.new'), onClick: openCreateCircuit } : undefined}
+              action={eligibleDevices.length > 0 ? { label: t('electricity.circuit.new'), onClick: openCreateCircuit } : undefined}
             />
           ) : (
             <div className="space-y-2">
@@ -643,13 +679,20 @@ export default function ElectricityPage() {
                 <CircuitCard
                   key={circuit.id}
                   circuit={circuit}
-                  device={deviceMap.get(circuit.breaker)}
+                  device={deviceMap.get(circuit.protective_device)}
                   linkedCount={linkCountByCircuit.get(circuit.id) ?? 0}
                   onEdit={() => openEditCircuit(circuit)}
                   onDelete={() => {
-                    if (window.confirm(t('common.confirmDelete'))) {
-                      void deleteCircuit.mutateAsync(circuit.id);
-                    }
+                    deleteCircuitWithUndo(circuit.id, {
+                      onRemove: () => qc.setQueryData<ElectricCircuit[]>(
+                        electricityKeys.circuits(boardId),
+                        (old) => old?.filter((c) => c.id !== circuit.id),
+                      ),
+                      onRestore: () => qc.setQueryData<ElectricCircuit[]>(
+                        electricityKeys.circuits(boardId),
+                        (old) => old ? [...old, circuit] : [circuit],
+                      ),
+                    });
                   }}
                   t={t}
                 />
@@ -704,9 +747,16 @@ export default function ElectricityPage() {
                     linkedCircuit={linkedCir}
                     onEdit={() => openEditUp(up)}
                     onDelete={() => {
-                      if (window.confirm(t('common.confirmDelete'))) {
-                        void deleteUsagePoint.mutateAsync(up.id);
-                      }
+                      deleteUsagePointWithUndo(up.id, {
+                        onRemove: () => qc.setQueryData<UsagePoint[]>(
+                          electricityKeys.usagePoints(),
+                          (old) => old?.filter((u) => u.id !== up.id),
+                        ),
+                        onRestore: () => qc.setQueryData<UsagePoint[]>(
+                          electricityKeys.usagePoints(),
+                          (old) => old ? [...old, up] : [up],
+                        ),
+                      });
                     }}
                     t={t}
                   />
@@ -782,7 +832,6 @@ export default function ElectricityPage() {
             open={circuitDialogOpen}
             onOpenChange={setCircuitDialogOpen}
             boardId={selectedBoard.id}
-            supplyType={selectedBoard.supply_type as 'single_phase' | 'three_phase'}
             devices={devices}
             existing={editingCircuit}
           />

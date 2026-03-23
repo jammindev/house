@@ -73,10 +73,28 @@ test('crée un tableau électrique', async ({ page }) => {
   await firstZoneOption.waitFor({ state: 'attached', timeout: 10_000 });
   await zoneSelect.selectOption(await firstZoneOption.getAttribute('value') as string);
 
+  // New optional fields: identifiant court et nombre de rangées
+  await page.locator('#board-label').fill('TB-E2E');
+  await page.locator('#board-rows').fill('4');
+
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
 
   // Dialog closes and the board name appears on the board tab
   await expect(page.getByText(boardName)).toBeVisible();
+});
+
+test('les nouveaux champs du BoardDialog sont visibles', async ({ page }) => {
+  await page.goto('/app/electricity');
+  await page.getByRole('button', { name: 'Nouveau tableau' }).first().click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  // Les quatre nouveaux champs doivent être présents dans le formulaire
+  await expect(dialog.getByLabel('Identifiant')).toBeVisible();
+  await expect(dialog.getByLabel('Tableau parent')).toBeVisible();
+  await expect(dialog.getByLabel('Nombre de rangées')).toBeVisible();
+  await expect(dialog.getByLabel('Modules par rangée')).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
@@ -390,8 +408,7 @@ test.describe('modification et suppression', () => {
     await dialog.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText(deviceLabel)).toBeVisible();
 
-    // Delete: accept the window.confirm dialog
-    page.once('dialog', (d) => void d.accept());
+    // Delete: item disappears immediately (optimistic removal via deleteWithUndo)
     await openCardMenu(page, deviceLabel, 'Supprimer');
 
     await expect(page.getByText(deviceLabel)).not.toBeVisible();
@@ -474,7 +491,7 @@ test.describe('modification et suppression', () => {
     await dialog.getByRole('button', { name: 'Enregistrer' }).click();
     await expect(page.getByText(upName)).toBeVisible();
 
-    page.once('dialog', (d) => void d.accept());
+    // Delete: item disappears immediately (optimistic removal via deleteWithUndo)
     await openCardMenu(page, upName, 'Supprimer');
 
     await expect(page.getByText(upName)).not.toBeVisible();
@@ -518,6 +535,11 @@ test('modifie le tableau via CardActions', async ({ page }) => {
   const editNameInput = dialog.getByLabel('Nom');
   await editNameInput.clear();
   await editNameInput.fill(boardNameEdited);
+
+  // Also set the new "label" field (identifiant court) to verify it is editable
+  const labelInput = page.locator('#board-label');
+  await labelInput.fill('TB-MODIF');
+
   await dialog.getByRole('button', { name: 'Enregistrer' }).click();
 
   await expect(page.getByText(boardNameEdited)).toBeVisible();
@@ -528,7 +550,7 @@ test('modifie le tableau via CardActions', async ({ page }) => {
 // Onglet Recherche (Lookup)
 // ---------------------------------------------------------------------------
 
-test('affiche le champ de recherche dans l\'onglet Recherche', async ({ page }) => {
+test('affiche le champ de recherche dans l\'onglet Recherche', async ({ page }: { page: import('@playwright/test').Page }) => {
   await page.goto('/app/electricity');
 
   // Need a board to access tabs
@@ -553,7 +575,7 @@ test('affiche le champ de recherche dans l\'onglet Recherche', async ({ page }) 
   await expect(page.getByRole('button', { name: 'Rechercher' })).toBeVisible();
 });
 
-test('la recherche d\'une étiquette inexistante affiche "Introuvable."', async ({ page }) => {
+test('la recherche d\'une étiquette inexistante affiche "Introuvable."', async ({ page }: { page: import('@playwright/test').Page }) => {
   await page.goto('/app/electricity');
 
   const emptyState = page.getByText('Aucun tableau électrique');

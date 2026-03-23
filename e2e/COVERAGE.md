@@ -121,6 +121,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 | État vide : bouton "Nouveau tableau" visible | ✅ |
 | Ouverture du BoardDialog depuis l'état vide | ✅ |
 | Création d'un tableau (BoardDialog) | ✅ |
+| Présence des nouveaux champs BoardDialog (label, parent, rows, slots) | ✅ |
 | Navigation onglet Tableau | ✅ |
 | Navigation onglet Circuits | ✅ |
 | Navigation onglet Points d'usage | ✅ |
@@ -138,7 +139,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 | Suppression d'un appareil via CardActions | ✅ |
 | Modification d'un point d'usage via CardActions | ✅ |
 | Suppression d'un point d'usage via CardActions | ✅ |
-| Modification du tableau via CardActions | ✅ |
+| Modification du tableau via CardActions (nom + champ label) | ✅ |
 | Onglet Recherche : champ et bouton visibles | ✅ |
 | Onglet Recherche : étiquette inexistante → "Introuvable." | ✅ |
 | Déconnexion d'un lien via "Déconnecter" | ✅ |

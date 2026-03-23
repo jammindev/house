@@ -98,7 +98,6 @@ class ElectricCircuitFactory(factory.django.DjangoModelFactory):
     )
     label = factory.Sequence(lambda n: f"CIR-{n}")
     name = factory.Sequence(lambda n: f"Circuit {n}")
-    phase = None
     is_active = True
     created_by = factory.SubFactory(UserFactory)
     updated_by = factory.SelfAttribute("created_by")

@@ -7,13 +7,12 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { useCreateCircuit, useUpdateCircuit } from './hooks';
-import type { ElectricCircuit, ProtectiveDevice, PhaseType } from '@/lib/api/electricity';
+import type { ElectricCircuit, ProtectiveDevice } from '@/lib/api/electricity';
 
 interface CircuitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   boardId: string;
-  supplyType: 'single_phase' | 'three_phase';
   devices: ProtectiveDevice[];
   existing?: ElectricCircuit;
 }
@@ -22,7 +21,6 @@ export default function CircuitDialog({
   open,
   onOpenChange,
   boardId,
-  supplyType,
   devices,
   existing,
 }: CircuitDialogProps) {
@@ -32,7 +30,6 @@ export default function CircuitDialog({
   const [label, setLabel] = React.useState('');
   const [name, setName] = React.useState('');
   const [breakerId, setBreakerId] = React.useState('');
-  const [phase, setPhase] = React.useState<PhaseType | ''>('');
   const [notes, setNotes] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
@@ -50,14 +47,12 @@ export default function CircuitDialog({
     if (existing) {
       setLabel(existing.label);
       setName(existing.name);
-      setBreakerId(existing.breaker);
-      setPhase((existing.phase as PhaseType | '') ?? '');
+      setBreakerId(existing.protective_device);
       setNotes(existing.notes ?? '');
     } else {
       setLabel('');
       setName('');
       setBreakerId('');
-      setPhase('');
       setNotes('');
     }
     setError(null);
@@ -69,17 +64,12 @@ export default function CircuitDialog({
     if (!label.trim()) { setError(t('electricity.circuit.labelRequired')); return; }
     if (!name.trim()) { setError(t('electricity.circuit.nameRequired')); return; }
     if (!breakerId) { setError(t('electricity.circuit.deviceRequired')); return; }
-    if (supplyType === 'three_phase' && !phase) {
-      setError(t('electricity.circuit.phaseRequired'));
-      return;
-    }
 
     const payload = {
       board: boardId,
-      breaker: breakerId,
+      protective_device: breakerId,
       label: label.trim(),
       name: name.trim(),
-      phase: supplyType === 'three_phase' ? (phase as PhaseType) || null : null,
       notes: notes.trim(),
     };
 
@@ -105,12 +95,6 @@ export default function CircuitDialog({
     value: d.id,
     label: d.label ? `${d.label} — ${d.rating_amps ?? '?'}A` : `${d.rating_amps ?? '?'}A`,
   }));
-
-  const phaseOptions = [
-    { value: 'L1', label: 'L1' },
-    { value: 'L2', label: 'L2' },
-    { value: 'L3', label: 'L3' },
-  ];
 
   return (
     <SheetDialog
@@ -150,19 +134,6 @@ export default function CircuitDialog({
               required
             />
           </FormField>
-
-          {supplyType === 'three_phase' && (
-            <FormField label={t('electricity.circuit.phase')} htmlFor="cir-phase">
-              <Select
-                id="cir-phase"
-                value={phase}
-                onChange={(e) => setPhase(e.target.value as PhaseType | '')}
-                options={phaseOptions}
-                placeholder={t('electricity.phaseNone')}
-                required
-              />
-            </FormField>
-          )}
 
           <FormField label={t('electricity.circuit.notes')} htmlFor="cir-notes">
             <Textarea

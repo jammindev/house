@@ -28,8 +28,8 @@ class ProtectiveDeviceAdmin(admin.ModelAdmin):
 
 @admin.register(ElectricCircuit)
 class ElectricCircuitAdmin(admin.ModelAdmin):
-    list_display = ("label", "name", "household", "protective_device", "phase", "is_active")
-    list_filter = ("phase", "is_active")
+    list_display = ("label", "name", "household", "protective_device", "is_active")
+    list_filter = ("is_active",)
     search_fields = ("label", "name", "household__name")
 
 

@@ -369,7 +369,6 @@ class TestElectricCircuitViewSet:
             "protective_device": str(pd_id),
             "label": f"CIR-{uuid.uuid4().hex[:4]}",
             "name": "Test circuit",
-            "phase": None,
             "is_active": True,
         }
         payload.update(overrides)
@@ -397,29 +396,6 @@ class TestElectricCircuitViewSet:
         assert response.status_code == status.HTTP_200_OK
         assert len(response.data) == 1
         assert response.data[0]["id"] == str(c1.id)
-
-    def test_filter_by_phase(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, phase="L1")
-        user_obj = UserFactory()
-        circuit = ElectricCircuit.objects.create(
-            household=hh, board=board, protective_device=pd,
-            label="CIR-L1", name="L1 circuit", phase="L1",
-            created_by=user_obj, updated_by=user_obj,
-        )
-        pd2 = ProtectiveDeviceFactory(board=board, household=hh, phase="L2")
-        ElectricCircuit.objects.create(
-            household=hh, board=board, protective_device=pd2,
-            label="CIR-L2", name="L2 circuit", phase="L2",
-            created_by=user_obj, updated_by=user_obj,
-        )
-        client = _client_for(owner)
-        response = client.get(self.LIST_URL(), {"phase": "L1"})
-        assert response.status_code == status.HTTP_200_OK
-        assert all(r["phase"] == "L1" for r in response.data)
-        assert str(circuit.id) in [r["id"] for r in response.data]
 
     def test_filter_by_is_active_true(self):
         hh = HouseholdFactory()
@@ -477,34 +453,6 @@ class TestElectricCircuitViewSet:
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "protective_device" in response.data
-
-    def test_three_phase_board_circuit_without_phase_returns_400(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, phase="L1")
-        client = _client_for(owner)
-        response = client.post(
-            self.LIST_URL(),
-            self._circuit_payload(board.id, pd.id, phase=None),
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "phase" in response.data
-
-    def test_single_phase_board_circuit_with_phase_returns_400(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, device_type="breaker")
-        client = _client_for(owner)
-        response = client.post(
-            self.LIST_URL(),
-            self._circuit_payload(board.id, pd.id, phase="L1"),
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "phase" in response.data
 
     def test_delete_circuit_with_active_links_returns_409(self):
         hh = HouseholdFactory()

@@ -192,7 +192,6 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
             "protective_device",
             "label",
             "name",
-            "phase",
             "is_active",
             "notes",
             "created_at",
@@ -205,7 +204,6 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
         board = attrs.get("board") or getattr(self.instance, "board", None)
         protective_device = attrs.get("protective_device") or getattr(self.instance, "protective_device", None)
         household = attrs.get("household") or getattr(self.instance, "household", None)
-        phase = attrs.get("phase", getattr(self.instance, "phase", None))
 
         if protective_device and household and protective_device.household_id != household.id:
             raise serializers.ValidationError({"protective_device": _("Protective device must belong to the same household.")})
@@ -215,11 +213,6 @@ class ElectricCircuitSerializer(HouseholdScopedModelSerializer):
             )
         if board and protective_device and board.id != protective_device.board_id:
             raise serializers.ValidationError({"protective_device": _("Protective device must belong to the selected board.")})
-
-        if board and board.supply_type == SupplyType.THREE_PHASE and not phase:
-            raise serializers.ValidationError({"phase": _("Phase is required for three-phase board.")})
-        if board and board.supply_type == SupplyType.SINGLE_PHASE and phase:
-            raise serializers.ValidationError({"phase": _("Phase must be empty for single-phase board.")})
 
         return attrs
 

@@ -276,13 +276,6 @@ class ElectricCircuit(HouseholdScopedModel):
     )
     label = models.CharField(max_length=100)
     name = models.CharField(max_length=255)
-    # Cross-table rule: must be null if board.supply_type=single_phase — enforced in service layer
-    phase = models.CharField(
-        max_length=2,
-        choices=PhaseType.choices,
-        null=True,
-        blank=True,
-    )
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True, default="")
 

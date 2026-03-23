@@ -151,7 +151,7 @@ export default function DeviceDialog({
   ];
 
   const phaseOptions = [
-    { value: '', label: t('electricity.phaseNone') },
+    { value: '', label: '—' },
     { value: 'L1', label: 'L1' },
     { value: 'L2', label: 'L2' },
     { value: 'L3', label: 'L3' },

@@ -359,7 +359,6 @@ class TestElectricCircuitSerializer:
             "protective_device": str(pd_id),
             "label": f"CIR-{uuid.uuid4().hex[:4]}",
             "name": "Test circuit",
-            "phase": None,
             "is_active": True,
         }
         payload.update(overrides)
@@ -411,41 +410,6 @@ class TestElectricCircuitSerializer:
         ser = _ser(ElectricCircuitSerializer, self._circuit_payload(board1.id, pd.id), hh)
         assert not ser.is_valid()
         assert "protective_device" in ser.errors
-
-    def test_three_phase_board_without_phase_is_invalid(self):
-        hh = HouseholdFactory()
-        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, phase="L1")
-        ser = _ser(
-            ElectricCircuitSerializer,
-            self._circuit_payload(board.id, pd.id, phase=None),
-            hh,
-        )
-        assert not ser.is_valid()
-        assert "phase" in ser.errors
-
-    def test_single_phase_board_with_phase_is_invalid(self):
-        hh = HouseholdFactory()
-        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, device_type="breaker")
-        ser = _ser(
-            ElectricCircuitSerializer,
-            self._circuit_payload(board.id, pd.id, phase="L1"),
-            hh,
-        )
-        assert not ser.is_valid()
-        assert "phase" in ser.errors
-
-    def test_single_phase_board_without_phase_is_valid(self):
-        hh = HouseholdFactory()
-        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, device_type="breaker")
-        ser = _ser(
-            ElectricCircuitSerializer,
-            self._circuit_payload(board.id, pd.id, phase=None),
-            hh,
-        )
-        assert ser.is_valid(), ser.errors
 
     def test_duplicate_label_same_household_is_invalid(self):
         circuit = ElectricCircuitFactory()

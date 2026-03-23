@@ -92,10 +92,9 @@ export interface ElectricCircuit {
   id: string;
   household: string;
   board: string;
-  breaker: string;
+  protective_device: string;
   label: string;
   name: string;
-  phase?: PhaseType | null;
   is_active?: boolean;
   notes?: string;
   created_at: string;
@@ -104,10 +103,9 @@ export interface ElectricCircuit {
 
 export interface CircuitPayload {
   board: string;
-  breaker: string;
+  protective_device: string;
   label: string;
   name: string;
-  phase?: PhaseType | null;
   is_active?: boolean;
   notes?: string;
 }
