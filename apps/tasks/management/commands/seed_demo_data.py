@@ -55,6 +55,13 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 
+from electricity.models import (
+    CircuitUsagePointLink,
+    ElectricCircuit,
+    ElectricityBoard,
+    ProtectiveDevice,
+    UsagePoint,
+)
 from households.models import Household, HouseholdMember
 from projects.models import Project
 from tasks.models import Task, TaskZone
@@ -83,6 +90,7 @@ class Command(BaseCommand):
             zones = self._create_zones(household, claire)
             projects = self._create_projects(household, claire, antoine, zones)
             self._create_tasks(household, claire, antoine, lea, zones, projects)
+            self._create_electricity(household, claire, zones)
 
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully."))
 
@@ -547,3 +555,285 @@ class Command(BaseCommand):
 
         count = Task.objects.filter(household=household).count()
         self.stdout.write(f"  Tasks: {count} créées")
+
+    # ------------------------------------------------------------------
+    # Electricity
+    # ------------------------------------------------------------------
+
+    def _create_electricity(self, household, user, zones):
+        """
+        Installation électrique fictive d'une maison individuelle 1978,
+        rénovée partiellement en 2015 — monophasé 230V, NF C 15-100 partiel.
+
+        Tableau principal → 3 rangées × 13 modules
+          Rangée 1 : DG + DD1 (type A 30mA 4P) + circuits cuisine
+          Rangée 2 : DD2 (type AC 30mA 2P) + circuits séjour/chambres/bureau
+          Rangée 3 : DD3 (type A 30mA 2P) + circuits SDB/CE/garage/extérieur + réserves
+        """
+        kw = {"created_by": user, "updated_by": user}
+
+        # ── Tableau principal ──────────────────────────────────────────────
+        board, _ = ElectricityBoard.objects.get_or_create(
+            household=household,
+            name="Tableau principal",
+            defaults={
+                "label": "TB-PRINC",
+                "zone": zones["cave"],
+                "supply_type": "single_phase",
+                "rows": 3,
+                "slots_per_row": 13,
+                "location": "Cave, coffret encastré mur nord",
+                "nf_c_15100_compliant": "partial",
+                "last_inspection_date": date(2022, 9, 14),
+                "main_notes": (
+                    "Tableau Hager — 3 rangées 13 modules. "
+                    "Mise en conformité partielle lors de la rénovation SDB en 2015. "
+                    "DD3 ajouté à cette occasion."
+                ),
+                "is_active": True,
+                **kw,
+            },
+        )
+
+        # ── Helper local ───────────────────────────────────────────────────
+        def device(label, device_type, row, position, position_end=None,
+                   role=None, rating_amps=None, pole_count=None,
+                   curve_type="", sensitivity_ma=None, type_code="",
+                   is_spare=False, notes=""):
+            obj, _ = ProtectiveDevice.objects.get_or_create(
+                household=household,
+                board=board,
+                label=label,
+                defaults={
+                    "device_type": device_type,
+                    "role": role,
+                    "row": row,
+                    "position": position,
+                    "position_end": position_end,
+                    "rating_amps": rating_amps,
+                    "pole_count": pole_count,
+                    "curve_type": curve_type,
+                    "sensitivity_ma": sensitivity_ma,
+                    "type_code": type_code,
+                    "is_spare": is_spare,
+                    "is_active": True,
+                    "notes": notes,
+                    **kw,
+                },
+            )
+            return obj
+
+        def circuit(label, name, protective_device, notes=""):
+            obj, _ = ElectricCircuit.objects.get_or_create(
+                household=household,
+                label=label,
+                defaults={
+                    "board": board,
+                    "protective_device": protective_device,
+                    "name": name,
+                    "is_active": True,
+                    "notes": notes,
+                    **kw,
+                },
+            )
+            return obj
+
+        def up(label, name, kind, zone_key, notes=""):
+            obj, _ = UsagePoint.objects.get_or_create(
+                household=household,
+                label=label,
+                defaults={
+                    "name": name,
+                    "kind": kind,
+                    "zone": zones[zone_key],
+                    "notes": notes,
+                    **kw,
+                },
+            )
+            return obj
+
+        def link(cir, usage_point):
+            CircuitUsagePointLink.objects.get_or_create(
+                household=household,
+                circuit=cir,
+                usage_point=usage_point,
+                defaults={"is_active": True, **kw},
+            )
+
+        # ── Rangée 1 — Général + Cuisine ──────────────────────────────────
+        dg    = device("DG",   "main",     row=1, position=1,  position_end=2,
+                       role="main", rating_amps=60, pole_count=2,
+                       notes="Disjoncteur de branchement EDF 60A")
+        dd1   = device("DD1",  "rcd",      row=1, position=3,  position_end=6,
+                       rating_amps=40, pole_count=4, sensitivity_ma=30, type_code="a",
+                       notes="Protège circuits cuisine (B01–B04)")
+        b01   = device("B01",  "breaker",  row=1, position=7,
+                       role="divisionary", rating_amps=20, pole_count=1, curve_type="c",
+                       notes="Prises cuisine (4 prises plan de travail)")
+        b02   = device("B02",  "breaker",  row=1, position=8,
+                       role="divisionary", rating_amps=20, pole_count=1, curve_type="c",
+                       notes="Lave-vaisselle")
+        b03   = device("B03",  "breaker",  row=1, position=9,  position_end=10,
+                       role="divisionary", rating_amps=32, pole_count=2, curve_type="c",
+                       notes="Four / cuisinière (circuit dédié 32A)"),
+        b04   = device("B04",  "breaker",  row=1, position=11,
+                       role="divisionary", rating_amps=10, pole_count=1, curve_type="b",
+                       notes="Éclairage cuisine")
+
+        # Rangée 1 : positions 12–13 libres (pas de device)
+
+        # ── Rangée 2 — Séjour / Chambres / Bureau ─────────────────────────
+        dd2   = device("DD2",  "rcd",      row=2, position=1,  position_end=2,
+                       rating_amps=40, pole_count=2, sensitivity_ma=30, type_code="ac",
+                       notes="Protège circuits séjour/chambres/bureau (B05–B09)")
+        b05   = device("B05",  "breaker",  row=2, position=3,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Prises salon")
+        b06   = device("B06",  "breaker",  row=2, position=4,
+                       role="divisionary", rating_amps=10, pole_count=1, curve_type="b",
+                       notes="Éclairage salon / entrée")
+        b07   = device("B07",  "breaker",  row=2, position=5,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Chambre parentale (prises + éclairage)")
+        b08   = device("B08",  "breaker",  row=2, position=6,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Chambre ado (prises + éclairage)")
+        b09   = device("B09",  "breaker",  row=2, position=7,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Bureau (prises + éclairage)")
+
+        # Rangée 2 : positions 8–13 libres
+
+        # ── Rangée 3 — SDB / Chauffe-eau / Garage / Extérieur ────────────
+        dd3   = device("DD3",  "rcd",      row=3, position=1,  position_end=2,
+                       rating_amps=40, pole_count=2, sensitivity_ma=30, type_code="a",
+                       notes="Ajouté lors rénovation SDB 2015. Protège B10–B14.")
+        b10   = device("B10",  "breaker",  row=3, position=3,
+                       role="divisionary", rating_amps=10, pole_count=1, curve_type="b",
+                       notes="Éclairage salle de bain")
+        b11   = device("B11",  "breaker",  row=3, position=4,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Prises salle de bain (rasoir, sèche-cheveux)")
+        b12   = device("B12",  "breaker",  row=3, position=5,  position_end=6,
+                       role="divisionary", rating_amps=20, pole_count=2, curve_type="c",
+                       notes="Chauffe-eau électrique 200L (circuit dédié)")
+        b13   = device("B13",  "breaker",  row=3, position=7,
+                       role="divisionary", rating_amps=20, pole_count=1, curve_type="c",
+                       notes="Garage (prises + éclairage + portail)")
+        b14   = device("B14",  "breaker",  row=3, position=8,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       notes="Prises extérieures / jardin")
+        b15   = device("B15",  "breaker",  row=3, position=9,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       is_spare=True, notes="Emplacement réserve")
+        b16   = device("B16",  "breaker",  row=3, position=10,
+                       role="divisionary", rating_amps=16, pole_count=1, curve_type="c",
+                       is_spare=True, notes="Emplacement réserve")
+
+        # b03 est retourné comme tuple à cause de la virgule parasite — correction
+        if isinstance(b03, tuple):
+            b03 = b03[0]
+
+        # ── Circuits ───────────────────────────────────────────────────────
+        cir01 = circuit("CIR-01", "Prises cuisine",        b01)
+        cir02 = circuit("CIR-02", "Lave-vaisselle",        b02, notes="Circuit dédié VM")
+        cir03 = circuit("CIR-03", "Four / cuisinière",     b03, notes="Circuit dédié 32A")
+        cir04 = circuit("CIR-04", "Éclairage cuisine",     b04)
+        cir05 = circuit("CIR-05", "Prises salon",          b05)
+        cir06 = circuit("CIR-06", "Éclairage salon",       b06)
+        cir07 = circuit("CIR-07", "Chambre parentale",     b07)
+        cir08 = circuit("CIR-08", "Chambre ado",           b08)
+        cir09 = circuit("CIR-09", "Bureau",                b09)
+        cir10 = circuit("CIR-10", "Éclairage salle de bain", b10)
+        cir11 = circuit("CIR-11", "Prises salle de bain",  b11)
+        cir12 = circuit("CIR-12", "Chauffe-eau",           b12, notes="Hors heures pleines")
+        cir13 = circuit("CIR-13", "Garage",                b13)
+        cir14 = circuit("CIR-14", "Extérieur / jardin",    b14)
+
+        # ── Points d'usage ─────────────────────────────────────────────────
+        # Cuisine
+        up_pcu1  = up("PRI-CUI-01", "Prise cuisine plan de travail gauche", "socket", "cuisine")
+        up_pcu2  = up("PRI-CUI-02", "Prise cuisine plan de travail droite", "socket", "cuisine")
+        up_pcu3  = up("PRI-CUI-03", "Prise cuisine îlot",                   "socket", "cuisine")
+        up_pcu4  = up("PRI-CUI-04", "Prise réfrigérateur",                  "socket", "cuisine")
+        up_lv    = up("PRI-LV-01",  "Prise lave-vaisselle",                 "socket", "cuisine",
+                      notes="Sous l'évier, circuit dédié DD1/B02")
+        up_four  = up("PRI-FOR-01", "Prise four encastré",                  "socket", "cuisine",
+                      notes="32A, circuit dédié DD1/B03")
+        up_ecl_cui = up("LUM-CUI-01", "Plafonnier cuisine",                 "light",  "cuisine")
+
+        # Salon
+        up_psal1 = up("PRI-SAL-01", "Prise salon mur nord",                 "socket", "salon")
+        up_psal2 = up("PRI-SAL-02", "Prise salon mur est",                  "socket", "salon")
+        up_psal3 = up("PRI-SAL-03", "Prise salon mur sud (TV)",             "socket", "salon")
+        up_psal4 = up("PRI-SAL-04", "Prise salon mur ouest",                "socket", "salon")
+        up_lsal1 = up("LUM-SAL-01", "Plafonnier salon",                     "light",  "salon")
+        up_lsal2 = up("LUM-SAL-02", "Applique salon",                       "light",  "salon")
+        up_lsal3 = up("LUM-ENT-01", "Plafonnier entrée",                    "light",  "salon",
+                      notes="Couloir entrée, même circuit que salon")
+
+        # Chambre parentale
+        up_ppar1 = up("PRI-PAR-01", "Prise chambre parentale chevet gauche", "socket", "chambre_parents")
+        up_ppar2 = up("PRI-PAR-02", "Prise chambre parentale chevet droit",  "socket", "chambre_parents")
+        up_ppar3 = up("PRI-PAR-03", "Prise chambre parentale bureau",        "socket", "chambre_parents")
+        up_lpar1 = up("LUM-PAR-01", "Plafonnier chambre parentale",          "light",  "chambre_parents")
+        up_lpar2 = up("LUM-PAR-02", "Applique chevet",                       "light",  "chambre_parents")
+
+        # Chambre ado
+        up_pado1 = up("PRI-ADO-01", "Prise chambre ado bureau",              "socket", "chambre_ado")
+        up_pado2 = up("PRI-ADO-02", "Prise chambre ado chevet",              "socket", "chambre_ado")
+        up_lado1 = up("LUM-ADO-01", "Plafonnier chambre ado",                "light",  "chambre_ado")
+
+        # Bureau
+        up_pbur1 = up("PRI-BUR-01", "Prise bureau informatique",             "socket", "bureau")
+        up_pbur2 = up("PRI-BUR-02", "Prise bureau multi-prises",             "socket", "bureau")
+        up_pbur3 = up("PRI-BUR-03", "Prise bureau imprimante",               "socket", "bureau")
+        up_lbur1 = up("LUM-BUR-01", "Plafonnier bureau",                     "light",  "bureau")
+
+        # Salle de bain
+        up_lsdb1 = up("LUM-SDB-01", "Plafonnier salle de bain",              "light",  "sdb")
+        up_psdb1 = up("PRI-SDB-01", "Prise salle de bain vasque",            "socket", "sdb",
+                      notes="Prise rasoir/sèche-cheveux, circuit DD3/B11")
+        up_psdb2 = up("PRI-SDB-02", "Prise sèche-serviette électrique",      "socket", "sdb")
+
+        # Garage
+        up_pgar1 = up("PRI-GAR-01", "Prise garage atelier",                  "socket", "garage")
+        up_pgar2 = up("PRI-GAR-02", "Prise garage portail automatique",      "socket", "garage")
+        up_lgar1 = up("LUM-GAR-01", "Plafonnier garage",                     "light",  "garage")
+
+        # Extérieur / jardin
+        up_pext1 = up("PRI-EXT-01", "Prise extérieure terrasse",             "socket", "jardin")
+        up_pext2 = up("PRI-EXT-02", "Prise extérieure jardin",               "socket", "jardin",
+                      notes="IP44, à proximité du robinet arrosage")
+
+        # ── Liens circuit → points d'usage ────────────────────────────────
+        for u in [up_pcu1, up_pcu2, up_pcu3, up_pcu4]:
+            link(cir01, u)
+        link(cir02, up_lv)
+        link(cir03, up_four)
+        link(cir04, up_ecl_cui)
+        for u in [up_psal1, up_psal2, up_psal3, up_psal4]:
+            link(cir05, u)
+        for u in [up_lsal1, up_lsal2, up_lsal3]:
+            link(cir06, u)
+        for u in [up_ppar1, up_ppar2, up_ppar3, up_lpar1, up_lpar2]:
+            link(cir07, u)
+        for u in [up_pado1, up_pado2, up_lado1]:
+            link(cir08, u)
+        for u in [up_pbur1, up_pbur2, up_pbur3, up_lbur1]:
+            link(cir09, u)
+        link(cir10, up_lsdb1)
+        for u in [up_psdb1, up_psdb2]:
+            link(cir11, u)
+        # cir12 (chauffe-eau) : pas de point d'usage (équipement fixe)
+        for u in [up_pgar1, up_pgar2, up_lgar1]:
+            link(cir13, u)
+        for u in [up_pext1, up_pext2]:
+            link(cir14, u)
+
+        dev_count = ProtectiveDevice.objects.filter(board=board).count()
+        cir_count = ElectricCircuit.objects.filter(board=board).count()
+        up_count  = UsagePoint.objects.filter(household=household).count()
+        self.stdout.write(
+            f"  Electricity: {dev_count} appareils, {cir_count} circuits, {up_count} points d'usage"
+        )

@@ -344,6 +344,237 @@ class TestProtectiveDeviceSerializer:
         assert not ser.is_valid()
         assert "phase_coverage" in ser.errors
 
+    # -- pole_count ----------------------------------------------------------
+
+    def test_fields_include_pole_count(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id), hh)
+        assert "pole_count" in ser.fields
+
+    def test_breaker_with_pole_count_1_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, pole_count=1), hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_breaker_with_pole_count_2_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, pole_count=2), hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_breaker_with_pole_count_3_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, device_type="breaker", phase="L1", pole_count=3), hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_breaker_with_pole_count_4_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, device_type="breaker", phase="L1", pole_count=4), hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_rcd_with_pole_count_2_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        payload = self._pd_payload(board.id, device_type="rcd", label=None, curve_type="", rating_amps=None, pole_count=2)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_rcd_with_pole_count_4_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
+        payload = self._pd_payload(board.id, device_type="rcd", label=None, curve_type="", rating_amps=None, pole_count=4)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_rcd_with_pole_count_1_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        payload = self._pd_payload(board.id, device_type="rcd", label=None, curve_type="", rating_amps=None, pole_count=1)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert not ser.is_valid()
+        assert "pole_count" in ser.errors
+
+    def test_rcd_with_pole_count_3_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
+        payload = self._pd_payload(board.id, device_type="rcd", label=None, curve_type="", rating_amps=None, pole_count=3)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert not ser.is_valid()
+        assert "pole_count" in ser.errors
+
+    def test_combined_with_pole_count_2_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        payload = self._pd_payload(board.id, device_type="combined", phase=None, pole_count=2)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_combined_with_pole_count_4_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="three_phase")
+        payload = self._pd_payload(board.id, device_type="combined", phase="L1", pole_count=4)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert ser.is_valid(), ser.errors
+
+    def test_combined_with_pole_count_1_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        payload = self._pd_payload(board.id, device_type="combined", phase=None, pole_count=1)
+        ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+        assert not ser.is_valid()
+        assert "pole_count" in ser.errors
+
+    def test_pole_count_null_is_always_valid(self):
+        """pole_count is optional — null is accepted for all device types."""
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        for dtype, extra in [
+            ("breaker", {}),
+            ("rcd", {"label": None, "curve_type": "", "rating_amps": None}),
+            ("combined", {"phase": None}),
+        ]:
+            payload = self._pd_payload(board.id, device_type=dtype, pole_count=None, **extra)
+            ser = _ser(ProtectiveDeviceSerializer, payload, hh)
+            assert ser.is_valid(), f"{dtype}: {ser.errors}"
+
+    # -- position / position_end / overlap -----------------------------------
+
+    def test_row_set_without_position_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, row=1, position=None), hh)
+        assert not ser.is_valid()
+        assert "row" in ser.errors
+
+    def test_position_set_without_row_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, row=None, position=3), hh)
+        assert not ser.is_valid()
+        assert "row" in ser.errors
+
+    def test_position_end_without_position_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=None, position=None, position_end=5),
+            hh,
+        )
+        assert not ser.is_valid()
+        assert "position_end" in ser.errors
+
+    def test_position_end_less_than_position_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=5, position_end=2),
+            hh,
+        )
+        assert not ser.is_valid()
+        assert "position_end" in ser.errors
+
+    def test_position_end_equal_to_position_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=3, position_end=3),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_position_with_row_no_end_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=3),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_position_range_with_end_greater_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=1, position_end=4),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_same_position_on_same_board_row_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ProtectiveDeviceFactory(board=board, household=hh, row=1, position=3)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=3),
+            hh,
+        )
+        assert not ser.is_valid()
+        assert "position" in ser.errors
+
+    def test_position_range_overlap_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ProtectiveDeviceFactory(board=board, household=hh, row=1, position=1, position_end=4)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=3, position_end=6),
+            hh,
+        )
+        assert not ser.is_valid()
+        assert "position" in ser.errors
+
+    def test_adjacent_positions_no_overlap_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ProtectiveDeviceFactory(board=board, household=hh, row=1, position=1, position_end=3)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=1, position=4),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_same_position_different_row_is_valid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        ProtectiveDeviceFactory(board=board, household=hh, row=1, position=3)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board.id, row=2, position=3),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_same_position_different_board_is_valid(self):
+        hh = HouseholdFactory()
+        zone = ZoneFactory(household=hh)
+        board1 = ElectricityBoardFactory(household=hh, zone=zone)
+        board2 = ElectricityBoardFactory(household=hh, zone=zone, parent=board1)
+        ProtectiveDeviceFactory(board=board1, household=hh, row=1, position=3)
+        ser = _ser(
+            ProtectiveDeviceSerializer,
+            self._pd_payload(board2.id, row=1, position=3),
+            hh,
+        )
+        assert ser.is_valid(), ser.errors
+
+    def test_update_device_excludes_self_from_overlap_check(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh)
+        existing = ProtectiveDeviceFactory(board=board, household=hh, row=1, position=3)
+        ser = _ser(ProtectiveDeviceSerializer, self._pd_payload(board.id, row=1, position=3), hh, instance=existing)
+        assert ser.is_valid(), ser.errors
+
 
 # ---------------------------------------------------------------------------
 # ElectricCircuitSerializer
@@ -422,6 +653,14 @@ class TestElectricCircuitSerializer:
             hh,
         )
         assert not ser.is_valid()
+
+    def test_spare_device_cannot_protect_circuit_is_invalid(self):
+        hh = HouseholdFactory()
+        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
+        pd = ProtectiveDeviceFactory(board=board, household=hh, device_type="breaker", is_spare=True)
+        ser = _ser(ElectricCircuitSerializer, self._circuit_payload(board.id, pd.id), hh)
+        assert not ser.is_valid()
+        assert "protective_device" in ser.errors
 
 
 # ---------------------------------------------------------------------------

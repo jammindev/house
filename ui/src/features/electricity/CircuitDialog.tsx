@@ -37,9 +37,9 @@ export default function CircuitDialog({
   const updateCircuit = useUpdateCircuit();
   const isPending = createCircuit.isPending || updateCircuit.isPending;
 
-  // Devices suitable as circuit breakers (breaker or combined)
+  // Devices suitable as circuit breakers: active, breaker or combined, not spare
   const eligibleDevices = devices.filter(
-    (d) => d.is_active !== false && (d.device_type === 'breaker' || d.device_type === 'combined'),
+    (d) => d.is_active !== false && !d.is_spare && (d.device_type === 'breaker' || d.device_type === 'combined'),
   );
 
   React.useEffect(() => {

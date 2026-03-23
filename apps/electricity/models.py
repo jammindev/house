@@ -157,6 +157,9 @@ class ProtectiveDevice(HouseholdScopedModel):
     )
     row = models.PositiveSmallIntegerField(null=True, blank=True)
     position = models.PositiveSmallIntegerField(null=True, blank=True)
+    # Optional: last occupied slot in the row. When set, device spans [position, position_end].
+    # Requires position to be set; must be >= position — enforced in service layer and DB constraint.
+    position_end = models.PositiveSmallIntegerField(null=True, blank=True)
     # Cross-table rule: must be null if board.supply_type=single_phase — enforced in service layer, not DB
     phase = models.CharField(
         max_length=2,
@@ -165,6 +168,13 @@ class ProtectiveDevice(HouseholdScopedModel):
         blank=True,
     )
     rating_amps = models.PositiveIntegerField(null=True, blank=True)
+    # Number of poles (1/2 for single-phase, 3/4 for three-phase).
+    # rcd/combined: only 2 or 4 — enforced in service layer and DB constraint.
+    pole_count = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        choices=[(1, "1 pole"), (2, "2 poles"), (3, "3 poles"), (4, "4 poles")],
+    )
     # Only relevant if device_type in (breaker, combined)
     curve_type = models.CharField(
         max_length=10,
@@ -204,11 +214,16 @@ class ProtectiveDevice(HouseholdScopedModel):
                 condition=models.Q(label__isnull=False),
                 name="uq_electricity_protective_device_label_per_household",
             ),
-            # physical slot uniqueness — only enforced when row/position are set
-            models.UniqueConstraint(
-                fields=["board", "row", "position"],
-                condition=models.Q(row__isnull=False, position__isnull=False),
-                name="uq_electricity_protective_device_position_per_board",
+            # position_end requires position, and must be >= position
+            models.CheckConstraint(
+                condition=(
+                    models.Q(position_end__isnull=True)
+                    | (
+                        models.Q(position__isnull=False)
+                        & models.Q(position_end__gte=models.F("position"))
+                    )
+                ),
+                name="chk_electricity_pd_position_end_valid",
             ),
             # breakers must not carry RCD-specific fields
             models.CheckConstraint(
@@ -233,6 +248,15 @@ class ProtectiveDevice(HouseholdScopedModel):
                     | (models.Q(row__isnull=False) & models.Q(position__isnull=False))
                 ),
                 name="chk_electricity_pd_row_position_both_or_neither",
+            ),
+            # rcd and combined devices: pole_count must be 2 or 4 (or null)
+            models.CheckConstraint(
+                condition=(
+                    ~models.Q(device_type__in=["rcd", "combined"])
+                    | models.Q(pole_count__isnull=True)
+                    | models.Q(pole_count__in=[2, 4])
+                ),
+                name="chk_electricity_pd_rcd_combined_pole_count",
             ),
         ]
 

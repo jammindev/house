@@ -54,8 +54,10 @@ export interface ProtectiveDevice {
   role?: DeviceRole | null;
   row?: number | null;
   position?: number | null;
+  position_end?: number | null;
   phase?: PhaseType | null;
   rating_amps?: number | null;
+  pole_count?: 1 | 2 | 3 | 4 | null;
   curve_type?: CurveType | '';
   sensitivity_ma?: number | null;
   type_code?: RcdTypeCode | '';
@@ -80,6 +82,10 @@ export interface DevicePayload {
   sensitivity_ma?: number | null;
   type_code?: RcdTypeCode | '';
   phase?: PhaseType | null;
+  row?: number | null;
+  position?: number | null;
+  position_end?: number | null;
+  pole_count?: 1 | 2 | 3 | 4 | null;
   parent_rcd?: string | null;
   brand?: string;
   model_ref?: string;
@@ -229,6 +235,13 @@ export async function createUsagePoint(payload: UsagePointPayload): Promise<Usag
   return data as UsagePoint;
 }
 
+export async function bulkCreateUsagePoints(
+  payload: UsagePointPayload & { quantity: number },
+): Promise<UsagePoint[]> {
+  const { data } = await api.post('/electricity/usage-points/bulk-create/', payload);
+  return data as UsagePoint[];
+}
+
 export async function updateUsagePoint(id: string, payload: Partial<UsagePointPayload>): Promise<UsagePoint> {
   const { data } = await api.patch(`/electricity/usage-points/${id}/`, payload);
   return data as UsagePoint;
@@ -259,15 +272,3 @@ export async function deactivateLink(id: string): Promise<void> {
   await api.post(`/electricity/links/${id}/deactivate/`, {});
 }
 
-// ── Lookup ────────────────────────────────────────────────────────────────────
-
-export interface LookupResult {
-  label: string;
-  type: string;
-  [key: string]: unknown;
-}
-
-export async function lookupByLabel(ref: string): Promise<LookupResult> {
-  const { data } = await api.get('/electricity/mapping/lookup/', { params: { ref } });
-  return data as LookupResult;
-}

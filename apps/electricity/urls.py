@@ -7,7 +7,6 @@ from .views import (
     ElectricCircuitViewSet,
     ElectricityBoardViewSet,
     MaintenanceEventViewSet,
-    MappingLookupView,
     PlanChangeLogViewSet,
     ProtectiveDeviceViewSet,
     UsagePointViewSet,
@@ -24,5 +23,4 @@ router.register(r"change-logs", PlanChangeLogViewSet, basename="electricity-chan
 
 urlpatterns = [
     path("", include(router.urls)),
-path("mapping/lookup/", MappingLookupView.as_view(), name="electricity-mapping-lookup"),
 ]

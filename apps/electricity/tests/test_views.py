@@ -585,6 +585,123 @@ class TestUsagePointViewSet:
 
 
 # ---------------------------------------------------------------------------
+# UsagePointViewSet — bulk_create action
+# ---------------------------------------------------------------------------
+
+@pytest.mark.django_db
+class TestUsagePointBulkCreate:
+    """Tests for the POST /api/electricity/usage-points/bulk-create/ action."""
+
+    BULK_CREATE_URL = staticmethod(lambda: reverse("electricity-usage-point-bulk-create"))
+
+    def _up_payload(self, zone_id, **overrides):
+        payload = {
+            "label": "UP-BULK",
+            "name": "Bulk point",
+            "kind": "socket",
+            "zone": str(zone_id),
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_bulk_create_quantity_1_creates_single_usage_point_with_exact_label(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, label="LAMP", quantity=1)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert len(response.data) == 1
+        # quantity=1: label must be used as-is, no suffix
+        assert response.data[0]["label"] == "LAMP"
+        up = UsagePoint.objects.get(id=response.data[0]["id"])
+        assert up.label == "LAMP"
+        assert up.household_id == hh.id
+
+    def test_bulk_create_quantity_3_creates_three_usage_points_with_suffixed_labels(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, label="PRISE", quantity=3)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert len(response.data) == 3
+        labels = [item["label"] for item in response.data]
+        assert labels == ["PRISE-01", "PRISE-02", "PRISE-03"]
+        # Verify all three exist in DB and belong to the right household
+        for item in response.data:
+            up = UsagePoint.objects.get(id=item["id"])
+            assert up.household_id == hh.id
+
+    def test_bulk_create_returns_201_with_list_of_created_objects(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, quantity=2)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert isinstance(response.data, list)
+        assert len(response.data) == 2
+        # Each item must have an id field (serializer output)
+        for item in response.data:
+            assert "id" in item
+
+    def test_bulk_create_quantity_0_is_invalid(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, quantity=0)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "quantity" in response.data
+
+    def test_bulk_create_quantity_51_is_invalid(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, quantity=51)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "quantity" in response.data
+
+    def test_bulk_create_quantity_not_integer_is_invalid(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, quantity="abc")
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "quantity" in response.data
+
+    def test_bulk_create_label_conflict_returns_400(self):
+        # The UniqueConstraint on (household, label) must surface as a 400.
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        zone = ZoneFactory(household=hh)
+        # Pre-create a usage point whose label will collide with quantity=1 request
+        UsagePointFactory(household=hh, zone=zone, label="CONFLICT")
+        client = _client_for(owner)
+        payload = self._up_payload(zone.id, label="CONFLICT", quantity=1)
+        response = client.post(self.BULK_CREATE_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        # DB must still contain exactly one usage point with that label
+        assert UsagePoint.objects.filter(household=hh, label="CONFLICT").count() == 1
+
+    def test_bulk_create_requires_authentication(self):
+        response = _anon_client().post(self.BULK_CREATE_URL(), {}, format="json")
+        assert response.status_code in {
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        }
+
+
+# ---------------------------------------------------------------------------
 # CircuitUsagePointLinkViewSet
 # ---------------------------------------------------------------------------
 
@@ -844,97 +961,3 @@ class TestPlanChangeLogViewSet:
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-# ---------------------------------------------------------------------------
-# MappingLookupView
-# ---------------------------------------------------------------------------
-
-@pytest.mark.django_db
-class TestMappingLookupView:
-    """Lookup view: resolves labels across protective devices, circuits, usage points."""
-
-    LOOKUP_URL = staticmethod(lambda: reverse("electricity-mapping-lookup"))
-
-    def test_lookup_without_ref_returns_400(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL())
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "ref" in response.data
-
-    def test_lookup_protective_device_by_label(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        board = ElectricityBoardFactory(household=hh, supply_type="single_phase")
-        pd = ProtectiveDeviceFactory(board=board, household=hh, label="D-KITCHEN")
-        user_obj = UserFactory()
-        circuit = ElectricCircuit.objects.create(
-            household=hh, board=board, protective_device=pd,
-            label="CIR-K", name="Kitchen circuit",
-            created_by=user_obj, updated_by=user_obj,
-        )
-        up = UsagePointFactory(household=hh)
-        CircuitUsagePointLinkFactory(circuit=circuit, usage_point=up, household=hh, is_active=True)
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "D-KITCHEN"})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["kind"] == "protective_device"
-        assert len(response.data["circuits"]) == 1
-        assert len(response.data["usage_points"]) == 1
-
-    def test_lookup_circuit_by_label(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        circuit = ElectricCircuitFactory(household=hh, label="CIR-MAIN")
-        up = UsagePointFactory(household=hh)
-        CircuitUsagePointLinkFactory(circuit=circuit, usage_point=up, household=hh, is_active=True)
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "CIR-MAIN"})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["kind"] == "circuit"
-        assert response.data["circuit"]["id"] == str(circuit.id)
-        assert len(response.data["usage_points"]) == 1
-
-    def test_lookup_usage_point_by_label(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        circuit = ElectricCircuitFactory(household=hh)
-        up = UsagePointFactory(household=hh, label="UP-LOUNGE")
-        CircuitUsagePointLinkFactory(circuit=circuit, usage_point=up, household=hh, is_active=True)
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "UP-LOUNGE"})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["kind"] == "usage_point"
-        assert response.data["circuit"]["id"] == str(circuit.id)
-        assert response.data["protective_device"]["id"] == str(circuit.protective_device_id)
-
-    def test_usage_point_without_active_link_returns_null_circuit_and_pd(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        up = UsagePointFactory(household=hh, label="UP-ORPHAN")
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "UP-ORPHAN"})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["kind"] == "usage_point"
-        assert response.data["circuit"] is None
-        assert response.data["protective_device"] is None
-
-    def test_circuit_without_usage_points_returns_empty_list(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        circuit = ElectricCircuitFactory(household=hh, label="CIR-EMPTY")
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "CIR-EMPTY"})
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["usage_points"] == []
-
-    def test_nonexistent_ref_returns_404(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        client = _client_for(owner)
-        response = client.get(self.LOOKUP_URL(), {"ref": "DOES-NOT-EXIST"})
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_anonymous_gets_401(self):
-        response = _anon_client().get(self.LOOKUP_URL(), {"ref": "X"})
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED

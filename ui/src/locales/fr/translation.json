@@ -66,7 +66,9 @@
       "zoneRequired": "La zone est requise.",
       "created": "Tableau créé.",
       "updated": "Tableau mis à jour.",
-      "deleted": "Tableau supprimé."
+      "deleted": "Tableau supprimé.",
+      "rowLabel": "Rangée {{n}}",
+      "unplaced": "Non positionné"
     },
     "device": {
       "title": "Appareils de protection",
@@ -89,6 +91,11 @@
       "typeCode": "Code type",
       "typeCodeOther": "Autre",
       "phase": "Phase",
+      "poleCount": "Nombre de pôles",
+      "row": "Rangée",
+      "position": "Position",
+      "positionEnd": "Position fin",
+      "positionConflict": "Position occupée par {{label}}",
       "brand": "Marque",
       "modelRef": "Référence modèle",
       "isSpare": "Emplacement de réserve",
@@ -142,7 +149,10 @@
       "nameRequired": "Le nom est requis.",
       "created": "Point d'usage ajouté.",
       "updated": "Point d'usage mis à jour.",
-      "deleted": "Point d'usage supprimé."
+      "deleted": "Point d'usage supprimé.",
+      "quantity": "Quantité",
+      "quantityHint": "Créera {{label}}-01 … {{label}}-{{count}}",
+      "createdBulk": "{{count}} points d'usage créés"
     },
     "link": {
       "new": "Nouveau lien",

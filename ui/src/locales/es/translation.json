@@ -66,7 +66,9 @@
       "zoneRequired": "La zona es obligatoria.",
       "created": "Cuadro creado.",
       "updated": "Cuadro actualizado.",
-      "deleted": "Cuadro eliminado."
+      "deleted": "Cuadro eliminado.",
+      "rowLabel": "Fila {{n}}",
+      "unplaced": "Sin posición"
     },
     "device": {
       "title": "Dispositivos de protección",
@@ -89,6 +91,11 @@
       "typeCode": "Código de tipo",
       "typeCodeOther": "Otro",
       "phase": "Fase",
+      "poleCount": "Número de polos",
+      "row": "Fila",
+      "position": "Posición",
+      "positionEnd": "Posición final",
+      "positionConflict": "Posición ocupada por {{label}}",
       "brand": "Marca",
       "modelRef": "Referencia de modelo",
       "isSpare": "Posición de reserva",
@@ -142,7 +149,10 @@
       "nameRequired": "El nombre es obligatorio.",
       "created": "Punto de uso agregado.",
       "updated": "Punto de uso actualizado.",
-      "deleted": "Punto de uso eliminado."
+      "deleted": "Punto de uso eliminado.",
+      "quantity": "Cantidad",
+      "quantityHint": "Creará {{label}}-01 … {{label}}-{{count}}",
+      "createdBulk": "{{count}} puntos de uso creados"
     },
     "link": {
       "new": "Nuevo vínculo",

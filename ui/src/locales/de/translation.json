@@ -66,7 +66,9 @@
       "zoneRequired": "Zone ist erforderlich.",
       "created": "Verteiler erstellt.",
       "updated": "Verteiler aktualisiert.",
-      "deleted": "Verteiler gelöscht."
+      "deleted": "Verteiler gelöscht.",
+      "rowLabel": "Reihe {{n}}",
+      "unplaced": "Ohne Position"
     },
     "device": {
       "title": "Schutzgeräte",
@@ -89,6 +91,11 @@
       "typeCode": "Typcode",
       "typeCodeOther": "Sonstige",
       "phase": "Phase",
+      "poleCount": "Polzahl",
+      "row": "Reihe",
+      "position": "Position",
+      "positionEnd": "Endposition",
+      "positionConflict": "Position bereits belegt durch {{label}}",
       "brand": "Marke",
       "modelRef": "Modellreferenz",
       "isSpare": "Reserveplatz",
@@ -142,7 +149,10 @@
       "nameRequired": "Name ist erforderlich.",
       "created": "Nutzungspunkt hinzugefügt.",
       "updated": "Nutzungspunkt aktualisiert.",
-      "deleted": "Nutzungspunkt gelöscht."
+      "deleted": "Nutzungspunkt gelöscht.",
+      "quantity": "Anzahl",
+      "quantityHint": "Erstellt {{label}}-01 … {{label}}-{{count}}",
+      "createdBulk": "{{count}} Nutzungspunkte erstellt"
     },
     "link": {
       "new": "Neue Verbindung",
