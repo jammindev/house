@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
@@ -99,14 +99,12 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('electricity.usagePoint.edit') : t('electricity.usagePoint.new')}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 pt-2">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('electricity.usagePoint.edit') : t('electricity.usagePoint.new')}
+    >
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <FormField label={t('electricity.usagePoint.label')} htmlFor="up-label">
               <Input
@@ -166,7 +164,6 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

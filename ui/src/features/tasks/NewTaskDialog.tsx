@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, Paperclip } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
@@ -202,15 +202,12 @@ export default function NewTaskDialog({
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.title }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('tasks.editTitle') : t('tasks.newTask')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('tasks.editTitle') : t('tasks.newTask')}
+    >
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
           )}
@@ -395,7 +392,6 @@ export default function NewTaskDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

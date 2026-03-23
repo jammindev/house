@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
@@ -111,14 +111,12 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
   const zoneOptions = zones.map((z) => ({ value: z.id, label: z.full_path ?? z.name }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('electricity.board.edit') : t('electricity.board.new')}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 pt-2">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('electricity.board.edit') : t('electricity.board.new')}
+    >
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <FormField label={t('electricity.board.name')} htmlFor="board-name">
             <Input
               id="board-name"
@@ -197,7 +195,6 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

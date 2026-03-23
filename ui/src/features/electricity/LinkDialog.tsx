@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -60,12 +60,12 @@ export default function LinkDialog({ open, onOpenChange, circuits, usagePoints }
   }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t('electricity.link.new')}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 pt-2">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('electricity.link.new')}
+    >
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <FormField label={t('electricity.link.circuit')} htmlFor="link-circuit">
             <Select
               id="link-circuit"
@@ -99,7 +99,6 @@ export default function LinkDialog({ open, onOpenChange, circuits, usagePoints }
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

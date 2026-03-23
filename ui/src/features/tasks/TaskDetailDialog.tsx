@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { FileText, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
 import { useAuth } from '@/lib/auth/useAuth';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
@@ -62,20 +62,21 @@ export default function TaskDetailDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 pr-6 text-base leading-snug">
-            {isHighPriority && (
-              <span className="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500 ring-2 ring-red-200" title={t('tasks.priorityHigh')} />
-            )}
-            {task.is_private && (
-              <Lock className="h-4 w-4 flex-shrink-0 text-muted-foreground/50" />
-            )}
-            {task.subject || t('tasks.untitledTask')}
-          </DialogTitle>
-        </DialogHeader>
-
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={
+        <span className="flex items-center gap-2 leading-snug">
+          {isHighPriority && (
+            <span className="mt-0.5 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-red-500 ring-2 ring-red-200" title={t('tasks.priorityHigh')} />
+          )}
+          {task.is_private && (
+            <Lock className="h-4 w-4 flex-shrink-0 text-muted-foreground/50" />
+          )}
+          {task.subject || t('tasks.untitledTask')}
+        </span>
+      }
+    >
         <div className="space-y-4">
           {/* Metadata */}
           <div className="flex flex-wrap items-center gap-2">
@@ -162,7 +163,6 @@ export default function TaskDetailDialog({
             </Button>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

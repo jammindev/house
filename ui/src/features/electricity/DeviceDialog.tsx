@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
@@ -158,14 +158,12 @@ export default function DeviceDialog({
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('electricity.device.edit') : t('electricity.device.new')}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4 pt-2">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('electricity.device.edit') : t('electricity.device.new')}
+    >
+        <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
           <FormField label={t('electricity.device.type')} htmlFor="dev-type">
             <Select
               id="dev-type"
@@ -300,7 +298,6 @@ export default function DeviceDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

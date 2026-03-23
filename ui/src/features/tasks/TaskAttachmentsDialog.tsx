@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, Image, MessageSquare, Paperclip, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
 import type { Task } from '@/lib/api/tasks';
 import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/api/documents';
@@ -70,21 +70,22 @@ export default function TaskAttachmentsDialog({
   const photos = linkedDocs.filter((l) => l.type === 'photo');
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent variant="mobileSheet" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Paperclip className="h-4 w-4" />
-            {t('tasks.attachmentsTitle')}
-            {task.subject ? (
-              <span className="truncate text-sm font-normal text-muted-foreground">
-                — {task.subject}
-              </span>
-            ) : null}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="mt-2 space-y-5 overflow-y-auto pb-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={
+        <span className="flex items-center gap-2">
+          <Paperclip className="h-4 w-4" />
+          {t('tasks.attachmentsTitle')}
+          {task.subject ? (
+            <span className="truncate text-sm font-normal text-muted-foreground">
+              — {task.subject}
+            </span>
+          ) : null}
+        </span>
+      }
+    >
+        <div className="space-y-5 pb-4">
           {/* Documents */}
           <section className="space-y-2">
             <div className="flex items-center justify-between">
@@ -249,7 +250,6 @@ export default function TaskAttachmentsDialog({
             )}
           </section>
         </div>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }
