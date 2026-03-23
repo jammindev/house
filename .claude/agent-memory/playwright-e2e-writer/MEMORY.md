@@ -6,3 +6,4 @@
 - [fixtures_pattern.md](fixtures_pattern.md) — Toujours importer depuis ./fixtures, pas @playwright/test. Fixture loginAs disponible.
 - [dropdown_radix_roles.md](dropdown_radix_roles.md) — Rôles ARIA des composants Radix UI (menuitem, menuitemradio, etc.)
 - [task_card_structure.md](task_card_structure.md) — Structure DOM de TaskCard et helpers getTaskCard/openTaskMenu
+- [electricity_module_patterns.md](electricity_module_patterns.md) — Sélecteurs, chaînes FR et patterns spécifiques au module Électricité (/app/electricity)
