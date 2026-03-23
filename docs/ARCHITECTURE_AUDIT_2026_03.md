@@ -70,15 +70,11 @@ class HouseholdScopedModelSerializer(serializers.ModelSerializer):
     ...
 ```
 
-### 2. Répertoire `legacy/`
+### 2. Répertoire `legacy/` ✅ Fait (2026-03-23)
 
-À archiver dans une branche git dédiée puis supprimer du `main`. C'est du bruit cognitif qui ne sert plus à rien.
+~~À archiver dans une branche git dédiée puis supprimer du `main`.~~
 
-```bash
-git checkout -b archive/legacy
-git push origin archive/legacy
-# puis supprimer legacy/ du main
-```
+Archivé dans la branche `archive/legacy`, supprimé du `main`.
 
 ### 3. Uniformiser `tests.py` → `tests/`
 
@@ -137,7 +133,7 @@ Pas maintenant. Uniquement quand tu démarres réellement le projet mobile. L'ex
 | Priorité | Action | Effort estimé |
 |----------|--------|---------------|
 | 🔴 Haute | Déplacer `HouseholdScopedModelSerializer` → `core/serializers.py` | ~30 min |
-| 🟠 Moyenne | Archiver `legacy/` dans une branche, supprimer du main | ~10 min |
+| ✅ ~~🟠 Moyenne~~ | ~~Archiver `legacy/` dans une branche, supprimer du main~~ | Fait le 2026-03-23 |
 | 🟡 Normale | Uniformiser tous les `tests.py` → `tests/` | ~1-2h |
 | 🟢 Basse | Documenter `useSessionState`, `useDeleteWithUndo`, query keys | ~30 min |
 | 🔵 Plus tard | Monorepo pour app mobile | Quand tu démarres le mobile |
