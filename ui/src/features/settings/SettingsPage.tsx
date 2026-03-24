@@ -1,21 +1,41 @@
-import { useMe, useHouseholds, usePendingInvitations } from './hooks';
-import UserSettings from './UserSettings';
+import { useTranslation } from 'react-i18next';
+import PageHeader from '@/components/PageHeader';
+import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useCurrentUser } from './hooks';
+import { ProfileSection } from './components/ProfileSection';
+import { ThemeSection } from './components/ThemeSection';
+import { ChangePasswordSection } from './components/ChangePasswordSection';
+import { HouseholdManagement } from './components/HouseholdManagement';
+import { PendingInvitations } from './components/PendingInvitations';
 
 export default function SettingsPage() {
-  const { data: user, isLoading: userLoading } = useMe();
-  const { data: households = [], isLoading: householdsLoading } = useHouseholds();
-  const { data: pendingInvitations = [] } = usePendingInvitations();
+  const { t } = useTranslation();
+  const { data: user, isLoading } = useCurrentUser();
+  const showSkeleton = useDelayedLoading(isLoading);
 
-  if (userLoading || householdsLoading || !user) {
-    return null;
+  if (showSkeleton) {
+    return (
+      <div className="space-y-6">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-32 animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
+    );
   }
 
+  if (!user) return null;
+
   return (
-    <UserSettings
-      initialUser={user}
-      initialHouseholds={households}
-      initialPendingInvitations={pendingInvitations}
-      switchHouseholdUrl="/api/households/switch/"
-    />
+    <div className="space-y-6">
+      <PageHeader title={t('settings.title')} description={t('settings.description')} />
+      <PendingInvitations />
+      <HouseholdManagement
+        currentUserId={user.id}
+        switchHouseholdUrl="/api/households/switch/"
+      />
+      <ProfileSection />
+      <ThemeSection />
+      <ChangePasswordSection />
+    </div>
   );
 }

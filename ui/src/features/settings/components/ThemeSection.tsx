@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/design-system/button';
 import { SettingsSection } from './SettingsSection';
-import type { UserProfile, Theme, ColorTheme } from '@/lib/api/users';
-import { patchMe } from '@/lib/api/users';
+import type { Theme, ColorTheme } from '@/lib/api/users';
 import { useToast } from '@/lib/toast';
 import { applyDarkMode, applyColorTheme } from '@/lib/theme';
+import { useCurrentUser, useUpdateProfile } from '../hooks';
 
 const THEME_OPTIONS: { value: Theme; labelKey: string }[] = [
   { value: 'light', labelKey: 'settings.themeLight' },
@@ -34,88 +34,55 @@ const COLOR_THEME_OPTIONS: { value: ColorTheme; labelKey: string; swatch: string
   { value: 'theme-midnight', labelKey: 'settings.colorThemeMidnight', swatch: '#4338ca' },
 ];
 
-
-interface ThemeSectionProps {
-  user: UserProfile;
-  onUserUpdate: (updated: UserProfile) => void;
-}
-
-export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
+export function ThemeSection() {
   const { t } = useTranslation();
   const { toast } = useToast();
+  const { data: user } = useCurrentUser();
+  const updateProfile = useUpdateProfile();
 
-  const [theme, setTheme] = React.useState<Theme>((user.theme as Theme) ?? 'system');
-  const [colorTheme, setColorTheme] = React.useState<ColorTheme>(
-    (user.color_theme as ColorTheme) ?? 'theme-house',
-  );
-  const [themeSaving, setThemeSaving] = React.useState(false);
-  const [colorThemeSaving, setColorThemeSaving] = React.useState(false);
+  const currentTheme = (user?.theme as Theme) ?? 'system';
+  const currentColorTheme = (user?.color_theme as ColorTheme) ?? 'theme-house';
 
-  const currentTheme = (user.theme as Theme) ?? 'system';
-  const currentColorTheme = (user.color_theme as ColorTheme) ?? 'theme-house';
-
+  // Apply theme on user data change
   React.useEffect(() => {
-    setTheme(currentTheme);
-  }, [currentTheme]);
-
-  React.useEffect(() => {
-    setColorTheme(currentColorTheme);
-  }, [currentColorTheme]);
-
-  React.useEffect(() => {
-    applyDarkMode(user.theme ?? 'system');
-  }, [user.theme]);
+    if (user?.theme) applyDarkMode(user.theme);
+  }, [user?.theme]);
 
   async function handleThemeChange(newTheme: Theme) {
-    if (newTheme === currentTheme) {
-      return;
-    }
-    setTheme(newTheme);
+    if (newTheme === currentTheme) return;
     applyDarkMode(newTheme);
-    setThemeSaving(true);
     try {
-      const updated = await patchMe({ theme: newTheme });
-      onUserUpdate(updated);
+      await updateProfile.mutateAsync({ theme: newTheme });
       toast({ description: t('settings.themeUpdated'), variant: 'success' });
     } catch {
-      toast({ description: t('settings.requestFailed', { defaultValue: 'Save failed.' }), variant: 'destructive' });
-    } finally {
-      setThemeSaving(false);
+      toast({ description: t('settings.requestFailed'), variant: 'destructive' });
     }
   }
 
   async function handleColorThemeChange(newColorTheme: ColorTheme) {
-    if (newColorTheme === currentColorTheme) {
-      return;
-    }
-    setColorTheme(newColorTheme);
+    if (newColorTheme === currentColorTheme) return;
     applyColorTheme(newColorTheme);
-    setColorThemeSaving(true);
     try {
-      const updated = await patchMe({ color_theme: newColorTheme });
-      onUserUpdate(updated);
+      await updateProfile.mutateAsync({ color_theme: newColorTheme });
       toast({ description: t('settings.themeUpdated'), variant: 'success' });
     } catch {
-      toast({ description: t('settings.requestFailed', { defaultValue: 'Save failed.' }), variant: 'destructive' });
-    } finally {
-      setColorThemeSaving(false);
+      toast({ description: t('settings.requestFailed'), variant: 'destructive' });
     }
   }
 
+  const saving = updateProfile.isPending;
+
   return (
-    <SettingsSection
-      title={t('settings.theme')}
-      description={t('settings.themeDescription')}
-    >
+    <SettingsSection title={t('settings.theme')} description={t('settings.themeDescription')}>
       <div className="space-y-5">
         <div className="flex gap-2">
           {THEME_OPTIONS.map((opt) => (
             <Button
               key={opt.value}
-              variant={theme === opt.value ? 'default' : 'outline'}
+              variant={currentTheme === opt.value ? 'default' : 'outline'}
               size="sm"
               onClick={() => void handleThemeChange(opt.value)}
-              disabled={themeSaving}
+              disabled={saving}
             >
               {t(opt.labelKey)}
             </Button>
@@ -123,21 +90,21 @@ export function ThemeSection({ user, onUserUpdate }: ThemeSectionProps) {
         </div>
 
         <div>
-          <p className="text-sm font-medium mb-2">{t('settings.colorPalette', { defaultValue: 'Color palette' })}</p>
+          <p className="mb-2 text-sm font-medium">{t('settings.colorPalette')}</p>
           <div className="flex flex-wrap gap-2">
             {COLOR_THEME_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 title={t(opt.labelKey)}
-                disabled={colorThemeSaving || currentColorTheme === opt.value}
+                disabled={saving || currentColorTheme === opt.value}
                 onClick={() => void handleColorThemeChange(opt.value)}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
-                  colorTheme === opt.value
-                    ? 'border-foreground scale-110 shadow-md'
+                className={`h-8 w-8 rounded-full border-2 transition-all ${
+                  currentColorTheme === opt.value
+                    ? 'scale-110 border-foreground shadow-md'
                     : 'border-transparent hover:scale-105'
                 }`}
                 style={{ backgroundColor: opt.swatch }}
-                aria-pressed={colorTheme === opt.value}
+                aria-pressed={currentColorTheme === opt.value}
                 aria-label={t(opt.labelKey)}
               />
             ))}

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
+import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { EquipmentListItem } from '@/lib/api/equipment';
 
@@ -39,9 +40,9 @@ export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardP
         <div>
           <Link
             to={`/app/equipment/${item.id}`}
-            className="font-medium text-sm text-foreground hover:underline"
+            className="group text-foreground hover:text-primary"
           >
-            {item.name}
+            <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">{item.name}</CardTitle>
           </Link>
           <p className="mt-1 text-xs text-muted-foreground">
             {item.category} · {item.manufacturer || t('equipment.unknown_maker')} {item.model || ''}

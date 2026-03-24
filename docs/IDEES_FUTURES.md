@@ -29,3 +29,5 @@ Quand une idée n'entre pas dans le scope immédiat :
 - Lié à : transverse
 - Intention : permettre à l'utilisateur de poser des questions en langage naturel sur l'ensemble du household
 - Référence : [docs/AI_CONTEXT_CHAT.md](/Users/benjaminvandamme/Developer/house/docs/AI_CONTEXT_CHAT.md)
+
+## Créer un compte démo en read-only ou en non persistant pour donner envie de creer un compte + employeur

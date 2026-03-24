@@ -1,5 +1,5 @@
 import { Mail, Phone, Pencil, Trash2 } from 'lucide-react';
-import { Card } from '@/design-system/card';
+import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { Contact } from '@/lib/api/contacts';
 
@@ -33,7 +33,7 @@ export default function ContactCard({ contact, onEdit, onDelete }: ContactCardPr
     <Card className="p-3 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">{fullName}</p>
+          <CardTitle>{fullName}</CardTitle>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             {email ? (
               <a

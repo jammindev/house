@@ -6,6 +6,7 @@ import { ArrowLeft, Star, Plus } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
+import { TabShell } from '@/components/TabShell';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { ProjectStatus } from '@/lib/api/projects';
 import TasksPanel from '@/features/tasks/TasksPanel';
@@ -67,7 +68,7 @@ function TabInteractions({
     return (
       <div className="space-y-2">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+          <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     );
@@ -230,7 +231,6 @@ export default function ProjectDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
 
-  const [activeTab, setActiveTab] = React.useState<Tab>('description');
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
@@ -255,7 +255,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     );
@@ -264,7 +264,7 @@ export default function ProjectDetailPage() {
 
   if (error || !project) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
         {t('projects.detail.error_loading')}
       </div>
     );
@@ -363,85 +363,73 @@ export default function ProjectDetailPage() {
         ) : null}
 
         {/* Tabs */}
-        <div>
-          <div className="flex gap-1 overflow-x-auto border-b pb-px">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={[
-                  'shrink-0 px-3 py-2 text-sm font-medium transition-colors',
-                  activeTab === tab
-                    ? 'border-b-2 border-primary text-foreground'
-                    : 'text-muted-foreground hover:text-foreground',
-                ].join(' ')}
-              >
-                {t(`projects.tabs.${tab}`)}
-              </button>
-            ))}
-          </div>
+        <TabShell
+          tabs={TABS.map((tab) => ({ key: tab, label: t(`projects.tabs.${tab}`) }))}
+          sessionKey={`project-detail.${project.id}.tab`}
+          defaultTab="description"
+        >
+          {(tab) => (
+            <Card>
+              <CardContent className="pt-4">
+                {tab === 'description' ? (
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
+                    {project.description || (
+                      <span className="italic text-muted-foreground">
+                        {t('projects.no_description')}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
 
-          <Card className="mt-3">
-            <CardContent className="pt-4">
-              {activeTab === 'description' ? (
-                <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
-                  {project.description || (
-                    <span className="italic text-muted-foreground">
-                      {t('projects.no_description')}
-                    </span>
-                  )}
-                </div>
-              ) : null}
+                {tab === 'tasks' ? (
+                  <TasksPanel
+                    projectId={project.id}
+                    stateKeyPrefix={`project.${project.id}`}
+                  />
+                ) : null}
 
-              {activeTab === 'tasks' ? (
-                <TasksPanel
-                  projectId={project.id}
-                  stateKeyPrefix={`project.${project.id}`}
-                />
-              ) : null}
+                {tab === 'notes' ? (
+                  <TabInteractions
+                    projectId={project.id}
+                    type="note"
+                    emptyKey="projects.empty_notes"
+                    addUrl={`/app/interactions/new?type=note&project_id=${project.id}`}
+                    addLabel={t('projects.add_note')}
+                  />
+                ) : null}
 
-              {activeTab === 'notes' ? (
-                <TabInteractions
-                  projectId={project.id}
-                  type="note"
-                  emptyKey="projects.empty_notes"
-                  addUrl={`/app/interactions/new?type=note&project_id=${project.id}`}
-                  addLabel={t('projects.add_note')}
-                />
-              ) : null}
+                {tab === 'expenses' ? (
+                  <TabInteractions
+                    projectId={project.id}
+                    type="expense"
+                    emptyKey="projects.empty_expenses"
+                    addUrl={`/app/interactions/new?type=expense&project_id=${project.id}`}
+                    addLabel={t('projects.add_expense')}
+                  />
+                ) : null}
 
-              {activeTab === 'expenses' ? (
-                <TabInteractions
-                  projectId={project.id}
-                  type="expense"
-                  emptyKey="projects.empty_expenses"
-                  addUrl={`/app/interactions/new?type=expense&project_id=${project.id}`}
-                  addLabel={t('projects.add_expense')}
-                />
-              ) : null}
+                {tab === 'documents' ? (
+                  <TabInteractions
+                    projectId={project.id}
+                    type="document"
+                    emptyKey="projects.empty_documents"
+                  />
+                ) : null}
 
-              {activeTab === 'documents' ? (
-                <TabInteractions
-                  projectId={project.id}
-                  type="document"
-                  emptyKey="projects.empty_documents"
-                />
-              ) : null}
+                {tab === 'timeline' ? (
+                  <TabInteractions
+                    projectId={project.id}
+                    emptyKey="projects.empty_timeline"
+                    addUrl={`/app/interactions/new?project_id=${project.id}`}
+                    addLabel={t('projects.add_activity')}
+                  />
+                ) : null}
 
-              {activeTab === 'timeline' ? (
-                <TabInteractions
-                  projectId={project.id}
-                  emptyKey="projects.empty_timeline"
-                  addUrl={`/app/interactions/new?project_id=${project.id}`}
-                  addLabel={t('projects.add_activity')}
-                />
-              ) : null}
-
-              {activeTab === 'metrics' ? <MetricsTab projectId={project.id} /> : null}
-            </CardContent>
-          </Card>
-        </div>
+                {tab === 'metrics' ? <MetricsTab projectId={project.id} /> : null}
+              </CardContent>
+            </Card>
+          )}
+        </TabShell>
       </div>
 
       <ProjectDialog

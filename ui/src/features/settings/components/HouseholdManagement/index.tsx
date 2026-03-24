@@ -16,7 +16,6 @@ import { HouseholdCreateSheet } from './components/HouseholdCreateSheet';
 import { HouseholdCard } from './components/HouseholdCard';
 
 export function HouseholdManagement({
-  initialHouseholds,
   currentUserId,
   activeHouseholdId,
   switchHouseholdUrl,
@@ -49,7 +48,6 @@ export function HouseholdManagement({
     handleEditSave,
     handleInvite,
   } = useHouseholdManagement({
-    initialHouseholds,
     activeHouseholdId,
     switchHouseholdUrl,
   });

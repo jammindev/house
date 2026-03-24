@@ -3,7 +3,7 @@ import { Pencil, Star, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
-import { Card } from '@/design-system/card';
+import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { ProjectListItem, ProjectStatus, ProjectType } from '@/lib/api/projects';
 
@@ -99,9 +99,9 @@ export default function ProjectCard({
         <div className="min-w-0 flex-1">
           <Link
             to={`/app/projects/${project.id}`}
-            className="truncate text-sm font-semibold leading-tight text-foreground hover:text-primary hover:underline"
+            className="group text-foreground hover:text-primary"
           >
-            {project.title}
+            <CardTitle className="font-semibold leading-tight text-inherit [&>span:last-child]:group-hover:underline">{project.title}</CardTitle>
           </Link>
           {project.description ? (
             <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{project.description}</p>

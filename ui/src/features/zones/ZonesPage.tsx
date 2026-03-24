@@ -3,10 +3,12 @@ import { MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
-import { useZones, zoneKeys, buildZoneTree } from './hooks';
+import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useZones, useDeleteZone, zoneKeys, buildZoneTree } from './hooks';
 import ZoneItem from './ZoneItem';
 import ZoneDialog from './ZoneDialog';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import type { Zone } from '@/lib/api/zones';
 
 export default function ZonesPage() {
   const { t } = useTranslation();
@@ -15,10 +17,25 @@ export default function ZonesPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const { data: zones = [], isLoading, error } = useZones();
+  const deleteMutation = useDeleteZone();
 
-  const handleSaved = React.useCallback(() => {
-    qc.invalidateQueries({ queryKey: zoneKeys.all });
-  }, [qc]);
+  const { deleteWithUndo } = useDeleteWithUndo({
+    label: t('zones.deleted'),
+    onDelete: (id) => deleteMutation.mutateAsync(id),
+  });
+
+  const handleDelete = React.useCallback(
+    (zone: Zone) => {
+      deleteWithUndo(zone.id, {
+        onRemove: () =>
+          qc.setQueryData<Zone[]>(zoneKeys.list(), (old = []) =>
+            old.filter((z) => z.id !== zone.id)
+          ),
+        onRestore: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
+      });
+    },
+    [deleteWithUndo, qc]
+  );
 
   const { sortedZones, depthMap } = React.useMemo(
     () => buildZoneTree(zones),
@@ -50,7 +67,7 @@ export default function ZonesPage() {
         }
       >
         {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
             {t('zones.loadFailed')}
             <button
               type="button"
@@ -65,7 +82,7 @@ export default function ZonesPage() {
         {showSkeleton ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
+              <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         ) : null}
@@ -77,7 +94,7 @@ export default function ZonesPage() {
                 key={zone.id}
                 zone={zone}
                 depth={depthMap.get(zone.id) ?? 0}
-                onSaved={handleSaved}
+                onDelete={handleDelete}
               />
             ))}
           </div>
@@ -87,7 +104,6 @@ export default function ZonesPage() {
       <ZoneDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onSaved={handleSaved}
       />
     </>
   );

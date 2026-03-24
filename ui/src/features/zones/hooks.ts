@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { toast } from '@/lib/toast';
 import {
   fetchZones,
   fetchZone,
@@ -11,6 +13,7 @@ import {
 import { fetchEquipmentList } from '@/lib/api/equipment';
 import { fetchInteractions } from '@/lib/api/interactions';
 import { fetchProjects } from '@/lib/api/projects';
+import { fetchDocuments, fetchPhotoDocuments } from '@/lib/api/documents';
 
 export const zoneKeys = {
   all: ['zones'] as const,
@@ -35,18 +38,28 @@ export function useZone(id: string) {
 
 export function useCreateZone() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: ZonePayload) => createZone(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: zoneKeys.all });
+      toast({ description: t('zones.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 
 export function useUpdateZone() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<ZonePayload> }) =>
       updateZone(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: zoneKeys.all });
+      toast({ description: t('zones.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 
@@ -54,7 +67,7 @@ export function useDeleteZone() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteZone(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: zoneKeys.all }); },
   });
 }
 
@@ -97,6 +110,22 @@ export function useZoneProjects(zoneId: string) {
   return useQuery({
     queryKey: ['zones', zoneId, 'projects'],
     queryFn: () => fetchProjects({ zone: zoneId, status: 'active' }),
+    enabled: !!zoneId,
+  });
+}
+
+export function useZoneDocuments(zoneId: string) {
+  return useQuery({
+    queryKey: ['zones', zoneId, 'documents'],
+    queryFn: () => fetchDocuments({ zone: zoneId }),
+    enabled: !!zoneId,
+  });
+}
+
+export function useZonePhotos(zoneId: string) {
+  return useQuery({
+    queryKey: ['zones', zoneId, 'photos'],
+    queryFn: () => fetchPhotoDocuments({ zone: zoneId }),
     enabled: !!zoneId,
   });
 }

@@ -29,19 +29,32 @@ const CardHeader = React.forwardRef<
 ))
 CardHeader.displayName = "CardHeader"
 
-const CardTitle = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
-      className
-    )}
-    {...props}
-  />
-))
+/** Detects a leading emoji in a string and splits it from the rest. */
+function splitLeadingEmoji(text: string): [string | null, string] {
+  const match = text.match(/^(\p{Extended_Pictographic}\uFE0F?)\s*/u);
+  if (!match) return [null, text];
+  return [match[1], text.slice(match[0].length)];
+}
+
+const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
+  ({ className, children, ...props }, ref) => {
+    const [emoji, text] =
+      typeof children === "string" ? splitLeadingEmoji(children) : [null, null];
+
+    return (
+      <div
+        ref={ref}
+        className={cn("flex min-w-0 items-center gap-1.5 text-sm font-medium text-foreground", className)}
+        {...props}
+      >
+        {emoji ? (
+          <span className="inline-block shrink-0 select-none">{emoji}</span>
+        ) : null}
+        <span className="min-w-0 truncate">{text ?? children}</span>
+      </div>
+    );
+  }
+)
 CardTitle.displayName = "CardTitle"
 
 const CardDescription = React.forwardRef<

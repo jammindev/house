@@ -1,5 +1,5 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { Card } from '@/design-system/card';
+import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { Structure } from '@/lib/api/structures';
@@ -27,7 +27,7 @@ export default function StructureCard({
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium text-foreground">{structure.name}</p>
+            <CardTitle>{structure.name}</CardTitle>
             {structure.type ? (
               <Badge variant="secondary" className="text-[11px]">
                 {structure.type}

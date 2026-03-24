@@ -1,7 +1,4 @@
-import type { Household } from '@/lib/api/households';
-
 export interface HouseholdManagementProps {
-  initialHouseholds: Household[];
   currentUserId: string;
   activeHouseholdId?: string | null;
   switchHouseholdUrl?: string;

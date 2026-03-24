@@ -13,18 +13,12 @@ const DEFAULT_COLOR = '#60A5FA';
 interface ZoneDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: () => void;
-  existingZone?: Zone;
+  existing?: Zone;
 }
 
-export default function ZoneDialog({
-  open,
-  onOpenChange,
-  onSaved,
-  existingZone,
-}: ZoneDialogProps) {
+export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogProps) {
   const { t } = useTranslation();
-  const isEditing = Boolean(existingZone);
+  const isEditing = Boolean(existing);
 
   const [name, setName] = React.useState('');
   const [parentId, setParentId] = React.useState<string>('');
@@ -45,19 +39,19 @@ export default function ZoneDialog({
 
   // When editing, exclude self and all descendants from parent options
   const parentOptions = React.useMemo(() => {
-    if (!existingZone) return sortedZones;
-    const excluded = getDescendantIds(existingZone.id, allZones);
+    if (!existing) return sortedZones;
+    const excluded = getDescendantIds(existing.id, allZones);
     return sortedZones.filter((z) => !excluded.has(z.id));
-  }, [sortedZones, existingZone, allZones]);
+  }, [sortedZones, existing, allZones]);
 
   // Reset form when dialog opens
   React.useEffect(() => {
     if (!open) return;
-    setName(existingZone?.name ?? '');
-    setParentId(existingZone?.parentId ?? existingZone?.parent ?? '');
-    setColor(existingZone?.color ?? DEFAULT_COLOR);
+    setName(existing?.name ?? '');
+    setParentId(existing?.parentId ?? existing?.parent ?? '');
+    setColor(existing?.color ?? DEFAULT_COLOR);
     setError(null);
-  }, [open, existingZone]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, existing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,13 +70,12 @@ export default function ZoneDialog({
     };
 
     try {
-      if (isEditing && existingZone) {
-        await updateMutation.mutateAsync({ id: existingZone.id, payload });
+      if (isEditing && existing) {
+        await updateMutation.mutateAsync({ id: existing.id, payload });
       } else {
         await createMutation.mutateAsync(payload);
       }
       onOpenChange(false);
-      onSaved();
     } catch {
       setError(t('common.saveFailed'));
     }
@@ -99,7 +92,7 @@ export default function ZoneDialog({
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
           {error ? (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           ) : null}
 
           {/* Name */}

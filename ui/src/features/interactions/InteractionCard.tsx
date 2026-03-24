@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
+import { Card, CardTitle } from '@/design-system/card';
 import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface InteractionCardProps {
@@ -27,11 +28,11 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
   const statusLabelKey = item.status ? `equipment.interaction_status.${item.status}` : null;
 
   return (
-    <li className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+    <Card className="p-3 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{item.subject}</p>
+            <CardTitle>{item.subject}</CardTitle>
             <Badge variant="outline">{t(typeLabelKey, { defaultValue: item.type })}</Badge>
             {statusLabelKey ? (
               <Badge variant="secondary">
@@ -61,7 +62,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
                   {item.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-800"
+                      className="rounded-full bg-muted px-1.5 py-0.5 text-xs"
                     >
                       {tag}
                     </span>
@@ -91,7 +92,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-400 hover:text-foreground"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               onClick={() => navigate(`/app/interactions/new?type=todo`)}
               aria-label={t('interactions.createTask')}
               title={t('interactions.createTask')}
@@ -103,7 +104,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-foreground"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             onClick={() => navigate(`/app/interactions/${item.id}/edit`)}
             aria-label={t('common.edit')}
             type="button"
@@ -113,7 +114,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-400 hover:text-rose-500"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => onDelete(item.id)}
             aria-label={t('common.delete')}
             type="button"
@@ -122,6 +123,6 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           </Button>
         </div>
       </div>
-    </li>
+    </Card>
   );
 }

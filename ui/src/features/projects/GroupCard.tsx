@@ -1,6 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/design-system/card';
+import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { ProjectGroupItem } from '@/lib/api/projects';
 
@@ -22,7 +22,7 @@ export default function GroupCard({ group, onEdit, onDelete }: GroupCardProps) {
     <Card className="p-3 transition-shadow hover:shadow-md">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">{group.name}</p>
+          <CardTitle>{group.name}</CardTitle>
           {group.description ? (
             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
               {group.description}

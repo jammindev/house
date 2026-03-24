@@ -1,5 +1,6 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { StockCategory } from '@/lib/api/stock';
 
@@ -34,9 +35,7 @@ export default function StockCategoryCard({
                 style={{ backgroundColor: category.color }}
               />
             ) : null}
-            <p className="text-sm font-medium text-foreground">
-              {category.emoji ? `${category.emoji} ` : ''}{category.name}
-            </p>
+            <CardTitle>{category.emoji ? `${category.emoji} ${category.name}` : category.name}</CardTitle>
           </div>
           {category.description ? (
             <p className="mt-0.5 text-xs text-muted-foreground">{category.description}</p>

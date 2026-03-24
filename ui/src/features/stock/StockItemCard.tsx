@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
+import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
 
@@ -42,7 +43,7 @@ export default function StockItemCard({ item, onEdit, onDelete }: StockItemCardP
     <li className="rounded-md border border-border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">{item.name}</p>
+          <CardTitle>{item.name}</CardTitle>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {item.category_name || t('stock.labels.not_available')}
             {item.zone_name ? ` · ${item.zone_name}` : ` · ${t('stock.labels.no_zone')}`}

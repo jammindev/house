@@ -3,6 +3,7 @@ import { FolderOpen, FolderKanban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
+import { TabShell } from '@/components/TabShell';
 import { FilterBar } from '@/design-system/filter-bar';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
@@ -31,9 +32,6 @@ const TYPE_OPTIONS = [
 export default function ProjectsPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
-
-  // Tab state
-  const [activeTab, setActiveTab] = React.useState<TabKey>('projects');
 
   // Project filters
   const [search, setSearch] = React.useState('');
@@ -133,45 +131,13 @@ export default function ProjectsPage() {
 
   return (
     <>
-      {/* Tab bar */}
-      <div className="mb-4 flex gap-1 border-b border-slate-200">
-        {TABS.map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setActiveTab(key)}
-            className={[
-              'border-b-2 px-4 py-2 text-sm font-medium transition-colors',
-              activeTab === key
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            ].join(' ')}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Projects tab */}
-      {activeTab === 'projects' ? (
-        <>
-          <ListPage
-            title={t('projects.title')}
-            isEmpty={isProjectsEmpty}
-            emptyState={
-              hasActiveFilters
-                ? {
-                    icon: FolderOpen,
-                    title: t('projects.no_filter_results'),
-                  }
-                : {
-                    icon: FolderOpen,
-                    title: t('projects.empty_list'),
-                    description: t('projects.empty_description'),
-                    action: { label: t('projects.new'), onClick: () => setProjectDialogOpen(true) },
-                  }
-            }
-            actions={
+      <TabShell
+        tabs={TABS}
+        sessionKey="projects.tab"
+        defaultTab="projects"
+        actions={(tab) => {
+          if (tab === 'projects') {
+            return (
               <button
                 type="button"
                 onClick={() => setProjectDialogOpen(true)}
@@ -179,114 +145,10 @@ export default function ProjectsPage() {
               >
                 {t('projects.new')}
               </button>
-            }
-          >
-            <div className="space-y-4">
-              <FilterBar
-                fields={[
-                  {
-                    type: 'search',
-                    id: 'proj-search',
-                    label: t('projects.search'),
-                    value: search,
-                    onChange: setSearch,
-                    placeholder: t('projects.search_placeholder'),
-                  },
-                  {
-                    type: 'select',
-                    id: 'proj-status',
-                    label: t('projects.status_label'),
-                    value: status,
-                    onChange: setStatus,
-                    options: STATUS_OPTIONS.map((s) => ({
-                      value: s,
-                      label: s ? t(`projects.status.${s}`) : t('projects.all_statuses'),
-                    })),
-                  },
-                  {
-                    type: 'select',
-                    id: 'proj-type',
-                    label: t('projects.type_label'),
-                    value: type,
-                    onChange: setType,
-                    options: TYPE_OPTIONS.map((tp) => ({
-                      value: tp,
-                      label: tp ? t(`projects.type.${tp}`) : t('projects.all_types'),
-                    })),
-                  },
-                ]}
-                onReset={resetFilters}
-                hasActiveFilters={hasActiveFilters}
-                resetLabel={t('projects.reset')}
-                applyLabel={t('projects.apply')}
-              />
-
-              {projectsError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                  {t('projects.error_loading_list')}
-                  <button
-                    type="button"
-                    onClick={() => qc.invalidateQueries({ queryKey: projectKeys.all })}
-                    className="ml-2 underline hover:no-underline"
-                  >
-                    {t('common.retry')}
-                  </button>
-                </div>
-              ) : null}
-
-              {showProjectsSkeleton ? (
-                <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
-                  ))}
-                </div>
-              ) : null}
-
-              {!projectsLoading && !projectsError ? (
-                <div className="space-y-3">
-                  {sortedProjects.map((project) => (
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      onEdit={setEditingProject}
-                      onDelete={handleDeleteProject}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </ListPage>
-
-          <ProjectDialog
-            open={projectDialogOpen}
-            onOpenChange={setProjectDialogOpen}
-            onSaved={handleProjectSaved}
-          />
-
-          <ProjectDialog
-            open={editingProject !== null}
-            onOpenChange={(open) => {
-              if (!open) setEditingProject(null);
-            }}
-            existingProject={editingProject ?? undefined}
-            onSaved={handleProjectSaved}
-          />
-        </>
-      ) : null}
-
-      {/* Groups tab */}
-      {activeTab === 'groups' ? (
-        <>
-          <ListPage
-            title={t('projects.groups.title')}
-            isEmpty={isGroupsEmpty}
-            emptyState={{
-              icon: FolderKanban,
-              title: t('projects.groups.empty'),
-              description: t('projects.groups.empty_description'),
-              action: { label: t('projects.groups.new'), onClick: () => setGroupDialogOpen(true) },
-            }}
-            actions={
+            );
+          }
+          if (tab === 'groups') {
+            return (
               <button
                 type="button"
                 onClick={() => setGroupDialogOpen(true)}
@@ -294,74 +156,205 @@ export default function ProjectsPage() {
               >
                 {t('projects.groups.new')}
               </button>
-            }
-          >
-            <div className="space-y-2">
-              {groupsError ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                  {t('projects.groups.error_loading')}
-                  <button
-                    type="button"
-                    onClick={() => qc.invalidateQueries({ queryKey: projectKeys.groups() })}
-                    className="ml-2 underline hover:no-underline"
-                  >
-                    {t('common.retry')}
-                  </button>
-                </div>
-              ) : null}
+            );
+          }
+          return null;
+        }}
+      >
+        {(tab) => (
+          <>
+            {/* Projects tab */}
+            {tab === 'projects' ? (
+              <ListPage
+                title={t('projects.title')}
+                isEmpty={isProjectsEmpty}
+                emptyState={
+                  hasActiveFilters
+                    ? {
+                        icon: FolderOpen,
+                        title: t('projects.no_filter_results'),
+                      }
+                    : {
+                        icon: FolderOpen,
+                        title: t('projects.empty_list'),
+                        description: t('projects.empty_description'),
+                        action: { label: t('projects.new'), onClick: () => setProjectDialogOpen(true) },
+                      }
+                }
+              >
+                <div className="space-y-4">
+                  <FilterBar
+                    fields={[
+                      {
+                        type: 'search',
+                        id: 'proj-search',
+                        label: t('projects.search'),
+                        value: search,
+                        onChange: setSearch,
+                        placeholder: t('projects.search_placeholder'),
+                      },
+                      {
+                        type: 'select',
+                        id: 'proj-status',
+                        label: t('projects.status_label'),
+                        value: status,
+                        onChange: setStatus,
+                        options: STATUS_OPTIONS.map((s) => ({
+                          value: s,
+                          label: s ? t(`projects.status.${s}`) : t('projects.all_statuses'),
+                        })),
+                      },
+                      {
+                        type: 'select',
+                        id: 'proj-type',
+                        label: t('projects.type_label'),
+                        value: type,
+                        onChange: setType,
+                        options: TYPE_OPTIONS.map((tp) => ({
+                          value: tp,
+                          label: tp ? t(`projects.type.${tp}`) : t('projects.all_types'),
+                        })),
+                      },
+                    ]}
+                    onReset={resetFilters}
+                    hasActiveFilters={hasActiveFilters}
+                    resetLabel={t('projects.reset')}
+                    applyLabel={t('projects.apply')}
+                  />
 
-              {showGroupsSkeleton ? (
+                  {projectsError ? (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                      {t('projects.error_loading_list')}
+                      <button
+                        type="button"
+                        onClick={() => qc.invalidateQueries({ queryKey: projectKeys.all })}
+                        className="ml-2 underline hover:no-underline"
+                      >
+                        {t('common.retry')}
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {showProjectsSkeleton ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {!projectsLoading && !projectsError ? (
+                    <div className="space-y-3">
+                      {sortedProjects.map((project) => (
+                        <ProjectCard
+                          key={project.id}
+                          project={project}
+                          onEdit={setEditingProject}
+                          onDelete={handleDeleteProject}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </ListPage>
+            ) : null}
+
+            {/* Groups tab */}
+            {tab === 'groups' ? (
+              <ListPage
+                title={t('projects.groups.title')}
+                isEmpty={isGroupsEmpty}
+                emptyState={{
+                  icon: FolderKanban,
+                  title: t('projects.groups.empty'),
+                  description: t('projects.groups.empty_description'),
+                  action: { label: t('projects.groups.new'), onClick: () => setGroupDialogOpen(true) },
+                }}
+              >
                 <div className="space-y-2">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
-                  ))}
+                  {groupsError ? (
+                    <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+                      {t('projects.groups.error_loading')}
+                      <button
+                        type="button"
+                        onClick={() => qc.invalidateQueries({ queryKey: projectKeys.groups() })}
+                        className="ml-2 underline hover:no-underline"
+                      >
+                        {t('common.retry')}
+                      </button>
+                    </div>
+                  ) : null}
+
+                  {showGroupsSkeleton ? (
+                    <div className="space-y-2">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
+                      ))}
+                    </div>
+                  ) : null}
+
+                  {!groupsLoading && !groupsError ? (
+                    <div className="space-y-2">
+                      {groups.map((group) => (
+                        <GroupCard
+                          key={group.id}
+                          group={group}
+                          onEdit={setEditingGroup}
+                          onDelete={setDeletingGroupId}
+                        />
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
-              ) : null}
+              </ListPage>
+            ) : null}
+          </>
+        )}
+      </TabShell>
 
-              {!groupsLoading && !groupsError ? (
-                <div className="space-y-2">
-                  {groups.map((group) => (
-                    <GroupCard
-                      key={group.id}
-                      group={group}
-                      onEdit={setEditingGroup}
-                      onDelete={setDeletingGroupId}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          </ListPage>
+      {/* Dialogs — outside TabShell to avoid remount on tab switch */}
+      <ProjectDialog
+        open={projectDialogOpen}
+        onOpenChange={setProjectDialogOpen}
+        onSaved={handleProjectSaved}
+      />
 
-          <GroupDialog
-            open={groupDialogOpen}
-            onOpenChange={setGroupDialogOpen}
-            onSaved={handleGroupSaved}
-          />
+      <ProjectDialog
+        open={editingProject !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingProject(null);
+        }}
+        existingProject={editingProject ?? undefined}
+        onSaved={handleProjectSaved}
+      />
 
-          <GroupDialog
-            open={editingGroup !== null}
-            onOpenChange={(open) => {
-              if (!open) setEditingGroup(null);
-            }}
-            existingGroup={editingGroup ?? undefined}
-            onSaved={handleGroupSaved}
-          />
+      <GroupDialog
+        open={groupDialogOpen}
+        onOpenChange={setGroupDialogOpen}
+        onSaved={handleGroupSaved}
+      />
 
-          <ConfirmDialog
-            open={deletingGroupId !== null}
-            onOpenChange={(open) => {
-              if (!open) setDeletingGroupId(null);
-            }}
-            title={t('common.confirmDelete')}
-            description={t('projects.groups.delete_confirm', {
-              name: groups.find((g) => g.id === deletingGroupId)?.name ?? '',
-            })}
-            onConfirm={handleConfirmDeleteGroup}
-            loading={deleteGroupMutation.isPending}
-          />
-        </>
-      ) : null}
+      <GroupDialog
+        open={editingGroup !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingGroup(null);
+        }}
+        existingGroup={editingGroup ?? undefined}
+        onSaved={handleGroupSaved}
+      />
+
+      <ConfirmDialog
+        open={deletingGroupId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeletingGroupId(null);
+        }}
+        title={t('common.confirmDelete')}
+        description={t('projects.groups.delete_confirm', {
+          name: groups.find((g) => g.id === deletingGroupId)?.name ?? '',
+        })}
+        onConfirm={handleConfirmDeleteGroup}
+        loading={deleteGroupMutation.isPending}
+      />
     </>
   );
 }

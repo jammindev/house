@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { FileText, FileX, Pencil, Trash2, ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
+import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatFileSize, type DocumentItem } from '@/lib/api/documents';
 
@@ -40,9 +41,9 @@ export default function DocumentCard({ doc, onEdit, onDelete }: DocumentCardProp
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to={`/app/documents/${doc.id}`}
-            className="truncate text-sm font-medium text-foreground hover:underline"
+            className="group text-foreground hover:text-primary"
           >
-            {fileName}
+            <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">{fileName}</CardTitle>
           </Link>
 
           {doc.type && doc.type !== 'photo' && (
