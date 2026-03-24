@@ -66,6 +66,9 @@
   --chart-5: 27 87% 67%;
   --radius: 0.5rem;
 
+  /* Shell navigation (TopBar + Sidebar) */
+  --sidebar: 220 14% 96%;
+
   /* TinyMCE editor */
   --tiny-surface: hsl(var(--card, 0 0% 100%));
   --tiny-surface-muted: hsl(var(--secondary, 0 0% 96.1%));
@@ -102,4 +105,7 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+
+  /* Shell navigation (TopBar + Sidebar) */
+  --sidebar: 222 47% 8%;
 }

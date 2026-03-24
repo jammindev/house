@@ -18,7 +18,11 @@
     "linked": "Bereits verknüpft"
   },
   "sidebar": {
-    "open": "Menü öffnen"
+    "open": "Menü öffnen",
+    "groupHome": "Zuhause",
+    "groupTracking": "Übersicht",
+    "groupResources": "Ressourcen",
+    "groupAccount": "Konto"
   },
   "electricity": {
     "title": "Elektrizität",

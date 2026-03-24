@@ -13,8 +13,8 @@ export const FilterPill = React.forwardRef<HTMLButtonElement, FilterPillProps>(
       className={cn(
         'inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
         active
-          ? 'border-slate-800 bg-slate-800 text-white'
-          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
+          ? 'border-primary bg-primary text-primary-foreground'
+          : 'border-border bg-background text-muted-foreground hover:bg-accent hover:text-foreground',
         className,
       )}
       {...props}

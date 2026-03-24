@@ -48,6 +48,14 @@ type SheetDialogRenderProps = {
   isMobile: boolean
 }
 
+type SheetDialogSize = "s" | "m" | "l"
+
+const SIZE_HEIGHT: Record<SheetDialogSize, { mobile: string; desktop: string }> = {
+  s: { mobile: "42vh", desktop: "360px" },
+  m: { mobile: "62vh", desktop: "520px" },
+  l: { mobile: "82vh", desktop: "680px" },
+}
+
 type SheetDialogProps = {
   trigger?: ReactElement<{ onClick?: (event: MouseEvent<HTMLElement>) => void }>
   children: ReactNode | ((helpers: SheetDialogRenderProps) => ReactNode)
@@ -56,6 +64,7 @@ type SheetDialogProps = {
   closeLabel?: string | null
   contentClassName?: string
   containerClassName?: string
+  size?: SheetDialogSize
   minHeight?: string
   open?: boolean
   onOpenChange?: (open: boolean) => void
@@ -69,6 +78,7 @@ export function SheetDialog({
   closeLabel = "Close",
   contentClassName,
   containerClassName,
+  size,
   minHeight,
   open: controlledOpen,
   onOpenChange,
@@ -132,7 +142,8 @@ export function SheetDialog({
             containerClassName,
           )}
           style={{
-            minHeight: minHeight,
+            height: size ? (isMobile ? SIZE_HEIGHT[size].mobile : SIZE_HEIGHT[size].desktop) : undefined,
+            minHeight: size ? undefined : minHeight,
             maxHeight: isMobile ? "87vh" : undefined,
           }}
         >

@@ -90,7 +90,7 @@ function buildCells(
 function EmptySlot() {
   return (
     <div
-      className="flex-none rounded border border-dashed border-slate-600"
+      className="flex-none rounded border border-dashed border-slate-300 dark:border-slate-600"
       style={{ width: SLOT_W, height: SLOT_H }}
       aria-hidden
     />
@@ -195,7 +195,7 @@ function DeviceModule({ device, span, onClick }: DeviceModuleProps) {
       {/* Mention RÉSERVE */}
       {device.is_spare && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="-rotate-12 text-[8px] font-semibold text-slate-500">
+          <span className="-rotate-12 text-[8px] font-semibold text-slate-400 dark:text-slate-500">
             RÉSE.
           </span>
         </div>
@@ -231,17 +231,17 @@ export function BoardPanel({ board, devices, onDeviceClick }: BoardPanelProps) {
 
   return (
     <div className="flex justify-center">
-    <div className="inline-block overflow-hidden rounded-2xl bg-slate-800 shadow-xl">
+    <div className="inline-block overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-transparent shadow-md dark:shadow-xl">
       {/* En-tête du tableau */}
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-slate-700 px-4 py-2.5">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center border-b border-slate-200 dark:border-slate-700 px-4 py-2.5">
         <div>
           {board.label ? (
-            <span className="font-mono text-xs text-slate-400">{board.label}</span>
+            <span className="font-mono text-xs text-slate-500 dark:text-slate-400">{board.label}</span>
           ) : null}
         </div>
-        <span className="text-sm font-semibold text-slate-100">{board.name}</span>
+        <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{board.name}</span>
         <div className="flex justify-end">
-        <span className="rounded bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-slate-300">
+        <span className="rounded bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
           {board.supply_type === 'three_phase' ? '3~' : '1~'}
         </span>
         </div>
@@ -253,8 +253,8 @@ export function BoardPanel({ board, devices, onDeviceClick }: BoardPanelProps) {
           ? Array.from({ length: totalRows }, (_, i) => i + 1).map((row) => {
               const cells = buildCells(placedDevices, row, totalSlots);
               return (
-                <div key={row} className="rounded-lg bg-slate-700 px-3 py-2">
-                  <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+                <div key={row} className="rounded-lg bg-slate-200 dark:bg-slate-700 px-3 py-2">
+                  <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
                     {t('electricity.board.rowLabel', { n: row })}
                   </div>
                   <div className="flex items-end overflow-x-auto pb-0.5" style={{ gap: GAP }}>
@@ -278,8 +278,8 @@ export function BoardPanel({ board, devices, onDeviceClick }: BoardPanelProps) {
 
         {/* Appareils sans position */}
         {unplacedDevices.length > 0 && (
-          <div className="rounded-lg border border-dashed border-slate-600 px-3 py-2">
-            <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-500">
+          <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-600 px-3 py-2">
+            <div className="mb-1.5 text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
               {t('electricity.board.unplaced')}
             </div>
             <div className="flex flex-wrap" style={{ gap: GAP }}>

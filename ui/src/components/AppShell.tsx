@@ -1,25 +1,16 @@
-import { Menu } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { SidebarToggleProvider, useSidebarToggle } from './SidebarToggleContext';
+import { SidebarToggleProvider } from './SidebarToggleContext';
 import Sidebar from './Sidebar';
+import TopBar from './TopBar';
 import ImpersonationBanner from './ImpersonationBanner';
 
 function AppShellInner({ children }: { children?: React.ReactNode }) {
-  const { toggleSidebar } = useSidebarToggle();
-  const { t } = useTranslation();
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="h-screen bg-sidebar flex flex-col">
       <ImpersonationBanner />
-      <div className="flex flex-1 overflow-hidden">
+      <TopBar />
+      <div className="flex flex-1 overflow-hidden gap-2">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto p-2">
-          <button
-            onClick={toggleSidebar}
-            className="lg:hidden mb-2 p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent/80 active:scale-95 transition-all"
-            aria-label={t('sidebar.open')}
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+        <main className="flex-1 overflow-y-auto rounded-tl-xl border-l border-t border-border bg-background p-4">
           {children}
         </main>
       </div>

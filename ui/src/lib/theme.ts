@@ -1,4 +1,5 @@
 export function applyDarkMode(theme: string) {
+  localStorage.setItem('theme', theme);
   const html = document.documentElement;
   html.classList.remove('dark');
   if (theme === 'dark') {
