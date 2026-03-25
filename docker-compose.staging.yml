@@ -23,7 +23,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: .env.staging
+    env_file: .env
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
     volumes:
