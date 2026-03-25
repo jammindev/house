@@ -1,5 +1,12 @@
 # Règles du projet house
 
+## Workflow Git
+
+- Branche principale de dev : `develop`
+- **Toutes les PRs doivent cibler `develop`**, jamais `main` directement
+- `main` ne reçoit que des PRs depuis `develop` (ou hotfix)
+- Nommage des branches : `<type>/<app>-<description-courte>` (ex: `fix/general-theme-logout`, `feat/tasks-delete`)
+
 ## Commandes utiles
 
 ### Backend Django
