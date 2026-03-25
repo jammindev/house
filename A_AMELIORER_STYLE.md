@@ -1,1 +1,2 @@
 - bug light mode dark mode quand deconnexion on perd le theme
+- Quand on arrive sur la page d'acceuil : blink avec un autre theme : il faut vraiment ne reien afficher tant que tout n'est pas chargé"
