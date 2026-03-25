@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   backend:
@@ -68,10 +68,10 @@ jobs:
         run: npm run build
 
   deploy:
-    name: Deploy to Mac Mini
+    name: Deploy to Production
     runs-on: self-hosted
     needs: [backend, frontend]
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Pull latest code
@@ -90,3 +90,19 @@ jobs:
         run: |
           cd ~/jammin-dev/apps/house
           /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: self-hosted
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+
+    steps:
+      - name: Deploy to staging
+        run: |
+          cd ~/jammin-dev/apps/house-staging
+          git fetch origin develop
+          git reset --hard origin/develop
+          COMPOSE_PROJECT_NAME=house-staging /usr/local/bin/docker compose -f docker-compose.staging.yml build
+          COMPOSE_PROJECT_NAME=house-staging /usr/local/bin/docker compose -f docker-compose.staging.yml up -d
+          COMPOSE_PROJECT_NAME=house-staging /usr/local/bin/docker compose -f docker-compose.staging.yml exec -T web python manage.py migrate
