@@ -48,6 +48,10 @@ urlpatterns += [
 ]
 
 urlpatterns += [
+    path("manifest.json", TemplateView.as_view(
+        template_name="manifest.json",
+        content_type="application/manifest+json",
+    ), name="manifest"),
     re_path(r"^(?!api/|admin/|static/|media/|i18n/).*$",
             TemplateView.as_view(template_name="index.html"),
             name="spa_catchall"),

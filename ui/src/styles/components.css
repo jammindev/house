@@ -41,6 +41,8 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   *,
@@ -122,6 +124,7 @@
     font-size: 1rem;
     color: hsl(var(--foreground));
     transition: border-color 150ms, box-shadow 150ms;
+    touch-action: manipulation;
   }
 
   .input::placeholder {

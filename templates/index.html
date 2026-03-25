@@ -4,14 +4,28 @@
   <script>
     (function () {
       var t = localStorage.getItem('theme');
-      if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-      }
+      var isDark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) document.documentElement.classList.add('dark');
+      var meta = document.getElementById('theme-color-meta');
+      if (meta) meta.setAttribute('content', isDark ? '#0b111e' : '#f3f4f6');
     })();
   </script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>House</title>
+
+  <!-- PWA iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="House" />
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png" />
+
+  <!-- Theme color (mis à jour par le script ci-dessus) -->
+  <meta id="theme-color-meta" name="theme-color" content="#f3f4f6" />
+
+  <!-- Web App Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
   {% load django_vite %}
   {% vite_hmr_client %}
   {% vite_react_refresh %}
