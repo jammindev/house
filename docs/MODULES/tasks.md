@@ -25,4 +25,3 @@
 - La transition `done` est correctement gérée côté backend (`apps/tasks/views.py:123-128`) : `completed_at` et `completed_by` sont auto-set / auto-cleared.
 - La page `TasksPage` est un wrapper minimal de `TasksPanel` (réutilisable côté projets).
 - Suppression : soft-delete via `status='archived'` côté backend ; le frontend utilise `useDeleteWithUndo` + DELETE HTTP, donc l'undo restaure en repassant l'item en `pending` (à vérifier dans le hook `useDeleteTask`).
-- Référence : `docs/TASK_V2.md` pour les décisions d'architecture du modèle autonome.

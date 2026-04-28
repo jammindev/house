@@ -23,7 +23,7 @@
 
 ## Notes
 
-- Multi-tenancy défensive à 4 niveaux (DB FK / ORM manager / middleware request.household / serializer base class) — `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 17-24.
+- Multi-tenancy défensive à 4 niveaux (DB FK / ORM manager / middleware `request.household` / serializer base class).
 - `HouseholdScopedModel.save` lève `ValueError` si `household_id` absent — *garde-fou strict* (`apps/core/models.py:52-56`).
 - `ActiveHouseholdMiddleware` résout le user dans l'ordre : JWT Bearer → `_force_auth_user` (tests) → session (`apps/core/middleware.py:73-107`).
 - `serve_protected_media` : en `DEBUG` Django serve directement le fichier ; en prod, X-Accel-Redirect vers `/_protected_media/` (Nginx `internal;`).

@@ -22,5 +22,5 @@
 ## Notes
 
 - Le build frontend est inclus dans l'image Docker (multi-stage), pas publié séparément. `gen:api:refresh` requiert le serveur Django local sur `:8001`.
-- Les fichiers `/media/` passent par Django (`serve_protected_media`) puis Nginx via `X-Accel-Redirect` (sécurité IDOR — `docs/SECURITY_REVIEW.md` §8 résolu).
+- Les fichiers `/media/` passent par Django (`serve_protected_media`) puis Nginx via `X-Accel-Redirect` — permission check côté Django avant délégation Nginx (protection IDOR).
 - Le runner GitHub Actions est `self-hosted` org-level (`jammindev`), localisé sur le Mac Mini dans `~/jammin-dev/runners/org/`.

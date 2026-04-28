@@ -5,7 +5,7 @@
 ## État synthétique
 
 - **Périmètre** : `LoginPage`, `ProtectedLayout`, `AuthProvider` + contexte React, intercepteur Axios JWT (request + refresh), gestion impersonation. Pas de store Zustand pour l'auth — c'est un Context React qui expose `user`, `login`, `logout`, `impersonate`, `stopImpersonation`.
-- **Health** : stable fonctionnellement, **dette sécu connue** (JWT en `localStorage` → exposé XSS, voir `docs/SECURITY_REVIEW.md` §2).
+- **Health** : stable fonctionnellement, **dette sécu connue** (JWT en `localStorage` → exposé XSS, voir issue #47).
 
 ## Composition
 
@@ -20,7 +20,7 @@
 
 ## Notes
 
-- L'impersonation backend est sécurisée (audit log côté Django, endpoint users restreint aux staff — voir `docs/SECURITY_REVIEW.md` §3, §4 résolus).
+- L'impersonation backend est sécurisée (audit log côté Django, endpoint users restreint aux staff).
 - `parseJwtPayload` lit le claim `impersonated_by` directement depuis le JWT côté client — purement informatif, l'autorisation reste serveur.
 - Le message "Chargement…" a été retiré de `ProtectedLayout` : le composant rend `null` pendant `isLoading` au lieu d'un texte hardcodé (`ui/src/components/ProtectedLayout.tsx:24`).
 - Thème persisté en `localStorage` (`theme`, `color_theme`) séparément des tokens — le `logout()` ne supprime pas ces clés, le thème survit à la déconnexion.

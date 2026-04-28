@@ -55,5 +55,5 @@ Le prochain sujet à attaquer devrait être le parcours 02.
 Avant de coder, repartir de :
 
 1. l'état courant du produit dans [docs/JOURNAL_PRODUIT.md](/Users/benjaminvandamme/Developer/house/docs/JOURNAL_PRODUIT.md)
-2. les idées non traitées dans [docs/IDEES_FUTURES.md](/Users/benjaminvandamme/Developer/house/docs/IDEES_FUTURES.md)
+2. les idées non traitées sur GitHub (label `idea`)
 3. les décisions déjà figées dans les docs du parcours 01

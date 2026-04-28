@@ -16,7 +16,7 @@ Après chaque session produit importante :
 
 1. mettre à jour le statut ci-dessous si nécessaire
 2. ajouter une entrée datée dans `docs/journal/`
-3. enregistrer les idées non traitées dans `docs/IDEES_FUTURES.md`
+3. enregistrer les idées non traitées comme issue GitHub avec le label `idea`
 
 ## État actuel
 
@@ -142,4 +142,4 @@ Axes suivants après le parcours 06 :
 
 ## Backlog d'idées futures
 
-- [docs/IDEES_FUTURES.md](/Users/benjaminvandamme/Developer/house/docs/IDEES_FUTURES.md)
+- [GitHub issues — label `idea`](https://github.com/jammindev/house/issues?q=is%3Aopen+is%3Aissue+label%3Aidea)
