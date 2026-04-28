@@ -59,6 +59,13 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
     setError(null);
   }, [open, existing]);
 
+  // Pré-sélection de la racine pour les nouvelles entrées.
+  React.useEffect(() => {
+    if (!open || existing || !zones.length || zoneId) return;
+    const root = zones.find((z) => !z.parent);
+    if (root) setZoneId(root.id);
+  }, [open, existing, zones, zoneId]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);

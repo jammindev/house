@@ -57,6 +57,7 @@ export interface HouseholdMember {
 export interface Zone {
   id: string;
   name: string;
+  parent?: string | null;
 }
 
 export const COLUMN_SEQUENCE: TaskColumnId[] = ['backlog', 'pending', 'in_progress', 'done'];

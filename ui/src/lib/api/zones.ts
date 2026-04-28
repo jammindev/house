@@ -33,6 +33,14 @@ export interface ZonePayload {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Retourne la zone racine du household (parent === null).
+ * Garantie d'exister par la DB constraint (1 racine par household).
+ */
+export function findRootZone(zones: Zone[]): Zone | undefined {
+  return zones.find((z) => !z.parentId && !z.parent);
+}
+
 function normalizeZone(raw: Zone & { parent?: string | null }): Zone {
   return {
     ...raw,

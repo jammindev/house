@@ -51,15 +51,19 @@ class TestZonesExtraApi:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     def test_tree_returns_nested_children(self, owner_client, household, owner):
-        parent = Zone.objects.create(household=household, name="Home", created_by=owner)
+        # Le household possède déjà une racine ('Maison') créée par le signal.
+        root = Zone.objects.get(household=household, parent__isnull=True)
+        parent = Zone.objects.create(household=household, name="Home", parent=root, created_by=owner)
         child = Zone.objects.create(household=household, name="Living room", parent=parent, created_by=owner)
 
         url = reverse("zone-tree")
         response = owner_client.get(url, {"household_id": str(household.id)})
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.data[0]["id"] == str(parent.id)
-        assert response.data[0]["children"][0]["id"] == str(child.id)
+        assert response.data[0]["id"] == str(root.id)
+        # 'Home' apparaît comme enfant direct de la racine.
+        home_node = next(c for c in response.data[0]["children"] if c["id"] == str(parent.id))
+        assert home_node["children"][0]["id"] == str(child.id)
 
     def test_children_returns_direct_children(self, owner_client, household, owner):
         parent = Zone.objects.create(household=household, name="Ground floor", created_by=owner)

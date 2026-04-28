@@ -47,6 +47,14 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
     fetchBoards().then(setBoards).catch(() => setBoards([]));
   }, [open]);
 
+  // Pré-sélection de la racine pour les nouveaux boards.
+  React.useEffect(() => {
+    if (!open || existing || !zones.length) return;
+    if (zoneId) return;
+    const root = zones.find((z) => !z.parent);
+    if (root) setZoneId(root.id);
+  }, [open, existing, zones, zoneId]);
+
   React.useEffect(() => {
     if (!open) return;
     if (existing) {

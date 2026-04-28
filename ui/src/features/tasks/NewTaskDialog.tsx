@@ -130,8 +130,10 @@ export default function NewTaskDialog({
     if (existingTask?.zone_names?.length) {
       const match = zones.find((z) => existingTask.zone_names.includes(z.name));
       if (match) setZoneId(match.id);
-    } else if (!existingTask && zones.length === 1) {
-      setZoneId(zones[0].id);
+    } else if (!existingTask) {
+      // Pré-sélectionne la racine du household (parent === null) par défaut.
+      const root = zones.find((z) => !z.parent);
+      if (root) setZoneId(root.id);
     }
   }, [zones]); // eslint-disable-line react-hooks/exhaustive-deps
 

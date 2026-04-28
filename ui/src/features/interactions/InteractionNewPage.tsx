@@ -73,6 +73,13 @@ export default function InteractionNewPage() {
       .catch(() => {});
   }, []);
 
+  // Pré-sélection de la racine si rien n'est imposé via le query param.
+  React.useEffect(() => {
+    if (zoneIsLocked || zoneId || !zones.length) return;
+    const root = zones.find((z) => !z.parent);
+    if (root) setZoneId(root.id);
+  }, [zones, zoneId, zoneIsLocked]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setFormError(null);

@@ -247,7 +247,9 @@ class TestHouseholdScopedInfrastructure:
 
 		result = list(Zone.objects.for_household(household_a.id))
 
-		assert result == [zone_a]
+		# Filtre OK : zone Kitchen + racine 'Maison' auto-créée pour household_a uniquement.
+		assert zone_a in result
+		assert all(z.household_id == household_a.id for z in result)
 
 	def test_household_scoped_manager_filters_user_memberships(self):
 		user = _create_user("manager-user@example.com")
@@ -261,7 +263,9 @@ class TestHouseholdScopedInfrastructure:
 
 		result = list(Zone.objects.for_user_households(user))
 
-		assert result == [zone_a]
+		# Filtré sur household_a uniquement (zone Office + racine 'Maison' auto-créée).
+		assert zone_a in result
+		assert all(z.household_id == household_a.id for z in result)
 
 	def test_household_scoped_manager_uses_custom_queryset(self):
 		assert isinstance(Zone.objects, HouseholdScopedManager)

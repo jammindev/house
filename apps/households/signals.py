@@ -3,6 +3,16 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
 
+@receiver(post_save, sender='households.Household')
+def create_root_zone_for_household(sender, instance, created, **kwargs):
+    """Each household has exactly one root zone (parent=None) named 'Maison'."""
+    if not created:
+        return
+    from zones.models import Zone
+    if not Zone.objects.filter(household=instance, parent__isnull=True).exists():
+        Zone.objects.create(household=instance, name='Maison')
+
+
 @receiver(post_save, sender='households.HouseholdMember')
 def set_active_household_on_join(sender, instance, created, **kwargs):
     """When a user joins a household for the first time, auto-set it as active."""

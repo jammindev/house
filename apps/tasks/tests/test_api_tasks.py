@@ -105,15 +105,17 @@ class TestTaskCrud:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["due_date"] == "2026-06-01"
 
-    def test_create_requires_at_least_one_zone(self, owner_client, household):
+    def test_create_falls_back_to_household_root_when_no_zone(self, owner_client, household):
+        # Sans zone explicite → on rattache à la racine 'Maison' (créée par signal).
         url = reverse("task-list")
         response = owner_client.post(
             url,
             _task_payload([]),
             format="json",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "zone_ids" in response.data
+        assert response.status_code == status.HTTP_201_CREATED
+        root = Zone.objects.get(household=household, parent__isnull=True)
+        assert response.data["zone_names"] == [root.name]
 
     def test_create_rejects_zone_from_other_household(self, owner_client, household, owner):
         other_hh = _create_household("Other House")

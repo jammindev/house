@@ -71,8 +71,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         return ctx
 
     def perform_create(self, serializer):
-        zone_ids = self.request.data.get('zone_ids') or []
-        if not isinstance(zone_ids, list) or not zone_ids:
+        zone_ids = serializer.validated_data.get('zone_ids') or []
+        # Aucune zone fournie → on attache à la racine du household actif (créée
+        # automatiquement à la création du foyer, garantie d'exister).
+        if not zone_ids and self.request.household:
+            root = Zone.objects.filter(household=self.request.household, parent__isnull=True).first()
+            if root is not None:
+                zone_ids = [str(root.id)]
+                serializer.validated_data['zone_ids'] = zone_ids
+        if not zone_ids:
             raise ValidationError({'zone_ids': 'At least one zone is required.'})
 
         zones = list(

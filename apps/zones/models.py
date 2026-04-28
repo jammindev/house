@@ -65,15 +65,31 @@ class Zone(HouseholdScopedModel):
                 condition=models.Q(color__regex=r'^#[0-9A-Fa-f]{6}$'),
                 name='zones_color_hex_check',
             ),
+            # Garantit qu'un foyer a exactement une zone racine (parent IS NULL).
+            models.UniqueConstraint(
+                fields=['household'],
+                condition=models.Q(parent__isnull=True),
+                name='zones_one_root_per_household',
+            ),
         ]
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
-        """Validate parent zone belongs to same household."""
+        """Validate parent + auto-attach to household root when no parent given."""
         if self.parent and self.parent.household_id != self.household_id:
             raise ValueError("Parent zone must belong to the same household")
+        # Auto-attach: si pas de parent et qu'une racine existe déjà → enfant de la racine.
+        # (un nouveau household crée sa racine via le signal post_save → ce code la préserve)
+        if self.parent_id is None and self._state.adding and self.household_id:
+            existing_root = (
+                Zone.objects.filter(household_id=self.household_id, parent__isnull=True)
+                .exclude(pk=self.pk)
+                .first()
+            )
+            if existing_root is not None:
+                self.parent = existing_root
         super().save(*args, **kwargs)
 
     @property
@@ -89,6 +105,18 @@ class Zone(HouseholdScopedModel):
         if not self.parent:
             return 0
         return 1 + self.parent.depth
+
+    @property
+    def is_root(self):
+        return self.parent_id is None
+
+    @classmethod
+    def get_root_for(cls, household):
+        """Return the household's root zone (creates it if missing)."""
+        root = cls.objects.filter(household=household, parent__isnull=True).first()
+        if root is None:
+            root = cls.objects.create(household=household, name='Maison')
+        return root
 
 
 class ZoneDocument(models.Model):

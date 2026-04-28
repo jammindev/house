@@ -50,7 +50,6 @@ def test_stale_update_returns_conflict():
 		f'/api/zones/{zone.id}/',
 		{
 			'name': 'Salon principal',
-			'parent': None,
 			'note': '',
 			'surface': None,
 			'last_known_updated_at': zone.updated_at.isoformat(),
