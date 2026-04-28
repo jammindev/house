@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useMe } from '../features/settings/hooks';
@@ -16,17 +16,13 @@ export default function ProtectedLayout() {
     }
   }, [profile?.theme, profile?.color_theme]);
 
-  if (isLoading) return (
-    <div className="flex h-screen items-center justify-center">
-      <span className="text-muted-foreground">Chargement…</span>
-    </div>
-  );
-
-  if (!user) return <Navigate to="/login" replace />;
+  if (!isLoading && !user) return <Navigate to="/login" replace />;
 
   return (
     <AppShell>
-      <Outlet />
+      <Suspense fallback={null}>
+        {isLoading ? null : <Outlet />}
+      </Suspense>
     </AppShell>
   );
 }
