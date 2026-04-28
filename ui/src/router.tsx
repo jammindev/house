@@ -1,6 +1,8 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
 import LoginPage from './features/auth/LoginPage';
+import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
+import ResetPasswordPage from './features/auth/ResetPasswordPage';
 import { lazyWithReload } from './lib/lazyWithReload';
 
 const TasksPage = lazyWithReload(() => import('./features/tasks/TasksPage'));
@@ -28,6 +30,14 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: '/reset-password',
+    element: <ResetPasswordPage />,
   },
   {
     path: '/app',

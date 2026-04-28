@@ -22,6 +22,20 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Mot de passe oublié (`password-reset.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Lien "Mot de passe oublié ?" depuis /login → /forgot-password | ✅ |
+| Demande de reset (email connu) → message générique de succès | ✅ |
+| Demande de reset (email inconnu) → même message générique (anti-enum) | ✅ |
+| /reset-password sans uid/token → message d'erreur | ✅ |
+| Reset complet (token valide) → redirect /login → re-login OK | ✅ |
+| Reset avec token invalide → erreur, reste sur /reset-password | ✅ |
+| Mots de passe non identiques → erreur de validation client | ✅ |
+
+---
+
 ## Tâches — liste globale (`tasks.spec.ts`)
 
 | Parcours | Statut |
