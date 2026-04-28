@@ -32,16 +32,36 @@ function sortByPriority(tasks: Task[]): Task[] {
 interface TasksPanelProps {
   projectId?: string;
   stateKeyPrefix?: string;
+  /** When provided, the parent owns the New Task dialog state and renders the trigger button itself (e.g. inside a PageHeader). */
+  newTaskOpen?: boolean;
+  onNewTaskOpenChange?: (open: boolean) => void;
 }
 
-export default function TasksPanel({ projectId, stateKeyPrefix }: TasksPanelProps) {
+export default function TasksPanel({
+  projectId,
+  stateKeyPrefix,
+  newTaskOpen: controlledNewTaskOpen,
+  onNewTaskOpenChange,
+}: TasksPanelProps) {
   const { t } = useTranslation();
   const qc = useQueryClient();
 
   const isEmbedded = Boolean(projectId);
   const prefix = stateKeyPrefix ?? 'tasks';
 
-  const [newTaskOpen, setNewTaskOpen] = React.useState(false);
+  const isNewTaskControlled = controlledNewTaskOpen !== undefined && onNewTaskOpenChange !== undefined;
+  const [internalNewTaskOpen, setInternalNewTaskOpen] = React.useState(false);
+  const newTaskOpen = isNewTaskControlled ? controlledNewTaskOpen : internalNewTaskOpen;
+  const setNewTaskOpen = React.useCallback(
+    (open: boolean) => {
+      if (isNewTaskControlled) {
+        onNewTaskOpenChange!(open);
+      } else {
+        setInternalNewTaskOpen(open);
+      }
+    },
+    [isNewTaskControlled, onNewTaskOpenChange],
+  );
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [attachmentsTask, setAttachmentsTask] = React.useState<Task | null>(null);
   const [detailTask, setDetailTask] = React.useState<Task | null>(null);
@@ -172,12 +192,14 @@ export default function TasksPanel({ projectId, stateKeyPrefix }: TasksPanelProp
   return (
     <>
       <div className="space-y-4">
-        <div className="flex justify-end">
-          <Button onClick={() => setNewTaskOpen(true)}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            {t('tasks.new')}
-          </Button>
-        </div>
+        {!isNewTaskControlled ? (
+          <div className="flex justify-end">
+            <Button onClick={() => setNewTaskOpen(true)}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              {t('tasks.new')}
+            </Button>
+          </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-1.5">
           {multipleMembers && (
