@@ -21,6 +21,7 @@ const ElectricityPage = lazyWithReload(() => import('./features/electricity/Elec
 const PhotosPage = lazyWithReload(() => import('./features/photos/PhotosPage'));
 const SettingsPage = lazyWithReload(() => import('./features/settings/SettingsPage'));
 const DashboardPage = lazyWithReload(() => import('./features/dashboard/DashboardPage'));
+const AlertsPage = lazyWithReload(() => import('./features/alerts/AlertsPage'));
 const AdminUsersPage = lazyWithReload(() => import('./features/admin/AdminUsersPage'));
 
 export const router = createBrowserRouter([
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: 'directory', element: <DirectoryPage /> },
       { path: 'electricity', element: <ElectricityPage /> },
       { path: 'photos', element: <PhotosPage /> },
+      { path: 'alerts', element: <AlertsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
     ],

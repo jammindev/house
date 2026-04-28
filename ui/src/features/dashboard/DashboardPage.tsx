@@ -25,6 +25,7 @@ import { Button, buttonVariants } from '@/design-system/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { cn } from '@/lib/utils';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import AlertsSection from '@/features/alerts/AlertsSection';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -398,6 +399,9 @@ export default function DashboardPage() {
           </div>
         </div>
       </section>
+
+      {/* Alertes proactives */}
+      <AlertsSection />
 
       {/* Summary cards */}
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

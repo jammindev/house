@@ -1384,5 +1384,33 @@
     "decline": "Ablehnen",
     "accept": "Annehmen",
     "acceptAndSwitch": "Annehmen & wechseln"
+  },
+  "alerts": {
+    "title": "Hinweise",
+    "subtitle": "Worauf du in diesem Haushalt achten solltest.",
+    "empty": "Alles unter Kontrolle.",
+    "emptyDescription": "Keine überfälligen Aufgaben, keine bevorstehenden Garantie- oder Wartungsfälle.",
+    "viewAll": "Alle anzeigen",
+    "footnote": "Die Hinweise werden bei jedem Öffnen neu berechnet.",
+    "dashboardSectionTitle": "Im Blick behalten",
+    "dashboardSectionDescription_one": "{{count}} Thema zu prüfen.",
+    "dashboardSectionDescription_other": "{{count}} Themen zu prüfen.",
+    "badgeAriaLabel_one": "{{count}} aktiver Hinweis",
+    "badgeAriaLabel_other": "{{count}} aktive Hinweise",
+    "sections": {
+      "overdue": "Überfällige Aufgaben",
+      "warranties": "Auslaufende Garantien",
+      "maintenances": "Anstehende Wartungen"
+    },
+    "severity": {
+      "critical": "Dringend",
+      "warning": "Beobachten"
+    },
+    "daysOverdue_one": "{{count}} Tag überfällig",
+    "daysOverdue_other": "{{count}} Tage überfällig",
+    "warrantyExpiresIn_one": "Läuft in {{count}} Tag ab ({{date}})",
+    "warrantyExpiresIn_other": "Läuft in {{count}} Tagen ab ({{date}})",
+    "maintenanceDueIn_one": "Wartung in {{count}} Tag ({{date}})",
+    "maintenanceDueIn_other": "Wartung in {{count}} Tagen ({{date}})"
   }
 }

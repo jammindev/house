@@ -32,14 +32,14 @@ Features module Tasks : déjà implémentées dans `NewTaskDialog` (select `assi
 - [ ] Côté backend, auto-rattacher à la racine si aucune zone fournie
 - [ ] Côté UI, presélection systématique de la zone parente
 
-## Priorité 4 — Parcours 06 (Alertes proactives)
+## Priorité 4 — Parcours 06 (Alertes proactives) ✅ (2026-04-28)
 
 Données déjà disponibles (`Equipment.warranty_expires_on`, `next_service_due`, tâches en retard). Backlog technique complet dans `docs/parcours/PARCOURS_06_BACKLOG_TECHNIQUE.md`.
 
-- [ ] Lot 0 — endpoint `GET /api/alerts/summary/`
-- [ ] Lot 1 — section "À surveiller" sur le dashboard
-- [ ] Lot 2 — page Alertes dédiée
-- [ ] Lot 3 — badge dans la sidebar
+- [x] Lot 0 — endpoint `GET /api/alerts/summary/` (`apps/alerts/`, 10 tests verts)
+- [x] Lot 1 — section "À surveiller" sur le dashboard (`AlertsSection` dans `DashboardPage`)
+- [x] Lot 2 — page Alertes dédiée (`/app/alerts`, 3 sections + état vide)
+- [x] Lot 3 — badge dans la sidebar (count temps réel via `useAlertsSummary`)
 
 ## À garder en tête (pas urgent)
 

@@ -1,9 +1,8 @@
-import calendar
-
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
 from .models import Equipment, EquipmentInteraction
+from .services import compute_next_service_due
 
 
 class EquipmentSerializer(serializers.ModelSerializer):
@@ -45,15 +44,7 @@ class EquipmentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
 
     def get_next_service_due(self, obj):
-        if not obj.last_service_at or not obj.maintenance_interval_months:
-            return None
-
-        total_month = obj.last_service_at.month - 1 + obj.maintenance_interval_months
-        year = obj.last_service_at.year + total_month // 12
-        month = total_month % 12 + 1
-        max_day = calendar.monthrange(year, month)[1]
-        day = min(obj.last_service_at.day, max_day)
-        return obj.last_service_at.replace(year=year, month=month, day=day)
+        return compute_next_service_due(obj.last_service_at, obj.maintenance_interval_months)
 
     def validate_zone(self, value):
         if value is None:

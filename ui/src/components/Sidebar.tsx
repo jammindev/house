@@ -2,17 +2,19 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  ShieldCheck, X,
+  ShieldCheck, X, Bell,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
+import { useAlertsSummary } from '@/features/alerts/hooks';
 
 const NAV_GROUPS = [
   {
     items: [
       { to: '/app/dashboard', labelKey: 'dashboard.title', Icon: LayoutDashboard },
+      { to: '/app/alerts', labelKey: 'alerts.title', Icon: Bell, badge: 'alerts' as const },
     ],
   },
   {
@@ -52,6 +54,8 @@ export default function Sidebar() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const { isSidebarOpen, closeSidebar } = useSidebarToggle();
+  const { data: alertsSummary } = useAlertsSummary();
+  const alertsCount = alertsSummary?.total ?? 0;
 
   return (
     <>
@@ -96,27 +100,40 @@ export default function Sidebar() {
                   {t(group.labelKey)}
                 </p>
               )}
-              {group.items.map(({ to, labelKey, Icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  onClick={closeSidebar}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
-                      isActive
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
-                      {t(labelKey)}
-                    </>
-                  )}
-                </NavLink>
-              ))}
+              {group.items.map((item) => {
+                const { to, labelKey, Icon } = item;
+                const showBadge =
+                  'badge' in item && item.badge === 'alerts' && alertsCount > 0;
+                return (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    onClick={closeSidebar}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+                        isActive
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                      }`
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                        <span className="flex-1 truncate">{t(labelKey)}</span>
+                        {showBadge ? (
+                          <span
+                            className="ml-auto inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-semibold text-destructive-foreground"
+                            aria-label={t('alerts.badgeAriaLabel', { count: alertsCount })}
+                          >
+                            {alertsCount > 99 ? '99+' : alertsCount}
+                          </span>
+                        ) : null}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
             </div>
           ))}
 

@@ -1384,5 +1384,33 @@
     "decline": "Rechazar",
     "accept": "Aceptar",
     "acceptAndSwitch": "Aceptar & unirse"
+  },
+  "alerts": {
+    "title": "Alertas",
+    "subtitle": "Lo que necesita tu atención en este hogar.",
+    "empty": "Todo bajo control.",
+    "emptyDescription": "No hay tareas atrasadas, ni garantías o mantenimientos próximos.",
+    "viewAll": "Ver todo",
+    "footnote": "Las alertas se recalculan cada vez que abres esta vista.",
+    "dashboardSectionTitle": "Atención requerida",
+    "dashboardSectionDescription_one": "{{count}} tema por revisar.",
+    "dashboardSectionDescription_other": "{{count}} temas por revisar.",
+    "badgeAriaLabel_one": "{{count}} alerta activa",
+    "badgeAriaLabel_other": "{{count}} alertas activas",
+    "sections": {
+      "overdue": "Tareas atrasadas",
+      "warranties": "Garantías a vigilar",
+      "maintenances": "Mantenimientos a planificar"
+    },
+    "severity": {
+      "critical": "Urgente",
+      "warning": "Vigilar"
+    },
+    "daysOverdue_one": "Atrasada {{count}} día",
+    "daysOverdue_other": "Atrasada {{count}} días",
+    "warrantyExpiresIn_one": "Vence en {{count}} día ({{date}})",
+    "warrantyExpiresIn_other": "Vence en {{count}} días ({{date}})",
+    "maintenanceDueIn_one": "Mantenimiento en {{count}} día ({{date}})",
+    "maintenanceDueIn_other": "Mantenimiento en {{count}} días ({{date}})"
   }
 }

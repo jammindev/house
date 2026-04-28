@@ -1384,5 +1384,33 @@
     "decline": "Decline",
     "accept": "Accept",
     "acceptAndSwitch": "Accept & join"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "subtitle": "What needs your attention in this household.",
+    "empty": "Everything is under control.",
+    "emptyDescription": "No overdue tasks, no upcoming warranty or maintenance issues.",
+    "viewAll": "View all",
+    "footnote": "Alerts are recomputed every time you open this view.",
+    "dashboardSectionTitle": "Needs attention",
+    "dashboardSectionDescription_one": "{{count}} item to look into.",
+    "dashboardSectionDescription_other": "{{count}} items to look into.",
+    "badgeAriaLabel_one": "{{count}} active alert",
+    "badgeAriaLabel_other": "{{count}} active alerts",
+    "sections": {
+      "overdue": "Overdue tasks",
+      "warranties": "Warranties to watch",
+      "maintenances": "Upcoming maintenances"
+    },
+    "severity": {
+      "critical": "Urgent",
+      "warning": "Watch"
+    },
+    "daysOverdue_one": "{{count}} day overdue",
+    "daysOverdue_other": "{{count}} days overdue",
+    "warrantyExpiresIn_one": "Expires in {{count}} day ({{date}})",
+    "warrantyExpiresIn_other": "Expires in {{count}} days ({{date}})",
+    "maintenanceDueIn_one": "Maintenance due in {{count}} day ({{date}})",
+    "maintenanceDueIn_other": "Maintenance due in {{count}} days ({{date}})"
   }
 }

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "photos",
     "app_settings",
     "notifications",
+    "alerts",
 ]
 
 MIDDLEWARE = [
