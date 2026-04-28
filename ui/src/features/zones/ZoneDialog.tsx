@@ -23,6 +23,7 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
   const [name, setName] = React.useState('');
   const [parentId, setParentId] = React.useState<string>('');
   const [color, setColor] = React.useState(DEFAULT_COLOR);
+  const [colorTouched, setColorTouched] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const { data: allZones = [] } = useZones();
@@ -48,10 +49,24 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
   React.useEffect(() => {
     if (!open) return;
     setName(existing?.name ?? '');
-    setParentId(existing?.parentId ?? existing?.parent ?? '');
-    setColor(existing?.color ?? DEFAULT_COLOR);
+    const initialParent = existing?.parentId ?? existing?.parent ?? '';
+    setParentId(initialParent);
+    if (existing) {
+      setColor(existing.color ?? DEFAULT_COLOR);
+    } else {
+      const parent = initialParent ? allZones.find((z) => z.id === initialParent) : null;
+      setColor(parent?.color ?? DEFAULT_COLOR);
+    }
+    setColorTouched(false);
     setError(null);
   }, [open, existing]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // In create mode, mirror the parent's color until the user picks one manually
+  React.useEffect(() => {
+    if (!open || existing || colorTouched) return;
+    const parent = parentId ? allZones.find((z) => z.id === parentId) : null;
+    setColor(parent?.color ?? DEFAULT_COLOR);
+  }, [parentId, allZones, open, existing, colorTouched]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -135,13 +150,19 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
                 id="zone-color"
                 type="color"
                 value={color}
-                onChange={(e) => setColor(e.target.value)}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  setColorTouched(true);
+                }}
                 className="h-9 w-14 cursor-pointer rounded-md border border-input bg-background p-1"
                 aria-label={t('zones.colorLabel')}
               />
               <Input
                 value={color}
-                onChange={(e) => setColor(e.target.value)}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  setColorTouched(true);
+                }}
                 placeholder="#60A5FA"
                 className="font-mono"
               />
