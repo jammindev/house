@@ -16,22 +16,6 @@
 - Thèmes : `ui/src/lib/theme.ts` (`applyDarkMode`, `applyColorTheme`), appliqués dans `ProtectedLayout` au chargement du profil
 - Tokens CSS : `ui/src/styles.css` (référencé via Tailwind 4)
 
-## À corriger (urgent)
-
-- [ ] Page 404 et Error Boundary global absents — une URL invalide n'affiche aucun retour visuel, une erreur JS non catchée crashe l'app sans message utile — *source : #69*
-- ~~[#25] Blink de thème au chargement (FOUC)~~ — **RÉSOLU** commit `89bd8a1` : bootstrap script `templates/index.html` applique dark + color_theme avant React
-- ~~[#27] Blink de la sidebar au rechargement / navigation~~ — **RÉSOLU** commit `89bd8a1` : `ProtectedLayout` wraps `<Outlet>` dans `<Suspense>`, AppShell reste monté entre les routes
-
-## À faire (backlog)
-
-- [ ] Supprimer les `isLoading` manuels redondants sur les pages qui n'utilisent pas encore `useDelayedLoading` + skeleton (ZonesPage, InteractionsPage, SettingsPage confirmés) — *source : #45*
-- [ ] Documenter `useSessionState`, `useDeleteWithUndo`, query key factory dans `docs/` — *source : #53*
-
-## À améliorer
-
-- [ ] LoginPage n'utilise pas `t()` — auditer l'ensemble du shell pour s'assurer qu'aucun libellé ne reste hardcodé
-- [ ] Évaluer la mise en place d'un nonce CSP pour retirer `unsafe-inline` de la CSP Nginx — *source : `docs/SECURITY_REVIEW.md` §9*
-
 ## Notes
 
 - BUG-05 (sidebar active sur pages de détail) s'avère non-bug : `NavLink` v7 avec `end=false` par défaut fait déjà du prefix-match — *source : commit `89bd8a1` message*

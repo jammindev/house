@@ -22,26 +22,6 @@
 - Permissions : `IsAuthenticated, IsHouseholdMember` (`apps/zones/views.py:28`) ; pas de permission custom propre au module
 - Commands de gestion : `import_supabase_zones`, `import_supabase_zone_documents` (migration depuis l'ancienne stack)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- [ ] Supprimer une zone avec enfants : le backend renvoie un 409 sans message d'erreur lisible dans l'UI — *#71*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Multi-select de zones sur les formulaires (la majorité des objets sont en M2M avec `Zone`) avec propagation de la zone parente du contexte — *source : inspection code, non couvert en P3*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Uniformiser la structure des tests : `tests.py` legacy à supprimer, tout regrouper dans `tests/` avec `test_models.py`/`test_views.py`/`factories.py` — *#44*
-- [ ] `Zone.depth` est récursif et fait une requête par niveau (`apps/zones/models.py:86-91`) — envisager de cacher ou d'utiliser une CTE pour les arbres profonds
-- [ ] `unique_together = [['id', 'household']]` sur Zone (`apps/zones/models.py:54`) — redondant avec PK UUID, à clarifier ou retirer
-
 ## Notes / décisions produit
 
 - **P3 (commit e540d6f)** : zone racine unique par household, créée automatiquement au signal `post_save(Household)`. `Zone.save()` auto-attache les nouvelles zones à cette racine si aucun parent fourni. `TaskViewSet.perform_create()` utilise aussi cette racine comme fallback côté API. Contrainte DB : `UniqueConstraint` partiel sur `(household, parent IS NULL)`. Données legacy (ex. seed Mercier : 10 racines) normalisées par data-migration avant application de la contrainte.

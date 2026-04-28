@@ -16,24 +16,6 @@
 - Endpoints exposés : aucun propre — utilise `GET /api/documents/documents/?type=photo&ordering=-created_at` — *source : `ui/src/lib/api/photos.ts:17`*
 - Permissions : héritées de `documents` (IsAuthenticated + IsHouseholdMember)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-- _aucun item identifié_
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-- [ ] Séparer Documents et Photos en deux types distincts avec leurs propres vues et logiques de traitement — *source : #39*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-- [ ] Skeleton du grid utilise `bg-slate-100` (couleur hardcodée) — devrait être `bg-muted` — *source : `ui/src/features/photos/PhotosPage.tsx:82`*
-- [ ] Bandeau d'erreur utilise `border-red-200 bg-red-50 text-red-700` (couleurs hardcodées) — devrait passer aux tokens `border-destructive/30 bg-destructive/10 text-destructive` — *source : `ui/src/features/photos/PhotosPage.tsx:53`*
-- [ ] La page utilise un `ConfirmDialog` (pattern legacy) au lieu de `useDeleteWithUndo` qui est le standard projet — *source : `ui/src/features/photos/PhotosPage.tsx:104` vs CLAUDE.md "Suppression — toujours avec undo"*
-- [ ] `usePhotos` consomme `fetchPhotoDocuments` depuis `@/lib/api/documents` mais un fichier `ui/src/lib/api/photos.ts` séparé existe avec `fetchPhotos` — risque de duplication, à clarifier — *source : `ui/src/features/photos/hooks.ts:2` + `ui/src/lib/api/photos.ts`*
-
 ## Notes
 
 - **Pas de modèle propre** : `photos` est uniquement un namespace UI, le stockage et l'API passent par l'app `documents` — *source : `apps/photos/` ne contient ni `models.py` ni `views.py` ni `urls.py`*

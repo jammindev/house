@@ -16,27 +16,6 @@
 - Endpoints exposés sous `/api/documents/` : `documents/` (CRUD + actions `upload` multipart, `by_type`, `reprocess_ocr`)
 - Permissions : `IsHouseholdMember` ; visibilité conditionnelle (`is_private=True` → seul `created_by` voit), seul l'uploader peut basculer `is_private` (`views.py:107-114`)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- [ ] OCR jamais déclenché : l'action `reprocess_ocr` retourne `202 Accepted` mais ne queue rien (`# TODO: Queue OCR task`) — *source : `apps/documents/views.py:250` ; #36*
-- [ ] Doublon legacy : `apps/documents/tests.py` coexiste avec `apps/documents/tests/` — uniformiser vers la structure dossier — *source : #44*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] OCR automatique à l'upload (queue le traitement après création du document) — *source : #36*
-- [ ] Séparer Documents et Photos en deux types distincts (vues + logiques de traitement) — *source : #39*
-- [ ] Multi-upload de documents dans le formulaire d'interaction — *source : #80*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Sortir progressivement de `Document.interaction` (FK unique) au profit de `InteractionDocument` (M2M) — la FK reste à titre transitoire mais ne doit plus structurer la page détail ni les filtres — *source : `docs/parcours/PARCOURS_02_BACKLOG_TECHNIQUE.md` lignes 53-58, 235-243*
-
 ## Notes / décisions produit
 
 - Upload : `validate_upload` (`core.file_validation`) avec `ALLOWED_DOCUMENT_TYPES` et `DOCUMENT_MAX_SIZE` ; le mime-type est ré-détecté côté serveur, jamais lu depuis le client.

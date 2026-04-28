@@ -1,14 +1,16 @@
 # Documentation par module
 
-État de chaque app Django/feature React. Mise à jour : avril 2026.
+Référence architecturale de chaque app Django / feature React. Mise à jour : avril 2026.
+
+> Ces fiches sont une **référence**, pas un backlog. Le backlog vit dans [GitHub issues](https://github.com/jammindev/house/issues) (filtrable par label `app:<name>`). Si une fiche mentionne un comportement, le code en est l'autorité.
 
 Chaque fiche suit le même format :
 
-1. **À corriger (urgent)** — bugs ou dettes qui bloquent ou créent de la friction
-2. **À faire (backlog)** — features ou évolutions identifiées et non encore commencées
-3. **À améliorer** — pistes d'optimisation, qualité de code, UX
+1. **État synthétique** — backend, frontend, locales, tests, migrations, couverture parcours
+2. **Modèles & API** — entités, endpoints, permissions
+3. **Notes / décisions produit** — design figé, contraintes DB, références RFC
 
-Lecture recommandée pour reprendre le projet après pause.
+Lecture recommandée pour reprendre un module après pause — pour les bugs et features à venir, voir GitHub.
 
 ## Apps métier (modèle + API + UI)
 

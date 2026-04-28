@@ -40,6 +40,8 @@ The user will give you a module name. It's typically a Django app under `apps/<n
 
 ## Output : `docs/MODULES/<module>.md`
 
+> **Important** : ces fiches sont une **référence architecturale**, pas un backlog. Le backlog vit dans GitHub issues — ne reproduis pas les items "à faire / à corriger / à améliorer" ici, seulement le snapshot de ce qu'**est** le module.
+
 Format strict :
 
 ```markdown
@@ -51,6 +53,7 @@ Format strict :
 
 - **Backend** : <Présent / Modèle seul / Absent>, <couverture tests %>, <nb migrations>
 - **Frontend** : <Complet / Partiel / Absent>, locales <ok/ko>, route <ok/ko>
+- **Tests** : <fichiers présents>
 - **Couverture parcours métier** : <parcours 03 etc.>
 
 ## Modèles & API
@@ -59,34 +62,15 @@ Format strict :
 - Endpoints exposés
 - Permissions
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-> Source : GitHub issues (label `bug` ou `blocker`) et inspection du code.
-
-- [ ] <description claire> — *source : #<issue> ou `<fichier:ligne>`*
-- [ ] ...
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-> Source : GitHub issues (label `feat`, `enhancement`).
-
-- [ ] <description claire> — *source : #<issue>*
-- [ ] ...
-
-## À améliorer
-
-> Refacto, perf, UX, tests à compléter, qualité.
-
-- [ ] <description claire>
-- [ ] ...
-
 ## Notes / décisions produit
 
 - Points de design figés à connaître avant de toucher au module
-- Liens vers RFC ou journal pertinent
+- Contraintes DB notables, soft-delete, scopes
+- Décisions produit qui surprendraient un nouveau dev
+- Liens vers RFC ou journal pertinent (`docs/parcours/...`, `docs/<RFC>.md`)
 ```
+
+**Le backlog appartient à GitHub issues.** Si tu repères un bug ou une feature manquante pendant l'audit qui n'a pas d'issue GH dédiée, signale-le dans la conclusion de ton rapport au caller (« items repérés sans issue GH ») — c'est au caller de décider d'en créer une.
 
 ## Règles
 
@@ -102,5 +86,5 @@ Format strict :
 
 Le fichier `docs/MODULES/<module>.md` créé ou mis à jour. Termine ta réponse au caller par 3 lignes maximum :
 1. Chemin du fichier
-2. Nombre d'items "à corriger" identifiés
-3. L'item le plus critique (1 ligne)
+2. Sections présentes (état synthétique / modèles / notes)
+3. Items repérés pendant l'audit qui n'ont pas d'issue GH (si pertinent — sinon écrire « rien à signaler »)

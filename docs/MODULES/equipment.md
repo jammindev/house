@@ -18,25 +18,6 @@
 - Endpoints exposés : `/api/equipment/` (CRUD `EquipmentViewSet` + action `audit/`), `/api/equipment/equipment-interactions/` (CRUD `EquipmentInteractionViewSet`)
 - Permissions : `IsAuthenticated, IsHouseholdMember` (pas de custom)
 
-## À corriger (urgent)
-
-_aucun item identifié_
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Champ "équipement concerné" dans le formulaire d'interaction — *#78*
-- [ ] Permettre de "brancher" des équipements sur un breaker/circuit (lien équipement ↔ électricité) — *source : inspection `docs/IDEES_FUTURES.md`, non tracé en issue GH (à créer ?)*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Pas de soft-delete : la suppression est destructive — *source : inspection `apps/equipment/views.py`*
-- [ ] `category` est un `TextField` libre (pas d'enum/référentiel) — *source : `apps/equipment/models.py:22`*
-- [ ] Aucune validation de cohérence `last_service_at` ≤ `today` ni `warranty_expires_on` ≥ `purchase_date` — *source : `apps/equipment/models.py`*
-
 ## Notes / décisions produit
 
 - **P4 (commit aaaf621)** : `next_service_due` déplacé dans `apps/equipment/services.py` (`compute_next_service_due`) pour être partagé entre `EquipmentSerializer` et `apps/alerts/services.py`. `GET /api/alerts/summary/` agrège garanties ≤ 90 j et maintenances dues ≤ 30 j — consomme directement ce module.

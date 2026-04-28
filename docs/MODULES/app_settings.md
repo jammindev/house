@@ -16,22 +16,6 @@
 - Endpoints exposés : aucun propre — la page consomme `/api/accounts/` (user + change password + avatar) et `/api/households/switch/` — *source : `ui/src/features/settings/SettingsPage.tsx:33`*
 - Permissions : héritées des apps consommées
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-- _aucun item identifié_ — BUG-01 (perte du thème au logout) et BUG-02 (theme flash FOUC) résolus par P1 commit `89bd8a1` : bootstrap script dans `templates/index.html` + `logout()` ne supprime pas `theme`/`color_theme` de localStorage — *source : vérification code `ui/src/lib/auth/context.tsx:74-81` + `templates/index.html`*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-- [ ] Changement d'email impossible dans les Settings — *source : #70*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-- [ ] Supprimer les composants legacy dupliqués dans `apps/app_settings/react/components/` (AvatarSection, ChangePasswordSection, HouseholdManagement, PendingInvitations, ProfileSection, SettingsSection, ThemeSection) — versions modernes maintenues dans `ui/src/features/settings/components/` — *source : comparaison des deux dossiers*
-- [ ] Templates legacy dans `apps/app_settings/templates/app_settings/app/` à archiver/supprimer une fois la SPA stabilisée
-
 ## Notes
 
 - **Pas de modèle propre** : `app_settings` est purement un namespace UI agrégeant des sections de plusieurs apps backend (`accounts`, `households`) — *source : absence de `models.py` dans `apps/app_settings/`*

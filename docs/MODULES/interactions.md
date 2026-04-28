@@ -16,33 +16,6 @@
 - Endpoints exposés sous `/api/interactions/` : `interactions/` (CRUD + actions `by_type`, `tasks`, `update_status`), `interaction-contacts/`, `interaction-structures/`, `interaction-documents/` — pagination `LimitOffsetPagination` (default 8, max 100)
 - Permissions : `IsHouseholdMember` (scoping household via middleware + `for_user_households`) ; pas de permission `is_creator` côté Interaction (contrairement à Task)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- [ ] Audit du champ `occurred_at` : nullable mais contrainte CheckConstraint `interactions_occurred_at_required_for_non_todo` bloque la création de toute interaction non-`todo` sans date — *source : `apps/interactions/models.py:135-138`*
-- [ ] Filtrage par tags : `tags.split(',')` sans nettoyage des entrées vides → entrées `''` qui faussent le filtre — *source : `apps/interactions/views.py:79` ; #30*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Capture assistée IA (WhatsApp / email / chat) produisant une interaction candidate structurée — *source : #50*
-- [ ] Filtres avancés manquants sur la page Interactions — *source : #66*
-- [ ] Champ montant structuré pour les dépenses (type expense) — *source : #67*
-- [ ] Créer une tâche depuis une interaction — *source : #76*
-- [ ] Historique des interventions par contact — *source : #77*
-- [ ] Champ "équipement concerné" dans le formulaire d'interaction — *source : #78*
-- [ ] Champ contact/prestataire dans le formulaire d'interaction — *source : #79*
-- [ ] Multi-upload de documents dans le formulaire d'interaction — *source : #80*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Activer `autocomplete_fields = ['project']` et le fieldset Relations dans `InteractionAdmin` (post-stabilisation app projects) — *source : `apps/interactions/admin.py:20,34` ; #46*
-- [ ] Déplacer `HouseholdScopedModelSerializer` vers `apps/core/serializers.py` — *source : #43*
-
 ## Notes / décisions produit
 
 - `Interaction` reste le concept technique central même côté UI — l'interface privilégie le vocabulaire « Activité / Historique / Ajouter un événement » (`docs/JOURNAL_PRODUIT.md` lignes 55-61).

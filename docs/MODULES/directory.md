@@ -18,34 +18,6 @@
   - `/api/structures/` (alias direct via `directory.structures_urls`)
 - Permissions : `IsAuthenticated` + `IsHouseholdMember` (`apps/directory/views.py:15`), scoping household systématique via `HouseholdScopedManager`
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- _aucun item identifié_
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Export vCard — contact unique + export global du foyer — *source : #37*
-- [ ] Import vCard avec preview et détection de doublons — *source : #38*
-- [ ] Historique des interventions par contact (lien avec interactions) — *source : #77*
-- [ ] Champ contact/prestataire dans le formulaire d'interaction (saisie côté interaction) — *source : #79*
-- [ ] Ajouter dépendance `vobject==0.9.6.1` à `requirements/base.txt` — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §5.1*
-- [ ] Créer `apps/directory/vcard/exporter.py` et `importer.py` — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §5.2*
-- [ ] Endpoints export/import : `GET /contacts/export/`, `GET /contacts/{id}/export/`, `POST /contacts/import/preview/`, `POST /contacts/import/` — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §5.5*
-- [ ] Action "Exporter en vCard" dans `ContactCard` et `StructureCard` dropdown — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §6.1*
-- [ ] Dialog import en 2 étapes (upload + prévisualisation avec résolution ORG) — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §6.2*
-- [ ] Export filtré par structure ou tag (priorité basse, futur) — *source : `docs/SYNC_CONTACTS_STRUCTURES.md` §3.1*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Skeleton utilise `bg-slate-100` (couleur hardcodée), devrait être `bg-muted` — *source : `ui/src/features/directory/DirectoryFeaturePage.tsx:224`*
-- [ ] Bandeau d'erreur utilise `border-red-200 bg-red-50 text-red-700` (couleurs hardcodées), devrait passer aux tokens `border-destructive/30 bg-destructive/10 text-destructive` — *source : `ui/src/features/directory/DirectoryFeaturePage.tsx:204`*
-
 ## Notes / décisions produit
 
 - L'app Django s'appelle `directory` mais le préfixe URL est `/api/contacts/` — *source : `config/urls.py:23`*

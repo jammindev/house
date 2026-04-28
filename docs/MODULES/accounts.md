@@ -20,34 +20,6 @@
   - `GET /users/`, `POST /users/` (registration AllowAny), `POST /users/{id}/impersonate/` (staff only)
 - Permissions : `IsAuthenticated` par défaut ; `AllowAny` pour `login` et `create` ; `IsAdminUser` pour `impersonate` ; throttles `LoginIPRateThrottle`, `LoginEmailRateThrottle`, `ChangePasswordRateThrottle`
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- [ ] Page d'inscription absente — aucune `SignupPage` dans `ui/src/features/auth/` — *source : #59*
-- [ ] Validation du mot de passe à l'inscription insuffisante (aucun validateur Django dans le serializer) — *source : #60*
-- [ ] Messages d'erreur login hardcodés (voir aussi auth-frontend) — *source : #61*
-- [ ] Réinitialisation de mot de passe non implémentée (ni backend ni frontend) — *source : #62*
-- [ ] Changement d'email non implémenté (aucun endpoint `change_email` dans `apps/accounts/views/api.py`) — *source : #70*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Migration JWT `localStorage` → cookies `httpOnly; Secure; SameSite=Strict` (impersonation context côté serveur) — *source : #47, `docs/SECURITY_REVIEW.md` lignes 25-42*
-- [ ] Audit log des actions sensibles (changement password, impersonation, suppressions) via middleware ou signals — *source : #48, `docs/SECURITY_REVIEW.md` lignes 139-142*
-- [ ] 2FA / TOTP optionnel via `django-otp`, obligatoire pour staff/admin et avant impersonation — *source : #49, `docs/SECURITY_REVIEW.md` lignes 146-149*
-- [ ] Notification email à l'utilisateur cible lors d'une impersonation, tracking des sessions actives — *source : `docs/SECURITY_REVIEW.md` ligne 57*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Throttle sur l'inscription et la liste users (déféré dans la security review) — *source : `docs/SECURITY_REVIEW.md` ligne 112*
-- [ ] Vérifier `SESSION_COOKIE_HTTPONLY/SECURE/SAMESITE='Strict'` en production — *source : `docs/SECURITY_REVIEW.md` ligne 155*
-- [ ] Ajouter validateurs serializer (`max_length`, URL, `ChoiceField` pour les enums theme/color_theme) — *source : `docs/SECURITY_REVIEW.md` ligne 157*
-- [ ] Migrer `ProtectedLayout.tsx` pour utiliser `useCurrentUser` au lieu du hook déprecié `useMe` — *source : `ui/src/components/ProtectedLayout.tsx:10`, `ui/src/features/settings/hooks.ts:48-49`*
-
 ## Notes
 
 - `User.locale` peut être `null` → fallback navigateur via `UserLocaleMiddleware` (`apps/core/middleware.py`).

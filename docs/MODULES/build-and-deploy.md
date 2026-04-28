@@ -19,29 +19,6 @@
 - Doc : `DEPLOYMENT.md`, `WORKFLOW.md`
 - Contexte infra : Mac Mini `192.168.1.76`, dossier `~/jammin-dev/apps/house/`, réseau Docker `traefik-public` partagé (cf. `~/.claude/CLAUDE.md` global)
 
-## À corriger (urgent)
-
-- [ ] `DEPLOYMENT.md` l. 370 indique `cd ~/apps/house` alors que le runner CI utilise `~/jammin-dev/apps/house` — incohérence de chemin documenté vs réel — *source : `DEPLOYMENT.md:370` vs `.github/workflows/ci.yml:79`*
-- [ ] Pas de healthcheck sur le service `web` en prod — `docker-compose.prod.yml` n'a un `healthcheck` que sur `db`, pas sur `web` (Gunicorn) — *source : `docker-compose.prod.yml:19-32` (vérification code)*
-- [ ] Pas de tag/version sur l'image Docker prod (`house:latest`) — complique les rollbacks rapides — *source : `docker-compose.prod.yml:21`*
-
-## À faire (backlog)
-
-- [ ] Mettre en place les backups automatiques PostgreSQL via crontab — *source : `DEPLOYMENT.md` §8 "Priorité haute"*
-- [ ] Ajouter rotation des logs Docker (`/etc/docker/daemon.json` json-file max-size/max-file) — *source : `DEPLOYMENT.md` §9*
-- [ ] Migrer Docker Desktop → Colima sur le Mac Mini (Docker Desktop nécessite session GUI ouverte, casse au reboot sans login auto) — *source : global CLAUDE.md "Points d'amélioration"*
-- [ ] Changer `FIRST_SUPERUSER_PASSWORD` dans `.env` prod du Mac Mini, relancer les containers — *source : global CLAUDE.md "À faire rapidement"*
-- [ ] Changer le mot de passe macOS du Mini (sudo exposé dans une conversation) — *source : global CLAUDE.md "À faire rapidement"*
-
-## À améliorer
-
-- [ ] Tagger les images Docker par SHA git plutôt que `house:latest` pour permettre rollback rapide
-- [ ] Ajouter un endpoint `/api/health/` Django pour brancher un healthcheck Compose — *source : `DEPLOYMENT.md` §9*
-- [ ] Ajuster workers Gunicorn (4 actuellement, formule `2×CPU+1` → 4–6 raisonnable pour Mac Mini M2) — *source : `DEPLOYMENT.md` §9*
-- [ ] Considérer le passage de `TIME_ZONE` à `Europe/Paris` pour l'admin — *source : `DEPLOYMENT.md` §9*
-- [ ] Durcir la CSP Nginx (retirer `unsafe-inline` script/style avec un nonce) — *source : `docs/SECURITY_REVIEW.md` §9*
-- [ ] Configurer Dependabot + lancer `pip audit` régulièrement — *source : `docs/SECURITY_REVIEW.md` "Bas"*
-
 ## Notes
 
 - Le build frontend est inclus dans l'image Docker (multi-stage), pas publié séparément. `gen:api:refresh` requiert le serveur Django local sur `:8001`.

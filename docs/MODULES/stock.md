@@ -16,26 +16,6 @@
 - Endpoints exposés : `/api/stock/` (`StockItemViewSet` + action `adjust-quantity/`), `/api/stock/categories/` (`StockCategoryViewSet` + action `summary/`)
 - Permissions : `IsAuthenticated, IsHouseholdMember` (pas de custom)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-_aucun item identifié_
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Alertes stock faible : notifier quand `quantity <= min_quantity` — *source : issue #74*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Recalcul du status (`IN_STOCK` / `LOW_STOCK` / `OUT_OF_STOCK` / `EXPIRED`) uniquement dans `adjust_quantity` ; il n'est pas mis à jour automatiquement lors d'un PATCH classique sur `quantity`/`expiration_date` — *source : `apps/stock/views.py:88-114`*
-- [ ] Pas de signal/cron pour passer automatiquement les items à `EXPIRED` après leur date — *source : `apps/stock/views.py:106-107` (logique présente uniquement à l'ajustement)*
-- [ ] `StockCategory.on_delete=PROTECT` empêche la suppression d'une catégorie utilisée mais aucun message UX dédié vérifié — *source : `apps/stock/models.py:42`*
-
 ## Notes / décisions produit
 
 - Pattern d'ajustement quantitatif via action dédiée `adjust-quantity` avec recalcul de status et `last_restocked_at` — bien isolé côté backend.

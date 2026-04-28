@@ -21,26 +21,6 @@
   - `GET /invitations/` (les miennes en attente), `POST /invitations/{id}/accept/`, `POST /invitations/{id}/decline/`
 - Permissions : `IsAuthenticated` partout ; `IsHouseholdOwner` pour `update`, `partial_update`, `destroy`, `invite`, `remove_member`, `update_role` ; `IsHouseholdMember` pour `retrieve`, `members`, `leave` (`apps/households/views.py:30-36`)
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- [ ] Envoi d'email aux invités non implémenté — l'invitation crée une notification in-app mais aucun email n'est envoyé à l'adresse fournie (`apps/households/views.py:156-218`) — *source : #64*
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Créer une `HouseholdDetailView` de base dans `apps/core/views.py` pour encapsuler le scoping et éviter le boilerplate dans les vues — *source : #42, `docs/ARCHITECTURE_AUDIT_2026_03.md`*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Uniformiser la structure des tests : `tests.py` + `test_invitations.py` à la racine → `tests/` avec `test_models.py`, `test_views.py`, `test_serializers.py`, `factories.py` — *source : #44, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 79-90*
-- [ ] `HouseholdDetailSerializer` est strictement identique à `HouseholdSerializer` (même `Meta.fields`) — supprimer ou enrichir — *source : `apps/households/serializers.py:47-50`*
-- [ ] `current_user_role` recalculé via SerializerMethodField à chaque sérialisation : envisager prefetch / annotate sur les listes — *source : `apps/households/serializers.py:37-44`*
-
 ## Notes
 
 - Soft-delete via `archived_at` (`destroy` met simplement le timestamp). Filtrage `archived_at__isnull=True` dans `get_queryset` (`apps/households/views.py:41`).

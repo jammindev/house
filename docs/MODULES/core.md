@@ -21,31 +21,6 @@
 - `urls.py` vide (pas d'endpoint exposé directement par core) — `apps/core/urls.py`
 - Endpoints fournis indirectement : `serve_protected_media` est routé depuis `config/urls.py`
 
-## À corriger (urgent)
-
-> Bugs ou dettes qui bloquent l'usage ou créent un risque.
-
-- _aucun item identifié_
-
-## À faire (backlog)
-
-> Features identifiées non encore commencées.
-
-- [ ] Créer une `HouseholdDetailView` dans `apps/core/views.py` pour encapsuler le scoping household côté vues et éviter le boilerplate dans chaque app — *source : #42, `docs/ARCHITECTURE_AUDIT_2026_03.md`*
-- [ ] Audit log middleware ou signals pour tracer les actions sensibles (action, user, timestamp, objet) — *source : #48, `docs/SECURITY_REVIEW.md` lignes 139-142*
-- [ ] Ajouter 404 globale + `ErrorBoundary` React pour les routes inconnues ou erreurs de rendu — *source : #69*
-
-## À améliorer
-
-> Refacto, perf, UX, qualité de code.
-
-- [ ] Déplacer `HouseholdScopedModelSerializer` depuis `apps/electricity/serializers.py` vers `apps/core/serializers.py` et adapter les imports — *source : #43, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 60-70*
-- [ ] Uniformiser la structure des tests : déplacer `apps/core/tests.py` (278 lignes) dans `apps/core/tests/` à côté des autres fichiers — *source : #44, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 79-90*
-- [ ] Résoudre les patterns `isLoading` redondants dans les pages multi-query (e.g. `DashboardPage.tsx`) — *source : #45*
-- [ ] Documenter les patterns transverses (`useSessionState`, `useDeleteWithUndo`, query key factories) — *source : `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 92-98*
-- [ ] Envisager `Content-Disposition: attachment` pour forcer le download des fichiers servis — *source : `docs/SECURITY_REVIEW.md` ligne 86*
-- [ ] URLs signées avec expiration si migration vers object storage (S3 presigned) — *source : `docs/SECURITY_REVIEW.md` ligne 98*
-
 ## Notes
 
 - Multi-tenancy défensive à 4 niveaux (DB FK / ORM manager / middleware request.household / serializer base class) — `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 17-24.
