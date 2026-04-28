@@ -2,10 +2,11 @@
 
 ## Workflow Git
 
-- Branche principale de dev : `develop`
-- **Toutes les PRs doivent cibler `develop`**, jamais `main` directement
-- `main` ne reçoit que des PRs depuis `develop` (ou hotfix)
-- Nommage des branches : `<type>/<app>-<description-courte>` (ex: `fix/general-theme-logout`, `feat/tasks-delete`)
+- Trunk-based : `main` est la seule branche long-lived. Push sur `main` → auto-deploy prod.
+- Pour les changements non-triviaux, créer une feature branch depuis `main`, ouvrir une PR vers `main`, merger.
+- Pour les fix triviaux (typo, doc, micro-bug), commit direct sur `main` accepté.
+- Nommage des branches : `<type>/<app>-<description-courte>` (ex: `fix/general-theme-logout`, `feat/tasks-delete`).
+- Pas de branche `develop` ni d'environnement staging — tester localement (settings.production possible) avant de pusher.
 
 ## Commandes utiles
 
