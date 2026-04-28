@@ -24,13 +24,13 @@ But : rendre le module le plus utilisé moins frustrant. Détail dans `docs/MODU
 
 Features module Tasks : déjà implémentées dans `NewTaskDialog` (select `assigned_to` ligne 275-285 + select `project` ligne 287-297).
 
-## Priorité 3 — Zones globales (0,5 jour)
+## Priorité 3 — Zones globales ✅ (2026-04-28)
 
-`URGENT.md` : décision « zone ancêtre = foyer » avec auto-attachement et multi-select global. Touche **tous** les formulaires de l'app — à cadrer avant de toucher au reste.
+`URGENT.md` : décision « zone ancêtre = foyer » avec auto-attachement et multi-select global. Touche **tous** les formulaires de l'app.
 
-- [ ] À la création d'un household, créer une zone racine immutable
-- [ ] Côté backend, auto-rattacher à la racine si aucune zone fournie
-- [ ] Côté UI, presélection systématique de la zone parente
+- [x] À la création d'un household, créer une zone racine immutable (signal `post_save(Household)` + `UniqueConstraint` partielle)
+- [x] Côté backend, auto-rattacher à la racine si aucune zone fournie (`TaskViewSet.perform_create`, `Zone.save()`)
+- [x] Côté UI, présélection systématique de la zone parente (`NewTaskDialog`, `BoardDialog`, `UsagePointDialog`, `InteractionNewPage`)
 
 ## Priorité 4 — Parcours 06 (Alertes proactives) ✅ (2026-04-28)
 
