@@ -1,27 +1,27 @@
-import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
 import LoginPage from './features/auth/LoginPage';
+import { lazyWithReload } from './lib/lazyWithReload';
 
-const TasksPage = lazy(() => import('./features/tasks/TasksPage'));
-const ZonesPage = lazy(() => import('./features/zones/ZonesPage'));
-const ZoneDetailPage = lazy(() => import('./features/zones/ZoneDetailPage'));
-const InteractionsPage = lazy(() => import('./features/interactions/InteractionsPage'));
-const InteractionNewPage = lazy(() => import('./features/interactions/InteractionNewPage'));
-const InteractionEditPage = lazy(() => import('./features/interactions/InteractionEditPage'));
-const ProjectsPage = lazy(() => import('./features/projects/ProjectsPage'));
-const ProjectDetailPage = lazy(() => import('./features/projects/ProjectDetailPage'));
-const EquipmentPage = lazy(() => import('./features/equipment/EquipmentPage'));
-const EquipmentDetailPage = lazy(() => import('./features/equipment/EquipmentDetailPage'));
-const StockPage = lazy(() => import('./features/stock/StockPage'));
-const DocumentsPage = lazy(() => import('./features/documents/DocumentsPage'));
-const DocumentDetailPage = lazy(() => import('./features/documents/DocumentDetailPage'));
-const DirectoryPage = lazy(() => import('./features/directory/DirectoryFeaturePage'));
-const ElectricityPage = lazy(() => import('./features/electricity/ElectricityPage'));
-const PhotosPage = lazy(() => import('./features/photos/PhotosPage'));
-const SettingsPage = lazy(() => import('./features/settings/SettingsPage'));
-const DashboardPage = lazy(() => import('./features/dashboard/DashboardPage'));
-const AdminUsersPage = lazy(() => import('./features/admin/AdminUsersPage'));
+const TasksPage = lazyWithReload(() => import('./features/tasks/TasksPage'));
+const ZonesPage = lazyWithReload(() => import('./features/zones/ZonesPage'));
+const ZoneDetailPage = lazyWithReload(() => import('./features/zones/ZoneDetailPage'));
+const InteractionsPage = lazyWithReload(() => import('./features/interactions/InteractionsPage'));
+const InteractionNewPage = lazyWithReload(() => import('./features/interactions/InteractionNewPage'));
+const InteractionEditPage = lazyWithReload(() => import('./features/interactions/InteractionEditPage'));
+const ProjectsPage = lazyWithReload(() => import('./features/projects/ProjectsPage'));
+const ProjectDetailPage = lazyWithReload(() => import('./features/projects/ProjectDetailPage'));
+const EquipmentPage = lazyWithReload(() => import('./features/equipment/EquipmentPage'));
+const EquipmentDetailPage = lazyWithReload(() => import('./features/equipment/EquipmentDetailPage'));
+const StockPage = lazyWithReload(() => import('./features/stock/StockPage'));
+const DocumentsPage = lazyWithReload(() => import('./features/documents/DocumentsPage'));
+const DocumentDetailPage = lazyWithReload(() => import('./features/documents/DocumentDetailPage'));
+const DirectoryPage = lazyWithReload(() => import('./features/directory/DirectoryFeaturePage'));
+const ElectricityPage = lazyWithReload(() => import('./features/electricity/ElectricityPage'));
+const PhotosPage = lazyWithReload(() => import('./features/photos/PhotosPage'));
+const SettingsPage = lazyWithReload(() => import('./features/settings/SettingsPage'));
+const DashboardPage = lazyWithReload(() => import('./features/dashboard/DashboardPage'));
+const AdminUsersPage = lazyWithReload(() => import('./features/admin/AdminUsersPage'));
 
 export const router = createBrowserRouter([
   {
