@@ -238,6 +238,50 @@ class TestDocumentsApi:
             'Heating inspection',
         }
 
+    def test_list_filters_by_project(self, owner_client, owner, household):
+        linked = Document.objects.create(
+            household=household, created_by=owner,
+            file_path='docs/p-linked.pdf', name='Linked',
+            mime_type='application/pdf', type='document',
+        )
+        Document.objects.create(
+            household=household, created_by=owner,
+            file_path='docs/p-other.pdf', name='Other',
+            mime_type='application/pdf', type='document',
+        )
+        project = Project.objects.create(
+            household=household, created_by=owner, title='Renovation',
+        )
+        ProjectDocument.objects.create(project=project, document=linked, created_by=owner)
+
+        url = reverse('document-list')
+        response = owner_client.get(url, {'project': str(project.id)})
+
+        assert response.status_code == status.HTTP_200_OK
+        names = {item['name'] for item in response.data}
+        assert names == {'Linked'}
+
+    def test_list_filters_by_zone(self, owner_client, owner, household):
+        zone = Zone.objects.create(household=household, name='Garage', created_by=owner)
+        linked = Document.objects.create(
+            household=household, created_by=owner,
+            file_path='docs/z-linked.pdf', name='ZoneLinked',
+            mime_type='application/pdf', type='document',
+        )
+        Document.objects.create(
+            household=household, created_by=owner,
+            file_path='docs/z-other.pdf', name='ZoneOther',
+            mime_type='application/pdf', type='document',
+        )
+        ZoneDocument.objects.create(zone=zone, document=linked, created_by=owner)
+
+        url = reverse('document-list')
+        response = owner_client.get(url, {'zone': str(zone.id)})
+
+        assert response.status_code == status.HTTP_200_OK
+        names = {item['name'] for item in response.data}
+        assert names == {'ZoneLinked'}
+
 
 # ---------------------------------------------------------------------------
 # TestDocumentPrivacy

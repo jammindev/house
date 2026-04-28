@@ -16,7 +16,8 @@
     "search": "Buscar",
     "noResults": "Sin resultados",
     "linked": "Ya vinculado",
-    "actions": "Acciones"
+    "actions": "Acciones",
+    "error_loading": "Error al cargar."
   },
   "sidebar": {
     "open": "Abrir menú",
@@ -1271,6 +1272,14 @@
     "empty_notes": "Aún no hay notas.",
     "empty_expenses": "Aún no hay gastos.",
     "empty_documents": "Aún no hay documentos.",
+    "attach_document": {
+      "title": "Adjuntar un documento",
+      "search_placeholder": "Buscar documentos…",
+      "empty": "No hay documentos disponibles.",
+      "attach": "Adjuntar ({{count}})",
+      "detach": "Desvincular",
+      "detached": "Documento desvinculado"
+    },
     "empty_timeline": "Aún no hay actividad.",
     "add_task": "Añadir una tarea",
     "add_note": "Añadir una nota",

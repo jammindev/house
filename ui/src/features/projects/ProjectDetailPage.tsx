@@ -18,6 +18,7 @@ import {
   projectKeys,
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
+import ProjectDocumentsTab from './ProjectDocumentsTab';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -409,11 +410,7 @@ export default function ProjectDetailPage() {
                 ) : null}
 
                 {tab === 'documents' ? (
-                  <TabInteractions
-                    projectId={project.id}
-                    type="document"
-                    emptyKey="projects.empty_documents"
-                  />
+                  <ProjectDocumentsTab projectId={project.id} />
                 ) : null}
 
                 {tab === 'timeline' ? (

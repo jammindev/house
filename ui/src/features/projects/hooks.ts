@@ -12,11 +12,14 @@ import {
   deleteProjectGroup,
   pinProject,
   unpinProject,
+  attachProjectDocument,
+  detachProjectDocument,
   type ProjectListItem,
   type ProjectInteractionItem,
   type ProjectPayload,
   type ProjectGroupPayload,
 } from '@/lib/api/projects';
+import { documentKeys } from '@/features/documents/hooks';
 import { fetchZones } from '@/lib/api/zones';
 
 interface ProjectFilters {
@@ -123,6 +126,22 @@ export function useDeleteGroup() {
   return useMutation({
     mutationFn: (id: string) => deleteProjectGroup(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: projectKeys.groups() }),
+  });
+}
+
+export function useAttachProjectDocument(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => attachProjectDocument(projectId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+  });
+}
+
+export function useDetachProjectDocument(projectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => detachProjectDocument(projectId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
   });
 }
 

@@ -157,6 +157,14 @@ export async function unpinProject(id: string): Promise<ProjectListItem> {
   return data as ProjectListItem;
 }
 
+export async function attachProjectDocument(projectId: string, documentId: string): Promise<void> {
+  await api.post(`/projects/projects/${projectId}/attach_document/`, { document_id: documentId });
+}
+
+export async function detachProjectDocument(projectId: string, documentId: string): Promise<void> {
+  await api.post(`/projects/projects/${projectId}/detach_document/`, { document_id: documentId });
+}
+
 export interface ProjectInteractionItem {
   id: string;
   subject: string;
