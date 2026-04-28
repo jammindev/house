@@ -98,12 +98,16 @@ export function Toaster() {
   const { toasts, dismiss } = useToastStore()
   return (
     <ToastProvider>
-      {toasts.map(({ id, title, description, variant, duration, action }) => (
+      <ToastViewport />
+      {toasts.map(({ id, title, description, variant, action }) => (
         <Toast
           key={id}
           variant={variant}
-          duration={duration ?? 4000}
-          onOpenChange={(open) => { if (!open) dismiss(id) }}
+          duration={Infinity}
+          open
+          onOpenChange={(open) => {
+            if (!open) dismiss(id);
+          }}
         >
           <div className="flex flex-col gap-1">
             {title && <ToastTitle>{title}</ToastTitle>}
@@ -119,7 +123,6 @@ export function Toaster() {
           </div>
         </Toast>
       ))}
-      <ToastViewport />
     </ToastProvider>
   )
 }

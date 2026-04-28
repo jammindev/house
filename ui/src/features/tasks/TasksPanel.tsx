@@ -157,6 +157,7 @@ export default function TasksPanel({ projectId, stateKeyPrefix }: TasksPanelProp
   const isFilteredEmpty = !isLoading && !error && tasks.length > 0
     && Object.values(visibleBySection).every((arr) => arr.length === 0);
   const showSkeleton = useDelayedLoading(isLoading);
+  const isInitialLoading = isLoading && !showSkeleton;
 
   const sectionProps = {
     householdMembers,
@@ -239,10 +240,12 @@ export default function TasksPanel({ projectId, stateKeyPrefix }: TasksPanelProp
         {showSkeleton ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+              <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
             ))}
           </div>
         ) : null}
+
+        {isInitialLoading ? <div className="min-h-[280px]" /> : null}
 
         {isEmpty ? (
           <div className="flex flex-col items-center gap-3 py-12 text-center">

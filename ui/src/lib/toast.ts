@@ -28,6 +28,10 @@ export const useToastStore = create<ToastStore>((set) => ({
   toast: (options) => {
     const id = Math.random().toString(36).slice(2)
     set((state) => ({ toasts: [...state.toasts, { id, ...options }] }))
+    const duration = options.duration ?? 4000
+    if (duration !== Infinity) {
+      setTimeout(() => useToastStore.getState().dismiss(id), duration)
+    }
     return id
   },
   dismiss: (id) => {

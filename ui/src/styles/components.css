@@ -196,4 +196,14 @@
     border: 1px solid rgba(255, 255, 255, 0.10);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.20), 0 4px 6px -4px rgba(0, 0, 0, 0.20);
   }
+
+  /* Date/time inputs : hint user-agent stylesheet to use dark widget colors
+     in dark mode (icône calendrier visible, popup natif sombre). */
+  .dark input[type="date"],
+  .dark input[type="datetime-local"],
+  .dark input[type="month"],
+  .dark input[type="week"],
+  .dark input[type="time"] {
+    color-scheme: dark;
+  }
 }
