@@ -42,3 +42,17 @@ class LoginEmailRateThrottle(SimpleRateThrottle):
 class ChangePasswordRateThrottle(UserRateThrottle):
     """5 password changes per hour per authenticated user."""
     scope = "change_password"
+
+
+class PasswordResetRequestThrottle(SimpleRateThrottle):
+    """3 password reset requests per hour per email — prevents abuse of the email-sending endpoint."""
+    scope = "password_reset"
+
+    def get_cache_key(self, request, view):
+        email = request.data.get("email", "")
+        if not email:
+            return None
+        return self.cache_format % {
+            "scope": self.scope,
+            "ident": email.lower().strip(),
+        }
