@@ -12,8 +12,10 @@ export function applyDarkMode(theme: string) {
 }
 
 export function applyColorTheme(colorTheme: string) {
-  document.body.classList.forEach((cls) => {
-    if (cls.startsWith('theme-')) document.body.classList.remove(cls);
+  localStorage.setItem('color_theme', colorTheme);
+  const html = document.documentElement;
+  html.classList.forEach((cls) => {
+    if (cls.startsWith('theme-')) html.classList.remove(cls);
   });
-  document.body.classList.add(colorTheme);
+  html.classList.add(colorTheme);
 }

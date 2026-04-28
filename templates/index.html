@@ -5,9 +5,10 @@
     (function () {
       var t = localStorage.getItem('theme');
       var isDark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      if (isDark) document.documentElement.classList.add('dark');
-      var meta = document.getElementById('theme-color-meta');
-      if (meta) meta.setAttribute('content', isDark ? '#0b111e' : '#f3f4f6');
+      var html = document.documentElement;
+      if (isDark) html.classList.add('dark');
+      var ct = localStorage.getItem('color_theme') || 'theme-house';
+      html.classList.add(ct);
     })();
   </script>
   <meta charset="UTF-8" />

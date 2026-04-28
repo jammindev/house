@@ -1,21 +1,23 @@
 # Documentation Hub
 
-This folder contains the **active documentation** for the Django-first House codebase.
+Documentation active du projet **House**. Mise à jour : avril 2026.
 
-Project status (March 2026): Django stack fully active; primary roadmap is UI completion for all apps.
+Architecture courante : **SPA pure** — backend Django/DRF (API REST + JWT) + frontend React unique (`ui/src`) routé par `react-router`.
 
-## Scope and source of truth
+Phase produit en cours : parcours métier 06 (alertes proactives). Parcours 01–05 livrés. Voir `JOURNAL_PRODUIT.md`.
 
-- Runtime source of truth: `config/`, `apps/`, `templates/`, `ui/`
-- Historical archive: `legacy/` (kept for reference)
-- If legacy docs conflict with runtime code, runtime code wins.
+## Scope et source de vérité
 
-## Read first
+- Runtime source of truth : `config/`, `apps/`, `ui/src/`
+- Archive historique : branche git `archive/legacy` (supprimée du `main`)
+- En cas de conflit doc ↔ code, le code gagne.
 
-- `../AGENTS.md` — repository-wide context, app map, conventions
-- `./HYBRID_ARCHITECTURE.md` — Django + React integration model
-- `./AI_CONTEXT_API.md` — API context and endpoint references
-- `./AI_CONTEXT_MIGRATION.md` — stack active context and working principles
+## Lire en priorité
+
+- `../AGENTS.md` — vue d'ensemble du repo, conventions
+- `./MODULES/README.md` — **état détaillé par module** (à corriger / à faire / à améliorer)
+- `./FEATURE_PATTERN.md` — pattern à suivre pour toute nouvelle feature React
+- `./JOURNAL_PRODUIT.md` — journal des parcours métier livrés et en cours
 
 ## Product and domain
 

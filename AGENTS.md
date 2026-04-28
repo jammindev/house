@@ -2,229 +2,158 @@
 
 Ce document donne le contexte rapide pour toute IA intervenant sur ce repo.
 
-> Dernière mise à jour : mars 2026
+> Dernière mise à jour : avril 2026 (refonte SPA)
 
 ## 1) Scope
 
-- **Code actif principal**: racine Django + `apps/` + `ui/`
-- **Archive historique**: `legacy/` (référence métier uniquement)
-- **Règle**: on implémente dans le code actif; on consulte `legacy/` uniquement pour comprendre l'intention fonctionnelle
+- **Code actif principal**: backend Django dans `apps/` + frontend React SPA dans `ui/`
+- **Archive historique**: branche git `archive/legacy` (supprimée du `main`)
+- **Règle**: la vérité runtime est dans `config/`, `apps/`, `ui/` ; les anciennes docs sont uniquement référence métier.
 
 ## 1.1) Statut du projet (important)
 
-Le projet est en phase **UI-first**: construction/complétion des interfaces web pour toutes les apps Django, en conservant l'architecture Django/DRF + templates + mini-SPA React ciblés par page.
+Le projet a basculé en **SPA pure**: backend Django/DRF expose une API REST, frontend React + react-router consomme l'API. Plus de templates Django par page (un seul template `index.html` catch-all sert la SPA).
 
-Objectifs actuels:
+Phase produit en cours : **parcours métier 06 — Alertes proactives** (parcours 01–05 livrés). Voir `docs/JOURNAL_PRODUIT.md` et `docs/parcours/`.
 
-- Construire/compléter l'UI de toutes les apps actives côté Django
-- Uniformiser les pages `/app/*` avec le design system partagé
-- Finaliser les mini-SPA React ciblées par feature/page
+Pour l'IA :
 
-Pour l'IA:
-
-- Les docs `legacy/` sont une archive métier, pas la source de vérité technique.
-- La vérité runtime est dans `config/`, les apps Django dans `apps/`, `templates/`, et `ui/`.
+- La vérité runtime est dans `config/`, `apps/` (backend) et `ui/src/` (frontend SPA).
+- Pour l'état détaillé d'un module, lire `docs/MODULES/<app>.md`.
 
 ## 2) Stack
 
-- Backend: Django 5, DRF, auth session Django, django-filter, drf-spectacular (OpenAPI)
+- Backend: Django 5.2, DRF 3.16, drf-simplejwt 5.5, drf-spectacular 0.29, django-filter
 - DB: PostgreSQL (local/prod), SQLite in-memory (tests)
-- Frontend: React 19, TypeScript, Vite
-- Intégration Django/React: `django-vite`
-- Templates: Alpine.js (interactions UI mobiles), HTMX (hx-boost navigation SPA-like), Tailwind CSS, Lucide icons
+- Frontend: React 19, TypeScript 5.9, Vite 7, react-router 7, TanStack Query 5, Zustand 5
+- Styling: Tailwind 4, Radix UI primitives, Lucide icons
+- Auth: JWT (rest_framework_simplejwt) + session Django (fallback). JWT prioritaire.
+- i18n: i18next, 4 locales (en, fr, de, es)
 
-## 3) Apps Django
+## 3) Apps Django (17 apps installées)
 
-### Apps avec modèles + API DRF + pages web
+### Apps métier avec modèles + API DRF
 
-- `accounts`: utilisateur custom + auth session Django + vues home/login/dashboard; `throttles.py` (rate limiting login: 20/min/IP, 5/min/email)
-- `households`: entité multi-tenant de base
-- `zones`: hiérarchie spatiale
-- `interactions`: journal (note, todo, expense, maintenance...) + liens contacts/structures/documents
-- `documents`: fichiers/OCR/métadonnées
-- `contacts`: contacts + addresses/emails/phones
-- `structures`: structures/prestataires/organisations
-- `tags`: tags + liens interaction-tags
-- `equipment`: équipements, cycle de vie, liens avec interactions (`EquipmentInteraction`)
-- `projects`: projets (`Project`, `ProjectGroup`, `ProjectZone`), threads IA (`ProjectAIThread`, `ProjectAIMessage`)
-- `electricity`: tableau électrique, RCDs, disjoncteurs, circuits, points d'usage, liens, changelog
-- `incoming_emails`: emails entrants + pièces jointes, pipeline de traitement (pending/processing/processed/failed)
+- `accounts` : User custom (email login), auth JWT + session, throttles login/IP/email/change-password, impersonation admin
+- `households` : Household + HouseholdMember (owner/member) + HouseholdInvitation, soft-delete via `archived_at`
+- `zones` : hiérarchie spatiale auto-référencée (parent), couleur hex, surface
+- `interactions` : journal (note, todo, expense, maintenance…) + liens M2M zones/contacts/structures/documents/projects/equipment, full-text via `enriched_text`
+- `documents` : fichiers + OCR (à brancher) + privacy `is_private`, lien optionnel à interaction
+- `directory` : Contact, Structure, Address, Email, Phone (annuaire household-scoped)
+- `tags` : Tag + TagLink polymorphe (GenericForeignKey)
+- `equipment` : équipements (warranty, maintenance, status), join `EquipmentInteraction`
+- `stock` : `StockCategory` + `StockItem` (quantité, expiration, fournisseur)
+- `electricity` : `ElectricityBoard`, `ProtectiveDevice`, `ElectricCircuit`, `UsagePoint`, `CircuitUsagePointLink`, `MaintenanceEvent`, `PlanChangeLog`
+- `projects` : `ProjectGroup`, `Project` (status/type/priority/budget), joins `ProjectDocument`/`ProjectZone`, threads IA (`ProjectAIThread`/`ProjectAIMessage`)
+- `insurance` : `InsuranceContract` (modèle + API uniquement, pas encore d'UI)
+- `tasks` : `Task` (modèle dédié, plus dérivé d'interactions) + joins zones/documents/interactions, `assigned_to`, `completed_by`
+- `notifications` : `Notification` user-scoped (pas household), soft-delete
 
-### Apps web-only (pas de modèles propres — utilisent les APIs existantes)
+### Apps frontend-only (pas de modèles propres)
 
-- `tasks`: mini-app tasks (web + React), s'appuie sur l'API interactions
-- `photos`: mini-app photos (web + React)
-- `app_settings`: mini-app paramètres
+- `photos` : namespace UI (les médias passent par `documents`)
+- `app_settings` : namespace UI (paramètres user/household)
 
 ### App transverse
 
-- `core`: modèles abstraits (`HouseholdScopedModel`), managers (`HouseholdScopedManager`), permissions (`IsHouseholdMember`)
+- `core` : modèles abstraits (`TimestampedModel`, `HouseholdScopedModel`), managers (`HouseholdScopedManager`), permissions (`IsHouseholdMember`, `IsHouseholdOwner`, `CanViewPrivateContent`), middleware `ActiveHouseholdMiddleware` + `UserLocaleMiddleware`
 
 ## 4) Conventions techniques importantes
 
-- Modèle user custom: `AUTH_USER_MODEL = "accounts.User"`
+- Modèle user custom : `AUTH_USER_MODEL = "accounts.User"` (login par email)
 - Les modèles métier utilisent `HouseholdScopedModel` (champ `household` + manager scopé)
-- Permissions multi-tenant via `IsHouseholdMember`
-- Résolution household API: `X-Household-Id` -> `household_id` (query/body) -> auto-select si membership unique
-- Rate limiting login: `accounts/throttles.py` — `LoginIPRateThrottle` (20/min par IP) + `LoginEmailRateThrottle` (5/min par email), configurable via `DEFAULT_THROTTLE_RATES` dans `REST_FRAMEWORK`
-- Cache throttle: `LocMemCache` en dev; brancher Redis (`django-redis`) en prod pour cohérence multi-workers
-- Routes API dans `config/urls.py` sous `api/<app>/`
-- Routes web dans `config/urls.py` sous `i18n_patterns` -> `app/<section>/`
-- Pages web dans `templates/app/` ou `apps/<app>/templates/`
-- Chaque app avec page web a un `web_urls.py` + `views_web.py` séparés des vues API
-- API schema (Swagger/Redoc) disponible si `ENABLE_API_SCHEMA=True` -> `/api/schema/swagger/`
-- **Pattern ReactPageView** : les vues web héritent de `core.views.ReactPageView` qui fournit un template générique (`templates/core/react_page.html`). Les class attributes déclarent `page_title`, `page_description`, `page_actions_template`, `react_root_id`, `props_script_id`, `page_vite_asset`. La méthode `get_props()` retourne le dict initial hydraté côté Django — **zéro fetch API React au premier rendu**. Pour ajouter des boutons d'action dans le header, définir `page_actions_template` vers un partial (ex: `"app/partials/_actions.html"`). Pour un template custom complet, surcharger `template_name`.
+- Permissions multi-tenant via `IsHouseholdMember` (membre du household sélectionné)
+- Auth : `JWTAuthentication` (prioritaire) + `SessionAuthentication` (fallback). Endpoints `/api/auth/token/` (obtain), `/api/auth/token/refresh/`, `/api/auth/token/verify/`.
+- Résolution household côté API : header `X-Household-Id` → `household_id` (query/body) → `request.user.active_household` → auto-select si une seule membership. Implémentée dans `core.middleware.ActiveHouseholdMiddleware`.
+- Rate limiting login : `accounts/throttles.py` — `LoginIPRateThrottle` (20/min par IP) + `LoginEmailRateThrottle` (5/min par email)
+- Cache throttle : `LocMemCache` en dev. En prod multi-workers : brancher Redis (`django-redis`).
+- Routes API : `config/urls.py` sous `api/<app>/` uniquement.
+- **Plus de routes web côté Django** : un catch-all `re_path(r"^(?!api/|admin/|static/|media/|i18n/).*$", TemplateView(template_name="index.html"))` sert la SPA React pour toutes les autres URLs (`/app/...` côté frontend).
+- API schema (Swagger/Redoc) si `ENABLE_API_SCHEMA=True` : `/api/schema/swagger/`
 
 ## 5) Endpoints clés
 
-### Auth + Users
+### Auth (JWT + session)
 
-- `POST /api/accounts/login/` — rate-limited (20/min par IP, 5/min par email)
-- `POST /api/accounts/logout/`
-- `GET|POST /api/accounts/users/`
+- `POST /api/auth/token/` — obtient un access + refresh token (JWT)
+- `POST /api/auth/token/refresh/` — refresh
+- `POST /api/auth/token/verify/` — vérification
+- `POST /api/accounts/auth/login/` — login session (rate-limited 20/min/IP, 5/min/email)
+- `POST /api/accounts/auth/logout/` — logout session
+- `GET|POST /api/accounts/users/` + actions custom (`me`, `change-password`, `impersonate`, `avatar`)
 
-### Entités métier
+### Entités métier (sous `/api/<app>/`)
 
-- `GET|POST|... /api/households/`
-- `GET|POST|... /api/zones/`
-- `GET|POST|... /api/interactions/interactions/`
-- `GET|POST|... /api/interactions/interaction-contacts/`
-- `GET|POST|... /api/interactions/interaction-structures/`
-- `GET|POST|... /api/interactions/interaction-documents/`
-- `GET|POST|... /api/documents/documents/`
-- `GET|POST|... /api/contacts/contacts/`
-- `GET|POST|... /api/contacts/addresses/`
-- `GET|POST|... /api/contacts/emails/`
-- `GET|POST|... /api/contacts/phones/`
-- `GET|POST|... /api/structures/`
-- `GET|POST|... /api/tags/tags/`
-- `GET|POST|... /api/tags/interaction-tags/`
-- `GET|POST|... /api/equipment/`
-- `GET|POST|... /api/equipment/equipment-interactions/`
-- `GET|POST|... /api/projects/projects/`
-- `GET|POST|... /api/projects/project-groups/`
-- `GET|POST|... /api/projects/project-zones/`
-- `GET|POST|... /api/projects/project-ai-threads/`
-- `GET|POST|... /api/projects/project-ai-messages/`
+- `households` (+ actions `members`, `invite`, `remove_member`, `update_role`, `leave`)
+- `zones` (+ action `tree`)
+- `interactions/interactions/`, `interaction-contacts/`, `interaction-structures/`, `interaction-documents/`
+- `documents/documents/` (upload via multipart)
+- `contacts/contacts|addresses|emails|phones/` (préfixe `/api/contacts/` mais l'app Django est `directory`)
+- `structures/` (idem)
+- `tags/tags/`, `tags/tag-links/`
+- `equipment/equipment/`, `equipment/equipment-interactions/`
+- `stock/stock-categories/`, `stock/stock-items/`
+- `projects/projects/`, `project-groups/`, `project-zones/`, `project-ai-threads/`, `project-ai-messages/`
+- `electricity/boards/`, `protective-devices/`, `circuits/`, `usage-points/`, `circuit-usage-point-links/`, `maintenance-events/`, `plan-change-logs/`
+- `insurance/insurance-contracts/`
+- `tasks/tasks/`, `task-documents/`, `task-interactions/`
+- `notifications/` (read-only) + actions `unread_count`, `mark_read`, `mark_all_read`
 
-### Électricité
+### Routes frontend (SPA, pas de templates Django)
 
-- `GET|POST|... /api/electricity/boards/`
-- `GET|POST|... /api/electricity/rcds/`
-- `GET|POST|... /api/electricity/breakers/`
-- `GET|POST|... /api/electricity/circuits/`
-- `GET|POST|... /api/electricity/usage-points/`
-- `GET|POST|... /api/electricity/links/`
-- `GET /api/electricity/change-logs/`
-- `GET /api/electricity/mapping/lookup/`
-- `POST /api/electricity/links/{id}/deactivate/`
+Définies dans `ui/src/router.tsx` :
 
-### Emails entrants
-
-- `GET|POST|... /api/incoming/incoming-emails/`
-- `GET|POST|... /api/incoming/incoming-email-attachments/`
-
-### Pages web (`/app/`)
-
-- `/app/dashboard/`: tableau de bord
-- `/app/interactions/`: journal d'interactions (avec mini-SPA React — `InteractionList`, `InteractionCreateForm`)
-- `/app/interactions/new/`: création d'interaction
-- `/app/zones/`: hiérarchie spatiale
-- `/app/contacts/`: contacts
-- `/app/documents/`: documents
-- `/app/equipment/`: équipements
-- `/app/electricity/`: tableau électrique (mini-SPA React — `ElectricityBoardNode`)
-- `/app/projects/`: projets
-- `/app/tasks/`: tâches (mini-SPA React)
-- `/app/photos/`: photos (mini-SPA React)
-- `/app/settings/`: paramètres
-- `/app/components/`: démo du design system
+- `/login` — login
+- `/app/` → redirige vers `/app/dashboard`
+- `/app/dashboard`, `/app/tasks`, `/app/zones`, `/app/zones/:id`
+- `/app/interactions`, `/app/interactions/new`, `/app/interactions/:id/edit`
+- `/app/projects`, `/app/projects/:id`
+- `/app/equipment`, `/app/equipment/:id`
+- `/app/stock`, `/app/documents`, `/app/documents/:id`, `/app/directory`
+- `/app/electricity`, `/app/photos`, `/app/settings`
+- `/app/admin/users`
 
 ### Permissions
 
-- `zones`, `interactions`, `documents`, `equipment`, `projects`: accès membre household
-- `households`:
-	- membre: `retrieve`, `members`, `leave`
-	- owner: `update`, `delete`, `invite`, `remove_member`, `update_role`
+- `IsAuthenticated` par défaut sur toutes les vues DRF
+- `IsHouseholdMember` sur les ressources scopées au household
+- `IsHouseholdOwner` pour `households` (update, delete, invite, remove_member, update_role)
+- `CanViewPrivateContent` sur `Interaction` et `Document` (`is_private` + `created_by`)
 
-## 6) Frontend hybride
-
-### Design system partagé (`ui/src/`)
-
-- `ui/src/design-system/*`: composants atomiques (Button, Input, Card, Select, Textarea, Badge, Alert, Skeleton)
-- `ui/src/web-components/*`: mêmes composants exposés en Web Components custom elements (`<ui-button>`, etc.) + `InteractionCreateForm`, `InteractionList`
-- `ui/src/lib/api/`: client API généré (fetch typé vers les endpoints DRF)
-
-### Organisation du code React
-
-**Composants métier** (`apps/<app>/react/`)  
-Les composants React contenant la logique métier restent dans `apps/<app>/react/`, à proximité des modèles Django et serializers correspondants :
-- `apps/interactions/react/`: `InteractionList.tsx`, `InteractionCreateForm.tsx`
-- `apps/electricity/react/`: `ElectricityBoardNode.tsx`
-- `apps/projects/react/`: `ProjectList.tsx`, `ProjectDetail.tsx`, `ProjectForm.tsx`, `ProjectGroupList.tsx`, `ProjectGroupDetail.tsx`
-- `apps/equipment/react/`: composants équipement
-- `apps/stock/react/`: composants stock
-- `apps/directory/react/`: `DirectoryPage.tsx`, `ContactCreateForm.tsx`, `ContactDetailsView.tsx`, `ContactEditForm.tsx`, `StructureForm.tsx`, `StructureDetailView.tsx`
-- `apps/zones/react/`: `ZonesNode.tsx`, `ZoneDetailNode.tsx`
-- `apps/tasks/react/`: `TasksPage.tsx`
-- `apps/photos/react/`: `PhotosPage.tsx`
-- `apps/documents/react/`: `DocumentsPage.tsx`
-- `apps/app_settings/react/`: `UserSettings.tsx`
-
-**Points d'entrée de montage** (`ui/src/pages/<app>/`)  
-Les fichiers de montage qui hydratent les composants sont organisés par app dans `ui/src/pages/` :
+## 6) Frontend SPA (`ui/src/`)
 
 ```
-ui/src/pages/
-  interactions/
-    list.tsx          # monte InteractionList
-    new.tsx           # monte InteractionCreateForm
-  projects/
-    list.tsx          # monte ProjectList
-    detail.tsx        # monte ProjectDetail
-    new.tsx           # monte ProjectForm (mode create)
-    edit.tsx          # monte ProjectForm (mode edit)
-    groups.tsx        # monte ProjectGroupList
-    group-detail.tsx  # monte ProjectGroupDetail
-  equipment/
-    list.tsx, detail.tsx, new.tsx, edit.tsx
-    stock-list.tsx, stock-detail.tsx, stock-new.tsx, stock-edit.tsx
-  contacts/
-    list.tsx, new.tsx, detail.tsx, edit.tsx
-  structures/
-    new.tsx, detail.tsx, edit.tsx
-  zones/
-    list.tsx, detail.tsx
-  electricity/
-    board.tsx
-  tasks/
-    list.tsx
-  photos/
-    list.tsx
-  documents/
-    list.tsx
-  settings/
-    index.tsx
+ui/src/
+  main.tsx              # bootstrap React + QueryClient + i18n + router
+  router.tsx            # routes react-router (toutes sous /app)
+  components/           # AppShell, Sidebar, TopBar, ProtectedLayout, ListPage, EmptyState, CardActions, ConfirmDialog, ListSkeleton, PageHeader, TabShell, HouseholdSwitcher, ImpersonationBanner
+  design-system/        # Button, Input, Card, Select, Textarea, Badge, Alert, Skeleton, Dialog, SheetDialog…
+  features/<feature>/   # une feature = une page (TasksPage, ZonesPage, …)
+    <Feature>Page.tsx
+    <Item>Card.tsx
+    <Item>Dialog.tsx
+    hooks.ts            # query keys + TanStack Query hooks
+  lib/
+    api/<feature>.ts    # types + fetch fonctions (sans React)
+    useDeleteWithUndo.ts, useDelayedLoading.ts, useSessionState.ts, …
+  gen/api/              # types générés depuis OpenAPI (npm run gen:api:refresh)
+  locales/{en,fr,de,es}/translation.json
+  styles/, styles.css
 ```
 
-Chaque fichier de montage :
-1. Importe le composant depuis `apps/<app>/react/`
-2. Cible un root DOM spécifique (ex: `'projects-list-root'`)
-3. Les props initiales sont hydratées côté Django via `ReactPageView.get_props()` — **zéro fetch API au premier rendu**
+**Aliases Vite** : `@/` → `ui/src/`, `@apps/` → `apps/` (à éviter dans le nouveau code).
 
-**Configuration Vite**  
-Les points d'entrée dans `vite.config.ts` pointent vers `ui/src/pages/<app>/` et gardent les mêmes keys pour compatibilité avec les templates Django :
-```typescript
-'projects': resolve(__dirname, 'src/pages/projects/list.tsx'),
-'project-detail': resolve(__dirname, 'src/pages/projects/detail.tsx'),
-```
+**Pattern d'une feature** : voir `docs/FEATURE_PATTERN.md` (référence : `ui/src/features/tasks/`).
 
-### Avantages de cette organisation
+**Auth front** : `ui/src/lib/api/auth.ts` stocke les JWT, l'intercepteur fetch ajoute `Authorization: Bearer <token>`. Le refresh est automatique sur 401.
 
-✅ **Composants métier près du backend** : facilite la maintenance modèle Django ↔ serializer ↔ composant React  
-✅ **Montage centralisé** : tous les points d'entrée Vite regroupés logiquement dans `ui/src/pages/`  
-✅ **Structure miroir** : `ui/src/pages/` reflète l'organisation de `apps/`  
-✅ **Scalabilité** : facile d'ajouter de nouvelles pages à une app existante
+**Build** : un seul bundle (`main.tsx`) avec lazy-loading par page via `React.lazy`. Les chunks par page sont dans `static/react/assets/<Page>-<hash>.js`.
+
+### Migration UI — état (avril 2026)
+
+- ✅ **Complète** dans `ui/src/features/` : tasks, zones, interactions, projects, equipment, stock, documents, directory, electricity, photos, dashboard, settings, admin
+- 🟡 **Partielle** : `accounts` (composants legacy dans `apps/accounts/react/` encore référencés), `households` (UI dans `features/settings/HouseholdManagement`), `tags` (pas de page dédiée — UI inline)
+- 🔴 **Sans UI** : `insurance` (modèle + API en place), `notifications` (API uniquement)
 
 ## 7) Démarrage local
 
@@ -290,20 +219,29 @@ L'agent `playwright-e2e-writer` est disponible pour générer les tests E2E auto
 
 ## 9) Règles IA recommandées
 
-- Lire d'abord `config/urls.py`, les `views.py`/`views_web.py` et `serializers.py` concernés
+- Lire d'abord `config/urls.py`, le `views.py` + `serializers.py` de l'app concernée
 - Éviter les refactors larges sans demande explicite
-- Préserver le pattern Django-routed + mini-SPA React ciblés
-- Chaque nouvelle app web doit avoir `web_urls.py` + `views_web.py` distincts des vues API
-- **Pour ajouter une page React** :
-  1. Créer le composant métier dans `apps/<app>/react/`
-  2. Créer le fichier de montage dans `ui/src/pages/<app>/`
-  3. Ajouter l'entrée dans `ui/vite.config.ts`
-  4. Créer la vue Django qui hérite de `ReactPageView`
-- Consulter `legacy/` uniquement pour la compréhension métier, jamais comme référence technique
-- Le `i18n_patterns` dans `config/urls.py` enveloppe toutes les URLs web (`/app/...`)
+- **Pour ajouter une nouvelle page React** :
+  1. Créer le composant feature dans `ui/src/features/<feature>/` (suivre `docs/FEATURE_PATTERN.md`)
+  2. Ajouter l'API dans `ui/src/lib/api/<feature>.ts` (types + fetch fns)
+  3. Ajouter les hooks TanStack Query dans `ui/src/features/<feature>/hooks.ts`
+  4. Ajouter la route dans `ui/src/router.tsx` (avec `lazy()`)
+  5. Ajouter les clés i18n dans les **4 locales** (`ui/src/locales/{en,fr,de,es}/translation.json`)
+- **Pour ajouter une nouvelle app Django** :
+  1. `python manage.py startapp <name>` dans `apps/<name>/`
+  2. L'ajouter dans `INSTALLED_APPS` (`config/settings/base.py`)
+  3. Hériter de `core.models.HouseholdScopedModel` (sauf cas exception)
+  4. Inclure `path("api/<name>/", include("<name>.urls"))` dans `config/urls.py`
+  5. Permissions `IsAuthenticated, IsHouseholdMember` par défaut
+- **i18n** : jamais de `defaultValue` dans `t()`. Toujours mettre la clé dans les 4 locales.
+- **Couleurs** : tokens design-system uniquement (cf. `CLAUDE.md` projet)
+- **Tests** : pytest backend obligatoire pour viewset/permissions ; Playwright E2E pour les flux frontend critiques
 
-## 10) Archive legacy (référence métier uniquement)
+## 10) Documentation par module
 
-- `legacy/AGENTS.md`: contexte produit complet historique (haute valeur)
-- `legacy/README.md`: vision produit/features globales
-- `legacy/RESUME-PROJECT.md`: intention métier centrée sur le modèle interaction
+Voir `docs/MODULES/` pour l'état de chaque app : à corriger, à faire, à améliorer.
+
+## 11) Archive legacy
+
+L'ancien code `legacy/` a été archivé dans la branche `archive/legacy` puis supprimé du `main` (commit `e16edd8`).
+Pour consulter l'intention métier d'origine, checkout cette branche.

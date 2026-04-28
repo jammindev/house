@@ -101,7 +101,15 @@ class Command(BaseCommand):
     def _flush(self):
         email_list = ["claire.mercier@demo.local", "antoine.mercier@demo.local", "lea.martin@demo.local"]
         users = User.objects.filter(email__in=email_list)
-        Household.objects.filter(name="Famille Mercier").delete()
+        household_ids = list(Household.objects.filter(name="Famille Mercier").values_list("id", flat=True))
+        if household_ids:
+            CircuitUsagePointLink.objects.filter(circuit__board__household_id__in=household_ids).delete()
+            UsagePoint.objects.filter(household_id__in=household_ids).delete()
+            ElectricCircuit.objects.filter(board__household_id__in=household_ids).delete()
+            ProtectiveDevice.objects.filter(board__household_id__in=household_ids).delete()
+            ElectricityBoard.objects.filter(household_id__in=household_ids).delete()
+            Zone.objects.filter(household_id__in=household_ids).delete()
+            Household.objects.filter(id__in=household_ids).delete()
         users.delete()
         self.stdout.write("Previous demo data deleted.")
 
