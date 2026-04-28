@@ -16,7 +16,8 @@
     "search": "Rechercher",
     "noResults": "Aucun résultat",
     "linked": "Déjà lié",
-    "actions": "Actions"
+    "actions": "Actions",
+    "error_loading": "Erreur lors du chargement."
   },
   "sidebar": {
     "open": "Ouvrir le menu",
@@ -1276,6 +1277,14 @@
     "add_note": "Ajouter une note",
     "add_expense": "Ajouter une dépense",
     "add_activity": "Ajouter une activité",
+    "attach_document": {
+      "title": "Joindre un document",
+      "search_placeholder": "Rechercher un document…",
+      "empty": "Aucun document disponible.",
+      "attach": "Joindre ({{count}})",
+      "detach": "Détacher",
+      "detached": "Document détaché"
+    },
     "status": {
       "draft": "Brouillon",
       "active": "Actif",

@@ -10,9 +10,10 @@ interface DocumentCardProps {
   doc: DocumentItem;
   onEdit: (doc: DocumentItem) => void;
   onDelete: (id: string) => void;
+  deleteLabel?: string;
 }
 
-export default function DocumentCard({ doc, onEdit, onDelete }: DocumentCardProps) {
+export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: DocumentCardProps) {
   const { t } = useTranslation();
 
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
@@ -22,7 +23,7 @@ export default function DocumentCard({ doc, onEdit, onDelete }: DocumentCardProp
 
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(doc) },
-    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(doc.id), variant: 'danger' },
+    { label: deleteLabel ?? t('common.delete'), icon: Trash2, onClick: () => onDelete(doc.id), variant: 'danger' },
   ];
 
   return (

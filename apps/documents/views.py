@@ -62,6 +62,14 @@ def get_documents_queryset_for_request(request):
     if qualification_state == 'without_activity' or without_activity in {'1', 'true', 'yes'}:
         queryset = queryset.filter(interaction_documents__isnull=True)
 
+    zone_id = (query_params.get('zone') or '').strip()
+    if zone_id:
+        queryset = queryset.filter(zonedocument__zone_id=zone_id)
+
+    project_id = (query_params.get('project') or '').strip()
+    if project_id:
+        queryset = queryset.filter(project_documents__project_id=project_id)
+
     return queryset.distinct()
 
 

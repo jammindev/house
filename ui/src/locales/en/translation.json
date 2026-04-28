@@ -16,7 +16,8 @@
     "search": "Search",
     "noResults": "No results",
     "linked": "Already linked",
-    "actions": "Actions"
+    "actions": "Actions",
+    "error_loading": "Failed to load."
   },
   "sidebar": {
     "open": "Open menu",
@@ -1271,6 +1272,14 @@
     "empty_notes": "No notes yet.",
     "empty_expenses": "No expenses yet.",
     "empty_documents": "No documents yet.",
+    "attach_document": {
+      "title": "Attach a document",
+      "search_placeholder": "Search documents…",
+      "empty": "No documents available.",
+      "attach": "Attach ({{count}})",
+      "detach": "Detach",
+      "detached": "Document detached"
+    },
     "empty_timeline": "No activity yet.",
     "add_task": "Add a task",
     "add_note": "Add a note",

@@ -16,7 +16,8 @@
     "search": "Suchen",
     "noResults": "Keine Ergebnisse",
     "linked": "Bereits verknüpft",
-    "actions": "Aktionen"
+    "actions": "Aktionen",
+    "error_loading": "Laden fehlgeschlagen."
   },
   "sidebar": {
     "open": "Menü öffnen",
@@ -1271,6 +1272,14 @@
     "empty_notes": "Noch keine Notizen.",
     "empty_expenses": "Noch keine Ausgaben.",
     "empty_documents": "Noch keine Dokumente.",
+    "attach_document": {
+      "title": "Dokument anhängen",
+      "search_placeholder": "Dokumente suchen…",
+      "empty": "Keine Dokumente verfügbar.",
+      "attach": "Anhängen ({{count}})",
+      "detach": "Trennen",
+      "detached": "Dokument getrennt"
+    },
     "empty_timeline": "Noch keine Aktivität.",
     "add_task": "Aufgabe hinzufügen",
     "add_note": "Notiz hinzufügen",
