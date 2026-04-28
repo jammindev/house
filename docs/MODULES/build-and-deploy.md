@@ -1,6 +1,6 @@
 # Module — build-and-deploy
 
-> Audit : 2026-04-27. Rôle : chaîne de build (Vite + Django) et déploiement Docker + Traefik sur Mac Mini.
+> Audit : 2026-04-28. Rôle : chaîne de build (Vite + Django) et déploiement Docker + Traefik sur Mac Mini.
 
 ## État synthétique
 
@@ -21,17 +21,17 @@
 
 ## À corriger (urgent)
 
-- [ ] Pas de healthcheck sur le service `web` en prod — Docker ne sait pas si Gunicorn est réellement opérationnel — *source : `DEPLOYMENT.md` §9 "Priorité basse" (à promouvoir)*
-- [ ] `DEPLOYMENT.md` §6 indique `cd ~/apps/house` alors que le runner CI utilise `~/jammin-dev/apps/house` — incohérence de chemin documenté vs réel — *source : `DEPLOYMENT.md` l. 370 vs `.github/workflows/ci.yml` l. 79*
-- [ ] Pas de tag/version sur l'image Docker prod — complique les rollbacks rapides
+- [ ] `DEPLOYMENT.md` l. 370 indique `cd ~/apps/house` alors que le runner CI utilise `~/jammin-dev/apps/house` — incohérence de chemin documenté vs réel — *source : `DEPLOYMENT.md:370` vs `.github/workflows/ci.yml:79`*
+- [ ] Pas de healthcheck sur le service `web` en prod — `docker-compose.prod.yml` n'a un `healthcheck` que sur `db`, pas sur `web` (Gunicorn) — *source : `docker-compose.prod.yml:19-32` (vérification code)*
+- [ ] Pas de tag/version sur l'image Docker prod (`house:latest`) — complique les rollbacks rapides — *source : `docker-compose.prod.yml:21`*
 
 ## À faire (backlog)
 
 - [ ] Mettre en place les backups automatiques PostgreSQL via crontab — *source : `DEPLOYMENT.md` §8 "Priorité haute"*
 - [ ] Ajouter rotation des logs Docker (`/etc/docker/daemon.json` json-file max-size/max-file) — *source : `DEPLOYMENT.md` §9*
-- [ ] Migrer Docker Desktop → Colima sur le Mac Mini (Docker Desktop nécessite session GUI ouverte, casse au reboot sans login auto) — *source : `~/.claude/CLAUDE.md` "Points d'amélioration"*
-- [ ] Changer `FIRST_SUPERUSER_PASSWORD` dans `.env` prod du Mac Mini, relancer les containers — *source : `~/.claude/CLAUDE.md` "À faire rapidement"*
-- [ ] Changer le mot de passe macOS du Mini (sudo exposé dans une conversation) — *source : `~/.claude/CLAUDE.md` "À faire rapidement"*
+- [ ] Migrer Docker Desktop → Colima sur le Mac Mini (Docker Desktop nécessite session GUI ouverte, casse au reboot sans login auto) — *source : global CLAUDE.md "Points d'amélioration"*
+- [ ] Changer `FIRST_SUPERUSER_PASSWORD` dans `.env` prod du Mac Mini, relancer les containers — *source : global CLAUDE.md "À faire rapidement"*
+- [ ] Changer le mot de passe macOS du Mini (sudo exposé dans une conversation) — *source : global CLAUDE.md "À faire rapidement"*
 
 ## À améliorer
 

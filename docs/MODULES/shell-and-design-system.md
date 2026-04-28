@@ -1,11 +1,11 @@
 # Module — shell-and-design-system
 
-> Audit : 2026-04-27. Rôle : shell applicatif (AppShell, Sidebar, TopBar) + design system + i18n + thèmes.
+> Audit : 2026-04-28. Rôle : shell applicatif (AppShell, Sidebar, TopBar) + design system + i18n + thèmes.
 
 ## État synthétique
 
 - **Périmètre** : layout global (sidebar + topbar + main), composants génériques de page (PageHeader, ListPage, EmptyState, etc.), primitives UI (Button, Input, Card, Dialog, SheetDialog, Toast…), bascule light/dark + color themes, i18n 4 langues (en/fr/de/es).
-- **Health** : stable globalement, plusieurs bugs de polish connus sur sidebar et thème (BUG-01 → BUG-05).
+- **Health** : stable — BUG-02/03/04 résolus (P1, commit `89bd8a1`). BUG-05 vérifié non-bug. Items ouverts : #69 (404/ErrorBoundary), #45 (isLoading redondant).
 
 ## Composition
 
@@ -18,28 +18,23 @@
 
 ## À corriger (urgent)
 
-- [ ] [BUG-01] Perte du thème (light/dark) au logout — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-01* (le `logout()` supprime `theme` indirectement, et `ProtectedLayout` ne réapplique le thème que via `useMe` au prochain login)
-- [ ] [BUG-02] Blink de thème au chargement de la page d'accueil (FOUC) — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-02*
-- [ ] [BUG-03] La sidebar recharge (re-render complet) au changement de page — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-03*
-- [ ] [BUG-04] Blink de la sidebar au rechargement / navigation — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-04*
-- [ ] [BUG-05] La sidebar ne met pas en évidence l'entrée active sur les pages de détail — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-05* (`NavLink` `isActive` ne match que sur le path exact)
-- [ ] Pré-sélection automatique de la zone parente dans tous les formulaires — créer une zone ancestre unique au household et auto-compléter par défaut côté UI + erreur back si absente — *source : `URGENT.md` (impacte tous les formulaires multi-zones)*
+- [ ] Page 404 et Error Boundary global absents — une URL invalide n'affiche aucun retour visuel, une erreur JS non catchée crashe l'app sans message utile — *source : #69*
+- ~~[#25] Blink de thème au chargement (FOUC)~~ — **RÉSOLU** commit `89bd8a1` : bootstrap script `templates/index.html` applique dark + color_theme avant React
+- ~~[#27] Blink de la sidebar au rechargement / navigation~~ — **RÉSOLU** commit `89bd8a1` : `ProtectedLayout` wraps `<Outlet>` dans `<Suspense>`, AppShell reste monté entre les routes
 
 ## À faire (backlog)
 
-- [ ] [FEAT-05] Badge compteur d'alertes sur l'entrée Sidebar "Alertes" — *source : `GITHUB_ISSUES_BACKLOG.md` FEAT-05*
-- [ ] [DOCS-01] Documenter `useSessionState`, `useDeleteWithUndo`, query key factory dans `docs/` — *source : `docs/ARCHITECTURE_AUDIT_2026_03.md` axe 4, `GITHUB_ISSUES_BACKLOG.md` DOCS-01*
-- [ ] [REFACTOR-05] Supprimer les `isLoading` manuels redondants sur les pages qui n'utilisent pas encore `useDelayedLoading` + skeleton — *source : `GITHUB_ISSUES_BACKLOG.md` REFACTOR-05*
+- [ ] Supprimer les `isLoading` manuels redondants sur les pages qui n'utilisent pas encore `useDelayedLoading` + skeleton (ZonesPage, InteractionsPage, SettingsPage confirmés) — *source : #45*
+- [ ] Documenter `useSessionState`, `useDeleteWithUndo`, query key factory dans `docs/` — *source : #53*
 
 ## À améliorer
 
-- [ ] LoginPage et ProtectedLayout n'utilisent pas `t()` — auditer l'ensemble du shell pour s'assurer qu'aucun libellé ne reste hardcodé
+- [ ] LoginPage n'utilise pas `t()` — auditer l'ensemble du shell pour s'assurer qu'aucun libellé ne reste hardcodé
 - [ ] Évaluer la mise en place d'un nonce CSP pour retirer `unsafe-inline` de la CSP Nginx — *source : `docs/SECURITY_REVIEW.md` §9*
-- [ ] Mémoïser `Sidebar` (re-render lié à `useTranslation` + `useAuth` à chaque navigation) pour répondre à BUG-03/04
-- [ ] Ajouter un script pré-hydratation qui pose `dark` sur `<html>` avant le premier paint (lecture `localStorage.theme`) pour éliminer le FOUC
 
 ## Notes
 
-- L'icône calendrier en darkmode est peu lisible (mentionné `TO_FIX.md` l. 16) — concerne le design system (composant date picker / dialog calendar).
-- `applyDarkMode` écrit dans `localStorage` à chaque appel, ce qui amplifie le risque de désync au logout.
+- BUG-05 (sidebar active sur pages de détail) s'avère non-bug : `NavLink` v7 avec `end=false` par défaut fait déjà du prefix-match — *source : commit `89bd8a1` message*
+- Bootstrap script dans `templates/index.html` applique `dark` et `color_theme` sur `<html>` avant React — garantit zéro FOUC même sur hard reload
 - 4 langues supportées avec fallback `en`. Règle projet : pas de `defaultValue` dans `t()` (CLAUDE.md projet).
+- `logout()` ne supprime pas `theme`/`color_theme` de localStorage — le thème persiste entre sessions — *source : `ui/src/lib/auth/context.tsx:74-81`*

@@ -1,6 +1,6 @@
 # Module — documents
 
-> Audit : 2026-04-27. Rôle : fichiers attachés (factures, manuels, photos, etc.) reliés au contexte métier (parcours 02).
+> Audit : 2026-04-28. Rôle : fichiers attachés (factures, manuels, photos, etc.) reliés au contexte métier (parcours 02).
 
 ## État synthétique
 
@@ -20,15 +20,16 @@
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
 
-- [ ] OCR jamais déclenché : l'action `reprocess_ocr` retourne `202 Accepted` mais ne queue rien (`# TODO: Queue OCR task`) — *source : `apps/documents/views.py:242` ; `GITHUB_ISSUES_BACKLOG.md` FEAT-06*
-- [ ] Doublon legacy : `apps/documents/tests.py` coexiste avec `apps/documents/tests/` — uniformiser vers la structure dossier — *source : `GITHUB_ISSUES_BACKLOG.md` REFACTOR-04, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 79-90*
+- [ ] OCR jamais déclenché : l'action `reprocess_ocr` retourne `202 Accepted` mais ne queue rien (`# TODO: Queue OCR task`) — *source : `apps/documents/views.py:250` ; #36*
+- [ ] Doublon legacy : `apps/documents/tests.py` coexiste avec `apps/documents/tests/` — uniformiser vers la structure dossier — *source : #44*
 
 ## À faire (backlog)
 
 > Features identifiées non encore commencées.
 
-- [ ] Séparer Documents et Photos en deux types distincts (vues + logiques de traitement) — *source : `GITHUB_ISSUES_BACKLOG.md` FEAT-09, `docs/TODO.md` ligne 1*
-- [ ] OCR automatique à l'upload (queue le traitement après création du document) — *source : `apps/documents/views.py:242` ; `GITHUB_ISSUES_BACKLOG.md` FEAT-06*
+- [ ] OCR automatique à l'upload (queue le traitement après création du document) — *source : #36*
+- [ ] Séparer Documents et Photos en deux types distincts (vues + logiques de traitement) — *source : #39*
+- [ ] Multi-upload de documents dans le formulaire d'interaction — *source : #80*
 
 ## À améliorer
 
@@ -36,7 +37,7 @@
 
 - [ ] Sortir progressivement de `Document.interaction` (FK unique) au profit de `InteractionDocument` (M2M) — la FK reste à titre transitoire mais ne doit plus structurer la page détail ni les filtres — *source : `docs/parcours/PARCOURS_02_BACKLOG_TECHNIQUE.md` lignes 53-58, 235-243*
 
-## Notes
+## Notes / décisions produit
 
 - Upload : `validate_upload` (`core.file_validation`) avec `ALLOWED_DOCUMENT_TYPES` et `DOCUMENT_MAX_SIZE` ; le mime-type est ré-détecté côté serveur, jamais lu depuis le client.
 - Path de stockage : `documents/{household_id}/{YYYY}/{MM}/{uuid}-{safe_name}` (`Document.build_upload_path`).

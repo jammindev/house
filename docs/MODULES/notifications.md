@@ -1,6 +1,6 @@
 # Module — notifications
 
-> Audit : 2026-04-27. Rôle : notifications in-app user-scoped (génériques via type + payload JSON).
+> Audit : 2026-04-28. Rôle : notifications in-app user-scoped (génériques via type + payload JSON).
 
 ## État synthétique
 
@@ -23,22 +23,22 @@
 ## À corriger (urgent)
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
-- _aucun item identifié_
+- [ ] **Centre de notifications frontend entièrement absent** : un utilisateur invité à un foyer ne voit aucune indication UI ; l'invitation reste invisible — *source : #63 (blocker)*
 
 ## À faire (backlog)
 
 > Features identifiées non encore commencées.
-- [ ] **Construire la UI notifications** : panneau bell (dropdown ou drawer) consommant `/api/notifications/` + `unread-count` + `mark-read` / `mark-all-read` — *source : absence de `ui/src/features/notifications/`, seul `ui/src/lib/notifications.ts` legacy HTMX existe*
-- [ ] Créer `ui/src/lib/api/notifications.ts` avec types alignés sur `NotificationSerializer` — *source : absence du fichier*
-- [ ] Ajouter le namespace `notifications` dans les 4 locales (titres, libellés, états vide) — *source : grep des locales*
-- [ ] Étendre les types : ajouter notifications pour assignation de tâche (lié à Parcours 06 V2) — *source : `GITHUB_ISSUES_BACKLOG.md` FEAT-10 · `TO_FIX.md` ligne 21*
-- [ ] Notifications pour alertes proactives (tâches en retard, garanties expirantes, maintenances dues) — *source : `GITHUB_ISSUES_BACKLOG.md` FEAT-02/FEAT-05*
+- [ ] Construire la UI notifications : badge compteur dans la navbar, dropdown ou page `/notifications`, actions mark-read / mark-all-read, action accept/refuse invitation depuis la notif — *source : #63*
+- [ ] Créer `ui/src/lib/api/notifications.ts` avec types alignés sur `NotificationSerializer` — *source : absence du fichier, vérifiée `ui/src/lib/api/`*
+- [ ] Ajouter le namespace `notifications` dans les 4 locales (titres, libellés, état vide) — *source : grep des locales (namespace absent)*
+- [ ] Étendre les types : notifications pour assignation de tâche (lié à Parcours 06 V2) — *source : #40*
 
 ## À améliorer
 
 > Refacto, perf, UX, qualité de code.
 - [ ] Préparer la migration polling → WebSocket : le commentaire `# Future: channel_layer.group_send(...)` indique l'intention mais nécessitera du travail (channels, ASGI) — *source : `apps/notifications/service.py:32`*
 - [ ] L'event `BELL_REFRESH_EVENT` est dupliqué entre `apps/notifications/service.py:11` et `ui/src/lib/notifications.ts:8` — relique du legacy HTMX, à nettoyer une fois la UI React en place
+- [ ] Vérifier et activer l'envoi d'email pour les invitations foyer — *source : #64*
 
 ## Notes
 

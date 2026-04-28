@@ -1,6 +1,6 @@
 # Module — accounts
 
-> Audit : 2026-04-27. Rôle : authentification, profil utilisateur, gestion des comptes et impersonation admin.
+> Audit : 2026-04-28. Rôle : authentification, profil utilisateur, gestion des comptes et impersonation admin.
 
 ## État synthétique
 
@@ -24,16 +24,19 @@
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
 
-- [ ] Perte du thème (light/dark) au logout — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-01*
-- [ ] Blink du thème au chargement du dashboard avant résolution — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-02*
+- [ ] Page d'inscription absente — aucune `SignupPage` dans `ui/src/features/auth/` — *source : #59*
+- [ ] Validation du mot de passe à l'inscription insuffisante (aucun validateur Django dans le serializer) — *source : #60*
+- [ ] Messages d'erreur login hardcodés (voir aussi auth-frontend) — *source : #61*
+- [ ] Réinitialisation de mot de passe non implémentée (ni backend ni frontend) — *source : #62*
+- [ ] Changement d'email non implémenté (aucun endpoint `change_email` dans `apps/accounts/views/api.py`) — *source : #70*
 
 ## À faire (backlog)
 
 > Features identifiées non encore commencées.
 
-- [ ] Migration JWT `localStorage` → cookies `httpOnly; Secure; SameSite=Strict` (impersonation context côté serveur) — *source : `docs/SECURITY_REVIEW.md` lignes 25-42 / `GITHUB_ISSUES_BACKLOG.md` SEC-01*
-- [ ] Audit log des actions sensibles (changement password, impersonation, suppressions) via middleware ou signals — *source : `docs/SECURITY_REVIEW.md` lignes 139-142 / `GITHUB_ISSUES_BACKLOG.md` SEC-02*
-- [ ] 2FA / TOTP optionnel via `django-otp`, obligatoire pour staff/admin et avant impersonation — *source : `docs/SECURITY_REVIEW.md` lignes 146-149 / `GITHUB_ISSUES_BACKLOG.md` SEC-03*
+- [ ] Migration JWT `localStorage` → cookies `httpOnly; Secure; SameSite=Strict` (impersonation context côté serveur) — *source : #47, `docs/SECURITY_REVIEW.md` lignes 25-42*
+- [ ] Audit log des actions sensibles (changement password, impersonation, suppressions) via middleware ou signals — *source : #48, `docs/SECURITY_REVIEW.md` lignes 139-142*
+- [ ] 2FA / TOTP optionnel via `django-otp`, obligatoire pour staff/admin et avant impersonation — *source : #49, `docs/SECURITY_REVIEW.md` lignes 146-149*
 - [ ] Notification email à l'utilisateur cible lors d'une impersonation, tracking des sessions actives — *source : `docs/SECURITY_REVIEW.md` ligne 57*
 
 ## À améliorer
@@ -43,6 +46,7 @@
 - [ ] Throttle sur l'inscription et la liste users (déféré dans la security review) — *source : `docs/SECURITY_REVIEW.md` ligne 112*
 - [ ] Vérifier `SESSION_COOKIE_HTTPONLY/SECURE/SAMESITE='Strict'` en production — *source : `docs/SECURITY_REVIEW.md` ligne 155*
 - [ ] Ajouter validateurs serializer (`max_length`, URL, `ChoiceField` pour les enums theme/color_theme) — *source : `docs/SECURITY_REVIEW.md` ligne 157*
+- [ ] Migrer `ProtectedLayout.tsx` pour utiliser `useCurrentUser` au lieu du hook déprecié `useMe` — *source : `ui/src/components/ProtectedLayout.tsx:10`, `ui/src/features/settings/hooks.ts:48-49`*
 
 ## Notes
 
@@ -51,3 +55,5 @@
 - Les non-staff ne voient que leur propre user via `GET /api/accounts/users/` (`apps/accounts/views/api.py:76-83`).
 - Impersonation : produit un JWT court via `accounts.tokens.get_impersonation_token`, log écrit dans `logger.info` (`apps/accounts/views/api.py:168`).
 - Endpoint `me_view` est un `@api_view` séparé du `UserViewSet.me` — deux chemins légèrement différents pour la même intention.
+- Thème (light/dark) persisté en `localStorage` (`theme`, `color_theme`) séparément des tokens JWT — le `logout()` ne supprime pas ces clés donc le thème est bien préservé après déconnexion (`ui/src/lib/auth/context.tsx:74-81`).
+- Anti-blink du thème au chargement : script inline dans `templates/index.html` lit `localStorage.theme` avant le mount React — pas de flash.

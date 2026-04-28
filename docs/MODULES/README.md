@@ -44,4 +44,4 @@ Lecture recommandée pour reprendre le projet après pause.
 - [`docs/JOURNAL_PRODUIT.md`](../JOURNAL_PRODUIT.md) — état des parcours métier
 - [`docs/FEATURE_PATTERN.md`](../FEATURE_PATTERN.md) — pattern à suivre pour toute nouvelle feature
 - [`AGENTS.md`](../../AGENTS.md) — vue d'ensemble du repo
-- [`GITHUB_ISSUES_BACKLOG.md`](../../GITHUB_ISSUES_BACKLOG.md) — backlog issues à pousser sur GitHub
+- **GitHub issues** ([`jammindev/house`](https://github.com/jammindev/house/issues)) — source unique de vérité du backlog

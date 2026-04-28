@@ -32,7 +32,7 @@ The user will give you a module name. It's typically a Django app under `apps/<n
    - `ui/src/gen/api/` — types générés à jour ?
 
 3. **Docs croisées** :
-   - `URGENT.md`, `TO_FIX.md`, `ELECTRICTY_RETOUR.md`, `GITHUB_ISSUES_BACKLOG.md`
+   - **GitHub issues** (source unique de vérité) : `gh issue list --repo jammindev/house --state open --label "app:<name>" --json number,title,body,labels`
    - `docs/parcours/PARCOURS_*.md` — y a-t-il des items du backlog pour ce module ?
    - `docs/JOURNAL_PRODUIT.md`
 
@@ -62,16 +62,17 @@ Format strict :
 ## À corriger (urgent)
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
-> Source : URGENT.md, TO_FIX.md, GITHUB_ISSUES_BACKLOG.md, et inspection du code.
+> Source : GitHub issues (label `bug` ou `blocker`) et inspection du code.
 
-- [ ] <description claire> — *source : <fichier:ligne ou backlog>*
+- [ ] <description claire> — *source : #<issue> ou `<fichier:ligne>`*
 - [ ] ...
 
 ## À faire (backlog)
 
 > Features identifiées non encore commencées.
+> Source : GitHub issues (label `feat`, `enhancement`).
 
-- [ ] <description claire> — *source : ...*
+- [ ] <description claire> — *source : #<issue>*
 - [ ] ...
 
 ## À améliorer
@@ -89,9 +90,10 @@ Format strict :
 
 ## Règles
 
-- **Ne pas inventer** : si une info n'est pas dans le code ou les docs, ne pas l'écrire.
-- Citer les sources à chaque puce (`URGENT.md ligne 5`, `apps/tasks/views.py:42`).
-- Vérifier les références : si `URGENT.md` mentionne un comportement, lire le code pour confirmer.
+- **Ne pas inventer** : si une info n'est pas dans le code ou GitHub, ne pas l'écrire.
+- Citer les sources à chaque puce (numéro d'issue GH `#42`, ou `apps/tasks/views.py:42`).
+- **GitHub est la source de vérité du backlog** — ne pas dupliquer les items qui sont déjà dans une issue, juste les citer (`#42`).
+- Vérifier les références : si une issue mentionne un comportement, lire le code pour confirmer (l'issue peut être obsolète).
 - Si le module n'a aucun item dans une section, écrire `_aucun item identifié_`.
 - Mettre les items les plus impactants en haut de chaque section.
 - Si `docs/MODULES/<module>.md` existe déjà, le **mettre à jour** plutôt que le réécrire (préserver les notes manuelles).

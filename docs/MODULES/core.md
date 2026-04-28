@@ -1,6 +1,6 @@
 # Module — core
 
-> Audit : 2026-04-27. Rôle : app transverse fournissant modèles abstraits, permissions, middleware, validation et serving média protégé aux autres apps.
+> Audit : 2026-04-28. Rôle : app transverse fournissant modèles abstraits, permissions, middleware, validation et serving média protégé aux autres apps.
 
 ## État synthétique
 
@@ -31,16 +31,18 @@
 
 > Features identifiées non encore commencées.
 
-- [ ] Créer une `HouseholdDetailView` dans `apps/core/views.py` pour encapsuler le scoping household côté vues et éviter le boilerplate dans chaque app — *source : `GITHUB_ISSUES_BACKLOG.md` REFACTOR-02 / `docs/ARCHITECTURE_AUDIT_2026_03.md`*
-- [ ] Audit log middleware ou signals pour tracer les actions sensibles (action, user, timestamp, objet) — *source : `docs/SECURITY_REVIEW.md` lignes 139-142 / `GITHUB_ISSUES_BACKLOG.md` SEC-02*
+- [ ] Créer une `HouseholdDetailView` dans `apps/core/views.py` pour encapsuler le scoping household côté vues et éviter le boilerplate dans chaque app — *source : #42, `docs/ARCHITECTURE_AUDIT_2026_03.md`*
+- [ ] Audit log middleware ou signals pour tracer les actions sensibles (action, user, timestamp, objet) — *source : #48, `docs/SECURITY_REVIEW.md` lignes 139-142*
+- [ ] Ajouter 404 globale + `ErrorBoundary` React pour les routes inconnues ou erreurs de rendu — *source : #69*
 
 ## À améliorer
 
 > Refacto, perf, UX, qualité de code.
 
-- [ ] Déplacer `HouseholdScopedModelSerializer` depuis `apps/electricity/serializers.py` vers `apps/core/serializers.py` et adapter les imports — *source : `GITHUB_ISSUES_BACKLOG.md` REFACTOR-03 / `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 60-70*
-- [ ] Uniformiser la structure des tests : déplacer `apps/core/tests.py` (278 lignes) dans `apps/core/tests/` à côté des autres fichiers — *source : `GITHUB_ISSUES_BACKLOG.md` REFACTOR-04 / `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 79-90*
-- [ ] Documenter les patterns transverses (`useSessionState`, `useDeleteWithUndo`, query key factories) — *source : `GITHUB_ISSUES_BACKLOG.md` DOCS-01 / `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 92-98*
+- [ ] Déplacer `HouseholdScopedModelSerializer` depuis `apps/electricity/serializers.py` vers `apps/core/serializers.py` et adapter les imports — *source : #43, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 60-70*
+- [ ] Uniformiser la structure des tests : déplacer `apps/core/tests.py` (278 lignes) dans `apps/core/tests/` à côté des autres fichiers — *source : #44, `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 79-90*
+- [ ] Résoudre les patterns `isLoading` redondants dans les pages multi-query (e.g. `DashboardPage.tsx`) — *source : #45*
+- [ ] Documenter les patterns transverses (`useSessionState`, `useDeleteWithUndo`, query key factories) — *source : `docs/ARCHITECTURE_AUDIT_2026_03.md` lignes 92-98*
 - [ ] Envisager `Content-Disposition: attachment` pour forcer le download des fichiers servis — *source : `docs/SECURITY_REVIEW.md` ligne 86*
 - [ ] URLs signées avec expiration si migration vers object storage (S3 presigned) — *source : `docs/SECURITY_REVIEW.md` ligne 98*
 

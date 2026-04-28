@@ -1,6 +1,6 @@
 # Module — tags
 
-> Audit : 2026-04-27. Rôle : tags polymorphes (interaction, document, contact, structure) reliables à n'importe quelle entité via GenericForeignKey.
+> Audit : 2026-04-28. Rôle : tags polymorphes (interaction, document, contact, structure) reliables à n'importe quelle entité via GenericForeignKey.
 
 ## État synthétique
 
@@ -20,7 +20,7 @@
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
 
-- [ ] BUG-07 — `tags.split(',')` côté `InteractionViewSet.get_queryset` ne nettoie pas les entrées vides → entrées `''` qui faussent le filtre, à remplacer par `[t.strip() for t in tags.split(',') if t.strip()]` — *source : `apps/interactions/views.py:79` ; `GITHUB_ISSUES_BACKLOG.md` BUG-07 ; `docs/SECURITY_REVIEW.md` lignes 128-135*
+- [ ] `tags.split(',')` côté `InteractionViewSet.get_queryset` ne nettoie pas les entrées vides → entrées `''` qui faussent le filtre, à remplacer par `[t.strip() for t in tags.split(',') if t.strip()]` — *source : `apps/interactions/views.py:79` ; #30*
 - [ ] Ajouter le namespace `tags` dans les 4 locales (en/fr/de/es) — actuellement seulement référencé comme sous-clés d'autres namespaces — *source : `ui/src/locales/{en,fr,de,es}/translation.json`*
 
 ## À faire (backlog)
@@ -37,7 +37,7 @@
 - [ ] Le seul `TagLink.clean()` valide la cohérence household, mais `clean()` n'est pas appelé automatiquement par DRF lors d'un POST — la validation est aujourd'hui répétée dans `views.py:71-85, 97-111`. Possibilité de centraliser dans le serializer.
 - [ ] `Tag.TagType` ne couvre que 4 entités (`interaction`, `document`, `contact`, `structure`) alors que `TagLink` est générique — manque potentiellement `task`, `equipment`, `project`, `zone` (si tagging requis sur ces entités) — *source : `apps/tags/models.py:12-16`*
 
-## Notes
+## Notes / décisions produit
 
 - Architecture polymorphe : `TagLink` utilise `ContentType` + `object_id` (CharField 64) pour relier un `Tag` à n'importe quelle entité du household. Les modèles taggés (Interaction, Task) déclarent un `GenericRelation('tags.TagLink', related_query_name='...')`.
 - Migration `0003_remove_interactiontag` : ancien modèle `InteractionTag` (FK directe) a été remplacé par le pattern générique. La migration `0002_taglink_generic` crée la nouvelle table.

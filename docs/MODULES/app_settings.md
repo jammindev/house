@@ -1,6 +1,6 @@
 # Module — app_settings
 
-> Audit : 2026-04-27. Rôle : namespace UI pour les paramètres utilisateur (profil, thème, mot de passe, gestion du foyer).
+> Audit : 2026-04-28. Rôle : namespace UI pour les paramètres utilisateur (profil, thème, mot de passe, gestion du foyer).
 
 ## État synthétique
 
@@ -19,13 +19,12 @@
 ## À corriger (urgent)
 
 > Bugs ou dettes qui bloquent l'usage ou créent un risque.
-- [ ] Perte du thème (light/dark) au logout — au reconnexion le thème revient au défaut — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-01 · `A_AMELIORER_STYLE.md`*
-- [ ] Blink de thème au chargement du dashboard (flash of unstyled content avant résolution du thème) — *source : `GITHUB_ISSUES_BACKLOG.md` BUG-02*
+- _aucun item identifié_ — BUG-01 (perte du thème au logout) et BUG-02 (theme flash FOUC) résolus par P1 commit `89bd8a1` : bootstrap script dans `templates/index.html` + `logout()` ne supprime pas `theme`/`color_theme` de localStorage — *source : vérification code `ui/src/lib/auth/context.tsx:74-81` + `templates/index.html`*
 
 ## À faire (backlog)
 
 > Features identifiées non encore commencées.
-- [ ] Quand on crée un foyer, devenir automatiquement owner — *source : `URGENT.md` ligne 1*
+- [ ] Changement d'email impossible dans les Settings — *source : #70*
 
 ## À améliorer
 
