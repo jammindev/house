@@ -8,6 +8,7 @@ export interface AuthUser {
   active_household: string | null;
   locale?: string;
   is_staff?: boolean;
+  avatar?: string | null;
 }
 
 export interface AuthContextValue {

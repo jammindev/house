@@ -74,6 +74,12 @@ class TestServeProtectedMedia:
         # No household_id in path
         assert response.status_code == 404
 
+    @override_settings(DEBUG=False)
+    def test_invalid_household_uuid_in_path_raises_404(self, client, member_user):
+        client.force_login(member_user)
+        response = client.get(media_url('documents/not-a-uuid/file.pdf'))
+        assert response.status_code == 404
+
     # ── X-Accel-Redirect header ───────────────────────────────────────────────
 
     @override_settings(DEBUG=False)

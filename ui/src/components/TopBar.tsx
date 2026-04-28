@@ -44,9 +44,17 @@ export default function TopBar() {
           <span className="text-sm font-medium text-foreground leading-none truncate max-w-32">{displayName}</span>
           <span className="text-xs text-muted-foreground truncate max-w-32">{user?.email}</span>
         </div>
-        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold shrink-0">
-          {initial}
-        </div>
+        {user?.avatar ? (
+          <img
+            src={user.avatar}
+            alt={displayName ?? ''}
+            className="h-8 w-8 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-semibold shrink-0">
+            {initial}
+          </div>
+        )}
         <button
           onClick={logout}
           className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"

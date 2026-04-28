@@ -19,6 +19,16 @@ class TestJWTAuth:
         assert "access" in response.data
         assert "refresh" in response.data
 
+    def test_obtain_token_also_opens_session(self, api_client):
+        """JWT login opens a Django session so <img src='/media/...'> can authenticate."""
+        UserFactory(email="session@example.com", password="testpass123")
+
+        url = reverse("token_obtain_pair")
+        response = api_client.post(url, {"email": "session@example.com", "password": "testpass123"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert "sessionid" in response.cookies
+
     def test_obtain_token_with_invalid_credentials(self, api_client):
         """Invalid credentials return 401."""
         url = reverse("token_obtain_pair")

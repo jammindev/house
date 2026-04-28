@@ -15,6 +15,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
@@ -228,11 +230,40 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response({'avatar_url': avatar_url}, status=status.HTTP_200_OK)
 
 
+class TokenObtainPairWithSessionView(TokenObtainPairView):
+    """JWT login that also opens a Django session.
+
+    Le SPA s'authentifie via `Authorization: Bearer <jwt>`, mais les requêtes
+    `<img src=...>` et `<a href=...>` vers `/media/...` partent sans ce header
+    (le navigateur n'envoie automatiquement que les cookies). Sans session,
+    `serve_protected_media` voit AnonymousUser → 401.
+
+    Poser un cookie sessionid au moment du login JWT permet aux requêtes
+    natives de transporter l'auth. Les appels API gardent leur Bearer header.
+    """
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as exc:
+            raise InvalidToken(exc.args[0])
+        auth_login(
+            request,
+            serializer.user,
+            backend='django.contrib.auth.backends.ModelBackend',
+        )
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def me_view(request):
     """Lightweight me endpoint for SPA auth context."""
     user = request.user
+    avatar_url = None
+    if user.avatar:
+        avatar_url = request.build_absolute_uri(user.avatar.url)
     return Response({
         'id': str(user.id),
         'email': user.email,
@@ -241,4 +272,5 @@ def me_view(request):
         'active_household': str(user.active_household_id) if user.active_household_id else None,
         'is_staff': user.is_staff,
         'locale': user.locale or '',
+        'avatar': avatar_url,
     })

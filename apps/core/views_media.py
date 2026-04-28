@@ -7,6 +7,7 @@ so Nginx serves the file from an internal-only location (/_protected_media/).
 Development: Django serves the file directly (standard static serve).
 """
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
 
 from households.models import HouseholdMember
@@ -24,10 +25,13 @@ def serve_protected_media(request, path):
         household_id = parts[1] if len(parts) >= 2 else ''
         if not household_id:
             raise Http404
-        is_member = HouseholdMember.objects.filter(
-            household_id=household_id,
-            user=request.user,
-        ).exists()
+        try:
+            is_member = HouseholdMember.objects.filter(
+                household_id=household_id,
+                user=request.user,
+            ).exists()
+        except (ValueError, ValidationError):
+            raise Http404
         if not is_member:
             return HttpResponse(status=403)
 
@@ -38,9 +42,6 @@ def serve_protected_media(request, path):
                 return HttpResponse(status=403)
         except Document.DoesNotExist:
             pass
-
-    # Avatars: authentication alone is sufficient —
-    # avatars are visible to other members within the app.
 
     if settings.DEBUG:
         from django.views.static import serve as static_serve

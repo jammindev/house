@@ -52,6 +52,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  useEffect(() => {
+    function handleProfileUpdated() {
+      if (!localStorage.getItem('access_token')) return;
+      void reloadUser();
+    }
+    document.body.addEventListener('profile-updated', handleProfileUpdated);
+    return () => document.body.removeEventListener('profile-updated', handleProfileUpdated);
+  }, []);
+
   async function login(email: string, password: string) {
     const { data } = await api.post<{ access: string; refresh: string }>('/auth/token/', { email, password });
     localStorage.setItem('access_token', data.access);
