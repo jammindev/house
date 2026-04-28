@@ -5,6 +5,7 @@
 e2e/.auth/
 playwright-report/
 test-results/
+.playwright-mcp/
 
 # Env files
 .env.e2e
