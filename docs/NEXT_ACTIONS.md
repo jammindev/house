@@ -12,17 +12,17 @@
 - [x] **BUG-05** — non-bug confirmé par `e2e/shell.spec.ts` (NavLink v7 fait du prefix-match par défaut)
 - [x] Bonus : `seed_demo_data --flush` fixé (ProtectedError sur ElectricityBoard, issue #83)
 
-## Priorité 2 — Tasks (1 jour)
+## Priorité 2 — Tasks ✅ (2026-04-28)
 
 But : rendre le module le plus utilisé moins frustrant. Détail dans `docs/MODULES/tasks.md`.
 
-- [ ] Vérifier la transition `done` (`completed_by` + `completed_at`) end-to-end
-- [ ] Réafficher le toast de suppression (`useDeleteWithUndo` câblé mais invisible)
-- [ ] Forcer le statut par défaut `pending` à la création
-- [ ] Empêcher le flash du layout avant l'empty state
-- [ ] Foncer l'icône calendrier en dark mode
+- [x] Vérifier la transition `done` (`completed_by` + `completed_at`) end-to-end (tests existants verts)
+- [x] Réafficher le toast de suppression (Radix Toast `open` contrôlé + durée gérée par store Zustand)
+- [x] Forcer le statut par défaut `pending` à la création (déjà OK dans `NewTaskDialog`)
+- [x] Empêcher le flash du layout avant l'empty state (spacer 280px pendant le délai initial)
+- [x] Foncer l'icône calendrier en dark mode (`color-scheme: dark` sur les `input[type=date/...]`)
 
-Ensuite, dans le même module mais en feature : assignation à un membre + lien projet direct dans la modale.
+Features module Tasks : déjà implémentées dans `NewTaskDialog` (select `assigned_to` ligne 275-285 + select `project` ligne 287-297).
 
 ## Priorité 3 — Zones globales (0,5 jour)
 
