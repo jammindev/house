@@ -31,23 +31,41 @@ _SIGNATURES = [
         lambda h: h[:4] == b'RIFF' and h[8:12] == b'WEBP',
     ),
     (
+        'image/heic',
+        _('HEIC image'),
+        lambda h: len(h) >= 12 and h[4:8] == b'ftyp' and h[8:12] in (b'heic', b'heix', b'hevc', b'hevx'),
+    ),
+    (
+        'image/heif',
+        _('HEIF image'),
+        lambda h: len(h) >= 12 and h[4:8] == b'ftyp' and h[8:12] in (b'mif1', b'msf1', b'heim', b'heis', b'hevm', b'hevs'),
+    ),
+    (
         'application/pdf',
         _('PDF document'),
         lambda h: h[:4] == b'%PDF',
     ),
 ]
 
-ALLOWED_DOCUMENT_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'}
-ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp'}
+ALLOWED_DOCUMENT_TYPES = {
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+    'application/pdf',
+}
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'}
 
 DOCUMENT_MAX_SIZE = 20 * 1024 * 1024   # 20 MB
 AVATAR_MAX_SIZE = 2 * 1024 * 1024      # 2 MB
 
 
 def detect_mime_type(file) -> str | None:
-    """Read the first 12 bytes and return the detected MIME type, or None."""
+    """Read the first bytes and return the detected MIME type, or None."""
     file.seek(0)
-    header = file.read(12)
+    header = file.read(16)
     file.seek(0)
     for mime, _label, detector in _SIGNATURES:
         if detector(header):

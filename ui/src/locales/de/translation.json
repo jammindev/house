@@ -746,6 +746,11 @@
       "withoutActivity": "Ohne Kontext",
       "activityLinked": "Aktivität verknüpft"
     },
+    "ocr": {
+      "title": "Extrahierter Text",
+      "empty": "Noch kein Text extrahiert.",
+      "processing": "Analyse läuft…"
+    },
     "new": {
       "title": "Dokument hinzufügen",
       "subtitle": "Lade zuerst eine Datei hoch und qualifiziere sie dann auf der Detailseite.",

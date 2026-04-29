@@ -57,7 +57,7 @@ export default function DocumentDetailPage() {
 
   if (error || !doc) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
         {t('documents.detail.not_found')}
       </div>
     );
@@ -66,6 +66,12 @@ export default function DocumentDetailPage() {
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
   const fileSize =
     typeof doc.metadata?.size === 'number' ? formatFileSize(doc.metadata.size) : null;
+  const ocrText = (doc.ocr_text || '').trim();
+  const ocrMethod =
+    typeof doc.metadata?.ocr_method === 'string' ? (doc.metadata.ocr_method as string) : null;
+  const isImage = (doc.mime_type || '').startsWith('image/');
+  const isPdf = doc.mime_type === 'application/pdf';
+  const showOcrSection = isImage || isPdf || Boolean(ocrText);
 
   return (
     <>
@@ -142,6 +148,33 @@ export default function DocumentDetailPage() {
             ) : null}
           </CardContent>
         </Card>
+
+        {/* OCR text */}
+        {showOcrSection && (
+          <Card>
+            <CardContent className="pt-4">
+              <details className="group" {...(ocrText ? { open: true } : {})}>
+                <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-foreground">
+                  <span>{t('documents.ocr.title')}</span>
+                  {ocrMethod && ocrMethod !== 'skipped' && (
+                    <Badge variant="outline" className="h-5 text-[10px]">
+                      {ocrMethod}
+                    </Badge>
+                  )}
+                </summary>
+                <div className="mt-3 text-sm">
+                  {ocrText ? (
+                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-sans text-xs text-foreground">
+                      {ocrText}
+                    </pre>
+                  ) : (
+                    <p className="italic text-muted-foreground">{t('documents.ocr.empty')}</p>
+                  )}
+                </div>
+              </details>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Linked interactions */}
         <div className="space-y-2">
