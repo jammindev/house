@@ -624,7 +624,7 @@
     "section_label": "Nodo Django de sección: {{section}}",
     "title": "Fotos",
     "empty": "Sin fotos por el momento.",
-    "empty_description": "Sube fotos desde la biblioteca de documentos para verlas aquí.",
+    "empty_description": "Sube tu primera foto con el botón de arriba.",
     "loadFailed": "No se pudieron cargar las fotos.",
     "deleted": "Foto eliminada.",
     "search": "Buscar",

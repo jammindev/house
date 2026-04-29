@@ -28,7 +28,7 @@ from .thumbnails import generate_thumbnails
 from interactions.models import Interaction
 from interactions.models import InteractionDocument
 from projects.models import ProjectDocument
-from zones.models import ZoneDocument
+from zones.models import Zone, ZoneDocument
 
 logger = logging.getLogger(__name__)
 
@@ -211,6 +211,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
             field_name='file',
         )
 
+        zone = None
+        zone_id = serializer.validated_data.get('zone')
+        if zone_id:
+            zone = Zone.objects.filter(id=zone_id, household=household).first()
+            if zone is None:
+                raise ValidationError({'zone': 'Invalid zone or access denied.'})
+
         original_name = Path(uploaded_file.name).name or 'Document'
         try:
             normalized_file, final_mime, normalize_info = normalize_image(uploaded_file, detected_mime)
@@ -240,17 +247,25 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 if normalize_info.get('final_dimensions'):
                     metadata['dimensions'] = normalize_info['final_dimensions']
 
+                doc_type = serializer.validated_data.get('type') or 'document'
                 document = Document.objects.create(
                     household=household,
                     created_by=request.user,
                     file_path=saved_path,
                     name=(serializer.validated_data.get('name') or original_name)[:255],
                     mime_type=final_mime,
-                    type=serializer.validated_data.get('type') or 'document',
+                    type=doc_type,
                     is_private=serializer.validated_data.get('is_private', False),
                     notes=serializer.validated_data.get('notes', ''),
                     metadata=metadata,
                 )
+                if zone is not None:
+                    ZoneDocument.objects.create(
+                        zone=zone,
+                        document=document,
+                        role='photo' if doc_type == 'photo' else 'document',
+                        created_by=request.user,
+                    )
         except Exception:
             if default_storage.exists(saved_path):
                 default_storage.delete(saved_path)

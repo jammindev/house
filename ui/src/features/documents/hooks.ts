@@ -35,7 +35,10 @@ export function useCreateDocument() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (input: UploadDocumentInput) => uploadDocument(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: documentKeys.all });
+      qc.invalidateQueries({ queryKey: ['photos'] });
+    },
   });
 }
 

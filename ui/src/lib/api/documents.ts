@@ -55,7 +55,7 @@ export interface DocumentDetail extends DocumentItem {
 export interface UploadDocumentInput {
   file: File;
   name?: string;
-  type?: DocumentType | '';
+  type?: DocumentType | 'photo' | '';
   notes?: string;
   zone?: string;
 }

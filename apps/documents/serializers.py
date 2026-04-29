@@ -33,12 +33,13 @@ class DocumentUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
     name = serializers.CharField(required=False, allow_blank=True, max_length=255)
     type = serializers.ChoiceField(
-        choices=[(value, label) for value, label in Document.DOCUMENT_TYPES if value != 'photo'],
+        choices=Document.DOCUMENT_TYPES,
         required=False,
         allow_null=True,
     )
     notes = serializers.CharField(required=False, allow_blank=True)
     is_private = serializers.BooleanField(required=False, default=False)
+    zone = serializers.UUIDField(required=False, allow_null=True)
 
 class DocumentSerializer(serializers.ModelSerializer):
     """Document list/create serializer."""
