@@ -1,6 +1,17 @@
 # Parcours 07 — Backlog technique V1
 
-> **Draft** — ce document a été reconstitué à partir des issues #88 et #89. Les lots 0a et 0b sont précis (issues détaillées) ; les lots suivants sont encore à cadrer.
+> **État au 2026-04-29** — lots 0a (#88) et 0b (#89) livrés. Lots 1, 2, 3 cadrés ci-dessous, issues GitHub à créer.
+
+## Philosophie d'implémentation V1
+
+Plutôt que viser un retrieval parfait avant de toucher au LLM, on livre un **vertical slice** : retrieval naïf → service agent → UI minimale → on utilise → on renforce le maillon qui craque vraiment. Raisons :
+
+- volume modeste (foyer solo, milliers de docs au plus)
+- Claude Haiku 4.5 a un contexte large : on peut spammer des hits sans souci
+- on ne saura ce qui craque qu'en utilisant l'agent
+- si plus tard le full-text plafonne, passer aux embeddings (`pgvector`) est un refactor incrémental
+
+Cette philosophie remplace la version initiale ("chaque lot doit être complet avant le suivant").
 
 Ce document traduit la décision produit du parcours 07 en backlog technique concret.
 
@@ -120,105 +131,290 @@ Voir l'issue #89 pour le détail. Synthèse :
 - ré-OCR automatique sur tous les docs (le batch reste manuel)
 - planification cron
 
-## Lot 1 — Recherche full-text sur la mémoire du foyer
+## Lot 1 — Recherche full-text naïve (retrieval V1)
 
-**Statut** : à cadrer. Mentionné comme suite logique dans #88 ("full-text search Postgres `SearchVector` — lot 1 du parcours 07").
-
-### But
-
-Permettre à l'agent de récupérer rapidement les passages pertinents dans le foyer avant l'appel LLM (étape de retrieval du RAG).
-
-### Pistes (`À préciser`)
-
-- index Postgres `SearchVector` sur :
-  - `Interaction.subject`, `Interaction.description`, sélection de `Interaction.metadata`
-  - `Document.name`, `Document.notes`, `Document.ocr_text`
-  - peut-être `Equipment.name`, `Equipment.notes`
-- module utilitaire `apps/agent/retrieval.py` ou dans `apps/core/`
-- contrat : `search(household_id, query, limit)` → liste de hits typés (entity_type, id, snippet, rank)
-- scope household systématique (pas d'opt-out)
-
-### Décisions à prendre
-
-- `À préciser` — un seul SearchVector multi-tables ou un par modèle ?
-- `À préciser` — strategy de boost (récence, type d'entité, entité utilisateur) ?
-- `À préciser` — taille du contexte renvoyé au LLM (nb de hits, longueur du snippet)
-- `À préciser` — tokenizer i18n (la base est mixte FR/EN)
-
-## Lot 2 — Service d'appel LLM (couche agent)
-
-**Statut** : à cadrer.
+**Statut** : cadré, issue à créer.
 
 ### But
 
-Module Python qui prend une question utilisateur, récupère le contexte pertinent (lot 1), appelle Claude, et renvoie une réponse + citations.
+Permettre à l'agent de récupérer rapidement les passages pertinents dans le foyer avant l'appel LLM (étape de retrieval du RAG). **Naïf assumé** : pas de matérialisation d'index, pas de boost, pas d'embeddings.
 
-### Pistes (`À préciser`)
+### Décisions tranchées
 
-- nouvelle app `apps/agent/` avec :
-  - `agent/client.py` — wrapper Claude (ou réutilisation de l'utilitaire posé en lot 0)
-  - `agent/service.py` — orchestrateur retrieval + prompt + citation
-  - `agent/serializers.py` + `agent/views.py` — endpoint API
-  - `agent/models.py` — éventuel stockage de conversations (Story 4)
-- contrat d'entrée : `{ question, household_id, conversation_id?, history? }`
-- contrat de sortie : `{ answer: string, citations: [{ entity_type, id, label, snippet }], conversation_id }`
-- prompt : système qui contraint l'agent à citer ses sources et à reconnaître l'ignorance
+- **nouvelle app `apps/agent/`** (pas dans `apps/core/`). Grandira sur lots 2, 3, 4.
+- **`SearchVector` à la volée** par modèle, pas de matérialisation. Optimisation plus tard si latence devient un problème.
+- **`config='simple'`** (pas de stemming, pas de stopwords). Multi-tenant safe, pas de hardcode `'french'`. Stemming activable plus tard via `Household.preferred_language`.
+- **Champ placeholder `Household.preferred_language`** (`fr`/`en`/`de`/`es`, default `fr`). Pas utilisé immédiatement.
+- **Pattern registry — chaque app déclare ses entités** dans son `apps.py.ready()`. Ajouter un module = ne pas toucher à l'agent.
+- **Scope household systématique** (pas d'opt-out, jamais).
 
-### Décisions à prendre
+### Entités indexées en V1 (chaque app contribue depuis son `apps.py`)
 
-- `À préciser` — modèle (Haiku ou Sonnet)
-- `À préciser` — gestion du timeout, retry, fallback
-- `À préciser` — politique de logs (prompt, réponse, durée, coût)
-- `À préciser` — redaction (PII) avant envoi au modèle
-- `À préciser` — limite de longueur de prompt et de contexte
+| App | Entité | Champs cherchés | URL pattern |
+|---|---|---|---|
+| documents | Document | `name`, `notes`, `ocr_text` | `/app/documents/{id}` |
+| interactions | Interaction | `subject`, `description`, `notes` | `/app/interactions/{id}` |
+| equipment | Equipment | `name`, `brand`, `model`, `notes` | `/app/equipment/{id}` |
+| tasks | Task | `subject`, `content` | `/app/tasks/{id}` |
+| projects | Project | `title`, `description` | `/app/projects/{id}` |
+| zones | Zone | `name`, `note` | `/app/zones/{id}` |
+| stock | StockItem | `name`, `description`, `notes`, `supplier` | `/app/stock/{id}` |
+| insurance | InsuranceContract | `name`, `provider`, `coverage_summary`, `notes` | `/app/insurance/{id}` |
+| directory | Contact | `first_name`, `last_name`, `notes` | `/app/directory/{id}` |
+| directory | Structure | `name`, `description` | `/app/directory/structures/{id}` |
 
-### Tests
+**Hors scope V1 (à ajouter à l'usage si pertinent)** :
+- `Electricity` (numérique majoritaire, ouverture future)
+- `Photo` (pas de texte utile)
+- `ElectricityBoard.main_notes` peut s'ajouter facilement si besoin
 
-- mock systématique du client Anthropic (zéro appel réseau en CI)
-- couverture des cas : question simple, question avec retrieval vide, modèle qui timeout, modèle qui répond malformé
+### Pattern d'extension — exemple module futur (`livestock`)
+
+Pour ajouter un module `apps/livestock/` (petit élevage), aucune modification de l'agent :
+
+```python
+# apps/livestock/apps.py
+class LivestockConfig(AppConfig):
+    name = 'livestock'
+
+    def ready(self):
+        from agent.searchables import register, SearchableSpec
+        from .models import Animal
+        register(SearchableSpec(
+            entity_type='animal',
+            model=Animal,
+            search_fields=('name', 'species', 'notes', 'medical_history'),
+            label_attr='name',
+            url_template='/app/livestock/{id}',
+        ))
+```
+
+Idem pour `apps/garden/` (potager), `apps/gite/` (gîte locatif), etc.
+
+### Contrat du module
+
+```python
+# apps/agent/searchables.py
+@dataclass(frozen=True)
+class SearchableSpec:
+    entity_type: str
+    model: type[Model]
+    search_fields: tuple[str, ...]
+    label_attr: str | Callable
+    url_template: str
+
+REGISTRY: list[SearchableSpec] = []
+def register(spec: SearchableSpec) -> None: REGISTRY.append(spec)
+
+# apps/agent/retrieval.py
+def search(household_id: UUID, query: str, limit: int = 20) -> list[Hit]:
+    """Itère sur REGISTRY, query Postgres par modèle, merge + rank."""
+    ...
+
+@dataclass
+class Hit:
+    entity_type: str           # libre — tout ce qui s'enregistre
+    id: UUID
+    label: str
+    snippet: str               # ~300 chars autour du match
+    rank: float
+    url_path: str
+```
+
+### Fichiers principaux
+
+- `apps/agent/__init__.py`, `apps.py`, `searchables.py`, `retrieval.py` (nouveaux)
+- `apps/agent/tests/test_retrieval.py` + `test_registry.py` (nouveaux)
+- `apps/households/models.py` — ajout `preferred_language`
+- `apps/households/migrations/XXXX_add_preferred_language.py` (nouveau)
+- `config/settings/base.py` — ajout `INSTALLED_APPS`
+- 10 fichiers `apps/<app>/apps.py` modifiés pour `register()` leurs entités (documents, interactions, equipment, tasks, projects, zones, stock, insurance, directory)
+
+### Tâches
+
+1. créer app `apps/agent/` (skeleton + `searchables.py` avec `SearchableSpec` + `register()`)
+2. ajouter `Household.preferred_language` (CharField, choices, default `'fr'`) + migration
+3. implémenter `apps/agent/retrieval.py` qui itère sur `REGISTRY` et lance un `SearchVector` par modèle
+4. snippet : `SearchHeadline` Postgres ~150 chars autour du match
+5. enregistrer les 10 entités V1 (Document, Interaction, Equipment, Task, Project, Zone, StockItem, InsuranceContract, Contact, Structure) chacune dans le `apps.py` de son module
+6. tests pytest registry : `register()` ajoute un spec, double-register lève une erreur, REGISTRY contient les 10 attendus après boot
+7. tests pytest retrieval : hit pour chaque entité, scope household, query vide → `[]`, ranking décroissant, casse/accents insensibles
+
+### Critères de validation
+
+- `search(my_household, "engie", 10)` retourne des hits documents pertinents avec snippet
+- `search(my_household, "chaudière", 10)` retourne hits multi-entités (Equipment, Task, Document, Interaction)
+- `search(other_household, "engie", 10)` retourne `[]` même si l'autre foyer a des matches
+- ranking : un match dans `Document.name` rank > qu'un match perdu dans `Document.ocr_text`
+- ajouter une 11ᵉ entité = 5 lignes dans son `apps.py`, zéro touche à `apps/agent/`
+
+### Hors scope
+
+- matérialisation d'index (lot ultérieur si latence devient un sujet)
+- embeddings vectoriels (V2)
+- boost récence / pertinence par type
+- search global UI (le retrieval n'a pas vocation à être exposé directement à l'utilisateur en V1)
+
+## Lot 2 — Service agent (retrieval + LLM + citations)
+
+**Statut** : cadré, issue à créer.
+
+### But
+
+Module Python qui prend une question utilisateur, appelle le retrieval du lot 1, construit un prompt, appelle Claude Haiku 4.5, et renvoie une réponse + citations vérifiables. **Pas d'UI à ce stade** : la chaîne est testable via API.
+
+### Décisions tranchées
+
+- **Modèle** : Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), tranché en #88
+- **Synchrone**, timeout 30s, pas de retry automatique
+- **Lecture seule** : l'agent ne crée rien (pas de tool-calling en V1)
+- **Pas de mémoire conversationnelle** (lot 4 = V2)
+- **Format de citation** : `{entity_type, id, label, snippet, url_path}` côté API
+- **Prompt système** : oblige Claude à citer (`<cite id="..."/>` ou marqueur similaire), à dire "je ne sais pas" si rien dans le contexte
+- **Logs systématiques** : question, household_id, hits récupérés, prompt complet, réponse, tokens in/out, coût, durée
+- **Zéro appel réseau en CI** : mock systématique du client Anthropic
+
+### Architecture
+
+```
+apps/agent/
+├── retrieval.py        (lot 1)
+├── client.py           # wrapper anthropic SDK
+├── service.py          # orchestrateur ask(question, household)
+├── prompts.py          # système + few-shot
+├── views.py            # POST /api/agent/ask/
+├── serializers.py
+├── urls.py
+├── models.py           # AgentLog (audit/coût)
+└── tests/
+    ├── test_service.py
+    └── test_views.py
+```
+
+### Contrat API
+
+**Requête** : `POST /api/agent/ask/`
+```json
+{ "question": "Combien j'ai payé Engie en mars ?" }
+```
+
+**Réponse** :
+```json
+{
+  "answer": "D'après ta facture Engie du 15 mars 2026, tu as payé 142,67€...",
+  "citations": [
+    {
+      "entity_type": "document",
+      "id": "abc-123",
+      "label": "Facture Engie mars 2026",
+      "snippet": "...total à payer 142,67€ TTC...",
+      "url_path": "/app/documents/abc-123"
+    }
+  ],
+  "metadata": {
+    "duration_ms": 2340,
+    "tokens_in": 1840,
+    "tokens_out": 120,
+    "cost_usd": 0.0021
+  }
+}
+```
+
+### Tâches
+
+1. `client.py` — wrapper Anthropic avec timeout, env `ANTHROPIC_API_KEY`
+2. `prompts.py` — système qui contraint citation + ignorance
+3. `service.py` — `ask(question, household)` orchestrateur
+4. `models.py` — `AgentLog` (household, question, response, tokens, cost, duration, created_at)
+5. `views.py` + `serializers.py` — endpoint DRF
+6. `urls.py` — registration sous `/api/agent/`
+7. tests : retrieval vide → réponse "je ne sais pas", retrieval rempli → réponse + citations, timeout client → 503, format de citation respecté
+
+### Critères de validation
+
+- POST avec question simple → réponse + ≥1 citation
+- POST avec question hors-domaine → "je ne sais pas", `citations: []`
+- scope household respecté (impossible de citer un doc d'un autre foyer)
+- AgentLog créé pour chaque appel
+- coût total cumulé visible dans Django admin
+
+### Hors scope
+
+- streaming de réponse (V2)
+- tool-calling / actions de création (V2)
+- mémoire conversationnelle multi-tour (lot 4 / V2)
+- redaction PII (à arbitrer plus tard, faible priorité en solo user)
 
 ## Lot 3 — Surface UI chat
 
-**Statut** : à cadrer.
+**Statut** : cadré, issue à créer.
 
 ### But
 
-Interface où l'utilisateur tape ses questions et lit les réponses.
+Interface où l'utilisateur tape ses questions et lit les réponses, avec citations cliquables vers les entités du foyer.
 
-### Pistes (`À préciser`)
+### Décisions tranchées
 
-- page React dédiée `/app/agent/` ?
-- ou widget global accessible partout via shortcut clavier (`/`) ?
-- ou les deux ?
-- composant chat : input contrôlé, historique de la session, loading
-- rendu des citations cliquables (component `<AgentCitation entity_type id label />` qui résout l'URL)
-- mention de confidentialité au premier usage
-- i18n (en, fr, de, es)
+- **Page dédiée** `/app/agent/` (pas de widget global pour V1, on verra à l'usage)
+- **Pas d'historique persisté** (V1 = chaque ouverture de page = session blanche)
+- **Citations cliquables** : composant `<AgentCitation>` qui résout l'URL via `entity_type` + `id`
+- **Mention de confidentialité** au premier usage (acceptation localStorage)
+- **i18n complet** (en, fr, de, es) dès le départ
+- **Pas de streaming** (réponse arrive en bloc, loader pendant l'attente)
+- **Pas de feedback 👍/👎** en V1 (à voir si on en a besoin)
 
-### Décisions à prendre
+### Architecture frontend
 
-- `À préciser` — page dédiée vs widget vs combinaison
-- `À préciser` — comportement mobile
-- `À préciser` — copy de mention de confidentialité
-- `À préciser` — feedback utilisateur (pouce haut/bas) pour itérer sur la qualité
+```
+ui/src/features/agent/
+├── AgentPage.tsx          # page principale, route /app/agent/
+├── ChatBubble.tsx         # bulle question ou réponse
+├── AgentCitation.tsx      # chip cliquable, résout url_path
+├── PrivacyNotice.tsx      # mention confidentialité au premier usage
+├── hooks.ts               # useAskAgent mutation
+└── api.ts                 # askAgent(question)
+```
 
-## Lot 4 — Mémoire conversationnelle (optionnel V1)
+### Tâches
 
-**Statut** : à arbitrer V1 vs V2.
+1. route `/app/agent/` dans le router + entrée sidebar
+2. `api.ts` + `hooks.ts` — mutation `useAskAgent`
+3. `AgentPage.tsx` — input + liste de bulles + loader
+4. `ChatBubble.tsx` — variante user / agent
+5. `AgentCitation.tsx` — badge cliquable, mapping `entity_type` → URL
+6. `PrivacyNotice.tsx` — modale au premier usage, acceptation persistée localStorage
+7. clés i18n dans les 4 locales (placeholder input, loader, no_results, privacy notice)
+8. E2E Playwright : poser une question (mock backend), vérifier bulle + citation cliquable
 
-### But
+### Critères de validation
+
+- naviguer vers `/app/agent/`, voir la mention de confidentialité au premier usage
+- taper une question → bulle question + loader → bulle réponse avec citations
+- click sur citation → ouvre `/app/documents/...` ou `/app/equipment/...` selon `entity_type`
+- en réponse "je ne sais pas" → message clair, pas de citation factice
+- 4 langues OK (texte d'interface)
+
+### Hors scope
+
+- conversation multi-tour (lot 4)
+- copier/exporter une réponse
+- feedback utilisateur
+- raccourci global `/`
+
+## Lot 4 — Mémoire conversationnelle (V2 — exclu de la V1)
+
+**Statut** : **basculé V2**. Décision : ne pas livrer en V1, valider l'usage en mode "questions one-shot" d'abord.
+
+### But (V2)
 
 Permettre de retrouver les conversations passées et de continuer un fil.
 
-### Pistes (`À préciser`)
+### Pistes pour V2
 
 - modèles `AgentConversation` (household, créé par, titre auto, last_message_at) et `AgentMessage` (conversation, role, content, citations, metadata)
 - liste des conversations dans la sidebar de la page agent
 - nettoyage automatique au-delà d'une rétention donnée
-
-### Décision V1
-
-`À préciser` — tout livrer sans persistance peut être suffisant pour valider l'usage. Si oui, ce lot bascule en V2.
+- streaming de réponse
 
 ## Lot 5 — Tests et validation
 
@@ -236,41 +432,41 @@ Sécuriser la chaîne complète sans multiplier les tests fragiles à un appel L
 
 ## Ordre recommandé d'implémentation
 
-1. Lot 0a — Pipeline OCR à l'upload (#88)
-2. Lot 0b — Backfill OCR (#89)
-3. Lot 1 — Recherche full-text
-4. Lot 2 — Service agent
-5. Lot 3 — Surface UI chat
-6. Lot 4 — Mémoire conversationnelle (si retenue en V1)
-7. Lot 5 — Tests et validation
+1. ✅ Lot 0a — Pipeline OCR à l'upload (#88)
+2. ✅ Lot 0b — Backfill OCR (#89)
+3. **Lot 1 — Recherche full-text naïve**
+4. **Lot 2 — Service agent**
+5. **Lot 3 — Surface UI chat**
+6. **→ recette manuelle utilisateur** : tu utilises l'agent pendant 1-2 semaines, tu repères ce qui craque
+7. Itérer sur le maillon faible (souvent : retrieval, prompt, ou format de citation)
+8. Lot 4 (mémoire) — V2, si l'usage le demande
+
+Lot 5 (tests) est transversal : pas un lot séquentiel, chaque PR des lots 1-3 livre ses tests.
 
 ## Découpage en sessions de travail
 
-Suggestion :
-
-### Session 1
+### Session 1 (faite)
 
 - Lot 0a (#88)
 
-### Session 2
+### Session 2 (faite)
 
 - Lot 0b (#89)
-- début Lot 1
 
-### Session 3
+### Session 3 — prochaine
 
-- fin Lot 1
-- Lot 2
+- Lot 1 (retrieval naïf)
+- début Lot 2 (service agent + endpoint)
 
 ### Session 4
 
-- Lot 3
-- début Lot 5
+- fin Lot 2
+- Lot 3 (UI chat)
 
-### Session 5 (si Lot 4 retenu)
+### Session 5
 
-- Lot 4
-- fin Lot 5
+- recette manuelle + ajustements
+- premiers retours produit
 
 ## Points de vigilance
 
