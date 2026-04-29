@@ -624,7 +624,7 @@
     "section_label": "Django-App-Knoten: {{section}}",
     "title": "Fotos",
     "empty": "Noch keine Fotos vorhanden.",
-    "empty_description": "Lade Fotos über die Dokumentenbibliothek hoch, um sie hier zu sehen.",
+    "empty_description": "Lade dein erstes Foto über den Button oben hoch.",
     "loadFailed": "Fotos konnten nicht geladen werden.",
     "deleted": "Foto gelöscht.",
     "search": "Suche",

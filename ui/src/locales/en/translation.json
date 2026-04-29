@@ -624,7 +624,7 @@
     "section_label": "Django app scoped node: {{section}}",
     "title": "Photos",
     "empty": "No photos yet.",
-    "empty_description": "Upload photos via the documents library to see them here.",
+    "empty_description": "Upload your first photo using the button above.",
     "loadFailed": "Failed to load photos.",
     "deleted": "Photo deleted.",
     "search": "Search",

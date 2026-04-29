@@ -624,7 +624,7 @@
     "section_label": "Nœud Django scopé : {{section}}",
     "title": "Photos",
     "empty": "Aucune photo pour le moment.",
-    "empty_description": "Téléversez des photos via la bibliothèque de documents pour les retrouver ici.",
+    "empty_description": "Téléversez votre première photo en cliquant sur le bouton ci-dessous.",
     "loadFailed": "Impossible de charger les photos.",
     "deleted": "Photo supprimée.",
     "search": "Recherche",

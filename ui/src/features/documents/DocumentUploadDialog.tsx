@@ -16,19 +16,23 @@ interface DocumentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved: () => void;
+  /** When set, hides the type selector and submits with this type. */
+  forcedType?: 'photo';
 }
 
 export default function DocumentUploadDialog({
   open,
   onOpenChange,
   onSaved,
+  forcedType,
 }: DocumentUploadDialogProps) {
   const { t } = useTranslation();
   const createDocument = useCreateDocument();
+  const isPhotoMode = forcedType === 'photo';
 
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const [name, setName] = React.useState('');
-  const [type, setType] = React.useState<DocumentType | ''>('');
+  const [type, setType] = React.useState<DocumentType | 'photo' | ''>(forcedType ?? '');
   const [notes, setNotes] = React.useState('');
   const [zone, setZone] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
@@ -43,11 +47,11 @@ export default function DocumentUploadDialog({
     if (!open) return;
     setSelectedFile(null);
     setName('');
-    setType('');
+    setType(forcedType ?? '');
     setNotes('');
     setZone('');
     setError(null);
-  }, [open]);
+  }, [open, forcedType]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
@@ -96,7 +100,9 @@ export default function DocumentUploadDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>{t('documents.upload.title')}</DialogTitle>
+          <DialogTitle>
+            {isPhotoMode ? t('photos.upload_title') : t('documents.upload.title')}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
@@ -113,7 +119,11 @@ export default function DocumentUploadDialog({
             <Input
               id="upload-file"
               type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,application/pdf"
+              accept={
+                isPhotoMode
+                  ? 'image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif'
+                  : 'image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,application/pdf'
+              }
               onChange={handleFileChange}
               required
             />
@@ -141,14 +151,16 @@ export default function DocumentUploadDialog({
           </FormField>
 
           {/* Type */}
-          <FormField label={t('documents.fieldType')} htmlFor="upload-type">
-            <Select
-              id="upload-type"
-              value={type}
-              onChange={(e) => setType(e.target.value as DocumentType | '')}
-              options={typeOptions}
-            />
-          </FormField>
+          {!isPhotoMode && (
+            <FormField label={t('documents.fieldType')} htmlFor="upload-type">
+              <Select
+                id="upload-type"
+                value={type}
+                onChange={(e) => setType(e.target.value as DocumentType | '')}
+                options={typeOptions}
+              />
+            </FormField>
+          )}
 
           {/* Zone */}
           <FormField label={t('documents.upload.zone')} htmlFor="upload-zone">

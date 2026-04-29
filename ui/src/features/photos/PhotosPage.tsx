@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { DocumentItem } from '@/lib/api/documents';
+import DocumentUploadDialog from '@/features/documents/DocumentUploadDialog';
 import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
 import PhotoGrid from './PhotoGrid';
 import PhotoDetailPanel from './PhotoDetailPanel';
@@ -17,6 +18,7 @@ export default function PhotosPage() {
   const [search, setSearch] = React.useState('');
   const [selectedPhoto, setSelectedPhoto] = React.useState<DocumentItem | null>(null);
   const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [uploadOpen, setUploadOpen] = React.useState(false);
 
   const filters = React.useMemo(
     () => (search ? { search } : undefined),
@@ -47,7 +49,17 @@ export default function PhotosPage() {
           icon: Camera,
           title: t('photos.empty'),
           description: t('photos.empty_description'),
+          action: { label: t('photos.upload_title'), onClick: () => setUploadOpen(true) },
         }}
+        actions={
+          <button
+            type="button"
+            onClick={() => setUploadOpen(true)}
+            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
+          >
+            {t('photos.upload_title')}
+          </button>
+        }
       >
         {error ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -111,6 +123,13 @@ export default function PhotosPage() {
           if (deletingId) handleDelete(deletingId);
         }}
         loading={deletePhotoMutation.isPending}
+      />
+
+      <DocumentUploadDialog
+        open={uploadOpen}
+        onOpenChange={setUploadOpen}
+        onSaved={() => qc.invalidateQueries({ queryKey: photoKeys.all })}
+        forcedType="photo"
       />
     </>
   );

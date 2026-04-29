@@ -285,6 +285,76 @@ class TestDocumentsApi:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'household_id' in response.data
 
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-photo-upload')
+    def test_upload_accepts_type_photo(self, owner_client, household):
+        url = reverse('document-upload')
+        upload = SimpleUploadedFile('vacation.jpg', _jpeg_bytes(), content_type='image/jpeg')
+
+        response = owner_client.post(
+            url,
+            {'file': upload, 'name': 'Vacation', 'type': 'photo'},
+            format='multipart',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        document = Document.objects.get(pk=response.data['document']['id'])
+        assert document.type == 'photo'
+        assert document.household == household
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-zone-upload')
+    def test_upload_with_zone_creates_zone_document(self, owner_client, owner, household):
+        zone = Zone.objects.create(household=household, name='Living room', created_by=owner)
+        url = reverse('document-upload')
+        upload = SimpleUploadedFile('living.jpg', _jpeg_bytes(), content_type='image/jpeg')
+
+        response = owner_client.post(
+            url,
+            {'file': upload, 'type': 'photo', 'zone': str(zone.id)},
+            format='multipart',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        document = Document.objects.get(pk=response.data['document']['id'])
+        link = ZoneDocument.objects.get(document=document)
+        assert link.zone == zone
+        assert link.role == 'photo'
+        assert link.created_by == owner
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-zone-doc')
+    def test_upload_with_zone_uses_role_document_for_non_photo(self, owner_client, owner, household):
+        zone = Zone.objects.create(household=household, name='Office', created_by=owner)
+        url = reverse('document-upload')
+        upload = SimpleUploadedFile('manual.pdf', b'%PDF-1.4 test', content_type='application/pdf')
+
+        response = owner_client.post(
+            url,
+            {'file': upload, 'type': 'manual', 'zone': str(zone.id)},
+            format='multipart',
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        document = Document.objects.get(pk=response.data['document']['id'])
+        link = ZoneDocument.objects.get(document=document)
+        assert link.role == 'document'
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-zone-foreign')
+    def test_upload_rejects_zone_from_another_household(self, owner_client, owner, household):
+        other = _household('Other house')
+        foreign_zone = Zone.objects.create(household=other, name='Foreign zone', created_by=owner)
+        url = reverse('document-upload')
+        upload = SimpleUploadedFile('manual.pdf', b'%PDF-1.4 test', content_type='application/pdf')
+
+        response = owner_client.post(
+            url,
+            {'file': upload, 'type': 'manual', 'zone': str(foreign_zone.id)},
+            format='multipart',
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'zone' in response.data
+        assert not Document.objects.filter(name='manual.pdf').exists()
+        assert not ZoneDocument.objects.filter(zone=foreign_zone).exists()
+
     def test_list_exposes_qualification_flags_from_interaction_documents(self, owner_client, owner, household):
         linked_document = Document.objects.create(
             household=household,

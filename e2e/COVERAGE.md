@@ -106,6 +106,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 |---|---|
 | Affichage de la page | ✅ |
 | Grille utilise `thumbnail_url` quand des photos existent (fallback `file_url`) | 🚧 (smoke — pas de photo seedée) |
+| Téléversement d'une photo depuis la page Photos (dialog en mode photo, sans sélecteur de type) | ✅ |
 
 ---
 
