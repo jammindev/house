@@ -152,6 +152,7 @@ REST_FRAMEWORK = {
         "login_ip": "20/min",
         "login_email": "5/min",
         "change_password": "5/hour",
+        "password_reset": "3/hour",
     },
 }
 
@@ -177,3 +178,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5174",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# URL of the frontend SPA — used to build links in transactional emails (password reset, etc.).
+# Overridden per environment in local.py / production.py.
+FRONTEND_URL = "http://localhost:5174"
+DEFAULT_FROM_EMAIL = "noreply@house.local"

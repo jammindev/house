@@ -4,9 +4,15 @@ import os
 
 logger = logging.getLogger(__name__)
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
 
 from rest_framework import viewsets
@@ -20,7 +26,12 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from accounts.models import User
 from accounts.serializers import UserSerializer
-from accounts.throttles import LoginIPRateThrottle, LoginEmailRateThrottle, ChangePasswordRateThrottle
+from accounts.throttles import (
+    ChangePasswordRateThrottle,
+    LoginEmailRateThrottle,
+    LoginIPRateThrottle,
+    PasswordResetRequestThrottle,
+)
 from accounts.tokens import get_impersonation_token
 from core.file_validation import validate_upload, ALLOWED_IMAGE_TYPES, AVATAR_MAX_SIZE
 
@@ -29,7 +40,7 @@ class AuthViewSet(viewsets.ViewSet):
     """ViewSet for session-based authentication endpoints."""
 
     def get_permissions(self):
-        if self.action == "login":
+        if self.action in {"login", "password_reset", "password_reset_confirm"}:
             return [AllowAny()]
         return [IsAuthenticated()]
 
@@ -68,6 +79,109 @@ class AuthViewSet(viewsets.ViewSet):
         """Logout endpoint that clears the Django authenticated session."""
         auth_logout(request)
         return Response({"detail": _("Logout successful.")}, status=status.HTTP_200_OK)
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="password-reset",
+        throttle_classes=[PasswordResetRequestThrottle],
+    )
+    def password_reset(self, request):
+        """Request a password reset email.
+
+        POST /api/accounts/auth/password-reset/
+        Body: { email }
+
+        Always returns 200 — never reveals whether the email exists in the database.
+        If a user with that email exists, an email is sent with a reset link.
+        """
+        email = (request.data.get("email") or "").strip().lower()
+        if not email:
+            return Response(
+                {"detail": _("Email is required.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email, is_active=True)
+        except User.DoesNotExist:
+            user = None
+
+        if user is not None:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"{settings.FRONTEND_URL.rstrip('/')}/reset-password?uid={uid}&token={token}"
+
+            context = {"user": user, "reset_url": reset_url}
+            text_body = render_to_string("accounts/emails/password_reset.txt", context)
+            html_body = render_to_string("accounts/emails/password_reset.html", context)
+
+            message = EmailMultiAlternatives(
+                subject=str(_("Reset your House password")),
+                body=text_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+            message.attach_alternative(html_body, "text/html")
+            message.send(fail_silently=False)
+            logger.info("Password reset email sent to user_id=%s", user.id)
+
+        return Response(
+            {"detail": _("If an account with that email exists, a reset link has been sent.")},
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=False,
+        methods=["post"],
+        url_path="password-reset/confirm",
+    )
+    def password_reset_confirm(self, request):
+        """Confirm a password reset with token + new password.
+
+        POST /api/accounts/auth/password-reset/confirm/
+        Body: { uid, token, new_password }
+        """
+        uid = request.data.get("uid", "")
+        token = request.data.get("token", "")
+        new_password = request.data.get("new_password", "")
+
+        if not uid or not token or not new_password:
+            return Response(
+                {"detail": _("uid, token and new_password are required.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_id, is_active=True)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            return Response(
+                {"detail": _("Invalid or expired reset link.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if not default_token_generator.check_token(user, token):
+            return Response(
+                {"detail": _("Invalid or expired reset link.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            validate_password(new_password, user=user)
+        except ValidationError as exc:
+            return Response(
+                {"detail": " ".join(exc.messages)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        logger.info("Password reset completed for user_id=%s", user.id)
+        return Response(
+            {"detail": _("Password has been reset successfully.")},
+            status=status.HTTP_200_OK,
+        )
 
 
 class UserViewSet(viewsets.ModelViewSet):

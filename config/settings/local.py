@@ -54,6 +54,8 @@ SECURE_PROXY_SSL_HEADER = None
 
 # Email
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@house.local")
+FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5174")
 
 # Django Vite Configuration (HMR for local development)
 DJANGO_VITE = {
