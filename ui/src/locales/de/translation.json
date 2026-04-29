@@ -749,7 +749,11 @@
     "ocr": {
       "title": "Extrahierter Text",
       "empty": "Noch kein Text extrahiert.",
-      "processing": "Analyse läuft…"
+      "processing": "Analyse läuft…",
+      "reprocess": "Text neu extrahieren",
+      "reprocessing": "Extraktion läuft…",
+      "reprocessSuccess": "Text neu extrahiert.",
+      "reprocessError": "Neu-Extraktion fehlgeschlagen."
     },
     "new": {
       "title": "Dokument hinzufügen",

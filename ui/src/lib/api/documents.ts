@@ -143,6 +143,11 @@ export async function deleteDocument(id: string): Promise<void> {
   await api.delete(`/documents/documents/${id}/`);
 }
 
+export async function reprocessDocumentOcr(id: string): Promise<DocumentDetail> {
+  const { data } = await api.post(`/documents/documents/${id}/reprocess_ocr/`);
+  return { ...(data as DocumentDetail & { id: string | number }), id: String((data as { id: string | number }).id) };
+}
+
 export function formatFileSize(bytes?: number | null): string {
   if (!bytes) return '';
   if (bytes < 1024) return `${bytes} B`;

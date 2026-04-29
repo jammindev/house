@@ -2,15 +2,21 @@ import * as React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Download, ExternalLink, Plus } from 'lucide-react';
+import { ArrowLeft, Download, ExternalLink, Plus, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatFileSize } from '@/lib/api/documents';
-import { useDocument, useDeleteDocument, documentKeys } from './hooks';
+import {
+  useDocument,
+  useDeleteDocument,
+  useReprocessDocumentOcr,
+  documentKeys,
+} from './hooks';
 import DocumentEditDialog from './DocumentEditDialog';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useToast } from '@/lib/toast';
 
 function formatDate(value?: string | null): string {
   if (!value) return '—';
@@ -30,6 +36,8 @@ export default function DocumentDetailPage() {
 
   const { data: doc, isLoading, error } = useDocument(id ?? '');
   const deleteMutation = useDeleteDocument();
+  const reprocessMutation = useReprocessDocumentOcr();
+  const { toast } = useToast();
 
   const handleSaved = React.useCallback(() => {
     qc.invalidateQueries({ queryKey: documentKeys.all });
@@ -41,6 +49,16 @@ export default function DocumentDetailPage() {
     if (!id) return;
     deleteMutation.mutate(id, {
       onSuccess: () => navigate('/app/documents'),
+    });
+  }
+
+  function handleReprocess() {
+    if (!id) return;
+    reprocessMutation.mutate(id, {
+      onSuccess: () =>
+        toast({ description: t('documents.ocr.reprocessSuccess'), variant: 'success' }),
+      onError: () =>
+        toast({ description: t('documents.ocr.reprocessError'), variant: 'destructive' }),
     });
   }
 
@@ -170,6 +188,20 @@ export default function DocumentDetailPage() {
                   ) : (
                     <p className="italic text-muted-foreground">{t('documents.ocr.empty')}</p>
                   )}
+                  <div className="mt-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 px-3 text-xs"
+                      onClick={handleReprocess}
+                      disabled={reprocessMutation.isPending}
+                    >
+                      <RefreshCcw className="mr-1.5 h-3.5 w-3.5" />
+                      {reprocessMutation.isPending
+                        ? t('documents.ocr.reprocessing')
+                        : t('documents.ocr.reprocess')}
+                    </Button>
+                  </div>
                 </div>
               </details>
             </CardContent>
