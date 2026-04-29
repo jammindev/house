@@ -65,8 +65,12 @@ EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
-FRONTEND_URL = env("FRONTEND_URL")
+# DEFAULT_FROM_EMAIL and FRONTEND_URL fall back to the first ALLOWED_HOSTS entry
+# so deploys don't crash if these vars are missing from .env. Override in .env
+# when you need a different sender address or SPA host.
+_primary_host = ALLOWED_HOSTS[0] if ALLOWED_HOSTS else "localhost"
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=f"noreply@{_primary_host}")
+FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 
 # Django Vite Configuration (compiled assets in production)
 DJANGO_VITE = {
