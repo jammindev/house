@@ -5,6 +5,7 @@ import {
   uploadDocument,
   updateDocument,
   deleteDocument,
+  reprocessDocumentOcr,
   type DocumentFilters,
   type UploadDocumentInput,
 } from '@/lib/api/documents';
@@ -61,5 +62,16 @@ export function useDeleteDocument() {
   return useMutation({
     mutationFn: (id: string) => deleteDocument(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+  });
+}
+
+export function useReprocessDocumentOcr() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => reprocessDocumentOcr(id),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: documentKeys.detail(String(data.id)) });
+      qc.invalidateQueries({ queryKey: documentKeys.all });
+    },
   });
 }

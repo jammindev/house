@@ -749,7 +749,11 @@
     "ocr": {
       "title": "Texte extrait",
       "empty": "Aucun texte extrait pour le moment.",
-      "processing": "Analyse en cours…"
+      "processing": "Analyse en cours…",
+      "reprocess": "Re-extraire le texte",
+      "reprocessing": "Extraction en cours…",
+      "reprocessSuccess": "Texte ré-extrait.",
+      "reprocessError": "Échec de la ré-extraction."
     },
     "new": {
       "title": "Ajouter un document",
