@@ -753,7 +753,8 @@
       "reprocess": "Re-extract text",
       "reprocessing": "Re-extracting…",
       "reprocessSuccess": "Text re-extracted.",
-      "reprocessError": "Re-extraction failed."
+      "reprocessError": "Re-extraction failed.",
+      "markerLabel": "Text extracted from document"
     },
     "new": {
       "title": "Add document",

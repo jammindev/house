@@ -753,7 +753,8 @@
       "reprocess": "Volver a extraer el texto",
       "reprocessing": "Extrayendo…",
       "reprocessSuccess": "Texto re-extraído.",
-      "reprocessError": "Error al volver a extraer."
+      "reprocessError": "Error al volver a extraer.",
+      "markerLabel": "Texto extraído del documento"
     },
     "new": {
       "title": "Añadir documento",
