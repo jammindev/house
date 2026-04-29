@@ -127,6 +127,19 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Notifications (`notifications.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page sans notifications (empty state) | ✅ |
+| Badge non-lues affiché sur la cloche | ✅ |
+| Ouverture du dropdown depuis la cloche + lien "Voir toutes" | ✅ |
+| Marquer toutes les notifications comme lues | ✅ |
+| Refus d'une invitation depuis la card (auto mark-as-read) | ✅ |
+| Filtrage Toutes / Non lues | ✅ |
+
+---
+
 ## Électricité (`electricity.spec.ts`)
 
 | Parcours | Statut |

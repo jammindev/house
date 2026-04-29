@@ -1389,6 +1389,23 @@
       }
     }
   },
+  "notifications": {
+    "title": "Benachrichtigungen",
+    "description": "Benachrichtigungszentrum für Ihren Haushalt",
+    "empty": "Keine Benachrichtigungen",
+    "emptyUnread": "Keine ungelesenen Benachrichtigungen",
+    "emptyDescription": "Sie werden hier benachrichtigt, wenn etwas Ihre Aufmerksamkeit erfordert.",
+    "markAllRead": "Alle als gelesen markieren",
+    "allMarkedRead": "Alle Benachrichtigungen wurden als gelesen markiert.",
+    "unread": "Ungelesen",
+    "viewAll": "Alle Benachrichtigungen anzeigen",
+    "bellAriaLabel": "Benachrichtigungen",
+    "bellAriaLabelUnread": "Benachrichtigungen, {{count}} ungelesen",
+    "filters": {
+      "all": "Alle",
+      "unread": "Ungelesen"
+    }
+  },
   "invitations": {
     "title": "Ausstehende Einladungen",
     "description": "Sie wurden eingeladen, den folgenden Haushalten beizutreten.",

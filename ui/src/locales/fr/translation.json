@@ -1389,6 +1389,23 @@
       }
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Centre de notifications du foyer",
+    "empty": "Aucune notification",
+    "emptyUnread": "Aucune notification non lue",
+    "emptyDescription": "Vous serez prévenu·e ici quand quelque chose nécessite votre attention.",
+    "markAllRead": "Tout marquer comme lu",
+    "allMarkedRead": "Toutes les notifications ont été marquées comme lues.",
+    "unread": "Non lue",
+    "viewAll": "Voir toutes les notifications",
+    "bellAriaLabel": "Notifications",
+    "bellAriaLabelUnread": "Notifications, {{count}} non lue(s)",
+    "filters": {
+      "all": "Toutes",
+      "unread": "Non lues"
+    }
+  },
   "invitations": {
     "title": "Invitations en attente",
     "description": "Vous avez été invité à rejoindre les foyers suivants.",

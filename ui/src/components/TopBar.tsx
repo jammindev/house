@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
+import NotificationsBell from '@/features/notifications/NotificationsBell';
 
 export default function TopBar() {
   const { t } = useTranslation();
@@ -37,6 +38,9 @@ export default function TopBar() {
       </div>
 
       <div className="flex-1" />
+
+      {/* Notifications */}
+      <NotificationsBell />
 
       {/* User */}
       <div className="flex items-center gap-2">
