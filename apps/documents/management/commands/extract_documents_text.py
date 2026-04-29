@@ -1,12 +1,17 @@
 """Backfill text extraction (OCR / pypdf) on existing documents.
 
+By default photos (Document.type == 'photo') are excluded — consistent with
+the upload pipeline (#88) which also skips OCR on photos. Use --include-photos
+to opt in, or --type photo to backfill only photos explicitly.
+
 Usage:
 
-    python manage.py extract_documents_text                       # all empty docs, all households
+    python manage.py extract_documents_text                       # all non-photo docs
     python manage.py extract_documents_text --household <uuid>    # scope to one household
     python manage.py extract_documents_text --type invoice        # filter by Document.type
     python manage.py extract_documents_text --limit 10            # cap batch size
     python manage.py extract_documents_text --force               # re-extract docs that already have text
+    python manage.py extract_documents_text --include-photos      # also process type='photo'
     python manage.py extract_documents_text --dry-run             # list what would be processed, change nothing
 """
 from __future__ import annotations
@@ -50,6 +55,11 @@ class Command(BaseCommand):
             help="Maximum number of documents to process.",
         )
         parser.add_argument(
+            "--include-photos",
+            action="store_true",
+            help="Also process documents with type='photo' (excluded by default).",
+        )
+        parser.add_argument(
             "--dry-run",
             action="store_true",
             help="List candidates without writing to the database.",
@@ -60,6 +70,7 @@ class Command(BaseCommand):
         force: bool = options["force"]
         doc_type: str | None = options.get("doc_type")
         limit: int | None = options.get("limit")
+        include_photos: bool = options["include_photos"]
         dry_run: bool = options["dry_run"]
 
         if limit is not None and limit <= 0:
@@ -70,6 +81,8 @@ class Command(BaseCommand):
             candidates = candidates.filter(household_id=household_id)
         if doc_type:
             candidates = candidates.filter(type=doc_type)
+        elif not include_photos:
+            candidates = candidates.exclude(type="photo")
 
         already_processed = candidates.exclude(ocr_text="").count() if not force else 0
         if not force:
