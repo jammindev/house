@@ -121,7 +121,10 @@ class Command(BaseCommand):
             document.metadata = metadata
             document.save(update_fields=["ocr_text", "metadata", "updated_at"])
 
-            if method in ("vision_haiku", "vision_empty"):
+            if method in ("vision_haiku", "vision_empty", "pdf_vision_haiku", "pdf_vision_empty"):
+                # Note: this counts documents that triggered Vision, not API
+                # calls. A multi-page PDF can mean N calls per document — for
+                # accurate per-call accounting see lot 6 (#109).
                 vision_attempts += 1
 
             if text:

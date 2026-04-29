@@ -118,16 +118,97 @@ class TestExtractText:
         # Vision was actually called — that's the whole point of this state.
         fake_client.messages.create.assert_called_once()
 
-    def test_pdf_returns_pypdf_empty_for_blank_pages(self, monkeypatch, household, owner):
+    def test_pdf_with_empty_pypdf_returns_pdf_vision_empty_when_no_client(self, monkeypatch, household, owner):
+        """Blank PDF: pypdf returns empty, Vision fallback can't run (no client) → pdf_vision_empty."""
         path = _save("docs/blank.pdf", _make_pdf_bytes())
         document = self._make_document(household, owner, file_path=path, mime="application/pdf")
-        # No anthropic call for PDFs — guard anyway.
         monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: None)
 
         text, method = extraction.extract_text(document)
 
         assert text == ""
-        assert method == "pypdf_empty"
+        assert method == "pdf_vision_empty"
+
+    def test_scanned_pdf_falls_back_to_vision_per_page(self, monkeypatch, household, owner):
+        """pypdf returns empty (image-only PDF). Vision OCR-s each page."""
+        path = _save("docs/scanned.pdf", _make_pdf_bytes())
+        document = self._make_document(household, owner, file_path=path, mime="application/pdf")
+
+        monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "")
+        monkeypatch.setattr(extraction, "_extract_pdf_with_vision", lambda _b: "Page 1 text\n\nPage 2 text")
+
+        text, method = extraction.extract_text(document)
+
+        assert text == "Page 1 text\n\nPage 2 text"
+        assert method == "pdf_vision_haiku"
+
+    def test_scanned_pdf_renders_pages_via_pypdfium(self, monkeypatch, household, owner):
+        """End-to-end: real pypdfium rendering + mocked Vision client returning text per call."""
+        path = _save("docs/scanned-real.pdf", _make_pdf_bytes())
+        document = self._make_document(household, owner, file_path=path, mime="application/pdf")
+
+        monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "")
+
+        call_count = {"n": 0}
+
+        def fake_vision(_bytes, _media):
+            call_count["n"] += 1
+            return f"Page {call_count['n']}"
+
+        monkeypatch.setattr(extraction, "_extract_with_vision", fake_vision)
+        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: object())
+
+        text, method = extraction.extract_text(document)
+
+        assert method == "pdf_vision_haiku"
+        assert "Page 1" in text
+
+    def test_scanned_pdf_keeps_partial_text_when_some_pages_fail(self, monkeypatch, household, owner):
+        """If Vision raises on one page, other pages' text is still kept."""
+        from pypdf import PdfWriter
+
+        writer = PdfWriter()
+        writer.add_blank_page(width=72, height=72)
+        writer.add_blank_page(width=72, height=72)
+        buffer = io.BytesIO()
+        writer.write(buffer)
+        path = _save("docs/partial.pdf", buffer.getvalue())
+        document = self._make_document(household, owner, file_path=path, mime="application/pdf")
+
+        monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "")
+        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: object())
+
+        call = {"n": 0}
+
+        def flaky_vision(_b, _m):
+            call["n"] += 1
+            if call["n"] == 1:
+                raise RuntimeError("page 1 boom")
+            return "page 2 ok"
+
+        monkeypatch.setattr(extraction, "_extract_with_vision", flaky_vision)
+
+        text, method = extraction.extract_text(document)
+
+        assert "page 2 ok" in text
+        assert method == "pdf_vision_haiku"
+
+    def test_pypdf_text_pdfs_skip_vision_fallback(self, monkeypatch, household, owner):
+        """Text-based PDFs: pypdf works, Vision is never called."""
+        path = _save("docs/text.pdf", _make_pdf_bytes())
+        document = self._make_document(household, owner, file_path=path, mime="application/pdf")
+
+        monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "I am text from pypdf")
+
+        def must_not_run(_b, _m):
+            raise AssertionError("Vision should not run when pypdf returns text")
+
+        monkeypatch.setattr(extraction, "_extract_with_vision", must_not_run)
+
+        text, method = extraction.extract_text(document)
+
+        assert text == "I am text from pypdf"
+        assert method == "pypdf"
 
     def test_pdf_extraction_uses_pypdf(self, monkeypatch, household, owner):
         path = _save("docs/text.pdf", _make_pdf_bytes())
