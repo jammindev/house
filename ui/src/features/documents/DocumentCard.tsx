@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { FileText, FileX, Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { FileText, FileX, Pencil, Trash2, ExternalLink, ScanText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { CardTitle } from '@/design-system/card';
@@ -20,6 +20,7 @@ export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: Doc
   const fileSize =
     typeof doc.metadata?.size === 'number' ? formatFileSize(doc.metadata.size) : null;
   const createdDate = new Date(doc.created_at).toLocaleDateString();
+  const hasOcrText = Boolean(doc.ocr_text && doc.ocr_text.trim());
 
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(doc) },
@@ -49,8 +50,18 @@ export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: Doc
 
           {doc.type && doc.type !== 'photo' && (
             <Badge variant="secondary" className="text-xs">
-              {t(`documents.type.${doc.type}`, { defaultValue: doc.type })}
+              {t(`documents.type.${doc.type}`)}
             </Badge>
+          )}
+
+          {hasOcrText && (
+            <span
+              className="inline-flex items-center text-emerald-600 dark:text-emerald-400"
+              title={t('documents.ocr.markerLabel')}
+              aria-label={t('documents.ocr.markerLabel')}
+            >
+              <ScanText className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
           )}
 
           {fileSize && (
