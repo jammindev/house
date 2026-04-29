@@ -4,7 +4,7 @@ Ce document détaille le premier parcours métier à travailler dans House.
 
 Il s'appuie sur l'état actuel du projet Django + React hybride, et non sur les archives `legacy/`.
 
-Note complémentaire : la projection future d'une capture conversationnelle ou assistée par IA est cadrée dans [docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md).
+Note complémentaire : la projection future d'une capture conversationnelle ou assistée par IA est consolidée dans la section "Évolutions ultérieures" de [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).
 
 ## Résumé
 
