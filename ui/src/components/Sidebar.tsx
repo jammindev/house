@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  ShieldCheck, X, Bell,
+  ShieldCheck, X, AlertCircle,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -14,7 +14,7 @@ const NAV_GROUPS = [
   {
     items: [
       { to: '/app/dashboard', labelKey: 'dashboard.title', Icon: LayoutDashboard },
-      { to: '/app/alerts', labelKey: 'alerts.title', Icon: Bell, badge: 'alerts' as const },
+      { to: '/app/alerts', labelKey: 'alerts.title', Icon: AlertCircle, badge: 'alerts' as const },
     ],
   },
   {
