@@ -2,18 +2,15 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { LinkedInteractionSummary } from './LinkedInteractionSummary';
-import type { ProjectLinkSummary } from './ProjectLinkSummary';
 import type { Type029Enum } from './Type029Enum';
-import type { ZoneLinkSummary } from './ZoneLinkSummary';
 /**
- * Document detail with full metadata.
+ * Document detail with qualification and secondary context summaries.
  */
 export type DocumentDetail = {
     readonly id: number;
     readonly household: string;
     /**
-     * Storage path: userId/interactionId/filename
+     * Storage path: documents/{household_id}/{year}/{month}/{uuid}-{filename}
      */
     file_path: string;
     name: string;
@@ -29,6 +26,10 @@ export type DocumentDetail = {
      */
     metadata?: any;
     /**
+     * If True, only the uploader can see this document.
+     */
+    is_private?: boolean;
+    /**
      * Parent interaction (if any)
      */
     interaction?: string | null;
@@ -36,13 +37,15 @@ export type DocumentDetail = {
     readonly created_by: number | null;
     readonly created_by_name: string;
     readonly file_url: string;
+    readonly thumbnail_url: string;
+    readonly medium_url: string;
+    readonly qualification: string;
+    readonly linked_interactions: string;
+    readonly legacy_interaction: string;
+    readonly legacy_interaction_subject: string;
     readonly interaction_subject: string;
-    readonly qualification: import('./DocumentQualification').DocumentQualification;
-    readonly linked_interactions: Array<LinkedInteractionSummary>;
-    readonly legacy_interaction?: string | null;
-    readonly legacy_interaction_subject?: string | null;
-    readonly zone_links?: Array<ZoneLinkSummary>;
-    readonly project_links?: Array<ProjectLinkSummary>;
-    readonly recent_interaction_candidates?: Array<LinkedInteractionSummary>;
+    readonly zone_links: string;
+    readonly project_links: string;
+    readonly recent_interaction_candidates: string;
 };
 

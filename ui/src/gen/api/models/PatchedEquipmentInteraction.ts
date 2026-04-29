@@ -5,6 +5,10 @@
 export type PatchedEquipmentInteraction = {
     equipment?: string;
     interaction?: string;
+    readonly interaction_subject?: string;
+    readonly interaction_type?: string;
+    readonly interaction_status?: string;
+    readonly interaction_occurred_at?: string;
     role?: string;
     note?: string;
     readonly created_at?: string;

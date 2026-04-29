@@ -4,12 +4,8 @@
 /* eslint-disable */
 import type { Interaction } from '../models/Interaction';
 import type { InteractionContact } from '../models/InteractionContact';
-import type { InteractionCreateRequest } from '../models/InteractionCreateRequest';
-import type { InteractionCreateResponse } from '../models/InteractionCreateResponse';
 import type { InteractionDetail } from '../models/InteractionDetail';
 import type { InteractionDocument } from '../models/InteractionDocument';
-import type { InteractionDocumentCreate } from '../models/InteractionDocumentCreate';
-import type { InteractionDocumentLink } from '../models/InteractionDocumentLink';
 import type { InteractionStructure } from '../models/InteractionStructure';
 import type { PaginatedInteractionList } from '../models/PaginatedInteractionList';
 import type { PatchedInteraction } from '../models/PatchedInteraction';
@@ -133,8 +129,8 @@ export class InteractionsService {
      * @throws ApiError
      */
     public static interactionsInteractionDocumentsCreate(
-        requestBody: InteractionDocumentCreate,
-    ): CancelablePromise<InteractionDocumentLink> {
+        requestBody: InteractionDocument,
+    ): CancelablePromise<InteractionDocument> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/interactions/interaction-documents/',
@@ -313,56 +309,27 @@ export class InteractionsService {
     }
     /**
      * Interaction CRUD with filtering by type, status, tags, zones, dates.
-     * @param createdBy
      * @param limit Number of results to return per page.
      * @param offset The initial index from which to return the results.
      * @param ordering Which field to use when ordering the results.
-     * @param project
      * @param search A search term.
-     * @param status Status (mainly for todos)
-     *
-     * * `backlog` - Backlog
-     * * `pending` - Pending
-     * * `in_progress` - In Progress
-     * * `done` - Done
-     * * `archived` - Archived
-     * @param type * `note` - Note
-     * * `todo` - Todo
-     * * `expense` - Expense
-     * * `maintenance` - Maintenance
-     * * `repair` - Repair
-     * * `installation` - Installation
-     * * `inspection` - Inspection
-     * * `warranty` - Warranty
-     * * `issue` - Issue
-     * * `upgrade` - Upgrade
-     * * `replacement` - Replacement
-     * * `disposal` - Disposal
      * @returns PaginatedInteractionList
      * @throws ApiError
      */
     public static interactionsInteractionsList(
-        createdBy?: number,
         limit?: number,
         offset?: number,
         ordering?: string,
-        project?: string,
         search?: string,
-        status?: 'archived' | 'backlog' | 'done' | 'in_progress' | 'pending' | null,
-        type?: 'disposal' | 'expense' | 'inspection' | 'installation' | 'issue' | 'maintenance' | 'note' | 'repair' | 'replacement' | 'todo' | 'upgrade' | 'warranty',
     ): CancelablePromise<PaginatedInteractionList> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/interactions/interactions/',
             query: {
-                'created_by': createdBy,
                 'limit': limit,
                 'offset': offset,
                 'ordering': ordering,
-                'project': project,
                 'search': search,
-                'status': status,
-                'type': type,
             },
         });
     }
@@ -373,8 +340,8 @@ export class InteractionsService {
      * @throws ApiError
      */
     public static interactionsInteractionsCreate(
-        requestBody: InteractionCreateRequest,
-    ): CancelablePromise<InteractionCreateResponse> {
+        requestBody: Interaction,
+    ): CancelablePromise<Interaction> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/interactions/interactions/',
@@ -384,7 +351,7 @@ export class InteractionsService {
     }
     /**
      * Interaction CRUD with filtering by type, status, tags, zones, dates.
-     * @param id A UUID string identifying this interaction.
+     * @param id
      * @returns InteractionDetail
      * @throws ApiError
      */
@@ -401,7 +368,7 @@ export class InteractionsService {
     }
     /**
      * Interaction CRUD with filtering by type, status, tags, zones, dates.
-     * @param id A UUID string identifying this interaction.
+     * @param id
      * @param requestBody
      * @returns Interaction
      * @throws ApiError
@@ -422,7 +389,7 @@ export class InteractionsService {
     }
     /**
      * Interaction CRUD with filtering by type, status, tags, zones, dates.
-     * @param id A UUID string identifying this interaction.
+     * @param id
      * @param requestBody
      * @returns Interaction
      * @throws ApiError
@@ -443,7 +410,7 @@ export class InteractionsService {
     }
     /**
      * Interaction CRUD with filtering by type, status, tags, zones, dates.
-     * @param id A UUID string identifying this interaction.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -460,7 +427,7 @@ export class InteractionsService {
     }
     /**
      * Quick status update for todos.
-     * @param id A UUID string identifying this interaction.
+     * @param id
      * @param requestBody
      * @returns Interaction
      * @throws ApiError

@@ -236,7 +236,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project group.
+     * @param id
      * @returns ProjectGroup
      * @throws ApiError
      */
@@ -252,7 +252,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project group.
+     * @param id
      * @param requestBody
      * @returns ProjectGroup
      * @throws ApiError
@@ -272,7 +272,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project group.
+     * @param id
      * @param requestBody
      * @returns ProjectGroup
      * @throws ApiError
@@ -292,7 +292,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project group.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -430,7 +430,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project.
+     * @param id
      * @returns Project
      * @throws ApiError
      */
@@ -446,7 +446,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project.
+     * @param id
      * @param requestBody
      * @returns Project
      * @throws ApiError
@@ -466,7 +466,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project.
+     * @param id
      * @param requestBody
      * @returns Project
      * @throws ApiError
@@ -486,7 +486,7 @@ export class ProjectsService {
         });
     }
     /**
-     * @param id A UUID string identifying this project.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -499,6 +499,86 @@ export class ProjectsService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Project
+     * @throws ApiError
+     */
+    public static projectsProjectsAttachDocumentCreate(
+        id: string,
+        requestBody: Project,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/projects/projects/{id}/attach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Project
+     * @throws ApiError
+     */
+    public static projectsProjectsDetachDocumentCreate(
+        id: string,
+        requestBody: Project,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/projects/projects/{id}/detach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Project
+     * @throws ApiError
+     */
+    public static projectsProjectsPinCreate(
+        id: string,
+        requestBody: Project,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/projects/projects/{id}/pin/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Project
+     * @throws ApiError
+     */
+    public static projectsProjectsUnpinCreate(
+        id: string,
+        requestBody: Project,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/projects/projects/{id}/unpin/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }

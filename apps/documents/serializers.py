@@ -2,6 +2,7 @@
 from rest_framework import serializers
 
 from .models import Document
+from .thumbnails import THUMBNAIL_SIZES, thumbnail_exists, thumbnail_storage_path
 
 
 class DocumentQualificationSerializer(serializers.Serializer):
@@ -44,6 +45,8 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     created_by_name = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
+    thumbnail_url = serializers.SerializerMethodField()
+    medium_url = serializers.SerializerMethodField()
     qualification = serializers.SerializerMethodField()
     linked_interactions = serializers.SerializerMethodField()
     legacy_interaction = serializers.SerializerMethodField()
@@ -55,7 +58,8 @@ class DocumentSerializer(serializers.ModelSerializer):
             'id', 'household', 'file_path', 'name', 'mime_type',
             'type', 'notes', 'ocr_text', 'metadata', 'is_private',
             'interaction', 'created_at', 'created_by', 'created_by_name',
-            'file_url', 'qualification', 'linked_interactions',
+            'file_url', 'thumbnail_url', 'medium_url',
+            'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
         ]
         read_only_fields = ['id', 'household', 'created_at', 'created_by']
@@ -63,15 +67,31 @@ class DocumentSerializer(serializers.ModelSerializer):
     def get_created_by_name(self, obj):
         return obj.created_by.full_name if obj.created_by else ''
 
+    def _build_media_url(self, path):
+        url = f"/media/{path}"
+        request = self.context.get('request')
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
+
     def get_file_url(self, obj):
         """Return media URL for the file."""
         if not obj.file_path:
             return None
-        request = self.context.get('request')
-        url = f"/media/{obj.file_path}"
-        if request is not None:
-            return request.build_absolute_uri(url)
-        return url
+        return self._build_media_url(obj.file_path)
+
+    def _get_thumbnail_url(self, obj, size):
+        if not obj.file_path or size not in THUMBNAIL_SIZES:
+            return None
+        if not thumbnail_exists(obj.file_path, size):
+            return None
+        return self._build_media_url(thumbnail_storage_path(obj.file_path, size))
+
+    def get_thumbnail_url(self, obj):
+        return self._get_thumbnail_url(obj, 'thumb')
+
+    def get_medium_url(self, obj):
+        return self._get_thumbnail_url(obj, 'medium')
 
     def _linked_interactions_payload(self, obj):
         links = getattr(obj, 'prefetched_interaction_documents', None)

@@ -5,8 +5,9 @@
 import type { EquipmentStatusEnum } from './EquipmentStatusEnum';
 export type Equipment = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     zone?: string | null;
+    readonly zone_name: string;
     name: string;
     category?: string;
     manufacturer?: string | null;
@@ -20,6 +21,7 @@ export type Equipment = {
     warranty_notes?: string;
     maintenance_interval_months?: number | null;
     last_service_at?: string | null;
+    readonly next_service_due: string;
     status?: EquipmentStatusEnum;
     condition?: string;
     installed_at?: string | null;

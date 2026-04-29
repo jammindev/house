@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { HouseholdMemberRoleEnum } from './HouseholdMemberRoleEnum';
+import type { RoleAb0Enum } from './RoleAb0Enum';
 /**
  * Serializer for household members.
  */
@@ -11,6 +11,6 @@ export type HouseholdMember = {
     readonly user: number;
     readonly user_email: string;
     readonly user_display_name: string;
-    role?: HouseholdMemberRoleEnum;
+    role?: RoleAb0Enum;
 };
 

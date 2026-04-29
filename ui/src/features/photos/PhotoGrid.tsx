@@ -17,10 +17,12 @@ export default function PhotoGrid({ photos, onPhotoClick }: PhotoGridProps) {
           onClick={() => onPhotoClick(photo)}
           aria-label={photo.name}
         >
-          {photo.file_url ? (
+          {photo.thumbnail_url || photo.file_url ? (
             <img
-              src={photo.file_url}
+              src={photo.thumbnail_url || photo.file_url || ''}
               alt={photo.name}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';

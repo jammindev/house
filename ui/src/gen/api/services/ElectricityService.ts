@@ -2,18 +2,18 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { Breaker } from '../models/Breaker';
 import type { CircuitUsagePointLink } from '../models/CircuitUsagePointLink';
 import type { ElectricCircuit } from '../models/ElectricCircuit';
 import type { ElectricityBoard } from '../models/ElectricityBoard';
-import type { PatchedBreaker } from '../models/PatchedBreaker';
+import type { MaintenanceEvent } from '../models/MaintenanceEvent';
 import type { PatchedCircuitUsagePointLink } from '../models/PatchedCircuitUsagePointLink';
 import type { PatchedElectricCircuit } from '../models/PatchedElectricCircuit';
 import type { PatchedElectricityBoard } from '../models/PatchedElectricityBoard';
-import type { PatchedResidualCurrentDevice } from '../models/PatchedResidualCurrentDevice';
+import type { PatchedMaintenanceEvent } from '../models/PatchedMaintenanceEvent';
+import type { PatchedProtectiveDevice } from '../models/PatchedProtectiveDevice';
 import type { PatchedUsagePoint } from '../models/PatchedUsagePoint';
 import type { PlanChangeLog } from '../models/PlanChangeLog';
-import type { ResidualCurrentDevice } from '../models/ResidualCurrentDevice';
+import type { ProtectiveDevice } from '../models/ProtectiveDevice';
 import type { UsagePoint } from '../models/UsagePoint';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -111,103 +111,6 @@ export class ElectricityService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/electricity/boards/{id}/',
-            path: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @returns Breaker
-     * @throws ApiError
-     */
-    public static electricityBreakersList(): CancelablePromise<Array<Breaker>> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/electricity/breakers/',
-        });
-    }
-    /**
-     * @param requestBody
-     * @returns Breaker
-     * @throws ApiError
-     */
-    public static electricityBreakersCreate(
-        requestBody: Breaker,
-    ): CancelablePromise<Breaker> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/electricity/breakers/',
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
-    /**
-     * @param id
-     * @returns Breaker
-     * @throws ApiError
-     */
-    public static electricityBreakersRetrieve(
-        id: string,
-    ): CancelablePromise<Breaker> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/electricity/breakers/{id}/',
-            path: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @param id
-     * @param requestBody
-     * @returns Breaker
-     * @throws ApiError
-     */
-    public static electricityBreakersUpdate(
-        id: string,
-        requestBody: Breaker,
-    ): CancelablePromise<Breaker> {
-        return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/electricity/breakers/{id}/',
-            path: {
-                'id': id,
-            },
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
-    /**
-     * @param id
-     * @param requestBody
-     * @returns Breaker
-     * @throws ApiError
-     */
-    public static electricityBreakersPartialUpdate(
-        id: string,
-        requestBody?: PatchedBreaker,
-    ): CancelablePromise<Breaker> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/electricity/breakers/{id}/',
-            path: {
-                'id': id,
-            },
-            body: requestBody,
-            mediaType: 'application/json',
-        });
-    }
-    /**
-     * @param id
-     * @returns void
-     * @throws ApiError
-     */
-    public static electricityBreakersDestroy(
-        id: string,
-    ): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/electricity/breakers/{id}/',
             path: {
                 'id': id,
             },
@@ -337,16 +240,6 @@ export class ElectricityService {
         });
     }
     /**
-     * @returns any No response body
-     * @throws ApiError
-     */
-    public static electricityHealthRetrieve(): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/electricity/health/',
-        });
-    }
-    /**
      * @returns CircuitUsagePointLink
      * @throws ApiError
      */
@@ -464,51 +357,41 @@ export class ElectricityService {
         });
     }
     /**
-     * @returns any No response body
+     * @returns MaintenanceEvent
      * @throws ApiError
      */
-    public static electricityMappingLookupRetrieve(): CancelablePromise<any> {
+    public static electricityMaintenanceEventsList(): CancelablePromise<Array<MaintenanceEvent>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/electricity/mapping/lookup/',
-        });
-    }
-    /**
-     * @returns ResidualCurrentDevice
-     * @throws ApiError
-     */
-    public static electricityRcdsList(): CancelablePromise<Array<ResidualCurrentDevice>> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/electricity/rcds/',
+            url: '/api/electricity/maintenance-events/',
         });
     }
     /**
      * @param requestBody
-     * @returns ResidualCurrentDevice
+     * @returns MaintenanceEvent
      * @throws ApiError
      */
-    public static electricityRcdsCreate(
-        requestBody: ResidualCurrentDevice,
-    ): CancelablePromise<ResidualCurrentDevice> {
+    public static electricityMaintenanceEventsCreate(
+        requestBody: MaintenanceEvent,
+    ): CancelablePromise<MaintenanceEvent> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/electricity/rcds/',
+            url: '/api/electricity/maintenance-events/',
             body: requestBody,
             mediaType: 'application/json',
         });
     }
     /**
      * @param id
-     * @returns ResidualCurrentDevice
+     * @returns MaintenanceEvent
      * @throws ApiError
      */
-    public static electricityRcdsRetrieve(
+    public static electricityMaintenanceEventsRetrieve(
         id: string,
-    ): CancelablePromise<ResidualCurrentDevice> {
+    ): CancelablePromise<MaintenanceEvent> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/electricity/rcds/{id}/',
+            url: '/api/electricity/maintenance-events/{id}/',
             path: {
                 'id': id,
             },
@@ -517,16 +400,16 @@ export class ElectricityService {
     /**
      * @param id
      * @param requestBody
-     * @returns ResidualCurrentDevice
+     * @returns MaintenanceEvent
      * @throws ApiError
      */
-    public static electricityRcdsUpdate(
+    public static electricityMaintenanceEventsUpdate(
         id: string,
-        requestBody: ResidualCurrentDevice,
-    ): CancelablePromise<ResidualCurrentDevice> {
+        requestBody: MaintenanceEvent,
+    ): CancelablePromise<MaintenanceEvent> {
         return __request(OpenAPI, {
             method: 'PUT',
-            url: '/api/electricity/rcds/{id}/',
+            url: '/api/electricity/maintenance-events/{id}/',
             path: {
                 'id': id,
             },
@@ -537,16 +420,16 @@ export class ElectricityService {
     /**
      * @param id
      * @param requestBody
-     * @returns ResidualCurrentDevice
+     * @returns MaintenanceEvent
      * @throws ApiError
      */
-    public static electricityRcdsPartialUpdate(
+    public static electricityMaintenanceEventsPartialUpdate(
         id: string,
-        requestBody?: PatchedResidualCurrentDevice,
-    ): CancelablePromise<ResidualCurrentDevice> {
+        requestBody?: PatchedMaintenanceEvent,
+    ): CancelablePromise<MaintenanceEvent> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/electricity/rcds/{id}/',
+            url: '/api/electricity/maintenance-events/{id}/',
             path: {
                 'id': id,
             },
@@ -559,12 +442,109 @@ export class ElectricityService {
      * @returns void
      * @throws ApiError
      */
-    public static electricityRcdsDestroy(
+    public static electricityMaintenanceEventsDestroy(
         id: string,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/electricity/rcds/{id}/',
+            url: '/api/electricity/maintenance-events/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns ProtectiveDevice
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesList(): CancelablePromise<Array<ProtectiveDevice>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/electricity/protective-devices/',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns ProtectiveDevice
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesCreate(
+        requestBody: ProtectiveDevice,
+    ): CancelablePromise<ProtectiveDevice> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/electricity/protective-devices/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns ProtectiveDevice
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesRetrieve(
+        id: string,
+    ): CancelablePromise<ProtectiveDevice> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/electricity/protective-devices/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns ProtectiveDevice
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesUpdate(
+        id: string,
+        requestBody: ProtectiveDevice,
+    ): CancelablePromise<ProtectiveDevice> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/electricity/protective-devices/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns ProtectiveDevice
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesPartialUpdate(
+        id: string,
+        requestBody?: PatchedProtectiveDevice,
+    ): CancelablePromise<ProtectiveDevice> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/electricity/protective-devices/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static electricityProtectiveDevicesDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/electricity/protective-devices/{id}/',
             path: {
                 'id': id,
             },
@@ -665,6 +645,21 @@ export class ElectricityService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns UsagePoint
+     * @throws ApiError
+     */
+    public static electricityUsagePointsBulkCreateCreate(
+        requestBody: UsagePoint,
+    ): CancelablePromise<UsagePoint> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/electricity/usage-points/bulk-create/',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }

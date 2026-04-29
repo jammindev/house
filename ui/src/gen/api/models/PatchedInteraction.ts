@@ -26,13 +26,15 @@ export type PatchedInteraction = {
      */
     status?: (StatusF9bEnum | BlankEnum | NullEnum) | null;
     /**
+     * Whether this interaction is private to the creator
+     */
+    is_private?: boolean;
+    /**
      * When this interaction occurred
      */
-    occurred_at?: string;
-    /**
-     * Tags for categorization
-     */
-    tags?: Array<string>;
+    occurred_at?: string | null;
+    readonly tags?: string;
+    tags_input?: Array<string>;
     /**
      * Expense amounts, vendor info, etc.
      */
@@ -42,11 +44,12 @@ export type PatchedInteraction = {
      */
     enriched_text?: string;
     project?: string | null;
+    readonly project_title?: string;
     zone_ids?: Array<string>;
-    document_ids?: Array<string>;
     readonly zone_names?: string;
     readonly document_count?: string;
-    readonly linked_document_ids?: Array<string>;
+    readonly linked_document_ids?: string;
+    document_ids?: Array<string>;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

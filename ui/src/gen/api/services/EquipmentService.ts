@@ -11,13 +11,22 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class EquipmentService {
     /**
+     * @param ordering Which field to use when ordering the results.
+     * @param search A search term.
      * @returns Equipment
      * @throws ApiError
      */
-    public static equipmentList(): CancelablePromise<Array<Equipment>> {
+    public static equipmentList(
+        ordering?: string,
+        search?: string,
+    ): CancelablePromise<Array<Equipment>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/equipment/',
+            query: {
+                'ordering': ordering,
+                'search': search,
+            },
         });
     }
     /**
@@ -36,7 +45,7 @@ export class EquipmentService {
         });
     }
     /**
-     * @param id A UUID string identifying this equipment.
+     * @param id
      * @returns Equipment
      * @throws ApiError
      */
@@ -52,7 +61,7 @@ export class EquipmentService {
         });
     }
     /**
-     * @param id A UUID string identifying this equipment.
+     * @param id
      * @param requestBody
      * @returns Equipment
      * @throws ApiError
@@ -72,7 +81,7 @@ export class EquipmentService {
         });
     }
     /**
-     * @param id A UUID string identifying this equipment.
+     * @param id
      * @param requestBody
      * @returns Equipment
      * @throws ApiError
@@ -92,7 +101,7 @@ export class EquipmentService {
         });
     }
     /**
-     * @param id A UUID string identifying this equipment.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -108,13 +117,35 @@ export class EquipmentService {
         });
     }
     /**
+     * @param id
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentAuditRetrieve(
+        id: string,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/equipment/{id}/audit/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param ordering Which field to use when ordering the results.
      * @returns EquipmentInteraction
      * @throws ApiError
      */
-    public static equipmentEquipmentInteractionsList(): CancelablePromise<Array<EquipmentInteraction>> {
+    public static equipmentEquipmentInteractionsList(
+        ordering?: string,
+    ): CancelablePromise<Array<EquipmentInteraction>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/equipment/equipment-interactions/',
+            query: {
+                'ordering': ordering,
+            },
         });
     }
     /**

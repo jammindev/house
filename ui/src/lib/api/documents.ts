@@ -29,6 +29,8 @@ export interface DocumentItem {
   name: string;
   file_path: string;
   file_url: string | null;
+  thumbnail_url?: string | null;
+  medium_url?: string | null;
   mime_type: string;
   type: string;
   notes?: string | null;

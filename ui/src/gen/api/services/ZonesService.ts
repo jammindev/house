@@ -72,13 +72,7 @@ export class ZonesService {
         });
     }
     /**
-     * ViewSet for zone CRUD operations.
-     *
-     * List: Returns zones for user's households (flat or tree)
-     * Create: Creates new zone
-     * Retrieve: Gets zone details
-     * Update: Updates zone
-     * Delete: Deletes zone (cascades to children)
+     * Reject stale writes when last_known_updated_at is provided.
      * @param id A UUID string identifying this zone.
      * @param requestBody
      * @returns Zone
@@ -99,13 +93,7 @@ export class ZonesService {
         });
     }
     /**
-     * ViewSet for zone CRUD operations.
-     *
-     * List: Returns zones for user's households (flat or tree)
-     * Create: Creates new zone
-     * Retrieve: Gets zone details
-     * Update: Updates zone
-     * Delete: Deletes zone (cascades to children)
+     * Reject stale writes when last_known_updated_at is provided.
      * @param id A UUID string identifying this zone.
      * @param requestBody
      * @returns Zone
@@ -126,13 +114,7 @@ export class ZonesService {
         });
     }
     /**
-     * ViewSet for zone CRUD operations.
-     *
-     * List: Returns zones for user's households (flat or tree)
-     * Create: Creates new zone
-     * Retrieve: Gets zone details
-     * Update: Updates zone
-     * Delete: Deletes zone (cascades to children)
+     * Block deletion when zone still has children.
      * @param id A UUID string identifying this zone.
      * @returns void
      * @throws ApiError

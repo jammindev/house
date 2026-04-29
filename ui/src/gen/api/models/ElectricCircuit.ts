@@ -1,3 +1,7 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
 /**
  * Base serializer with shared household validation helpers.
  */
@@ -5,7 +9,7 @@ export type ElectricCircuit = {
     readonly id: string;
     readonly household: string;
     board: string;
-    breaker: string;
+    protective_device: string;
     label: string;
     name: string;
     is_active?: boolean;

@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type Phone = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     contact?: string | null;
     structure?: string | null;
     phone: string;

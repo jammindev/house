@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type Structure = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     name?: string;
     type?: string;
     description?: string;

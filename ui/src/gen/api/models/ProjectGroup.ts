@@ -4,10 +4,11 @@
 /* eslint-disable */
 export type ProjectGroup = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     name: string;
     description?: string;
     tags?: Array<string>;
+    readonly projects_count: string;
     readonly created_at: string;
     readonly updated_at: string;
     readonly created_by: number | null;
