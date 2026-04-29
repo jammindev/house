@@ -46,7 +46,7 @@ Objectif réel de la session : transformer le parcours 01 en socle produit créd
 - [docs/PARCOURS_METIER_PRIORITAIRES.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_METIER_PRIORITAIRES.md)
 - [docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md)
 - [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
-- [docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md)
+- note de projection IA pour le parcours 01 (depuis consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md), section "Évolutions ultérieures")
 
 ## Recommandation pour la suite
 

@@ -34,10 +34,12 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 - `./parcours/PARCOURS_04_*.md` — suivre un projet de bout en bout
 - `./parcours/PARCOURS_05_*.md` — naviguer par zone ou équipement
 - `./parcours/PARCOURS_06_*.md` — alertes proactives
+- `./parcours/PARCOURS_07_*.md` — agent conversationnel sur le foyer (en cadrage, lot 0 OCR via #88/#89)
 
 ## RFC et notes thématiques
 
 - `./SYNC_CONTACTS_STRUCTURES.md` — RFC vCard pour le directory
+- `./parcours/PARCOURS_IA_TRANSVERSE.md` — note chapeau de la couche IA (principes communs aux parcours 01 et 02)
 
 ## App-level docs
 

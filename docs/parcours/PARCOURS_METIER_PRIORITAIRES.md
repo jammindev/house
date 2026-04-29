@@ -23,7 +23,7 @@ Un parcours est prioritaire s'il coche au moins deux de ces critères :
 
 ## 1. Capturer un événement du foyer et le retrouver facilement
 
-Document détaillé : `docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md`
+Document détaillé : `docs/parcours/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md`
 
 Statut actuel : **socle V1 livré**
 
@@ -60,9 +60,9 @@ Le point d'entrée recommandé est un CTA unique d'ajout, suivi d'un sélecteur 
 
 ## 2. Traiter un document entrant et le relier au bon contexte
 
-Document détaillé : `docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md`
+Document détaillé : `docs/parcours/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md`
 
-Note complémentaire : `docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md`
+Note complémentaire : la couche IA pour ce parcours est consolidée dans `docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md` (section "Évolutions ultérieures").
 
 Statut actuel : **V1 manuelle en pré-livraison**
 
@@ -192,7 +192,7 @@ Depuis une zone ou un équipement, l'utilisateur peut voir l'historique utile, l
 
 ## 6. Recevoir les bons rappels au bon moment pour ne rien rater
 
-Document détaillé : `docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md`
+Document détaillé : `docs/parcours/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md`
 
 Statut actuel : **à démarrer**
 
@@ -234,6 +234,57 @@ Hors périmètre V1 :
 - les alertes actives sont visibles sans navigation préalable
 - chaque alerte mène à une action en un clic
 - les alertes résolues disparaissent automatiquement
+
+## 7. Poser une question en langage naturel sur son foyer
+
+Document détaillé : `docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md`
+
+Note transverse : `docs/parcours/PARCOURS_IA_TRANSVERSE.md`
+
+Statut actuel : **en cadrage, lot 0 OCR engagé** (issues #88 et #89)
+
+### Pourquoi en septième
+
+Les six premiers parcours ont construit une mémoire structurée du foyer. Le parcours 07 ouvre une seconde lecture de cette mémoire : l'utilisateur interroge en langage naturel et obtient une réponse citée, sans avoir à fouiller chaque section.
+
+C'est aussi le premier porteur d'implémentation IA. Les décisions techniques (provider, sync/async, stockage OCR) sont tranchées ici avant d'irriguer les autres parcours IA (01, 02).
+
+### Déclencheur utilisateur
+
+"Je ne me souviens plus quand on a changé la chaudière, ou si la garantie du lave-vaisselle est encore valable, et je n'ai pas envie de fouiller."
+
+### Résultat attendu
+
+L'utilisateur pose une question, l'agent répond avec une citation cliquable vers l'entité d'origine.
+
+### Périmètre de livraison V1 retenu
+
+- pipeline OCR à l'upload des documents (issue #88)
+- backfill OCR sur les documents existants (issue #89)
+- recherche full-text sur la mémoire du foyer
+- service d'appel Claude (Haiku 4.5) avec citations
+- surface UI chat (forme à préciser)
+
+### Hors périmètre V1
+
+- agent qui crée ou modifie des entités (lecture seule en V1)
+- ingestion email entrante ou WhatsApp
+- mémoire conversationnelle persistée (à arbitrer V1 vs V2)
+- streaming de réponse, vocal, fine-tuning, modèle local
+
+### Stories initiales
+
+- Uploader un document HEIC depuis iPhone et voir son texte extrait automatiquement.
+- Re-extraire le texte des documents existants via une management command.
+- Poser une question simple ("quand expire la garantie du lave-vaisselle ?") et obtenir une réponse citée.
+- Cliquer sur une citation pour ouvrir l'entité d'origine.
+
+### Définition de done
+
+- tous les documents (anciens et nouveaux) ont leur texte extrait
+- l'agent répond à une question avec une citation vérifiable
+- la latence reste acceptable
+- la mention de confidentialité est visible avant le premier usage
 
 ## Ce que je ne mettrais pas dans les 5 premiers
 

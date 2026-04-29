@@ -66,11 +66,11 @@ Spécifier puis migrer un flux d'ajout ou d'upload simple permettant de faire ex
 
 ### Fichiers principaux
 
-- [apps/documents/views.py](/Users/benjaminvandamme/Dev/house/apps/documents/views.py)
-- [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
-- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentsPage.tsx)
-- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Dev/house/ui/src/lib/api/documents.ts)
-- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Dev/house/apps/documents/tests/test_api_documents.py)
+- [apps/documents/views.py](/Users/benjaminvandamme/Developer/house/apps/documents/views.py)
+- [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
+- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentsPage.tsx)
+- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/documents.ts)
+- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Developer/house/apps/documents/tests/test_api_documents.py)
 
 ### Tâches
 
@@ -101,11 +101,11 @@ Faire évoluer la page documents pour qu'elle serve de point d'entrée de traite
 
 ### Fichiers principaux
 
-- [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
-- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentsPage.tsx)
-- [apps/documents/react/DocumentsFilters.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentsFilters.tsx)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Dev/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Dev/house/ui/src/locales/fr/translation.json)
+- [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
+- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentsPage.tsx)
+- [apps/documents/react/DocumentsFilters.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentsFilters.tsx)
+- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -134,11 +134,11 @@ Ajouter une page dédiée de détail document pour comprendre l'élément et agi
 
 ### Fichiers principaux
 
-- [apps/documents/views_web.py](/Users/benjaminvandamme/Dev/house/apps/documents/views_web.py)
-- [apps/documents/web_urls.py](/Users/benjaminvandamme/Dev/house/apps/documents/web_urls.py)
-- [apps/documents/react/](/Users/benjaminvandamme/Dev/house/apps/documents/react)
-- [ui/src/pages/documents/](/Users/benjaminvandamme/Dev/house/ui/src/pages/documents)
-- [ui/vite.config.ts](/Users/benjaminvandamme/Dev/house/ui/vite.config.ts)
+- [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
+- [apps/documents/web_urls.py](/Users/benjaminvandamme/Developer/house/apps/documents/web_urls.py)
+- [apps/documents/react/](/Users/benjaminvandamme/Developer/house/apps/documents/react)
+- [ui/src/pages/documents/](/Users/benjaminvandamme/Developer/house/ui/src/pages/documents)
+- [ui/vite.config.ts](/Users/benjaminvandamme/Developer/house/ui/vite.config.ts)
 
 ### Tâches
 
@@ -168,10 +168,10 @@ Exposer un payload de détail plus utile pour afficher l'état réel du document
 
 ### Fichiers principaux
 
-- [apps/documents/serializers.py](/Users/benjaminvandamme/Dev/house/apps/documents/serializers.py)
-- [apps/documents/views.py](/Users/benjaminvandamme/Dev/house/apps/documents/views.py)
-- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Dev/house/ui/src/lib/api/documents.ts)
-- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Dev/house/apps/documents/tests/test_api_documents.py)
+- [apps/documents/serializers.py](/Users/benjaminvandamme/Developer/house/apps/documents/serializers.py)
+- [apps/documents/views.py](/Users/benjaminvandamme/Developer/house/apps/documents/views.py)
+- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/documents.ts)
+- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Developer/house/apps/documents/tests/test_api_documents.py)
 
 ### Tâches
 
@@ -214,10 +214,10 @@ Permettre depuis le document de le relier simplement à une activité déjà pr�
 
 ### Fichiers principaux
 
-- [apps/documents/react/](/Users/benjaminvandamme/Dev/house/apps/documents/react)
-- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Dev/house/ui/src/lib/api/documents.ts)
-- [apps/documents/views.py](/Users/benjaminvandamme/Dev/house/apps/documents/views.py)
-- [apps/interactions/views.py](/Users/benjaminvandamme/Dev/house/apps/interactions/views.py)
+- [apps/documents/react/](/Users/benjaminvandamme/Developer/house/apps/documents/react)
+- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/documents.ts)
+- [apps/documents/views.py](/Users/benjaminvandamme/Developer/house/apps/documents/views.py)
+- [apps/interactions/views.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views.py)
 
 ### Tâches
 
@@ -256,10 +256,10 @@ Réutiliser le parcours 01 pour transformer un document en activité exploitable
 
 ### Fichiers principaux
 
-- [apps/documents/react/](/Users/benjaminvandamme/Dev/house/apps/documents/react)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Dev/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Dev/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Dev/house/ui/src/lib/api/interactions.ts)
+- [apps/documents/react/](/Users/benjaminvandamme/Developer/house/apps/documents/react)
+- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
+- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
 
 ### Tâches
 
@@ -292,10 +292,10 @@ Préparer l'ouverture vers les autres contextes métier sans alourdir la premiè
 
 ### Fichiers principaux
 
-- [apps/documents/serializers.py](/Users/benjaminvandamme/Dev/house/apps/documents/serializers.py)
-- [apps/zones/models.py](/Users/benjaminvandamme/Dev/house/apps/zones/models.py)
-- [apps/projects/models.py](/Users/benjaminvandamme/Dev/house/apps/projects/models.py)
-- [apps/documents/react/](/Users/benjaminvandamme/Dev/house/apps/documents/react)
+- [apps/documents/serializers.py](/Users/benjaminvandamme/Developer/house/apps/documents/serializers.py)
+- [apps/zones/models.py](/Users/benjaminvandamme/Developer/house/apps/zones/models.py)
+- [apps/projects/models.py](/Users/benjaminvandamme/Developer/house/apps/projects/models.py)
+- [apps/documents/react/](/Users/benjaminvandamme/Developer/house/apps/documents/react)
 
 ### Tâches
 
@@ -324,11 +324,11 @@ Faire de la liste documents un bon point de tri et de suivi des éléments à qu
 
 ### Fichiers principaux
 
-- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentsPage.tsx)
-- [apps/documents/react/DocumentListItem.tsx](/Users/benjaminvandamme/Dev/house/apps/documents/react/DocumentListItem.tsx)
-- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Dev/house/ui/src/lib/api/documents.ts)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Dev/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Dev/house/ui/src/locales/fr/translation.json)
+- [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentsPage.tsx)
+- [apps/documents/react/DocumentListItem.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentListItem.tsx)
+- [ui/src/lib/api/documents.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/documents.ts)
+- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -355,7 +355,7 @@ Sécuriser le flux sans multiplier les tests inutiles.
 
 ### Fichiers principaux
 
-- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Dev/house/apps/documents/tests/test_api_documents.py)
+- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Developer/house/apps/documents/tests/test_api_documents.py)
 - tests web à créer si le payload Django change significativement
 
 ### Tâches

@@ -55,4 +55,4 @@ Cette capacité reste un enrichissement transverse et ne change pas le périmèt
 
 - [docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_02_TRAITER_UN_DOCUMENT_ENTRANT_ET_LE_RELIER_AU_BON_CONTEXTE.md)
 - [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)
-- [docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_02_COMPREHENSION_ASSISTEE_PAR_IA.md)
+- note de compréhension IA pour le parcours 02 (depuis consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md), section "Évolutions ultérieures")

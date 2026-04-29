@@ -20,7 +20,7 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-03-10
+Dernière mise à jour : 2026-04-29
 
 ### Parcours métier
 
@@ -30,8 +30,9 @@ Dernière mise à jour : 2026-03-10
 - Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **V1 livrée**
 - Parcours 06 — Recevoir les bons rappels au bon moment pour ne rien rater : **cadrage initial — à démarrer**
+- Parcours 07 — Poser une question en langage naturel sur son foyer : **en cadrage, lot 0 OCR engagé** (issues #88 et #89)
 
-Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention.
+Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention. Le parcours 07 ouvre la couche IA : la mémoire du foyer devient interrogeable en langage naturel.
 
 ## Ce qui est considéré comme livré sur le parcours 01
 
@@ -48,9 +49,9 @@ Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, ag
 
 Références :
 
-- [docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md)
-- [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
-- [docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURE_ASSISTEE_PAR_IA.md)
+- [docs/parcours/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md)
+- [docs/parcours/PARCOURS_01_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_01_BACKLOG_TECHNIQUE.md)
+- couche IA consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md) (section "Évolutions ultérieures")
 
 ## Décisions produit actives
 
@@ -75,8 +76,8 @@ Références :
 
 Références :
 
-- [docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md)
-- [docs/PARCOURS_03_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_03_BACKLOG_TECHNIQUE.md)
+- [docs/parcours/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_03_TRANSFORMER_UN_BESOIN_EN_ACTION_SUIVIE.md)
+- [docs/parcours/PARCOURS_03_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_03_BACKLOG_TECHNIQUE.md)
 
 ## Ce qui est considéré comme livré sur le parcours 04
 
@@ -91,8 +92,8 @@ Références :
 
 Références :
 
-- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
-- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
+- [docs/parcours/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
+- [docs/parcours/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_04_BACKLOG_TECHNIQUE.md)
 - [docs/journal/2026-03-10_parcours-04_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_v1_livree.md)
 
 ## Ce qui est considéré comme livré sur le parcours 05
@@ -110,8 +111,8 @@ Références :
 
 Références :
 
-- [docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
-- [docs/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_BACKLOG_TECHNIQUE.md)
+- [docs/parcours/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
+- [docs/parcours/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_05_BACKLOG_TECHNIQUE.md)
 - [docs/journal/2026-03-10_parcours-05_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-05_v1_livree.md)
 
 ## Prochain focus recommandé
@@ -120,8 +121,8 @@ Références :
 
 Références :
 
-- [docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md)
-- [docs/PARCOURS_06_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Dev/house/docs/PARCOURS_06_BACKLOG_TECHNIQUE.md)
+- [docs/parcours/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md)
+- [docs/parcours/PARCOURS_06_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_06_BACKLOG_TECHNIQUE.md)
 
 Axes suivants après le parcours 06 :
 
@@ -133,7 +134,7 @@ Axes suivants après le parcours 06 :
 ## Journal des sessions
 
 - [docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-08_parcours-01_v1_et_projection_ia.md)
-- [docs/journal/2026-03-09_parcours-02_cadrage_initial.md](/Users/benjaminvandamme/Dev/house/docs/journal/2026-03-09_parcours-02_cadrage_initial.md)
+- [docs/journal/2026-03-09_parcours-02_cadrage_initial.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-02_cadrage_initial.md)
 - [docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-02_prelivraison_v1_manuelle.md)
 - [docs/journal/2026-03-09_formulaire-activite_documents.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_formulaire-activite_documents.md)
 - [docs/journal/2026-03-09_parcours-03_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-03_v1_livree.md)
