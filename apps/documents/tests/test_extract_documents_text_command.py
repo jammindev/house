@@ -185,7 +185,7 @@ class TestExtractDocumentsTextCommand:
         assert "failed=1" in out
         assert str(boom.id) in err
 
-    def test_vision_calls_appear_in_summary_with_cost(self, household, owner):
+    def test_vision_attempts_appear_in_summary_with_cost(self, household, owner):
         _make_document(household, owner, name="img1", mime_type="image/jpeg")
         _make_document(household, owner, name="img2", mime_type="image/jpeg")
 
@@ -195,8 +195,24 @@ class TestExtractDocumentsTextCommand:
         ):
             out, _ = _call(*_scoped(household))
 
-        assert "vision_calls=2" in out
+        assert "vision_attempts=2" in out
         assert "estimated_cost_usd=0.006" in out
+
+    def test_vision_attempts_count_empty_results_too(self, household, owner):
+        """Vision API was billed even when it returned no text (the whole reason for this fix)."""
+        _make_document(household, owner, name="img1", mime_type="image/jpeg")
+        _make_document(household, owner, name="img2", mime_type="image/jpeg")
+
+        with patch(
+            "documents.management.commands.extract_documents_text.extract_text",
+            return_value=("", "vision_empty"),
+        ):
+            out, _ = _call(*_scoped(household))
+
+        assert "vision_attempts=2" in out
+        assert "estimated_cost_usd=0.006" in out
+        assert "extracted=0" in out
+        assert "failed=2" in out
 
     def test_negative_limit_raises(self, household, owner):
         with pytest.raises(CommandError):

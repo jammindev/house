@@ -97,7 +97,7 @@ class Command(BaseCommand):
 
         extracted = 0
         failed = 0
-        vision_calls = 0
+        vision_attempts = 0
 
         for index, document in enumerate(candidates.iterator(), start=1):
             prefix = f"[{index}/{total}]"
@@ -121,8 +121,8 @@ class Command(BaseCommand):
             document.metadata = metadata
             document.save(update_fields=["ocr_text", "metadata", "updated_at"])
 
-            if method == "vision_haiku":
-                vision_calls += 1
+            if method in ("vision_haiku", "vision_empty"):
+                vision_attempts += 1
 
             if text:
                 extracted += 1
@@ -132,16 +132,16 @@ class Command(BaseCommand):
             else:
                 failed += 1
                 self.stderr.write(
-                    f"  {prefix} ✗ {document.id} no text ({document.mime_type or 'unknown'})"
+                    f"  {prefix} ✗ {document.id} no text via {method} ({document.mime_type or 'unknown'})"
                 )
 
-        cost_estimate = vision_calls * VISION_COST_PER_IMAGE_USD
+        cost_estimate = vision_attempts * VISION_COST_PER_IMAGE_USD
         if dry_run:
             summary = f"Dry-run complete. would_process={total}"
         else:
             summary = (
                 f"Done. extracted={extracted} failed={failed} "
-                f"skipped={already_processed} vision_calls={vision_calls} "
+                f"skipped={already_processed} vision_attempts={vision_attempts} "
                 f"estimated_cost_usd={cost_estimate:.3f}"
             )
 

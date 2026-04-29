@@ -77,7 +77,7 @@ class TestExtractText:
         assert method == "vision_haiku"
         fake_client.messages.create.assert_called_once()
 
-    def test_image_returns_skipped_when_client_unavailable(self, monkeypatch, household, owner):
+    def test_image_returns_vision_empty_when_client_unavailable(self, monkeypatch, household, owner):
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
@@ -86,9 +86,9 @@ class TestExtractText:
         text, method = extraction.extract_text(document)
 
         assert text == ""
-        assert method == "skipped"
+        assert method == "vision_empty"
 
-    def test_image_failure_in_sdk_returns_skipped(self, monkeypatch, household, owner):
+    def test_image_failure_in_sdk_returns_vision_empty(self, monkeypatch, household, owner):
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
@@ -99,9 +99,26 @@ class TestExtractText:
         text, method = extraction.extract_text(document)
 
         assert text == ""
-        assert method == "skipped"
+        assert method == "vision_empty"
 
-    def test_pdf_returns_skipped_for_blank_pages(self, monkeypatch, household, owner):
+    def test_image_with_no_text_returns_vision_empty(self, monkeypatch, household, owner):
+        path = _save("docs/test.jpg", _make_jpeg_bytes())
+        document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
+
+        fake_block = SimpleNamespace(text="")
+        fake_message = SimpleNamespace(content=[fake_block])
+        fake_client = MagicMock()
+        fake_client.messages.create.return_value = fake_message
+        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: fake_client)
+
+        text, method = extraction.extract_text(document)
+
+        assert text == ""
+        assert method == "vision_empty"
+        # Vision was actually called — that's the whole point of this state.
+        fake_client.messages.create.assert_called_once()
+
+    def test_pdf_returns_pypdf_empty_for_blank_pages(self, monkeypatch, household, owner):
         path = _save("docs/blank.pdf", _make_pdf_bytes())
         document = self._make_document(household, owner, file_path=path, mime="application/pdf")
         # No anthropic call for PDFs — guard anyway.
@@ -110,7 +127,7 @@ class TestExtractText:
         text, method = extraction.extract_text(document)
 
         assert text == ""
-        assert method == "skipped"
+        assert method == "pypdf_empty"
 
     def test_pdf_extraction_uses_pypdf(self, monkeypatch, household, owner):
         path = _save("docs/text.pdf", _make_pdf_bytes())
