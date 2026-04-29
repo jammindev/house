@@ -1389,6 +1389,23 @@
       }
     }
   },
+  "notifications": {
+    "title": "Notificaciones",
+    "description": "Centro de notificaciones de tu hogar",
+    "empty": "Sin notificaciones",
+    "emptyUnread": "Sin notificaciones no leídas",
+    "emptyDescription": "Recibirás avisos aquí cuando algo requiera tu atención.",
+    "markAllRead": "Marcar todas como leídas",
+    "allMarkedRead": "Todas las notificaciones se han marcado como leídas.",
+    "unread": "No leída",
+    "viewAll": "Ver todas las notificaciones",
+    "bellAriaLabel": "Notificaciones",
+    "bellAriaLabelUnread": "Notificaciones, {{count}} sin leer",
+    "filters": {
+      "all": "Todas",
+      "unread": "No leídas"
+    }
+  },
   "invitations": {
     "title": "Invitaciones pendientes",
     "description": "Has sido invitado a unirte a los siguientes hogares.",

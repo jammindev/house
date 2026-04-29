@@ -1389,6 +1389,23 @@
       }
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Notification center for your household",
+    "empty": "No notifications",
+    "emptyUnread": "No unread notifications",
+    "emptyDescription": "You'll be notified here when something needs your attention.",
+    "markAllRead": "Mark all as read",
+    "allMarkedRead": "All notifications marked as read.",
+    "unread": "Unread",
+    "viewAll": "View all notifications",
+    "bellAriaLabel": "Notifications",
+    "bellAriaLabelUnread": "Notifications, {{count}} unread",
+    "filters": {
+      "all": "All",
+      "unread": "Unread"
+    }
+  },
   "invitations": {
     "title": "Pending invitations",
     "description": "You have been invited to join the following households.",
