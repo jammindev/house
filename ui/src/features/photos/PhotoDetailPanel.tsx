@@ -46,10 +46,11 @@ export default function PhotoDetailPanel({ photo, open, onOpenChange, onDelete }
         <div className="flex flex-col lg:flex-row lg:items-stretch">
           {/* Image */}
           <div className="relative flex min-h-[40vh] w-full items-center justify-center bg-gradient-to-b from-slate-900 to-black lg:min-h-[60vh] lg:flex-1">
-            {photo.file_url ? (
+            {photo.medium_url || photo.file_url ? (
               <img
-                src={photo.file_url}
+                src={photo.medium_url || photo.file_url || ''}
                 alt={photo.name}
+                decoding="async"
                 className="max-h-full max-w-full object-contain"
               />
             ) : (

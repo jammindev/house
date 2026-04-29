@@ -4,10 +4,10 @@
 /* eslint-disable */
 /**
  * * `board` - Board
- * * `rcd` - RCD
- * * `breaker` - Breaker
+ * * `protective_device` - Protective device
  * * `circuit` - Circuit
  * * `usage_point` - Usage point
  * * `link` - Link
+ * * `maintenance_event` - Maintenance event
  */
-export type EntityTypeEnum = 'board' | 'rcd' | 'breaker' | 'circuit' | 'usage_point' | 'link';
+export type EntityTypeEnum = 'board' | 'protective_device' | 'circuit' | 'usage_point' | 'link' | 'maintenance_event';

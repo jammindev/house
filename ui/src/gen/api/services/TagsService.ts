@@ -2,50 +2,50 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { InteractionTag } from '../models/InteractionTag';
-import type { PatchedInteractionTag } from '../models/PatchedInteractionTag';
 import type { PatchedTag } from '../models/PatchedTag';
+import type { PatchedTagLink } from '../models/PatchedTagLink';
 import type { Tag } from '../models/Tag';
+import type { TagLink } from '../models/TagLink';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class TagsService {
     /**
-     * @returns InteractionTag
+     * @returns TagLink
      * @throws ApiError
      */
-    public static tagsInteractionTagsList(): CancelablePromise<Array<InteractionTag>> {
+    public static tagsTagLinksList(): CancelablePromise<Array<TagLink>> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/tags/interaction-tags/',
+            url: '/api/tags/tag-links/',
         });
     }
     /**
      * @param requestBody
-     * @returns InteractionTag
+     * @returns TagLink
      * @throws ApiError
      */
-    public static tagsInteractionTagsCreate(
-        requestBody: InteractionTag,
-    ): CancelablePromise<InteractionTag> {
+    public static tagsTagLinksCreate(
+        requestBody: TagLink,
+    ): CancelablePromise<TagLink> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/tags/interaction-tags/',
+            url: '/api/tags/tag-links/',
             body: requestBody,
             mediaType: 'application/json',
         });
     }
     /**
      * @param id
-     * @returns InteractionTag
+     * @returns TagLink
      * @throws ApiError
      */
-    public static tagsInteractionTagsRetrieve(
+    public static tagsTagLinksRetrieve(
         id: string,
-    ): CancelablePromise<InteractionTag> {
+    ): CancelablePromise<TagLink> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/tags/interaction-tags/{id}/',
+            url: '/api/tags/tag-links/{id}/',
             path: {
                 'id': id,
             },
@@ -54,16 +54,16 @@ export class TagsService {
     /**
      * @param id
      * @param requestBody
-     * @returns InteractionTag
+     * @returns TagLink
      * @throws ApiError
      */
-    public static tagsInteractionTagsUpdate(
+    public static tagsTagLinksUpdate(
         id: string,
-        requestBody: InteractionTag,
-    ): CancelablePromise<InteractionTag> {
+        requestBody: TagLink,
+    ): CancelablePromise<TagLink> {
         return __request(OpenAPI, {
             method: 'PUT',
-            url: '/api/tags/interaction-tags/{id}/',
+            url: '/api/tags/tag-links/{id}/',
             path: {
                 'id': id,
             },
@@ -74,16 +74,16 @@ export class TagsService {
     /**
      * @param id
      * @param requestBody
-     * @returns InteractionTag
+     * @returns TagLink
      * @throws ApiError
      */
-    public static tagsInteractionTagsPartialUpdate(
+    public static tagsTagLinksPartialUpdate(
         id: string,
-        requestBody?: PatchedInteractionTag,
-    ): CancelablePromise<InteractionTag> {
+        requestBody?: PatchedTagLink,
+    ): CancelablePromise<TagLink> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/tags/interaction-tags/{id}/',
+            url: '/api/tags/tag-links/{id}/',
             path: {
                 'id': id,
             },
@@ -96,12 +96,12 @@ export class TagsService {
      * @returns void
      * @throws ApiError
      */
-    public static tagsInteractionTagsDestroy(
+    public static tagsTagLinksDestroy(
         id: string,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/tags/interaction-tags/{id}/',
+            url: '/api/tags/tag-links/{id}/',
             path: {
                 'id': id,
             },
@@ -133,7 +133,7 @@ export class TagsService {
         });
     }
     /**
-     * @param id A UUID string identifying this tag.
+     * @param id
      * @returns Tag
      * @throws ApiError
      */
@@ -149,7 +149,7 @@ export class TagsService {
         });
     }
     /**
-     * @param id A UUID string identifying this tag.
+     * @param id
      * @param requestBody
      * @returns Tag
      * @throws ApiError
@@ -169,7 +169,7 @@ export class TagsService {
         });
     }
     /**
-     * @param id A UUID string identifying this tag.
+     * @param id
      * @param requestBody
      * @returns Tag
      * @throws ApiError
@@ -189,7 +189,7 @@ export class TagsService {
         });
     }
     /**
-     * @param id A UUID string identifying this tag.
+     * @param id
      * @returns void
      * @throws ApiError
      */

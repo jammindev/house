@@ -20,6 +20,7 @@ from .serializers import (
     DocumentDetailSerializer,
     DocumentUploadSerializer,
 )
+from .thumbnails import generate_thumbnails
 from interactions.models import Interaction
 from interactions.models import InteractionDocument
 from projects.models import ProjectDocument
@@ -212,6 +213,9 @@ class DocumentViewSet(viewsets.ModelViewSet):
             if default_storage.exists(saved_path):
                 default_storage.delete(saved_path)
             raise
+
+        if document.type == 'photo':
+            generate_thumbnails(document)
 
         recent_candidates = get_recent_interaction_candidates(request, household)
         response_payload = {

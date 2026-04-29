@@ -4,15 +4,16 @@
 /* eslint-disable */
 import type { PatchedStructure } from '../models/PatchedStructure';
 import type { Structure } from '../models/Structure';
+import type { StructureNested } from '../models/StructureNested';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class StructuresService {
     /**
-     * @returns Structure
+     * @returns StructureNested
      * @throws ApiError
      */
-    public static structuresList(): CancelablePromise<Array<Structure>> {
+    public static structuresList(): CancelablePromise<Array<StructureNested>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/structures/',
@@ -24,7 +25,7 @@ export class StructuresService {
      * @throws ApiError
      */
     public static structuresCreate(
-        requestBody: Structure,
+        requestBody?: Structure,
     ): CancelablePromise<Structure> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -34,13 +35,13 @@ export class StructuresService {
         });
     }
     /**
-     * @param id A UUID string identifying this structure.
-     * @returns Structure
+     * @param id
+     * @returns StructureNested
      * @throws ApiError
      */
     public static structuresRetrieve(
         id: string,
-    ): CancelablePromise<Structure> {
+    ): CancelablePromise<StructureNested> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/structures/{id}/',
@@ -50,14 +51,14 @@ export class StructuresService {
         });
     }
     /**
-     * @param id A UUID string identifying this structure.
+     * @param id
      * @param requestBody
      * @returns Structure
      * @throws ApiError
      */
     public static structuresUpdate(
         id: string,
-        requestBody: Structure,
+        requestBody?: Structure,
     ): CancelablePromise<Structure> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -70,7 +71,7 @@ export class StructuresService {
         });
     }
     /**
-     * @param id A UUID string identifying this structure.
+     * @param id
      * @param requestBody
      * @returns Structure
      * @throws ApiError
@@ -90,7 +91,7 @@ export class StructuresService {
         });
     }
     /**
-     * @param id A UUID string identifying this structure.
+     * @param id
      * @returns void
      * @throws ApiError
      */

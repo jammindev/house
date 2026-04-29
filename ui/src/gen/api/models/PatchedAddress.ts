@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type PatchedAddress = {
     readonly id?: string;
-    household?: string;
+    readonly household?: string;
     contact?: string | null;
     structure?: string | null;
     address_1?: string;

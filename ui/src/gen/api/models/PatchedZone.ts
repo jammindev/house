@@ -10,6 +10,7 @@ export type PatchedZone = {
     readonly household?: string;
     name?: string;
     parent?: string | null;
+    readonly parent_name?: string;
     note?: string;
     /**
      * Surface area (e.g., square meters)

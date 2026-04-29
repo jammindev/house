@@ -3,6 +3,8 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.core.files.storage import default_storage
 
+from .thumbnails import delete_thumbnails
+
 
 @receiver(post_delete, sender='documents.Document')
 def delete_document_file(sender, instance, **kwargs):
@@ -16,3 +18,4 @@ def delete_document_file(sender, instance, **kwargs):
                 default_storage.delete(instance.file_path)
         except OSError:
             pass
+        delete_thumbnails(instance.file_path)

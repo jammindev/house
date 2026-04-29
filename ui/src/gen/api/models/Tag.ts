@@ -5,7 +5,7 @@
 import type { TagTypeEnum } from './TagTypeEnum';
 export type Tag = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     type?: TagTypeEnum;
     name: string;
     readonly created_at: string;

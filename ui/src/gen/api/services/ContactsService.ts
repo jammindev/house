@@ -4,12 +4,16 @@
 /* eslint-disable */
 import type { Address } from '../models/Address';
 import type { Contact } from '../models/Contact';
+import type { ContactNested } from '../models/ContactNested';
 import type { Email } from '../models/Email';
 import type { PatchedAddress } from '../models/PatchedAddress';
 import type { PatchedContact } from '../models/PatchedContact';
 import type { PatchedEmail } from '../models/PatchedEmail';
 import type { PatchedPhone } from '../models/PatchedPhone';
+import type { PatchedStructure } from '../models/PatchedStructure';
 import type { Phone } from '../models/Phone';
+import type { Structure } from '../models/Structure';
+import type { StructureNested } from '../models/StructureNested';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -30,7 +34,7 @@ export class ContactsService {
      * @throws ApiError
      */
     public static contactsAddressesCreate(
-        requestBody: Address,
+        requestBody?: Address,
     ): CancelablePromise<Address> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -40,7 +44,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this address.
+     * @param id
      * @returns Address
      * @throws ApiError
      */
@@ -56,14 +60,14 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this address.
+     * @param id
      * @param requestBody
      * @returns Address
      * @throws ApiError
      */
     public static contactsAddressesUpdate(
         id: string,
-        requestBody: Address,
+        requestBody?: Address,
     ): CancelablePromise<Address> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -76,7 +80,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this address.
+     * @param id
      * @param requestBody
      * @returns Address
      * @throws ApiError
@@ -96,7 +100,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this address.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -112,10 +116,10 @@ export class ContactsService {
         });
     }
     /**
-     * @returns Contact
+     * @returns ContactNested
      * @throws ApiError
      */
-    public static contactsContactsList(): CancelablePromise<Array<Contact>> {
+    public static contactsContactsList(): CancelablePromise<Array<ContactNested>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/contacts/contacts/',
@@ -127,7 +131,7 @@ export class ContactsService {
      * @throws ApiError
      */
     public static contactsContactsCreate(
-        requestBody: Contact,
+        requestBody?: Contact,
     ): CancelablePromise<Contact> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -137,13 +141,13 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this contact.
-     * @returns Contact
+     * @param id
+     * @returns ContactNested
      * @throws ApiError
      */
     public static contactsContactsRetrieve(
         id: string,
-    ): CancelablePromise<Contact> {
+    ): CancelablePromise<ContactNested> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/contacts/contacts/{id}/',
@@ -153,14 +157,14 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this contact.
+     * @param id
      * @param requestBody
      * @returns Contact
      * @throws ApiError
      */
     public static contactsContactsUpdate(
         id: string,
-        requestBody: Contact,
+        requestBody?: Contact,
     ): CancelablePromise<Contact> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -173,7 +177,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this contact.
+     * @param id
      * @param requestBody
      * @returns Contact
      * @throws ApiError
@@ -193,7 +197,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this contact.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -234,7 +238,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this email.
+     * @param id
      * @returns Email
      * @throws ApiError
      */
@@ -250,7 +254,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this email.
+     * @param id
      * @param requestBody
      * @returns Email
      * @throws ApiError
@@ -270,7 +274,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this email.
+     * @param id
      * @param requestBody
      * @returns Email
      * @throws ApiError
@@ -290,7 +294,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this email.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -331,7 +335,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this phone.
+     * @param id
      * @returns Phone
      * @throws ApiError
      */
@@ -347,7 +351,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this phone.
+     * @param id
      * @param requestBody
      * @returns Phone
      * @throws ApiError
@@ -367,7 +371,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this phone.
+     * @param id
      * @param requestBody
      * @returns Phone
      * @throws ApiError
@@ -387,7 +391,7 @@ export class ContactsService {
         });
     }
     /**
-     * @param id A UUID string identifying this phone.
+     * @param id
      * @returns void
      * @throws ApiError
      */
@@ -397,6 +401,103 @@ export class ContactsService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/contacts/phones/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @returns StructureNested
+     * @throws ApiError
+     */
+    public static contactsStructuresList(): CancelablePromise<Array<StructureNested>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/contacts/structures/',
+        });
+    }
+    /**
+     * @param requestBody
+     * @returns Structure
+     * @throws ApiError
+     */
+    public static contactsStructuresCreate(
+        requestBody?: Structure,
+    ): CancelablePromise<Structure> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/contacts/structures/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns StructureNested
+     * @throws ApiError
+     */
+    public static contactsStructuresRetrieve(
+        id: string,
+    ): CancelablePromise<StructureNested> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/contacts/structures/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Structure
+     * @throws ApiError
+     */
+    public static contactsStructuresUpdate(
+        id: string,
+        requestBody?: Structure,
+    ): CancelablePromise<Structure> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/contacts/structures/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Structure
+     * @throws ApiError
+     */
+    public static contactsStructuresPartialUpdate(
+        id: string,
+        requestBody?: PatchedStructure,
+    ): CancelablePromise<Structure> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/contacts/structures/{id}/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static contactsStructuresDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/contacts/structures/{id}/',
             path: {
                 'id': id,
             },

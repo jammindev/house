@@ -100,6 +100,15 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Photos (`photos.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page | ✅ |
+| Grille utilise `thumbnail_url` quand des photos existent (fallback `file_url`) | 🚧 (smoke — pas de photo seedée) |
+
+---
+
 ## Interactions
 
 | Parcours | Statut |

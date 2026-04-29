@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { Document } from '../models/Document';
 import type { DocumentDetail } from '../models/DocumentDetail';
-import type { DocumentUploadResponse } from '../models/DocumentUploadResponse';
 import type { PatchedDocument } from '../models/PatchedDocument';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -155,23 +154,18 @@ export class DocumentsService {
         });
     }
     /**
-     * Upload a new document with a real file.
+     * Document CRUD with filtering by type, interaction, and search.
      * @param formData
-     * @returns DocumentUploadResponse
+     * @returns Document
      * @throws ApiError
      */
     public static documentsDocumentsUploadCreate(
-        formData: {
-            file: Blob;
-            name?: string;
-            type?: string;
-            notes?: string;
-        },
-    ): CancelablePromise<DocumentUploadResponse> {
+        formData: Document,
+    ): CancelablePromise<Document> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/documents/documents/upload/',
-            formData,
+            formData: formData,
             mediaType: 'multipart/form-data',
         });
     }

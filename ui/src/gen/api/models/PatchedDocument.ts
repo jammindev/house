@@ -10,7 +10,7 @@ export type PatchedDocument = {
     readonly id?: number;
     readonly household?: string;
     /**
-     * Storage path: userId/interactionId/filename
+     * Storage path: documents/{household_id}/{year}/{month}/{uuid}-{filename}
      */
     file_path?: string;
     name?: string;
@@ -26,6 +26,10 @@ export type PatchedDocument = {
      */
     metadata?: any;
     /**
+     * If True, only the uploader can see this document.
+     */
+    is_private?: boolean;
+    /**
      * Parent interaction (if any)
      */
     interaction?: string | null;
@@ -33,5 +37,11 @@ export type PatchedDocument = {
     readonly created_by?: number | null;
     readonly created_by_name?: string;
     readonly file_url?: string;
+    readonly thumbnail_url?: string;
+    readonly medium_url?: string;
+    readonly qualification?: string;
+    readonly linked_interactions?: string;
+    readonly legacy_interaction?: string;
+    readonly legacy_interaction_subject?: string;
 };
 

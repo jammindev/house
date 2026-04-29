@@ -12,7 +12,9 @@ export type UsagePoint = {
     label: string;
     name: string;
     kind: KindEnum;
-    zone?: string | null;
+    zone: string;
+    max_power_watts?: number | null;
+    is_dedicated_circuit?: boolean;
     notes?: string;
     readonly created_at: string;
     readonly updated_at: string;

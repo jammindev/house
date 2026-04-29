@@ -4,7 +4,7 @@
 /* eslint-disable */
 export type Email = {
     readonly id: string;
-    household: string;
+    readonly household: string;
     contact?: string | null;
     structure?: string | null;
     email: string;

@@ -6,7 +6,7 @@ import type { ProjectStatusEnum } from './ProjectStatusEnum';
 import type { ProjectTypeEnum } from './ProjectTypeEnum';
 export type PatchedProject = {
     readonly id?: string;
-    household?: string;
+    readonly household?: string;
     title?: string;
     description?: string;
     status?: ProjectStatusEnum;
@@ -19,8 +19,10 @@ export type PatchedProject = {
     actual_cost_cached?: string;
     cover_interaction?: string | null;
     project_group?: string | null;
+    readonly project_group_name?: string;
     type?: ProjectTypeEnum;
-    is_pinned?: boolean;
+    readonly is_pinned?: string;
+    readonly zones?: string;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

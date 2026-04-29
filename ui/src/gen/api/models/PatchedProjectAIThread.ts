@@ -5,8 +5,8 @@
 export type PatchedProjectAIThread = {
     readonly id?: string;
     project?: string;
-    household?: string;
-    user?: number;
+    readonly household?: string;
+    readonly user?: number;
     title?: string;
     readonly created_at?: string;
     readonly updated_at?: string;
