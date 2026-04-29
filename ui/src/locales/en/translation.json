@@ -746,6 +746,11 @@
       "withoutActivity": "Without context",
       "activityLinked": "Activity linked"
     },
+    "ocr": {
+      "title": "Extracted text",
+      "empty": "No text extracted yet.",
+      "processing": "Analysis in progress…"
+    },
     "new": {
       "title": "Add document",
       "subtitle": "Upload a file first, then qualify it from its detail page.",

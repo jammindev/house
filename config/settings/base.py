@@ -6,6 +6,9 @@ from pathlib import Path
 import sys
 
 import environ
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 
 # Build paths
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -183,3 +186,8 @@ CORS_ALLOW_CREDENTIALS = True
 # Overridden per environment in local.py / production.py.
 FRONTEND_URL = "http://localhost:5174"
 DEFAULT_FROM_EMAIL = "noreply@house.local"
+
+# Anthropic API key for the AI layer (Claude Vision OCR, agent, ...).
+# Empty string by default — extraction degrades to a no-op when unset.
+# Overridden per environment in local.py / production.py.
+ANTHROPIC_API_KEY = ""

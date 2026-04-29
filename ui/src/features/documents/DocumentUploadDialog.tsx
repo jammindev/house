@@ -83,7 +83,7 @@ export default function DocumentUploadDialog({
     { value: '', label: t('documents.filter.allTypes') },
     ...DOCUMENT_TYPES.map((v) => ({
       value: v,
-      label: t(`documents.type.${v}`, { defaultValue: v }),
+      label: t(`documents.type.${v}`),
     })),
   ];
 
@@ -101,24 +101,30 @@ export default function DocumentUploadDialog({
 
         <form onSubmit={handleSubmit} className="mt-2 space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
+            <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           )}
 
           {/* File input */}
           <div className="space-y-1.5">
             <Label htmlFor="upload-file">
               {t('documents.new.selectFile')}
-              <span className="ml-1 text-red-500">*</span>
+              <span className="ml-1 text-destructive">*</span>
             </Label>
             <Input
               id="upload-file"
               type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif,application/pdf"
               onChange={handleFileChange}
               required
             />
             {selectedFile && (
               <p className="text-xs text-muted-foreground">
                 {t('documents.new.selectedFile')}: {selectedFile.name}
+              </p>
+            )}
+            {createDocument.isPending && (
+              <p className="text-xs text-muted-foreground" role="status">
+                {t('documents.ocr.processing')}
               </p>
             )}
           </div>

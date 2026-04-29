@@ -746,6 +746,11 @@
       "withoutActivity": "Sin contexto",
       "activityLinked": "Actividad vinculada"
     },
+    "ocr": {
+      "title": "Texto extraído",
+      "empty": "Aún no se ha extraído ningún texto.",
+      "processing": "Análisis en curso…"
+    },
     "new": {
       "title": "Añadir documento",
       "subtitle": "Sube primero un archivo y luego califícalo desde su página de detalle.",

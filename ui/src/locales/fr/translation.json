@@ -746,6 +746,11 @@
       "withoutActivity": "Sans contexte",
       "activityLinked": "Activité liée"
     },
+    "ocr": {
+      "title": "Texte extrait",
+      "empty": "Aucun texte extrait pour le moment.",
+      "processing": "Analyse en cours…"
+    },
     "new": {
       "title": "Ajouter un document",
       "subtitle": "Téléversez d'abord un fichier, puis qualifiez-le depuis sa page détail.",

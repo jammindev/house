@@ -1,9 +1,11 @@
 """Document views for REST API."""
+import logging
 from pathlib import Path
 
 from django.core.files.storage import default_storage
 from django.db import models as db_models, transaction
 from django.db.models import Prefetch
+from django.utils import timezone
 from rest_framework import status
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
@@ -14,6 +16,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
 from core.file_validation import validate_upload, ALLOWED_DOCUMENT_TYPES, DOCUMENT_MAX_SIZE
+from .extraction import extract_text
+from .image_processing import normalize_image
 from .models import Document
 from .serializers import (
     DocumentSerializer,
@@ -25,6 +29,24 @@ from interactions.models import Interaction
 from interactions.models import InteractionDocument
 from projects.models import ProjectDocument
 from zones.models import ZoneDocument
+
+logger = logging.getLogger(__name__)
+
+
+def _run_extraction(document: Document) -> None:
+    """Extract text and persist it on the document, fail-soft."""
+    try:
+        text, method = extract_text(document)
+    except Exception as exc:
+        logger.warning("extract_text raised for document %s: %s", document.pk, exc)
+        text, method = "", "skipped"
+
+    document.ocr_text = text or ""
+    metadata = dict(document.metadata or {})
+    metadata["ocr_extracted_at"] = timezone.now().isoformat()
+    metadata["ocr_method"] = method
+    document.metadata = metadata
+    document.save(update_fields=["ocr_text", "metadata", "updated_at"])
 
 
 def get_documents_queryset_for_request(request):
@@ -188,26 +210,46 @@ class DocumentViewSet(viewsets.ModelViewSet):
             max_size=DOCUMENT_MAX_SIZE,
             field_name='file',
         )
+
+        original_name = Path(uploaded_file.name).name or 'Document'
+        try:
+            normalized_file, final_mime, normalize_info = normalize_image(uploaded_file, detected_mime)
+        except Exception as exc:
+            logger.warning("normalize_image failed for %s: %s", original_name, exc)
+            normalized_file, final_mime, normalize_info = uploaded_file, detected_mime, {}
+
+        storage_filename = getattr(normalized_file, 'name', uploaded_file.name) or uploaded_file.name
         storage_path = Document.build_upload_path(
             household_id=household.id,
-            filename=uploaded_file.name,
+            filename=storage_filename,
         )
-        saved_path = default_storage.save(storage_path, uploaded_file)
+        saved_path = default_storage.save(storage_path, normalized_file)
+        stored_size = default_storage.size(saved_path) if default_storage.exists(saved_path) else uploaded_file.size
 
         try:
             with transaction.atomic():
+                metadata = {
+                    'size': stored_size,
+                    'original_filename': original_name,
+                }
+                if normalize_info.get('transcoded'):
+                    metadata['original_mime_type'] = normalize_info.get('original_mime_type')
+                    metadata['normalized'] = True
+                if normalize_info.get('resized'):
+                    metadata['resized'] = True
+                if normalize_info.get('final_dimensions'):
+                    metadata['dimensions'] = normalize_info['final_dimensions']
+
                 document = Document.objects.create(
                     household=household,
                     created_by=request.user,
                     file_path=saved_path,
-                    name=(serializer.validated_data.get('name') or Path(uploaded_file.name).name or 'Document')[:255],
-                    mime_type=detected_mime,
+                    name=(serializer.validated_data.get('name') or original_name)[:255],
+                    mime_type=final_mime,
                     type=serializer.validated_data.get('type') or 'document',
                     is_private=serializer.validated_data.get('is_private', False),
                     notes=serializer.validated_data.get('notes', ''),
-                    metadata={
-                        'size': uploaded_file.size,
-                    },
+                    metadata=metadata,
                 )
         except Exception:
             if default_storage.exists(saved_path):
@@ -216,6 +258,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
         if document.type == 'photo':
             generate_thumbnails(document)
+
+        _run_extraction(document)
 
         recent_candidates = get_recent_interaction_candidates(request, household)
         response_payload = {
@@ -249,10 +293,19 @@ class DocumentViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def reprocess_ocr(self, request, pk=None):
-        """Trigger OCR reprocessing (placeholder)."""
+        """Re-run text extraction on this document and persist the result."""
         document = self.get_object()
-        # TODO: Queue OCR task
-        return Response({
-            'message': 'OCR reprocessing queued',
-            'document_id': document.id
-        }, status=status.HTTP_202_ACCEPTED)
+        _run_extraction(document)
+        document.refresh_from_db()
+        serializer = DocumentDetailSerializer(
+            document,
+            context={
+                'request': request,
+                'recent_interaction_candidates': get_recent_interaction_candidates(
+                    request,
+                    document.household,
+                    document_id=document.id,
+                ),
+            },
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)

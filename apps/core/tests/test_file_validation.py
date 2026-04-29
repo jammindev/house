@@ -19,6 +19,8 @@ PNG_HEADER = b'\x89PNG\r\n\x1a\n' + b'\x00' * 20
 GIF_HEADER = b'GIF89a' + b'\x00' * 20
 WEBP_HEADER = b'RIFF\x00\x00\x00\x00WEBP' + b'\x00' * 20
 PDF_HEADER = b'%PDF-1.4\n' + b'\x00' * 20
+HEIC_HEADER = b'\x00\x00\x00\x18ftypheic' + b'\x00' * 20
+HEIF_HEADER = b'\x00\x00\x00\x18ftypmif1' + b'\x00' * 20
 UNKNOWN_HEADER = b'\x00\x01\x02\x03' + b'\x00' * 20
 
 
@@ -45,6 +47,12 @@ class TestDetectMimeType:
     def test_detects_pdf(self):
         assert detect_mime_type(make_file(PDF_HEADER)) == 'application/pdf'
 
+    def test_detects_heic(self):
+        assert detect_mime_type(make_file(HEIC_HEADER)) == 'image/heic'
+
+    def test_detects_heif(self):
+        assert detect_mime_type(make_file(HEIF_HEADER)) == 'image/heif'
+
     def test_returns_none_for_unknown(self):
         assert detect_mime_type(make_file(UNKNOWN_HEADER)) is None
 
@@ -67,6 +75,11 @@ class TestValidateUpload:
         f = make_file(JPEG_HEADER, 'photo.jpg', 'image/jpeg')
         mime = validate_upload(f, ALLOWED_IMAGE_TYPES, AVATAR_MAX_SIZE)
         assert mime == 'image/jpeg'
+
+    def test_accepts_valid_heic_document(self):
+        f = make_file(HEIC_HEADER, 'photo.heic', 'image/heic')
+        mime = validate_upload(f, ALLOWED_DOCUMENT_TYPES, DOCUMENT_MAX_SIZE)
+        assert mime == 'image/heic'
 
     def test_rejects_unknown_file_type(self):
         f = make_file(UNKNOWN_HEADER, 'evil.exe', 'application/octet-stream')

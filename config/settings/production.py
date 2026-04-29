@@ -72,6 +72,9 @@ _primary_host = ALLOWED_HOSTS[0] if ALLOWED_HOSTS else "localhost"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default=f"noreply@{_primary_host}")
 FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 
+# Anthropic API key — must be set in .env for LLM features (OCR, agent).
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
 # Django Vite Configuration (compiled assets in production)
 DJANGO_VITE = {
     "default": {

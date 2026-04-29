@@ -1,7 +1,10 @@
+import io
+
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, override_settings
 from django.urls import reverse
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -12,6 +15,13 @@ from interactions.models import Interaction
 from projects.models import Project, ProjectDocument
 from zones.models import Zone
 from zones.models import ZoneDocument
+
+
+def _jpeg_bytes(width: int = 100, height: int = 100, color: str = "red") -> bytes:
+    image = Image.new("RGB", (width, height), color)
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG", quality=85)
+    return buffer.getvalue()
 
 
 def _client_for(user) -> APIClient:
@@ -132,7 +142,7 @@ class TestDocumentsApi:
         assert response.data["document"]["count"] == 1
         assert response.data["photo"]["count"] == 1
 
-    def test_reprocess_ocr_returns_accepted(self, owner_client, owner, household):
+    def test_reprocess_ocr_runs_extraction_and_returns_document(self, monkeypatch, owner_client, owner, household):
         document = Document.objects.create(
             household=household,
             created_by=owner,
@@ -142,10 +152,87 @@ class TestDocumentsApi:
             type="document",
         )
 
+        monkeypatch.setattr(
+            "documents.views.extract_text",
+            lambda doc: ("Extracted via reprocess", "pypdf"),
+        )
+
         url = reverse("document-reprocess-ocr", kwargs={"pk": document.id})
         response = owner_client.post(url, {}, format="json")
 
-        assert response.status_code == status.HTTP_202_ACCEPTED
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["ocr_text"] == "Extracted via reprocess"
+        document.refresh_from_db()
+        assert document.ocr_text == "Extracted via reprocess"
+        assert document.metadata["ocr_method"] == "pypdf"
+        assert "ocr_extracted_at" in document.metadata
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-heic')
+    def test_upload_heic_image_is_normalized_to_jpeg(self, monkeypatch, owner_client, household):
+        """HEIC magic bytes are accepted; the file is transcoded to JPEG before save."""
+        monkeypatch.setattr(
+            "documents.views.normalize_image",
+            lambda f, mime: (
+                SimpleUploadedFile("photo.jpg", _jpeg_bytes(), content_type="image/jpeg"),
+                "image/jpeg",
+                {"transcoded": True, "resized": False, "original_mime_type": "image/heic", "final_dimensions": [100, 100]},
+            ),
+        )
+        monkeypatch.setattr("documents.views.extract_text", lambda doc: ("Text from HEIC", "vision_haiku"))
+
+        heic_payload = b"\x00\x00\x00\x18ftypheic" + b"\x00" * 60
+        upload = SimpleUploadedFile("photo.heic", heic_payload, content_type="image/heic")
+
+        response = owner_client.post(
+            reverse("document-upload"),
+            {"file": upload, "name": "HEIC photo", "type": "document"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        document = Document.objects.get(pk=response.data["document"]["id"])
+        assert document.mime_type == "image/jpeg"
+        assert document.file_path.endswith(".jpg")
+        assert document.ocr_text == "Text from HEIC"
+        assert document.metadata["ocr_method"] == "vision_haiku"
+        assert document.metadata["original_mime_type"] == "image/heic"
+        assert document.metadata["normalized"] is True
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-ocr')
+    def test_upload_image_runs_text_extraction(self, monkeypatch, owner_client, household):
+        monkeypatch.setattr("documents.views.extract_text", lambda doc: ("Receipt total 12.50", "vision_haiku"))
+
+        upload = SimpleUploadedFile("receipt.jpg", _jpeg_bytes(), content_type="image/jpeg")
+        response = owner_client.post(
+            reverse("document-upload"),
+            {"file": upload, "name": "Receipt", "type": "receipt"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        document = Document.objects.get(pk=response.data["document"]["id"])
+        assert document.ocr_text == "Receipt total 12.50"
+        assert document.metadata["ocr_method"] == "vision_haiku"
+        assert "ocr_extracted_at" in document.metadata
+
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-failsoft')
+    def test_upload_succeeds_when_extraction_throws(self, monkeypatch, owner_client, household):
+        def boom(_doc):
+            raise RuntimeError("vision exploded")
+
+        monkeypatch.setattr("documents.views.extract_text", boom)
+
+        upload = SimpleUploadedFile("receipt.jpg", _jpeg_bytes(), content_type="image/jpeg")
+        response = owner_client.post(
+            reverse("document-upload"),
+            {"file": upload, "name": "Receipt", "type": "receipt"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        document = Document.objects.get(pk=response.data["document"]["id"])
+        assert document.ocr_text == ""
+        assert document.metadata["ocr_method"] == "skipped"
 
     def test_upload_requires_household_context(self, owner_client):
         url = reverse('document-upload')

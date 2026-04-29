@@ -57,6 +57,9 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@house.local")
 FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5174")
 
+# Anthropic API key — leave blank locally to disable LLM calls.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+
 # Django Vite Configuration (HMR for local development)
 DJANGO_VITE = {
     "default": {
