@@ -1,16 +1,18 @@
 """
 Text extraction for uploaded documents.
 
-Two pipelines:
+Three pipelines:
 - images → Claude Haiku 4.5 Vision (OCR)
-- PDFs   → pypdf (text-based PDFs only — scanned PDFs are V2)
+- text-based PDFs → pypdf (fast, free)
+- scanned PDFs → fallback Vision page-by-page (each page rendered as image)
 
-Everything is fail-soft. Returning ``("", "skipped")`` is a perfectly acceptable
+Everything is fail-soft. Returning ``("", <method>)`` is a perfectly acceptable
 outcome — the upload must never fail because text extraction did.
 """
 from __future__ import annotations
 
 import base64
+import io
 import logging
 from typing import TYPE_CHECKING, Tuple
 
@@ -35,6 +37,11 @@ VISION_MEDIA_TYPES = {
     "image/webp": "image/webp",
     "image/gif": "image/gif",
 }
+
+# DPI used when rasterizing scanned PDF pages for Vision OCR.
+# Higher = better OCR quality but bigger payloads. 200 DPI is a typical
+# balance — sharp enough for receipts/contracts, image stays under 2 MB.
+PDF_VISION_RENDER_DPI = 200
 
 ExtractionResult = Tuple[str, str]
 
@@ -100,9 +107,7 @@ def _extract_with_pypdf(file_bytes: bytes) -> str:
         logger.warning("extraction: pypdf not installed")
         return ""
 
-    from io import BytesIO
-
-    reader = PdfReader(BytesIO(file_bytes))
+    reader = PdfReader(io.BytesIO(file_bytes))
     pages: list[str] = []
     for page in reader.pages:
         try:
@@ -112,15 +117,51 @@ def _extract_with_pypdf(file_bytes: bytes) -> str:
     return "\n\n".join(p.strip() for p in pages if p and p.strip()).strip()
 
 
+def _extract_pdf_with_vision(file_bytes: bytes) -> str:
+    """Render every PDF page and run Vision OCR on each. Concatenate the results.
+
+    Used as a fallback when ``_extract_with_pypdf`` returns nothing — typically
+    a scanned PDF where the pages are images embedded in a PDF wrapper. Each
+    page is rasterized via pypdfium2, encoded as JPEG, then sent to Vision.
+    """
+    try:
+        import pypdfium2  # type: ignore[import-not-found]
+    except ImportError:
+        logger.warning("extraction: pypdfium2 not installed, can't OCR scanned PDFs")
+        return ""
+
+    if _get_anthropic_client() is None:
+        return ""
+
+    pdf = pypdfium2.PdfDocument(file_bytes)
+    page_texts: list[str] = []
+    scale = PDF_VISION_RENDER_DPI / 72.0
+    for page_index in range(len(pdf)):
+        page = pdf[page_index]
+        try:
+            bitmap = page.render(scale=scale)
+            pil_image = bitmap.to_pil()
+            buffer = io.BytesIO()
+            pil_image.save(buffer, format="JPEG", quality=85)
+            text = _extract_with_vision(buffer.getvalue(), "image/jpeg")
+        except Exception as exc:
+            logger.warning("extraction: pdf-vision page %d failed: %s", page_index, exc)
+            continue
+        if text:
+            page_texts.append(text)
+    return "\n\n".join(page_texts).strip()
+
+
 def extract_text(document: "Document") -> ExtractionResult:
     """Extract text content from a stored document.
 
     Returns ``(text, method)`` where ``method`` is one of:
-    - ``"vision_haiku"`` : Vision called, returned text
-    - ``"vision_empty"`` : Vision called, returned no text (image with no readable text)
-    - ``"pypdf"``        : pypdf returned text
-    - ``"pypdf_empty"``  : pypdf called, returned no text (image-only/scanned PDF)
-    - ``"skipped"``      : not attempted (no file, unsupported mime, IO error)
+    - ``"vision_haiku"``     : Vision called on an image, returned text
+    - ``"vision_empty"``     : Vision called on an image, returned no text
+    - ``"pypdf"``            : pypdf returned text from a text-based PDF
+    - ``"pdf_vision_haiku"`` : pypdf was empty, Vision OCR'd each page successfully
+    - ``"pdf_vision_empty"`` : pypdf was empty, Vision called on each page but no text
+    - ``"skipped"``          : not attempted (no file, unsupported mime, IO error)
 
     The ``_empty`` variants indicate the API/library was actually invoked, which
     matters for cost accounting (a Vision call has a real $ cost even when the
@@ -158,10 +199,19 @@ def extract_text(document: "Document") -> ExtractionResult:
             text = _extract_with_pypdf(file_bytes)
         except Exception as exc:
             logger.warning("extraction: pypdf failed for %s: %s", document.file_path, exc)
-            return "", "pypdf_empty"
-        if not text:
-            return "", "pypdf_empty"
-        return text, "pypdf"
+            text = ""
+        if text:
+            return text, "pypdf"
+
+        # Scanned/image-only PDF — fall back to Vision page by page.
+        try:
+            vision_text = _extract_pdf_with_vision(file_bytes)
+        except Exception as exc:
+            logger.warning("extraction: pdf-vision failed for %s: %s", document.file_path, exc)
+            return "", "pdf_vision_empty"
+        if not vision_text:
+            return "", "pdf_vision_empty"
+        return vision_text, "pdf_vision_haiku"
 
     return "", "skipped"
 
