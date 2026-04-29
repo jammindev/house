@@ -202,6 +202,58 @@ class TestExtractDocumentsTextCommand:
         with pytest.raises(CommandError):
             _call("--limit", "0")
 
+    def test_skips_photos_by_default(self, household, owner):
+        document = _make_document(household, owner, name="invoice", type="document")
+        photo = _make_document(household, owner, name="souvenir", type="photo")
+
+        with patch(
+            "documents.management.commands.extract_documents_text.extract_text",
+            return_value=("text", "pypdf"),
+        ) as mock_extract:
+            out, _ = _call(*_scoped(household))
+
+        document.refresh_from_db()
+        photo.refresh_from_db()
+
+        assert document.ocr_text == "text"
+        assert photo.ocr_text == ""
+        assert mock_extract.call_count == 1
+        assert "Documents to process: 1" in out
+
+    def test_include_photos_flag_processes_photos(self, household, owner):
+        document = _make_document(household, owner, name="invoice", type="document")
+        photo = _make_document(household, owner, name="souvenir", type="photo")
+
+        with patch(
+            "documents.management.commands.extract_documents_text.extract_text",
+            return_value=("text", "vision_haiku"),
+        ) as mock_extract:
+            _call(*_scoped(household, "--include-photos"))
+
+        document.refresh_from_db()
+        photo.refresh_from_db()
+
+        assert document.ocr_text == "text"
+        assert photo.ocr_text == "text"
+        assert mock_extract.call_count == 2
+
+    def test_explicit_type_photo_overrides_default_exclusion(self, household, owner):
+        document = _make_document(household, owner, name="invoice", type="document")
+        photo = _make_document(household, owner, name="souvenir", type="photo")
+
+        with patch(
+            "documents.management.commands.extract_documents_text.extract_text",
+            return_value=("text", "vision_haiku"),
+        ) as mock_extract:
+            _call(*_scoped(household, "--type", "photo"))
+
+        document.refresh_from_db()
+        photo.refresh_from_db()
+
+        assert document.ocr_text == ""
+        assert photo.ocr_text == "text"
+        assert mock_extract.call_count == 1
+
     def test_excludes_documents_without_file_path(self, household, owner):
         empty = Document.objects.create(
             household=household,
