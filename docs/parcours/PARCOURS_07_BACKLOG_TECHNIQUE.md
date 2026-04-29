@@ -34,10 +34,12 @@ Le backlog est organisé en lots techniques verticaux. Chaque lot doit produire 
 ## Décisions de cadrage MVP
 
 - provider : **Claude Haiku 4.5** + SDK `anthropic` (tranché dans #88)
-- service : extension de `apps/documents/` pour le lot 0, possiblement nouvelle app `apps/agent/` à partir du lot 2 (`À préciser`)
+- service : extension de `apps/documents/` pour le lot 0, nouvelle app `apps/agent/` à partir du lot 1
 - exécution : **synchrone** pour V1, pas de Celery (tranché dans #88)
 - agent en lecture seule en V1 (pas d'action de création)
 - scope household systématique sur toute requête de l'agent
+- **abstraction LLM dès le lot 2** : `LLMClient` Protocol + `AnthropicClient` concret, pour permettre Ollama / autre cloud plus tard sans réécrire la couche métier
+- **observabilité IA centralisée** : `apps/ai_usage/` + table `AIUsageLog` qui consolide toutes les invocations IA (OCR Vision, agent, etc.)
 
 ## Lot 0a — Pipeline upload : HEIC + resize + OCR
 
@@ -271,24 +273,29 @@ Module Python qui prend une question utilisateur, appelle le retrieval du lot 1,
 - **Pas de mémoire conversationnelle** (lot 4 = V2)
 - **Format de citation** : `{entity_type, id, label, snippet, url_path}` côté API
 - **Prompt système** : oblige Claude à citer (`<cite id="..."/>` ou marqueur similaire), à dire "je ne sais pas" si rien dans le contexte
-- **Logs systématiques** : question, household_id, hits récupérés, prompt complet, réponse, tokens in/out, coût, durée
-- **Zéro appel réseau en CI** : mock systématique du client Anthropic
+- **Abstraction LLM** : `LLMClient` Protocol + `AnthropicClient` concret. Permet un futur `OllamaClient` (modèle local) sans toucher au reste. Voir lot 6 pour l'observabilité.
+- **Logs centralisés** dans `AIUsageLog` (cf lot 6) — pas de `AgentLog` dédié, le service agent contribue à la table commune
+- **Zéro appel réseau en CI** : mock systématique du client
 
 ### Architecture
 
 ```
 apps/agent/
 ├── retrieval.py        (lot 1)
-├── client.py           # wrapper anthropic SDK
+├── llm.py              # LLMClient Protocol + AnthropicClient
 ├── service.py          # orchestrateur ask(question, household)
 ├── prompts.py          # système + few-shot
 ├── views.py            # POST /api/agent/ask/
 ├── serializers.py
 ├── urls.py
-├── models.py           # AgentLog (audit/coût)
 └── tests/
+    ├── test_llm.py
     ├── test_service.py
     └── test_views.py
+
+apps/ai_usage/          # lot 6 — créé en parallèle
+├── models.py           # AIUsageLog (commun à toutes les features IA)
+└── ...
 ```
 
 ### Contrat API
@@ -322,21 +329,21 @@ apps/agent/
 
 ### Tâches
 
-1. `client.py` — wrapper Anthropic avec timeout, env `ANTHROPIC_API_KEY`
+1. `llm.py` — `LLMClient` Protocol + `AnthropicClient` concret + `get_llm_client()` factory selon `LLM_PROVIDER` env
 2. `prompts.py` — système qui contraint citation + ignorance
-3. `service.py` — `ask(question, household)` orchestrateur
-4. `models.py` — `AgentLog` (household, question, response, tokens, cost, duration, created_at)
-5. `views.py` + `serializers.py` — endpoint DRF
-6. `urls.py` — registration sous `/api/agent/`
-7. tests : retrieval vide → réponse "je ne sais pas", retrieval rempli → réponse + citations, timeout client → 503, format de citation respecté
+3. `service.py` — `ask(question, household)` orchestrateur, écrit dans `AIUsageLog` (lot 6)
+4. `views.py` + `serializers.py` — endpoint DRF
+5. `urls.py` — registration sous `/api/agent/`
+6. settings : `LLM_PROVIDER`, `LLM_TEXT_MODEL`, `LLM_VISION_MODEL` env vars
+7. tests : retrieval vide → "je ne sais pas", retrieval rempli → réponse + citations, timeout client → 503, format de citation respecté, `AIUsageLog` créé
 
 ### Critères de validation
 
 - POST avec question simple → réponse + ≥1 citation
 - POST avec question hors-domaine → "je ne sais pas", `citations: []`
 - scope household respecté (impossible de citer un doc d'un autre foyer)
-- AgentLog créé pour chaque appel
-- coût total cumulé visible dans Django admin
+- ligne `AIUsageLog` créée à chaque appel (feature='agent_ask')
+- changer `LLM_PROVIDER=ollama` doit fonctionner après ajout d'un `OllamaClient` (pas en V1, mais l'archi le permet sans refacto)
 
 ### Hors scope
 
@@ -430,18 +437,111 @@ Sécuriser la chaîne complète sans multiplier les tests fragiles à un appel L
 4. tests E2E Playwright sur la surface UI (lot 3) — au moins un golden path
 5. recette manuelle bout en bout avec la liste de validation de la doc produit
 
+## Lot 6 — Observabilité IA (AI Usage Logging + UI)
+
+**Statut** : cadré, issue à créer. Livrable en parallèle des lots 2/3.
+
+### But
+
+Donner de la visibilité sur **l'usage** des features IA (OCR Vision, agent, futurs embeddings) — pas le coût brut, mais la qualité de l'usage : combien d'appels, latence, taux d'échec, latence p95, taux de réponses "je ne sais pas".
+
+### Décisions tranchées
+
+- **app dédiée `apps/ai_usage/`** (pas de fragmentation entre `AgentLog` / `OCRLog` / etc.)
+- **table unique `AIUsageLog`** consommée par toutes les features IA
+- **logging à la source** : chaque appel `LLMClient.complete()` ou `LLMClient.vision_extract()` écrit une ligne
+- **page admin dédiée** `/app/admin/ai-usage/` (visible owners only)
+- **alertes "qualité usage"** affichées dans l'UI (taux de "je ne sais pas" > 30%, latence p95 > 10s)
+- **pas de seuil $$** (cf décision : ne pas raisonner en coût)
+- pas d'export, pas d'API publique en V1
+
+### Modèle
+
+```python
+class AIUsageLog(models.Model):
+    id = UUIDField
+    household = FK(Household, related_name='ai_usage_logs')
+    user = FK(User, null=True)               # qui a déclenché (null = batch/system)
+    feature = CharField(max_length=64)       # 'ocr_upload', 'ocr_backfill', 'ocr_pdf_pages', 'agent_ask', ...
+    provider = CharField(max_length=32)      # 'anthropic', 'ollama', ...
+    model = CharField(max_length=64)         # 'claude-haiku-4-5', 'llava:7b', ...
+    input_tokens = IntegerField(null=True)
+    output_tokens = IntegerField(null=True)
+    duration_ms = IntegerField
+    success = BooleanField
+    error_type = CharField(max_length=64, null=True, blank=True)
+    metadata = JSONField(default=dict)       # libre, par feature : {answer_was_unknown: True, ...}
+    created_at = DateTimeField(auto_now_add=True, db_index=True)
+```
+
+### Architecture
+
+```
+apps/ai_usage/
+├── models.py          # AIUsageLog
+├── services.py        # log_ai_usage(...) — helper appelé partout
+├── aggregations.py    # KPIs (compte par jour, p95, taux d'échec)
+├── views.py           # API admin /api/ai-usage/
+├── serializers.py
+├── urls.py
+└── tests/
+
+ui/src/features/ai-usage/
+├── AIUsagePage.tsx          # /app/admin/ai-usage/
+├── KpiCards.tsx
+├── UsageHistogram.tsx
+├── RecentCallsTable.tsx
+└── hooks.ts
+```
+
+### Tâches backend
+
+1. créer `apps/ai_usage/`, modèle `AIUsageLog`, migration
+2. `services.log_ai_usage(...)` — helper utilisé par toutes les features
+3. wire au `LLMClient` (lot 2) — chaque méthode écrit un log
+4. wire à `extract_documents_text` et au pipeline upload OCR (refacto pour passer par `LLMClient.vision_extract()` aussi)
+5. `aggregations.py` — KPIs sur 24h / 7j / 30j / all-time
+6. API admin `GET /api/ai-usage/{summary,recent,histogram}/` (permission : owner)
+7. tests : log créé par chaque feature, agrégations correctes, scope household respecté
+
+### Tâches frontend
+
+1. page React `/app/admin/ai-usage/` (route protégée owners)
+2. `KpiCards` : appels 24h/7j/30j, latence p95, taux d'erreur
+3. `UsageHistogram` : barres empilées par jour, par feature
+4. `RecentCallsTable` : 50 derniers appels avec filtres feature/période
+5. badges d'alerte qualité (UI uniquement, pas d'email V1)
+6. clés i18n 4 langues
+7. E2E Playwright — au moins le golden path
+
+### Critères de validation
+
+- chaque appel Vision (upload, backfill, agent_ask) crée une ligne `AIUsageLog`
+- la page `/app/admin/ai-usage/` montre des chiffres cohérents avec le réel
+- non-owners ne peuvent ni voir l'API ni la page UI
+- ajouter une feature IA = 1 appel à `log_ai_usage(...)`, pas de schéma à modifier
+- aucun appel réseau IA en CI
+
+### Hors scope
+
+- email/push si seuil franchi
+- export CSV
+- comparaison provider A vs B (V2 — quand on aura un `OllamaClient`)
+- visualisation par utilisateur individuel
+
 ## Ordre recommandé d'implémentation
 
 1. ✅ Lot 0a — Pipeline OCR à l'upload (#88)
 2. ✅ Lot 0b — Backfill OCR (#89)
 3. **Lot 1 — Recherche full-text naïve**
-4. **Lot 2 — Service agent**
-5. **Lot 3 — Surface UI chat**
-6. **→ recette manuelle utilisateur** : tu utilises l'agent pendant 1-2 semaines, tu repères ce qui craque
-7. Itérer sur le maillon faible (souvent : retrieval, prompt, ou format de citation)
-8. Lot 4 (mémoire) — V2, si l'usage le demande
+4. **Lot 2 — Service agent** (pose `LLMClient` + écrit dans `AIUsageLog`)
+5. **Lot 6 — AI Usage Logging + UI** (en parallèle de lot 2/3, refacto OCR existant pour aussi loguer)
+6. **Lot 3 — Surface UI chat**
+7. **→ recette manuelle utilisateur** : tu utilises l'agent pendant 1-2 semaines, tu repères ce qui craque
+8. Itérer sur le maillon faible (souvent : retrieval, prompt, ou format de citation)
+9. Lot 4 (mémoire) — V2, si l'usage le demande
 
-Lot 5 (tests) est transversal : pas un lot séquentiel, chaque PR des lots 1-3 livre ses tests.
+Lot 5 (tests) est transversal : pas un lot séquentiel, chaque PR des lots 1-3-6 livre ses tests.
 
 ## Découpage en sessions de travail
 
