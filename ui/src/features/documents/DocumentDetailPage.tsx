@@ -8,7 +8,7 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { formatFileSize } from '@/lib/api/documents';
-import { useDocument, useDocumentInteractions, useDeleteDocument, documentKeys } from './hooks';
+import { useDocument, useDeleteDocument, documentKeys } from './hooks';
 import DocumentEditDialog from './DocumentEditDialog';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
@@ -29,7 +29,6 @@ export default function DocumentDetailPage() {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   const { data: doc, isLoading, error } = useDocument(id ?? '');
-  const { data: interactions = [], isLoading: interactionsLoading } = useDocumentInteractions(id ?? '');
   const deleteMutation = useDeleteDocument();
 
   const handleSaved = React.useCallback(() => {
@@ -49,7 +48,7 @@ export default function DocumentDetailPage() {
     return (
       <div className="space-y-2 p-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
+          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     );
@@ -87,7 +86,7 @@ export default function DocumentDetailPage() {
               <h1 className="text-2xl font-bold text-foreground">{fileName}</h1>
               {doc.type && doc.type !== 'photo' && (
                 <Badge variant="secondary" className="text-xs">
-                  {t(`documents.type.${doc.type}`, { defaultValue: doc.type })}
+                  {t(`documents.type.${doc.type}`)}
                 </Badge>
               )}
             </div>
@@ -159,19 +158,13 @@ export default function DocumentDetailPage() {
             </Link>
           </div>
 
-          {interactionsLoading ? (
-            <div className="space-y-2">
-              {[1, 2].map((i) => (
-                <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
-              ))}
-            </div>
-          ) : interactions.length === 0 ? (
+          {doc.linked_interactions.length === 0 ? (
             <p className="text-sm italic text-muted-foreground">
               {t('documents.detail.no_linked_interactions')}
             </p>
           ) : (
             <ul className="space-y-2">
-              {interactions.map((item) => (
+              {doc.linked_interactions.map((item) => (
                 <li key={item.id} className="rounded-md border p-3 text-sm">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
@@ -185,7 +178,7 @@ export default function DocumentDetailPage() {
                     <div className="flex shrink-0 items-center gap-1">
                       {item.type && (
                         <Badge variant="outline" className="h-5 text-[10px]">
-                          {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
+                          {t(`interactions.type.${item.type}`)}
                         </Badge>
                       )}
                       <Link
