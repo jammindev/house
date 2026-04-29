@@ -136,19 +136,24 @@ def _extract_pdf_with_vision(file_bytes: bytes) -> str:
     pdf = pypdfium2.PdfDocument(file_bytes)
     page_texts: list[str] = []
     scale = PDF_VISION_RENDER_DPI / 72.0
-    for page_index in range(len(pdf)):
-        page = pdf[page_index]
-        try:
-            bitmap = page.render(scale=scale)
-            pil_image = bitmap.to_pil()
-            buffer = io.BytesIO()
-            pil_image.save(buffer, format="JPEG", quality=85)
-            text = _extract_with_vision(buffer.getvalue(), "image/jpeg")
-        except Exception as exc:
-            logger.warning("extraction: pdf-vision page %d failed: %s", page_index, exc)
-            continue
-        if text:
-            page_texts.append(text)
+    try:
+        for page_index in range(len(pdf)):
+            page = pdf[page_index]
+            try:
+                bitmap = page.render(scale=scale)
+                pil_image = bitmap.to_pil()
+                buffer = io.BytesIO()
+                pil_image.save(buffer, format="JPEG", quality=85)
+                text = _extract_with_vision(buffer.getvalue(), "image/jpeg")
+            except Exception as exc:
+                logger.warning("extraction: pdf-vision page %d failed: %s", page_index, exc)
+                continue
+            if text:
+                page_texts.append(text)
+    finally:
+        # Explicit close avoids "Cannot close object, library is destroyed"
+        # warnings during interpreter shutdown / GC.
+        pdf.close()
     return "\n\n".join(page_texts).strip()
 
 
