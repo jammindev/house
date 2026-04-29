@@ -234,6 +234,48 @@ class TestDocumentsApi:
         assert document.ocr_text == ""
         assert document.metadata["ocr_method"] == "skipped"
 
+    @override_settings(MEDIA_ROOT='/tmp/house-test-media-photo-skip')
+    def test_upload_photo_type_skips_extraction(self, monkeypatch, owner_client, household):
+        """type='photo' goes to the photo grid; running Vision OCR on it is wasted."""
+        from rest_framework import serializers as drf_serializers
+
+        class _PermissiveUploadSerializer(drf_serializers.Serializer):
+            file = drf_serializers.FileField()
+            name = drf_serializers.CharField(required=False, allow_blank=True, max_length=255)
+            type = drf_serializers.ChoiceField(
+                choices=[(v, l) for v, l in Document.DOCUMENT_TYPES],
+                required=False,
+                allow_null=True,
+            )
+            notes = drf_serializers.CharField(required=False, allow_blank=True)
+            is_private = drf_serializers.BooleanField(required=False, default=False)
+
+        monkeypatch.setattr("documents.views.DocumentUploadSerializer", _PermissiveUploadSerializer)
+        monkeypatch.setattr("documents.views.generate_thumbnails", lambda doc: None)
+
+        extract_calls = []
+
+        def fake_extract(doc):
+            extract_calls.append(doc.pk)
+            return ("should not run", "vision_haiku")
+
+        monkeypatch.setattr("documents.views.extract_text", fake_extract)
+
+        upload = SimpleUploadedFile("vacation.jpg", _jpeg_bytes(), content_type="image/jpeg")
+        response = owner_client.post(
+            reverse("document-upload"),
+            {"file": upload, "name": "Vacation", "type": "photo"},
+            format="multipart",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED, response.data
+        document = Document.objects.get(pk=response.data["document"]["id"])
+        assert document.type == "photo"
+        assert document.ocr_text == ""
+        assert "ocr_method" not in (document.metadata or {})
+        assert "ocr_extracted_at" not in (document.metadata or {})
+        assert extract_calls == [], f"extract_text should not run for photos (got {extract_calls})"
+
     def test_upload_requires_household_context(self, owner_client):
         url = reverse('document-upload')
         upload = SimpleUploadedFile('invoice.pdf', b'%PDF-1.4 test', content_type='application/pdf')

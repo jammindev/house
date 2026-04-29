@@ -59,8 +59,8 @@ Voir l'issue #88 pour le détail. Synthèse :
 4. exposer `ANTHROPIC_API_KEY` dans les settings
 5. `normalize_image()` — HEIC → JPEG, resize si > 2000px, q85
 6. `extract_text(document)` — Vision Haiku pour images, `pypdf` pour PDFs texte, `""` sur erreur
-7. wire des deux dans l'action `upload` du `DocumentViewSet`
-8. remplacer le placeholder `reprocess_ocr` par une vraie implémentation
+7. wire des deux dans l'action `upload` du `DocumentViewSet` — **skipper l'OCR si `type='photo'`** (la photo grid est dédiée aux souvenirs visuels, l'OCR n'apporte rien et pollue `search_fields=['ocr_text']`)
+8. remplacer le placeholder `reprocess_ocr` par une vraie implémentation (l'utilisateur peut forcer l'OCR sur une photo via cette action)
 9. afficher `ocr_text` dans `DocumentDetailPage.tsx` (section pliable)
 10. loading state pendant l'upload + clés i18n dans les 4 locales
 11. tests : upload HEIC, resize, mock anthropic, extraction qui throw, PDF texte
@@ -71,6 +71,7 @@ Voir l'issue #88 pour le détail. Synthèse :
 - détail document affiche le texte extrait
 - upload qui échoue à l'extraction reste réussi (`ocr_text=""`)
 - aucune régression sur JPEG/PNG/PDF existants
+- upload avec `type='photo'` → thumbnails générés mais `ocr_text=""` et pas de `ocr_method` dans `metadata`
 
 ### Hors scope (déjà documenté dans #88)
 

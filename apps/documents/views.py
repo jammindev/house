@@ -258,8 +258,8 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
         if document.type == 'photo':
             generate_thumbnails(document)
-
-        _run_extraction(document)
+        else:
+            _run_extraction(document)
 
         recent_candidates = get_recent_interaction_candidates(request, household)
         response_payload = {
