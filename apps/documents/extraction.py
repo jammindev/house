@@ -116,9 +116,15 @@ def extract_text(document: "Document") -> ExtractionResult:
     """Extract text content from a stored document.
 
     Returns ``(text, method)`` where ``method`` is one of:
-    - ``"vision_haiku"`` : image processed by Claude Haiku Vision
-    - ``"pypdf"``        : PDF text extracted by pypdf
-    - ``"skipped"``      : nothing extracted (unsupported, error, or empty)
+    - ``"vision_haiku"`` : Vision called, returned text
+    - ``"vision_empty"`` : Vision called, returned no text (image with no readable text)
+    - ``"pypdf"``        : pypdf returned text
+    - ``"pypdf_empty"``  : pypdf called, returned no text (image-only/scanned PDF)
+    - ``"skipped"``      : not attempted (no file, unsupported mime, IO error)
+
+    The ``_empty`` variants indicate the API/library was actually invoked, which
+    matters for cost accounting (a Vision call has a real $ cost even when the
+    response is empty).
     """
     if not document.file_path:
         return "", "skipped"
@@ -142,9 +148,9 @@ def extract_text(document: "Document") -> ExtractionResult:
             text = _extract_with_vision(file_bytes, VISION_MEDIA_TYPES[mime])
         except Exception as exc:
             logger.warning("extraction: vision failed for %s: %s", document.file_path, exc)
-            return "", "skipped"
+            return "", "vision_empty"
         if not text:
-            return "", "skipped"
+            return "", "vision_empty"
         return text, "vision_haiku"
 
     if mime == "application/pdf":
@@ -152,9 +158,9 @@ def extract_text(document: "Document") -> ExtractionResult:
             text = _extract_with_pypdf(file_bytes)
         except Exception as exc:
             logger.warning("extraction: pypdf failed for %s: %s", document.file_path, exc)
-            return "", "skipped"
+            return "", "pypdf_empty"
         if not text:
-            return "", "skipped"
+            return "", "pypdf_empty"
         return text, "pypdf"
 
     return "", "skipped"
