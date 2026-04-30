@@ -30,6 +30,20 @@ class Household(models.Model):
     # AI/context fields
     context_notes = models.TextField(default='', blank=True)
     ai_prompt_context = models.TextField(default='', blank=True)
+
+    # Placeholder for future full-text search stemming and i18n agent prompts.
+    # Not consumed by the retrieval layer in V1 (config='simple').
+    class PreferredLanguage(models.TextChoices):
+        FR = 'fr', _("French")
+        EN = 'en', _("English")
+        DE = 'de', _("German")
+        ES = 'es', _("Spanish")
+
+    preferred_language = models.CharField(
+        max_length=2,
+        choices=PreferredLanguage.choices,
+        default=PreferredLanguage.FR,
+    )
     
     # Email ingestion
     inbound_email_alias = models.CharField(max_length=255, unique=True, blank=True, null=True)

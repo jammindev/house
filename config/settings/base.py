@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "app_settings",
     "notifications",
     "alerts",
+    "agent",
 ]
 
 MIDDLEWARE = [
