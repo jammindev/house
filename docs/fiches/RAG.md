@@ -145,17 +145,25 @@ class TasksConfig(AppConfig):
 
 **Pas indexé V1** : `Electricity*` (numérique majoritaire), `Photo` (pas de texte). Ajout trivial plus tard si besoin.
 
-#### Multi-tenant ready : `config='simple'`
+#### Multi-tenant ready : `config='simple_unaccent'`
 
 Postgres `to_tsvector` prend une **config de langue** qui détermine stemming et stopwords. `'french'` sait que "manger / mangé / mangerait" partagent une racine. `'english'` fait pareil pour "eat / eating / ate".
 
-**Choix V1** : `config='simple'`. Pas de stemming, pas de stopwords. Marche dans n'importe quelle langue sans hypothèse.
+**Choix V1** : `config='simple_unaccent'` — copie de `simple` (pas de stemming, pas de stopwords) augmentée de l'extension `unaccent` pour matcher café/cafe et Engie/ENGIE. Marche dans n'importe quelle langue sans hypothèse.
+
+L'extension et la config TS sont créées dans `apps/agent/migrations/0001_initial.py`.
 
 **Pourquoi pas `'french'` directement** : le projet doit rester multi-tenant ready (tu pourrais ouvrir l'app à des utilisateurs DE/EN un jour). Hardcoder `'french'` = se peindre dans un coin et nécessiter une migration future.
 
 **Trade-off** : on perd le stemming. "facture" ne matche pas "factures" sans le stemming FR. Sur le volume V1, c'est acceptable.
 
-**Plan futur** : un champ placeholder `Household.preferred_language` est ajouté en V1 (default `'fr'`) sans être utilisé. Le jour où on voit que le retrieval rate à cause des conjugaisons / accords, on l'active : `config = household.preferred_language`. Pas de migration nécessaire.
+**Plan futur — activer le stemming par foyer** : un champ placeholder `Household.preferred_language` est ajouté en V1 (default `'fr'`, choices `fr/en/de/es`) sans être utilisé. Le jour où le retrieval rate à cause des conjugaisons / accords, on l'active. Étapes concrètes :
+
+1. **Créer une config TS par langue** dans une nouvelle migration agent : `french_unaccent`, `english_unaccent`, `german_unaccent`, `spanish_unaccent` (copie de la config Postgres `french`/`english`/… + mapping `unaccent`).
+2. **Exposer le champ** dans `HouseholdSerializer` + un select dans la page paramètres du foyer (UI).
+3. **Switcher dans `apps/agent/retrieval.py`** : remplacer la constante `_SEARCH_CONFIG` par un lookup `{'fr': 'french_unaccent', 'en': 'english_unaccent', …}.get(household.preferred_language, 'simple_unaccent')` passé à chaque `SearchVector` / `SearchQuery` / `SearchHeadline`.
+
+Pas de migration de données nécessaire — le champ est déjà rempli par défaut.
 
 ### 4.3 Augmentation (étape 3) — construire le prompt
 

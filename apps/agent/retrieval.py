@@ -28,6 +28,12 @@ SNIPPET_MIN_WORDS = 8
 # `simple_unaccent` is created in apps/agent/migrations/0001_initial.py.
 # It is `simple` (no stemming, no stopwords) + `unaccent` so that Engie matches
 # ENGIE and café matches cafe. Stays multi-tenant safe (no language hardcode).
+#
+# TODO(preferred_language): when retrieval starts missing matches because of
+# missing stemming (e.g. "facture" not matching "factures"), switch this to a
+# per-household lookup using `Household.preferred_language` and per-language
+# *_unaccent text-search configs. See docs/fiches/RAG.md §4.2 for the full
+# activation plan.
 _SEARCH_CONFIG = "simple_unaccent"
 
 
