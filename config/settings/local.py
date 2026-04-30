@@ -60,6 +60,11 @@ FRONTEND_URL = env("FRONTEND_URL", default="http://localhost:5174")
 # Anthropic API key — leave blank locally to disable LLM calls.
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
+# LLM provider/model overrides — usually keep the base.py defaults.
+LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
+LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")
+LLM_VISION_MODEL = env("LLM_VISION_MODEL", default="claude-haiku-4-5-20251001")
+
 # Django Vite Configuration (HMR for local development)
 DJANGO_VITE = {
     "default": {

@@ -32,6 +32,7 @@ urlpatterns = [
     path("api/tasks/", include("tasks.urls")),
     path("api/notifications/", include("notifications.urls")),
     path("api/alerts/", include("alerts.urls")),
+    path("api/agent/", include("agent.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 

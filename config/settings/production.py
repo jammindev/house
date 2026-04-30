@@ -75,6 +75,11 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
+# LLM provider/model overrides — usually keep the base.py defaults.
+LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
+LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")
+LLM_VISION_MODEL = env("LLM_VISION_MODEL", default="claude-haiku-4-5-20251001")
+
 # Django Vite Configuration (compiled assets in production)
 DJANGO_VITE = {
     "default": {
