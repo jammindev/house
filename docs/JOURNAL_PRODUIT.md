@@ -20,7 +20,7 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-04-29
+Dernière mise à jour : 2026-05-02
 
 ### Parcours métier
 
@@ -30,9 +30,9 @@ Dernière mise à jour : 2026-04-29
 - Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **V1 livrée**
 - Parcours 06 — Recevoir les bons rappels au bon moment pour ne rien rater : **cadrage initial — à démarrer**
-- Parcours 07 — Poser une question en langage naturel sur son foyer : **en cadrage, lot 0 OCR engagé** (issues #88 et #89)
+- Parcours 07 — Poser une question en langage naturel sur son foyer : **V1 livrée** (lot 6 #109 reste à finir, non bloquant)
 
-Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention. Le parcours 07 ouvre la couche IA : la mémoire du foyer devient interrogeable en langage naturel.
+Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention. Le parcours 07 ouvre la couche IA : la mémoire du foyer est désormais interrogeable en langage naturel.
 
 ## Ce qui est considéré comme livré sur le parcours 01
 
@@ -115,20 +115,50 @@ Références :
 - [docs/parcours/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_05_BACKLOG_TECHNIQUE.md)
 - [docs/journal/2026-03-10_parcours-05_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-05_v1_livree.md)
 
+## Ce qui est considéré comme livré sur le parcours 07
+
+V1 livrée le 2026-05-02 (lots 0a → 3) :
+
+- pipeline OCR à l'upload (HEIC + resize + Vision Haiku pour images, `pypdf` pour PDFs texte, fallback Vision multi-page sur PDFs scannés)
+- backfill OCR via management command + bouton "Re-extraire" sur la fiche document
+- recherche full-text Postgres scopée household, registry par app (10 entités V1 indexées)
+- service agent `apps/agent/service.ask()` orchestrant retrieval → prompt → LLM → parsing citations
+- abstraction `LLMClient` Protocol + `AnthropicClient` concret, factory keyed sur `LLM_PROVIDER`
+- citations honnêtes : intersection regex des marqueurs avec les hits du retrieval, pas d'invention
+- endpoint `POST /api/agent/ask/` (504 timeout, 503 erreur LLM, 400 sans household)
+- surface React `/app/agent/` : input, bulles, citations cliquables (chips numérotés inline + panneau Sources), mention de confidentialité one-shot, i18n en/fr/de/es
+- table `AIUsageLog` qui logue chaque appel agent (skeleton lot 6, KPIs/UI à finir dans #109)
+- 62 tests backend (agent + ai_usage) + 5 tests E2E Playwright (mock backend)
+
+Validé en prod sur le foyer "Les Petits Bonheur" (188 docs) : citations multi-entités cohérentes (documents + interactions + assurance + projet), latence 2-4s, IDK propre sur les questions hors-domaine.
+
+Lot 4 (mémoire conversationnelle multi-tour) basculé V2 — décision : valider l'usage one-shot d'abord. Lot 6 (#109, observabilité KPIs + page admin) reste ouvert mais non bloquant pour l'utilisateur.
+
+Références :
+
+- [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
+- [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
+- [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
+- [docs/journal/2026-05-02_parcours-07_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-05-02_parcours-07_v1_livree.md)
+
 ## Prochain focus recommandé
 
-**Parcours 06 — Alertes et rappels proactifs** est le prochain parcours à démarrer.
+Deux pistes complémentaires :
+
+1. **Recette manuelle parcours 07** — utiliser l'agent pendant 1-2 semaines sur le foyer réel pour repérer ce qui craque (questions qui ratent un match évident → déclencheur de #113, format de citation qui dérape, latence inacceptable, etc.). Ouvrir des issues ciblées plutôt que sur-investir à l'aveugle.
+2. **Parcours 06 — Alertes et rappels proactifs** : prochain parcours métier à démarrer si on veut élargir au lieu d'approfondir.
+
+Le **lot 6 (#109)** — observabilité IA — peut être livré en parallèle quand le besoin de métriques se fait sentir (taux d'IDK, latence p95, etc.).
 
 Références :
 
 - [docs/parcours/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_06_ALERTES_ET_RAPPELS_PROACTIFS.md)
 - [docs/parcours/PARCOURS_06_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_06_BACKLOG_TECHNIQUE.md)
 
-Axes suivants après le parcours 06 :
+Axes suivants :
 
-- couche IA : capture assistée depuis WhatsApp / email (parcours 01 — RFC documentée)
-- chat IA global household : questions en langage naturel sur le foyer (RFC documentée)
-- parcours 02 V1 complète : traitement automatisé des documents entrants
+- couche IA : capture assistée depuis WhatsApp / email (parcours 01 — RFC documentée dans la fiche parcours 07, section "Évolutions ultérieures")
+- parcours 02 V1 complète : traitement automatisé des documents entrants (s'appuie sur l'OCR du parcours 07)
 - amélioration de la navigation et des performances frontend (chunks, pagination)
 
 ## Journal des sessions
@@ -140,6 +170,7 @@ Axes suivants après le parcours 06 :
 - [docs/journal/2026-03-09_parcours-03_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-09_parcours-03_v1_livree.md)
 - [docs/journal/2026-03-10_parcours-04_cadrage_initial.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_cadrage_initial.md)
 - [docs/journal/2026-03-10_parcours-04_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-03-10_parcours-04_v1_livree.md)
+- [docs/journal/2026-05-02_parcours-07_v1_livree.md](/Users/benjaminvandamme/Developer/house/docs/journal/2026-05-02_parcours-07_v1_livree.md)
 
 ## Backlog d'idées futures
 

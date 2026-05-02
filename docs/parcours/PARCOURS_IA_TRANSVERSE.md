@@ -151,33 +151,48 @@ Ces sujets restent compatibles avec l'architecture mais ne sont pas livrables ta
 
 ## Décisions transverses
 
-Certaines décisions sont déjà tranchées via le parcours 07 (issue #88), d'autres restent ouvertes.
+Décisions tranchées par la livraison V1 du parcours 07 (2026-05-02). Les sujets restant ouverts concernent les extensions IA des parcours 01 et 02.
 
 ### Décisions déjà tranchées
 
 #### Provider et modèle
 
-**Claude Haiku 4.5** + SDK officiel `anthropic`. Vision pour images, `pypdf` pour PDFs texte. Tranché dans #88.
-
-À reconfirmer pour la couche agent (Story 2 du parcours 07) : Haiku ou Sonnet selon ratio coût/qualité.
+**Claude Haiku 4.5** (`claude-haiku-4-5-20251001`) + SDK officiel `anthropic` pour OCR (Vision) et agent. `pypdf` pour PDFs texte avec fallback Vision multi-page sur PDFs scannés (#107). Tranché dans #88, confirmé pour l'agent dans #101 (validé en prod, latence 2-4s).
 
 #### Sync vs async
 
-**Sync** pour V1, pas de Celery. Tranché dans #88. Async réservé aux pièces volumineuses si la sync devient bloquante.
+**Sync** pour V1, pas de Celery. Tranché dans #88, confirmé sur l'agent. Async réservé aux pièces volumineuses si la sync devient bloquante.
 
 #### Stockage de l'extraction OCR
 
 - texte extrait dans `Document.ocr_text` (champ existant)
-- traçabilité dans `metadata` : `ocr_extracted_at`, `ocr_method` (`vision_haiku` | `pypdf` | `skipped`)
+- traçabilité dans `metadata` : `ocr_extracted_at`, `ocr_method` (`vision_haiku` | `vision_pages` | `pypdf` | `skipped`)
 
-Tranché dans #88 et #89.
-
-### Décisions encore ouvertes
+Tranché dans #88, #89 et #107.
 
 #### Où vit le service IA
 
-- Lot 0 du parcours 07 : extension de `apps/documents/` (`extraction.py`, `image_processing.py`).
-- Lot 2+ : nouvelle app `apps/agent/` ou utilitaire partagé. À trancher avant le lot 2.
+- **Lot 0 du parcours 07** : `apps/documents/extraction.py` + `apps/documents/image_processing.py`
+- **Lots 1+ du parcours 07** : nouvelle app `apps/agent/` (`searchables.py`, `retrieval.py`, `llm.py`, `service.py`, `prompts.py`, `views.py`)
+- **Observabilité IA centralisée** : nouvelle app `apps/ai_usage/` (`AIUsageLog` + `log_ai_usage()`), partagée par toutes les features IA
+
+#### Abstraction LLM
+
+**`LLMClient` Protocol + `AnthropicClient` concret + factory `get_llm_client()` keyed sur `LLM_PROVIDER`** (lot 2 du parcours 07). Permet un futur `OllamaClient` (modèle local) sans réécrire la couche métier. Tranché dans #101.
+
+#### Citations vérifiables
+
+Format `<cite id="entity_type:id"/>` dans la réponse, parsé par regex côté service, **intersecté avec les hits du retrieval** — un marqueur que le LLM invente est ignoré. Invariant : l'agent ne peut pas citer ce qu'on ne lui a pas montré. Tranché dans #101.
+
+#### Mention de confidentialité
+
+Modale Radix non-dismissible au premier usage de l'agent, persistance localStorage `agent.privacyAccepted.v1`, trois points couverts (provider externe, scope household, pas de stockage du contenu des conversations). Tranché dans #102.
+
+#### Audit log des appels IA
+
+Table `AIUsageLog` populated à chaque appel LLM. On stocke métadonnées (feature, provider, model, durée, tokens, success), **pas le contenu** des prompts ou réponses — décision tranchée pour limiter la surface confidentialité. Skeleton livré dans le lot 2, KPIs et UI = lot 6 (#109).
+
+### Décisions encore ouvertes (extensions parcours 01 et 02)
 
 #### Contrat de proposition (parcours 01 et 02)
 
@@ -203,22 +218,23 @@ Tranché dans #88 et #89.
 - Création faite au nom de l'utilisateur ou via un compte système assistant ?
 - Audit trail correspondant ?
 
-#### Sécurité et confidentialité
+#### Sécurité et confidentialité (à étendre pour multi-user)
 
-- Politique de redaction (PII) avant envoi au modèle ?
-- Audit log des prompts et réponses ?
-- Mention utilisateur explicite avant premier usage ?
-- Quelles données sortent du périmètre du foyer ?
+Tranché en V1 solo user :
+- mention de confidentialité visible avant premier usage agent (modale localStorage)
+- audit log structurel via `AIUsageLog` mais sans contenu des prompts/réponses
+
+Reste à arbitrer si on ouvre à d'autres utilisateurs :
+- politique de redaction PII avant envoi au modèle
+- audit log incluant le contenu des prompts (permet le débogage mais coûte en confidentialité)
 
 ## Étape suivante
 
-Le **parcours 07** (agent conversationnel) est le premier porteur d'implémentation IA. Son lot 0 (issues #88 et #89) est déjà cadré et débloque la suite : tant que `Document.ocr_text` n'est pas peuplé, aucune fonctionnalité IA ne peut s'appuyer sur le contenu des documents.
+Le **parcours 07** (agent conversationnel) a livré sa V1 le 2026-05-02 (lots 0a → 3). Le socle IA transverse est posé : pipeline OCR, abstraction `LLMClient`, citations vérifiables, audit log centralisé.
 
-Séquence recommandée :
+Suite recommandée :
 
-1. **Parcours 07 — lot 0a** : pipeline OCR à l'upload (#88) — débloque tout le reste
-2. **Parcours 07 — lot 0b** : backfill OCR sur les documents existants (#89)
-3. **Parcours 07 — lots 1+** : retrieval, service agent, surface UI chat
-4. **Extensions IA des parcours 01 et 02** (documentées dans la section "Évolutions ultérieures" de la doc parcours 07) : compréhension assistée de documents puis capture conversationnelle
+1. **Parcours 07 — lot 6 (#109)** : agrégations + page admin sur `AIUsageLog`. À livrer quand le besoin de quantifier la qualité d'usage se fait sentir.
+2. **Extensions IA des parcours 01 et 02** (documentées dans la section "Évolutions ultérieures" de la doc parcours 07) : compréhension assistée de documents puis capture conversationnelle. S'appuient toutes deux sur la couche IA déjà posée — le contrat de proposition et la stratégie multi-canal restent à trancher avant d'attaquer.
 
-Le seul invariant : avant d'attaquer une extension IA après la V1 du parcours 07, vérifier que les décisions encore ouvertes ci-dessus ont été tranchées dans la doc du parcours 07, pour ne pas dupliquer la couche IA.
+L'invariant : ne pas dupliquer la couche IA. Toute nouvelle feature IA passe par `apps.agent.llm.get_llm_client()` et logue dans `AIUsageLog`.

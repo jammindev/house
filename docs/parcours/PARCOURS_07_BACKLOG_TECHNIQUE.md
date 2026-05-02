@@ -1,21 +1,37 @@
 # Parcours 07 — Backlog technique V1
 
-> **État au 2026-04-29** — lots 0a (#88) et 0b (#89) livrés. Lots 1, 2, 3 cadrés ci-dessous, issues GitHub à créer.
+> **État au 2026-05-02** — V1 utilisateur livrée (lots 0a → 3). Reste ouvert : lot 6 (#109, observabilité IA, non bloquant pour l'utilisateur) et #113 (stemming par foyer, post-V1, à activer à l'usage).
+
+## Tableau de bord
+
+| Lot | Sujet | Statut | Référence |
+|---|---|---|---|
+| 0a | Pipeline OCR à l'upload (HEIC + resize + Vision) | ✅ Livré | #88 |
+| 0b | Backfill OCR des documents existants | ✅ Livré | #89 |
+| — | OCR multi-page sur PDFs scannés (Vision) | ✅ Livré (bonus) | #107 → PR #111 |
+| 1 | Retrieval full-text naïf (registry + scope household) | ✅ Livré | #100 → PR #112 |
+| 2 | Service agent + LLM + citations + skeleton `apps/ai_usage/` | ✅ Livré | #101 → PR #114 |
+| 3 | Surface UI chat (`/app/agent/`) + citations cliquables | ✅ Livré | #102 → PR #115 |
+| 4 | Mémoire conversationnelle multi-tour | 🚫 Basculé V2 | — |
+| 5 | Tests et validation | ✅ Transversal — livré au fil des lots | — |
+| 6 | Observabilité IA (aggregations + page admin) | 🟡 Backend skeleton livré (lot 2). Aggregations + UI restent à faire | #109 |
+
+**Issues annexes ouvertes** :
+- #113 — `Household.preferred_language` pour stemming par foyer (placeholder créé en lot 1, à activer si l'usage le justifie)
 
 ## Philosophie d'implémentation V1
 
-Plutôt que viser un retrieval parfait avant de toucher au LLM, on livre un **vertical slice** : retrieval naïf → service agent → UI minimale → on utilise → on renforce le maillon qui craque vraiment. Raisons :
+Plutôt que viser un retrieval parfait avant de toucher au LLM, on a livré un **vertical slice** : retrieval naïf → service agent → UI minimale → on utilise → on renforce le maillon qui craque vraiment. Raisons :
 
 - volume modeste (foyer solo, milliers de docs au plus)
 - Claude Haiku 4.5 a un contexte large : on peut spammer des hits sans souci
 - on ne saura ce qui craque qu'en utilisant l'agent
 - si plus tard le full-text plafonne, passer aux embeddings (`pgvector`) est un refactor incrémental
 
-Cette philosophie remplace la version initiale ("chaque lot doit être complet avant le suivant").
-
 Ce document traduit la décision produit du parcours 07 en backlog technique concret.
 
 Doc produit associée : [PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
+Fiche concept : [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
 Note transverse couche IA : [PARCOURS_IA_TRANSVERSE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_IA_TRANSVERSE.md)
 
 ## Objectif d'implémentation
@@ -27,23 +43,19 @@ Livrer un agent conversationnel sur la mémoire du foyer en s'appuyant sur Claud
 - puis le service LLM
 - puis la surface UI chat
 
-## Principe d'exécution
-
-Le backlog est organisé en lots techniques verticaux. Chaque lot doit produire un incrément testable.
-
-## Décisions de cadrage MVP
+## Décisions de cadrage MVP (toutes appliquées en V1)
 
 - provider : **Claude Haiku 4.5** + SDK `anthropic` (tranché dans #88)
 - service : extension de `apps/documents/` pour le lot 0, nouvelle app `apps/agent/` à partir du lot 1
 - exécution : **synchrone** pour V1, pas de Celery (tranché dans #88)
 - agent en lecture seule en V1 (pas d'action de création)
 - scope household systématique sur toute requête de l'agent
-- **abstraction LLM dès le lot 2** : `LLMClient` Protocol + `AnthropicClient` concret, pour permettre Ollama / autre cloud plus tard sans réécrire la couche métier
-- **observabilité IA centralisée** : `apps/ai_usage/` + table `AIUsageLog` qui consolide toutes les invocations IA (OCR Vision, agent, etc.)
+- **abstraction LLM** : `LLMClient` Protocol + `AnthropicClient` concret (lot 2), permet un futur `OllamaClient` sans réécrire la couche métier
+- **observabilité IA centralisée** : `apps/ai_usage/` + table `AIUsageLog` consolide toutes les invocations IA (skeleton livré en lot 2, KPI/UI restent à faire dans #109)
 
 ## Lot 0a — Pipeline upload : HEIC + resize + OCR
 
-**Référence** : issue **#88** (état OPEN au 2026-04-29).
+**Statut** : ✅ Livré. **Référence** : issue **#88** (closed).
 
 ### But
 
@@ -95,7 +107,7 @@ Voir l'issue #88 pour le détail. Synthèse :
 
 ## Lot 0b — Backfill OCR
 
-**Référence** : issue **#89** (OPEN, bloquée par #88).
+**Statut** : ✅ Livré. **Référence** : issue **#89** (closed). PDFs scannés multi-page ajoutés ensuite via #107 / PR #111.
 
 ### But
 
@@ -135,7 +147,7 @@ Voir l'issue #89 pour le détail. Synthèse :
 
 ## Lot 1 — Recherche full-text naïve (retrieval V1)
 
-**Statut** : cadré, issue à créer.
+**Statut** : ✅ Livré. **Référence** : issue **#100** (closed) → PR #112. Sub-issue ouverte : #113 (activer le stemming par foyer si nécessaire).
 
 ### But
 
@@ -259,7 +271,7 @@ class Hit:
 
 ## Lot 2 — Service agent (retrieval + LLM + citations)
 
-**Statut** : cadré, issue à créer.
+**Statut** : ✅ Livré. **Référence** : issue **#101** (closed) → PR #114. Le skeleton de `apps/ai_usage/` (model + helper + admin read-only) a été livré dans la même PR pour que le service agent puisse logger ses appels — le lot 6 ajoutera les agrégations et l'UI par-dessus.
 
 ### But
 
@@ -354,7 +366,7 @@ apps/ai_usage/          # lot 6 — créé en parallèle
 
 ## Lot 3 — Surface UI chat
 
-**Statut** : cadré, issue à créer.
+**Statut** : ✅ Livré. **Référence** : issue **#102** (closed) → PR #115. Surface React `ui/src/features/agent/` (page + ChatBubble + AgentCitation + PrivacyNotice) + 5 tests E2E Playwright sur le golden path et les edge cases.
 
 ### But
 
@@ -439,7 +451,21 @@ Sécuriser la chaîne complète sans multiplier les tests fragiles à un appel L
 
 ## Lot 6 — Observabilité IA (AI Usage Logging + UI)
 
-**Statut** : cadré, issue à créer. Livrable en parallèle des lots 2/3.
+**Statut** : 🟡 Partiel. **Référence** : issue **#109** (open).
+
+Livré dans le lot 2 (PR #114) :
+
+- app `apps/ai_usage/` créée avec modèle `AIUsageLog`, migration, admin read-only
+- helper `log_ai_usage(...)` fail-soft
+- wire dans `LLMClient.complete()` côté agent — chaque réponse de Claude logue une ligne (`feature='agent_ask'`)
+
+Restent à livrer dans #109 :
+
+- refacto `apps/documents/extraction.py` pour passer par `LLMClient.vision_extract()` (au lieu de l'appel `anthropic` direct) et logger l'OCR upload + backfill + multi-page PDF
+- `apps/ai_usage/aggregations.py` (KPIs 24h/7j/30j, latence p95, taux d'erreur)
+- API admin `GET /api/ai-usage/{summary,recent,histogram}/`
+- UI `/app/admin/ai-usage/` (KpiCards + UsageHistogram + RecentCallsTable)
+- E2E + i18n 4 locales
 
 ### But
 
@@ -529,62 +555,34 @@ ui/src/features/ai-usage/
 - comparaison provider A vs B (V2 — quand on aura un `OllamaClient`)
 - visualisation par utilisateur individuel
 
-## Ordre recommandé d'implémentation
+## Points de vigilance (toujours valides)
 
-1. ✅ Lot 0a — Pipeline OCR à l'upload (#88)
-2. ✅ Lot 0b — Backfill OCR (#89)
-3. **Lot 1 — Recherche full-text naïve**
-4. **Lot 2 — Service agent** (pose `LLMClient` + écrit dans `AIUsageLog`)
-5. **Lot 6 — AI Usage Logging + UI** (en parallèle de lot 2/3, refacto OCR existant pour aussi loguer)
-6. **Lot 3 — Surface UI chat**
-7. **→ recette manuelle utilisateur** : tu utilises l'agent pendant 1-2 semaines, tu repères ce qui craque
-8. Itérer sur le maillon faible (souvent : retrieval, prompt, ou format de citation)
-9. Lot 4 (mémoire) — V2, si l'usage le demande
-
-Lot 5 (tests) est transversal : pas un lot séquentiel, chaque PR des lots 1-3-6 livre ses tests.
-
-## Découpage en sessions de travail
-
-### Session 1 (faite)
-
-- Lot 0a (#88)
-
-### Session 2 (faite)
-
-- Lot 0b (#89)
-
-### Session 3 — prochaine
-
-- Lot 1 (retrieval naïf)
-- début Lot 2 (service agent + endpoint)
-
-### Session 4
-
-- fin Lot 2
-- Lot 3 (UI chat)
-
-### Session 5
-
-- recette manuelle + ajustements
-- premiers retours produit
-
-## Points de vigilance
-
-- ne jamais bloquer un upload sur un échec d'extraction (déjà inscrit dans #88)
+- ne jamais bloquer un upload sur un échec d'extraction (inscrit dans #88, comportement effectif)
 - ne pas envoyer plus que nécessaire au modèle (coût + confidentialité)
-- mock systématique du client Anthropic en tests (pas un seul appel réseau en CI)
+- mock systématique du client Anthropic en tests (zéro appel réseau IA en CI — invariant)
 - garder l'agent en lecture seule en V1, ne pas glisser vers la création d'entités
 - éviter d'introduire Celery tant que la latence sync reste acceptable
-- pas de couplage UI : la surface chat ne doit pas devenir l'unique entrée de l'agent (un endpoint API exploitable depuis la CLI peut être utile)
+- pas de couplage UI : la surface chat ne doit pas devenir l'unique entrée de l'agent (l'endpoint `POST /api/agent/ask/` est exploitable depuis la CLI, déjà testé en prod via Django shell)
 
-## Définition de done technique
+## Définition de done — V1 livrée
 
-La V1 du parcours 07 peut être considérée terminée si :
+Tous les critères de la V1 sont satisfaits au 2026-05-02 :
 
-1. tout document uploadé a son `ocr_text` peuplé automatiquement
-2. les documents existants ont été re-extraits via la management command
-3. le retrieval full-text retourne des hits pertinents et scopés household
-4. le service agent répond à une question avec au moins une citation vérifiable
-5. la surface UI permet de poser une question et de naviguer vers une citation
-6. les tests Python et E2E essentiels sont à jour
-7. la mention de confidentialité est visible avant le premier usage
+1. ✅ tout document uploadé a son `ocr_text` peuplé automatiquement (lot 0a)
+2. ✅ les documents existants ont été re-extraits via la management command (lot 0b)
+3. ✅ le retrieval full-text retourne des hits pertinents et scopés household (lot 1)
+4. ✅ le service agent répond à une question avec au moins une citation vérifiable (lot 2)
+5. ✅ la surface UI permet de poser une question et de naviguer vers une citation (lot 3)
+6. ✅ les tests Python et E2E essentiels sont à jour (62 backend + 5 E2E agent, suite totale 75/75)
+7. ✅ la mention de confidentialité est visible avant le premier usage (lot 3, localStorage `agent.privacyAccepted.v1`)
+
+## Suite recommandée
+
+Maintenant que la V1 utilisateur est jouable :
+
+1. **Recette manuelle à l'usage** — utiliser l'agent au quotidien sur le foyer "Les Petits Bonheur" (188 docs). Repérer ce qui craque concrètement (retrieval qui rate des matches évidents, format de citation qui dérape, latence inacceptable, etc.) et ouvrir des issues ciblées plutôt que sur-investir à l'aveugle.
+2. **Lot 6 (#109)** — observabilité IA, finir les agrégations + page admin. Permet de quantifier la qualité d'usage (taux d'IDK, latence p95, etc.) avant d'ouvrir l'agent à d'autres utilisateurs.
+3. **#113** — activer le stemming par foyer (`Household.preferred_language`) si les requêtes ratent des matches "facture" ↔ "factures" (déclencheur observé à l'usage, pas spéculatif).
+4. **Lot 4 (V2)** — mémoire conversationnelle multi-tour, à arbitrer après quelques semaines d'usage one-shot.
+
+Lot 5 (tests) est transversal : chaque PR des lots 1, 2, 3 a livré ses propres tests.

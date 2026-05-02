@@ -34,7 +34,7 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 - `./parcours/PARCOURS_04_*.md` — suivre un projet de bout en bout
 - `./parcours/PARCOURS_05_*.md` — naviguer par zone ou équipement
 - `./parcours/PARCOURS_06_*.md` — alertes proactives
-- `./parcours/PARCOURS_07_*.md` — agent conversationnel sur le foyer (en cadrage, lot 0 OCR via #88/#89)
+- `./parcours/PARCOURS_07_*.md` — agent conversationnel sur le foyer (V1 livrée 2026-05-02, lots 0a→3)
 
 ## RFC et notes thématiques
 

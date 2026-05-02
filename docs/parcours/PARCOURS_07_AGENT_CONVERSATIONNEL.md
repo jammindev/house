@@ -1,8 +1,8 @@
 # Parcours 07 — Poser une question en langage naturel sur son foyer
 
-> **Draft** — ce document a été reconstitué à partir des issues #88, #89 et #51 (chat IA household). Il est à relire et corriger. Les sections marquées `À préciser` attendent une décision produit.
+> **V1 livrée le 2026-05-02** — agent conversationnel utilisable sur `/app/agent/`, citations cliquables vers les entités du foyer. Détails de livraison en bas du document. Le backlog technique vit dans [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md).
 
-Ce document détaille le septième parcours métier à travailler dans House.
+Ce document détaille le septième parcours métier de House.
 
 Il s'appuie sur le socle posé par les parcours 01 à 06 et s'inscrit dans la couche IA décrite par [PARCOURS_IA_TRANSVERSE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_IA_TRANSVERSE.md).
 
@@ -37,14 +37,12 @@ Le verrou principal est que beaucoup de la valeur métier vit dans des documents
 
 D'où la **Story 0 du parcours 07 : pipeline d'extraction OCR à l'upload** (issues #88 et #89).
 
-## Concept visible côté utilisateur
+## Concept visible côté utilisateur (V1 figée)
 
-`À préciser` — vocabulaire et surface à valider :
-
-- entrée : `Demander`, `Poser une question`, `Assistant` ?
-- surface : page chat dédiée ? widget global ? bouton sur le dashboard ?
-- format de réponse : texte libre + liens vers les entités citées
-- mémoire conversationnelle : historique persisté, ou stateless par session ?
+- **entrée** : libellé `Agent` dans la sidebar, icône `Sparkles`
+- **surface** : page chat dédiée `/app/agent/` (pas de widget global en V1, à réévaluer après usage)
+- **format de réponse** : texte libre avec marqueurs `<cite id="…"/>` rendus inline en chips numérotés cliquables, plus un panneau "Sources" en bas de bulle qui reprend la liste numérotée
+- **mémoire conversationnelle** : aucune en V1 — chaque ouverture de page = session blanche. Décision : valider l'usage one-shot avant d'investir dans la persistance multi-tour (cf. lot 4 → V2)
 
 ## Objectif produit
 
@@ -55,24 +53,22 @@ Permettre à un membre du foyer de :
 3. naviguer en un clic depuis une citation vers l'entité d'origine
 4. comprendre les limites de la réponse quand l'agent ne sait pas
 
-## Ce que le projet a déjà aujourd'hui
+## Ce que le projet a aujourd'hui (V1 livrée)
 
-### Données sources disponibles
+- ✅ pipeline d'extraction OCR à l'upload (#88) — Vision Haiku pour images, `pypdf` pour PDFs texte
+- ✅ backfill OCR via management command (#89), bouton "Re-extraire" sur la fiche document
+- ✅ OCR Vision multi-page sur PDFs scannés (#107) — `ocr_method='vision_pages'` quand `pypdf` rend du vide
+- ✅ recherche full-text Postgres scopée household (#100) — registry par app, ajouter une entité = 5 lignes dans son `apps.py`
+- ✅ service agent (`apps.agent.service.ask`) avec `LLMClient` Protocol, prompt qui contraint citation + ignorance, citations honnêtes (intersection avec le retrieval)
+- ✅ endpoint `POST /api/agent/ask/` exploitable depuis la CLI ou l'UI
+- ✅ surface React `/app/agent/` avec mention de confidentialité one-shot, bulles, citations cliquables
+- ✅ table `AIUsageLog` qui logue chaque appel LLM agent (skeleton lot 6)
 
-- `Interaction` avec types et metadata — API existante
-- `Document` avec champ `ocr_text` (présent en modèle, **non peuplé** automatiquement à ce jour)
-- `Equipment` avec garanties et dates de maintenance
-- Endpoint placeholder `reprocess_ocr` sur `DocumentViewSet`
+### Reste à finir hors V1 utilisateur
 
-### Ce qui manque pour fermer le parcours
-
-- pipeline d'extraction OCR à l'upload (issue #88)
-- backfill OCR pour les documents existants (issue #89)
-- recherche full-text exploitable côté backend
-- couche RAG ou récupération contextuelle
-- service d'appel LLM (Claude Haiku 4.5 vu dans les issues)
-- surface UI chat
-- mécanisme de citation et de navigation vers les entités citées
+- `apps/ai_usage/` — agrégations + page admin (#109)
+- intégration de l'OCR upload/backfill dans `LLMClient.vision_extract()` pour qu'il logue aussi (#109)
+- stemming par foyer si l'usage le justifie (#113)
 
 ## Diagnostic actuel
 
@@ -128,15 +124,14 @@ Exemples (issus de #51) :
 
 ### Poser une question
 
-1. L'utilisateur ouvre la surface agent (`À préciser`).
+1. L'utilisateur ouvre la page agent depuis la sidebar (`/app/agent/`).
 2. Il tape une question en langage naturel.
 3. L'agent affiche une réponse contenant une ou plusieurs citations.
 4. Chaque citation est cliquable et navigue vers l'entité d'origine.
 
-### Reformuler ou approfondir
+### Reformuler ou approfondir (V2)
 
-1. L'utilisateur peut affiner sa question dans le même fil.
-2. L'agent garde le contexte de la conversation en cours (`À préciser` : durée, persistance).
+En V1, chaque question est traitée indépendamment — pas de mémoire conversationnelle multi-tour. L'utilisateur peut bien sûr enchaîner les questions dans la session courante (les bulles précédentes restent visibles à l'écran), mais l'agent ne re-lit pas les tours précédents pour répondre. Cette extension est documentée comme lot 4 → V2 dans le backlog technique, à arbitrer après quelques semaines d'usage one-shot.
 
 ## Règles produit
 
@@ -162,9 +157,22 @@ L'utilisateur attend une réponse en quelques secondes, pas plusieurs minutes. L
 
 ### Règle 6 — La confidentialité est explicite
 
-L'utilisateur doit savoir que le contenu de son foyer (texte d'interactions, OCR de documents) est envoyé à un modèle externe (Claude). `À préciser` : copy de mention, opt-in, redaction.
+L'utilisateur doit savoir que le contenu de son foyer (texte d'interactions, OCR de documents) est envoyé à un modèle externe (Claude). En V1 : mention de confidentialité au premier usage (modale Radix non-dismissible jusqu'à acceptation, persistance localStorage `agent.privacyAccepted.v1`). Trois points couverts : provider externe, scope household uniquement, pas de stockage du contenu des conversations. La redaction PII reste hors scope V1 (faible priorité en mode solo user, à arbitrer si on ouvre à d'autres utilisateurs).
 
-## Backlog produit recommandé pour la V1
+## Backlog produit V1 — état de livraison
+
+| Story | But | Statut | Issues / PRs |
+|---|---|---|---|
+| 0a | Pipeline OCR à l'upload | ✅ Livrée | #88 |
+| 0b | Backfill OCR + bouton "Re-extraire" | ✅ Livrée | #89 |
+| 0c | OCR Vision multi-page sur PDFs scannés | ✅ Livrée (bonus) | #107 → PR #111 |
+| 1 | Recherche full-text scopée household | ✅ Livrée | #100 → PR #112 |
+| 2 | Service d'appel LLM + citations honnêtes | ✅ Livrée | #101 → PR #114 |
+| 3 | Surface UI chat `/app/agent/` | ✅ Livrée | #102 → PR #115 |
+| 4 | Mémoire conversationnelle multi-tour | 🚫 Basculée V2 | — |
+| 6 | Observabilité IA (KPIs + page admin) | 🟡 Skeleton livré (lot 2), agrégations + UI à faire | #109 |
+
+Détails par story ci-dessous (référence pour les évolutions futures).
 
 ### Story 0 — Pipeline OCR à l'upload (prérequis)
 
@@ -188,13 +196,13 @@ En tant que système,
 je veux pouvoir rechercher dans le texte des interactions et des documents OCRés,
 afin que l'agent dispose d'un mécanisme de récupération avant d'appeler le LLM.
 
-#### Critères d'acceptation
+#### Critères d'acceptation (livrés en #100 / PR #112)
 
-`À préciser` — détails à valider, pistes :
-
-- Postgres `SearchVector` sur `Interaction.subject + description + metadata` et `Document.ocr_text + name + notes`
-- index dédié, scope household systématique
-- endpoint interne ou utilitaire Python utilisé par la couche agent
+- Postgres `SearchVector` (`config='simple_unaccent'`) à la volée par modèle, pas de matérialisation
+- registry par app : chaque module déclare ses entités dans son `apps.py.ready()` via `agent.searchables.register()`
+- 10 entités V1 indexées : Document, Interaction, Equipment, Task, Project, Zone, StockItem, InsuranceContract, Contact, Structure
+- scope household systématique (pas d'opt-out)
+- exposé en interne par `agent.retrieval.search(household_id, query, limit)` — pas d'endpoint UI dédié
 
 ### Story 2 — Service d'appel LLM
 
@@ -202,15 +210,16 @@ En tant que système,
 je veux un service interne qui prend une question utilisateur et un contexte récupéré,
 et qui appelle Claude pour produire une réponse citée.
 
-#### Critères d'acceptation
+#### Critères d'acceptation (livrés en #101 / PR #114)
 
-`À préciser` — détails à valider, pistes :
-
-- module `apps/agent/` ou utilitaire dans `apps/<existant>/`
-- contrat d'entrée : question, household, historique optionnel
-- contrat de sortie : réponse texte + liste de citations (id + type d'entité)
-- timeout, retry, gestion d'erreur explicite
-- client Anthropic mocké systématiquement en tests
+- `apps/agent/service.ask(question, household)` orchestre retrieval → prompt → LLM → parsing citations
+- abstraction `LLMClient` Protocol + `AnthropicClient` concret (factory `get_llm_client()` keyed sur `LLM_PROVIDER`)
+- contrat de sortie : `{answer, citations[{entity_type, id, label, snippet, url_path}], metadata{duration_ms, tokens_in, tokens_out, model}}`
+- prompt système qui contraint les citations au format `<cite id="entity_type:id"/>` et l'aveu d'ignorance
+- citations honnêtes : intersection regex des marqueurs avec les hits du retrieval — un marqueur inventé est ignoré
+- shortcuts IDK (zéro retrieval, API key absente, question vide) → pas d'appel LLM
+- timeout 30s, mapping `LLMTimeoutError → 504`, `LLMError → 503`
+- tests : zéro appel réseau Anthropic en CI, fakes via Protocol
 
 ### Story 3 — Surface UI chat
 
@@ -218,39 +227,44 @@ En tant que membre du foyer,
 je veux une interface où poser mes questions,
 afin d'utiliser l'agent au quotidien.
 
-#### Critères d'acceptation
+#### Critères d'acceptation (livrés en #102 / PR #115)
 
-`À préciser` — détails à valider :
+- page dédiée `/app/agent/` accessible depuis la sidebar (icône `Sparkles`, libellé `Agent`)
+- input multi-ligne (`Enter` envoie, `Shift+Enter` saute une ligne), bulles question/réponse, loader animé
+- citations rendues inline en chips numérotés cliquables qui naviguent vers `url_path`, plus un panneau "Sources" en bas de bulle
+- chip différencié par `entity_type` (icône Lucide adaptée pour les 10 types) et title=snippet au survol
+- mention de confidentialité au premier usage (modale Radix non-dismissible, persistance localStorage `agent.privacyAccepted.v1`)
+- i18n complet en/fr/de/es (namespace `agent`)
+- 5 tests E2E Playwright (mock backend) : golden path + privacy notice + IDK + URL de citation par type d'entité
 
-- surface : page dédiée `/app/agent/` ? widget ? entrée depuis le dashboard ?
-- composant chat : input, historique de la session, indicateur de chargement
-- rendu des citations cliquables menant aux entités d'origine
-- mention de confidentialité visible
-- i18n complet (en, fr, de, es)
-
-### Story 4 — Mémoire conversationnelle (optionnel V1)
+### Story 4 — Mémoire conversationnelle (basculée V2)
 
 En tant que membre du foyer,
 je veux retrouver mes échanges précédents avec l'agent,
 afin de continuer une conversation ou retrouver une réponse passée.
 
-#### Critères d'acceptation
+#### Décision (2026-04-29) : 🚫 hors V1
 
-`À préciser` — décision V1 vs V2 à prendre :
+Pas livrée en V1. La V1 fonctionne en mode questions one-shot (chaque ouverture de page = session blanche). Décision motivée par : (1) pas certain que l'usage le demande, (2) coût d'implémentation non négligeable (modèles, scope, rétention, streaming), (3) on saura mieux quoi en faire après quelques semaines d'usage.
 
-- conservation de l'historique : oui/non, durée
-- modèle `AgentConversation` + `AgentMessage` ?
-- scope household ou utilisateur ?
+#### Pistes pour V2 (à arbitrer après recette manuelle)
 
-## Recommandation d'interface
+- modèles `AgentConversation(household, créé par, titre auto, last_message_at)` + `AgentMessage(conversation, role, content, citations, metadata)`
+- scope : conversation appartient à un user dans un household (privée), ou partagée au foyer ?
+- liste des conversations dans la sidebar de la page agent
+- nettoyage automatique au-delà d'une rétention donnée
+- streaming de réponse (en parallèle ou indépendant)
 
-`À préciser` — pas de wireframe figé. À discuter.
+## Interface livrée
+
+- nouvelle surface chat plein écran sur `/app/agent/`, accessible depuis la sidebar
+- pas de widget global ni d'entrée dashboard en V1 (à réévaluer après usage : si l'agent devient un point d'entrée fréquent, un raccourci global `/` ou un widget dashboard pourra être ajouté)
 
 ## Écrans impactés
 
-- pas d'écran existant impacté en Story 0 (extension du flux upload existant)
-- nouvelle surface chat en Story 3 (`À préciser`)
-- éventuel widget global ou entrée dashboard (`À préciser`)
+- aucun écran existant n'a été modifié pour Story 0 (extension transparente du flux upload)
+- nouvelle page `/app/agent/` (Story 3)
+- nouvelle entrée sidebar dans le groupe d'accueil (entre `Dashboard` et `Alertes`)
 
 ## Hors scope pour la V1
 
@@ -298,9 +312,9 @@ Ces deux extensions partagent les principes du transverse (proposition vs vérit
 
 ### 1. Provider et modèle
 
-**Décidé dans #88** : Claude Haiku 4.5 Vision pour OCR (images), `pypdf` pour PDFs texte. SDK officiel `anthropic`.
+**Décidé dans #88** : Claude Haiku 4.5 Vision pour OCR (images), `pypdf` pour PDFs texte (avec fallback Vision multi-page sur PDFs scannés depuis #107). SDK officiel `anthropic`.
 
-`À préciser` pour la couche agent (Story 2) : Haiku ou Sonnet ? mêmes credentials ? ratio coût/qualité ?
+**Décidé dans #101 / lot 2** : agent conversationnel sur Claude Haiku 4.5 (`claude-haiku-4-5-20251001`), même API key qu'OCR. Validé en prod : 188 docs sur le foyer "Les Petits Bonheur", réponses à 2-3s, 200-1500 tokens en input typique. Sonnet réservé aux cas où Haiku échoue manifestement (pas observé en V1).
 
 ### 2. Sync vs async
 
@@ -317,31 +331,35 @@ Pour la couche agent, le sync semble également acceptable en V1 vu la latence c
 
 ### 4. Stockage des conversations
 
-`À préciser` — selon décision Story 4.
+**Décidé** : pas de stockage en V1 (cf. Story 4). Les bulles à l'écran sont en mémoire React, perdues au reload.
 
 ### 5. Périmètre des données envoyées au LLM
 
-`À préciser` — politique de redaction, scope par requête, audit log des prompts.
+**Décidé en V1** : on envoie les hits du retrieval (10 entités, ~12 hits max, snippet ~150 chars chacun), pas la base entière. Scope household enforced côté retrieval. Pas de redaction PII (faible priorité solo user, à arbitrer si on ouvre à d'autres utilisateurs).
 
-## Définition de done du parcours 07
+**Audit log** : table `AIUsageLog` populated à chaque appel LLM (lot 2 livré, agrégations + page admin = lot 6 / #109). On stocke métadonnées (feature, provider, model, durée, tokens, success), **pas le contenu** des prompts ou réponses — décision tranchée pour limiter la surface confidentialité.
 
-Le parcours peut être considéré comme livré si, pour un utilisateur réel :
+## Définition de done — V1 livrée le 2026-05-02
 
-1. tous ses documents (anciens et nouveaux) ont leur texte extrait et indexé
-2. il peut poser une question en langage naturel depuis l'application
-3. l'agent répond avec une citation vérifiable vers l'entité d'origine
-4. l'agent reconnaît honnêtement quand il ne sait pas
-5. la latence reste acceptable (`À préciser` : SLA ?)
-6. la mention de confidentialité est claire avant la première utilisation
+Tous les critères sont satisfaits :
 
-## Check de validation manuelle
+1. ✅ tous les documents (anciens et nouveaux) ont leur texte extrait et indexé (#88, #89, #107)
+2. ✅ on peut poser une question en langage naturel depuis l'application (`/app/agent/`)
+3. ✅ l'agent répond avec au moins une citation vérifiable vers l'entité d'origine (intersection regex avec le retrieval, citations honnêtes)
+4. ✅ l'agent reconnaît honnêtement quand il ne sait pas (IDK shortcuts + prompt système)
+5. ✅ la latence reste acceptable — observé en prod : 2-4s pour les requêtes typiques (188 docs, ~1000 tokens input)
+6. ✅ la mention de confidentialité est claire avant la première utilisation (modale Radix non-dismissible, localStorage)
 
-`À préciser` — scénarios complets à valider une fois la Story 3 livrée. Pistes :
+## Recette manuelle (à faire à l'usage)
+
+À pratiquer pendant 1-2 semaines sur le foyer réel pour repérer ce qui craque concrètement :
 
 1. uploader une nouvelle facture HEIC → vérifier que `ocr_text` est peuplé
 2. lancer le backfill OCR sur 5 documents existants → vérifier les textes extraits
 3. poser une question simple sur un équipement → vérifier réponse + citation cliquable
 4. poser une question dont la réponse n'est pas dans la base → vérifier l'aveu d'ignorance
 5. vérifier le scope household (deux comptes différents posent la même question, réponses isolées)
+6. **noter les questions qui ratent** — ce qui devait matcher mais qui n'a pas matché (déclencheur de #113 : stemming par foyer)
 
 Backlog technique associé : [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
+Fiche concept (RAG) : [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
