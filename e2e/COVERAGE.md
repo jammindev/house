@@ -137,6 +137,20 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Agent (`agent.spec.ts`)
+
+API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backend reste pytest.
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page + mention de confidentialité au premier usage (input désactivé tant qu'elle n'est pas acceptée) | ✅ |
+| Mention de confidentialité non rejouée si déjà acceptée (localStorage) | ✅ |
+| Pose d'une question → bulle question + bulle réponse + citation cliquable (label + chip dans la bulle) | ✅ |
+| URL de la citation cohérente avec `entity_type` (mapping `equipment:id` → `/app/equipment/id`) | ✅ |
+| Réponse "je ne sais pas" → message clair, aucune citation | ✅ |
+
+---
+
 ## Notifications (`notifications.spec.ts`)
 
 | Parcours | Statut |
