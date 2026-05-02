@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "notifications",
     "alerts",
     "agent",
+    "ai_usage",
 ]
 
 MIDDLEWARE = [
@@ -192,3 +193,12 @@ DEFAULT_FROM_EMAIL = "noreply@house.local"
 # Empty string by default — extraction degrades to a no-op when unset.
 # Overridden per environment in local.py / production.py.
 ANTHROPIC_API_KEY = ""
+
+# LLM provider configuration. The agent and OCR layers go through the
+# `apps.agent.llm.get_llm_client()` factory keyed on `LLM_PROVIDER`.
+# Adding `OllamaClient` later means setting `LLM_PROVIDER=ollama` — no refactor
+# needed in the agent or document apps.
+LLM_PROVIDER = "anthropic"
+LLM_TEXT_MODEL = "claude-haiku-4-5-20251001"
+LLM_VISION_MODEL = "claude-haiku-4-5-20251001"
+LLM_REQUEST_TIMEOUT_SECONDS = 30
