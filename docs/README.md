@@ -19,6 +19,7 @@ Parcours 01→06 livrés. Voir `JOURNAL_PRODUIT.md` pour le détail.
 - `./MODULES/README.md` — référence architecturale par module
 - `./FEATURE_PATTERN.md` — pattern à suivre pour toute nouvelle feature React
 - `./JOURNAL_PRODUIT.md` — journal des parcours métier livrés et en cours
+- `./NEXT_STEPS.md` — petite doc des chantiers à venir (recette, lots ouverts, prochain parcours)
 
 ## Product and domain
 
