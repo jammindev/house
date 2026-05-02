@@ -1455,5 +1455,24 @@
     "warrantyExpiresIn_other": "Expires in {{count}} days ({{date}})",
     "maintenanceDueIn_one": "Maintenance due in {{count}} day ({{date}})",
     "maintenanceDueIn_other": "Maintenance due in {{count}} days ({{date}})"
+  },
+  "agent": {
+    "title": "Agent",
+    "description": "Ask anything about your household.",
+    "input_placeholder": "Ask the agent…",
+    "send": "Send",
+    "loading": "Searching your household…",
+    "error": "Something went wrong, please try again.",
+    "empty_title": "Ask anything about your household",
+    "empty_hint": "The agent searches your documents, equipment, tasks, contracts and more, and cites every source.",
+    "citations_label": "Sources",
+    "privacy": {
+      "title": "Before you start",
+      "intro": "The agent reads the data of your household to answer your questions. A few things to know:",
+      "point_provider": "Your questions and the matching excerpts are sent to Anthropic (Claude) to generate the answer.",
+      "point_scope": "Only data from your household is shared, never data from another household.",
+      "point_retention": "We log usage statistics (latency, success) but not the content of your conversations.",
+      "accept": "Got it"
+    }
   }
 }

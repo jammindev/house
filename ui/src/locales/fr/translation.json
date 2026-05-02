@@ -1455,5 +1455,24 @@
     "warrantyExpiresIn_other": "Expire dans {{count}} jours ({{date}})",
     "maintenanceDueIn_one": "Maintenance dans {{count}} jour ({{date}})",
     "maintenanceDueIn_other": "Maintenance dans {{count}} jours ({{date}})"
+  },
+  "agent": {
+    "title": "Agent",
+    "description": "Pose toutes tes questions sur ton foyer.",
+    "input_placeholder": "Pose ta question à l'agent…",
+    "send": "Envoyer",
+    "loading": "Recherche dans ton foyer…",
+    "error": "Une erreur est survenue, réessaie.",
+    "empty_title": "Pose toutes tes questions sur ton foyer",
+    "empty_hint": "L'agent fouille tes documents, équipements, tâches, contrats… et cite chaque source utilisée.",
+    "citations_label": "Sources",
+    "privacy": {
+      "title": "Avant de commencer",
+      "intro": "L'agent lit les données de ton foyer pour répondre à tes questions. Quelques infos utiles :",
+      "point_provider": "Tes questions et les extraits pertinents sont envoyés à Anthropic (Claude) pour générer la réponse.",
+      "point_scope": "Seules les données de ton foyer sont transmises, jamais celles d'un autre foyer.",
+      "point_retention": "On enregistre les statistiques d'usage (latence, succès) mais pas le contenu de tes conversations.",
+      "accept": "J'ai compris"
+    }
   }
 }

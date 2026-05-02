@@ -26,6 +26,7 @@ const DashboardPage = lazyWithReload(() => import('./features/dashboard/Dashboar
 const AlertsPage = lazyWithReload(() => import('./features/alerts/AlertsPage'));
 const NotificationsPage = lazyWithReload(() => import('./features/notifications/NotificationsPage'));
 const AdminUsersPage = lazyWithReload(() => import('./features/admin/AdminUsersPage'));
+const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 
 export const router = createBrowserRouter([
   {
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'agent', element: <AgentPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
     ],
   },
