@@ -12,8 +12,9 @@ import { test, expect } from '@playwright/test';
  */
 
 test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', async ({ page }) => {
-  // Utilise un projet seedé par seed_demo_data ("Rénovation salle de bain") plutôt
-  // que d'en créer un (la création nécessite le sélecteur de household actif).
+  // Utilise un projet seedé par seed_demo_data ("Rénovation salle de bain") —
+  // le test se concentre sur le parcours d'achat, pas sur la création de projet
+  // (couverte par pytest test_create_project_accepts_blank_description_from_ui).
   await page.goto('/app/projects');
   await expect(page).toHaveURL(/\/app\/projects/);
 

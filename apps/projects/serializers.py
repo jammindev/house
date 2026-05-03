@@ -58,6 +58,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     is_pinned = serializers.SerializerMethodField()
     zones = serializers.SerializerMethodField()
     project_group_name = serializers.SerializerMethodField()
+    # Le modèle a default="" mais pas blank=True : DRF rejette les chaînes vides
+    # par défaut. Le formulaire React envoie systématiquement description="" quand
+    # l'utilisateur n'écrit rien — rendre le champ optionnel + blank-OK ici.
+    description = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = Project
