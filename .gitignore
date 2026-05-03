@@ -77,7 +77,9 @@ pnpm-debug.log*
 *.swp
 Thumbs.db
 backups/
-backups/
+
+# Local-only scripts (peuvent contenir des credentials hardcodés)
+scripts/sync_from_prod.sh
 
 # Claude Code runtime / local
 .claude/scheduled_tasks.lock
