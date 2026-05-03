@@ -40,7 +40,7 @@ export async function fetchExpenseSummary(filters: ExpenseSummaryFilters = {}): 
   if (filters.to) params.to = filters.to;
   if (filters.supplier) params.supplier = filters.supplier;
   if (filters.kind) params.kind = filters.kind;
-  const { data } = await api.get<ExpenseSummary>('/interactions/expenses/summary/', { params });
+  const { data } = await api.get<ExpenseSummary>('/interactions/interactions/expenses/summary/', { params });
   return data;
 }
 
@@ -60,6 +60,6 @@ export async function createManualExpense(payload: ManualExpensePayload): Promis
   if (payload.occurred_at) body.occurred_at = payload.occurred_at;
   if (payload.notes) body.notes = payload.notes;
   if (payload.zone_ids && payload.zone_ids.length > 0) body.zone_ids = payload.zone_ids;
-  const { data } = await api.post('/interactions/expenses/manual/', body);
+  const { data } = await api.post('/interactions/interactions/expenses/manual/', body);
   return data as { id: string };
 }
