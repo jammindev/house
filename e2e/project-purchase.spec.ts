@@ -11,39 +11,28 @@ import { test, expect } from '@playwright/test';
  * card (BudgetBar visible).
  */
 
-test('parcours achat projet — Rénovation cuisine 450€ Leroy Merlin', async ({ page }) => {
+test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', async ({ page }) => {
+  // Utilise un projet seedé par seed_demo_data ("Rénovation salle de bain") plutôt
+  // que d'en créer un (la création nécessite le sélecteur de household actif).
   await page.goto('/app/projects');
   await expect(page).toHaveURL(/\/app\/projects/);
 
-  // Créer un projet
-  await page.getByRole('button', { name: /nouveau|créer/i }).first().click();
-  let dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
+  const projectTitle = 'Rénovation salle de bain';
+  await expect(page.getByText(projectTitle).first()).toBeVisible();
 
-  const projectTitle = `Rénovation cuisine E2E ${Date.now()}`;
-  await page.locator('#project-title').fill(projectTitle);
-  // planned_budget for the BudgetBar to render
-  const budgetInput = page.locator('#project-planned-budget');
-  if (await budgetInput.count()) {
-    await budgetInput.fill('1000');
-  }
-  await dialog.getByRole('button', { name: /enregistrer|créer/i }).click();
-  await expect(dialog).toBeHidden();
-  await expect(page.getByText(projectTitle)).toBeVisible();
-
-  // Cliquer sur l'action « + Dépense » de la card
+  // Cliquer sur l'action « + Dépense » sur la card du projet
   const card = page.getByText(projectTitle, { exact: true })
     .locator('xpath=ancestor::*[contains(@class, "rounded")][1]');
   await card.getByRole('button', { name: 'Dépense' }).click();
 
-  dialog = page.getByRole('dialog');
+  const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   await expect(dialog).toContainText('Enregistrer une dépense');
   await expect(dialog).toContainText(projectTitle);
 
-  // Saisir prix + fournisseur
+  const supplier = `Leroy Merlin E2E ${Date.now()}`;
   await page.locator('#purchase-price').fill('450');
-  await page.locator('#purchase-supplier').fill('Leroy Merlin E2E');
+  await page.locator('#purchase-supplier').fill(supplier);
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
   await expect(dialog).toBeHidden();
 
@@ -51,8 +40,8 @@ test('parcours achat projet — Rénovation cuisine 450€ Leroy Merlin', async 
   await page.goto('/app/interactions');
   await expect(page.getByText(`Achat — ${projectTitle}`).first()).toBeVisible();
 
-  // Vérifier qu'elle apparaît aussi dans la vue dépense
+  // Vérifier qu'elle apparaît aussi dans la vue dépense (filtrée par supplier
+  // pour distinguer cette execution des autres)
   await page.goto('/app/expenses');
-  await expect(page.getByText(`Achat — ${projectTitle}`).first()).toBeVisible();
-  await expect(page.getByText('Leroy Merlin E2E').first()).toBeVisible();
+  await expect(page.getByText(supplier).first()).toBeVisible();
 });
