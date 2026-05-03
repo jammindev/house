@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
+import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { EquipmentListItem } from '@/lib/api/equipment';
@@ -10,6 +11,7 @@ interface EquipmentCardProps {
   item: EquipmentListItem;
   onEdit: (item: EquipmentListItem) => void;
   onDelete: (itemId: string) => void;
+  onPurchase: (item: EquipmentListItem) => void;
 }
 
 function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -26,7 +28,7 @@ function formatDate(value?: string | null): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
 }
 
-export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardProps) {
+export default function EquipmentCard({ item, onEdit, onDelete, onPurchase }: EquipmentCardProps) {
   const { t } = useTranslation();
 
   const actions: CardAction[] = [
@@ -56,16 +58,28 @@ export default function EquipmentCard({ item, onEdit, onDelete }: EquipmentCardP
         </div>
       </div>
 
-      <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-        <p>
-          {t('equipment.zone')}: {item.zone_name || t('equipment.not_available')}
-        </p>
-        <p>
-          {t('equipment.warranty')}: {formatDate(item.warranty_expires_on)}
-        </p>
-        <p>
-          {t('equipment.next_service')}: {formatDate(item.next_service_due)}
-        </p>
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
+        <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-3 sm:gap-x-4">
+          <p>
+            {t('equipment.zone')}: {item.zone_name || t('equipment.not_available')}
+          </p>
+          <p>
+            {t('equipment.warranty')}: {formatDate(item.warranty_expires_on)}
+          </p>
+          <p>
+            {t('equipment.next_service')}: {formatDate(item.next_service_due)}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onPurchase(item)}
+          className="h-7 gap-1 px-2 text-xs"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t('equipment.purchase.actions.add')}
+        </Button>
       </div>
     </li>
   );

@@ -131,6 +131,16 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Équipement (`equipment-purchase.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Création d'un équipement | ✅ |
+| Enregistrement d'un achat (prix + fournisseur, sans delta) en un seul geste | ✅ |
+| L'achat crée une `Interaction(type=expense)` liée via la FK polymorphe `source` et listée dans `/app/interactions` | ✅ |
+
+---
+
 ## Équipements
 
 | Parcours | Statut |

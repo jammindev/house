@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
-from interactions.models import Interaction, InteractionZone
+from interactions.services import create_expense_interaction
 
 from .models import StockCategory, StockItem
 from .serializers import (
@@ -138,6 +138,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
         unit_price = (amount / delta).quantize(Decimal("0.01")) if amount is not None and delta > 0 else None
 
         with transaction.atomic():
+            # Stock-specific side-effects on the item
             item.quantity = Decimal(item.quantity) + delta
             item.last_restocked_at = timezone.now()
             if unit_price is not None:
@@ -158,27 +159,21 @@ class StockItemViewSet(viewsets.ModelViewSet):
             item.updated_by = request.user
             item.save()
 
-            subject = _("Purchase — {name}").format(name=item.name)
-            metadata = {
-                "kind": "stock_purchase",
-                "stock_item_name": item.name,
-                "amount": str(amount) if amount is not None else None,
-                "unit_price": str(unit_price) if unit_price is not None else None,
-                "delta": str(delta),
-                "unit": item.unit,
-            }
-            interaction = Interaction.objects.create(
-                household=item.household,
-                created_by=request.user,
-                subject=subject,
-                content=notes,
-                type="expense",
+            interaction = create_expense_interaction(
+                source=item,
+                user=request.user,
+                amount=amount,
+                unit_price=unit_price,
+                supplier=supplier,
                 occurred_at=occurred_at,
-                metadata=metadata,
-                stock_item=item,
+                notes=notes,
+                kind="stock_purchase",
+                extra_metadata={
+                    "stock_item_name": item.name,
+                    "delta": str(delta),
+                    "unit": item.unit,
+                },
             )
-            if item.zone_id:
-                InteractionZone.objects.create(interaction=interaction, zone=item.zone)
 
         payload = StockItemSerializer(item, context={"request": request}).data
         payload["interaction_id"] = str(interaction.id)

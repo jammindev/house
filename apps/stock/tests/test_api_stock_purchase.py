@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from accounts.models import User
@@ -8,6 +9,11 @@ from households.models import Household, HouseholdMember
 from interactions.models import Interaction
 from stock.models import StockCategory, StockItem
 from zones.models import Zone
+
+
+def _interactions_for_item(item):
+    ct = ContentType.objects.get_for_model(StockItem)
+    return Interaction.objects.filter(source_content_type=ct, source_object_id=item.id)
 
 
 @pytest.fixture
@@ -90,7 +96,9 @@ def test_purchase_increments_quantity_and_creates_expense(client, user, househol
 
     interaction = Interaction.objects.get(id=payload["interaction_id"])
     assert interaction.type == "expense"
-    assert interaction.stock_item_id == firewood.id
+    assert interaction.source_object_id == firewood.id
+    assert interaction.source_content_type == ContentType.objects.get_for_model(StockItem)
+    assert interaction.source == firewood
     assert interaction.household_id == household.id
     assert interaction.created_by_id == user.id
     assert interaction.subject == "Purchase — Firewood"
@@ -144,7 +152,7 @@ def test_purchase_rejects_zero_or_negative_delta(client, user, firewood, members
 
     firewood.refresh_from_db()
     assert firewood.quantity == Decimal("0")
-    assert Interaction.objects.filter(stock_item=firewood).count() == 0
+    assert _interactions_for_item(firewood).count() == 0
 
 
 @pytest.mark.django_db
@@ -163,7 +171,7 @@ def test_purchase_isolates_between_households(client, other_user, second_househo
     assert response.status_code in (403, 404)
     firewood.refresh_from_db()
     assert firewood.quantity == Decimal("0")
-    assert Interaction.objects.filter(stock_item=firewood).count() == 0
+    assert _interactions_for_item(firewood).count() == 0
 
 
 @pytest.mark.django_db
@@ -174,7 +182,7 @@ def test_purchase_requires_authentication(client, firewood):
         content_type="application/json",
     )
     assert response.status_code in (401, 403)
-    assert Interaction.objects.filter(stock_item=firewood).count() == 0
+    assert _interactions_for_item(firewood).count() == 0
 
 
 @pytest.mark.django_db

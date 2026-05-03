@@ -81,39 +81,63 @@ t('tasks.title')
 
 **Pourquoi :** les `defaultValue` masquent les traductions manquantes. Sans eux, une clé absente du fichier JSON affiche la clé brute, ce qui permet de repérer immédiatement ce qui n'est pas traduit.
 
-## Auto-création d'`Interaction` — pattern write-time
+## Auto-création d'`Interaction` — pattern write-time + service helper
 
-Quand une action utilisateur auto-crée une `Interaction` (ex: achat de stock → interaction `expense`), le titre est rendu **dans la langue de l'utilisateur au moment de la création**, puis stocké en clair dans `subject`. Pas de localisation à l'affichage — admin, RAG, citation, CSV, `__str__`, l'edit user : tout consomme `interaction.subject` brut.
+Quand une action utilisateur auto-crée une `Interaction` (ex: achat de stock ou d'équipement → interaction `expense`), le titre est rendu **dans la langue de l'utilisateur au moment de la création**, puis stocké en clair dans `subject`. Pas de localisation à l'affichage — admin, RAG, citation, CSV, `__str__`, edit user : tout consomme `interaction.subject` brut.
 
-**Convention** :
+### Liaison polymorphe
+
+`Interaction` est lié à son objet source via une FK polymorphe `(source_content_type, source_object_id)` + un `GenericForeignKey('source')`. Cela permet à n'importe quel modèle (`StockItem`, `Equipment`, `Project`, etc.) d'être source d'une interaction sans toucher au schéma.
+
+### Service helper `create_expense_interaction`
+
+Pour le cas standard « achat sur un objet », utiliser le service partagé :
 
 ```python
-# apps/<feature>/views.py
-from django.utils.translation import gettext_lazy as _
+from interactions.services import create_expense_interaction
 
-interaction = Interaction.objects.create(
-    household=...,
-    type="expense",
-    subject=_("Purchase — {name}").format(name=item.name),  # localisé write-time
-    metadata={
-        "kind": "stock_purchase",       # discriminateur pour traçabilité / filtres futurs
-        "stock_item_name": item.name,   # contexte structuré utile à l'agent
-        ...
-    },
-    ...
+interaction = create_expense_interaction(
+    source=stock_item_or_equipment,        # n'importe quel HouseholdScopedModel
+    user=request.user,
+    amount=Decimal("199.00"),
+    supplier="Wood Co.",
+    occurred_at=timezone.now(),
+    notes="...",
+    kind="stock_purchase",                 # optionnel, défaut = "<app_label>_purchase"
+    extra_metadata={"delta": "3.8", "unit": "stère"},  # contexte feature-spécifique
 )
 ```
 
-Puis :
-1. `python manage.py makemessages -l fr -l de -l es` — extrait la chaîne
-2. Éditer les 3 `.po` (`locale/fr|de|es/LC_MESSAGES/django.po`) pour ajouter la traduction
-3. `python manage.py compilemessages` — génère les `.mo`
+Le service :
+- localise le subject via `gettext_lazy` + le template enregistré dans `apps/interactions/services.py::AUTO_SUBJECT_TEMPLATES`
+- ajoute `metadata.kind` (discriminateur), `metadata.source_name`, `metadata.amount`, `metadata.unit_price`, `metadata.supplier`
+- lie via la FK polymorphe
+- attache la zone du source si elle existe
 
-**Pourquoi ce pattern plutôt qu'une localisation à l'affichage** :
+Les **side-effects** spécifiques au modèle source (ajuster une quantité, snapshot prix sur l'objet, etc.) restent dans la view appelante — le service ne touche pas à l'objet source.
+
+### Ajouter un nouveau template d'auto-subject
+
+1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)
+2. `python manage.py makemessages -l fr -l de -l es`
+3. Éditer les 3 `.po` (`locale/fr|de|es/LC_MESSAGES/django.po`) pour ajouter la traduction
+4. `python manage.py compilemessages`
+
+### Frontend — formulaire partagé
+
+Pour la partie UI, `ui/src/features/interactions/PurchaseForm.tsx` est le composant partagé (champs prix/fournisseur/date/notes + delta optionnel). Chaque feature wrappe ce form dans son propre dialog (`StockPurchaseDialog`, `EquipmentPurchaseDialog`, etc.) qui gère :
+- son contexte (item courant, mutation appelée)
+- le titre du dialog
+- les éventuels affichages spécifiques (quantité courante pour stock)
+
+Les clés i18n `purchase.*` (génériques au form) sont **shared** ; les clés `stock.purchase.*` / `equipment.purchase.*` sont **feature-spécifiques** (titre, message créé, libellé du bouton sur la card).
+
+### Pourquoi ce pattern
+
 - 1 user = 1 langue (pas de multi-langue par user dans le projet)
 - Le subject reste lisible dans la DB pour l'admin Django, l'agent RAG (search vector), les exports CSV
 - L'user édite son subject via `InteractionEditPage` → son texte écrase l'auto, sans logique de flag/snapshot
-- Mécanisme générique : toute feature qui auto-crée des interactions suit cette convention
+- FK polymorphe → toute feature peut auto-créer une interaction liée à n'importe quel objet, sans migration de schéma à chaque fois
 
 **Limite acceptée** : si l'user change sa langue plus tard, ses anciennes interactions auto-créées restent dans l'ancienne langue. Acceptable car rare.
 

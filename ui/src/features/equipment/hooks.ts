@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   fetchEquipmentList,
   fetchEquipment,
@@ -6,9 +7,12 @@ import {
   createEquipment,
   updateEquipment,
   deleteEquipment,
+  registerEquipmentPurchase,
   type EquipmentPayload,
+  type EquipmentPurchasePayload,
 } from '@/lib/api/equipment';
 import { fetchZones } from '@/lib/api/zones';
+import { toast } from '@/lib/toast';
 
 interface EquipmentFilters {
   search?: string;
@@ -74,5 +78,20 @@ export function useDeleteEquipment() {
   return useMutation({
     mutationFn: (id: string) => deleteEquipment(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: equipmentKeys.all }),
+  });
+}
+
+export function useRegisterEquipmentPurchase() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: EquipmentPurchasePayload }) =>
+      registerEquipmentPurchase(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: equipmentKeys.all });
+      qc.invalidateQueries({ queryKey: ['interactions'] });
+      toast({ description: t('equipment.purchase.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }

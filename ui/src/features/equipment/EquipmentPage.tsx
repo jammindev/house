@@ -10,6 +10,7 @@ import type { EquipmentListItem } from '@/lib/api/equipment';
 import { useEquipmentList, useDeleteEquipment, useZones, equipmentKeys } from './hooks';
 import EquipmentCard from './EquipmentCard';
 import EquipmentDialog from './EquipmentDialog';
+import EquipmentPurchaseDialog from './EquipmentPurchaseDialog';
 
 const STATUS_OPTIONS = ['', 'active', 'maintenance', 'storage', 'retired', 'lost', 'ordered'];
 
@@ -22,6 +23,7 @@ export default function EquipmentPage() {
   const [zone, setZone] = React.useState('');
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<EquipmentListItem | null>(null);
+  const [purchasingItem, setPurchasingItem] = React.useState<EquipmentListItem | null>(null);
 
   const filters = React.useMemo(
     () => ({
@@ -167,6 +169,7 @@ export default function EquipmentPage() {
                   item={item}
                   onEdit={setEditingItem}
                   onDelete={handleDelete}
+                  onPurchase={setPurchasingItem}
                 />
               ))}
             </ul>
@@ -187,6 +190,12 @@ export default function EquipmentPage() {
         }}
         existingItem={editingItem ?? undefined}
         onSaved={handleSaved}
+      />
+
+      <EquipmentPurchaseDialog
+        open={purchasingItem !== null}
+        onOpenChange={(open) => { if (!open) setPurchasingItem(null); }}
+        equipment={purchasingItem}
       />
     </>
   );

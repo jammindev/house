@@ -962,7 +962,14 @@
       "archived": "Archived"
     },
     "deleted": "Equipment deleted",
-    "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools."
+    "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools.",
+    "purchase": {
+      "title": "Register purchase — {{name}}",
+      "created": "Purchase recorded",
+      "actions": {
+        "add": "Buy"
+      }
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1214,28 +1221,32 @@
       "title": "Restock — {{name}}",
       "current_quantity": "Current quantity: {{quantity}} {{unit}}",
       "created": "Purchase recorded",
-      "fields": {
-        "delta": "Quantity added ({{unit}})",
-        "price": "Price",
-        "price_placeholder": "Optional",
-        "supplier": "Supplier",
-        "occurred_at": "Purchase date",
-        "notes": "Notes"
-      },
-      "price_mode": {
-        "total": "Total",
-        "unit": "Per {{unit}}"
-      },
       "actions": {
-        "add": "Buy",
-        "confirm": "Save purchase",
-        "saving": "Saving..."
-      },
-      "errors": {
-        "delta_required": "Enter a purchased quantity greater than 0.",
-        "price_invalid": "Price must be positive.",
-        "save_failed": "Could not save the purchase."
+        "add": "Buy"
       }
+    }
+  },
+  "purchase": {
+    "fields": {
+      "delta": "Quantity added ({{unit}})",
+      "price": "Price",
+      "price_placeholder": "Optional",
+      "supplier": "Supplier",
+      "occurred_at": "Purchase date",
+      "notes": "Notes"
+    },
+    "price_mode": {
+      "total": "Total",
+      "unit": "Per {{unit}}"
+    },
+    "actions": {
+      "confirm": "Save purchase",
+      "saving": "Saving..."
+    },
+    "errors": {
+      "delta_required": "Enter a purchased quantity greater than 0.",
+      "price_invalid": "Price must be positive.",
+      "save_failed": "Could not save the purchase."
     }
   },
   "admin": {

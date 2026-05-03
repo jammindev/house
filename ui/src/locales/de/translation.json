@@ -962,7 +962,14 @@
       "archived": "Archiviert"
     },
     "deleted": "Gerät gelöscht",
-    "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten."
+    "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten.",
+    "purchase": {
+      "title": "Kauf erfassen — {{name}}",
+      "created": "Einkauf gespeichert",
+      "actions": {
+        "add": "Kauf"
+      }
+    }
   },
   "dashboard": {
     "title": "Übersicht",
@@ -1214,28 +1221,32 @@
       "title": "Auffüllen — {{name}}",
       "current_quantity": "Aktuelle Menge: {{quantity}} {{unit}}",
       "created": "Einkauf gespeichert",
-      "fields": {
-        "delta": "Hinzugefügte Menge ({{unit}})",
-        "price": "Preis",
-        "price_placeholder": "Optional",
-        "supplier": "Lieferant",
-        "occurred_at": "Kaufdatum",
-        "notes": "Notizen"
-      },
-      "price_mode": {
-        "total": "Gesamt",
-        "unit": "Pro {{unit}}"
-      },
       "actions": {
-        "add": "Kauf",
-        "confirm": "Einkauf speichern",
-        "saving": "Speichern..."
-      },
-      "errors": {
-        "delta_required": "Gib eine gekaufte Menge größer als 0 an.",
-        "price_invalid": "Der Preis muss positiv sein.",
-        "save_failed": "Einkauf konnte nicht gespeichert werden."
+        "add": "Kauf"
       }
+    }
+  },
+  "purchase": {
+    "fields": {
+      "delta": "Hinzugefügte Menge ({{unit}})",
+      "price": "Preis",
+      "price_placeholder": "Optional",
+      "supplier": "Lieferant",
+      "occurred_at": "Kaufdatum",
+      "notes": "Notizen"
+    },
+    "price_mode": {
+      "total": "Gesamt",
+      "unit": "Pro {{unit}}"
+    },
+    "actions": {
+      "confirm": "Einkauf speichern",
+      "saving": "Speichern..."
+    },
+    "errors": {
+      "delta_required": "Gib eine gekaufte Menge größer als 0 an.",
+      "price_invalid": "Der Preis muss positiv sein.",
+      "save_failed": "Einkauf konnte nicht gespeichert werden."
     }
   },
   "admin": {

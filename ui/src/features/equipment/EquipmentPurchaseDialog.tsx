@@ -1,35 +1,38 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
-import type { StockItem } from '@/lib/api/stock';
+import type { EquipmentListItem } from '@/lib/api/equipment';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
-import { usePurchaseStockItem } from './hooks';
+import { useRegisterEquipmentPurchase } from './hooks';
 
-interface StockPurchaseDialogProps {
+interface EquipmentPurchaseDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  item: StockItem | null;
+  equipment: EquipmentListItem | null;
 }
 
-export default function StockPurchaseDialog({ open, onOpenChange, item }: StockPurchaseDialogProps) {
+export default function EquipmentPurchaseDialog({
+  open,
+  onOpenChange,
+  equipment,
+}: EquipmentPurchaseDialogProps) {
   const { t } = useTranslation();
-  const purchaseMutation = usePurchaseStockItem();
+  const purchaseMutation = useRegisterEquipmentPurchase();
   const [error, setError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     if (!open) setError(null);
   }, [open]);
 
-  if (!item) return null;
+  if (!equipment) return null;
 
   async function handleSubmit(payload: PurchaseFormPayload) {
     setError(null);
-    if (!item || payload.delta === undefined) return;
+    if (!equipment) return;
     try {
       await purchaseMutation.mutateAsync({
-        id: item.id,
+        id: equipment.id,
         payload: {
-          delta: payload.delta,
           amount: payload.amount,
           supplier: payload.supplier,
           occurred_at: payload.occurred_at,
@@ -46,16 +49,10 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
         <DialogHeader>
-          <DialogTitle>{t('stock.purchase.title', { name: item.name })}</DialogTitle>
+          <DialogTitle>{t('equipment.purchase.title', { name: equipment.name })}</DialogTitle>
         </DialogHeader>
 
-        <p className="text-sm text-muted-foreground">
-          {t('stock.purchase.current_quantity', { quantity: item.quantity, unit: item.unit })}
-        </p>
-
         <PurchaseForm
-          withDelta
-          deltaUnit={item.unit}
           isPending={purchaseMutation.isPending}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
