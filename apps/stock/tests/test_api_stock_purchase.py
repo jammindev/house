@@ -93,7 +93,7 @@ def test_purchase_increments_quantity_and_creates_expense(client, user, househol
     assert interaction.stock_item_id == firewood.id
     assert interaction.household_id == household.id
     assert interaction.created_by_id == user.id
-    assert interaction.subject == "Purchase: Firewood"
+    assert interaction.subject == "Purchase — Firewood"
     assert interaction.metadata["kind"] == "stock_purchase"
     assert interaction.metadata["stock_item_name"] == "Firewood"
     assert interaction.metadata["amount"] == "342.00"

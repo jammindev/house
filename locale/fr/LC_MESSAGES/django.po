@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-09 22:43+0000\n"
+"POT-Creation-Date: 2026-05-03 04:46+0000\n"
 "PO-Revision-Date: 2026-02-11 21:22+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: French\n"
@@ -16,1330 +16,651 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/models.py:44
 msgid "Display name shown in the UI"
 msgstr "Nom affiché dans l'interface"
 
-#: apps/accounts/models.py:48
 msgid "English"
 msgstr "Anglais"
 
-#: apps/accounts/models.py:49
 msgid "Français"
 msgstr "Français"
 
-#: apps/accounts/models.py:50
 msgid "Deutsch"
 msgstr "Allemand"
 
-#: apps/accounts/models.py:51
 msgid "Español"
 msgstr "Espagnol"
 
-#: apps/accounts/models.py:54
-msgid "User's preferred language"
-msgstr "Langue préférée de l'utilisateur"
+msgid "User's preferred language. Null means use browser detection."
+msgstr ""
 
-#: apps/accounts/models.py:60
 msgid "User's avatar image file"
 msgstr "URL de l'image d'avatar de l'utilisateur"
 
-#: apps/accounts/models.py:72
 msgid "User's preferred theme (light/dark/system)"
 msgstr "Thème préféré de l'utilisateur (clair/sombre/système)"
 
-#: apps/accounts/models.py:98
 msgid "User's preferred color palette"
 msgstr "Palette de couleurs préférée de l'utilisateur"
 
-#: apps/accounts/models.py:106
 msgid "User's currently active household"
 msgstr "Foyer actuellement actif de l'utilisateur"
 
-#: apps/accounts/models.py:107
 msgid "active household"
 msgstr "foyer actif"
 
-#: apps/accounts/models.py:120
 msgid "user"
 msgstr "utilisateur"
 
-#: apps/accounts/models.py:121
 msgid "users"
 msgstr "utilisateurs"
 
-#: apps/accounts/views/api.py:45
+#, fuzzy
+#| msgid "Password"
+msgid "Password reset"
+msgstr "Mot de passe"
+
+msgid "Hello,"
+msgstr ""
+
+msgid "You requested a password reset for your House account."
+msgstr ""
+
+msgid "Reset my password"
+msgstr ""
+
+msgid "Or copy and paste this URL into your browser:"
+msgstr ""
+
+msgid ""
+"This link will expire in 3 days. If you did not request a password reset, "
+"you can safely ignore this email."
+msgstr ""
+
+msgid "— House"
+msgstr ""
+
+msgid "Click the link below to set a new password:"
+msgstr ""
+
 msgid "Email and password are required."
 msgstr "L'email et le mot de passe sont requis."
 
-#: apps/accounts/views/api.py:51
 msgid "Invalid credentials."
 msgstr "Identifiants invalides."
 
-#: apps/accounts/views/api.py:56
 msgid "Login successful."
 msgstr "Connexion réussie."
 
-#: apps/accounts/views/api.py:66
 msgid "Logout successful."
 msgstr "Déconnexion réussie."
 
-#: apps/accounts/views/api.py:123
+msgid "Email is required."
+msgstr "L'email est requis."
+
+msgid "Reset your House password"
+msgstr ""
+
+msgid "If an account with that email exists, a reset link has been sent."
+msgstr ""
+
+#, fuzzy
+#| msgid "Email and password are required."
+msgid "uid, token and new_password are required."
+msgstr "L'email et le mot de passe sont requis."
+
+#, fuzzy
+#| msgid "Invalid credentials."
+msgid "Invalid or expired reset link."
+msgstr "Identifiants invalides."
+
+#, fuzzy
+#| msgid "Password updated successfully."
+msgid "Password has been reset successfully."
+msgstr "Mot de passe mis à jour avec succès."
+
 msgid "new_password and confirm_password are required."
 msgstr "new_password et confirm_password sont requis."
 
-#: apps/accounts/views/api.py:129
 msgid "Password must be at least 8 characters."
 msgstr "Le mot de passe doit contenir au moins 8 caractères."
 
-#: apps/accounts/views/api.py:135
 msgid "Passwords do not match."
 msgstr "Les mots de passe ne correspondent pas."
 
-#: apps/accounts/views/api.py:149
 msgid "Password updated successfully."
 msgstr "Mot de passe mis à jour avec succès."
 
-#: apps/accounts/views/api.py:167
+msgid "You cannot impersonate yourself."
+msgstr ""
+
 msgid "No avatar to delete."
 msgstr "Aucun avatar à supprimer."
 
-#: apps/accounts/views/api.py:179
 msgid "Avatar removed."
 msgstr "Avatar supprimé."
 
-#: apps/accounts/views/api.py:185
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:641
 msgid "No file was submitted."
 msgstr "Aucun fichier n'a été soumis."
 
-#: apps/accounts/views/api.py:191
-msgid "File must be an image (JPEG, PNG, WebP or GIF)."
+msgid "OCR — upload"
 msgstr ""
 
-#: apps/accounts/views/api.py:197
-msgid "File size exceeds 2 MB limit."
-msgstr "La taille du fichier dépasse la limite de 2 Mo."
-
-#: apps/accounts/views/template_views.py:176
-msgid "When"
-msgstr "Quand"
-
-#: apps/accounts/views/template_views.py:179
-msgid "Project"
-msgstr "Projet"
-
-#: apps/accounts/views/template_views.py:182
-#: apps/zones/templates/zones/app/zone_detail.html:4 apps/zones/views_web.py:24
-#: templates/components/_sidebar.html:143 templates/home.html:73
-msgid "Zones"
-msgstr "Zones"
-
-#: apps/accounts/views/template_views.py:184 apps/documents/views_web.py:27
-#: templates/components/_sidebar.html:173 templates/home.html:61
-msgid "Documents"
-msgstr "Documents"
-
-#: apps/accounts/views/template_views.py:201
-#: apps/insurance/templates/insurance/app/insurance.html:23
-#: apps/insurance/templates/insurance/app/insurance_detail.html:23
-msgid "Type"
-msgstr "Type"
-
-#: apps/accounts/views/template_views.py:202
-#: apps/accounts/views/template_views.py:358
-#: apps/accounts/views/template_views.py:405
-msgid "Open tasks"
-msgstr "Tâches ouvertes"
-
-#: apps/accounts/views/template_views.py:205
-msgid "Due date"
-msgstr "Date d'échéance"
-
-#: apps/accounts/views/template_views.py:207
-msgid "Actual cost"
-msgstr "Coût réel"
-
-#: apps/accounts/views/template_views.py:224
-msgid "Added"
+msgid "OCR — backfill"
 msgstr ""
 
-#: apps/accounts/views/template_views.py:227
+msgid "Agent — ask"
+msgstr ""
+
+msgid "JPEG image"
+msgstr ""
+
+msgid "PNG image"
+msgstr ""
+
+msgid "GIF image"
+msgstr ""
+
+msgid "WebP image"
+msgstr ""
+
+msgid "HEIC image"
+msgstr ""
+
+msgid "HEIF image"
+msgstr ""
+
 #, fuzzy
-#| msgid "Interactions"
-msgid "Interaction"
-msgstr "Interactions"
+#| msgid "document"
+msgid "PDF document"
+msgstr "document"
 
-#: apps/accounts/views/template_views.py:245
-#: apps/accounts/views/template_views.py:264
-#: templates/components/_sidebar.html:53
-msgid "Dashboard"
-msgstr "Tableau de bord"
-
-#: apps/accounts/views/template_views.py:262
-#: apps/accounts/views/template_views.py:337
-msgid "Household dashboard"
-msgstr "Tableau de bord du foyer"
-
-#: apps/accounts/views/template_views.py:266
-msgid "Select or create a household to start organizing your home operations."
-msgstr ""
-"Sélectionnez ou créez un foyer pour commencer à organiser la gestion de "
-"votre maison."
-
-#: apps/accounts/views/template_views.py:272
-msgid "Open settings"
-msgstr "Ouvrir les paramètres"
-
-#: apps/accounts/views/template_views.py:280
-msgid "No household available"
-msgstr "Aucun foyer disponible"
-
-#: apps/accounts/views/template_views.py:282
-msgid "Create a household from settings to unlock the dashboard."
-msgstr ""
-"Créez un foyer depuis les paramètres pour débloquer le tableau de bord."
-
-#: apps/accounts/views/template_views.py:285
-msgid "Go to settings"
-msgstr "Aller aux paramètres"
-
-#: apps/accounts/views/template_views.py:340
-msgid "Track what is next, what is blocked, and what changed recently."
-msgstr "Suivez ce qui arrive, ce qui bloque et ce qui a changé récemment."
-
-#: apps/accounts/views/template_views.py:346
-msgid "Active projects"
-msgstr "Projets actifs"
-
-#: apps/accounts/views/template_views.py:349
 #, python-format
-msgid "Pinned: %(count)s"
-msgstr "Épinglés : %(count)s"
-
-#: apps/accounts/views/template_views.py:361
-msgid "Todos with backlog, pending, or in progress status"
-msgstr "Tâches avec le statut backlog, en attente ou en cours"
-
-#: apps/accounts/views/template_views.py:369
-msgid "Visible documents"
-msgstr "Documents visibles"
-
-#: apps/accounts/views/template_views.py:372
-msgid "Recent files linked to this household"
-msgstr "Fichiers récents liés à ce foyer"
-
-#: apps/accounts/views/template_views.py:380
-msgid "Recent interactions"
-msgstr "Interactions récentes"
-
-#: apps/accounts/views/template_views.py:383
-msgid "All visible interactions in this household"
-msgstr "Toutes les interactions visibles dans ce foyer"
-
-#: apps/accounts/views/template_views.py:392
-msgid "Add"
-msgstr "Ajouter"
-
-#: apps/accounts/views/template_views.py:399
-#: apps/projects/templates/projects/partials/_projects_actions.html:7
-#: apps/projects/views_web.py:108
-msgid "New project"
-msgstr "Nouveau projet"
-
-#: apps/accounts/views/template_views.py:411
-msgid "Open documents"
-msgstr "Ouvrir les documents"
-
-#: apps/accounts/views/template_views.py:420
-msgid "Upcoming interactions"
-msgstr "Interactions à venir"
-
-#: apps/accounts/views/template_views.py:422
-msgid "The next dated interactions planned for this household."
-msgstr "Les prochaines interactions planifiées et datées pour ce foyer."
-
-#: apps/accounts/views/template_views.py:425
-msgid "See all interactions"
-msgstr "Voir toutes les interactions"
-
-#: apps/accounts/views/template_views.py:428
-msgid "No upcoming interactions yet."
-msgstr "Aucune interaction à venir pour le moment."
-
-#: apps/accounts/views/template_views.py:434
-msgid "Pinned projects"
-msgstr "Projets épinglés"
-
-#: apps/accounts/views/template_views.py:436
-msgid "Projects you marked as important stay visible here."
+msgid "File too large (%(size)d MB). Maximum allowed: %(max)d MB."
 msgstr ""
-"Les projets que vous avez marqués comme importants restent visibles ici."
 
-#: apps/accounts/views/template_views.py:439
-msgid "See all projects"
-msgstr "Voir tous les projets"
+#, python-format
+msgid "Unsupported file type. Allowed: %(types)s."
+msgstr ""
 
-#: apps/accounts/views/template_views.py:442
-msgid "No pinned projects yet."
-msgstr "Aucun projet épinglé pour le moment."
-
-#: apps/accounts/views/template_views.py:448
-msgid "Task focus"
-msgstr "Focus tâches"
-
-#: apps/accounts/views/template_views.py:450
-msgid "Open todos sorted by their scheduled date."
-msgstr "Tâches ouvertes triées par date prévue."
-
-#: apps/accounts/views/template_views.py:453
-msgid "Open task board"
-msgstr "Ouvrir le tableau des tâches"
-
-#: apps/accounts/views/template_views.py:456
-msgid "No open tasks right now."
-msgstr "Aucune tâche ouverte actuellement."
-
-#: apps/accounts/views/template_views.py:462
-msgid "Recent activity"
-msgstr "Activité récente"
-
-#: apps/accounts/views/template_views.py:464
-msgid "Latest visible interactions across the household."
-msgstr "Dernières interactions visibles dans l'ensemble du foyer."
-
-#: apps/accounts/views/template_views.py:467
-msgid "Open activity stream"
-msgstr "Ouvrir le flux d'activité"
-
-#: apps/accounts/views/template_views.py:470
-msgid "No recent activity to display."
-msgstr "Aucune activité récente à afficher."
-
-#: apps/accounts/views/template_views.py:476
-msgid "Recent documents"
-msgstr "Documents récents"
-
-#: apps/accounts/views/template_views.py:478
-msgid "Latest files visible from this household context."
-msgstr "Derniers fichiers visibles dans le contexte de ce foyer."
-
-#: apps/accounts/views/template_views.py:481
-msgid "Open document library"
-msgstr "Ouvrir la bibliothèque de documents"
-
-#: apps/accounts/views/template_views.py:484
-msgid "No documents uploaded yet."
-msgstr "Aucun document téléversé pour le moment."
-
-#: apps/app_settings/views_web.py:17 templates/components/_sidebar.html:218
-msgid "Settings"
-msgstr "Paramètres"
-
-#: apps/app_settings/views_web.py:18
-msgid "Manage your profile, households, and preferences."
-msgstr "Gérez votre profil, vos foyers et vos préférences."
-
-#: apps/app_settings/views_web.py:69
-msgid "Invalid JSON"
-msgstr "JSON invalide"
-
-#: apps/app_settings/views_web.py:72
-msgid "household_id required"
-msgstr "household_id requis"
-
-#: apps/app_settings/views_web.py:78
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:29
-msgid "Forbidden"
-msgstr "Interdit"
-
-#: apps/directory/models.py:49
 msgid "contact"
 msgstr "contact"
 
-#: apps/directory/models.py:50
 msgid "contacts"
 msgstr "contacts"
 
-#: apps/directory/views_web.py:8 templates/components/_sidebar.html:158
-msgid "Directory"
-msgstr "Annuaire"
-
-#: apps/documents/models.py:74
 msgid "document"
 msgstr "document"
 
-#: apps/documents/models.py:75
 msgid "documents"
 msgstr "documents"
 
-#: apps/documents/views_web.py:28
-msgid ""
-"Review recent files and identify which documents still need an activity "
-"context."
-msgstr ""
-"Consultez les fichiers récents et repérez les documents qui ont encore "
-"besoin d'un contexte d'activité."
-
-#: apps/documents/views_web.py:58
-msgid "Add document"
-msgstr "Ajouter un document"
-
-#: apps/documents/views_web.py:59
-msgid ""
-"Upload a document now and qualify it later by linking it to the right "
-"activity."
-msgstr ""
-"Téléversez un document maintenant et qualifiez-le plus tard en le reliant à "
-"la bonne activité."
-
-#: apps/documents/views_web.py:81
-msgid "Document details"
-msgstr "Détail du document"
-
-#: apps/documents/views_web.py:82
-msgid ""
-"Check the current context of this document, then attach it to the right "
-"activity."
-msgstr ""
-"Vérifiez le contexte actuel de ce document, puis reliez-le à la bonne "
-"activité."
-
-#: apps/electricity/models.py:15
 msgid "Single phase"
 msgstr "Monophasé"
 
-#: apps/electricity/models.py:16
 msgid "Three phase"
 msgstr "Triphasé"
 
-#: apps/electricity/models.py:26
 msgid "Socket"
 msgstr "Prise"
 
-#: apps/electricity/models.py:27
 msgid "Light"
 msgstr "Luminaire"
 
-#: apps/electricity/models.py:71
 msgid "electricity board"
 msgstr "tableau électrique"
 
-#: apps/electricity/models.py:72
 msgid "electricity boards"
 msgstr "tableaux électriques"
 
-#: apps/electricity/models.py:108
-msgid "RCD"
-msgstr "DDR"
+msgid "protective device"
+msgstr ""
 
-#: apps/electricity/models.py:109
-#: apps/electricity/templates/electricity/app/electricity.html:40
-msgid "RCDs"
-msgstr "DDR"
+msgid "protective devices"
+msgstr ""
 
-#: apps/electricity/models.py:151
-msgid "breaker"
-msgstr "disjoncteur"
+#, fuzzy
+#| msgid "Phase must be empty for single-phase board."
+msgid "curve_type must be empty for device_type=rcd."
+msgstr "La phase doit être vide pour un tableau monophasé."
 
-#: apps/electricity/models.py:152
-msgid "breakers"
-msgstr "disjoncteurs"
+msgid "sensitivity_ma must be null for device_type=breaker."
+msgstr ""
 
-#: apps/electricity/models.py:193
+#, fuzzy
+#| msgid "Phase must be empty for single-phase board."
+msgid "type_code must be empty for device_type=breaker."
+msgstr "La phase doit être vide pour un tableau monophasé."
+
+msgid "phase_coverage must be null for device_type=breaker."
+msgstr ""
+
 msgid "circuit"
 msgstr "circuit"
 
-#: apps/electricity/models.py:194
 msgid "circuits"
 msgstr "circuits"
 
-#: apps/electricity/models.py:225
+msgid ""
+"A circuit cannot be directly protected by a pure RCD (device_type=rcd). Use "
+"a breaker, combined, or main device."
+msgstr ""
+
 msgid "usage point"
 msgstr "point d'usage"
 
-#: apps/electricity/models.py:226
 msgid "usage points"
 msgstr "points d'usage"
 
-#: apps/electricity/serializers.py:51
+msgid "maintenance event"
+msgstr ""
+
+msgid "maintenance events"
+msgstr ""
+
 msgid "Household cannot be changed."
 msgstr "Le foyer ne peut pas être modifié."
 
-#: apps/electricity/serializers.py:65
 msgid "Label must be unique across electricity entities in household."
 msgstr "L'étiquette doit être unique parmi les entités électriques du foyer."
 
-#: apps/electricity/serializers.py:95
-msgid "Only one active board is allowed per household."
-msgstr "Un seul tableau actif est autorisé par foyer."
+#, fuzzy
+#| msgid "Parent zone must belong to the same household"
+msgid "Parent board must belong to the same household."
+msgstr "La zone parente doit appartenir au même foyer"
 
-#: apps/electricity/serializers.py:122 apps/electricity/serializers.py:150
-msgid "Board must belong to the same household."
-msgstr "Le tableau doit appartenir au même foyer."
+#, fuzzy
+#| msgid "Email is required."
+msgid "Zone is required."
+msgstr "L'email est requis."
 
-#: apps/electricity/serializers.py:152
-msgid "RCD must belong to the same household."
-msgstr "Le DDR doit appartenir au même foyer."
-
-#: apps/electricity/serializers.py:182
-msgid "Breaker must belong to the same household."
-msgstr "Le disjoncteur doit appartenir au même foyer."
-
-#: apps/electricity/serializers.py:184
-msgid "Breaker must belong to the selected board."
-msgstr "Le disjoncteur doit appartenir au tableau sélectionné."
-
-#: apps/electricity/serializers.py:187
-msgid "Phase is required for three-phase board."
-msgstr "La phase est requise pour un tableau triphasé."
-
-#: apps/electricity/serializers.py:190
-msgid "Phase must be empty for single-phase board."
-msgstr "La phase doit être vide pour un tableau monophasé."
-
-#: apps/electricity/serializers.py:206
 msgid "Zone must belong to the same household."
 msgstr "La zone doit appartenir au même foyer."
 
-#: apps/electricity/serializers.py:234
+#, fuzzy
+#| msgid "Only one active board is allowed per household."
+msgid "Only one active root board is allowed per household."
+msgstr "Un seul tableau actif est autorisé par foyer."
+
+msgid "Board must belong to the same household."
+msgstr "Le tableau doit appartenir au même foyer."
+
+#, fuzzy
+#| msgid "Parent zone must belong to the same household"
+msgid "Parent device must belong to the same household."
+msgstr "La zone parente doit appartenir au même foyer"
+
+msgid "Phase must be empty for single-phase board."
+msgstr "La phase doit être vide pour un tableau monophasé."
+
+msgid "Phase is required for three-phase board."
+msgstr "La phase est requise pour un tableau triphasé."
+
+#, fuzzy
+#| msgid "Phase must be empty for single-phase board."
+msgid "phase_coverage must be null for single-phase board."
+msgstr "La phase doit être vide pour un tableau monophasé."
+
+msgid "pole_count must be 2 or 4 for rcd and combined devices."
+msgstr ""
+
+msgid "row and position must both be set or both be empty."
+msgstr ""
+
+msgid "position_end requires position to be set."
+msgstr ""
+
+#, fuzzy
+#| msgid "End date must be after or equal to start date."
+msgid "position_end must be greater than or equal to position."
+msgstr "La date de fin doit être postérieure ou égale à la date de début."
+
+msgid "Position range overlaps with an existing device on the same row."
+msgstr ""
+
+#, fuzzy
+#| msgid "Parent zone must belong to the same household"
+msgid "Protective device must belong to the same household."
+msgstr "La zone parente doit appartenir au même foyer"
+
+msgid "A circuit cannot be directly protected by a pure RCD (device_type=rcd)."
+msgstr ""
+
+msgid "A spare device cannot protect a circuit."
+msgstr ""
+
+#, fuzzy
+#| msgid "Breaker must belong to the selected board."
+msgid "Protective device must belong to the selected board."
+msgstr "Le disjoncteur doit appartenir au tableau sélectionné."
+
 msgid "Circuit must belong to the same household."
 msgstr "Le circuit doit appartenir au même foyer."
 
-#: apps/electricity/serializers.py:236
 msgid "Usage point must belong to the same household."
 msgstr "Le point d'usage doit appartenir au même foyer."
 
-#: apps/electricity/serializers.py:239
 msgid "Usage point and circuit must be in the same household."
 msgstr "Le point d'usage et le circuit doivent appartenir au même foyer."
 
-#: apps/electricity/serializers.py:246
 msgid "Usage point already has an active circuit link."
 msgstr "Le point d'usage a déjà un lien de circuit actif."
 
-#: apps/electricity/serializers.py:272
 msgid "Actor is required."
 msgstr "L'acteur est requis."
 
-#: apps/electricity/serializers.py:274
 msgid "Actor must be a member of the household."
 msgstr "L'acteur doit être membre du foyer."
 
-#: apps/electricity/templates/electricity/app/electricity.html:4
-#: apps/electricity/templates/electricity/app/electricity.html:9
-#: apps/electricity/views.py:65 templates/components/_sidebar.html:128
-msgid "Electricity"
-msgstr "Électricité"
-
-#: apps/electricity/templates/electricity/app/electricity.html:14
-msgid ""
-"Mini-app electricity initialized by Django SSR, then managed via API in-app."
-msgstr ""
-"Mini-app électricité initialisée par Django SSR, puis gérée via l'API en "
-"interne."
-
-#: apps/electricity/templates/electricity/app/electricity.html:20
-msgid "Circuits"
-msgstr "Circuits"
-
-#: apps/electricity/templates/electricity/app/electricity.html:25
-msgid "No circuits yet."
-msgstr "Aucun circuit pour l'instant."
-
-#: apps/electricity/templates/electricity/app/electricity.html:30
-msgid "Breakers"
-msgstr "Disjoncteurs"
-
-#: apps/electricity/templates/electricity/app/electricity.html:35
-msgid "No breakers yet."
-msgstr "Aucun disjoncteur pour l'instant."
-
-#: apps/electricity/templates/electricity/app/electricity.html:45
-msgid "No RCDs yet."
-msgstr "Aucun DDR pour l'instant."
-
-#: apps/electricity/templates/electricity/app/electricity.html:50
-msgid "Usage points"
-msgstr "Points d'usage"
-
-#: apps/electricity/templates/electricity/app/electricity.html:55
-msgid "No usage points yet."
-msgstr "Aucun point d'usage pour l'instant."
-
-#: apps/electricity/templates/electricity/app/electricity.html:61
-msgid "Active links"
-msgstr "Liens actifs"
-
-#: apps/electricity/templates/electricity/app/electricity.html:66
-msgid "No active links."
-msgstr "Aucun lien actif."
-
-#: apps/electricity/templates/electricity/app/electricity.html:72
-msgid "Inactive links"
-msgstr "Liens inactifs"
-
-#: apps/electricity/templates/electricity/app/electricity.html:80
-msgid "No inactive links."
-msgstr "Aucun lien inactif."
-
-#: apps/electricity/templates/electricity/app/electricity.html:86
-msgid "Recent changes"
-msgstr "Modifications récentes"
-
-#: apps/electricity/templates/electricity/app/electricity.html:91
-msgid "No recent changes."
-msgstr "Aucune modification récente."
-
-#: apps/electricity/views.py:196
-msgid "electricity api ready"
-msgstr "API électricité prête"
-
-#: apps/electricity/views.py:228
-msgid "Cannot delete breaker with active circuits."
+#, fuzzy
+#| msgid "Cannot delete breaker with active circuits."
+msgid "Cannot delete protective device with active circuits."
 msgstr "Impossible de supprimer un disjoncteur avec des circuits actifs."
 
-#: apps/electricity/views.py:239
 msgid "Cannot delete circuit with active usage point links."
 msgstr ""
 "Impossible de supprimer un circuit avec des liens de points d'usage actifs."
 
-#: apps/electricity/views.py:250
 msgid "Cannot delete usage point with active circuit link."
 msgstr ""
 "Impossible de supprimer un point d'usage avec un lien de circuit actif."
 
-#: apps/electricity/views.py:258
 msgid "Cannot delete resource with active dependencies."
 msgstr "Impossible de supprimer une ressource avec des dépendances actives."
 
-#: apps/electricity/views.py:424
-msgid "Not found."
-msgstr "Introuvable."
+msgid "A valid household context is required."
+msgstr "Un contexte de foyer valide est requis."
 
-#: apps/equipment/models.py:12 apps/insurance/models.py:20
+msgid "Must be an integer."
+msgstr ""
+
+msgid "Must be between 1 and 50."
+msgstr ""
+
+msgid "A label prefix is required when creating multiple usage points."
+msgstr ""
+
 #, fuzzy
 #| msgid "Activity"
 msgid "Active"
 msgstr "Activité"
 
-#: apps/equipment/models.py:13
 msgid "Maintenance"
 msgstr ""
 
-#: apps/equipment/models.py:14
 msgid "Storage"
 msgstr ""
 
-#: apps/equipment/models.py:15
 msgid "Retired"
 msgstr ""
 
-#: apps/equipment/models.py:16
 msgid "Lost"
 msgstr ""
 
-#: apps/equipment/models.py:17 apps/stock/models.py:37
 msgid "Ordered"
 msgstr ""
 
-#: apps/equipment/models.py:45 apps/equipment/models.py:46
 msgid "equipment"
 msgstr "équipement"
 
-#: apps/equipment/serializers.py:69 apps/stock/serializers.py:97
 msgid "Invalid zone or access denied."
 msgstr "Zone invalide ou accès refusé."
 
-#: apps/equipment/serializers.py:86
 msgid "Zone must belong to the same household as equipment."
 msgstr "La zone doit appartenir au même foyer que l'équipement."
 
-#: apps/equipment/templates/equipment/partials/_equipment_actions.html:4
-#, fuzzy
-#| msgid "equipment"
-msgid "New equipment"
-msgstr "équipement"
-
-#: apps/equipment/views.py:34 apps/insurance/serializers.py:59
-#: apps/insurance/views.py:32 apps/stock/views.py:43 apps/stock/views.py:78
-msgid "A valid household context is required."
-msgstr "Un contexte de foyer valide est requis."
-
-#: apps/equipment/views.py:82
 #, fuzzy
 #| msgid "Invalid zone or access denied."
 msgid "Invalid equipment or access denied."
 msgstr "Zone invalide ou accès refusé."
 
-#: apps/equipment/views.py:84
 msgid "Interaction household must match equipment household."
 msgstr "Le foyer de l'interaction doit correspondre au foyer de l'équipement."
 
-#: apps/equipment/views.py:86
 msgid "Invalid interaction or access denied."
 msgstr "Interaction invalide ou accès refusé."
 
-#: apps/equipment/views_web.py:41 templates/components/_sidebar.html:98
-#: templates/home.html:67
-msgid "Equipment"
-msgstr "Équipements"
-
-#: apps/households/models.py:26
 msgid "ISO 3166-1 alpha-2 country code (e.g. FR, DE, US)"
 msgstr ""
 
-#: apps/households/models.py:28
 msgid "IANA timezone (e.g. Europe/Paris). Leave blank for UTC."
 msgstr ""
 
-#: apps/households/models.py:42
+msgid "French"
+msgstr ""
+
+msgid "German"
+msgstr ""
+
+msgid "Spanish"
+msgstr ""
+
 msgid "household"
 msgstr "foyer"
 
-#: apps/households/models.py:43
 msgid "households"
 msgstr "foyers"
 
-#: apps/households/models.py:103
 #, fuzzy
 #| msgid "Pending tasks"
 msgid "Pending"
 msgstr "Tâches en attente"
 
-#: apps/households/models.py:104
 msgid "Accepted"
 msgstr ""
 
-#: apps/households/models.py:105
 msgid "Declined"
 msgstr ""
 
-#: apps/households/views.py:109
+#, fuzzy
+#| msgid "household_id required"
+msgid "household_id is required."
+msgstr "household_id requis"
+
+#, fuzzy
+#| msgid "You are not a member of this household."
+msgid "Not a member of this household."
+msgstr "Vous n'êtes pas membre de ce foyer."
+
 msgid "You are not a member of this household."
 msgstr "Vous n'êtes pas membre de ce foyer."
 
-#: apps/households/views.py:122
 msgid "Cannot leave household as the last owner."
 msgstr "Impossible de quitter le foyer en tant que dernier propriétaire."
 
-#: apps/households/views.py:139
-msgid "Email is required."
-msgstr "L'email est requis."
-
-#: apps/households/views.py:148
 msgid "No user found with that email address."
 msgstr "Aucun utilisateur trouvé avec cette adresse email."
 
-#: apps/households/views.py:154
 msgid "User is already a member of this household."
 msgstr "L'utilisateur est déjà membre de ce foyer."
 
-#: apps/households/views.py:164
 msgid "An invitation is already pending for this user."
 msgstr ""
 
-#: apps/households/views.py:181
 #, python-format
 msgid "You've been invited to join %(name)s"
 msgstr "Vous avez été invité(e) à rejoindre %(name)s"
 
-#: apps/households/views.py:182
 #, python-format
 msgid "%(inviter)s invited you to join their household."
 msgstr "%(inviter)s vous a invité(e) à rejoindre son foyer."
 
-#: apps/households/views.py:196
 #, fuzzy
 #| msgid "Interactions"
 msgid "Invitation sent."
 msgstr "Interactions"
 
-#: apps/households/views.py:207
 msgid "user_id is required."
 msgstr "user_id est requis."
 
-#: apps/households/views.py:214 apps/households/views.py:254
 msgid "User is not a member of this household."
 msgstr "L'utilisateur n'est pas membre de ce foyer."
 
-#: apps/households/views.py:225
 msgid "Cannot remove the last owner of the household."
 msgstr "Impossible de supprimer le dernier propriétaire du foyer."
 
-#: apps/households/views.py:241
 msgid "user_id and role are required."
 msgstr "user_id et role sont requis."
 
-#: apps/households/views.py:247
 msgid "Invalid role. Must be owner or member."
 msgstr "Rôle invalide. Doit être owner ou member."
 
-#: apps/households/views.py:265
 msgid "Cannot demote the last owner of the household."
 msgstr "Impossible de rétrograder le dernier propriétaire du foyer."
 
-#: apps/households/views.py:299 apps/households/views.py:343
 msgid "This invitation is no longer pending."
 msgstr ""
 
-#: apps/households/views.py:328
 #, fuzzy, python-format
 #| msgid "You've been invited to join %(name)s"
 msgid "You have joined %(name)s."
 msgstr "Vous avez été invité(e) à rejoindre %(name)s"
 
-#: apps/households/views.py:355
 msgid "Invitation declined."
 msgstr ""
 
-#: apps/insurance/models.py:12
 msgid "Health"
 msgstr ""
 
-#: apps/insurance/models.py:13
 msgid "Home"
 msgstr ""
 
-#: apps/insurance/models.py:14
 msgid "Car"
 msgstr ""
 
-#: apps/insurance/models.py:15
 msgid "Life"
 msgstr ""
 
-#: apps/insurance/models.py:16
 msgid "Liability"
 msgstr ""
 
-#: apps/insurance/models.py:17
 msgid "Other"
 msgstr ""
 
-#: apps/insurance/models.py:21
 msgid "Suspended"
 msgstr ""
 
-#: apps/insurance/models.py:22
 msgid "Terminated"
 msgstr ""
 
-#: apps/insurance/models.py:25
 #, fuzzy
 #| msgid "Monthly cost"
 msgid "Monthly"
 msgstr "Coût mensuel"
 
-#: apps/insurance/models.py:26
 msgid "Quarterly"
 msgstr ""
 
-#: apps/insurance/models.py:27
 #, fuzzy
 #| msgid "Yearly cost"
 msgid "Yearly"
 msgstr "Coût annuel"
 
-#: apps/insurance/models.py:49
 msgid "insurance contract"
 msgstr "contrat d'assurance"
 
-#: apps/insurance/models.py:50
 msgid "insurance contracts"
 msgstr "contrats d'assurance"
 
-#: apps/insurance/serializers.py:45
 msgid "End date must be after or equal to start date."
 msgstr "La date de fin doit être postérieure ou égale à la date de début."
 
-#: apps/insurance/serializers.py:48
 msgid "Monthly cost must be non-negative."
 msgstr "Le coût mensuel doit être positif ou nul."
 
-#: apps/insurance/serializers.py:51
 msgid "Yearly cost must be non-negative."
 msgstr "Le coût annuel doit être positif ou nul."
 
-#: apps/insurance/templates/insurance/app/insurance.html:4
-#: apps/insurance/templates/insurance/app/insurance.html:10
-msgid "Insurance"
-msgstr "Assurance"
-
-#: apps/insurance/templates/insurance/app/insurance.html:12
-msgid "Manage household insurance contracts, providers and renewals."
-msgstr ""
-"Gérez les contrats d'assurance du foyer, les assureurs et les "
-"renouvellements."
-
-#: apps/insurance/templates/insurance/app/insurance.html:15
-msgid "Create contract"
-msgstr "Créer un contrat"
-
-#: apps/insurance/templates/insurance/app/insurance.html:22
-msgid "Name"
-msgstr "Nom"
-
-#: apps/insurance/templates/insurance/app/insurance.html:24
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:12
-msgid "Provider"
-msgstr ""
-
-#: apps/insurance/templates/insurance/app/insurance.html:25
-#: apps/insurance/templates/insurance/app/insurance_detail.html:27
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:31
-msgid "Status"
-msgstr ""
-
-#: apps/insurance/templates/insurance/app/insurance.html:26
-#, fuzzy
-#| msgid "Renewal date"
-msgid "Renewal"
-msgstr "Date de renouvellement"
-
-#: apps/insurance/templates/insurance/app/insurance.html:39
-#, fuzzy
-#| msgid "Open menu"
-msgid "Open"
-msgstr "Ouvrir le menu"
-
-#: apps/insurance/templates/insurance/app/insurance.html:45
-msgid "No insurance contracts yet."
-msgstr "Aucun contrat d'assurance pour le moment."
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:4
-msgid "Insurance contract details"
-msgstr "Détails du contrat d'assurance"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:11
-msgid "No provider specified"
-msgstr "Aucun assureur renseigné"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:15
-msgid "Edit"
-msgstr ""
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:16
-#: apps/insurance/templates/insurance/app/insurance_new.html:13
-msgid "Back to insurance"
-msgstr "Retour aux assurances"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:31
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:17
-msgid "Contract number"
-msgstr "Numéro de contrat"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:35
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:40
-msgid "Insured item"
-msgstr "Bien assuré"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:39
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:45
-msgid "Start date"
-msgstr "Date de début"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:43
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:50
-msgid "End date"
-msgstr "Date de fin"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:47
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:55
-msgid "Renewal date"
-msgstr "Date de renouvellement"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:51
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:60
-msgid "Payment frequency"
-msgstr "Fréquence de paiement"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:55
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:69
-msgid "Monthly cost"
-msgstr "Coût mensuel"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:59
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:74
-msgid "Yearly cost"
-msgstr "Coût annuel"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:66
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:79
-msgid "Coverage summary"
-msgstr "Résumé des garanties"
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:73
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:84
-#: apps/zones/templates/zones/app/zone_detail.html:40
-msgid "Notes"
-msgstr ""
-
-#: apps/insurance/templates/insurance/app/insurance_detail.html:80
-msgid "Delete contract"
-msgstr "Supprimer le contrat"
-
-#: apps/insurance/templates/insurance/app/insurance_edit.html:4
-#: apps/insurance/templates/insurance/app/insurance_edit.html:10
-msgid "Edit insurance contract"
-msgstr "Modifier le contrat d'assurance"
-
-#: apps/insurance/templates/insurance/app/insurance_edit.html:11
-msgid "Update policy information and coverage details."
-msgstr "Mettre à jour les informations de police et les détails de couverture."
-
-#: apps/insurance/templates/insurance/app/insurance_edit.html:13
-msgid "Back to detail"
-msgstr "Retour au détail"
-
-#: apps/insurance/templates/insurance/app/insurance_edit.html:16
-msgid "Save changes"
-msgstr "Enregistrer les modifications"
-
-#: apps/insurance/templates/insurance/app/insurance_new.html:4
-#: apps/insurance/templates/insurance/app/insurance_new.html:10
-msgid "Create insurance contract"
-msgstr "Créer un contrat d'assurance"
-
-#: apps/insurance/templates/insurance/app/insurance_new.html:11
-msgid "Add a new household insurance contract."
-msgstr "Ajouter un nouveau contrat d'assurance du foyer."
-
-#: apps/insurance/templates/insurance/app/insurance_new.html:16
-msgid "Create"
-msgstr ""
-
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:7
-msgid "Contract name"
-msgstr "Nom du contrat"
-
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:22
-msgid "Insurance type"
-msgstr "Type d'assurance"
-
-#: apps/insurance/templates/insurance/app/partials/_insurance_form.html:91
-msgid "Cancel"
-msgstr ""
-
-#: apps/insurance/views_web.py:35
-msgid "Invalid amount."
-msgstr "Montant invalide."
-
-#: apps/insurance/views_web.py:37
-msgid "Amount must be non-negative."
-msgstr "Le montant doit être positif ou nul."
-
-#: apps/insurance/views_web.py:86 apps/insurance/views_web.py:103
-msgid "No household selected."
-msgstr "Aucun foyer sélectionné."
-
-#: apps/insurance/views_web.py:109 apps/insurance/views_web.py:149
-#, fuzzy
-#| msgid "Email is required."
-msgid "Name is required."
-msgstr "L'email est requis."
-
-#: apps/insurance/views_web.py:114
-msgid "Insurance contract created."
-msgstr "Contrat d'assurance créé."
-
-#: apps/insurance/views_web.py:153
-msgid "Insurance contract updated."
-msgstr "Contrat d'assurance mis à jour."
-
-#: apps/insurance/views_web.py:164
-msgid "Insurance contract deleted."
-msgstr "Contrat d'assurance supprimé."
-
-#: apps/interactions/models.py:98
 msgid "interaction"
 msgstr "interaction"
 
-#: apps/interactions/models.py:99
 msgid "interactions"
 msgstr "interactions"
 
-#: apps/interactions/views_web.py:53 apps/interactions/views_web.py:102
-msgid "Activity"
-msgstr "Activité"
-
-#: apps/interactions/views_web.py:107
-msgid "No activity available yet."
-msgstr "Aucune activité disponible pour le moment."
-
-#: apps/interactions/views_web.py:117 apps/interactions/views_web.py:199
-#: apps/interactions/views_web.py:200
-msgid "Add event"
-msgstr "Ajouter un événement"
-
-#: apps/interactions/views_web.py:201
-msgid "Event added successfully."
-msgstr "Événement ajouté avec succès."
-
-#: apps/notifications/models.py:20
 msgid "Household invitation"
 msgstr "Invitation au foyer"
 
-#: apps/notifications/templates/notifications/_bell.html:4
-#: apps/notifications/templates/notifications/app/list.html:4
-#: apps/notifications/templates/notifications/app/list.html:9
-msgid "Notifications"
-msgstr "Notifications"
-
-#: apps/notifications/templates/notifications/app/list.html:17
-msgid "Mark all as read"
-msgstr "Tout marquer comme lu"
-
-#: apps/notifications/templates/notifications/app/list.html:30
-msgid "No notifications."
-msgstr "Aucune notification."
-
-#: apps/notifications/templates/notifications/partials/_notification_item.html:14
-#, fuzzy
-#| msgid "Open settings"
-msgid "View in settings →"
-msgstr "Ouvrir les paramètres"
-
-#: apps/notifications/templates/notifications/partials/_notification_item.html:17
-#, python-format
-msgid "%(time)s ago"
-msgstr "il y a %(time)s"
-
-#: apps/notifications/templates/notifications/partials/_notification_item.html:25
-msgid "Mark read"
-msgstr "Marquer comme lu"
-
-#: apps/notifications/templates/notifications/partials/_notification_item.html:35
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:499
-msgid "Delete"
-msgstr ""
-
-#: apps/photos/views_web.py:7
-#: apps/zones/templates/zones/app/zone_detail.html:37
-#: templates/components/_sidebar.html:188
-msgid "Photos"
-msgstr "Photos"
-
-#: apps/projects/templates/projects/partials/_projects_actions.html:4
-msgid "Groups"
-msgstr ""
-
-#: apps/projects/views_web.py:49 templates/components/_sidebar.html:83
-msgid "Projects"
-msgstr "Projets"
-
-#: apps/projects/views_web.py:50
-msgid "Manage your renovation, maintenance and other projects."
-msgstr ""
-
-#: apps/projects/views_web.py:168
-#, fuzzy
-#| msgid "Projects"
-msgid "Project groups"
-msgstr "Projets"
-
-#: apps/stock/models.py:23
 msgid "stock category"
 msgstr ""
 
-#: apps/stock/models.py:24
 msgid "stock categories"
 msgstr ""
 
-#: apps/stock/models.py:34
 msgid "In stock"
 msgstr ""
 
-#: apps/stock/models.py:35
 msgid "Low stock"
 msgstr ""
 
-#: apps/stock/models.py:36
 msgid "Out of stock"
 msgstr ""
 
-#: apps/stock/models.py:38
 msgid "Expired"
 msgstr ""
 
-#: apps/stock/models.py:39
 msgid "Reserved"
 msgstr ""
 
-#: apps/stock/models.py:65
 msgid "stock item"
 msgstr ""
 
-#: apps/stock/models.py:66
 msgid "stock items"
 msgstr ""
 
-#: apps/stock/serializers.py:84
 #, fuzzy
 #| msgid "Invalid zone or access denied."
 msgid "Invalid category or access denied."
 msgstr "Zone invalide ou accès refusé."
 
-#: apps/stock/serializers.py:112
 #, fuzzy
 #| msgid "Breaker must belong to the same household."
 msgid "Category must belong to the same household as item."
 msgstr "Le disjoncteur doit appartenir au même foyer."
 
-#: apps/stock/serializers.py:115
 #, fuzzy
 #| msgid "Zone must belong to the same household as equipment."
 msgid "Zone must belong to the same household as item."
 msgstr "La zone doit appartenir au même foyer que l'équipement."
 
-#: apps/stock/serializers.py:120
 #, fuzzy
 #| msgid "End date must be after or equal to start date."
 msgid "Max quantity must be greater than or equal to min quantity."
 msgstr "La date de fin doit être postérieure ou égale à la date de début."
 
-#: apps/stock/serializers.py:130
 msgid "Delta must not be zero."
 msgstr ""
 
-#: apps/stock/templates/stock/partials/_stock_actions.html:4
-msgid "New category"
-msgstr ""
-
-#: apps/stock/templates/stock/partials/_stock_actions.html:7
-#, fuzzy
-#| msgid "New interaction"
-msgid "New item"
-msgstr "Nouvelle interaction"
-
-#: apps/stock/views.py:97
 msgid "Adjustment would produce a negative quantity."
 msgstr ""
 
-#: apps/stock/views_web.py:53 templates/components/_sidebar.html:113
-msgid "Stock"
-msgstr ""
+#, python-brace-format
+msgid "Purchase — {name}"
+msgstr "Achat — {name}"
 
-#: apps/tasks/templates/tasks/partials/_tasks_actions.html:4
-msgid "New task"
-msgstr "Nouvelle tâche"
-
-#: apps/tasks/views_web.py:7 templates/components/_sidebar.html:68
-msgid "Tasks"
-msgstr "Tâches"
-
-#: apps/zones/models.py:52
 msgid "zone"
 msgstr "zone"
 
-#: apps/zones/models.py:53
 msgid "zones"
 msgstr "zones"
 
-#: apps/zones/serializers.py:45
 msgid "Parent zone must belong to the same household"
 msgstr "La zone parente doit appartenir au même foyer"
 
-#: apps/zones/templates/zones/app/zone_detail.html:11
-msgid "Server-rendered fallback for zone detail."
-msgstr ""
-
-#: apps/zones/templates/zones/app/zone_detail.html:13
-#, fuzzy
-#| msgid "Back to home"
-msgid "Back to zones"
-msgstr "Retour à l'accueil"
-
-#: apps/zones/templates/zones/app/zone_detail.html:18
-msgid "Parent"
-msgstr ""
-
-#: apps/zones/templates/zones/app/zone_detail.html:22
-msgid "No parent"
-msgstr ""
-
-#: apps/zones/templates/zones/app/zone_detail.html:26
-msgid "Surface"
-msgstr ""
-
-#: apps/zones/templates/zones/app/zone_detail.html:30
-#, fuzzy
-#| msgid "No provider specified"
-msgid "Not provided"
-msgstr "Aucun assureur renseigné"
-
-#: apps/zones/templates/zones/app/zone_detail.html:34
-msgid "Children"
-msgstr ""
-
-#: apps/zones/templates/zones/app/zone_detail.html:44
-#, fuzzy
-#| msgid "No zones yet."
-msgid "No note yet."
-msgstr "Aucune zone pour l'instant."
-
-#: apps/zones/templates/zones/partials/_zones_actions.html:4
-#, fuzzy
-#| msgid "zone"
-msgid "Add zone"
-msgstr "zone"
-
-#: templates/app/placeholder.html:18
-msgid "In progress"
-msgstr "En cours"
-
-#: templates/app/placeholder.html:21
-#, python-format
-msgid ""
-"The <strong>%(section)s</strong> section is being migrated from the legacy "
-"app."
-msgstr ""
-"La section <strong>%(section)s</strong> est en cours de migration depuis "
-"l'ancienne application."
-
-#: templates/base_app.html:50
-msgid "Open menu"
-msgstr "Ouvrir le menu"
-
-#: templates/components/_sidebar.html:28
-msgid "Close menu"
-msgstr "Fermer le menu"
-
-#: templates/components/_sidebar.html:203
-msgid "Interactions"
-msgstr "Interactions"
-
-#: templates/components/_sidebar.html:232
-#, fuzzy
-#| msgid "Django Community"
-msgid "Django Admin"
-msgstr "Admin Django"
-
-#: templates/components/_sidebar.html:257
-msgid "Sign out"
-msgstr "Se déconnecter"
-
-#: templates/home.html:4
 msgid "House — Manage your home"
 msgstr "Maison — Gérez votre maison"
 
-#: templates/home.html:17 templates/login.html:6 templates/login.html:82
 msgid "Sign in"
 msgstr "Se connecter"
 
-#: templates/home.html:25
 msgid "Beta — In development"
 msgstr "Bêta — En développement"
 
-#: templates/home.html:29
 msgid "Your home,"
 msgstr "Votre maison,"
 
-#: templates/home.html:31
 msgid "organized."
 msgstr "organisée."
 
-#: templates/home.html:36
 msgid ""
 "Track interventions, documents, equipment and contacts related to your home "
 "— all in one place."
@@ -1347,186 +668,149 @@ msgstr ""
 "Suivez les interventions, documents, équipements et contacts liés à votre "
 "maison — tout en un seul endroit."
 
-#: templates/home.html:42
 msgid "Open the app"
 msgstr "Ouvrir l'application"
 
-#: templates/home.html:55
 msgid "Interaction log"
 msgstr "Journal d'interactions"
 
-#: templates/home.html:56
 msgid "Notes, interventions, expenses — the full history of your home."
 msgstr "Notes, interventions, dépenses — l'historique complet de votre maison."
 
-#: templates/home.html:62
+msgid "Documents"
+msgstr "Documents"
+
 msgid "Invoices, warranties, plans — centralized and easy to find."
 msgstr "Factures, garanties, plans — centralisés et faciles à retrouver."
 
-#: templates/home.html:68
+msgid "Equipment"
+msgstr "Équipements"
+
 msgid "Track the status and maintenance of each piece of equipment."
 msgstr "Suivez l'état et la maintenance de chaque équipement."
 
-#: templates/home.html:74
+msgid "Zones"
+msgstr "Zones"
+
 msgid "Organize by room, floor or outdoor space."
 msgstr "Organisez par pièce, étage ou espace extérieur."
 
-#: templates/home.html:79
 msgid "Contacts & Contractors"
 msgstr "Contacts et prestataires"
 
-#: templates/home.html:80
 msgid "Craftspeople, neighbors, agencies — your home address book."
 msgstr "Artisans, voisins, agences — votre carnet d'adresses."
 
-#: templates/home.html:85
 msgid "And more to come…"
 msgstr "Et bien plus à venir…"
 
-#: templates/home.html:86
 msgid "Photos, projects, AI — in development."
 msgstr "Photos, projets, IA — en développement."
 
-#: templates/home.html:94
 msgid "All rights reserved"
 msgstr "Tous droits réservés"
 
-#: templates/login.html:19
 msgid "Sign in to your workspace"
 msgstr "Connectez-vous à votre espace"
 
-#: templates/login.html:46
 msgid "Email"
 msgstr "Email"
 
-#: templates/login.html:64
 msgid "Password"
 msgstr "Mot de passe"
 
-#: templates/login.html:88
 msgid "Back to home"
 msgstr "Retour à l'accueil"
 
-#: venv/lib/python3.12/site-packages/django/contrib/messages/apps.py:16
 msgid "Messages"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/contrib/sitemaps/apps.py:8
 msgid "Site Maps"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/contrib/staticfiles/apps.py:9
 msgid "Static Files"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/contrib/syndication/apps.py:7
 msgid "Syndication"
 msgstr ""
 
 #. Translators: String used to replace omitted page numbers in elided page
 #. range generated by paginators, e.g. [1, 2, '…', 5, 6, 7, '…', 9, 10].
-#: venv/lib/python3.12/site-packages/django/core/paginator.py:30
 msgid "…"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/paginator.py:32
 msgid "That page number is not an integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/paginator.py:33
 msgid "That page number is less than 1"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/paginator.py:34
 msgid "That page contains no results"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:22
 msgid "Enter a valid value."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:70
 msgid "Enter a valid domain name."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:153
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:775
 msgid "Enter a valid URL."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:200
 msgid "Enter a valid integer."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:211
 msgid "Enter a valid email address."
 msgstr ""
 
 #. Translators: "letters" means latin letters: a-z and A-Z.
-#: venv/lib/python3.12/site-packages/django/core/validators.py:289
 msgid ""
 "Enter a valid “slug” consisting of letters, numbers, underscores or hyphens."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:297
 msgid ""
 "Enter a valid “slug” consisting of Unicode letters, numbers, underscores, or "
 "hyphens."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:309
-#: venv/lib/python3.12/site-packages/django/core/validators.py:318
-#: venv/lib/python3.12/site-packages/django/core/validators.py:332
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2220
 #, python-format
 msgid "Enter a valid %(protocol)s address."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:311
 msgid "IPv4"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:320
-#: venv/lib/python3.12/site-packages/django/utils/ipv6.py:43
 msgid "IPv6"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:334
 msgid "IPv4 or IPv6"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:375
 msgid "Enter only digits separated by commas."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:381
 #, python-format
 msgid "Ensure this value is %(limit_value)s (it is %(show_value)s)."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:416
 #, python-format
 msgid "Ensure this value is less than or equal to %(limit_value)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:425
 #, python-format
 msgid "Ensure this value is greater than or equal to %(limit_value)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:434
 #, python-format
 msgid "Ensure this value is a multiple of step size %(limit_value)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:441
 #, python-format
 msgid ""
 "Ensure this value is a multiple of step size %(limit_value)s, starting from "
 "%(offset)s, e.g. %(offset)s, %(valid_value1)s, %(valid_value2)s, and so on."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:473
 #, python-format
 msgid ""
 "Ensure this value has at least %(limit_value)d character (it has "
@@ -1537,7 +821,6 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:491
 #, python-format
 msgid ""
 "Ensure this value has at most %(limit_value)d character (it has "
@@ -1548,27 +831,21 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:514
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:366
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:405
 msgid "Enter a number."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:516
 #, python-format
 msgid "Ensure that there are no more than %(max)s digit in total."
 msgid_plural "Ensure that there are no more than %(max)s digits in total."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:521
 #, python-format
 msgid "Ensure that there are no more than %(max)s decimal place."
 msgid_plural "Ensure that there are no more than %(max)s decimal places."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:526
 #, python-format
 msgid ""
 "Ensure that there are no more than %(max)s digit before the decimal point."
@@ -1577,344 +854,267 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:597
 #, python-format
 msgid ""
 "File extension “%(extension)s” is not allowed. Allowed extensions are: "
 "%(allowed_extensions)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/core/validators.py:659
 msgid "Null characters are not allowed."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/base.py:1600
-#: venv/lib/python3.12/site-packages/django/forms/models.py:908
 msgid "and"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/base.py:1602
 #, python-format
 msgid "%(model_name)s with this %(field_labels)s already exists."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/constraints.py:22
 #, python-format
 msgid "Constraint “%(name)s” is violated."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:134
 #, python-format
 msgid "Value %(value)r is not a valid choice."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:135
 msgid "This field cannot be null."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:136
 msgid "This field cannot be blank."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:137
 #, python-format
 msgid "%(model_name)s with this %(field_label)s already exists."
 msgstr ""
 
 #. Translators: The 'lookup_type' is one of 'date', 'year' or
 #. 'month'. Eg: "Title must be unique for pub_date year"
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:141
 #, python-format
 msgid ""
 "%(field_label)s must be unique for %(date_field_label)s %(lookup_type)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:180
 #, python-format
 msgid "Field of type: %(field_type)s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1162
 #, python-format
 msgid "“%(value)s” value must be either True or False."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1163
 #, python-format
 msgid "“%(value)s” value must be either True, False, or None."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1165
 msgid "Boolean (Either True or False)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1215
 #, python-format
 msgid "String (up to %(max_length)s)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1217
 msgid "String (unlimited)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1326
 msgid "Comma-separated integers"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1427
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid date format. It must be in YYYY-MM-DD "
 "format."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1431
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1566
 #, python-format
 msgid ""
 "“%(value)s” value has the correct format (YYYY-MM-DD) but it is an invalid "
 "date."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1435
 msgid "Date (without time)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1562
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in YYYY-MM-DD "
 "HH:MM[:ss[.uuuuuu]][TZ] format."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1570
 #, python-format
 msgid ""
 "“%(value)s” value has the correct format (YYYY-MM-DD HH:MM[:ss[.uuuuuu]]"
 "[TZ]) but it is an invalid date/time."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1575
 msgid "Date (with time)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1702
 #, python-format
 msgid "“%(value)s” value must be a decimal number."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1704
 msgid "Decimal number"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1864
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in [DD] "
 "[[HH:]MM:]ss[.uuuuuu] format."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1868
 msgid "Duration"
 msgstr "Durée"
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1920
 msgid "Email address"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:1945
 msgid "File path"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2023
 #, python-format
 msgid "“%(value)s” value must be a float."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2025
 msgid "Floating point number"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2065
 #, python-format
 msgid "“%(value)s” value must be an integer."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2067
 msgid "Integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2163
 msgid "Big (8 byte) integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2180
 msgid "Small integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2188
 msgid "IPv4 address"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2219
 msgid "IP address"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2310
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2311
 #, python-format
 msgid "“%(value)s” value must be either None, True or False."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2313
 msgid "Boolean (Either True, False or None)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2364
 msgid "Positive big integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2379
 msgid "Positive integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2394
 msgid "Positive small integer"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2410
 #, python-format
 msgid "Slug (up to %(max_length)s)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2446
 msgid "Text"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2526
 #, python-format
 msgid ""
 "“%(value)s” value has an invalid format. It must be in HH:MM[:ss[.uuuuuu]] "
 "format."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2530
 #, python-format
 msgid ""
 "“%(value)s” value has the correct format (HH:MM[:ss[.uuuuuu]]) but it is an "
 "invalid time."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2534
 msgid "Time"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2642
 msgid "URL"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2666
 msgid "Raw binary data"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2731
 #, python-format
 msgid "“%(value)s” is not a valid UUID."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/__init__.py:2733
 msgid "Universally unique identifier"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/files.py:244
 msgid "File"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/files.py:420
 msgid "Image"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/json.py:24
 msgid "A JSON object"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/json.py:26
 msgid "Value must be valid JSON."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:979
 #, python-format
 msgid "%(model)s instance with %(field)s %(value)r is not a valid choice."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:982
 msgid "Foreign Key (type determined by related field)"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:1276
 msgid "One-to-one relationship"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:1333
 #, python-format
 msgid "%(from)s-%(to)s relationship"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:1335
 #, python-format
 msgid "%(from)s-%(to)s relationships"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/db/models/fields/related.py:1383
 msgid "Many-to-many relationship"
 msgstr ""
 
 #. Translators: If found as last label character, these punctuation
 #. characters will prevent the default label_suffix to be appended to the label
-#: venv/lib/python3.12/site-packages/django/forms/boundfield.py:185
 msgid ":?.!"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:95
 msgid "This field is required."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:315
 msgid "Enter a whole number."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:486
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1267
 msgid "Enter a valid date."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:509
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1268
 msgid "Enter a valid time."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:536
 msgid "Enter a valid date/time."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:570
 msgid "Enter a valid duration."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:571
 #, python-brace-format
 msgid "The number of days must be between {min_days} and {max_days}."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:640
 msgid "No file was submitted. Check the encoding type on the form."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:642
 msgid "The submitted file is empty."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:644
 #, python-format
 msgid "Ensure this filename has at most %(max)d character (it has %(length)d)."
 msgid_plural ""
@@ -1922,543 +1122,428 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:649
 msgid "Please either submit a file or check the clear checkbox, not both."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:717
 msgid ""
 "Upload a valid image. The file you uploaded was either not an image or a "
 "corrupted image."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:889
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:975
-#: venv/lib/python3.12/site-packages/django/forms/models.py:1592
 #, python-format
 msgid "Select a valid choice. %(value)s is not one of the available choices."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:977
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1096
-#: venv/lib/python3.12/site-packages/django/forms/models.py:1590
 msgid "Enter a list of values."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1097
 msgid "Enter a complete value."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1339
 msgid "Enter a valid UUID."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/fields.py:1369
 msgid "Enter a valid JSON."
 msgstr ""
 
 #. Translators: This is the default suffix added to form field labels
-#: venv/lib/python3.12/site-packages/django/forms/forms.py:97
 msgid ":"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/forms.py:239
 #, python-format
 msgid "(Hidden field %(name)s) %(error)s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:61
 #, python-format
 msgid ""
 "ManagementForm data is missing or has been tampered with. Missing fields: "
 "%(field_names)s. You may need to file a bug report if the issue persists."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:65
 #, python-format
 msgid "Please submit at most %(num)d form."
 msgid_plural "Please submit at most %(num)d forms."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:70
 #, python-format
 msgid "Please submit at least %(num)d form."
 msgid_plural "Please submit at least %(num)d forms."
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:484
-#: venv/lib/python3.12/site-packages/django/forms/formsets.py:491
 msgid "Order"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:901
+msgid "Delete"
+msgstr ""
+
 #, python-format
 msgid "Please correct the duplicate data for %(field)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:906
 #, python-format
 msgid "Please correct the duplicate data for %(field)s, which must be unique."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:913
 #, python-format
 msgid ""
 "Please correct the duplicate data for %(field_name)s which must be unique "
 "for the %(lookup)s in %(date_field)s."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:922
 msgid "Please correct the duplicate values below."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:1359
 msgid "The inline value did not match the parent instance."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:1450
 msgid "Select a valid choice. That choice is not one of the available choices."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/models.py:1594
 #, python-format
 msgid "“%(pk)s” is not a valid value."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/utils.py:229
 #, python-format
 msgid ""
 "%(datetime)s couldn’t be interpreted in time zone %(current_timezone)s; it "
 "may be ambiguous or it may not exist."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:527
 msgid "Clear"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:528
 msgid "Currently"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:529
 msgid "Change"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:866
 msgid "Unknown"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:867
 msgid "Yes"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/forms/widgets.py:868
 msgid "No"
 msgstr ""
 
 #. Translators: Please do not add spaces around commas.
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:873
 msgid "yes,no,maybe"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:903
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:920
 #, python-format
 msgid "%(size)d byte"
 msgid_plural "%(size)d bytes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:922
 #, python-format
 msgid "%s KB"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:924
 #, python-format
 msgid "%s MB"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:926
 #, python-format
 msgid "%s GB"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:928
 #, python-format
 msgid "%s TB"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/template/defaultfilters.py:930
 #, python-format
 msgid "%s PB"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:74
 msgid "p.m."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:75
 msgid "a.m."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:80
 msgid "PM"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:81
 msgid "AM"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:153
 msgid "midnight"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dateformat.py:155
 msgid "noon"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:7
 msgid "Monday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:8
 msgid "Tuesday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:9
 msgid "Wednesday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:10
 msgid "Thursday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:11
 msgid "Friday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:12
 msgid "Saturday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:13
 msgid "Sunday"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:16
 msgid "Mon"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:17
 msgid "Tue"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:18
 msgid "Wed"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:19
 msgid "Thu"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:20
 msgid "Fri"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:21
 msgid "Sat"
 msgstr "sam."
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:22
 msgid "Sun"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:25
 msgid "January"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:26
 msgid "February"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:27
 msgid "March"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:28
 msgid "April"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:29
 msgid "May"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:30
 msgid "June"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:31
 msgid "July"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:32
 msgid "August"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:33
 msgid "September"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:34
 msgid "October"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:35
 msgid "November"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:36
 msgid "December"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:39
 msgid "jan"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:40
 msgid "feb"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:41
 msgid "mar"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:42
 msgid "apr"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:43
 msgid "may"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:44
 msgid "jun"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:45
 msgid "jul"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:46
 msgid "aug"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:47
 msgid "sep"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:48
 msgid "oct"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:49
 msgid "nov"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:50
 msgid "dec"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:53
 msgctxt "abbrev. month"
 msgid "Jan."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:54
 msgctxt "abbrev. month"
 msgid "Feb."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:55
 msgctxt "abbrev. month"
 msgid "March"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:56
 msgctxt "abbrev. month"
 msgid "April"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:57
 msgctxt "abbrev. month"
 msgid "May"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:58
 msgctxt "abbrev. month"
 msgid "June"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:59
 msgctxt "abbrev. month"
 msgid "July"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:60
 msgctxt "abbrev. month"
 msgid "Aug."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:61
 msgctxt "abbrev. month"
 msgid "Sept."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:62
 msgctxt "abbrev. month"
 msgid "Oct."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:63
 msgctxt "abbrev. month"
 msgid "Nov."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:64
 msgctxt "abbrev. month"
 msgid "Dec."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:67
 msgctxt "alt. month"
 msgid "January"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:68
 msgctxt "alt. month"
 msgid "February"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:69
 msgctxt "alt. month"
 msgid "March"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:70
 msgctxt "alt. month"
 msgid "April"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:71
 msgctxt "alt. month"
 msgid "May"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:72
 msgctxt "alt. month"
 msgid "June"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:73
 msgctxt "alt. month"
 msgid "July"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:74
 msgctxt "alt. month"
 msgid "August"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:75
 msgctxt "alt. month"
 msgid "September"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:76
 msgctxt "alt. month"
 msgid "October"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:77
 msgctxt "alt. month"
 msgid "November"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/dates.py:78
 msgctxt "alt. month"
 msgid "December"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/ipv6.py:20
 msgid "This is not a valid IPv6 address."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/text.py:76
 #, python-format
 msgctxt "String to return when truncating text"
 msgid "%(truncated_text)s…"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/text.py:288
 msgid "or"
 msgstr ""
 
 #. Translators: This string is used as a separator between list elements
-#: venv/lib/python3.12/site-packages/django/utils/text.py:307
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:135
 msgid ", "
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:8
 #, python-format
 msgid "%(num)d year"
 msgid_plural "%(num)d years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:9
 #, python-format
 msgid "%(num)d month"
 msgid_plural "%(num)d months"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:10
 #, python-format
 msgid "%(num)d week"
 msgid_plural "%(num)d weeks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:11
 #, python-format
 msgid "%(num)d day"
 msgid_plural "%(num)d days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:12
 #, python-format
 msgid "%(num)d hour"
 msgid_plural "%(num)d hours"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/utils/timesince.py:13
 #, python-format
 msgid "%(num)d minute"
 msgid_plural "%(num)d minutes"
 msgstr[0] ""
 msgstr[1] ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:30
+msgid "Forbidden"
+msgstr "Interdit"
+
 msgid "CSRF verification failed. Request aborted."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:34
 msgid ""
 "You are seeing this message because this HTTPS site requires a “Referer "
 "header” to be sent by your web browser, but none was sent. This header is "
@@ -2466,14 +1551,12 @@ msgid ""
 "hijacked by third parties."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:40
 msgid ""
 "If you have configured your browser to disable “Referer” headers, please re-"
 "enable them, at least for this site, or for HTTPS connections, or for “same-"
 "origin” requests."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:45
 msgid ""
 "If you are using the <meta name=\"referrer\" content=\"no-referrer\"> tag or "
 "including the “Referrer-Policy: no-referrer” header, please remove them. The "
@@ -2482,111 +1565,84 @@ msgid ""
 "rel=\"noreferrer\" …> for links to third-party sites."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:54
 msgid ""
 "You are seeing this message because this site requires a CSRF cookie when "
 "submitting forms. This cookie is required for security reasons, to ensure "
 "that your browser is not being hijacked by third parties."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:60
 msgid ""
 "If you have configured your browser to disable cookies, please re-enable "
 "them, at least for this site, or for “same-origin” requests."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/csrf.py:66
 msgid "More information is available with DEBUG=True."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:44
 msgid "No year specified"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:64
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:115
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:214
 msgid "Date out of range"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:94
 msgid "No month specified"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:147
 msgid "No day specified"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:194
 msgid "No week specified"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:353
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:384
 #, python-format
 msgid "No %(verbose_name_plural)s available"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:680
 #, python-format
 msgid ""
 "Future %(verbose_name_plural)s not available because "
 "%(class_name)s.allow_future is False."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/dates.py:720
 #, python-format
 msgid "Invalid date string “%(datestr)s” given format “%(format)s”"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/detail.py:56
 #, python-format
 msgid "No %(verbose_name)s found matching the query"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/list.py:70
 msgid "Page is not “last”, nor can it be converted to an int."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/list.py:77
 #, python-format
 msgid "Invalid page (%(page_number)s): %(message)s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/generic/list.py:173
 #, python-format
 msgid "Empty list and “%(class_name)s.allow_empty” is False."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/static.py:49
 msgid "Directory indexes are not allowed here."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/static.py:51
 #, python-format
 msgid "“%(path)s” does not exist"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/static.py:68
-#: venv/lib/python3.12/site-packages/django/views/templates/directory_index.html:8
-#: venv/lib/python3.12/site-packages/django/views/templates/directory_index.html:11
 #, python-format
 msgid "Index of %(directory)s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:7
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:204
 msgid "The install worked successfully! Congratulations!"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:206
 #, python-format
 msgid ""
 "View <a href=\"https://docs.djangoproject.com/en/%(version)s/releases/\" "
 "target=\"_blank\" rel=\"noopener\">release notes</a> for Django %(version)s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:208
 #, python-format
 msgid ""
 "You are seeing this page because <a href=\"https://docs.djangoproject.com/en/"
@@ -2595,48 +1651,34 @@ msgid ""
 "configured any URLs."
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:217
 msgid "Django Documentation"
 msgstr "Documentation"
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:218
 msgid "Topics, references, &amp; how-to’s"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:226
 msgid "Tutorial: A Polling App"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:227
 msgid "Get started with Django"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:235
 msgid "Django Community"
 msgstr "Admin Django"
 
-#: venv/lib/python3.12/site-packages/django/views/templates/default_urlconf.html:236
 msgid "Connect, get help, or contribute"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1404
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1457
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1461
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1465
 msgid "No response body"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1429
-#: venv/lib/python3.12/site-packages/drf_spectacular/openapi.py:1483
 msgid "Unspecified response body"
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/drf_spectacular/plumbing.py:488
 #, python-format
 msgid "Token-based authentication with required prefix \"%s\""
 msgstr ""
 
-#: venv/lib/python3.12/site-packages/drf_spectacular/views.py:45
 msgid ""
 "\n"
 "    OpenApi3 schema for this API. Format can be selected via content "
@@ -2646,3 +1688,481 @@ msgid ""
 "    - JSON: application/vnd.oai.openapi+json\n"
 "    "
 msgstr ""
+
+#~ msgid "User's preferred language"
+#~ msgstr "Langue préférée de l'utilisateur"
+
+#~ msgid "File size exceeds 2 MB limit."
+#~ msgstr "La taille du fichier dépasse la limite de 2 Mo."
+
+#~ msgid "When"
+#~ msgstr "Quand"
+
+#~ msgid "Project"
+#~ msgstr "Projet"
+
+#~ msgid "Type"
+#~ msgstr "Type"
+
+#~ msgid "Open tasks"
+#~ msgstr "Tâches ouvertes"
+
+#~ msgid "Due date"
+#~ msgstr "Date d'échéance"
+
+#~ msgid "Actual cost"
+#~ msgstr "Coût réel"
+
+#, fuzzy
+#~| msgid "Interactions"
+#~ msgid "Interaction"
+#~ msgstr "Interactions"
+
+#~ msgid "Dashboard"
+#~ msgstr "Tableau de bord"
+
+#~ msgid "Household dashboard"
+#~ msgstr "Tableau de bord du foyer"
+
+#~ msgid ""
+#~ "Select or create a household to start organizing your home operations."
+#~ msgstr ""
+#~ "Sélectionnez ou créez un foyer pour commencer à organiser la gestion de "
+#~ "votre maison."
+
+#~ msgid "Open settings"
+#~ msgstr "Ouvrir les paramètres"
+
+#~ msgid "No household available"
+#~ msgstr "Aucun foyer disponible"
+
+#~ msgid "Create a household from settings to unlock the dashboard."
+#~ msgstr ""
+#~ "Créez un foyer depuis les paramètres pour débloquer le tableau de bord."
+
+#~ msgid "Go to settings"
+#~ msgstr "Aller aux paramètres"
+
+#~ msgid "Track what is next, what is blocked, and what changed recently."
+#~ msgstr "Suivez ce qui arrive, ce qui bloque et ce qui a changé récemment."
+
+#~ msgid "Active projects"
+#~ msgstr "Projets actifs"
+
+#, python-format
+#~ msgid "Pinned: %(count)s"
+#~ msgstr "Épinglés : %(count)s"
+
+#~ msgid "Todos with backlog, pending, or in progress status"
+#~ msgstr "Tâches avec le statut backlog, en attente ou en cours"
+
+#~ msgid "Visible documents"
+#~ msgstr "Documents visibles"
+
+#~ msgid "Recent files linked to this household"
+#~ msgstr "Fichiers récents liés à ce foyer"
+
+#~ msgid "Recent interactions"
+#~ msgstr "Interactions récentes"
+
+#~ msgid "All visible interactions in this household"
+#~ msgstr "Toutes les interactions visibles dans ce foyer"
+
+#~ msgid "Add"
+#~ msgstr "Ajouter"
+
+#~ msgid "New project"
+#~ msgstr "Nouveau projet"
+
+#~ msgid "Open documents"
+#~ msgstr "Ouvrir les documents"
+
+#~ msgid "Upcoming interactions"
+#~ msgstr "Interactions à venir"
+
+#~ msgid "The next dated interactions planned for this household."
+#~ msgstr "Les prochaines interactions planifiées et datées pour ce foyer."
+
+#~ msgid "See all interactions"
+#~ msgstr "Voir toutes les interactions"
+
+#~ msgid "No upcoming interactions yet."
+#~ msgstr "Aucune interaction à venir pour le moment."
+
+#~ msgid "Pinned projects"
+#~ msgstr "Projets épinglés"
+
+#~ msgid "Projects you marked as important stay visible here."
+#~ msgstr ""
+#~ "Les projets que vous avez marqués comme importants restent visibles ici."
+
+#~ msgid "See all projects"
+#~ msgstr "Voir tous les projets"
+
+#~ msgid "No pinned projects yet."
+#~ msgstr "Aucun projet épinglé pour le moment."
+
+#~ msgid "Task focus"
+#~ msgstr "Focus tâches"
+
+#~ msgid "Open todos sorted by their scheduled date."
+#~ msgstr "Tâches ouvertes triées par date prévue."
+
+#~ msgid "Open task board"
+#~ msgstr "Ouvrir le tableau des tâches"
+
+#~ msgid "No open tasks right now."
+#~ msgstr "Aucune tâche ouverte actuellement."
+
+#~ msgid "Recent activity"
+#~ msgstr "Activité récente"
+
+#~ msgid "Latest visible interactions across the household."
+#~ msgstr "Dernières interactions visibles dans l'ensemble du foyer."
+
+#~ msgid "Open activity stream"
+#~ msgstr "Ouvrir le flux d'activité"
+
+#~ msgid "No recent activity to display."
+#~ msgstr "Aucune activité récente à afficher."
+
+#~ msgid "Recent documents"
+#~ msgstr "Documents récents"
+
+#~ msgid "Latest files visible from this household context."
+#~ msgstr "Derniers fichiers visibles dans le contexte de ce foyer."
+
+#~ msgid "Open document library"
+#~ msgstr "Ouvrir la bibliothèque de documents"
+
+#~ msgid "No documents uploaded yet."
+#~ msgstr "Aucun document téléversé pour le moment."
+
+#~ msgid "Settings"
+#~ msgstr "Paramètres"
+
+#~ msgid "Manage your profile, households, and preferences."
+#~ msgstr "Gérez votre profil, vos foyers et vos préférences."
+
+#~ msgid "Invalid JSON"
+#~ msgstr "JSON invalide"
+
+#~ msgid "Directory"
+#~ msgstr "Annuaire"
+
+#~ msgid ""
+#~ "Review recent files and identify which documents still need an activity "
+#~ "context."
+#~ msgstr ""
+#~ "Consultez les fichiers récents et repérez les documents qui ont encore "
+#~ "besoin d'un contexte d'activité."
+
+#~ msgid "Add document"
+#~ msgstr "Ajouter un document"
+
+#~ msgid ""
+#~ "Upload a document now and qualify it later by linking it to the right "
+#~ "activity."
+#~ msgstr ""
+#~ "Téléversez un document maintenant et qualifiez-le plus tard en le reliant "
+#~ "à la bonne activité."
+
+#~ msgid "Document details"
+#~ msgstr "Détail du document"
+
+#~ msgid ""
+#~ "Check the current context of this document, then attach it to the right "
+#~ "activity."
+#~ msgstr ""
+#~ "Vérifiez le contexte actuel de ce document, puis reliez-le à la bonne "
+#~ "activité."
+
+#~ msgid "RCD"
+#~ msgstr "DDR"
+
+#~ msgid "RCDs"
+#~ msgstr "DDR"
+
+#~ msgid "breaker"
+#~ msgstr "disjoncteur"
+
+#~ msgid "breakers"
+#~ msgstr "disjoncteurs"
+
+#~ msgid "RCD must belong to the same household."
+#~ msgstr "Le DDR doit appartenir au même foyer."
+
+#~ msgid "Breaker must belong to the same household."
+#~ msgstr "Le disjoncteur doit appartenir au même foyer."
+
+#~ msgid "Electricity"
+#~ msgstr "Électricité"
+
+#~ msgid ""
+#~ "Mini-app electricity initialized by Django SSR, then managed via API in-"
+#~ "app."
+#~ msgstr ""
+#~ "Mini-app électricité initialisée par Django SSR, puis gérée via l'API en "
+#~ "interne."
+
+#~ msgid "Circuits"
+#~ msgstr "Circuits"
+
+#~ msgid "No circuits yet."
+#~ msgstr "Aucun circuit pour l'instant."
+
+#~ msgid "Breakers"
+#~ msgstr "Disjoncteurs"
+
+#~ msgid "No breakers yet."
+#~ msgstr "Aucun disjoncteur pour l'instant."
+
+#~ msgid "No RCDs yet."
+#~ msgstr "Aucun DDR pour l'instant."
+
+#~ msgid "Usage points"
+#~ msgstr "Points d'usage"
+
+#~ msgid "No usage points yet."
+#~ msgstr "Aucun point d'usage pour l'instant."
+
+#~ msgid "Active links"
+#~ msgstr "Liens actifs"
+
+#~ msgid "No active links."
+#~ msgstr "Aucun lien actif."
+
+#~ msgid "Inactive links"
+#~ msgstr "Liens inactifs"
+
+#~ msgid "No inactive links."
+#~ msgstr "Aucun lien inactif."
+
+#~ msgid "Recent changes"
+#~ msgstr "Modifications récentes"
+
+#~ msgid "No recent changes."
+#~ msgstr "Aucune modification récente."
+
+#~ msgid "electricity api ready"
+#~ msgstr "API électricité prête"
+
+#~ msgid "Not found."
+#~ msgstr "Introuvable."
+
+#, fuzzy
+#~| msgid "equipment"
+#~ msgid "New equipment"
+#~ msgstr "équipement"
+
+#~ msgid "Insurance"
+#~ msgstr "Assurance"
+
+#~ msgid "Manage household insurance contracts, providers and renewals."
+#~ msgstr ""
+#~ "Gérez les contrats d'assurance du foyer, les assureurs et les "
+#~ "renouvellements."
+
+#~ msgid "Create contract"
+#~ msgstr "Créer un contrat"
+
+#~ msgid "Name"
+#~ msgstr "Nom"
+
+#, fuzzy
+#~| msgid "Renewal date"
+#~ msgid "Renewal"
+#~ msgstr "Date de renouvellement"
+
+#, fuzzy
+#~| msgid "Open menu"
+#~ msgid "Open"
+#~ msgstr "Ouvrir le menu"
+
+#~ msgid "No insurance contracts yet."
+#~ msgstr "Aucun contrat d'assurance pour le moment."
+
+#~ msgid "Insurance contract details"
+#~ msgstr "Détails du contrat d'assurance"
+
+#~ msgid "No provider specified"
+#~ msgstr "Aucun assureur renseigné"
+
+#~ msgid "Back to insurance"
+#~ msgstr "Retour aux assurances"
+
+#~ msgid "Contract number"
+#~ msgstr "Numéro de contrat"
+
+#~ msgid "Insured item"
+#~ msgstr "Bien assuré"
+
+#~ msgid "Start date"
+#~ msgstr "Date de début"
+
+#~ msgid "End date"
+#~ msgstr "Date de fin"
+
+#~ msgid "Renewal date"
+#~ msgstr "Date de renouvellement"
+
+#~ msgid "Payment frequency"
+#~ msgstr "Fréquence de paiement"
+
+#~ msgid "Monthly cost"
+#~ msgstr "Coût mensuel"
+
+#~ msgid "Yearly cost"
+#~ msgstr "Coût annuel"
+
+#~ msgid "Coverage summary"
+#~ msgstr "Résumé des garanties"
+
+#~ msgid "Delete contract"
+#~ msgstr "Supprimer le contrat"
+
+#~ msgid "Edit insurance contract"
+#~ msgstr "Modifier le contrat d'assurance"
+
+#~ msgid "Update policy information and coverage details."
+#~ msgstr ""
+#~ "Mettre à jour les informations de police et les détails de couverture."
+
+#~ msgid "Back to detail"
+#~ msgstr "Retour au détail"
+
+#~ msgid "Save changes"
+#~ msgstr "Enregistrer les modifications"
+
+#~ msgid "Create insurance contract"
+#~ msgstr "Créer un contrat d'assurance"
+
+#~ msgid "Add a new household insurance contract."
+#~ msgstr "Ajouter un nouveau contrat d'assurance du foyer."
+
+#~ msgid "Contract name"
+#~ msgstr "Nom du contrat"
+
+#~ msgid "Insurance type"
+#~ msgstr "Type d'assurance"
+
+#~ msgid "Invalid amount."
+#~ msgstr "Montant invalide."
+
+#~ msgid "Amount must be non-negative."
+#~ msgstr "Le montant doit être positif ou nul."
+
+#~ msgid "No household selected."
+#~ msgstr "Aucun foyer sélectionné."
+
+#~ msgid "Insurance contract created."
+#~ msgstr "Contrat d'assurance créé."
+
+#~ msgid "Insurance contract updated."
+#~ msgstr "Contrat d'assurance mis à jour."
+
+#~ msgid "Insurance contract deleted."
+#~ msgstr "Contrat d'assurance supprimé."
+
+#~ msgid "Activity"
+#~ msgstr "Activité"
+
+#~ msgid "No activity available yet."
+#~ msgstr "Aucune activité disponible pour le moment."
+
+#~ msgid "Add event"
+#~ msgstr "Ajouter un événement"
+
+#~ msgid "Event added successfully."
+#~ msgstr "Événement ajouté avec succès."
+
+#~ msgid "Notifications"
+#~ msgstr "Notifications"
+
+#~ msgid "Mark all as read"
+#~ msgstr "Tout marquer comme lu"
+
+#~ msgid "No notifications."
+#~ msgstr "Aucune notification."
+
+#, fuzzy
+#~| msgid "Open settings"
+#~ msgid "View in settings →"
+#~ msgstr "Ouvrir les paramètres"
+
+#, python-format
+#~ msgid "%(time)s ago"
+#~ msgstr "il y a %(time)s"
+
+#~ msgid "Mark read"
+#~ msgstr "Marquer comme lu"
+
+#~ msgid "Photos"
+#~ msgstr "Photos"
+
+#~ msgid "Projects"
+#~ msgstr "Projets"
+
+#, fuzzy
+#~| msgid "Projects"
+#~ msgid "Project groups"
+#~ msgstr "Projets"
+
+#, fuzzy
+#~| msgid "New interaction"
+#~ msgid "New item"
+#~ msgstr "Nouvelle interaction"
+
+#~ msgid "New task"
+#~ msgstr "Nouvelle tâche"
+
+#~ msgid "Tasks"
+#~ msgstr "Tâches"
+
+#, fuzzy
+#~| msgid "Back to home"
+#~ msgid "Back to zones"
+#~ msgstr "Retour à l'accueil"
+
+#, fuzzy
+#~| msgid "No provider specified"
+#~ msgid "Not provided"
+#~ msgstr "Aucun assureur renseigné"
+
+#, fuzzy
+#~| msgid "No zones yet."
+#~ msgid "No note yet."
+#~ msgstr "Aucune zone pour l'instant."
+
+#, fuzzy
+#~| msgid "zone"
+#~ msgid "Add zone"
+#~ msgstr "zone"
+
+#~ msgid "In progress"
+#~ msgstr "En cours"
+
+#, python-format
+#~ msgid ""
+#~ "The <strong>%(section)s</strong> section is being migrated from the "
+#~ "legacy app."
+#~ msgstr ""
+#~ "La section <strong>%(section)s</strong> est en cours de migration depuis "
+#~ "l'ancienne application."
+
+#~ msgid "Open menu"
+#~ msgstr "Ouvrir le menu"
+
+#~ msgid "Close menu"
+#~ msgstr "Fermer le menu"
+
+#~ msgid "Interactions"
+#~ msgstr "Interactions"
+
+#, fuzzy
+#~| msgid "Django Community"
+#~ msgid "Django Admin"
+#~ msgstr "Admin Django"
+
+#~ msgid "Sign out"
+#~ msgstr "Se déconnecter"

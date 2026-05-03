@@ -26,7 +26,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-syste
 import { cn } from '@/lib/utils';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import AlertsSection from '@/features/alerts/AlertsSection';
-import { getInteractionDisplaySubject } from '@/features/interactions/displaySubject';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -58,7 +57,6 @@ interface InteractionItem {
   subject: string;
   type: string;
   occurred_at: string;
-  metadata?: Record<string, unknown>;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -492,7 +490,7 @@ export default function DashboardPage() {
           isLoading={interactionsLoading}
           items={interactions.map((item) => ({
             id: item.id,
-            title: getInteractionDisplaySubject(item, t),
+            title: item.subject,
             url: '/app/interactions',
             badge: { label: item.type, tone: 'slate' as DashboardTone },
             meta: [{ label: t('dashboard.meta.when'), value: new Date(item.occurred_at).toLocaleDateString() }],

@@ -1214,7 +1214,6 @@
       "title": "Reabastecer — {{name}}",
       "current_quantity": "Cantidad actual: {{quantity}} {{unit}}",
       "created": "Compra registrada",
-      "interaction_subject": "Compra — {{name}}",
       "fields": {
         "delta": "Cantidad añadida ({{unit}})",
         "price": "Precio",

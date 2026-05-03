@@ -81,6 +81,42 @@ t('tasks.title')
 
 **Pourquoi :** les `defaultValue` masquent les traductions manquantes. Sans eux, une clé absente du fichier JSON affiche la clé brute, ce qui permet de repérer immédiatement ce qui n'est pas traduit.
 
+## Auto-création d'`Interaction` — pattern write-time
+
+Quand une action utilisateur auto-crée une `Interaction` (ex: achat de stock → interaction `expense`), le titre est rendu **dans la langue de l'utilisateur au moment de la création**, puis stocké en clair dans `subject`. Pas de localisation à l'affichage — admin, RAG, citation, CSV, `__str__`, l'edit user : tout consomme `interaction.subject` brut.
+
+**Convention** :
+
+```python
+# apps/<feature>/views.py
+from django.utils.translation import gettext_lazy as _
+
+interaction = Interaction.objects.create(
+    household=...,
+    type="expense",
+    subject=_("Purchase — {name}").format(name=item.name),  # localisé write-time
+    metadata={
+        "kind": "stock_purchase",       # discriminateur pour traçabilité / filtres futurs
+        "stock_item_name": item.name,   # contexte structuré utile à l'agent
+        ...
+    },
+    ...
+)
+```
+
+Puis :
+1. `python manage.py makemessages -l fr -l de -l es` — extrait la chaîne
+2. Éditer les 3 `.po` (`locale/fr|de|es/LC_MESSAGES/django.po`) pour ajouter la traduction
+3. `python manage.py compilemessages` — génère les `.mo`
+
+**Pourquoi ce pattern plutôt qu'une localisation à l'affichage** :
+- 1 user = 1 langue (pas de multi-langue par user dans le projet)
+- Le subject reste lisible dans la DB pour l'admin Django, l'agent RAG (search vector), les exports CSV
+- L'user édite son subject via `InteractionEditPage` → son texte écrase l'auto, sans logique de flag/snapshot
+- Mécanisme générique : toute feature qui auto-crée des interactions suit cette convention
+
+**Limite acceptée** : si l'user change sa langue plus tard, ses anciennes interactions auto-créées restent dans l'ancienne langue. Acceptable car rare.
+
 ## Composants UI
 
 ### Cartes (`Card`)

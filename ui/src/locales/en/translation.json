@@ -1214,7 +1214,6 @@
       "title": "Restock — {{name}}",
       "current_quantity": "Current quantity: {{quantity}} {{unit}}",
       "created": "Purchase recorded",
-      "interaction_subject": "Purchase — {{name}}",
       "fields": {
         "delta": "Quantity added ({{unit}})",
         "price": "Price",

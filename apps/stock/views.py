@@ -158,7 +158,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
             item.updated_by = request.user
             item.save()
 
-            subject = f"Purchase: {item.name}"
+            subject = _("Purchase — {name}").format(name=item.name)
             metadata = {
                 "kind": "stock_purchase",
                 "stock_item_name": item.name,

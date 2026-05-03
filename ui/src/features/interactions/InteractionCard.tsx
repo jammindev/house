@@ -5,7 +5,6 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import type { InteractionListItem } from '@/lib/api/interactions';
-import { getInteractionDisplaySubject } from './displaySubject';
 
 interface InteractionCardProps {
   item: InteractionListItem;
@@ -33,7 +32,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <CardTitle>{getInteractionDisplaySubject(item, t)}</CardTitle>
+            <CardTitle>{item.subject}</CardTitle>
             <Badge variant="outline">{t(typeLabelKey, { defaultValue: item.type })}</Badge>
             {statusLabelKey ? (
               <Badge variant="secondary">

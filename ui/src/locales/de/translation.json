@@ -1214,7 +1214,6 @@
       "title": "Auffüllen — {{name}}",
       "current_quantity": "Aktuelle Menge: {{quantity}} {{unit}}",
       "created": "Einkauf gespeichert",
-      "interaction_subject": "Einkauf — {{name}}",
       "fields": {
         "delta": "Hinzugefügte Menge ({{unit}})",
         "price": "Preis",
