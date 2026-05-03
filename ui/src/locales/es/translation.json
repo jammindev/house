@@ -1435,6 +1435,13 @@
         "saving": "Guardando...",
         "create": "Crear grupo"
       }
+    },
+    "purchase": {
+      "title": "Registrar un gasto — {{name}}",
+      "created": "Gasto registrado",
+      "actions": {
+        "add": "Gasto"
+      }
     }
   },
   "notifications": {

@@ -1435,6 +1435,13 @@
         "saving": "Wird gespeichert...",
         "create": "Gruppe erstellen"
       }
+    },
+    "purchase": {
+      "title": "Ausgabe erfassen — {{name}}",
+      "created": "Ausgabe erfasst",
+      "actions": {
+        "add": "Ausgabe"
+      }
     }
   },
   "notifications": {

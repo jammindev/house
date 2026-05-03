@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Pencil, Star, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Star, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
@@ -74,6 +74,7 @@ interface ProjectCardProps {
   onEdit: (project: ProjectListItem) => void;
   onDelete: (projectId: string) => void;
   onTogglePin?: (project: ProjectListItem) => void;
+  onPurchase?: (project: ProjectListItem) => void;
   pinLoading?: boolean;
 }
 
@@ -82,6 +83,7 @@ export default function ProjectCard({
   onEdit,
   onDelete,
   onTogglePin,
+  onPurchase,
   pinLoading = false,
 }: ProjectCardProps) {
   const { t } = useTranslation();
@@ -185,6 +187,21 @@ export default function ProjectCard({
             planned={Number(project.planned_budget)}
             actual={Number(project.actual_cost_cached)}
           />
+        </div>
+      ) : null}
+
+      {onPurchase ? (
+        <div className="mt-3 flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onPurchase(project)}
+            className="h-7 gap-1 px-2 text-xs"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('projects.purchase.actions.add')}
+          </Button>
         </div>
       ) : null}
     </Card>

@@ -18,6 +18,7 @@ import {
 } from './hooks';
 import ProjectCard from './ProjectCard';
 import ProjectDialog from './ProjectDialog';
+import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import GroupCard from './GroupCard';
 import GroupDialog from './GroupDialog';
 
@@ -46,6 +47,15 @@ export default function ProjectsPage() {
   const [groupDialogOpen, setGroupDialogOpen] = React.useState(false);
   const [editingGroup, setEditingGroup] = React.useState<ProjectGroupItem | null>(null);
   const [deletingGroupId, setDeletingGroupId] = React.useState<string | null>(null);
+
+  // Purchase dialog
+  const [purchaseDialogOpen, setPurchaseDialogOpen] = React.useState(false);
+  const [purchasingProject, setPurchasingProject] = React.useState<ProjectListItem | null>(null);
+
+  const handleOpenPurchase = React.useCallback((project: ProjectListItem) => {
+    setPurchasingProject(project);
+    setPurchaseDialogOpen(true);
+  }, []);
 
   const filters = React.useMemo(
     () => ({
@@ -251,6 +261,7 @@ export default function ProjectsPage() {
                           project={project}
                           onEdit={setEditingProject}
                           onDelete={handleDeleteProject}
+                          onPurchase={handleOpenPurchase}
                         />
                       ))}
                     </div>
@@ -354,6 +365,15 @@ export default function ProjectsPage() {
         })}
         onConfirm={handleConfirmDeleteGroup}
         loading={deleteGroupMutation.isPending}
+      />
+
+      <ProjectPurchaseDialog
+        open={purchaseDialogOpen}
+        onOpenChange={(open) => {
+          setPurchaseDialogOpen(open);
+          if (!open) setPurchasingProject(null);
+        }}
+        project={purchasingProject}
       />
     </>
   );

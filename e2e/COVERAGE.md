@@ -141,13 +141,15 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
-## Dépenses (`expenses-summary.spec.ts`)
+## Dépenses (`expenses-summary.spec.ts`, `project-purchase.spec.ts`)
 
 | Parcours | Statut |
 |---|---|
 | `/app/expenses` affiche le titre, le total mensuel et le breakdown par type/fournisseur | ✅ |
 | Un achat de stock alimente bien la vue dépense (Total + by_kind + by_supplier) | ✅ |
 | L'`Interaction(type=expense)` est listée dans la liste des dépenses de la vue | ✅ |
+| Quick-add d'une dépense depuis la card d'un projet (« + Dépense ») crée une `Interaction(type=expense, kind='project_purchase')` | ✅ |
+| L'expense projet apparaît dans `/app/interactions` ET dans `/app/expenses` | ✅ |
 
 ---
 
