@@ -122,6 +122,28 @@ class TestProjects:
         assert project.household == household
         assert project.created_by == owner
         assert response.data["project_group_name"] == group.name
+
+    def test_create_project_accepts_blank_description_from_ui(self, owner_client, household):
+        """Le formulaire React envoie description='' quand l'utilisateur ne saisit rien.
+        Régression : avant le fix, DRF rejetait avec 'description: This field may not be blank.'.
+        """
+        url = reverse("project-list")
+        response = owner_client.post(
+            url,
+            {
+                "title": "Bare-bones project",
+                "description": "",
+                "status": "draft",
+                "type": "other",
+                "project_group": None,
+                "start_date": None,
+                "due_date": None,
+                "planned_budget": 0,
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED, response.content
+        assert response.data["description"] == ""
         assert response.data["is_pinned"] is False
 
     def test_list_projects_is_household_scoped(self, owner_client, owner, household, group):
