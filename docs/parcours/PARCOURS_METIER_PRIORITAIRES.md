@@ -286,6 +286,51 @@ L'utilisateur pose une question, l'agent répond avec une citation cliquable ver
 - la latence reste acceptable
 - la mention de confidentialité est visible avant le premier usage
 
+## 8. Voir et enregistrer ses dépenses depuis n'importe où dans le foyer
+
+Document détaillé : `docs/parcours/PARCOURS_08_SUIVRE_LES_DEPENSES.md`
+
+Statut actuel : **à démarrer** — fondation posée par la branche `feat/interaction-source-polymorphic` (PR à merger), parcours 08 ouvre la lecture transversale par-dessus.
+
+### Pourquoi en huitième
+
+Les dépenses existent depuis le parcours 01 sous forme d'`Interaction(type='expense')`. La branche `feat/interaction-source-polymorphic` (issue #119) a posé la fondation transverse : FK polymorphe + service helper réutilisable. Il manque encore (1) une vue agrégée qui réponde à « combien j'ai dépensé », (2) une entrée de quick-add depuis les projets, (3) la possibilité d'enregistrer une dépense « libre » (resto, cinéma, cadeau).
+
+### Déclencheur utilisateur
+
+"Je viens de payer une dépense, je veux pouvoir la consigner depuis n'importe où — un item de stock, un équipement, un projet, ou rien — et voir ensuite la somme du mois sans fouiller."
+
+### Résultat attendu
+
+Une page `/app/expenses/` qui affiche un total mensuel + breakdown, et un quick-add présent partout où une dépense peut surgir.
+
+### Périmètre de livraison V1 retenu
+
+- vue dépense agrégée + endpoint summary (lot 1.0)
+- quick-add depuis Project (lot 1.1, parallèle à stock + equipment déjà livrés)
+- dépense ad-hoc sans source — split du service en deux fonctions partageant un metadata builder (lot 1.2)
+
+### Hors périmètre V1
+
+- catégorisation des dépenses (`nature`, `ExpenseCategory`) — délibérément différée à 20-30 dépenses réelles, cf. #120
+- module Budget complet (modèle Budget, comparaison budget vs réel, alertes seuil) — sujet d'un parcours 09 dédié
+- réconciliation bancaire (import CSV, matching automatique)
+- édition / suppression transverse des dépenses — couvert pour stock dans #118, à généraliser plus tard
+- export CSV, multi-currency, receipt OCR
+
+### Stories initiales
+
+- Ouvrir `/app/expenses/` et voir le total du mois + breakdown par source-type sans fouille.
+- Sur la fiche d'un projet, cliquer « + Dépense » et enregistrer un achat lié au projet (snapshot `actual_cost` mis à jour).
+- Sur `/app/expenses/`, cliquer « + Dépense » pour saisir une dépense libre (`source=None`, `kind='manual'`).
+- Filtrer la vue dépense par supplier ou source-type pour répondre à des questions précises (« combien j'ai payé Engie cet hiver »).
+
+### Définition de done
+
+- la page dépense est accessible depuis la sidebar et affiche un total cohérent
+- une dépense peut être créée depuis StockItem, Equipment, Project, ou en mode ad-hoc — toutes via le même shape `metadata`
+- la fondation pour un module Budget ultérieur est posée sans être pré-engagée
+
 ## Ce que je ne mettrais pas dans les 5 premiers
 
 - flux avancés d'email entrant tant que le parcours document + interaction n'est pas solide
