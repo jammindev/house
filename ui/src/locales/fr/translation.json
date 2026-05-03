@@ -1512,5 +1512,42 @@
       "point_retention": "On enregistre les statistiques d'usage (latence, succès) mais pas le contenu de tes conversations.",
       "accept": "J'ai compris"
     }
+  },
+  "expenses": {
+    "title": "Dépenses",
+    "description": "Voir où passe l'argent et enregistrer des dépenses depuis n'importe où.",
+    "empty": "Aucune dépense sur cette période",
+    "emptyDescription": "Essaie une autre période ou un autre filtre, ou enregistre une dépense depuis un item de stock, un équipement ou un projet.",
+    "summary": {
+      "total": "Total",
+      "count_one": "{{count}} dépense",
+      "count_other": "{{count}} dépenses",
+      "byKind": "Par type",
+      "bySupplier": "Par fournisseur",
+      "empty": "—"
+    },
+    "kind": {
+      "stock_purchase": "Achat de stock",
+      "equipment_purchase": "Achat d'équipement",
+      "project_purchase": "Dépense projet",
+      "manual": "Ad-hoc",
+      "unknown": "Autre"
+    },
+    "filters": {
+      "from": "Du",
+      "to": "Au",
+      "allKinds": "Tous les types",
+      "allSuppliers": "Tous les fournisseurs",
+      "period": {
+        "currentMonth": "Ce mois",
+        "previousMonth": "Mois précédent",
+        "last30Days": "30 derniers jours",
+        "currentYear": "Cette année",
+        "custom": "Personnalisé"
+      }
+    },
+    "list": {
+      "noAmount": "Sans montant"
+    }
   }
 }

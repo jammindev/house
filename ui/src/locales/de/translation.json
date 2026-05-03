@@ -1512,5 +1512,42 @@
       "point_retention": "Wir protokollieren Nutzungsstatistiken (Latenz, Erfolg), nicht aber den Inhalt deiner Unterhaltungen.",
       "accept": "Verstanden"
     }
+  },
+  "expenses": {
+    "title": "Ausgaben",
+    "description": "Sehen, wohin das Geld fließt, und Ausgaben von überall erfassen.",
+    "empty": "Keine Ausgaben in diesem Zeitraum",
+    "emptyDescription": "Probiere einen anderen Zeitraum oder Filter, oder erfasse eine Ausgabe von einem Lagerartikel, einem Gerät oder einem Projekt.",
+    "summary": {
+      "total": "Gesamt",
+      "count_one": "{{count}} Ausgabe",
+      "count_other": "{{count}} Ausgaben",
+      "byKind": "Nach Typ",
+      "bySupplier": "Nach Lieferant",
+      "empty": "—"
+    },
+    "kind": {
+      "stock_purchase": "Lagerkauf",
+      "equipment_purchase": "Gerätekauf",
+      "project_purchase": "Projektausgabe",
+      "manual": "Sonstige",
+      "unknown": "Andere"
+    },
+    "filters": {
+      "from": "Von",
+      "to": "Bis",
+      "allKinds": "Alle Typen",
+      "allSuppliers": "Alle Lieferanten",
+      "period": {
+        "currentMonth": "Dieser Monat",
+        "previousMonth": "Letzter Monat",
+        "last30Days": "Letzte 30 Tage",
+        "currentYear": "Dieses Jahr",
+        "custom": "Benutzerdefiniert"
+      }
+    },
+    "list": {
+      "noAmount": "Ohne Betrag"
+    }
   }
 }

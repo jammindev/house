@@ -141,6 +141,16 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Dépenses (`expenses-summary.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| `/app/expenses` affiche le titre, le total mensuel et le breakdown par type/fournisseur | ✅ |
+| Un achat de stock alimente bien la vue dépense (Total + by_kind + by_supplier) | ✅ |
+| L'`Interaction(type=expense)` est listée dans la liste des dépenses de la vue | ✅ |
+
+---
+
 ## Équipements
 
 | Parcours | Statut |

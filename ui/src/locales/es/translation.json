@@ -1512,5 +1512,42 @@
       "point_retention": "Registramos estadísticas de uso (latencia, éxito) pero no el contenido de tus conversaciones.",
       "accept": "Entendido"
     }
+  },
+  "expenses": {
+    "title": "Gastos",
+    "description": "Ver adónde va el dinero y registrar gastos desde cualquier lugar.",
+    "empty": "Sin gastos en este período",
+    "emptyDescription": "Prueba con otro período o filtro, o registra un gasto desde un artículo de stock, un equipo o un proyecto.",
+    "summary": {
+      "total": "Total",
+      "count_one": "{{count}} gasto",
+      "count_other": "{{count}} gastos",
+      "byKind": "Por tipo",
+      "bySupplier": "Por proveedor",
+      "empty": "—"
+    },
+    "kind": {
+      "stock_purchase": "Compra de stock",
+      "equipment_purchase": "Compra de equipo",
+      "project_purchase": "Gasto de proyecto",
+      "manual": "Suelto",
+      "unknown": "Otro"
+    },
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "allKinds": "Todos los tipos",
+      "allSuppliers": "Todos los proveedores",
+      "period": {
+        "currentMonth": "Este mes",
+        "previousMonth": "Mes anterior",
+        "last30Days": "Últimos 30 días",
+        "currentYear": "Este año",
+        "custom": "Personalizado"
+      }
+    },
+    "list": {
+      "noAmount": "Sin importe"
+    }
   }
 }

@@ -1,7 +1,10 @@
 """
 Interaction views for REST API.
 """
+from datetime import datetime, time, timedelta, timezone as dt_timezone
+
 from django.db import IntegrityError
+from django.utils import timezone
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
@@ -13,7 +16,37 @@ from django.db.models import Q, Count
 from core.permissions import IsHouseholdMember
 from documents.models import Document
 from zones.models import Zone
+from .aggregations import compute_expense_summary
 from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
+
+
+def _parse_period(from_param: str | None, to_param: str | None):
+    """Resolve from/to query params, defaulting to the current calendar month.
+
+    Accepts ISO date (YYYY-MM-DD) or full datetime. Always returns aware
+    datetimes (UTC for date-only inputs).
+    """
+    def _parse(value: str) -> datetime:
+        # Try date-only first, then full datetime.
+        try:
+            d = datetime.strptime(value, '%Y-%m-%d')
+            return datetime.combine(d.date(), time.min, tzinfo=dt_timezone.utc)
+        except ValueError:
+            pass
+        return datetime.fromisoformat(value)
+
+    if not from_param and not to_param:
+        now = timezone.now()
+        from_dt = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if from_dt.month == 12:
+            next_month = from_dt.replace(year=from_dt.year + 1, month=1)
+        else:
+            next_month = from_dt.replace(month=from_dt.month + 1)
+        return from_dt, next_month - timedelta(microseconds=1)
+
+    from_dt = _parse(from_param) if from_param else None
+    to_dt = _parse(to_param) if to_param else None
+    return from_dt, to_dt
 from .serializers import (
     InteractionSerializer,
     InteractionDetailSerializer,
@@ -78,7 +111,17 @@ class InteractionViewSet(viewsets.ModelViewSet):
         if tags:
             tag_list = tags.split(',')
             queryset = queryset.filter(tags__tag__name__in=tag_list).distinct()
-        
+
+        # Filter by metadata.kind (e.g. stock_purchase, equipment_purchase, manual)
+        metadata_kind = self.request.query_params.get('kind')
+        if metadata_kind:
+            queryset = queryset.filter(metadata__kind=metadata_kind)
+
+        # Filter by metadata.supplier (exact match)
+        metadata_supplier = self.request.query_params.get('supplier')
+        if metadata_supplier is not None:
+            queryset = queryset.filter(metadata__supplier=metadata_supplier)
+
         return queryset
     
     def get_serializer_class(self):
@@ -157,6 +200,39 @@ class InteractionViewSet(viewsets.ModelViewSet):
         
         return Response(tasks_by_status)
     
+    @action(detail=False, methods=['get'], url_path='expenses/summary')
+    def expenses_summary(self, request):
+        """GET /api/interactions/expenses/summary/?from=&to=&supplier=&kind=
+
+        Aggregates expense interactions for the selected household over a
+        period. Defaults to the current calendar month when from/to are omitted.
+        """
+        household = request.household
+        if household is None:
+            return Response({
+                'period': {'from': None, 'to': None},
+                'total': '0.00',
+                'count': 0,
+                'by_kind': [],
+                'by_supplier': [],
+                'by_month': [],
+            })
+
+        from_dt, to_dt = _parse_period(
+            request.query_params.get('from'),
+            request.query_params.get('to'),
+        )
+        supplier = request.query_params.get('supplier')
+        kind = request.query_params.get('kind')
+
+        return Response(compute_expense_summary(
+            household_id=household.id,
+            from_dt=from_dt,
+            to_dt=to_dt,
+            supplier=supplier if supplier else None,
+            kind=kind if kind else None,
+        ))
+
     @action(detail=True, methods=['patch'])
     def update_status(self, request, pk=None):
         """Quick status update for todos."""
