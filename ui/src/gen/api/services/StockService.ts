@@ -137,6 +137,32 @@ export class StockService {
         });
     }
     /**
+     * Compose an inbound stock movement with an expense interaction.
+     *
+     * Single-action endpoint: increments item quantity by `delta` and creates an
+     * Interaction(type=expense) linked to the item. Side-effects on the item
+     * (unit_price, purchase_date, supplier, last_restocked_at) are best-effort
+     * snapshots of the most recent purchase.
+     * @param id
+     * @param requestBody
+     * @returns StockItem
+     * @throws ApiError
+     */
+    public static stockPurchaseCreate(
+        id: string,
+        requestBody: StockItem,
+    ): CancelablePromise<StockItem> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/stock/{id}/purchase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @param ordering Which field to use when ordering the results.
      * @param search A search term.
      * @returns StockCategory

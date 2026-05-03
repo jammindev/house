@@ -19,6 +19,7 @@ import {
 } from './hooks';
 import StockItemCard from './StockItemCard';
 import StockItemDialog from './StockItemDialog';
+import StockPurchaseDialog from './StockPurchaseDialog';
 import StockCategoryCard from './StockCategoryCard';
 import StockCategoryDialog from './StockCategoryDialog';
 
@@ -37,6 +38,7 @@ export default function StockPage() {
 
   const [itemDialogOpen, setItemDialogOpen] = React.useState(false);
   const [editingItem, setEditingItem] = React.useState<StockItem | null>(null);
+  const [purchasingItem, setPurchasingItem] = React.useState<StockItem | null>(null);
 
   const [categoryDialogOpen, setCategoryDialogOpen] = React.useState(false);
   const [editingCategory, setEditingCategory] = React.useState<StockCategory | null>(null);
@@ -240,6 +242,7 @@ export default function StockPage() {
                           item={item}
                           onEdit={setEditingItem}
                           onDelete={handleDeleteItem}
+                          onPurchase={setPurchasingItem}
                         />
                       ))}
                     </ul>
@@ -313,6 +316,12 @@ export default function StockPage() {
         onOpenChange={(open) => { if (!open) setEditingItem(null); }}
         existingItem={editingItem ?? undefined}
         onSaved={handleSaved}
+      />
+
+      <StockPurchaseDialog
+        open={purchasingItem !== null}
+        onOpenChange={(open) => { if (!open) setPurchasingItem(null); }}
+        item={purchasingItem}
       />
 
       <StockCategoryDialog

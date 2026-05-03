@@ -87,6 +87,15 @@ class Interaction(HouseholdScopedModel):
         related_name='interactions',
         db_column='project_id'
     )
+    stock_item = models.ForeignKey(
+        'stock.StockItem',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='interactions',
+        db_column='stock_item_id',
+        help_text="Optional link to a stock item (e.g. an expense for restocking).",
+    )
     zones = models.ManyToManyField(
         'zones.Zone',
         through='InteractionZone',
@@ -104,6 +113,7 @@ class Interaction(HouseholdScopedModel):
             models.Index(fields=['household', 'type'], name='idx_int_hh_type'),
             models.Index(fields=['household', '-occurred_at'], name='idx_int_hh_date'),
             models.Index(fields=['project'], name='idx_int_project'),
+            models.Index(fields=['stock_item'], name='idx_int_stock_item'),
             models.Index(fields=['status'], name='idx_int_status'),
             models.Index(fields=['is_private'], name='idx_int_private'),
         ]

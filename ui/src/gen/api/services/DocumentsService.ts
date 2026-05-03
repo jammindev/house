@@ -122,7 +122,7 @@ export class DocumentsService {
         });
     }
     /**
-     * Trigger OCR reprocessing (placeholder).
+     * Re-run text extraction on this document and persist the result.
      * @param id
      * @param requestBody
      * @returns Document

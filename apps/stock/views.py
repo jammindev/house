@@ -1,6 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
+from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -11,12 +12,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from interactions.models import Interaction, InteractionZone
 
 from .models import StockCategory, StockItem
 from .serializers import (
     StockCategorySerializer,
     StockCategorySummarySerializer,
     StockItemSerializer,
+    StockPurchaseSerializer,
     StockQuantityAdjustSerializer,
     build_category_summary,
 )
@@ -112,3 +115,69 @@ class StockItemViewSet(viewsets.ModelViewSet):
         item.save(update_fields=["quantity", "last_restocked_at", "status", "updated_by", "updated_at"])
 
         return Response(StockItemSerializer(item, context={"request": request}).data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="purchase")
+    def purchase(self, request, pk=None):
+        """Compose an inbound stock movement with an expense interaction.
+
+        Single-action endpoint: increments item quantity by `delta` and creates an
+        Interaction(type=expense) linked to the item. Side-effects on the item
+        (unit_price, purchase_date, supplier, last_restocked_at) are best-effort
+        snapshots of the most recent purchase.
+        """
+        item = self.get_object()
+        serializer = StockPurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        delta = Decimal(serializer.validated_data["delta"])
+        amount = serializer.validated_data.get("amount")
+        supplier = serializer.validated_data.get("supplier", "") or ""
+        occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
+        notes = serializer.validated_data.get("notes", "") or ""
+
+        unit_price = (amount / delta).quantize(Decimal("0.01")) if amount is not None and delta > 0 else None
+
+        with transaction.atomic():
+            item.quantity = Decimal(item.quantity) + delta
+            item.last_restocked_at = timezone.now()
+            if unit_price is not None:
+                item.unit_price = unit_price
+            item.purchase_date = occurred_at.date()
+            if supplier:
+                item.supplier = supplier
+            if item.quantity <= 0:
+                item.status = StockItem.Status.OUT_OF_STOCK
+            elif item.min_quantity is not None and item.quantity <= item.min_quantity:
+                item.status = StockItem.Status.LOW_STOCK
+            elif item.status in [
+                StockItem.Status.LOW_STOCK,
+                StockItem.Status.OUT_OF_STOCK,
+                StockItem.Status.ORDERED,
+            ]:
+                item.status = StockItem.Status.IN_STOCK
+            item.updated_by = request.user
+            item.save()
+
+            subject = _("Purchase: {name}").format(name=item.name)
+            metadata = {
+                "amount": str(amount) if amount is not None else None,
+                "unit_price": str(unit_price) if unit_price is not None else None,
+                "delta": str(delta),
+                "unit": item.unit,
+            }
+            interaction = Interaction.objects.create(
+                household=item.household,
+                created_by=request.user,
+                subject=subject,
+                content=notes,
+                type="expense",
+                occurred_at=occurred_at,
+                metadata=metadata,
+                stock_item=item,
+            )
+            if item.zone_id:
+                InteractionZone.objects.create(interaction=interaction, zone=item.zone)
+
+        payload = StockItemSerializer(item, context={"request": request}).data
+        payload["interaction_id"] = str(interaction.id)
+        return Response(payload, status=status.HTTP_201_CREATED)

@@ -1209,7 +1209,34 @@
     "confirm_delete": "Delete \"{{name}}\"?",
     "deleted": "Item deleted",
     "empty_description": "Add your first stock item to start tracking your household inventory.",
-    "empty_categories_description": "Create a category to organise your stock items."
+    "empty_categories_description": "Create a category to organise your stock items.",
+    "purchase": {
+      "title": "Restock — {{name}}",
+      "current_quantity": "Current quantity: {{quantity}} {{unit}}",
+      "created": "Purchase recorded",
+      "fields": {
+        "delta": "Quantity added ({{unit}})",
+        "price": "Price",
+        "price_placeholder": "Optional",
+        "supplier": "Supplier",
+        "occurred_at": "Purchase date",
+        "notes": "Notes"
+      },
+      "price_mode": {
+        "total": "Total",
+        "unit": "Per {{unit}}"
+      },
+      "actions": {
+        "add": "Buy",
+        "confirm": "Save purchase",
+        "saving": "Saving..."
+      },
+      "errors": {
+        "delta_required": "Enter a purchased quantity greater than 0.",
+        "price_invalid": "Price must be positive.",
+        "save_failed": "Could not save the purchase."
+      }
+    }
   },
   "admin": {
     "section_label": "Administration",

@@ -1209,7 +1209,34 @@
     "confirm_delete": "Supprimer \"{{name}}\" ?",
     "deleted": "Article supprimé",
     "empty_description": "Ajoutez votre premier article pour commencer à gérer l'inventaire de votre foyer.",
-    "empty_categories_description": "Créez une catégorie pour organiser vos articles de stock."
+    "empty_categories_description": "Créez une catégorie pour organiser vos articles de stock.",
+    "purchase": {
+      "title": "Approvisionner — {{name}}",
+      "current_quantity": "Quantité actuelle : {{quantity}} {{unit}}",
+      "created": "Achat enregistré",
+      "fields": {
+        "delta": "Quantité ajoutée ({{unit}})",
+        "price": "Prix",
+        "price_placeholder": "Optionnel",
+        "supplier": "Fournisseur",
+        "occurred_at": "Date d'achat",
+        "notes": "Notes"
+      },
+      "price_mode": {
+        "total": "Total",
+        "unit": "Par {{unit}}"
+      },
+      "actions": {
+        "add": "Achat",
+        "confirm": "Enregistrer l'achat",
+        "saving": "Enregistrement..."
+      },
+      "errors": {
+        "delta_required": "Indique une quantité achetée supérieure à 0.",
+        "price_invalid": "Le prix doit être positif.",
+        "save_failed": "Impossible d'enregistrer l'achat."
+      }
+    }
   },
   "admin": {
     "section_label": "Administration",

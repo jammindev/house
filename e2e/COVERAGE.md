@@ -116,6 +116,18 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 |---|---|
 | Affichage de la liste | ❌ |
 | Création d'une interaction | ❌ |
+| Interaction d'expense créée automatiquement par un achat de stock | ✅ (via `stock-purchase.spec.ts`) |
+
+---
+
+## Stock (`stock-purchase.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Création d'une catégorie de stock | ✅ |
+| Création d'un article de stock | ✅ |
+| Approvisionnement d'un article (delta + prix + fournisseur) en un seul geste | ✅ |
+| L'achat crée une `Interaction(type=expense)` liée et listée dans `/app/interactions` | ✅ |
 
 ---
 

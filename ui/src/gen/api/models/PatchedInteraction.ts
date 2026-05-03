@@ -45,6 +45,11 @@ export type PatchedInteraction = {
     enriched_text?: string;
     project?: string | null;
     readonly project_title?: string;
+    /**
+     * Optional link to a stock item (e.g. an expense for restocking).
+     */
+    stock_item?: string | null;
+    readonly stock_item_name?: string;
     zone_ids?: Array<string>;
     readonly zone_names?: string;
     readonly document_count?: string;

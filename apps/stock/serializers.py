@@ -42,6 +42,11 @@ class StockItemSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source="category.name", read_only=True)
     zone_name = serializers.CharField(source="zone.name", read_only=True)
     total_value = serializers.SerializerMethodField()
+    description = serializers.CharField(required=False, allow_blank=True, default="")
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    sku = serializers.CharField(required=False, allow_blank=True, default="")
+    barcode = serializers.CharField(required=False, allow_blank=True, default="")
+    supplier = serializers.CharField(required=False, allow_blank=True, default="")
 
     class Meta:
         model = StockItem
@@ -135,6 +140,18 @@ class StockQuantityAdjustSerializer(serializers.Serializer):
         if value == 0:
             raise serializers.ValidationError(_("Delta must not be zero."))
         return value
+
+
+class StockPurchaseSerializer(serializers.Serializer):
+    """Input for /stock-items/{id}/purchase: composes adjust-quantity + expense interaction."""
+
+    delta = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0.001"))
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, allow_null=True, min_value=Decimal("0")
+    )
+    supplier = serializers.CharField(required=False, allow_blank=True, default="")
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class StockCategorySummarySerializer(serializers.Serializer):
