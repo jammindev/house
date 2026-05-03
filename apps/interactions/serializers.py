@@ -1,6 +1,8 @@
 """
 Interaction serializers for REST API.
 """
+from decimal import Decimal
+
 from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
@@ -13,6 +15,21 @@ from .models import (
     InteractionStructure,
     InteractionDocument,
 )
+
+
+class ManualExpenseSerializer(serializers.Serializer):
+    """Input for POST /api/interactions/expenses/manual/."""
+
+    subject = serializers.CharField(required=True, allow_blank=False, max_length=500)
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, allow_null=True, min_value=Decimal("0")
+    )
+    supplier = serializers.CharField(required=False, allow_blank=True, default="")
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=False, allow_empty=True, default=list
+    )
 
 
 class InteractionSerializer(serializers.ModelSerializer):

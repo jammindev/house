@@ -1555,6 +1555,16 @@
     },
     "list": {
       "noAmount": "Sin importe"
+    },
+    "adhoc": {
+      "title": "Registrar un gasto suelto",
+      "subject": "Asunto",
+      "subjectPlaceholder": "p. ej. Restaurante Le Bistrot",
+      "subjectRequired": "Se requiere un asunto",
+      "created": "Gasto registrado",
+      "actions": {
+        "add": "Gasto"
+      }
     }
   }
 }

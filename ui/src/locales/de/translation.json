@@ -1555,6 +1555,16 @@
     },
     "list": {
       "noAmount": "Ohne Betrag"
+    },
+    "adhoc": {
+      "title": "Ad-hoc Ausgabe erfassen",
+      "subject": "Betreff",
+      "subjectPlaceholder": "z. B. Restaurant Le Bistrot",
+      "subjectRequired": "Ein Betreff ist erforderlich",
+      "created": "Ausgabe erfasst",
+      "actions": {
+        "add": "Ausgabe"
+      }
     }
   }
 }

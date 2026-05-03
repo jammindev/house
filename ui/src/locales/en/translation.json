@@ -1555,6 +1555,16 @@
     },
     "list": {
       "noAmount": "No amount"
+    },
+    "adhoc": {
+      "title": "Record an ad-hoc expense",
+      "subject": "Subject",
+      "subjectPlaceholder": "e.g. Restaurant Le Bistrot",
+      "subjectRequired": "A subject is required",
+      "created": "Expense recorded",
+      "actions": {
+        "add": "Expense"
+      }
     }
   }
 }
