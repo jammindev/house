@@ -1214,6 +1214,7 @@
       "title": "Approvisionner — {{name}}",
       "current_quantity": "Quantité actuelle : {{quantity}} {{unit}}",
       "created": "Achat enregistré",
+      "interaction_subject": "Achat — {{name}}",
       "fields": {
         "delta": "Quantité ajoutée ({{unit}})",
         "price": "Prix",

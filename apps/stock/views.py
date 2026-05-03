@@ -158,8 +158,10 @@ class StockItemViewSet(viewsets.ModelViewSet):
             item.updated_by = request.user
             item.save()
 
-            subject = _("Purchase: {name}").format(name=item.name)
+            subject = f"Purchase: {item.name}"
             metadata = {
+                "kind": "stock_purchase",
+                "stock_item_name": item.name,
                 "amount": str(amount) if amount is not None else None,
                 "unit_price": str(unit_price) if unit_price is not None else None,
                 "delta": str(delta),
