@@ -141,7 +141,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
-## Dépenses (`expenses-summary.spec.ts`, `project-purchase.spec.ts`)
+## Dépenses (`expenses-summary.spec.ts`, `project-purchase.spec.ts`, `expense-adhoc.spec.ts`)
 
 | Parcours | Statut |
 |---|---|
@@ -150,6 +150,8 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 | L'`Interaction(type=expense)` est listée dans la liste des dépenses de la vue | ✅ |
 | Quick-add d'une dépense depuis la card d'un projet (« + Dépense ») crée une `Interaction(type=expense, kind='project_purchase')` | ✅ |
 | L'expense projet apparaît dans `/app/interactions` ET dans `/app/expenses` | ✅ |
+| Quick-add d'une dépense ad-hoc depuis `/app/expenses` (sujet libre, pas de template gettext, `kind='manual'`, `source=None`) | ✅ |
+| Validation client : sujet vide refusé sur la dépense ad-hoc | ✅ |
 
 ---
 

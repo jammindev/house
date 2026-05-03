@@ -12,11 +12,14 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from zones.models import Zone
 
 from .models import Interaction, InteractionZone
 
@@ -48,6 +51,36 @@ def _resolve_subject_template(kind: str) -> Any:
 
 def _source_name(source) -> str:
     return getattr(source, "name", None) or getattr(source, "title", None) or str(source)
+
+
+def _build_expense_metadata(
+    *,
+    kind: str,
+    source_name: str | None,
+    amount: Decimal | None = None,
+    unit_price: Decimal | None = None,
+    supplier: str = "",
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Single source of truth for the `metadata` shape on expense interactions.
+
+    Both `create_expense_interaction` and `create_manual_expense_interaction`
+    flow through this helper, so adding a new key (e.g. `currency`) in the
+    future means touching one place.
+
+    `extra` overrides standard keys when collisions occur — intentional escape
+    hatch for feature-specific metadata.
+    """
+    metadata: dict[str, Any] = {
+        "kind": kind,
+        "source_name": source_name,
+        "amount": str(amount) if amount is not None else None,
+        "unit_price": str(unit_price) if unit_price is not None else None,
+        "supplier": supplier or "",
+    }
+    if extra:
+        metadata.update(extra)
+    return metadata
 
 
 def create_expense_interaction(
@@ -90,17 +123,14 @@ def create_expense_interaction(
     name = _source_name(source)
     subject = template.format(name=name)
 
-    # Always write the standard expense keys (None when missing) so consumers
-    # have a stable shape — extra_metadata can add feature-specific keys.
-    metadata: dict[str, Any] = {
-        "kind": resolved_kind,
-        "source_name": name,
-        "amount": str(amount) if amount is not None else None,
-        "unit_price": str(unit_price) if unit_price is not None else None,
-        "supplier": supplier or "",
-    }
-    if extra_metadata:
-        metadata.update(extra_metadata)
+    metadata = _build_expense_metadata(
+        kind=resolved_kind,
+        source_name=name,
+        amount=amount,
+        unit_price=unit_price,
+        supplier=supplier,
+        extra=extra_metadata,
+    )
 
     source_ct = ContentType.objects.get_for_model(source.__class__)
 
@@ -118,6 +148,76 @@ def create_expense_interaction(
         )
         zone = getattr(source, "zone", None)
         if zone is not None:
+            InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
+
+
+def create_manual_expense_interaction(
+    *,
+    household,
+    user,
+    subject: str,
+    amount: Decimal | None = None,
+    supplier: str = "",
+    occurred_at: datetime | None = None,
+    notes: str = "",
+    zone_ids: list[UUID] | None = None,
+    extra_metadata: dict[str, Any] | None = None,
+) -> Interaction:
+    """Create an Interaction(type=expense) NOT linked to a domain source object.
+
+    For ad-hoc expenses (restaurant, gift, one-off purchase…) where no domain
+    object triggered the action. The subject is provided by the user — no
+    gettext template, the user's text is what gets stored.
+
+    Args:
+        household: Household instance (required, not derived from a source)
+        user: request.user (used as created_by)
+        subject: user-provided subject text (required, not blank)
+        amount, supplier, occurred_at, notes: expense details
+        zone_ids: optional list of zone UUIDs to attach. Each zone must belong
+            to the household.
+        extra_metadata: feature-specific metadata merged into the standard payload.
+
+    metadata.kind is always "manual"; metadata.source_name is None to keep
+    the shape uniform with `create_expense_interaction` for downstream consumers
+    (RAG agent, exports, summary aggregations).
+    """
+    if not subject or not subject.strip():
+        raise ValueError("create_manual_expense_interaction: subject is required")
+
+    metadata = _build_expense_metadata(
+        kind="manual",
+        source_name=None,
+        amount=amount,
+        unit_price=None,
+        supplier=supplier,
+        extra=extra_metadata,
+    )
+
+    zones: list[Zone] = []
+    if zone_ids:
+        zones = list(Zone.objects.filter(id__in=zone_ids, household_id=household.id))
+        if len(zones) != len(zone_ids):
+            raise ValueError(
+                "create_manual_expense_interaction: one or more zones do not "
+                "belong to the household"
+            )
+
+    with transaction.atomic():
+        interaction = Interaction.objects.create(
+            household_id=household.id,
+            created_by=user,
+            subject=subject.strip(),
+            content=notes,
+            type="expense",
+            occurred_at=occurred_at or timezone.now(),
+            metadata=metadata,
+            source_content_type=None,
+            source_object_id=None,
+        )
+        for zone in zones:
             InteractionZone.objects.create(interaction=interaction, zone=zone)
 
     return interaction

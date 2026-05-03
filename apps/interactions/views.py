@@ -18,6 +18,15 @@ from documents.models import Document
 from zones.models import Zone
 from .aggregations import compute_expense_summary
 from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
+from .serializers import (
+    InteractionSerializer,
+    InteractionDetailSerializer,
+    InteractionContactSerializer,
+    InteractionStructureSerializer,
+    InteractionDocumentSerializer,
+    ManualExpenseSerializer,
+)
+from .services import create_manual_expense_interaction
 
 
 def _parse_period(from_param: str | None, to_param: str | None):
@@ -47,13 +56,6 @@ def _parse_period(from_param: str | None, to_param: str | None):
     from_dt = _parse(from_param) if from_param else None
     to_dt = _parse(to_param) if to_param else None
     return from_dt, to_dt
-from .serializers import (
-    InteractionSerializer,
-    InteractionDetailSerializer,
-    InteractionContactSerializer,
-    InteractionStructureSerializer,
-    InteractionDocumentSerializer,
-)
 
 
 class InteractionViewSet(viewsets.ModelViewSet):
@@ -200,6 +202,38 @@ class InteractionViewSet(viewsets.ModelViewSet):
         
         return Response(tasks_by_status)
     
+    @action(detail=False, methods=['post'], url_path='expenses/manual')
+    def expenses_manual(self, request):
+        """POST /api/interactions/expenses/manual/
+
+        Create an Interaction(type=expense) NOT linked to a domain object —
+        the user-typed `subject` is what gets stored. Used for ad-hoc expenses
+        (restaurant, cinema, gift…).
+        """
+        household = request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        serializer = ManualExpenseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            interaction = create_manual_expense_interaction(
+                household=household,
+                user=request.user,
+                subject=serializer.validated_data["subject"],
+                amount=serializer.validated_data.get("amount"),
+                supplier=serializer.validated_data.get("supplier", "") or "",
+                occurred_at=serializer.validated_data.get("occurred_at"),
+                notes=serializer.validated_data.get("notes", "") or "",
+                zone_ids=serializer.validated_data.get("zone_ids") or None,
+            )
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)})
+
+        payload = InteractionSerializer(interaction, context={"request": request}).data
+        return Response(payload, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['get'], url_path='expenses/summary')
     def expenses_summary(self, request):
         """GET /api/interactions/expenses/summary/?from=&to=&supplier=&kind=

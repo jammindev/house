@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { Receipt } from 'lucide-react';
+import { Plus, Receipt } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
+import { Button } from '@/design-system/button';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
@@ -13,6 +14,7 @@ import ExpenseSummaryCards from './ExpenseSummaryCards';
 import ExpenseFilters from './ExpenseFilters';
 import { resolvePeriod, type PeriodRange } from './period';
 import ExpenseList from './ExpenseList';
+import ExpenseAdHocDialog from './ExpenseAdHocDialog';
 
 export default function ExpensesPage() {
   const { t } = useTranslation();
@@ -69,9 +71,20 @@ export default function ExpensesPage() {
     return summary.by_kind.filter((row) => row.kind).map((row) => row.kind);
   }, [summary]);
 
+  const [adhocOpen, setAdhocOpen] = React.useState(false);
+
   return (
     <>
-      <PageHeader title={t('expenses.title')} description={t('expenses.description')} />
+      <PageHeader title={t('expenses.title')} description={t('expenses.description')}>
+        <Button
+          type="button"
+          onClick={() => setAdhocOpen(true)}
+          className="gap-1.5"
+        >
+          <Plus className="h-4 w-4" />
+          {t('expenses.adhoc.actions.add')}
+        </Button>
+      </PageHeader>
 
       <div className="space-y-5">
         <ExpenseFilters
@@ -108,6 +121,7 @@ export default function ExpensesPage() {
                 icon={Receipt}
                 title={t('expenses.empty')}
                 description={t('expenses.emptyDescription')}
+                action={{ label: t('expenses.adhoc.actions.add'), onClick: () => setAdhocOpen(true) }}
               />
             ) : (
               <ExpenseList items={items} />
@@ -115,6 +129,8 @@ export default function ExpensesPage() {
           </>
         ) : null}
       </div>
+
+      <ExpenseAdHocDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
     </>
   );
 }

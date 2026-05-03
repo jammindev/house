@@ -142,3 +142,97 @@ def test_rejects_source_without_household(user, db):
 
     with pytest.raises(ValueError, match="HouseholdScopedModel"):
         create_expense_interaction(source=FakeSource(), user=user)
+
+
+# ──────────────────────────────────────────────────────────────────────
+# create_manual_expense_interaction — Lot 1.2
+# ──────────────────────────────────────────────────────────────────────
+
+from interactions.services import create_manual_expense_interaction
+
+
+@pytest.mark.django_db
+def test_manual_creates_expense_with_user_subject(user, household, membership):
+    interaction = create_manual_expense_interaction(
+        household=household,
+        user=user,
+        subject="Restaurant Le Bistrot",
+        amount=Decimal("32.00"),
+        supplier="Le Bistrot",
+    )
+    assert interaction.type == "expense"
+    assert interaction.subject == "Restaurant Le Bistrot"
+    assert interaction.household_id == household.id
+    assert interaction.created_by == user
+    assert interaction.source_content_type_id is None
+    assert interaction.source_object_id is None
+    assert interaction.metadata["kind"] == "manual"
+    assert interaction.metadata["source_name"] is None
+    assert interaction.metadata["amount"] == "32.00"
+    assert interaction.metadata["unit_price"] is None
+    assert interaction.metadata["supplier"] == "Le Bistrot"
+
+
+@pytest.mark.django_db
+def test_manual_strips_whitespace_from_subject(user, household, membership):
+    interaction = create_manual_expense_interaction(
+        household=household, user=user, subject="  Cinema  "
+    )
+    assert interaction.subject == "Cinema"
+
+
+@pytest.mark.django_db
+def test_manual_rejects_blank_subject(user, household, membership):
+    with pytest.raises(ValueError, match="subject"):
+        create_manual_expense_interaction(
+            household=household, user=user, subject="   "
+        )
+
+
+@pytest.mark.django_db
+def test_manual_attaches_zones(user, household, zone, membership):
+    interaction = create_manual_expense_interaction(
+        household=household,
+        user=user,
+        subject="Garage tools",
+        zone_ids=[zone.id],
+    )
+    assert list(interaction.zones.values_list("id", flat=True)) == [zone.id]
+
+
+@pytest.mark.django_db
+def test_manual_rejects_zone_outside_household(user, household, membership):
+    other_household = Household.objects.create(name="Other house")
+    other_zone = Zone.objects.create(
+        household=other_household, name="Foreign zone", created_by=user
+    )
+    with pytest.raises(ValueError, match="zones"):
+        create_manual_expense_interaction(
+            household=household,
+            user=user,
+            subject="Bad zone",
+            zone_ids=[other_zone.id],
+        )
+
+
+@pytest.mark.django_db
+def test_manual_amount_none_kept_as_null(user, household, membership):
+    interaction = create_manual_expense_interaction(
+        household=household,
+        user=user,
+        subject="Free lunch",
+    )
+    assert interaction.metadata["amount"] is None
+
+
+@pytest.mark.django_db
+def test_manual_extra_metadata_is_merged(user, household, membership):
+    interaction = create_manual_expense_interaction(
+        household=household,
+        user=user,
+        subject="Cinema",
+        amount=Decimal("12"),
+        extra_metadata={"category": "leisure"},
+    )
+    assert interaction.metadata["category"] == "leisure"
+    assert interaction.metadata["amount"] == "12"

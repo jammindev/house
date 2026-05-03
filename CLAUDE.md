@@ -116,6 +116,35 @@ Le service :
 
 Les **side-effects** spécifiques au modèle source (ajuster une quantité, snapshot prix sur l'objet, etc.) restent dans la view appelante — le service ne touche pas à l'objet source.
 
+### Service helper `create_manual_expense_interaction` (dépense ad-hoc)
+
+Pour les dépenses **sans objet source** (resto, cinéma, cadeau…) — saisies depuis `/app/expenses/` :
+
+```python
+from interactions.services import create_manual_expense_interaction
+
+interaction = create_manual_expense_interaction(
+    household=request.household,
+    user=request.user,
+    subject="Restaurant Le Bistrot",   # saisi par l'user, pas templaté
+    amount=Decimal("32.00"),
+    supplier="Le Bistrot",
+    occurred_at=timezone.now(),
+    notes="...",
+    zone_ids=[zone_id],                # optionnel
+)
+```
+
+Différences vs `create_expense_interaction` :
+- `subject` est **saisi par l'user**, pas templaté via gettext (le texte est stocké tel-quel)
+- `metadata.kind = "manual"`, `metadata.source_name = None`
+- Pas de FK polymorphe (`source_content_type=None`, `source_object_id=None`)
+- `household` doit être passé explicitement (pas dérivé d'un source)
+
+### Builder partagé `_build_expense_metadata`
+
+Les deux fonctions (`create_expense_interaction` + `create_manual_expense_interaction`) flow through un helper interne `_build_expense_metadata` qui garantit le shape `metadata` uniforme : `{kind, source_name, amount, unit_price, supplier}` + extra optionnel. Ajouter une clé standard (ex: `currency`) = touche un seul endroit.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)
