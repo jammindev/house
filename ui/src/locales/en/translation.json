@@ -1512,5 +1512,42 @@
       "point_retention": "We log usage statistics (latency, success) but not the content of your conversations.",
       "accept": "Got it"
     }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "description": "See where your money goes and record expenses from anywhere.",
+    "empty": "No expenses in this period",
+    "emptyDescription": "Try a different period or filter, or record an expense from a stock item, an equipment, or a project.",
+    "summary": {
+      "total": "Total",
+      "count_one": "{{count}} expense",
+      "count_other": "{{count}} expenses",
+      "byKind": "By type",
+      "bySupplier": "By supplier",
+      "empty": "—"
+    },
+    "kind": {
+      "stock_purchase": "Stock purchase",
+      "equipment_purchase": "Equipment purchase",
+      "project_purchase": "Project expense",
+      "manual": "Ad-hoc",
+      "unknown": "Other"
+    },
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "allKinds": "All types",
+      "allSuppliers": "All suppliers",
+      "period": {
+        "currentMonth": "This month",
+        "previousMonth": "Last month",
+        "last30Days": "Last 30 days",
+        "currentYear": "This year",
+        "custom": "Custom"
+      }
+    },
+    "list": {
+      "noAmount": "No amount"
+    }
   }
 }

@@ -27,6 +27,7 @@ const AlertsPage = lazyWithReload(() => import('./features/alerts/AlertsPage'));
 const NotificationsPage = lazyWithReload(() => import('./features/notifications/NotificationsPage'));
 const AdminUsersPage = lazyWithReload(() => import('./features/admin/AdminUsersPage'));
 const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
+const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
 
 export const router = createBrowserRouter([
   {
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
       { path: 'interactions', element: <InteractionsPage /> },
       { path: 'interactions/new', element: <InteractionNewPage /> },
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
+      { path: 'expenses', element: <ExpensesPage /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },

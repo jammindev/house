@@ -13,6 +13,7 @@ export interface InteractionListItem {
   created_by_name?: string;
   project?: string | null;
   project_title?: string | null;
+  metadata?: Record<string, unknown>;
 }
 
 export interface CreateInteractionInput {
@@ -40,6 +41,8 @@ interface FetchInteractionsOptions {
   type?: string;
   status?: string;
   zone?: string;
+  kind?: string;
+  supplier?: string;
   limit?: number;
   offset?: number;
 }
@@ -92,13 +95,15 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { search, type, status, zone, limit = 8, offset = 0 } = options;
+  const { search, type, status, zone, kind, supplier, limit = 8, offset = 0 } = options;
 
   const params: Record<string, string | number> = { ordering: '-occurred_at' };
   if (search) params.search = search;
   if (type) params.type = type;
   if (status) params.status = status;
   if (zone) params.zone = zone;
+  if (kind) params.kind = kind;
+  if (supplier !== undefined) params.supplier = supplier;
   if (limit > 0) params.limit = limit;
   if (offset > 0) params.offset = offset;
 
