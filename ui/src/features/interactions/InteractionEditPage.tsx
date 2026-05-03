@@ -10,6 +10,7 @@ import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { updateInteraction } from '@/lib/api/interactions';
 import { useInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import ExpenseFields from './ExpenseFields';
 
 const TYPE_OPTIONS = [
   'note',
@@ -61,10 +62,14 @@ export default function InteractionEditPage() {
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [amount, setAmount] = React.useState('');
+  const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [initialised, setInitialised] = React.useState(false);
   const showSkeleton = useDelayedLoading(isLoading);
+
+  const metadata = (interaction?.metadata ?? {}) as Record<string, string | null | undefined>;
 
   // Pre-fill form once interaction is loaded
   React.useEffect(() => {
@@ -78,6 +83,9 @@ export default function InteractionEditPage() {
     }
     setDescription(interaction.content ?? '');
     setTagsInput((interaction.tags ?? []).join(', '));
+    const md = (interaction.metadata ?? {}) as Record<string, string | null | undefined>;
+    setAmount(md.amount ?? '');
+    setSupplier(md.supplier ?? '');
     setInitialised(true);
   }, [interaction, initialised]);
 
@@ -88,6 +96,7 @@ export default function InteractionEditPage() {
   }, []);
 
   const isTodo = type === 'todo';
+  const isExpense = type === 'expense';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -115,6 +124,18 @@ export default function InteractionEditPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // Merge metadata for expense-specific fields, preserving any existing keys.
+    let nextMetadata: Record<string, unknown> | undefined;
+    if (isExpense) {
+      const existing = (interaction?.metadata ?? {}) as Record<string, unknown>;
+      const trimmedAmount = amount.trim();
+      nextMetadata = {
+        ...existing,
+        amount: trimmedAmount ? trimmedAmount : null,
+        supplier: supplier.trim(),
+      };
+    }
+
     try {
       setSubmitting(true);
       await updateInteraction(id ?? '', {
@@ -125,6 +146,7 @@ export default function InteractionEditPage() {
         occurred_at: occurredAt.toISOString(),
         zone_ids: zoneId ? [zoneId] : [],
         tags_input: tags,
+        ...(nextMetadata ? { metadata: nextMetadata } : {}),
       });
       navigate(-1);
     } catch {
@@ -222,6 +244,21 @@ export default function InteractionEditPage() {
             </div>
           ) : null}
         </div>
+
+        {isExpense ? (
+          <ExpenseFields
+            amount={amount}
+            onAmountChange={setAmount}
+            supplier={supplier}
+            onSupplierChange={setSupplier}
+            sourceLabel={interaction.source_label}
+            sourceType={interaction.source_type}
+            sourceId={interaction.source_id}
+            kind={(metadata.kind ?? null) as string | null}
+            unitPrice={(metadata.unit_price ?? null) as string | null}
+            unit={(metadata.unit ?? null) as string | null}
+          />
+        ) : null}
 
         {/* Date / time */}
         <div className="space-y-2">

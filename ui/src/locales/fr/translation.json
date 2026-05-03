@@ -292,6 +292,14 @@
       "upgrade": "Amélioration",
       "replacement": "Remplacement",
       "disposal": "Mise au rebut"
+    },
+    "expense": {
+      "section_title": "Détails de la dépense",
+      "linked_to": "Liée à",
+      "amount_label": "Montant",
+      "supplier_label": "Fournisseur",
+      "supplier_placeholder": "ex : Leroy Merlin",
+      "unit_price_info": "Prix unitaire : {{price}} par {{unit}}"
     }
   },
   "tagSelector": {

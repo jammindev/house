@@ -292,6 +292,14 @@
       "upgrade": "Mejora",
       "replacement": "Reemplazo",
       "disposal": "Desecho"
+    },
+    "expense": {
+      "section_title": "Detalles del gasto",
+      "linked_to": "Vinculado a",
+      "amount_label": "Importe",
+      "supplier_label": "Proveedor",
+      "supplier_placeholder": "p. ej. Leroy Merlin",
+      "unit_price_info": "Precio unitario: {{price}} por {{unit}}"
     }
   },
   "tagSelector": {

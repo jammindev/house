@@ -292,6 +292,14 @@
       "upgrade": "Upgrade",
       "replacement": "Replacement",
       "disposal": "Disposal"
+    },
+    "expense": {
+      "section_title": "Expense details",
+      "linked_to": "Linked to",
+      "amount_label": "Amount",
+      "supplier_label": "Supplier",
+      "supplier_placeholder": "e.g. Leroy Merlin",
+      "unit_price_info": "Unit price: {{price}} per {{unit}}"
     }
   },
   "tagSelector": {

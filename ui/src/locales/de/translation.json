@@ -292,6 +292,14 @@
       "upgrade": "Verbesserung",
       "replacement": "Ersatz",
       "disposal": "Entsorgung"
+    },
+    "expense": {
+      "section_title": "Ausgabendetails",
+      "linked_to": "Verknüpft mit",
+      "amount_label": "Betrag",
+      "supplier_label": "Lieferant",
+      "supplier_placeholder": "z. B. Leroy Merlin",
+      "unit_price_info": "Einzelpreis: {{price}} pro {{unit}}"
     }
   },
   "tagSelector": {

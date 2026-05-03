@@ -10,26 +10,34 @@ import { test, expect } from '@playwright/test';
  */
 
 test('parcours dépenses — total mensuel + breakdown via achat de stock', async ({ page }) => {
-  // 1. Créer une catégorie + item de stock
+  // 1. Créer une catégorie + item de stock (mêmes selectors que stock-purchase.spec.ts)
   await page.goto('/app/stock');
   await expect(page).toHaveURL(/\/app\/stock/);
 
-  await page.getByRole('button', { name: 'Nouvelle catégorie' }).click();
+  await page.getByRole('button', { name: 'Catégories', exact: true }).click();
+  await page.getByRole('button', { name: 'Nouvelle catégorie' }).first().click();
   let dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  const categoryName = `Cat dépense ${Date.now()}`;
-  await page.locator('#stock-category-name').fill(categoryName);
-  await dialog.getByRole('button', { name: /enregistrer|créer/i }).click();
+  const categoryName = `Cat dépense E2E ${Date.now()}`;
+  await dialog.getByLabel('Nom').fill(categoryName);
+  await dialog.getByRole('button', { name: 'Créer' }).click();
   await expect(dialog).toBeHidden();
 
-  await page.getByRole('button', { name: 'Nouvel article' }).click();
+  await page.getByRole('button', { name: 'Articles', exact: true }).click();
+  await page.getByRole('button', { name: 'Nouveau' }).first().click();
   dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
   const itemName = `Bois E2E ${Date.now()}`;
   await page.locator('#stock-item-name').fill(itemName);
+
+  const categorySelect = page.locator('#stock-item-category');
+  const categoryOption = categorySelect.locator(`option:has-text("${categoryName}")`);
+  await categoryOption.waitFor({ state: 'attached', timeout: 10_000 });
+  await categorySelect.selectOption(await categoryOption.getAttribute('value') as string);
+
   await page.locator('#stock-item-unit').fill('stère');
-  await page.locator('#stock-item-category').selectOption({ label: categoryName });
-  await dialog.getByRole('button', { name: /enregistrer|créer/i }).click();
+  await page.locator('#stock-item-qty').fill('0');
+  await dialog.getByRole('button', { name: 'Créer' }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByText(itemName)).toBeVisible();
 

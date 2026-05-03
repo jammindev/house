@@ -9,6 +9,7 @@ import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { linkEquipmentInteraction } from '@/lib/api/equipment';
 import { useCreateInteraction } from './hooks';
+import ExpenseFields from './ExpenseFields';
 
 const TYPE_OPTIONS = [
   'note',
@@ -62,9 +63,12 @@ export default function InteractionNewPage() {
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState(paramZoneId);
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [amount, setAmount] = React.useState('');
+  const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
 
   const isTodo = type === 'todo';
+  const isExpense = type === 'expense';
   const zoneIsLocked = !!paramZoneId;
 
   React.useEffect(() => {
@@ -111,6 +115,23 @@ export default function InteractionNewPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    // Build metadata: source_interaction (when relevant) + expense fields (when type=expense).
+    let metadata: Record<string, unknown> | undefined;
+    if (paramSourceInteractionId) {
+      metadata = { source_interaction: paramSourceInteractionId };
+    }
+    if (isExpense) {
+      const trimmedAmount = amount.trim();
+      metadata = {
+        ...(metadata ?? {}),
+        kind: 'manual',
+        source_name: null,
+        amount: trimmedAmount ? trimmedAmount : null,
+        unit_price: null,
+        supplier: supplier.trim(),
+      };
+    }
+
     try {
       const newInteraction = await createMutation.mutateAsync({
         subject: subject.trim(),
@@ -121,9 +142,7 @@ export default function InteractionNewPage() {
         zone_ids: [zoneId],
         tags_input: tags,
         project: paramProjectId || null,
-        ...(paramSourceInteractionId
-          ? { metadata: { source_interaction: paramSourceInteractionId } }
-          : {}),
+        ...(metadata ? { metadata } : {}),
       });
 
       if (paramEquipmentId) {
@@ -214,6 +233,15 @@ export default function InteractionNewPage() {
             </div>
           ) : null}
         </div>
+
+        {isExpense ? (
+          <ExpenseFields
+            amount={amount}
+            onAmountChange={setAmount}
+            supplier={supplier}
+            onSupplierChange={setSupplier}
+          />
+        ) : null}
 
         {/* Date / time */}
         <div className="space-y-2">

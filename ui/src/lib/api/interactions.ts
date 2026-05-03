@@ -14,6 +14,9 @@ export interface InteractionListItem {
   project?: string | null;
   project_title?: string | null;
   metadata?: Record<string, unknown>;
+  source_type?: string | null;
+  source_id?: string | null;
+  source_label?: string | null;
 }
 
 export interface CreateInteractionInput {
