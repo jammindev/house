@@ -962,7 +962,14 @@
       "archived": "Archivé"
     },
     "deleted": "Équipement supprimé",
-    "empty_description": "Ajoutez votre premier équipement pour commencer à suivre vos appareils et outils."
+    "empty_description": "Ajoutez votre premier équipement pour commencer à suivre vos appareils et outils.",
+    "purchase": {
+      "title": "Enregistrer un achat — {{name}}",
+      "created": "Achat enregistré",
+      "actions": {
+        "add": "Achat"
+      }
+    }
   },
   "dashboard": {
     "title": "Tableau de bord",
@@ -1214,28 +1221,32 @@
       "title": "Approvisionner — {{name}}",
       "current_quantity": "Quantité actuelle : {{quantity}} {{unit}}",
       "created": "Achat enregistré",
-      "fields": {
-        "delta": "Quantité ajoutée ({{unit}})",
-        "price": "Prix",
-        "price_placeholder": "Optionnel",
-        "supplier": "Fournisseur",
-        "occurred_at": "Date d'achat",
-        "notes": "Notes"
-      },
-      "price_mode": {
-        "total": "Total",
-        "unit": "Par {{unit}}"
-      },
       "actions": {
-        "add": "Achat",
-        "confirm": "Enregistrer l'achat",
-        "saving": "Enregistrement..."
-      },
-      "errors": {
-        "delta_required": "Indique une quantité achetée supérieure à 0.",
-        "price_invalid": "Le prix doit être positif.",
-        "save_failed": "Impossible d'enregistrer l'achat."
+        "add": "Achat"
       }
+    }
+  },
+  "purchase": {
+    "fields": {
+      "delta": "Quantité ajoutée ({{unit}})",
+      "price": "Prix",
+      "price_placeholder": "Optionnel",
+      "supplier": "Fournisseur",
+      "occurred_at": "Date d'achat",
+      "notes": "Notes"
+    },
+    "price_mode": {
+      "total": "Total",
+      "unit": "Par {{unit}}"
+    },
+    "actions": {
+      "confirm": "Enregistrer l'achat",
+      "saving": "Enregistrement..."
+    },
+    "errors": {
+      "delta_required": "Indique une quantité achetée supérieure à 0.",
+      "price_invalid": "Le prix doit être positif.",
+      "save_failed": "Impossible d'enregistrer l'achat."
     }
   },
   "admin": {

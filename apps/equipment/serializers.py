@@ -1,8 +1,21 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 from django.utils.translation import gettext_lazy as _
 
 from .models import Equipment, EquipmentInteraction
 from .services import compute_next_service_due
+
+
+class EquipmentPurchaseSerializer(serializers.Serializer):
+    """Input for /equipment/{id}/register-purchase/."""
+
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, allow_null=True, min_value=Decimal("0")
+    )
+    supplier = serializers.CharField(required=False, allow_blank=True, default="")
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class EquipmentSerializer(serializers.ModelSerializer):

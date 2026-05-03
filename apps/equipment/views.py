@@ -1,15 +1,22 @@
-from rest_framework import filters, viewsets
+from django.db import transaction
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.exceptions import ValidationError
-from django_filters.rest_framework import DjangoFilterBackend
-from django.utils.translation import gettext_lazy as _
 
 from core.permissions import IsHouseholdMember
 from interactions.models import Interaction
+from interactions.services import create_expense_interaction
 from .models import Equipment, EquipmentInteraction
-from .serializers import EquipmentSerializer, EquipmentInteractionSerializer
+from .serializers import (
+    EquipmentInteractionSerializer,
+    EquipmentPurchaseSerializer,
+    EquipmentSerializer,
+)
 
 
 class EquipmentViewSet(viewsets.ModelViewSet):
@@ -36,6 +43,50 @@ class EquipmentViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="register-purchase")
+    def register_purchase(self, request, pk=None):
+        """Snapshot purchase fields on the equipment + create an expense Interaction.
+
+        Single-action endpoint: writes amount/supplier/date on the equipment AND
+        creates an Interaction(type=expense) linked via the polymorphic source FK.
+        """
+        equipment = self.get_object()
+        serializer = EquipmentPurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        amount = serializer.validated_data.get("amount")
+        supplier = serializer.validated_data.get("supplier", "") or ""
+        occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
+        notes = serializer.validated_data.get("notes", "") or ""
+
+        with transaction.atomic():
+            # Equipment-specific snapshot of the most recent purchase
+            if amount is not None:
+                equipment.purchase_price = amount
+            if supplier:
+                equipment.purchase_vendor = supplier
+            equipment.purchase_date = occurred_at.date()
+            equipment.updated_by = request.user
+            equipment.save(update_fields=[
+                "purchase_price", "purchase_vendor", "purchase_date",
+                "updated_by", "updated_at",
+            ])
+
+            interaction = create_expense_interaction(
+                source=equipment,
+                user=request.user,
+                amount=amount,
+                supplier=supplier,
+                occurred_at=occurred_at,
+                notes=notes,
+                kind="equipment_purchase",
+                extra_metadata={"equipment_name": equipment.name},
+            )
+
+        payload = EquipmentSerializer(equipment, context={"request": request}).data
+        payload["interaction_id"] = str(interaction.id)
+        return Response(payload, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["get"])
     def audit(self, request, pk=None):

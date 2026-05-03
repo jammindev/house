@@ -133,6 +133,30 @@ export class EquipmentService {
         });
     }
     /**
+     * Snapshot purchase fields on the equipment + create an expense Interaction.
+     *
+     * Single-action endpoint: writes amount/supplier/date on the equipment AND
+     * creates an Interaction(type=expense) linked via the polymorphic source FK.
+     * @param id
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentRegisterPurchaseCreate(
+        id: string,
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/{id}/register-purchase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * @param ordering Which field to use when ordering the results.
      * @returns EquipmentInteraction
      * @throws ApiError

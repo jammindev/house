@@ -184,6 +184,30 @@ export async function linkEquipmentInteraction(
   return data as EquipmentInteractionItem;
 }
 
+export interface EquipmentPurchasePayload {
+  amount?: number | null;
+  supplier?: string;
+  occurred_at?: string | null;
+  notes?: string;
+}
+
+export interface EquipmentPurchaseResponse extends EquipmentListItem {
+  interaction_id: string;
+}
+
+export async function registerEquipmentPurchase(
+  equipmentId: string,
+  payload: EquipmentPurchasePayload,
+): Promise<EquipmentPurchaseResponse> {
+  const { data } = await api.post(`/equipment/${equipmentId}/register-purchase/`, {
+    amount: payload.amount ?? null,
+    supplier: payload.supplier ?? '',
+    occurred_at: payload.occurred_at ?? null,
+    notes: payload.notes ?? '',
+  });
+  return data as EquipmentPurchaseResponse;
+}
+
 export function zoneLabel(zoneId: string | null | undefined, zones: ZoneOption[]): string {
   if (!zoneId) return '—';
   return zones.find((zone) => zone.id === zoneId)?.full_path ?? zones.find((zone) => zone.id === zoneId)?.name ?? '—';

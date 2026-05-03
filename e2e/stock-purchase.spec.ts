@@ -57,9 +57,9 @@ test('parcours achat de stock — bois de chauffage 3,8 stères', async ({ page 
   await expect(dialog).toContainText('Quantité actuelle');
 
   // 4. Remplir : 3,8 stères / 342 € / Wood Co.
-  await page.locator('#stock-purchase-delta').fill('3.8');
-  await page.locator('#stock-purchase-price').fill('342');
-  await page.locator('#stock-purchase-supplier').fill('Wood Co.');
+  await page.locator('#purchase-delta').fill('3.8');
+  await page.locator('#purchase-price').fill('342');
+  await page.locator('#purchase-supplier').fill('Wood Co.');
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
 
   await expect(dialog).toBeHidden();

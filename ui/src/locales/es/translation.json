@@ -962,7 +962,14 @@
       "archived": "Archivado"
     },
     "deleted": "Equipo eliminado",
-    "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas."
+    "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas.",
+    "purchase": {
+      "title": "Registrar compra — {{name}}",
+      "created": "Compra registrada",
+      "actions": {
+        "add": "Comprar"
+      }
+    }
   },
   "dashboard": {
     "title": "Panel de control",
@@ -1214,28 +1221,32 @@
       "title": "Reabastecer — {{name}}",
       "current_quantity": "Cantidad actual: {{quantity}} {{unit}}",
       "created": "Compra registrada",
-      "fields": {
-        "delta": "Cantidad añadida ({{unit}})",
-        "price": "Precio",
-        "price_placeholder": "Opcional",
-        "supplier": "Proveedor",
-        "occurred_at": "Fecha de compra",
-        "notes": "Notas"
-      },
-      "price_mode": {
-        "total": "Total",
-        "unit": "Por {{unit}}"
-      },
       "actions": {
-        "add": "Comprar",
-        "confirm": "Guardar compra",
-        "saving": "Guardando..."
-      },
-      "errors": {
-        "delta_required": "Indica una cantidad comprada mayor que 0.",
-        "price_invalid": "El precio debe ser positivo.",
-        "save_failed": "No se pudo guardar la compra."
+        "add": "Comprar"
       }
+    }
+  },
+  "purchase": {
+    "fields": {
+      "delta": "Cantidad añadida ({{unit}})",
+      "price": "Precio",
+      "price_placeholder": "Opcional",
+      "supplier": "Proveedor",
+      "occurred_at": "Fecha de compra",
+      "notes": "Notas"
+    },
+    "price_mode": {
+      "total": "Total",
+      "unit": "Por {{unit}}"
+    },
+    "actions": {
+      "confirm": "Guardar compra",
+      "saving": "Guardando..."
+    },
+    "errors": {
+      "delta_required": "Indica una cantidad comprada mayor que 0.",
+      "price_invalid": "El precio debe ser positivo.",
+      "save_failed": "No se pudo guardar la compra."
     }
   },
   "admin": {
