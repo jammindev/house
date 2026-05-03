@@ -1,3 +1,7 @@
+from decimal import Decimal
+
+from django.db import transaction
+from django.utils import timezone
 from rest_framework import status as drf_status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -6,6 +10,7 @@ from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
 from documents.models import Document
+from interactions.services import create_expense_interaction
 from .models import (
     Project,
     ProjectDocument,
@@ -18,6 +23,7 @@ from .models import (
 from .serializers import (
     ProjectSerializer,
     ProjectGroupSerializer,
+    ProjectPurchaseSerializer,
     ProjectZoneSerializer,
     ProjectAIThreadSerializer,
     ProjectAIMessageSerializer,
@@ -91,6 +97,44 @@ class ProjectViewSet(_HouseholdScopedViewSet):
             raise ValidationError({"cover_interaction": "Cover interaction household must match selected household."})
 
         serializer.save(updated_by=self.request.user)
+
+    @action(detail=True, methods=["post"], url_path="register-purchase")
+    def register_purchase(self, request, pk=None):
+        """Increment Project.actual_cost_cached + create an expense Interaction.
+
+        Single-action endpoint: increments the project's cached actual cost
+        AND creates an Interaction(type=expense) linked via the polymorphic
+        source FK.
+        """
+        project = self.get_object()
+        serializer = ProjectPurchaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        amount = serializer.validated_data.get("amount")
+        supplier = serializer.validated_data.get("supplier", "") or ""
+        occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
+        notes = serializer.validated_data.get("notes", "") or ""
+
+        with transaction.atomic():
+            if amount is not None:
+                project.actual_cost_cached = (project.actual_cost_cached or Decimal("0")) + amount
+                project.updated_by = request.user
+                project.save(update_fields=["actual_cost_cached", "updated_by", "updated_at"])
+
+            interaction = create_expense_interaction(
+                source=project,
+                user=request.user,
+                amount=amount,
+                supplier=supplier,
+                occurred_at=occurred_at,
+                notes=notes,
+                kind="project_purchase",
+                extra_metadata={"project_title": project.title},
+            )
+
+        payload = ProjectSerializer(project, context={"request": request}).data
+        payload["interaction_id"] = str(interaction.id)
+        return Response(payload, status=drf_status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"], url_path="pin")
     def pin(self, request, pk=None):

@@ -19,6 +19,7 @@ import {
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
 import ProjectDocumentsTab from './ProjectDocumentsTab';
+import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -234,6 +235,7 @@ export default function ProjectDetailPage() {
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [purchaseOpen, setPurchaseOpen] = React.useState(false);
 
   const { data: project, isLoading, error } = useProject(id ?? '');
   const deleteProjectMutation = useDeleteProject();
@@ -325,6 +327,15 @@ export default function ProjectDetailPage() {
                 className="h-4 w-4"
                 fill={project.is_pinned ? 'currentColor' : 'none'}
               />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 gap-1 px-3 text-sm"
+              onClick={() => setPurchaseOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('projects.purchase.actions.add')}
             </Button>
             <Button
               type="button"
@@ -443,6 +454,12 @@ export default function ProjectDetailPage() {
         description={t('projects.delete_confirm', { title: project.title })}
         onConfirm={handleDelete}
         loading={deleteProjectMutation.isPending}
+      />
+
+      <ProjectPurchaseDialog
+        open={purchaseOpen}
+        onOpenChange={setPurchaseOpen}
+        project={project}
       />
     </>
   );

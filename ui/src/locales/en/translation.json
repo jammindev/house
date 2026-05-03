@@ -1435,6 +1435,13 @@
         "saving": "Saving...",
         "create": "Create group"
       }
+    },
+    "purchase": {
+      "title": "Record an expense — {{name}}",
+      "created": "Expense recorded",
+      "actions": {
+        "add": "Expense"
+      }
     }
   },
   "notifications": {

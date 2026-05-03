@@ -1435,6 +1435,13 @@
         "saving": "Enregistrement...",
         "create": "Créer le groupe"
       }
+    },
+    "purchase": {
+      "title": "Enregistrer une dépense — {{name}}",
+      "created": "Dépense enregistrée",
+      "actions": {
+        "add": "Dépense"
+      }
     }
   },
   "notifications": {

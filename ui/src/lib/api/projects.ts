@@ -70,6 +70,13 @@ export interface ProjectGroupPayload {
   tags?: string[];
 }
 
+export interface ProjectPurchasePayload {
+  amount: number | null;
+  supplier?: string;
+  occurred_at?: string | null;
+  notes?: string;
+}
+
 interface PaginatedResponse<T> {
   count?: number;
   next?: string | null;
@@ -163,6 +170,22 @@ export async function attachProjectDocument(projectId: string, documentId: strin
 
 export async function detachProjectDocument(projectId: string, documentId: string): Promise<void> {
   await api.post(`/projects/projects/${projectId}/detach_document/`, { document_id: documentId });
+}
+
+export async function registerProjectPurchase(
+  projectId: string,
+  payload: ProjectPurchasePayload,
+): Promise<ProjectListItem & { interaction_id?: string }> {
+  const body: Record<string, unknown> = {};
+  if (payload.amount !== undefined && payload.amount !== null) body.amount = payload.amount;
+  if (payload.supplier) body.supplier = payload.supplier;
+  if (payload.occurred_at) body.occurred_at = payload.occurred_at;
+  if (payload.notes) body.notes = payload.notes;
+  const { data } = await api.post(
+    `/projects/projects/${projectId}/register-purchase/`,
+    body,
+  );
+  return data as ProjectListItem & { interaction_id?: string };
 }
 
 export interface ProjectInteractionItem {

@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from .models import (
@@ -8,6 +10,17 @@ from .models import (
     ProjectAIMessage,
     UserPinnedProject,
 )
+
+
+class ProjectPurchaseSerializer(serializers.Serializer):
+    """Input for /projects/{id}/register-purchase/."""
+
+    amount = serializers.DecimalField(
+        max_digits=12, decimal_places=2, required=False, allow_null=True, min_value=Decimal("0")
+    )
+    supplier = serializers.CharField(required=False, allow_blank=True, default="")
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
 
 
 class ProjectGroupPickerSerializer(serializers.ModelSerializer):
