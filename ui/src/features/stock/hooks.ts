@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   fetchStockItems,
   fetchStockCategories,
@@ -8,10 +9,13 @@ import {
   createStockCategory,
   updateStockCategory,
   deleteStockCategory,
+  purchaseStockItem,
   type StockItem,
   type StockCategory,
+  type StockPurchasePayload,
 } from '@/lib/api/stock';
 import { fetchZones } from '@/lib/api/zones';
+import { toast } from '@/lib/toast';
 
 interface StockFilters {
   search?: string;
@@ -70,6 +74,21 @@ export function useDeleteStockItem() {
   return useMutation({
     mutationFn: (id: string) => deleteStockItem(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: stockKeys.all }),
+  });
+}
+
+export function usePurchaseStockItem() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: StockPurchasePayload }) =>
+      purchaseStockItem(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: stockKeys.all });
+      qc.invalidateQueries({ queryKey: ['interactions'] });
+      toast({ description: t('stock.purchase.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 

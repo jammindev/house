@@ -28,6 +28,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=True
     )
     project_title = serializers.SerializerMethodField()
+    stock_item_name = serializers.CharField(source='stock_item.name', read_only=True)
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
@@ -51,6 +52,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'id', 'household', 'subject', 'content', 'type', 'status',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
             'project', 'project_title',
+            'stock_item', 'stock_item_name',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]

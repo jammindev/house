@@ -63,7 +63,9 @@ from electricity.models import (
     UsagePoint,
 )
 from households.models import Household, HouseholdMember
+from interactions.models import Interaction
 from projects.models import Project
+from stock.models import StockCategory, StockItem
 from tasks.models import Task, TaskZone
 from zones.models import Zone
 
@@ -108,6 +110,9 @@ class Command(BaseCommand):
             ElectricCircuit.objects.filter(board__household_id__in=household_ids).delete()
             ProtectiveDevice.objects.filter(board__household_id__in=household_ids).delete()
             ElectricityBoard.objects.filter(household_id__in=household_ids).delete()
+            Interaction.objects.filter(household_id__in=household_ids).delete()
+            StockItem.objects.filter(household_id__in=household_ids).delete()
+            StockCategory.objects.filter(household_id__in=household_ids).delete()
             Zone.objects.filter(household_id__in=household_ids).delete()
             Household.objects.filter(id__in=household_ids).delete()
         users.delete()

@@ -1,6 +1,7 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
+import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
@@ -9,6 +10,7 @@ interface StockItemCardProps {
   item: StockItem;
   onEdit: (item: StockItem) => void;
   onDelete: (itemId: string) => void;
+  onPurchase: (item: StockItem) => void;
 }
 
 function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -31,7 +33,7 @@ function formatDate(value?: string | null): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
 }
 
-export default function StockItemCard({ item, onEdit, onDelete }: StockItemCardProps) {
+export default function StockItemCard({ item, onEdit, onDelete, onPurchase }: StockItemCardProps) {
   const { t } = useTranslation();
 
   const actions: CardAction[] = [
@@ -57,20 +59,32 @@ export default function StockItemCard({ item, onEdit, onDelete }: StockItemCardP
         </div>
       </div>
 
-      <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-        <p>
-          {t('stock.fields.quantity')}: {formatQty(item.quantity, item.unit)}
-        </p>
-        {item.expiration_date ? (
+      <div className="mt-2 flex flex-wrap items-end justify-between gap-2">
+        <div className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-3 sm:gap-x-4">
           <p>
-            {t('stock.fields.expiration_date')}: {formatDate(item.expiration_date)}
+            {t('stock.fields.quantity')}: {formatQty(item.quantity, item.unit)}
           </p>
-        ) : null}
-        {item.min_quantity ? (
-          <p>
-            {t('stock.fields.min_max')}: {item.min_quantity} / {item.max_quantity || '—'}
-          </p>
-        ) : null}
+          {item.expiration_date ? (
+            <p>
+              {t('stock.fields.expiration_date')}: {formatDate(item.expiration_date)}
+            </p>
+          ) : null}
+          {item.min_quantity ? (
+            <p>
+              {t('stock.fields.min_max')}: {item.min_quantity} / {item.max_quantity || '—'}
+            </p>
+          ) : null}
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => onPurchase(item)}
+          className="h-7 gap-1 px-2 text-xs"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          {t('stock.purchase.actions.add')}
+        </Button>
       </div>
     </li>
   );

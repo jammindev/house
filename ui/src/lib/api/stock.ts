@@ -169,6 +169,32 @@ export async function adjustStockQuantity(itemId: string, delta: number): Promis
   return data as StockItem;
 }
 
+export interface StockPurchasePayload {
+  delta: number;
+  amount?: number | null;
+  supplier?: string;
+  occurred_at?: string | null;
+  notes?: string;
+}
+
+export interface StockPurchaseResponse extends StockItem {
+  interaction_id: string;
+}
+
+export async function purchaseStockItem(
+  itemId: string,
+  payload: StockPurchasePayload,
+): Promise<StockPurchaseResponse> {
+  const { data } = await api.post(`/stock/${itemId}/purchase/`, {
+    delta: payload.delta,
+    amount: payload.amount ?? null,
+    supplier: payload.supplier ?? '',
+    occurred_at: payload.occurred_at ?? null,
+    notes: payload.notes ?? '',
+  });
+  return data as StockPurchaseResponse;
+}
+
 export async function fetchStockCategories(): Promise<StockCategory[]> {
   const { data } = await api.get('/stock/categories/', {
     params: { ordering: 'sort_order,name' },

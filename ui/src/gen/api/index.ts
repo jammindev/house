@@ -128,6 +128,7 @@ export type { Zone } from './models/Zone';
 export type { ZoneTree } from './models/ZoneTree';
 
 export { AccountsService } from './services/AccountsService';
+export { AgentService } from './services/AgentService';
 export { AlertsService } from './services/AlertsService';
 export { AuthService } from './services/AuthService';
 export { ContactsService } from './services/ContactsService';
