@@ -1375,19 +1375,27 @@
       "other": "Sonstiges"
     },
     "tabs": {
-      "description": "Beschreibung",
+      "overview": "Übersicht",
       "tasks": "Aufgaben",
       "notes": "Notizen",
       "expenses": "Ausgaben",
       "documents": "Dokumente",
-      "timeline": "Verlauf",
-      "metrics": "Kennzahlen"
+      "timeline": "Verlauf"
     },
     "metrics": {
       "planned_budget": "Geplantes Budget",
       "actual_cost": "Tatsächliche Kosten",
       "budget_used": "{{pct}} % des Budgets verwendet",
       "over_budget": "Budget überschritten"
+    },
+    "dashboard": {
+      "description": "Beschreibung",
+      "indicators": "Kennzahlen",
+      "tasks": "Offene Aufgaben ({{count}})",
+      "notes": "Notizen",
+      "quick_note_placeholder": "Schnellnotiz hinzufügen…",
+      "quick_note_save": "Hinzufügen",
+      "note_added": "Notiz hinzugefügt"
     },
     "detail": {
       "error_loading": "Projekt konnte nicht geladen werden."

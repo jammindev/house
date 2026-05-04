@@ -10,6 +10,8 @@ import { TabShell } from '@/components/TabShell';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { ProjectStatus } from '@/lib/api/projects';
 import TasksPanel from '@/features/tasks/TasksPanel';
+import NewTaskDialog from '@/features/tasks/NewTaskDialog';
+import { taskKeys, useHouseholdMembersWithMe } from '@/features/tasks/hooks';
 import {
   useProject,
   useProjectInteractions,
@@ -20,25 +22,19 @@ import {
 import ProjectDialog from './ProjectDialog';
 import ProjectDocumentsTab from './ProjectDocumentsTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
+import ProjectDashboard from './ProjectDashboard';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
 
-type Tab = 'description' | 'tasks' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'metrics';
-const TABS: Tab[] = ['description', 'tasks', 'notes', 'expenses', 'documents', 'timeline', 'metrics'];
+type Tab = 'overview' | 'tasks' | 'notes' | 'expenses' | 'documents' | 'timeline';
+const TABS: Tab[] = ['overview', 'tasks', 'notes', 'expenses', 'documents', 'timeline'];
 
 function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
   if (status === 'active') return 'default';
   if (status === 'on_hold') return 'secondary';
   if (status === 'cancelled') return 'destructive';
   return 'outline';
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
 }
 
 function formatDateTime(value?: string | null): string {
@@ -131,100 +127,6 @@ function TabInteractions({
   );
 }
 
-// ── Tab: metrics ───────────────────────────────────────────
-
-function MetricsTab({ projectId }: { projectId: string }) {
-  const { t } = useTranslation();
-  const { data: project } = useProject(projectId);
-  if (!project) return null;
-
-  const planned = Number(project.planned_budget);
-  const actual = Number(project.actual_cost_cached);
-  const pct = planned > 0 ? Math.min((actual / planned) * 100, 100) : 0;
-  const overBudget = actual > planned && planned > 0;
-
-  return (
-    <div className="space-y-4 text-sm">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">{t('projects.metrics.planned_budget')}</p>
-          <p className="mt-1 text-xl font-semibold">{planned > 0 ? `${planned.toFixed(2)} €` : '—'}</p>
-        </div>
-        <div className="rounded-lg border p-3">
-          <p className="text-xs text-muted-foreground">{t('projects.metrics.actual_cost')}</p>
-          <p className={`mt-1 text-xl font-semibold ${overBudget ? 'text-destructive' : ''}`}>
-            {actual > 0 ? `${actual.toFixed(2)} €` : '—'}
-          </p>
-        </div>
-      </div>
-
-      {planned > 0 ? (
-        <div>
-          <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-            <span>{t('projects.metrics.budget_used', { pct: pct.toFixed(0) })}</span>
-            {overBudget ? (
-              <span className="text-destructive">{t('projects.metrics.over_budget')}</span>
-            ) : null}
-          </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full ${overBudget ? 'bg-destructive' : 'bg-primary'}`}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      <div className="space-y-1 text-xs text-muted-foreground">
-        <p>
-          {t('projects.start_date')}: {formatDate(project.start_date)}
-        </p>
-        <p>
-          {t('projects.due_date')}: {formatDate(project.due_date)}
-        </p>
-        {project.closed_at ? (
-          <p>
-            {t('projects.closed_at')}: {formatDateTime(project.closed_at)}
-          </p>
-        ) : null}
-      </div>
-
-      {project.zones.length > 0 ? (
-        <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">{t('projects.zones')}</p>
-          <div className="flex flex-wrap gap-1">
-            {project.zones.map((z) => (
-              <span
-                key={z.id}
-                className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px]"
-                style={z.color ? { borderColor: z.color, color: z.color } : {}}
-              >
-                {z.name}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      {project.tags.length > 0 ? (
-        <div>
-          <p className="mb-1 text-xs font-medium text-muted-foreground">{t('projects.tags')}</p>
-          <div className="flex flex-wrap gap-1">
-            {project.tags.map((tag) => (
-              <span
-                key={tag}
-                className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px]"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 // ── Main page ──────────────────────────────────────────────
 
 export default function ProjectDetailPage() {
@@ -236,14 +138,22 @@ export default function ProjectDetailPage() {
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [purchaseOpen, setPurchaseOpen] = React.useState(false);
+  const [newTaskOpen, setNewTaskOpen] = React.useState(false);
 
   const { data: project, isLoading, error } = useProject(id ?? '');
+  const { data: householdMembers = [] } = useHouseholdMembersWithMe();
   const deleteProjectMutation = useDeleteProject();
   const pinProjectMutation = usePinProject();
 
   const handleSaved = React.useCallback(() => {
     qc.invalidateQueries({ queryKey: projectKeys.all });
   }, [qc]);
+
+  const handleTaskCreated = React.useCallback(() => {
+    if (!id) return;
+    void qc.invalidateQueries({ queryKey: taskKeys.project(id) });
+    void qc.invalidateQueries({ queryKey: taskKeys.all });
+  }, [qc, id]);
 
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -378,19 +288,16 @@ export default function ProjectDetailPage() {
         <TabShell
           tabs={TABS.map((tab) => ({ key: tab, label: t(`projects.tabs.${tab}`) }))}
           sessionKey={`project-detail.${project.id}.tab`}
-          defaultTab="description"
+          defaultTab="overview"
         >
           {(tab) => (
             <Card>
               <CardContent className="pt-4">
-                {tab === 'description' ? (
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/80">
-                    {project.description || (
-                      <span className="italic text-muted-foreground">
-                        {t('projects.no_description')}
-                      </span>
-                    )}
-                  </div>
+                {tab === 'overview' ? (
+                  <ProjectDashboard
+                    project={project}
+                    onAddTask={() => setNewTaskOpen(true)}
+                  />
                 ) : null}
 
                 {tab === 'tasks' ? (
@@ -430,8 +337,6 @@ export default function ProjectDetailPage() {
                     addLabel={t('projects.add_activity')}
                   />
                 ) : null}
-
-                {tab === 'metrics' ? <MetricsTab projectId={project.id} /> : null}
               </CardContent>
             </Card>
           )}
@@ -458,6 +363,14 @@ export default function ProjectDetailPage() {
         open={purchaseOpen}
         onOpenChange={setPurchaseOpen}
         project={project}
+      />
+
+      <NewTaskDialog
+        open={newTaskOpen}
+        onOpenChange={setNewTaskOpen}
+        onCreated={handleTaskCreated}
+        householdMembers={householdMembers}
+        defaultProjectId={project.id}
       />
     </>
   );

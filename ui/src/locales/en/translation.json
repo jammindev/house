@@ -1375,19 +1375,27 @@
       "other": "Other"
     },
     "tabs": {
-      "description": "Description",
+      "overview": "Overview",
       "tasks": "Tasks",
       "notes": "Notes",
       "expenses": "Expenses",
       "documents": "Documents",
-      "timeline": "Timeline",
-      "metrics": "Metrics"
+      "timeline": "Timeline"
     },
     "metrics": {
       "planned_budget": "Planned budget",
       "actual_cost": "Actual cost",
       "budget_used": "{{pct}}% of budget used",
       "over_budget": "Over budget"
+    },
+    "dashboard": {
+      "description": "Description",
+      "indicators": "Indicators",
+      "tasks": "Open tasks ({{count}})",
+      "notes": "Notes",
+      "quick_note_placeholder": "Add a quick note…",
+      "quick_note_save": "Add",
+      "note_added": "Note added"
     },
     "detail": {
       "error_loading": "Failed to load project."

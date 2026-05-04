@@ -1375,19 +1375,27 @@
       "other": "Autre"
     },
     "tabs": {
-      "description": "Description",
+      "overview": "Aperçu",
       "tasks": "Tâches",
       "notes": "Notes",
       "expenses": "Dépenses",
       "documents": "Documents",
-      "timeline": "Historique",
-      "metrics": "Indicateurs"
+      "timeline": "Historique"
     },
     "metrics": {
       "planned_budget": "Budget prévisionnel",
       "actual_cost": "Coût réel",
       "budget_used": "{{pct}} % du budget utilisé",
       "over_budget": "Dépassement de budget"
+    },
+    "dashboard": {
+      "description": "Description",
+      "indicators": "Indicateurs",
+      "tasks": "Tâches ouvertes ({{count}})",
+      "notes": "Notes",
+      "quick_note_placeholder": "Ajouter une note rapide…",
+      "quick_note_save": "Ajouter",
+      "note_added": "Note ajoutée"
     },
     "detail": {
       "error_loading": "Impossible de charger le projet."
