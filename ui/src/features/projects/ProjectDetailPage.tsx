@@ -415,8 +415,6 @@ export default function ProjectDetailPage() {
                     projectId={project.id}
                     type="expense"
                     emptyKey="projects.empty_expenses"
-                    addUrl={`/app/interactions/new?type=expense&project_id=${project.id}`}
-                    addLabel={t('projects.add_expense')}
                   />
                 ) : null}
 

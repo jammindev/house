@@ -17,7 +17,8 @@
     "noResults": "Sin resultados",
     "linked": "Ya vinculado",
     "actions": "Acciones",
-    "error_loading": "Error al cargar."
+    "error_loading": "Error al cargar.",
+    "loading": "Cargando…"
   },
   "sidebar": {
     "open": "Abrir menú",
@@ -1355,7 +1356,6 @@
     "empty_timeline": "Aún no hay actividad.",
     "add_task": "Añadir una tarea",
     "add_note": "Añadir una nota",
-    "add_expense": "Añadir un gasto",
     "add_activity": "Añadir una actividad",
     "status": {
       "draft": "Borrador",

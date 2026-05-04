@@ -62,6 +62,7 @@ export interface ProjectPayload {
   planned_budget?: number;
   tags?: string[];
   project_group?: string | null;
+  zone_ids?: string[];
 }
 
 export interface ProjectGroupPayload {
@@ -135,6 +136,7 @@ export async function createProject(input: ProjectPayload): Promise<ProjectListI
     start_date: input.start_date || null,
     due_date: input.due_date || null,
     project_group: input.project_group || null,
+    zone_ids: input.zone_ids ?? [],
   });
   return data as ProjectListItem;
 }
@@ -146,6 +148,7 @@ export async function updateProject(id: string, input: Partial<ProjectPayload>):
     ...(typeof input.start_date !== 'undefined' ? { start_date: input.start_date || null } : {}),
     ...(typeof input.due_date !== 'undefined' ? { due_date: input.due_date || null } : {}),
     ...(typeof input.project_group !== 'undefined' ? { project_group: input.project_group || null } : {}),
+    ...(input.zone_ids !== undefined ? { zone_ids: input.zone_ids } : {}),
   });
   return data as ProjectListItem;
 }

@@ -6,6 +6,7 @@ import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
+import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
 import {
   createProject,
   updateProject,
@@ -13,7 +14,7 @@ import {
   type ProjectStatus,
   type ProjectType,
 } from '@/lib/api/projects';
-import { useZones, useProjectGroups } from './hooks';
+import { useProjectGroups } from './hooks';
 
 const STATUS_OPTIONS: ProjectStatus[] = ['draft', 'active', 'on_hold', 'completed', 'cancelled'];
 const TYPE_OPTIONS: ProjectType[] = [
@@ -37,7 +38,6 @@ export default function ProjectDialog({
   const { t } = useTranslation();
   const isEditing = Boolean(existingProject);
 
-  const { data: zones = [] } = useZones();
   const { data: groups = [] } = useProjectGroups();
 
   const [title, setTitle] = React.useState('');
@@ -48,6 +48,7 @@ export default function ProjectDialog({
   const [startDate, setStartDate] = React.useState('');
   const [dueDate, setDueDate] = React.useState('');
   const [plannedBudget, setPlannedBudget] = React.useState('');
+  const [zoneIds, setZoneIds] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -63,6 +64,7 @@ export default function ProjectDialog({
     setPlannedBudget(
       existingProject?.planned_budget ? String(Number(existingProject.planned_budget)) : '',
     );
+    setZoneIds(existingProject?.zones?.map((z) => z.id) ?? []);
     setError(null);
   }, [open, existingProject?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -84,6 +86,7 @@ export default function ProjectDialog({
       start_date: startDate || null,
       due_date: dueDate || null,
       planned_budget: plannedBudget ? Number(plannedBudget) : 0,
+      zone_ids: zoneIds,
     };
 
     const action =
@@ -190,13 +193,10 @@ export default function ProjectDialog({
             </FormField>
           ) : null}
 
-          {/* Zone chips (read-only indicator when editing) */}
-          {zones.length > 0 && !isEditing ? (
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-gray-700">{t('projects.form.fields.zones')}</p>
-              <p className="text-xs text-muted-foreground">{t('projects.zones_edit_note')}</p>
-            </div>
-          ) : null}
+          {/* Zones — multi-select */}
+          <FormField label={t('projects.form.fields.zones')} htmlFor="proj-zones">
+            <ZoneMultiSelect id="proj-zones" value={zoneIds} onChange={setZoneIds} />
+          </FormField>
 
           {/* Dates */}
           <div className="grid grid-cols-2 gap-3">

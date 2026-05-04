@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from zones.models import Zone
+
 from .models import (
     Project,
     ProjectGroup,
@@ -57,6 +59,11 @@ class ProjectGroupSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     is_pinned = serializers.SerializerMethodField()
     zones = serializers.SerializerMethodField()
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+    )
     project_group_name = serializers.SerializerMethodField()
     # Le modèle a default="" mais pas blank=True : DRF rejette les chaînes vides
     # par défaut. Le formulaire React envoie systématiquement description="" quand
@@ -84,6 +91,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "type",
             "is_pinned",
             "zones",
+            "zone_ids",
             "created_at",
             "updated_at",
             "created_by",
@@ -109,6 +117,46 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_project_group_name(self, obj):
         return obj.project_group.name if obj.project_group else None
+
+    def create(self, validated_data):
+        zone_ids = validated_data.pop("zone_ids", None)
+        project = super().create(validated_data)
+        if zone_ids is not None:
+            self._sync_zones(project, zone_ids)
+        return project
+
+    def update(self, instance, validated_data):
+        zone_ids = validated_data.pop("zone_ids", None)
+        project = super().update(instance, validated_data)
+        if zone_ids is not None:
+            self._sync_zones(project, zone_ids)
+        return project
+
+    def _sync_zones(self, project, zone_ids):
+        request = self.context.get("request")
+        ids = [str(z) for z in zone_ids]
+        zones = list(Zone.objects.for_user_households(request.user).filter(id__in=ids))
+        if len(zones) != len(set(ids)):
+            raise serializers.ValidationError(
+                {"zone_ids": "One or more zones are invalid or inaccessible."}
+            )
+        for z in zones:
+            if z.household_id != project.household_id:
+                raise serializers.ValidationError(
+                    {"zone_ids": "Zone household must match project household."}
+                )
+        existing = set(str(pk) for pk in project.project_zones.values_list("zone_id", flat=True))
+        desired = set(ids)
+        to_remove = existing - desired
+        to_add = desired - existing
+        if to_remove:
+            project.project_zones.filter(zone_id__in=to_remove).delete()
+        for zone_id in to_add:
+            ProjectZone.objects.create(
+                project=project,
+                zone_id=zone_id,
+                created_by=request.user if request else None,
+            )
 
 
 class ProjectZoneSerializer(serializers.ModelSerializer):

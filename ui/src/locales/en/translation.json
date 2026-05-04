@@ -17,7 +17,8 @@
     "noResults": "No results",
     "linked": "Already linked",
     "actions": "Actions",
-    "error_loading": "Failed to load."
+    "error_loading": "Failed to load.",
+    "loading": "Loading…"
   },
   "sidebar": {
     "open": "Open menu",
@@ -1355,7 +1356,6 @@
     "empty_timeline": "No activity yet.",
     "add_task": "Add a task",
     "add_note": "Add a note",
-    "add_expense": "Add an expense",
     "add_activity": "Add an activity",
     "status": {
       "draft": "Draft",

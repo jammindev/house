@@ -17,7 +17,8 @@
     "noResults": "Keine Ergebnisse",
     "linked": "Bereits verknüpft",
     "actions": "Aktionen",
-    "error_loading": "Laden fehlgeschlagen."
+    "error_loading": "Laden fehlgeschlagen.",
+    "loading": "Wird geladen…"
   },
   "sidebar": {
     "open": "Menü öffnen",
@@ -1355,7 +1356,6 @@
     "empty_timeline": "Noch keine Aktivität.",
     "add_task": "Aufgabe hinzufügen",
     "add_note": "Notiz hinzufügen",
-    "add_expense": "Ausgabe hinzufügen",
     "add_activity": "Aktivität hinzufügen",
     "status": {
       "draft": "Entwurf",

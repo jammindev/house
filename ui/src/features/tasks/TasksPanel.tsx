@@ -192,10 +192,13 @@ export default function TasksPanel({
   return (
     <>
       <div className="space-y-4">
-        {!isNewTaskControlled ? (
+        {!isNewTaskControlled && !isEmpty ? (
           <div className="flex justify-end">
-            <Button onClick={() => setNewTaskOpen(true)}>
-              <Plus className="mr-1.5 h-4 w-4" />
+            <Button
+              className="h-8 gap-1 px-3 text-sm"
+              onClick={() => setNewTaskOpen(true)}
+            >
+              <Plus className="h-3.5 w-3.5" />
               {t('tasks.new')}
             </Button>
           </div>
@@ -274,7 +277,7 @@ export default function TasksPanel({
             <CheckSquare className="h-10 w-10 text-muted-foreground/40" />
             <p className="text-sm font-medium text-muted-foreground">{t('tasks.empty')}</p>
             <p className="text-xs text-muted-foreground">{t('tasks.empty_description')}</p>
-            <Button variant="outline" size="sm" onClick={() => setNewTaskOpen(true)}>
+            <Button size="sm" onClick={() => setNewTaskOpen(true)}>
               {t('tasks.new')}
             </Button>
           </div>

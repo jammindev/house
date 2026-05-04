@@ -23,7 +23,6 @@ import {
   type ProjectPurchasePayload,
 } from '@/lib/api/projects';
 import { documentKeys } from '@/features/documents/hooks';
-import { fetchZones } from '@/lib/api/zones';
 import { toast } from '@/lib/toast';
 
 interface ProjectFilters {
@@ -73,13 +72,6 @@ export function useProjectGroups() {
   return useQuery({
     queryKey: projectKeys.groups(),
     queryFn: fetchProjectGroups,
-  });
-}
-
-export function useZones() {
-  return useQuery({
-    queryKey: ['zones'],
-    queryFn: fetchZones,
   });
 }
 

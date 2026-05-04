@@ -17,7 +17,8 @@
     "noResults": "Aucun résultat",
     "linked": "Déjà lié",
     "actions": "Actions",
-    "error_loading": "Erreur lors du chargement."
+    "error_loading": "Erreur lors du chargement.",
+    "loading": "Chargement…"
   },
   "sidebar": {
     "open": "Ouvrir le menu",
@@ -1347,7 +1348,6 @@
     "empty_timeline": "Aucune activité pour l'instant.",
     "add_task": "Ajouter une tâche",
     "add_note": "Ajouter une note",
-    "add_expense": "Ajouter une dépense",
     "add_activity": "Ajouter une activité",
     "attach_document": {
       "title": "Joindre un document",

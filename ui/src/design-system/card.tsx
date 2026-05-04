@@ -29,9 +29,12 @@ const CardHeader = React.forwardRef<
 ))
 CardHeader.displayName = "CardHeader"
 
-/** Detects a leading emoji in a string and splits it from the rest. */
+/** Detects a leading emoji in a string and splits it from the rest.
+ *  Handles ZWJ sequences (e.g. \uD83D\uDC68\u200D\uD83C\uDF73), skin-tone modifiers (e.g. \uD83D\uDC4D\uD83C\uDFFC) and
+ *  the variation selector VS16 used to force emoji presentation. */
 function splitLeadingEmoji(text: string): [string | null, string] {
-  const match = text.match(/^(\p{Extended_Pictographic}\uFE0F?)\s*/u);
+  const EMOJI_RE = /^(\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?(?:\u200D\p{Extended_Pictographic}(?:\uFE0F|\p{Emoji_Modifier})?)*)\s*/u;
+  const match = text.match(EMOJI_RE);
   if (!match) return [null, text];
   return [match[1], text.slice(match[0].length)];
 }

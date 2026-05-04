@@ -58,6 +58,7 @@ export interface Zone {
   id: string;
   name: string;
   parent?: string | null;
+  full_path?: string;
 }
 
 export const COLUMN_SEQUENCE: TaskColumnId[] = ['backlog', 'pending', 'in_progress', 'done'];

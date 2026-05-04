@@ -36,7 +36,7 @@ export default function ProjectsPage() {
 
   // Project filters
   const [search, setSearch] = React.useState('');
-  const [status, setStatus] = React.useState('');
+  const [status, setStatus] = React.useState('active');
   const [type, setType] = React.useState('');
 
   // Project dialog
@@ -124,11 +124,11 @@ export default function ProjectsPage() {
 
   function resetFilters() {
     setSearch('');
-    setStatus('');
+    setStatus('active');
     setType('');
   }
 
-  const hasActiveFilters = !!(search || status || type);
+  const hasActiveFilters = !!(search || status !== 'active' || type);
   const isProjectsEmpty = !projectsLoading && !projectsError && sortedProjects.length === 0;
   const isGroupsEmpty = !groupsLoading && !groupsError && groups.length === 0;
   const showProjectsSkeleton = useDelayedLoading(projectsLoading);

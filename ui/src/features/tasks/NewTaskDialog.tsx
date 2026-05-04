@@ -8,6 +8,7 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { CheckboxField } from '@/design-system/checkbox-field';
+import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
 import { fetchProjects } from '@/lib/api/projects';
 import type { ProjectListItem } from '@/lib/api/projects';
 import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/api/documents';
@@ -57,7 +58,7 @@ export default function NewTaskDialog({
   const [priority, setPriority] = React.useState<string>('2');
   const [status, setStatus] = React.useState<string>('pending');
   const [assignedToId, setAssignedToId] = React.useState('');
-  const [zoneId, setZoneId] = React.useState('');
+  const [zoneIds, setZoneIds] = React.useState<string[]>([]);
   const [projectId, setProjectId] = React.useState('');
   const [isPrivate, setIsPrivate] = React.useState(false);
   const [zones, setZones] = React.useState<Zone[]>([]);
@@ -114,7 +115,7 @@ export default function NewTaskDialog({
       setPriority('2');
       setStatus('pending');
       setAssignedToId('');
-      setZoneId('');
+      setZoneIds([]);
       setProjectId(defaultProjectId ?? '');
       setIsPrivate(false);
       setSelectedDocumentIds([]);
@@ -128,18 +129,27 @@ export default function NewTaskDialog({
   React.useEffect(() => {
     if (zones.length === 0) return;
     if (existingTask?.zone_names?.length) {
-      const match = zones.find((z) => existingTask.zone_names.includes(z.name));
-      if (match) setZoneId(match.id);
-    } else if (!existingTask) {
-      // Pré-sélectionne la racine du household (parent === null) par défaut.
-      const root = zones.find((z) => !z.parent);
-      if (root) setZoneId(root.id);
+      const matched = zones.filter((z) => existingTask.zone_names.includes(z.name));
+      if (matched.length) setZoneIds(matched.map((z) => z.id));
+      return;
     }
-  }, [zones]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (existingTask) return;
+    // Création : si on vient d'un projet avec des zones, on les hérite ;
+    // sinon on retombe sur la racine du household.
+    if (defaultProjectId && projects.length > 0) {
+      const project = projects.find((p) => p.id === defaultProjectId);
+      if (project?.zones?.length) {
+        setZoneIds(project.zones.map((z) => z.id));
+        return;
+      }
+    }
+    const root = zones.find((z) => !z.parent);
+    if (root) setZoneIds([root.id]);
+  }, [zones, projects]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!zoneId) {
+    if (zoneIds.length === 0) {
       setError(t('tasks.zoneRequired'));
       return;
     }
@@ -149,7 +159,7 @@ export default function NewTaskDialog({
     const payload = {
       subject,
       content: content || undefined,
-      zone_ids: [zoneId],
+      zone_ids: zoneIds,
       due_date: dueDate || null,
       priority: (Number(priority) || null) as TaskPriority,
       assigned_to_id: assignedToId || null,
@@ -199,7 +209,6 @@ export default function NewTaskDialog({
     );
   };
 
-  const zoneOptions = zones.map((z) => ({ value: z.id, label: z.name }));
   const memberOptions = householdMembers.map((m) => ({ value: m.userId, label: m.name }));
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.title }));
 
@@ -226,31 +235,18 @@ export default function NewTaskDialog({
             />
           </FormField>
 
-          <div className="grid grid-cols-2 gap-3">
-            <FormField label={t('tasks.fieldZone')} htmlFor="task-zone">
-              <Select
-                id="task-zone"
-                value={zoneId}
-                onChange={(e) => setZoneId(e.target.value)}
-                options={zoneOptions}
-                placeholder={
-                  zonesLoading
-                    ? t('tasks.loadingZones')
-                    : t('tasks.selectZone')
-                }
-                required
-              />
-            </FormField>
+          <FormField label={t('tasks.fieldZone')} htmlFor="task-zones">
+            <ZoneMultiSelect id="task-zones" value={zoneIds} onChange={setZoneIds} />
+          </FormField>
 
-            <FormField label={t('tasks.fieldPriority')} htmlFor="task-priority">
-              <Select
-                id="task-priority"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value)}
-                options={priorityOptions}
-              />
-            </FormField>
-          </div>
+          <FormField label={t('tasks.fieldPriority')} htmlFor="task-priority">
+            <Select
+              id="task-priority"
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              options={priorityOptions}
+            />
+          </FormField>
 
           <div className={isEditing ? undefined : 'grid grid-cols-2 gap-3'}>
             <FormField label={t('tasks.fieldDate')} htmlFor="task-date">
