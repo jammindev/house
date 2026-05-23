@@ -211,8 +211,8 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(request.user)
             return Response(serializer.data)
 
-        # PATCH — only allow display_name, locale, theme, color_theme
-        allowed_fields = {'display_name', 'locale', 'theme', 'color_theme'}
+        # PATCH — only allow display_name, locale, theme, color_theme, email
+        allowed_fields = {'display_name', 'locale', 'theme', 'color_theme', 'email'}
         data = {k: v for k, v in request.data.items() if k in allowed_fields}
         serializer = self.get_serializer(
             request.user, data=data, partial=True
