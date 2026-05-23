@@ -1155,6 +1155,12 @@
   },
   "stock": {
     "title": "Stock",
+    "alerts": {
+      "low_stock_count_one": "{{count}} article en stock faible",
+      "low_stock_count_other": "{{count}} articles en stock faible",
+      "out_of_stock_count_one": "{{count}} article en rupture",
+      "out_of_stock_count_other": "{{count}} articles en rupture"
+    },
     "tabs": {
       "items": "Articles",
       "categories": "Catégories"

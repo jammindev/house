@@ -1155,6 +1155,12 @@
   },
   "stock": {
     "title": "Bestand",
+    "alerts": {
+      "low_stock_count_one": "{{count}} Artikel mit niedrigem Bestand",
+      "low_stock_count_other": "{{count}} Artikel mit niedrigem Bestand",
+      "out_of_stock_count_one": "{{count}} Artikel vergriffen",
+      "out_of_stock_count_other": "{{count}} Artikel vergriffen"
+    },
     "tabs": {
       "items": "Artikel",
       "categories": "Kategorien"

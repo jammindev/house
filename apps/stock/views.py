@@ -15,6 +15,7 @@ from core.permissions import IsHouseholdMember
 from interactions.services import create_expense_interaction
 
 from .models import StockCategory, StockItem
+from .notifications import notify_stock_status_change
 from .serializers import (
     StockCategorySerializer,
     StockCategorySummarySerializer,
@@ -99,6 +100,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
         if new_quantity < 0:
             raise ValidationError({"delta": _("Adjustment would produce a negative quantity.")})
 
+        old_status = item.status
         item.quantity = new_quantity
         item.last_restocked_at = timezone.now() if delta > 0 else item.last_restocked_at
 
@@ -113,6 +115,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
 
         item.updated_by = request.user
         item.save(update_fields=["quantity", "last_restocked_at", "status", "updated_by", "updated_at"])
+        notify_stock_status_change(item, old_status, item.status)
 
         return Response(StockItemSerializer(item, context={"request": request}).data, status=status.HTTP_200_OK)
 
@@ -139,6 +142,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
 
         with transaction.atomic():
             # Stock-specific side-effects on the item
+            old_status = item.status
             item.quantity = Decimal(item.quantity) + delta
             item.last_restocked_at = timezone.now()
             if unit_price is not None:
@@ -158,6 +162,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
                 item.status = StockItem.Status.IN_STOCK
             item.updated_by = request.user
             item.save()
+            notify_stock_status_change(item, old_status, item.status)
 
             interaction = create_expense_interaction(
                 source=item,
