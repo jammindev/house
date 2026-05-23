@@ -20,6 +20,14 @@
     "error_loading": "Error al cargar.",
     "loading": "Cargando…"
   },
+  "errors": {
+    "notFoundTitle": "Página no encontrada",
+    "notFoundDescription": "La página que buscas no existe o se ha movido.",
+    "backToDashboard": "Volver al panel",
+    "unexpectedTitle": "Vaya, algo salió mal",
+    "unexpectedDescription": "La aplicación encontró un problema inesperado. Recarga la página para volver a intentarlo.",
+    "reload": "Recargar la página"
+  },
   "sidebar": {
     "open": "Abrir menú",
     "groupHome": "Hogar",

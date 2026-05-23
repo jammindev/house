@@ -20,6 +20,14 @@
     "error_loading": "Erreur lors du chargement.",
     "loading": "Chargement…"
   },
+  "errors": {
+    "notFoundTitle": "Page introuvable",
+    "notFoundDescription": "L'adresse demandée n'existe pas ou a été déplacée.",
+    "backToDashboard": "Retour au tableau de bord",
+    "unexpectedTitle": "Oups, une erreur est survenue",
+    "unexpectedDescription": "L'application a rencontré un problème inattendu. Rechargez la page pour réessayer.",
+    "reload": "Recharger la page"
+  },
   "sidebar": {
     "open": "Ouvrir le menu",
     "groupHome": "Maison",

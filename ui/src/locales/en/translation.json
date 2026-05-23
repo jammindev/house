@@ -20,6 +20,14 @@
     "error_loading": "Failed to load.",
     "loading": "Loading…"
   },
+  "errors": {
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you're looking for doesn't exist or has been moved.",
+    "backToDashboard": "Back to dashboard",
+    "unexpectedTitle": "Oops, something went wrong",
+    "unexpectedDescription": "The app ran into an unexpected problem. Reload the page to try again.",
+    "reload": "Reload page"
+  },
   "sidebar": {
     "open": "Open menu",
     "groupHome": "Home",
