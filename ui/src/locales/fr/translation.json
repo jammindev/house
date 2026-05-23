@@ -278,6 +278,8 @@
     "deleted": "Événement supprimé",
     "zone_label": "Zone",
     "zone_placeholder": "Sélectionner une zone",
+    "equipment_label": "Équipement concerné",
+    "equipment_placeholder": "Aucun équipement",
     "tags_input_placeholder": "tag1, tag2, tag3",
     "tags_input_help": "Séparez les tags par des virgules.",
     "project_label": "Projet",

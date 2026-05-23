@@ -278,6 +278,8 @@
     "deleted": "Event deleted",
     "zone_label": "Zone",
     "zone_placeholder": "Select a zone",
+    "equipment_label": "Related equipment",
+    "equipment_placeholder": "No equipment",
     "tags_input_placeholder": "tag1, tag2, tag3",
     "tags_input_help": "Separate tags with commas.",
     "project_label": "Project",

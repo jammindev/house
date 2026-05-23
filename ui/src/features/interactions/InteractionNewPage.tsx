@@ -7,7 +7,7 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
-import { linkEquipmentInteraction } from '@/lib/api/equipment';
+import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { useCreateInteraction } from './hooks';
 import ExpenseFields from './ExpenseFields';
 
@@ -63,6 +63,8 @@ export default function InteractionNewPage() {
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState(paramZoneId);
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [equipmentId, setEquipmentId] = React.useState(paramEquipmentId);
+  const [equipmentList, setEquipmentList] = React.useState<EquipmentListItem[]>([]);
   const [amount, setAmount] = React.useState('');
   const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -72,9 +74,8 @@ export default function InteractionNewPage() {
   const zoneIsLocked = !!paramZoneId;
 
   React.useEffect(() => {
-    fetchZones()
-      .then(setZones)
-      .catch(() => {});
+    fetchZones().then(setZones).catch(() => {});
+    fetchEquipmentList().then(setEquipmentList).catch(() => {});
   }, []);
 
   // Pré-sélection de la racine si rien n'est imposé via le query param.
@@ -133,7 +134,7 @@ export default function InteractionNewPage() {
     }
 
     try {
-      const newInteraction = await createMutation.mutateAsync({
+      await createMutation.mutateAsync({
         subject: subject.trim(),
         content: description,
         type,
@@ -142,11 +143,11 @@ export default function InteractionNewPage() {
         zone_ids: [zoneId],
         tags_input: tags,
         project: paramProjectId || null,
+        equipment_ids: equipmentId ? [equipmentId] : [],
         ...(metadata ? { metadata } : {}),
       });
 
       if (paramEquipmentId) {
-        await linkEquipmentInteraction(paramEquipmentId, newInteraction.id, {});
         navigate(`/app/equipment/${paramEquipmentId}`);
       } else if (paramProjectId) {
         navigate(`/app/projects/${paramProjectId}`);
@@ -304,6 +305,32 @@ export default function InteractionNewPage() {
               {zones.map((z) => (
                 <option key={z.id} value={z.id}>
                   {z.full_path ?? z.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        {/* Equipment */}
+        <div className="space-y-2">
+          <label htmlFor="interaction-equipment" className="text-sm font-medium">
+            {t('interactions.equipment_label')}
+          </label>
+          {paramEquipmentId ? (
+            <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground">
+              {equipmentList.find((eq) => eq.id === equipmentId)?.name ?? equipmentId}
+            </div>
+          ) : (
+            <select
+              id="interaction-equipment"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={equipmentId}
+              onChange={(e) => setEquipmentId(e.target.value)}
+            >
+              <option value="">{t('interactions.equipment_placeholder')}</option>
+              {equipmentList.map((eq) => (
+                <option key={eq.id} value={eq.id}>
+                  {eq.name}
                 </option>
               ))}
             </select>

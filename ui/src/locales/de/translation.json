@@ -278,6 +278,8 @@
     "deleted": "Ereignis gelöscht",
     "zone_label": "Zone",
     "zone_placeholder": "Zone auswählen",
+    "equipment_label": "Betroffenes Gerät",
+    "equipment_placeholder": "Kein Gerät",
     "tags_input_placeholder": "Tag1, Tag2, Tag3",
     "tags_input_help": "Tags durch Kommas trennen.",
     "project_label": "Projekt",

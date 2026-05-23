@@ -1,5 +1,10 @@
 import { api } from '@/lib/axios';
 
+export interface InteractionEquipmentSummary {
+  id: string;
+  name: string;
+}
+
 export interface InteractionListItem {
   id: string;
   subject: string;
@@ -17,6 +22,7 @@ export interface InteractionListItem {
   source_type?: string | null;
   source_id?: string | null;
   source_label?: string | null;
+  equipments?: InteractionEquipmentSummary[];
 }
 
 export interface CreateInteractionInput {
@@ -30,6 +36,7 @@ export interface CreateInteractionInput {
   metadata?: Record<string, unknown>;
   document_ids?: string[];
   project?: string | null;
+  equipment_ids?: string[];
 }
 
 export interface LinkDocumentToInteractionInput {

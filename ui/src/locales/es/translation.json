@@ -278,6 +278,8 @@
     "deleted": "Evento eliminado",
     "zone_label": "Zona",
     "zone_placeholder": "Seleccionar una zona",
+    "equipment_label": "Equipo relacionado",
+    "equipment_placeholder": "Sin equipo",
     "tags_input_placeholder": "etiqueta1, etiqueta2",
     "tags_input_help": "Separa las etiquetas con comas.",
     "project_label": "Proyecto",

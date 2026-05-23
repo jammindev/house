@@ -8,6 +8,7 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
+import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { updateInteraction } from '@/lib/api/interactions';
 import { fetchHouseholdMembers, type HouseholdMember } from '@/lib/api/tasks';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
@@ -65,6 +66,8 @@ export default function InteractionEditPage() {
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [equipmentId, setEquipmentId] = React.useState('');
+  const [equipmentList, setEquipmentList] = React.useState<EquipmentListItem[]>([]);
   const [amount, setAmount] = React.useState('');
   const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -95,13 +98,13 @@ export default function InteractionEditPage() {
     const md = (interaction.metadata ?? {}) as Record<string, string | null | undefined>;
     setAmount(md.amount ?? '');
     setSupplier(md.supplier ?? '');
+    setEquipmentId(interaction.equipments?.[0]?.id ?? '');
     setInitialised(true);
   }, [interaction, initialised]);
 
   React.useEffect(() => {
-    fetchZones()
-      .then(setZones)
-      .catch(() => {});
+    fetchZones().then(setZones).catch(() => {});
+    fetchEquipmentList().then(setEquipmentList).catch(() => {});
   }, []);
 
   const isTodo = type === 'todo';
@@ -155,6 +158,7 @@ export default function InteractionEditPage() {
         occurred_at: occurredAt.toISOString(),
         zone_ids: zoneId ? [zoneId] : [],
         tags_input: tags,
+        equipment_ids: equipmentId ? [equipmentId] : [],
         ...(nextMetadata ? { metadata: nextMetadata } : {}),
       });
       navigate(-1);
@@ -344,6 +348,26 @@ export default function InteractionEditPage() {
             {zones.map((z) => (
               <option key={z.id} value={z.id}>
                 {z.full_path ?? z.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Equipment */}
+        <div className="space-y-2">
+          <label htmlFor="interaction-equipment" className="text-sm font-medium">
+            {t('interactions.equipment_label')}
+          </label>
+          <select
+            id="interaction-equipment"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={equipmentId}
+            onChange={(e) => setEquipmentId(e.target.value)}
+          >
+            <option value="">{t('interactions.equipment_placeholder')}</option>
+            {equipmentList.map((eq) => (
+              <option key={eq.id} value={eq.id}>
+                {eq.name}
               </option>
             ))}
           </select>

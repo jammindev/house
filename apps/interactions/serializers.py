@@ -64,7 +64,14 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
-    
+    equipments = serializers.SerializerMethodField()
+    equipment_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
+
     class Meta:
         model = Interaction
         fields = [
@@ -73,6 +80,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'project', 'project_title',
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
+            'equipments', 'equipment_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
@@ -118,6 +126,12 @@ class InteractionSerializer(serializers.ModelSerializer):
     def get_linked_document_ids(self, obj):
         return self._get_linked_document_ids(obj)
 
+    def get_equipments(self, obj):
+        return [
+            {'id': str(link.equipment_id), 'name': link.equipment.name}
+            for link in obj.equipment_interactions.select_related('equipment').all()
+        ]
+
     def _sync_tags(self, interaction, tag_names):
         if tag_names is None:
             return
@@ -154,10 +168,21 @@ class InteractionSerializer(serializers.ModelSerializer):
                 defaults={'created_by': interaction.created_by},
             )
     
+    def _sync_equipments(self, interaction, equipment_ids):
+        if equipment_ids is None:
+            return
+        from equipment.models import Equipment, EquipmentInteraction
+        interaction.equipment_interactions.all().delete()
+        for equipment_id in equipment_ids:
+            equipment = Equipment.objects.filter(id=equipment_id, household=interaction.household).first()
+            if equipment is not None:
+                EquipmentInteraction.objects.create(equipment=equipment, interaction=interaction)
+
     def create(self, validated_data):
         tag_names = validated_data.pop('tags_input', [])
         zone_ids = validated_data.pop('zone_ids', [])
         document_ids = validated_data.pop('document_ids', [])
+        equipment_ids = validated_data.pop('equipment_ids', [])
 
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
@@ -172,19 +197,21 @@ class InteractionSerializer(serializers.ModelSerializer):
                 InteractionDocument.objects.create(interaction=interaction, document=document)
 
             self._sync_tags(interaction, tag_names)
+            self._sync_equipments(interaction, equipment_ids)
 
         return interaction
-    
+
     def update(self, instance, validated_data):
         tag_names = validated_data.pop('tags_input', None)
         zone_ids = validated_data.pop('zone_ids', None)
         validated_data.pop('document_ids', None)
-        
+        equipment_ids = validated_data.pop('equipment_ids', None)
+
         # Update interaction fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
-        
+
         # Update zones if provided
         if zone_ids is not None:
             from zones.models import Zone
@@ -194,7 +221,8 @@ class InteractionSerializer(serializers.ModelSerializer):
                 InteractionZone.objects.create(interaction=instance, zone=zone)
 
         self._sync_tags(instance, tag_names)
-        
+        self._sync_equipments(instance, equipment_ids)
+
         return instance
 
 
