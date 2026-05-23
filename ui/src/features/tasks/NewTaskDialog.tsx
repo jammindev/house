@@ -27,6 +27,12 @@ interface NewTaskDialogProps {
   householdMembers?: HouseholdMember[];
   /** Pre-fill project when opening from a project page */
   defaultProjectId?: string;
+  /** Pre-fill subject (e.g. when opening from an interaction) */
+  defaultSubject?: string;
+  /** Pre-fill zones (e.g. when opening from an interaction) */
+  defaultZoneIds?: string[];
+  /** Link the new task to the source interaction it was created from */
+  sourceInteractionId?: string;
 }
 
 export default function NewTaskDialog({
@@ -37,6 +43,9 @@ export default function NewTaskDialog({
   onUpdated,
   householdMembers = [],
   defaultProjectId,
+  defaultSubject,
+  defaultZoneIds,
+  sourceInteractionId,
 }: NewTaskDialogProps) {
   const { t } = useTranslation();
   const isEditing = Boolean(existingTask);
@@ -109,13 +118,13 @@ export default function NewTaskDialog({
       setProjectId(existingTask.project ?? defaultProjectId ?? '');
       setIsPrivate(existingTask.is_private ?? false);
     } else {
-      setSubject('');
+      setSubject(defaultSubject ?? '');
       setContent('');
       setDueDate('');
       setPriority('2');
       setStatus('pending');
       setAssignedToId('');
-      setZoneIds([]);
+      setZoneIds(defaultZoneIds ?? []);
       setProjectId(defaultProjectId ?? '');
       setIsPrivate(false);
       setSelectedDocumentIds([]);
@@ -134,8 +143,9 @@ export default function NewTaskDialog({
       return;
     }
     if (existingTask) return;
-    // Création : si on vient d'un projet avec des zones, on les hérite ;
-    // sinon on retombe sur la racine du household.
+    // Création : si l'appelant a déjà fourni des zones (ex: depuis une interaction), on ne touche pas.
+    if (defaultZoneIds && defaultZoneIds.length > 0) return;
+    // Si on vient d'un projet avec des zones, on les hérite ; sinon on retombe sur la racine du household.
     if (defaultProjectId && projects.length > 0) {
       const project = projects.find((p) => p.id === defaultProjectId);
       if (project?.zones?.length) {
@@ -184,6 +194,7 @@ export default function NewTaskDialog({
         status: status as TaskStatus,
         document_ids: selectedDocumentIds.length > 0 ? selectedDocumentIds : undefined,
         interaction_ids: selectedInteractionIds.length > 0 ? selectedInteractionIds : undefined,
+        source_interaction: sourceInteractionId ?? undefined,
       } as Parameters<typeof createTask>[0])
         .then(() => {
           setLoading(false);

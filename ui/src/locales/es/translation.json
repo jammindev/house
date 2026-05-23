@@ -286,6 +286,8 @@
     "edit_title": "Editar actividad",
     "update_label": "Guardar cambios",
     "update_failed": "No se pudieron guardar los cambios.",
+    "createTaskFromHere": "Crear tarea",
+    "taskCreatedFromInteraction": "Tarea creada desde esta actividad.",
     "delete_confirm": "¿Eliminar esta actividad?",
     "detail_title": "Detalle de actividad",
     "type": {

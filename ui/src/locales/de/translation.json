@@ -286,6 +286,8 @@
     "edit_title": "Aktivität bearbeiten",
     "update_label": "Änderungen speichern",
     "update_failed": "Änderungen konnten nicht gespeichert werden.",
+    "createTaskFromHere": "Aufgabe erstellen",
+    "taskCreatedFromInteraction": "Aufgabe aus dieser Aktivität erstellt.",
     "delete_confirm": "Diese Aktivität löschen?",
     "detail_title": "Aktivitätsdetail",
     "type": {

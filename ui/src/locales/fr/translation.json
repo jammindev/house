@@ -286,6 +286,8 @@
     "edit_title": "Modifier l'activité",
     "update_label": "Enregistrer les modifications",
     "update_failed": "Impossible d'enregistrer les modifications.",
+    "createTaskFromHere": "Créer une tâche",
+    "taskCreatedFromInteraction": "Tâche créée depuis cette activité.",
     "delete_confirm": "Supprimer cette activité ?",
     "detail_title": "Détail de l'activité",
     "type": {

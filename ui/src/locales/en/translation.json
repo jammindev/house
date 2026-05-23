@@ -286,6 +286,8 @@
     "edit_title": "Edit activity",
     "update_label": "Save changes",
     "update_failed": "Failed to save changes.",
+    "createTaskFromHere": "Create task",
+    "taskCreatedFromInteraction": "Task created from this activity.",
     "delete_confirm": "Delete this activity?",
     "detail_title": "Activity detail",
     "type": {
