@@ -160,6 +160,7 @@ export async function createTask(
     is_private?: boolean;
     document_ids?: string[];
     interaction_ids?: string[];
+    source_interaction?: string | null;
   },
 ): Promise<Task> {
   const { data } = await api.post('/tasks/tasks/', { status: 'pending', ...payload });

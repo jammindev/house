@@ -1,13 +1,16 @@
 import * as React from 'react';
-import { Clock3 } from 'lucide-react';
+import { Clock3, ListTodo } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from '@/lib/toast';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { updateInteraction } from '@/lib/api/interactions';
+import { fetchHouseholdMembers, type HouseholdMember } from '@/lib/api/tasks';
+import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import { useInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import ExpenseFields from './ExpenseFields';
@@ -67,7 +70,13 @@ export default function InteractionEditPage() {
   const [formError, setFormError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [initialised, setInitialised] = React.useState(false);
+  const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
+  const [householdMembers, setHouseholdMembers] = React.useState<HouseholdMember[]>([]);
   const showSkeleton = useDelayedLoading(isLoading);
+
+  React.useEffect(() => {
+    fetchHouseholdMembers().then(setHouseholdMembers).catch(() => {});
+  }, []);
 
   const metadata = (interaction?.metadata ?? {}) as Record<string, string | null | undefined>;
 
@@ -181,12 +190,34 @@ export default function InteractionEditPage() {
         <Button
           type="button"
           variant="outline"
+          onClick={() => setTaskDialogOpen(true)}
+          disabled={submitting}
+        >
+          <ListTodo className="mr-2 h-4 w-4" />
+          {t('interactions.createTaskFromHere')}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
           onClick={() => navigate(-1)}
           disabled={submitting}
         >
           {t('common.cancel')}
         </Button>
       </PageHeader>
+
+      <NewTaskDialog
+        open={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        onCreated={() => {
+          toast({ description: t('interactions.taskCreatedFromInteraction'), variant: 'success' });
+          setTaskDialogOpen(false);
+        }}
+        householdMembers={householdMembers}
+        defaultSubject={subject}
+        defaultZoneIds={zoneId ? [zoneId] : []}
+        sourceInteractionId={id}
+      />
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         {/* Subject */}
