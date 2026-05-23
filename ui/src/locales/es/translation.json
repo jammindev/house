@@ -1148,6 +1148,12 @@
   },
   "stock": {
     "title": "Inventario",
+    "alerts": {
+      "low_stock_count_one": "{{count}} artículo con stock bajo",
+      "low_stock_count_other": "{{count}} artículos con stock bajo",
+      "out_of_stock_count_one": "{{count}} artículo agotado",
+      "out_of_stock_count_other": "{{count}} artículos agotados"
+    },
     "tabs": {
       "items": "Artículos",
       "categories": "Categorías"

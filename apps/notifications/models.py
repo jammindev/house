@@ -18,6 +18,8 @@ class Notification(models.Model):
 
     class Type(models.TextChoices):
         HOUSEHOLD_INVITATION = "household_invitation", _("Household invitation")
+        STOCK_LOW = "stock_low", _("Low stock")
+        STOCK_OUT = "stock_out", _("Out of stock")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(

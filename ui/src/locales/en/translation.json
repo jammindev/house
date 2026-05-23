@@ -1148,6 +1148,12 @@
   },
   "stock": {
     "title": "Stock",
+    "alerts": {
+      "low_stock_count_one": "{{count}} item low in stock",
+      "low_stock_count_other": "{{count}} items low in stock",
+      "out_of_stock_count_one": "{{count}} item out of stock",
+      "out_of_stock_count_other": "{{count}} items out of stock"
+    },
     "tabs": {
       "items": "Items",
       "categories": "Categories"
