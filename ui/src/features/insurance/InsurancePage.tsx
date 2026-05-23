@@ -97,7 +97,7 @@ export default function InsurancePage() {
             fields={[
               {
                 type: 'search',
-                id: 'insurance-search',
+                id: 'insurance-filter-search',
                 label: t('insurance.search_label'),
                 value: search,
                 onChange: setSearch,
@@ -105,7 +105,7 @@ export default function InsurancePage() {
               },
               {
                 type: 'select',
-                id: 'insurance-type',
+                id: 'insurance-filter-type',
                 label: t('insurance.field.type'),
                 value: type,
                 onChange: setType,
@@ -116,7 +116,7 @@ export default function InsurancePage() {
               },
               {
                 type: 'select',
-                id: 'insurance-status',
+                id: 'insurance-filter-status',
                 label: t('insurance.field.status'),
                 value: status,
                 onChange: setStatus,
