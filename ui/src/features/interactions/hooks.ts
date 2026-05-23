@@ -14,6 +14,7 @@ interface InteractionFilters {
   status?: string;
   zone?: string;
   contact?: string;
+  structure?: string;
   tags?: string;
   start_date?: string;
   end_date?: string;

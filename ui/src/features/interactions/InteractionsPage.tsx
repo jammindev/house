@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { MessageSquare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import { FilterBar } from '@/design-system/filter-bar';
@@ -34,12 +34,14 @@ export default function InteractionsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [searchParams] = useSearchParams();
 
   const [search, setSearch] = React.useState('');
   const [type, setType] = React.useState('');
   const [status, setStatus] = React.useState('');
   const [zone, setZone] = React.useState('');
-  const [contact, setContact] = React.useState('');
+  const [contact, setContact] = React.useState(searchParams.get('contact') ?? '');
+  const [structure, setStructure] = React.useState(searchParams.get('structure') ?? '');
   const [tagsFilter, setTagsFilter] = React.useState('');
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
@@ -59,11 +61,12 @@ export default function InteractionsPage() {
       ...(status ? { status } : {}),
       ...(zone ? { zone } : {}),
       ...(contact ? { contact } : {}),
+      ...(structure ? { structure } : {}),
       ...(tagsFilter ? { tags: tagsFilter } : {}),
       ...(startDate ? { start_date: startDate } : {}),
       ...(endDate ? { end_date: endDate } : {}),
     }),
-    [search, type, status, zone, contact, tagsFilter, startDate, endDate],
+    [search, type, status, zone, contact, structure, tagsFilter, startDate, endDate],
   );
 
   const { data, isLoading, error } = useInteractions(filters);
@@ -104,6 +107,7 @@ export default function InteractionsPage() {
     setStatus('');
     setZone('');
     setContact('');
+    setStructure('');
     setTagsFilter('');
     setStartDate('');
     setEndDate('');
@@ -220,7 +224,7 @@ export default function InteractionsPage() {
             },
           ]}
           onReset={resetFilters}
-          hasActiveFilters={!!(search || type || status || zone || contact || tagsFilter || startDate || endDate)}
+          hasActiveFilters={!!(search || type || status || zone || contact || structure || tagsFilter || startDate || endDate)}
           resetLabel={t('interactions.reset_filters')}
           applyLabel={t('interactions.apply_filters')}
         />

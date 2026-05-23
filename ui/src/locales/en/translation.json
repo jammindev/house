@@ -680,7 +680,10 @@
   "directory": {
     "title": "Directory",
     "tabContacts": "Contacts",
-    "tabStructures": "Structures"
+    "tabStructures": "Structures",
+    "contact": {
+      "view_activity": "View activity"
+    }
   },
   "contacts": {
     "app_title": "Contacts mini-app",

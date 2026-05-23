@@ -1,4 +1,6 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import CardActions, { type CardAction } from '@/components/CardActions';
@@ -17,9 +19,16 @@ export default function StructureCard({
   onEdit,
   onDelete,
 }: StructureCardProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const actions: CardAction[] = [
-    { label: 'Modifier', icon: Pencil, onClick: () => onEdit(structure) },
-    { label: 'Supprimer', icon: Trash2, onClick: () => onDelete(structure.id), variant: 'danger' },
+    {
+      label: t('directory.contact.view_activity'),
+      icon: MessageSquare,
+      onClick: () => navigate(`/app/interactions?structure=${structure.id}`),
+    },
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(structure) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(structure.id), variant: 'danger' },
   ];
 
   return (
