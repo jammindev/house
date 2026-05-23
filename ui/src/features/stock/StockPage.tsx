@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Package, Tag } from 'lucide-react';
+import { Package, Tag, AlertTriangle, PackageX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
@@ -157,6 +157,8 @@ export default function StockPage() {
                 }}
               >
                 <div className="space-y-4">
+                  <StockAlertsBanner items={items} onFilterStatus={setStatus} />
+
                   <FilterBar
                     fields={[
                       {
@@ -354,5 +356,41 @@ export default function StockPage() {
         loading={deleteCategoryMutation.isPending}
       />
     </>
+  );
+}
+
+interface StockAlertsBannerProps {
+  items: StockItem[];
+  onFilterStatus: (status: string) => void;
+}
+
+function StockAlertsBanner({ items, onFilterStatus }: StockAlertsBannerProps) {
+  const { t } = useTranslation();
+  const lowCount = items.filter((i) => i.status === 'low_stock').length;
+  const outCount = items.filter((i) => i.status === 'out_of_stock').length;
+  if (lowCount === 0 && outCount === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm">
+      {outCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => onFilterStatus('out_of_stock')}
+          className="inline-flex items-center gap-2 rounded-md px-2 py-1 font-medium text-destructive hover:bg-destructive/10"
+        >
+          <PackageX className="h-4 w-4" />
+          {t('stock.alerts.out_of_stock_count', { count: outCount })}
+        </button>
+      ) : null}
+      {lowCount > 0 ? (
+        <button
+          type="button"
+          onClick={() => onFilterStatus('low_stock')}
+          className="inline-flex items-center gap-2 rounded-md px-2 py-1 font-medium text-foreground hover:bg-muted"
+        >
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          {t('stock.alerts.low_stock_count', { count: lowCount })}
+        </button>
+      ) : null}
+    </div>
   );
 }

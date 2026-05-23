@@ -1,5 +1,15 @@
 import { api } from '@/lib/axios';
 
+export interface InteractionContactSummary {
+  id: string;
+  name: string;
+}
+
+export interface InteractionStructureSummary {
+  id: string;
+  name: string;
+}
+
 export interface InteractionEquipmentSummary {
   id: string;
   name: string;
@@ -22,6 +32,8 @@ export interface InteractionListItem {
   source_type?: string | null;
   source_id?: string | null;
   source_label?: string | null;
+  contacts?: InteractionContactSummary[];
+  structures?: InteractionStructureSummary[];
   equipments?: InteractionEquipmentSummary[];
 }
 
@@ -36,6 +48,8 @@ export interface CreateInteractionInput {
   metadata?: Record<string, unknown>;
   document_ids?: string[];
   project?: string | null;
+  contact_ids?: string[];
+  structure_ids?: string[];
   equipment_ids?: string[];
 }
 
@@ -51,6 +65,11 @@ interface FetchInteractionsOptions {
   type?: string;
   status?: string;
   zone?: string;
+  contact?: string;
+  structure?: string;
+  tags?: string;
+  start_date?: string;
+  end_date?: string;
   kind?: string;
   supplier?: string;
   limit?: number;
@@ -105,13 +124,32 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { search, type, status, zone, kind, supplier, limit = 8, offset = 0 } = options;
+  const {
+    search,
+    type,
+    status,
+    zone,
+    contact,
+    structure,
+    tags,
+    start_date,
+    end_date,
+    kind,
+    supplier,
+    limit = 8,
+    offset = 0,
+  } = options;
 
   const params: Record<string, string | number> = { ordering: '-occurred_at' };
   if (search) params.search = search;
   if (type) params.type = type;
   if (status) params.status = status;
   if (zone) params.zone = zone;
+  if (contact) params.contact = contact;
+  if (structure) params.structure = structure;
+  if (tags) params.tags = tags;
+  if (start_date) params.start_date = start_date;
+  if (end_date) params.end_date = end_date;
   if (kind) params.kind = kind;
   if (supplier !== undefined) params.supplier = supplier;
   if (limit > 0) params.limit = limit;

@@ -260,6 +260,14 @@
     "filter_status": "Status",
     "all_types": "Alle Typen",
     "all_statuses": "Alle Status",
+    "filter_zone": "Zone",
+    "all_zones": "Alle Zonen",
+    "filter_contact": "Kontakt",
+    "all_contacts": "Alle Kontakte",
+    "filter_start_date": "Von",
+    "filter_end_date": "Bis",
+    "filter_tags": "Tags",
+    "filter_tags_placeholder": "tag1, tag2 (kommagetrennt)",
     "reset_filters": "Zurücksetzen",
     "apply_filters": "Anwenden",
     "error_load_failed": "Interaktionen konnten nicht geladen werden.",
@@ -278,13 +286,16 @@
     "deleted": "Ereignis gelöscht",
     "zone_label": "Zone",
     "zone_placeholder": "Zone auswählen",
+    "contact_label": "Kontakt",
+    "contact_placeholder": "Kein Kontakt",
+    "structure_label": "Anbieter",
+    "structure_placeholder": "Kein Anbieter",
     "equipment_label": "Betroffenes Gerät",
     "equipment_placeholder": "Kein Gerät",
     "tags_input_placeholder": "Tag1, Tag2, Tag3",
     "tags_input_help": "Tags durch Kommas trennen.",
     "project_label": "Projekt",
     "project_placeholder": "Kein Projekt",
-    "equipment_label": "Gerät",
     "edit_title": "Aktivität bearbeiten",
     "update_label": "Änderungen speichern",
     "update_failed": "Änderungen konnten nicht gespeichert werden.",
@@ -670,7 +681,10 @@
   "directory": {
     "title": "Verzeichnis",
     "tabContacts": "Kontakte",
-    "tabStructures": "Strukturen"
+    "tabStructures": "Strukturen",
+    "contact": {
+      "view_activity": "Aktivität ansehen"
+    }
   },
   "contacts": {
     "app_title": "Kontakte-Mini-App",
@@ -1142,6 +1156,12 @@
   },
   "stock": {
     "title": "Bestand",
+    "alerts": {
+      "low_stock_count_one": "{{count}} Artikel mit niedrigem Bestand",
+      "low_stock_count_other": "{{count}} Artikel mit niedrigem Bestand",
+      "out_of_stock_count_one": "{{count}} Artikel vergriffen",
+      "out_of_stock_count_other": "{{count}} Artikel vergriffen"
+    },
     "tabs": {
       "items": "Artikel",
       "categories": "Kategorien"

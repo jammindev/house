@@ -260,6 +260,14 @@
     "filter_status": "Status",
     "all_types": "All types",
     "all_statuses": "All statuses",
+    "filter_zone": "Zone",
+    "all_zones": "All zones",
+    "filter_contact": "Contact",
+    "all_contacts": "All contacts",
+    "filter_start_date": "From",
+    "filter_end_date": "To",
+    "filter_tags": "Tags",
+    "filter_tags_placeholder": "tag1, tag2 (comma-separated)",
     "reset_filters": "Reset",
     "apply_filters": "Apply",
     "error_load_failed": "Unable to load interactions.",
@@ -278,13 +286,16 @@
     "deleted": "Event deleted",
     "zone_label": "Zone",
     "zone_placeholder": "Select a zone",
+    "contact_label": "Contact",
+    "contact_placeholder": "No contact",
+    "structure_label": "Provider",
+    "structure_placeholder": "No provider",
     "equipment_label": "Related equipment",
     "equipment_placeholder": "No equipment",
     "tags_input_placeholder": "tag1, tag2, tag3",
     "tags_input_help": "Separate tags with commas.",
     "project_label": "Project",
     "project_placeholder": "No project",
-    "equipment_label": "Equipment",
     "edit_title": "Edit activity",
     "update_label": "Save changes",
     "update_failed": "Failed to save changes.",
@@ -670,7 +681,10 @@
   "directory": {
     "title": "Directory",
     "tabContacts": "Contacts",
-    "tabStructures": "Structures"
+    "tabStructures": "Structures",
+    "contact": {
+      "view_activity": "View activity"
+    }
   },
   "contacts": {
     "app_title": "Contacts mini-app",
@@ -1142,6 +1156,12 @@
   },
   "stock": {
     "title": "Stock",
+    "alerts": {
+      "low_stock_count_one": "{{count}} item low in stock",
+      "low_stock_count_other": "{{count}} items low in stock",
+      "out_of_stock_count_one": "{{count}} item out of stock",
+      "out_of_stock_count_other": "{{count}} items out of stock"
+    },
     "tabs": {
       "items": "Items",
       "categories": "Categories"

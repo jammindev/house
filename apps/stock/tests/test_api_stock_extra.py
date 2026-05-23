@@ -3,6 +3,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from households.models import Household, HouseholdMember
+from notifications.models import Notification
 from stock.models import StockCategory, StockItem
 from zones.models import Zone
 
@@ -42,6 +43,64 @@ def test_stock_summary_returns_counts(client, user, household, dual_membership):
     assert payload["item_count"] == 2
     assert payload["low_stock_count"] == 1
     assert payload["out_of_stock_count"] == 1
+
+
+@pytest.mark.django_db
+def test_stock_adjust_emits_low_stock_notification_on_transition(client, user, household, dual_membership):
+    """Crossing the min_quantity threshold sends a STOCK_LOW notification to household members."""
+    category = StockCategory.objects.create(household=household, name="Food", created_by=user)
+    item = StockItem.objects.create(
+        household=household, category=category, name="Bread",
+        quantity=5, min_quantity=2, unit="pcs", status="in_stock", created_by=user,
+    )
+    client.force_login(user)
+    response = client.post(
+        reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
+        data={"delta": -4},  # 5 - 4 = 1 ≤ 2 → low_stock
+        content_type="application/json",
+    )
+    assert response.status_code == 200
+    item.refresh_from_db()
+    assert item.status == StockItem.Status.LOW_STOCK
+    notifs = Notification.objects.filter(user=user, type=Notification.Type.STOCK_LOW)
+    assert notifs.count() == 1
+    assert notifs.first().payload["item_id"] == str(item.id)
+
+
+@pytest.mark.django_db
+def test_stock_adjust_emits_out_of_stock_notification_on_transition(client, user, household, dual_membership):
+    """Dropping to zero sends a STOCK_OUT notification."""
+    category = StockCategory.objects.create(household=household, name="Food", created_by=user)
+    item = StockItem.objects.create(
+        household=household, category=category, name="Eggs",
+        quantity=2, min_quantity=1, unit="pcs", status="in_stock", created_by=user,
+    )
+    client.force_login(user)
+    client.post(
+        reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
+        data={"delta": -2},
+        content_type="application/json",
+    )
+    item.refresh_from_db()
+    assert item.status == StockItem.Status.OUT_OF_STOCK
+    assert Notification.objects.filter(user=user, type=Notification.Type.STOCK_OUT).count() == 1
+
+
+@pytest.mark.django_db
+def test_stock_adjust_no_notification_when_status_unchanged(client, user, household, dual_membership):
+    """Adjusting quantity without a status transition does not emit a notification."""
+    category = StockCategory.objects.create(household=household, name="Food", created_by=user)
+    item = StockItem.objects.create(
+        household=household, category=category, name="Rice",
+        quantity=10, min_quantity=2, unit="kg", status="in_stock", created_by=user,
+    )
+    client.force_login(user)
+    client.post(
+        reverse("stock-item-adjust-quantity", kwargs={"pk": item.id}),
+        data={"delta": -1},  # 10 - 1 = 9, still in_stock
+        content_type="application/json",
+    )
+    assert Notification.objects.filter(user=user).count() == 0
 
 
 @pytest.mark.django_db

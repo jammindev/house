@@ -7,7 +7,7 @@ import { Select } from './select';
  * Configuration for a single filter field
  */
 export interface FilterField {
-  type: 'search' | 'select';
+  type: 'search' | 'select' | 'date';
   id: string;
   label: string;
   value: string;
@@ -87,7 +87,7 @@ export function FilterBar({
 }: FilterBarProps) {
   // Separate search fields from other fields for layout purposes
   const searchFields = fields.filter((f) => f.type === 'search');
-  const selectFields = fields.filter((f) => f.type === 'select');
+  const gridFields = fields.filter((f) => f.type === 'select' || f.type === 'date');
 
   return (
     <div className={`space-y-3 ${className}`.trim()}>
@@ -100,12 +100,16 @@ export function FilterBar({
         />
       ))}
 
-      {/* Select fields + actions row */}
-      {selectFields.length > 0 && (
+      {/* Select / date fields + actions row */}
+      {gridFields.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {selectFields.map((field) => (
-            <SelectField key={field.id} field={field} />
-          ))}
+          {gridFields.map((field) =>
+            field.type === 'date' ? (
+              <DateField key={field.id} field={field} />
+            ) : (
+              <SelectField key={field.id} field={field} />
+            ),
+          )}
 
           {/* Reset button + custom actions */}
           <div className="flex items-end gap-2">
@@ -123,8 +127,8 @@ export function FilterBar({
         </div>
       )}
 
-      {/* If no select fields, show reset + actions separately */}
-      {selectFields.length === 0 && (hasActiveFilters || actions) && (
+      {/* If no select/date fields, show reset + actions separately */}
+      {gridFields.length === 0 && (hasActiveFilters || actions) && (
         <div className="flex gap-2">
           {hasActiveFilters && (
             <Button type="button" variant="outline" onClick={onReset}>
@@ -134,6 +138,28 @@ export function FilterBar({
           {actions}
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Internal component for rendering a date input field
+ */
+function DateField({ field }: { field: FilterField }) {
+  return (
+    <div className={`space-y-1 ${field.className || ''}`.trim()}>
+      <label
+        htmlFor={field.id}
+        className="text-xs font-medium text-muted-foreground"
+      >
+        {field.label}
+      </label>
+      <Input
+        id={field.id}
+        type="date"
+        value={field.value}
+        onChange={(e) => field.onChange(e.target.value)}
+      />
     </div>
   );
 }

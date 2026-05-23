@@ -260,6 +260,14 @@
     "filter_status": "Statut",
     "all_types": "Tous les types",
     "all_statuses": "Tous les statuts",
+    "filter_zone": "Zone",
+    "all_zones": "Toutes les zones",
+    "filter_contact": "Contact",
+    "all_contacts": "Tous les contacts",
+    "filter_start_date": "Du",
+    "filter_end_date": "Au",
+    "filter_tags": "Tags",
+    "filter_tags_placeholder": "tag1, tag2 (séparés par virgule)",
     "reset_filters": "Réinitialiser",
     "apply_filters": "Appliquer",
     "error_load_failed": "Impossible de charger les interactions.",
@@ -278,13 +286,16 @@
     "deleted": "Événement supprimé",
     "zone_label": "Zone",
     "zone_placeholder": "Sélectionner une zone",
+    "contact_label": "Contact",
+    "contact_placeholder": "Aucun contact",
+    "structure_label": "Prestataire",
+    "structure_placeholder": "Aucun prestataire",
     "equipment_label": "Équipement concerné",
     "equipment_placeholder": "Aucun équipement",
     "tags_input_placeholder": "tag1, tag2, tag3",
     "tags_input_help": "Séparez les tags par des virgules.",
     "project_label": "Projet",
     "project_placeholder": "Aucun projet",
-    "equipment_label": "Équipement",
     "edit_title": "Modifier l'activité",
     "update_label": "Enregistrer les modifications",
     "update_failed": "Impossible d'enregistrer les modifications.",
@@ -670,7 +681,10 @@
   "directory": {
     "title": "Répertoire",
     "tabContacts": "Contacts",
-    "tabStructures": "Structures"
+    "tabStructures": "Structures",
+    "contact": {
+      "view_activity": "Voir l'activité"
+    }
   },
   "contacts": {
     "app_title": "Mini-app Contacts",
@@ -1142,6 +1156,12 @@
   },
   "stock": {
     "title": "Stock",
+    "alerts": {
+      "low_stock_count_one": "{{count}} article en stock faible",
+      "low_stock_count_other": "{{count}} articles en stock faible",
+      "out_of_stock_count_one": "{{count}} article en rupture",
+      "out_of_stock_count_other": "{{count}} articles en rupture"
+    },
     "tabs": {
       "items": "Articles",
       "categories": "Catégories"

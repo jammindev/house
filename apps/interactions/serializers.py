@@ -52,6 +52,8 @@ class InteractionSerializer(serializers.ModelSerializer):
     document_count = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     linked_document_ids = serializers.SerializerMethodField()
+    contacts = serializers.SerializerMethodField()
+    structures = serializers.SerializerMethodField()
     tags_input = serializers.ListField(
         child=serializers.CharField(),
         write_only=True,
@@ -64,7 +66,21 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    contacts = serializers.SerializerMethodField()
+    structures = serializers.SerializerMethodField()
     equipments = serializers.SerializerMethodField()
+    contact_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
+    structure_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
     equipment_ids = serializers.ListField(
         child=serializers.UUIDField(),
         write_only=True,
@@ -80,6 +96,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'project', 'project_title',
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
+            'contacts', 'contact_ids', 'structures', 'structure_ids',
             'equipments', 'equipment_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
@@ -126,6 +143,21 @@ class InteractionSerializer(serializers.ModelSerializer):
     def get_linked_document_ids(self, obj):
         return self._get_linked_document_ids(obj)
 
+    def get_contacts(self, obj):
+        return [
+            {
+                'id': str(link.contact_id),
+                'name': f"{link.contact.first_name}{' ' + link.contact.last_name if link.contact.last_name else ''}".strip(),
+            }
+            for link in obj.interaction_contacts.select_related('contact').all()
+        ]
+
+    def get_structures(self, obj):
+        return [
+            {'id': str(link.structure_id), 'name': link.structure.name}
+            for link in obj.interaction_structures.select_related('structure').all()
+        ]
+
     def get_equipments(self, obj):
         return [
             {'id': str(link.equipment_id), 'name': link.equipment.name}
@@ -168,6 +200,26 @@ class InteractionSerializer(serializers.ModelSerializer):
                 defaults={'created_by': interaction.created_by},
             )
     
+    def _sync_contacts(self, interaction, contact_ids):
+        if contact_ids is None:
+            return
+        from directory.models import Contact
+        interaction.interaction_contacts.all().delete()
+        for contact_id in contact_ids:
+            contact = Contact.objects.filter(id=contact_id, household=interaction.household).first()
+            if contact is not None:
+                InteractionContact.objects.create(interaction=interaction, contact=contact)
+
+    def _sync_structures(self, interaction, structure_ids):
+        if structure_ids is None:
+            return
+        from directory.models import Structure
+        interaction.interaction_structures.all().delete()
+        for structure_id in structure_ids:
+            structure = Structure.objects.filter(id=structure_id, household=interaction.household).first()
+            if structure is not None:
+                InteractionStructure.objects.create(interaction=interaction, structure=structure)
+
     def _sync_equipments(self, interaction, equipment_ids):
         if equipment_ids is None:
             return
@@ -182,6 +234,8 @@ class InteractionSerializer(serializers.ModelSerializer):
         tag_names = validated_data.pop('tags_input', [])
         zone_ids = validated_data.pop('zone_ids', [])
         document_ids = validated_data.pop('document_ids', [])
+        contact_ids = validated_data.pop('contact_ids', [])
+        structure_ids = validated_data.pop('structure_ids', [])
         equipment_ids = validated_data.pop('equipment_ids', [])
 
         with transaction.atomic():
@@ -197,6 +251,8 @@ class InteractionSerializer(serializers.ModelSerializer):
                 InteractionDocument.objects.create(interaction=interaction, document=document)
 
             self._sync_tags(interaction, tag_names)
+            self._sync_contacts(interaction, contact_ids)
+            self._sync_structures(interaction, structure_ids)
             self._sync_equipments(interaction, equipment_ids)
 
         return interaction
@@ -205,6 +261,8 @@ class InteractionSerializer(serializers.ModelSerializer):
         tag_names = validated_data.pop('tags_input', None)
         zone_ids = validated_data.pop('zone_ids', None)
         validated_data.pop('document_ids', None)
+        contact_ids = validated_data.pop('contact_ids', None)
+        structure_ids = validated_data.pop('structure_ids', None)
         equipment_ids = validated_data.pop('equipment_ids', None)
 
         # Update interaction fields
@@ -221,6 +279,8 @@ class InteractionSerializer(serializers.ModelSerializer):
                 InteractionZone.objects.create(interaction=instance, zone=zone)
 
         self._sync_tags(instance, tag_names)
+        self._sync_contacts(instance, contact_ids)
+        self._sync_structures(instance, structure_ids)
         self._sync_equipments(instance, equipment_ids)
 
         return instance

@@ -260,6 +260,14 @@
     "filter_status": "Estado",
     "all_types": "Todos los tipos",
     "all_statuses": "Todos los estados",
+    "filter_zone": "Zona",
+    "all_zones": "Todas las zonas",
+    "filter_contact": "Contacto",
+    "all_contacts": "Todos los contactos",
+    "filter_start_date": "Desde",
+    "filter_end_date": "Hasta",
+    "filter_tags": "Tags",
+    "filter_tags_placeholder": "tag1, tag2 (separados por coma)",
     "reset_filters": "Restablecer",
     "apply_filters": "Aplicar",
     "error_load_failed": "No se pudieron cargar las interacciones.",
@@ -278,13 +286,16 @@
     "deleted": "Evento eliminado",
     "zone_label": "Zona",
     "zone_placeholder": "Seleccionar una zona",
+    "contact_label": "Contacto",
+    "contact_placeholder": "Sin contacto",
+    "structure_label": "Proveedor",
+    "structure_placeholder": "Sin proveedor",
     "equipment_label": "Equipo relacionado",
     "equipment_placeholder": "Sin equipo",
     "tags_input_placeholder": "etiqueta1, etiqueta2",
     "tags_input_help": "Separa las etiquetas con comas.",
     "project_label": "Proyecto",
     "project_placeholder": "Sin proyecto",
-    "equipment_label": "Equipo",
     "edit_title": "Editar actividad",
     "update_label": "Guardar cambios",
     "update_failed": "No se pudieron guardar los cambios.",
@@ -670,7 +681,10 @@
   "directory": {
     "title": "Directorio",
     "tabContacts": "Contactos",
-    "tabStructures": "Estructuras"
+    "tabStructures": "Estructuras",
+    "contact": {
+      "view_activity": "Ver actividad"
+    }
   },
   "contacts": {
     "app_title": "Mini-app Contactos",
@@ -1142,6 +1156,12 @@
   },
   "stock": {
     "title": "Inventario",
+    "alerts": {
+      "low_stock_count_one": "{{count}} artículo con stock bajo",
+      "low_stock_count_other": "{{count}} artículos con stock bajo",
+      "out_of_stock_count_one": "{{count}} artículo agotado",
+      "out_of_stock_count_other": "{{count}} artículos agotados"
+    },
     "tabs": {
       "items": "Artículos",
       "categories": "Categorías"
