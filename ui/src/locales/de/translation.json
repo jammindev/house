@@ -1154,6 +1154,71 @@
       "interaction": "Interaktion"
     }
   },
+  "insurance": {
+    "title": "Versicherungen",
+    "new": "Neuer Vertrag",
+    "new_title": "Neuer Versicherungsvertrag",
+    "edit_title": "Vertrag bearbeiten",
+    "created": "Vertrag erstellt.",
+    "updated": "Vertrag aktualisiert.",
+    "deleted": "Vertrag gelöscht",
+    "empty": "Noch keine Versicherungsverträge",
+    "empty_description": "Füge deinen ersten Vertrag hinzu, um Policen, Verlängerungen und Prämien zu verfolgen.",
+    "search_label": "Suchen",
+    "search_placeholder": "Name, Anbieter, Nummer, versichertes Objekt…",
+    "all_types": "Alle Typen",
+    "all_statuses": "Alle Status",
+    "reset_filters": "Zurücksetzen",
+    "apply_filters": "Anwenden",
+    "load_failed": "Verträge konnten nicht geladen werden.",
+    "create_failed": "Vertrag konnte nicht erstellt werden.",
+    "update_failed": "Vertrag konnte nicht aktualisiert werden.",
+    "name_required": "Vertragsname ist erforderlich.",
+    "dates_inconsistent": "Das Enddatum muss am oder nach dem Startdatum liegen.",
+    "yearly_cost_value": "{{value}} €/Jahr",
+    "monthly_cost_value": "{{value}} €/Monat",
+    "renewal_on": "Verlängerung: {{date}}",
+    "field": {
+      "name": "Vertragsname",
+      "name_placeholder": "z. B. Wohngebäude — 2 route d'Olivet",
+      "provider": "Anbieter",
+      "provider_placeholder": "z. B. AXA, Allianz…",
+      "contract_number": "Vertragsnummer",
+      "contract_number_placeholder": "z. B. 1234567",
+      "type": "Typ",
+      "status": "Status",
+      "insured_item": "Versichertes Objekt",
+      "insured_item_placeholder": "z. B. Haupthaus, Dacia Sandero…",
+      "start_date": "Startdatum",
+      "end_date": "Enddatum",
+      "renewal_date": "Verlängerungsdatum",
+      "payment_frequency": "Zahlungsfrequenz",
+      "monthly_cost": "Monatliche Kosten (€)",
+      "yearly_cost": "Jährliche Kosten (€)",
+      "coverage_summary": "Deckungsübersicht",
+      "coverage_summary_placeholder": "Hauptdeckung, Grenzen, Selbstbeteiligungen…",
+      "notes": "Notizen",
+      "notes_placeholder": "Zusätzliche Angaben"
+    },
+    "type": {
+      "health": "Kranken",
+      "home": "Wohngebäude",
+      "car": "KFZ",
+      "life": "Leben",
+      "liability": "Haftpflicht",
+      "other": "Sonstige"
+    },
+    "status": {
+      "active": "Aktiv",
+      "suspended": "Ausgesetzt",
+      "terminated": "Beendet"
+    },
+    "frequency": {
+      "monthly": "Monatlich",
+      "quarterly": "Vierteljährlich",
+      "yearly": "Jährlich"
+    }
+  },
   "stock": {
     "title": "Bestand",
     "alerts": {

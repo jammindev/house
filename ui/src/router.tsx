@@ -21,6 +21,7 @@ const DocumentsPage = lazyWithReload(() => import('./features/documents/Document
 const DocumentDetailPage = lazyWithReload(() => import('./features/documents/DocumentDetailPage'));
 const DirectoryPage = lazyWithReload(() => import('./features/directory/DirectoryFeaturePage'));
 const ElectricityPage = lazyWithReload(() => import('./features/electricity/ElectricityPage'));
+const InsurancePage = lazyWithReload(() => import('./features/insurance/InsurancePage'));
 const PhotosPage = lazyWithReload(() => import('./features/photos/PhotosPage'));
 const SettingsPage = lazyWithReload(() => import('./features/settings/SettingsPage'));
 const DashboardPage = lazyWithReload(() => import('./features/dashboard/DashboardPage'));
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
       { path: 'documents/:id', element: <DocumentDetailPage /> },
       { path: 'directory', element: <DirectoryPage /> },
       { path: 'electricity', element: <ElectricityPage /> },
+      { path: 'insurance', element: <InsurancePage /> },
       { path: 'photos', element: <PhotosPage /> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },

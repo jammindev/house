@@ -1154,6 +1154,71 @@
       "interaction": "Interacción"
     }
   },
+  "insurance": {
+    "title": "Seguros",
+    "new": "Nuevo contrato",
+    "new_title": "Nuevo contrato de seguro",
+    "edit_title": "Editar contrato",
+    "created": "Contrato creado.",
+    "updated": "Contrato actualizado.",
+    "deleted": "Contrato eliminado",
+    "empty": "Aún no hay contratos de seguro",
+    "empty_description": "Añade tu primer contrato para hacer seguimiento de pólizas, renovaciones y primas.",
+    "search_label": "Buscar",
+    "search_placeholder": "Nombre, proveedor, número, objeto asegurado…",
+    "all_types": "Todos los tipos",
+    "all_statuses": "Todos los estados",
+    "reset_filters": "Restablecer",
+    "apply_filters": "Aplicar",
+    "load_failed": "No se pudieron cargar los contratos.",
+    "create_failed": "No se pudo crear el contrato.",
+    "update_failed": "No se pudo actualizar el contrato.",
+    "name_required": "El nombre del contrato es obligatorio.",
+    "dates_inconsistent": "La fecha de fin debe ser igual o posterior a la fecha de inicio.",
+    "yearly_cost_value": "{{value}} €/año",
+    "monthly_cost_value": "{{value}} €/mes",
+    "renewal_on": "Renovación: {{date}}",
+    "field": {
+      "name": "Nombre del contrato",
+      "name_placeholder": "ej. Hogar — 2 route d'Olivet",
+      "provider": "Proveedor",
+      "provider_placeholder": "ej. AXA, MAPFRE…",
+      "contract_number": "Número de contrato",
+      "contract_number_placeholder": "ej. 1234567",
+      "type": "Tipo",
+      "status": "Estado",
+      "insured_item": "Objeto asegurado",
+      "insured_item_placeholder": "ej. Casa principal, Dacia Sandero…",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de fin",
+      "renewal_date": "Fecha de renovación",
+      "payment_frequency": "Frecuencia de pago",
+      "monthly_cost": "Coste mensual (€)",
+      "yearly_cost": "Coste anual (€)",
+      "coverage_summary": "Resumen de cobertura",
+      "coverage_summary_placeholder": "Cobertura principal, límites, franquicias…",
+      "notes": "Notas",
+      "notes_placeholder": "Detalles adicionales"
+    },
+    "type": {
+      "health": "Salud",
+      "home": "Hogar",
+      "car": "Auto",
+      "life": "Vida",
+      "liability": "Responsabilidad civil",
+      "other": "Otro"
+    },
+    "status": {
+      "active": "Activo",
+      "suspended": "Suspendido",
+      "terminated": "Terminado"
+    },
+    "frequency": {
+      "monthly": "Mensual",
+      "quarterly": "Trimestral",
+      "yearly": "Anual"
+    }
+  },
   "stock": {
     "title": "Inventario",
     "alerts": {
