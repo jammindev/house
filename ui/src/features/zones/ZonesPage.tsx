@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
+import { toast } from '@/lib/toast';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useZones, useDeleteZone, zoneKeys, buildZoneTree } from './hooks';
 import ZoneItem from './ZoneItem';
@@ -26,6 +27,13 @@ export default function ZonesPage() {
 
   const handleDelete = React.useCallback(
     (zone: Zone) => {
+      if ((zone.children_count ?? 0) > 0) {
+        toast({
+          description: t('zones.cannotDeleteWithChildren'),
+          variant: 'destructive',
+        });
+        return;
+      }
       deleteWithUndo(zone.id, {
         onRemove: () =>
           qc.setQueryData<Zone[]>(zoneKeys.list(), (old = []) =>
@@ -34,7 +42,7 @@ export default function ZonesPage() {
         onRestore: () => qc.invalidateQueries({ queryKey: zoneKeys.all }),
       });
     },
-    [deleteWithUndo, qc]
+    [deleteWithUndo, qc, t]
   );
 
   const { sortedZones, depthMap } = React.useMemo(

@@ -66,7 +66,9 @@ export default function ZoneItem({ zone, depth, onDelete }: ZoneItemProps) {
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => onDelete(zone)}
+            disabled={childCount > 0}
             aria-label={t('common.delete')}
+            title={childCount > 0 ? t('zones.cannotDeleteWithChildrenTooltip') : undefined}
             type="button"
           >
             <Trash2 className="h-3.5 w-3.5" />

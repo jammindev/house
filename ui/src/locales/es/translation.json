@@ -377,6 +377,8 @@
     "updateFailed": "No se pudo actualizar la zona",
     "saveInProgress": "Guardando…",
     "deleteFailed": "No se pudo eliminar la zona",
+    "cannotDeleteWithChildren": "Esta zona contiene sub-zonas. Muévelas o elimínalas primero.",
+    "cannotDeleteWithChildrenTooltip": "Elimina primero las sub-zonas",
     "loading_error_title": "Error de carga",
     "colorLabel": "Color de la zona",
     "colorHelper": "Selecciona el color base para esta zona de primer nivel. Sus hijas usarán tonos más claros automáticamente.",
