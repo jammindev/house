@@ -385,6 +385,8 @@
     "updateFailed": "Failed to update zone",
     "saveInProgress": "Saving…",
     "deleteFailed": "Failed to delete zone",
+    "cannotDeleteWithChildren": "This zone contains sub-zones. Move or delete them first.",
+    "cannotDeleteWithChildrenTooltip": "Delete sub-zones first",
     "loading_error_title": "Loading error",
     "colorLabel": "Zone color",
     "colorHelper": "Select the base color for this first-level zone. Its children will automatically use lighter shades.",

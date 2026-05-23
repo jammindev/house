@@ -385,6 +385,8 @@
     "updateFailed": "Échec de la mise à jour de la zone",
     "saveInProgress": "Enregistrement…",
     "deleteFailed": "Échec de la suppression de la zone",
+    "cannotDeleteWithChildren": "Cette zone contient des sous-zones. Déplacez-les ou supprimez-les d'abord.",
+    "cannotDeleteWithChildrenTooltip": "Supprimez d'abord les sous-zones",
     "loading_error_title": "Erreur de chargement",
     "colorLabel": "Couleur",
     "colorHelper": "Choisissez la couleur de base de cette zone de premier niveau. Les sous-zones seront automatiquement éclaircies.",

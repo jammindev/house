@@ -65,9 +65,17 @@ export function useUpdateZone() {
 
 export function useDeleteZone() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => deleteZone(id),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: zoneKeys.all }); },
+    onError: (err) => {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast({
+        description: detail || t('zones.deleteFailed'),
+        variant: 'destructive',
+      });
+    },
   });
 }
 
