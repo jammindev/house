@@ -41,6 +41,7 @@ export type Locale = 'en' | 'fr' | 'de' | 'es';
 
 export interface UpdateProfileInput {
   display_name?: string;
+  email?: string;
   locale?: Locale;
   theme?: Theme;
   color_theme?: ColorTheme;

@@ -29,14 +29,16 @@ export function ProfileSection() {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = React.useState(false);
   const [displayName, setDisplayName] = React.useState('');
+  const [email, setEmail] = React.useState('');
   const [locale, setLocale] = React.useState<Locale>('en');
 
   // Sync form fields when user data changes or editing starts
   React.useEffect(() => {
     if (!user) return;
     setDisplayName(user.display_name ?? '');
+    setEmail(user.email ?? '');
     setLocale((user.locale as Locale) ?? 'en');
-  }, [user?.display_name, user?.locale]);
+  }, [user?.display_name, user?.email, user?.locale]);
 
   if (!user) return null;
 
@@ -46,8 +48,17 @@ export function ProfileSection() {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     const prevLocale = user!.locale as Locale;
+    const trimmedEmail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      toast({ description: t('settings.emailInvalid'), variant: 'destructive' });
+      return;
+    }
     try {
-      await updateProfile.mutateAsync({ display_name: displayName.trim(), locale });
+      await updateProfile.mutateAsync({
+        display_name: displayName.trim(),
+        email: trimmedEmail,
+        locale,
+      });
       if (locale !== prevLocale) {
         localStorage.setItem('lang', locale);
         await i18n.changeLanguage(locale);
@@ -55,13 +66,19 @@ export function ProfileSection() {
       document.body.dispatchEvent(new CustomEvent('profile-updated'));
       toast({ description: t('settings.profileUpdated'), variant: 'success' });
       setIsEditing(false);
-    } catch {
-      toast({ description: t('settings.requestFailed'), variant: 'destructive' });
+    } catch (err) {
+      const data = (err as { response?: { data?: { email?: string[]; detail?: string } } })?.response?.data;
+      const emailError = data?.email?.[0];
+      toast({
+        description: emailError || data?.detail || t('settings.requestFailed'),
+        variant: 'destructive',
+      });
     }
   }
 
   function handleCancel() {
     setDisplayName(user!.display_name ?? '');
+    setEmail(user!.email ?? '');
     setLocale((user!.locale as Locale) ?? 'en');
     setIsEditing(false);
   }
@@ -169,6 +186,16 @@ export function ProfileSection() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder={t('settings.displayNamePlaceholder')}
+              />
+            </div>
+            <div>
+              <Label className="mb-1">{t('settings.email')}</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('settings.emailPlaceholder')}
+                autoComplete="email"
               />
             </div>
             <div>

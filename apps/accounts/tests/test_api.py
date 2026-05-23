@@ -290,12 +290,29 @@ class TestMeEndpoint:
         response = authenticated_client.patch(url, {"locale": "xx"}, format="json")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-    def test_me_patch_ignores_email(self, authenticated_client, user):
-        """PATCH /me/ cannot change email (read-only)."""
+    def test_me_patch_updates_email(self, authenticated_client, user):
+        """PATCH /me/ updates email — user can fix typos / change address."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"email": "new@example.com"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["email"] == "new@example.com"
+        user.refresh_from_db()
+        assert user.email == "new@example.com"
+
+    def test_me_patch_rejects_invalid_email(self, authenticated_client):
+        """PATCH /me/ with an invalid email format returns 400."""
+        url = reverse("user-me")
+        response = authenticated_client.patch(url, {"email": "not-an-email"}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "email" in response.data
+
+    def test_me_patch_rejects_duplicate_email(self, authenticated_client, user, django_user_model):
+        """PATCH /me/ with an email already used by another user returns 400."""
+        django_user_model.objects.create_user(email="taken@example.com", password="x")
         original_email = user.email
         url = reverse("user-me")
-        response = authenticated_client.patch(url, {"email": "hacked@evil.com"}, format="json")
-        assert response.status_code == status.HTTP_200_OK
+        response = authenticated_client.patch(url, {"email": "taken@example.com"}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
         user.refresh_from_db()
         assert user.email == original_email
 
