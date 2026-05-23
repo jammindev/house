@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth/useAuth';
 import { useMe } from '../features/settings/hooks';
 import { applyDarkMode, applyColorTheme } from '../lib/theme';
 import AppShell from './AppShell';
+import ErrorBoundary from './ErrorBoundary';
 
 export default function ProtectedLayout() {
   const { user, isLoading } = useAuth();
@@ -20,9 +21,11 @@ export default function ProtectedLayout() {
 
   return (
     <AppShell>
-      <Suspense fallback={null}>
-        {isLoading ? null : <Outlet />}
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={null}>
+          {isLoading ? null : <Outlet />}
+        </Suspense>
+      </ErrorBoundary>
     </AppShell>
   );
 }

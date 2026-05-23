@@ -20,6 +20,14 @@
     "error_loading": "Laden fehlgeschlagen.",
     "loading": "Wird geladen…"
   },
+  "errors": {
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundDescription": "Die angeforderte Seite existiert nicht oder wurde verschoben.",
+    "backToDashboard": "Zurück zum Dashboard",
+    "unexpectedTitle": "Hoppla, etwas ist schiefgelaufen",
+    "unexpectedDescription": "Die App hat ein unerwartetes Problem festgestellt. Lade die Seite neu, um es erneut zu versuchen.",
+    "reload": "Seite neu laden"
+  },
   "sidebar": {
     "open": "Menü öffnen",
     "groupHome": "Zuhause",

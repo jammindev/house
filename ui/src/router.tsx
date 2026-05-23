@@ -3,6 +3,7 @@ import ProtectedLayout from './components/ProtectedLayout';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
+import NotFoundPage from './features/general/NotFoundPage';
 import { lazyWithReload } from './lib/lazyWithReload';
 
 const TasksPage = lazyWithReload(() => import('./features/tasks/TasksPage'));
@@ -70,10 +71,15 @@ export const router = createBrowserRouter([
       { path: 'settings', element: <SettingsPage /> },
       { path: 'agent', element: <AgentPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
   {
     path: '/',
+    element: <Navigate to="/app" replace />,
+  },
+  {
+    path: '*',
     element: <Navigate to="/app" replace />,
   },
 ]);
