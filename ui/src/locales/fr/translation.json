@@ -1322,7 +1322,17 @@
     "resetSubmit": "Réinitialiser",
     "resetting": "Réinitialisation…",
     "tokenInvalid": "Ce lien est invalide ou a expiré. Demandez un nouveau lien.",
-    "passwordResetSuccess": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter."
+    "passwordResetSuccess": "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.",
+    "signupTitle": "Créer un compte",
+    "signupSubmit": "Créer le compte",
+    "signupInProgress": "Création du compte…",
+    "signupSuccess": "Compte créé. Vous pouvez maintenant vous connecter.",
+    "signupError": "Impossible de créer le compte. Vérifiez les champs et réessayez.",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "alreadyHaveAccount": "Déjà inscrit ?",
+    "noAccountYet": "Pas encore de compte ?",
+    "createAccount": "Créer un compte"
   },
   "projects": {
     "app_title": "Mini-app Projets",

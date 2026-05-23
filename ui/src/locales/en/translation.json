@@ -1322,7 +1322,17 @@
     "resetSubmit": "Reset password",
     "resetting": "Resetting…",
     "tokenInvalid": "This link is invalid or has expired. Please request a new one.",
-    "passwordResetSuccess": "Password reset. You can now sign in."
+    "passwordResetSuccess": "Password reset. You can now sign in.",
+    "signupTitle": "Create an account",
+    "signupSubmit": "Create account",
+    "signupInProgress": "Creating account…",
+    "signupSuccess": "Account created. You can now sign in.",
+    "signupError": "Could not create the account. Check the fields and try again.",
+    "firstName": "First name",
+    "lastName": "Last name",
+    "alreadyHaveAccount": "Already have an account?",
+    "noAccountYet": "Don't have an account yet?",
+    "createAccount": "Create an account"
   },
   "projects": {
     "app_title": "Projects mini-app",
