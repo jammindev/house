@@ -66,6 +66,9 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    contacts = serializers.SerializerMethodField()
+    structures = serializers.SerializerMethodField()
+    equipments = serializers.SerializerMethodField()
     contact_ids = serializers.ListField(
         child=serializers.UUIDField(),
         write_only=True,
@@ -78,7 +81,13 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
-    
+    equipment_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
+
     class Meta:
         model = Interaction
         fields = [
@@ -88,6 +97,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
             'contacts', 'contact_ids', 'structures', 'structure_ids',
+            'equipments', 'equipment_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
@@ -148,6 +158,12 @@ class InteractionSerializer(serializers.ModelSerializer):
             for link in obj.interaction_structures.select_related('structure').all()
         ]
 
+    def get_equipments(self, obj):
+        return [
+            {'id': str(link.equipment_id), 'name': link.equipment.name}
+            for link in obj.equipment_interactions.select_related('equipment').all()
+        ]
+
     def _sync_tags(self, interaction, tag_names):
         if tag_names is None:
             return
@@ -204,12 +220,23 @@ class InteractionSerializer(serializers.ModelSerializer):
             if structure is not None:
                 InteractionStructure.objects.create(interaction=interaction, structure=structure)
 
+    def _sync_equipments(self, interaction, equipment_ids):
+        if equipment_ids is None:
+            return
+        from equipment.models import Equipment, EquipmentInteraction
+        interaction.equipment_interactions.all().delete()
+        for equipment_id in equipment_ids:
+            equipment = Equipment.objects.filter(id=equipment_id, household=interaction.household).first()
+            if equipment is not None:
+                EquipmentInteraction.objects.create(equipment=equipment, interaction=interaction)
+
     def create(self, validated_data):
         tag_names = validated_data.pop('tags_input', [])
         zone_ids = validated_data.pop('zone_ids', [])
         document_ids = validated_data.pop('document_ids', [])
         contact_ids = validated_data.pop('contact_ids', [])
         structure_ids = validated_data.pop('structure_ids', [])
+        equipment_ids = validated_data.pop('equipment_ids', [])
 
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
@@ -226,6 +253,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             self._sync_tags(interaction, tag_names)
             self._sync_contacts(interaction, contact_ids)
             self._sync_structures(interaction, structure_ids)
+            self._sync_equipments(interaction, equipment_ids)
 
         return interaction
 
@@ -235,6 +263,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         validated_data.pop('document_ids', None)
         contact_ids = validated_data.pop('contact_ids', None)
         structure_ids = validated_data.pop('structure_ids', None)
+        equipment_ids = validated_data.pop('equipment_ids', None)
 
         # Update interaction fields
         for attr, value in validated_data.items():
@@ -252,6 +281,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         self._sync_tags(instance, tag_names)
         self._sync_contacts(instance, contact_ids)
         self._sync_structures(instance, structure_ids)
+        self._sync_equipments(instance, equipment_ids)
 
         return instance
 

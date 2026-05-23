@@ -10,6 +10,11 @@ export interface InteractionStructureSummary {
   name: string;
 }
 
+export interface InteractionEquipmentSummary {
+  id: string;
+  name: string;
+}
+
 export interface InteractionListItem {
   id: string;
   subject: string;
@@ -29,6 +34,7 @@ export interface InteractionListItem {
   source_label?: string | null;
   contacts?: InteractionContactSummary[];
   structures?: InteractionStructureSummary[];
+  equipments?: InteractionEquipmentSummary[];
 }
 
 export interface CreateInteractionInput {
@@ -44,6 +50,7 @@ export interface CreateInteractionInput {
   project?: string | null;
   contact_ids?: string[];
   structure_ids?: string[];
+  equipment_ids?: string[];
 }
 
 export interface LinkDocumentToInteractionInput {
