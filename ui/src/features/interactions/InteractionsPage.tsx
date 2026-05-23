@@ -8,6 +8,8 @@ import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { InteractionListItem } from '@/lib/api/interactions';
+import { fetchZones, type ZoneOption } from '@/lib/api/zones';
+import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { useInteractions, useDeleteInteraction, interactionKeys } from './hooks';
 import InteractionCard from './InteractionCard';
 
@@ -36,14 +38,32 @@ export default function InteractionsPage() {
   const [search, setSearch] = React.useState('');
   const [type, setType] = React.useState('');
   const [status, setStatus] = React.useState('');
+  const [zone, setZone] = React.useState('');
+  const [contact, setContact] = React.useState('');
+  const [tagsFilter, setTagsFilter] = React.useState('');
+  const [startDate, setStartDate] = React.useState('');
+  const [endDate, setEndDate] = React.useState('');
+
+  const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [contacts, setContacts] = React.useState<Contact[]>([]);
+
+  React.useEffect(() => {
+    fetchZones().then(setZones).catch(() => {});
+    fetchContacts().then(setContacts).catch(() => {});
+  }, []);
 
   const filters = React.useMemo(
     () => ({
       ...(search ? { search } : {}),
       ...(type ? { type } : {}),
       ...(status ? { status } : {}),
+      ...(zone ? { zone } : {}),
+      ...(contact ? { contact } : {}),
+      ...(tagsFilter ? { tags: tagsFilter } : {}),
+      ...(startDate ? { start_date: startDate } : {}),
+      ...(endDate ? { end_date: endDate } : {}),
     }),
-    [search, type, status],
+    [search, type, status, zone, contact, tagsFilter, startDate, endDate],
   );
 
   const { data, isLoading, error } = useInteractions(filters);
@@ -82,6 +102,11 @@ export default function InteractionsPage() {
     setSearch('');
     setType('');
     setStatus('');
+    setZone('');
+    setContact('');
+    setTagsFilter('');
+    setStartDate('');
+    setEndDate('');
   }
 
   const isEmpty = !isLoading && !error && items.length === 0;
@@ -146,9 +171,56 @@ export default function InteractionsPage() {
                 })),
               ],
             },
+            {
+              type: 'select',
+              id: 'interactions-zone',
+              label: t('interactions.filter_zone'),
+              value: zone,
+              onChange: setZone,
+              options: [
+                { value: '', label: t('interactions.all_zones') },
+                ...zones.map((z) => ({ value: z.id, label: z.full_path || z.name })),
+              ],
+            },
+            {
+              type: 'select',
+              id: 'interactions-contact',
+              label: t('interactions.filter_contact'),
+              value: contact,
+              onChange: setContact,
+              options: [
+                { value: '', label: t('interactions.all_contacts') },
+                ...contacts.map((c) => ({
+                  value: c.id,
+                  label: `${c.first_name}${c.last_name ? ' ' + c.last_name : ''}`.trim() || c.id,
+                })),
+              ],
+            },
+            {
+              type: 'date',
+              id: 'interactions-start-date',
+              label: t('interactions.filter_start_date'),
+              value: startDate,
+              onChange: setStartDate,
+            },
+            {
+              type: 'date',
+              id: 'interactions-end-date',
+              label: t('interactions.filter_end_date'),
+              value: endDate,
+              onChange: setEndDate,
+            },
+            {
+              type: 'search',
+              id: 'interactions-tags',
+              label: t('interactions.filter_tags'),
+              value: tagsFilter,
+              onChange: setTagsFilter,
+              placeholder: t('interactions.filter_tags_placeholder'),
+            },
           ]}
           onReset={resetFilters}
-          hasActiveFilters={!!(search || type || status)}
+          hasActiveFilters={!!(search || type || status || zone || contact || tagsFilter || startDate || endDate)}
           resetLabel={t('interactions.reset_filters')}
           applyLabel={t('interactions.apply_filters')}
         />

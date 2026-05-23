@@ -13,6 +13,10 @@ interface InteractionFilters {
   type?: string;
   status?: string;
   zone?: string;
+  contact?: string;
+  tags?: string;
+  start_date?: string;
+  end_date?: string;
   limit?: number;
   offset?: number;
   [key: string]: string | number | undefined;

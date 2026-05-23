@@ -44,6 +44,10 @@ interface FetchInteractionsOptions {
   type?: string;
   status?: string;
   zone?: string;
+  contact?: string;
+  tags?: string;
+  start_date?: string;
+  end_date?: string;
   kind?: string;
   supplier?: string;
   limit?: number;
@@ -98,13 +102,30 @@ function normalize(payload: unknown): FetchInteractionsResult {
 export async function fetchInteractions(
   options: FetchInteractionsOptions = {}
 ): Promise<FetchInteractionsResult> {
-  const { search, type, status, zone, kind, supplier, limit = 8, offset = 0 } = options;
+  const {
+    search,
+    type,
+    status,
+    zone,
+    contact,
+    tags,
+    start_date,
+    end_date,
+    kind,
+    supplier,
+    limit = 8,
+    offset = 0,
+  } = options;
 
   const params: Record<string, string | number> = { ordering: '-occurred_at' };
   if (search) params.search = search;
   if (type) params.type = type;
   if (status) params.status = status;
   if (zone) params.zone = zone;
+  if (contact) params.contact = contact;
+  if (tags) params.tags = tags;
+  if (start_date) params.start_date = start_date;
+  if (end_date) params.end_date = end_date;
   if (kind) params.kind = kind;
   if (supplier !== undefined) params.supplier = supplier;
   if (limit > 0) params.limit = limit;
