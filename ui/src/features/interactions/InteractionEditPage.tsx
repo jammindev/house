@@ -7,6 +7,8 @@ import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { fetchZones, type ZoneOption } from '@/lib/api/zones';
+import { fetchContacts, type Contact } from '@/lib/api/contacts';
+import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { updateInteraction } from '@/lib/api/interactions';
 import { useInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
@@ -62,6 +64,10 @@ export default function InteractionEditPage() {
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState('');
   const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const [contactId, setContactId] = React.useState('');
+  const [structureId, setStructureId] = React.useState('');
+  const [contacts, setContacts] = React.useState<Contact[]>([]);
+  const [structures, setStructures] = React.useState<Structure[]>([]);
   const [amount, setAmount] = React.useState('');
   const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -86,13 +92,15 @@ export default function InteractionEditPage() {
     const md = (interaction.metadata ?? {}) as Record<string, string | null | undefined>;
     setAmount(md.amount ?? '');
     setSupplier(md.supplier ?? '');
+    setContactId(interaction.contacts?.[0]?.id ?? '');
+    setStructureId(interaction.structures?.[0]?.id ?? '');
     setInitialised(true);
   }, [interaction, initialised]);
 
   React.useEffect(() => {
-    fetchZones()
-      .then(setZones)
-      .catch(() => {});
+    fetchZones().then(setZones).catch(() => {});
+    fetchContacts().then(setContacts).catch(() => {});
+    fetchStructures().then(setStructures).catch(() => {});
   }, []);
 
   const isTodo = type === 'todo';
@@ -146,6 +154,8 @@ export default function InteractionEditPage() {
         occurred_at: occurredAt.toISOString(),
         zone_ids: zoneId ? [zoneId] : [],
         tags_input: tags,
+        contact_ids: contactId ? [contactId] : [],
+        structure_ids: structureId ? [structureId] : [],
         ...(nextMetadata ? { metadata: nextMetadata } : {}),
       });
       navigate(-1);
@@ -316,6 +326,49 @@ export default function InteractionEditPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* Contact + Structure */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="interaction-contact" className="text-sm font-medium">
+              {t('interactions.contact_label')}
+            </label>
+            <select
+              id="interaction-contact"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={contactId}
+              onChange={(e) => setContactId(e.target.value)}
+            >
+              <option value="">{t('interactions.contact_placeholder')}</option>
+              {contacts.map((c) => {
+                const name = `${c.first_name}${c.last_name ? ' ' + c.last_name : ''}`.trim() || c.id;
+                return (
+                  <option key={c.id} value={c.id}>
+                    {name}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="interaction-structure" className="text-sm font-medium">
+              {t('interactions.structure_label')}
+            </label>
+            <select
+              id="interaction-structure"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={structureId}
+              onChange={(e) => setStructureId(e.target.value)}
+            >
+              <option value="">{t('interactions.structure_placeholder')}</option>
+              {structures.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Description */}
