@@ -1,4 +1,6 @@
-import { Mail, Phone, Pencil, Trash2 } from 'lucide-react';
+import { Mail, Phone, Pencil, Trash2, MessageSquare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import type { Contact } from '@/lib/api/contacts';
@@ -20,13 +22,20 @@ function getPrimaryPhone(contact: Contact): string | null {
 }
 
 export default function ContactCard({ contact, onEdit, onDelete }: ContactCardProps) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
   const fullName = [contact.first_name, contact.last_name].filter(Boolean).join(' ').trim() || '—';
   const email = getPrimaryEmail(contact);
   const phone = getPrimaryPhone(contact);
 
   const actions: CardAction[] = [
-    { label: 'Modifier', icon: Pencil, onClick: () => onEdit(contact) },
-    { label: 'Supprimer', icon: Trash2, onClick: () => onDelete(contact.id), variant: 'danger' },
+    {
+      label: t('directory.contact.view_activity'),
+      icon: MessageSquare,
+      onClick: () => navigate(`/app/interactions?contact=${contact.id}`),
+    },
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(contact) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(contact.id), variant: 'danger' },
   ];
 
   return (

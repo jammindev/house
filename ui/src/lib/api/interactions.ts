@@ -45,6 +45,7 @@ interface FetchInteractionsOptions {
   status?: string;
   zone?: string;
   contact?: string;
+  structure?: string;
   tags?: string;
   start_date?: string;
   end_date?: string;
@@ -108,6 +109,7 @@ export async function fetchInteractions(
     status,
     zone,
     contact,
+    structure,
     tags,
     start_date,
     end_date,
@@ -123,6 +125,7 @@ export async function fetchInteractions(
   if (status) params.status = status;
   if (zone) params.zone = zone;
   if (contact) params.contact = contact;
+  if (structure) params.structure = structure;
   if (tags) params.tags = tags;
   if (start_date) params.start_date = start_date;
   if (end_date) params.end_date = end_date;

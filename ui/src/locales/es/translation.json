@@ -676,7 +676,10 @@
   "directory": {
     "title": "Directorio",
     "tabContacts": "Contactos",
-    "tabStructures": "Estructuras"
+    "tabStructures": "Estructuras",
+    "contact": {
+      "view_activity": "Ver actividad"
+    }
   },
   "contacts": {
     "app_title": "Mini-app Contactos",
