@@ -1637,7 +1637,14 @@
       "point_scope": "Es werden nur Daten deines Haushalts geteilt, niemals Daten eines anderen Haushalts.",
       "point_retention": "Wir protokollieren Nutzungsstatistiken (Latenz, Erfolg), nicht aber den Inhalt deiner Unterhaltungen.",
       "accept": "Verstanden"
-    }
+    },
+    "conversations": "Unterhaltungen",
+    "new_conversation": "Neue Unterhaltung",
+    "untitled": "Ohne Titel",
+    "rename_title": "Unterhaltung umbenennen",
+    "rename_placeholder": "Titel der Unterhaltung",
+    "deleted": "Unterhaltung gelöscht",
+    "conversations_empty": "Noch keine Unterhaltungen"
   },
   "expenses": {
     "title": "Ausgaben",

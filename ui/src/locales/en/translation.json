@@ -1637,7 +1637,14 @@
       "point_scope": "Only data from your household is shared, never data from another household.",
       "point_retention": "We log usage statistics (latency, success) but not the content of your conversations.",
       "accept": "Got it"
-    }
+    },
+    "conversations": "Conversations",
+    "new_conversation": "New conversation",
+    "untitled": "Untitled",
+    "rename_title": "Rename conversation",
+    "rename_placeholder": "Conversation title",
+    "deleted": "Conversation deleted",
+    "conversations_empty": "No conversations yet"
   },
   "expenses": {
     "title": "Expenses",

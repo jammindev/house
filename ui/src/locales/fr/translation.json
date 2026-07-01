@@ -1637,7 +1637,14 @@
       "point_scope": "Seules les données de ton foyer sont transmises, jamais celles d'un autre foyer.",
       "point_retention": "On enregistre les statistiques d'usage (latence, succès) mais pas le contenu de tes conversations.",
       "accept": "J'ai compris"
-    }
+    },
+    "conversations": "Conversations",
+    "new_conversation": "Nouvelle conversation",
+    "untitled": "Sans titre",
+    "rename_title": "Renommer la conversation",
+    "rename_placeholder": "Titre de la conversation",
+    "deleted": "Conversation supprimée",
+    "conversations_empty": "Aucune conversation"
   },
   "expenses": {
     "title": "Dépenses",
