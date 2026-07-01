@@ -66,8 +66,14 @@ def ask(
     user=None,
     client: LLMClient | None = None,
     retrieval_limit: int = DEFAULT_RETRIEVAL_LIMIT,
+    history: list[dict] | None = None,
 ) -> AnswerResult:
-    """Answer ``question`` using the data of ``household``. Always returns a result."""
+    """Answer ``question`` using the data of ``household``. Always returns a result.
+
+    ``history`` is an optional list of prior turns (``{"role", "content"}``,
+    oldest first) threaded into the prompt so follow-up questions can resolve
+    references to earlier turns. Retrieval still runs on the current question.
+    """
     cleaned = (question or "").strip()
     if not cleaned:
         return AnswerResult(answer=_dont_know_message(), citations=[])
@@ -84,6 +90,7 @@ def ask(
             client=llm,
             household_id=household.id,
             user_id=getattr(user, "id", None),
+            history=history,
         )
     else:
         terms = [cleaned]
@@ -96,7 +103,7 @@ def ask(
         logger.warning("agent.ask: LLM disabled (no ANTHROPIC_API_KEY) — returning IDK")
         return _idk_result()
 
-    user_prompt = build_user_prompt(cleaned, hits)
+    user_prompt = build_user_prompt(cleaned, hits, history=history)
 
     try:
         response = llm.complete(

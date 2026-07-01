@@ -159,6 +159,51 @@ class TestHappyPath:
         assert result.metadata["model"] == "stub-model"
         assert result.metadata["hits_count"] >= 1
 
+    def test_history_makes_a_followup_resolve_end_to_end(
+        self, with_api_key, household, owner, make_document
+    ):
+        # "et son prix ?" alone retrieves nothing; the history lets expansion
+        # produce keywords that find the doc, and the answer prompt carries the
+        # prior turns so the model can resolve "son prix".
+        doc = make_document(name="facture-pac", ocr_text="pompe à chaleur Daikin prix 4200 EUR")
+        scripted = _ScriptedLLMClient(
+            by_feature={
+                query_expansion.FEATURE_NAME: "facture, pompe à chaleur, PAC, prix",
+                service.FEATURE_NAME: f'4200 EUR <cite id="document:{doc.pk}"/>',
+            }
+        )
+        history = [
+            {"role": "user", "content": "tu as la facture de la pompe à chaleur ?"},
+            {"role": "agent", "content": "Oui, facture-pac."},
+        ]
+
+        result = service.ask(
+            "et son prix ?", household, user=owner, client=scripted, history=history
+        )
+
+        # Retrieval succeeded → the answer call happened and cited the doc.
+        assert len(result.citations) == 1
+        assert result.citations[0].id == doc.pk
+
+        answer_call = next(c for c in scripted.calls if c["feature"] == service.FEATURE_NAME)
+        assert "Conversation so far" in answer_call["user"]
+        assert "tu as la facture de la pompe à chaleur ?" in answer_call["user"]
+
+        expansion_call = next(
+            c for c in scripted.calls if c["feature"] == query_expansion.FEATURE_NAME
+        )
+        # The follow-up expansion was given the conversation to resolve "son prix".
+        assert "Current question: et son prix ?" in expansion_call["user"]
+        assert "pompe à chaleur" in expansion_call["user"]
+
+    def test_no_history_keeps_prompt_history_free(
+        self, with_api_key, household, owner, make_document
+    ):
+        make_document(name="Engie facture mars")
+        stub = _StubLLMClient(answer_text="ok")
+        service.ask("engie", household, user=owner, client=stub)
+        assert "Conversation so far" not in stub.last_call["user"]
+
     def test_passes_system_and_user_prompts_to_llm(self, with_api_key, household, owner, make_document):
         make_document(name="Engie facture mars")
         stub = _StubLLMClient(answer_text="hello")
