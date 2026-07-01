@@ -169,7 +169,7 @@ L'utilisateur doit savoir que le contenu de son foyer (texte d'interactions, OCR
 | 1 | Recherche full-text scopée household | ✅ Livrée | #100 → PR #112 |
 | 2 | Service d'appel LLM + citations honnêtes | ✅ Livrée | #101 → PR #114 |
 | 3 | Surface UI chat `/app/agent/` | ✅ Livrée | #102 → PR #115 |
-| 4 | Mémoire conversationnelle multi-tour | 🚫 Basculée V2 | — |
+| 4 | Mémoire conversationnelle multi-tour | ✅ Livrée (V2, 2026-07) | #149 → #152 |
 | 6 | Observabilité IA (KPIs + page admin) | 🟡 Skeleton livré (lot 2), agrégations + UI à faire | #109 |
 
 Détails par story ci-dessous (référence pour les évolutions futures).
@@ -237,23 +237,32 @@ afin d'utiliser l'agent au quotidien.
 - i18n complet en/fr/de/es (namespace `agent`)
 - 5 tests E2E Playwright (mock backend) : golden path + privacy notice + IDK + URL de citation par type d'entité
 
-### Story 4 — Mémoire conversationnelle (basculée V2)
+### Story 4 — Mémoire conversationnelle (✅ livrée V2, 2026-07)
 
 En tant que membre du foyer,
 je veux retrouver mes échanges précédents avec l'agent,
 afin de continuer une conversation ou retrouver une réponse passée.
 
-#### Décision (2026-04-29) : 🚫 hors V1
+#### Décision initiale (2026-04-29) : 🚫 hors V1
 
-Pas livrée en V1. La V1 fonctionne en mode questions one-shot (chaque ouverture de page = session blanche). Décision motivée par : (1) pas certain que l'usage le demande, (2) coût d'implémentation non négligeable (modèles, scope, rétention, streaming), (3) on saura mieux quoi en faire après quelques semaines d'usage.
+D'abord repoussée : la V1 tournait en questions one-shot (chaque ouverture de page = session blanche). Motivée par l'incertitude d'usage et le coût (modèles, scope, rétention).
 
-#### Pistes pour V2 (à arbitrer après recette manuelle)
+#### Livraison V2 (2026-07) — 5 lots
 
-- modèles `AgentConversation(household, créé par, titre auto, last_message_at)` + `AgentMessage(conversation, role, content, citations, metadata)`
-- scope : conversation appartient à un user dans un household (privée), ou partagée au foyer ?
-- liste des conversations dans la sidebar de la page agent
-- nettoyage automatique au-delà d'une rétention donnée
+Débloquée par la recette : une question de suivi (« et ce document ? ») déballait toute la bibliothèque faute de contexte. Livrée en 5 PR :
+
+- **Lot 1 (#149)** — modèles `AgentConversation(household, created_by, title, last_message_at)` + `AgentMessage(role, content, citations, metadata)` ; threading de l'historique dans le prompt **et** dans l'expansion de requête (sinon le suivi ne matche rien au retrieval).
+- **Lot 2 (#150)** — API `conversations/` (CRUD + `messages/`), scope household+user, persistance transactionnelle (rien si le LLM échoue), titre auto.
+- **Lot 3 (#151)** — frontend : la page reprend la conversation courante, survit au reload.
+- **Lot 4 (#152)** — sidebar (liste, nouvelle, renommer, supprimer avec undo) + drawer mobile.
+- **Lot 5** — rétention : `manage.py cleanup_agent_conversations` (`AGENT_CONVERSATION_RETENTION_DAYS`, défaut 365j).
+
+**Scope tranché** : conversation privée par user (`created_by`), dans un household.
+
+#### Reste hors scope (à arbitrer plus tard)
+
 - streaming de réponse (en parallèle ou indépendant)
+- partage d'une conversation au foyer (aujourd'hui privée par user)
 
 ## Interface livrée
 
