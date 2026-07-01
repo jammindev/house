@@ -4,12 +4,15 @@ Agent orchestrator: question -> retrieval -> LLM -> answer + citations.
 `ask(question, household)` is the only thing the API view talks to. It owns the
 end-to-end flow:
 
-1. retrieval.search(household_id, question) — bounded by the household scope
-2. build the prompt (system + user with citation-ready context)
-3. LLM call via the configured `LLMClient`
-4. parse <cite id="entity_type:id"/> markers, intersect with retrieved hits to
+1. query_expansion.expand(question) — rewrite the natural-language question into
+   search keywords + synonyms (best-effort LLM pass; skipped when the LLM is
+   disabled)
+2. retrieval.search_multi(household_id, terms) — bounded by the household scope
+3. build the prompt (system + user with citation-ready context)
+4. LLM call via the configured `LLMClient`
+5. parse <cite id="entity_type:id"/> markers, intersect with retrieved hits to
    keep citations honest (the LLM can't cite something we didn't retrieve)
-5. return AnswerResult with the human-readable answer + machine-friendly
+6. return AnswerResult with the human-readable answer + machine-friendly
    citations + metadata (tokens, duration)
 
 When retrieval returns nothing OR when the configured `ANTHROPIC_API_KEY` is
@@ -26,7 +29,7 @@ from uuid import UUID
 
 from django.conf import settings
 
-from . import retrieval
+from . import query_expansion, retrieval
 from .llm import LLMClient, LLMError, LLMTimeoutError, get_llm_client
 from .prompts import SYSTEM_PROMPT, build_user_prompt
 
@@ -69,15 +72,30 @@ def ask(
     if not cleaned:
         return AnswerResult(answer=_dont_know_message(), citations=[])
 
-    hits = retrieval.search(household.id, cleaned, limit=retrieval_limit)
+    enabled = _llm_enabled()
+    llm = (client or get_llm_client()) if enabled else None
+
+    # Expand the natural-language question into keyword variants before search.
+    # Only worth an LLM call when the LLM is enabled (otherwise we return IDK
+    # below anyway); falls back to the raw question when disabled.
+    if enabled:
+        terms = query_expansion.expand(
+            cleaned,
+            client=llm,
+            household_id=household.id,
+            user_id=getattr(user, "id", None),
+        )
+    else:
+        terms = [cleaned]
+
+    hits = retrieval.search_multi(household.id, terms, limit=retrieval_limit)
     if not hits:
         return _idk_result()
 
-    if not _llm_enabled():
+    if not enabled:
         logger.warning("agent.ask: LLM disabled (no ANTHROPIC_API_KEY) — returning IDK")
         return _idk_result()
 
-    llm = client or get_llm_client()
     user_prompt = build_user_prompt(cleaned, hits)
 
     try:
