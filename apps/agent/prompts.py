@@ -13,10 +13,24 @@ The system prompt enforces three behaviors:
 
 Each retrieval hit is rendered into the user prompt with a stable id (its
 ``entity_type:id`` tag) so the model has something concrete to cite.
+
+The top hits are rendered with their **full content** (the whole OCR text of a
+document, etc.) so the model can answer questions about the content — amounts,
+dates, suppliers — not just acknowledge that a document exists. To keep token
+cost bounded, only the first ``CONTENT_TOP_N`` hits get full content, each
+capped at ``CHAR_BUDGET_PER_HIT`` and sharing a ``TOTAL_CHAR_BUDGET``; the
+remaining hits fall back to their short headline snippet.
 """
 from __future__ import annotations
 
 from .retrieval import Hit
+
+# Context-enrichment budgets. Roughly: 6000 chars ≈ 1500 tokens of extra input
+# on top of the labels — cheap on Haiku, tunable via AIUsageLog observations.
+CONTENT_TOP_N = 3
+CHAR_BUDGET_PER_HIT = 2000
+TOTAL_CHAR_BUDGET = 6000
+TRUNCATION_MARKER = " […]"
 
 
 SYSTEM_PROMPT = """You are the personal household assistant of a single family.
@@ -39,20 +53,40 @@ Rules — follow them all:
 """
 
 
-def build_user_prompt(question: str, hits: list[Hit]) -> str:
-    """Render the retrieval hits into a labelled context block + the question."""
+def build_user_prompt(
+    question: str,
+    hits: list[Hit],
+    *,
+    content_top_n: int = CONTENT_TOP_N,
+    char_budget_per_hit: int = CHAR_BUDGET_PER_HIT,
+    total_char_budget: int = TOTAL_CHAR_BUDGET,
+) -> str:
+    """Render the retrieval hits into a labelled context block + the question.
+
+    The first ``content_top_n`` hits are rendered with their full content
+    (within budget) so the model can reason over the document body; the rest
+    fall back to the short headline snippet.
+    """
     if not hits:
         context_block = "(no household items matched this question)"
     else:
         rendered = []
-        for hit in hits:
+        remaining = total_char_budget
+        for index, hit in enumerate(hits):
             tag = f"{hit.entity_type}:{hit.id}"
-            snippet = (hit.snippet or "").strip() or "(no snippet)"
+            content = (hit.content or "").strip()
+            if index < content_top_n and remaining > 0 and content:
+                body = _truncate(content, min(char_budget_per_hit, remaining))
+                remaining -= len(body)
+                field = "content"
+            else:
+                body = (hit.snippet or "").strip() or "(no snippet)"
+                field = "excerpt"
             rendered.append(
                 f"- id={tag}\n"
                 f"  label={hit.label}\n"
                 f"  url={hit.url_path}\n"
-                f"  excerpt: {snippet}"
+                f"  {field}: {body}"
             )
         context_block = "\n".join(rendered)
 
@@ -62,3 +96,11 @@ def build_user_prompt(question: str, hits: list[Hit]) -> str:
         f"{context_block}\n\n"
         f"Question: {question.strip()}"
     )
+
+
+def _truncate(text: str, budget: int) -> str:
+    """Trim `text` to `budget` chars on a word boundary, adding a marker."""
+    if len(text) <= budget:
+        return text
+    cut = text[:budget].rsplit(" ", 1)[0].rstrip()
+    return (cut or text[:budget].rstrip()) + TRUNCATION_MARKER

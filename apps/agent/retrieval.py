@@ -45,6 +45,11 @@ class Hit:
     snippet: str
     rank: float
     url_path: str
+    # Full concatenated text of the searchable fields. The snippet is only a
+    # ~30-word headline around the match; `content` lets the prompt feed the
+    # whole document (e.g. a facture's amount/date) to the LLM for the top hits.
+    # Budgeted at prompt-build time — see prompts.build_user_prompt.
+    content: str = ""
 
 
 def _spec_url(spec: SearchableSpec, instance) -> str:
@@ -111,9 +116,26 @@ def _search_one(spec: SearchableSpec, household_id: UUID, query: str, limit: int
                 snippet=snippet,
                 rank=float(obj._rank or 0.0),
                 url_path=_spec_url(spec, obj),
+                content=_full_content(obj, spec.search_fields),
             )
         )
     return hits
+
+
+def _full_content(obj, fields: tuple[str, ...]) -> str:
+    """Concatenate the searchable fields of `obj` into one plain-text block.
+
+    The fields are already loaded on the instance by the search queryset, so
+    this costs no extra query. Empty/None fields are skipped.
+    """
+    parts: list[str] = []
+    for field in fields:
+        value = getattr(obj, field, None)
+        if value:
+            text = str(value).strip()
+            if text:
+                parts.append(text)
+    return "\n".join(parts)
 
 
 def _pick_snippet(obj, fields: tuple[str, ...]) -> str:
