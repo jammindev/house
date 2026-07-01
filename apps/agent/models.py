@@ -17,6 +17,7 @@ import uuid
 
 from django.db import models
 
+from core.managers import HouseholdScopedManager
 from core.models import HouseholdScopedModel, TimestampedModel
 
 
@@ -28,6 +29,8 @@ class AgentConversation(HouseholdScopedModel):
     # Mirrors the newest message's timestamp so conversations sort by recency
     # without a subquery. Kept in sync when a message is appended.
     last_message_at = models.DateTimeField(null=True, blank=True)
+
+    objects = HouseholdScopedManager()
 
     class Meta:
         ordering = ["-last_message_at", "-created_at"]
