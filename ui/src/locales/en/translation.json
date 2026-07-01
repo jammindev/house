@@ -1155,6 +1155,71 @@
       "interaction": "Interaction"
     }
   },
+  "insurance": {
+    "title": "Insurance",
+    "new": "New contract",
+    "new_title": "New insurance contract",
+    "edit_title": "Edit contract",
+    "created": "Contract created.",
+    "updated": "Contract updated.",
+    "deleted": "Contract deleted",
+    "empty": "No insurance contract yet",
+    "empty_description": "Add your first contract to track policies, renewals and premiums.",
+    "search_label": "Search",
+    "search_placeholder": "Name, provider, number, insured item…",
+    "all_types": "All types",
+    "all_statuses": "All statuses",
+    "reset_filters": "Reset",
+    "apply_filters": "Apply",
+    "load_failed": "Failed to load contracts.",
+    "create_failed": "Failed to create the contract.",
+    "update_failed": "Failed to update the contract.",
+    "name_required": "Contract name is required.",
+    "dates_inconsistent": "End date must be on or after start date.",
+    "yearly_cost_value": "{{value}} €/year",
+    "monthly_cost_value": "{{value}} €/month",
+    "renewal_on": "Renewal: {{date}}",
+    "field": {
+      "name": "Contract name",
+      "name_placeholder": "e.g. Home — 2 route d'Olivet",
+      "provider": "Provider",
+      "provider_placeholder": "e.g. MAIF, AXA…",
+      "contract_number": "Contract number",
+      "contract_number_placeholder": "e.g. 1234567",
+      "type": "Type",
+      "status": "Status",
+      "insured_item": "Insured item",
+      "insured_item_placeholder": "e.g. Main house, Dacia Sandero…",
+      "start_date": "Start date",
+      "end_date": "End date",
+      "renewal_date": "Renewal date",
+      "payment_frequency": "Payment frequency",
+      "monthly_cost": "Monthly cost (€)",
+      "yearly_cost": "Yearly cost (€)",
+      "coverage_summary": "Coverage summary",
+      "coverage_summary_placeholder": "Main coverage, limits, deductibles…",
+      "notes": "Notes",
+      "notes_placeholder": "Additional details"
+    },
+    "type": {
+      "health": "Health",
+      "home": "Home",
+      "car": "Car",
+      "life": "Life",
+      "liability": "Liability",
+      "other": "Other"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended",
+      "terminated": "Terminated"
+    },
+    "frequency": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    }
+  },
   "stock": {
     "title": "Stock",
     "alerts": {

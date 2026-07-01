@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  ShieldCheck, X, AlertCircle, Sparkles, Receipt,
+  ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -21,10 +21,11 @@ const NAV_GROUPS = [
   {
     labelKey: 'sidebar.groupHome',
     items: [
-      { to: '/app/zones',       labelKey: 'zones.title',       Icon: MapPin },
-      { to: '/app/equipment',   labelKey: 'equipment.title',   Icon: Wrench },
-      { to: '/app/electricity', labelKey: 'electricity.title', Icon: Zap    },
-      { to: '/app/stock',       labelKey: 'stock.title',       Icon: Box    },
+      { to: '/app/zones',       labelKey: 'zones.title',       Icon: MapPin   },
+      { to: '/app/equipment',   labelKey: 'equipment.title',   Icon: Wrench   },
+      { to: '/app/electricity', labelKey: 'electricity.title', Icon: Zap      },
+      { to: '/app/stock',       labelKey: 'stock.title',       Icon: Box      },
+      { to: '/app/insurance',   labelKey: 'insurance.title',   Icon: Umbrella },
     ],
   },
   {

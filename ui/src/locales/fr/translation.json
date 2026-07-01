@@ -1155,6 +1155,71 @@
       "interaction": "Interaction"
     }
   },
+  "insurance": {
+    "title": "Assurances",
+    "new": "Nouveau contrat",
+    "new_title": "Nouveau contrat d'assurance",
+    "edit_title": "Modifier le contrat",
+    "created": "Contrat créé.",
+    "updated": "Contrat mis à jour.",
+    "deleted": "Contrat supprimé",
+    "empty": "Aucun contrat d'assurance",
+    "empty_description": "Ajoutez votre premier contrat pour suivre vos polices, échéances et primes.",
+    "search_label": "Rechercher",
+    "search_placeholder": "Nom, assureur, numéro, objet assuré…",
+    "all_types": "Tous les types",
+    "all_statuses": "Tous les statuts",
+    "reset_filters": "Réinitialiser",
+    "apply_filters": "Appliquer",
+    "load_failed": "Impossible de charger les contrats.",
+    "create_failed": "Impossible de créer le contrat.",
+    "update_failed": "Impossible de mettre à jour le contrat.",
+    "name_required": "Le nom du contrat est requis.",
+    "dates_inconsistent": "La date de fin doit être postérieure à la date de début.",
+    "yearly_cost_value": "{{value}} €/an",
+    "monthly_cost_value": "{{value}} €/mois",
+    "renewal_on": "Renouvellement : {{date}}",
+    "field": {
+      "name": "Nom du contrat",
+      "name_placeholder": "ex. : Habitation 2 route d'Olivet",
+      "provider": "Assureur",
+      "provider_placeholder": "ex. : MAIF, Macif…",
+      "contract_number": "N° de contrat",
+      "contract_number_placeholder": "ex. : 1234567",
+      "type": "Type",
+      "status": "Statut",
+      "insured_item": "Objet assuré",
+      "insured_item_placeholder": "ex. : Maison principale, Dacia Sandero…",
+      "start_date": "Date de début",
+      "end_date": "Date de fin",
+      "renewal_date": "Date de renouvellement",
+      "payment_frequency": "Périodicité",
+      "monthly_cost": "Coût mensuel (€)",
+      "yearly_cost": "Coût annuel (€)",
+      "coverage_summary": "Résumé des garanties",
+      "coverage_summary_placeholder": "Principales garanties, plafonds, franchises…",
+      "notes": "Notes",
+      "notes_placeholder": "Détails complémentaires"
+    },
+    "type": {
+      "health": "Santé",
+      "home": "Habitation",
+      "car": "Auto",
+      "life": "Vie",
+      "liability": "Responsabilité civile",
+      "other": "Autre"
+    },
+    "status": {
+      "active": "Actif",
+      "suspended": "Suspendu",
+      "terminated": "Résilié"
+    },
+    "frequency": {
+      "monthly": "Mensuel",
+      "quarterly": "Trimestriel",
+      "yearly": "Annuel"
+    }
+  },
   "stock": {
     "title": "Stock",
     "alerts": {
