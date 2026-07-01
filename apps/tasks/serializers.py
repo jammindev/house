@@ -69,6 +69,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     # Read-only computed fields
     project_title = serializers.SerializerMethodField()
+    project_status = serializers.SerializerMethodField()
     zone_names = serializers.SerializerMethodField()
     assigned_to_name = serializers.SerializerMethodField()
     completed_by_name = serializers.SerializerMethodField()
@@ -108,7 +109,7 @@ class TaskSerializer(serializers.ModelSerializer):
             'subject', 'content', 'status', 'priority', 'due_date', 'is_private',
             'assigned_to', 'assigned_to_id', 'assigned_to_name',
             'completed_by', 'completed_by_name', 'completed_at',
-            'project', 'project_title',
+            'project', 'project_title', 'project_status',
             'zone_ids', 'zone_names',
             'source_interaction',
             'linked_documents', 'linked_interactions',
@@ -123,6 +124,9 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def get_project_title(self, obj):
         return obj.project.title if obj.project_id and obj.project else None
+
+    def get_project_status(self, obj):
+        return obj.project.status if obj.project_id and obj.project else None
 
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]

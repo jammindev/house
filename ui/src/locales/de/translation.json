@@ -508,6 +508,7 @@
     "fieldPrivate": "Private Aufgabe (nur für mich sichtbar)",
     "private": "Privat",
     "filterPrivate": "Privat",
+    "filterInactiveProjects": "Inaktive Projekte",
     "filterEmpty": "Keine Aufgaben entsprechen diesem Filter.",
     "filterMember": "Mitglied",
     "filterMemberAll": "Alle Mitglieder",
