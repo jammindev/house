@@ -140,3 +140,28 @@ def search(household_id: UUID, query: str, limit: int = 20) -> list[Hit]:
 
     all_hits.sort(key=lambda h: h.rank, reverse=True)
     return all_hits[:limit]
+
+
+def search_multi(household_id: UUID, queries: list[str], limit: int = 20) -> list[Hit]:
+    """Run `search` for each query string and merge the results.
+
+    Used by query expansion: a natural-language question is rewritten into
+    several keyword variants, each searched independently, then unioned here.
+    Hits are deduped by `(entity_type, id)` keeping the highest rank, then
+    ranked desc and capped at `limit`.
+
+    Ranks produced by different tsqueries are not strictly comparable, so this
+    is a heuristic merge — good enough for the modest household volume.
+    """
+    best: dict[tuple[str, Any], Hit] = {}
+    for query in queries:
+        if not query or not query.strip():
+            continue
+        for hit in search(household_id, query, limit=limit):
+            key = (hit.entity_type, hit.id)
+            existing = best.get(key)
+            if existing is None or hit.rank > existing.rank:
+                best[key] = hit
+
+    merged = sorted(best.values(), key=lambda h: h.rank, reverse=True)
+    return merged[:limit]

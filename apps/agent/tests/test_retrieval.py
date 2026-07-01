@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from agent.retrieval import Hit, search
+from agent.retrieval import Hit, search, search_multi
 
 
 @pytest.fixture
@@ -352,3 +352,74 @@ class TestHitContract:
         hits = search(household.id, "chaudière", limit=20)
         types = {h.entity_type for h in hits}
         assert {"document", "equipment", "task", "interaction"}.issubset(types)
+
+
+class TestSearchMulti:
+    def test_empty_queries_returns_empty(self, household):
+        assert search_multi(household.id, []) == []
+        assert search_multi(household.id, ["", "   "]) == []
+
+    def test_unions_hits_from_different_queries(
+        self, household, make_document, make_equipment
+    ):
+        make_document(name="Facture Engie mars")
+        make_equipment(name="Chaudière Bosch")
+        hits = search_multi(household.id, ["engie", "chaudière"])
+        labels = {h.label for h in hits}
+        assert "Facture Engie mars" in labels
+        assert "Chaudière Bosch" in labels
+
+    def test_dedupes_same_entity_matched_by_several_queries(self, household, make_document):
+        # A doc matched by two synonym queries must appear once.
+        make_document(name="Pompe à chaleur Daikin", ocr_text="PAC air-eau Daikin")
+        hits = search_multi(household.id, ["pompe", "PAC", "Daikin"])
+        docs = [h for h in hits if h.entity_type == "document"]
+        assert len(docs) == 1
+
+    def test_expansion_finds_what_raw_natural_language_misses(
+        self, household, make_document
+    ):
+        # The raw sentence carries filler ("trouve", "moi", "la", "de") that the
+        # `simple` config keeps as mandatory tokens → 0 hits. The expanded
+        # keywords match.
+        make_document(name="Pompe à chaleur Daikin", ocr_text="PAC air-eau")
+        raw = "trouve-moi la facture de la pompe à chaleur"
+        assert search(household.id, raw) == []
+        expanded = search_multi(household.id, [raw, "pompe à chaleur", "PAC", "Daikin"])
+        assert any(h.entity_type == "document" for h in expanded)
+
+    def test_skips_blank_queries_without_error(self, household, make_document):
+        make_document(name="Facture Engie")
+        hits = search_multi(household.id, ["", "engie", "   "])
+        assert any(h.label == "Facture Engie" for h in hits)
+
+    def test_limit_respected_across_union(self, household, make_document):
+        for i in range(6):
+            make_document(name=f"Engie doc {i}")
+        hits = search_multi(household.id, ["engie", "doc"], limit=3)
+        assert len(hits) == 3
+
+    def test_results_ranked_descending(self, household, make_document):
+        make_document(name="Engie facture", ocr_text="total 142")
+        make_document(name="autre", ocr_text="engie en passant")
+        hits = search_multi(household.id, ["engie"])
+        ranks = [h.rank for h in hits]
+        assert ranks == sorted(ranks, reverse=True)
+
+    def test_household_scope_preserved(
+        self, household, other_household, owner, make_document
+    ):
+        from documents.models import Document
+
+        make_document(name="Engie facture mine")
+        Document.objects.create(
+            household=other_household,
+            created_by=owner,
+            file_path="documents/y.pdf",
+            name="Engie facture theirs",
+            mime_type="application/pdf",
+            type="document",
+        )
+        labels = {h.label for h in search_multi(household.id, ["engie", "facture"])}
+        assert "Engie facture mine" in labels
+        assert "Engie facture theirs" not in labels
