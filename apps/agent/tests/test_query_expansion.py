@@ -73,6 +73,37 @@ class TestExpandHappyPath:
         assert stub.last_call["user"] == "où est la clé ?"
 
 
+class TestExpandWithHistory:
+    def test_history_is_prefixed_to_the_expansion_input(self):
+        stub = _StubLLMClient(text="prix, facture")
+        history = [
+            {"role": "user", "content": "la facture de la PAC"},
+            {"role": "agent", "content": "Oui, facture-pac."},
+        ]
+        query_expansion.expand(
+            "et son prix ?", client=stub, household_id=HH, history=history
+        )
+        sent = stub.last_call["user"]
+        assert "la facture de la PAC" in sent
+        assert "Current question: et son prix ?" in sent
+
+    def test_empty_history_behaves_like_no_history(self):
+        stub = _StubLLMClient(text="a, b")
+        query_expansion.expand(
+            "question", client=stub, household_id=HH,
+            history=[{"role": "user", "content": "  "}],
+        )
+        assert stub.last_call["user"] == "question"
+
+    def test_only_recent_turns_are_replayed(self):
+        stub = _StubLLMClient(text="a, b")
+        history = [{"role": "user", "content": f"turn-{i}"} for i in range(20)]
+        query_expansion.expand("now", client=stub, household_id=HH, history=history)
+        sent = stub.last_call["user"]
+        assert "turn-19" in sent
+        assert "turn-0" not in sent
+
+
 class TestExpandParsing:
     def test_parses_json_array(self):
         stub = _StubLLMClient(text='["pompe à chaleur", "PAC"]')

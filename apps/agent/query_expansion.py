@@ -52,10 +52,17 @@ amounts.
 data. Examples: "pompe à chaleur" → also "PAC"; "assurance habitation" → also \
 "MRH"; "voiture" → also "auto". Keep additions short.
 - Keep proper nouns and brand names as-is (Engie, Daikin, …).
+- A prior conversation may precede the current question. Use it to resolve \
+references ("son prix", "ce document") and pull the relevant subject into the \
+keywords, but output terms for the CURRENT question only.
 - Answer in the same language as the question, but you may add well-known \
 abbreviations from any language.
 - Output 3 to 8 terms. Prefer single words or short two-word phrases.
 """
+
+# How many recent turns to replay into the expansion input so a follow-up can
+# be resolved against context. Small: expansion only needs the last exchange.
+HISTORY_TURNS_FOR_EXPANSION = 6
 
 
 def expand(
@@ -64,12 +71,15 @@ def expand(
     client: LLMClient,
     household_id: UUID | str,
     user_id: int | None = None,
+    history: list[dict] | None = None,
 ) -> list[str]:
     """Return search terms for ``question``.
 
     The result always contains the cleaned original question as a fallback,
     followed by the LLM-extracted keywords/synonyms (deduped, order preserved).
-    Any failure degrades to ``[original]`` — the caller can always run retrieval.
+    ``history`` (prior turns, oldest first) lets the model resolve follow-up
+    references ("son prix") into concrete keywords. Any failure degrades to
+    ``[original]`` — the caller can always run retrieval.
     """
     original = (question or "").strip()
     terms: list[str] = [original] if original else []
@@ -80,7 +90,7 @@ def expand(
     try:
         response = client.complete(
             system=EXPANSION_SYSTEM_PROMPT,
-            user=original,
+            user=_expansion_input(original, history),
             feature=FEATURE_NAME,
             household_id=household_id,
             user_id=user_id,
@@ -92,6 +102,25 @@ def expand(
         return _dedupe(terms)
 
     return _dedupe(terms + _parse_terms(response.text))
+
+
+def _expansion_input(question: str, history: list[dict] | None) -> str:
+    """Build the expansion user message, prefixing recent turns when present."""
+    if not history:
+        return question
+    recent = [t for t in history if (t.get("content") or "").strip()]
+    recent = recent[-HISTORY_TURNS_FOR_EXPANSION:]
+    if not recent:
+        return question
+    lines = [
+        f"{'User' if t.get('role') == 'user' else 'Assistant'}: {t['content'].strip()}"
+        for t in recent
+    ]
+    return (
+        "Conversation so far:\n"
+        + "\n".join(lines)
+        + f"\n\nCurrent question: {question}"
+    )
 
 
 def _parse_terms(raw: str) -> list[str]:

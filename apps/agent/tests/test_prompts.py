@@ -102,3 +102,45 @@ class TestContentEnrichment:
         prompt = build_user_prompt("q", [hit], char_budget_per_hit=15)
         # Should not cut mid-word: no partial token like "cha" without the rest.
         assert TRUNCATION_MARKER in prompt
+
+
+class TestConversationHistory:
+    def test_no_history_renders_no_history_block(self):
+        prompt = build_user_prompt("q", [_hit()])
+        assert "Conversation so far" not in prompt
+
+    def test_history_is_rendered_before_context(self):
+        history = [
+            {"role": "user", "content": "tu as la facture de la PAC ?"},
+            {"role": "agent", "content": "Oui, facture-pac."},
+        ]
+        prompt = build_user_prompt("et son prix ?", [_hit()], history=history)
+        assert "Conversation so far" in prompt
+        assert "tu as la facture de la PAC ?" in prompt
+        assert "facture-pac" in prompt
+        # History comes before the household context.
+        assert prompt.index("Conversation so far") < prompt.index("Household context")
+
+    def test_history_labels_roles(self):
+        history = [
+            {"role": "user", "content": "hello"},
+            {"role": "agent", "content": "hi there"},
+        ]
+        prompt = build_user_prompt("q", [_hit()], history=history)
+        assert "[User] hello" in prompt
+        assert "[Assistant] hi there" in prompt
+
+    def test_empty_history_turns_are_skipped(self):
+        history = [{"role": "user", "content": "   "}, {"role": "agent", "content": ""}]
+        prompt = build_user_prompt("q", [_hit()], history=history)
+        assert "Conversation so far" not in prompt
+
+    def test_history_budget_keeps_most_recent_turns(self):
+        # Many long turns; only the most recent should survive the budget.
+        history = [
+            {"role": "user", "content": f"OLD-{i} " + "x" * 500} for i in range(20)
+        ]
+        history.append({"role": "user", "content": "RECENT question about the boiler"})
+        prompt = build_user_prompt("q", [_hit()], history=history)
+        assert "RECENT question about the boiler" in prompt
+        assert "OLD-0" not in prompt
