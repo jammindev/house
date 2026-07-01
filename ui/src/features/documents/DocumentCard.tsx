@@ -83,7 +83,7 @@ export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: Doc
             </span>
           )}
 
-          {doc.qualification.qualification_state === 'without_activity' && (
+          {doc.qualification.qualification_state === 'without_activity' && !doc.qualification.has_secondary_context && (
             <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
               {t('documents.qualification.withoutActivity')}
             </span>
