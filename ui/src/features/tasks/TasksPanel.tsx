@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CheckSquare, Lock, Plus, User } from 'lucide-react';
+import { CheckSquare, FolderOpen, Lock, Plus, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
@@ -67,6 +67,7 @@ export default function TasksPanel({
   const [detailTask, setDetailTask] = React.useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useSessionState<FilterKey>(`${prefix}.filter`, 'all');
   const [showPrivateOnly, setShowPrivateOnly] = useSessionState(`${prefix}.filterPrivate`, false);
+  const [showInactiveProjects, setShowInactiveProjects] = useSessionState(`${prefix}.filterInactiveProjects`, false);
   const [filterAssigneeId, setFilterAssigneeId] = useSessionState(`${prefix}.filterAssignee`, '');
   const savedAssigneeFilter = React.useRef('');
 
@@ -125,13 +126,18 @@ export default function TasksPanel({
 
   const filteredTasks = React.useMemo(() => {
     let result = showPrivateOnly ? tasks.filter((t) => t.is_private) : tasks;
+    // Liste globale : par défaut on masque les tâches liées à un projet non-actif.
+    // Les tâches autonomes (sans projet) restent toujours visibles.
+    if (!isEmbedded && !showInactiveProjects) {
+      result = result.filter((t) => !t.project || t.project_status === 'active');
+    }
     if (filterAssigneeId === 'unassigned') {
       result = result.filter((t) => !t.assigned_to);
     } else if (filterAssigneeId) {
       result = result.filter((t) => t.assigned_to === filterAssigneeId);
     }
     return result;
-  }, [tasks, showPrivateOnly, filterAssigneeId]);
+  }, [tasks, showPrivateOnly, showInactiveProjects, isEmbedded, filterAssigneeId]);
 
   const overdueTasks = React.useMemo(() => sortByPriority(filteredTasks.filter(isTaskOverdue)), [filteredTasks]);
   const inProgressTasks = React.useMemo(() => sortByPriority(filteredTasks.filter((t) => t.status === 'in_progress' && !isTaskOverdue(t))), [filteredTasks]);
@@ -231,6 +237,19 @@ export default function TasksPanel({
               {label}
             </FilterPill>
           ))}
+
+          {!isEmbedded && (
+            <>
+              <span className="h-4 w-px bg-slate-200" />
+              <FilterPill
+                active={showInactiveProjects}
+                onClick={() => setShowInactiveProjects((v) => !v)}
+              >
+                <FolderOpen className="h-3 w-3" />
+                {t('tasks.filterInactiveProjects')}
+              </FilterPill>
+            </>
+          )}
 
           {multipleMembers && !showPrivateOnly && (
             <>

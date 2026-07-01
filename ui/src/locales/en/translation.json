@@ -508,6 +508,7 @@
     "fieldPrivate": "Private task (visible only to me)",
     "private": "Private",
     "filterPrivate": "Private",
+    "filterInactiveProjects": "Inactive projects",
     "filterEmpty": "No tasks match this filter.",
     "filterMember": "Member",
     "filterMemberAll": "All members",

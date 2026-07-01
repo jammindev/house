@@ -3,6 +3,7 @@ import { api } from '@/lib/axios';
 export type TaskStatus = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived' | null;
 export type TaskColumnId = 'backlog' | 'pending' | 'in_progress' | 'done';
 export type TaskPriority = 1 | 2 | 3 | null;
+export type ProjectStatus = 'draft' | 'active' | 'on_hold' | 'completed' | 'cancelled';
 
 export interface LinkedDocumentSummary {
   id: number;             // link id (TaskDocument.id)
@@ -40,6 +41,7 @@ export interface Task {
   created_by_name: string | null;
   project: string | null;
   project_title?: string | null;
+  project_status?: ProjectStatus | null;
   zone_names: string[];
   source_interaction: string | null;
   linked_documents: LinkedDocumentSummary[];

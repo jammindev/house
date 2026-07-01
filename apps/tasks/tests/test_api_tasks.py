@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from accounts.tests.factories import UserFactory
 from households.models import Household, HouseholdMember
+from projects.models import Project
 from tasks.models import Task, TaskZone
 from zones.models import Zone
 
@@ -483,3 +484,47 @@ class TestTaskUpdatePermissions:
         url = reverse("task-detail", kwargs={"pk": str(task_with_assignee.id)})
         response = client.delete(url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+@pytest.mark.django_db
+class TestTaskProjectStatus:
+    def _create_project(self, household, owner, status_value):
+        return Project.objects.create(
+            household=household,
+            created_by=owner,
+            title="Kitchen renovation",
+            status=status_value,
+            priority=3,
+            planned_budget=0,
+            actual_cost_cached=0,
+            type=Project.Type.OTHER,
+        )
+
+    def test_serializer_exposes_active_project_status(self, owner_client, household, owner, zone):
+        project = self._create_project(household, owner, Project.Status.ACTIVE)
+        create = owner_client.post(
+            reverse("task-list"),
+            _task_payload([zone.id], project=str(project.id)),
+            format="json",
+        )
+        assert create.status_code == status.HTTP_201_CREATED
+        assert create.data["project_status"] == "active"
+
+    def test_serializer_exposes_inactive_project_status(self, owner_client, household, owner, zone):
+        project = self._create_project(household, owner, Project.Status.COMPLETED)
+        create = owner_client.post(
+            reverse("task-list"),
+            _task_payload([zone.id], project=str(project.id)),
+            format="json",
+        )
+        assert create.status_code == status.HTTP_201_CREATED
+        assert create.data["project_status"] == "completed"
+
+    def test_standalone_task_has_null_project_status(self, owner_client, household, zone):
+        create = owner_client.post(
+            reverse("task-list"),
+            _task_payload([zone.id]),
+            format="json",
+        )
+        assert create.status_code == status.HTTP_201_CREATED
+        assert create.data["project_status"] is None
