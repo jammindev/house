@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { Send, Sparkles, AlertTriangle } from 'lucide-react';
+import { Send, Sparkles, AlertTriangle, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import ChatBubble from './ChatBubble';
+import ConversationList from './ConversationList';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
 import {
@@ -59,6 +61,9 @@ export default function AgentPage() {
   // Guards against re-seeding local messages from a background refetch: we only
   // load a conversation's persisted turns the first time we see it.
   const loadedRef = React.useRef<string | null>(null);
+  // Auto-select the latest conversation only once, on first load — so clicking
+  // "New conversation" (currentId → null) isn't immediately overridden.
+  const initializedRef = React.useRef(false);
 
   const scrollAnchorRef = React.useRef<HTMLDivElement | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
@@ -69,12 +74,31 @@ export default function AgentPage() {
     setNeedsPrivacy(!hasAcceptedAgentPrivacy());
   }, []);
 
-  // On mount, continue the most recent conversation (survives reload).
+  // On first load, continue the most recent conversation (survives reload).
   React.useEffect(() => {
-    if (currentId === null && conversationsQuery.data && conversationsQuery.data.length > 0) {
-      setCurrentId(conversationsQuery.data[0].id);
+    if (!initializedRef.current && conversationsQuery.data) {
+      initializedRef.current = true;
+      if (conversationsQuery.data.length > 0) {
+        setCurrentId(conversationsQuery.data[0].id);
+      }
     }
-  }, [conversationsQuery.data, currentId]);
+  }, [conversationsQuery.data]);
+
+  const handleSelect = React.useCallback(
+    (id: string) => {
+      if (id === currentId) return;
+      loadedRef.current = null;
+      setMessages([]);
+      setCurrentId(id);
+    },
+    [currentId],
+  );
+
+  const handleNew = React.useCallback(() => {
+    loadedRef.current = null;
+    setMessages([]);
+    setCurrentId(null);
+  }, []);
 
   // Seed local messages from the loaded conversation, once per conversation.
   React.useEffect(() => {
@@ -142,11 +166,51 @@ export default function AgentPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <PageHeader title={t('agent.title')} description={t('agent.description')} />
+      <PageHeader title={t('agent.title')} description={t('agent.description')}>
+        <SheetDialog
+          title={t('agent.conversations')}
+          trigger={
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              aria-label={t('agent.conversations')}
+              data-testid="agent-conversations-toggle"
+            >
+              <History className="h-4 w-4" />
+            </Button>
+          }
+        >
+          {({ close }) => (
+            <ConversationList
+              currentId={currentId}
+              onSelect={(id) => {
+                handleSelect(id);
+                close();
+              }}
+              onNew={() => {
+                handleNew();
+                close();
+              }}
+              onCurrentDeleted={handleNew}
+            />
+          )}
+        </SheetDialog>
+      </PageHeader>
 
       <PrivacyNotice open={needsPrivacy} onAccept={handleAcceptPrivacy} />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4">
+      <div className="flex min-h-0 flex-1 gap-4">
+        <aside className="hidden w-64 shrink-0 border-r border-border pr-3 md:flex md:flex-col">
+          <ConversationList
+            currentId={currentId}
+            onSelect={handleSelect}
+            onNew={handleNew}
+            onCurrentDeleted={handleNew}
+          />
+        </aside>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
         <div
           className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1"
           data-testid="agent-messages"
@@ -202,6 +266,7 @@ export default function AgentPage() {
             <Send className="h-4 w-4" />
           </Button>
         </form>
+        </div>
       </div>
     </div>
   );

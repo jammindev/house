@@ -265,3 +265,79 @@ test('recharge les messages d\'une conversation existante au montage', async ({ 
   await expect(agentBubble).toContainText('En mars 2026');
   await expect(agentBubble.getByTestId('agent-citation').first()).toContainText('Facture chaudière');
 });
+
+// ---------------------------------------------------------------------------
+// Sidebar — liste, bascule, nouvelle conversation
+// ---------------------------------------------------------------------------
+
+function conversationDetail(id: string, title: string, userText: string, agentText: string) {
+  const now = new Date().toISOString();
+  return {
+    id,
+    title,
+    last_message_at: now,
+    created_at: now,
+    messages: [
+      { id: `${id}-u`, role: 'user', content: userText, citations: [], metadata: {}, created_at: now },
+      { id: `${id}-a`, role: 'agent', content: agentText, citations: [], metadata: {}, created_at: now },
+    ],
+  };
+}
+
+async function mockSidebar(page: Page): Promise<void> {
+  const now = new Date().toISOString();
+  await page.route('**/api/agent/conversations/', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { id: 'conv-a', title: 'Chaudière', last_message_at: now, created_at: now, message_count: 2 },
+        { id: 'conv-b', title: 'Assurance', last_message_at: now, created_at: now, message_count: 2 },
+      ]),
+    });
+  });
+  await page.route('**/api/agent/conversations/conv-a/', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(conversationDetail('conv-a', 'Chaudière', 'Question chaudière', 'Réponse chaudière')),
+    });
+  });
+  await page.route('**/api/agent/conversations/conv-b/', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(conversationDetail('conv-b', 'Assurance', 'Question assurance', 'Réponse assurance')),
+    });
+  });
+}
+
+test('la sidebar liste les conversations et permet de basculer', async ({ page }) => {
+  await setPrivacyAccepted(page, true);
+  await mockSidebar(page);
+
+  await page.goto('/app/agent');
+
+  // Au montage, la plus récente (conv-a) est ouverte.
+  await expect(page.getByTestId('agent-conversation-list')).toContainText('Chaudière');
+  await expect(page.getByTestId('agent-conversation-list')).toContainText('Assurance');
+  await expect(page.getByTestId('agent-bubble-agent')).toContainText('Réponse chaudière');
+
+  // Bascule vers l'autre conversation.
+  await page.getByTestId('agent-conversation-item').filter({ hasText: 'Assurance' }).getByRole('button').first().click();
+  await expect(page.getByTestId('agent-bubble-agent')).toContainText('Réponse assurance');
+});
+
+test('« nouvelle conversation » vide l\'écran', async ({ page }) => {
+  await setPrivacyAccepted(page, true);
+  await mockSidebar(page);
+
+  await page.goto('/app/agent');
+  await expect(page.getByTestId('agent-bubble-agent')).toContainText('Réponse chaudière');
+
+  await page.getByTestId('agent-new-conversation').first().click();
+
+  // Retour à l'état vide (aucune bulle).
+  await expect(page.getByTestId('agent-bubble-agent')).toHaveCount(0);
+  await expect(page.getByTestId('agent-messages')).toContainText('Pose toutes tes questions');
+});
