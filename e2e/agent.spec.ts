@@ -15,16 +15,56 @@ interface MockAnswer {
   metadata?: Record<string, unknown>;
 }
 
+const CONV_ID = 'conv-e2e-1';
+
 async function mockAskAgent(page: Page, payload: MockAnswer | (() => MockAnswer)): Promise<void> {
-  await page.route('**/api/agent/ask/', async (route: Route) => {
-    const data = typeof payload === 'function' ? payload() : payload;
+  // Empty conversation list → the first question creates a conversation.
+  await page.route('**/api/agent/conversations/', async (route: Route) => {
+    if (route.request().method() === 'POST') {
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: CONV_ID,
+          title: '',
+          last_message_at: null,
+          created_at: new Date().toISOString(),
+          messages: [],
+        }),
+      });
+      return;
+    }
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
+  });
+
+  // Detail fetch (if triggered) — return the empty conversation.
+  await page.route(`**/api/agent/conversations/${CONV_ID}/`, async (route: Route) => {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        answer: data.answer,
+        id: CONV_ID,
+        title: '',
+        last_message_at: null,
+        created_at: new Date().toISOString(),
+        messages: [],
+      }),
+    });
+  });
+
+  // Posting a message returns the persisted agent turn.
+  await page.route(`**/api/agent/conversations/${CONV_ID}/messages/`, async (route: Route) => {
+    const data = typeof payload === 'function' ? payload() : payload;
+    await route.fulfill({
+      status: 201,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: `msg-${Date.now()}`,
+        role: 'agent',
+        content: data.answer,
         citations: data.citations,
         metadata: data.metadata ?? { duration_ms: 1234, tokens_in: 100, tokens_out: 30, model: 'claude-haiku-4-5-20251001', hits_count: 1 },
+        created_at: new Date().toISOString(),
       }),
     });
   });
@@ -153,4 +193,75 @@ test('réponse "je ne sais pas" → message sans citation', async ({ page }) => 
   const bubble = page.getByTestId('agent-bubble-agent');
   await expect(bubble).toContainText("Je n'ai pas trouvé");
   await expect(bubble.getByTestId('agent-citation')).toHaveCount(0);
+});
+
+// ---------------------------------------------------------------------------
+// Persistance — une conversation existante se recharge au montage
+// ---------------------------------------------------------------------------
+
+test('recharge les messages d\'une conversation existante au montage', async ({ page }) => {
+  await setPrivacyAccepted(page, true);
+
+  await page.route('**/api/agent/conversations/', async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([
+        {
+          id: CONV_ID,
+          title: 'Chaudière',
+          last_message_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+          message_count: 2,
+        },
+      ]),
+    });
+  });
+
+  await page.route(`**/api/agent/conversations/${CONV_ID}/`, async (route: Route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: CONV_ID,
+        title: 'Chaudière',
+        last_message_at: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+        messages: [
+          {
+            id: 'm1',
+            role: 'user',
+            content: 'Quand a-t-on changé la chaudière ?',
+            citations: [],
+            metadata: {},
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 'm2',
+            role: 'agent',
+            content: 'En mars 2026 <cite id="document:abc-123"/>.',
+            citations: [
+              {
+                entity_type: 'document',
+                id: 'abc-123',
+                label: 'Facture chaudière',
+                snippet: 'remplacement chaudière',
+                url_path: '/app/documents/abc-123',
+              },
+            ],
+            metadata: {},
+            created_at: new Date().toISOString(),
+          },
+        ],
+      }),
+    });
+  });
+
+  await page.goto('/app/agent');
+
+  // Les deux tours persistés se ré-affichent sans nouvelle question.
+  await expect(page.getByTestId('agent-bubble-user')).toContainText('Quand a-t-on changé la chaudière ?');
+  const agentBubble = page.getByTestId('agent-bubble-agent');
+  await expect(agentBubble).toContainText('En mars 2026');
+  await expect(agentBubble.getByTestId('agent-citation').first()).toContainText('Facture chaudière');
 });

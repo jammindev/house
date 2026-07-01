@@ -7,8 +7,13 @@ import { Textarea } from '@/design-system/textarea';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
-import { useAskAgent } from './hooks';
-import type { AgentCitation } from './api';
+import {
+  useConversation,
+  useConversations,
+  useCreateConversation,
+  usePostMessage,
+} from './hooks';
+import type { AgentCitation, AgentMessageRow } from './api';
 
 interface UserMessage {
   id: string;
@@ -31,24 +36,58 @@ interface ErrorMessage {
 
 type Message = UserMessage | AgentMessage | ErrorMessage;
 
+function toMessage(row: AgentMessageRow): Message {
+  if (row.role === 'user') {
+    return { id: row.id, variant: 'user', text: row.content };
+  }
+  return { id: row.id, variant: 'agent', text: row.content, citations: row.citations };
+}
+
 export default function AgentPage() {
   const { t } = useTranslation();
-  const askMutation = useAskAgent();
+
+  const conversationsQuery = useConversations();
+  const [currentId, setCurrentId] = React.useState<string | null>(null);
+  const conversationQuery = useConversation(currentId);
+  const createConversation = useCreateConversation();
+  const postMessage = usePostMessage();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
   const [needsPrivacy, setNeedsPrivacy] = React.useState(false);
 
+  // Guards against re-seeding local messages from a background refetch: we only
+  // load a conversation's persisted turns the first time we see it.
+  const loadedRef = React.useRef<string | null>(null);
+
   const scrollAnchorRef = React.useRef<HTMLDivElement | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+  const isBusy = postMessage.isPending || createConversation.isPending;
 
   React.useEffect(() => {
     setNeedsPrivacy(!hasAcceptedAgentPrivacy());
   }, []);
 
+  // On mount, continue the most recent conversation (survives reload).
+  React.useEffect(() => {
+    if (currentId === null && conversationsQuery.data && conversationsQuery.data.length > 0) {
+      setCurrentId(conversationsQuery.data[0].id);
+    }
+  }, [conversationsQuery.data, currentId]);
+
+  // Seed local messages from the loaded conversation, once per conversation.
+  React.useEffect(() => {
+    const detail = conversationQuery.data;
+    if (detail && loadedRef.current !== detail.id) {
+      loadedRef.current = detail.id;
+      setMessages(detail.messages.map(toMessage));
+    }
+  }, [conversationQuery.data]);
+
   React.useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages.length, askMutation.isPending]);
+  }, [messages.length, isBusy]);
 
   const handleAcceptPrivacy = React.useCallback(() => {
     acceptAgentPrivacy();
@@ -56,49 +95,50 @@ export default function AgentPage() {
     textareaRef.current?.focus();
   }, []);
 
-  const submit = React.useCallback(() => {
+  const submit = React.useCallback(async () => {
     const trimmed = draft.trim();
-    if (!trimmed || askMutation.isPending) return;
-    const userMsg: UserMessage = {
-      id: `u-${Date.now()}`,
-      variant: 'user',
-      text: trimmed,
-    };
-    setMessages((prev) => [...prev, userMsg]);
+    if (!trimmed || isBusy) return;
     setDraft('');
-    askMutation.mutate(trimmed, {
-      onSuccess: (data) => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `a-${Date.now()}`,
-            variant: 'agent',
-            text: data.answer,
-            citations: data.citations,
-          },
-        ]);
-      },
-      onError: () => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: `e-${Date.now()}`,
-            variant: 'error',
-            text: t('agent.error'),
-          },
-        ]);
-      },
-    });
-  }, [draft, askMutation, t]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `u-${Date.now()}`, variant: 'user', text: trimmed },
+    ]);
+
+    try {
+      let conversationId = currentId;
+      if (!conversationId) {
+        const conversation = await createConversation.mutateAsync();
+        conversationId = conversation.id;
+        // Mark as loaded so the detail fetch doesn't clobber optimistic turns.
+        loadedRef.current = conversation.id;
+        setCurrentId(conversation.id);
+      }
+      const agentMsg = await postMessage.mutateAsync({ conversationId, question: trimmed });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: agentMsg.id,
+          variant: 'agent',
+          text: agentMsg.content,
+          citations: agentMsg.citations,
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error') },
+      ]);
+    }
+  }, [draft, isBusy, currentId, createConversation, postMessage, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      submit();
+      void submit();
     }
   };
 
-  const isEmpty = messages.length === 0 && !askMutation.isPending;
+  const isEmpty = messages.length === 0 && !isBusy;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -131,14 +171,14 @@ export default function AgentPage() {
               return <ErrorBubble key={msg.id} text={msg.text} />;
             })
           )}
-          {askMutation.isPending ? <ChatBubble variant="loading" /> : null}
+          {isBusy ? <ChatBubble variant="loading" /> : null}
           <div ref={scrollAnchorRef} />
         </div>
 
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            submit();
+            void submit();
           }}
           className="flex items-end gap-2 rounded-xl border border-border bg-card p-2"
         >
@@ -149,13 +189,13 @@ export default function AgentPage() {
             onKeyDown={handleKeyDown}
             placeholder={t('agent.input_placeholder')}
             rows={2}
-            disabled={needsPrivacy || askMutation.isPending}
+            disabled={needsPrivacy || isBusy}
             className="min-h-0 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
             data-testid="agent-input"
           />
           <Button
             type="submit"
-            disabled={needsPrivacy || askMutation.isPending || draft.trim().length === 0}
+            disabled={needsPrivacy || isBusy || draft.trim().length === 0}
             data-testid="agent-send"
             aria-label={t('agent.send')}
           >
