@@ -171,6 +171,27 @@ class TestHappyPath:
         assert stub.last_call["household_id"] == household.id
         assert stub.last_call["user_id"] == owner.id
 
+    def test_full_document_content_reaches_the_answer_prompt(
+        self, with_api_key, household, owner, make_document
+    ):
+        # The amount lives deep in the OCR text, far from the matched keyword —
+        # a short headline snippet would miss it. Enrichment must feed the full
+        # content to the LLM so it can answer "combien ?".
+        long_ocr = (
+            "Facture pompe à chaleur. " + "détail " * 80
+            + "Montant total 4200 EUR chez Saunier Duval."
+        )
+        make_document(name="facture-pac", ocr_text=long_ocr)
+        stub = _StubLLMClient(answer_text="ok")
+
+        service.ask("facture pac", household, user=owner, client=stub)
+
+        # `last_call` is the answer call (expansion ran first). Its user prompt
+        # must contain the amount pulled from the full content.
+        assert stub.last_call is not None
+        assert "4200" in stub.last_call["user"]
+        assert "Saunier Duval" in stub.last_call["user"]
+
     def test_invented_citations_are_dropped(self, with_api_key, household, owner, make_document):
         make_document(name="Engie facture mars")
         stub = _StubLLMClient(

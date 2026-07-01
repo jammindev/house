@@ -337,6 +337,26 @@ class TestHitContract:
             make_document(name=f"Engie doc {i}")
         assert len(search(household.id, "engie", limit=3)) == 3
 
+    def test_content_holds_full_field_text_not_just_snippet(self, household, make_document):
+        long_ocr = (
+            "Facture pompe à chaleur. " + "détail " * 100
+            + "Montant total 4200 EUR payé le 12/03/2026 chez Saunier Duval."
+        )
+        make_document(name="facture-pac", ocr_text=long_ocr)
+        hits = search(household.id, "facture pac")
+        assert hits
+        h = next(h for h in hits if h.label == "facture-pac")
+        # The snippet is a short headline; content carries the whole OCR text.
+        assert "4200" in h.content
+        assert "Saunier Duval" in h.content
+        assert len(h.content) > len(h.snippet)
+
+    def test_content_skips_empty_fields(self, household, make_document):
+        make_document(name="Engie facture", ocr_text="", notes="")
+        hits = search(household.id, "engie")
+        h = next(h for h in hits if h.label == "Engie facture")
+        assert h.content == "Engie facture"
+
     def test_multi_entity_query(
         self,
         household,
