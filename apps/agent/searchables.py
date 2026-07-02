@@ -6,6 +6,7 @@ The agent does not know the list — adding a module = 5 lines, zero touche to a
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Callable
 
@@ -23,13 +24,20 @@ class SearchableSpec:
     """The Django model class to query."""
 
     search_fields: tuple[str, ...]
-    """Tuple of field names participating in the SearchVector."""
+    """Tuple of field names participating in the SearchVector. By convention the
+    first field is the title/name — retrieval gives it weight A."""
 
     label_attr: str | Callable[[Model], str]
     """Attribute name or callable producing the human-readable label."""
 
     url_template: str
     """URL template used to build Hit.url_path. Must contain `{id}`."""
+
+    related: Callable[[Model], Iterable[Model]] | None = None
+    """Optional: given an instance, return the model instances linked to it
+    (a project's documents, expenses, tasks, zones…). Powers the `get_related`
+    agent tool. Each returned instance is turned into a citable Hit via its own
+    registered spec, so only entities that are themselves searchable surface."""
 
 
 REGISTRY: list[SearchableSpec] = []
@@ -54,6 +62,18 @@ def find_spec(entity_type: str) -> SearchableSpec | None:
     """Return the registered spec for ``entity_type``, or None if unknown."""
     for spec in REGISTRY:
         if spec.entity_type == entity_type:
+            return spec
+    return None
+
+
+def find_spec_for_instance(instance: Model) -> SearchableSpec | None:
+    """Return the spec whose model matches ``instance``, or None if unregistered.
+
+    Used by ``get_related`` to turn each related instance (of mixed types) back
+    into a citable Hit through its own spec. An instance whose model is not
+    registered as searchable is simply skipped."""
+    for spec in REGISTRY:
+        if isinstance(instance, spec.model):
             return spec
     return None
 

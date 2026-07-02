@@ -160,6 +160,28 @@ def _full_content(obj, fields: tuple[str, ...]) -> str:
     return "\n".join(parts)
 
 
+def hit_from_instance(
+    spec: SearchableSpec, instance, *, rank: float = 1.0, snippet_chars: int = 200
+) -> Hit:
+    """Build a citable Hit from a model instance using its spec — no search.
+
+    Shared by the ``get_entity`` and ``get_related`` tools, which fetch entities
+    by id or by relation rather than by full-text query. ``content`` is the
+    concatenation of the spec's ``search_fields``; ``snippet`` is its head.
+    """
+    content = _full_content(instance, spec.search_fields)
+    snippet = content[:snippet_chars].strip()
+    return Hit(
+        entity_type=spec.entity_type,
+        id=instance.pk,
+        label=resolve_label(spec, instance),
+        snippet=snippet,
+        rank=rank,
+        url_path=_spec_url(spec, instance),
+        content=content,
+    )
+
+
 def _pick_snippet(obj, fields: tuple[str, ...]) -> str:
     """Pick the longest non-empty headline among annotated candidates."""
     candidates = [getattr(obj, f"_snippet_{field}", "") or "" for field in fields]

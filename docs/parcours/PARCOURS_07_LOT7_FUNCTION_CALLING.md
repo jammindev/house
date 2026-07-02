@@ -380,3 +380,51 @@ via « Re-extraire » sur la fiche document, pas via l'agent.
   args manquants, type inconnu, id invalide, entité absente, scope household),
   `test_registry.py::TestFindSpec`, `test_service.py` (chaîne search → get_entity
   → réponse citée)
+
+## 15. Extension — 3ᵉ tool `get_related` (voisinage d'une entité)
+
+### Le besoin observé
+
+Scénario utilisateur : « retrouve le projet pompe à chaleur → oui c'est celui-là →
+charge tout ce qui s'y rapporte ». `search_household` trouve le projet (après le
+fix ranking, PR #160), mais l'agent n'avait aucun moyen de charger **ce qui est
+lié** au projet. `get_entity("project", id)` ne lit que `title + description` — pas
+ses documents, dépenses, tâches, zones.
+
+### La solution : un tool de traversée de relations
+
+`get_related(entity_type, id)` — générique via le registry. Chaque `SearchableSpec`
+déclare optionnellement un callable `related(instance) -> Iterable[Model]` qui
+renvoie les instances liées (types mélangés). Le handler :
+
+1. résout `(entity_type, id)` → instance (helper partagé `_resolve_entity`),
+2. appelle `spec.related(obj)`, cappe à `RELATED_MAX_ITEMS` (40),
+3. pour chaque instance liée, retrouve son spec via `find_spec_for_instance` et
+   construit un Hit citable (`retrieval.hit_from_instance`, partagé avec get_entity),
+4. rend le tout via `render_context_block` (budget dédié) → chaque item lié porte
+   son propre `id=<type>:<id>`, donc l'agent peut ensuite `get_entity` dans l'un.
+
+Sur le tour de confirmation, la boucle fait `search → get_related → réponse`, l'id
+du projet transitant par la citation du tour précédent (historique déjà persistant).
+
+### Choix : `related` déclaratif plutôt que hardcodé
+
+Même esprit que le reste du registry : `apps/projects/apps.py` fournit
+`_project_related` (documents via `project_documents`, dépenses via `interactions`,
+`tasks`, zones via `project_zones`). Ajouter la traversée pour equipment/zone plus
+tard = une fonction + un kwarg, zéro touche à `apps/agent/`. Seules les entités
+elles-mêmes searchables (donc citables) remontent — les autres sont ignorées.
+
+### Fichiers
+
+- `apps/agent/tools.py` : `get_related` (schéma + handler + `_resolve_entity`
+  partagé + `build_get_related_tool`), get_entity refactoré sur le helper partagé
+- `apps/agent/searchables.py` : champ `SearchableSpec.related` + `find_spec_for_instance`
+- `apps/agent/retrieval.py` : helper partagé `hit_from_instance`
+- `apps/agent/prompts.py` : system prompt décrit les **3** tools (était resté « one tool »)
+- `apps/agent/apps.py` : `register(build_get_related_tool())`
+- `apps/projects/apps.py` : `_project_related` déclaré via `related=`
+- tests : `test_tools.py::TestGetRelated` (chargement multi-types, args manquants,
+  type inconnu, entité sans relations, projet sans lien, projet absent, scope
+  household), `test_registry.py::TestFindSpecForInstance`, `test_service.py`
+  (chaîne search → get_related → réponse citée)

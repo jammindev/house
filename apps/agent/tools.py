@@ -2,12 +2,14 @@
 Agent tool registry — the base of function calling.
 
 Same pattern as ``searchables.py``: each tool declares itself, the orchestrator
-(``service.ask``) never hardcodes the tool list. Two read tools are registered:
+(``service.ask``) never hardcodes the tool list. Three read tools are registered:
 
 - ``search_household`` — wraps query expansion + retrieval so the model pulls
   household facts **on demand** instead of the pipeline searching every turn.
 - ``get_entity`` — reads the FULL content of one item by ``(entity_type, id)``,
   bypassing the search snippet budget (e.g. a whole invoice OCR).
+- ``get_related`` — loads everything LINKED to one item by ``(entity_type, id)``
+  (e.g. a project's documents, expenses, tasks, zones), each as a citable Hit.
 
 Adding a future tool (``create_interaction``, ``create_task``, …) = one
 ``register(...)`` call, no change to ``service.py``.
@@ -211,16 +213,30 @@ _GET_ENTITY_DESCRIPTION = (
 )
 
 
-def _concat_fields(obj, fields: tuple[str, ...]) -> str:
-    """Concatenate an instance's searchable fields into one plain-text block."""
-    parts: list[str] = []
-    for field_name in fields:
-        value = getattr(obj, field_name, None)
-        if value:
-            text = str(value).strip()
-            if text:
-                parts.append(text)
-    return "\n".join(parts)
+def _resolve_entity(entity_type: str, raw_id: str, household):
+    """Shared (entity_type, id) → instance resolution for get_entity/get_related.
+
+    Returns ``(obj, None)`` on success or ``(None, ToolResult)`` with a
+    recoverable message the model can read (unknown type, malformed id, no row).
+    """
+    if not entity_type or not raw_id:
+        return None, ToolResult(rendered="(needs both entity_type and id)")
+
+    spec = searchables.find_spec(entity_type)
+    if spec is None:
+        return None, ToolResult(rendered=f"(unknown entity_type: {entity_type})")
+
+    try:
+        obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
+    except (ValueError, TypeError, ValidationError):
+        # Malformed id (e.g. not a valid UUID) — recoverable, tell the model.
+        return None, ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
+
+    if obj is None:
+        return None, ToolResult(
+            rendered=f"(no {entity_type} found with id {raw_id} in this household)"
+        )
+    return (spec, obj), None
 
 
 def _get_entity_handler(
@@ -233,33 +249,13 @@ def _get_entity_handler(
     """Fetch one entity by (entity_type, id), scoped household, and read it whole."""
     entity_type = (tool_input.get("entity_type") or "").strip()
     raw_id = (tool_input.get("id") or "").strip()
-    if not entity_type or not raw_id:
-        return ToolResult(rendered="(get_entity needs both entity_type and id)")
 
-    spec = searchables.find_spec(entity_type)
-    if spec is None:
-        return ToolResult(rendered=f"(unknown entity_type: {entity_type})")
+    resolved, error = _resolve_entity(entity_type, raw_id, household)
+    if error is not None:
+        return error
+    spec, obj = resolved
 
-    try:
-        obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
-    except (ValueError, TypeError, ValidationError):
-        # Malformed id (e.g. not a valid UUID) — recoverable, tell the model.
-        return ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
-
-    if obj is None:
-        return ToolResult(rendered=f"(no {entity_type} found with id {raw_id} in this household)")
-
-    content = _concat_fields(obj, spec.search_fields)
-    snippet = content[:FULL_CONTENT_SNIPPET_CHARS].strip()
-    hit = Hit(
-        entity_type=spec.entity_type,
-        id=obj.pk,
-        label=searchables.resolve_label(spec, obj),
-        snippet=snippet,
-        rank=1.0,
-        url_path=spec.url_template.format(id=obj.pk),
-        content=content,
-    )
+    hit = retrieval.hit_from_instance(spec, obj, snippet_chars=FULL_CONTENT_SNIPPET_CHARS)
     # content_top_n=1 + a big budget → the whole content, in the citable format.
     rendered = render_context_block(
         [hit],
@@ -276,4 +272,93 @@ def build_get_entity_tool() -> AgentTool:
         description=_GET_ENTITY_DESCRIPTION,
         input_schema=_GET_ENTITY_SCHEMA,
         handler=_get_entity_handler,
+    )
+
+
+# --- get_related ------------------------------------------------------------
+
+GET_RELATED = "get_related"
+
+# A project can have many linked items; cap how many we pull into one result and
+# how much text they share, so a single get_related call stays bounded.
+RELATED_MAX_ITEMS = 40
+RELATED_CONTENT_TOP_N = 2
+RELATED_CHAR_BUDGET_PER_HIT = 2000
+RELATED_TOTAL_CHAR_BUDGET = 8000
+
+_GET_RELATED_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entity_type": {
+            "type": "string",
+            "description": (
+                "The type of the item whose neighborhood to load, exactly as it "
+                "appears in an id=<type>:<id> tag (e.g. 'project')."
+            ),
+        },
+        "id": {
+            "type": "string",
+            "description": "The item id, exactly as it appears after the colon in id=<type>:<id>.",
+        },
+    },
+    "required": ["entity_type", "id"],
+}
+
+_GET_RELATED_DESCRIPTION = (
+    "Load everything LINKED to one household item you already identified: e.g. a "
+    "project's documents, expenses/interactions, tasks and zones. Use it when the "
+    "user wants the full picture of a project or piece of equipment (typically "
+    "after they confirm which one). Returns each related item with its own citable "
+    "id, so you can then get_entity into any specific one. Provide entity_type and "
+    "id exactly as shown in the id=<type>:<id> tag."
+)
+
+
+def _get_related_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+) -> ToolResult:
+    """Resolve the source entity, walk its declared relations, render them citable."""
+    entity_type = (tool_input.get("entity_type") or "").strip()
+    raw_id = (tool_input.get("id") or "").strip()
+
+    resolved, error = _resolve_entity(entity_type, raw_id, household)
+    if error is not None:
+        return error
+    spec, obj = resolved
+
+    if spec.related is None:
+        return ToolResult(rendered=f"({entity_type} has no related items to load)")
+
+    hits: list[Hit] = []
+    for rel in list(spec.related(obj))[:RELATED_MAX_ITEMS]:
+        rel_spec = searchables.find_spec_for_instance(rel)
+        if rel_spec is None:
+            continue
+        # Defensive scope guard: never surface an item from another household.
+        if getattr(rel, "household_id", household.id) != household.id:
+            continue
+        hits.append(retrieval.hit_from_instance(rel_spec, rel))
+
+    if not hits:
+        return ToolResult(rendered=f"(no items linked to {entity_type} {raw_id})")
+
+    rendered = render_context_block(
+        hits,
+        content_top_n=RELATED_CONTENT_TOP_N,
+        char_budget_per_hit=RELATED_CHAR_BUDGET_PER_HIT,
+        total_char_budget=RELATED_TOTAL_CHAR_BUDGET,
+    )
+    return ToolResult(rendered=rendered, hits=hits)
+
+
+def build_get_related_tool() -> AgentTool:
+    return AgentTool(
+        name=GET_RELATED,
+        description=_GET_RELATED_DESCRIPTION,
+        input_schema=_GET_RELATED_SCHEMA,
+        handler=_get_related_handler,
     )
