@@ -203,6 +203,11 @@ LLM_TEXT_MODEL = "claude-haiku-4-5-20251001"
 LLM_VISION_MODEL = "claude-haiku-4-5-20251001"
 LLM_REQUEST_TIMEOUT_SECONDS = 30
 
+# Agent tool-use loop: max LLM round-trips per question. Each iteration is one
+# LLM call; the tools are dropped on the last pass to force a final answer.
+# Bounds latency and cost of the function-calling loop.
+AGENT_MAX_TOOL_ITERATIONS = 3
+
 # Agent conversation retention: conversations untouched for longer than this are
 # eligible for cleanup by `manage.py cleanup_agent_conversations`. 0 disables it.
 AGENT_CONVERSATION_RETENTION_DAYS = 365
