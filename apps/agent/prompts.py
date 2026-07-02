@@ -60,6 +60,44 @@ Rules — follow them all:
 HISTORY_CHAR_BUDGET = 4000
 
 
+def render_context_block(
+    hits: list[Hit],
+    *,
+    content_top_n: int = CONTENT_TOP_N,
+    char_budget_per_hit: int = CHAR_BUDGET_PER_HIT,
+    total_char_budget: int = TOTAL_CHAR_BUDGET,
+) -> str:
+    """Render retrieval hits into the labelled, citable context block.
+
+    Shared by ``build_user_prompt`` (legacy one-shot prompt) and the
+    ``search_household`` tool, which feeds this block back to the model as a
+    ``tool_result``. The first ``content_top_n`` hits get their full content
+    (within budget); the rest fall back to their short headline snippet.
+    """
+    if not hits:
+        return "(no household items matched this question)"
+
+    rendered = []
+    remaining = total_char_budget
+    for index, hit in enumerate(hits):
+        tag = f"{hit.entity_type}:{hit.id}"
+        content = (hit.content or "").strip()
+        if index < content_top_n and remaining > 0 and content:
+            body = _truncate(content, min(char_budget_per_hit, remaining))
+            remaining -= len(body)
+            field = "content"
+        else:
+            body = (hit.snippet or "").strip() or "(no snippet)"
+            field = "excerpt"
+        rendered.append(
+            f"- id={tag}\n"
+            f"  label={hit.label}\n"
+            f"  url={hit.url_path}\n"
+            f"  {field}: {body}"
+        )
+    return "\n".join(rendered)
+
+
 def build_user_prompt(
     question: str,
     hits: list[Hit],
@@ -78,28 +116,12 @@ def build_user_prompt(
     ``history`` is an optional list of prior turns (``{"role", "content"}``,
     oldest first) replayed so the model can resolve follow-up references.
     """
-    if not hits:
-        context_block = "(no household items matched this question)"
-    else:
-        rendered = []
-        remaining = total_char_budget
-        for index, hit in enumerate(hits):
-            tag = f"{hit.entity_type}:{hit.id}"
-            content = (hit.content or "").strip()
-            if index < content_top_n and remaining > 0 and content:
-                body = _truncate(content, min(char_budget_per_hit, remaining))
-                remaining -= len(body)
-                field = "content"
-            else:
-                body = (hit.snippet or "").strip() or "(no snippet)"
-                field = "excerpt"
-            rendered.append(
-                f"- id={tag}\n"
-                f"  label={hit.label}\n"
-                f"  url={hit.url_path}\n"
-                f"  {field}: {body}"
-            )
-        context_block = "\n".join(rendered)
+    context_block = render_context_block(
+        hits,
+        content_top_n=content_top_n,
+        char_budget_per_hit=char_budget_per_hit,
+        total_char_budget=total_char_budget,
+    )
 
     history_block = _render_history(history)
 
