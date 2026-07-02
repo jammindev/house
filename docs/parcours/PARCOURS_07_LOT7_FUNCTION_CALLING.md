@@ -1,9 +1,10 @@
 # Parcours 07 — Lot 7 : Function calling (socle tool-use de l'agent)
 
-> **État : à faire (plan de refacto)**. Débloqué par la recette d'usage : l'agent
-> RAG de force à chaque tour et ne sait pas dialoguer. Ce lot transforme le
-> pipeline RAG figé en boucle **tool-use**, et pose le **socle function calling**
-> sur lequel les actions d'écriture (Extension 1 / #50) se brancheront ensuite.
+> **État : ✅ livré (backend), 2026-07** — PRs #154 → #157. Débloqué par la recette
+> d'usage : l'agent RAG-ait de force à chaque tour et ne savait pas dialoguer. Ce
+> lot transforme le pipeline RAG figé en boucle **tool-use**, et pose le **socle
+> function calling** sur lequel les actions d'écriture (Extension 1 / #50) se
+> brancheront ensuite. Reste : recette manuelle à l'usage (cf. §13).
 >
 > Doc produit : [PARCOURS_07_AGENT_CONVERSATIONNEL.md](./PARCOURS_07_AGENT_CONVERSATIONNEL.md)
 > Backlog V1 : [PARCOURS_07_BACKLOG_TECHNIQUE.md](./PARCOURS_07_BACKLOG_TECHNIQUE.md)
@@ -279,17 +280,19 @@ Cas à couvrir :
 9. `test_llm.py::run()` → SDK Anthropic mocké renvoyant un `tool_use` block →
    parsing correct de `tool_calls` + `stop_reason`.
 
-## 11. Découpage en PRs
+## 11. Découpage en PRs — livraison
 
-- **PR 1 — contrat client** : `llm.run()` + `LLMRunResponse`/`ToolCall` + tests
-  `test_llm.py`. Rien de branché encore. Petite, isolée.
-- **PR 2 — registry + tool** : `apps/agent/tools.py`, `search_household`,
-  `render_context_block`, enregistrement au boot, `test_tools.py`.
-- **PR 3 — boucle service + prompt** : refacto `service.py`, nouveau
-  `SYSTEM_PROMPT`, suppression court-circuit IDK, metadata agrégée,
-  `test_service.py`. C'est la PR qui **change le comportement**.
-- **PR 4 — doc + recette** : maj des docs parcours + fiche RAG, checklist de
-  recette manuelle (dialogue, fait, culture générale, IDK, latence multi-appels).
+- **PR 1 — contrat client** (✅ #154) : `llm.run()` + `LLMRunResponse`/`ToolCall`
+  + tests `test_llm.py`. Rien de branché, isolée.
+- **PR 2 — registry + tool** (✅ #155) : `apps/agent/tools.py`, `search_household`,
+  extraction de `render_context_block`, enregistrement au boot, `test_tools.py`.
+- **PR 3 — boucle service + prompt** (✅ #156) : refacto `service.py`, nouveau
+  `SYSTEM_PROMPT` 3-niveaux, suppression du court-circuit IDK, metadata agrégée,
+  réécriture `test_service.py`. **C'est la PR qui change le comportement.**
+- **PR 4 — doc** (✅ #157) : maj docs parcours + fiche RAG, checklist de recette.
+
+Note d'exécution : la base de test locale (`test_house`) a été isolée de la base
+dev via `TEST_DATABASE_NAME` (`.env.local`) — le settings le prévoyait déjà.
 
 ## 12. Hors scope de ce lot
 
@@ -301,13 +304,25 @@ Cas à couvrir :
 
 ## 13. Definition of done
 
-1. Un « bonjour » / « merci » obtient une réponse conversationnelle, **sans**
-   déclencher de recherche.
-2. Une question factuelle foyer déclenche `search_household`, répond avec des
-   citations honnêtes, et avoue son ignorance si rien n'est trouvé.
-3. Une question de culture générale obtient une réponse signalée comme telle,
-   sans citation factice.
-4. Aucun fait foyer n'est affirmé sans passage par le tool (vérifié en recette).
-5. `service.ask()` garde son contrat → aucun changement frontend nécessaire.
-6. Suite de tests verte, zéro appel réseau IA en CI, garde max-itérations couvert.
-7. `AIUsageLog` reflète chaque round-trip ; `metadata.answer_kind` exploitable.
+Backend (✅ livré, couvert par les tests) :
+
+1. ✅ `service.ask()` garde son contrat → aucun changement frontend nécessaire.
+2. ✅ Dialogue & culture générale → réponse directe sans tool call (`answer_kind=direct`).
+3. ✅ Fait foyer → `search_household` puis citations honnêtes ; search vide → IDK
+   (`answer_kind=idk`), pas de citation factice.
+4. ✅ Suppression du court-circuit « 0 hit → IDK » ; garde `AGENT_MAX_TOOL_ITERATIONS`
+   couvert (tools retirés au dernier tour).
+5. ✅ `AIUsageLog` : un log par round-trip ; metadata agrégée
+   (`tokens_in/out`, `tool_calls`, `iterations`, `stop_reason`, `answer_kind`).
+6. ✅ Suite verte, zéro appel réseau IA en CI.
+
+Recette manuelle à pratiquer à l'usage (prod, foyer réel) :
+
+- [ ] « bonjour » / « merci » → réponse conversationnelle, **sans** recherche.
+- [ ] Question factuelle → réponse citée + lien cliquable ; question hors-base →
+  aveu d'ignorance honnête.
+- [ ] Question de culture générale (« c'est quoi un stère ? ») → réponse signalée
+  comme connaissance générale, pas de citation.
+- [ ] Vérifier qu'aucun fait foyer n'est affirmé sans passage par le tool.
+- [ ] Latence acceptable malgré les allers-retours multiples (surveiller
+  `AIUsageLog` : `iterations`, `duration`).

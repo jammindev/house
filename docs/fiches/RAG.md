@@ -53,6 +53,16 @@ C'est cette troisième option, le RAG, qu'on implémente. C'est le pattern domin
 
 ## 4. Comment on l'a appliqué dans `house`
 
+> **Évolution 2026-07 (lot 7, function calling)** — Le RAG « pipeline figé »
+> décrit ci-dessous (retrieval systématique **avant** l'appel LLM) a été
+> transformé en **boucle tool-use** : le retrieval est devenu un *tool*
+> (`search_household`) que le modèle appelle **quand il en a besoin**. Les 5
+> étapes ci-dessous restent exactes, mais elles s'exécutent désormais **dans le
+> corps du tool** au lieu d'être câblées avant chaque réponse. Conséquence : le
+> modèle répond directement au dialogue (« bonjour ») et à la culture générale
+> sans recherche, et n'appelle le retrieval que pour un fait du foyer. Détails :
+> [PARCOURS_07_LOT7_FUNCTION_CALLING.md](../parcours/PARCOURS_07_LOT7_FUNCTION_CALLING.md).
+
 ### 4.1 Indexation (étape 1) — OCR avant tout
 
 Avant de pouvoir chercher dans une facture papier, il faut en extraire le texte. C'est ce qu'on a fait en lots 0a et 0b :

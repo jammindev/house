@@ -1,6 +1,8 @@
 # Parcours 07 — Poser une question en langage naturel sur son foyer
 
 > **V1 livrée le 2026-05-02** — agent conversationnel utilisable sur `/app/agent/`, citations cliquables vers les entités du foyer. Détails de livraison en bas du document. Le backlog technique vit dans [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md).
+>
+> **Évolution 2026-07 (lot 7 — function calling)** — Le pipeline RAG figé est devenu une boucle **tool-use** : l'agent ne recherche plus de force à chaque tour. Il répond directement au dialogue (salutations, suivi) et à la culture générale, et n'appelle le tool `search_household` que pour un fait du foyer. La Règle 1 ci-dessous reste vraie pour **les faits** (le foyer est la seule frontière de connaissance factuelle), mais la connaissance générale du modèle est désormais autorisée, à condition d'être signalée comme telle. Voir [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md).
 
 Ce document détaille le septième parcours métier de House.
 
