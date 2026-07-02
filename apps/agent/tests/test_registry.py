@@ -7,6 +7,7 @@ from agent.searchables import (
     REGISTRY,
     SearchableSpec,
     find_spec,
+    find_spec_for_instance,
     register,
     reset_registry,
 )
@@ -76,6 +77,22 @@ class TestFindSpec:
 
     def test_returns_none_for_unknown(self, empty_registry):
         assert find_spec("nope") is None
+
+
+class TestFindSpecForInstance:
+    def test_matches_instance_by_model(self, empty_registry, db):
+        from documents.models import Document
+
+        spec = _spec("document", model=Document)
+        register(spec)
+        doc = Document(name="x")
+        assert find_spec_for_instance(doc) is spec
+
+    def test_returns_none_for_unregistered_model(self, empty_registry, db):
+        from zones.models import Zone
+
+        register(_spec("document"))  # only Document registered
+        assert find_spec_for_instance(Zone(name="z")) is None
 
 
 class TestBootRegistry:

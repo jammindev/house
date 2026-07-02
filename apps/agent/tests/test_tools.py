@@ -116,6 +116,13 @@ class TestBootRegistry:
     def test_get_entity_registered_at_boot(self):
         assert tools.GET_ENTITY in REGISTRY
 
+    def test_get_related_registered_at_boot(self):
+        assert tools.GET_RELATED in REGISTRY
+
+    def test_get_related_schema_requires_type_and_id(self):
+        schema = REGISTRY[tools.GET_RELATED].to_schema()
+        assert set(schema["input_schema"]["required"]) == {"entity_type", "id"}
+
     def test_search_household_schema_requires_query(self):
         schema = REGISTRY[tools.SEARCH_HOUSEHOLD].to_schema()
         assert schema["input_schema"]["required"] == ["query"]
@@ -266,3 +273,125 @@ class TestGetEntity:
         )
         assert result.hits == []
         assert "no document found" in result.rendered
+
+
+@pytest.fixture
+def make_project(household, owner):
+    from projects.models import Project
+
+    def _make(**overrides):
+        payload = dict(household=household, created_by=owner, title="generic project")
+        payload.update(overrides)
+        return Project.objects.create(**payload)
+
+    return _make
+
+
+class TestGetRelated:
+    def _link_document(self, project, doc):
+        from projects.models import ProjectDocument
+
+        return ProjectDocument.objects.create(project=project, document=doc)
+
+    def test_loads_linked_items_across_types(
+        self, household, owner, make_project, make_document
+    ):
+        from django.utils import timezone
+        from interactions.models import Interaction
+        from projects.models import ProjectZone
+        from tasks.models import Task
+        from zones.models import Zone
+
+        project = make_project(title="Rénovation PAC")
+        doc = make_document(name="devis PAC", ocr_text="montant 12000")
+        self._link_document(project, doc)
+        interaction = Interaction.objects.create(
+            household=household, created_by=owner, subject="Dépense PAC",
+            occurred_at=timezone.now(), project=project,
+        )
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Commander la PAC", project=project
+        )
+        zone = Zone.objects.create(household=household, created_by=owner, name="Chaufferie")
+        ProjectZone.objects.create(project=project, zone=zone)
+
+        result = dispatch(
+            tools.GET_RELATED,
+            {"entity_type": "project", "id": str(project.pk)},
+            household=household,
+            user=owner,
+        )
+
+        found = {(h.entity_type, h.id) for h in result.hits}
+        assert ("document", doc.id) in found
+        assert ("interaction", interaction.id) in found
+        assert ("task", task.id) in found
+        assert ("zone", zone.id) in found
+        assert f"id=document:{doc.id}" in result.rendered  # citable
+
+    def test_missing_args_are_recoverable(self, household):
+        result = dispatch(tools.GET_RELATED, {"entity_type": "project"}, household=household)
+        assert result.hits == []
+        assert "entity_type and id" in result.rendered
+
+    def test_unknown_entity_type_is_recoverable(self, household):
+        result = dispatch(
+            tools.GET_RELATED, {"entity_type": "dragon", "id": "x"}, household=household
+        )
+        assert result.hits == []
+        assert "unknown entity_type" in result.rendered
+
+    def test_entity_without_relations_declared_is_recoverable(
+        self, household, owner, make_document
+    ):
+        # documents don't declare a `related` traversal.
+        doc = make_document(name="lonely doc")
+        result = dispatch(
+            tools.GET_RELATED,
+            {"entity_type": "document", "id": str(doc.pk)},
+            household=household,
+            user=owner,
+        )
+        assert result.hits == []
+        assert "no related items" in result.rendered
+
+    def test_project_with_no_links_returns_empty_marker(self, household, owner, make_project):
+        project = make_project(title="Solo")
+        result = dispatch(
+            tools.GET_RELATED,
+            {"entity_type": "project", "id": str(project.pk)},
+            household=household,
+            user=owner,
+        )
+        assert result.hits == []
+        assert "no items linked" in result.rendered
+
+    def test_missing_project_is_recoverable(self, household):
+        import uuid
+
+        result = dispatch(
+            tools.GET_RELATED,
+            {"entity_type": "project", "id": str(uuid.uuid4())},
+            household=household,
+        )
+        assert result.hits == []
+        assert "no project found" in result.rendered
+
+    def test_scoped_to_household(self, household, owner, make_project, make_document, db):
+        from households.models import Household, HouseholdMember
+
+        other = Household.objects.create(name="Other GetRelated House")
+        HouseholdMember.objects.create(
+            user=owner, household=other, role=HouseholdMember.Role.OWNER
+        )
+        project = make_project(title="Scoped")  # in `household`
+        doc = make_document(name="secret devis")
+        self._link_document(project, doc)
+        result = dispatch(
+            tools.GET_RELATED,
+            {"entity_type": "project", "id": str(project.pk)},
+            household=other,  # asking from the other household
+            user=owner,
+        )
+        assert result.hits == []
+        assert "no project found" in result.rendered

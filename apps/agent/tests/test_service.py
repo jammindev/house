@@ -66,6 +66,22 @@ def _run_get_entity(entity_type: str, entity_id: str, *, call_id: str = "toolu_g
     )
 
 
+def _run_get_related(entity_type: str, entity_id: str, *, call_id: str = "toolu_r") -> LLMRunResponse:
+    """A tool-use turn requesting ``get_related(entity_type, id)``."""
+    args = {"entity_type": entity_type, "id": entity_id}
+    call = ToolCall(id=call_id, name="get_related", input=args)
+    return LLMRunResponse(
+        assistant_blocks=[{"type": "tool_use", "id": call_id, "name": "get_related", "input": args}],
+        tool_calls=[call],
+        text="",
+        stop_reason="tool_use",
+        input_tokens=4,
+        output_tokens=2,
+        duration_ms=2,
+        model="stub-model",
+    )
+
+
 @dataclass
 class _ToolUseClient:
     """LLMClient drop-in for the loop.
@@ -314,6 +330,41 @@ class TestHouseholdFacts:
             if isinstance(block, dict) and block.get("type") == "tool_result"
         )
         assert deep in full_text
+
+    def test_chains_search_then_get_related_for_project(
+        self, with_api_key, household, owner, make_document
+    ):
+        """The 'load everything about this project' scenario: the model searches,
+        finds the project, then get_related pulls its linked document into the
+        citation pool so it can be cited in the final answer."""
+        from projects.models import Project, ProjectDocument
+
+        project = Project.objects.create(
+            household=household, created_by=owner, title="Pompe à chaleur"
+        )
+        doc = make_document(name="devis PAC", ocr_text="montant 12000")
+        ProjectDocument.objects.create(project=project, document=doc)
+
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("pompe à chaleur"),
+                _run_get_related("project", str(project.pk)),
+                _run_text(
+                    f'Le projet inclut le devis <cite id="document:{doc.pk}"/>.'
+                ),
+            ]
+        )
+
+        result = service.ask(
+            "montre-moi tout ce qui concerne le projet pompe à chaleur",
+            household,
+            user=owner,
+            client=stub,
+        )
+
+        assert result.metadata["tool_calls"] == 2
+        cited_ids = {c.id for c in result.citations}
+        assert doc.pk in cited_ids
 
     def test_multiple_searches_accumulate_into_citation_pool(
         self, with_api_key, household, owner, make_document
