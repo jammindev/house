@@ -25,7 +25,7 @@ réellement retournés (citations honnêtes, cf. `_resolve_citations`).
 Un **4ᵉ tool, d'écriture**, complète les trois de lecture :
 
 - `create_entity(entity_type, fields)` — crée un item du foyer (aujourd'hui :
-  `task`). Un seul tool générique, adossé au registry `writables` (cf. plus bas).
+  `task`, `note`). Un seul tool générique, adossé au registry `writables` (cf. plus bas).
   L'item créé est renvoyé comme Hit citable + remonté dans
   `metadata.created_entities` pour l'Undo côté client. Livré au **lot 8** (voir
   `docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md`).

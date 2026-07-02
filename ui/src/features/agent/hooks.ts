@@ -3,7 +3,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { deleteTask } from '@/lib/api/tasks';
+import { deleteInteraction } from '@/lib/api/interactions';
 import { taskKeys } from '@/features/tasks/hooks';
+import { interactionKeys } from '@/features/interactions/hooks';
 import {
   createConversation,
   deleteConversation,
@@ -105,6 +107,10 @@ const UNDO_HANDLERS: Record<
   { remove: (id: string) => Promise<void>; keys: readonly unknown[][] }
 > = {
   task: { remove: (id) => deleteTask(id), keys: [taskKeys.all as unknown as unknown[]] },
+  note: {
+    remove: (id) => deleteInteraction(id),
+    keys: [interactionKeys.all as unknown as unknown[]],
+  },
 };
 
 /**

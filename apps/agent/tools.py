@@ -385,16 +385,19 @@ _CREATE_ENTITY_SCHEMA = {
     "properties": {
         "entity_type": {
             "type": "string",
-            "description": "The kind of item to create. Supported: 'task'.",
+            "description": "The kind of item to create. Supported: 'task', 'note'.",
         },
         "fields": {
             "type": "object",
             "description": (
-                "The item's fields. For entity_type='task': "
-                "subject (required, short imperative title), content (optional "
-                "details), due_date (optional, 'YYYY-MM-DD'), priority (optional "
-                "integer 1=high..5=low). In an anchored conversation the project/"
-                "zone is attached automatically — do not ask for it."
+                "The item's fields. "
+                "For entity_type='task': subject (required, short imperative "
+                "title), content (optional details), due_date (optional, "
+                "'YYYY-MM-DD'), priority (optional integer 1=high..5=low). "
+                "For entity_type='note' (a free-form note in the household log): "
+                "subject (required, short title), content (optional body text). "
+                "In an anchored conversation the project/zone is attached "
+                "automatically — do not ask for it."
             ),
         },
     },
@@ -403,7 +406,8 @@ _CREATE_ENTITY_SCHEMA = {
 
 _CREATE_ENTITY_DESCRIPTION = (
     "Create a new household item on the user's behalf. Supported types: 'task' "
-    "(a to-do / reminder). Only call this when the user clearly asks to create, "
+    "(a to-do / reminder) and 'note' (a free-form note). Only call this when the "
+    "user clearly asks to create, "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
     "is created immediately; the user can undo it from the interface."

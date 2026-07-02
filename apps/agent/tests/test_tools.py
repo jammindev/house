@@ -459,6 +459,44 @@ class TestCreateEntity:
         task = Task.objects.get(subject="Choisir le carrelage")
         assert task.project_id == project.pk
 
+    def test_creates_note_cited_as_interaction(self, household, owner):
+        from interactions.models import Interaction
+
+        result = dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "note", "fields": {"subject": "Idée déco", "content": "bleu"}},
+            household=household,
+            user=owner,
+        )
+        note = Interaction.objects.get(subject="Idée déco")
+        assert note.type == "note"
+        assert note.content == "bleu"
+        # Cited through its searchable spec (entity_type 'interaction'), but the
+        # created payload keeps the writable 'note' type (used by the undo map).
+        assert f"id=interaction:{note.id}" in result.rendered
+        assert result.created == [
+            {
+                "entity_type": "note",
+                "id": str(note.id),
+                "label": "Idée déco",
+                "url_path": f"/app/interactions/{note.id}",
+            }
+        ]
+
+    def test_anchored_project_links_the_note(self, household, owner, make_project):
+        from interactions.models import Interaction
+
+        project = make_project(title="Rénovation")
+        dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "note", "fields": {"subject": "Penser au budget"}},
+            household=household,
+            user=owner,
+            context_entity=("project", str(project.pk)),
+        )
+        note = Interaction.objects.get(subject="Penser au budget")
+        assert note.project_id == project.pk
+
     def test_unknown_entity_type_is_recoverable(self, household, owner):
         result = dispatch(
             tools.CREATE_ENTITY,

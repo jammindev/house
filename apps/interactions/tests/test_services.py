@@ -236,3 +236,57 @@ def test_manual_extra_metadata_is_merged(user, household, membership):
     )
     assert interaction.metadata["category"] == "leisure"
     assert interaction.metadata["amount"] == "12"
+
+
+# --- create_note_interaction ------------------------------------------------
+
+from interactions.services import create_note_interaction  # noqa: E402
+
+
+@pytest.mark.django_db
+class TestCreateNoteInteraction:
+    def test_creates_a_note(self, user, household, membership):
+        note = create_note_interaction(
+            household=household, user=user, subject="Idée déco salon"
+        )
+        assert note.type == "note"
+        assert note.subject == "Idée déco salon"
+        assert note.household_id == household.id
+        assert note.created_by_id == user.id
+        assert note.occurred_at is not None
+
+    def test_content_and_project_link(self, user, household, membership):
+        from projects.models import Project
+
+        project = Project.objects.create(
+            household=household, created_by=user, title="Rénovation"
+        )
+        note = create_note_interaction(
+            household=household,
+            user=user,
+            subject="Penser au carrelage",
+            content="carreaux 20x20 chez X",
+            project=project,
+        )
+        assert note.content == "carreaux 20x20 chez X"
+        assert note.project_id == project.pk
+
+    def test_zone_link(self, user, household, membership, zone):
+        note = create_note_interaction(
+            household=household, user=user, subject="Fuite ?", zone_ids=[zone.id]
+        )
+        assert list(note.zones.values_list("id", flat=True)) == [zone.id]
+
+    def test_blank_subject_raises(self, user, household, membership):
+        with pytest.raises(ValueError, match="subject is required"):
+            create_note_interaction(household=household, user=user, subject="  ")
+
+    def test_zone_from_other_household_rejected(self, user, household, membership):
+        other = Household.objects.create(name="Other note home")
+        foreign_zone = Zone.objects.create(
+            household=other, name="Foreign", created_by=user
+        )
+        with pytest.raises(ValueError, match="do not belong to the household"):
+            create_note_interaction(
+                household=household, user=user, subject="x", zone_ids=[foreign_zone.id]
+            )

@@ -150,9 +150,18 @@ l'onglet Assistant d'un projet, « ajoute une tâche » suffit.
 - `apps/agent/tests/test_conversations_api.py` — la réponse POST message porte
   `created_entities`.
 
+> **Extension 2026-07-03 — `note` créable.** 2ᵉ entité branchée, pour valider que
+> le pattern tient hors « tâche » : `entity_type='note'` → `Interaction(type=note)`
+> via `interactions/services.py::create_note_interaction`, enregistré dans
+> `interactions/apps.py`, undo `note → deleteInteraction`. Coût réel : ~1 service +
+> 1 `WritableSpec` + 1 entrée `UNDO_HANDLERS` + description du tool étendue. La note
+> est citée comme `interaction` (son `SearchableSpec`) mais son type *writable* reste
+> `note` (clé de l'undo). En conversation ancrée projet, la note atterrit dans la
+> timeline du projet.
+
 ## 8. Hors scope de ce lot
 
-- Autres entités créables (`interaction`/dépense, `stock`…) — même tool, +5 lignes,
+- Autres entités créables (`expense`, `stock`…) — même tool, +5 lignes,
   livraison suivante.
 - **Édition / suppression** par l'agent (au-delà de l'Undo immédiat).
 - Le pattern `needs_review` (proposition vs vérité) du transverse — ici on tranche
