@@ -22,6 +22,45 @@ dans `tools.REGISTRY` :
 Les citations `<cite id="type:id"/>` sont intersectées avec le pool de hits
 réellement retournés (citations honnêtes, cf. `_resolve_citations`).
 
+Un **4ᵉ tool, d'écriture**, complète les trois de lecture :
+
+- `create_entity(entity_type, fields)` — crée un item du foyer (aujourd'hui :
+  `task`). Un seul tool générique, adossé au registry `writables` (cf. plus bas).
+  L'item créé est renvoyé comme Hit citable + remonté dans
+  `metadata.created_entities` pour l'Undo côté client. Livré au **lot 8** (voir
+  `docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md`).
+
+## Registry d'écriture `writables` — rendre une entité créable
+
+Miroir de `searchables`, pour l'écriture. Chaque app déclare depuis
+`apps.py::ready()` :
+
+```python
+from agent.writables import WritableSpec, register as register_writable
+
+register_writable(WritableSpec(
+    entity_type='task',
+    create=_create_task_from_agent,   # (household, user, fields, *, anchor) -> instance
+    label_attr='subject',
+    url_template='/app/tasks/{id}',
+))
+```
+
+Règles :
+- `create` **réutilise le service métier** de l'app (jamais l'ORM brut) — ex.
+  `tasks.services.create_task` qui passe par `TaskSerializer` (validation, scope
+  foyer, fallback zone racine).
+- `create` reçoit l'`anchor` de la conversation ancrée `(entity_type, object_id)`
+  et l'utilise pour pré-remplir un lien (ancre `project` → tâche liée au projet).
+- Rendre une entité créable = **registrer un `WritableSpec`** + étendre la
+  description du tool `create_entity`. Zéro touche à `apps/agent/tools.py` sur le
+  fond.
+
+**Garde-fous d'écriture** : prompt strict (créer seulement sur demande explicite),
+anti-doublon par tour (`service.ask`), et **Undo** côté client (toast « Annuler »
+qui supprime l'item). Une écriture est un effet de bord réversible, pas une
+proposition à valider.
+
 ## Registry searchable — ajouter une entité
 
 Chaque app déclare ses entités depuis `apps.py::ready()` via

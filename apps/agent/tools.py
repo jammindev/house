@@ -29,9 +29,10 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from . import query_expansion, retrieval, searchables
+from . import query_expansion, retrieval, searchables, writables
 from .llm import LLMClient, get_llm_client
 from .prompts import render_context_block
 from .retrieval import Hit
@@ -54,11 +55,14 @@ class ToolResult:
 
     ``rendered`` is the text injected back into the conversation as a
     ``tool_result`` block. ``hits`` is the retrieval hits (empty for non-search
-    tools) that the orchestrator accumulates into the citation pool.
+    tools) that the orchestrator accumulates into the citation pool. ``created``
+    holds entities produced by a write tool (``create_entity``), surfaced by the
+    orchestrator in ``metadata.created_entities`` so the client can offer an undo.
     """
 
     rendered: str
     hits: list[Hit] = field(default_factory=list)
+    created: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -104,11 +108,14 @@ def dispatch(
     household,
     user=None,
     client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
 ) -> ToolResult:
     """Run the registered handler for ``name``.
 
     An unknown tool name never raises into the loop — it returns a ``ToolResult``
-    the model can read and recover from.
+    the model can read and recover from. ``context_entity`` is the conversation
+    anchor (or None); write tools use it to default a link (e.g. attach a new
+    task to the anchored project).
     """
     tool = REGISTRY.get(name)
     if tool is None:
@@ -119,6 +126,7 @@ def dispatch(
         user=user,
         tool_input=tool_input or {},
         client=client,
+        context_entity=context_entity,
     )
 
 
@@ -156,6 +164,7 @@ def _search_household_handler(
     user=None,
     tool_input: dict[str, Any],
     client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
 ) -> ToolResult:
     """Expand the query, run scoped retrieval, render a citable context block."""
     query = (tool_input.get("query") or "").strip()
@@ -229,7 +238,7 @@ def resolve_entity(entity_type: str, raw_id: str, household):
 
     try:
         obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
-    except (ValueError, TypeError, ValidationError):
+    except (ValueError, TypeError, DjangoValidationError):
         # Malformed id (e.g. not a valid UUID) — recoverable, tell the model.
         return None, ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
 
@@ -246,6 +255,7 @@ def _get_entity_handler(
     user=None,
     tool_input: dict[str, Any],
     client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
 ) -> ToolResult:
     """Fetch one entity by (entity_type, id), scoped household, and read it whole."""
     entity_type = (tool_input.get("entity_type") or "").strip()
@@ -321,6 +331,7 @@ def _get_related_handler(
     user=None,
     tool_input: dict[str, Any],
     client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
 ) -> ToolResult:
     """Resolve the source entity, walk its declared relations, render them citable."""
     entity_type = (tool_input.get("entity_type") or "").strip()
@@ -362,4 +373,108 @@ def build_get_related_tool() -> AgentTool:
         description=_GET_RELATED_DESCRIPTION,
         input_schema=_GET_RELATED_SCHEMA,
         handler=_get_related_handler,
+    )
+
+
+# --- create_entity ----------------------------------------------------------
+
+CREATE_ENTITY = "create_entity"
+
+_CREATE_ENTITY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entity_type": {
+            "type": "string",
+            "description": "The kind of item to create. Supported: 'task'.",
+        },
+        "fields": {
+            "type": "object",
+            "description": (
+                "The item's fields. For entity_type='task': "
+                "subject (required, short imperative title), content (optional "
+                "details), due_date (optional, 'YYYY-MM-DD'), priority (optional "
+                "integer 1=high..5=low). In an anchored conversation the project/"
+                "zone is attached automatically — do not ask for it."
+            ),
+        },
+    },
+    "required": ["entity_type", "fields"],
+}
+
+_CREATE_ENTITY_DESCRIPTION = (
+    "Create a new household item on the user's behalf. Supported types: 'task' "
+    "(a to-do / reminder). Only call this when the user clearly asks to create, "
+    "add or remember something — never speculatively. After it succeeds, confirm "
+    "in one short sentence and cite the new item with its returned id. The item "
+    "is created immediately; the user can undo it from the interface."
+)
+
+
+def _create_entity_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
+) -> ToolResult:
+    """Create one entity via its WritableSpec, return it as a citable Hit + created ref.
+
+    The anti-duplicate guard (a repeated create call in the same tool-use loop)
+    lives in ``service.ask``, which owns the per-turn state.
+    """
+    entity_type = (tool_input.get("entity_type") or "").strip()
+    fields = tool_input.get("fields") or {}
+    if not entity_type:
+        return ToolResult(rendered="(needs an entity_type to create)")
+    if not isinstance(fields, dict):
+        return ToolResult(rendered="(fields must be an object)")
+
+    spec = writables.find_spec(entity_type)
+    if spec is None:
+        supported = ", ".join(writables.supported_entity_types()) or "(none)"
+        return ToolResult(
+            rendered=f"(cannot create '{entity_type}'; creatable types: {supported})"
+        )
+
+    try:
+        instance = spec.create(household, user, fields, anchor=context_entity)
+    except (DRFValidationError, DjangoValidationError) as exc:
+        detail = getattr(exc, "detail", None) or getattr(exc, "messages", None) or str(exc)
+        return ToolResult(rendered=f"(could not create {entity_type}: {detail})")
+    except Exception:  # noqa: BLE001 — never crash the loop on a create failure
+        logger.exception("agent.tools: create_entity failed for %s", entity_type)
+        return ToolResult(rendered=f"(could not create {entity_type}: unexpected error)")
+
+    # Turn the new instance into a citable Hit through its SEARCHABLE spec (so the
+    # model can cite it exactly like retrieved data). Falls back to a plain label.
+    search_spec = searchables.find_spec_for_instance(instance)
+    if search_spec is not None:
+        hit = retrieval.hit_from_instance(search_spec, instance)
+        hits = [hit]
+        tag = f"{hit.entity_type}:{hit.id}"
+    else:
+        hits = []
+        tag = f"{entity_type}:{instance.pk}"
+
+    label = writables.resolve_label(spec, instance)
+    rendered = f"Created {entity_type} id={tag}\n  label={label}"
+    return ToolResult(
+        rendered=rendered,
+        hits=hits,
+        created=[writables.as_created_dict(spec, instance)],
+    )
+
+
+def _stable_signature(fields: dict) -> tuple:
+    """A hashable signature of the create fields, for the anti-duplicate guard."""
+    return tuple(sorted((str(k), str(v)) for k, v in fields.items()))
+
+
+def build_create_entity_tool() -> AgentTool:
+    return AgentTool(
+        name=CREATE_ENTITY,
+        description=_CREATE_ENTITY_DESCRIPTION,
+        input_schema=_CREATE_ENTITY_SCHEMA,
+        handler=_create_entity_handler,
     )

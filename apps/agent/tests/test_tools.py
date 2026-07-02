@@ -395,3 +395,102 @@ class TestGetRelated:
         )
         assert result.hits == []
         assert "no project found" in result.rendered
+
+
+class TestCreateEntity:
+    def test_creates_task_and_returns_citable_hit(self, household, owner):
+        from tasks.models import Task
+
+        result = dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "task", "fields": {"subject": "Purger la VMC"}},
+            household=household,
+            user=owner,
+        )
+
+        task = Task.objects.get(subject="Purger la VMC")
+        assert task.household_id == household.id
+        assert task.created_by_id == owner.id
+        # Cited like retrieved data + surfaced as a created entity for undo.
+        assert f"id=task:{task.id}" in result.rendered
+        assert any(h.id == task.id for h in result.hits)
+        assert result.created == [
+            {
+                "entity_type": "task",
+                "id": str(task.id),
+                "label": "Purger la VMC",
+                "url_path": f"/app/tasks/{task.id}",
+            }
+        ]
+
+    def test_optional_fields_are_applied(self, household, owner):
+        from tasks.models import Task
+
+        dispatch(
+            tools.CREATE_ENTITY,
+            {
+                "entity_type": "task",
+                "fields": {
+                    "subject": "Commander la PAC",
+                    "content": "chez Leroy Merlin",
+                    "priority": 1,
+                    "due_date": "2026-08-01",
+                },
+            },
+            household=household,
+            user=owner,
+        )
+        task = Task.objects.get(subject="Commander la PAC")
+        assert task.content == "chez Leroy Merlin"
+        assert task.priority == 1
+        assert str(task.due_date) == "2026-08-01"
+
+    def test_anchored_project_links_the_task(self, household, owner, make_project):
+        from tasks.models import Task
+
+        project = make_project(title="Rénovation salle de bain")
+        dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "task", "fields": {"subject": "Choisir le carrelage"}},
+            household=household,
+            user=owner,
+            context_entity=("project", str(project.pk)),
+        )
+        task = Task.objects.get(subject="Choisir le carrelage")
+        assert task.project_id == project.pk
+
+    def test_unknown_entity_type_is_recoverable(self, household, owner):
+        result = dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "dragon", "fields": {"name": "x"}},
+            household=household,
+            user=owner,
+        )
+        assert result.created == []
+        assert "cannot create 'dragon'" in result.rendered
+        assert "task" in result.rendered  # lists creatable types
+
+    def test_missing_subject_is_recoverable(self, household, owner):
+        from tasks.models import Task
+
+        result = dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "task", "fields": {"content": "no subject"}},
+            household=household,
+            user=owner,
+        )
+        assert result.created == []
+        assert "could not create task" in result.rendered
+        assert not Task.objects.filter(content="no subject").exists()
+
+    def test_created_task_is_scoped_to_the_given_household(self, household, owner):
+        from tasks.models import Task
+
+        dispatch(
+            tools.CREATE_ENTITY,
+            {"entity_type": "task", "fields": {"subject": "Scoped task"}},
+            household=household,
+            user=owner,
+        )
+        task = Task.objects.get(subject="Scoped task")
+        assert task.household_id == household.id

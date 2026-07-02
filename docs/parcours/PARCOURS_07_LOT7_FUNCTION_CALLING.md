@@ -68,6 +68,11 @@ anticipé — il émerge de la recette, comme la mémoire conversationnelle l'av
 le socle** que l'Extension 1 attendait : y ajouter `create_interaction` deviendra
 l'enregistrement d'un second tool.
 
+> **Mise à jour 2026-07 — Extension 1 livrée au lot 8.** Les actions d'écriture
+> sont arrivées via un tool générique unique `create_entity` (registry `writables`,
+> tâche en 1re entité), et non un `create_<type>` par entité. Voir
+> [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md).
+
 ## 3. Architecture cible
 
 ### Vue d'ensemble : boucle tool-use dans `service.py`

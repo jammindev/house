@@ -5,6 +5,7 @@
     "save": "Enregistrer",
     "saving": "Enregistrement…",
     "cancel": "Annuler",
+    "undo": "Annuler",
     "edit": "Modifier",
     "delete": "Supprimer",
     "archive": "Archiver",
@@ -1630,6 +1631,9 @@
     "error": "Une erreur est survenue, réessaie.",
     "empty_title": "Pose toutes tes questions sur ton foyer",
     "empty_hint": "L'agent fouille tes documents, équipements, tâches, contrats… et cite chaque source utilisée.",
+    "created": {
+      "title": "Créé : {{label}}"
+    },
     "entity": {
       "empty_title": "Pose n'importe quelle question sur cet élément",
       "empty_hint": "L'assistant connaît déjà cet élément et tout ce qui lui est lié — ses détails, documents, dépenses et tâches — et cite ses sources."

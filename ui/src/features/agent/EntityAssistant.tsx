@@ -6,7 +6,7 @@ import { Textarea } from '@/design-system/textarea';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
-import { useEntityConversation, usePostMessage } from './hooks';
+import { useAgentCreatedUndo, useEntityConversation, usePostMessage } from './hooks';
 import type { AgentCitation, AgentMessageRow } from './api';
 
 interface UserMessage {
@@ -57,6 +57,7 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
   const conversationQuery = useEntityConversation(entityType, objectId);
   const conversationId = conversationQuery.data?.id ?? null;
   const postMessage = usePostMessage();
+  const notifyCreated = useAgentCreatedUndo();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -112,13 +113,14 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
           citations: agentMsg.citations,
         },
       ]);
+      notifyCreated(agentMsg.metadata?.created_entities);
     } catch {
       setMessages((prev) => [
         ...prev,
         { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error') },
       ]);
     }
-  }, [draft, isBusy, conversationId, postMessage, t]);
+  }, [draft, isBusy, conversationId, postMessage, notifyCreated, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

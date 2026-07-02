@@ -366,6 +366,31 @@ class TestAnchoredMessage:
         assert ask_mock.call_args.kwargs["context_entity"] is None
 
 
+class TestCreatedEntitiesInResponse:
+    def test_message_response_carries_created_entities(
+        self, owner_client, conversation, monkeypatch
+    ):
+        created = [
+            {
+                "entity_type": "task",
+                "id": "t-1",
+                "label": "Purger la VMC",
+                "url_path": "/app/tasks/t-1",
+            }
+        ]
+        _patch_ask(
+            monkeypatch,
+            return_value=_answer(metadata={"model": "m", "created_entities": created}),
+        )
+        resp = owner_client.post(
+            f"{BASE}{conversation.id}/messages/",
+            {"question": "ajoute une tâche purger la vmc"},
+            format="json",
+        )
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert resp.json()["metadata"]["created_entities"] == created
+
+
 class TestRenameAndDelete:
     def test_rename(self, owner_client, conversation):
         resp = owner_client.patch(

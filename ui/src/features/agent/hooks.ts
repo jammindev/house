@@ -1,4 +1,9 @@
+import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { toast } from '@/lib/toast';
+import { deleteTask } from '@/lib/api/tasks';
+import { taskKeys } from '@/features/tasks/hooks';
 import {
   createConversation,
   deleteConversation,
@@ -9,6 +14,7 @@ import {
   renameConversation,
   type AgentConversationDetail,
   type AgentConversationRow,
+  type AgentCreatedEntity,
   type AgentMessageRow,
 } from './api';
 
@@ -87,6 +93,52 @@ export function useRenameConversation() {
     mutationFn: ({ id, title }) => renameConversation(id, title),
     onSuccess: () => qc.invalidateQueries({ queryKey: agentKeys.conversations() }),
   });
+}
+
+/**
+ * How to undo a created entity, per entity_type. Each returns a promise and the
+ * query keys to invalidate so lists refresh after create AND after undo. Adding
+ * a new creatable entity here = one entry (mirrors the backend writables registry).
+ */
+const UNDO_HANDLERS: Record<
+  string,
+  { remove: (id: string) => Promise<void>; keys: readonly unknown[][] }
+> = {
+  task: { remove: (id) => deleteTask(id), keys: [taskKeys.all as unknown as unknown[]] },
+};
+
+/**
+ * Surface a "created · Undo" toast for each entity the agent just created, and
+ * refresh the relevant lists. On "Undo", the entity is deleted (archived) again.
+ * Shared by AgentPage and EntityAssistant.
+ */
+export function useAgentCreatedUndo() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+
+  return React.useCallback(
+    (created: AgentCreatedEntity[] | undefined) => {
+      if (!created?.length) return;
+      for (const entity of created) {
+        const handler = UNDO_HANDLERS[entity.entity_type];
+        if (!handler) continue;
+        handler.keys.forEach((key) => void qc.invalidateQueries({ queryKey: key }));
+        toast({
+          title: t('agent.created.title', { label: entity.label }),
+          duration: 8000,
+          action: {
+            label: t('common.undo'),
+            onClick: () => {
+              void handler.remove(entity.id).then(() => {
+                handler.keys.forEach((key) => void qc.invalidateQueries({ queryKey: key }));
+              });
+            },
+          },
+        });
+      }
+    },
+    [qc, t],
+  );
 }
 
 export function useDeleteConversation() {

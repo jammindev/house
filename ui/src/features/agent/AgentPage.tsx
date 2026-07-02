@@ -10,6 +10,7 @@ import ConversationList from './ConversationList';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
 import {
+  useAgentCreatedUndo,
   useConversation,
   useConversations,
   useCreateConversation,
@@ -53,6 +54,7 @@ export default function AgentPage() {
   const conversationQuery = useConversation(currentId);
   const createConversation = useCreateConversation();
   const postMessage = usePostMessage();
+  const notifyCreated = useAgentCreatedUndo();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -147,13 +149,14 @@ export default function AgentPage() {
           citations: agentMsg.citations,
         },
       ]);
+      notifyCreated(agentMsg.metadata?.created_entities);
     } catch {
       setMessages((prev) => [
         ...prev,
         { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error') },
       ]);
     }
-  }, [draft, isBusy, currentId, createConversation, postMessage, t]);
+  }, [draft, isBusy, currentId, createConversation, postMessage, notifyCreated, t]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

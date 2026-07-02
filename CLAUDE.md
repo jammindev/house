@@ -393,3 +393,47 @@ n'est nécessaire.
 
 Doc complète : `docs/MODULES/agent.md` + section « conversation ancrée » de
 `docs/fiches/RAG.md`.
+
+---
+
+## Agent — actions d'écriture (`create_entity`)
+
+L'agent peut **créer** des items du foyer depuis le chat via un unique tool
+générique `create_entity` (pas un `create_<type>` par entité — on ne gonfle pas le
+nombre de définitions de tools). Il est adossé au registry `agent.writables`,
+miroir écriture de `agent.searchables`. Première entité créable : la **tâche**.
+
+### Rendre une nouvelle entité créable (~5 lignes)
+
+Dans le `apps.py::ready()` de l'app, en plus du `SearchableSpec` :
+
+```python
+from agent.writables import WritableSpec, register as register_writable
+
+register_writable(WritableSpec(
+    entity_type='task',
+    create=_create_task_from_agent,   # (household, user, fields, *, anchor) -> instance
+    label_attr='subject',
+    url_template='/app/tasks/{id}',
+))
+```
+
+Règles :
+- **`create` réutilise le service métier de l'app, jamais l'ORM brut.** Ex.
+  `tasks/services.py::create_task` passe par `TaskSerializer` (validation, scope
+  foyer, fallback zone racine). Créer un service dédié si absent.
+- `create` reçoit l'`anchor` de la conversation ancrée `(entity_type, object_id)`
+  → l'utiliser pour pré-remplir un lien (ancre `project` → item lié au projet).
+- Étendre aussi la **description** du tool `create_entity` (`apps/agent/tools.py`)
+  pour lister les champs de la nouvelle entité.
+
+### Sécurité : créer + Undo
+
+Une écriture est un **effet de bord réversible**, pas un brouillon à valider :
+l'item est créé immédiatement, remonté dans `metadata.created_entities`, et le
+front affiche un toast « Annuler » (`useAgentCreatedUndo`) qui le supprime. Ajouter
+l'undo d'une nouvelle entité = une entrée dans `UNDO_HANDLERS`
+(`ui/src/features/agent/hooks.ts`). Garde-fous : prompt strict (créer seulement sur
+demande explicite) + anti-doublon par tour dans `service.ask`.
+
+Doc complète : `docs/MODULES/agent.md` + `docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md`.

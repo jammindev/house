@@ -5,6 +5,7 @@
     "save": "Speichern",
     "saving": "Wird gespeichert…",
     "cancel": "Abbrechen",
+    "undo": "Rückgängig",
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "archive": "Archivieren",
@@ -1630,6 +1631,9 @@
     "error": "Etwas ist schiefgelaufen, bitte erneut versuchen.",
     "empty_title": "Stell jede Frage zu deinem Haushalt",
     "empty_hint": "Der Agent durchsucht deine Dokumente, Geräte, Aufgaben, Verträge und mehr und nennt jede Quelle.",
+    "created": {
+      "title": "Erstellt: {{label}}"
+    },
     "entity": {
       "empty_title": "Stell jede Frage zu diesem Element",
       "empty_hint": "Der Assistent kennt dieses Element und alles, was damit verknüpft ist, bereits — seine Details, Dokumente, Ausgaben und Aufgaben — und nennt seine Quellen."
