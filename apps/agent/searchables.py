@@ -50,6 +50,14 @@ def reset_registry() -> None:
     REGISTRY.clear()
 
 
+def find_spec(entity_type: str) -> SearchableSpec | None:
+    """Return the registered spec for ``entity_type``, or None if unknown."""
+    for spec in REGISTRY:
+        if spec.entity_type == entity_type:
+            return spec
+    return None
+
+
 def resolve_label(spec: SearchableSpec, instance: Model) -> str:
     """Resolve the label for a given instance using the spec's label_attr."""
     if callable(spec.label_attr):

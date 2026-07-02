@@ -113,9 +113,16 @@ class TestBootRegistry:
     def test_search_household_registered_at_boot(self):
         assert tools.SEARCH_HOUSEHOLD in REGISTRY
 
+    def test_get_entity_registered_at_boot(self):
+        assert tools.GET_ENTITY in REGISTRY
+
     def test_search_household_schema_requires_query(self):
         schema = REGISTRY[tools.SEARCH_HOUSEHOLD].to_schema()
         assert schema["input_schema"]["required"] == ["query"]
+
+    def test_get_entity_schema_requires_type_and_id(self):
+        schema = REGISTRY[tools.GET_ENTITY].to_schema()
+        assert set(schema["input_schema"]["required"]) == {"entity_type", "id"}
 
 
 class TestDispatch:
@@ -180,3 +187,82 @@ class TestSearchHousehold:
             client=_FakeLLM(),
         )
         assert result.hits == []
+
+
+class TestGetEntity:
+    def test_reads_full_content_beyond_search_truncation(
+        self, household, owner, make_document
+    ):
+        # OCR long enough that search_household (2000-char budget) would truncate
+        # before this marker; get_entity must return it in full.
+        deep = "MARKER_DEEP_4000"
+        long_ocr = ("ligne facturée " * 300) + " " + deep  # well past 2000 chars
+        doc = make_document(name="Facture PAC", ocr_text=long_ocr)
+
+        search_result = dispatch(
+            tools.SEARCH_HOUSEHOLD,
+            {"query": "facture"},
+            household=household,
+            user=owner,
+            client=_FakeLLM(),
+        )
+        assert deep not in search_result.rendered  # truncated by search budget
+
+        entity_result = dispatch(
+            tools.GET_ENTITY,
+            {"entity_type": "document", "id": str(doc.pk)},
+            household=household,
+            user=owner,
+        )
+        assert deep in entity_result.rendered  # full content
+        assert f"id=document:{doc.pk}" in entity_result.rendered
+        assert any(h.id == doc.pk for h in entity_result.hits)
+
+    def test_missing_args_are_recoverable(self, household):
+        result = dispatch(tools.GET_ENTITY, {"entity_type": "document"}, household=household)
+        assert result.hits == []
+        assert "entity_type and id" in result.rendered
+
+    def test_unknown_entity_type_is_recoverable(self, household):
+        result = dispatch(
+            tools.GET_ENTITY,
+            {"entity_type": "dragon", "id": "x"},
+            household=household,
+        )
+        assert result.hits == []
+        assert "unknown entity_type" in result.rendered
+
+    def test_invalid_id_is_recoverable(self, household):
+        result = dispatch(
+            tools.GET_ENTITY,
+            {"entity_type": "document", "id": "not-a-uuid"},
+            household=household,
+        )
+        assert result.hits == []
+        assert "invalid id" in result.rendered
+
+    def test_missing_entity_is_recoverable(self, household):
+        result = dispatch(
+            tools.GET_ENTITY,
+            {"entity_type": "document", "id": "999999999"},  # valid int, no such row
+            household=household,
+        )
+        assert result.hits == []
+        assert "no document found" in result.rendered
+
+    def test_scoped_to_household(self, household, owner, make_document, db):
+        from households.models import Household, HouseholdMember
+
+        other = Household.objects.create(name="Other GetEntity House")
+        HouseholdMember.objects.create(
+            user=owner, household=other, role=HouseholdMember.Role.OWNER
+        )
+        doc = make_document(name="Facture Engie", ocr_text="secret")  # in `household`
+        result = dispatch(
+            tools.GET_ENTITY,
+            {"entity_type": "document", "id": str(doc.pk)},
+            household=other,  # asking from the other household
+            user=owner,
+        )
+        assert result.hits == []
+        assert "no document found" in result.rendered

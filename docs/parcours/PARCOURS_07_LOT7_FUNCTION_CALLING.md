@@ -326,3 +326,57 @@ Recette manuelle à pratiquer à l'usage (prod, foyer réel) :
 - [ ] Vérifier qu'aucun fait foyer n'est affirmé sans passage par le tool.
 - [ ] Latence acceptable malgré les allers-retours multiples (surveiller
   `AIUsageLog` : `iterations`, `duration`).
+
+## 14. Extension — 2ᵉ tool `get_entity` (lecture complète)
+
+**Statut : ✅ livré (2026-07)** — première preuve que le socle registry tient.
+
+### Le frein observé
+
+En recette : « donne-moi le descriptif complet de cette facture » → l'agent
+répondait *« la facture existe, mais pas son contenu complet »*. Cause racine
+(pas l'OCR) : `search_household` ne renvoie le **contenu complet** que pour les 3
+premiers hits, **plafonné à 2000 caractères** (`prompts.py` : `CONTENT_TOP_N=3`,
+`CHAR_BUDGET_PER_HIT=2000`). Une facture détaillée (lignes d'articles, montants)
+dépasse ce plafond → le descriptif est **systématiquement tronqué**, quelle que
+soit la reformulation.
+
+### La solution : un tool de lecture par id
+
+`get_entity(entity_type, id)` — générique via le registry `searchables` (pas
+seulement les documents) :
+
+- résout le `SearchableSpec` par `entity_type`, fetch l'instance par `pk` **scoped
+  household**, renvoie le **contenu complet** (jusqu'à `FULL_CONTENT_BUDGET =
+  20000` chars) dans le même format citable (`id=<type>:<id>`).
+- l'agent enchaîne `search_household("facture PAC")` → récupère l'id → 
+  `get_entity("document", id)` → lit tout → répond avec le détail.
+- erreurs récupérables (id invalide, entité absente, mauvais type) → un
+  `tool_result` que le modèle peut lire, jamais d'exception dans la boucle.
+
+`AGENT_MAX_TOOL_ITERATIONS` passé de 3 à **4** pour laisser la place à la chaîne
+`search → get_entity → réponse` en un seul tour.
+
+### Choix : générique plutôt que `get_document`
+
+Décision produit : `get_entity(entity_type, id)` couvre n'importe quelle entité du
+registry, pas seulement les documents. Les documents sont aujourd'hui les seuls à
+avoir un gros contenu tronqué (OCR), mais le tool générique évite d'ajouter un
+tool par type à l'avenir.
+
+### Caveat
+
+Si un document précis a un `ocr_text` réellement incomplet (mauvais scan),
+`get_entity` renverra ce texte incomplet — c'est alors un problème d'OCR à traiter
+via « Re-extraire » sur la fiche document, pas via l'agent.
+
+### Fichiers
+
+- `apps/agent/tools.py` : `get_entity` (schéma + handler + `build_get_entity_tool`)
+- `apps/agent/searchables.py` : helper `find_spec(entity_type)`
+- `apps/agent/apps.py` : `register(build_get_entity_tool())`
+- `config/settings/base.py` : `AGENT_MAX_TOOL_ITERATIONS` 3 → 4
+- tests : `test_tools.py::TestGetEntity` (contenu complet au-delà de la troncature,
+  args manquants, type inconnu, id invalide, entité absente, scope household),
+  `test_registry.py::TestFindSpec`, `test_service.py` (chaîne search → get_entity
+  → réponse citée)

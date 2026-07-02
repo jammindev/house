@@ -205,8 +205,9 @@ LLM_REQUEST_TIMEOUT_SECONDS = 30
 
 # Agent tool-use loop: max LLM round-trips per question. Each iteration is one
 # LLM call; the tools are dropped on the last pass to force a final answer.
-# Bounds latency and cost of the function-calling loop.
-AGENT_MAX_TOOL_ITERATIONS = 3
+# Bounds latency and cost of the function-calling loop. 4 leaves room to chain
+# search_household -> get_entity -> answer in a single turn.
+AGENT_MAX_TOOL_ITERATIONS = 4
 
 # Agent conversation retention: conversations untouched for longer than this are
 # eligible for cleanup by `manage.py cleanup_agent_conversations`. 0 disables it.
