@@ -3,6 +3,7 @@ import {
   createConversation,
   deleteConversation,
   getConversation,
+  getOrCreateEntityConversation,
   listConversations,
   postConversationMessage,
   renameConversation,
@@ -15,6 +16,8 @@ export const agentKeys = {
   all: ['agent'] as const,
   conversations: () => [...agentKeys.all, 'conversations'] as const,
   conversation: (id: string | null) => [...agentKeys.all, 'conversation', id] as const,
+  entityConversation: (entityType: string, objectId: string) =>
+    [...agentKeys.all, 'entity-conversation', entityType, objectId] as const,
 };
 
 export function useConversations() {
@@ -29,6 +32,19 @@ export function useConversation(id: string | null) {
     queryKey: agentKeys.conversation(id),
     queryFn: () => getConversation(id as string),
     enabled: Boolean(id),
+  });
+}
+
+/**
+ * Get-or-create the entity-anchored conversation (e.g. a project's assistant).
+ * Loads the single persistent conversation for (user, entity), pre-seeded server
+ * side with the entity's context. Reuses `usePostMessage` to send turns.
+ */
+export function useEntityConversation(entityType: string, objectId: string) {
+  return useQuery<AgentConversationDetail>({
+    queryKey: agentKeys.entityConversation(entityType, objectId),
+    queryFn: () => getOrCreateEntityConversation(entityType, objectId),
+    enabled: Boolean(entityType && objectId),
   });
 }
 

@@ -23,12 +23,13 @@ import ProjectDialog from './ProjectDialog';
 import ProjectDocumentsTab from './ProjectDocumentsTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import ProjectDashboard from './ProjectDashboard';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
 
-type Tab = 'overview' | 'tasks' | 'notes' | 'expenses' | 'documents' | 'timeline';
-const TABS: Tab[] = ['overview', 'tasks', 'notes', 'expenses', 'documents', 'timeline'];
+type Tab = 'overview' | 'tasks' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'assistant';
+const TABS: Tab[] = ['overview', 'tasks', 'notes', 'expenses', 'documents', 'timeline', 'assistant'];
 
 function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
   if (status === 'active') return 'default';
@@ -336,6 +337,10 @@ export default function ProjectDetailPage() {
                     addUrl={`/app/interactions/new?project_id=${project.id}`}
                     addLabel={t('projects.add_activity')}
                   />
+                ) : null}
+
+                {tab === 'assistant' ? (
+                  <EntityAssistant entityType="project" objectId={project.id} />
                 ) : null}
               </CardContent>
             </Card>

@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 
-from . import service
+from . import searchables, service
 from .llm import LLMError, LLMTimeoutError
 from .models import AgentConversation, AgentMessage
 from .serializers import (
@@ -128,7 +128,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         household = getattr(self.request, "household", None)
         if household is not None:
             qs = qs.filter(household=household)
-        if self.action in {"retrieve", "messages"}:
+        if self.action in {"retrieve", "messages", "for_context"}:
             qs = qs.prefetch_related("messages")
         return qs
 
@@ -156,9 +156,20 @@ class ConversationViewSet(viewsets.ModelViewSet):
         prior = list(conversation.messages.all())[-CONVERSATION_HISTORY_LIMIT:]
         history = [{"role": m.role, "content": m.content} for m in prior]
 
+        # Anchored conversations pre-inject their entity's context each turn.
+        context_entity = (
+            (conversation.context_entity_type, conversation.context_object_id)
+            if conversation.has_context
+            else None
+        )
+
         try:
             result = service.ask(
-                question, conversation.household, user=request.user, history=history
+                question,
+                conversation.household,
+                user=request.user,
+                history=history,
+                context_entity=context_entity,
             )
         except LLMTimeoutError:
             return Response(
@@ -196,3 +207,31 @@ class ConversationViewSet(viewsets.ModelViewSet):
         return Response(
             AgentMessageSerializer(agent_msg).data, status=status.HTTP_201_CREATED
         )
+
+    @action(detail=False, methods=["get"], url_path="for_context")
+    def for_context(self, request):
+        """Get-or-create THE conversation anchored to one entity, for this user.
+
+        Backs the entity-scoped assistant (e.g. a project's "Assistant" tab):
+        one persistent conversation per (household, user, entity), created on
+        first visit. Query params: ``entity_type`` + ``object_id``, which must
+        name an entity registered in ``agent.searchables``.
+        """
+        entity_type = (request.query_params.get("entity_type") or "").strip()
+        object_id = (request.query_params.get("object_id") or "").strip()
+        if not entity_type or not object_id:
+            raise ValidationError("entity_type and object_id are required.")
+        if searchables.find_spec(entity_type) is None:
+            raise ValidationError(f"Unknown entity_type: {entity_type}")
+
+        household = self._resolve_household()
+        conversation, _created = AgentConversation.objects.get_or_create(
+            household=household,
+            created_by=request.user,
+            context_entity_type=entity_type,
+            context_object_id=object_id,
+        )
+        serializer = ConversationDetailSerializer(
+            self.get_queryset().get(pk=conversation.pk)
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)

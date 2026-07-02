@@ -39,6 +39,9 @@ export interface AgentConversationRow {
 
 /** Full conversation with its ordered messages. */
 export interface AgentConversationDetail extends AgentConversationRow {
+  /** Set when the conversation is anchored to a household entity (e.g. a project). */
+  context_entity_type?: string;
+  context_object_id?: string;
   messages: AgentMessageRow[];
 }
 
@@ -63,6 +66,22 @@ export async function getConversation(id: string): Promise<AgentConversationDeta
 
 export async function createConversation(): Promise<AgentConversationDetail> {
   const { data } = await api.post<AgentConversationDetail>('/agent/conversations/', {});
+  return data;
+}
+
+/**
+ * Get-or-create THE conversation anchored to one household entity for the
+ * current user. Backs the entity-scoped assistant (e.g. a project's "Assistant"
+ * tab): one persistent, context-preloaded conversation per (user, entity).
+ */
+export async function getOrCreateEntityConversation(
+  entityType: string,
+  objectId: string,
+): Promise<AgentConversationDetail> {
+  const { data } = await api.get<AgentConversationDetail>(
+    '/agent/conversations/for_context/',
+    { params: { entity_type: entityType, object_id: objectId } },
+  );
   return data;
 }
 

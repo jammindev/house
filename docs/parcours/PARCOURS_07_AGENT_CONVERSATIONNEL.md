@@ -374,3 +374,17 @@ Tous les critères sont satisfaits :
 
 Backlog technique associé : [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
 Fiche concept (RAG) : [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
+
+## Extension 2026-07 — assistant ancré sur une entité
+
+L'agent, jusque-là accessible uniquement depuis `/app/agent/` (contexte cherché à
+la demande), est désormais **embarquable dans n'importe quelle entité** via une
+conversation *ancrée* : au démarrage, tout le contexte de l'objet (détails +
+items liés) est pré-injecté, donc l'IA connaît déjà l'entité sans chercher.
+
+- Première intégration : onglet **« Assistant »** du détail projet.
+- Mécanisme **générique** (couple `(context_entity_type, context_object_id)` sur
+  `AgentConversation`, résolu via `agent.searchables` — réutilisable zones,
+  équipements… sans toucher `apps/agent/`).
+- Détail d'implémentation + mode d'emploi : `docs/MODULES/agent.md`,
+  section « conversation ancrée » de `docs/fiches/RAG.md`.

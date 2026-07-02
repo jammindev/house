@@ -312,6 +312,45 @@ class MyAppConfig(AppConfig):
 
 Cette règle est aussi sauvée en mémoire pour l'assistant Claude Code, qui doit le proposer proactivement à chaque ajout de modèle.
 
+## 7bis. Conversation ancrée sur une entité (contexte pré-injecté)
+
+Le RAG « classique » ci-dessus est **pull** : le modèle décide quand appeler
+`search_household` pour aller chercher les passages pertinents. Depuis 2026-07,
+une conversation peut aussi être **ancrée** sur une entité précise (un projet,
+une zone, un équipement…) — le contexte est alors **poussé** dès le départ.
+
+**Idée.** Une `agent.AgentConversation` porte un couple optionnel
+`(context_entity_type, context_object_id)` — le même vocabulaire d'adressage que
+les tools (`entity_type:id`). Quand il est présent, à chaque `ask` :
+
+1. `agent.context.build_entity_context()` résout l'entité, prend son contenu
+   complet (comme `get_entity`) **plus** tout ce qui lui est lié via
+   `spec.related` (comme `get_related`), et rend le tout en bloc citable
+   (`render_context_block`) ;
+2. `service.ask()` injecte ce bloc comme **premier tour** de la conversation
+   (`[CONTEXT — <label>]` + accusé assistant), et **seed** ces hits dans le pool
+   de citations (le modèle peut donc les citer sans les avoir cherchés) ;
+3. le system prompt reçoit un addendum (`ANCHORED_ADDENDUM`) : « le contexte de
+   l'élément courant est déjà fourni, réponds et cite directement sans chercher ;
+   n'utilise les tools que pour des infos hors de ce contexte ».
+
+Le contexte est ré-injecté **à chaque tour** : il reste frais si le projet évolue
+(borné par les budgets `RELATED_*`).
+
+**Générique par construction.** Aucune de ces étapes ne connaît « project » :
+toute entité enregistrée dans `agent.searchables` (idéalement avec un `related`)
+peut ancrer une conversation. Réutilisation ailleurs = zéro ligne dans
+`apps/agent/`, juste un `<EntityAssistant entityType="…" objectId="…" />` côté UI.
+Voir `docs/MODULES/agent.md` pour le mode d'emploi.
+
+**Pull vs push, quand quoi ?**
+
+| | Pull (`/app/agent`) | Push (onglet Assistant d'une entité) |
+|---|---|---|
+| Contexte | rien au départ, cherché à la demande | tout l'objet + ses liens, dès le 1er tour |
+| Bon pour | questions transverses au foyer | « fais le point sur CE projet » |
+| Tools | tous, décidés par le modèle | idem + contexte déjà là, cite sans chercher |
+
 ## 8. Glossaire
 
 | Terme | Sens |
