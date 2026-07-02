@@ -108,6 +108,145 @@ class TestAnthropicClientHappyPath:
         assert fake.messages.last_kwargs["messages"] == [{"role": "user", "content": "USER"}]
 
 
+def _text_block(text: str):
+    return SimpleNamespace(type="text", text=text)
+
+
+def _tool_use_block(block_id: str, name: str, tool_input: dict):
+    return SimpleNamespace(type="tool_use", id=block_id, name=name, input=tool_input)
+
+
+def _fake_run_message(content, stop_reason="end_turn", input_tokens=10, output_tokens=5):
+    return SimpleNamespace(
+        content=content,
+        stop_reason=stop_reason,
+        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+    )
+
+
+class TestAnthropicClientRun:
+    def test_run_returns_final_text_and_logs_usage(self, with_api_key, monkeypatch, household, user):
+        client = AnthropicClient(model="claude-haiku-4-5")
+        fake = _FakeClient(
+            response=_fake_run_message([_text_block("Bonjour")], "end_turn", 21, 3)
+        )
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        result = client.run(
+            system="sys",
+            messages=[{"role": "user", "content": "hello"}],
+            tools=[{"name": "search_household"}],
+            feature="agent_ask",
+            household_id=household.id,
+            user_id=user.id,
+        )
+
+        assert result.text == "Bonjour"
+        assert result.stop_reason == "end_turn"
+        assert result.tool_calls == []
+        assert result.assistant_blocks == [{"type": "text", "text": "Bonjour"}]
+        assert result.input_tokens == 21
+        assert result.output_tokens == 3
+        assert result.model == "claude-haiku-4-5"
+
+        log = AIUsageLog.objects.get()
+        assert log.feature == "agent_ask"
+        assert log.success is True
+        assert log.input_tokens == 21
+        assert log.output_tokens == 3
+
+    def test_run_extracts_tool_calls_and_normalizes_blocks(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        content = [
+            _text_block("Je cherche."),
+            _tool_use_block("toolu_1", "search_household", {"query": "chaudière"}),
+        ]
+        fake = _FakeClient(response=_fake_run_message(content, "tool_use"))
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        result = client.run(
+            system="sys",
+            messages=[{"role": "user", "content": "quand a-t-on changé la chaudière ?"}],
+            tools=[{"name": "search_household"}],
+            feature="agent_ask",
+            household_id=household.id,
+        )
+
+        assert result.stop_reason == "tool_use"
+        assert len(result.tool_calls) == 1
+        call = result.tool_calls[0]
+        assert call.id == "toolu_1"
+        assert call.name == "search_household"
+        assert call.input == {"query": "chaudière"}
+        assert result.assistant_blocks == [
+            {"type": "text", "text": "Je cherche."},
+            {
+                "type": "tool_use",
+                "id": "toolu_1",
+                "name": "search_household",
+                "input": {"query": "chaudière"},
+            },
+        ]
+
+    def test_run_passes_messages_and_tools_to_sdk(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        messages = [{"role": "user", "content": "hi"}]
+        tools = [{"name": "search_household", "input_schema": {}}]
+        client.run(
+            system="SYSTEM",
+            messages=messages,
+            tools=tools,
+            feature="agent_ask",
+            household_id=household.id,
+        )
+
+        assert fake.messages.last_kwargs["system"] == "SYSTEM"
+        assert fake.messages.last_kwargs["messages"] == messages
+        assert fake.messages.last_kwargs["tools"] == tools
+
+    def test_run_omits_tools_kwarg_when_no_tools(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        client.run(
+            system="sys",
+            messages=[{"role": "user", "content": "hi"}],
+            tools=[],
+            feature="agent_ask",
+            household_id=household.id,
+        )
+
+        assert "tools" not in fake.messages.last_kwargs
+
+    def test_run_timeout_raises_and_logs_failure(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+
+        class FakeTimeoutError(Exception):
+            pass
+
+        FakeTimeoutError.__name__ = "APITimeoutError"
+        monkeypatch.setattr(
+            client, "_client", lambda: _FakeClient(raises=FakeTimeoutError("timed out"))
+        )
+
+        with pytest.raises(LLMTimeoutError):
+            client.run(
+                system="sys",
+                messages=[{"role": "user", "content": "hi"}],
+                tools=[],
+                feature="agent_ask",
+                household_id=household.id,
+            )
+
+        log = AIUsageLog.objects.get()
+        assert log.success is False
+        assert log.error_type == "timeout"
+
+
 class TestAnthropicClientErrorPaths:
     def test_timeout_raises_llmtimeouterror_and_logs_failure(self, with_api_key, monkeypatch, household):
         client = AnthropicClient()
