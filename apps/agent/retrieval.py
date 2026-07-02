@@ -18,12 +18,19 @@ from django.contrib.postgres.search import (
     SearchRank,
     SearchVector,
 )
-from django.db.models import F
+from django.db.models import F, Value
 
 from .searchables import REGISTRY, SearchableSpec, resolve_label
 
 SNIPPET_MAX_WORDS = 30
 SNIPPET_MIN_WORDS = 8
+
+# Postgres ts_rank length-normalization flag. 1 = divide the rank by
+# `1 + log(document length)`. Without it, ts_rank rewards term *frequency*, so a
+# long OCR document repeating a term buries a short entity whose very title is
+# the query (a project titled "Pompe à chaleur" scored 0.27 vs a PDF at 0.98).
+# With it, short-but-exact matches surface. See docs/fiches/RAG.md.
+_RANK_NORMALIZATION = 1
 
 # `simple_unaccent` is created in apps/agent/migrations/0001_initial.py.
 # It is `simple` (no stemming, no stopwords) + `unaccent` so that Engie matches
@@ -66,8 +73,19 @@ def _build_query(query: str) -> SearchQuery:
 
 
 def _vector_for_fields(fields: tuple[str, ...]) -> SearchVector:
-    """Build a SearchVector that combines all configured fields with equal weight."""
-    return SearchVector(*fields, config=_SEARCH_CONFIG)
+    """Build a SearchVector giving the primary field weight A and the rest B.
+
+    By convention the first entry of ``search_fields`` is the entity's title/name
+    (matches ``label_attr`` across every spec). Weighting it A (vs B for bodies)
+    makes a title match outrank a match buried in a long body — combined with the
+    length normalization in ``_search_one``, this is what lets a project whose
+    title *is* the query beat the long PDFs that merely mention it.
+    """
+    primary, *rest = fields
+    vector = SearchVector(primary, weight="A", config=_SEARCH_CONFIG)
+    if rest:
+        vector = vector + SearchVector(*rest, weight="B", config=_SEARCH_CONFIG)
+    return vector
 
 
 def _search_one(spec: SearchableSpec, household_id: UUID, query: str, limit: int) -> list[Hit]:
@@ -99,7 +117,11 @@ def _search_one(spec: SearchableSpec, household_id: UUID, query: str, limit: int
     qs = (
         spec.model.objects.filter(household_id=household_id)
         .annotate(_search_vector=vector)
-        .annotate(_rank=SearchRank(F("_search_vector"), ts_query))
+        .annotate(
+            _rank=SearchRank(
+                F("_search_vector"), ts_query, normalization=Value(_RANK_NORMALIZATION)
+            )
+        )
         .annotate(**headlines)
         .filter(_search_vector=ts_query)
         .order_by("-_rank")[:limit]

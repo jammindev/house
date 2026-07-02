@@ -177,6 +177,15 @@ L'extension et la config TS sont créées dans `apps/agent/migrations/0001_initi
 
 Pas de migration de données nécessaire — le champ est déjà rempli par défaut.
 
+#### Ranking : pondération de champ + normalisation par longueur
+
+`ts_rank` brut récompense la **fréquence** d'un terme : un long document dont l'OCR répète « pompe à chaleur » 20× score ~0.98, alors qu'un projet dont le **titre est exactement la requête** score ~0.27 — et se fait éjecter du top-12. C'est le défaut classique de `ts_rank` sans réglage. Deux leviers dans `apps/agent/retrieval.py` corrigent ça :
+
+1. **Pondération de champ (`setweight`)** — `_vector_for_fields` donne au premier `search_field` (le titre/nom, par convention toujours en tête et égal à `label_attr`) le poids **A**, aux autres champs le poids **B**. Un match dans le titre pèse plus qu'un match noyé dans un corps.
+2. **Normalisation par longueur** — `SearchRank(..., normalization=Value(1))` divise le rank par `1 + log(longueur)`, ce qui pénalise les longs documents. Constante `_RANK_NORMALIZATION`.
+
+Effet mesuré sur la donnée prod (« pompe à chaleur ») : le projet passe de la **position 20/21 → 3/21**, devant les PDF. Aucun changement d'interface — `search_multi()` renvoie toujours `list[Hit]`, seul le calcul interne du `rank` change.
+
 ### 4.3 Augmentation (étape 3) — construire le prompt
 
 Une fois les hits récupérés, on construit un prompt :

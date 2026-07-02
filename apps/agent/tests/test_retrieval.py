@@ -297,6 +297,21 @@ class TestRanking:
         assert ocr_match.name in labels_in_order
         assert labels_in_order.index(title_match.name) < labels_in_order.index(ocr_match.name)
 
+    def test_short_title_match_outranks_long_document_repeating_query(
+        self, household, make_project, make_document
+    ):
+        """The prod 'pompe à chaleur' bug: a project whose title *is* the query
+        must outrank a long PDF that merely repeats it many times. Length
+        normalization + title weighting is what makes this hold — without them
+        ts_rank's term-frequency reward buries the short entity."""
+        project = make_project(title="Pompe à chaleur", description="")
+        make_document(name="brochure PAC", ocr_text="pompe à chaleur " * 100)
+        hits = search(household.id, "pompe à chaleur")
+        by_type = [h.entity_type for h in hits]
+        assert "project" in by_type
+        assert "document" in by_type
+        assert by_type.index("project") < by_type.index("document")
+
 
 class TestCaseAndAccentInsensitive:
     def test_case_insensitive(self, household, make_document):
