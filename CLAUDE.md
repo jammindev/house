@@ -401,7 +401,8 @@ Doc complète : `docs/MODULES/agent.md` + section « conversation ancrée » de
 L'agent peut **créer** des items du foyer depuis le chat via un unique tool
 générique `create_entity` (pas un `create_<type>` par entité — on ne gonfle pas le
 nombre de définitions de tools). Il est adossé au registry `agent.writables`,
-miroir écriture de `agent.searchables`. Première entité créable : la **tâche**.
+miroir écriture de `agent.searchables`. Entités créables : **tâche**, **note**
+(`Interaction` type=note).
 
 ### Rendre une nouvelle entité créable (~5 lignes)
 

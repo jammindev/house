@@ -221,3 +221,56 @@ def create_manual_expense_interaction(
             InteractionZone.objects.create(interaction=interaction, zone=zone)
 
     return interaction
+
+
+def create_note_interaction(
+    *,
+    household,
+    user,
+    subject: str,
+    content: str = "",
+    occurred_at: datetime | None = None,
+    project=None,
+    zone_ids: list[UUID] | None = None,
+) -> Interaction:
+    """Create an Interaction(type=note) — a free-form note in the household log.
+
+    Used by the agent's ``create_entity`` tool (entity_type='note'). The subject
+    is provided by the user (no gettext template). Optionally linked to a project
+    (e.g. an anchored conversation) and/or zones. No expense metadata: a note
+    carries no amount/supplier, so ``metadata`` stays at its model default.
+
+    Args:
+        household: Household instance (required).
+        user: request.user (used as created_by).
+        subject: note title (required, not blank).
+        content: note body (optional).
+        occurred_at: defaults to now.
+        project: optional Project instance or pk to link the note to.
+        zone_ids: optional list of zone UUIDs (each must belong to the household).
+    """
+    if not subject or not subject.strip():
+        raise ValueError("create_note_interaction: subject is required")
+
+    zones: list[Zone] = []
+    if zone_ids:
+        zones = list(Zone.objects.filter(id__in=zone_ids, household_id=household.id))
+        if len(zones) != len(zone_ids):
+            raise ValueError(
+                "create_note_interaction: one or more zones do not belong to the household"
+            )
+
+    with transaction.atomic():
+        interaction = Interaction.objects.create(
+            household_id=household.id,
+            created_by=user,
+            subject=subject.strip(),
+            content=content or "",
+            type="note",
+            occurred_at=occurred_at or timezone.now(),
+            project_id=getattr(project, "pk", project),
+        )
+        for zone in zones:
+            InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
