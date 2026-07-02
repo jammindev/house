@@ -53,6 +53,12 @@ export type PatchedInteraction = {
     readonly document_count?: string;
     readonly linked_document_ids?: string;
     document_ids?: Array<string>;
+    readonly contacts?: string;
+    contact_ids?: Array<string>;
+    readonly structures?: string;
+    structure_ids?: Array<string>;
+    readonly equipments?: string;
+    equipment_ids?: Array<string>;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

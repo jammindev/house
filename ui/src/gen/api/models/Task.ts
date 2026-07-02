@@ -25,6 +25,7 @@ export type Task = {
     readonly completed_at: string | null;
     project?: string | null;
     readonly project_title: string;
+    readonly project_status: string;
     zone_ids: Array<string>;
     readonly zone_names: string;
     /**
