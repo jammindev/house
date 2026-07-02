@@ -15,7 +15,7 @@
 | 4 | Mémoire conversationnelle multi-tour | 🚫 Basculé V2 | — |
 | 5 | Tests et validation | ✅ Transversal — livré au fil des lots | — |
 | 6 | Observabilité IA (aggregations + page admin) | 🟡 Backend skeleton livré (lot 2). Aggregations + UI restent à faire | #109 |
-| 7 | Function calling (socle tool-use : retrieval-as-tool + dialogue + culture générale) | 📋 Plan rédigé | [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md) |
+| 7 | Function calling (socle tool-use : retrieval-as-tool + dialogue + culture générale) | ✅ Livré (backend, 2026-07) — PRs #154→#157 | [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md) |
 
 **Issues annexes ouvertes** :
 - #113 — `Household.preferred_language` pour stemming par foyer (placeholder créé en lot 1, à activer si l'usage le justifie)
