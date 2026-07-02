@@ -8,6 +8,11 @@ class AgentConfig(AppConfig):
     def ready(self):
         # Register the agent's built-in tools. Kept here (not at import time) so
         # the registry is populated once the app registry is ready.
-        from .tools import build_search_household_tool, register
+        from .tools import (
+            build_get_entity_tool,
+            build_search_household_tool,
+            register,
+        )
 
         register(build_search_household_tool())
+        register(build_get_entity_tool())

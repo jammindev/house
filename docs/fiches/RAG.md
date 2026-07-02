@@ -60,8 +60,10 @@ C'est cette troisième option, le RAG, qu'on implémente. C'est le pattern domin
 > étapes ci-dessous restent exactes, mais elles s'exécutent désormais **dans le
 > corps du tool** au lieu d'être câblées avant chaque réponse. Conséquence : le
 > modèle répond directement au dialogue (« bonjour ») et à la culture générale
-> sans recherche, et n'appelle le retrieval que pour un fait du foyer. Détails :
-> [PARCOURS_07_LOT7_FUNCTION_CALLING.md](../parcours/PARCOURS_07_LOT7_FUNCTION_CALLING.md).
+> sans recherche, et n'appelle le retrieval que pour un fait du foyer. Un 2ᵉ tool
+> `get_entity(entity_type, id)` lit le **contenu complet** d'une entité (ex : tout
+> l'OCR d'une facture) quand le snippet tronqué de la recherche ne suffit pas.
+> Détails : [PARCOURS_07_LOT7_FUNCTION_CALLING.md](../parcours/PARCOURS_07_LOT7_FUNCTION_CALLING.md).
 
 ### 4.1 Indexation (étape 1) — OCR avant tout
 

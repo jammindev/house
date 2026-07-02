@@ -6,6 +6,7 @@ import pytest
 from agent.searchables import (
     REGISTRY,
     SearchableSpec,
+    find_spec,
     register,
     reset_registry,
 )
@@ -65,6 +66,16 @@ class TestRegister:
         register(_spec("dummy_a"))
         register(_spec("dummy_b"))
         assert {s.entity_type for s in REGISTRY} == {"dummy_a", "dummy_b"}
+
+
+class TestFindSpec:
+    def test_returns_matching_spec(self, empty_registry):
+        spec = _spec("dummy")
+        register(spec)
+        assert find_spec("dummy") is spec
+
+    def test_returns_none_for_unknown(self, empty_registry):
+        assert find_spec("nope") is None
 
 
 class TestBootRegistry:

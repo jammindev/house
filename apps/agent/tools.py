@@ -2,10 +2,12 @@
 Agent tool registry — the base of function calling.
 
 Same pattern as ``searchables.py``: each tool declares itself, the orchestrator
-(``service.ask``) never hardcodes the tool list. The first — and for now only —
-tool is ``search_household``, which wraps query expansion + retrieval so the
-model pulls household facts **on demand** instead of the pipeline searching on
-every turn.
+(``service.ask``) never hardcodes the tool list. Two read tools are registered:
+
+- ``search_household`` — wraps query expansion + retrieval so the model pulls
+  household facts **on demand** instead of the pipeline searching every turn.
+- ``get_entity`` — reads the FULL content of one item by ``(entity_type, id)``,
+  bypassing the search snippet budget (e.g. a whole invoice OCR).
 
 Adding a future tool (``create_interaction``, ``create_task``, …) = one
 ``register(...)`` call, no change to ``service.py``.
@@ -25,7 +27,9 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any
 
-from . import query_expansion, retrieval
+from django.core.exceptions import ValidationError
+
+from . import query_expansion, retrieval, searchables
 from .llm import LLMClient, get_llm_client
 from .prompts import render_context_block
 from .retrieval import Hit
@@ -34,6 +38,12 @@ logger = logging.getLogger(__name__)
 
 # How many hits a single search returns. Mirrors the historical pipeline limit.
 SEARCH_RETRIEVAL_LIMIT = 12
+
+# Char cap when reading ONE entity in full via get_entity. Much larger than the
+# per-hit budget of search_household (2000) — the whole point is to read the
+# complete text (e.g. a full invoice OCR) the search snippet had to truncate.
+FULL_CONTENT_BUDGET = 20000
+FULL_CONTENT_SNIPPET_CHARS = 200
 
 
 @dataclass
@@ -167,4 +177,103 @@ def build_search_household_tool() -> AgentTool:
         description=_SEARCH_HOUSEHOLD_DESCRIPTION,
         input_schema=_SEARCH_HOUSEHOLD_SCHEMA,
         handler=_search_household_handler,
+    )
+
+
+# --- get_entity -------------------------------------------------------------
+
+GET_ENTITY = "get_entity"
+
+_GET_ENTITY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entity_type": {
+            "type": "string",
+            "description": (
+                "The type of item, exactly as it appears in an id=... tag or "
+                "citation (e.g. 'document', 'equipment', 'interaction')."
+            ),
+        },
+        "id": {
+            "type": "string",
+            "description": "The item id, exactly as it appears after the colon in id=<type>:<id>.",
+        },
+    },
+    "required": ["entity_type", "id"],
+}
+
+_GET_ENTITY_DESCRIPTION = (
+    "Read the FULL content of one household item you already identified (from a "
+    "search_household result or a citation). Use it when a search snippet is not "
+    "enough and you need the complete text — a document's full OCR, every line "
+    "item and amount on an invoice, the full notes of an equipment. Provide "
+    "entity_type and id exactly as shown in the id=<type>:<id> tag."
+)
+
+
+def _concat_fields(obj, fields: tuple[str, ...]) -> str:
+    """Concatenate an instance's searchable fields into one plain-text block."""
+    parts: list[str] = []
+    for field_name in fields:
+        value = getattr(obj, field_name, None)
+        if value:
+            text = str(value).strip()
+            if text:
+                parts.append(text)
+    return "\n".join(parts)
+
+
+def _get_entity_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+) -> ToolResult:
+    """Fetch one entity by (entity_type, id), scoped household, and read it whole."""
+    entity_type = (tool_input.get("entity_type") or "").strip()
+    raw_id = (tool_input.get("id") or "").strip()
+    if not entity_type or not raw_id:
+        return ToolResult(rendered="(get_entity needs both entity_type and id)")
+
+    spec = searchables.find_spec(entity_type)
+    if spec is None:
+        return ToolResult(rendered=f"(unknown entity_type: {entity_type})")
+
+    try:
+        obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
+    except (ValueError, TypeError, ValidationError):
+        # Malformed id (e.g. not a valid UUID) — recoverable, tell the model.
+        return ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
+
+    if obj is None:
+        return ToolResult(rendered=f"(no {entity_type} found with id {raw_id} in this household)")
+
+    content = _concat_fields(obj, spec.search_fields)
+    snippet = content[:FULL_CONTENT_SNIPPET_CHARS].strip()
+    hit = Hit(
+        entity_type=spec.entity_type,
+        id=obj.pk,
+        label=searchables.resolve_label(spec, obj),
+        snippet=snippet,
+        rank=1.0,
+        url_path=spec.url_template.format(id=obj.pk),
+        content=content,
+    )
+    # content_top_n=1 + a big budget → the whole content, in the citable format.
+    rendered = render_context_block(
+        [hit],
+        content_top_n=1,
+        char_budget_per_hit=FULL_CONTENT_BUDGET,
+        total_char_budget=FULL_CONTENT_BUDGET,
+    )
+    return ToolResult(rendered=rendered, hits=[hit])
+
+
+def build_get_entity_tool() -> AgentTool:
+    return AgentTool(
+        name=GET_ENTITY,
+        description=_GET_ENTITY_DESCRIPTION,
+        input_schema=_GET_ENTITY_SCHEMA,
+        handler=_get_entity_handler,
     )

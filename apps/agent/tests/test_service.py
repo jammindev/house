@@ -50,6 +50,22 @@ def _run_tool(query: str, *, call_id: str = "toolu_1", name: str = "search_house
     )
 
 
+def _run_get_entity(entity_type: str, entity_id: str, *, call_id: str = "toolu_g") -> LLMRunResponse:
+    """A tool-use turn requesting ``get_entity(entity_type, id)``."""
+    args = {"entity_type": entity_type, "id": entity_id}
+    call = ToolCall(id=call_id, name="get_entity", input=args)
+    return LLMRunResponse(
+        assistant_blocks=[{"type": "tool_use", "id": call_id, "name": "get_entity", "input": args}],
+        tool_calls=[call],
+        text="",
+        stop_reason="tool_use",
+        input_tokens=4,
+        output_tokens=2,
+        duration_ms=2,
+        model="stub-model",
+    )
+
+
 @dataclass
 class _ToolUseClient:
     """LLMClient drop-in for the loop.
@@ -263,6 +279,41 @@ class TestHouseholdFacts:
         )
         result = service.ask("engie ?", household, user=owner, client=stub)
         assert len(result.citations) == 1
+
+    def test_chains_search_then_get_entity_for_full_content(
+        self, with_api_key, household, owner, make_document
+    ):
+        deep = "MARKER_DEEP_DETAIL"
+        long_ocr = ("ligne facturée " * 300) + " " + deep
+        doc = make_document(name="Facture PAC", ocr_text=long_ocr)
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("facture PAC"),
+                _run_get_entity("document", str(doc.pk)),
+                _run_text(f'Voici le détail complet <cite id="document:{doc.pk}"/>.'),
+            ]
+        )
+
+        result = service.ask(
+            "donne-moi le descriptif complet de la facture PAC",
+            household,
+            user=owner,
+            client=stub,
+        )
+
+        assert len(result.citations) == 1
+        assert result.citations[0].id == doc.pk
+        assert result.metadata["tool_calls"] == 2
+        # The 3rd run() received the full content (past the search truncation).
+        third_messages = stub.run_calls[2]["messages"]
+        full_text = "".join(
+            block.get("content", "")
+            for msg in third_messages
+            if isinstance(msg["content"], list)
+            for block in msg["content"]
+            if isinstance(block, dict) and block.get("type") == "tool_result"
+        )
+        assert deep in full_text
 
     def test_multiple_searches_accumulate_into_citation_pool(
         self, with_api_key, household, owner, make_document
