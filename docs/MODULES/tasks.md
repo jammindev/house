@@ -25,3 +25,4 @@
 - La transition `done` est correctement gérée côté backend (`apps/tasks/views.py:123-128`) : `completed_at` et `completed_by` sont auto-set / auto-cleared.
 - La page `TasksPage` est un wrapper minimal de `TasksPanel` (réutilisable côté projets).
 - Suppression : soft-delete via `status='archived'` côté backend ; le frontend utilise `useDeleteWithUndo` + DELETE HTTP, donc l'undo restaure en repassant l'item en `pending` (à vérifier dans le hook `useDeleteTask`).
+- **Création par l'agent IA (lot 8, 2026-07)** : l'agent crée une tâche via son tool `create_entity`. La logique est centralisée dans `apps/tasks/services.py::create_task` (fallback zone racine + `TaskSerializer`), réutilisée par le `WritableSpec` enregistré dans `tasks/apps.py`. En conversation ancrée sur un projet, la tâche est auto-liée au projet. Voir `docs/MODULES/agent.md`.

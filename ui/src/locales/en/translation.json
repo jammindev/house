@@ -5,6 +5,7 @@
     "save": "Save",
     "saving": "Saving…",
     "cancel": "Cancel",
+    "undo": "Undo",
     "edit": "Edit",
     "delete": "Delete",
     "archive": "Archive",
@@ -1630,6 +1631,9 @@
     "error": "Something went wrong, please try again.",
     "empty_title": "Ask anything about your household",
     "empty_hint": "The agent searches your documents, equipment, tasks, contracts and more, and cites every source.",
+    "created": {
+      "title": "Created: {{label}}"
+    },
     "entity": {
       "empty_title": "Ask anything about this item",
       "empty_hint": "The assistant already knows this item and everything linked to it — its details, documents, expenses and tasks — and cites its sources."

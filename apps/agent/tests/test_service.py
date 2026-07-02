@@ -82,6 +82,22 @@ def _run_get_related(entity_type: str, entity_id: str, *, call_id: str = "toolu_
     )
 
 
+def _run_create(entity_type: str, fields: dict, *, call_id: str = "toolu_c") -> LLMRunResponse:
+    """A tool-use turn requesting ``create_entity(entity_type, fields)``."""
+    args = {"entity_type": entity_type, "fields": fields}
+    call = ToolCall(id=call_id, name="create_entity", input=args)
+    return LLMRunResponse(
+        assistant_blocks=[{"type": "tool_use", "id": call_id, "name": "create_entity", "input": args}],
+        tool_calls=[call],
+        text="",
+        stop_reason="tool_use",
+        input_tokens=4,
+        output_tokens=2,
+        duration_ms=2,
+        model="stub-model",
+    )
+
+
 @dataclass
 class _ToolUseClient:
     """LLMClient drop-in for the loop.
@@ -586,6 +602,83 @@ class TestAnchoredContext:
         assert result.metadata["anchored"] is False
         assert stub.run_calls[0]["messages"] == [{"role": "user", "content": "résume"}]
         assert "CURRENT ITEM CONTEXT" not in stub.run_calls[0]["system"]
+
+
+# ---------------------------------------------------------------------------
+# Write actions — create_entity
+# ---------------------------------------------------------------------------
+
+
+class TestCreateEntity:
+    def test_create_populates_created_entities_metadata(
+        self, with_api_key, household, owner
+    ):
+        from tasks.models import Task
+
+        stub = _ToolUseClient(
+            script=[
+                _run_create("task", {"subject": "Purger la VMC"}),
+                _run_text("C'est noté."),
+            ]
+        )
+        result = service.ask(
+            "ajoute une tâche : purger la VMC", household, user=owner, client=stub
+        )
+
+        task = Task.objects.get(subject="Purger la VMC")
+        assert result.metadata["created_entities"] == [
+            {
+                "entity_type": "task",
+                "id": str(task.id),
+                "label": "Purger la VMC",
+                "url_path": f"/app/tasks/{task.id}",
+            }
+        ]
+        assert result.metadata["tool_calls"] == 1
+
+    def test_anchored_create_links_the_project(
+        self, with_api_key, household, owner, make_project
+    ):
+        from tasks.models import Task
+
+        project = make_project(title="Rénovation salle de bain")
+        stub = _ToolUseClient(
+            script=[
+                _run_create("task", {"subject": "Choisir le carrelage"}),
+                _run_text("Ajouté au projet."),
+            ]
+        )
+        service.ask(
+            "ajoute une tâche choisir le carrelage",
+            household,
+            user=owner,
+            client=stub,
+            context_entity=("project", str(project.pk)),
+        )
+        task = Task.objects.get(subject="Choisir le carrelage")
+        assert task.project_id == project.pk
+
+    def test_duplicate_create_in_one_turn_is_skipped(
+        self, with_api_key, household, owner
+    ):
+        from tasks.models import Task
+
+        stub = _ToolUseClient(
+            script=[
+                _run_create("task", {"subject": "Doublon"}, call_id="c1"),
+                _run_create("task", {"subject": "Doublon"}, call_id="c2"),
+                _run_text("Fait."),
+            ]
+        )
+        result = service.ask("crée la tâche", household, user=owner, client=stub)
+
+        assert Task.objects.filter(subject="Doublon").count() == 1
+        assert len(result.metadata["created_entities"]) == 1
+
+    def test_no_write_leaves_created_entities_empty(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("Bonjour !")])
+        result = service.ask("bonjour", household, user=owner, client=stub)
+        assert result.metadata["created_entities"] == []
 
 
 # ---------------------------------------------------------------------------

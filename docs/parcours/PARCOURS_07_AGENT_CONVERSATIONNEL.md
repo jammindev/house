@@ -388,3 +388,12 @@ items liés) est pré-injecté, donc l'IA connaît déjà l'entité sans cherche
   équipements… sans toucher `apps/agent/`).
 - Détail d'implémentation + mode d'emploi : `docs/MODULES/agent.md`,
   section « conversation ancrée » de `docs/fiches/RAG.md`.
+
+## Extension 2026-07 — l'agent crée des choses (lot 8)
+
+L'agent passe de *read-only* à *read + write* : un unique tool générique
+`create_entity` (adossé au registry `writables`) lui permet de **créer** un item
+du foyer depuis le chat (« ajoute une tâche », « rappelle-moi de… »). Première
+entité : la **tâche**. Sécurité par **création + Undo** (toast « Annuler »), et
+dans une conversation ancrée la création hérite du contexte (tâche liée au
+projet). Détail complet : [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md).

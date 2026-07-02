@@ -279,7 +279,7 @@ Plutôt que viser un retrieval parfait avant de toucher au LLM, on livre la cha�
 | **Embeddings vectoriels** (`pgvector`) | Sur < 100k entités texte modeste, gain marginal. Migration possible plus tard sans réécrire l'API. |
 | **Index `tsvector` matérialisé** | Pas nécessaire à ce volume. Si latence devient un sujet → optimisation locale. |
 | **Streaming de réponse** | Complexité UI + back. Bloc en V1 suffit. |
-| **Tool-calling** (agent qui crée des tâches, etc.) | Périmètre énorme + risque d'erreurs côté écriture. V2. |
+| **Tool-calling** (agent qui crée des tâches, etc.) | ~~Périmètre énorme + risque d'erreurs côté écriture. V2.~~ **Livré** : lecture au lot 7 (3 tools), écriture au lot 8 (`create_entity`, tâche). |
 | **Mémoire conversationnelle multi-tour** | Lot 4 du backlog, basculé V2. Question one-shot couvre 95% des cas. |
 | **Détection de langue par document** | Trop tôt. Sur ton corpus, un seul document EN/DE par-ci par-là, pas de quoi justifier le pipeline. |
 | **Redaction PII avant envoi à Claude** | Faible priorité en solo user. À reconsidérer si ouverture multi-tenant. |
@@ -368,7 +368,7 @@ Voir `docs/MODULES/agent.md` pour le mode d'emploi.
 | **Stopwords** | mots ignorés à l'indexation ("le", "la", "the", "a"…) |
 | **Citation** | référence cliquable vers la source d'une affirmation produite par le LLM |
 | **Hallucination** | quand un LLM invente une info qui n'existe pas. Le RAG + citations contraignent le LLM à ne dire que ce qui est dans le contexte. |
-| **Tool-calling** | quand un LLM peut invoquer des fonctions (créer une tâche, envoyer un mail…). Pas en V1. |
+| **Tool-calling** | quand un LLM peut invoquer des fonctions. Dans house : 3 tools de lecture (lot 7) + `create_entity` en écriture (lot 8). |
 
 ## 9. Pour aller plus loin
 

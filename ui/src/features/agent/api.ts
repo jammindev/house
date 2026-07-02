@@ -8,6 +8,14 @@ export interface AgentCitation {
   url_path: string;
 }
 
+/** An entity the agent created this turn (via create_entity), for undo. */
+export interface AgentCreatedEntity {
+  entity_type: string;
+  id: string;
+  label: string;
+  url_path: string;
+}
+
 export interface AgentAnswerMetadata {
   duration_ms?: number;
   tokens_in?: number;
@@ -15,6 +23,7 @@ export interface AgentAnswerMetadata {
   model?: string;
   hits_count?: number;
   reason?: string;
+  created_entities?: AgentCreatedEntity[];
   [key: string]: unknown;
 }
 
