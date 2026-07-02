@@ -4,7 +4,7 @@ from __future__ import annotations
 from agent.prompts import (
     TRUNCATION_MARKER,
     SYSTEM_PROMPT,
-    build_user_prompt,
+    render_context_block,
 )
 from agent.retrieval import Hit
 
@@ -33,114 +33,74 @@ class TestSystemPrompt:
 
     def test_tells_model_to_admit_ignorance(self):
         lower = SYSTEM_PROMPT.lower()
-        assert "do not know" in lower or "don't know" in lower or "i do not know" in lower
+        assert "do not know" in lower or "don't know" in lower
+
+    def test_mentions_the_search_tool(self):
+        assert "search_household" in SYSTEM_PROMPT
+
+    def test_describes_the_three_response_tiers(self):
+        upper = SYSTEM_PROMPT.upper()
+        assert "DIALOGUE" in upper
+        assert "HOUSEHOLD FACTS" in upper
+        assert "GENERAL KNOWLEDGE" in upper
 
 
-class TestBuildUserPrompt:
-    def test_includes_question_text(self):
-        prompt = build_user_prompt("Combien j'ai payé Engie ?", [_hit()])
-        assert "Combien j'ai payé Engie ?" in prompt
-
+class TestRenderContextBlock:
     def test_renders_each_hit_with_tag(self):
         h1 = _hit(entity_type="document", id="doc-1", label="Doc 1")
         h2 = _hit(entity_type="task", id="task-9", label="Task 9")
-        prompt = build_user_prompt("hello", [h1, h2])
-        assert "id=document:doc-1" in prompt
-        assert "id=task:task-9" in prompt
-        assert "Doc 1" in prompt
-        assert "Task 9" in prompt
+        block = render_context_block([h1, h2])
+        assert "id=document:doc-1" in block
+        assert "id=task:task-9" in block
+        assert "Doc 1" in block
+        assert "Task 9" in block
 
     def test_no_hits_renders_empty_marker(self):
-        prompt = build_user_prompt("hello", [])
-        assert "no household items matched" in prompt.lower()
+        block = render_context_block([])
+        assert "no household items matched" in block.lower()
 
 
 class TestContentEnrichment:
     def test_top_hit_renders_full_content(self):
         hit = _hit(content="Montant total 4200 EUR chez Saunier Duval le 12/03/2026")
-        prompt = build_user_prompt("combien ?", [hit])
-        assert "4200" in prompt
-        assert "Saunier Duval" in prompt
-        assert "content:" in prompt
+        block = render_context_block([hit])
+        assert "4200" in block
+        assert "Saunier Duval" in block
+        assert "content:" in block
 
     def test_hit_without_content_falls_back_to_snippet(self):
         hit = _hit(content="", snippet="total 142,67 EUR")
-        prompt = build_user_prompt("combien ?", [hit])
-        assert "excerpt:" in prompt
-        assert "142,67" in prompt
+        block = render_context_block([hit])
+        assert "excerpt:" in block
+        assert "142,67" in block
 
     def test_tail_hits_beyond_top_n_use_snippet(self):
         hits = [
             _hit(id=f"doc-{i}", content=f"full body of doc {i}", snippet=f"snip {i}")
             for i in range(5)
         ]
-        prompt = build_user_prompt("q", hits, content_top_n=2)
-        # First two get full content, the rest get their snippet.
-        assert "full body of doc 0" in prompt
-        assert "full body of doc 1" in prompt
-        assert "full body of doc 4" not in prompt
-        assert "snip 4" in prompt
+        block = render_context_block(hits, content_top_n=2)
+        assert "full body of doc 0" in block
+        assert "full body of doc 1" in block
+        assert "full body of doc 4" not in block
+        assert "snip 4" in block
 
     def test_per_hit_budget_truncates_long_content(self):
         hit = _hit(content="mot " * 500)  # ~2000 chars
-        prompt = build_user_prompt("q", [hit], char_budget_per_hit=50)
-        assert TRUNCATION_MARKER in prompt
+        block = render_context_block([hit], char_budget_per_hit=50)
+        assert TRUNCATION_MARKER in block
 
     def test_total_budget_stops_enriching_further_hits(self):
         hits = [
             _hit(id=f"doc-{i}", content="x" * 100, snippet=f"snip {i}")
             for i in range(3)
         ]
-        # Budget only covers the first hit's content; the rest fall back.
-        prompt = build_user_prompt(
-            "q", hits, content_top_n=3, char_budget_per_hit=100, total_char_budget=100
+        block = render_context_block(
+            hits, content_top_n=3, char_budget_per_hit=100, total_char_budget=100
         )
-        assert "snip 1" in prompt or "snip 2" in prompt
+        assert "snip 1" in block or "snip 2" in block
 
     def test_content_truncation_respects_word_boundary(self):
         hit = _hit(content="alpha bravo charlie delta echo foxtrot")
-        prompt = build_user_prompt("q", [hit], char_budget_per_hit=15)
-        # Should not cut mid-word: no partial token like "cha" without the rest.
-        assert TRUNCATION_MARKER in prompt
-
-
-class TestConversationHistory:
-    def test_no_history_renders_no_history_block(self):
-        prompt = build_user_prompt("q", [_hit()])
-        assert "Conversation so far" not in prompt
-
-    def test_history_is_rendered_before_context(self):
-        history = [
-            {"role": "user", "content": "tu as la facture de la PAC ?"},
-            {"role": "agent", "content": "Oui, facture-pac."},
-        ]
-        prompt = build_user_prompt("et son prix ?", [_hit()], history=history)
-        assert "Conversation so far" in prompt
-        assert "tu as la facture de la PAC ?" in prompt
-        assert "facture-pac" in prompt
-        # History comes before the household context.
-        assert prompt.index("Conversation so far") < prompt.index("Household context")
-
-    def test_history_labels_roles(self):
-        history = [
-            {"role": "user", "content": "hello"},
-            {"role": "agent", "content": "hi there"},
-        ]
-        prompt = build_user_prompt("q", [_hit()], history=history)
-        assert "[User] hello" in prompt
-        assert "[Assistant] hi there" in prompt
-
-    def test_empty_history_turns_are_skipped(self):
-        history = [{"role": "user", "content": "   "}, {"role": "agent", "content": ""}]
-        prompt = build_user_prompt("q", [_hit()], history=history)
-        assert "Conversation so far" not in prompt
-
-    def test_history_budget_keeps_most_recent_turns(self):
-        # Many long turns; only the most recent should survive the budget.
-        history = [
-            {"role": "user", "content": f"OLD-{i} " + "x" * 500} for i in range(20)
-        ]
-        history.append({"role": "user", "content": "RECENT question about the boiler"})
-        prompt = build_user_prompt("q", [_hit()], history=history)
-        assert "RECENT question about the boiler" in prompt
-        assert "OLD-0" not in prompt
+        block = render_context_block([hit], char_budget_per_hit=15)
+        assert TRUNCATION_MARKER in block

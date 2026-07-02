@@ -1,61 +1,82 @@
-"""Tests for the agent.service.ask orchestrator.
+"""Tests for the agent.service.ask orchestrator (tool-use loop).
 
-The LLM client is replaced by a deterministic stub for every test — no network.
+The LLM client is replaced by a scripted stub for every test — no network. The
+stub drives the tool-use loop via ``run()`` (a scripted sequence of
+``LLMRunResponse``) and answers query expansion, which happens inside the
+``search_household`` tool, via ``complete()``.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
-from uuid import UUID
 
 import pytest
 
 from accounts.tests.factories import UserFactory
 from agent import query_expansion, service
-from agent.llm import LLMError, LLMResponse, LLMTimeoutError
-from ai_usage.models import AIUsageLog
+from agent.llm import LLMError, LLMResponse, LLMRunResponse, LLMTimeoutError, ToolCall
 from documents.models import Document
 from households.models import Household, HouseholdMember
 
 
+def _run_text(text: str, *, tokens_in: int = 5, tokens_out: int = 7) -> LLMRunResponse:
+    """A final answer turn (stop_reason=end_turn, no tool calls)."""
+    return LLMRunResponse(
+        assistant_blocks=[{"type": "text", "text": text}],
+        tool_calls=[],
+        text=text,
+        stop_reason="end_turn",
+        input_tokens=tokens_in,
+        output_tokens=tokens_out,
+        duration_ms=3,
+        model="stub-model",
+    )
+
+
+def _run_tool(query: str, *, call_id: str = "toolu_1", name: str = "search_household") -> LLMRunResponse:
+    """A tool-use turn requesting ``search_household(query)``."""
+    call = ToolCall(id=call_id, name=name, input={"query": query})
+    return LLMRunResponse(
+        assistant_blocks=[
+            {"type": "tool_use", "id": call_id, "name": name, "input": {"query": query}}
+        ],
+        tool_calls=[call],
+        text="",
+        stop_reason="tool_use",
+        input_tokens=4,
+        output_tokens=2,
+        duration_ms=2,
+        model="stub-model",
+    )
+
+
 @dataclass
-class _StubLLMClient:
-    """LLMClient drop-in. Records the last call and returns a canned response."""
+class _ToolUseClient:
+    """LLMClient drop-in for the loop.
 
-    answer_text: str = "ok"
-    raises: Exception | None = None
-    last_call: dict[str, Any] | None = None
-    provider: str = "stub"
-
-    def complete(self, **kwargs):
-        self.last_call = kwargs
-        if self.raises:
-            raise self.raises
-        return LLMResponse(
-            text=self.answer_text,
-            input_tokens=11,
-            output_tokens=22,
-            duration_ms=42,
-            model="stub-model",
-        )
-
-
-@dataclass
-class _ScriptedLLMClient:
-    """LLMClient drop-in that returns different text per `feature`.
-
-    Lets a test drive the two-call flow (query expansion, then answer) with a
-    distinct canned response for each stage.
+    ``script`` is the sequence of ``LLMRunResponse`` returned on successive
+    ``run()`` calls (the last is reused if the loop runs longer).
+    ``expansion_text`` is what ``complete()`` returns for query expansion.
     """
 
-    by_feature: dict[str, str] = field(default_factory=dict)
-    calls: list[dict[str, Any]] = field(default_factory=list)
+    script: list[LLMRunResponse] = field(default_factory=list)
+    expansion_text: str = ""
+    run_raises: Exception | None = None
+    run_calls: list[dict[str, Any]] = field(default_factory=list)
+    complete_calls: list[dict[str, Any]] = field(default_factory=list)
     provider: str = "stub"
 
-    def complete(self, **kwargs):
-        self.calls.append(kwargs)
+    def run(self, **kwargs) -> LLMRunResponse:
+        self.run_calls.append(kwargs)
+        if self.run_raises:
+            raise self.run_raises
+        idx = min(len(self.run_calls) - 1, len(self.script) - 1)
+        return self.script[idx]
+
+    def complete(self, **kwargs) -> LLMResponse:
+        self.complete_calls.append(kwargs)
         return LLMResponse(
-            text=self.by_feature.get(kwargs["feature"], ""),
+            text=self.expansion_text,
             input_tokens=1,
             output_tokens=1,
             duration_ms=1,
@@ -94,169 +115,271 @@ def make_document(household, owner):
     return _make
 
 
-# ---------------------------------------------------------------------------
-# Empty-input / no-context paths
-# ---------------------------------------------------------------------------
-
-
-class TestNoContext:
-    def test_empty_question_returns_idk_without_calling_llm(self, household, owner):
-        stub = _StubLLMClient()
-        result = service.ask("", household, user=owner, client=stub)
-        assert result.citations == []
-        assert stub.last_call is None
-        assert "trouvé" in result.answer.lower() or "do not know" in result.answer.lower()
-
-    def test_no_retrieval_match_returns_idk_without_calling_llm(self, household, owner):
-        stub = _StubLLMClient()
-        result = service.ask("nothing matches this", household, user=owner, client=stub)
-        assert result.citations == []
-        assert stub.last_call is None
-        assert result.metadata.get("reason") == service.IDK_MARKER
-
-    def test_missing_api_key_returns_idk(self, settings, household, owner, make_document):
-        settings.ANTHROPIC_API_KEY = ""
-        make_document(name="Engie facture mars")
-        result = service.ask("engie", household, user=owner)
-        assert result.citations == []
-        assert result.metadata.get("reason") == service.IDK_MARKER
-
-
-# ---------------------------------------------------------------------------
-# Happy path
-# ---------------------------------------------------------------------------
-
-
 @pytest.fixture
 def with_api_key(settings):
     settings.ANTHROPIC_API_KEY = "sk-test-fake"
     return settings
 
 
-class TestHappyPath:
-    def test_returns_answer_and_resolves_citations_from_hits(
+# ---------------------------------------------------------------------------
+# Fast paths — no LLM call
+# ---------------------------------------------------------------------------
+
+
+class TestFastPaths:
+    def test_empty_question_returns_idk_without_calling_llm(self, household, owner):
+        stub = _ToolUseClient(script=[_run_text("unused")])
+        result = service.ask("", household, user=owner, client=stub)
+        assert result.citations == []
+        assert stub.run_calls == []
+        assert "trouvé" in result.answer.lower()
+
+    def test_missing_api_key_returns_idk_without_calling_llm(
+        self, settings, household, owner, make_document
+    ):
+        settings.ANTHROPIC_API_KEY = ""
+        make_document(name="Engie facture mars")
+        stub = _ToolUseClient(script=[_run_text("unused")])
+        result = service.ask("engie", household, user=owner, client=stub)
+        assert result.citations == []
+        assert result.metadata.get("reason") == service.IDK_MARKER
+        assert stub.run_calls == []
+
+
+# ---------------------------------------------------------------------------
+# Dialogue / general knowledge — answered directly, no search
+# ---------------------------------------------------------------------------
+
+
+class TestDirectAnswer:
+    def test_dialogue_answers_without_searching(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("Bonjour ! Comment puis-je aider ?")])
+        result = service.ask("bonjour", household, user=owner, client=stub)
+
+        assert "Bonjour" in result.answer
+        assert result.citations == []
+        assert result.metadata["tool_calls"] == 0
+        assert result.metadata["answer_kind"] == "direct"
+        assert len(stub.run_calls) == 1
+        assert stub.complete_calls == []  # no query expansion, no search
+
+    def test_general_knowledge_answers_without_searching(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("Un stère est un volume de bois d'un m³.")])
+        result = service.ask("c'est quoi un stère ?", household, user=owner, client=stub)
+
+        assert "stère" in result.answer
+        assert result.citations == []
+        assert result.metadata["answer_kind"] == "direct"
+
+
+# ---------------------------------------------------------------------------
+# Household facts — search then cite
+# ---------------------------------------------------------------------------
+
+
+class TestHouseholdFacts:
+    def test_searches_then_answers_with_citation(
         self, with_api_key, household, owner, make_document
     ):
         doc = make_document(name="Engie facture mars", ocr_text="total 142,67 EUR")
-        stub = _StubLLMClient(
-            answer_text=(
-                'Tu as payé 142,67€ chez Engie en mars '
-                f'<cite id="document:{doc.pk}"/>.'
-            )
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("Engie"),
+                _run_text(f'Tu as payé 142,67€ <cite id="document:{doc.pk}"/>.'),
+            ]
         )
 
-        result = service.ask("Engie facture", household, user=owner, client=stub)
+        result = service.ask("combien pour Engie ?", household, user=owner, client=stub)
 
-        assert "Engie" in result.answer
         assert len(result.citations) == 1
         cit = result.citations[0]
         assert cit.entity_type == "document"
         assert cit.id == doc.pk
-        assert cit.label == "Engie facture mars"
         assert cit.url_path == f"/app/documents/{doc.pk}"
-        assert result.metadata["tokens_in"] == 11
-        assert result.metadata["tokens_out"] == 22
-        assert result.metadata["model"] == "stub-model"
+        assert result.metadata["tool_calls"] == 1
         assert result.metadata["hits_count"] >= 1
+        assert result.metadata["answer_kind"] == "household"
+        # Two round-trips (tool call + final answer) + one expansion inside tool.
+        assert len(stub.run_calls) == 2
+        assert any(
+            c["feature"] == query_expansion.FEATURE_NAME for c in stub.complete_calls
+        )
 
-    def test_history_makes_a_followup_resolve_end_to_end(
+    def test_tool_result_is_fed_back_to_the_model(
         self, with_api_key, household, owner, make_document
     ):
-        # "et son prix ?" alone retrieves nothing; the history lets expansion
-        # produce keywords that find the doc, and the answer prompt carries the
-        # prior turns so the model can resolve "son prix".
-        doc = make_document(name="facture-pac", ocr_text="pompe à chaleur Daikin prix 4200 EUR")
-        scripted = _ScriptedLLMClient(
-            by_feature={
-                query_expansion.FEATURE_NAME: "facture, pompe à chaleur, PAC, prix",
-                service.FEATURE_NAME: f'4200 EUR <cite id="document:{doc.pk}"/>',
-            }
+        doc = make_document(name="Engie facture mars", ocr_text="total 142,67 EUR")
+        stub = _ToolUseClient(
+            script=[_run_tool("Engie"), _run_text("réponse finale")]
         )
-        history = [
-            {"role": "user", "content": "tu as la facture de la pompe à chaleur ?"},
-            {"role": "agent", "content": "Oui, facture-pac."},
+        service.ask("combien pour Engie ?", household, user=owner, client=stub)
+
+        # The 2nd run() carries the assistant tool_use + the tool_result block.
+        second_messages = stub.run_calls[1]["messages"]
+        tool_results = [
+            block
+            for msg in second_messages
+            if isinstance(msg["content"], list)
+            for block in msg["content"]
+            if isinstance(block, dict) and block.get("type") == "tool_result"
         ]
+        assert len(tool_results) == 1
+        assert f"id=document:{doc.pk}" in tool_results[0]["content"]
 
-        result = service.ask(
-            "et son prix ?", household, user=owner, client=scripted, history=history
-        )
-
-        # Retrieval succeeded → the answer call happened and cited the doc.
-        assert len(result.citations) == 1
-        assert result.citations[0].id == doc.pk
-
-        answer_call = next(c for c in scripted.calls if c["feature"] == service.FEATURE_NAME)
-        assert "Conversation so far" in answer_call["user"]
-        assert "tu as la facture de la pompe à chaleur ?" in answer_call["user"]
-
-        expansion_call = next(
-            c for c in scripted.calls if c["feature"] == query_expansion.FEATURE_NAME
-        )
-        # The follow-up expansion was given the conversation to resolve "son prix".
-        assert "Current question: et son prix ?" in expansion_call["user"]
-        assert "pompe à chaleur" in expansion_call["user"]
-
-    def test_no_history_keeps_prompt_history_free(
-        self, with_api_key, household, owner, make_document
-    ):
+    def test_search_with_no_match_leads_to_idk(self, with_api_key, household, owner, make_document):
         make_document(name="Engie facture mars")
-        stub = _StubLLMClient(answer_text="ok")
-        service.ask("engie", household, user=owner, client=stub)
-        assert "Conversation so far" not in stub.last_call["user"]
-
-    def test_passes_system_and_user_prompts_to_llm(self, with_api_key, household, owner, make_document):
-        make_document(name="Engie facture mars")
-        stub = _StubLLMClient(answer_text="hello")
-        service.ask("engie", household, user=owner, client=stub)
-
-        assert stub.last_call is not None
-        assert "household assistant" in stub.last_call["system"].lower() or "household" in stub.last_call["system"].lower()
-        assert "Engie facture mars" in stub.last_call["user"]
-        assert stub.last_call["feature"] == service.FEATURE_NAME
-        assert stub.last_call["household_id"] == household.id
-        assert stub.last_call["user_id"] == owner.id
-
-    def test_full_document_content_reaches_the_answer_prompt(
-        self, with_api_key, household, owner, make_document
-    ):
-        # The amount lives deep in the OCR text, far from the matched keyword —
-        # a short headline snippet would miss it. Enrichment must feed the full
-        # content to the LLM so it can answer "combien ?".
-        long_ocr = (
-            "Facture pompe à chaleur. " + "détail " * 80
-            + "Montant total 4200 EUR chez Saunier Duval."
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("zzznomatchzzz"),
+                _run_text("Je ne trouve pas cette information dans tes données."),
+            ]
         )
-        make_document(name="facture-pac", ocr_text=long_ocr)
-        stub = _StubLLMClient(answer_text="ok")
+        result = service.ask("prix de la piscine ?", household, user=owner, client=stub)
 
-        service.ask("facture pac", household, user=owner, client=stub)
-
-        # `last_call` is the answer call (expansion ran first). Its user prompt
-        # must contain the amount pulled from the full content.
-        assert stub.last_call is not None
-        assert "4200" in stub.last_call["user"]
-        assert "Saunier Duval" in stub.last_call["user"]
+        assert result.citations == []
+        assert result.metadata["tool_calls"] == 1
+        assert result.metadata["hits_count"] == 0
+        assert result.metadata["answer_kind"] == "idk"
 
     def test_invented_citations_are_dropped(self, with_api_key, household, owner, make_document):
         make_document(name="Engie facture mars")
-        stub = _StubLLMClient(
-            answer_text=(
-                'Voilà ta réponse <cite id="document:does-not-exist"/> '
-                'avec une autre <cite id="task:00000000-0000-0000-0000-000000000000"/>.'
-            )
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("Engie"),
+                _run_text('Réponse <cite id="document:does-not-exist"/>.'),
+            ]
         )
-        result = service.ask("engie", household, user=owner, client=stub)
+        result = service.ask("engie ?", household, user=owner, client=stub)
         assert result.citations == []
+        assert result.metadata["answer_kind"] == "uncited"
 
     def test_duplicate_citations_are_deduped(self, with_api_key, household, owner, make_document):
         doc = make_document(name="Engie facture mars")
-        stub = _StubLLMClient(
-            answer_text=(
-                f'A <cite id="document:{doc.pk}"/> B <cite id="document:{doc.pk}"/>.'
-            )
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("Engie"),
+                _run_text(f'A <cite id="document:{doc.pk}"/> B <cite id="document:{doc.pk}"/>.'),
+            ]
         )
-        result = service.ask("engie", household, user=owner, client=stub)
+        result = service.ask("engie ?", household, user=owner, client=stub)
         assert len(result.citations) == 1
+
+    def test_multiple_searches_accumulate_into_citation_pool(
+        self, with_api_key, household, owner, make_document
+    ):
+        doc_a = make_document(name="Engie facture", ocr_text="électricité")
+        doc_b = make_document(name="Veolia facture", ocr_text="eau")
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("Engie", call_id="t1"),
+                _run_tool("Veolia", call_id="t2"),
+                _run_text(
+                    f'Engie <cite id="document:{doc_a.pk}"/> et '
+                    f'Veolia <cite id="document:{doc_b.pk}"/>.'
+                ),
+            ]
+        )
+        result = service.ask("mes factures d'énergie ?", household, user=owner, client=stub)
+
+        cited_ids = {c.id for c in result.citations}
+        assert cited_ids == {doc_a.pk, doc_b.pk}
+        assert result.metadata["tool_calls"] == 2
+
+
+# ---------------------------------------------------------------------------
+# Loop guard
+# ---------------------------------------------------------------------------
+
+
+class TestLoopGuard:
+    def test_caps_iterations_when_model_keeps_calling_tools(
+        self, settings, with_api_key, household, owner, make_document
+    ):
+        settings.AGENT_MAX_TOOL_ITERATIONS = 3
+        make_document(name="Engie facture mars")
+        # The model never stops asking to search.
+        stub = _ToolUseClient(script=[_run_tool("Engie")])
+
+        result = service.ask("engie ?", household, user=owner, client=stub)
+
+        assert len(stub.run_calls) == 3  # capped
+        assert result.metadata["iterations"] == 3
+        # No final text was ever produced → clean fallback message.
+        assert "trouvé" in result.answer.lower()
+
+    def test_tools_dropped_on_last_iteration(
+        self, settings, with_api_key, household, owner, make_document
+    ):
+        settings.AGENT_MAX_TOOL_ITERATIONS = 2
+        make_document(name="Engie facture mars")
+        stub = _ToolUseClient(script=[_run_tool("Engie")])
+
+        service.ask("engie ?", household, user=owner, client=stub)
+
+        assert stub.run_calls[0]["tools"]  # first pass offers tools
+        assert stub.run_calls[1]["tools"] == []  # last pass drops them
+
+
+# ---------------------------------------------------------------------------
+# Conversation history
+# ---------------------------------------------------------------------------
+
+
+class TestHistory:
+    def test_history_is_threaded_into_messages(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        history = [
+            {"role": "user", "content": "tu as la facture de la PAC ?"},
+            {"role": "agent", "content": "Oui, je l'ai."},
+        ]
+        service.ask("et son prix ?", household, user=owner, client=stub, history=history)
+
+        messages = stub.run_calls[0]["messages"]
+        assert messages[0] == {"role": "user", "content": "tu as la facture de la PAC ?"}
+        assert messages[1] == {"role": "assistant", "content": "Oui, je l'ai."}
+        assert messages[-1] == {"role": "user", "content": "et son prix ?"}
+
+    def test_no_history_sends_only_the_question(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        service.ask("bonjour", household, user=owner, client=stub)
+        assert stub.run_calls[0]["messages"] == [{"role": "user", "content": "bonjour"}]
+
+    def test_empty_history_turns_are_skipped(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        history = [{"role": "user", "content": "   "}, {"role": "agent", "content": ""}]
+        service.ask("q", household, user=owner, client=stub, history=history)
+        assert stub.run_calls[0]["messages"] == [{"role": "user", "content": "q"}]
+
+
+# ---------------------------------------------------------------------------
+# Metadata + prompt wiring
+# ---------------------------------------------------------------------------
+
+
+class TestMetadataAndWiring:
+    def test_metadata_aggregates_tokens_across_iterations(
+        self, with_api_key, household, owner, make_document
+    ):
+        make_document(name="Engie facture mars")
+        stub = _ToolUseClient(script=[_run_tool("Engie"), _run_text("done")])
+        result = service.ask("engie ?", household, user=owner, client=stub)
+
+        # tool turn (4/2) + answer turn (5/7)
+        assert result.metadata["tokens_in"] == 9
+        assert result.metadata["tokens_out"] == 9
+        assert result.metadata["model"] == "stub-model"
+        assert result.metadata["iterations"] == 2
+        assert result.metadata["stop_reason"] == "end_turn"
+
+    def test_system_prompt_and_identity_are_passed(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        service.ask("bonjour", household, user=owner, client=stub)
+
+        call = stub.run_calls[0]
+        assert "household" in call["system"].lower()
+        assert call["feature"] == service.FEATURE_NAME
+        assert call["household_id"] == household.id
+        assert call["user_id"] == owner.id
 
 
 # ---------------------------------------------------------------------------
@@ -265,116 +388,15 @@ class TestHappyPath:
 
 
 class TestErrorPaths:
-    def test_timeout_propagates(self, with_api_key, household, owner, make_document):
-        make_document(name="Engie facture mars")
-        stub = _StubLLMClient(raises=LLMTimeoutError("timed out"))
+    def test_timeout_propagates(self, with_api_key, household, owner):
+        stub = _ToolUseClient(run_raises=LLMTimeoutError("timed out"))
         with pytest.raises(LLMTimeoutError):
             service.ask("engie", household, user=owner, client=stub)
 
-    def test_llm_error_propagates(self, with_api_key, household, owner, make_document):
-        make_document(name="Engie facture mars")
-        stub = _StubLLMClient(raises=LLMError("boom"))
+    def test_llm_error_propagates(self, with_api_key, household, owner):
+        stub = _ToolUseClient(run_raises=LLMError("boom"))
         with pytest.raises(LLMError):
             service.ask("engie", household, user=owner, client=stub)
-
-
-# ---------------------------------------------------------------------------
-# Query expansion
-# ---------------------------------------------------------------------------
-
-
-class TestQueryExpansion:
-    def test_natural_language_question_finds_doc_via_expanded_keywords(
-        self, with_api_key, household, owner, make_document
-    ):
-        # Raw sentence with filler → retrieval on it alone finds nothing.
-        doc = make_document(name="Pompe à chaleur Daikin", ocr_text="PAC air-eau")
-        scripted = _ScriptedLLMClient(
-            by_feature={
-                query_expansion.FEATURE_NAME: "pompe à chaleur, PAC, Daikin",
-                service.FEATURE_NAME: f'C\'est un Daikin <cite id="document:{doc.pk}"/>.',
-            }
-        )
-
-        result = service.ask(
-            "trouve-moi la facture de la pompe à chaleur",
-            household,
-            user=owner,
-            client=scripted,
-        )
-
-        assert len(result.citations) == 1
-        assert result.citations[0].id == doc.pk
-
-    def test_makes_two_calls_expansion_then_answer(
-        self, with_api_key, household, owner, make_document
-    ):
-        doc = make_document(name="Facture Engie mars")
-        scripted = _ScriptedLLMClient(
-            by_feature={
-                query_expansion.FEATURE_NAME: "engie, facture",
-                service.FEATURE_NAME: f'ok <cite id="document:{doc.pk}"/>',
-            }
-        )
-        service.ask("combien pour engie ?", household, user=owner, client=scripted)
-
-        features = [c["feature"] for c in scripted.calls]
-        assert features == [query_expansion.FEATURE_NAME, service.FEATURE_NAME]
-
-    def test_expansion_never_receives_household_data(
-        self, with_api_key, household, owner, make_document
-    ):
-        make_document(name="Facture Engie mars", ocr_text="secret montant 999")
-        scripted = _ScriptedLLMClient(
-            by_feature={
-                query_expansion.FEATURE_NAME: "engie",
-                service.FEATURE_NAME: "ok",
-            }
-        )
-        service.ask("engie", household, user=owner, client=scripted)
-
-        expansion_call = scripted.calls[0]
-        assert expansion_call["feature"] == query_expansion.FEATURE_NAME
-        # The expansion prompt is built from the question only, never the data.
-        assert "999" not in expansion_call["user"]
-        assert expansion_call["user"] == "engie"
-
-    def test_no_api_key_skips_expansion_entirely(
-        self, settings, household, owner, make_document
-    ):
-        settings.ANTHROPIC_API_KEY = ""
-        make_document(name="Engie facture mars")
-        scripted = _ScriptedLLMClient(by_feature={})
-        result = service.ask("engie", household, user=owner, client=scripted)
-
-        # No LLM call at all — not even for expansion.
-        assert scripted.calls == []
-        assert result.metadata.get("reason") == service.IDK_MARKER
-
-    def test_expansion_failure_degrades_to_raw_question(
-        self, with_api_key, household, owner, make_document
-    ):
-        # Expansion raises, but the raw keyword still matches → we still answer.
-        doc = make_document(name="Engie facture mars")
-
-        @dataclass
-        class _FlakyExpansionClient:
-            provider: str = "stub"
-
-            def complete(self, **kwargs):
-                if kwargs["feature"] == query_expansion.FEATURE_NAME:
-                    raise LLMTimeoutError("expansion slow")
-                return LLMResponse(
-                    text=f'ok <cite id="document:{doc.pk}"/>',
-                    input_tokens=1,
-                    output_tokens=1,
-                    duration_ms=1,
-                    model="stub",
-                )
-
-        result = service.ask("engie", household, user=owner, client=_FlakyExpansionClient())
-        assert len(result.citations) == 1
-        assert result.citations[0].id == doc.pk
 
 
 # ---------------------------------------------------------------------------
@@ -383,7 +405,7 @@ class TestQueryExpansion:
 
 
 class TestHouseholdScope:
-    def test_other_household_data_is_never_passed_to_llm(self, with_api_key, household, owner):
+    def test_search_never_returns_other_household_data(self, with_api_key, household, owner):
         other = Household.objects.create(name="Other House")
         HouseholdMember.objects.create(
             user=owner, household=other, role=HouseholdMember.Role.OWNER
@@ -396,13 +418,11 @@ class TestHouseholdScope:
             mime_type="application/pdf",
             type="document",
         )
+        stub = _ToolUseClient(
+            script=[_run_tool("Engie"), _run_text("Je ne sais pas.")]
+        )
+        result = service.ask("engie ?", household, user=owner, client=stub)
 
-        stub = _StubLLMClient(answer_text="je ne sais pas")
-        result = service.ask("engie", household, user=owner, client=stub)
-
-        # Either retrieval returned nothing (IDK before LLM) or the LLM was
-        # called but the prompt did not contain the other household's data.
-        if stub.last_call is None:
-            assert result.metadata.get("reason") == service.IDK_MARKER
-        else:
-            assert "Engie autre foyer" not in stub.last_call["user"]
+        # The tool searched `household`, not `other` → no hits, no citation.
+        assert result.citations == []
+        assert result.metadata["hits_count"] == 0

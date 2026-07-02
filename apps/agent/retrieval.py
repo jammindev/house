@@ -48,7 +48,7 @@ class Hit:
     # Full concatenated text of the searchable fields. The snippet is only a
     # ~30-word headline around the match; `content` lets the prompt feed the
     # whole document (e.g. a facture's amount/date) to the LLM for the top hits.
-    # Budgeted at prompt-build time — see prompts.build_user_prompt.
+    # Budgeted at render time — see prompts.render_context_block.
     content: str = ""
 
 
