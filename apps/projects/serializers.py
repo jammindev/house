@@ -8,8 +8,6 @@ from .models import (
     Project,
     ProjectGroup,
     ProjectZone,
-    ProjectAIThread,
-    ProjectAIMessage,
     UserPinnedProject,
 )
 
@@ -166,24 +164,3 @@ class ProjectZoneSerializer(serializers.ModelSerializer):
         read_only_fields = ["created_at", "created_by"]
 
 
-class ProjectAIThreadSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProjectAIThread
-        fields = [
-            "id",
-            "project",
-            "household",
-            "user",
-            "title",
-            "created_at",
-            "updated_at",
-            "archived_at",
-        ]
-        read_only_fields = ["id", "household", "user", "created_at", "updated_at"]
-
-
-class ProjectAIMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProjectAIMessage
-        fields = ["id", "thread", "role", "content", "metadata", "created_at"]
-        read_only_fields = ["id", "created_at"]

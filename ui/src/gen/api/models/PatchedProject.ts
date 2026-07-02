@@ -23,6 +23,7 @@ export type PatchedProject = {
     type?: ProjectTypeEnum;
     readonly is_pinned?: string;
     readonly zones?: string;
+    zone_ids?: Array<string>;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

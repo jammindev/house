@@ -10,8 +10,6 @@ from households.models import Household, HouseholdMember
 from documents.models import Document
 from projects.models import (
     Project,
-    ProjectAIMessage,
-    ProjectAIThread,
     ProjectDocument,
     ProjectGroup,
     ProjectZone,
@@ -282,116 +280,6 @@ class TestProjectZones:
         assert "project" in response.data
 
 
-@pytest.mark.django_db
-class TestProjectAI:
-    def test_create_thread_uses_selected_household_and_current_user(self, owner_client, owner, household):
-        project = Project.objects.create(
-            household=household,
-            created_by=owner,
-            title="AI project",
-            status=Project.Status.ACTIVE,
-            priority=3,
-            planned_budget=0,
-            actual_cost_cached=0,
-            type=Project.Type.OTHER,
-        )
-
-        url = reverse("project-ai-thread-list")
-        response = owner_client.post(
-            url,
-            {"project": str(project.id), "title": "Planning thread"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        thread = ProjectAIThread.objects.get(id=response.data["id"])
-        assert thread.household == household
-        assert thread.user == owner
-
-    def test_reject_thread_when_project_household_mismatches_selected_household(self, owner_client, owner, household):
-        other_household = _household("Thread mismatch house")
-        _membership(owner, other_household)
-        foreign_project = Project.objects.create(
-            household=other_household,
-            created_by=owner,
-            title="Foreign project",
-            status=Project.Status.ACTIVE,
-            priority=3,
-            planned_budget=0,
-            actual_cost_cached=0,
-            type=Project.Type.OTHER,
-        )
-
-        url = reverse("project-ai-thread-list")
-        response = owner_client.post(
-            url,
-            {"project": str(foreign_project.id), "title": "Wrong thread"},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "project" in response.data
-
-    def test_create_message_for_owned_thread(self, owner_client, owner, household):
-        project = Project.objects.create(
-            household=household,
-            created_by=owner,
-            title="Message project",
-            status=Project.Status.ACTIVE,
-            priority=3,
-            planned_budget=0,
-            actual_cost_cached=0,
-            type=Project.Type.OTHER,
-        )
-        thread = ProjectAIThread.objects.create(
-            project=project,
-            household=household,
-            user=owner,
-            title="Main thread",
-        )
-
-        url = reverse("project-ai-message-list")
-        response = owner_client.post(
-            url,
-            {"thread": str(thread.id), "role": ProjectAIMessage.Role.USER, "content": "What next?", "metadata": {"source": "ui"}},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_201_CREATED
-        assert ProjectAIMessage.objects.filter(thread=thread, content="What next?").exists()
-
-    def test_reject_message_for_inaccessible_thread(self, owner_client, owner, household):
-        outsider = UserFactory(email="projects-thread-outsider@example.com")
-        other_household = _household("Thread foreign house")
-        _membership(outsider, other_household)
-        foreign_project = Project.objects.create(
-            household=other_household,
-            created_by=outsider,
-            title="Foreign thread project",
-            status=Project.Status.ACTIVE,
-            priority=3,
-            planned_budget=0,
-            actual_cost_cached=0,
-            type=Project.Type.OTHER,
-        )
-        foreign_thread = ProjectAIThread.objects.create(
-            project=foreign_project,
-            household=other_household,
-            user=outsider,
-            title="Foreign thread",
-        )
-
-        url = reverse("project-ai-message-list")
-        response = owner_client.post(
-            url,
-            {"thread": str(foreign_thread.id), "role": ProjectAIMessage.Role.USER, "content": "Leak?", "metadata": {}},
-            format="json",
-        )
-
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "thread" in response.data
-
-@pytest.mark.django_db
 class TestProjectZoneFilter:
     def test_list_projects_filtered_by_zone(self, owner_client, owner, household):
         zone_a = Zone.objects.create(household=household, name='Cuisine', created_by=owner)

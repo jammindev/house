@@ -123,34 +123,3 @@ class ProjectDocument(models.Model):
     class Meta:
         db_table = "project_documents"
         unique_together = [["project", "document"]]
-
-
-class ProjectAIThread(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="ai_threads")
-    household = models.ForeignKey("households.Household", on_delete=models.CASCADE, related_name="project_ai_threads")
-    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="project_ai_threads")
-    title = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    archived_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        db_table = "project_ai_threads"
-
-
-class ProjectAIMessage(models.Model):
-    class Role(models.TextChoices):
-        USER = "user", "User"
-        ASSISTANT = "assistant", "Assistant"
-        SYSTEM = "system", "System"
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    thread = models.ForeignKey(ProjectAIThread, on_delete=models.CASCADE, related_name="messages")
-    role = models.CharField(max_length=16, choices=Role.choices)
-    content = models.TextField()
-    metadata = models.JSONField(default=dict, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = "project_ai_messages"

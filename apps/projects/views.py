@@ -16,8 +16,6 @@ from .models import (
     ProjectDocument,
     ProjectGroup,
     ProjectZone,
-    ProjectAIThread,
-    ProjectAIMessage,
     UserPinnedProject,
 )
 from .serializers import (
@@ -25,8 +23,6 @@ from .serializers import (
     ProjectGroupSerializer,
     ProjectPurchaseSerializer,
     ProjectZoneSerializer,
-    ProjectAIThreadSerializer,
-    ProjectAIMessageSerializer,
 )
 
 
@@ -232,57 +228,3 @@ class ProjectZoneViewSet(viewsets.ModelViewSet):
         if project.household_id != zone.household_id:
             raise ValidationError({"zone": "Zone household must match project household."})
         serializer.save(created_by=self.request.user)
-
-
-class ProjectAIThreadViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsHouseholdMember]
-    serializer_class = ProjectAIThreadSerializer
-
-    def get_queryset(self):
-        queryset = ProjectAIThread.objects.filter(
-            household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
-        )
-        selected_household = self.request.household
-        if selected_household:
-            queryset = queryset.filter(household=selected_household)
-        return queryset
-
-    def perform_create(self, serializer):
-        household = self.request.household
-        if not household:
-            raise ValidationError({"household_id": "A valid household context is required."})
-        project = serializer.validated_data["project"]
-        if not Project.objects.for_user_households(self.request.user).filter(id=project.id).exists():
-            raise ValidationError({"project": "Invalid project or access denied."})
-        if project.household_id != household.id:
-            raise ValidationError({"project": "Project household must match selected household."})
-        serializer.save(household=household, user=self.request.user)
-
-
-class ProjectAIMessageViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, IsHouseholdMember]
-    serializer_class = ProjectAIMessageSerializer
-
-    def get_queryset(self):
-        queryset = ProjectAIMessage.objects.filter(
-            thread__household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True)
-        )
-        selected_household = self.request.household
-        if selected_household:
-            queryset = queryset.filter(thread__household=selected_household)
-        return queryset
-
-    def perform_create(self, serializer):
-        thread = serializer.validated_data["thread"]
-        selected_household = self.request.household
-
-        if not ProjectAIThread.objects.filter(
-            id=thread.id,
-            household_id__in=self.request.user.householdmember_set.values_list("household_id", flat=True),
-        ).exists():
-            raise ValidationError({"thread": "Invalid thread or access denied."})
-
-        if selected_household and thread.household_id != selected_household.id:
-            raise ValidationError({"thread": "Thread household must match selected household."})
-
-        serializer.save()

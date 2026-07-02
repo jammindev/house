@@ -458,6 +458,40 @@ export class InteractionsService {
         });
     }
     /**
+     * POST /api/interactions/expenses/manual/
+     *
+     * Create an Interaction(type=expense) NOT linked to a domain object —
+     * the user-typed `subject` is what gets stored. Used for ad-hoc expenses
+     * (restaurant, cinema, gift…).
+     * @param requestBody
+     * @returns Interaction
+     * @throws ApiError
+     */
+    public static interactionsInteractionsExpensesManualCreate(
+        requestBody: Interaction,
+    ): CancelablePromise<Interaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/interactions/interactions/expenses/manual/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * GET /api/interactions/expenses/summary/?from=&to=&supplier=&kind=
+     *
+     * Aggregates expense interactions for the selected household over a
+     * period. Defaults to the current calendar month when from/to are omitted.
+     * @returns Interaction
+     * @throws ApiError
+     */
+    public static interactionsInteractionsExpensesSummaryRetrieve(): CancelablePromise<Interaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/interactions/interactions/expenses/summary/',
+        });
+    }
+    /**
      * Get todos grouped by status for kanban board.
      * @returns Interaction
      * @throws ApiError

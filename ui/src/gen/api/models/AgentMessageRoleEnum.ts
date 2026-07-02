@@ -4,7 +4,6 @@
 /* eslint-disable */
 /**
  * * `user` - User
- * * `assistant` - Assistant
- * * `system` - System
+ * * `agent` - Agent
  */
-export type ProjectAIMessageRoleEnum = 'user' | 'assistant' | 'system';
+export type AgentMessageRoleEnum = 'user' | 'agent';
