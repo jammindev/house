@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import Any, NoReturn, Protocol
 from uuid import UUID
 
 from django.conf import settings
@@ -43,6 +43,38 @@ class LLMResponse:
     model: str
 
 
+@dataclass
+class ToolCall:
+    """A single tool invocation requested by the model."""
+
+    id: str
+    name: str
+    input: dict[str, Any]
+
+
+@dataclass
+class LLMRunResponse:
+    """Result of one tool-enabled round-trip.
+
+    Unlike ``LLMResponse`` (a single text completion), this carries everything a
+    tool-use loop needs: the assistant turn to replay, the tool calls to
+    dispatch, and the stop reason that tells the caller whether to loop again.
+    """
+
+    # The assistant content normalized to serializable dicts, ready to append to
+    # the running ``messages`` list before the next call.
+    assistant_blocks: list[dict]
+    # The ``tool_use`` blocks extracted for dispatch (empty when the model answered).
+    tool_calls: list[ToolCall]
+    # Concatenated text blocks — the final answer when ``stop_reason == "end_turn"``.
+    text: str
+    stop_reason: str
+    input_tokens: int | None
+    output_tokens: int | None
+    duration_ms: int
+    model: str
+
+
 class LLMClient(Protocol):
     """Minimal contract every provider implementation must satisfy."""
 
@@ -59,6 +91,20 @@ class LLMClient(Protocol):
         max_tokens: int = 1024,
         metadata: dict[str, Any] | None = None,
     ) -> LLMResponse:
+        ...
+
+    def run(
+        self,
+        *,
+        system: str,
+        messages: list[dict],
+        tools: list[dict],
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None = None,
+        max_tokens: int = 1024,
+        metadata: dict[str, Any] | None = None,
+    ) -> LLMRunResponse:
         ...
 
 
@@ -102,22 +148,14 @@ class AnthropicClient:
                 messages=[{"role": "user", "content": user}],
             )
         except Exception as exc:
-            duration_ms = int((time.monotonic() - started) * 1000)
-            error_type = _classify_error(exc)
-            log_ai_usage(
+            self._log_and_raise_failure(
+                exc,
+                started=started,
+                feature=feature,
                 household_id=household_id,
                 user_id=user_id,
-                feature=feature,
-                provider=self.provider,
-                model=self.model,
-                duration_ms=duration_ms,
-                success=False,
-                error_type=error_type,
                 metadata=metadata,
             )
-            if error_type == "timeout":
-                raise LLMTimeoutError(str(exc)) from exc
-            raise LLMError(str(exc)) from exc
 
         duration_ms = int((time.monotonic() - started) * 1000)
         text = _extract_text(message)
@@ -145,6 +183,157 @@ class AnthropicClient:
             duration_ms=duration_ms,
             model=self.model,
         )
+
+    def run(
+        self,
+        *,
+        system: str,
+        messages: list[dict],
+        tools: list[dict],
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None = None,
+        max_tokens: int = 1024,
+        metadata: dict[str, Any] | None = None,
+    ) -> LLMRunResponse:
+        """One tool-enabled round-trip. The tool-use loop lives in the caller.
+
+        This makes a single ``messages.create`` call with the provided
+        conversation ``messages`` and ``tools``, logs it into ``AIUsageLog``, and
+        returns the assistant turn (normalized), the requested tool calls, and
+        the stop reason so the caller can decide whether to loop.
+        """
+        started = time.monotonic()
+        try:
+            client = self._client()
+            create_kwargs: dict[str, Any] = {
+                "model": self.model,
+                "max_tokens": max_tokens,
+                "system": system,
+                "messages": messages,
+            }
+            if tools:
+                create_kwargs["tools"] = tools
+            message = client.messages.create(**create_kwargs)
+        except Exception as exc:
+            self._log_and_raise_failure(
+                exc,
+                started=started,
+                feature=feature,
+                household_id=household_id,
+                user_id=user_id,
+                metadata=metadata,
+            )
+
+        duration_ms = int((time.monotonic() - started) * 1000)
+        assistant_blocks = _normalize_blocks(message)
+        tool_calls = _extract_tool_calls(message)
+        text = _extract_text(message)
+        stop_reason = getattr(message, "stop_reason", "") or ""
+        usage = getattr(message, "usage", None)
+        input_tokens = getattr(usage, "input_tokens", None) if usage else None
+        output_tokens = getattr(usage, "output_tokens", None) if usage else None
+
+        log_ai_usage(
+            household_id=household_id,
+            user_id=user_id,
+            feature=feature,
+            provider=self.provider,
+            model=self.model,
+            duration_ms=duration_ms,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            success=True,
+            metadata=metadata,
+        )
+
+        return LLMRunResponse(
+            assistant_blocks=assistant_blocks,
+            tool_calls=tool_calls,
+            text=text,
+            stop_reason=stop_reason,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            duration_ms=duration_ms,
+            model=self.model,
+        )
+
+    def _log_and_raise_failure(
+        self,
+        exc: Exception,
+        *,
+        started: float,
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None,
+        metadata: dict[str, Any] | None,
+    ) -> NoReturn:
+        """Log a failed provider call and re-raise as the right LLM error.
+
+        Shared by ``complete`` and ``run`` — never returns (always raises).
+        """
+        duration_ms = int((time.monotonic() - started) * 1000)
+        error_type = _classify_error(exc)
+        log_ai_usage(
+            household_id=household_id,
+            user_id=user_id,
+            feature=feature,
+            provider=self.provider,
+            model=self.model,
+            duration_ms=duration_ms,
+            success=False,
+            error_type=error_type,
+            metadata=metadata,
+        )
+        if error_type == "timeout":
+            raise LLMTimeoutError(str(exc)) from exc
+        raise LLMError(str(exc)) from exc
+
+
+def _block_get(block, key, default=None):
+    """Read ``key`` from an SDK content block, tolerating dicts and objects."""
+    if isinstance(block, dict):
+        return block.get(key, default)
+    return getattr(block, key, default)
+
+
+def _normalize_blocks(message) -> list[dict]:
+    """Convert SDK content blocks into serializable dicts for replay.
+
+    The assistant turn (text + tool_use blocks) must be appended back to the
+    ``messages`` list before the next call. We normalize to plain dicts so the
+    caller never depends on SDK object types.
+    """
+    blocks: list[dict] = []
+    for block in getattr(message, "content", []) or []:
+        btype = _block_get(block, "type")
+        if btype == "text":
+            blocks.append({"type": "text", "text": _block_get(block, "text") or ""})
+        elif btype == "tool_use":
+            blocks.append(
+                {
+                    "type": "tool_use",
+                    "id": _block_get(block, "id"),
+                    "name": _block_get(block, "name"),
+                    "input": _block_get(block, "input") or {},
+                }
+            )
+    return blocks
+
+
+def _extract_tool_calls(message) -> list[ToolCall]:
+    """Extract the ``tool_use`` blocks of a message into ``ToolCall`` records."""
+    calls: list[ToolCall] = []
+    for block in getattr(message, "content", []) or []:
+        if _block_get(block, "type") == "tool_use":
+            calls.append(
+                ToolCall(
+                    id=_block_get(block, "id"),
+                    name=_block_get(block, "name"),
+                    input=_block_get(block, "input") or {},
+                )
+            )
+    return calls
 
 
 def _extract_text(message) -> str:
