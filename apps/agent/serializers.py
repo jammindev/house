@@ -48,13 +48,26 @@ class ConversationListSerializer(serializers.ModelSerializer):
 
 
 class ConversationDetailSerializer(serializers.ModelSerializer):
-    """Full conversation with its ordered messages. `title` writable on create."""
+    """Full conversation with its ordered messages. `title` writable on create.
+
+    ``context_entity_type`` / ``context_object_id`` anchor the conversation to a
+    household entity (write-on-create only): every ask then pre-injects that
+    entity's context. Left blank for a plain, unanchored conversation.
+    """
 
     messages = AgentMessageSerializer(many=True, read_only=True)
 
     class Meta:
         model = AgentConversation
-        fields = ["id", "title", "last_message_at", "created_at", "messages"]
+        fields = [
+            "id",
+            "title",
+            "last_message_at",
+            "created_at",
+            "context_entity_type",
+            "context_object_id",
+            "messages",
+        ]
         read_only_fields = ["id", "last_message_at", "created_at", "messages"]
 
 

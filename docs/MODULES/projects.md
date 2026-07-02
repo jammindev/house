@@ -19,6 +19,7 @@
 ## Notes / décisions produit
 
 - V1 livrée dans le Parcours 04 : boutons de création rapide (tâche, note, dépense, activité) dans chaque onglet du détail projet, bandeau projet dans `InteractionCreateForm`, bloc de synthèse en tête (tâches ouvertes/retard, budget), `project_title` exposé, `?tab=` lu depuis l'URL — *source : `docs/JOURNAL_PRODUIT.md` lignes 81-96*.
-- `ProjectAIThread` et `ProjectAIMessage` sont en place côté modèle/API mais ne sont consommés par aucun composant React — feature en attente de cadrage produit.
+- **Onglet « Assistant » (2026-07)** : le détail projet expose un onglet chat branché sur l'agent RAG générique. Il s'appuie sur `<EntityAssistant entityType="project" objectId={id} />` (`ui/src/features/agent/`), lui-même adossé à une conversation `agent.AgentConversation` **ancrée** sur le projet (`context_entity_type='project'`, `context_object_id=<id>`). Au démarrage, tout le contexte du projet (détails + documents + dépenses + tâches + zones liés, via `spec.related`) est pré-injecté : l'IA connaît déjà le projet sans avoir à chercher. Voir `docs/MODULES/agent.md`.
+- `ProjectAIThread` et `ProjectAIMessage` (modèle/API historiques) restent en place mais **non utilisés** : l'onglet Assistant passe par l'agent générique plutôt que par ce thread dédié. Candidats à suppression si aucun usage ne se dessine.
 - Un projet a une seule zone "couverture" (`cover_interaction`) mais peut être lié à plusieurs zones via `ProjectZone` (M2M).
 - Contraintes DB strictes : priorité 1-5, budgets >= 0, `due_date >= start_date`.

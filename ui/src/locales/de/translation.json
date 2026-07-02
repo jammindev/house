@@ -1483,7 +1483,8 @@
       "notes": "Notizen",
       "expenses": "Ausgaben",
       "documents": "Dokumente",
-      "timeline": "Verlauf"
+      "timeline": "Verlauf",
+      "assistant": "Assistent"
     },
     "metrics": {
       "planned_budget": "Geplantes Budget",
@@ -1629,6 +1630,10 @@
     "error": "Etwas ist schiefgelaufen, bitte erneut versuchen.",
     "empty_title": "Stell jede Frage zu deinem Haushalt",
     "empty_hint": "Der Agent durchsucht deine Dokumente, Geräte, Aufgaben, Verträge und mehr und nennt jede Quelle.",
+    "entity": {
+      "empty_title": "Stell jede Frage zu diesem Element",
+      "empty_hint": "Der Assistent kennt dieses Element und alles, was damit verknüpft ist, bereits — seine Details, Dokumente, Ausgaben und Aufgaben — und nennt seine Quellen."
+    },
     "citations_label": "Quellen",
     "privacy": {
       "title": "Bevor du loslegst",

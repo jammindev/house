@@ -1483,7 +1483,8 @@
       "notes": "Notas",
       "expenses": "Gastos",
       "documents": "Documentos",
-      "timeline": "Historial"
+      "timeline": "Historial",
+      "assistant": "Asistente"
     },
     "metrics": {
       "planned_budget": "Presupuesto planificado",
@@ -1629,6 +1630,10 @@
     "error": "Algo salió mal, inténtalo de nuevo.",
     "empty_title": "Pregunta lo que quieras sobre tu hogar",
     "empty_hint": "El agente busca en tus documentos, equipos, tareas, contratos y más, y cita cada fuente.",
+    "entity": {
+      "empty_title": "Pregunta lo que quieras sobre este elemento",
+      "empty_hint": "El asistente ya conoce este elemento y todo lo vinculado a él — sus detalles, documentos, gastos y tareas — y cita sus fuentes."
+    },
     "citations_label": "Fuentes",
     "privacy": {
       "title": "Antes de empezar",

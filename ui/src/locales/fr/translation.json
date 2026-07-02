@@ -1483,7 +1483,8 @@
       "notes": "Notes",
       "expenses": "Dépenses",
       "documents": "Documents",
-      "timeline": "Historique"
+      "timeline": "Historique",
+      "assistant": "Assistant"
     },
     "metrics": {
       "planned_budget": "Budget prévisionnel",
@@ -1629,6 +1630,10 @@
     "error": "Une erreur est survenue, réessaie.",
     "empty_title": "Pose toutes tes questions sur ton foyer",
     "empty_hint": "L'agent fouille tes documents, équipements, tâches, contrats… et cite chaque source utilisée.",
+    "entity": {
+      "empty_title": "Pose n'importe quelle question sur cet élément",
+      "empty_hint": "L'assistant connaît déjà cet élément et tout ce qui lui est lié — ses détails, documents, dépenses et tâches — et cite ses sources."
+    },
     "citations_label": "Sources",
     "privacy": {
       "title": "Avant de commencer",

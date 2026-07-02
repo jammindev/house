@@ -213,10 +213,11 @@ _GET_ENTITY_DESCRIPTION = (
 )
 
 
-def _resolve_entity(entity_type: str, raw_id: str, household):
+def resolve_entity(entity_type: str, raw_id: str, household):
     """Shared (entity_type, id) → instance resolution for get_entity/get_related.
 
-    Returns ``(obj, None)`` on success or ``(None, ToolResult)`` with a
+    Also reused by ``agent.context`` to resolve a conversation's anchor entity.
+    Returns ``((spec, obj), None)`` on success or ``(None, ToolResult)`` with a
     recoverable message the model can read (unknown type, malformed id, no row).
     """
     if not entity_type or not raw_id:
@@ -250,7 +251,7 @@ def _get_entity_handler(
     entity_type = (tool_input.get("entity_type") or "").strip()
     raw_id = (tool_input.get("id") or "").strip()
 
-    resolved, error = _resolve_entity(entity_type, raw_id, household)
+    resolved, error = resolve_entity(entity_type, raw_id, household)
     if error is not None:
         return error
     spec, obj = resolved
@@ -325,7 +326,7 @@ def _get_related_handler(
     entity_type = (tool_input.get("entity_type") or "").strip()
     raw_id = (tool_input.get("id") or "").strip()
 
-    resolved, error = _resolve_entity(entity_type, raw_id, household)
+    resolved, error = resolve_entity(entity_type, raw_id, household)
     if error is not None:
         return error
     spec, obj = resolved

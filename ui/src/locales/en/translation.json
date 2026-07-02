@@ -1483,7 +1483,8 @@
       "notes": "Notes",
       "expenses": "Expenses",
       "documents": "Documents",
-      "timeline": "Timeline"
+      "timeline": "Timeline",
+      "assistant": "Assistant"
     },
     "metrics": {
       "planned_budget": "Planned budget",
@@ -1629,6 +1630,10 @@
     "error": "Something went wrong, please try again.",
     "empty_title": "Ask anything about your household",
     "empty_hint": "The agent searches your documents, equipment, tasks, contracts and more, and cites every source.",
+    "entity": {
+      "empty_title": "Ask anything about this item",
+      "empty_hint": "The assistant already knows this item and everything linked to it — its details, documents, expenses and tasks — and cites its sources."
+    },
     "citations_label": "Sources",
     "privacy": {
       "title": "Before you start",

@@ -249,6 +249,123 @@ class TestPostMessage:
         assert resp.status_code == status.HTTP_404_NOT_FOUND
 
 
+class TestForContext:
+    """GET /conversations/for_context/ — one conversation per (user, entity)."""
+
+    def _make_project(self, household, owner):
+        from projects.models import Project
+
+        return Project.objects.create(
+            household=household, created_by=owner, title="Assistant projet"
+        )
+
+    def test_creates_anchored_conversation_on_first_visit(
+        self, owner_client, household, owner
+    ):
+        project = self._make_project(household, owner)
+        resp = owner_client.get(
+            f"{BASE}for_context/",
+            {"entity_type": "project", "object_id": str(project.pk)},
+        )
+        assert resp.status_code == status.HTTP_200_OK
+        body = resp.json()
+        assert body["context_entity_type"] == "project"
+        assert body["context_object_id"] == str(project.pk)
+        assert body["messages"] == []
+        conv = AgentConversation.objects.get(id=body["id"])
+        assert conv.has_context
+
+    def test_is_idempotent_returns_same_conversation(
+        self, owner_client, household, owner
+    ):
+        project = self._make_project(household, owner)
+        params = {"entity_type": "project", "object_id": str(project.pk)}
+        first = owner_client.get(f"{BASE}for_context/", params).json()
+        second = owner_client.get(f"{BASE}for_context/", params).json()
+        assert first["id"] == second["id"]
+        assert AgentConversation.objects.filter(
+            context_entity_type="project", context_object_id=str(project.pk)
+        ).count() == 1
+
+    def test_returns_existing_messages(self, owner_client, household, owner):
+        project = self._make_project(household, owner)
+        conv = AgentConversation.objects.create(
+            household=household, created_by=owner,
+            context_entity_type="project", context_object_id=str(project.pk),
+        )
+        AgentMessage.objects.create(
+            conversation=conv, role=AgentMessage.Role.USER, content="salut"
+        )
+        resp = owner_client.get(
+            f"{BASE}for_context/",
+            {"entity_type": "project", "object_id": str(project.pk)},
+        )
+        assert resp.json()["id"] == str(conv.id)
+        assert [m["content"] for m in resp.json()["messages"]] == ["salut"]
+
+    def test_isolated_per_user(self, owner_client, household, owner):
+        project = self._make_project(household, owner)
+        other = UserFactory(email="ctx-other@example.com")
+        HouseholdMember.objects.create(
+            user=other, household=household, role=HouseholdMember.Role.MEMBER
+        )
+        AgentConversation.objects.create(
+            household=household, created_by=other,
+            context_entity_type="project", context_object_id=str(project.pk),
+        )
+        # Owner gets/creates their OWN conversation, not the other user's.
+        resp = owner_client.get(
+            f"{BASE}for_context/",
+            {"entity_type": "project", "object_id": str(project.pk)},
+        )
+        conv = AgentConversation.objects.get(id=resp.json()["id"])
+        assert conv.created_by_id == owner.id
+
+    def test_unknown_entity_type_rejected(self, owner_client, household):
+        resp = owner_client.get(
+            f"{BASE}for_context/", {"entity_type": "dragon", "object_id": "x"}
+        )
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_missing_params_rejected(self, owner_client, household):
+        resp = owner_client.get(f"{BASE}for_context/", {"entity_type": "project"})
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+class TestAnchoredMessage:
+    def test_context_entity_is_passed_to_ask(
+        self, owner_client, household, owner, monkeypatch
+    ):
+        from projects.models import Project
+
+        project = Project.objects.create(
+            household=household, created_by=owner, title="Projet ancré"
+        )
+        conv = AgentConversation.objects.create(
+            household=household, created_by=owner,
+            context_entity_type="project", context_object_id=str(project.pk),
+        )
+        ask_mock = _patch_ask(monkeypatch, return_value=_answer())
+
+        owner_client.post(
+            f"{BASE}{conv.id}/messages/", {"question": "le point ?"}, format="json"
+        )
+
+        assert ask_mock.call_args.kwargs["context_entity"] == (
+            "project",
+            str(project.pk),
+        )
+
+    def test_unanchored_conversation_passes_no_context(
+        self, owner_client, conversation, monkeypatch
+    ):
+        ask_mock = _patch_ask(monkeypatch, return_value=_answer())
+        owner_client.post(
+            f"{BASE}{conversation.id}/messages/", {"question": "hello"}, format="json"
+        )
+        assert ask_mock.call_args.kwargs["context_entity"] is None
+
+
 class TestRenameAndDelete:
     def test_rename(self, owner_client, conversation):
         resp = owner_client.patch(

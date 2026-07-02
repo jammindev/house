@@ -502,6 +502,93 @@ class TestErrorPaths:
 
 
 # ---------------------------------------------------------------------------
+# Anchored conversation — pre-injected entity context
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def make_project(household, owner):
+    from projects.models import Project
+
+    def _make(**overrides):
+        payload = dict(household=household, created_by=owner, title="generic project")
+        payload.update(overrides)
+        return Project.objects.create(**payload)
+
+    return _make
+
+
+class TestAnchoredContext:
+    def test_context_is_pre_injected_and_citable_without_searching(
+        self, with_api_key, household, owner, make_project, make_document
+    ):
+        from projects.models import ProjectDocument
+
+        project = make_project(title="Pompe à chaleur", description="devis en cours")
+        doc = make_document(name="devis PAC", ocr_text="montant 12000")
+        ProjectDocument.objects.create(project=project, document=doc)
+
+        # The model answers directly (no tool call), citing the anchor's document.
+        stub = _ToolUseClient(
+            script=[_run_text(f'Le devis est de 12000€ <cite id="document:{doc.pk}"/>.')]
+        )
+        result = service.ask(
+            "fais-moi le point sur ce projet",
+            household,
+            user=owner,
+            client=stub,
+            context_entity=("project", str(project.pk)),
+        )
+
+        # Cited the pre-injected document without any search_household call.
+        assert {c.id for c in result.citations} == {doc.pk}
+        assert result.metadata["tool_calls"] == 0
+        assert result.metadata["anchored"] is True
+
+        # The very first message carries the labelled, citable context block.
+        first_msg = stub.run_calls[0]["messages"][0]
+        assert first_msg["role"] == "user"
+        assert "Pompe à chaleur" in first_msg["content"]
+        assert f"id=document:{doc.pk}" in first_msg["content"]
+        # Followed by an assistant ack, then the real question.
+        assert stub.run_calls[0]["messages"][1]["role"] == "assistant"
+        assert stub.run_calls[0]["messages"][-1]["content"] == "fais-moi le point sur ce projet"
+
+    def test_anchored_system_prompt_is_used(
+        self, with_api_key, household, owner, make_project
+    ):
+        project = make_project(title="Solo")
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        service.ask(
+            "résume",
+            household,
+            user=owner,
+            client=stub,
+            context_entity=("project", str(project.pk)),
+        )
+        # The anchored addendum extends the base system prompt.
+        assert "CURRENT ITEM CONTEXT" in stub.run_calls[0]["system"]
+
+    def test_orphaned_anchor_falls_back_to_unanchored(
+        self, with_api_key, household, owner
+    ):
+        import uuid
+
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        result = service.ask(
+            "résume",
+            household,
+            user=owner,
+            client=stub,
+            context_entity=("project", str(uuid.uuid4())),
+        )
+        # No context injected: plain question only, base prompt, not anchored.
+        assert result.metadata["anchored"] is False
+        assert stub.run_calls[0]["messages"] == [{"role": "user", "content": "résume"}]
+        assert "CURRENT ITEM CONTEXT" not in stub.run_calls[0]["system"]
+
+
+# ---------------------------------------------------------------------------
 # Multi-tenant scope
 # ---------------------------------------------------------------------------
 

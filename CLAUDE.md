@@ -352,3 +352,44 @@ export default function FeatureDialog({ open, onOpenChange, existing }: Props) {
   }, [open, existing]);
 }
 ```
+
+---
+
+## Assistant IA ancré sur une entité (agent générique)
+
+L'agent conversationnel (`apps/agent/`, RAG + function calling) peut être embarqué
+dans la vue de détail de n'importe quelle entité, avec **tout le contexte de
+l'objet pré-injecté au démarrage** (l'IA connaît déjà l'entité sans chercher).
+Première intégration : onglet « Assistant » du détail projet.
+
+### Brancher une nouvelle entité (zone, équipement…)
+
+Une seule ligne côté UI — poser le composant générique dans la vue de l'entité :
+
+```tsx
+import EntityAssistant from '@/features/agent/EntityAssistant';
+
+<EntityAssistant entityType="zone" objectId={zone.id} />
+```
+
+**Prérequis** : l'entité doit être enregistrée dans `agent.searchables` (via
+`apps.py::ready()`). Un `related` sur le `SearchableSpec` enrichit le contexte
+injecté (items liés), mais reste optionnel. Aucune modification de `apps/agent/`
+n'est nécessaire.
+
+### Sous le capot
+
+- `AgentConversation` porte une ancre optionnelle
+  `(context_entity_type, context_object_id)` — mêmes strings que l'adressage des
+  tools (`entity_type:id`).
+- `EntityAssistant` appelle
+  `GET /api/agent/conversations/for_context/?entity_type=&object_id=` qui
+  **get-or-create** l'unique conversation `(household, user, entité)` (pas de
+  sidebar : 1 conversation persistante par entité et par user).
+- À chaque `ask`, `service.ask(..., context_entity=(type, id))` pré-injecte le
+  contexte via `agent.context.build_entity_context` (contenu complet + items liés,
+  rendu citable) et bascule sur un system prompt ancré : le modèle répond et cite
+  directement, sans appeler `search_household` pour l'objet courant.
+
+Doc complète : `docs/MODULES/agent.md` + section « conversation ancrée » de
+`docs/fiches/RAG.md`.

@@ -28,9 +28,10 @@ from typing import Any
 
 from django.conf import settings
 
+from . import context as context_builder
 from . import tools
 from .llm import LLMClient, LLMError, LLMTimeoutError, get_llm_client
-from .prompts import SYSTEM_PROMPT
+from .prompts import build_system_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -65,12 +66,19 @@ def ask(
     user=None,
     client: LLMClient | None = None,
     history: list[dict] | None = None,
+    context_entity: tuple[str, str] | None = None,
 ) -> AnswerResult:
     """Answer ``question`` using the data of ``household``. Always returns a result.
 
     ``history`` is an optional list of prior turns (``{"role", "content"}``,
     oldest first) threaded into the conversation so follow-up questions can
     resolve references to earlier turns. The model decides whether to search.
+
+    ``context_entity`` is an optional ``(entity_type, object_id)`` anchor. When
+    given (and resolvable), that entity's full context — the item plus everything
+    linked to it — is pre-injected as the first turn and seeded into the citation
+    pool, so the agent answers about it directly without searching. Generic:
+    works for any entity registered in ``agent.searchables``.
     """
     cleaned = (question or "").strip()
     if not cleaned:
@@ -84,8 +92,18 @@ def ask(
     max_iterations = _max_tool_iterations()
     tool_schemas = tools.schemas()
 
-    messages = _build_messages(cleaned, history)
     hit_pool: dict[tuple[str, Any], Any] = {}
+
+    # Resolve the anchor (if any) before building the conversation so its context
+    # leads the messages and its hits are citable from the first answer.
+    entity_context = _resolve_context(context_entity, household)
+    anchored = entity_context is not None
+    if anchored:
+        for hit in entity_context.hits:
+            hit_pool[(hit.entity_type, hit.id)] = hit
+
+    system_prompt = build_system_prompt(anchored=anchored)
+    messages = _build_messages(cleaned, history, entity_context)
     answer_text = ""
     stop_reason = ""
     model = ""
@@ -102,7 +120,7 @@ def ask(
 
         try:
             response = llm.run(
-                system=SYSTEM_PROMPT,
+                system=system_prompt,
                 messages=messages,
                 tools=offered_tools,
                 feature=FEATURE_NAME,
@@ -164,18 +182,60 @@ def ask(
             "iterations": iterations,
             "stop_reason": stop_reason,
             "answer_kind": answer_kind,
+            "anchored": anchored,
         },
     )
 
 
-def _build_messages(question: str, history: list[dict] | None) -> list[dict]:
-    """Turn prior turns + the current question into Anthropic messages.
+def _resolve_context(context_entity, household):
+    """Resolve an ``(entity_type, object_id)`` anchor into an EntityContext or None.
+
+    Never raises into ``ask``: an unknown/malformed/orphaned anchor just yields
+    ``None`` and the conversation proceeds unanchored.
+    """
+    if not context_entity:
+        return None
+    entity_type, object_id = context_entity
+    if not entity_type or not object_id:
+        return None
+    return context_builder.build_entity_context(entity_type, object_id, household)
+
+
+# Frames the pre-injected anchor context as the opening user turn. The assistant
+# ack keeps a valid user/assistant alternation before the real history/question.
+_CONTEXT_PREAMBLE = (
+    "[CONTEXT — {label}]\n"
+    "Here is the full context of the item this conversation is about (the item "
+    "and everything linked to it), each with a citable id. Use it to answer "
+    "directly.\n\n{rendered}"
+)
+_CONTEXT_ACK = "Understood — I have the full context of this item and will answer from it."
+
+
+def _build_messages(
+    question: str,
+    history: list[dict] | None,
+    entity_context=None,
+) -> list[dict]:
+    """Turn the optional anchor context + prior turns + the question into messages.
 
     History roles come from ``AgentMessage`` (``"user"`` / ``"agent"``); the
-    agent role maps to ``"assistant"``. Empty turns are skipped. The current
-    question is always the trailing user turn.
+    agent role maps to ``"assistant"``. Empty turns are skipped. When an
+    ``entity_context`` is present it leads as a synthetic user/assistant pair so
+    the model starts already holding the item's data. The current question is
+    always the trailing user turn.
     """
     messages: list[dict] = []
+    if entity_context is not None:
+        messages.append(
+            {
+                "role": "user",
+                "content": _CONTEXT_PREAMBLE.format(
+                    label=entity_context.label, rendered=entity_context.rendered
+                ),
+            }
+        )
+        messages.append({"role": "assistant", "content": _CONTEXT_ACK})
     for turn in history or []:
         content = (turn.get("content") or "").strip()
         if not content:

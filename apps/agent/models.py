@@ -30,6 +30,14 @@ class AgentConversation(HouseholdScopedModel):
     # without a subquery. Kept in sync when a message is appended.
     last_message_at = models.DateTimeField(null=True, blank=True)
 
+    # Optional anchor to a household entity (e.g. a project). When set, every
+    # `ask` on this conversation pre-injects that entity's full context so the
+    # agent already knows it without searching. The pair mirrors the agent's
+    # string-based entity addressing (`entity_type:id`, see agent.searchables /
+    # agent.tools) so any registered searchable can anchor a conversation.
+    context_entity_type = models.CharField(max_length=64, blank=True, default="")
+    context_object_id = models.CharField(max_length=64, blank=True, default="")
+
     objects = HouseholdScopedManager()
 
     class Meta:
@@ -37,6 +45,11 @@ class AgentConversation(HouseholdScopedModel):
 
     def __str__(self) -> str:
         return self.title or f"Conversation {self.pk}"
+
+    @property
+    def has_context(self) -> bool:
+        """True when this conversation is anchored to a household entity."""
+        return bool(self.context_entity_type and self.context_object_id)
 
 
 class AgentMessage(TimestampedModel):
