@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
@@ -182,16 +183,18 @@ function TasksSection({ projectId, onAdd }: { projectId: string; onAdd: () => vo
       ) : (
         <ul className="space-y-1.5">
           {open.map((task) => (
-            <li
-              key={task.id}
-              className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm"
-            >
-              <span className="min-w-0 flex-1 truncate">{task.subject}</span>
-              {task.due_date ? (
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {formatDate(task.due_date)}
-                </span>
-              ) : null}
+            <li key={task.id}>
+              <Link
+                to={`/app/tasks/${task.id}`}
+                className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
+              >
+                <span className="min-w-0 flex-1 truncate">{task.subject}</span>
+                {task.due_date ? (
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {formatDate(task.due_date)}
+                  </span>
+                ) : null}
+              </Link>
             </li>
           ))}
         </ul>
@@ -230,19 +233,21 @@ function NotesSection({ project }: { project: ProjectListItem }) {
       ) : (
         <ul className="mt-3 space-y-1.5">
           {previewNotes.map((n) => (
-            <li
-              key={n.id}
-              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-            >
-              <p className="font-medium">{n.subject}</p>
-              {n.content ? (
-                <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.content}</p>
-              ) : null}
-              {n.occurred_at ? (
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  {formatDateTime(n.occurred_at)}
-                </p>
-              ) : null}
+            <li key={n.id}>
+              <Link
+                to={`/app/interactions/${n.id}`}
+                className="block rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
+              >
+                <p className="font-medium">{n.subject}</p>
+                {n.content ? (
+                  <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{n.content}</p>
+                ) : null}
+                {n.occurred_at ? (
+                  <p className="mt-1 text-[10px] text-muted-foreground">
+                    {formatDateTime(n.occurred_at)}
+                  </p>
+                ) : null}
+              </Link>
             </li>
           ))}
         </ul>

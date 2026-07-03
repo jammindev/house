@@ -98,28 +98,33 @@ function TabInteractions({
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
-            <li key={item.id} className="rounded-md border p-3 text-sm">
-              <div className="flex items-start justify-between gap-2">
-                <span className="font-medium">{item.subject || '—'}</span>
-                <div className="flex shrink-0 gap-1">
-                  {item.type ? (
-                    <Badge variant="outline" className="h-5 text-[10px]">
-                      {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
-                    </Badge>
-                  ) : null}
-                  {item.status ? (
-                    <Badge variant="secondary" className="h-5 text-[10px]">
-                      {t(`interactions.status.${item.status}`, { defaultValue: item.status })}
-                    </Badge>
-                  ) : null}
+            <li key={item.id}>
+              <Link
+                to={`/app/interactions/${item.id}`}
+                className="block rounded-md border p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="font-medium">{item.subject || '—'}</span>
+                  <div className="flex shrink-0 gap-1">
+                    {item.type ? (
+                      <Badge variant="outline" className="h-5 text-[10px]">
+                        {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
+                      </Badge>
+                    ) : null}
+                    {item.status ? (
+                      <Badge variant="secondary" className="h-5 text-[10px]">
+                        {t(`interactions.status.${item.status}`, { defaultValue: item.status })}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-              {item.content ? (
-                <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
-              ) : null}
-              {item.occurred_at ? (
-                <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p>
-              ) : null}
+                {item.content ? (
+                  <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.content}</p>
+                ) : null}
+                {item.occurred_at ? (
+                  <p className="mt-1 text-[10px] text-muted-foreground">{formatDateTime(item.occurred_at)}</p>
+                ) : null}
+              </Link>
             </li>
           ))}
         </ul>
