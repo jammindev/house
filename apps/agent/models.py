@@ -16,6 +16,7 @@ from __future__ import annotations
 import uuid
 
 from django.db import models
+from django.db.models.functions import Coalesce
 
 from core.managers import HouseholdScopedManager
 from core.models import HouseholdScopedModel, TimestampedModel
@@ -41,7 +42,11 @@ class AgentConversation(HouseholdScopedModel):
     objects = HouseholdScopedManager()
 
     class Meta:
-        ordering = ["-last_message_at", "-created_at"]
+        # Recency = last activity. Coalesce avoids Postgres putting NULLs
+        # (conversations without any message yet) first on a plain DESC sort:
+        # an empty conversation sorts by its creation time instead of floating
+        # to the top forever.
+        ordering = [Coalesce("last_message_at", "created_at").desc(), "-created_at"]
 
     def __str__(self) -> str:
         return self.title or f"Conversation {self.pk}"

@@ -57,6 +57,24 @@ class TestAgentConversation:
         ordered = list(AgentConversation.objects.all())
         assert ordered.index(newer) < ordered.index(older)
 
+    def test_empty_conversation_sorts_by_created_at_not_first(self, household, owner):
+        """A conversation without messages (last_message_at NULL) must not float
+        above recently-active ones (Postgres puts NULLs first on DESC)."""
+        from django.utils import timezone
+
+        stale_empty = AgentConversation.objects.create(
+            household=household, created_by=owner, title="stale empty"
+        )
+        AgentConversation.objects.filter(pk=stale_empty.pk).update(
+            created_at=timezone.now() - timezone.timedelta(days=3)
+        )
+        active = AgentConversation.objects.create(
+            household=household, created_by=owner, title="active",
+            last_message_at=timezone.now(),
+        )
+        ordered = list(AgentConversation.objects.all())
+        assert ordered.index(active) < ordered.index(stale_empty)
+
 
 class TestAgentMessage:
     def test_create_and_order_by_created_at(self, conversation):
