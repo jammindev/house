@@ -479,7 +479,7 @@ class TestCreateEntity:
                 "entity_type": "note",
                 "id": str(note.id),
                 "label": "Idée déco",
-                "url_path": f"/app/interactions/{note.id}/edit",
+                "url_path": f"/app/interactions/{note.id}",
             }
         ]
 

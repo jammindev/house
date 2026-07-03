@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { CheckSquare, FolderOpen, Lock, Plus, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
@@ -21,7 +22,6 @@ import {
 import TaskSection from './TaskSection';
 import NewTaskDialog from './NewTaskDialog';
 import TaskAttachmentsDialog from './TaskAttachmentsDialog';
-import TaskDetailDialog from './TaskDetailDialog';
 
 type FilterKey = 'all' | 'pending' | 'in_progress' | 'backlog' | 'done';
 
@@ -45,6 +45,7 @@ export default function TasksPanel({
 }: TasksPanelProps) {
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const isEmbedded = Boolean(projectId);
   const prefix = stateKeyPrefix ?? 'tasks';
@@ -64,7 +65,6 @@ export default function TasksPanel({
   );
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [attachmentsTask, setAttachmentsTask] = React.useState<Task | null>(null);
-  const [detailTask, setDetailTask] = React.useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useSessionState<FilterKey>(`${prefix}.filter`, 'all');
   const [showPrivateOnly, setShowPrivateOnly] = useSessionState(`${prefix}.filterPrivate`, false);
   const [showInactiveProjects, setShowInactiveProjects] = useSessionState(`${prefix}.filterInactiveProjects`, false);
@@ -192,7 +192,7 @@ export default function TasksPanel({
     onEdit: setEditingTask,
     onDelete: handleTaskDeleted,
     onManageAttachments: setAttachmentsTask,
-    onViewDetail: setDetailTask,
+    onViewDetail: (task: Task) => navigate(`/app/tasks/${task.id}`),
   };
 
   return (
@@ -339,18 +339,6 @@ export default function TasksPanel({
         task={attachmentsTask}
         open={attachmentsTask !== null}
         onOpenChange={(open) => { if (!open) setAttachmentsTask(null); }}
-      />
-
-      <TaskDetailDialog
-        task={detailTask}
-        open={detailTask !== null}
-        onOpenChange={(open) => { if (!open) setDetailTask(null); }}
-        householdMembers={householdMembers}
-        onStatusChange={handleStatusChange}
-        onAssigneeChange={handleAssigneeChange}
-        onEdit={setEditingTask}
-        onDelete={handleTaskDeleted}
-        onManageAttachments={setAttachmentsTask}
       />
     </>
   );

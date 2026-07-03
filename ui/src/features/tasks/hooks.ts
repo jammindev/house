@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import {
-  fetchTasks, fetchHouseholdMembers, fetchZones, fetchProjectTasks,
+  fetchTasks, fetchTask, fetchHouseholdMembers, fetchZones, fetchProjectTasks,
   updateTaskStatus, updateTask, createTask, deleteTask,
   fetchTaskDocuments, linkDocumentToTask, unlinkDocumentFromTask,
   fetchTaskInteractions, linkInteractionToTask, unlinkInteractionFromTask,
@@ -14,6 +14,7 @@ import {
 export const taskKeys = {
   all: ['tasks'] as const,
   list: () => [...taskKeys.all, 'list'] as const,
+  detail: (id: string) => [...taskKeys.all, 'detail', id] as const,
   project: (projectId: string) => [...taskKeys.all, 'project', projectId] as const,
 };
 
@@ -22,6 +23,14 @@ export function useTasks() {
     queryKey: taskKeys.list(),
     queryFn: fetchTasks,
     select: (data) => data.filter((t) => t.status !== 'archived'),
+  });
+}
+
+export function useTask(id: string) {
+  return useQuery({
+    queryKey: taskKeys.detail(id),
+    queryFn: () => fetchTask(id),
+    enabled: Boolean(id),
   });
 }
 

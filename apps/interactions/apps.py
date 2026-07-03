@@ -15,14 +15,14 @@ class InteractionsConfig(AppConfig):
             model=Interaction,
             search_fields=('subject', 'content'),
             label_attr='subject',
-            url_template='/app/interactions/{id}/edit',
+            url_template='/app/interactions/{id}',
         ))
 
         register_writable(WritableSpec(
             entity_type='note',
             create=_create_note_from_agent,
             label_attr='subject',
-            url_template='/app/interactions/{id}/edit',
+            url_template='/app/interactions/{id}',
         ))
 
 

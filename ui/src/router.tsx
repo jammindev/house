@@ -7,9 +7,11 @@ import NotFoundPage from './features/general/NotFoundPage';
 import { lazyWithReload } from './lib/lazyWithReload';
 
 const TasksPage = lazyWithReload(() => import('./features/tasks/TasksPage'));
+const TaskDetailPage = lazyWithReload(() => import('./features/tasks/TaskDetailPage'));
 const ZonesPage = lazyWithReload(() => import('./features/zones/ZonesPage'));
 const ZoneDetailPage = lazyWithReload(() => import('./features/zones/ZoneDetailPage'));
 const InteractionsPage = lazyWithReload(() => import('./features/interactions/InteractionsPage'));
+const InteractionDetailPage = lazyWithReload(() => import('./features/interactions/InteractionDetailPage'));
 const InteractionNewPage = lazyWithReload(() => import('./features/interactions/InteractionNewPage'));
 const InteractionEditPage = lazyWithReload(() => import('./features/interactions/InteractionEditPage'));
 const ProjectsPage = lazyWithReload(() => import('./features/projects/ProjectsPage'));
@@ -51,10 +53,12 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'tasks', element: <TasksPage /> },
+      { path: 'tasks/:id', element: <TaskDetailPage /> },
       { path: 'zones', element: <ZonesPage /> },
       { path: 'zones/:id', element: <ZoneDetailPage /> },
       { path: 'interactions', element: <InteractionsPage /> },
       { path: 'interactions/new', element: <InteractionNewPage /> },
+      { path: 'interactions/:id', element: <InteractionDetailPage /> },
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
       { path: 'expenses', element: <ExpensesPage /> },
       { path: 'projects', element: <ProjectsPage /> },
