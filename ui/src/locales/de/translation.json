@@ -429,7 +429,8 @@
       "activity": "Aktivität",
       "projects": "Projekte",
       "photos": "Fotos",
-      "documents": "Dokumente"
+      "documents": "Dokumente",
+      "assistant": "Assistent"
     },
     "photos": {
       "title": "Zonenfotos",
@@ -1644,6 +1645,7 @@
       "title": "Aktualisiert: {{label}}"
     },
     "entity": {
+      "section_title": "Assistent",
       "empty_title": "Stell jede Frage zu diesem Element",
       "empty_hint": "Der Assistent kennt dieses Element und alles, was damit verknüpft ist, bereits — seine Details, Dokumente, Ausgaben und Aufgaben — und nennt seine Quellen."
     },

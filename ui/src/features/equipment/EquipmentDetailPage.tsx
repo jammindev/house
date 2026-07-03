@@ -16,6 +16,7 @@ import {
   equipmentKeys,
 } from './hooks';
 import EquipmentDialog from './EquipmentDialog';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
@@ -337,6 +338,14 @@ export default function EquipmentDetailPage() {
               ))}
             </ul>
           )}
+        </section>
+
+        {/* Assistant */}
+        <section className="space-y-3">
+          <h2 className="text-base font-semibold text-foreground">
+            {t('agent.entity.section_title')}
+          </h2>
+          <EntityAssistant entityType="equipment" objectId={equipment.id} />
         </section>
       </div>
 

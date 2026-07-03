@@ -18,12 +18,13 @@ import {
   useZonePhotos,
 } from './hooks';
 import ZoneDialog from './ZoneDialog';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Tab types ──────────────────────────────────────────────
 
-type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'projects' | 'photos' | 'documents';
-const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'projects', 'photos', 'documents'];
+type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'projects' | 'photos' | 'documents' | 'assistant';
+const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'projects', 'photos', 'documents', 'assistant'];
 
 // ── Tab: Info ──────────────────────────────────────────────
 
@@ -545,6 +546,10 @@ export default function ZoneDetailPage() {
                 {tab === 'photos' ? <TabPhotos zoneId={id} /> : null}
 
                 {tab === 'documents' ? <TabDocuments zoneId={id} /> : null}
+
+                {tab === 'assistant' ? (
+                  <EntityAssistant entityType="zone" objectId={id} />
+                ) : null}
               </CardContent>
             </Card>
           )}
