@@ -8,16 +8,17 @@ from django.db.models import Count
 from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 
-from . import searchables, service
+from . import searchables, service, tools
 from .llm import LLMError, LLMTimeoutError
 from .models import AgentConversation, AgentMessage
+from .throttles import AgentBurstRateThrottle, AgentSustainedRateThrottle
 from .serializers import (
     AskRequestSerializer,
     AskResponseSerializer,
@@ -55,6 +56,7 @@ class AskView(APIView):
     """``POST /api/agent/ask/`` — answer a household question."""
 
     permission_classes = [IsAuthenticated, IsHouseholdMember]
+    throttle_classes = [AgentBurstRateThrottle, AgentSustainedRateThrottle]
 
     def post(self, request):
         request_serializer = AskRequestSerializer(data=request.data)
@@ -111,6 +113,13 @@ class ConversationViewSet(viewsets.ModelViewSet):
     """
 
     permission_classes = [IsAuthenticated, IsHouseholdMember]
+
+    def get_throttles(self):
+        # Only the LLM-backed action costs money — plain conversation CRUD
+        # stays unthrottled.
+        if self.action == "messages":
+            return [AgentBurstRateThrottle(), AgentSustainedRateThrottle()]
+        return super().get_throttles()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -225,6 +234,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
             raise ValidationError(f"Unknown entity_type: {entity_type}")
 
         household = self._resolve_household()
+        # The anchor must be a real entity of this household — otherwise any id
+        # would silently create an orphan-anchored conversation row.
+        resolved, _error = tools.resolve_entity(entity_type, object_id, household)
+        if resolved is None:
+            raise NotFound(f"No {entity_type} with id {object_id} in this household.")
         conversation, _created = AgentConversation.objects.get_or_create(
             household=household,
             created_by=request.user,

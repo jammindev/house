@@ -203,9 +203,51 @@ class TestAnthropicClientRun:
             household_id=household.id,
         )
 
-        assert fake.messages.last_kwargs["system"] == "SYSTEM"
+        # The system prompt is sent as a block carrying the prompt-cache
+        # breakpoint (caches the tools + system prefix across calls).
+        assert fake.messages.last_kwargs["system"] == [
+            {"type": "text", "text": "SYSTEM", "cache_control": {"type": "ephemeral"}}
+        ]
         assert fake.messages.last_kwargs["messages"] == messages
         assert fake.messages.last_kwargs["tools"] == tools
+
+    def test_run_logs_cache_usage_when_reported(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        message = _fake_run_message([_text_block("ok")])
+        message.usage.cache_read_input_tokens = 1800
+        message.usage.cache_creation_input_tokens = 0
+        fake = _FakeClient(response=message)
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        client.run(
+            system="sys",
+            messages=[{"role": "user", "content": "hi"}],
+            tools=[],
+            feature="agent_ask",
+            household_id=household.id,
+        )
+
+        log = AIUsageLog.objects.get()
+        assert log.metadata["cache_read_input_tokens"] == 1800
+        assert log.metadata["cache_creation_input_tokens"] == 0
+
+    def test_run_tolerates_missing_cache_counters(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        monkeypatch.setattr(client, "_client", lambda: fake)
+
+        client.run(
+            system="sys",
+            messages=[{"role": "user", "content": "hi"}],
+            tools=[],
+            feature="agent_ask",
+            household_id=household.id,
+            metadata={"iteration": 1},
+        )
+
+        log = AIUsageLog.objects.get()
+        assert "cache_read_input_tokens" not in (log.metadata or {})
+        assert log.metadata["iteration"] == 1
 
     def test_run_omits_tools_kwarg_when_no_tools(self, with_api_key, monkeypatch, household):
         client = AnthropicClient()
