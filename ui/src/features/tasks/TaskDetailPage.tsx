@@ -23,6 +23,7 @@ import TaskStatusBadge from './TaskStatusBadge';
 import TaskAssigneeBadge from './TaskAssigneeBadge';
 import NewTaskDialog from './NewTaskDialog';
 import TaskAttachmentsDialog from './TaskAttachmentsDialog';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 
 function formatDate(value?: string | null): string {
   if (!value) return '—';
@@ -351,6 +352,14 @@ export default function TaskDetailPage() {
             </Button>
           </div>
         )}
+
+        {/* Assistant */}
+        <section className="space-y-2">
+          <h2 className="text-base font-semibold text-foreground">
+            {t('agent.entity.section_title')}
+          </h2>
+          <EntityAssistant entityType="task" objectId={task.id} />
+        </section>
       </div>
 
       <NewTaskDialog

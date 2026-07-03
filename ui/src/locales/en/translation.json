@@ -429,7 +429,8 @@
       "activity": "Activity",
       "projects": "Projects",
       "photos": "Photos",
-      "documents": "Documents"
+      "documents": "Documents",
+      "assistant": "Assistant"
     },
     "photos": {
       "title": "Zone photos",
@@ -1641,6 +1642,7 @@
       "title": "Created: {{label}}"
     },
     "entity": {
+      "section_title": "Assistant",
       "empty_title": "Ask anything about this item",
       "empty_hint": "The assistant already knows this item and everything linked to it — its details, documents, expenses and tasks — and cites its sources."
     },

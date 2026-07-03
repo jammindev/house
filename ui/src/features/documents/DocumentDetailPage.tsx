@@ -17,6 +17,7 @@ import {
   documentKeys,
 } from './hooks';
 import DocumentEditDialog from './DocumentEditDialog';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useToast } from '@/lib/toast';
 
@@ -255,6 +256,14 @@ export default function DocumentDetailPage() {
               ))}
             </ul>
           )}
+        </div>
+
+        {/* Assistant */}
+        <div className="space-y-2">
+          <h2 className="text-base font-semibold text-foreground">
+            {t('agent.entity.section_title')}
+          </h2>
+          <EntityAssistant entityType="document" objectId={doc.id} />
         </div>
       </div>
 
