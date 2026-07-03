@@ -16,6 +16,17 @@ export interface AgentCreatedEntity {
   url_path: string;
 }
 
+/** An entity the agent modified this turn (via update_entity), for undo. */
+export interface AgentUpdatedEntity {
+  entity_type: string;
+  id: string;
+  label: string;
+  url_path: string;
+  /** Values of the changed fields BEFORE the update — re-applied on undo. */
+  previous: Record<string, unknown>;
+  changed: Record<string, unknown>;
+}
+
 export interface AgentAnswerMetadata {
   duration_ms?: number;
   tokens_in?: number;
@@ -26,6 +37,7 @@ export interface AgentAnswerMetadata {
   /** True when the answer hit the model's max_tokens and was cut short. */
   truncated?: boolean;
   created_entities?: AgentCreatedEntity[];
+  updated_entities?: AgentUpdatedEntity[];
   [key: string]: unknown;
 }
 

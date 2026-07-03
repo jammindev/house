@@ -107,7 +107,8 @@ def ask(
     system_prompt = build_system_prompt(anchored=anchored)
     messages = _build_messages(cleaned, history, entity_context)
     created_entities: list[dict] = []
-    created_signatures: set = set()
+    updated_entities: list[dict] = []
+    write_signatures: set = set()
     answer_text = ""
     stop_reason = ""
     model = ""
@@ -156,15 +157,15 @@ def ask(
         for call in response.tool_calls:
             tool_calls += 1
             # Anti-duplicate guard for writes: if the model repeats the same
-            # create call in this turn, skip the DB write and tell it so.
-            if call.name == tools.CREATE_ENTITY and _is_duplicate_create(
-                call.input, created_signatures
+            # create/update call in this turn, skip the DB write and tell it so.
+            if call.name in (tools.CREATE_ENTITY, tools.UPDATE_ENTITY) and _is_duplicate_write(
+                call.name, call.input, write_signatures
             ):
                 tool_results.append(
                     {
                         "type": "tool_result",
                         "tool_use_id": call.id,
-                        "content": "(already created this item in this turn — skipped)",
+                        "content": "(already did this exact write in this turn — skipped)",
                     }
                 )
                 continue
@@ -180,6 +181,7 @@ def ask(
             for hit in result.hits:
                 hit_pool[(hit.entity_type, hit.id)] = hit
             created_entities.extend(result.created)
+            updated_entities.extend(result.updated)
             tool_results.append(
                 {
                     "type": "tool_result",
@@ -212,15 +214,27 @@ def ask(
             "answer_kind": answer_kind,
             "anchored": anchored,
             "created_entities": created_entities,
+            "updated_entities": updated_entities,
         },
     )
 
 
-def _is_duplicate_create(tool_input: dict, seen: set) -> bool:
-    """True if this create call was already made this turn; records it otherwise."""
+def _is_duplicate_write(name: str, tool_input: dict, seen: set) -> bool:
+    """True if this exact write call was already made this turn; records it otherwise.
+
+    The signature covers the tool name, the target (entity_type + id for
+    updates) and the fields — so "create task A" then "create task B" both run,
+    but the same call repeated verbatim is skipped.
+    """
     entity_type = (tool_input or {}).get("entity_type") or ""
+    target_id = str((tool_input or {}).get("id") or "")
     fields = (tool_input or {}).get("fields") or {}
-    signature = (entity_type, tools._stable_signature(fields if isinstance(fields, dict) else {}))
+    signature = (
+        name,
+        entity_type,
+        target_id,
+        tools._stable_signature(fields if isinstance(fields, dict) else {}),
+    )
     if signature in seen:
         return True
     seen.add(signature)

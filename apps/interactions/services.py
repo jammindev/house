@@ -274,3 +274,39 @@ def create_note_interaction(
             InteractionZone.objects.create(interaction=interaction, zone=zone)
 
     return interaction
+
+
+def update_note_interaction(
+    *,
+    household,
+    user,
+    interaction: Interaction,
+    fields: dict,
+) -> Interaction:
+    """Update a note (``Interaction`` type=note) — shared by the agent's ``update_entity``.
+
+    Only ``subject`` and ``content`` are editable, only on notes. Private notes
+    of another user are rejected (the resolver should not surface them, this is
+    the defensive second layer).
+    """
+    if interaction.type != "note":
+        raise ValueError("update_note_interaction: only notes can be updated")
+    if interaction.is_private and interaction.created_by_id != getattr(user, "pk", None):
+        raise ValueError("update_note_interaction: cannot edit another user's private note")
+
+    updates: dict = {}
+    if "subject" in fields:
+        subject = (fields.get("subject") or "").strip()
+        if not subject:
+            raise ValueError("update_note_interaction: subject cannot be blank")
+        updates["subject"] = subject
+    if "content" in fields:
+        updates["content"] = fields.get("content") or ""
+    if not updates:
+        return interaction
+
+    for key, value in updates.items():
+        setattr(interaction, key, value)
+    interaction.updated_by = user
+    interaction.save(update_fields=[*updates.keys(), "updated_by", "updated_at"])
+    return interaction

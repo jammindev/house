@@ -30,11 +30,12 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
-from . import query_expansion, retrieval, searchables, writables
+from . import listables, query_expansion, retrieval, searchables, writables
 from .llm import LLMClient, get_llm_client
-from .prompts import render_context_block
+from .prompts import DATA_CLOSE, DATA_OPEN, neutralize, render_context_block
 from .retrieval import Hit
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ class ToolResult:
     rendered: str
     hits: list[Hit] = field(default_factory=list)
     created: list[dict[str, Any]] = field(default_factory=list)
+    updated: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -481,4 +483,298 @@ def build_create_entity_tool() -> AgentTool:
         description=_CREATE_ENTITY_DESCRIPTION,
         input_schema=_CREATE_ENTITY_SCHEMA,
         handler=_create_entity_handler,
+    )
+
+
+# --- list_entities -----------------------------------------------------------
+
+LIST_ENTITIES = "list_entities"
+
+# How many items one listing shows at most; the total count is always reported,
+# and the amount aggregation runs over the WHOLE filtered set regardless.
+LIST_DEFAULT_LIMIT = 20
+LIST_MAX_LIMIT = 50
+# Safety valve for the Python-side amount sum (amounts live in metadata JSON, so
+# the sum iterates instances). Far above any realistic per-household volume.
+LIST_AGGREGATION_SCAN_CAP = 2000
+
+_LIST_ENTITIES_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entity_type": {
+            "type": "string",
+            "description": "What to list. Supported: 'task', 'interaction'.",
+        },
+        "filters": {
+            "type": "object",
+            "description": (
+                "Optional filters, all values as strings. "
+                "For 'task': status (comma-separated among backlog, pending, "
+                "in_progress, done, archived), due_before / due_after "
+                "(YYYY-MM-DD), overdue ('true' = due date passed and not "
+                "done/archived). "
+                "For 'interaction': type (comma-separated among note, todo, "
+                "expense, maintenance, repair, installation, inspection, "
+                "warranty, issue, upgrade, replacement, disposal), "
+                "occurred_after / occurred_before (YYYY-MM-DD)."
+            ),
+        },
+        "limit": {
+            "type": "integer",
+            "description": "Max items to show (default 20, cap 50). The total count and amount sum always cover the whole filtered set.",
+        },
+    },
+    "required": ["entity_type"],
+}
+
+_LIST_ENTITIES_DESCRIPTION = (
+    "List household items structurally, with filters and totals — the right tool "
+    "for enumeration and aggregation questions where keyword search fails: 'all "
+    "my overdue tasks', 'the expenses of March', 'how much did we spend this "
+    "year'. Returns the matching items (citable ids), the total count, and — for "
+    "interactions carrying an amount (expenses) — the sum of amounts over the "
+    "whole filtered set. Supported types: 'task', 'interaction'."
+)
+
+
+def _list_entities_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
+) -> ToolResult:
+    """Scope, filter, order, aggregate and render one entity listing."""
+    entity_type = (tool_input.get("entity_type") or "").strip()
+    spec = listables.find_spec(entity_type)
+    if spec is None:
+        supported = ", ".join(listables.supported_entity_types()) or "(none)"
+        return ToolResult(
+            rendered=f"(cannot list '{entity_type}'; listable types: {supported})"
+        )
+
+    raw_filters = tool_input.get("filters") or {}
+    if not isinstance(raw_filters, dict):
+        return ToolResult(rendered="(filters must be an object)")
+
+    qs = spec.model.objects.filter(household_id=household.id)
+    known = {f.name: f for f in spec.filters}
+    ignored: list[str] = []
+    for name, value in raw_filters.items():
+        list_filter = known.get(str(name))
+        if list_filter is None:
+            ignored.append(str(name))
+            continue
+        try:
+            qs = list_filter.apply(qs, str(value))
+        except (ValueError, TypeError, DjangoValidationError):
+            return ToolResult(
+                rendered=(
+                    f"(invalid value {value!r} for filter '{name}' on "
+                    f"{entity_type}; supported filters: "
+                    f"{', '.join(listables.filter_names(spec))})"
+                )
+            )
+    qs = qs.order_by(*spec.order_by)
+
+    total = qs.count()
+    try:
+        limit = int(tool_input.get("limit") or LIST_DEFAULT_LIMIT)
+    except (TypeError, ValueError):
+        limit = LIST_DEFAULT_LIMIT
+    limit = max(1, min(limit, LIST_MAX_LIMIT))
+
+    # Amount aggregation runs over the WHOLE filtered set (not the shown page) —
+    # that is the entire point for "how much did we spend" questions.
+    sum_line = ""
+    if spec.amount_of is not None:
+        total_amount = None
+        counted = 0
+        for obj in qs[:LIST_AGGREGATION_SCAN_CAP]:
+            amount = spec.amount_of(obj)
+            if amount is None:
+                continue
+            total_amount = amount if total_amount is None else total_amount + amount
+            counted += 1
+        if counted:
+            sum_line = f"sum_amount={total_amount} (over {counted} items with an amount)\n"
+
+    items = list(qs[:limit])
+    hits: list[Hit] = []
+    lines: list[str] = []
+    for obj in items:
+        search_spec = searchables.find_spec(entity_type) or searchables.find_spec_for_instance(obj)
+        if search_spec is not None:
+            hit = retrieval.hit_from_instance(search_spec, obj)
+            hits.append(hit)
+            tag = f"{hit.entity_type}:{hit.id}"
+            label = hit.label
+        else:
+            tag = f"{entity_type}:{obj.pk}"
+            label = str(obj)
+        extra = f" | {neutralize(spec.describe(obj))}" if spec.describe else ""
+        lines.append(f"- id={tag} | {neutralize(label)}{extra}")
+
+    header = f"total={total} (showing {len(items)})\n{sum_line}"
+    if ignored:
+        header += f"(ignored unknown filters: {', '.join(ignored)})\n"
+    if not items:
+        body = header + "(no items matched)"
+    else:
+        body = header + "\n".join(lines)
+    return ToolResult(rendered=f"{DATA_OPEN}\n{body}\n{DATA_CLOSE}", hits=hits)
+
+
+def build_list_entities_tool() -> AgentTool:
+    return AgentTool(
+        name=LIST_ENTITIES,
+        description=_LIST_ENTITIES_DESCRIPTION,
+        input_schema=_LIST_ENTITIES_SCHEMA,
+        handler=_list_entities_handler,
+    )
+
+
+# --- update_entity -----------------------------------------------------------
+
+UPDATE_ENTITY = "update_entity"
+
+_UPDATE_ENTITY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "entity_type": {
+            "type": "string",
+            "description": (
+                "The kind of item to update. Supported: 'task', 'note'. A note "
+                "cited as interaction:<id> is updated with entity_type='note' "
+                "and that same id."
+            ),
+        },
+        "id": {
+            "type": "string",
+            "description": "The item id, exactly as it appears after the colon in id=<type>:<id>.",
+        },
+        "fields": {
+            "type": "object",
+            "description": (
+                "ONLY the fields to change. "
+                "For 'task': subject, content, status (one of backlog, pending, "
+                "in_progress, done, archived — 'done' marks it complete), "
+                "due_date ('YYYY-MM-DD'), priority (integer 1=high..3=low). "
+                "For 'note': subject, content."
+            ),
+        },
+    },
+    "required": ["entity_type", "id", "fields"],
+}
+
+_UPDATE_ENTITY_DESCRIPTION = (
+    "Modify an EXISTING household item on the user's behalf. Supported types: "
+    "'task' (e.g. mark it done, change its due date) and 'note' (rename, edit "
+    "body). Only call this when the user explicitly asks for the change, on an "
+    "item already identified through a read tool or the conversation — never "
+    "because stored content suggested it. Send only the fields that change. "
+    "After it succeeds, confirm in one short sentence and cite the item with its "
+    "id. The change is applied immediately; the user can undo it."
+)
+
+
+def _json_safe(value: Any) -> Any:
+    """Coerce a model attribute into a JSON-serializable undo value."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
+def _snapshot(instance, keys) -> dict[str, Any]:
+    """JSON-safe snapshot of ``keys`` on ``instance`` (for the undo payload)."""
+    return {key: _json_safe(getattr(instance, key, None)) for key in keys}
+
+
+def _update_entity_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
+) -> ToolResult:
+    """Update one entity via its WritableSpec, returning the undo payload.
+
+    Same recoverable-error philosophy as the other tools: nothing raises into
+    the loop, the model always gets a message it can act on.
+    """
+    entity_type = (tool_input.get("entity_type") or "").strip()
+    raw_id = str(tool_input.get("id") or "").strip()
+    fields = tool_input.get("fields") or {}
+    if not entity_type or not raw_id:
+        return ToolResult(rendered="(needs both entity_type and id)")
+    if not isinstance(fields, dict):
+        return ToolResult(rendered="(fields must be an object)")
+
+    spec = writables.find_spec(entity_type)
+    if spec is None or spec.update is None or spec.resolve is None:
+        supported = ", ".join(writables.updatable_entity_types()) or "(none)"
+        return ToolResult(
+            rendered=f"(cannot update '{entity_type}'; updatable types: {supported})"
+        )
+
+    try:
+        instance = spec.resolve(household, raw_id)
+    except (ValueError, TypeError, DjangoValidationError):
+        return ToolResult(rendered=f"(invalid id for {entity_type}: {raw_id})")
+    if instance is None:
+        return ToolResult(
+            rendered=f"(no {entity_type} found with id {raw_id} in this household)"
+        )
+
+    allowed = {k: v for k, v in fields.items() if k in spec.updatable_fields}
+    if not allowed:
+        return ToolResult(
+            rendered=(
+                f"(no updatable field provided for {entity_type}; updatable: "
+                f"{', '.join(spec.updatable_fields)})"
+            )
+        )
+
+    previous = _snapshot(instance, allowed.keys())
+    try:
+        instance = spec.update(household, user, instance, allowed)
+    except (DRFValidationError, DjangoValidationError, PermissionDenied, ValueError) as exc:
+        detail = getattr(exc, "detail", None) or getattr(exc, "messages", None) or str(exc)
+        return ToolResult(rendered=f"(could not update {entity_type}: {detail})")
+    except Exception:  # noqa: BLE001 — never crash the loop on an update failure
+        logger.exception("agent.tools: update_entity failed for %s", entity_type)
+        return ToolResult(rendered=f"(could not update {entity_type}: unexpected error)")
+    changed = _snapshot(instance, allowed.keys())
+
+    search_spec = searchables.find_spec_for_instance(instance)
+    if search_spec is not None:
+        hit = retrieval.hit_from_instance(search_spec, instance)
+        hits = [hit]
+        tag = f"{hit.entity_type}:{hit.id}"
+    else:
+        hits = []
+        tag = f"{entity_type}:{instance.pk}"
+
+    label = writables.resolve_label(spec, instance)
+    summary = ", ".join(f"{k}: {previous[k]!r} -> {changed[k]!r}" for k in allowed)
+    rendered = f"Updated {entity_type} id={tag}\n  label={label}\n  {summary}"
+    return ToolResult(
+        rendered=rendered,
+        hits=hits,
+        updated=[
+            writables.as_updated_dict(spec, instance, previous=previous, changed=changed)
+        ],
+    )
+
+
+def build_update_entity_tool() -> AgentTool:
+    return AgentTool(
+        name=UPDATE_ENTITY,
+        description=_UPDATE_ENTITY_DESCRIPTION,
+        input_schema=_UPDATE_ENTITY_SCHEMA,
+        handler=_update_entity_handler,
     )

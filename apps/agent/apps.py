@@ -12,11 +12,15 @@ class AgentConfig(AppConfig):
             build_create_entity_tool,
             build_get_entity_tool,
             build_get_related_tool,
+            build_list_entities_tool,
             build_search_household_tool,
+            build_update_entity_tool,
             register,
         )
 
         register(build_search_household_tool())
+        register(build_list_entities_tool())
         register(build_get_entity_tool())
         register(build_get_related_tool())
         register(build_create_entity_tool())
+        register(build_update_entity_tool())

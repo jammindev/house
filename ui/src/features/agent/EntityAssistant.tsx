@@ -6,7 +6,12 @@ import { Textarea } from '@/design-system/textarea';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
-import { useAgentCreatedUndo, useEntityConversation, usePostMessage } from './hooks';
+import {
+  useAgentCreatedUndo,
+  useAgentUpdatedUndo,
+  useEntityConversation,
+  usePostMessage,
+} from './hooks';
 import type { AgentCitation, AgentMessageRow } from './api';
 
 interface UserMessage {
@@ -67,6 +72,7 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
   const conversationId = conversationQuery.data?.id ?? null;
   const postMessage = usePostMessage();
   const notifyCreated = useAgentCreatedUndo();
+  const notifyUpdated = useAgentUpdatedUndo();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -131,6 +137,7 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
           },
         ]);
         notifyCreated(agentMsg.metadata?.created_entities);
+        notifyUpdated(agentMsg.metadata?.updated_entities);
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -138,7 +145,7 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
         ]);
       }
     },
-    [draft, isBusy, conversationId, postMessage, notifyCreated, t],
+    [draft, isBusy, conversationId, postMessage, notifyCreated, notifyUpdated, t],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
