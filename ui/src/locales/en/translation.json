@@ -608,7 +608,6 @@
     "userDetails": "Account Details",
     "accountInfo": "Your account information",
     "userId": "User ID",
-    "email": "Email",
     "changePassword": "Change Password",
     "updatePassword": "Update your password",
     "newPassword": "New password",
@@ -1633,6 +1632,8 @@
     "send": "Send",
     "loading": "Searching your household…",
     "error": "Something went wrong, please try again.",
+    "retry": "Retry",
+    "truncated_notice": "This answer was cut short.",
     "empty_title": "Ask anything about your household",
     "empty_hint": "The agent searches your documents, equipment, tasks, contracts and more, and cites every source.",
     "created": {

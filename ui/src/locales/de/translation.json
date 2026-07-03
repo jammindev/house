@@ -608,7 +608,6 @@
     "userDetails": "Kontodetails",
     "accountInfo": "Ihre Kontoinformationen",
     "userId": "Benutzer-ID",
-    "email": "E-Mail",
     "changePassword": "Passwort ändern",
     "updatePassword": "Passwort aktualisieren",
     "newPassword": "Neues Passwort",
@@ -1633,6 +1632,8 @@
     "send": "Senden",
     "loading": "Durchsuche deinen Haushalt…",
     "error": "Etwas ist schiefgelaufen, bitte erneut versuchen.",
+    "retry": "Erneut versuchen",
+    "truncated_notice": "Diese Antwort wurde abgeschnitten.",
     "empty_title": "Stell jede Frage zu deinem Haushalt",
     "empty_hint": "Der Agent durchsucht deine Dokumente, Geräte, Aufgaben, Verträge und mehr und nennt jede Quelle.",
     "created": {

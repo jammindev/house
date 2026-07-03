@@ -23,6 +23,8 @@ export interface AgentAnswerMetadata {
   model?: string;
   hits_count?: number;
   reason?: string;
+  /** True when the answer hit the model's max_tokens and was cut short. */
+  truncated?: boolean;
   created_entities?: AgentCreatedEntity[];
   [key: string]: unknown;
 }
@@ -94,6 +96,13 @@ export async function getOrCreateEntityConversation(
   return data;
 }
 
+/**
+ * The agent loop can chain several LLM round-trips (up to ~2 min server-side),
+ * so this call gets its own generous timeout instead of hanging forever if the
+ * backend never answers.
+ */
+const AGENT_MESSAGE_TIMEOUT_MS = 180_000;
+
 export async function postConversationMessage(
   conversationId: string,
   question: string,
@@ -101,6 +110,7 @@ export async function postConversationMessage(
   const { data } = await api.post<AgentMessageRow>(
     `/agent/conversations/${conversationId}/messages/`,
     { question },
+    { timeout: AGENT_MESSAGE_TIMEOUT_MS },
   );
   return data;
 }

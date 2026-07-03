@@ -19,6 +19,8 @@ interface AgentBubbleProps {
   variant: 'agent';
   text: string;
   citations: Citation[];
+  /** True when the answer was cut short by the model's token limit. */
+  truncated?: boolean;
 }
 
 interface LoadingBubbleProps {
@@ -54,10 +56,23 @@ export default function ChatBubble(props: Props) {
   return (
     <AgentBubbleShell>
       <AnswerWithInlineCitations text={props.text} citations={props.citations} />
+      {props.truncated ? <TruncatedNotice /> : null}
       {props.citations.length > 0 ? (
         <CitationsPanel citations={props.citations} />
       ) : null}
     </AgentBubbleShell>
+  );
+}
+
+function TruncatedNotice() {
+  const { t } = useTranslation();
+  return (
+    <p
+      className="mt-1.5 text-xs italic text-muted-foreground"
+      data-testid="agent-truncated-notice"
+    >
+      {t('agent.truncated_notice')}
+    </p>
   );
 }
 
