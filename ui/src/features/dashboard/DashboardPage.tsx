@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   ArrowRight,
@@ -25,6 +25,7 @@ import { Button, buttonVariants } from '@/design-system/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
 import { cn } from '@/lib/utils';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { pushBack } from '@/lib/backNavigation';
 import AlertsSection from '@/features/alerts/AlertsSection';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -154,6 +155,7 @@ interface SectionPanelProps {
 
 function SectionPanel({ id, title, description, href, hrefLabel, icon, emptyMessage, items, isLoading }: SectionPanelProps) {
   const Icon = ICONS[icon] ?? Sparkles;
+  const location = useLocation();
   const showSkeleton = useDelayedLoading(isLoading);
 
   return (
@@ -185,9 +187,9 @@ function SectionPanel({ id, title, description, href, hrefLabel, icon, emptyMess
           items.map((item) => (
             <div key={item.id} className={cn('rounded-2xl border border-border/70 bg-background/80 p-4 transition-colors hover:border-border hover:bg-background', item.url ? 'cursor-pointer' : '')}>
               {item.url ? (
-                <a href={item.url} className="block">
+                <Link to={item.url} state={pushBack(location)} className="block">
                   <SectionItemContent item={item} />
-                </a>
+                </Link>
               ) : (
                 <SectionItemContent item={item} />
               )}

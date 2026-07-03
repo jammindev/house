@@ -1,10 +1,11 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
+import { pushBack } from '@/lib/backNavigation';
 import { useProjectTasks } from '@/features/tasks/hooks';
 import { useProjectInteractions, projectKeys } from './hooks';
 import { useCreateInteraction, interactionKeys } from '@/features/interactions/hooks';
@@ -148,6 +149,7 @@ function IndicatorsSection({ project }: { project: ProjectListItem }) {
 
 function TasksSection({ projectId, onAdd }: { projectId: string; onAdd: () => void }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: tasks = [], isLoading } = useProjectTasks(projectId);
   const open = React.useMemo(
     () => tasks.filter(isOpenTask).slice(0, PREVIEW_LIMIT),
@@ -186,6 +188,7 @@ function TasksSection({ projectId, onAdd }: { projectId: string; onAdd: () => vo
             <li key={task.id}>
               <Link
                 to={`/app/tasks/${task.id}`}
+                state={pushBack(location)}
                 className="flex items-center justify-between gap-2 rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
               >
                 <span className="min-w-0 flex-1 truncate">{task.subject}</span>
@@ -211,6 +214,7 @@ function isOpenTask(task: Task): boolean {
 
 function NotesSection({ project }: { project: ProjectListItem }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: notes = [], isLoading } = useProjectInteractions(project.id, 'note');
   const previewNotes = notes.slice(0, PREVIEW_LIMIT);
 
@@ -236,6 +240,7 @@ function NotesSection({ project }: { project: ProjectListItem }) {
             <li key={n.id}>
               <Link
                 to={`/app/interactions/${n.id}`}
+                state={pushBack(location)}
                 className="block rounded-md border border-border bg-background px-3 py-2 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
               >
                 <p className="font-medium">{n.subject}</p>

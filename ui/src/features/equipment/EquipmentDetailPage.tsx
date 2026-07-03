@@ -1,12 +1,14 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Wrench } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BackLink from '@/components/BackLink';
+import { useNavigateBack } from '@/lib/backNavigation';
 import {
   useEquipment,
   useEquipmentHistory,
@@ -67,7 +69,7 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigateBack = useNavigateBack('/app/equipment');
   const qc = useQueryClient();
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -87,7 +89,7 @@ export default function EquipmentDetailPage() {
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
-      onSuccess: () => navigate('/app/equipment'),
+      onSuccess: () => navigateBack(),
     });
   }
 
@@ -128,13 +130,7 @@ export default function EquipmentDetailPage() {
     <>
       <div className="space-y-6">
         {/* Back */}
-        <Link
-          to="/app/equipment"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('equipment.title')}
-        </Link>
+        <BackLink fallback="/app/equipment" fallbackLabel={t('equipment.title')} />
 
         {/* Header */}
         <div className="flex items-start gap-3">

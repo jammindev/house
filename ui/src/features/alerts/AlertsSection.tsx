@@ -1,10 +1,11 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowRight, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { buttonVariants } from '@/design-system/button';
 import { cn } from '@/lib/utils';
+import { pushBack } from '@/lib/backNavigation';
 import type { AlertSeverity } from '@/lib/api/alerts';
 import { useAlertsSummary } from './hooks';
 
@@ -26,6 +27,7 @@ function severityClass(severity: AlertSeverity): string {
 
 export default function AlertsSection() {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data } = useAlertsSummary();
 
   if (!data || data.total === 0) return null;
@@ -78,6 +80,7 @@ export default function AlertsSection() {
           <Link
             key={item.id}
             to={item.url}
+            state={pushBack(location)}
             className="group block rounded-xl border border-border/70 bg-background/80 p-3 transition-colors hover:border-border hover:bg-background"
           >
             <div className="flex items-start justify-between gap-3">

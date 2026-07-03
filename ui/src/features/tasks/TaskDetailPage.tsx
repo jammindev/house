@@ -1,11 +1,13 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Download, ExternalLink, FileText, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { Download, ExternalLink, FileText, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BackLink from '@/components/BackLink';
+import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { isTaskOverdue, formatRelativeDate, type Task, type TaskStatus } from '@/lib/api/tasks';
@@ -53,7 +55,8 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
 export default function TaskDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const location = useLocation();
+  const navigateBack = useNavigateBack('/app/tasks');
   const { user } = useAuth();
   const qc = useQueryClient();
 
@@ -88,7 +91,7 @@ export default function TaskDetailPage() {
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
-      onSuccess: () => navigate('/app/tasks'),
+      onSuccess: () => navigateBack(),
     });
   }
 
@@ -138,13 +141,7 @@ export default function TaskDetailPage() {
     <>
       <div className="space-y-6">
         {/* Back */}
-        <Link
-          to="/app/tasks"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('tasks.title')}
-        </Link>
+        <BackLink fallback="/app/tasks" fallbackLabel={t('tasks.title')} />
 
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -239,6 +236,7 @@ export default function TaskDetailPage() {
             <InfoField label={t('tasks.fieldProject')}>
               <Link
                 to={`/app/projects/${task.project}`}
+                state={pushBack(location)}
                 className="text-primary hover:underline"
               >
                 {task.project_title}
@@ -278,6 +276,7 @@ export default function TaskDetailPage() {
                   <div className="flex items-start justify-between gap-2">
                     <Link
                       to={`/app/documents/${doc.document_id}`}
+                      state={pushBack(location)}
                       className="min-w-0 flex-1 truncate font-medium text-foreground hover:text-primary hover:underline"
                     >
                       {doc.name || '—'}
@@ -324,6 +323,7 @@ export default function TaskDetailPage() {
                     </div>
                     <Link
                       to={`/app/interactions/${item.interaction_id}`}
+                      state={pushBack(location)}
                       className="ml-1 inline-flex shrink-0 items-center text-muted-foreground hover:text-foreground"
                       aria-label={t('common.view')}
                     >

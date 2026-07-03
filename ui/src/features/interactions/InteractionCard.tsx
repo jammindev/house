@@ -1,9 +1,10 @@
 import { Pencil, Trash2, ListTodo } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
+import { pushBack } from '@/lib/backNavigation';
 import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface InteractionCardProps {
@@ -23,6 +24,7 @@ function formatDate(value: string): string {
 export default function InteractionCard({ item, onDelete }: InteractionCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const typeLabelKey = `equipment.interaction_type.${item.type}`;
   const statusLabelKey = item.status ? `equipment.interaction_status.${item.status}` : null;
@@ -34,6 +36,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`/app/interactions/${item.id}`}
+              state={pushBack(location)}
               className="group text-foreground hover:text-primary"
             >
               <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">
@@ -82,12 +85,13 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           {item.project && item.project_title ? (
             <div className="mt-1 text-xs text-muted-foreground">
               <span>{t('interactions.project_label')}: </span>
-              <a
-                href={`/app/projects/${item.project}`}
+              <Link
+                to={`/app/projects/${item.project}`}
+                state={pushBack(location)}
                 className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
               >
                 {item.project_title}
-              </a>
+              </Link>
             </div>
           ) : null}
 

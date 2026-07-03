@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { FileText, FileX, Pencil, Trash2, ExternalLink, ScanText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { pushBack } from '@/lib/backNavigation';
 import { formatFileSize, type DocumentItem } from '@/lib/api/documents';
 
 interface DocumentCardProps {
@@ -15,6 +16,7 @@ interface DocumentCardProps {
 
 export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: DocumentCardProps) {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
   const fileSize =
@@ -43,6 +45,7 @@ export default function DocumentCard({ doc, onEdit, onDelete, deleteLabel }: Doc
         <div className="flex flex-wrap items-center gap-2">
           <Link
             to={`/app/documents/${doc.id}`}
+            state={pushBack(location)}
             className="group text-foreground hover:text-primary"
           >
             <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">{fileName}</CardTitle>
