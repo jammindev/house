@@ -6,6 +6,8 @@ so Nginx serves the file from an internal-only location (/_protected_media/).
 
 Development: Django serves the file directly (standard static serve).
 """
+from urllib.parse import quote
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse, Http404
@@ -48,6 +50,10 @@ def serve_protected_media(request, path):
         return static_serve(request, path, document_root=settings.MEDIA_ROOT)
 
     response = HttpResponse()
-    response['X-Accel-Redirect'] = f'/_protected_media/{path}'
+    # The path must be URL-encoded: WSGI serializes headers as latin-1, so a
+    # non-ASCII filename (e.g. "carte-identité.pdf") would be sent as the wrong
+    # bytes and Nginx would 404. quote() keeps "/" as separators and percent-
+    # encodes the rest as UTF-8, which Nginx decodes back to the on-disk name.
+    response['X-Accel-Redirect'] = '/_protected_media/' + quote(path)
     response['Content-Type'] = ''  # Let Nginx detect from the file extension
     return response

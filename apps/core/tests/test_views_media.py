@@ -89,3 +89,19 @@ class TestServeProtectedMedia:
         response = client.get(media_url(path))
         assert response['X-Accel-Redirect'] == f'/_protected_media/{path}'
         assert response['Content-Type'] == ''
+
+    @override_settings(DEBUG=False)
+    def test_x_accel_redirect_url_encodes_non_ascii_filename(self, client, member_user, household):
+        # A non-ASCII filename must be percent-encoded in X-Accel-Redirect. WSGI
+        # serializes headers as latin-1, so sending "é" raw would emit the wrong
+        # byte (0xE9) instead of its on-disk UTF-8 bytes (0xC3 0xA9) → Nginx 404.
+        client.force_login(member_user)
+        path = f'documents/{household.id}/2026/07/abc-carte-identité.pdf'
+        response = client.get(media_url(path))
+        assert response.status_code == 200
+        assert response['X-Accel-Redirect'] == (
+            f'/_protected_media/documents/{household.id}/2026/07/'
+            'abc-carte-identit%C3%A9.pdf'
+        )
+        # The header value is pure ASCII → safe to serialize as latin-1.
+        response['X-Accel-Redirect'].encode('latin-1')
