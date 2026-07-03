@@ -1649,7 +1649,7 @@
       "intro": "Der Agent liest die Daten deines Haushalts, um deine Fragen zu beantworten. Wichtig zu wissen:",
       "point_provider": "Deine Fragen und die passenden Auszüge werden an Anthropic (Claude) gesendet, um die Antwort zu erzeugen.",
       "point_scope": "Es werden nur Daten deines Haushalts geteilt, niemals Daten eines anderen Haushalts.",
-      "point_retention": "Wir protokollieren Nutzungsstatistiken (Latenz, Erfolg), nicht aber den Inhalt deiner Unterhaltungen.",
+      "point_retention": "Deine Unterhaltungen werden in deinem Konto gespeichert, damit du sie später fortsetzen kannst — du kannst sie jederzeit löschen. Nutzungsstatistiken (Latenz, Erfolg) werden ohne den Inhalt deiner Fragen erfasst.",
       "accept": "Verstanden"
     },
     "conversations": "Unterhaltungen",

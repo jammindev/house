@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures';
 import type { Page, Route } from '@playwright/test';
 
-const PRIVACY_KEY = 'agent.privacyAccepted.v1';
+const PRIVACY_KEY = 'agent.privacyAccepted.v2';
 
 interface MockAnswer {
   answer: string;

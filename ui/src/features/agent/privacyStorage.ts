@@ -1,4 +1,6 @@
-const STORAGE_KEY = 'agent.privacyAccepted.v1';
+// v2: the notice's retention claim changed (conversations ARE persisted since
+// the conversational-memory lot) — bumping the key re-surfaces it once.
+const STORAGE_KEY = 'agent.privacyAccepted.v2';
 
 export function hasAcceptedAgentPrivacy(): boolean {
   try {

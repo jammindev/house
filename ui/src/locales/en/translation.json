@@ -1649,7 +1649,7 @@
       "intro": "The agent reads the data of your household to answer your questions. A few things to know:",
       "point_provider": "Your questions and the matching excerpts are sent to Anthropic (Claude) to generate the answer.",
       "point_scope": "Only data from your household is shared, never data from another household.",
-      "point_retention": "We log usage statistics (latency, success) but not the content of your conversations.",
+      "point_retention": "Your conversations are saved to your account so you can pick them up later — you can delete them at any time. Usage stats (latency, success) are logged without the content of your questions.",
       "accept": "Got it"
     },
     "conversations": "Conversations",

@@ -1649,7 +1649,7 @@
       "intro": "L'agent lit les données de ton foyer pour répondre à tes questions. Quelques infos utiles :",
       "point_provider": "Tes questions et les extraits pertinents sont envoyés à Anthropic (Claude) pour générer la réponse.",
       "point_scope": "Seules les données de ton foyer sont transmises, jamais celles d'un autre foyer.",
-      "point_retention": "On enregistre les statistiques d'usage (latence, succès) mais pas le contenu de tes conversations.",
+      "point_retention": "Tes conversations sont enregistrées sur ton compte pour reprendre le fil plus tard — tu peux les supprimer à tout moment. Les statistiques d'usage (latence, succès) sont enregistrées sans le contenu de tes questions.",
       "accept": "J'ai compris"
     },
     "conversations": "Conversations",
