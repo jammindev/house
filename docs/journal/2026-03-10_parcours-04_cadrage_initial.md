@@ -29,8 +29,8 @@ Ce point de friction est le principal bloquer du parcours.
 
 Deux documents créés pour cadrer l'implémentation :
 
-- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md) — doc produit avec scénarios, règles, stories, recommandations d'interface et définition de done
-- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md) — 4 lots techniques avec fichiers concernés, tâches précises et critères de validation
+- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](../../docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md) — doc produit avec scénarios, règles, stories, recommandations d'interface et définition de done
+- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_04_BACKLOG_TECHNIQUE.md) — 4 lots techniques avec fichiers concernés, tâches précises et critères de validation
 
 ## Lots techniques définis
 
@@ -45,5 +45,5 @@ Implémenter le lot 0 : c'est le point d'entrée principal du parcours et le cha
 
 ## Références
 
-- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
-- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
+- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](../../docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
+- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)

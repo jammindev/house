@@ -47,10 +47,10 @@ Remplacer l'action `New interaction` du dashboard par un CTA unique qui ouvre un
 
 ### Fichiers principaux
 
-- [apps/accounts/views/template_views.py](/Users/benjaminvandamme/Developer/house/apps/accounts/views/template_views.py)
-- [apps/accounts/react/DashboardPage.tsx](/Users/benjaminvandamme/Developer/house/apps/accounts/react/DashboardPage.tsx)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
+- [apps/accounts/views/template_views.py](../../apps/accounts/views/template_views.py)
+- [apps/accounts/react/DashboardPage.tsx](../../apps/accounts/react/DashboardPage.tsx)
+- [ui/src/locales/en/translation.json](../../ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](../../ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -79,10 +79,10 @@ Ajouter une `SheetDialog` qui propose un choix de type clair, hiérarchisé et e
 
 ### Fichiers principaux
 
-- [apps/accounts/react/DashboardPage.tsx](/Users/benjaminvandamme/Developer/house/apps/accounts/react/DashboardPage.tsx)
-- [ui/src/design-system/sheet-dialog.tsx](/Users/benjaminvandamme/Developer/house/ui/src/design-system/sheet-dialog.tsx)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
+- [apps/accounts/react/DashboardPage.tsx](../../apps/accounts/react/DashboardPage.tsx)
+- [ui/src/design-system/sheet-dialog.tsx](../../ui/src/design-system/sheet-dialog.tsx)
+- [ui/src/locales/en/translation.json](../../ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](../../ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -117,11 +117,11 @@ Réduire le poids du mot `interaction` dans l'UI tout en gardant le modèle tech
 
 ### Fichiers principaux
 
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- [ui/src/locales/en/translation.json](../../ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](../../ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -143,11 +143,11 @@ Faire évoluer le formulaire de création pour qu'il s'adapte au type choisi, sa
 
 ### Fichiers principaux
 
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [ui/src/locales/en/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/en/translation.json)
-- [ui/src/locales/fr/translation.json](/Users/benjaminvandamme/Developer/house/ui/src/locales/fr/translation.json)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [ui/src/locales/en/translation.json](../../ui/src/locales/en/translation.json)
+- [ui/src/locales/fr/translation.json](../../ui/src/locales/fr/translation.json)
 
 ### Tâches
 
@@ -184,9 +184,9 @@ Permettre aux variantes de formulaire d'envoyer leurs données sans casser le co
 
 ### Fichiers principaux
 
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
-- [apps/interactions/serializers.py](/Users/benjaminvandamme/Developer/house/apps/interactions/serializers.py)
-- [apps/interactions/tests/test_api_interactions.py](/Users/benjaminvandamme/Developer/house/apps/interactions/tests/test_api_interactions.py)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
+- [apps/interactions/serializers.py](../../apps/interactions/serializers.py)
+- [apps/interactions/tests/test_api_interactions.py](../../apps/interactions/tests/test_api_interactions.py)
 
 ### Tâches
 
@@ -214,8 +214,8 @@ Faire du retour post-submit une vraie fin de flux, pas une simple redirection br
 
 ### Fichiers principaux
 
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionList.tsx)
 
 ### Tâches
 
@@ -238,9 +238,9 @@ Renforcer la lisibilité de la vue historique, sans attendre une refonte complè
 
 ### Fichiers principaux
 
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
 
 ### Tâches
 
@@ -266,8 +266,8 @@ Sécuriser le flux sans multiplier les tests inutiles.
 
 ### Fichiers principaux
 
-- [apps/accounts/tests/test_views.py](/Users/benjaminvandamme/Developer/house/apps/accounts/tests/test_views.py)
-- [apps/interactions/tests/test_api_interactions.py](/Users/benjaminvandamme/Developer/house/apps/interactions/tests/test_api_interactions.py)
+- [apps/accounts/tests/test_views.py](../../apps/accounts/tests/test_views.py)
+- [apps/interactions/tests/test_api_interactions.py](../../apps/interactions/tests/test_api_interactions.py)
 
 ### Tâches
 

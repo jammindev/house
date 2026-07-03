@@ -1,6 +1,6 @@
 # Parcours 08 — Voir et enregistrer ses dépenses depuis n'importe où dans le foyer
 
-> **À démarrer** — la branche `feat/interaction-source-polymorphic` (PR à merger) pose la fondation technique : FK polymorphe sur `Interaction` + service helper `create_expense_interaction` + composant frontend `PurchaseForm` partagé. Le présent parcours capitalise dessus pour livrer la vue dépense + l'extension aux projets + la dépense ad-hoc. Backlog technique : [PARCOURS_08_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
+> **À démarrer** — la branche `feat/interaction-source-polymorphic` (PR à merger) pose la fondation technique : FK polymorphe sur `Interaction` + service helper `create_expense_interaction` + composant frontend `PurchaseForm` partagé. Le présent parcours capitalise dessus pour livrer la vue dépense + l'extension aux projets + la dépense ad-hoc. Backlog technique : [PARCOURS_08_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
 
 ## Résumé
 
@@ -171,7 +171,7 @@ L'endpoint summary scope par household (jamais d'export multi-foyer). La vue aff
 | 1.1 | Quick-add depuis Project (parallèle à stock + equipment) | #123 |
 | 1.2 | Dépense ad-hoc (sans source) | #124 |
 
-Détails par lot dans le [backlog technique](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
+Détails par lot dans le [backlog technique](../../docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
 
 ### Story 1.0 — Vue dépense agrégée
 

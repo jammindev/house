@@ -2,7 +2,7 @@
 
 Ce document propose un premier cadrage produit pour développer House de façon utile après la migration vers la base Django + React actuelle.
 
-Suivi vivant : l'état actuel des parcours et les dernières sessions sont tenus dans [docs/JOURNAL_PRODUIT.md](/Users/benjaminvandamme/Developer/house/docs/JOURNAL_PRODUIT.md).
+Suivi vivant : l'état actuel des parcours et les dernières sessions sont tenus dans [docs/JOURNAL_PRODUIT.md](../../docs/JOURNAL_PRODUIT.md).
 
 L'idée directrice est simple :
 

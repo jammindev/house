@@ -29,7 +29,7 @@ La mini-app tasks existe avec un kanban. La création standalone est opérationn
 
 Considérés comme déjà couverts et réutilisables :
 
-- vue Django `AppTasksView` dans [apps/tasks/views_web.py](/Users/benjaminvandamme/Developer/house/apps/tasks/views_web.py)
+- vue Django `AppTasksView` dans [apps/tasks/views_web.py](../../apps/tasks/views_web.py)
 - route `/app/tasks/`
 - composant `NewTaskDialog.tsx` (conservé tel quel)
 - composant `TaskCard.tsx` (à adapter)
@@ -70,11 +70,11 @@ Remplacer le kanban par une liste groupée par statut, utilisable sur mobile san
 
 ### Fichiers principaux
 
-- [apps/tasks/react/TasksPage.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TasksPage.tsx) — refonte complète
-- [apps/tasks/react/TaskColumn.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskColumn.tsx) — à retirer
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx) — à adapter
-- [ui/src/lib/api/tasks.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/tasks.ts)
-- [ui/src/pages/tasks/index.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/tasks/index.tsx) si existant
+- [apps/tasks/react/TasksPage.tsx](../../apps/tasks/react/TasksPage.tsx) — refonte complète
+- [apps/tasks/react/TaskColumn.tsx](../../apps/tasks/react/TaskColumn.tsx) — à retirer
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx) — à adapter
+- [ui/src/lib/api/tasks.ts](../../ui/src/lib/api/tasks.ts)
+- [ui/src/pages/tasks/index.tsx](../../ui/src/pages/tasks/index.tsx) si existant
 
 ### Tâches
 
@@ -113,11 +113,11 @@ Ouvrir un point d'entrée depuis la liste interactions pour créer une tâche li
 
 ### Fichiers principaux
 
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [apps/interactions/serializers.py](/Users/benjaminvandamme/Developer/house/apps/interactions/serializers.py)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- [apps/interactions/serializers.py](../../apps/interactions/serializers.py)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
 
 ### Tâches
 
@@ -154,10 +154,10 @@ Réutiliser le flux du parcours 02 (lot 5) pour créer une tâche liée à un do
 
 ### Fichiers principaux
 
-- [apps/documents/react/DocumentDetailPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentDetailPage.tsx)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
+- [apps/documents/react/DocumentDetailPage.tsx](../../apps/documents/react/DocumentDetailPage.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
 
 ### Tâches
 
@@ -189,10 +189,10 @@ Afficher dans la carte tâche la zone, les liens d'origine et le signal de retar
 
 ### Fichiers principaux
 
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx)
-- [ui/src/lib/api/tasks.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/tasks.ts)
-- [apps/interactions/views.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views.py)
-- [apps/interactions/serializers.py](/Users/benjaminvandamme/Developer/house/apps/interactions/serializers.py)
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx)
+- [ui/src/lib/api/tasks.ts](../../ui/src/lib/api/tasks.ts)
+- [apps/interactions/views.py](../../apps/interactions/views.py)
+- [apps/interactions/serializers.py](../../apps/interactions/serializers.py)
 
 ### Tâches
 
@@ -233,11 +233,11 @@ Permettre de modifier une tâche sans avoir à la supprimer et la recréer.
 
 ### Fichiers principaux
 
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx)
-- [apps/tasks/react/TasksPage.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TasksPage.tsx)
-- [apps/interactions/views.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views.py)
-- [ui/src/lib/api/tasks.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/tasks.ts)
-- [ui/src/lib/api/interactions.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/interactions.ts)
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx)
+- [apps/tasks/react/TasksPage.tsx](../../apps/tasks/react/TasksPage.tsx)
+- [apps/interactions/views.py](../../apps/interactions/views.py)
+- [ui/src/lib/api/tasks.ts](../../ui/src/lib/api/tasks.ts)
+- [ui/src/lib/api/interactions.ts](../../ui/src/lib/api/interactions.ts)
 
 ### Tâches
 
@@ -271,7 +271,7 @@ Sécuriser les flux sans multiplier les tests inutiles.
 
 ### Fichiers principaux
 
-- [apps/interactions/tests/test_web_interactions.py](/Users/benjaminvandamme/Developer/house/apps/interactions/tests/test_web_interactions.py)
+- [apps/interactions/tests/test_web_interactions.py](../../apps/interactions/tests/test_web_interactions.py)
 - tests API interactions existants
 
 ### Tâches

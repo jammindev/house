@@ -27,7 +27,7 @@ Les surfaces concernées sont :
 
 ### Déjà en place et réutilisable
 
-- modèle `Project` avec tous les champs nécessaires dans [apps/projects/models.py](/Users/benjaminvandamme/Developer/house/apps/projects/models.py)
+- modèle `Project` avec tous les champs nécessaires dans [apps/projects/models.py](../../apps/projects/models.py)
 - `ProjectZone`, `UserPinnedProject`, `ProjectGroup`, `ProjectAIThread`
 - CRUD complet via `AppProjectsView`, `AppProjectsNewView`, `AppProjectsDetailView`, `AppProjectsEditView`
 - `ProjectDetail.tsx` avec 7 onglets dont Tâches, Notes, Dépenses, Documents, Timeline, Métriques
@@ -70,9 +70,9 @@ Permettre de créer une tâche, une note ou une activité directement depuis la 
 
 ### Fichiers principaux
 
-- [apps/projects/react/ProjectDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectDetail.tsx)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
+- [apps/projects/react/ProjectDetail.tsx](../../apps/projects/react/ProjectDetail.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
 
 ### Tâches
 
@@ -106,7 +106,7 @@ Afficher une synthèse actionnable au-dessus des onglets : tâches ouvertes, tâ
 
 ### Fichiers principaux
 
-- [apps/projects/react/ProjectDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectDetail.tsx)
+- [apps/projects/react/ProjectDetail.tsx](../../apps/projects/react/ProjectDetail.tsx)
 
 ### Tâches
 
@@ -137,9 +137,9 @@ Montrer depuis une tâche ou une interaction à quel projet elle appartient.
 
 ### Fichiers principaux
 
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx)
-- [ui/src/lib/api/tasks.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/tasks.ts)
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx)
+- [ui/src/lib/api/tasks.ts](../../ui/src/lib/api/tasks.ts)
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
 
 ### Tâches
 
@@ -168,8 +168,8 @@ Sécuriser les nouveaux flux sans multiplier les tests inutiles.
 
 ### Fichiers principaux
 
-- [apps/interactions/tests/test_web_interactions.py](/Users/benjaminvandamme/Developer/house/apps/interactions/tests/test_web_interactions.py)
-- [apps/projects/tests/](/Users/benjaminvandamme/Developer/house/apps/projects/tests/) si existant
+- [apps/interactions/tests/test_web_interactions.py](../../apps/interactions/tests/test_web_interactions.py)
+- [apps/projects/tests/](../../apps/projects/tests/) si existant
 
 ### Tâches
 

@@ -28,7 +28,7 @@ L'ordre 1.0 → 1.1 → 1.2 n'est pas neutre : il maximise l'apprentissage avant
 
 ## Doc associée
 
-- Doc produit : [PARCOURS_08_SUIVRE_LES_DEPENSES.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_08_SUIVRE_LES_DEPENSES.md)
+- Doc produit : [PARCOURS_08_SUIVRE_LES_DEPENSES.md](../../docs/parcours/PARCOURS_08_SUIVRE_LES_DEPENSES.md)
 - CLAUDE.md, section « Auto-création d'`Interaction` — pattern write-time + service helper » — toutes les règles de localisation et de service helper sont déjà documentées
 - Mémoire projet : `project_expense_taxonomy_deferred.md` (rappel : pas de `nature`, pas de découplage de `kind`)
 

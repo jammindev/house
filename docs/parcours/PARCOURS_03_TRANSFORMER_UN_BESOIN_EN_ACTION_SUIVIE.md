@@ -58,20 +58,20 @@ Le repo contient déjà une base solide pour ce parcours.
 
 ## Mini-app tâches existante
 
-Une mini-app dédiée existe déjà dans [apps/tasks/](/Users/benjaminvandamme/Developer/house/apps/tasks/).
+Une mini-app dédiée existe déjà dans [apps/tasks/](../../apps/tasks/).
 
 Elle expose aujourd'hui une vue kanban accessible via `/app/tasks/`, avec 4 colonnes par statut et un dialog de création rapide.
 
 Cette vue kanban sera remplacée par une liste mobile-first dans la V1 du parcours 03.
 
-Les composants existants [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx) et [apps/tasks/react/NewTaskDialog.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/NewTaskDialog.tsx) sont réutilisables avec adaptation. [apps/tasks/react/TaskColumn.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskColumn.tsx) devient obsolète et peut être retiré.
+Les composants existants [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx) et [apps/tasks/react/NewTaskDialog.tsx](../../apps/tasks/react/NewTaskDialog.tsx) sont réutilisables avec adaptation. [apps/tasks/react/TaskColumn.tsx](../../apps/tasks/react/TaskColumn.tsx) devient obsolète et peut être retiré.
 
 ## API existante
 
 - liste des todos groupés par statut : `/api/interactions/interactions/tasks/`
 - changement rapide de statut : `/api/interactions/interactions/{id}/update_status/`
 - CRUD complet : `/api/interactions/interactions/`
-- client frontend : [ui/src/lib/api/tasks.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/tasks.ts)
+- client frontend : [ui/src/lib/api/tasks.ts](../../ui/src/lib/api/tasks.ts)
 
 ## Capacité métier déjà présente
 
@@ -429,14 +429,14 @@ Le flow est déjà partiellement préparé par le parcours 02 :
 
 ## Écrans impactés
 
-- [apps/tasks/react/TasksPage.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TasksPage.tsx) — refonte complète
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx) — adaptation avec zone, origine, retard, bouton ✓
-- [apps/tasks/react/TaskColumn.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskColumn.tsx) — remplacé par des sections de liste, peut être retiré
-- [apps/tasks/react/NewTaskDialog.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/NewTaskDialog.tsx) — conservé tel quel
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- [apps/documents/react/DocumentDetailPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentDetailPage.tsx)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
+- [apps/tasks/react/TasksPage.tsx](../../apps/tasks/react/TasksPage.tsx) — refonte complète
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx) — adaptation avec zone, origine, retard, bouton ✓
+- [apps/tasks/react/TaskColumn.tsx](../../apps/tasks/react/TaskColumn.tsx) — remplacé par des sections de liste, peut être retiré
+- [apps/tasks/react/NewTaskDialog.tsx](../../apps/tasks/react/NewTaskDialog.tsx) — conservé tel quel
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- [apps/documents/react/DocumentDetailPage.tsx](../../apps/documents/react/DocumentDetailPage.tsx)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
 
 ## Hors scope pour la V1
 
