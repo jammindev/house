@@ -1640,6 +1640,9 @@
     "created": {
       "title": "Créé : {{label}}"
     },
+    "updated": {
+      "title": "Modifié : {{label}}"
+    },
     "entity": {
       "empty_title": "Pose n'importe quelle question sur cet élément",
       "empty_hint": "L'assistant connaît déjà cet élément et tout ce qui lui est lié — ses détails, documents, dépenses et tâches — et cite ses sources."

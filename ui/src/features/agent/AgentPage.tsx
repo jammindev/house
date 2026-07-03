@@ -11,6 +11,7 @@ import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
 import {
   useAgentCreatedUndo,
+  useAgentUpdatedUndo,
   useConversation,
   useConversations,
   useCreateConversation,
@@ -64,6 +65,7 @@ export default function AgentPage() {
   const createConversation = useCreateConversation();
   const postMessage = usePostMessage();
   const notifyCreated = useAgentCreatedUndo();
+  const notifyUpdated = useAgentUpdatedUndo();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -167,6 +169,7 @@ export default function AgentPage() {
           },
         ]);
         notifyCreated(agentMsg.metadata?.created_entities);
+        notifyUpdated(agentMsg.metadata?.updated_entities);
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -174,7 +177,7 @@ export default function AgentPage() {
         ]);
       }
     },
-    [draft, isBusy, currentId, createConversation, postMessage, notifyCreated, t],
+    [draft, isBusy, currentId, createConversation, postMessage, notifyCreated, notifyUpdated, t],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
