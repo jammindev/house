@@ -42,6 +42,27 @@ class WritableSpec:
     url_template: str
     """URL template for the created item's link. Must contain ``{id}``."""
 
+    update: Callable[..., Model] | None = None
+    """Optional ``update(household, user, instance, fields) -> instance``.
+
+    Same rules as ``create``: reuse the app's own service/serializer, never raw
+    ORM writes. When None, the entity is creatable but not updatable and
+    ``update_entity`` refuses it."""
+
+    updatable_fields: tuple[str, ...] = ()
+    """Field names the agent may change through ``update_entity``. Anything else
+    in the tool input is dropped before calling ``update``. Also drives the undo
+    snapshot (previous values of exactly these keys)."""
+
+    resolve: Callable[..., Model | None] | None = None
+    """Optional ``resolve(household, raw_id) -> instance | None`` for updates.
+
+    Needed because a writable entity_type is not always a searchable one
+    (``'note'`` is an ``Interaction`` restricted to ``type='note'``). Must scope
+    by household and may narrow further (only notes, not private items of other
+    users…). May raise ``ValueError``/``ValidationError`` on malformed ids —
+    the tool turns that into a recoverable message."""
+
 
 REGISTRY: dict[str, WritableSpec] = {}
 
@@ -82,6 +103,11 @@ def supported_entity_types() -> list[str]:
     return sorted(REGISTRY.keys())
 
 
+def updatable_entity_types() -> list[str]:
+    """Stable-sorted list of entity types the agent may update."""
+    return sorted(et for et, spec in REGISTRY.items() if spec.update is not None)
+
+
 def as_created_dict(spec: WritableSpec, instance: Model) -> dict[str, Any]:
     """Serialize a freshly-created instance into the ``created`` payload shape."""
     return {
@@ -89,4 +115,27 @@ def as_created_dict(spec: WritableSpec, instance: Model) -> dict[str, Any]:
         "id": str(instance.pk),
         "label": resolve_label(spec, instance),
         "url_path": resolve_url(spec, instance),
+    }
+
+
+def as_updated_dict(
+    spec: WritableSpec,
+    instance: Model,
+    *,
+    previous: dict[str, Any],
+    changed: dict[str, Any],
+) -> dict[str, Any]:
+    """Serialize an updated instance into the ``updated`` payload shape.
+
+    ``previous`` holds the JSON-safe values of the changed fields BEFORE the
+    update — the frontend's undo re-applies them through the entity's normal
+    update API.
+    """
+    return {
+        "entity_type": spec.entity_type,
+        "id": str(instance.pk),
+        "label": resolve_label(spec, instance),
+        "url_path": resolve_url(spec, instance),
+        "previous": previous,
+        "changed": changed,
     }

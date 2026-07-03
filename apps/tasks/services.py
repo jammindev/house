@@ -60,3 +60,43 @@ def create_task(
     serializer = TaskSerializer(data=payload, context={"household_id": household.id})
     serializer.is_valid(raise_exception=True)
     return serializer.save(household=household, created_by=user)
+
+
+def update_task(household, user, task: Task, *, fields: dict) -> Task:
+    """Update ``task`` on behalf of ``user`` — shared by the agent's ``update_entity``.
+
+    Mirrors ``TaskViewSet.perform_update``: same permission rules (the creator
+    can edit everything, an assignee only the status) and the same
+    ``completed_at`` / ``completed_by`` transitions on status changes.
+    Validation goes through ``TaskSerializer`` (partial), like the API.
+    """
+    from django.utils import timezone
+    from rest_framework.exceptions import PermissionDenied
+
+    allowed = {"subject", "content", "status", "due_date", "priority"}
+    payload = {k: v for k, v in fields.items() if k in allowed}
+
+    serializer = TaskSerializer(
+        task, data=payload, partial=True, context={"household_id": household.id}
+    )
+    serializer.is_valid(raise_exception=True)
+    validated = serializer.validated_data
+
+    user_pk = getattr(user, "pk", None)
+    is_creator = task.created_by_id == user_pk
+    if not is_creator:
+        is_assignee = task.assigned_to_id is not None and task.assigned_to_id == user_pk
+        if not is_assignee:
+            raise PermissionDenied("Only the creator or assignee can modify this task.")
+        if set(validated.keys()) - {"status"}:
+            raise PermissionDenied("Assignees can only change the task status.")
+
+    new_status = validated.get("status")
+    kwargs: dict = {"updated_by": user}
+    if new_status == Task.Status.DONE and not task.completed_at:
+        kwargs["completed_at"] = timezone.now()
+        kwargs["completed_by"] = user
+    elif new_status and new_status != Task.Status.DONE and task.completed_at:
+        kwargs["completed_at"] = None
+        kwargs["completed_by"] = None
+    return serializer.save(**kwargs)

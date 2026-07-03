@@ -2,8 +2,8 @@ import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
-import { deleteTask } from '@/lib/api/tasks';
-import { deleteInteraction } from '@/lib/api/interactions';
+import { deleteTask, updateTask } from '@/lib/api/tasks';
+import { deleteInteraction, updateInteraction } from '@/lib/api/interactions';
 import { taskKeys } from '@/features/tasks/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import {
@@ -18,6 +18,7 @@ import {
   type AgentConversationRow,
   type AgentCreatedEntity,
   type AgentMessageRow,
+  type AgentUpdatedEntity,
 } from './api';
 
 export const agentKeys = {
@@ -136,6 +137,63 @@ export function useAgentCreatedUndo() {
             label: t('common.undo'),
             onClick: () => {
               void handler.remove(entity.id).then(() => {
+                handler.keys.forEach((key) => void qc.invalidateQueries({ queryKey: key }));
+              });
+            },
+          },
+        });
+      }
+    },
+    [qc, t],
+  );
+}
+
+/**
+ * How to undo an updated entity, per entity_type: re-apply the `previous` field
+ * values through the entity's normal update API. Mirrors the backend writables
+ * registry (update side), like UNDO_HANDLERS mirrors its create side.
+ */
+const UPDATE_UNDO_HANDLERS: Record<
+  string,
+  {
+    restore: (id: string, previous: Record<string, unknown>) => Promise<unknown>;
+    keys: readonly unknown[][];
+  }
+> = {
+  task: {
+    restore: (id, previous) => updateTask(id, previous as Parameters<typeof updateTask>[1]),
+    keys: [taskKeys.all as unknown as unknown[]],
+  },
+  note: {
+    restore: (id, previous) =>
+      updateInteraction(id, previous as Parameters<typeof updateInteraction>[1]),
+    keys: [interactionKeys.all as unknown as unknown[]],
+  },
+};
+
+/**
+ * Surface an "updated · Undo" toast for each entity the agent just modified,
+ * and refresh the relevant lists. On "Undo", the previous field values are
+ * re-applied. Shared by AgentPage and EntityAssistant.
+ */
+export function useAgentUpdatedUndo() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+
+  return React.useCallback(
+    (updated: AgentUpdatedEntity[] | undefined) => {
+      if (!updated?.length) return;
+      for (const entity of updated) {
+        const handler = UPDATE_UNDO_HANDLERS[entity.entity_type];
+        if (!handler) continue;
+        handler.keys.forEach((key) => void qc.invalidateQueries({ queryKey: key }));
+        toast({
+          title: t('agent.updated.title', { label: entity.label }),
+          duration: 8000,
+          action: {
+            label: t('common.undo'),
+            onClick: () => {
+              void handler.restore(entity.id, entity.previous).then(() => {
                 handler.keys.forEach((key) => void qc.invalidateQueries({ queryKey: key }));
               });
             },

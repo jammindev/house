@@ -1,5 +1,6 @@
 {
   "common": {
+    "back": "Retour",
     "yes": "oui",
     "no": "non",
     "save": "Enregistrer",
@@ -608,7 +609,6 @@
     "userDetails": "Détails du compte",
     "accountInfo": "Vos informations de compte",
     "userId": "ID utilisateur",
-    "email": "Email",
     "changePassword": "Changer le mot de passe",
     "updatePassword": "Mettre à jour votre mot de passe",
     "newPassword": "Nouveau mot de passe",
@@ -1637,6 +1637,9 @@
     "empty_hint": "L'agent fouille tes documents, équipements, tâches, contrats… et cite chaque source utilisée.",
     "created": {
       "title": "Créé : {{label}}"
+    },
+    "updated": {
+      "title": "Modifié : {{label}}"
     },
     "entity": {
       "empty_title": "Pose n'importe quelle question sur cet élément",

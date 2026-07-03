@@ -98,6 +98,22 @@ def _run_create(entity_type: str, fields: dict, *, call_id: str = "toolu_c") -> 
     )
 
 
+def _run_update(entity_type: str, entity_id: str, fields: dict, *, call_id: str = "toolu_u") -> LLMRunResponse:
+    """A tool-use turn requesting ``update_entity(entity_type, id, fields)``."""
+    args = {"entity_type": entity_type, "id": entity_id, "fields": fields}
+    call = ToolCall(id=call_id, name="update_entity", input=args)
+    return LLMRunResponse(
+        assistant_blocks=[{"type": "tool_use", "id": call_id, "name": "update_entity", "input": args}],
+        tool_calls=[call],
+        text="",
+        stop_reason="tool_use",
+        input_tokens=4,
+        output_tokens=2,
+        duration_ms=2,
+        model="stub-model",
+    )
+
+
 @dataclass
 class _ToolUseClient:
     """LLMClient drop-in for the loop.
@@ -706,6 +722,64 @@ class TestCreateEntity:
         stub = _ToolUseClient(script=[_run_text("Bonjour !")])
         result = service.ask("bonjour", household, user=owner, client=stub)
         assert result.metadata["created_entities"] == []
+
+
+class TestUpdateEntity:
+    def test_update_populates_updated_entities_metadata(
+        self, with_api_key, household, owner
+    ):
+        from tasks.models import Task
+
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Purger la VMC"
+        )
+        stub = _ToolUseClient(
+            script=[
+                _run_update("task", str(task.pk), {"status": "done"}),
+                _run_text(f'Marquée faite <cite id="task:{task.pk}"/>.'),
+            ]
+        )
+        result = service.ask(
+            "marque la tâche comme faite", household, user=owner, client=stub
+        )
+
+        task.refresh_from_db()
+        assert task.status == "done"
+        assert result.metadata["updated_entities"] == [
+            {
+                "entity_type": "task",
+                "id": str(task.pk),
+                "label": "Purger la VMC",
+                "url_path": f"/app/tasks/{task.pk}",
+                "previous": {"status": "pending"},
+                "changed": {"status": "done"},
+            }
+        ]
+        # The updated item is citable like retrieved data.
+        assert [c.id for c in result.citations] == [task.pk]
+
+    def test_duplicate_update_in_one_turn_is_skipped(
+        self, with_api_key, household, owner
+    ):
+        from tasks.models import Task
+
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Doublon update"
+        )
+        stub = _ToolUseClient(
+            script=[
+                _run_update("task", str(task.pk), {"status": "done"}, call_id="u1"),
+                _run_update("task", str(task.pk), {"status": "done"}, call_id="u2"),
+                _run_text("Fait."),
+            ]
+        )
+        result = service.ask("marque-la faite", household, user=owner, client=stub)
+        assert len(result.metadata["updated_entities"]) == 1
+
+    def test_no_write_leaves_updated_entities_empty(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("Bonjour !")])
+        result = service.ask("bonjour", household, user=owner, client=stub)
+        assert result.metadata["updated_entities"] == []
 
 
 # ---------------------------------------------------------------------------

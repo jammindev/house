@@ -1,5 +1,6 @@
 {
   "common": {
+    "back": "Volver",
     "yes": "sí",
     "no": "no",
     "save": "Guardar",
@@ -562,7 +563,7 @@
     "displayNamePlaceholder": "Tu nombre",
     "displayNameHelper": "Déjalo vacío para usar tu correo electrónico",
     "displayNameUpdated": "Nombre de visualización actualizado",
-    "email": "Email",
+    "email": "Correo electrónico",
     "emailPlaceholder": "tu@email.es",
     "emailInvalid": "Dirección de email no válida.",
     "profileUpdated": "Perfil actualizado",
@@ -608,7 +609,6 @@
     "userDetails": "Detalles de la cuenta",
     "accountInfo": "Tu información de cuenta",
     "userId": "ID de usuario",
-    "email": "Correo electrónico",
     "changePassword": "Cambiar contraseña",
     "updatePassword": "Actualizar tu contraseña",
     "newPassword": "Nueva contraseña",
@@ -1637,6 +1637,9 @@
     "empty_hint": "El agente busca en tus documentos, equipos, tareas, contratos y más, y cita cada fuente.",
     "created": {
       "title": "Creado: {{label}}"
+    },
+    "updated": {
+      "title": "Actualizado: {{label}}"
     },
     "entity": {
       "empty_title": "Pregunta lo que quieras sobre este elemento",

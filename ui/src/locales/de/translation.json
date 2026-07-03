@@ -1,5 +1,6 @@
 {
   "common": {
+    "back": "Zurück",
     "yes": "ja",
     "no": "nein",
     "save": "Speichern",
@@ -608,7 +609,6 @@
     "userDetails": "Kontodetails",
     "accountInfo": "Ihre Kontoinformationen",
     "userId": "Benutzer-ID",
-    "email": "E-Mail",
     "changePassword": "Passwort ändern",
     "updatePassword": "Passwort aktualisieren",
     "newPassword": "Neues Passwort",
@@ -1637,6 +1637,9 @@
     "empty_hint": "Der Agent durchsucht deine Dokumente, Geräte, Aufgaben, Verträge und mehr und nennt jede Quelle.",
     "created": {
       "title": "Erstellt: {{label}}"
+    },
+    "updated": {
+      "title": "Aktualisiert: {{label}}"
     },
     "entity": {
       "empty_title": "Stell jede Frage zu diesem Element",
