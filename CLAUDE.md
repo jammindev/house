@@ -221,6 +221,32 @@ const actions: CardAction[] = [
 <CardActions actions={actions} />
 ```
 
+### Retour contextuel (`BackLink` + `pushBack`)
+
+Toute page de détail utilise `BackLink` : le lien retour ramène à la **page
+d'origine** (ex: détail projet) si elle est connue, sinon à la liste par défaut.
+L'origine circule via une pile d'URLs dans `location.state.back` — elle survit
+aux reloads mais pas à un accès direct par URL (→ fallback).
+
+```tsx
+// Page de détail — lien retour + navigation après suppression
+import BackLink from '@/components/BackLink';
+import { useNavigateBack } from '@/lib/backNavigation';
+
+<BackLink fallback="/app/tasks" fallbackLabel={t('tasks.title')} />
+const navigateBack = useNavigateBack('/app/tasks');   // deleteMutation onSuccess
+
+// Page d'origine — tout Link/navigate() vers une page de détail empile l'URL courante
+import { pushBack } from '@/lib/backNavigation';
+const location = useLocation();
+<Link to={`/app/tasks/${id}`} state={pushBack(location)}>
+navigate(`/app/tasks/${id}`, { state: pushBack(location) });
+```
+
+Ne jamais utiliser `navigate(-1)` pour un lien retour de page de détail (casse
+sur accès direct / nouvel onglet) ni coder la liste en dur si la page peut être
+ouverte depuis un autre contexte.
+
 ### Couleurs — pas de hardcode
 
 Toujours utiliser les tokens CSS du design-system, jamais des classes Tailwind à couleur fixe :

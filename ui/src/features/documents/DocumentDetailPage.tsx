@@ -1,12 +1,14 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Download, ExternalLink, Plus, RefreshCcw } from 'lucide-react';
+import { Download, ExternalLink, Plus, RefreshCcw } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BackLink from '@/components/BackLink';
+import { useNavigateBack } from '@/lib/backNavigation';
 import { formatFileSize } from '@/lib/api/documents';
 import {
   useDocument,
@@ -28,7 +30,7 @@ function formatDate(value?: string | null): string {
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigateBack = useNavigateBack('/app/documents');
   const qc = useQueryClient();
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -48,7 +50,7 @@ export default function DocumentDetailPage() {
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
-      onSuccess: () => navigate('/app/documents'),
+      onSuccess: () => navigateBack(),
     });
   }
 
@@ -95,13 +97,7 @@ export default function DocumentDetailPage() {
     <>
       <div className="space-y-4">
         {/* Back */}
-        <Link
-          to="/app/documents"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('documents.title')}
-        </Link>
+        <BackLink fallback="/app/documents" fallbackLabel={t('documents.title')} />
 
         {/* Header */}
         <div className="flex items-start gap-3">

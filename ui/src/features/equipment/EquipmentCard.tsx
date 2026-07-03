@@ -1,10 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { pushBack } from '@/lib/backNavigation';
 import type { EquipmentListItem } from '@/lib/api/equipment';
 
 interface EquipmentCardProps {
@@ -30,6 +31,7 @@ function formatDate(value?: string | null): string {
 
 export default function EquipmentCard({ item, onEdit, onDelete, onPurchase }: EquipmentCardProps) {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
@@ -42,6 +44,7 @@ export default function EquipmentCard({ item, onEdit, onDelete, onPurchase }: Eq
         <div>
           <Link
             to={`/app/equipment/${item.id}`}
+            state={pushBack(location)}
             className="group text-foreground hover:text-primary"
           >
             <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">{item.name}</CardTitle>

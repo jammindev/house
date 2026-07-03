@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { AlertTriangle, Bell, Clock, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
 import { Card } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
@@ -30,8 +31,9 @@ interface AlertCardProps {
 }
 
 function AlertCard({ to, title, meta, severityLabel, severity }: AlertCardProps) {
+  const location = useLocation();
   return (
-    <Link to={to} className="group block">
+    <Link to={to} state={pushBack(location)} className="group block">
       <Card className="p-3 transition-colors hover:bg-muted/40">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">

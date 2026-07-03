@@ -1,11 +1,13 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, FileText, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BackLink from '@/components/BackLink';
+import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
@@ -35,6 +37,8 @@ export default function InteractionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigateBack = useNavigateBack('/app/interactions');
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
@@ -46,7 +50,7 @@ export default function InteractionDetailPage() {
   function handleDelete() {
     if (!id) return;
     deleteMutation.mutate(id, {
-      onSuccess: () => navigate('/app/interactions'),
+      onSuccess: () => navigateBack(),
     });
   }
 
@@ -83,13 +87,7 @@ export default function InteractionDetailPage() {
     <>
       <div className="space-y-6">
         {/* Back */}
-        <Link
-          to="/app/interactions"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('interactions.title')}
-        </Link>
+        <BackLink fallback="/app/interactions" fallbackLabel={t('interactions.title')} />
 
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
@@ -148,6 +146,7 @@ export default function InteractionDetailPage() {
             <InfoField label={t('interactions.project_label')}>
               <Link
                 to={`/app/projects/${interaction.project}`}
+                state={pushBack(location)}
                 className="text-primary hover:underline"
               >
                 {interaction.project_title}
@@ -221,6 +220,7 @@ export default function InteractionDetailPage() {
                     <Link
                       key={eq.id}
                       to={`/app/equipment/${eq.id}`}
+                      state={pushBack(location)}
                       className="rounded-full border border-border px-2 py-0.5 text-xs text-foreground hover:text-primary hover:underline"
                     >
                       {eq.name}

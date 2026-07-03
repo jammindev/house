@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Layers, NotebookText, FileText, ImageIcon } from 'lucide-react';
+import { pushBack } from '@/lib/backNavigation';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import { TabShell } from '@/components/TabShell';
@@ -147,6 +148,7 @@ function TabInfo({
 
 function TabEquipment({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: equipmentData = [], isLoading } = useEquipmentByZone(zoneId);
 
   if (isLoading) {
@@ -167,6 +169,7 @@ function TabEquipment({ zoneId }: { zoneId: string }) {
         <li key={eq.id}>
           <Link
             to={`/app/equipment/${eq.id}`}
+            state={pushBack(location)}
             className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
           >
             <span className="truncate">{eq.name}</span>
@@ -285,6 +288,7 @@ function TabActivity({ zoneId, navigate }: { zoneId: string; navigate: (to: stri
 
 function TabProjects({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: projectsData = [], isLoading } = useZoneProjects(zoneId);
 
   if (isLoading) {
@@ -305,6 +309,7 @@ function TabProjects({ zoneId }: { zoneId: string }) {
         <li key={project.id}>
           <Link
             to={`/app/projects/${project.id}`}
+            state={pushBack(location)}
             className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
           >
             <span className="truncate">{project.title}</span>
@@ -322,6 +327,7 @@ function TabProjects({ zoneId }: { zoneId: string }) {
 
 function TabPhotos({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: photos = [], isLoading } = useZonePhotos(zoneId);
 
   if (isLoading) {
@@ -349,6 +355,7 @@ function TabPhotos({ zoneId }: { zoneId: string }) {
         <Link
           key={photo.id}
           to={`/app/documents/${photo.id}`}
+          state={pushBack(location)}
           className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
         >
           {photo.file_url ? (
@@ -375,6 +382,7 @@ function TabPhotos({ zoneId }: { zoneId: string }) {
 
 function TabDocuments({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: documents = [], isLoading } = useZoneDocuments(zoneId);
 
   if (isLoading) {
@@ -400,6 +408,7 @@ function TabDocuments({ zoneId }: { zoneId: string }) {
         <li key={doc.id}>
           <Link
             to={`/app/documents/${doc.id}`}
+            state={pushBack(location)}
             className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
           >
             <div className="flex min-w-0 items-center gap-2">

@@ -1,9 +1,10 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   FileText, Notebook, Wrench, ListTodo, FolderKanban, MapPin,
   Box, ShieldCheck, User, Building2, ExternalLink,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { pushBack } from '@/lib/backNavigation';
 import type { AgentCitation as Citation } from './api';
 
 const ENTITY_ICONS: Record<string, LucideIcon> = {
@@ -27,9 +28,11 @@ interface Props {
 
 export default function AgentCitation({ citation, index }: Props) {
   const Icon = ENTITY_ICONS[citation.entity_type] ?? ExternalLink;
+  const location = useLocation();
   return (
     <Link
       to={citation.url_path}
+      state={pushBack(location)}
       data-testid="agent-citation"
       data-entity-type={citation.entity_type}
       title={citation.snippet || citation.label}

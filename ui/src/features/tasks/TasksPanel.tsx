@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { CheckSquare, FolderOpen, Lock, Plus, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { isTaskOverdue, type Task, type TaskStatus } from '@/lib/api/tasks';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
@@ -9,6 +9,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { Button } from '@/design-system/button';
 import { FilterPill } from '@/design-system/filter-pill';
+import { pushBack } from '@/lib/backNavigation';
 import { DropdownSelect } from '@/design-system/dropdown-select';
 import {
   useTasks,
@@ -46,6 +47,7 @@ export default function TasksPanel({
   const { t } = useTranslation();
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isEmbedded = Boolean(projectId);
   const prefix = stateKeyPrefix ?? 'tasks';
@@ -192,7 +194,7 @@ export default function TasksPanel({
     onEdit: setEditingTask,
     onDelete: handleTaskDeleted,
     onManageAttachments: setAttachmentsTask,
-    onViewDetail: (task: Task) => navigate(`/app/tasks/${task.id}`),
+    onViewDetail: (task: Task) => navigate(`/app/tasks/${task.id}`, { state: pushBack(location) }),
   };
 
   return (

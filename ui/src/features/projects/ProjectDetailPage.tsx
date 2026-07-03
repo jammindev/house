@@ -1,13 +1,15 @@
 import * as React from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Star, Plus } from 'lucide-react';
+import { Star, Plus } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import { TabShell } from '@/components/TabShell';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import BackLink from '@/components/BackLink';
+import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import type { ProjectStatus } from '@/lib/api/projects';
 import TasksPanel from '@/features/tasks/TasksPanel';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
@@ -61,6 +63,7 @@ function TabInteractions({
   addLabel?: string;
 }) {
   const { t } = useTranslation();
+  const location = useLocation();
   const { data: items = [], isLoading, error } = useProjectInteractions(projectId, type);
 
   if (isLoading) {
@@ -101,6 +104,7 @@ function TabInteractions({
             <li key={item.id}>
               <Link
                 to={`/app/interactions/${item.id}`}
+                state={pushBack(location)}
                 className="block rounded-md border p-3 text-sm transition-colors hover:border-primary/40 hover:bg-muted"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -138,7 +142,7 @@ function TabInteractions({
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
-  const navigate = useNavigate();
+  const navigateBack = useNavigateBack('/app/projects');
   const qc = useQueryClient();
 
   const [editOpen, setEditOpen] = React.useState(false);
@@ -166,7 +170,7 @@ export default function ProjectDetailPage() {
   function handleDelete() {
     if (!id) return;
     deleteProjectMutation.mutate(id, {
-      onSuccess: () => navigate('/app/projects'),
+      onSuccess: () => navigateBack(),
     });
   }
 
@@ -197,13 +201,7 @@ export default function ProjectDetailPage() {
     <>
       <div className="space-y-4">
         {/* Back */}
-        <Link
-          to="/app/projects"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('projects.title')}
-        </Link>
+        <BackLink fallback="/app/projects" fallbackLabel={t('projects.title')} />
 
         {/* Header */}
         <div className="flex items-start gap-3">
