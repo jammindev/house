@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Send, Sparkles, AlertTriangle } from 'lucide-react';
+import { Send, Sparkles, AlertTriangle, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
@@ -20,12 +20,15 @@ interface AgentMessage {
   variant: 'agent';
   text: string;
   citations: AgentCitation[];
+  truncated?: boolean;
 }
 
 interface ErrorMessage {
   id: string;
   variant: 'error';
   text: string;
+  /** The question that failed, so the user can retry without retyping it. */
+  question: string;
 }
 
 type Message = UserMessage | AgentMessage | ErrorMessage;
@@ -34,7 +37,13 @@ function toMessage(row: AgentMessageRow): Message {
   if (row.role === 'user') {
     return { id: row.id, variant: 'user', text: row.content };
   }
-  return { id: row.id, variant: 'agent', text: row.content, citations: row.citations };
+  return {
+    id: row.id,
+    variant: 'agent',
+    text: row.content,
+    citations: row.citations,
+    truncated: Boolean(row.metadata?.truncated),
+  };
 }
 
 interface Props {
@@ -93,34 +102,44 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
     textareaRef.current?.focus();
   }, []);
 
-  const submit = React.useCallback(async () => {
-    const trimmed = draft.trim();
-    if (!trimmed || isBusy || !conversationId) return;
-    setDraft('');
-    setMessages((prev) => [
-      ...prev,
-      { id: `u-${Date.now()}`, variant: 'user', text: trimmed },
-    ]);
+  // `retryQuestion` re-submits a failed turn: the user bubble is already in the
+  // transcript, so we only clear the stale error bubbles instead of re-adding it.
+  const submit = React.useCallback(
+    async (retryQuestion?: string) => {
+      const trimmed = (retryQuestion ?? draft).trim();
+      if (!trimmed || isBusy || !conversationId) return;
+      if (retryQuestion) {
+        setMessages((prev) => prev.filter((m) => m.variant !== 'error'));
+      } else {
+        setDraft('');
+        setMessages((prev) => [
+          ...prev,
+          { id: `u-${Date.now()}`, variant: 'user', text: trimmed },
+        ]);
+      }
 
-    try {
-      const agentMsg = await postMessage.mutateAsync({ conversationId, question: trimmed });
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: agentMsg.id,
-          variant: 'agent',
-          text: agentMsg.content,
-          citations: agentMsg.citations,
-        },
-      ]);
-      notifyCreated(agentMsg.metadata?.created_entities);
-    } catch {
-      setMessages((prev) => [
-        ...prev,
-        { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error') },
-      ]);
-    }
-  }, [draft, isBusy, conversationId, postMessage, notifyCreated, t]);
+      try {
+        const agentMsg = await postMessage.mutateAsync({ conversationId, question: trimmed });
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: agentMsg.id,
+            variant: 'agent',
+            text: agentMsg.content,
+            citations: agentMsg.citations,
+            truncated: Boolean(agentMsg.metadata?.truncated),
+          },
+        ]);
+        notifyCreated(agentMsg.metadata?.created_entities);
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error'), question: trimmed },
+        ]);
+      }
+    },
+    [draft, isBusy, conversationId, postMessage, notifyCreated, t],
+  );
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -154,10 +173,17 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
                   variant="agent"
                   text={msg.text}
                   citations={msg.citations}
+                  truncated={msg.truncated}
                 />
               );
             }
-            return <ErrorBubble key={msg.id} text={msg.text} />;
+            return (
+              <ErrorBubble
+                key={msg.id}
+                text={msg.text}
+                onRetry={() => void submit(msg.question)}
+              />
+            );
           })
         )}
         {isBusy ? <ChatBubble variant="loading" /> : null}
@@ -208,15 +234,26 @@ function EmptyHint() {
   );
 }
 
-function ErrorBubble({ text }: { text: string }) {
+function ErrorBubble({ text, onRetry }: { text: string; onRetry: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex justify-start" data-testid="agent-entity-bubble-error">
       <div className="flex max-w-[85%] gap-2">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
           <AlertTriangle className="h-3.5 w-3.5" />
         </div>
-        <div className="rounded-2xl rounded-tl-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {text}
+        <div className="space-y-1.5 rounded-2xl rounded-tl-sm border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p>{text}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onRetry}
+            data-testid="agent-entity-retry"
+          >
+            <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+            {t('agent.retry')}
+          </Button>
         </div>
       </div>
     </div>
