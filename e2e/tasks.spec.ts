@@ -155,39 +155,39 @@ test('filtre les tâches par statut', async ({ page, createTask }) => {
 // Détail
 // ---------------------------------------------------------------------------
 
-test('ouvre le dialog de détail d\'une tâche', async ({ page, createTask }) => {
+test('ouvre la page de détail d\'une tâche', async ({ page, createTask }) => {
   const subject = `Détail E2E ${Date.now()}`;
   await createTask(subject);
 
   await page.getByRole('button', { name: subject, exact: true }).click();
 
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByText(subject)).toBeVisible();
+  await expect(page).toHaveURL(/\/app\/tasks\/[0-9a-f-]+/);
+  await expect(page.getByRole('heading', { name: subject })).toBeVisible();
 });
 
-test('change le statut depuis le dialog de détail', async ({ page, createTask }) => {
+test('change le statut depuis la page de détail', async ({ page, createTask }) => {
   const subject = `Détail Statut E2E ${Date.now()}`;
   await createTask(subject);
 
   await page.getByRole('button', { name: subject, exact: true }).click();
+  // Attendre le rendu de la page de détail (la liste est démontée) avant d'agir.
+  await expect(page.getByRole('heading', { name: subject })).toBeVisible();
 
-  const dialog = page.getByRole('dialog');
-  await dialog.getByRole('button', { name: 'À faire', exact: true }).click();
+  const main = page.getByRole('main');
+  await main.getByRole('button', { name: 'À faire', exact: true }).click();
   await page.getByRole('menuitemradio', { name: 'En cours' }).click();
 
-  // Fermer le dialog et vérifier la carte
-  await page.keyboard.press('Escape');
-  await expect(getTaskCard(page, subject).getByRole('button', { name: 'En cours', exact: true })).toBeVisible();
+  await expect(main.getByRole('button', { name: 'En cours', exact: true })).toBeVisible();
 });
 
-test('modifie une tâche depuis le dialog de détail', async ({ page, createTask }) => {
+test('modifie une tâche depuis la page de détail', async ({ page, createTask }) => {
   const subject = `Détail Modif E2E ${Date.now()}`;
   await createTask(subject);
 
   await page.getByRole('button', { name: subject, exact: true }).click();
+  await expect(page).toHaveURL(/\/app\/tasks\/[0-9a-f-]+/);
 
-  await page.getByRole('dialog').getByRole('button', { name: 'Modifier' }).click();
+  await page.getByRole('button', { name: 'Modifier' }).click();
 
   const editDialog = page.getByRole('dialog');
   const subjectInput = editDialog.getByPlaceholder('Titre de la tâche…');
@@ -195,7 +195,7 @@ test('modifie une tâche depuis le dialog de détail', async ({ page, createTask
   await subjectInput.fill(`${subject} — depuis détail`);
   await editDialog.getByRole('button', { name: 'Enregistrer' }).click();
 
-  await expect(page.getByText(`${subject} — depuis détail`)).toBeVisible();
+  await expect(page.getByRole('heading', { name: `${subject} — depuis détail` })).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------

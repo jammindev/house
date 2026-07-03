@@ -35,11 +35,8 @@ export const test = base.extend<{
       const dialog = page.getByRole('dialog');
       await dialog.getByPlaceholder('Titre de la tâche…').fill(subject);
 
-      // Zone (requise)
-      const zoneSelect = page.locator('#task-zone');
-      const firstZoneOption = zoneSelect.locator('option:not([disabled]):not([value=""])').first();
-      await firstZoneOption.waitFor({ state: 'attached', timeout: 10000 });
-      await zoneSelect.selectOption(await firstZoneOption.getAttribute('value') as string);
+      // Zone : la racine du foyer est cochée par défaut par le dialog
+      // (ZoneMultiSelect), aucune sélection manuelle n'est requise.
 
       if (options?.priority) {
         await page.locator('#task-priority').selectOption(options.priority);

@@ -123,6 +123,11 @@ export async function fetchTasks(): Promise<Task[]> {
     : ((data as { results?: Task[] }).results ?? []);
 }
 
+export async function fetchTask(id: string): Promise<Task> {
+  const { data } = await api.get(`/tasks/tasks/${id}/`);
+  return data as Task;
+}
+
 export async function updateTaskStatus(
   id: string,
   status: TaskStatus,
