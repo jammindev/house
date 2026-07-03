@@ -120,3 +120,33 @@ class TestHouseholdResolution:
         _patch_ask(monkeypatch)
         resp = client.post(URL, {"question": "engie?"}, format="json")
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+class TestThrottling:
+    """Every question costs LLM calls — the endpoint is rate-limited per user."""
+
+    @pytest.fixture(autouse=True)
+    def _isolated_throttle_state(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        yield
+        cache.clear()
+
+    def test_burst_limit_returns_429(self, owner_client, household, monkeypatch):
+        from agent.throttles import AgentBurstRateThrottle
+
+        # DRF resolves the rate at throttle instantiation via the class `rate`
+        # attribute — patching it beats overriding REST_FRAMEWORK (whose
+        # THROTTLE_RATES snapshot is frozen at import time).
+        monkeypatch.setattr(AgentBurstRateThrottle, "rate", "2/min", raising=False)
+        _patch_ask(
+            monkeypatch,
+            return_value=service.AnswerResult(answer="ok", citations=[], metadata={}),
+        )
+
+        for _ in range(2):
+            resp = owner_client.post(URL, {"question": "engie?"}, format="json")
+            assert resp.status_code == status.HTTP_200_OK
+        resp = owner_client.post(URL, {"question": "engie?"}, format="json")
+        assert resp.status_code == status.HTTP_429_TOO_MANY_REQUESTS

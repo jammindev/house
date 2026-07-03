@@ -312,6 +312,19 @@ class TestHouseholdFacts:
         result = service.ask("engie ?", household, user=owner, client=stub)
         assert len(result.citations) == 1
 
+    def test_single_quoted_citations_are_resolved(
+        self, with_api_key, household, owner, make_document
+    ):
+        doc = make_document(name="Engie facture mars")
+        stub = _ToolUseClient(
+            script=[
+                _run_tool("Engie"),
+                _run_text(f"Tu as payé 142,67€ <cite id='document:{doc.pk}'/>."),
+            ]
+        )
+        result = service.ask("engie ?", household, user=owner, client=stub)
+        assert [c.id for c in result.citations] == [doc.pk]
+
     def test_chains_search_then_get_entity_for_full_content(
         self, with_api_key, household, owner, make_document
     ):
@@ -488,6 +501,20 @@ class TestMetadataAndWiring:
         assert result.metadata["model"] == "stub-model"
         assert result.metadata["iterations"] == 2
         assert result.metadata["stop_reason"] == "end_turn"
+
+    def test_truncated_flag_set_when_answer_hits_max_tokens(
+        self, with_api_key, household, owner
+    ):
+        cut = _run_text("Réponse coupée en plein")
+        cut.stop_reason = "max_tokens"
+        stub = _ToolUseClient(script=[cut])
+        result = service.ask("bonjour", household, user=owner, client=stub)
+        assert result.metadata["truncated"] is True
+
+    def test_truncated_flag_false_on_normal_answer(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("ok")])
+        result = service.ask("bonjour", household, user=owner, client=stub)
+        assert result.metadata["truncated"] is False
 
     def test_system_prompt_and_identity_are_passed(self, with_api_key, household, owner):
         stub = _ToolUseClient(script=[_run_text("ok")])

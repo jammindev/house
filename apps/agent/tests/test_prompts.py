@@ -1,9 +1,12 @@
 """Tests for the agent prompts module."""
 from __future__ import annotations
 
+from django.utils import timezone
+
 from agent.prompts import (
     TRUNCATION_MARKER,
     SYSTEM_PROMPT,
+    build_system_prompt,
     render_context_block,
 )
 from agent.retrieval import Hit
@@ -43,6 +46,20 @@ class TestSystemPrompt:
         assert "DIALOGUE" in upper
         assert "HOUSEHOLD FACTS" in upper
         assert "GENERAL KNOWLEDGE" in upper
+
+
+class TestCurrentDate:
+    def test_system_prompt_carries_todays_date(self):
+        today = timezone.localdate()
+        prompt = build_system_prompt()
+        assert today.isoformat() in prompt
+        assert today.strftime("%A") in prompt
+
+    def test_anchored_prompt_also_carries_the_date(self):
+        today = timezone.localdate()
+        prompt = build_system_prompt(anchored=True)
+        assert "CURRENT ITEM CONTEXT" in prompt
+        assert today.isoformat() in prompt
 
 
 class TestRenderContextBlock:

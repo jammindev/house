@@ -23,6 +23,8 @@ remaining hits fall back to their short headline snippet.
 """
 from __future__ import annotations
 
+from django.utils import timezone
+
 from .retrieval import Hit
 
 # Context-enrichment budgets. Roughly: 6000 chars ≈ 1500 tokens of extra input
@@ -106,11 +108,22 @@ the full text of a document only summarised there).
 """
 
 
+# Grounds relative-date reasoning ("tomorrow", "this week", the `due_date` of
+# `create_entity`). Stable within a day, so it does not break prompt caching.
+CURRENT_DATE_ADDENDUM = """
+
+Today's date is {weekday} {date}. Use it to resolve relative dates ("tomorrow",
+"next week", "this year") into concrete YYYY-MM-DD values.
+"""
+
+
 def build_system_prompt(*, anchored: bool = False) -> str:
     """Return the system prompt, optionally extended for an anchored conversation."""
-    if anchored:
-        return SYSTEM_PROMPT + ANCHORED_ADDENDUM
-    return SYSTEM_PROMPT
+    prompt = SYSTEM_PROMPT + ANCHORED_ADDENDUM if anchored else SYSTEM_PROMPT
+    today = timezone.localdate()
+    return prompt + CURRENT_DATE_ADDENDUM.format(
+        weekday=today.strftime("%A"), date=today.isoformat()
+    )
 
 
 def render_context_block(

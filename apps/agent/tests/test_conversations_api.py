@@ -331,6 +331,42 @@ class TestForContext:
         resp = owner_client.get(f"{BASE}for_context/", {"entity_type": "project"})
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_nonexistent_object_returns_404_and_creates_nothing(
+        self, owner_client, household
+    ):
+        resp = owner_client.get(
+            f"{BASE}for_context/",
+            {
+                "entity_type": "project",
+                "object_id": "00000000-0000-0000-0000-000000000000",
+            },
+        )
+        assert resp.status_code == status.HTTP_404_NOT_FOUND
+        assert not AgentConversation.objects.filter(
+            context_entity_type="project"
+        ).exists()
+
+    def test_object_from_another_household_returns_404(
+        self, owner_client, household, owner
+    ):
+        from projects.models import Project
+
+        other_household = Household.objects.create(name="Elsewhere")
+        foreign = Project.objects.create(
+            household=other_household, created_by=owner, title="Pas chez moi"
+        )
+        resp = owner_client.get(
+            f"{BASE}for_context/",
+            {"entity_type": "project", "object_id": str(foreign.pk)},
+        )
+        assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_malformed_object_id_returns_404(self, owner_client, household):
+        resp = owner_client.get(
+            f"{BASE}for_context/", {"entity_type": "project", "object_id": "not-a-uuid"}
+        )
+        assert resp.status_code == status.HTTP_404_NOT_FOUND
+
 
 class TestAnchoredMessage:
     def test_context_entity_is_passed_to_ask(
@@ -408,3 +444,42 @@ class TestRenameAndDelete:
         assert resp.status_code == status.HTTP_204_NO_CONTENT
         assert not AgentConversation.objects.filter(id=conversation.id).exists()
         assert AgentMessage.objects.count() == 0
+
+
+class TestThrottling:
+    """Only the LLM-backed `messages` action is rate-limited — CRUD is free."""
+
+    @pytest.fixture(autouse=True)
+    def _isolated_throttle_state(self):
+        from django.core.cache import cache
+
+        cache.clear()
+        yield
+        cache.clear()
+
+    @pytest.fixture
+    def _tight_burst(self, monkeypatch):
+        from agent.throttles import AgentBurstRateThrottle
+
+        # DRF resolves the rate at throttle instantiation via the class `rate`
+        # attribute — patching it beats overriding REST_FRAMEWORK (whose
+        # THROTTLE_RATES snapshot is frozen at import time).
+        monkeypatch.setattr(AgentBurstRateThrottle, "rate", "2/min", raising=False)
+
+    def test_messages_throttled_after_burst_limit(
+        self, owner_client, conversation, monkeypatch, _tight_burst
+    ):
+        _patch_ask(monkeypatch, return_value=_answer())
+        url = f"{BASE}{conversation.id}/messages/"
+        for _ in range(2):
+            resp = owner_client.post(url, {"question": "q"}, format="json")
+            assert resp.status_code == status.HTTP_201_CREATED
+        resp = owner_client.post(url, {"question": "q"}, format="json")
+        assert resp.status_code == status.HTTP_429_TOO_MANY_REQUESTS
+
+    def test_conversation_crud_is_not_throttled(
+        self, owner_client, conversation, _tight_burst
+    ):
+        for _ in range(5):
+            resp = owner_client.get(BASE)
+            assert resp.status_code == status.HTTP_200_OK

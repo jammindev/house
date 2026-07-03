@@ -209,7 +209,16 @@ class AnthropicClient:
             create_kwargs: dict[str, Any] = {
                 "model": self.model,
                 "max_tokens": max_tokens,
-                "system": system,
+                # One cache breakpoint at the end of the system block caches the
+                # whole prefix before the messages (tool schemas + system prompt)
+                # across loop iterations and conversation turns (5-min TTL).
+                "system": [
+                    {
+                        "type": "text",
+                        "text": system,
+                        "cache_control": {"type": "ephemeral"},
+                    }
+                ],
                 "messages": messages,
             }
             if tools:
@@ -244,7 +253,7 @@ class AnthropicClient:
             input_tokens=input_tokens,
             output_tokens=output_tokens,
             success=True,
-            metadata=metadata,
+            metadata=_with_cache_usage(metadata, usage),
         )
 
         return LLMRunResponse(
@@ -288,6 +297,22 @@ class AnthropicClient:
         if error_type == "timeout":
             raise LLMTimeoutError(str(exc)) from exc
         raise LLMError(str(exc)) from exc
+
+
+def _with_cache_usage(metadata: dict[str, Any] | None, usage) -> dict[str, Any] | None:
+    """Fold the provider's prompt-cache counters into the AIUsageLog metadata.
+
+    Lets us verify from the logs that prefix caching actually hits (reads grow,
+    creations stay rare). No-op when the provider reports nothing.
+    """
+    extra = {
+        key: getattr(usage, key, None)
+        for key in ("cache_read_input_tokens", "cache_creation_input_tokens")
+        if usage is not None and getattr(usage, key, None) is not None
+    }
+    if not extra:
+        return metadata
+    return {**(metadata or {}), **extra}
 
 
 def _block_get(block, key, default=None):

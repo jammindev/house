@@ -40,7 +40,9 @@ DEFAULT_MAX_TOKENS = 1024
 DEFAULT_MAX_TOOL_ITERATIONS = 3
 IDK_MARKER = "no_household_match"
 
-_CITE_RE = re.compile(r'<cite\s+id="(?P<tag>[^"]+)"\s*/?>', re.IGNORECASE)
+# The prompt asks for double quotes, but models occasionally emit single quotes —
+# accept both rather than silently dropping the citation.
+_CITE_RE = re.compile(r'''<cite\s+id=["'](?P<tag>[^"']+)["']\s*/?>''', re.IGNORECASE)
 
 
 @dataclass
@@ -203,6 +205,10 @@ def ask(
             "tool_calls": tool_calls,
             "iterations": iterations,
             "stop_reason": stop_reason,
+            # The model ran out of max_tokens mid-answer — the text is cut short.
+            # Surfaced so the frontend can tell the user instead of serving a
+            # sentence that just stops.
+            "truncated": stop_reason == "max_tokens",
             "answer_kind": answer_kind,
             "anchored": anchored,
             "created_entities": created_entities,
