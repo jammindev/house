@@ -27,11 +27,11 @@ Les surfaces concernées sont :
 
 ### Déjà en place et réutilisable
 
-- `Zone` avec full_path, depth, parent/children, color, surface dans [apps/zones/models.py](/Users/benjaminvandamme/Developer/house/apps/zones/models.py)
+- `Zone` avec full_path, depth, parent/children, color, surface dans [apps/zones/models.py](../../apps/zones/models.py)
 - `ZoneDocument` pour les photos
-- `/app/zones/` liste arborescente collapsible — [apps/zones/react/ZonesNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZonesNode.tsx)
-- `/app/zones/{id}/` détail avec stats, galerie photos — [apps/zones/react/ZoneDetailNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZoneDetailNode.tsx)
-- `Equipment` avec tous les champs utiles (zone, garantie, maintenance) dans [apps/equipment/models.py](/Users/benjaminvandamme/Developer/house/apps/equipment/models.py)
+- `/app/zones/` liste arborescente collapsible — [apps/zones/react/ZonesNode.tsx](../../apps/zones/react/ZonesNode.tsx)
+- `/app/zones/{id}/` détail avec stats, galerie photos — [apps/zones/react/ZoneDetailNode.tsx](../../apps/zones/react/ZoneDetailNode.tsx)
+- `Equipment` avec tous les champs utiles (zone, garantie, maintenance) dans [apps/equipment/models.py](../../apps/equipment/models.py)
 - `EquipmentInteraction` through table pour lier interactions à un équipement
 - CRUD complet `/app/equipment/` — liste, création, détail, édition
 - `EquipmentDetail.tsx` affiche déjà les interactions liées via `EquipmentInteraction`
@@ -72,9 +72,9 @@ Transformer la page détail zone en tableau de bord spatial : équipements, tâc
 
 ### Fichiers principaux
 
-- [apps/zones/react/ZoneDetailNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZoneDetailNode.tsx)
-- [apps/zones/react/components/ZoneDetailView.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/components/ZoneDetailView.tsx)
-- [apps/zones/views_web.py](/Users/benjaminvandamme/Developer/house/apps/zones/views_web.py)
+- [apps/zones/react/ZoneDetailNode.tsx](../../apps/zones/react/ZoneDetailNode.tsx)
+- [apps/zones/react/components/ZoneDetailView.tsx](../../apps/zones/react/components/ZoneDetailView.tsx)
+- [apps/zones/views_web.py](../../apps/zones/views_web.py)
 
 ### Tâches
 
@@ -114,9 +114,9 @@ Enrichir la page détail équipement avec zone, garantie, prochaine maintenance,
 
 ### Fichiers principaux
 
-- [apps/equipment/react/EquipmentDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/equipment/react/EquipmentDetail.tsx)
-- [apps/equipment/views_web.py](/Users/benjaminvandamme/Developer/house/apps/equipment/views_web.py)
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
+- [apps/equipment/react/EquipmentDetail.tsx](../../apps/equipment/react/EquipmentDetail.tsx)
+- [apps/equipment/views_web.py](../../apps/equipment/views_web.py)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
 
 ### Tâches
 
@@ -163,9 +163,9 @@ Sécuriser les nouveaux flux sans multiplier les tests inutiles.
 
 ### Fichiers principaux
 
-- [apps/interactions/tests/test_web_interactions.py](/Users/benjaminvandamme/Developer/house/apps/interactions/tests/test_web_interactions.py)
-- [apps/zones/tests/](/Users/benjaminvandamme/Developer/house/apps/zones/tests/) si existant
-- [apps/equipment/tests/](/Users/benjaminvandamme/Developer/house/apps/equipment/tests/) si existant
+- [apps/interactions/tests/test_web_interactions.py](../../apps/interactions/tests/test_web_interactions.py)
+- [apps/zones/tests/](../../apps/zones/tests/) si existant
+- [apps/equipment/tests/](../../apps/equipment/tests/) si existant
 
 ### Tâches
 

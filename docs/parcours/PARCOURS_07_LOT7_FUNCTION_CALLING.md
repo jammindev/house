@@ -163,8 +163,10 @@ def dispatch(name, args, *, household, user) -> ToolResult: ...
 
 `search_household` est enregistré au boot. **Ajouter un futur tool
 (`create_interaction`, `create_task`, …) = un `register(...)`**, sans toucher à
-`service.py`. Les tools d'écriture respecteront le pattern `needs_review` du
-transverse (proposition vs vérité) — hors scope de ce lot.
+`service.py`. Les tools d'écriture — hors scope de ce
+lot — étaient pressentis sur le pattern `needs_review` du transverse ; le lot 8 a
+finalement tranché « créer + Undo » (voir
+[PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md) §8).
 
 ## 5. Le nouveau contrat client LLM
 
@@ -302,7 +304,8 @@ dev via `TEST_DATABASE_NAME` (`.env.local`) — le settings le prévoyait déjà
 ## 12. Hors scope de ce lot
 
 - Tools d'**écriture** (`create_interaction` / #50, `create_task`…) → lot suivant,
-  une fois le socle validé (respecteront le pattern `needs_review` du transverse).
+  une fois le socle validé. *(Livré au lot 8 avec le pattern « créer + Undo »,
+  pas `needs_review` — cf. [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md) §8.)*
 - **Streaming** de réponse (toujours hors-scope, cf. lot 4).
 - **Embeddings** / `pgvector` (V2 retrieval).
 - Refonte de `query_expansion` (reste tel quel, dans le corps du tool).

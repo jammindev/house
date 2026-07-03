@@ -377,5 +377,5 @@ Voir `docs/MODULES/agent.md` pour le mode d'emploi.
 - [Anthropic — Claude API](https://docs.anthropic.com/en/api) — référence du SDK utilisé
 - [Anthropic Cookbook — RAG](https://github.com/anthropics/anthropic-cookbook) — exemples de patterns RAG avec Claude
 - [pgvector](https://github.com/pgvector/pgvector) — pour quand on passera aux embeddings (V2 potentielle)
-- Backlog technique du parcours : [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
-- Doc produit du parcours : [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
+- Backlog technique du parcours : [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
+- Doc produit du parcours : [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)

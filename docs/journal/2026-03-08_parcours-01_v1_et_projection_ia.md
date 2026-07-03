@@ -43,10 +43,10 @@ Objectif réel de la session : transformer le parcours 01 en socle produit créd
 
 ## Documents produits ou mis à jour
 
-- [docs/PARCOURS_METIER_PRIORITAIRES.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_METIER_PRIORITAIRES.md)
-- [docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md)
-- [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
-- note de projection IA pour le parcours 01 (depuis consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md), section "Évolutions ultérieures")
+- [docs/PARCOURS_METIER_PRIORITAIRES.md](../../docs/PARCOURS_METIER_PRIORITAIRES.md)
+- [docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md](../../docs/PARCOURS_01_CAPTURER_ET_RETROUVER_UN_EVENEMENT.md)
+- [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
+- note de projection IA pour le parcours 01 (depuis consolidée dans [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md), section "Évolutions ultérieures")
 
 ## Recommandation pour la suite
 
@@ -54,6 +54,6 @@ Le prochain sujet à attaquer devrait être le parcours 02.
 
 Avant de coder, repartir de :
 
-1. l'état courant du produit dans [docs/JOURNAL_PRODUIT.md](/Users/benjaminvandamme/Developer/house/docs/JOURNAL_PRODUIT.md)
+1. l'état courant du produit dans [docs/JOURNAL_PRODUIT.md](../../docs/JOURNAL_PRODUIT.md)
 2. les idées non traitées sur GitHub (label `idea`)
 3. les décisions déjà figées dans les docs du parcours 01

@@ -114,7 +114,7 @@ Test HTTP via nginx → web container : 200 OK, contrat JSON respecté. `AIUsage
 
 ## Références
 
-- [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
-- [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
-- [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
+- [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
+- [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
+- [docs/fiches/RAG.md](../../docs/fiches/RAG.md)
 - PRs : #111 (#107), #112 (#100), #114 (#101), #115 (#102)

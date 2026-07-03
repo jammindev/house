@@ -91,5 +91,5 @@ Cinq nouveaux tests ajoutés.
 
 ## Références
 
-- [docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
-- [docs/PARCOURS_05_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_05_BACKLOG_TECHNIQUE.md)
+- [docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md](../../docs/PARCOURS_05_NAVIGUER_PAR_ZONE_OU_EQUIPEMENT.md)
+- [docs/PARCOURS_05_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_05_BACKLOG_TECHNIQUE.md)

@@ -6,7 +6,7 @@ Il factorise les principes, le vocabulaire et les décisions à trancher avant d
 
 Voir aussi :
 
-- [PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md) — premier porteur d'implémentation IA (agent en lecture seule + extensions futures pour capture conversationnelle et compréhension de documents)
+- [PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md) — premier porteur d'implémentation IA (agent conversationnel : lecture via function calling, écriture bornée `create_entity` depuis le lot 8 + extensions futures pour capture conversationnelle et compréhension de documents)
 
 ## Objet
 
@@ -115,6 +115,8 @@ Pistes à instruire dans le design doc d'implémentation :
 - exposer dans l'UI un emplacement clair pour les éléments en attente de revue (file d'attente dédiée ou filtre liste)
 
 Décision : ne pas trancher ici, mais ne pas exclure ce mode par le design actuel.
+
+> **Divergence actée (lot 8 agent, 2026-07)** : pour les écritures de l'agent conversationnel (`create_entity` — tâche, note), le choix retenu est **« créer + Undo »** plutôt que `needs_review` : l'item est créé immédiatement via le service métier, remonté dans `metadata.created_entities`, et annulable d'un clic (toast). Rationale dans [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](../../docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md) §8 : à l'échelle solo-user, une validation préalable ajoute de la friction sans bénéfice, et l'annulation immédiate offre le même contrôle final. `needs_review` reste le mécanisme cible pour les canaux **asynchrones** (capture WhatsApp/email, compréhension de documents à l'upload), où l'utilisateur n'est pas dans la boucle au moment de la création. Le contrat de provenance `metadata.ai.*` n'est pas encore porté par ces créations — à instruire quand un canal asynchrone l'exigera.
 
 ## Règles à préserver dès maintenant
 

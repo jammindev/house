@@ -1,12 +1,12 @@
 # Parcours 07 — Poser une question en langage naturel sur son foyer
 
-> **V1 livrée le 2026-05-02** — agent conversationnel utilisable sur `/app/agent/`, citations cliquables vers les entités du foyer. Détails de livraison en bas du document. Le backlog technique vit dans [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md).
+> **V1 livrée le 2026-05-02** — agent conversationnel utilisable sur `/app/agent/`, citations cliquables vers les entités du foyer. Détails de livraison en bas du document. Le backlog technique vit dans [PARCOURS_07_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md).
 >
 > **Évolution 2026-07 (lot 7 — function calling)** — Le pipeline RAG figé est devenu une boucle **tool-use** : l'agent ne recherche plus de force à chaque tour. Il répond directement au dialogue (salutations, suivi) et à la culture générale, et n'appelle le tool `search_household` que pour un fait du foyer. La Règle 1 ci-dessous reste vraie pour **les faits** (le foyer est la seule frontière de connaissance factuelle), mais la connaissance générale du modèle est désormais autorisée, à condition d'être signalée comme telle. Voir [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md).
 
 Ce document détaille le septième parcours métier de House.
 
-Il s'appuie sur le socle posé par les parcours 01 à 06 et s'inscrit dans la couche IA décrite par [PARCOURS_IA_TRANSVERSE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_IA_TRANSVERSE.md).
+Il s'appuie sur le socle posé par les parcours 01 à 06 et s'inscrit dans la couche IA décrite par [PARCOURS_IA_TRANSVERSE.md](../../docs/parcours/PARCOURS_IA_TRANSVERSE.md).
 
 ## Résumé
 
@@ -149,9 +149,9 @@ Une réponse sans citation possible est suspecte. L'agent doit indiquer ses sour
 
 Si l'agent cite un document, l'utilisateur peut toujours ouvrir le document original pour vérifier. L'agent ne remplace jamais la pièce source.
 
-### Règle 4 — L'agent ne crée pas, il répond
+### Règle 4 — L'agent ne crée pas, il répond *(amendée par le lot 8, 2026-07)*
 
-En V1, l'agent est en lecture seule. Pas d'action de création (interaction, tâche) déclenchée par l'agent. Cette extension est un sujet ultérieur (lien possible avec parcours 01 IA).
+En V1, l'agent était en lecture seule. Depuis le lot 8 ([PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md)), il peut **créer** une tâche ou une note via le tool `create_entity`, avec trois garde-fous : création uniquement sur demande explicite de l'utilisateur, passage obligatoire par les services métier (registry `agent.writables`, jamais l'ORM brut), et réversibilité immédiate (toast Undo). Pas de modification ni de suppression — l'esprit de la règle demeure : toute écriture doit être bornée, traçable et annulable.
 
 ### Règle 5 — La latence doit rester acceptable
 
@@ -159,7 +159,7 @@ L'utilisateur attend une réponse en quelques secondes, pas plusieurs minutes. L
 
 ### Règle 6 — La confidentialité est explicite
 
-L'utilisateur doit savoir que le contenu de son foyer (texte d'interactions, OCR de documents) est envoyé à un modèle externe (Claude). En V1 : mention de confidentialité au premier usage (modale Radix non-dismissible jusqu'à acceptation, persistance localStorage `agent.privacyAccepted.v1`). Trois points couverts : provider externe, scope household uniquement, pas de stockage du contenu des conversations. La redaction PII reste hors scope V1 (faible priorité en mode solo user, à arbitrer si on ouvre à d'autres utilisateurs).
+L'utilisateur doit savoir que le contenu de son foyer (texte d'interactions, OCR de documents) est envoyé à un modèle externe (Claude). En V1 : mention de confidentialité au premier usage (modale Radix non-dismissible jusqu'à acceptation, persistance localStorage `agent.privacyAccepted.v1`). Trois points couverts : provider externe, scope household uniquement, pas de stockage du contenu des prompts dans `AIUsageLog`. *(Amendement lot 4, 2026-07 : les conversations sont désormais **persistées** côté serveur — `AgentConversation`/`AgentMessage`, privées par utilisateur, rétention 365 j via `cleanup_agent_conversations`.)* La redaction PII reste hors scope V1 (faible priorité en mode solo user, à arbitrer si on ouvre à d'autres utilisateurs).
 
 ## Backlog produit V1 — état de livraison
 
@@ -372,8 +372,8 @@ Tous les critères sont satisfaits :
 5. vérifier le scope household (deux comptes différents posent la même question, réponses isolées)
 6. **noter les questions qui ratent** — ce qui devait matcher mais qui n'a pas matché (déclencheur de #113 : stemming par foyer)
 
-Backlog technique associé : [PARCOURS_07_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
-Fiche concept (RAG) : [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
+Backlog technique associé : [PARCOURS_07_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
+Fiche concept (RAG) : [docs/fiches/RAG.md](../../docs/fiches/RAG.md)
 
 ## Extension 2026-07 — assistant ancré sur une entité
 

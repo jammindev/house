@@ -38,6 +38,6 @@ Exemples :
 
 ## Références
 
-- [docs/JOURNAL_PRODUIT.md](/Users/benjaminvandamme/Developer/house/docs/JOURNAL_PRODUIT.md)
-- [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
-- [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)
+- [docs/JOURNAL_PRODUIT.md](../../docs/JOURNAL_PRODUIT.md)
+- [docs/PARCOURS_01_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_01_BACKLOG_TECHNIQUE.md)
+- [docs/PARCOURS_02_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_02_BACKLOG_TECHNIQUE.md)

@@ -76,5 +76,5 @@ Cinq nouveaux tests ajoutés.
 
 ## Références
 
-- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
-- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](/Users/benjaminvandamme/Developer/house/docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)
+- [docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md](../../docs/PARCOURS_04_SUIVRE_UN_PROJET_DE_BOUT_EN_BOUT.md)
+- [docs/PARCOURS_04_BACKLOG_TECHNIQUE.md](../../docs/PARCOURS_04_BACKLOG_TECHNIQUE.md)

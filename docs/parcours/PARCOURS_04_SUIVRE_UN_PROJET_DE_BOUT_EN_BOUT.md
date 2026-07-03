@@ -24,7 +24,7 @@ Sans ce parcours, le foyer a une bonne mémoire mais pas de vision d'ensemble su
 
 Le modèle technique central est `Project`.
 
-Ce modèle existe déjà dans [apps/projects/models.py](/Users/benjaminvandamme/Developer/house/apps/projects/models.py) avec les champs suivants :
+Ce modèle existe déjà dans [apps/projects/models.py](../../apps/projects/models.py) avec les champs suivants :
 
 - `title`, `description`, `status`, `type`, `priority` (1-5)
 - `start_date`, `due_date`, `closed_at`
@@ -67,7 +67,7 @@ Le repo contient déjà une base solide pour ce parcours.
 
 ## Module projets existant
 
-Un module projets complet existe dans [apps/projects/](/Users/benjaminvandamme/Developer/house/apps/projects/).
+Un module projets complet existe dans [apps/projects/](../../apps/projects/).
 
 Il expose plusieurs pages accessibles via `/app/projects/` :
 
@@ -79,10 +79,10 @@ Il expose plusieurs pages accessibles via `/app/projects/` :
 
 Les composants React existants couvrent déjà les usages principaux :
 
-- [apps/projects/react/ProjectList.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectList.tsx) — liste filtrée avec épinglage
-- [apps/projects/react/ProjectDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectDetail.tsx) — détail avec onglets
-- [apps/projects/react/ProjectForm.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectForm.tsx) — formulaire création/édition
-- [apps/projects/react/ProjectCard.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectCard.tsx) — carte avec budget bar et indicateurs
+- [apps/projects/react/ProjectList.tsx](../../apps/projects/react/ProjectList.tsx) — liste filtrée avec épinglage
+- [apps/projects/react/ProjectDetail.tsx](../../apps/projects/react/ProjectDetail.tsx) — détail avec onglets
+- [apps/projects/react/ProjectForm.tsx](../../apps/projects/react/ProjectForm.tsx) — formulaire création/édition
+- [apps/projects/react/ProjectCard.tsx](../../apps/projects/react/ProjectCard.tsx) — carte avec budget bar et indicateurs
 
 ## API existante
 
@@ -91,7 +91,7 @@ Les composants React existants couvrent déjà les usages principaux :
 - épinglage/désépinglage : `/api/projects/projects/{id}/pin/` et `unpin/`
 - interactions liées : `/api/interactions/interactions/?project=<id>`
 - groupes : `/api/projects/groups/`
-- client frontend : [ui/src/lib/api/projects.ts](/Users/benjaminvandamme/Developer/house/ui/src/lib/api/projects.ts)
+- client frontend : [ui/src/lib/api/projects.ts](../../ui/src/lib/api/projects.ts)
 
 ## Capacité métier déjà présente
 
@@ -357,11 +357,11 @@ En V1, la synthèse peut être un bloc en tête de la page détail (au-dessus de
 
 ## Écrans impactés
 
-- [apps/projects/react/ProjectDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/projects/react/ProjectDetail.tsx) — ajout des boutons de création depuis chaque onglet, bloc de synthèse
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx) — support du paramètre `projectId`
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py) — transmission du `projectId` depuis le contexte projet
-- [apps/tasks/react/TaskCard.tsx](/Users/benjaminvandamme/Developer/house/apps/tasks/react/TaskCard.tsx) — affichage du projet si lié
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx) — affichage du projet si lié
+- [apps/projects/react/ProjectDetail.tsx](../../apps/projects/react/ProjectDetail.tsx) — ajout des boutons de création depuis chaque onglet, bloc de synthèse
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx) — support du paramètre `projectId`
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py) — transmission du `projectId` depuis le contexte projet
+- [apps/tasks/react/TaskCard.tsx](../../apps/tasks/react/TaskCard.tsx) — affichage du projet si lié
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx) — affichage du projet si lié
 
 ## Hors scope pour la V1
 

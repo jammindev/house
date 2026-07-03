@@ -4,7 +4,7 @@ Ce document détaille le premier parcours métier à travailler dans House.
 
 Il s'appuie sur l'état actuel du projet Django + React hybride, et non sur les archives `legacy/`.
 
-Note complémentaire : la projection future d'une capture conversationnelle ou assistée par IA est consolidée dans la section "Évolutions ultérieures" de [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).
+Note complémentaire : la projection future d'une capture conversationnelle ou assistée par IA est consolidée dans la section "Évolutions ultérieures" de [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).
 
 ## Résumé
 
@@ -116,16 +116,16 @@ Le repo contient déjà une première implémentation exploitable du parcours.
 
 ## Pages web existantes
 
-- `/app/interactions/` via [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- `/app/interactions/new/` via [apps/interactions/web_urls.py](/Users/benjaminvandamme/Developer/house/apps/interactions/web_urls.py)
+- `/app/interactions/` via [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- `/app/interactions/new/` via [apps/interactions/web_urls.py](../../apps/interactions/web_urls.py)
 
 Le dashboard actuel est aussi concerné fonctionnellement comme point d'entrée rapide, même si la logique centrale du parcours reste sur le module interactions.
 
 ## Composants React existants
 
-- liste : [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- création : [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
-- points de montage : [ui/src/pages/interactions/list.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/interactions/list.tsx) et [ui/src/pages/interactions/new.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/interactions/new.tsx)
+- liste : [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- création : [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
+- points de montage : [ui/src/pages/interactions/list.tsx](../../ui/src/pages/interactions/list.tsx) et [ui/src/pages/interactions/new.tsx](../../ui/src/pages/interactions/new.tsx)
 
 ## API existante
 
@@ -134,7 +134,7 @@ Le dashboard actuel est aussi concerné fonctionnellement comme point d'entrée 
 - vue tâches : `/api/interactions/interactions/tasks/`
 - changement rapide de statut : `/api/interactions/interactions/{id}/update_status/`
 
-Implémentation principale : [apps/interactions/views.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views.py)
+Implémentation principale : [apps/interactions/views.py](../../apps/interactions/views.py)
 
 ## Capacité métier déjà présente
 
@@ -147,7 +147,7 @@ Implémentation principale : [apps/interactions/views.py](/Users/benjaminvandamm
 
 ## Modèle métier déjà présent
 
-Le modèle [apps/interactions/models.py](/Users/benjaminvandamme/Developer/house/apps/interactions/models.py) couvre déjà une base large.
+Le modèle [apps/interactions/models.py](../../apps/interactions/models.py) couvre déjà une base large.
 
 ### Types actuellement disponibles
 
@@ -449,8 +449,8 @@ Pour ce projet, la `sheet` est probablement la meilleure option si tu veux faire
 
 Le repo a déjà les primitives nécessaires pour cela via le design system :
 
-- [ui/src/design-system/dialog.tsx](/Users/benjaminvandamme/Developer/house/ui/src/design-system/dialog.tsx)
-- [ui/src/design-system/sheet-dialog.tsx](/Users/benjaminvandamme/Developer/house/ui/src/design-system/sheet-dialog.tsx)
+- [ui/src/design-system/dialog.tsx](../../ui/src/design-system/dialog.tsx)
+- [ui/src/design-system/sheet-dialog.tsx](../../ui/src/design-system/sheet-dialog.tsx)
 
 ## Structure recommandée des types dans le sélecteur
 
@@ -499,7 +499,7 @@ Cette section décrit le flow V1 recommandé, adapté au projet tel qu'il existe
 
 ## 1. CTA dashboard
 
-Le dashboard expose déjà une zone de `quickActions` dans [apps/accounts/views/template_views.py](/Users/benjaminvandamme/Developer/house/apps/accounts/views/template_views.py) et [apps/accounts/react/DashboardPage.tsx](/Users/benjaminvandamme/Developer/house/apps/accounts/react/DashboardPage.tsx).
+Le dashboard expose déjà une zone de `quickActions` dans [apps/accounts/views/template_views.py](../../apps/accounts/views/template_views.py) et [apps/accounts/react/DashboardPage.tsx](../../apps/accounts/react/DashboardPage.tsx).
 
 Pour le parcours 1, la recommandation V1 est :
 
@@ -586,7 +586,7 @@ Exemple de logique :
 
 Pourquoi cette option est la meilleure pour la V1 :
 
-- elle réutilise le parcours déjà présent dans [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
+- elle réutilise le parcours déjà présent dans [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
 - elle évite d'embarquer toute la complexité du formulaire dans le dashboard
 - elle réduit le coût d'implémentation
 - elle reste compatible avec une évolution future vers une quick capture plus inline
@@ -601,7 +601,7 @@ Cette option est intéressante plus tard, mais elle alourdit la première implé
 
 Le formulaire de création doit rester unique, avec un tronc commun stable.
 
-La base existe déjà dans [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx).
+La base existe déjà dans [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx).
 
 ### Champs communs à tous les types
 
@@ -655,7 +655,7 @@ Flow recommandé V1 :
 3. liste rechargée
 4. idéalement filtre ou état permettant de repérer facilement l'élément créé
 
-La redirection actuelle vers la liste dans [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py) va déjà dans le bon sens.
+La redirection actuelle vers la liste dans [apps/interactions/views_web.py](../../apps/interactions/views_web.py) va déjà dans le bon sens.
 
 ## 8. Ce qu'il faut afficher sur le dashboard en V1
 
@@ -696,9 +696,9 @@ Ce flow est propre, scalable, compatible mobile, et suffisamment léger pour une
 ## Écrans impactés
 
 - dashboard
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py)
-- [apps/interactions/react/InteractionList.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionList.tsx)
-- [apps/interactions/react/InteractionCreateForm.tsx](/Users/benjaminvandamme/Developer/house/apps/interactions/react/InteractionCreateForm.tsx)
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py)
+- [apps/interactions/react/InteractionList.tsx](../../apps/interactions/react/InteractionList.tsx)
+- [apps/interactions/react/InteractionCreateForm.tsx](../../apps/interactions/react/InteractionCreateForm.tsx)
 - la navigation et les CTA menant vers la création
 
 ## Hors scope pour cette semaine

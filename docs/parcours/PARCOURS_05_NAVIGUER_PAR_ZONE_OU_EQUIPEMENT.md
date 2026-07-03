@@ -26,7 +26,7 @@ Les parcours 01 à 04 ont construit la mémoire chronologique du foyer (événem
 
 ### Zone
 
-Le modèle `Zone` existe dans [apps/zones/models.py](/Users/benjaminvandamme/Developer/house/apps/zones/models.py).
+Le modèle `Zone` existe dans [apps/zones/models.py](../../apps/zones/models.py).
 
 Champs clés :
 - `name`, `parent` (FK self), `color`, `surface`, `note`
@@ -42,7 +42,7 @@ Relations inverses exploitables :
 
 ### Équipement
 
-Le modèle `Equipment` existe dans [apps/equipment/models.py](/Users/benjaminvandamme/Developer/house/apps/equipment/models.py).
+Le modèle `Equipment` existe dans [apps/equipment/models.py](../../apps/equipment/models.py).
 
 Champs clés :
 - `name`, `category`, `zone` (FK nullable)
@@ -79,7 +79,7 @@ Permettre à un membre du foyer de :
 
 ### Module zones existant
 
-Un module zones complet existe dans [apps/zones/](/Users/benjaminvandamme/Developer/house/apps/zones/).
+Un module zones complet existe dans [apps/zones/](../../apps/zones/).
 
 Pages accessibles via `/app/zones/` :
 
@@ -88,14 +88,14 @@ Pages accessibles via `/app/zones/` :
 
 Les composants React existants :
 
-- [apps/zones/react/ZonesNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZonesNode.tsx) — liste arborescente
-- [apps/zones/react/ZoneDetailNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZoneDetailNode.tsx) — détail avec galerie
-- [apps/zones/react/components/ZoneDetailView.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/components/ZoneDetailView.tsx) — infos + stats
-- [apps/zones/react/hooks/useZones.ts](/Users/benjaminvandamme/Developer/house/apps/zones/react/hooks/useZones.ts) — hook de données
+- [apps/zones/react/ZonesNode.tsx](../../apps/zones/react/ZonesNode.tsx) — liste arborescente
+- [apps/zones/react/ZoneDetailNode.tsx](../../apps/zones/react/ZoneDetailNode.tsx) — détail avec galerie
+- [apps/zones/react/components/ZoneDetailView.tsx](../../apps/zones/react/components/ZoneDetailView.tsx) — infos + stats
+- [apps/zones/react/hooks/useZones.ts](../../apps/zones/react/hooks/useZones.ts) — hook de données
 
 ### Module équipements existant
 
-Un module équipements complet existe dans [apps/equipment/](/Users/benjaminvandamme/Developer/house/apps/equipment/).
+Un module équipements complet existe dans [apps/equipment/](../../apps/equipment/).
 
 Pages accessibles via `/app/equipment/` :
 
@@ -105,9 +105,9 @@ Pages accessibles via `/app/equipment/` :
 
 Les composants React existants couvrent déjà les usages CRUD :
 
-- [apps/equipment/react/EquipmentList.tsx](/Users/benjaminvandamme/Developer/house/apps/equipment/react/EquipmentList.tsx)
-- [apps/equipment/react/EquipmentDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/equipment/react/EquipmentDetail.tsx)
-- [apps/equipment/react/EquipmentForm.tsx](/Users/benjaminvandamme/Developer/house/apps/equipment/react/EquipmentForm.tsx)
+- [apps/equipment/react/EquipmentList.tsx](../../apps/equipment/react/EquipmentList.tsx)
+- [apps/equipment/react/EquipmentDetail.tsx](../../apps/equipment/react/EquipmentDetail.tsx)
+- [apps/equipment/react/EquipmentForm.tsx](../../apps/equipment/react/EquipmentForm.tsx)
 
 ### API existante
 
@@ -343,11 +343,11 @@ afin d'explorer le contexte spatial sans perdre le fil.
 
 ## Écrans impactés
 
-- [apps/zones/react/ZoneDetailNode.tsx](/Users/benjaminvandamme/Developer/house/apps/zones/react/ZoneDetailNode.tsx) — enrichissement avec équipements, tâches, activités récentes, projets, boutons d'action
-- [apps/zones/views_web.py](/Users/benjaminvandamme/Developer/house/apps/zones/views_web.py) — `AppZoneDetailView.get_props()` : stats enrichies
-- [apps/equipment/react/EquipmentDetail.tsx](/Users/benjaminvandamme/Developer/house/apps/equipment/react/EquipmentDetail.tsx) — restructuration pour mettre en avant zone, garantie, maintenance, historique
-- [apps/equipment/views_web.py](/Users/benjaminvandamme/Developer/house/apps/equipment/views_web.py) — `AppEquipmentDetailView` : transmission du `zoneId` et `equipmentId` pour le formulaire d'interaction
-- [apps/interactions/views_web.py](/Users/benjaminvandamme/Developer/house/apps/interactions/views_web.py) — `AppInteractionNewView` : support du paramètre `equipment_id`
+- [apps/zones/react/ZoneDetailNode.tsx](../../apps/zones/react/ZoneDetailNode.tsx) — enrichissement avec équipements, tâches, activités récentes, projets, boutons d'action
+- [apps/zones/views_web.py](../../apps/zones/views_web.py) — `AppZoneDetailView.get_props()` : stats enrichies
+- [apps/equipment/react/EquipmentDetail.tsx](../../apps/equipment/react/EquipmentDetail.tsx) — restructuration pour mettre en avant zone, garantie, maintenance, historique
+- [apps/equipment/views_web.py](../../apps/equipment/views_web.py) — `AppEquipmentDetailView` : transmission du `zoneId` et `equipmentId` pour le formulaire d'interaction
+- [apps/interactions/views_web.py](../../apps/interactions/views_web.py) — `AppInteractionNewView` : support du paramètre `equipment_id`
 
 ## Hors scope pour la V1
 

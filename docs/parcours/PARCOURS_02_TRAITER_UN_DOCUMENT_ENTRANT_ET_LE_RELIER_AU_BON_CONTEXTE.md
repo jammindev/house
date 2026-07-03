@@ -4,7 +4,7 @@ Ce document détaille le deuxième parcours métier prioritaire à travailler da
 
 Il s'appuie sur l'état actuel du projet Django + React hybride, et non sur les archives `legacy/`.
 
-Note complémentaire : la projection future d'une compréhension ou d'un rattachement assistés par IA est consolidée dans la section "Évolutions ultérieures" de [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).
+Note complémentaire : la projection future d'une compréhension ou d'un rattachement assistés par IA est consolidée dans la section "Évolutions ultérieures" de [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).
 
 ## Résumé
 
@@ -144,19 +144,19 @@ Le repo contient désormais l'essentiel du flux manuel V1, avec encore un travai
 
 ## Pages web existantes
 
-- `/app/documents/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
-- `/app/documents/new/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
-- `/app/documents/<id>/` via [apps/documents/views_web.py](/Users/benjaminvandamme/Developer/house/apps/documents/views_web.py)
+- `/app/documents/` via [apps/documents/views_web.py](../../apps/documents/views_web.py)
+- `/app/documents/new/` via [apps/documents/views_web.py](../../apps/documents/views_web.py)
+- `/app/documents/<id>/` via [apps/documents/views_web.py](../../apps/documents/views_web.py)
 
 ## Composants React existants
 
-- liste : [apps/documents/react/DocumentsPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentsPage.tsx)
-- item de liste : [apps/documents/react/DocumentListItem.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentListItem.tsx)
-- création : [apps/documents/react/DocumentCreatePage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentCreatePage.tsx)
-- détail : [apps/documents/react/DocumentDetailPage.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/DocumentDetailPage.tsx)
-- modal d'édition légère : [apps/documents/react/EditDocumentModal.tsx](/Users/benjaminvandamme/Developer/house/apps/documents/react/EditDocumentModal.tsx)
-- point de montage : [ui/src/pages/documents/list.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/documents/list.tsx)
-- points de montage complémentaires : [ui/src/pages/documents/new.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/documents/new.tsx), [ui/src/pages/documents/detail.tsx](/Users/benjaminvandamme/Developer/house/ui/src/pages/documents/detail.tsx)
+- liste : [apps/documents/react/DocumentsPage.tsx](../../apps/documents/react/DocumentsPage.tsx)
+- item de liste : [apps/documents/react/DocumentListItem.tsx](../../apps/documents/react/DocumentListItem.tsx)
+- création : [apps/documents/react/DocumentCreatePage.tsx](../../apps/documents/react/DocumentCreatePage.tsx)
+- détail : [apps/documents/react/DocumentDetailPage.tsx](../../apps/documents/react/DocumentDetailPage.tsx)
+- modal d'édition légère : [apps/documents/react/EditDocumentModal.tsx](../../apps/documents/react/EditDocumentModal.tsx)
+- point de montage : [ui/src/pages/documents/list.tsx](../../ui/src/pages/documents/list.tsx)
+- points de montage complémentaires : [ui/src/pages/documents/new.tsx](../../ui/src/pages/documents/new.tsx), [ui/src/pages/documents/detail.tsx](../../ui/src/pages/documents/detail.tsx)
 
 ## API existante
 
@@ -165,7 +165,7 @@ Le repo contient désormais l'essentiel du flux manuel V1, avec encore un travai
 - regroupement par type : `/api/documents/documents/by_type/`
 - relance OCR placeholder : `/api/documents/documents/{id}/reprocess_ocr/`
 
-Implémentation principale : [apps/documents/views.py](/Users/benjaminvandamme/Developer/house/apps/documents/views.py)
+Implémentation principale : [apps/documents/views.py](../../apps/documents/views.py)
 
 ## Capacité métier déjà présente
 

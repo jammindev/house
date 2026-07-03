@@ -1,6 +1,6 @@
 # Parcours 07 — Backlog technique V1
 
-> **État au 2026-05-02** — V1 utilisateur livrée (lots 0a → 3). Reste ouvert : lot 6 (#109, observabilité IA, non bloquant pour l'utilisateur) et #113 (stemming par foyer, post-V1, à activer à l'usage).
+> **État au 2026-07-03** — V1 utilisateur livrée (lots 0a → 3), puis étendue : lot 4 (mémoire conversationnelle, initialement basculé V2, livré 2026-07), lot 7 (function calling), lot 8 (actions d'écriture `create_entity`) et la conversation ancrée par entité (`EntityAssistant`). Reste ouvert : lot 6 (#109, observabilité IA, non bloquant pour l'utilisateur) et #113 (stemming par foyer, à activer à l'usage).
 
 ## Tableau de bord
 
@@ -12,10 +12,12 @@
 | 1 | Retrieval full-text naïf (registry + scope household) | ✅ Livré | #100 → PR #112 |
 | 2 | Service agent + LLM + citations + skeleton `apps/ai_usage/` | ✅ Livré | #101 → PR #114 |
 | 3 | Surface UI chat (`/app/agent/`) + citations cliquables | ✅ Livré | #102 → PR #115 |
-| 4 | Mémoire conversationnelle multi-tour | 🚫 Basculé V2 | — |
+| 4 | Mémoire conversationnelle multi-tour | ✅ Livré (2026-07) — initialement basculé V2, débloqué par la recette | #149 → #152 |
 | 5 | Tests et validation | ✅ Transversal — livré au fil des lots | — |
 | 6 | Observabilité IA (aggregations + page admin) | 🟡 Backend skeleton livré (lot 2). Aggregations + UI restent à faire | #109 |
 | 7 | Function calling (socle tool-use : retrieval-as-tool + dialogue + culture générale) | ✅ Livré (backend, 2026-07) — PRs #154→#157 | [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md) |
+| 8 | Actions d'écriture (`create_entity` : tâche, note) + Undo | ✅ Livré (2026-07) | [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md) |
+| — | Conversation ancrée sur une entité (`EntityAssistant`, get-or-create par entité) | ✅ Livré (2026-07) | `docs/MODULES/agent.md` |
 
 **Issues annexes ouvertes** :
 - #113 — `Household.preferred_language` pour stemming par foyer (placeholder créé en lot 1, à activer si l'usage le justifie)
@@ -31,9 +33,9 @@ Plutôt que viser un retrieval parfait avant de toucher au LLM, on a livré un *
 
 Ce document traduit la décision produit du parcours 07 en backlog technique concret.
 
-Doc produit associée : [PARCOURS_07_AGENT_CONVERSATIONNEL.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
-Fiche concept : [docs/fiches/RAG.md](/Users/benjaminvandamme/Developer/house/docs/fiches/RAG.md)
-Note transverse couche IA : [PARCOURS_IA_TRANSVERSE.md](/Users/benjaminvandamme/Developer/house/docs/parcours/PARCOURS_IA_TRANSVERSE.md)
+Doc produit associée : [PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)
+Fiche concept : [docs/fiches/RAG.md](../../docs/fiches/RAG.md)
+Note transverse couche IA : [PARCOURS_IA_TRANSVERSE.md](../../docs/parcours/PARCOURS_IA_TRANSVERSE.md)
 
 ## Objectif d'implémentation
 
@@ -49,7 +51,7 @@ Livrer un agent conversationnel sur la mémoire du foyer en s'appuyant sur Claud
 - provider : **Claude Haiku 4.5** + SDK `anthropic` (tranché dans #88)
 - service : extension de `apps/documents/` pour le lot 0, nouvelle app `apps/agent/` à partir du lot 1
 - exécution : **synchrone** pour V1, pas de Celery (tranché dans #88)
-- agent en lecture seule en V1 (pas d'action de création)
+- agent en lecture seule en V1 (pas d'action de création) — *amendé par le lot 8 (2026-07) : écriture via `create_entity` (tâche, note), pattern « créer + Undo »*
 - scope household systématique sur toute requête de l'agent
 - **abstraction LLM** : `LLMClient` Protocol + `AnthropicClient` concret (lot 2), permet un futur `OllamaClient` sans réécrire la couche métier
 - **observabilité IA centralisée** : `apps/ai_usage/` + table `AIUsageLog` consolide toutes les invocations IA (skeleton livré en lot 2, KPI/UI restent à faire dans #109)
@@ -64,15 +66,15 @@ Peupler automatiquement `Document.ocr_text` à l'upload, avec un pipeline qui su
 
 ### Fichiers principaux
 
-- [apps/core/file_validation.py](/Users/benjaminvandamme/Developer/house/apps/core/file_validation.py)
-- [apps/documents/views.py](/Users/benjaminvandamme/Developer/house/apps/documents/views.py)
+- [apps/core/file_validation.py](../../apps/core/file_validation.py)
+- [apps/documents/views.py](../../apps/documents/views.py)
 - `apps/documents/image_processing.py` (nouveau)
 - `apps/documents/extraction.py` (nouveau)
-- [apps/documents/tests/test_api_documents.py](/Users/benjaminvandamme/Developer/house/apps/documents/tests/test_api_documents.py)
-- [config/settings/base.py](/Users/benjaminvandamme/Developer/house/config/settings/base.py)
-- [requirements/base.txt](/Users/benjaminvandamme/Developer/house/requirements/base.txt)
-- [ui/src/features/documents/DocumentUploadDialog.tsx](/Users/benjaminvandamme/Developer/house/ui/src/features/documents/DocumentUploadDialog.tsx)
-- [ui/src/features/documents/DocumentDetailPage.tsx](/Users/benjaminvandamme/Developer/house/ui/src/features/documents/DocumentDetailPage.tsx)
+- [apps/documents/tests/test_api_documents.py](../../apps/documents/tests/test_api_documents.py)
+- [config/settings/base.py](../../config/settings/base.py)
+- [requirements/base.txt](../../requirements/base.txt)
+- [ui/src/features/documents/DocumentUploadDialog.tsx](../../ui/src/features/documents/DocumentUploadDialog.tsx)
+- [ui/src/features/documents/DocumentDetailPage.tsx](../../ui/src/features/documents/DocumentDetailPage.tsx)
 - `ui/src/locales/{en,fr,de,es}/translation.json`
 
 ### Tâches
@@ -118,7 +120,7 @@ Re-traiter tous les documents existants (importés depuis Supabase ou uploadés 
 
 - `apps/documents/management/commands/extract_documents_text.py` (nouveau)
 - `apps/documents/tests/test_extract_documents_text_command.py` (nouveau)
-- [ui/src/features/documents/DocumentDetailPage.tsx](/Users/benjaminvandamme/Developer/house/ui/src/features/documents/DocumentDetailPage.tsx)
+- [ui/src/features/documents/DocumentDetailPage.tsx](../../ui/src/features/documents/DocumentDetailPage.tsx)
 - `ui/src/locales/{en,fr,de,es}/translation.json`
 
 ### Tâches
@@ -421,20 +423,21 @@ ui/src/features/agent/
 - feedback utilisateur
 - raccourci global `/`
 
-## Lot 4 — Mémoire conversationnelle (V2 — exclu de la V1)
+## Lot 4 — Mémoire conversationnelle
 
-**Statut** : **basculé V2**. Décision : ne pas livrer en V1, valider l'usage en mode "questions one-shot" d'abord.
+**Statut** : ✅ **Livré (2026-07)** — initialement basculé V2, débloqué après la recette manuelle de la V1 one-shot. **Référence** : #149 → #152.
 
-### But (V2)
+### Livré
 
-Permettre de retrouver les conversations passées et de continuer un fil.
+- modèles `AgentConversation` (household, créé par, titre auto, `last_message_at`) et `AgentMessage` (conversation, role, content, citations JSON, metadata)
+- CRUD conversations + sidebar dans la page agent (rename, delete avec undo)
+- historique rejoué dans `service.ask` (20 derniers tours, `CONVERSATION_HISTORY_LIMIT`)
+- rétention : `manage.py cleanup_agent_conversations` (`AGENT_CONVERSATION_RETENTION_DAYS`, défaut 365 j, dry-run supporté)
+- conversation ancrée par entité (`context_entity_type` / `context_object_id`, endpoint `for_context`) — voir `docs/MODULES/agent.md`
 
-### Pistes pour V2
+### Resté hors scope
 
-- modèles `AgentConversation` (household, créé par, titre auto, last_message_at) et `AgentMessage` (conversation, role, content, citations, metadata)
-- liste des conversations dans la sidebar de la page agent
-- nettoyage automatique au-delà d'une rétention donnée
-- streaming de réponse
+- streaming de réponse (toujours en « Idées long terme »)
 
 ## Lot 5 — Tests et validation
 
@@ -561,7 +564,7 @@ ui/src/features/ai-usage/
 - ne jamais bloquer un upload sur un échec d'extraction (inscrit dans #88, comportement effectif)
 - ne pas envoyer plus que nécessaire au modèle (coût + confidentialité)
 - mock systématique du client Anthropic en tests (zéro appel réseau IA en CI — invariant)
-- garder l'agent en lecture seule en V1, ne pas glisser vers la création d'entités
+- l'écriture agent reste bornée au registry `agent.writables` (lot 8) : création uniquement sur demande explicite, toujours via les services métier (jamais l'ORM brut), toujours réversible par Undo — pas de modification/suppression sans nouveau cadrage
 - éviter d'introduire Celery tant que la latence sync reste acceptable
 - pas de couplage UI : la surface chat ne doit pas devenir l'unique entrée de l'agent (l'endpoint `POST /api/agent/ask/` est exploitable depuis la CLI, déjà testé en prod via Django shell)
 
@@ -584,6 +587,6 @@ Maintenant que la V1 utilisateur est jouable :
 1. **Recette manuelle à l'usage** — utiliser l'agent au quotidien sur le foyer "Les Petits Bonheur" (188 docs). Repérer ce qui craque concrètement (retrieval qui rate des matches évidents, format de citation qui dérape, latence inacceptable, etc.) et ouvrir des issues ciblées plutôt que sur-investir à l'aveugle.
 2. **Lot 6 (#109)** — observabilité IA, finir les agrégations + page admin. Permet de quantifier la qualité d'usage (taux d'IDK, latence p95, etc.) avant d'ouvrir l'agent à d'autres utilisateurs.
 3. **#113** — activer le stemming par foyer (`Household.preferred_language`) si les requêtes ratent des matches "facture" ↔ "factures" (déclencheur observé à l'usage, pas spéculatif).
-4. **Lot 4 (V2)** — mémoire conversationnelle multi-tour, à arbitrer après quelques semaines d'usage one-shot.
+4. ~~**Lot 4 (V2)** — mémoire conversationnelle multi-tour, à arbitrer après quelques semaines d'usage one-shot.~~ *Livré 2026-07 (voir tableau de bord), tout comme les lots 7 et 8 qui ont suivi.*
 
 Lot 5 (tests) est transversal : chaque PR des lots 1, 2, 3 a livré ses propres tests.
