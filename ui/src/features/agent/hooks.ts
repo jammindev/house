@@ -14,10 +14,12 @@ import {
   listConversations,
   postConversationMessage,
   renameConversation,
+  streamConversationMessage,
   type AgentConversationDetail,
   type AgentConversationRow,
   type AgentCreatedEntity,
   type AgentMessageRow,
+  type AgentStreamHandlers,
   type AgentUpdatedEntity,
 } from './api';
 
@@ -81,6 +83,30 @@ export function usePostMessage() {
     onSuccess: (_msg, { conversationId }) => {
       // Recency + auto-title change on the server; refresh the list. The detail
       // is kept in sync locally by the page, so we don't refetch it here.
+      void qc.invalidateQueries({ queryKey: agentKeys.conversations() });
+      void qc.invalidateQueries({
+        queryKey: agentKeys.conversation(conversationId),
+        refetchType: 'none',
+      });
+    },
+  });
+}
+
+/**
+ * Streaming counterpart of `usePostMessage`: same terminal payload and cache
+ * invalidations, plus live `handlers` (deltas, tool status) while the agent
+ * works. `isPending` covers the whole stream.
+ */
+export function useStreamMessage() {
+  const qc = useQueryClient();
+  return useMutation<
+    AgentMessageRow,
+    unknown,
+    { conversationId: string; question: string; handlers?: AgentStreamHandlers }
+  >({
+    mutationFn: ({ conversationId, question, handlers }) =>
+      streamConversationMessage(conversationId, question, handlers),
+    onSuccess: (_msg, { conversationId }) => {
       void qc.invalidateQueries({ queryKey: agentKeys.conversations() });
       void qc.invalidateQueries({
         queryKey: agentKeys.conversation(conversationId),

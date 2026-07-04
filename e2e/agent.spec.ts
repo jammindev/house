@@ -52,22 +52,35 @@ async function mockAskAgent(page: Page, payload: MockAnswer | (() => MockAnswer)
     });
   });
 
-  // Posting a message returns the persisted agent turn.
-  await page.route(`**/api/agent/conversations/${CONV_ID}/messages/`, async (route: Route) => {
-    const data = typeof payload === 'function' ? payload() : payload;
-    await route.fulfill({
-      status: 201,
-      contentType: 'application/json',
-      body: JSON.stringify({
+  // Streaming a message emits a couple of SSE frames then the persisted turn.
+  await page.route(
+    `**/api/agent/conversations/${CONV_ID}/messages/stream/`,
+    async (route: Route) => {
+      const data = typeof payload === 'function' ? payload() : payload;
+      const row = {
         id: `msg-${Date.now()}`,
         role: 'agent',
         content: data.answer,
         citations: data.citations,
         metadata: data.metadata ?? { duration_ms: 1234, tokens_in: 100, tokens_out: 30, model: 'claude-haiku-4-5-20251001', hits_count: 1 },
         created_at: new Date().toISOString(),
-      }),
-    });
-  });
+      };
+      const body =
+        `event: tool
+data: ${JSON.stringify({ name: 'search_household' })}
+
+` +
+        `event: delta
+data: ${JSON.stringify({ text: data.answer.slice(0, 10) })}
+
+` +
+        `event: done
+data: ${JSON.stringify(row)}
+
+`;
+      await route.fulfill({ status: 200, contentType: 'text/event-stream', body });
+    },
+  );
 }
 
 async function setPrivacyAccepted(page: Page, accepted: boolean): Promise<void> {

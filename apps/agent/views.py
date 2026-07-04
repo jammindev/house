@@ -1,9 +1,11 @@
 """DRF views for the agent."""
 from __future__ import annotations
 
+import json
 import logging
 
 from django.db import transaction
+from django.http import StreamingHttpResponse
 from django.db.models import Count
 from django.utils import timezone
 from rest_framework import status, viewsets
@@ -50,6 +52,46 @@ def _citations_to_json(citations) -> list[dict]:
 
 def _derive_title(question: str) -> str:
     return " ".join((question or "").split())[:AUTO_TITLE_MAX_LEN]
+
+
+def _ask_inputs(conversation) -> tuple[list[dict], tuple[str, str] | None]:
+    """History (bounded, oldest first) + anchor of a conversation, for service.ask*."""
+    prior = list(conversation.messages.all())[-CONVERSATION_HISTORY_LIMIT:]
+    history = [{"role": m.role, "content": m.content} for m in prior]
+    context_entity = (
+        (conversation.context_entity_type, conversation.context_object_id)
+        if conversation.has_context
+        else None
+    )
+    return history, context_entity
+
+
+def _persist_turns(conversation, question: str, user, result) -> AgentMessage:
+    """Persist both turns atomically — a failed call leaves the conversation untouched."""
+    with transaction.atomic():
+        AgentMessage.objects.create(
+            conversation=conversation,
+            role=AgentMessage.Role.USER,
+            content=question,
+            created_by=user,
+        )
+        agent_msg = AgentMessage.objects.create(
+            conversation=conversation,
+            role=AgentMessage.Role.AGENT,
+            content=result.answer,
+            citations=_citations_to_json(result.citations),
+            metadata=result.metadata,
+        )
+        conversation.last_message_at = timezone.now()
+        if not conversation.title:
+            conversation.title = _derive_title(question)
+        conversation.save(update_fields=["last_message_at", "title", "updated_at"])
+    return agent_msg
+
+
+def _sse(event: str, payload: dict) -> str:
+    """Format one Server-Sent Event frame."""
+    return f"event: {event}\ndata: {json.dumps(payload, default=str)}\n\n"
 
 
 class AskView(APIView):
@@ -117,7 +159,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     def get_throttles(self):
         # Only the LLM-backed action costs money — plain conversation CRUD
         # stays unthrottled.
-        if self.action == "messages":
+        if self.action in {"messages", "messages_stream"}:
             return [AgentBurstRateThrottle(), AgentSustainedRateThrottle()]
         return super().get_throttles()
 
@@ -137,7 +179,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         household = getattr(self.request, "household", None)
         if household is not None:
             qs = qs.filter(household=household)
-        if self.action in {"retrieve", "messages", "for_context"}:
+        if self.action in {"retrieve", "messages", "messages_stream", "for_context"}:
             qs = qs.prefetch_related("messages")
         return qs
 
@@ -160,17 +202,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
         request_serializer.is_valid(raise_exception=True)
         question = request_serializer.validated_data["question"]
 
-        # History = prior turns (oldest first), bounded. Built before we persist
-        # the new question so the current turn isn't fed back to itself.
-        prior = list(conversation.messages.all())[-CONVERSATION_HISTORY_LIMIT:]
-        history = [{"role": m.role, "content": m.content} for m in prior]
-
-        # Anchored conversations pre-inject their entity's context each turn.
-        context_entity = (
-            (conversation.context_entity_type, conversation.context_object_id)
-            if conversation.has_context
-            else None
-        )
+        # History built before we persist the new question so the current turn
+        # isn't fed back to itself. Anchored conversations pre-inject context.
+        history, context_entity = _ask_inputs(conversation)
 
         try:
             result = service.ask(
@@ -192,30 +226,61 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        # Persist both turns only once we have an answer — a failed call leaves
-        # the conversation untouched.
-        with transaction.atomic():
-            AgentMessage.objects.create(
-                conversation=conversation,
-                role=AgentMessage.Role.USER,
-                content=question,
-                created_by=request.user,
-            )
-            agent_msg = AgentMessage.objects.create(
-                conversation=conversation,
-                role=AgentMessage.Role.AGENT,
-                content=result.answer,
-                citations=_citations_to_json(result.citations),
-                metadata=result.metadata,
-            )
-            conversation.last_message_at = timezone.now()
-            if not conversation.title:
-                conversation.title = _derive_title(question)
-            conversation.save(update_fields=["last_message_at", "title", "updated_at"])
-
+        agent_msg = _persist_turns(conversation, question, request.user, result)
         return Response(
             AgentMessageSerializer(agent_msg).data, status=status.HTTP_201_CREATED
         )
+
+    @action(detail=True, methods=["post"], url_path="messages/stream")
+    def messages_stream(self, request, pk=None):
+        """Streaming variant of ``messages`` — Server-Sent Events.
+
+        Emits ``delta`` (text chunk), ``tool`` (a tool call is running), then
+        exactly one terminal event: ``done`` (the persisted agent message, same
+        payload the non-streaming endpoint returns) or ``error``. Persistence is
+        identical: both turns are written only once the answer exists.
+        """
+        conversation = self.get_object()
+
+        request_serializer = PostMessageSerializer(data=request.data)
+        request_serializer.is_valid(raise_exception=True)
+        question = request_serializer.validated_data["question"]
+
+        history, context_entity = _ask_inputs(conversation)
+        user = request.user
+
+        def event_stream():
+            try:
+                result = None
+                for event in service.ask_stream(
+                    question,
+                    conversation.household,
+                    user=user,
+                    history=history,
+                    context_entity=context_entity,
+                ):
+                    if event["type"] == "delta":
+                        yield _sse("delta", {"text": event["text"]})
+                    elif event["type"] == "tool":
+                        yield _sse("tool", {"name": event["name"]})
+                    else:
+                        result = event["result"]
+                agent_msg = _persist_turns(conversation, question, user, result)
+                yield _sse("done", AgentMessageSerializer(agent_msg).data)
+            except LLMTimeoutError:
+                yield _sse("error", {"detail": "timeout"})
+            except LLMError as exc:
+                logger.warning("agent.messages_stream: LLM error: %s", exc)
+                yield _sse("error", {"detail": "unavailable"})
+            except Exception:  # noqa: BLE001 — an SSE stream can't return a 500
+                logger.exception("agent.messages_stream: unexpected error")
+                yield _sse("error", {"detail": "error"})
+
+        response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+        response["Cache-Control"] = "no-cache"
+        # Tell nginx not to buffer the stream (X-Accel is already used for media).
+        response["X-Accel-Buffering"] = "no"
+        return response
 
     @action(detail=False, methods=["get"], url_path="for_context")
     def for_context(self, request):

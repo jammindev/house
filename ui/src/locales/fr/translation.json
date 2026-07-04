@@ -1633,6 +1633,15 @@
     "input_placeholder": "Pose ta question à l'agent…",
     "send": "Envoyer",
     "loading": "Recherche dans ton foyer…",
+    "tools": {
+      "search_household": "Recherche dans ton foyer…",
+      "list_entities": "Parcours de tes éléments…",
+      "get_entity": "Lecture d'un élément…",
+      "get_related": "Chargement des éléments liés…",
+      "create_entity": "Création en cours…",
+      "update_entity": "Mise à jour en cours…",
+      "default": "En cours…"
+    },
     "error": "Une erreur est survenue, réessaie.",
     "retry": "Réessayer",
     "truncated_notice": "Cette réponse a été coupée.",

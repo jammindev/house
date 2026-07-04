@@ -206,24 +206,9 @@ class AnthropicClient:
         started = time.monotonic()
         try:
             client = self._client()
-            create_kwargs: dict[str, Any] = {
-                "model": self.model,
-                "max_tokens": max_tokens,
-                # One cache breakpoint at the end of the system block caches the
-                # whole prefix before the messages (tool schemas + system prompt)
-                # across loop iterations and conversation turns (5-min TTL).
-                "system": [
-                    {
-                        "type": "text",
-                        "text": system,
-                        "cache_control": {"type": "ephemeral"},
-                    }
-                ],
-                "messages": messages,
-            }
-            if tools:
-                create_kwargs["tools"] = tools
-            message = client.messages.create(**create_kwargs)
+            message = client.messages.create(
+                **self._run_create_kwargs(system, messages, tools, max_tokens)
+            )
         except Exception as exc:
             self._log_and_raise_failure(
                 exc,
@@ -234,6 +219,100 @@ class AnthropicClient:
                 metadata=metadata,
             )
 
+        return self._finalize_run(
+            message,
+            started=started,
+            feature=feature,
+            household_id=household_id,
+            user_id=user_id,
+            metadata=metadata,
+        )
+
+    def run_stream(
+        self,
+        *,
+        system: str,
+        messages: list[dict],
+        tools: list[dict],
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None = None,
+        max_tokens: int = 1024,
+        metadata: dict[str, Any] | None = None,
+    ):
+        """Streaming variant of ``run()``.
+
+        A generator yielding ``("delta", text_chunk)`` events as the model
+        produces text, then a final ``("final", LLMRunResponse)`` carrying the
+        same normalized payload ``run()`` returns (tool calls, stop reason,
+        usage). One call = one round-trip = one ``AIUsageLog`` line, exactly
+        like ``run()`` — the tool-use loop stays in the caller.
+        """
+        started = time.monotonic()
+        try:
+            client = self._client()
+            with client.messages.stream(
+                **self._run_create_kwargs(system, messages, tools, max_tokens)
+            ) as stream:
+                for text in stream.text_stream:
+                    yield ("delta", text)
+                message = stream.get_final_message()
+        except Exception as exc:
+            self._log_and_raise_failure(
+                exc,
+                started=started,
+                feature=feature,
+                household_id=household_id,
+                user_id=user_id,
+                metadata=metadata,
+            )
+
+        yield (
+            "final",
+            self._finalize_run(
+                message,
+                started=started,
+                feature=feature,
+                household_id=household_id,
+                user_id=user_id,
+                metadata=metadata,
+            ),
+        )
+
+    def _run_create_kwargs(
+        self, system: str, messages: list[dict], tools: list[dict], max_tokens: int
+    ) -> dict[str, Any]:
+        """The ``messages.create``/``messages.stream`` kwargs shared by run/run_stream."""
+        create_kwargs: dict[str, Any] = {
+            "model": self.model,
+            "max_tokens": max_tokens,
+            # One cache breakpoint at the end of the system block caches the
+            # whole prefix before the messages (tool schemas + system prompt)
+            # across loop iterations and conversation turns (5-min TTL).
+            "system": [
+                {
+                    "type": "text",
+                    "text": system,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            "messages": messages,
+        }
+        if tools:
+            create_kwargs["tools"] = tools
+        return create_kwargs
+
+    def _finalize_run(
+        self,
+        message,
+        *,
+        started: float,
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None,
+        metadata: dict[str, Any] | None,
+    ) -> LLMRunResponse:
+        """Normalize the SDK message, log the call, build the LLMRunResponse."""
         duration_ms = int((time.monotonic() - started) * 1000)
         assistant_blocks = _normalize_blocks(message)
         tool_calls = _extract_tool_calls(message)

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
-import { useAgentCreatedUndo, useAgentUpdatedUndo, usePostMessage } from './hooks';
+import { useAgentCreatedUndo, useAgentUpdatedUndo, useStreamMessage } from './hooks';
 import type { AgentCitation, AgentConversationDetail, AgentMessageRow } from './api';
 
 interface UserMessage {
@@ -47,6 +47,16 @@ function toMessage(row: AgentMessageRow): Message {
   };
 }
 
+// Backend tool names with a dedicated i18n status label (agent.tools.*).
+const KNOWN_TOOLS = new Set([
+  'search_household',
+  'list_entities',
+  'get_entity',
+  'get_related',
+  'create_entity',
+  'update_entity',
+]);
+
 interface ChatPanelProps {
   /** The active conversation, or null when none is selected/created yet. */
   conversationId: string | null;
@@ -85,13 +95,17 @@ export default function ChatPanel({
 }: ChatPanelProps) {
   const { t } = useTranslation();
 
-  const postMessage = usePostMessage();
+  const streamMessage = useStreamMessage();
   const notifyCreated = useAgentCreatedUndo();
   const notifyUpdated = useAgentUpdatedUndo();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
   const [needsPrivacy, setNeedsPrivacy] = React.useState(false);
+  // Live progress of the in-flight turn: partial text + the tool currently
+  // running. Text received before a tool call is preamble ("je cherche…") and
+  // is discarded when the tool event arrives.
+  const [live, setLive] = React.useState<{ text: string; tool: string | null } | null>(null);
 
   // Guards against re-seeding local messages from a background refetch: we only
   // load a conversation's persisted turns the first time we see it.
@@ -104,7 +118,7 @@ export default function ChatPanel({
   const scrollAnchorRef = React.useRef<HTMLDivElement | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null);
 
-  const isBusy = postMessage.isPending || creating;
+  const isBusy = streamMessage.isPending || creating;
 
   React.useEffect(() => {
     setNeedsPrivacy(!hasAcceptedAgentPrivacy());
@@ -129,7 +143,7 @@ export default function ChatPanel({
 
   React.useEffect(() => {
     scrollAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages.length, isBusy]);
+  }, [messages.length, isBusy, live]);
 
   const handleAcceptPrivacy = React.useCallback(() => {
     acceptAgentPrivacy();
@@ -154,6 +168,7 @@ export default function ChatPanel({
         ]);
       }
 
+      setLive({ text: '', tool: null });
       try {
         let id = conversationId;
         if (!id) {
@@ -162,7 +177,19 @@ export default function ChatPanel({
           loadedRef.current = id;
           lastPropIdRef.current = id;
         }
-        const agentMsg = await postMessage.mutateAsync({ conversationId: id, question: trimmed });
+        const agentMsg = await streamMessage.mutateAsync({
+          conversationId: id,
+          question: trimmed,
+          handlers: {
+            onDelta: (text) =>
+              // A delta after a tool event starts the next turn's text fresh.
+              setLive((prev) => ({
+                text: (prev && !prev.tool ? prev.text : '') + text,
+                tool: null,
+              })),
+            onTool: (name) => setLive({ text: '', tool: name }),
+          },
+        });
         setMessages((prev) => [
           ...prev,
           {
@@ -180,10 +207,16 @@ export default function ChatPanel({
           ...prev,
           { id: `e-${Date.now()}`, variant: 'error', text: t('agent.error'), question: trimmed },
         ]);
+      } finally {
+        setLive(null);
       }
     },
-    [draft, isBusy, conversationId, ensureConversation, postMessage, notifyCreated, notifyUpdated, t],
+    [draft, isBusy, conversationId, ensureConversation, streamMessage, notifyCreated, notifyUpdated, t],
   );
+
+  const toolLabel = live?.tool
+    ? t(KNOWN_TOOLS.has(live.tool) ? `agent.tools.${live.tool}` : 'agent.tools.default')
+    : null;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -231,7 +264,9 @@ export default function ChatPanel({
             );
           })
         )}
-        {isBusy ? <ChatBubble variant="loading" /> : null}
+        {isBusy ? (
+          <ChatBubble variant="streaming" text={live?.text ?? ''} toolLabel={toolLabel} />
+        ) : null}
         <div ref={scrollAnchorRef} />
       </div>
 

@@ -1633,6 +1633,15 @@
     "input_placeholder": "Ask the agent…",
     "send": "Send",
     "loading": "Searching your household…",
+    "tools": {
+      "search_household": "Searching your household…",
+      "list_entities": "Going through your items…",
+      "get_entity": "Reading an item…",
+      "get_related": "Loading linked items…",
+      "create_entity": "Creating…",
+      "update_entity": "Updating…",
+      "default": "Working…"
+    },
     "error": "Something went wrong, please try again.",
     "retry": "Retry",
     "truncated_notice": "This answer was cut short.",

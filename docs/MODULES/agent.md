@@ -101,9 +101,17 @@ Sous `/api/agent/` :
 - `POST ask/` — one-shot (sans persistance).
 - `conversations/` (CRUD, privé par user × foyer) ; `POST {id}/messages/` — pose
   une question dans une conversation (history = tours précédents, bornée).
+- `POST {id}/messages/stream/` — variante **SSE** du même appel, utilisée par
+  l'UI : événements `delta` (morceau de texte), `tool` (tool en cours
+  d'exécution), puis un terminal `done` (le message agent persisté, même
+  payload que l'endpoint non-streamé) ou `error`. Persistance identique (les
+  deux tours ne sont écrits qu'une fois la réponse obtenue). Chaîne interne :
+  `AnthropicClient.run_stream` (SDK `messages.stream`) → `service.ask_stream`
+  (générateur, `ask()` le draine pour les appels non-streamés) → view SSE.
 - `GET conversations/for_context/?entity_type=&object_id=` — get-or-create de la
   conversation ancrée d'une entité pour l'utilisateur courant.
-- Permissions : `IsAuthenticated, IsHouseholdMember`.
+- Permissions : `IsAuthenticated, IsHouseholdMember` ; `ask`, `messages` et
+  `messages/stream` sont throttlés (`agent_burst`/`agent_sustained`).
 
 ## Notes / décisions
 
