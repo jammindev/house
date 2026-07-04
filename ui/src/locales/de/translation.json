@@ -1721,5 +1721,41 @@
         "add": "Ausgabe"
       }
     }
+  },
+  "aiUsage": {
+    "title": "KI-Nutzung",
+    "description": "Aufrufe, Latenz und Qualität der KI-Funktionen deines Haushalts.",
+    "ownersOnly": "Diese Seite ist den Haushaltseigentümern vorbehalten.",
+    "windows": {
+      "24h": "Letzte 24 Std.",
+      "7d": "Letzte 7 Tage",
+      "30d": "Letzte 30 Tage"
+    },
+    "metrics": {
+      "errorRate": "Fehlerrate",
+      "p95": "Latenz p95",
+      "idkRate": "„Weiß nicht“-Rate"
+    },
+    "alerts": {
+      "p95": "p95-Latenz über 10 s",
+      "idk": "Mehr als 30 % „Weiß nicht“-Antworten"
+    },
+    "histogram": {
+      "title": "Aufrufe pro Tag (30 Tage)",
+      "empty": "Keine KI-Aufrufe im Zeitraum."
+    },
+    "recent": {
+      "title": "Letzte Aufrufe",
+      "allFeatures": "Alle",
+      "when": "Wann",
+      "feature": "Funktion",
+      "model": "Modell",
+      "tokens": "Tokens ein/aus",
+      "duration": "Dauer",
+      "status": "Status",
+      "ok": "OK",
+      "error": "Fehler",
+      "empty": "Noch keine Aufrufe."
+    }
   }
 }

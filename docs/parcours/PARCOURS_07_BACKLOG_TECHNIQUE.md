@@ -1,6 +1,6 @@
 # Parcours 07 — Backlog technique V1
 
-> **État au 2026-07-03** — V1 utilisateur livrée (lots 0a → 3), puis étendue : lot 4 (mémoire conversationnelle, initialement basculé V2, livré 2026-07), lot 7 (function calling), lot 8 (actions d'écriture `create_entity`) et la conversation ancrée par entité (`EntityAssistant`). Reste ouvert : lot 6 (#109, observabilité IA, non bloquant pour l'utilisateur) et #113 (stemming par foyer, à activer à l'usage).
+> **État au 2026-07-03** — V1 utilisateur livrée (lots 0a → 3), puis étendue : lot 4 (mémoire conversationnelle, initialement basculé V2, livré 2026-07), lot 7 (function calling), lot 8 (actions d'écriture `create_entity`) et la conversation ancrée par entité (`EntityAssistant`). Le lot 6 (#109, observabilité IA) est livré depuis. Reste ouvert : #113 (stemming par foyer, à activer à l'usage).
 
 ## Tableau de bord
 
@@ -14,7 +14,7 @@
 | 3 | Surface UI chat (`/app/agent/`) + citations cliquables | ✅ Livré | #102 → PR #115 |
 | 4 | Mémoire conversationnelle multi-tour | ✅ Livré (2026-07) — initialement basculé V2, débloqué par la recette | #149 → #152 |
 | 5 | Tests et validation | ✅ Transversal — livré au fil des lots | — |
-| 6 | Observabilité IA (aggregations + page admin) | 🟡 Backend skeleton livré (lot 2). Aggregations + UI restent à faire | #109 |
+| 6 | Observabilité IA (aggregations + page admin) | ✅ Livré (2026-07) — aggregations, API owner-only, UI `/app/admin/ai-usage/`, OCR tracé via `vision_extract` | #109 |
 | 7 | Function calling (socle tool-use : retrieval-as-tool + dialogue + culture générale) | ✅ Livré (backend, 2026-07) — PRs #154→#157 | [PARCOURS_07_LOT7_FUNCTION_CALLING.md](./PARCOURS_07_LOT7_FUNCTION_CALLING.md) |
 | 8 | Actions d'écriture (`create_entity` : tâche, note) + Undo | ✅ Livré (2026-07) | [PARCOURS_07_LOT8_ACTIONS_ECRITURE.md](./PARCOURS_07_LOT8_ACTIONS_ECRITURE.md) |
 | — | Conversation ancrée sur une entité (`EntityAssistant`, get-or-create par entité) | ✅ Livré (2026-07) | `docs/MODULES/agent.md` |

@@ -107,6 +107,20 @@ class LLMClient(Protocol):
     ) -> LLMRunResponse:
         ...
 
+    def vision_extract(
+        self,
+        *,
+        image_bytes: bytes,
+        media_type: str,
+        prompt: str,
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None = None,
+        max_tokens: int = 4096,
+        metadata: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        ...
+
 
 class AnthropicClient:
     """Concrete Anthropic SDK wrapper. Logs every call into ``AIUsageLog``."""
@@ -116,8 +130,11 @@ class AnthropicClient:
     def __init__(self, *, model: str | None = None, timeout: float | None = None):
         self.model = model or getattr(settings, "LLM_TEXT_MODEL", "claude-haiku-4-5-20251001")
         self.timeout = timeout or float(getattr(settings, "LLM_REQUEST_TIMEOUT_SECONDS", 30))
+        self.vision_model = getattr(settings, "LLM_VISION_MODEL", self.model)
+        # Vision OCR on a full page can be slower than a chat round-trip.
+        self.vision_timeout = float(getattr(settings, "LLM_VISION_TIMEOUT_SECONDS", 60))
 
-    def _client(self):
+    def _client(self, *, timeout: float | None = None):
         api_key = getattr(settings, "ANTHROPIC_API_KEY", "") or ""
         if not api_key:
             raise LLMError("ANTHROPIC_API_KEY is not configured")
@@ -125,7 +142,7 @@ class AnthropicClient:
             import anthropic
         except ImportError as exc:
             raise LLMError("anthropic SDK not installed") from exc
-        return anthropic.Anthropic(api_key=api_key, timeout=self.timeout)
+        return anthropic.Anthropic(api_key=api_key, timeout=timeout or self.timeout)
 
     def complete(
         self,
@@ -182,6 +199,87 @@ class AnthropicClient:
             output_tokens=output_tokens,
             duration_ms=duration_ms,
             model=self.model,
+        )
+
+    def vision_extract(
+        self,
+        *,
+        image_bytes: bytes,
+        media_type: str,
+        prompt: str,
+        feature: str,
+        household_id: UUID | str,
+        user_id: int | None = None,
+        max_tokens: int = 4096,
+        metadata: dict[str, Any] | None = None,
+    ) -> LLMResponse:
+        """One Vision call (OCR) — logs into ``AIUsageLog`` like every other call.
+
+        Used by ``documents.extraction`` so upload/backfill/scanned-PDF OCR is
+        traced with its own ``feature`` ('ocr_upload', 'ocr_backfill'). Uses the
+        vision model and a more generous timeout than chat round-trips.
+        """
+        import base64
+
+        started = time.monotonic()
+        try:
+            client = self._client(timeout=self.vision_timeout)
+            message = client.messages.create(
+                model=self.vision_model,
+                max_tokens=max_tokens,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image",
+                                "source": {
+                                    "type": "base64",
+                                    "media_type": media_type,
+                                    "data": base64.standard_b64encode(image_bytes).decode("ascii"),
+                                },
+                            },
+                            {"type": "text", "text": prompt},
+                        ],
+                    }
+                ],
+            )
+        except Exception as exc:
+            self._log_and_raise_failure(
+                exc,
+                started=started,
+                feature=feature,
+                household_id=household_id,
+                user_id=user_id,
+                metadata=metadata,
+                model=self.vision_model,
+            )
+
+        duration_ms = int((time.monotonic() - started) * 1000)
+        text = _extract_text(message)
+        usage = getattr(message, "usage", None)
+        input_tokens = getattr(usage, "input_tokens", None) if usage else None
+        output_tokens = getattr(usage, "output_tokens", None) if usage else None
+
+        log_ai_usage(
+            household_id=household_id,
+            user_id=user_id,
+            feature=feature,
+            provider=self.provider,
+            model=self.vision_model,
+            duration_ms=duration_ms,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            success=True,
+            metadata=metadata,
+        )
+
+        return LLMResponse(
+            text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            duration_ms=duration_ms,
+            model=self.vision_model,
         )
 
     def run(
@@ -355,6 +453,7 @@ class AnthropicClient:
         household_id: UUID | str,
         user_id: int | None,
         metadata: dict[str, Any] | None,
+        model: str | None = None,
     ) -> NoReturn:
         """Log a failed provider call and re-raise as the right LLM error.
 
@@ -367,7 +466,7 @@ class AnthropicClient:
             user_id=user_id,
             feature=feature,
             provider=self.provider,
-            model=self.model,
+            model=model or self.model,
             duration_ms=duration_ms,
             success=False,
             error_type=error_type,

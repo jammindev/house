@@ -11,7 +11,6 @@ outcome — the upload must never fail because text extraction did.
 """
 from __future__ import annotations
 
-import base64
 import io
 import logging
 from typing import TYPE_CHECKING, Tuple
@@ -26,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 VISION_MODEL = "claude-haiku-4-5"
 VISION_MAX_TOKENS = 4096
+DEFAULT_FEATURE = "ocr_upload"
 VISION_PROMPT = (
     "Extract all visible text from this image, preserving the original line "
     "breaks and reading order. Return only the raw text — no commentary, no "
@@ -46,58 +46,45 @@ PDF_VISION_RENDER_DPI = 200
 ExtractionResult = Tuple[str, str]
 
 
-def _get_anthropic_client():
-    """Return an Anthropic client or ``None`` when no key is configured.
+def _get_llm_client():
+    """Return the configured LLM client, or ``None`` when no key is set.
 
-    Indirected so tests can patch ``apps.documents.extraction._get_anthropic_client``
-    without touching the SDK or the network.
+    Indirected so tests can patch ``apps.documents.extraction._get_llm_client``
+    without touching the SDK or the network. Goes through
+    ``agent.llm.get_llm_client`` so every Vision OCR call is logged into
+    ``AIUsageLog`` (lot 6, #109) — extraction never talks to the SDK directly.
     """
     api_key = getattr(settings, "ANTHROPIC_API_KEY", "") or ""
     if not api_key:
         return None
-    try:
-        import anthropic
-    except ImportError:
-        logger.warning("extraction: anthropic SDK not installed")
-        return None
-    return anthropic.Anthropic(api_key=api_key)
+    from agent.llm import get_llm_client
+
+    return get_llm_client()
 
 
-def _extract_with_vision(file_bytes: bytes, media_type: str) -> str:
-    client = _get_anthropic_client()
+def _extract_with_vision(
+    file_bytes: bytes,
+    media_type: str,
+    *,
+    document: "Document",
+    feature: str,
+    user=None,
+) -> str:
+    client = _get_llm_client()
     if client is None:
         return ""
 
-    encoded = base64.standard_b64encode(file_bytes).decode("ascii")
-    message = client.messages.create(
-        model=VISION_MODEL,
+    response = client.vision_extract(
+        image_bytes=file_bytes,
+        media_type=media_type,
+        prompt=VISION_PROMPT,
+        feature=feature,
+        household_id=document.household_id,
+        user_id=getattr(user, "id", None),
         max_tokens=VISION_MAX_TOKENS,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": media_type,
-                            "data": encoded,
-                        },
-                    },
-                    {"type": "text", "text": VISION_PROMPT},
-                ],
-            }
-        ],
+        metadata={"document_id": str(document.pk), "mime_type": media_type},
     )
-
-    parts: list[str] = []
-    for block in getattr(message, "content", []) or []:
-        text = getattr(block, "text", None)
-        if text:
-            parts.append(text)
-        elif isinstance(block, dict) and block.get("type") == "text":
-            parts.append(block.get("text", ""))
-    return "\n".join(p for p in parts if p).strip()
+    return response.text
 
 
 def _extract_with_pypdf(file_bytes: bytes) -> str:
@@ -117,7 +104,9 @@ def _extract_with_pypdf(file_bytes: bytes) -> str:
     return "\n\n".join(p.strip() for p in pages if p and p.strip()).strip()
 
 
-def _extract_pdf_with_vision(file_bytes: bytes) -> str:
+def _extract_pdf_with_vision(
+    file_bytes: bytes, *, document: "Document", feature: str, user=None
+) -> str:
     """Render every PDF page and run Vision OCR on each. Concatenate the results.
 
     Used as a fallback when ``_extract_with_pypdf`` returns nothing — typically
@@ -130,7 +119,7 @@ def _extract_pdf_with_vision(file_bytes: bytes) -> str:
         logger.warning("extraction: pypdfium2 not installed, can't OCR scanned PDFs")
         return ""
 
-    if _get_anthropic_client() is None:
+    if _get_llm_client() is None:
         return ""
 
     pdf = pypdfium2.PdfDocument(file_bytes)
@@ -144,7 +133,10 @@ def _extract_pdf_with_vision(file_bytes: bytes) -> str:
                 pil_image = bitmap.to_pil()
                 buffer = io.BytesIO()
                 pil_image.save(buffer, format="JPEG", quality=85)
-                text = _extract_with_vision(buffer.getvalue(), "image/jpeg")
+                text = _extract_with_vision(
+                    buffer.getvalue(), "image/jpeg",
+                    document=document, feature=feature, user=user,
+                )
             except Exception as exc:
                 logger.warning("extraction: pdf-vision page %d failed: %s", page_index, exc)
                 continue
@@ -157,8 +149,14 @@ def _extract_pdf_with_vision(file_bytes: bytes) -> str:
     return "\n\n".join(page_texts).strip()
 
 
-def extract_text(document: "Document") -> ExtractionResult:
+def extract_text(
+    document: "Document", *, feature: str = DEFAULT_FEATURE, user=None
+) -> ExtractionResult:
     """Extract text content from a stored document.
+
+    ``feature`` tags the AIUsageLog lines this extraction produces
+    ('ocr_upload' by default, 'ocr_backfill' from the management command);
+    ``user`` is the acting user when there is one (uploads).
 
     Returns ``(text, method)`` where ``method`` is one of:
     - ``"vision_haiku"``     : Vision called on an image, returned text
@@ -191,7 +189,10 @@ def extract_text(document: "Document") -> ExtractionResult:
 
     if mime in VISION_MEDIA_TYPES:
         try:
-            text = _extract_with_vision(file_bytes, VISION_MEDIA_TYPES[mime])
+            text = _extract_with_vision(
+                file_bytes, VISION_MEDIA_TYPES[mime],
+                document=document, feature=feature, user=user,
+            )
         except Exception as exc:
             logger.warning("extraction: vision failed for %s: %s", document.file_path, exc)
             return "", "vision_empty"
@@ -210,7 +211,9 @@ def extract_text(document: "Document") -> ExtractionResult:
 
         # Scanned/image-only PDF — fall back to Vision page by page.
         try:
-            vision_text = _extract_pdf_with_vision(file_bytes)
+            vision_text = _extract_pdf_with_vision(
+                file_bytes, document=document, feature=feature, user=user
+            )
         except Exception as exc:
             logger.warning("extraction: pdf-vision failed for %s: %s", document.file_path, exc)
             return "", "pdf_vision_empty"

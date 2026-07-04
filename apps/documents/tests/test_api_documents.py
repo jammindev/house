@@ -154,7 +154,7 @@ class TestDocumentsApi:
 
         monkeypatch.setattr(
             "documents.views.extract_text",
-            lambda doc: ("Extracted via reprocess", "pypdf"),
+            lambda doc, **kw: ("Extracted via reprocess", "pypdf"),
         )
 
         url = reverse("document-reprocess-ocr", kwargs={"pk": document.id})
@@ -178,7 +178,7 @@ class TestDocumentsApi:
                 {"transcoded": True, "resized": False, "original_mime_type": "image/heic", "final_dimensions": [100, 100]},
             ),
         )
-        monkeypatch.setattr("documents.views.extract_text", lambda doc: ("Text from HEIC", "vision_haiku"))
+        monkeypatch.setattr("documents.views.extract_text", lambda doc, **kw: ("Text from HEIC", "vision_haiku"))
 
         heic_payload = b"\x00\x00\x00\x18ftypheic" + b"\x00" * 60
         upload = SimpleUploadedFile("photo.heic", heic_payload, content_type="image/heic")
@@ -200,7 +200,7 @@ class TestDocumentsApi:
 
     @override_settings(MEDIA_ROOT='/tmp/house-test-media-ocr')
     def test_upload_image_runs_text_extraction(self, monkeypatch, owner_client, household):
-        monkeypatch.setattr("documents.views.extract_text", lambda doc: ("Receipt total 12.50", "vision_haiku"))
+        monkeypatch.setattr("documents.views.extract_text", lambda doc, **kw: ("Receipt total 12.50", "vision_haiku"))
 
         upload = SimpleUploadedFile("receipt.jpg", _jpeg_bytes(), content_type="image/jpeg")
         response = owner_client.post(

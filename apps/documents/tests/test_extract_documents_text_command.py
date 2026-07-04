@@ -164,7 +164,7 @@ class TestExtractDocumentsTextCommand:
         good = _make_document(household, owner, name="good")
         boom = _make_document(household, owner, name="boom")
 
-        def fake_extract(document):
+        def fake_extract(document, **kwargs):
             if document.name == "boom":
                 raise RuntimeError("explode")
             return ("text ok", "pypdf")

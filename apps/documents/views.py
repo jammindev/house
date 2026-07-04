@@ -33,10 +33,10 @@ from zones.models import Zone, ZoneDocument
 logger = logging.getLogger(__name__)
 
 
-def _run_extraction(document: Document) -> None:
+def _run_extraction(document: Document, *, feature: str = "ocr_upload", user=None) -> None:
     """Extract text and persist it on the document, fail-soft."""
     try:
-        text, method = extract_text(document)
+        text, method = extract_text(document, feature=feature, user=user)
     except Exception as exc:
         logger.warning("extract_text raised for document %s: %s", document.pk, exc)
         text, method = "", "skipped"
@@ -274,7 +274,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if document.type == 'photo':
             generate_thumbnails(document)
         else:
-            _run_extraction(document)
+            _run_extraction(document, feature="ocr_upload", user=request.user)
 
         recent_candidates = get_recent_interaction_candidates(request, household)
         response_payload = {
@@ -310,7 +310,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def reprocess_ocr(self, request, pk=None):
         """Re-run text extraction on this document and persist the result."""
         document = self.get_object()
-        _run_extraction(document)
+        _run_extraction(document, feature="ocr_upload", user=request.user)
         document.refresh_from_db()
         serializer = DocumentDetailSerializer(
             document,

@@ -30,6 +30,7 @@ const DashboardPage = lazyWithReload(() => import('./features/dashboard/Dashboar
 const AlertsPage = lazyWithReload(() => import('./features/alerts/AlertsPage'));
 const NotificationsPage = lazyWithReload(() => import('./features/notifications/NotificationsPage'));
 const AdminUsersPage = lazyWithReload(() => import('./features/admin/AdminUsersPage'));
+const AIUsagePage = lazyWithReload(() => import('./features/ai-usage/AIUsagePage'));
 const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
 
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: 'settings', element: <SettingsPage /> },
       { path: 'agent', element: <AgentPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
+      { path: 'admin/ai-usage', element: <AIUsagePage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
