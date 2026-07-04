@@ -22,10 +22,25 @@ import {
   deleteUsagePoint,
   createLink,
   deactivateLink,
+  fetchMeters,
+  createMeter,
+  updateMeter,
+  deleteMeter,
+  fetchMeterReadings,
+  createMeterReading,
+  updateMeterReading,
+  deleteMeterReading,
+  fetchConsumptionSummary,
+  fetchConsumptionImports,
+  uploadConsumptionImport,
+  previewConsumptionImport,
   type BoardPayload,
   type DevicePayload,
   type CircuitPayload,
   type UsagePointPayload,
+  type MeterPayload,
+  type MeterReadingPayload,
+  type Granularity,
 } from '@/lib/api/electricity';
 
 // ── Query key factory ─────────────────────────────────────────────────────────
@@ -291,4 +306,139 @@ export function useDeactivateLink() {
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
+}
+
+// ── Consumption (parcours 10) ─────────────────────────────────────────────────
+
+export const consumptionKeys = {
+  meters: () => [...electricityKeys.all, 'meters'] as const,
+  readings: (meterId?: string) => [...electricityKeys.all, 'readings', meterId ?? 'all'] as const,
+  summary: (params: { meter: string; granularity: string; date_from: string; date_to: string }) =>
+    [...electricityKeys.all, 'summary', params] as const,
+  imports: () => [...electricityKeys.all, 'imports'] as const,
+};
+
+export function useMeters() {
+  return useQuery({
+    queryKey: consumptionKeys.meters(),
+    queryFn: fetchMeters,
+  });
+}
+
+export function useMeterReadings(meterId?: string) {
+  return useQuery({
+    queryKey: consumptionKeys.readings(meterId),
+    queryFn: () => fetchMeterReadings(meterId),
+    enabled: Boolean(meterId),
+  });
+}
+
+export function useConsumptionSummary(params: {
+  meter: string;
+  granularity: Granularity;
+  date_from: string;
+  date_to: string;
+}) {
+  return useQuery({
+    queryKey: consumptionKeys.summary(params),
+    queryFn: () => fetchConsumptionSummary(params),
+    enabled: Boolean(params.meter),
+    placeholderData: (prev) => prev,
+  });
+}
+
+export function useConsumptionImports() {
+  return useQuery({
+    queryKey: consumptionKeys.imports(),
+    queryFn: fetchConsumptionImports,
+  });
+}
+
+function invalidateConsumption(qc: ReturnType<typeof useQueryClient>) {
+  void qc.invalidateQueries({ queryKey: electricityKeys.all });
+}
+
+export function useCreateMeter() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: MeterPayload) => createMeter(payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.meter.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUpdateMeter() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<MeterPayload> }) =>
+      updateMeter(id, payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.meter.updated'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useDeleteMeter() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => deleteMeter(id),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.meter.deleted'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useCreateMeterReading() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: MeterReadingPayload) => createMeterReading(payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.reading.created'), variant: 'success' });
+    },
+  });
+}
+
+export function useUpdateMeterReading() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<MeterReadingPayload> }) =>
+      updateMeterReading(id, payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.reading.updated'), variant: 'success' });
+    },
+  });
+}
+
+export function useDeleteMeterReading() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteMeterReading(id),
+    onSuccess: () => invalidateConsumption(qc),
+  });
+}
+
+export function useUploadConsumptionImport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: uploadConsumptionImport,
+    onSuccess: () => invalidateConsumption(qc),
+  });
+}
+
+export function usePreviewConsumptionImport() {
+  return useMutation({ mutationFn: previewConsumptionImport });
 }

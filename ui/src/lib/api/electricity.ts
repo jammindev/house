@@ -272,3 +272,178 @@ export async function deactivateLink(id: string): Promise<void> {
   await api.post(`/electricity/links/${id}/deactivate/`, {});
 }
 
+
+// ── Consumption (parcours 10) ─────────────────────────────────────────────────
+
+export type MeterTariffType = 'base' | 'hp_hc';
+export type EnergyRegister = 'base' | 'hp' | 'hc';
+export type Granularity = 'hour' | 'day' | 'month' | 'year';
+
+export interface ElectricityMeter {
+  id: string;
+  household: string;
+  name: string;
+  serial_number?: string;
+  zone?: string | null;
+  tariff_type: MeterTariffType;
+  timezone: string;
+  notes?: string;
+  is_active?: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MeterPayload {
+  name: string;
+  serial_number?: string;
+  zone?: string | null;
+  tariff_type: MeterTariffType;
+  timezone?: string;
+  notes?: string;
+  is_active?: boolean;
+}
+
+export interface MeterReading {
+  id: string;
+  household: string;
+  meter: string;
+  register: EnergyRegister;
+  reading_at: string;
+  index_kwh: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MeterReadingPayload {
+  meter: string;
+  register: EnergyRegister;
+  reading_at: string;
+  index_kwh: string;
+}
+
+export interface ConsumptionBucket {
+  ts: string;
+  total_wh: number;
+  estimated_wh: number;
+  registers: Partial<Record<EnergyRegister, number>>;
+}
+
+export interface ConsumptionSummary {
+  meter: string;
+  granularity: Granularity;
+  date_from: string;
+  date_to: string;
+  timezone: string;
+  total_wh: number;
+  estimated_wh: number;
+  buckets: ConsumptionBucket[];
+}
+
+export interface ConsumptionImport {
+  id: string;
+  household: string;
+  meter: string;
+  provider: string;
+  filename: string;
+  status: 'completed' | 'failed';
+  created_count: number;
+  skipped_count: number;
+  error: string;
+  created_at: string;
+}
+
+export interface ImportPreview {
+  detected_provider: string | null;
+  sample_lines: string[];
+  columns: string[];
+}
+
+export interface ImportOptions {
+  timestamp_column: string;
+  value_column: string;
+  unit: 'wh' | 'kwh' | 'w_avg';
+  interval_minutes: number;
+  register?: EnergyRegister;
+  timestamp_position?: 'start' | 'end';
+}
+
+export async function fetchMeters(): Promise<ElectricityMeter[]> {
+  const { data } = await api.get('/electricity/meters/');
+  return normalizeList<ElectricityMeter>(data);
+}
+
+export async function createMeter(payload: MeterPayload): Promise<ElectricityMeter> {
+  const { data } = await api.post('/electricity/meters/', payload);
+  return data as ElectricityMeter;
+}
+
+export async function updateMeter(id: string, payload: Partial<MeterPayload>): Promise<ElectricityMeter> {
+  const { data } = await api.patch(`/electricity/meters/${id}/`, payload);
+  return data as ElectricityMeter;
+}
+
+export async function deleteMeter(id: string): Promise<void> {
+  await api.delete(`/electricity/meters/${id}/`);
+}
+
+export async function fetchMeterReadings(meterId?: string): Promise<MeterReading[]> {
+  const { data } = await api.get('/electricity/meter-readings/', {
+    params: meterId ? { meter: meterId } : undefined,
+  });
+  return normalizeList<MeterReading>(data);
+}
+
+export async function createMeterReading(payload: MeterReadingPayload): Promise<MeterReading> {
+  const { data } = await api.post('/electricity/meter-readings/', payload);
+  return data as MeterReading;
+}
+
+export async function updateMeterReading(id: string, payload: Partial<MeterReadingPayload>): Promise<MeterReading> {
+  const { data } = await api.patch(`/electricity/meter-readings/${id}/`, payload);
+  return data as MeterReading;
+}
+
+export async function deleteMeterReading(id: string): Promise<void> {
+  await api.delete(`/electricity/meter-readings/${id}/`);
+}
+
+export async function fetchConsumptionSummary(params: {
+  meter: string;
+  granularity: Granularity;
+  date_from: string;
+  date_to: string;
+}): Promise<ConsumptionSummary> {
+  const { data } = await api.get('/electricity/consumption/summary/', { params });
+  return data as ConsumptionSummary;
+}
+
+export async function fetchConsumptionImports(): Promise<ConsumptionImport[]> {
+  const { data } = await api.get('/electricity/consumption/imports/');
+  return normalizeList<ConsumptionImport>(data);
+}
+
+export async function uploadConsumptionImport(params: {
+  meter: string;
+  file: File;
+  provider?: string;
+  options?: ImportOptions;
+}): Promise<ConsumptionImport> {
+  const form = new FormData();
+  form.append('file', params.file);
+  form.append('meter', params.meter);
+  if (params.provider) form.append('provider', params.provider);
+  if (params.options) form.append('options', JSON.stringify(params.options));
+  const { data } = await api.post('/electricity/consumption/imports/', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data as ConsumptionImport;
+}
+
+export async function previewConsumptionImport(file: File): Promise<ImportPreview> {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post('/electricity/consumption/imports/preview/', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return data as ImportPreview;
+}

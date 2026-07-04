@@ -53,7 +53,8 @@
       "circuits": "Circuitos",
       "usagePoints": "Puntos de uso",
       "links": "Vínculos",
-      "lookup": "Búsqueda"
+      "lookup": "Búsqueda",
+      "consumption": "Consumo"
     },
     "board": {
       "new": "Nuevo cuadro",
@@ -193,6 +194,78 @@
       "notFound": "No encontrado.",
       "failed": "Búsqueda fallida.",
       "required": "La etiqueta es obligatoria."
+    },
+    "meter": {
+      "new": "Nuevo contador",
+      "edit": "Editar contador",
+      "name": "Nombre",
+      "namePlaceholder": "Contador principal",
+      "nameRequired": "Se requiere un nombre.",
+      "serialNumber": "Número de serie",
+      "tariffType": "Tarifa",
+      "tariffHpHc": "Punta / valle",
+      "zone": "Zona",
+      "noZone": "Sin zona",
+      "notes": "Notas",
+      "selectLabel": "Elegir un contador",
+      "emptyTitle": "Ningún contador",
+      "emptyDescription": "Declare su contador eléctrico para seguir su consumo — lecturas manuales o importación de archivos.",
+      "created": "Contador creado.",
+      "updated": "Contador actualizado.",
+      "deleted": "Contador eliminado."
+    },
+    "reading": {
+      "new": "Nueva lectura",
+      "edit": "Editar lectura",
+      "readingAt": "Fecha y hora",
+      "indexKwh": "Índice del contador (kWh)",
+      "indexRequired": "Fecha e índice son obligatorios.",
+      "recentTitle": "Lecturas recientes",
+      "created": "Lectura guardada.",
+      "updated": "Lectura actualizada.",
+      "deleted": "Lectura eliminada."
+    },
+    "consumption": {
+      "registerLabel": "Registro",
+      "register": {
+        "base": "Base",
+        "hp": "Horas punta",
+        "hc": "Horas valle"
+      },
+      "granularity": {
+        "hour": "Hora",
+        "day": "Día",
+        "month": "Mes",
+        "year": "Año"
+      },
+      "previousPeriod": "Período anterior",
+      "nextPeriod": "Período siguiente",
+      "overPeriod": "en el período",
+      "estimatedShare": "incl. {{kwh}} kWh estimados desde lecturas",
+      "noData": "Sin datos de consumo en este período.",
+      "noHourlyData": "La vista horaria solo muestra datos importados (curva de carga). Importe un archivo para verla."
+    },
+    "import": {
+      "title": "Importar datos",
+      "button": "Importar",
+      "file": "Archivo",
+      "fileRequired": "Se requiere un archivo.",
+      "detected": "Formato detectado:",
+      "useGenericInstead": "Usar el mapeo manual de columnas",
+      "mappingHint": "Formato no reconocido — asigne las columnas usted mismo.",
+      "timestampColumn": "Columna de fecha/hora",
+      "valueColumn": "Columna de valor",
+      "unit": "Unidad",
+      "unitWavg": "W (potencia media)",
+      "intervalMinutes": "Paso (minutos)",
+      "submit": "Importar",
+      "done": "Importación completada: {{created}} puntos añadidos, {{skipped}} ya conocidos.",
+      "failed": "Error en la importación.",
+      "previewFailed": "No se pudo leer el archivo.",
+      "provider": {
+        "enedis_csv": "Enedis — curva de carga (CSV)",
+        "generic_csv": "CSV genérico"
+      }
     }
   },
   "interactions": {
