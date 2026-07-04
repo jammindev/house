@@ -3,6 +3,9 @@ from django.contrib import admin
 
 from .models import (
     CircuitUsagePointLink,
+    ConsumptionRecord,
+    ElectricityMeter,
+    MeterReading,
     ElectricCircuit,
     ElectricityBoard,
     MaintenanceEvent,
@@ -59,3 +62,26 @@ class MaintenanceEventAdmin(admin.ModelAdmin):
     list_display = ("event_date", "household", "board", "performed_by", "entity_type")
     list_filter = ("entity_type",)
     search_fields = ("description", "household__name", "board__name")
+
+
+@admin.register(ElectricityMeter)
+class ElectricityMeterAdmin(admin.ModelAdmin):
+    list_display = ("name", "household", "tariff_type", "timezone", "is_active", "updated_at")
+    list_filter = ("tariff_type", "is_active")
+    search_fields = ("name", "serial_number", "household__name")
+
+
+@admin.register(MeterReading)
+class MeterReadingAdmin(admin.ModelAdmin):
+    list_display = ("meter", "register", "reading_at", "index_kwh", "created_by")
+    list_filter = ("register",)
+    search_fields = ("meter__name",)
+    date_hierarchy = "reading_at"
+
+
+@admin.register(ConsumptionRecord)
+class ConsumptionRecordAdmin(admin.ModelAdmin):
+    list_display = ("meter", "register", "ts_start", "interval_minutes", "energy_wh", "source")
+    list_filter = ("register", "source")
+    search_fields = ("meter__name",)
+    date_hierarchy = "ts_start"

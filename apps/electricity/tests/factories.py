@@ -3,12 +3,20 @@
 
 import uuid
 from datetime import date
+from decimal import Decimal
 
 import factory
 from django.contrib.auth import get_user_model
+from django.utils import timezone as django_timezone
 
 from electricity.models import (
     CircuitUsagePointLink,
+    ConsumptionRecord,
+    ConsumptionSource,
+    ElectricityMeter,
+    EnergyRegister,
+    MeterReading,
+    MeterTariffType,
     ElectricCircuit,
     ElectricityBoard,
     MaintenanceEvent,
@@ -142,3 +150,39 @@ class MaintenanceEventFactory(factory.django.DjangoModelFactory):
     description = factory.Sequence(lambda n: f"Maintenance event {n}")
     created_by = factory.SubFactory(UserFactory)
     updated_by = factory.SelfAttribute("created_by")
+
+
+class ElectricityMeterFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ElectricityMeter
+
+    household = factory.SubFactory(HouseholdFactory)
+    name = factory.Sequence(lambda n: f"Meter {n}")
+    tariff_type = MeterTariffType.BASE
+    timezone = "Europe/Paris"
+    created_by = factory.SubFactory(UserFactory)
+
+
+class MeterReadingFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = MeterReading
+
+    meter = factory.SubFactory(ElectricityMeterFactory)
+    household = factory.LazyAttribute(lambda o: o.meter.household)
+    register = EnergyRegister.BASE
+    reading_at = factory.LazyFunction(django_timezone.now)
+    index_kwh = factory.Sequence(lambda n: Decimal(1000 + n * 10))
+    created_by = factory.SubFactory(UserFactory)
+
+
+class ConsumptionRecordFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ConsumptionRecord
+
+    meter = factory.SubFactory(ElectricityMeterFactory)
+    household = factory.LazyAttribute(lambda o: o.meter.household)
+    register = EnergyRegister.BASE
+    ts_start = factory.LazyFunction(django_timezone.now)
+    interval_minutes = 30
+    energy_wh = 250
+    source = ConsumptionSource.IMPORT

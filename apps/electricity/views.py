@@ -1,6 +1,8 @@
 # electricity/views.py
 """Electricity API and template views (scaffold)."""
 
+from datetime import date
+
 from django.db import transaction
 from django.db.models import ProtectedError
 from django.utils import timezone
@@ -10,16 +12,20 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from households.models import HouseholdMember
 
+from . import services
 from .models import (
     ChangeAction,
     ChangeEntityType,
     CircuitUsagePointLink,
     ElectricCircuit,
     ElectricityBoard,
+    ElectricityMeter,
     MaintenanceEvent,
+    MeterReading,
     PlanChangeLog,
     ProtectiveDevice,
     UsagePoint,
@@ -29,7 +35,9 @@ from .serializers import (
     CircuitUsagePointLinkSerializer,
     ElectricCircuitSerializer,
     ElectricityBoardSerializer,
+    ElectricityMeterSerializer,
     MaintenanceEventSerializer,
+    MeterReadingSerializer,
     PlanChangeLogSerializer,
     ProtectiveDeviceSerializer,
     UsagePointSerializer,
@@ -243,3 +251,88 @@ class PlanChangeLogViewSet(HouseholdScopedModelViewSet):
     http_method_names = ["get", "head", "options"]
 
 
+# --- Consumption (parcours 10) ------------------------------------------------
+
+
+class ElectricityMeterViewSet(HouseholdScopedModelViewSet):
+    model = ElectricityMeter
+    serializer_class = ElectricityMeterSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        is_active = self.request.query_params.get("is_active")
+        if is_active in {"true", "false"}:
+            queryset = queryset.filter(is_active=(is_active == "true"))
+        return queryset
+
+
+class MeterReadingViewSet(HouseholdScopedModelViewSet):
+    """Readings CRUD — every write regenerates the derived daily estimates.
+
+    Validation lives in ``MeterReadingSerializer`` and the regeneration in
+    ``services.rebuild_reading_records`` — the same two pieces the agent's
+    write path (``services.create_meter_reading``) goes through.
+    """
+
+    model = MeterReading
+    serializer_class = MeterReadingSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        meter_id = self.request.query_params.get("meter")
+        if meter_id:
+            queryset = queryset.filter(meter_id=meter_id)
+        return queryset.order_by("-reading_at")
+
+    def perform_create(self, serializer):
+        with transaction.atomic():
+            super().perform_create(serializer)
+            services.rebuild_reading_records(serializer.instance.meter, serializer.instance.register)
+
+    def perform_update(self, serializer):
+        old_pair = (serializer.instance.meter, serializer.instance.register)
+        with transaction.atomic():
+            super().perform_update(serializer)
+            reading = serializer.instance
+            services.rebuild_reading_records(reading.meter, reading.register)
+            if old_pair != (reading.meter, reading.register):
+                services.rebuild_reading_records(*old_pair)
+
+    def perform_destroy(self, instance):
+        services.delete_meter_reading(instance)
+
+
+class ConsumptionSummaryView(APIView):
+    """Server-side aggregation of consumption records by granularity."""
+
+    permission_classes = [IsAuthenticated, IsElectricityOwnerWriteMemberRead]
+
+    def get(self, request):
+        household = request.household
+        if not household:
+            raise ValidationError({"household_id": _("A valid household context is required.")})
+
+        meter_id = request.query_params.get("meter")
+        if not meter_id:
+            raise ValidationError({"meter": [_("This parameter is required.")]})
+        meter = ElectricityMeter.objects.for_household(household.id).filter(id=meter_id).first()
+        if meter is None:
+            return Response({"detail": _("Meter not found.")}, status=status.HTTP_404_NOT_FOUND)
+
+        granularity = request.query_params.get("granularity", "day")
+        if granularity not in services.GRANULARITIES:
+            raise ValidationError({"granularity": [_("Must be one of: hour, day, month, year.")]})
+
+        try:
+            date_from = date.fromisoformat(request.query_params.get("date_from", ""))
+            date_to = date.fromisoformat(request.query_params.get("date_to", ""))
+        except ValueError:
+            raise ValidationError({"date_from": [_("date_from and date_to must be ISO dates (YYYY-MM-DD).")]})
+        if date_to < date_from:
+            raise ValidationError({"date_to": [_("date_to must be on or after date_from.")]})
+
+        return Response(
+            services.consumption_summary(
+                household, meter, granularity=granularity, date_from=date_from, date_to=date_to
+            )
+        )
