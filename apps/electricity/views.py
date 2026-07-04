@@ -1,6 +1,7 @@
 # electricity/views.py
 """Electricity API and template views (scaffold)."""
 
+import json
 from datetime import date
 
 from django.db import transaction
@@ -17,10 +18,12 @@ from rest_framework.views import APIView
 from households.models import HouseholdMember
 
 from . import services
+from .importers import registry as importers
 from .models import (
     ChangeAction,
     ChangeEntityType,
     CircuitUsagePointLink,
+    ConsumptionImport,
     ElectricCircuit,
     ElectricityBoard,
     ElectricityMeter,
@@ -33,6 +36,7 @@ from .models import (
 from .permissions import IsElectricityOwnerWriteMemberRead
 from .serializers import (
     CircuitUsagePointLinkSerializer,
+    ConsumptionImportSerializer,
     ElectricCircuitSerializer,
     ElectricityBoardSerializer,
     ElectricityMeterSerializer,
@@ -336,3 +340,60 @@ class ConsumptionSummaryView(APIView):
                 household, meter, granularity=granularity, date_from=date_from, date_to=date_to
             )
         )
+
+
+class ConsumptionImportViewSet(HouseholdScopedModelViewSet):
+    """Consumption file imports — list history, upload, preview.
+
+    ``POST`` always answers 201 with the import trace: a business failure
+    (unreadable file) is ``status='failed'`` on the object, not an API error —
+    and zero records are written in that case.
+    """
+
+    model = ConsumptionImport
+    serializer_class = ConsumptionImportSerializer
+    http_method_names = ["get", "post", "head", "options"]
+
+    def create(self, request, *args, **kwargs):
+        household = request.household
+        if not household:
+            raise ValidationError({"household_id": _("A valid household context is required.")})
+
+        uploaded = request.FILES.get("file")
+        if uploaded is None:
+            raise ValidationError({"file": [_("A file is required.")]})
+
+        meter_id = request.data.get("meter")
+        if not meter_id:
+            raise ValidationError({"meter": [_("This field is required.")]})
+        meter = ElectricityMeter.objects.for_household(household.id).filter(id=meter_id).first()
+        if meter is None:
+            raise ValidationError({"meter": [_("Meter not found.")]})
+
+        provider = request.data.get("provider") or None
+        if provider and importers.get_importer(provider) is None:
+            raise ValidationError({"provider": [_("Unknown provider.")]})
+
+        options = request.data.get("options") or None
+        if isinstance(options, str):
+            try:
+                options = json.loads(options)
+            except json.JSONDecodeError:
+                raise ValidationError({"options": [_("Must be valid JSON.")]})
+
+        imported = services.import_consumption_file(
+            household,
+            request.user,
+            meter=meter,
+            uploaded_file=uploaded,
+            provider=provider,
+            options=options,
+        )
+        return Response(self.get_serializer(imported).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=["post"], url_path="preview")
+    def preview(self, request):
+        uploaded = request.FILES.get("file")
+        if uploaded is None:
+            raise ValidationError({"file": [_("A file is required.")]})
+        return Response(services.preview_consumption_file(uploaded.read()))

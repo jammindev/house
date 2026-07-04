@@ -3,6 +3,7 @@ from django.contrib import admin
 
 from .models import (
     CircuitUsagePointLink,
+    ConsumptionImport,
     ConsumptionRecord,
     ElectricityMeter,
     MeterReading,
@@ -85,3 +86,10 @@ class ConsumptionRecordAdmin(admin.ModelAdmin):
     list_filter = ("register", "source")
     search_fields = ("meter__name",)
     date_hierarchy = "ts_start"
+
+
+@admin.register(ConsumptionImport)
+class ConsumptionImportAdmin(admin.ModelAdmin):
+    list_display = ("meter", "provider", "filename", "status", "created_count", "skipped_count", "created_at")
+    list_filter = ("provider", "status")
+    search_fields = ("filename", "meter__name")

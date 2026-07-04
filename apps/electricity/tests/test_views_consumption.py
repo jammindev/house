@@ -806,7 +806,13 @@ class TestConsumptionSummaryGranularities:
         assert response.data["total_wh"] == 50_000
 
     def test_estimated_wh_reflects_reading_source_only(self):
-        """estimated_wh must equal only the source=reading share; imports are 0."""
+        """estimated_wh must equal only the source=reading share; imports are 0.
+
+        The hourly view shows real measured data only (reading-derived
+        estimates never appear in it), and on a day covered by an import the
+        estimates are dropped (source priority) — so the reading record lives
+        on its own day here.
+        """
         hh = HouseholdFactory()
         owner = _make_owner(hh)
         meter = ElectricityMeterFactory(household=hh, timezone="UTC", tariff_type=MeterTariffType.BASE)
@@ -816,18 +822,25 @@ class TestConsumptionSummaryGranularities:
             ts_start=_dt_utc(2026, 6, 1, 0, 0), interval_minutes=30,
             energy_wh=1000, source=ConsumptionSource.IMPORT,
         )
-        # reading record: should count toward estimated_wh
+        # reading record on another day: should count toward estimated_wh
         ConsumptionRecordFactory(
             meter=meter, household=hh, register=EnergyRegister.BASE,
-            ts_start=_dt_utc(2026, 6, 1, 0, 30), interval_minutes=30,
+            ts_start=_dt_utc(2026, 6, 2, 0, 30), interval_minutes=30,
             energy_wh=500, source=ConsumptionSource.READING,
         )
-        response = self._summary(_client_for(owner), meter, "hour", "2026-06-01", "2026-06-01")
+        # hour view: real data only — the reading share is excluded
+        response = self._summary(_client_for(owner), meter, "hour", "2026-06-01", "2026-06-02")
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["total_wh"] == 1000
+        assert response.data["estimated_wh"] == 0
+
+        response = self._summary(_client_for(owner), meter, "day", "2026-06-01", "2026-06-02")
         assert response.status_code == status.HTTP_200_OK
         assert response.data["total_wh"] == 1500
         assert response.data["estimated_wh"] == 500
-        bucket = response.data["buckets"][0]
-        assert bucket["estimated_wh"] == 500
+        june1, june2 = response.data["buckets"]
+        assert june1["estimated_wh"] == 0
+        assert june2["estimated_wh"] == 500
 
     def test_hp_hc_registers_pivoted_in_buckets(self):
         """HP/HC meters: each bucket must carry both registers separately."""
