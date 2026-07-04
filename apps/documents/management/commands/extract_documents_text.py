@@ -109,7 +109,7 @@ class Command(BaseCommand):
                 continue
 
             try:
-                text, method = extract_text(document)
+                text, method = extract_text(document, feature="ocr_backfill")
             except Exception as exc:
                 logger.warning("extract_documents_text: %s raised: %s", document.pk, exc)
                 text, method = "", "skipped"

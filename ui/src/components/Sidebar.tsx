@@ -2,13 +2,14 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella,
+  ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella, Activity,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useSidebarToggle } from './SidebarToggleContext';
 import HouseholdSwitcher from './HouseholdSwitcher';
 import { useAlertsSummary } from '@/features/alerts/hooks';
+import { useIsHouseholdOwner } from '@/features/ai-usage/hooks';
 
 const NAV_GROUPS = [
   {
@@ -56,6 +57,7 @@ const NAV_GROUPS = [
 export default function Sidebar() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const isOwner = useIsHouseholdOwner();
   const { isSidebarOpen, closeSidebar } = useSidebarToggle();
   const { data: alertsSummary } = useAlertsSummary();
   const alertsCount = alertsSummary?.total ?? 0;
@@ -141,29 +143,51 @@ export default function Sidebar() {
           ))}
 
           {/* Admin */}
-          {user?.is_staff && (
+          {(user?.is_staff || isOwner) && (
             <div className="pt-3">
               <p className="px-2.5 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 select-none">
                 {t('admin.section_label')}
               </p>
-              <NavLink
-                to="/app/admin/users"
-                onClick={closeSidebar}
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
-                    isActive
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    <ShieldCheck className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
-                    {t('admin.users.title')}
-                  </>
-                )}
-              </NavLink>
+              {user?.is_staff && (
+                <NavLink
+                  to="/app/admin/users"
+                  onClick={closeSidebar}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <ShieldCheck className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                      {t('admin.users.title')}
+                    </>
+                  )}
+                </NavLink>
+              )}
+              {isOwner && (
+                <NavLink
+                  to="/app/admin/ai-usage"
+                  onClick={closeSidebar}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Activity className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                      {t('aiUsage.title')}
+                    </>
+                  )}
+                </NavLink>
+              )}
             </div>
           )}
         </nav>

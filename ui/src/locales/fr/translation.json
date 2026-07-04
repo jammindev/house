@@ -1721,5 +1721,41 @@
         "add": "Dépense"
       }
     }
+  },
+  "aiUsage": {
+    "title": "Usage IA",
+    "description": "Appels, latence et qualité des fonctions IA de ton foyer.",
+    "ownersOnly": "Cette page est réservée aux propriétaires du foyer.",
+    "windows": {
+      "24h": "Dernières 24 h",
+      "7d": "7 derniers jours",
+      "30d": "30 derniers jours"
+    },
+    "metrics": {
+      "errorRate": "Taux d'erreur",
+      "p95": "Latence p95",
+      "idkRate": "Taux « je ne sais pas »"
+    },
+    "alerts": {
+      "p95": "Latence p95 au-dessus de 10 s",
+      "idk": "Plus de 30 % de réponses « je ne sais pas »"
+    },
+    "histogram": {
+      "title": "Appels par jour (30 jours)",
+      "empty": "Aucun appel IA sur la période."
+    },
+    "recent": {
+      "title": "Appels récents",
+      "allFeatures": "Tous",
+      "when": "Quand",
+      "feature": "Fonction",
+      "model": "Modèle",
+      "tokens": "Tokens in/out",
+      "duration": "Durée",
+      "status": "Statut",
+      "ok": "OK",
+      "error": "Erreur",
+      "empty": "Aucun appel pour le moment."
+    }
   }
 }

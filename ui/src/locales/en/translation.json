@@ -1721,5 +1721,41 @@
         "add": "Expense"
       }
     }
+  },
+  "aiUsage": {
+    "title": "AI usage",
+    "description": "Calls, latency and quality of the AI features of your household.",
+    "ownersOnly": "This page is reserved for household owners.",
+    "windows": {
+      "24h": "Last 24 hours",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days"
+    },
+    "metrics": {
+      "errorRate": "Error rate",
+      "p95": "Latency p95",
+      "idkRate": "“I don’t know” rate"
+    },
+    "alerts": {
+      "p95": "p95 latency above 10s",
+      "idk": "More than 30% “I don’t know” answers"
+    },
+    "histogram": {
+      "title": "Calls per day (30 days)",
+      "empty": "No AI calls over the period."
+    },
+    "recent": {
+      "title": "Recent calls",
+      "allFeatures": "All",
+      "when": "When",
+      "feature": "Feature",
+      "model": "Model",
+      "tokens": "Tokens in/out",
+      "duration": "Duration",
+      "status": "Status",
+      "ok": "OK",
+      "error": "Error",
+      "empty": "No calls yet."
+    }
   }
 }

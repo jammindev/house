@@ -204,6 +204,8 @@ LLM_PROVIDER = "anthropic"
 LLM_TEXT_MODEL = "claude-haiku-4-5-20251001"
 LLM_VISION_MODEL = "claude-haiku-4-5-20251001"
 LLM_REQUEST_TIMEOUT_SECONDS = 30
+# Vision OCR (full-page images) is slower than chat round-trips.
+LLM_VISION_TIMEOUT_SECONDS = 60
 
 # Agent tool-use loop: max LLM round-trips per question. Each iteration is one
 # LLM call; the tools are dropped on the last pass to force a final answer.

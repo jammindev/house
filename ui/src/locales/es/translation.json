@@ -1721,5 +1721,41 @@
         "add": "Gasto"
       }
     }
+  },
+  "aiUsage": {
+    "title": "Uso de IA",
+    "description": "Llamadas, latencia y calidad de las funciones de IA de tu hogar.",
+    "ownersOnly": "Esta página está reservada a los propietarios del hogar.",
+    "windows": {
+      "24h": "Últimas 24 h",
+      "7d": "Últimos 7 días",
+      "30d": "Últimos 30 días"
+    },
+    "metrics": {
+      "errorRate": "Tasa de error",
+      "p95": "Latencia p95",
+      "idkRate": "Tasa de «no lo sé»"
+    },
+    "alerts": {
+      "p95": "Latencia p95 por encima de 10 s",
+      "idk": "Más del 30 % de respuestas «no lo sé»"
+    },
+    "histogram": {
+      "title": "Llamadas por día (30 días)",
+      "empty": "Sin llamadas de IA en el periodo."
+    },
+    "recent": {
+      "title": "Llamadas recientes",
+      "allFeatures": "Todas",
+      "when": "Cuándo",
+      "feature": "Función",
+      "model": "Modelo",
+      "tokens": "Tokens ent./sal.",
+      "duration": "Duración",
+      "status": "Estado",
+      "ok": "OK",
+      "error": "Error",
+      "empty": "Aún no hay llamadas."
+    }
   }
 }

@@ -14,6 +14,23 @@ from documents import extraction
 from documents.models import Document
 
 
+class _FakeLLMClient:
+    """Stands in for agent.llm's client: only vision_extract matters here."""
+
+    def __init__(self, text="", raises: Exception | None = None):
+        self.text = text
+        self.raises = raises
+        self.calls: list[dict] = []
+
+    def vision_extract(self, **kwargs):
+        self.calls.append(kwargs)
+        if self.raises:
+            raise self.raises
+        return SimpleNamespace(
+            text=self.text, input_tokens=10, output_tokens=5, duration_ms=1, model="fake"
+        )
+
+
 def _save(path: str, content: bytes) -> str:
     if default_storage.exists(path):
         default_storage.delete(path)
@@ -65,23 +82,23 @@ class TestExtractText:
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
-        fake_block = SimpleNamespace(text="Hello from receipt")
-        fake_message = SimpleNamespace(content=[fake_block])
-        fake_client = MagicMock()
-        fake_client.messages.create.return_value = fake_message
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: fake_client)
+        fake_client = _FakeLLMClient(text="Hello from receipt")
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: fake_client)
 
         text, method = extraction.extract_text(document)
 
         assert text == "Hello from receipt"
         assert method == "vision_haiku"
-        fake_client.messages.create.assert_called_once()
+        assert len(fake_client.calls) == 1
+        # The call is traced with feature + household for AIUsageLog.
+        assert fake_client.calls[0]["feature"] == "ocr_upload"
+        assert fake_client.calls[0]["household_id"] == household.id
 
     def test_image_returns_vision_empty_when_client_unavailable(self, monkeypatch, household, owner):
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: None)
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: None)
 
         text, method = extraction.extract_text(document)
 
@@ -92,9 +109,8 @@ class TestExtractText:
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
-        fake_client = MagicMock()
-        fake_client.messages.create.side_effect = RuntimeError("boom")
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: fake_client)
+        fake_client = _FakeLLMClient(raises=RuntimeError("boom"))
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: fake_client)
 
         text, method = extraction.extract_text(document)
 
@@ -105,24 +121,21 @@ class TestExtractText:
         path = _save("docs/test.jpg", _make_jpeg_bytes())
         document = self._make_document(household, owner, file_path=path, mime="image/jpeg")
 
-        fake_block = SimpleNamespace(text="")
-        fake_message = SimpleNamespace(content=[fake_block])
-        fake_client = MagicMock()
-        fake_client.messages.create.return_value = fake_message
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: fake_client)
+        fake_client = _FakeLLMClient(text="")
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: fake_client)
 
         text, method = extraction.extract_text(document)
 
         assert text == ""
         assert method == "vision_empty"
         # Vision was actually called — that's the whole point of this state.
-        fake_client.messages.create.assert_called_once()
+        assert len(fake_client.calls) == 1
 
     def test_pdf_with_empty_pypdf_returns_pdf_vision_empty_when_no_client(self, monkeypatch, household, owner):
         """Blank PDF: pypdf returns empty, Vision fallback can't run (no client) → pdf_vision_empty."""
         path = _save("docs/blank.pdf", _make_pdf_bytes())
         document = self._make_document(household, owner, file_path=path, mime="application/pdf")
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: None)
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: None)
 
         text, method = extraction.extract_text(document)
 
@@ -135,7 +148,10 @@ class TestExtractText:
         document = self._make_document(household, owner, file_path=path, mime="application/pdf")
 
         monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "")
-        monkeypatch.setattr(extraction, "_extract_pdf_with_vision", lambda _b: "Page 1 text\n\nPage 2 text")
+        monkeypatch.setattr(
+            extraction, "_extract_pdf_with_vision",
+            lambda _b, **_kw: "Page 1 text\n\nPage 2 text",
+        )
 
         text, method = extraction.extract_text(document)
 
@@ -151,12 +167,12 @@ class TestExtractText:
 
         call_count = {"n": 0}
 
-        def fake_vision(_bytes, _media):
+        def fake_vision(_bytes, _media, **_kw):
             call_count["n"] += 1
             return f"Page {call_count['n']}"
 
         monkeypatch.setattr(extraction, "_extract_with_vision", fake_vision)
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: object())
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: object())
 
         text, method = extraction.extract_text(document)
 
@@ -176,11 +192,11 @@ class TestExtractText:
         document = self._make_document(household, owner, file_path=path, mime="application/pdf")
 
         monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "")
-        monkeypatch.setattr(extraction, "_get_anthropic_client", lambda: object())
+        monkeypatch.setattr(extraction, "_get_llm_client", lambda: object())
 
         call = {"n": 0}
 
-        def flaky_vision(_b, _m):
+        def flaky_vision(_b, _m, **_kw):
             call["n"] += 1
             if call["n"] == 1:
                 raise RuntimeError("page 1 boom")
@@ -200,7 +216,7 @@ class TestExtractText:
 
         monkeypatch.setattr(extraction, "_extract_with_pypdf", lambda _b: "I am text from pypdf")
 
-        def must_not_run(_b, _m):
+        def must_not_run(_b, _m, **_kw):
             raise AssertionError("Vision should not run when pypdf returns text")
 
         monkeypatch.setattr(extraction, "_extract_with_vision", must_not_run)
