@@ -470,3 +470,139 @@ class MaintenanceEvent(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.event_date} - {self.description[:50]}"
+
+
+# --- Consumption (parcours 10) ------------------------------------------------
+
+
+class MeterTariffType(models.TextChoices):
+    BASE = "base", _("Base")
+    HP_HC = "hp_hc", _("Peak / off-peak")
+
+
+class EnergyRegister(models.TextChoices):
+    BASE = "base", _("Base")
+    HP = "hp", _("Peak hours")
+    HC = "hc", _("Off-peak hours")
+
+
+class ConsumptionSource(models.TextChoices):
+    READING = "reading", _("Meter reading")
+    IMPORT = "import", _("Import")
+
+
+class ElectricityMeter(HouseholdScopedModel):
+    """A physical metering point — the anchor of all consumption data."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=255)
+    serial_number = models.CharField(max_length=100, blank=True, default="")
+    zone = models.ForeignKey(
+        "zones.Zone",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="electricity_meters",
+    )
+    tariff_type = models.CharField(
+        max_length=10,
+        choices=MeterTariffType.choices,
+        default=MeterTariffType.BASE,
+    )
+    # IANA timezone of the metering point. Day/month bucket boundaries and the
+    # daily proration of manual readings are computed in this timezone, not in
+    # the server timezone (the project runs in UTC).
+    timezone = models.CharField(max_length=64, default="UTC")
+    notes = models.TextField(blank=True, default="")
+    is_active = models.BooleanField(default=True)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_meters"
+        verbose_name = _("electricity meter")
+        verbose_name_plural = _("electricity meters")
+
+    def __str__(self):
+        return f"{self.name} ({self.household_id})"
+
+    def allowed_registers(self) -> tuple[str, ...]:
+        if self.tariff_type == MeterTariffType.HP_HC:
+            return (EnergyRegister.HP, EnergyRegister.HC)
+        return (EnergyRegister.BASE,)
+
+
+class MeterReading(HouseholdScopedModel):
+    """A manual reading of a meter register index at a point in time."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meter = models.ForeignKey(
+        ElectricityMeter,
+        on_delete=models.CASCADE,
+        related_name="readings",
+        db_column="meter_id",
+    )
+    register = models.CharField(max_length=10, choices=EnergyRegister.choices)
+    reading_at = models.DateTimeField()
+    index_kwh = models.DecimalField(max_digits=12, decimal_places=3)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_meter_readings"
+        verbose_name = _("meter reading")
+        verbose_name_plural = _("meter readings")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["meter", "register", "reading_at"],
+                name="uq_electricity_reading_meter_register_at",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.meter_id} {self.register} {self.reading_at:%Y-%m-%d %H:%M} = {self.index_kwh}"
+
+
+class ConsumptionRecord(HouseholdScopedModel):
+    """The generic consumption pivot: energy over a time interval.
+
+    Every data source (manual readings, provider file imports) reduces to this
+    shape; aggregation only ever consumes it. ``interval_minutes`` is explicit —
+    no sampling step is assumed (30 min in France, 15 min in Germany…). Energy
+    is stored in integer Wh to avoid cumulative float drift.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meter = models.ForeignKey(
+        ElectricityMeter,
+        on_delete=models.CASCADE,
+        related_name="consumption_records",
+        db_column="meter_id",
+    )
+    register = models.CharField(max_length=10, choices=EnergyRegister.choices)
+    ts_start = models.DateTimeField()
+    interval_minutes = models.PositiveIntegerField()
+    energy_wh = models.PositiveBigIntegerField()
+    source = models.CharField(max_length=10, choices=ConsumptionSource.choices)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_consumption_records"
+        verbose_name = _("consumption record")
+        verbose_name_plural = _("consumption records")
+        constraints = [
+            # ``source`` is part of the key so a reading-derived estimate can
+            # coexist with an imported point starting at the same instant,
+            # while imports still dedupe against imports (idempotent re-import).
+            models.UniqueConstraint(
+                fields=["meter", "register", "ts_start", "source"],
+                name="uq_electricity_consumption_natural_key",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["household", "meter", "ts_start"], name="idx_elec_consumption_lookup"),
+        ]
+
+    def __str__(self):
+        return f"{self.meter_id} {self.register} {self.ts_start:%Y-%m-%d %H:%M} +{self.interval_minutes}min = {self.energy_wh} Wh"

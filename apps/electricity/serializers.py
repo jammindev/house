@@ -8,6 +8,9 @@ from households.models import HouseholdMember
 
 from .models import (
     CircuitUsagePointLink,
+    ConsumptionRecord,
+    ElectricityMeter,
+    MeterReading,
     ElectricCircuit,
     ElectricityBoard,
     MaintenanceEvent,
@@ -390,3 +393,146 @@ class PlanChangeLogSerializer(HouseholdScopedModelSerializer):
         if household and not HouseholdMember.objects.filter(household=household, user=actor).exists():
             raise serializers.ValidationError({"actor": _("Actor must be a member of the household.")})
         return attrs
+
+
+# --- Consumption (parcours 10) ------------------------------------------------
+
+
+class ElectricityMeterSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = ElectricityMeter
+        fields = [
+            "id",
+            "household",
+            "name",
+            "serial_number",
+            "zone",
+            "tariff_type",
+            "timezone",
+            "notes",
+            "is_active",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["household", "created_at", "updated_at"]
+
+    def validate_timezone(self, value):
+        from zoneinfo import ZoneInfo
+
+        try:
+            ZoneInfo(value)
+        except Exception:
+            raise serializers.ValidationError(_("Unknown timezone."))
+        return value
+
+    def validate_zone(self, value):
+        if value is None:
+            return value
+        household_id = self._resolve_household_id()
+        if household_id and value.household_id != household_id:
+            raise serializers.ValidationError(_("Zone must belong to the same household."))
+        return value
+
+    def _resolve_household_id(self):
+        if self.instance is not None:
+            return self.instance.household_id
+        household_id = self.context.get("household_id")
+        if household_id:
+            return household_id
+        request = self.context.get("request")
+        if request is not None and request.household is not None:
+            return request.household.id
+        return None
+
+
+class MeterReadingSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = MeterReading
+        fields = [
+            "id",
+            "household",
+            "meter",
+            "register",
+            "reading_at",
+            "index_kwh",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["household", "created_at", "updated_at"]
+
+    def validate_index_kwh(self, value):
+        if value < 0:
+            raise serializers.ValidationError(_("Index cannot be negative."))
+        return value
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        instance = getattr(self, "instance", None)
+
+        meter = attrs.get("meter") or (instance.meter if instance is not None else None)
+        register = attrs.get("register") or (instance.register if instance is not None else None)
+        reading_at = attrs.get("reading_at") or (instance.reading_at if instance is not None else None)
+        index_kwh = attrs.get("index_kwh")
+        if index_kwh is None and instance is not None:
+            index_kwh = instance.index_kwh
+
+        if meter is None or register is None or reading_at is None or index_kwh is None:
+            return attrs
+
+        household_id = self._resolve_household_id(instance)
+        if household_id and meter.household_id != household_id:
+            raise serializers.ValidationError({"meter": _("Meter must belong to the same household.")})
+
+        if register not in meter.allowed_registers():
+            raise serializers.ValidationError(
+                {"register": _("This register does not match the meter tariff type.")}
+            )
+
+        siblings = MeterReading.objects.filter(meter=meter, register=register)
+        if instance is not None:
+            siblings = siblings.exclude(id=instance.id)
+
+        previous = siblings.filter(reading_at__lt=reading_at).order_by("-reading_at").first()
+        if previous is not None and index_kwh < previous.index_kwh:
+            raise serializers.ValidationError(
+                {"index_kwh": _("Index is lower than the previous reading of this register.")}
+            )
+        nxt = siblings.filter(reading_at__gt=reading_at).order_by("reading_at").first()
+        if nxt is not None and index_kwh > nxt.index_kwh:
+            raise serializers.ValidationError(
+                {"index_kwh": _("Index is higher than the next reading of this register.")}
+            )
+        if siblings.filter(reading_at=reading_at).exists():
+            raise serializers.ValidationError(
+                {"reading_at": _("A reading already exists at this time for this register.")}
+            )
+
+        return attrs
+
+    def _resolve_household_id(self, instance):
+        if instance is not None:
+            return instance.household_id
+        household_id = self.context.get("household_id")
+        if household_id:
+            return household_id
+        request = self.context.get("request")
+        if request is not None and request.household is not None:
+            return request.household.id
+        return None
+
+
+class ConsumptionRecordSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = ConsumptionRecord
+        fields = [
+            "id",
+            "household",
+            "meter",
+            "register",
+            "ts_start",
+            "interval_minutes",
+            "energy_wh",
+            "source",
+            "created_at",
+        ]
+        read_only_fields = fields
