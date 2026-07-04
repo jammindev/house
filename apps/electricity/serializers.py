@@ -8,6 +8,7 @@ from households.models import HouseholdMember
 
 from .models import (
     CircuitUsagePointLink,
+    ConsumptionImport,
     ConsumptionRecord,
     ElectricityMeter,
     MeterReading,
@@ -533,6 +534,24 @@ class ConsumptionRecordSerializer(HouseholdScopedModelSerializer):
             "interval_minutes",
             "energy_wh",
             "source",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class ConsumptionImportSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = ConsumptionImport
+        fields = [
+            "id",
+            "household",
+            "meter",
+            "provider",
+            "filename",
+            "status",
+            "created_count",
+            "skipped_count",
+            "error",
             "created_at",
         ]
         read_only_fields = fields

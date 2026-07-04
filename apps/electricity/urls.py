@@ -4,6 +4,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CircuitUsagePointLinkViewSet,
+    ConsumptionImportViewSet,
     ConsumptionSummaryView,
     ElectricCircuitViewSet,
     ElectricityBoardViewSet,
@@ -25,6 +26,7 @@ router.register(r"maintenance-events", MaintenanceEventViewSet, basename="electr
 router.register(r"change-logs", PlanChangeLogViewSet, basename="electricity-change-log")
 router.register(r"meters", ElectricityMeterViewSet, basename="electricity-meter")
 router.register(r"meter-readings", MeterReadingViewSet, basename="electricity-meter-reading")
+router.register(r"consumption/imports", ConsumptionImportViewSet, basename="electricity-consumption-import")
 
 urlpatterns = [
     path("consumption/summary/", ConsumptionSummaryView.as_view(), name="electricity-consumption-summary"),

@@ -584,6 +584,13 @@ class ConsumptionRecord(HouseholdScopedModel):
     interval_minutes = models.PositiveIntegerField()
     energy_wh = models.PositiveBigIntegerField()
     source = models.CharField(max_length=10, choices=ConsumptionSource.choices)
+    source_import = models.ForeignKey(
+        "electricity.ConsumptionImport",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="records",
+    )
 
     objects = HouseholdScopedManager()
 
@@ -606,3 +613,37 @@ class ConsumptionRecord(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.meter_id} {self.register} {self.ts_start:%Y-%m-%d %H:%M} +{self.interval_minutes}min = {self.energy_wh} Wh"
+
+
+class ImportStatus(models.TextChoices):
+    COMPLETED = "completed", _("Completed")
+    FAILED = "failed", _("Failed")
+
+
+class ConsumptionImport(HouseholdScopedModel):
+    """Audit trail of one consumption file import (idempotent by design)."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meter = models.ForeignKey(
+        ElectricityMeter,
+        on_delete=models.CASCADE,
+        related_name="consumption_imports",
+        db_column="meter_id",
+    )
+    provider = models.CharField(max_length=50)
+    filename = models.CharField(max_length=255, blank=True, default="")
+    status = models.CharField(max_length=10, choices=ImportStatus.choices)
+    created_count = models.PositiveIntegerField(default=0)
+    skipped_count = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True, default="")
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_consumption_imports"
+        verbose_name = _("consumption import")
+        verbose_name_plural = _("consumption imports")
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.provider} {self.filename} ({self.status})"
