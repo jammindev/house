@@ -27,7 +27,15 @@ interface LoadingBubbleProps {
   variant: 'loading';
 }
 
-type Props = UserBubbleProps | AgentBubbleProps | LoadingBubbleProps;
+interface StreamingBubbleProps {
+  variant: 'streaming';
+  /** The partial answer text received so far (may be empty). */
+  text: string;
+  /** Localized label of the tool currently executing, if any. */
+  toolLabel?: string | null;
+}
+
+type Props = UserBubbleProps | AgentBubbleProps | LoadingBubbleProps | StreamingBubbleProps;
 
 export default function ChatBubble(props: Props) {
   if (props.variant === 'user') {
@@ -49,6 +57,21 @@ export default function ChatBubble(props: Props) {
     return (
       <AgentBubbleShell>
         <Loader />
+      </AgentBubbleShell>
+    );
+  }
+
+  if (props.variant === 'streaming') {
+    return (
+      <AgentBubbleShell>
+        {props.text ? (
+          <AnswerWithInlineCitations text={props.text} citations={[]} />
+        ) : null}
+        {props.toolLabel ? (
+          <Loader label={props.toolLabel} />
+        ) : props.text ? null : (
+          <Loader />
+        )}
       </AgentBubbleShell>
     );
   }
@@ -91,7 +114,7 @@ function AgentBubbleShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Loader() {
+function Loader({ label }: { label?: string }) {
   const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 text-muted-foreground" data-testid="agent-loader">
@@ -100,7 +123,7 @@ function Loader() {
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-current" />
       </span>
-      <span>{t('agent.loading')}</span>
+      <span>{label ?? t('agent.loading')}</span>
     </div>
   );
 }

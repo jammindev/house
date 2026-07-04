@@ -72,23 +72,58 @@ def ask(
 ) -> AnswerResult:
     """Answer ``question`` using the data of ``household``. Always returns a result.
 
-    ``history`` is an optional list of prior turns (``{"role", "content"}``,
-    oldest first) threaded into the conversation so follow-up questions can
-    resolve references to earlier turns. The model decides whether to search.
+    Thin non-streaming wrapper: drains ``ask_stream`` and returns its final
+    ``AnswerResult``. Kept as the single entry point for callers that don't
+    stream (legacy ``/ask/`` endpoint, tests, CLI usage).
+    """
+    result: AnswerResult | None = None
+    for event in ask_stream(
+        question,
+        household,
+        user=user,
+        client=client,
+        history=history,
+        context_entity=context_entity,
+    ):
+        if event["type"] == "result":
+            result = event["result"]
+    assert result is not None  # ask_stream always ends with a result event
+    return result
 
-    ``context_entity`` is an optional ``(entity_type, object_id)`` anchor. When
-    given (and resolvable), that entity's full context — the item plus everything
-    linked to it — is pre-injected as the first turn and seeded into the citation
-    pool, so the agent answers about it directly without searching. Generic:
-    works for any entity registered in ``agent.searchables``.
+
+def ask_stream(
+    question: str,
+    household,
+    *,
+    user=None,
+    client: LLMClient | None = None,
+    history: list[dict] | None = None,
+    context_entity: tuple[str, str] | None = None,
+):
+    """Streaming variant of ``ask`` — a generator of progress events.
+
+    Yields dict events, always ending with the result:
+
+    - ``{"type": "delta", "text": chunk}`` — a piece of model text as it is
+      produced (only when the client supports ``run_stream``; text emitted
+      before a tool call is preamble the frontend may discard on "tool");
+    - ``{"type": "tool", "name": tool_name}`` — a tool call is being executed;
+    - ``{"type": "result", "result": AnswerResult}`` — the final answer, same
+      object ``ask`` returns (citations resolved, metadata aggregated).
+
+    ``history`` is an optional list of prior turns (``{"role", "content"}``,
+    oldest first). ``context_entity`` is an optional ``(entity_type, object_id)``
+    anchor whose full context is pre-injected (see ``ask``).
     """
     cleaned = (question or "").strip()
     if not cleaned:
-        return AnswerResult(answer=_dont_know_message(), citations=[])
+        yield {"type": "result", "result": AnswerResult(answer=_dont_know_message(), citations=[])}
+        return
 
     if not _llm_enabled():
         logger.warning("agent.ask: LLM disabled (no ANTHROPIC_API_KEY) — returning IDK")
-        return _idk_result()
+        yield {"type": "result", "result": _idk_result()}
+        return
 
     llm = client or get_llm_client()
     max_iterations = _max_tool_iterations()
@@ -123,17 +158,31 @@ def ask(
         # produce a text answer rather than requesting yet another search.
         offered_tools = tool_schemas if iterations < max_iterations else []
 
+        run_kwargs = dict(
+            system=system_prompt,
+            messages=messages,
+            tools=offered_tools,
+            feature=FEATURE_NAME,
+            household_id=household.id,
+            user_id=getattr(user, "id", None),
+            max_tokens=DEFAULT_MAX_TOKENS,
+            metadata={"iteration": iterations},
+        )
         try:
-            response = llm.run(
-                system=system_prompt,
-                messages=messages,
-                tools=offered_tools,
-                feature=FEATURE_NAME,
-                household_id=household.id,
-                user_id=getattr(user, "id", None),
-                max_tokens=DEFAULT_MAX_TOKENS,
-                metadata={"iteration": iterations},
-            )
+            # Stream when the client supports it, forwarding text chunks as they
+            # arrive; otherwise (stub clients, future providers) fall back to the
+            # blocking round-trip — same LLMRunResponse either way.
+            run_stream = getattr(llm, "run_stream", None)
+            if run_stream is not None:
+                response = None
+                for kind, payload in run_stream(**run_kwargs):
+                    if kind == "delta":
+                        yield {"type": "delta", "text": payload}
+                    else:
+                        response = payload
+                assert response is not None  # run_stream always ends with final
+            else:
+                response = llm.run(**run_kwargs)
         except LLMTimeoutError as exc:
             logger.warning("agent.ask: LLM timeout for household %s: %s", household.id, exc)
             raise
@@ -170,6 +219,7 @@ def ask(
                 )
                 continue
 
+            yield {"type": "tool", "name": call.name}
             result = tools.dispatch(
                 call.name,
                 call.input,
@@ -195,7 +245,7 @@ def ask(
     citations = _resolve_citations(answer_text, hits)
     answer_kind = _classify_answer(tool_calls, hits, citations)
 
-    return AnswerResult(
+    yield {"type": "result", "result": AnswerResult(
         answer=answer_text or _dont_know_message(),
         citations=citations,
         metadata={
@@ -216,7 +266,7 @@ def ask(
             "created_entities": created_entities,
             "updated_entities": updated_entities,
         },
-    )
+    )}
 
 
 def _is_duplicate_write(name: str, tool_input: dict, seen: set) -> bool:

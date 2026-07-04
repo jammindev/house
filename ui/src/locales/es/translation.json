@@ -1633,6 +1633,15 @@
     "input_placeholder": "Pregunta al agente…",
     "send": "Enviar",
     "loading": "Buscando en tu hogar…",
+    "tools": {
+      "search_household": "Buscando en tu hogar…",
+      "list_entities": "Revisando tus elementos…",
+      "get_entity": "Leyendo un elemento…",
+      "get_related": "Cargando elementos vinculados…",
+      "create_entity": "Creando…",
+      "update_entity": "Actualizando…",
+      "default": "Trabajando…"
+    },
     "error": "Algo salió mal, inténtalo de nuevo.",
     "retry": "Reintentar",
     "truncated_notice": "Esta respuesta se ha cortado.",

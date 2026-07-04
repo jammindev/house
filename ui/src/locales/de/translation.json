@@ -1633,6 +1633,15 @@
     "input_placeholder": "Frag den Agenten…",
     "send": "Senden",
     "loading": "Durchsuche deinen Haushalt…",
+    "tools": {
+      "search_household": "Durchsuche deinen Haushalt…",
+      "list_entities": "Gehe deine Einträge durch…",
+      "get_entity": "Lese einen Eintrag…",
+      "get_related": "Lade verknüpfte Einträge…",
+      "create_entity": "Erstelle…",
+      "update_entity": "Aktualisiere…",
+      "default": "Arbeite…"
+    },
     "error": "Etwas ist schiefgelaufen, bitte erneut versuchen.",
     "retry": "Erneut versuchen",
     "truncated_notice": "Diese Antwort wurde abgeschnitten.",

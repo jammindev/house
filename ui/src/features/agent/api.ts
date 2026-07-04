@@ -140,3 +140,95 @@ export async function renameConversation(
 export async function deleteConversation(id: string): Promise<void> {
   await api.delete(`/agent/conversations/${id}/`);
 }
+
+/** Progress events emitted while the agent works on a streamed question. */
+export interface AgentStreamHandlers {
+  /** A chunk of model text (text emitted before a tool call is preamble). */
+  onDelta?: (text: string) => void;
+  /** A tool call started executing (name = backend tool name). */
+  onTool?: (name: string) => void;
+}
+
+function getAccessToken(): string | null {
+  try {
+    return localStorage.getItem('access_token');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Streaming variant of `postConversationMessage` (SSE over fetch — EventSource
+ * cannot POST). Resolves with the persisted agent message from the terminal
+ * `done` event; rejects on `error` events, HTTP errors, or timeout. The overall
+ * timeout matches the non-streaming call, but any received event proves the
+ * backend is alive.
+ */
+export async function streamConversationMessage(
+  conversationId: string,
+  question: string,
+  handlers: AgentStreamHandlers = {},
+): Promise<AgentMessageRow> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), AGENT_MESSAGE_TIMEOUT_MS);
+
+  try {
+    const token = getAccessToken();
+    const response = await fetch(
+      `/api/agent/conversations/${conversationId}/messages/stream/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ question }),
+        signal: controller.signal,
+      },
+    );
+    if (!response.ok || !response.body) {
+      throw new Error(`stream failed: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let done: AgentMessageRow | null = null;
+
+    const handleFrame = (frame: string) => {
+      let event = 'message';
+      let data = '';
+      for (const line of frame.split('\n')) {
+        if (line.startsWith('event: ')) event = line.slice(7);
+        else if (line.startsWith('data: ')) data = line.slice(6);
+      }
+      if (event === 'delta') {
+        handlers.onDelta?.((JSON.parse(data) as { text: string }).text);
+      } else if (event === 'tool') {
+        handlers.onTool?.((JSON.parse(data) as { name: string }).name);
+      } else if (event === 'done') {
+        done = JSON.parse(data) as AgentMessageRow;
+      } else if (event === 'error') {
+        throw new Error((JSON.parse(data) as { detail: string }).detail);
+      }
+    };
+
+    for (;;) {
+      const { value, done: eof } = await reader.read();
+      if (eof) break;
+      buffer += decoder.decode(value, { stream: true });
+      let sep = buffer.indexOf('\n\n');
+      while (sep !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        if (frame.trim()) handleFrame(frame);
+        sep = buffer.indexOf('\n\n');
+      }
+    }
+
+    if (!done) throw new Error('stream ended without a done event');
+    return done;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
