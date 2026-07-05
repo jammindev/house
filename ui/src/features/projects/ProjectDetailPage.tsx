@@ -12,6 +12,7 @@ import BackLink from '@/components/BackLink';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import type { ProjectStatus } from '@/lib/api/projects';
 import TasksPanel from '@/features/tasks/TasksPanel';
+import TrackersPanel from '@/features/trackers/TrackersPanel';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import { taskKeys, useHouseholdMembersWithMe } from '@/features/tasks/hooks';
 import {
@@ -30,8 +31,8 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Helpers ────────────────────────────────────────────────
 
-type Tab = 'overview' | 'tasks' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'assistant';
-const TABS: Tab[] = ['overview', 'tasks', 'notes', 'expenses', 'documents', 'timeline', 'assistant'];
+type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'assistant';
+const TABS: Tab[] = ['overview', 'tasks', 'trackers', 'notes', 'expenses', 'documents', 'timeline', 'assistant'];
 
 function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
   if (status === 'active') return 'default';
@@ -308,6 +309,13 @@ export default function ProjectDetailPage() {
                   <TasksPanel
                     projectId={project.id}
                     stateKeyPrefix={`project.${project.id}`}
+                  />
+                ) : null}
+
+                {tab === 'trackers' ? (
+                  <TrackersPanel
+                    projectId={project.id}
+                    stateKeyPrefix={`project.${project.id}.trackers`}
                   />
                 ) : null}
 
