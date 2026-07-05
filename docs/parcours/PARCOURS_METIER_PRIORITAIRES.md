@@ -331,6 +331,148 @@ Une page `/app/expenses/` qui affiche un total mensuel + breakdown, et un quick-
 - une dépense peut être créée depuis StockItem, Equipment, Project, ou en mode ad-hoc — toutes via le même shape `metadata`
 - la fondation pour un module Budget ultérieur est posée sans être pré-engagée
 
+## 9. Voir et piloter la maison connectée depuis House
+
+Document détaillé : `docs/parcours/PARCOURS_09_PILOTER_LA_MAISON_CONNECTEE.md`
+
+Statut actuel : **cadré le 2026-07-03, à démarrer** — issues #183, #185 à #188 (lots 1 à 5), #189 (V2 différée).
+
+### Pourquoi en neuvième
+
+Les parcours 01 à 05 ont construit la mémoire du foyer, le parcours 07 l'a rendue interrogeable en langage naturel. Le parcours 09 ajoute l'état **présent et actionnable** de la maison : les devices connectés (volets, prises, relais, capteurs) rejoignent les zones et équipements que House connaît déjà. L'agent ne répond plus seulement "quand a-t-on changé la chaudière" mais aussi "le volet du séjour est-il ouvert ?" — et peut le fermer sur demande.
+
+### Déclencheur utilisateur
+
+"Je veux voir l'état de mes équipements connectés et les piloter depuis House, sans ouvrir une app constructeur par marque."
+
+### Résultat attendu
+
+Une page Domotique qui montre les appareils groupés par pièce avec leur état courant, des commandes directes (ouvrir/fermer un volet, allumer/éteindre un relais), et un agent capable de lire l'état et d'agir sur demande explicite. Preuve V1 : piloter le Shelly 2PM réel (volet roulant) de bout en bout.
+
+### Périmètre de livraison V1 retenu
+
+- app `apps/domotics/` : intégration provider (credentials par foyer), devices à capabilities normalisées (`cover`, `switch`, `power_meter`, `temperature`), journal d'audit des commandes
+- couche adapter multi-constructeurs + premier adaptateur Shelly Cloud
+- page `/app/domotics` : appareils groupés par zone, widgets par capability, connexion de compte
+- intégration agent : état lisible via le RAG standard (`state_summary`) + tool `control_device` avec garde-fous
+
+### Hors périmètre V1
+
+- historique de mesures et graphes de consommation (nécessite un scheduler, cf. #189)
+- webhooks entrants, pilotage local (LAN), autres providers que Shelly Cloud
+- scènes, automatisations, programmation horaire
+- notifications sur changement d'état (rejoindra le parcours 06)
+
+### Stories initiales
+
+- Connecter son compte Shelly Cloud et importer ses appareils automatiquement.
+- Voir tous ses appareils groupés par pièce avec leur état courant.
+- Ouvrir, stopper, fermer son volet roulant depuis House avec retour fidèle du résultat.
+- Rattacher un appareil à une pièce et à une fiche équipement.
+- Demander à l'agent l'état d'un appareil et lui demander une action explicite.
+
+### Définition de done
+
+- le volet roulant réel se pilote depuis House, position à l'appui
+- un échec du cloud constructeur s'affiche honnêtement
+- l'agent lit l'état et exécute une commande sur demande explicite, avec audit complet
+
+## 10. Analyser la consommation électrique du foyer
+
+Document détaillé : `docs/parcours/PARCOURS_10_ANALYSER_LA_CONSOMMATION_ELECTRIQUE.md`
+
+Statut actuel : **cadré le 2026-07-04, à démarrer** — issues #198 à #201 (lots 1 à 4), #202 (V2 différée).
+
+### Pourquoi en dixième
+
+Le module électricité connaît l'architecture (tableau, circuits, points d'usage) mais aucune donnée de mesure. Le parcours 10 ajoute la **série temporelle** : combien la maison consomme, par heure, jour, mois ou année. C'est la première feature d'analyse de données du produit, et la première entrée de données externes par fichier (courbe de charge Enedis).
+
+### Déclencheur utilisateur
+
+"Je veux comprendre combien ma maison consomme d'électricité — par heure, par jour, par mois, par année — sans dépendre de l'app de mon fournisseur."
+
+### Résultat attendu
+
+Un onglet Consommation dans le module Électricité : compteur déclaré, relevés d'index saisis au fil de l'eau, import de la courbe de charge Enedis (et de tout CSV via mapping générique), graphique par granularité avec navigation dans le temps, et un agent qui répond à "combien a-t-on consommé en juin ?" et enregistre un relevé dicté.
+
+### Périmètre de livraison V1 retenu
+
+- modèle pivot générique multi-pays : `ConsumptionRecord` (énergie Wh sur un intervalle, cadran base/HP/HC, pas explicite) + `ElectricityMeter` + `MeterReading`
+- relevés manuels matérialisés en estimations quotidiennes (prorata), régénérées à chaque modification
+- registry d'adaptateurs d'import + `enedis_csv` (détection auto) + `generic_csv` (mapping colonnes/unité/pas), imports idempotents
+- endpoint d'agrégation serveur heure/jour/mois/année (la vue heure exclut les estimations)
+- onglet Consommation avec chart Recharts (première lib de graphiques du projet)
+- intégration agent : compteur searchable, somme de kWh via `list_entities`, relevé dictable avec undo
+
+### Hors périmètre V1
+
+- synchronisation automatique Enedis (API réservée aux tiers enregistrés) — l'adaptateur rend l'ajout non-cassant
+- coût en euros, comparaisons de périodes en un écran
+- gaz, eau, production solaire ; sous-comptage par circuit
+- alertes de dérive (rejoindra le parcours 06)
+
+### Stories initiales
+
+- Déclarer son compteur (base ou HP/HC).
+- Saisir des relevés d'index et voir la consommation estimée.
+- Importer la courbe de charge Enedis, idempotent au ré-import.
+- Importer un CSV quelconque via mapping générique.
+- Analyser par heure/jour/mois/année avec navigation dans le temps.
+- Interroger l'agent sur la consommation et lui dicter un relevé.
+
+### Définition de done
+
+- la courbe de charge Enedis réelle importée donne les mêmes totaux que l'espace client aux 4 granularités
+- un ré-import ne crée aucun doublon
+- l'agent somme les kWh d'une période et enregistre un relevé dicté (réversible)
+
+## 11. Tracker des valeurs dans le temps
+
+Document détaillé : `docs/parcours/PARCOURS_11_TRACKER_DES_VALEURS.md`
+
+Statut actuel : **cadré le 2026-07-04, à démarrer** — issues #192 à #196 (lots 1 à 5), #197 (V2 différée).
+
+### Pourquoi en onzième
+
+Les parcours 01 à 05 ont construit la mémoire du foyer, le parcours 07 l'a rendue interrogeable, le parcours 08 a ouvert la lecture transversale des dépenses. Le parcours 11 ajoute la **mesure dans la durée** : relevés de compteur, niveaux, heures de fonctionnement, budgets, poids — des valeurs qui vivent aujourd'hui dans des tableurs ou nulle part, alors que House connaît déjà leurs objets (équipements, zones, projets, stock).
+
+### Déclencheur utilisateur
+
+"Je veux suivre l'évolution d'une valeur dans le temps — un compteur, un niveau, un poids — sans tableur ni app dédiée."
+
+### Résultat attendu
+
+Une page Trackers où chaque série se lit d'un coup d'œil (dernière valeur, sparkline, deltas), une saisie en moins de dix secondes depuis la carte, des trackers ancrés sur l'existant (projet ou n'importe quelle entité du foyer), et un agent qui enregistre un relevé dicté et cite les valeurs.
+
+### Périmètre de livraison V1 retenu
+
+- app `apps/trackers/` : Tracker (nom, unité, emoji, ancrage projet ou entité générique) + TrackerEntry (valeur, date, note), caches dénormalisés, pont RAG `entries_summary`
+- API DRF + services partagés viewset/agent (pattern tasks)
+- page `/app/trackers` : cards avec saisie rapide inline + sparkline SVG maison, page détail avec deltas
+- onglet Trackers dans le détail projet (contrat `TasksPanel`)
+- intégration agent : valeurs citables via le RAG standard + création de trackers et d'entrées via `create_entity` (avec undo)
+
+### Hors périmètre V1
+
+- graphes riches (axes, zoom, périodes) et agrégats par période (« m³/mois ») — cf. #197
+- rappels de relevé (rejoindra le parcours 06)
+- panneaux « trackers liés » sur les pages équipement / zone / stock (l'API le permet déjà)
+- seuils/objectifs avec alerte, import CSV
+
+### Stories initiales
+
+- Créer un tracker général, de projet, ou lié à une entité du foyer.
+- Saisir une valeur en quelques secondes depuis la carte, antidatage possible.
+- Lire la tendance : dernière valeur, sparkline, deltas entre entrées.
+- Retrouver les trackers d'un projet dans son détail.
+- Dicter un relevé à l'agent et l'interroger sur les valeurs.
+
+### Définition de done
+
+- le relevé mensuel du compteur se saisit en moins de dix secondes, tendance à l'appui
+- un tracker s'ancre sur l'existant sans dupliquer de concept
+- l'agent enregistre une entrée dictée (réversible) et répond en citant les valeurs
+
 ## Ce que je ne mettrais pas dans les 5 premiers
 
 - flux avancés d'email entrant tant que le parcours document + interaction n'est pas solide
