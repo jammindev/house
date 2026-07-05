@@ -25,6 +25,7 @@ const DirectoryPage = lazyWithReload(() => import('./features/directory/Director
 const ElectricityPage = lazyWithReload(() => import('./features/electricity/ElectricityPage'));
 const TrackersPage = lazyWithReload(() => import('./features/trackers/TrackersPage'));
 const TrackerDetailPage = lazyWithReload(() => import('./features/trackers/TrackerDetailPage'));
+const TrackerEntryRedirect = lazyWithReload(() => import('./features/trackers/TrackerEntryRedirect'));
 const InsurancePage = lazyWithReload(() => import('./features/insurance/InsurancePage'));
 const PhotosPage = lazyWithReload(() => import('./features/photos/PhotosPage'));
 const SettingsPage = lazyWithReload(() => import('./features/settings/SettingsPage'));
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
       { path: 'electricity', element: <ElectricityPage /> },
       { path: 'trackers', element: <TrackersPage /> },
       { path: 'trackers/:id', element: <TrackerDetailPage /> },
+      { path: 'tracker-entries/:id', element: <TrackerEntryRedirect /> },
       { path: 'insurance', element: <InsurancePage /> },
       { path: 'photos', element: <PhotosPage /> },
       { path: 'alerts', element: <AlertsPage /> },

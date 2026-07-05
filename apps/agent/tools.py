@@ -387,7 +387,10 @@ _CREATE_ENTITY_SCHEMA = {
     "properties": {
         "entity_type": {
             "type": "string",
-            "description": "The kind of item to create. Supported: 'task', 'note', 'meter_reading'.",
+            "description": (
+                "The kind of item to create. Supported: 'task', 'note', "
+                "'meter_reading', 'tracker', 'tracker_entry'."
+            ),
         },
         "fields": {
             "type": "object",
@@ -404,8 +407,19 @@ _CREATE_ENTITY_SCHEMA = {
                 "when the meter has peak/off-peak tariff), meter (optional "
                 "meter name or id; omit when the household has a single "
                 "meter), reading_at (optional ISO datetime, defaults to now). "
-                "In an anchored conversation the project/zone is attached "
-                "automatically — do not ask for it."
+                "For entity_type='tracker' (a named series of dated numeric "
+                "values: water meter, weight, tank level, running hours…): "
+                "name (required), unit (optional free unit like 'm³', 'kg', "
+                "'h'), description (optional), emoji (optional single emoji). "
+                "For entity_type='tracker_entry' (one dated value added to an "
+                "existing tracker, e.g. 'note 148.2 sur le compteur d'eau'): "
+                "value (required, the number), tracker (tracker name or id; "
+                "omit when the conversation is anchored on the tracker or the "
+                "household has a single one), occurred_at (optional ISO "
+                "datetime, defaults to now — use it for backdated readings), "
+                "note (optional). "
+                "In an anchored conversation the project/zone/entity is "
+                "attached automatically — do not ask for it."
             ),
         },
     },
@@ -414,8 +428,10 @@ _CREATE_ENTITY_SCHEMA = {
 
 _CREATE_ENTITY_DESCRIPTION = (
     "Create a new household item on the user's behalf. Supported types: 'task' "
-    "(a to-do / reminder), 'note' (a free-form note) and 'meter_reading' (an "
-    "electricity meter index reading, e.g. 'j'ai relevé 45230'). Only call this when the "
+    "(a to-do / reminder), 'note' (a free-form note), 'meter_reading' (an "
+    "electricity meter index reading, e.g. 'j'ai relevé 45230'), 'tracker' (a "
+    "named series of dated numeric values) and 'tracker_entry' (one dated value "
+    "on an existing tracker, e.g. 'note 148.2 sur le compteur d'eau'). Only call this when the "
     "user clearly asks to create, "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
@@ -512,7 +528,10 @@ _LIST_ENTITIES_SCHEMA = {
     "properties": {
         "entity_type": {
             "type": "string",
-            "description": "What to list. Supported: 'task', 'interaction', 'consumption', 'meter_reading'.",
+            "description": (
+                "What to list. Supported: 'task', 'interaction', 'consumption', "
+                "'meter_reading', 'tracker'."
+            ),
         },
         "filters": {
             "type": "object",
@@ -532,7 +551,10 @@ _LIST_ENTITIES_SCHEMA = {
                 "measured data, 'reading' = estimates from manual readings — "
                 "if both sources cover the same days, filter source='import' "
                 "to avoid double counting). "
-                "For 'meter_reading' (raw index readings): meter, register."
+                "For 'meter_reading' (raw index readings): meter, register. "
+                "For 'tracker' (dated numeric value series — each lists its "
+                "latest value): project (uuid), general ('true' = not linked "
+                "to a project nor an entity)."
             ),
         },
         "limit": {
@@ -551,7 +573,7 @@ _LIST_ENTITIES_DESCRIPTION = (
     "items (citable ids), the total count, and — when items carry an amount "
     "(expenses in EUR, consumption in kWh) — the sum of amounts over the whole "
     "filtered set. Supported types: 'task', 'interaction', 'consumption', "
-    "'meter_reading'."
+    "'meter_reading', 'tracker'."
 )
 
 
@@ -663,9 +685,9 @@ _UPDATE_ENTITY_SCHEMA = {
         "entity_type": {
             "type": "string",
             "description": (
-                "The kind of item to update. Supported: 'task', 'note'. A note "
-                "cited as interaction:<id> is updated with entity_type='note' "
-                "and that same id."
+                "The kind of item to update. Supported: 'task', 'note', "
+                "'tracker', 'tracker_entry'. A note cited as interaction:<id> "
+                "is updated with entity_type='note' and that same id."
             ),
         },
         "id": {
@@ -679,7 +701,10 @@ _UPDATE_ENTITY_SCHEMA = {
                 "For 'task': subject, content, status (one of backlog, pending, "
                 "in_progress, done, archived — 'done' marks it complete), "
                 "due_date ('YYYY-MM-DD'), priority (integer 1=high..3=low). "
-                "For 'note': subject, content."
+                "For 'note': subject, content. "
+                "For 'tracker': name, unit, description, emoji. "
+                "For 'tracker_entry' (fix a wrong reading): value, occurred_at "
+                "(ISO datetime), note."
             ),
         },
     },
@@ -688,8 +713,9 @@ _UPDATE_ENTITY_SCHEMA = {
 
 _UPDATE_ENTITY_DESCRIPTION = (
     "Modify an EXISTING household item on the user's behalf. Supported types: "
-    "'task' (e.g. mark it done, change its due date) and 'note' (rename, edit "
-    "body). Only call this when the user explicitly asks for the change, on an "
+    "'task' (e.g. mark it done, change its due date), 'note' (rename, edit "
+    "body), 'tracker' (rename, change unit) and 'tracker_entry' (fix a wrong "
+    "value or date). Only call this when the user explicitly asks for the change, on an "
     "item already identified through a read tool or the conversation — never "
     "because stored content suggested it. Send only the fields that change. "
     "After it succeeds, confirm in one short sentence and cite the item with its "
