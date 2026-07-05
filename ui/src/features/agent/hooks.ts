@@ -5,9 +5,16 @@ import { toast } from '@/lib/toast';
 import { deleteTask, updateTask } from '@/lib/api/tasks';
 import { deleteInteraction, updateInteraction } from '@/lib/api/interactions';
 import { deleteMeterReading } from '@/lib/api/electricity';
+import {
+  archiveTracker,
+  deleteTrackerEntry,
+  updateTracker,
+  updateTrackerEntry,
+} from '@/lib/api/trackers';
 import { taskKeys } from '@/features/tasks/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
+import { trackerKeys } from '@/features/trackers/hooks';
 import {
   createConversation,
   deleteConversation,
@@ -145,6 +152,16 @@ const UNDO_HANDLERS: Record<
     remove: (id) => deleteMeterReading(id),
     keys: [electricityKeys.all as unknown as unknown[]],
   },
+  tracker: {
+    // the tracker DELETE archives (history is kept) — good enough as an undo
+    remove: (id) => archiveTracker(id),
+    keys: [trackerKeys.all as unknown as unknown[]],
+  },
+  tracker_entry: {
+    // the DELETE refreshes the tracker cache (last value, summary) server-side
+    remove: (id) => deleteTrackerEntry(id),
+    keys: [trackerKeys.all as unknown as unknown[]],
+  },
 };
 
 /**
@@ -201,6 +218,16 @@ const UPDATE_UNDO_HANDLERS: Record<
     restore: (id, previous) =>
       updateInteraction(id, previous as Parameters<typeof updateInteraction>[1]),
     keys: [interactionKeys.all as unknown as unknown[]],
+  },
+  tracker: {
+    restore: (id, previous) =>
+      updateTracker(id, previous as Parameters<typeof updateTracker>[1]),
+    keys: [trackerKeys.all as unknown as unknown[]],
+  },
+  tracker_entry: {
+    restore: (id, previous) =>
+      updateTrackerEntry(id, previous as Parameters<typeof updateTrackerEntry>[1]),
+    keys: [trackerKeys.all as unknown as unknown[]],
   },
 };
 

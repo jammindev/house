@@ -17,6 +17,7 @@ import {
 import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import EntityAssistant from '@/features/agent/EntityAssistant';
 import EntryDialog from './EntryDialog';
 import TrackerDialog from './TrackerDialog';
 import { useDeleteEntry, useTracker, useTrackerEntries } from './hooks';
@@ -233,6 +234,10 @@ export default function TrackerDetailPage() {
           </div>
         )}
       </Card>
+
+      <div className="mt-4">
+        <EntityAssistant entityType="tracker" objectId={tracker.id} />
+      </div>
 
       <TrackerDialog open={editOpen} onOpenChange={setEditOpen} existing={tracker} />
       <EntryDialog
