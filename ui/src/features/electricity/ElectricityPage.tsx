@@ -34,11 +34,12 @@ import DeviceDialog from './DeviceDialog';
 import CircuitDialog from './CircuitDialog';
 import UsagePointDialog from './UsagePointDialog';
 import LinkDialog from './LinkDialog';
+import ConsumptionTab from './ConsumptionTab';
 import { useQueryClient } from '@tanstack/react-query';
 
 // ── Tab types ─────────────────────────────────────────────────────────────────
 
-type Tab = 'board' | 'circuits' | 'usagePoints' | 'links';
+type Tab = 'board' | 'circuits' | 'usagePoints' | 'links' | 'consumption';
 
 // ── Device type helpers ───────────────────────────────────────────────────────
 
@@ -407,7 +408,7 @@ export default function ElectricityPage() {
   // We only redirect once (on first non-loading render) to avoid kicking the user back if they delete devices later.
   const hasRedirectedRef = React.useRef(false);
   React.useEffect(() => {
-    if (!isLoading && boards.length > 0 && devices.length === 0 && activeTab !== 'board' && !hasRedirectedRef.current) {
+    if (!isLoading && boards.length > 0 && devices.length === 0 && activeTab !== 'board' && activeTab !== 'consumption' && !hasRedirectedRef.current) {
       hasRedirectedRef.current = true;
       setActiveTab('board');
     }
@@ -472,6 +473,7 @@ export default function ElectricityPage() {
     { key: 'circuits', label: t('electricity.tabs.circuits') },
     { key: 'usagePoints', label: t('electricity.tabs.usagePoints') },
     { key: 'links', label: t('electricity.tabs.links') },
+    { key: 'consumption', label: t('electricity.tabs.consumption') },
   ];
 
   // Skeleton
@@ -785,6 +787,9 @@ export default function ElectricityPage() {
           )}
         </div>
       )}
+
+      {/* ── Consumption tab ───────────────────────────────────────── */}
+      {activeTab === 'consumption' && <ConsumptionTab />}
 
       {/* ── Dialogs ───────────────────────────────────────────────────────── */}
       <BoardDialog

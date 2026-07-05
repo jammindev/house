@@ -53,7 +53,8 @@
       "circuits": "Stromkreise",
       "usagePoints": "Nutzungspunkte",
       "links": "Verbindungen",
-      "lookup": "Suche"
+      "lookup": "Suche",
+      "consumption": "Verbrauch"
     },
     "board": {
       "new": "Neuer Verteiler",
@@ -193,6 +194,78 @@
       "notFound": "Nicht gefunden.",
       "failed": "Suche fehlgeschlagen.",
       "required": "Bezeichnung ist erforderlich."
+    },
+    "meter": {
+      "new": "Neuer Zähler",
+      "edit": "Zähler bearbeiten",
+      "name": "Name",
+      "namePlaceholder": "Hauptzähler",
+      "nameRequired": "Ein Name ist erforderlich.",
+      "serialNumber": "Seriennummer",
+      "tariffType": "Tarif",
+      "tariffHpHc": "Haupt-/Nebenzeit",
+      "zone": "Zone",
+      "noZone": "Keine Zone",
+      "notes": "Notizen",
+      "selectLabel": "Zähler auswählen",
+      "emptyTitle": "Noch kein Zähler",
+      "emptyDescription": "Legen Sie Ihren Stromzähler an, um den Verbrauch zu verfolgen — manuelle Ablesungen oder Datei-Import.",
+      "created": "Zähler erstellt.",
+      "updated": "Zähler aktualisiert.",
+      "deleted": "Zähler gelöscht."
+    },
+    "reading": {
+      "new": "Neue Ablesung",
+      "edit": "Ablesung bearbeiten",
+      "readingAt": "Datum und Uhrzeit",
+      "indexKwh": "Zählerstand (kWh)",
+      "indexRequired": "Datum und Zählerstand sind erforderlich.",
+      "recentTitle": "Letzte Ablesungen",
+      "created": "Ablesung gespeichert.",
+      "updated": "Ablesung aktualisiert.",
+      "deleted": "Ablesung gelöscht."
+    },
+    "consumption": {
+      "registerLabel": "Zählwerk",
+      "register": {
+        "base": "Basis",
+        "hp": "Hauptzeit",
+        "hc": "Nebenzeit"
+      },
+      "granularity": {
+        "hour": "Stunde",
+        "day": "Tag",
+        "month": "Monat",
+        "year": "Jahr"
+      },
+      "previousPeriod": "Vorheriger Zeitraum",
+      "nextPeriod": "Nächster Zeitraum",
+      "overPeriod": "im Zeitraum",
+      "estimatedShare": "davon {{kwh}} kWh aus Ablesungen geschätzt",
+      "noData": "Keine Verbrauchsdaten in diesem Zeitraum.",
+      "noHourlyData": "Die Stundenansicht zeigt nur importierte Daten (Lastgang). Importieren Sie eine Datei."
+    },
+    "import": {
+      "title": "Daten importieren",
+      "button": "Importieren",
+      "file": "Datei",
+      "fileRequired": "Eine Datei ist erforderlich.",
+      "detected": "Erkanntes Format:",
+      "useGenericInstead": "Stattdessen manuelle Spaltenzuordnung verwenden",
+      "mappingHint": "Format nicht erkannt — ordnen Sie die Spalten selbst zu.",
+      "timestampColumn": "Zeitstempel-Spalte",
+      "valueColumn": "Wert-Spalte",
+      "unit": "Einheit",
+      "unitWavg": "W (mittlere Leistung)",
+      "intervalMinutes": "Intervall (Minuten)",
+      "submit": "Importieren",
+      "done": "Import abgeschlossen: {{created}} Punkte hinzugefügt, {{skipped}} bereits vorhanden.",
+      "failed": "Import fehlgeschlagen.",
+      "previewFailed": "Datei konnte nicht gelesen werden.",
+      "provider": {
+        "enedis_csv": "Enedis — Lastgang (CSV)",
+        "generic_csv": "Generisches CSV"
+      }
     }
   },
   "interactions": {

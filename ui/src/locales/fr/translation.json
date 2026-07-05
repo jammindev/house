@@ -53,7 +53,8 @@
       "circuits": "Circuits",
       "usagePoints": "Points d'usage",
       "links": "Liens",
-      "lookup": "Recherche"
+      "lookup": "Recherche",
+      "consumption": "Consommation"
     },
     "board": {
       "new": "Nouveau tableau",
@@ -193,6 +194,78 @@
       "notFound": "Introuvable.",
       "failed": "Recherche échouée.",
       "required": "L'étiquette est requise."
+    },
+    "meter": {
+      "new": "Nouveau compteur",
+      "edit": "Modifier le compteur",
+      "name": "Nom",
+      "namePlaceholder": "Compteur principal",
+      "nameRequired": "Un nom est requis.",
+      "serialNumber": "Numéro de série",
+      "tariffType": "Tarification",
+      "tariffHpHc": "Heures pleines / creuses",
+      "zone": "Zone",
+      "noZone": "Aucune zone",
+      "notes": "Notes",
+      "selectLabel": "Choisir un compteur",
+      "emptyTitle": "Aucun compteur",
+      "emptyDescription": "Déclarez votre compteur électrique pour suivre votre consommation — relevés manuels ou import Enedis.",
+      "created": "Compteur créé.",
+      "updated": "Compteur modifié.",
+      "deleted": "Compteur supprimé."
+    },
+    "reading": {
+      "new": "Nouveau relevé",
+      "edit": "Modifier le relevé",
+      "readingAt": "Date et heure",
+      "indexKwh": "Index du compteur (kWh)",
+      "indexRequired": "Date et index sont requis.",
+      "recentTitle": "Relevés récents",
+      "created": "Relevé enregistré.",
+      "updated": "Relevé modifié.",
+      "deleted": "Relevé supprimé."
+    },
+    "consumption": {
+      "registerLabel": "Cadran",
+      "register": {
+        "base": "Base",
+        "hp": "Heures pleines",
+        "hc": "Heures creuses"
+      },
+      "granularity": {
+        "hour": "Heure",
+        "day": "Jour",
+        "month": "Mois",
+        "year": "Année"
+      },
+      "previousPeriod": "Période précédente",
+      "nextPeriod": "Période suivante",
+      "overPeriod": "sur la période",
+      "estimatedShare": "dont {{kwh}} kWh estimés depuis les relevés",
+      "noData": "Aucune donnée de consommation sur cette période.",
+      "noHourlyData": "La vue horaire n'affiche que les données importées (courbe de charge). Importez un fichier pour la voir."
+    },
+    "import": {
+      "title": "Importer des données",
+      "button": "Importer",
+      "file": "Fichier",
+      "fileRequired": "Un fichier est requis.",
+      "detected": "Format détecté :",
+      "useGenericInstead": "Utiliser le mapping manuel des colonnes",
+      "mappingHint": "Format non reconnu — indiquez vous-même les colonnes.",
+      "timestampColumn": "Colonne date/heure",
+      "valueColumn": "Colonne valeur",
+      "unit": "Unité",
+      "unitWavg": "W (puissance moyenne)",
+      "intervalMinutes": "Pas (minutes)",
+      "submit": "Importer",
+      "done": "Import terminé : {{created}} points ajoutés, {{skipped}} déjà connus.",
+      "failed": "Échec de l'import.",
+      "previewFailed": "Impossible de lire le fichier.",
+      "provider": {
+        "enedis_csv": "Enedis — courbe de charge (CSV)",
+        "generic_csv": "CSV générique"
+      }
     }
   },
   "interactions": {

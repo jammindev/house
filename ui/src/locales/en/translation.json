@@ -53,7 +53,8 @@
       "circuits": "Circuits",
       "usagePoints": "Usage Points",
       "links": "Links",
-      "lookup": "Lookup"
+      "lookup": "Lookup",
+      "consumption": "Consumption"
     },
     "board": {
       "new": "New Board",
@@ -193,6 +194,78 @@
       "notFound": "Not found.",
       "failed": "Search failed.",
       "required": "Label is required."
+    },
+    "meter": {
+      "new": "New meter",
+      "edit": "Edit meter",
+      "name": "Name",
+      "namePlaceholder": "Main meter",
+      "nameRequired": "A name is required.",
+      "serialNumber": "Serial number",
+      "tariffType": "Tariff",
+      "tariffHpHc": "Peak / off-peak",
+      "zone": "Zone",
+      "noZone": "No zone",
+      "notes": "Notes",
+      "selectLabel": "Select a meter",
+      "emptyTitle": "No meter yet",
+      "emptyDescription": "Declare your electricity meter to start tracking consumption — manual readings or Enedis import.",
+      "created": "Meter created.",
+      "updated": "Meter updated.",
+      "deleted": "Meter deleted."
+    },
+    "reading": {
+      "new": "New reading",
+      "edit": "Edit reading",
+      "readingAt": "Date and time",
+      "indexKwh": "Meter index (kWh)",
+      "indexRequired": "Date and index are required.",
+      "recentTitle": "Recent readings",
+      "created": "Reading saved.",
+      "updated": "Reading updated.",
+      "deleted": "Reading deleted."
+    },
+    "consumption": {
+      "registerLabel": "Register",
+      "register": {
+        "base": "Base",
+        "hp": "Peak hours",
+        "hc": "Off-peak hours"
+      },
+      "granularity": {
+        "hour": "Hour",
+        "day": "Day",
+        "month": "Month",
+        "year": "Year"
+      },
+      "previousPeriod": "Previous period",
+      "nextPeriod": "Next period",
+      "overPeriod": "over the period",
+      "estimatedShare": "incl. {{kwh}} kWh estimated from readings",
+      "noData": "No consumption data on this period.",
+      "noHourlyData": "The hourly view only shows imported data (load curve). Import a file to see it."
+    },
+    "import": {
+      "title": "Import data",
+      "button": "Import",
+      "file": "File",
+      "fileRequired": "A file is required.",
+      "detected": "Detected format:",
+      "useGenericInstead": "Use manual column mapping instead",
+      "mappingHint": "Unrecognized format — map the columns yourself.",
+      "timestampColumn": "Timestamp column",
+      "valueColumn": "Value column",
+      "unit": "Unit",
+      "unitWavg": "W (average power)",
+      "intervalMinutes": "Step (minutes)",
+      "submit": "Import",
+      "done": "Import done: {{created}} points added, {{skipped}} already known.",
+      "failed": "Import failed.",
+      "previewFailed": "Could not read the file.",
+      "provider": {
+        "enedis_csv": "Enedis — load curve (CSV)",
+        "generic_csv": "Generic CSV"
+      }
     }
   },
   "interactions": {
