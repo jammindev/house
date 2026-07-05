@@ -19,13 +19,35 @@ from core.models import HouseholdScopedModel
 class Tracker(HouseholdScopedModel):
     """A named series of dated numeric values."""
 
+    class Kind(models.TextChoices):
+        # A point-in-time state: meter index, weight, tank level. Entries are
+        # readings; the latest value is the headline, deltas read between two.
+        MEASURE = 'measure', 'Measure'
+        # A quantity consumed per event: chicken feed, pellets, fuel. Entries
+        # are amounts; the headline is the rate (per day) and the runway
+        # (how long the reserve lasts).
+        CONSUMPTION = 'consumption', 'Consumption'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, default='')
     unit = models.CharField(max_length=50, blank=True, default='')
     emoji = models.CharField(max_length=16, blank=True, default='')
+    # Immutable after creation — flipping the meaning of an existing history
+    # makes no sense (enforced in the serializer).
+    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.MEASURE)
     # DELETE through the API archives instead of destroying (history has value).
     is_active = models.BooleanField(default=True)
+
+    # Consumption only: what's left, in the entries' unit. An external fact
+    # (refilled by the user), NOT recomputable from the DB — entry writes adjust
+    # it incrementally in services.py. May go negative (signals the gap).
+    reserve = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
+    # Consumption only: cached average consumption per day over a sliding
+    # window, recomputed by services.refresh_tracker_cache.
+    rate_per_day = models.DecimalField(
+        max_digits=12, decimal_places=3, null=True, blank=True
+    )
 
     project = models.ForeignKey(
         'projects.Project',

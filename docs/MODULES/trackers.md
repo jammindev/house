@@ -11,7 +11,8 @@
 
 ## Modèle de données
 
-- **`Tracker`** (`trackers`) : `name`, `unit` (libre), `emoji`, `description`, `is_active` (le DELETE API **archive**, l'historique a de la valeur), FK `project` nullable (comme `Task.project`), cible générique `target_content_type`/`target_object_id`/`target` (nommage calqué sur `Interaction.source_*`, contrainte `tracker_target_integrity` : les deux null ou les deux renseignés).
+- **`Tracker`** (`trackers`) : `name`, `unit` (libre), `emoji`, `description`, `kind` (**`measure`** — état ponctuel, défaut — ou **`consumption`** — quantités consommées ; immuable après création), `is_active` (le DELETE API **archive**, l'historique a de la valeur), FK `project` nullable (comme `Task.project`), cible générique `target_content_type`/`target_object_id`/`target` (nommage calqué sur `Interaction.source_*`, contrainte `tracker_target_integrity` : les deux null ou les deux renseignés).
+- **Consommation (lot 6, V1.1)** : `reserve` (quantité restante, fait externe **ajusté incrémentalement** par les écritures d'entrées — jamais recalculé, peut être négatif) et `rate_per_day` (cache, fenêtre glissante 14 jours par `occurred_at`, plancher 1 jour de couverture). L'autonomie (`runway_days`/`runway_until` au serializer) = réserve ÷ rythme. Réapprovisionner = PATCH `reserve` (nouveau total ; le front fait l'addition). Chaque entrée décrémente la réserve en transaction ; update ajuste le delta ; delete (= chemin d'undo) re-crédite.
 - **`TrackerEntry`** (`tracker_entries`) : `value` Decimal(12,3) signe libre, `occurred_at`, `note`. DELETE = **hard delete** (une saisie erronée doit disparaître).
 - **Caches dénormalisés** sur `Tracker` : `last_value`, `last_entry_at`, `entries_summary` — recalculés **depuis la DB** par `services.refresh_tracker_cache` à chaque écriture d'entrée (create/update/delete, même transaction). La dernière valeur = max `occurred_at`, pas la dernière saisie (l'antidatage est un cas normal).
 
@@ -19,7 +20,7 @@
 
 `apps/trackers/services.py` : `create_tracker`, `update_tracker`, `add_entry`, `update_entry`, `delete_entry`, `refresh_tracker_cache`, `build_entries_summary`. Les viewsets REST **et** les handlers agent passent par ces fonctions — ne jamais écrire une `TrackerEntry` ailleurs, le cache doit être rafraîchi dans la même transaction.
 
-`build_entries_summary` rend les 10 dernières entrées en texte, une par ligne avec le **delta vs entrée précédente** — c'est ce qui permet à l'agent de répondre « combien depuis le mois dernier » par simple retrieval.
+`build_entries_summary` rend les 10 dernières entrées en texte. Tracker **mesure** : une ligne par entrée avec le **delta vs précédente** (« combien depuis le mois dernier »). Tracker **consommation** : l'en-tête porte **rythme — réserve — autonomie** (« Rate: ≈3 verres/day — reserve: 33 verres — runway: ~11 days (until …) ») — c'est ce qui permet à l'agent de répondre « combien de temps je tiens ? » par simple retrieval.
 
 ## Cible générique via le registry `agent.searchables`
 

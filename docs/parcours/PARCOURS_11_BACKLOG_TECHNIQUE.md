@@ -11,9 +11,9 @@
 | 3 | Frontend `/app/trackers` — page, card + saisie rapide, détail, Sparkline maison | ✅ Livré (#213) | #194 |
 | 4 | Embed projet — onglet Trackers dans le détail projet | ✅ Livré (#213) | #195 |
 | 5 | Intégration agent — Searchable/Listable/Writable `tracker` + Writable `tracker_entry` | ✅ Livré (#212) | #196 |
-| 6a | **V1.1 consommation** — backend : `kind`, réserve, rythme, autonomie | ⏳ À démarrer | #214 |
-| 6b | V1.1 consommation — frontend : choix du type, rythme + autonomie, Réapprovisionner | ⏳ À démarrer | #215 |
-| 6c | V1.1 consommation — agent : scénario « j'ai donné 3 verres aux poules » | ⏳ À démarrer | #216 |
+| 6a | **V1.1 consommation** — backend : `kind`, réserve, rythme, autonomie | ✅ Livré | #214 |
+| 6b | V1.1 consommation — frontend : choix du type, rythme + autonomie, Réapprovisionner | ✅ Livré | #215 |
+| 6c | V1.1 consommation — agent : scénario « j'ai donné 3 verres aux poules » | ✅ Livré | #216 |
 
 **Lot 6 (V1.1)** : avenant cadré le 2026-07-05 — voir [PARCOURS_11_LOT6_TRACKERS_CONSOMMATION.md](./PARCOURS_11_LOT6_TRACKERS_CONSOMMATION.md).
 

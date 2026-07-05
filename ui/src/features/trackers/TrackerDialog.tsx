@@ -12,7 +12,7 @@ import { fetchEquipmentList } from '@/lib/api/equipment';
 import { fetchProjects } from '@/lib/api/projects';
 import { fetchStockItems } from '@/lib/api/stock';
 import { fetchZones } from '@/lib/api/zones';
-import type { Tracker } from '@/lib/api/trackers';
+import { formatTrackerValue, type Tracker, type TrackerKind } from '@/lib/api/trackers';
 import { useCreateTracker, useUpdateTracker } from './hooks';
 
 /** Linkable entity types offered in the picker (all agent-searchable). */
@@ -40,6 +40,8 @@ export default function TrackerDialog({
   const [emoji, setEmoji] = React.useState('');
   const [unit, setUnit] = React.useState('');
   const [description, setDescription] = React.useState('');
+  const [kind, setKind] = React.useState<TrackerKind>('measure');
+  const [reserve, setReserve] = React.useState('');
   const [projectId, setProjectId] = React.useState('');
   const [targetType, setTargetType] = React.useState<'' | TargetType>('');
   const [targetId, setTargetId] = React.useState('');
@@ -77,6 +79,8 @@ export default function TrackerDialog({
       setEmoji(existing.emoji);
       setUnit(existing.unit);
       setDescription(existing.description);
+      setKind(existing.kind);
+      setReserve(existing.reserve != null ? formatTrackerValue(existing.reserve) : '');
       setProjectId(existing.project ?? '');
       setTargetType((existing.target_type as TargetType | null) ?? '');
       setTargetId(existing.target_id ?? '');
@@ -85,6 +89,8 @@ export default function TrackerDialog({
       setEmoji('');
       setUnit('');
       setDescription('');
+      setKind('measure');
+      setReserve('');
       setProjectId(defaultProjectId ?? '');
       setTargetType('');
       setTargetId('');
@@ -117,11 +123,22 @@ export default function TrackerDialog({
       return;
     }
 
+    const normalizedReserve = reserve.trim().replace(',', '.');
+    if (kind === 'consumption' && normalizedReserve && Number.isNaN(Number(normalizedReserve))) {
+      setError(t('trackers.reserveInvalid'));
+      return;
+    }
+
     const payload = {
       name: name.trim(),
       emoji: emoji.trim(),
       unit: unit.trim(),
       description: description.trim(),
+      // kind is immutable server-side — only sent at creation
+      ...(isEditing ? {} : { kind }),
+      ...(kind === 'consumption'
+        ? { reserve: normalizedReserve ? normalizedReserve : null }
+        : {}),
       project: projectId || null,
       target_type: targetType || null,
       target_id: targetType ? targetId : null,
@@ -169,15 +186,58 @@ export default function TrackerDialog({
           </FormField>
         </div>
 
-        <FormField label={t('trackers.fieldUnit')} htmlFor="tracker-unit">
-          <Input
-            id="tracker-unit"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value)}
-            placeholder={t('trackers.unitPlaceholder')}
-            maxLength={50}
-          />
-        </FormField>
+        {!isEditing ? (
+          <FormField label={t('trackers.fieldKind')} htmlFor="tracker-kind">
+            <div className="grid grid-cols-2 gap-2" id="tracker-kind" role="radiogroup">
+              {(['measure', 'consumption'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  role="radio"
+                  aria-checked={kind === option}
+                  onClick={() => setKind(option)}
+                  className={[
+                    'rounded-lg border p-2 text-left transition-colors',
+                    kind === option
+                      ? 'border-primary bg-primary/10'
+                      : 'border-border hover:border-primary/50',
+                  ].join(' ')}
+                >
+                  <span className="block text-sm font-medium text-foreground">
+                    {t(`trackers.kind.${option}`)}
+                  </span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {t(`trackers.kind.${option}Hint`)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </FormField>
+        ) : null}
+
+        <div className={kind === 'consumption' ? 'grid grid-cols-2 gap-3' : ''}>
+          <FormField label={t('trackers.fieldUnit')} htmlFor="tracker-unit">
+            <Input
+              id="tracker-unit"
+              value={unit}
+              onChange={(e) => setUnit(e.target.value)}
+              placeholder={t('trackers.unitPlaceholder')}
+              maxLength={50}
+            />
+          </FormField>
+          {kind === 'consumption' ? (
+            <FormField label={t('trackers.fieldReserve')} htmlFor="tracker-reserve">
+              <Input
+                id="tracker-reserve"
+                type="text"
+                inputMode="decimal"
+                value={reserve}
+                onChange={(e) => setReserve(e.target.value)}
+                placeholder={t('trackers.reservePlaceholder')}
+              />
+            </FormField>
+          ) : null}
+        </div>
 
         <FormField label={t('trackers.fieldDescription')} htmlFor="tracker-description">
           <Textarea
