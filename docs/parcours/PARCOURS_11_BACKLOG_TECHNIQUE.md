@@ -1,16 +1,16 @@
 # Parcours 11 — Backlog technique V1
 
-> **À démarrer** — cadrage réalisé le 2026-07-04. Terrain vierge côté séries de valeurs : aucun modèle de mesures datées, aucun composant de visualisation de tendance (pas de lib de chart). Le geste de référence est le **relevé mensuel du compteur d'eau en moins de dix secondes depuis la carte** : c'est le critère de réussite de la base.
+> **V1 livrée le 2026-07-05** — cadrage réalisé le 2026-07-04, implémentation en 3 PR (#209 lots 1+2, #213 lots 3+4, #212 lot 5). Reste : recette manuelle du chat agent + E2E Playwright éventuels. Fiche module : `docs/MODULES/trackers.md`.
 
 ## Tableau de bord
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 1 | Socle backend `apps/trackers` — modèles Tracker / TrackerEntry | ⏳ À démarrer | #192 |
-| 2 | Services + API DRF (cache dénormalisé, target générique via registry, sparkline) | ⏳ À démarrer | #193 |
-| 3 | Frontend `/app/trackers` — page, card + saisie rapide, détail, Sparkline maison | ⏳ À démarrer | #194 |
-| 4 | Embed projet — onglet Trackers dans le détail projet | ⏳ À démarrer | #195 |
-| 5 | Intégration agent — Searchable/Listable/Writable `tracker` + Writable `tracker_entry` | ⏳ À démarrer | #196 |
+| 1 | Socle backend `apps/trackers` — modèles Tracker / TrackerEntry | ✅ Livré (#209) | #192 |
+| 2 | Services + API DRF (cache dénormalisé, target générique via registry, sparkline) | ✅ Livré (#209) | #193 |
+| 3 | Frontend `/app/trackers` — page, card + saisie rapide, détail, Sparkline maison | ✅ Livré (#213) | #194 |
+| 4 | Embed projet — onglet Trackers dans le détail projet | ✅ Livré (#213) | #195 |
+| 5 | Intégration agent — Searchable/Listable/Writable `tracker` + Writable `tracker_entry` | ✅ Livré (#212) | #196 |
 
 **Issue annexe** : **#197** — capture des sujets V2 délibérément différés (graphes riches, agrégats par période, rappels de relevé, panneaux sur pages entités, seuils, import CSV).
 

@@ -20,7 +20,7 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-07-04
+Dernière mise à jour : 2026-07-05
 
 ### Parcours métier
 
@@ -34,7 +34,7 @@ Dernière mise à jour : 2026-07-04
 - Parcours 08 — Suivre les dépenses : **lots V1 fermés** (#122, #123, #124)
 - Parcours 09 — Voir et piloter la maison connectée : **cadré le 2026-07-03 — à démarrer** (issues #183, #185–#188 ; V2 différée #189)
 - Parcours 10 — Analyser la consommation électrique : **V1 livrée le 2026-07-05** (PRs #204–#207 ; recette avec le fichier Enedis réel à faire ; V2 différée #202)
-- Parcours 11 — Tracker des valeurs dans le temps : **cadré le 2026-07-04 — à démarrer** (issues #192–#196 ; V2 différée #197)
+- Parcours 11 — Tracker des valeurs dans le temps : **V1 livrée le 2026-07-05** (PRs #209, #213, #212 ; recette manuelle du chat agent à faire ; V2 différée #197)
 
 Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention. Le parcours 07 ouvre la couche IA : la mémoire du foyer est désormais interrogeable en langage naturel.
 

@@ -430,7 +430,7 @@ Un onglet Consommation dans le module Électricité : compteur déclaré, relev�
 
 Document détaillé : `docs/parcours/PARCOURS_11_TRACKER_DES_VALEURS.md`
 
-Statut actuel : **cadré le 2026-07-04, à démarrer** — issues #192 à #196 (lots 1 à 5), #197 (V2 différée).
+Statut actuel : **V1 livrée le 2026-07-05** — PRs #209 (lots 1+2), #213 (lots 3+4), #212 (lot 5) ; #197 (V2 différée).
 
 ### Pourquoi en onzième
 
