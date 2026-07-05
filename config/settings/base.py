@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "projects",
     "insurance",
     "tasks",
+    "trackers",
     "photos",
     "app_settings",
     "notifications",
