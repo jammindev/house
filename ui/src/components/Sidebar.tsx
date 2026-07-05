@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
   Zap, MapPin, Users, FileText, Image, Notebook, User,
-  ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella, Activity,
+  ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella, Activity, TrendingUp,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -35,6 +35,7 @@ const NAV_GROUPS = [
       { to: '/app/tasks',        labelKey: 'tasks.title',        Icon: ListTodo     },
       { to: '/app/projects',     labelKey: 'projects.title',     Icon: FolderKanban },
       { to: '/app/interactions', labelKey: 'interactions.title', Icon: Notebook     },
+      { to: '/app/trackers',     labelKey: 'trackers.title',     Icon: TrendingUp   },
       { to: '/app/expenses',     labelKey: 'expenses.title',     Icon: Receipt      },
     ],
   },

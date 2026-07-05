@@ -21,7 +21,9 @@
     "linked": "Bereits verknüpft",
     "actions": "Aktionen",
     "error_loading": "Laden fehlgeschlagen.",
-    "loading": "Wird geladen…"
+    "loading": "Wird geladen…",
+    "add": "Hinzufügen",
+    "create": "Erstellen"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -625,6 +627,53 @@
     "pickInteraction": "Ereignis auswählen",
     "attachmentUnlinked": "Verknüpfung entfernt",
     "attachmentLinked": "Anhang hinzugefügt"
+  },
+  "trackers": {
+    "title": "Tracker",
+    "subtitle": "Werte im Zeitverlauf verfolgen — Zähler, Füllstände, Gewicht, Stunden.",
+    "new": "Neuer Tracker",
+    "editTitle": "Tracker bearbeiten",
+    "created": "Tracker erstellt.",
+    "deleted": "Tracker gelöscht",
+    "loadFailed": "Tracker konnten nicht geladen werden.",
+    "empty": "Noch keine Tracker.",
+    "emptyDescription": "Erstelle einen Tracker, um einen Wert im Zeitverlauf zu verfolgen — Zähler, Gewicht, Füllstand…",
+    "addValue": "Wert hinzufügen",
+    "quickAddPlaceholder": "Wert",
+    "entryAdded": "Wert hinzugefügt.",
+    "entryDeleted": "Eintrag gelöscht",
+    "entryNewTitle": "Wert hinzufügen",
+    "entryEditTitle": "Eintrag bearbeiten",
+    "entriesTitle": "Einträge",
+    "noEntries": "Noch keine Einträge.",
+    "nameRequired": "Name ist erforderlich.",
+    "valueRequired": "Ein numerischer Wert und ein Datum sind erforderlich.",
+    "targetEntityRequired": "Wähle die verknüpfte Entität.",
+    "namePlaceholder": "Wasserzähler",
+    "unitPlaceholder": "m³, kg, h, %…",
+    "fieldName": "Name",
+    "fieldEmoji": "Emoji",
+    "fieldUnit": "Einheit",
+    "fieldDescription": "Beschreibung",
+    "fieldProject": "Projekt",
+    "noProject": "Kein Projekt",
+    "fieldLinkedTo": "Verknüpft mit",
+    "linkedNone": "Nichts",
+    "fieldTargetEntity": "Entität",
+    "linkedType": {
+      "equipment": "Gerät",
+      "zone": "Raum / Bereich",
+      "stock_item": "Vorratsartikel"
+    },
+    "fieldValue": "Wert",
+    "fieldDate": "Datum",
+    "fieldNote": "Notiz",
+    "filter": {
+      "all": "Alle",
+      "general": "Allgemein",
+      "projects": "Projekte",
+      "linked": "Verknüpft"
+    }
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",
@@ -1563,7 +1612,8 @@
       "expenses": "Ausgaben",
       "documents": "Dokumente",
       "timeline": "Verlauf",
-      "assistant": "Assistent"
+      "assistant": "Assistent",
+      "trackers": "Tracker"
     },
     "metrics": {
       "planned_budget": "Geplantes Budget",

@@ -21,7 +21,9 @@
     "linked": "Already linked",
     "actions": "Actions",
     "error_loading": "Failed to load.",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "add": "Add",
+    "create": "Create"
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -625,6 +627,53 @@
     "pickInteraction": "Select an interaction",
     "attachmentUnlinked": "Link removed",
     "attachmentLinked": "Attachment added"
+  },
+  "trackers": {
+    "title": "Trackers",
+    "subtitle": "Track values over time — meters, levels, weights, hours.",
+    "new": "New tracker",
+    "editTitle": "Edit tracker",
+    "created": "Tracker created.",
+    "deleted": "Tracker deleted",
+    "loadFailed": "Failed to load trackers.",
+    "empty": "No trackers yet.",
+    "emptyDescription": "Create a tracker to follow a value over time — meter, weight, tank level…",
+    "addValue": "Add a value",
+    "quickAddPlaceholder": "Value",
+    "entryAdded": "Value added.",
+    "entryDeleted": "Entry deleted",
+    "entryNewTitle": "Add a value",
+    "entryEditTitle": "Edit entry",
+    "entriesTitle": "Entries",
+    "noEntries": "No entries yet.",
+    "nameRequired": "Name is required.",
+    "valueRequired": "A numeric value and a date are required.",
+    "targetEntityRequired": "Choose the linked entity.",
+    "namePlaceholder": "Water meter",
+    "unitPlaceholder": "m³, kg, h, %…",
+    "fieldName": "Name",
+    "fieldEmoji": "Emoji",
+    "fieldUnit": "Unit",
+    "fieldDescription": "Description",
+    "fieldProject": "Project",
+    "noProject": "No project",
+    "fieldLinkedTo": "Linked to",
+    "linkedNone": "Nothing",
+    "fieldTargetEntity": "Entity",
+    "linkedType": {
+      "equipment": "Equipment",
+      "zone": "Zone",
+      "stock_item": "Stock item"
+    },
+    "fieldValue": "Value",
+    "fieldDate": "Date",
+    "fieldNote": "Note",
+    "filter": {
+      "all": "All",
+      "general": "General",
+      "projects": "Projects",
+      "linked": "Linked"
+    }
   },
   "settings": {
     "app_title": "Settings mini-app",
@@ -1563,7 +1612,8 @@
       "expenses": "Expenses",
       "documents": "Documents",
       "timeline": "Timeline",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "trackers": "Trackers"
     },
     "metrics": {
       "planned_budget": "Planned budget",

@@ -21,7 +21,9 @@
     "linked": "Déjà lié",
     "actions": "Actions",
     "error_loading": "Erreur lors du chargement.",
-    "loading": "Chargement…"
+    "loading": "Chargement…",
+    "add": "Ajouter",
+    "create": "Créer"
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
@@ -625,6 +627,53 @@
     "pickInteraction": "Sélectionner une interaction",
     "attachmentUnlinked": "Lien supprimé",
     "attachmentLinked": "Pièce jointe ajoutée"
+  },
+  "trackers": {
+    "title": "Trackers",
+    "subtitle": "Suivre des valeurs dans le temps — compteurs, niveaux, poids, heures.",
+    "new": "Nouveau tracker",
+    "editTitle": "Modifier le tracker",
+    "created": "Tracker créé.",
+    "deleted": "Tracker supprimé",
+    "loadFailed": "Impossible de charger les trackers.",
+    "empty": "Aucun tracker pour l'instant.",
+    "emptyDescription": "Créez un tracker pour suivre une valeur dans le temps — compteur, poids, niveau de cuve…",
+    "addValue": "Ajouter une valeur",
+    "quickAddPlaceholder": "Valeur",
+    "entryAdded": "Valeur ajoutée.",
+    "entryDeleted": "Entrée supprimée",
+    "entryNewTitle": "Ajouter une valeur",
+    "entryEditTitle": "Modifier l'entrée",
+    "entriesTitle": "Entrées",
+    "noEntries": "Aucune entrée pour l'instant.",
+    "nameRequired": "Le nom est requis.",
+    "valueRequired": "Une valeur numérique et une date sont requises.",
+    "targetEntityRequired": "Choisissez l'entité liée.",
+    "namePlaceholder": "Compteur d'eau",
+    "unitPlaceholder": "m³, kg, h, %…",
+    "fieldName": "Nom",
+    "fieldEmoji": "Emoji",
+    "fieldUnit": "Unité",
+    "fieldDescription": "Description",
+    "fieldProject": "Projet",
+    "noProject": "Aucun projet",
+    "fieldLinkedTo": "Lié à",
+    "linkedNone": "Rien",
+    "fieldTargetEntity": "Entité",
+    "linkedType": {
+      "equipment": "Équipement",
+      "zone": "Pièce / zone",
+      "stock_item": "Article de stock"
+    },
+    "fieldValue": "Valeur",
+    "fieldDate": "Date",
+    "fieldNote": "Note",
+    "filter": {
+      "all": "Tous",
+      "general": "Généraux",
+      "projects": "Projets",
+      "linked": "Liés"
+    }
   },
   "settings": {
     "app_title": "Mini-app Paramètres",
@@ -1563,7 +1612,8 @@
       "expenses": "Dépenses",
       "documents": "Documents",
       "timeline": "Historique",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "trackers": "Trackers"
     },
     "metrics": {
       "planned_budget": "Budget prévisionnel",

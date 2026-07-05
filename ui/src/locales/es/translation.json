@@ -21,7 +21,9 @@
     "linked": "Ya vinculado",
     "actions": "Acciones",
     "error_loading": "Error al cargar.",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "add": "Añadir",
+    "create": "Crear"
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",
@@ -625,6 +627,53 @@
     "pickInteraction": "Seleccionar interacción",
     "attachmentUnlinked": "Vínculo eliminado",
     "attachmentLinked": "Adjunto añadido"
+  },
+  "trackers": {
+    "title": "Trackers",
+    "subtitle": "Sigue valores a lo largo del tiempo — contadores, niveles, peso, horas.",
+    "new": "Nuevo tracker",
+    "editTitle": "Editar tracker",
+    "created": "Tracker creado.",
+    "deleted": "Tracker eliminado",
+    "loadFailed": "No se pudieron cargar los trackers.",
+    "empty": "Aún no hay trackers.",
+    "emptyDescription": "Crea un tracker para seguir un valor en el tiempo — contador, peso, nivel del depósito…",
+    "addValue": "Añadir un valor",
+    "quickAddPlaceholder": "Valor",
+    "entryAdded": "Valor añadido.",
+    "entryDeleted": "Entrada eliminada",
+    "entryNewTitle": "Añadir un valor",
+    "entryEditTitle": "Editar entrada",
+    "entriesTitle": "Entradas",
+    "noEntries": "Aún no hay entradas.",
+    "nameRequired": "El nombre es obligatorio.",
+    "valueRequired": "Se requieren un valor numérico y una fecha.",
+    "targetEntityRequired": "Elige la entidad vinculada.",
+    "namePlaceholder": "Contador de agua",
+    "unitPlaceholder": "m³, kg, h, %…",
+    "fieldName": "Nombre",
+    "fieldEmoji": "Emoji",
+    "fieldUnit": "Unidad",
+    "fieldDescription": "Descripción",
+    "fieldProject": "Proyecto",
+    "noProject": "Sin proyecto",
+    "fieldLinkedTo": "Vinculado a",
+    "linkedNone": "Nada",
+    "fieldTargetEntity": "Entidad",
+    "linkedType": {
+      "equipment": "Equipo",
+      "zone": "Zona",
+      "stock_item": "Artículo de stock"
+    },
+    "fieldValue": "Valor",
+    "fieldDate": "Fecha",
+    "fieldNote": "Nota",
+    "filter": {
+      "all": "Todos",
+      "general": "Generales",
+      "projects": "Proyectos",
+      "linked": "Vinculados"
+    }
   },
   "settings": {
     "app_title": "Mini-app Configuración",
@@ -1563,7 +1612,8 @@
       "expenses": "Gastos",
       "documents": "Documentos",
       "timeline": "Historial",
-      "assistant": "Asistente"
+      "assistant": "Asistente",
+      "trackers": "Trackers"
     },
     "metrics": {
       "planned_budget": "Presupuesto planificado",
