@@ -234,3 +234,30 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Affichage du quadrillage des slots (slot grid) quand rangée saisie | ✅ |
 | Blocage création si position déjà occupée (conflit détecté en temps réel) | ✅ |
 | Position adjacente non conflictuelle acceptée | ✅ |
+
+---
+
+## Électricité — Consommation (`electricity-consumption.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Onglet Consommation : affiche le bouton "Nouveau compteur" ou la barre compteur | ✅ |
+| Création d'un compteur Base depuis l'état vide → barre compteur + boutons apparaissent | ✅ |
+| Dialog MeterDialog : contient les champs nom, tarification, n° série, zone, notes | ✅ |
+| Saisir un relevé manuel → apparaît dans "Relevés récents" | ✅ |
+| Deux relevés avec index croissants → vue Mois affiche la card de total kWh | ✅ |
+| Relevé avec index décroissant → erreur visible dans le dialog, pas de création | ✅ |
+| Les quatre FilterPills de granularité (Heure / Jour / Mois / Année) sont visibles | ✅ |
+| Vue Heure sans import → message dédié "La vue horaire n'affiche que les données importées" | ✅ |
+| Vue Jour accessible avec card de total kWh | ✅ |
+| Vue Mois accessible avec card de total kWh | ✅ |
+| Vue Année accessible avec card de total kWh | ✅ |
+| Navigation ◀ change le libellé de période | ✅ |
+| Navigation ▶ change le libellé de période | ✅ |
+| Bouton "Importer" ouvre le dialog d'import (champ fichier visible) | ✅ |
+| Import CSV Enedis → toast "Import terminé : X points ajoutés" | ✅ |
+| Après import, vue Heure du jour importé non vide (chart SVG visible) | ✅ |
+| Suppression d'un relevé via ⋯ → disparaît immédiatement + toast Annuler | ✅ |
+| Undo de la suppression d'un relevé → relevé réapparaît | ✅ |
+| Modification d'un relevé via ⋯ → nouvelle valeur visible | ✅ |
+| Modification du nom d'un compteur via CardActions → nouveau nom affiché | ✅ |
