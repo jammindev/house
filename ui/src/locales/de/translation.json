@@ -264,7 +264,8 @@
       "previewFailed": "Datei konnte nicht gelesen werden.",
       "provider": {
         "enedis_csv": "Enedis — Lastgang (CSV)",
-        "generic_csv": "Generisches CSV"
+        "generic_csv": "Generisches CSV",
+        "enedis_xlsx": "Enedis — Energie-Export (XLSX)"
       }
     }
   },

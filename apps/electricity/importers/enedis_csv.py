@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from .base import BaseImporter, ImporterError, ImporterFormatError, NormalizedPoint
+from .base import BaseImporter, ImporterError, ImporterFormatError, NormalizedPoint, decode_text
 from .registry import register
 
 DEFAULT_STEP_MINUTES = 30
@@ -34,12 +34,12 @@ class EnedisCsvImporter(BaseImporter):
     key = "enedis_csv"
     label = "Enedis — courbe de charge (CSV)"
 
-    def detect(self, sample: str) -> bool:
-        head = sample.lstrip("\ufeff").lower()
+    def detect(self, raw: bytes) -> bool:
+        head = decode_text(raw[:4096]).lstrip("\ufeff").lower()
         return "horodate" in head and ";" in head
 
-    def parse(self, text: str, *, tz: ZoneInfo, options: dict | None = None) -> list[NormalizedPoint]:
-        lines = text.lstrip("\ufeff").splitlines()
+    def parse(self, raw: bytes, *, tz: ZoneInfo, options: dict | None = None) -> list[NormalizedPoint]:
+        lines = decode_text(raw).lstrip("\ufeff").splitlines()
 
         # locate the Horodate;Valeur header — metadata lines may precede it
         data_start = None

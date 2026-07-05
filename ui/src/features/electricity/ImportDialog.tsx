@@ -116,7 +116,7 @@ export default function ImportDialog({ open, onOpenChange, meter }: ImportDialog
     <SheetDialog open={open} onOpenChange={onOpenChange} title={t('electricity.import.title')}>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         <FormField label={t('electricity.import.file')} htmlFor="import-file">
-          <Input id="import-file" type="file" accept=".csv,text/csv" onChange={(e) => void handleFileChange(e)} />
+          <Input id="import-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => void handleFileChange(e)} />
         </FormField>
 
         {preview?.detected_provider && !useGeneric ? (

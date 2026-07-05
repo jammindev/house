@@ -17,7 +17,7 @@ import io
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from .base import BaseImporter, ImporterError, NormalizedPoint
+from .base import BaseImporter, ImporterError, NormalizedPoint, decode_text
 from .registry import register
 
 UNITS = ("wh", "kwh", "w_avg")
@@ -35,10 +35,10 @@ class GenericCsvImporter(BaseImporter):
     key = "generic_csv"
     label = "CSV générique (mapping manuel)"
 
-    def detect(self, sample: str) -> bool:
+    def detect(self, raw: bytes) -> bool:
         return False  # never auto-detected — requires explicit user mapping
 
-    def parse(self, text: str, *, tz: ZoneInfo, options: dict | None = None) -> list[NormalizedPoint]:
+    def parse(self, raw: bytes, *, tz: ZoneInfo, options: dict | None = None) -> list[NormalizedPoint]:
         options = options or {}
         ts_col = options.get("timestamp_column")
         value_col = options.get("value_column")
@@ -61,7 +61,7 @@ class GenericCsvImporter(BaseImporter):
         if position not in ("start", "end"):
             raise ImporterError("timestamp_position must be 'start' or 'end'")
 
-        body = text.lstrip("\ufeff")
+        body = decode_text(raw).lstrip("\ufeff")
         delimiter = options.get("delimiter") or _sniff_delimiter(body)
         reader = csv.DictReader(io.StringIO(body), delimiter=delimiter)
         if reader.fieldnames is None:
