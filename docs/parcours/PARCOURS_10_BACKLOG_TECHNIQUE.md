@@ -1,15 +1,15 @@
 # Parcours 10 — Backlog technique V1
 
-> **À démarrer** — cadrage réalisé le 2026-07-04. Le module électricité modélise l'architecture (tableau, circuits, points d'usage) mais ne contient **aucune donnée de mesure** : pas de compteur, pas de kWh, pas d'endpoint d'agrégation, pas d'upload de fichier de données, et aucune lib de graphiques dans le projet. La preuve de réussite de la V1 : importer la courbe de charge Enedis réelle du foyer et retrouver les mêmes totaux que l'espace client, à toutes les granularités.
+> **V1 livrée le 2026-07-05** (PRs #204, #205, #206, #207 + E2E/docs). Reste la recette manuelle avec le fichier Enedis réel du foyer (cf. « Check de validation manuelle » du doc produit). Cadrage réalisé le 2026-07-04. Le module électricité modélise l'architecture (tableau, circuits, points d'usage) mais ne contient **aucune donnée de mesure** : pas de compteur, pas de kWh, pas d'endpoint d'agrégation, pas d'upload de fichier de données, et aucune lib de graphiques dans le projet. La preuve de réussite de la V1 : importer la courbe de charge Enedis réelle du foyer et retrouver les mêmes totaux que l'espace client, à toutes les granularités.
 
 ## Tableau de bord
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 1 | Socle backend — ElectricityMeter / MeterReading / ConsumptionRecord + endpoint summary | ⏳ À démarrer | #198 |
-| 2 | Couche importers — registry + adaptateurs `enedis_csv` et `generic_csv` | ⏳ À démarrer | #199 |
-| 3 | Frontend — onglet Consommation, charts Recharts, dialogs compteur/relevé/import | ⏳ À démarrer | #200 |
-| 4 | Intégration agent — searchable compteur, listable consommation (somme kWh), relevé dictable | ⏳ À démarrer | #201 |
+| 1 | Socle backend — ElectricityMeter / MeterReading / ConsumptionRecord + endpoint summary | ✅ Livré (PR #204) | #198 |
+| 2 | Couche importers — registry + adaptateurs `enedis_csv` et `generic_csv` | ✅ Livré (PR #205) | #199 |
+| 3 | Frontend — onglet Consommation, charts Recharts, dialogs compteur/relevé/import | ✅ Livré (PR #206) | #200 |
+| 4 | Intégration agent — searchable compteur, listable consommation (somme kWh), relevé dictable | ✅ Livré (PR #207) | #201 |
 
 **Issue annexe** : **#202** — sujets V2 délibérément différés (coût €, comparaisons de périodes, sync auto, autres fluides).
 
