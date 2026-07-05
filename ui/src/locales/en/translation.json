@@ -264,7 +264,8 @@
       "previewFailed": "Could not read the file.",
       "provider": {
         "enedis_csv": "Enedis — load curve (CSV)",
-        "generic_csv": "Generic CSV"
+        "generic_csv": "Generic CSV",
+        "enedis_xlsx": "Enedis — energy export (XLSX)"
       }
     }
   },

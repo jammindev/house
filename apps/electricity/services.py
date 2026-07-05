@@ -259,14 +259,6 @@ def consumption_summary(household, meter: ElectricityMeter, *, granularity: str,
 # --- imports --------------------------------------------------------------------
 
 
-def decode_uploaded_file(raw: bytes) -> str:
-    """Decode a consumption file: UTF-8 (BOM tolerated), latin-1 fallback."""
-    try:
-        return raw.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return raw.decode("latin-1")
-
-
 def import_consumption_file(household, user, *, meter, uploaded_file, provider=None, options=None):
     """Import a consumption file onto ``meter`` — idempotent by design.
 
@@ -280,14 +272,14 @@ def import_consumption_file(household, user, *, meter, uploaded_file, provider=N
     from .models import ConsumptionImport, ImportStatus
 
     filename = getattr(uploaded_file, "name", "") or ""
-    text = decode_uploaded_file(uploaded_file.read())
+    raw = uploaded_file.read()
 
     if provider:
         importer = importers.get_importer(provider)
         if importer is None:
             raise importers.ImporterError(f"unknown provider: {provider}")
     else:
-        importer = importers.detect_importer(text[:4096])
+        importer = importers.detect_importer(raw)
         if importer is None:
             return ConsumptionImport.objects.create(
                 household=household,
@@ -301,7 +293,7 @@ def import_consumption_file(household, user, *, meter, uploaded_file, provider=N
             )
 
     try:
-        points = importer.parse(text, tz=meter_tz(meter), options=options)
+        points = importer.parse(raw, tz=meter_tz(meter), options=options)
     except importers.ImporterError as exc:
         return ConsumptionImport.objects.create(
             household=household,
@@ -359,10 +351,13 @@ def import_consumption_file(household, user, *, meter, uploaded_file, provider=N
 def preview_consumption_file(raw: bytes) -> dict:
     """Cheap preview for the import dialog: detected provider + first lines."""
     from . import importers
+    from .importers.base import decode_text
 
-    text = decode_uploaded_file(raw)
-    sample_lines = text.lstrip("\ufeff").splitlines()[:10]
-    importer = importers.detect_importer(text[:4096])
+    importer = importers.detect_importer(raw)
+    if importer is not None:
+        sample_lines = importer.sample_lines(raw)
+    else:
+        sample_lines = decode_text(raw).lstrip("\ufeff").splitlines()[:10]
     first_line = sample_lines[0] if sample_lines else ""
     delimiter = next((d for d in (";", ",", "\t") if d in first_line), ";")
     return {

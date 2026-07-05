@@ -264,7 +264,8 @@
       "previewFailed": "No se pudo leer el archivo.",
       "provider": {
         "enedis_csv": "Enedis — curva de carga (CSV)",
-        "generic_csv": "CSV genérico"
+        "generic_csv": "CSV genérico",
+        "enedis_xlsx": "Enedis — exportación de energía (XLSX)"
       }
     }
   },
