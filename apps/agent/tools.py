@@ -387,7 +387,7 @@ _CREATE_ENTITY_SCHEMA = {
     "properties": {
         "entity_type": {
             "type": "string",
-            "description": "The kind of item to create. Supported: 'task', 'note'.",
+            "description": "The kind of item to create. Supported: 'task', 'note', 'meter_reading'.",
         },
         "fields": {
             "type": "object",
@@ -398,6 +398,12 @@ _CREATE_ENTITY_SCHEMA = {
                 "'YYYY-MM-DD'), priority (optional integer 1=high..5=low). "
                 "For entity_type='note' (a free-form note in the household log): "
                 "subject (required, short title), content (optional body text). "
+                "For entity_type='meter_reading' (an electricity meter index "
+                "reading): index_kwh (required, the number read on the meter, "
+                "in kWh), register (optional: 'base', 'hp' or 'hc' — required "
+                "when the meter has peak/off-peak tariff), meter (optional "
+                "meter name or id; omit when the household has a single "
+                "meter), reading_at (optional ISO datetime, defaults to now). "
                 "In an anchored conversation the project/zone is attached "
                 "automatically — do not ask for it."
             ),
@@ -408,7 +414,8 @@ _CREATE_ENTITY_SCHEMA = {
 
 _CREATE_ENTITY_DESCRIPTION = (
     "Create a new household item on the user's behalf. Supported types: 'task' "
-    "(a to-do / reminder) and 'note' (a free-form note). Only call this when the "
+    "(a to-do / reminder), 'note' (a free-form note) and 'meter_reading' (an "
+    "electricity meter index reading, e.g. 'j'ai relevé 45230'). Only call this when the "
     "user clearly asks to create, "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
@@ -445,7 +452,9 @@ def _create_entity_handler(
 
     try:
         instance = spec.create(household, user, fields, anchor=context_entity)
-    except (DRFValidationError, DjangoValidationError) as exc:
+    except (DRFValidationError, DjangoValidationError, ValueError) as exc:
+        # ValueError is the writables' recoverable-error contract (unknown
+        # meter, missing register…) — surface the hint instead of burying it.
         detail = getattr(exc, "detail", None) or getattr(exc, "messages", None) or str(exc)
         return ToolResult(rendered=f"(could not create {entity_type}: {detail})")
     except Exception:  # noqa: BLE001 — never crash the loop on a create failure
@@ -503,7 +512,7 @@ _LIST_ENTITIES_SCHEMA = {
     "properties": {
         "entity_type": {
             "type": "string",
-            "description": "What to list. Supported: 'task', 'interaction'.",
+            "description": "What to list. Supported: 'task', 'interaction', 'consumption', 'meter_reading'.",
         },
         "filters": {
             "type": "object",
@@ -516,7 +525,14 @@ _LIST_ENTITIES_SCHEMA = {
                 "For 'interaction': type (comma-separated among note, todo, "
                 "expense, maintenance, repair, installation, inspection, "
                 "warranty, issue, upgrade, replacement, disposal), "
-                "occurred_after / occurred_before (YYYY-MM-DD)."
+                "occurred_after / occurred_before (YYYY-MM-DD). "
+                "For 'consumption' (electricity consumption points; sum_amount "
+                "is in kWh): meter (name or id), date_from / date_to "
+                "(YYYY-MM-DD), register (base, hp, hc), source ('import' = "
+                "measured data, 'reading' = estimates from manual readings — "
+                "if both sources cover the same days, filter source='import' "
+                "to avoid double counting). "
+                "For 'meter_reading' (raw index readings): meter, register."
             ),
         },
         "limit": {
@@ -531,9 +547,11 @@ _LIST_ENTITIES_DESCRIPTION = (
     "List household items structurally, with filters and totals — the right tool "
     "for enumeration and aggregation questions where keyword search fails: 'all "
     "my overdue tasks', 'the expenses of March', 'how much did we spend this "
-    "year'. Returns the matching items (citable ids), the total count, and — for "
-    "interactions carrying an amount (expenses) — the sum of amounts over the "
-    "whole filtered set. Supported types: 'task', 'interaction'."
+    "year', 'how much electricity did we use in June'. Returns the matching "
+    "items (citable ids), the total count, and — when items carry an amount "
+    "(expenses in EUR, consumption in kWh) — the sum of amounts over the whole "
+    "filtered set. Supported types: 'task', 'interaction', 'consumption', "
+    "'meter_reading'."
 )
 
 

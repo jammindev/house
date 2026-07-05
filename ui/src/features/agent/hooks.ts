@@ -4,8 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { toast } from '@/lib/toast';
 import { deleteTask, updateTask } from '@/lib/api/tasks';
 import { deleteInteraction, updateInteraction } from '@/lib/api/interactions';
+import { deleteMeterReading } from '@/lib/api/electricity';
 import { taskKeys } from '@/features/tasks/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
+import { electricityKeys } from '@/features/electricity/hooks';
 import {
   createConversation,
   deleteConversation,
@@ -137,6 +139,11 @@ const UNDO_HANDLERS: Record<
   note: {
     remove: (id) => deleteInteraction(id),
     keys: [interactionKeys.all as unknown as unknown[]],
+  },
+  meter_reading: {
+    // the DELETE regenerates the derived daily estimates server-side
+    remove: (id) => deleteMeterReading(id),
+    keys: [electricityKeys.all as unknown as unknown[]],
   },
 };
 
