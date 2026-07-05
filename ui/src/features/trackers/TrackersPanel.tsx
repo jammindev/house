@@ -9,6 +9,7 @@ import type { Tracker } from '@/lib/api/trackers';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
+import RefillDialog from './RefillDialog';
 import TrackerCard from './TrackerCard';
 import TrackerDialog from './TrackerDialog';
 import { useArchiveTracker, useCreateEntry, useTrackers } from './hooks';
@@ -31,6 +32,7 @@ export default function TrackersPanel({ projectId, stateKeyPrefix = 'trackers' }
   );
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Tracker | undefined>(undefined);
+  const [refilling, setRefilling] = React.useState<Tracker | undefined>(undefined);
   const [hiddenIds, setHiddenIds] = React.useState<Set<string>>(new Set());
 
   const { data: trackers, isLoading, isError } = useTrackers(projectId);
@@ -136,6 +138,7 @@ export default function TrackersPanel({ projectId, stateKeyPrefix = 'trackers' }
               onEdit={openEdit}
               onDelete={handleDelete}
               onQuickAdd={handleQuickAdd}
+              onRefill={setRefilling}
             />
           ))}
         </div>
@@ -147,6 +150,15 @@ export default function TrackersPanel({ projectId, stateKeyPrefix = 'trackers' }
         existing={editing}
         defaultProjectId={projectId}
       />
+      {refilling ? (
+        <RefillDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setRefilling(undefined);
+          }}
+          tracker={refilling}
+        />
+      ) : null}
     </div>
   );
 }

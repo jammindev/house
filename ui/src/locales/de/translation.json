@@ -674,7 +674,26 @@
       "general": "Allgemein",
       "projects": "Projekte",
       "linked": "Verknüpft"
-    }
+    },
+    "fieldKind": "Typ",
+    "kind": {
+      "measure": "Messung",
+      "measureHint": "Zähler, Gewicht, Füllstand… der letzte Stand zählt.",
+      "consumption": "Verbrauch",
+      "consumptionHint": "Futter, Pellets, Brennstoff… verbrauchte Mengen."
+    },
+    "fieldReserve": "Vorrat",
+    "reservePlaceholder": "Verbleibende Menge",
+    "reserveInvalid": "Der Vorrat muss eine Zahl sein.",
+    "reserveLabel": "Vorrat: {{value}} {{unit}}",
+    "perDay": "Tag",
+    "runwayDays": "~{{days}} T. übrig",
+    "runwayUntil": "bis {{date}}",
+    "refillTitle": "Auffüllen",
+    "refillAdded": "Hinzugefügte Menge",
+    "refillCurrent": "Aktueller Vorrat: {{value}} {{unit}}",
+    "refillNewTotal": "Neuer Vorrat: {{value}} {{unit}}",
+    "refillConfirm": "Auffüllen"
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",

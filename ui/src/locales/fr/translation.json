@@ -674,7 +674,26 @@
       "general": "Généraux",
       "projects": "Projets",
       "linked": "Liés"
-    }
+    },
+    "fieldKind": "Type",
+    "kind": {
+      "measure": "Mesure",
+      "measureHint": "Compteur, poids, niveau… c'est le dernier état qui compte.",
+      "consumption": "Consommation",
+      "consumptionHint": "Nourriture, granulés, fioul… des quantités consommées."
+    },
+    "fieldReserve": "Réserve",
+    "reservePlaceholder": "Quantité restante",
+    "reserveInvalid": "La réserve doit être un nombre.",
+    "reserveLabel": "Réserve : {{value}} {{unit}}",
+    "perDay": "jour",
+    "runwayDays": "~{{days}} j restants",
+    "runwayUntil": "jusqu'au {{date}}",
+    "refillTitle": "Réapprovisionner",
+    "refillAdded": "Quantité ajoutée",
+    "refillCurrent": "Réserve actuelle : {{value}} {{unit}}",
+    "refillNewTotal": "Nouvelle réserve : {{value}} {{unit}}",
+    "refillConfirm": "Réapprovisionner"
   },
   "settings": {
     "app_title": "Mini-app Paramètres",

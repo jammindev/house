@@ -41,7 +41,9 @@ class TrackerViewSet(viewsets.ModelViewSet):
         ).prefetch_related(
             Prefetch(
                 'entries',
-                queryset=TrackerEntry.objects.order_by('-occurred_at', '-created_at')[:30],
+                # 120 rows cover 30 days of a several-entries-per-day
+                # consumption tracker; the serializer trims to 30 points.
+                queryset=TrackerEntry.objects.order_by('-occurred_at', '-created_at')[:120],
                 to_attr='sparkline_entries',
             )
         )
@@ -79,7 +81,10 @@ class TrackerViewSet(viewsets.ModelViewSet):
         serializer.save(household=self.request.household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
+        instance = serializer.save(updated_by=self.request.user)
+        if 'reserve' in serializer.validated_data:
+            # The runway in the RAG summary depends on the reserve.
+            services.refresh_tracker_cache(instance)
 
     def perform_destroy(self, instance):
         instance.is_active = False

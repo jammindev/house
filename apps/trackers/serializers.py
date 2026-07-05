@@ -72,19 +72,22 @@ class TrackerSerializer(serializers.ModelSerializer):
 
     project_title = serializers.SerializerMethodField()
     sparkline = serializers.SerializerMethodField()
+    runway_days = serializers.SerializerMethodField()
+    runway_until = serializers.SerializerMethodField()
 
     class Meta:
         model = Tracker
         fields = [
             'id', 'household',
-            'name', 'description', 'unit', 'emoji', 'is_active',
+            'name', 'description', 'unit', 'emoji', 'kind', 'is_active',
             'project', 'project_title',
             'target_type', 'target_id', 'target_label', 'target_url',
             'last_value', 'last_entry_at', 'sparkline',
+            'reserve', 'rate_per_day', 'runway_days', 'runway_until',
             'created_at', 'updated_at', 'created_by',
         ]
         read_only_fields = [
-            'id', 'household', 'last_value', 'last_entry_at',
+            'id', 'household', 'last_value', 'last_entry_at', 'rate_per_day',
             'created_at', 'updated_at', 'created_by',
         ]
 
@@ -128,18 +131,41 @@ class TrackerSerializer(serializers.ModelSerializer):
         return obj.project.title if obj.project_id and obj.project else None
 
     def get_sparkline(self, obj):
-        # Chronological last N entries, served by the sliced prefetch set by the
-        # viewset (one query for the whole list). Falls back to a direct query
-        # for detail/serializer-only paths.
+        # Served by the sliced prefetch set by the viewset (one query for the
+        # whole list). Falls back to a direct query for detail paths.
         entries = getattr(obj, 'sparkline_entries', None)
         if entries is None:
             entries = list(
-                obj.entries.order_by('-occurred_at', '-created_at')[:30]
+                obj.entries.order_by('-occurred_at', '-created_at')[:120]
             )
+        if obj.kind == Tracker.Kind.CONSUMPTION:
+            # Amounts consumed → the honest trend is the total per day.
+            from collections import OrderedDict
+
+            per_day: 'OrderedDict[str, float]' = OrderedDict()
+            for e in reversed(entries):  # chronological
+                day = e.occurred_at.date().isoformat()
+                per_day[day] = per_day.get(day, 0.0) + float(e.value)
+            return [
+                {'value': str(total), 'occurred_at': f'{day}T12:00:00'}
+                for day, total in list(per_day.items())[-30:]
+            ]
         return [
             {'value': str(e.value), 'occurred_at': e.occurred_at.isoformat()}
-            for e in reversed(entries)
+            for e in reversed(entries[:30])
         ]
+
+    def get_runway_days(self, obj):
+        from .services import runway
+
+        run = runway(obj)
+        return str(run[0]) if run else None
+
+    def get_runway_until(self, obj):
+        from .services import runway
+
+        run = runway(obj)
+        return run[1].date().isoformat() if run else None
 
     # ── Write side ────────────────────────────────────────────────────────
 
@@ -152,6 +178,12 @@ class TrackerSerializer(serializers.ModelSerializer):
         ):
             raise serializers.ValidationError('Invalid project or access denied.')
         return project
+
+    def validate_kind(self, kind):
+        # Flipping the meaning of an existing history makes no sense.
+        if self.instance and kind != self.instance.kind:
+            raise serializers.ValidationError('kind is immutable after creation.')
+        return kind
 
     def validate(self, attrs):
         target_type = attrs.pop('target_type', serializers.empty)

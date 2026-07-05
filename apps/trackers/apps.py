@@ -26,7 +26,9 @@ class TrackersConfig(AppConfig):
             entity_type='tracker',
             create=_create_tracker_from_agent,
             update=_update_tracker_from_agent,
-            updatable_fields=('name', 'unit', 'description', 'emoji'),
+            # 'reserve' is the refill path ("j'ai racheté un sac de 60 verres"
+            # → new remaining total); 'kind' is immutable, hence absent.
+            updatable_fields=('name', 'unit', 'description', 'emoji', 'reserve'),
             resolve=_resolve_tracker_for_agent,
             label_attr='name',
             url_template='/app/trackers/{id}',
@@ -81,6 +83,7 @@ def _create_tracker_from_agent(household, user, fields, *, anchor=None):
         elif anchor_type != 'tracker' and not (target_type and target_id):
             target_type, target_id = anchor_type, anchor_id
 
+    reserve = fields.get('reserve')
     return create_tracker(
         household,
         user,
@@ -88,6 +91,8 @@ def _create_tracker_from_agent(household, user, fields, *, anchor=None):
         unit=(fields.get('unit') or '').strip() or None,
         description=fields.get('description'),
         emoji=fields.get('emoji'),
+        kind=(fields.get('kind') or '').strip() or None,
+        reserve=str(reserve).strip().replace(',', '.') if reserve not in (None, '') else None,
         project=project,
         target_type=target_type,
         target_id=target_id,
@@ -97,7 +102,10 @@ def _create_tracker_from_agent(household, user, fields, *, anchor=None):
 def _update_tracker_from_agent(household, user, instance, fields):
     from .services import update_tracker
 
-    return update_tracker(household, user, instance, fields=fields)
+    payload = dict(fields)
+    if payload.get('reserve') not in (None, ''):
+        payload['reserve'] = str(payload['reserve']).strip().replace(',', '.')
+    return update_tracker(household, user, instance, fields=payload)
 
 
 def _resolve_tracker_for_agent(household, raw_id):
@@ -231,11 +239,24 @@ def _filter_general(qs, value):
 
 
 def _describe_tracker(tracker) -> str:
-    from .services import _fmt
+    from .models import Tracker
+    from .services import _fmt, runway
 
     archived = ' | archived' if not tracker.is_active else ''
+    unit = f" {tracker.unit}" if tracker.unit else ''
+
+    if tracker.kind == Tracker.Kind.CONSUMPTION:
+        parts = []
+        if tracker.rate_per_day:
+            parts.append(f"≈{_fmt(tracker.rate_per_day)}{unit}/day")
+        if tracker.reserve is not None:
+            parts.append(f"reserve {_fmt(tracker.reserve)}{unit}")
+        run = runway(tracker)
+        if run is not None:
+            parts.append(f"~{_fmt(run[0])} days left")
+        return (' | '.join(parts) or '(no entries)') + archived
+
     if tracker.last_value is None:
         return f'(no entries){archived}'
-    unit = f" {tracker.unit}" if tracker.unit else ''
     when = f" on {tracker.last_entry_at:%Y-%m-%d}" if tracker.last_entry_at else ''
     return f"{_fmt(tracker.last_value)}{unit}{when}{archived}"

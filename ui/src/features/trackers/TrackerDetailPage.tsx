@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { FolderKanban, Link2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { FolderKanban, Link2, PackagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
 
 import BackLink from '@/components/BackLink';
 import CardActions, { type CardAction } from '@/components/CardActions';
@@ -19,6 +19,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import EntryDialog from './EntryDialog';
+import RefillDialog from './RefillDialog';
 import TrackerDialog from './TrackerDialog';
 import { useDeleteEntry, useTracker, useTrackerEntries } from './hooks';
 
@@ -98,6 +99,7 @@ export default function TrackerDetailPage() {
   const deleteEntry = useDeleteEntry();
 
   const [editOpen, setEditOpen] = React.useState(false);
+  const [refillOpen, setRefillOpen] = React.useState(false);
   const [entryDialogOpen, setEntryDialogOpen] = React.useState(false);
   const [editingEntry, setEditingEntry] = React.useState<TrackerEntry | undefined>(undefined);
   const [hiddenEntryIds, setHiddenEntryIds] = React.useState<Set<string>>(new Set());
@@ -168,11 +170,49 @@ export default function TrackerDetailPage() {
           <Pencil className="mr-1 h-3.5 w-3.5" />
           {t('common.edit')}
         </Button>
+        {tracker.kind === 'consumption' ? (
+          <Button size="sm" variant="outline" onClick={() => setRefillOpen(true)}>
+            <PackagePlus className="mr-1 h-3.5 w-3.5" />
+            {t('trackers.refillTitle')}
+          </Button>
+        ) : null}
         <Button size="sm" onClick={openNewEntry}>
           <Plus className="mr-1 h-3.5 w-3.5" />
           {t('trackers.addValue')}
         </Button>
       </PageHeader>
+
+      {tracker.kind === 'consumption' ? (
+        <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+          {tracker.rate_per_day != null ? (
+            <span className="font-medium text-foreground">
+              ≈ {formatTrackerValue(tracker.rate_per_day)} {tracker.unit}/{t('trackers.perDay')}
+            </span>
+          ) : null}
+          {tracker.reserve != null ? (
+            <span className="text-muted-foreground">
+              {t('trackers.reserveLabel', {
+                value: formatTrackerValue(tracker.reserve),
+                unit: tracker.unit,
+              })}
+            </span>
+          ) : null}
+          {tracker.runway_days != null ? (
+            <span
+              className={
+                Number(tracker.runway_days) < 7
+                  ? 'font-medium text-destructive'
+                  : 'text-muted-foreground'
+              }
+            >
+              ⏳ {t('trackers.runwayDays', { days: formatTrackerValue(tracker.runway_days) })}
+              {tracker.runway_until
+                ? ` (${t('trackers.runwayUntil', { date: tracker.runway_until })})`
+                : ''}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       {tracker.project || tracker.target_url ? (
         <div className="mb-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -225,7 +265,10 @@ export default function TrackerDetailPage() {
               <EntryRow
                 key={entry.id}
                 entry={entry}
-                previous={visibleEntries[index + 1] ?? null}
+                // A consumption entry is an amount — deltas make no sense there.
+                previous={
+                  tracker.kind === 'consumption' ? null : (visibleEntries[index + 1] ?? null)
+                }
                 tracker={tracker}
                 onEdit={openEditEntry}
                 onDelete={handleDeleteEntry}
@@ -240,6 +283,7 @@ export default function TrackerDetailPage() {
       </div>
 
       <TrackerDialog open={editOpen} onOpenChange={setEditOpen} existing={tracker} />
+      <RefillDialog open={refillOpen} onOpenChange={setRefillOpen} tracker={tracker} />
       <EntryDialog
         open={entryDialogOpen}
         onOpenChange={setEntryDialogOpen}

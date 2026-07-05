@@ -674,7 +674,26 @@
       "general": "Generales",
       "projects": "Proyectos",
       "linked": "Vinculados"
-    }
+    },
+    "fieldKind": "Tipo",
+    "kind": {
+      "measure": "Medición",
+      "measureHint": "Contador, peso, nivel… lo que cuenta es el último estado.",
+      "consumption": "Consumo",
+      "consumptionHint": "Pienso, pellets, combustible… cantidades consumidas."
+    },
+    "fieldReserve": "Reserva",
+    "reservePlaceholder": "Cantidad restante",
+    "reserveInvalid": "La reserva debe ser un número.",
+    "reserveLabel": "Reserva: {{value}} {{unit}}",
+    "perDay": "día",
+    "runwayDays": "~{{days}} d restantes",
+    "runwayUntil": "hasta el {{date}}",
+    "refillTitle": "Reponer",
+    "refillAdded": "Cantidad añadida",
+    "refillCurrent": "Reserva actual: {{value}} {{unit}}",
+    "refillNewTotal": "Nueva reserva: {{value}} {{unit}}",
+    "refillConfirm": "Reponer"
   },
   "settings": {
     "app_title": "Mini-app Configuración",
