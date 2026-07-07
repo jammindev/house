@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 
 User = get_user_model()
@@ -32,6 +34,10 @@ class UserSerializer(serializers.ModelSerializer):
         password = validated_data.pop("password", None)
         user = User(**validated_data)
         if password:
+            try:
+                validate_password(password, user=user)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError({"password": list(exc.messages)})
             user.set_password(password)
         else:
             user.set_unusable_password()
@@ -43,6 +49,10 @@ class UserSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         if password:
+            try:
+                validate_password(password, user=instance)
+            except DjangoValidationError as exc:
+                raise serializers.ValidationError({"password": list(exc.messages)})
             instance.set_password(password)
         instance.save()
         return instance

@@ -99,17 +99,41 @@ class TestUserViewSet:
     def test_create_user_no_auth(self, api_client):
         """Test creating user without authentication (registration)."""
         url = reverse("user-list")
-        
+
         response = api_client.post(url, {
             "email": "newuser@example.com",
             "password": "newpass123",
             "first_name": "New",
             "last_name": "User",
         })
-        
+
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["email"] == "newuser@example.com"
         assert "password" not in response.data
+
+    def test_create_user_rejects_short_password(self, api_client):
+        """Registration must reject passwords that fail Django validators."""
+        url = reverse("user-list")
+        response = api_client.post(url, {
+            "email": "short@example.com",
+            "password": "abc",
+            "first_name": "Short",
+            "last_name": "Pwd",
+        })
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "password" in response.data
+
+    def test_create_user_rejects_too_common_password(self, api_client):
+        """Registration must reject common passwords listed by Django."""
+        url = reverse("user-list")
+        response = api_client.post(url, {
+            "email": "common@example.com",
+            "password": "password123",
+            "first_name": "Common",
+            "last_name": "Pwd",
+        })
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "password" in response.data
     
     def test_retrieve_user_detail(self, authenticated_client, user):
         """Test retrieving user detail."""
