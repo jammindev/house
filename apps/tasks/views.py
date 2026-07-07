@@ -1,6 +1,8 @@
 """
 Task REST API views.
 """
+from datetime import date
+
 from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
@@ -61,6 +63,14 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs.filter(
                 due_date__lt=timezone.now().date()
             ).exclude(status__in=['done', 'archived'])
+
+        due_before = self.request.query_params.get('due_before', '').strip()
+        if due_before:
+            try:
+                due_limit = date.fromisoformat(due_before)
+            except ValueError:
+                raise ValidationError({'due_before': 'Must be an ISO date (YYYY-MM-DD).'})
+            qs = qs.filter(due_date__lte=due_limit)
 
         return qs
 
