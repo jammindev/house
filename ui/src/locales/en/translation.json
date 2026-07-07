@@ -251,17 +251,7 @@
         "hp": "Peak hours",
         "hc": "Off-peak hours"
       },
-      "granularity": {
-        "hour": "Hour",
-        "day": "Day",
-        "month": "Month",
-        "year": "Year"
-      },
-      "previousPeriod": "Previous period",
-      "nextPeriod": "Next period",
-      "overPeriod": "over the period",
       "estimatedShare": "incl. {{kwh}} kWh estimated from readings",
-      "noData": "No consumption data on this period.",
       "noHourlyData": "The hourly view only shows imported data (load curve). Import a file to see it."
     },
     "cost": {
@@ -290,6 +280,35 @@
         "generic_csv": "Generic CSV",
         "enedis_xlsx": "Enedis — energy export (XLSX)"
       }
+    }
+  },
+  "consumption": {
+    "granularity": {
+      "hour": "Hour",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year"
+    },
+    "previousPeriod": "Previous period",
+    "nextPeriod": "Next period",
+    "overPeriod": "over the period",
+    "noData": "No consumption data on this period."
+  },
+  "water": {
+    "title": "Water",
+    "description": "Track your household's water consumption",
+    "emptyTitle": "No readings yet",
+    "emptyDescription": "Enter the first reading of your water meter to start tracking your consumption.",
+    "reading": {
+      "new": "New reading",
+      "edit": "Edit reading",
+      "created": "Reading created.",
+      "updated": "Reading updated.",
+      "deleted": "Reading deleted",
+      "indexM3": "Index (m³)",
+      "readingDate": "Reading date",
+      "indexRequired": "Date and index are required.",
+      "recentTitle": "Latest readings"
     }
   },
   "interactions": {

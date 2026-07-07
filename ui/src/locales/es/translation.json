@@ -251,17 +251,7 @@
         "hp": "Horas punta",
         "hc": "Horas valle"
       },
-      "granularity": {
-        "hour": "Hora",
-        "day": "Día",
-        "month": "Mes",
-        "year": "Año"
-      },
-      "previousPeriod": "Período anterior",
-      "nextPeriod": "Período siguiente",
-      "overPeriod": "en el período",
       "estimatedShare": "incl. {{kwh}} kWh estimados desde lecturas",
-      "noData": "Sin datos de consumo en este período.",
       "noHourlyData": "La vista horaria solo muestra datos importados (curva de carga). Importe un archivo para verla."
     },
     "cost": {
@@ -290,6 +280,35 @@
         "generic_csv": "CSV genérico",
         "enedis_xlsx": "Enedis — exportación de energía (XLSX)"
       }
+    }
+  },
+  "consumption": {
+    "granularity": {
+      "hour": "Hora",
+      "day": "Día",
+      "month": "Mes",
+      "year": "Año"
+    },
+    "previousPeriod": "Período anterior",
+    "nextPeriod": "Período siguiente",
+    "overPeriod": "en el período",
+    "noData": "Sin datos de consumo en este período."
+  },
+  "water": {
+    "title": "Agua",
+    "description": "Sigue el consumo de agua del hogar",
+    "emptyTitle": "Sin lecturas",
+    "emptyDescription": "Introduce la primera lectura de tu contador de agua para empezar a seguir tu consumo.",
+    "reading": {
+      "new": "Nueva lectura",
+      "edit": "Editar lectura",
+      "created": "Lectura creada.",
+      "updated": "Lectura actualizada.",
+      "deleted": "Lectura eliminada",
+      "indexM3": "Índice (m³)",
+      "readingDate": "Fecha de lectura",
+      "indexRequired": "La fecha y el índice son obligatorios.",
+      "recentTitle": "Últimas lecturas"
     }
   },
   "interactions": {

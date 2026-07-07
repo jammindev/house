@@ -5,6 +5,7 @@ import { toast } from '@/lib/toast';
 import { deleteTask, updateTask } from '@/lib/api/tasks';
 import { deleteInteraction, updateInteraction } from '@/lib/api/interactions';
 import { deleteMeterReading } from '@/lib/api/electricity';
+import { deleteWaterReading, updateWaterReading } from '@/lib/api/water';
 import {
   archiveTracker,
   deleteTrackerEntry,
@@ -14,6 +15,7 @@ import {
 import { taskKeys } from '@/features/tasks/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
+import { waterKeys } from '@/features/water/hooks';
 import { trackerKeys } from '@/features/trackers/hooks';
 import {
   createConversation,
@@ -152,6 +154,11 @@ const UNDO_HANDLERS: Record<
     remove: (id) => deleteMeterReading(id),
     keys: [electricityKeys.all as unknown as unknown[]],
   },
+  water_reading: {
+    // no derived state server-side — consumption is recomputed on the fly
+    remove: (id) => deleteWaterReading(id),
+    keys: [waterKeys.all as unknown as unknown[]],
+  },
   tracker: {
     // the tracker DELETE archives (history is kept) — good enough as an undo
     remove: (id) => archiveTracker(id),
@@ -228,6 +235,11 @@ const UPDATE_UNDO_HANDLERS: Record<
     restore: (id, previous) =>
       updateTrackerEntry(id, previous as Parameters<typeof updateTrackerEntry>[1]),
     keys: [trackerKeys.all as unknown as unknown[]],
+  },
+  water_reading: {
+    restore: (id, previous) =>
+      updateWaterReading(id, previous as Parameters<typeof updateWaterReading>[1]),
+    keys: [waterKeys.all as unknown as unknown[]],
   },
 };
 

@@ -11,6 +11,7 @@ import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
+import { isoDate, periodLabel, periodRange, shiftAnchor } from '@/lib/period';
 import type { ElectricityMeter, Granularity, MeterReading } from '@/lib/api/electricity';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -28,59 +29,6 @@ import ReadingDialog from './ReadingDialog';
 import TariffsDialog from './TariffsDialog';
 
 const GRANULARITIES: Granularity[] = ['hour', 'day', 'month', 'year'];
-
-// ── Period window: an anchor date + a granularity define [date_from, date_to] ──
-
-function isoDate(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function periodRange(anchor: Date, granularity: Granularity): { from: string; to: string } {
-  const year = anchor.getFullYear();
-  const month = anchor.getMonth();
-  switch (granularity) {
-    case 'hour': // one day, hour by hour
-      return { from: isoDate(anchor), to: isoDate(anchor) };
-    case 'day': // one month, day by day
-      return { from: isoDate(new Date(year, month, 1)), to: isoDate(new Date(year, month + 1, 0)) };
-    case 'month': // one year, month by month
-      return { from: `${year}-01-01`, to: `${year}-12-31` };
-    case 'year': // a decade, year by year
-      return { from: `${year - 9}-01-01`, to: `${year}-12-31` };
-  }
-}
-
-function shiftAnchor(anchor: Date, granularity: Granularity, direction: 1 | -1): Date {
-  const next = new Date(anchor);
-  switch (granularity) {
-    case 'hour':
-      next.setDate(next.getDate() + direction);
-      break;
-    case 'day':
-      next.setDate(1);
-      next.setMonth(next.getMonth() + direction);
-      break;
-    case 'month':
-    case 'year':
-      next.setFullYear(next.getFullYear() + direction);
-      break;
-  }
-  return next;
-}
-
-function periodLabel(anchor: Date, granularity: Granularity, locale: string): string {
-  switch (granularity) {
-    case 'hour':
-      return anchor.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-    case 'day':
-      return anchor.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
-    case 'month':
-      return String(anchor.getFullYear());
-    case 'year':
-      return `${anchor.getFullYear() - 9} – ${anchor.getFullYear()}`;
-  }
-}
 
 function formatKwh(wh: number): string {
   return (wh / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 });
@@ -260,7 +208,7 @@ export default function ConsumptionTab() {
         <div className="flex flex-wrap gap-1.5">
           {GRANULARITIES.map((g) => (
             <FilterPill key={g} active={granularity === g} onClick={() => setGranularity(g)}>
-              {t(`electricity.consumption.granularity.${g}`)}
+              {t(`consumption.granularity.${g}`)}
             </FilterPill>
           ))}
         </div>
@@ -268,7 +216,7 @@ export default function ConsumptionTab() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={t('electricity.consumption.previousPeriod')}
+            aria-label={t('consumption.previousPeriod')}
             onClick={() => setAnchorIso(isoDate(shiftAnchor(anchor, granularity, -1)))}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -277,7 +225,7 @@ export default function ConsumptionTab() {
           <Button
             variant="ghost"
             size="sm"
-            aria-label={t('electricity.consumption.nextPeriod')}
+            aria-label={t('consumption.nextPeriod')}
             onClick={() => setAnchorIso(isoDate(shiftAnchor(anchor, granularity, 1)))}
           >
             <ChevronRight className="h-4 w-4" />
@@ -291,7 +239,7 @@ export default function ConsumptionTab() {
           <p className="text-lg font-semibold">
             {formatKwh(summary?.total_wh ?? 0)} kWh
             <span className="pl-1.5 text-sm font-normal text-muted-foreground">
-              {t('electricity.consumption.overPeriod')}
+              {t('consumption.overPeriod')}
             </span>
           </p>
           {summary && summary.estimated_wh > 0 ? (
@@ -323,7 +271,7 @@ export default function ConsumptionTab() {
           <div className="flex h-64 items-center justify-center text-sm text-muted-foreground sm:h-80">
             {granularity === 'hour'
               ? t('electricity.consumption.noHourlyData')
-              : t('electricity.consumption.noData')}
+              : t('consumption.noData')}
           </div>
         )}
       </Card>
