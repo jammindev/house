@@ -1210,145 +1210,63 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "header": {
-      "eyebrow": "Household dashboard",
-      "title": "Dashboard",
-      "subtitle": "Track what is next, what is blocked, and what changed recently."
+    "hero": {
+      "greeting": "Hello {{name}}",
+      "allClear": "Everything is under control — nothing needs your attention.",
+      "attention_one": "{{count}} thing needs your attention.",
+      "attention_other": "{{count}} things need your attention."
     },
-    "empty": {
-      "subtitle": "Select or create a household to start organizing your home operations.",
-      "title": "No household available",
-      "description": "Create a household from settings to unlock the dashboard.",
-      "cta": "Go to settings"
+    "triage": {
+      "title": "To handle",
+      "showAll": "Show all (+{{count}})"
     },
-    "add_event": "Add event",
-    "select_type": "What type of event?",
-    "more_types": "More types",
-    "actions": {
-      "add": "Add",
-      "openSettings": "Open settings",
-      "newInteraction": "New interaction",
-      "newProject": "New project",
-      "openTasks": "Open tasks",
-      "openDocuments": "Open documents"
+    "myWeek": {
+      "title": "My week",
+      "cta": "All tasks",
+      "empty": "Nothing planned this week.",
+      "done": "“{{subject}}” marked as done",
+      "markDone": "Mark “{{subject}}” as done"
     },
-    "typePicker": {
-      "title": "What would you like to add?",
-      "description": "Choose the type of event to add to the household history.",
-      "primaryTitle": "Common types",
-      "secondaryTitle": "More options",
-      "types": {
-        "note": {
-          "label": "Note",
-          "description": "Capture a free-form note."
-        },
-        "todo": {
-          "label": "Task",
-          "description": "Track something that needs to be done."
-        },
-        "expense": {
-          "label": "Expense",
-          "description": "Record a cost or purchase."
-        },
-        "maintenance": {
-          "label": "Maintenance",
-          "description": "Log routine care or an intervention."
-        },
-        "repair": {
-          "label": "Repair",
-          "description": "Track a fix for something broken."
-        },
-        "installation": {
-          "label": "Installation",
-          "description": "Record a new setup or fitting."
-        },
-        "inspection": {
-          "label": "Inspection",
-          "description": "Keep a trace of a check or review."
-        },
-        "warranty": {
-          "label": "Warranty",
-          "description": "Store a warranty-related event."
-        },
-        "issue": {
-          "label": "Issue",
-          "description": "Log a problem that needs attention."
-        },
-        "upgrade": {
-          "label": "Upgrade",
-          "description": "Track an improvement or enhancement."
-        },
-        "replacement": {
-          "label": "Replacement",
-          "description": "Record when something is replaced."
-        },
-        "disposal": {
-          "label": "Disposal",
-          "description": "Keep a trace of removal or disposal."
-        }
+    "metrics": {
+      "last30Days": "Last 30 days",
+      "expenses": {
+        "title": "Expenses this month",
+        "delta": "{{percent}}% vs last month",
+        "subtitle": "No spending last month"
+      },
+      "electricity": {
+        "title": "Electricity",
+        "total": "{{kwh}} kWh",
+        "cost": "{{amount}} over 30 days"
+      },
+      "water": {
+        "title": "Water",
+        "avg": "{{liters}} L/day",
+        "total": "{{m3}} m³ over 30 days"
+      },
+      "runways": {
+        "title": "Autonomy",
+        "days_one": "~{{count}} day",
+        "days_other": "~{{count}} days"
       }
     },
-    "summary": {
-      "projects": {
-        "label": "Active projects",
-        "helper": "Pinned: {{count}}"
-      },
-      "tasks": {
-        "label": "Open tasks",
-        "helper": "Todos with backlog, pending, or in progress status"
-      },
-      "documents": {
-        "label": "Visible documents",
-        "helper": "Recent files linked to this household"
-      },
-      "activity": {
-        "label": "Recent interactions",
-        "helper": "All visible interactions in this household"
-      }
+    "quickActions": {
+      "expense": "Expense",
+      "task": "Task",
+      "note": "Note",
+      "waterReading": "Water reading",
+      "meterReading": "Meter reading",
+      "askAgent": "Ask the assistant",
+      "taskCreated": "Task created"
     },
-    "sections": {
-      "upcoming": {
-        "title": "Upcoming interactions",
-        "description": "The next dated interactions planned for this household.",
-        "cta": "See all interactions",
-        "empty": "No upcoming interactions yet."
-      },
-      "pinned": {
-        "title": "Pinned projects",
-        "description": "Projects you marked as important stay visible here.",
-        "cta": "See all projects",
-        "empty": "No pinned projects yet."
-      },
-      "tasks": {
-        "title": "Task focus",
-        "description": "Open todos sorted by their scheduled date.",
-        "cta": "Open task board",
-        "empty": "No open tasks right now."
-      },
-      "activity": {
-        "title": "Recent activity",
-        "description": "Latest visible interactions across the household.",
-        "cta": "Open activity stream",
-        "empty": "No recent activity to display."
-      },
-      "documents": {
-        "title": "Recent documents",
-        "description": "Latest files visible from this household context.",
-        "cta": "Open document library",
-        "empty": "No documents uploaded yet."
-      }
+    "activity": {
+      "title": "Recent activity",
+      "cta": "All activity",
+      "today": "Today"
     },
-    "meta": {
-      "when": "When",
-      "project": "Project",
-      "zones": "Zones",
-      "documents": "Documents",
-      "type": "Type",
-      "openTasks": "Open tasks",
-      "dueDate": "Due date",
-      "actualCost": "Actual cost",
-      "added": "Added",
-      "interaction": "Interaction"
+    "projects": {
+      "title": "Active projects",
+      "cta": "All projects"
     }
   },
   "insurance": {
@@ -1805,7 +1723,9 @@
     "sections": {
       "overdue": "Overdue tasks",
       "warranties": "Warranties to watch",
-      "maintenances": "Upcoming maintenances"
+      "maintenances": "Upcoming maintenances",
+      "stock": "Stock to restock",
+      "runways": "Low autonomy"
     },
     "severity": {
       "critical": "Urgent",
@@ -1816,7 +1736,15 @@
     "warrantyExpiresIn_one": "Expires in {{count}} day ({{date}})",
     "warrantyExpiresIn_other": "Expires in {{count}} days ({{date}})",
     "maintenanceDueIn_one": "Maintenance due in {{count}} day ({{date}})",
-    "maintenanceDueIn_other": "Maintenance due in {{count}} days ({{date}})"
+    "maintenanceDueIn_other": "Maintenance due in {{count}} days ({{date}})",
+    "stockStatus": {
+      "low_stock": "Low stock",
+      "out_of_stock": "Out of stock",
+      "expired": "Expired"
+    },
+    "stockRemaining": "{{quantity}} {{unit}} left",
+    "runwayLeft_one": "~{{count}} day left (until {{date}})",
+    "runwayLeft_other": "~{{count}} days left (until {{date}})"
   },
   "agent": {
     "title": "Agent",
