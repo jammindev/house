@@ -10,7 +10,8 @@ from .services import build_alerts_summary
 
 
 class AlertsSummaryView(APIView):
-    """GET /api/alerts/summary/ — overdue tasks, expiring warranties, due maintenances."""
+    """GET /api/alerts/summary/ — overdue tasks, expiring warranties, due
+    maintenances, low/out/expired stock, low-runway consumption trackers."""
 
     permission_classes = [IsAuthenticated, IsHouseholdMember]
 
@@ -18,6 +19,13 @@ class AlertsSummaryView(APIView):
         household = request.household
         if household is None:
             return Response(
-                {"overdue_tasks": [], "expiring_warranties": [], "due_maintenances": [], "total": 0}
+                {
+                    "overdue_tasks": [],
+                    "expiring_warranties": [],
+                    "due_maintenances": [],
+                    "low_stock": [],
+                    "low_runway_trackers": [],
+                    "total": 0,
+                }
             )
         return Response(build_alerts_summary(household))
