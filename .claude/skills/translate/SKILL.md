@@ -13,7 +13,14 @@ allowed-tools: Read, Edit, Grep, Glob
 - `ui/src/locales/es/translation.json`
 
 ### Namespaces disponibles
-`common`, `auth`, `tasks`, `projects`, `zones`, `equipment`, `documents`, `photos`, `directory`, `contacts`, `structures`, `stock`, `electricity`, `interactions`, `dashboard`, `settings`, `tagSelector`, `documentSelector`
+
+La liste évolue avec les modules — la source de vérité est l'ensemble des clés racine de `ui/src/locales/en/translation.json` (les lister avant de choisir, ne pas se fier à une liste mémorisée) :
+
+```bash
+python3 -c "import json; print(sorted(json.load(open('ui/src/locales/en/translation.json')).keys()))"
+```
+
+Namespaces transverses à réutiliser en priorité : `common` (actions génériques), `purchase` (form d'achat partagé), `errors`, `sidebar`.
 
 ### Règles absolues
 

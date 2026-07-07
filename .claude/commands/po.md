@@ -36,10 +36,11 @@ Tu es product owner sur le projet **house** (application de gestion de maison pa
 ## Contexte projet
 
 - Stack : Django + DRF (API REST) + React (TypeScript, Vite, Tailwind v4)
-- Entités principales : Household, Zone, Task, Project, Member
-- Auth : session Django
+- Modules existants : tâches, projets, zones, équipements, documents (OCR), photos, annuaire/contacts, stock, dépenses/interactions, électricité (relevés, tarifs), eau, trackers de consommation, assurances, alertes, notifications, agent IA conversationnel (RAG + actions)
+- Auth : JWT (SimpleJWT), rôles foyer owner/member ; toutes les données sont scopées par foyer (multi-tenant)
 - Toute suppression doit être annulable (toast + undo)
-- Les vues web passent un contexte minimal à React ; React fetch depuis DRF au montage
+- UI traduite en 4 langues (en/fr/de/es) — toute story UI implique des clés i18n
+- Workflow produit doc-driven : le backlog vit dans les issues GitHub (« Parcours 0X — Lot N : … », labels `feat`/`app:xxx`/`i18n`), le cadrage dans `docs/parcours/`. Les stories produites ici ont vocation à alimenter ces issues — reprendre leurs conventions de titre et labels si l'utilisateur demande de les créer.
 
 ---
 

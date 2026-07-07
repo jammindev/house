@@ -17,7 +17,7 @@ allowed-tools: Bash, Read, Edit
    pytest -q && npm run lint && npx tsc -b ui/tsconfig.json
    ```
 
-2. **Commit** — message conventionnel `<type>(<app>): <description> (#<issue>)`, corps en points concis, **sans signature**. Ne jamais inclure les artefacts locaux (`.env*`, `venv`, `.claude/`, `htmlcov`). Si la session tourne dans un worktree, la branche doit suivre la convention `<type>/<app>-<description-courte>` (renommer avec `git branch -m` si besoin).
+2. **Commit** — ⚠️ des sessions Claude tournent souvent en parallèle dans le checkout principal : juste avant de committer, vérifier `git status` + `git log -1` (rien de stagé par autrui, bonne branche), et stager + committer dans la **même** commande Bash. Message conventionnel `<type>(<app>): <description> (#<issue>)`, corps en points concis, **sans signature**. Ne jamais inclure les artefacts locaux (`.env*`, `venv`, `.claude/`, `htmlcov`). Si la session tourne dans un worktree, la branche doit suivre la convention `<type>/<app>-<description-courte>` (renommer avec `git branch -m` si besoin).
 
 3. **Push + PR** :
    ```bash

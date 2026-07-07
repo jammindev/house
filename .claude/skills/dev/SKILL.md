@@ -23,10 +23,10 @@ allowed-tools: Bash, Read
    ```
    Lance ce step via `Bash` avec `run_in_background=true`.
 
-4. Attendre quelques secondes puis vérifier la santé :
+4. Vérifier la santé (curl retry — ne pas utiliser `sleep`, bloqué par le harnais) :
    ```bash
-   sleep 4 && curl -sf http://127.0.0.1:8001/api/schema/ -o /dev/null && echo "Django OK" || echo "Django KO — voir /tmp/house-django.log"
-   curl -sf http://127.0.0.1:5174/ -o /dev/null && echo "Vite OK" || echo "Vite KO — voir /tmp/house-vite.log"
+   curl -sf --retry 10 --retry-delay 1 --retry-all-errors http://127.0.0.1:8001/api/schema/ -o /dev/null && echo "Django OK" || echo "Django KO — voir /tmp/house-django.log"
+   curl -sf --retry 5 --retry-delay 1 --retry-all-errors http://127.0.0.1:5174/ -o /dev/null && echo "Vite OK" || echo "Vite KO — voir /tmp/house-vite.log"
    ```
 
 5. Afficher à l'utilisateur :
