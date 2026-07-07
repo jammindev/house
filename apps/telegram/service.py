@@ -24,7 +24,7 @@ from django.utils.translation import gettext as _
 from .client import get_client
 from .linking import consume_link_token, link_account
 from .models import TelegramAccount
-from .rendering import render_answer
+from .rendering import parse_undo_callback, render_answer, undo_keyboard
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,10 @@ def handle_update(update: dict) -> None:
         message = update.get("message")
         if isinstance(message, dict):
             _handle_message(message)
+            return
+        callback_query = update.get("callback_query")
+        if isinstance(callback_query, dict):
+            _handle_callback_query(callback_query)
     except Exception:  # noqa: BLE001 — a bad update must not 500 the webhook
         logger.exception("telegram.handle_update: unexpected error")
 
@@ -195,8 +199,72 @@ def _process_question(account: TelegramAccount, chat_id: int, text: str) -> None
 
 
 def _send_answer(client, chat_id: int, result) -> None:
-    for chunk in render_answer(result, settings.FRONTEND_URL):
+    chunks = render_answer(result, settings.FRONTEND_URL)
+    if not chunks:
+        return
+    # The undo keyboard rides on the LAST chunk so it sits under the whole
+    # answer. Buttons are localized here (inside the active translation).
+    keyboard = undo_keyboard(
+        result.metadata.get("created_entities"),
+        lambda entity: _("↩️ Undo: {label}").format(label=entity.get("label") or ""),
+    )
+    for chunk in chunks[:-1]:
         client.send_message(chat_id, chunk)
+    client.send_message(chat_id, chunks[-1], reply_markup=keyboard)
+
+
+def _handle_callback_query(callback_query: dict) -> None:
+    """An inline-button tap — currently only the "Undo" of a created entity."""
+    from agent import writables
+
+    query_id = callback_query.get("id")
+    message = callback_query.get("message") or {}
+    chat_id = (message.get("chat") or {}).get("id")
+    message_id = message.get("message_id")
+    from_id = (callback_query.get("from") or {}).get("id")
+    client = get_client()
+
+    # Trust the linked account, never the callback payload's own ids: the button
+    # is only actionable by the account that owns this chat.
+    account = (
+        TelegramAccount.objects.filter(chat_id=chat_id).select_related("user").first()
+        if chat_id is not None
+        else None
+    )
+    if account is None or account.chat_id != from_id:
+        if query_id:
+            client.answer_callback_query(query_id)
+        return
+
+    parsed = parse_undo_callback(callback_query.get("data", ""))
+    with translation.override(_account_language(account)):
+        if parsed is None:
+            if query_id:
+                client.answer_callback_query(query_id)
+            return
+        entity_type, object_id = parsed
+        household = _resolve_household(account.user)
+        try:
+            if household is None:
+                raise LookupError("no household")
+            writables.delete_created(entity_type, household, account.user, object_id)
+        except LookupError:
+            # Already gone (double-tap) or not undoable — nothing to do, but the
+            # button has served its purpose so drop it and acknowledge.
+            if query_id:
+                client.answer_callback_query(query_id, _("Nothing to undo."))
+            if chat_id is not None and message_id is not None:
+                client.edit_message_reply_markup(chat_id, message_id)
+            return
+        except Exception:  # noqa: BLE001
+            logger.exception("telegram.undo failed")
+            if query_id:
+                client.answer_callback_query(query_id, _("Couldn't undo — try from the app."))
+            return
+        if query_id:
+            client.answer_callback_query(query_id, _("Undone."))
+        if chat_id is not None and message_id is not None:
+            client.edit_message_reply_markup(chat_id, message_id)
 
 
 def _cooldown_ok(chat_id: int) -> bool:

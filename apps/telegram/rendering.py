@@ -57,6 +57,40 @@ def render_answer(result, frontend_url: str) -> list[str]:
     return _chunk(text)
 
 
+def undo_keyboard(created_entities, label_for) -> dict | None:
+    """Inline keyboard offering one "Undo" button per undoable created entity.
+
+    ``label_for(entity)`` returns the already-localized button caption. Entities
+    whose ``entity_type`` has no backend undo are skipped; returns None when no
+    button remains (so the caller sends a plain message).
+    """
+    from agent import writables
+
+    buttons = []
+    for entity in created_entities or []:
+        entity_type = entity.get("entity_type", "")
+        object_id = entity.get("id", "")
+        if not entity_type or not object_id or not writables.can_delete(entity_type):
+            continue
+        buttons.append(
+            [
+                {
+                    "text": label_for(entity),
+                    "callback_data": f"undo:{entity_type}:{object_id}",
+                }
+            ]
+        )
+    return {"inline_keyboard": buttons} if buttons else None
+
+
+def parse_undo_callback(callback_data: str) -> tuple[str, str] | None:
+    """Parse ``undo:<entity_type>:<id>`` into ``(entity_type, id)`` or None."""
+    parts = (callback_data or "").split(":", 2)
+    if len(parts) != 3 or parts[0] != "undo" or not parts[1] or not parts[2]:
+        return None
+    return parts[1], parts[2]
+
+
 def _chunk(text: str, limit: int = TELEGRAM_MESSAGE_LIMIT) -> list[str]:
     """Split on line boundaries so a chunk never cuts an ``<a>`` tag in half.
 

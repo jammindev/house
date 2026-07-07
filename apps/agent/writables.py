@@ -63,6 +63,17 @@ class WritableSpec:
     users…). May raise ``ValueError``/``ValidationError`` on malformed ids —
     the tool turns that into a recoverable message."""
 
+    delete: Callable[..., None] | None = None
+    """Optional ``delete(household, user, object_id) -> None`` — the undo of
+    ``create``.
+
+    Backend mirror of the frontend's ``UNDO_HANDLERS``: it must do exactly what
+    the entity's DELETE API does (archive for a task, hard delete for a note),
+    by reusing the app's own service. Must scope by household and raise
+    ``LookupError`` when the item no longer exists — callers treat that as
+    "already undone" so a double-tap stays idempotent. When None, channels
+    simply don't offer an undo for this entity."""
+
 
 REGISTRY: dict[str, WritableSpec] = {}
 
@@ -96,6 +107,26 @@ def resolve_label(spec: WritableSpec, instance: Model) -> str:
 def resolve_url(spec: WritableSpec, instance: Model) -> str:
     """Build the created item's URL path from the spec template."""
     return spec.url_template.format(id=instance.pk)
+
+
+def can_delete(entity_type: str) -> bool:
+    """True if ``entity_type`` is registered and exposes an undo (``delete``)."""
+    spec = REGISTRY.get(entity_type)
+    return spec is not None and spec.delete is not None
+
+
+def delete_created(entity_type: str, household, user, object_id) -> None:
+    """Undo a created entity through its ``WritableSpec.delete``.
+
+    The single entry point channels use to reverse a creation (the backend
+    mirror of the frontend's ``UNDO_HANDLERS``). Raises ``LookupError`` if the
+    type isn't undoable or the item is already gone — callers treat that as
+    "nothing to undo" so a double-tap is idempotent.
+    """
+    spec = REGISTRY.get(entity_type)
+    if spec is None or spec.delete is None:
+        raise LookupError(f"{entity_type!r} is not undoable")
+    spec.delete(household, user, object_id)
 
 
 def supported_entity_types() -> list[str]:
