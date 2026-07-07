@@ -2,21 +2,29 @@
 Transport layer: route a Telegram update to the right handler and reply.
 
 No business logic lives here — linking is `linking.py`, questions go through
-`agent.service.ask` (lot 9b), exactly the entry point the web API uses. This
-module only authenticates the sender (`TelegramAccount`), localizes the bot's
-own strings and shuttles text back and forth.
+`agent.service.ask`, exactly the entry point the web API uses. This module
+only authenticates the sender (`TelegramAccount`), localizes the bot's own
+strings and shuttles text back and forth.
+
+Questions run in a daemon thread: Telegram retries any webhook that doesn't
+answer within a few seconds, while `ask()` can take 10–30s with tool calls —
+so the webhook returns immediately and the answer arrives as a bot message.
 """
 from __future__ import annotations
 
 import logging
+import threading
 
+from django.conf import settings
 from django.core.cache import cache
+from django.db import close_old_connections
 from django.utils import translation
 from django.utils.translation import gettext as _
 
 from .client import get_client
 from .linking import consume_link_token, link_account
 from .models import TelegramAccount
+from .rendering import render_answer
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +33,12 @@ logger = logging.getLogger(__name__)
 UPDATE_DEDUP_TTL_SECONDS = 15 * 60
 
 SUPPORTED_LANGUAGES = {"en", "fr", "de", "es"}
+
+# Anchor pair identifying THE Telegram conversation of (household, user). The
+# anchor fields act as a channel discriminator here — this is not a household
+# entity, so it is never passed to `ask()` as context_entity.
+CHANNEL_ENTITY_TYPE = "channel"
+CHANNEL_OBJECT_ID = "telegram"
 
 
 def handle_update(update: dict) -> None:
@@ -63,7 +77,10 @@ def _handle_message(message: dict) -> None:
         if text.startswith("/help"):
             get_client().send_message(chat_id, _help_text())
             return
-        _handle_text(account, chat_id, text)
+        if text.startswith("/reset"):
+            _handle_reset(account, chat_id)
+            return
+        _handle_question(account, chat_id, text)
 
 
 def _handle_start(chat_id: int, message: dict, text: str) -> None:
@@ -98,9 +115,115 @@ def _handle_start(chat_id: int, message: dict, text: str) -> None:
         )
 
 
-def _handle_text(account: TelegramAccount, chat_id: int, text: str) -> None:
-    """A free-text message from a linked user. The agent bridge lands in lot 9b."""
-    get_client().send_message(chat_id, _help_text())
+def _handle_question(account: TelegramAccount, chat_id: int, text: str) -> None:
+    """A free-text message from a linked user → the agent, off-thread."""
+    if not _cooldown_ok(chat_id):
+        get_client().send_message(
+            chat_id,
+            _("One question at a time 🙂 — give me a few seconds and try again."),
+        )
+        return
+    _spawn(_process_question, account, chat_id, text)
+
+
+def _handle_reset(account: TelegramAccount, chat_id: int) -> None:
+    """`/reset` — drop the channel conversation, the next message starts fresh.
+
+    Same effect as deleting a conversation from the web sidebar (hard delete,
+    messages cascade); the bot recreates one lazily on the next question.
+    """
+    from agent.models import AgentConversation
+
+    household = _resolve_household(account.user)
+    if household is not None:
+        AgentConversation.objects.filter(
+            household=household,
+            created_by=account.user,
+            context_entity_type=CHANNEL_ENTITY_TYPE,
+            context_object_id=CHANNEL_OBJECT_ID,
+        ).delete()
+    get_client().send_message(
+        chat_id, _("Fresh start — your next message opens a new conversation.")
+    )
+
+
+def _process_question(account: TelegramAccount, chat_id: int, text: str) -> None:
+    """Thread body: resolve household/conversation, ask, persist, reply."""
+    from agent import service as agent_service
+    from agent.conversations import ask_inputs, persist_turns
+    from agent.llm import LLMError, LLMTimeoutError
+    from agent.models import AgentConversation
+
+    client = get_client()
+    try:
+        with translation.override(_account_language(account)):
+            household = _resolve_household(account.user)
+            if household is None:
+                client.send_message(
+                    chat_id, _("You are not a member of any household yet.")
+                )
+                return
+            client.send_chat_action(chat_id, "typing")
+            conversation, _created = AgentConversation.objects.get_or_create(
+                household=household,
+                created_by=account.user,
+                context_entity_type=CHANNEL_ENTITY_TYPE,
+                context_object_id=CHANNEL_OBJECT_ID,
+            )
+            # The channel anchor is a discriminator, not a household entity —
+            # history flows, context_entity deliberately does not.
+            history, _anchor = ask_inputs(conversation)
+            try:
+                result = agent_service.ask(
+                    text, household, user=account.user, history=history
+                )
+            except (LLMTimeoutError, LLMError) as exc:
+                logger.warning("telegram.ask failed: %s", exc)
+                client.send_message(
+                    chat_id,
+                    _("The assistant is unavailable right now — please try again in a minute."),
+                )
+                return
+            persist_turns(conversation, text, account.user, result)
+            _send_answer(client, chat_id, result)
+    except Exception:  # noqa: BLE001 — a thread has nobody to re-raise to
+        logger.exception("telegram.process_question: unexpected error")
+        with translation.override(_account_language(account)):
+            client.send_message(
+                chat_id, _("Something went wrong on my side — please try again.")
+            )
+
+
+def _send_answer(client, chat_id: int, result) -> None:
+    for chunk in render_answer(result, settings.FRONTEND_URL):
+        client.send_message(chat_id, chunk)
+
+
+def _cooldown_ok(chat_id: int) -> bool:
+    seconds = settings.TELEGRAM_COOLDOWN_SECONDS
+    if seconds <= 0:
+        return True
+    return bool(cache.add(f"telegram:cooldown:{chat_id}", 1, seconds))
+
+
+def _spawn(target, *args) -> threading.Thread:
+    """Run ``target`` in a daemon thread. Patched to run inline in tests.
+
+    The connection hygiene lives here, not in the targets: each thread gets its
+    own DB connections, closed on the way out so they don't leak one per
+    question.
+    """
+
+    def _runner():
+        close_old_connections()
+        try:
+            target(*args)
+        finally:
+            close_old_connections()
+
+    thread = threading.Thread(target=_runner, daemon=True)
+    thread.start()
+    return thread
 
 
 def _reply_not_linked(chat_id: int, message: dict) -> None:
