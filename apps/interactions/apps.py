@@ -25,6 +25,7 @@ class InteractionsConfig(AppConfig):
             update=_update_note_from_agent,
             updatable_fields=('subject', 'content'),
             resolve=_resolve_note_for_agent,
+            delete=_delete_note_from_agent,
             label_attr='subject',
             url_template='/app/interactions/{id}',
         ))
@@ -93,6 +94,20 @@ def _resolve_note_for_agent(household, raw_id):
     return Interaction.objects.filter(
         household_id=household.id, pk=raw_id, type='note'
     ).first()
+
+
+def _delete_note_from_agent(household, user, object_id):
+    """Undo a created note — hard-delete it, via ``delete_note_interaction``.
+
+    Raises ``LookupError`` when the note is already gone so a double undo is a
+    no-op rather than an error.
+    """
+    from .services import delete_note_interaction
+
+    note = _resolve_note_for_agent(household, object_id)
+    if note is None:
+        raise LookupError(f"no note {object_id} in this household")
+    delete_note_interaction(household=household, user=user, interaction=note)
 
 
 # --- list_entities filters ---------------------------------------------------

@@ -140,11 +140,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(**kwargs)
 
     def perform_destroy(self, instance):
-        if instance.created_by_id != self.request.user.pk:
-            raise PermissionDenied("Only the creator can delete this task.")
-        instance.status = Task.Status.ARCHIVED
-        instance.updated_by = self.request.user
-        instance.save(update_fields=['status', 'updated_by'])
+        from .services import archive_task
+
+        archive_task(self.request.user, instance)
 
 
 class TaskDocumentViewSet(viewsets.ModelViewSet):

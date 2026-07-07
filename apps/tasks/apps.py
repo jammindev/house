@@ -25,6 +25,7 @@ class TasksConfig(AppConfig):
             update=_update_task_from_agent,
             updatable_fields=('subject', 'content', 'status', 'due_date', 'priority'),
             resolve=_resolve_task_for_agent,
+            delete=_delete_task_from_agent,
             label_attr='subject',
             url_template='/app/tasks/{id}',
         ))
@@ -86,6 +87,20 @@ def _resolve_task_for_agent(household, raw_id):
     from .models import Task
 
     return Task.objects.filter(household_id=household.id, pk=raw_id).first()
+
+
+def _delete_task_from_agent(household, user, object_id):
+    """Undo a created task — archive it, reusing ``tasks.services.archive_task``.
+
+    Raises ``LookupError`` when the task is already gone so a double undo is a
+    no-op rather than an error.
+    """
+    from .services import archive_task
+
+    task = _resolve_task_for_agent(household, object_id)
+    if task is None:
+        raise LookupError(f"no task {object_id} in this household")
+    archive_task(user, task)
 
 
 # --- list_entities filters ---------------------------------------------------

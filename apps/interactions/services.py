@@ -310,3 +310,19 @@ def update_note_interaction(
     interaction.updated_by = user
     interaction.save(update_fields=[*updates.keys(), "updated_by", "updated_at"])
     return interaction
+
+
+def delete_note_interaction(*, household, user, interaction: Interaction) -> None:
+    """Delete a note — the undo of ``create_note_interaction``.
+
+    Mirrors the interaction DELETE API (a plain hard delete) so the agent's
+    channel undo and a manual delete behave identically. Restricted to notes,
+    scoped to the household, and defensive about another user's private note.
+    """
+    if interaction.type != "note":
+        raise ValueError("delete_note_interaction: only notes can be deleted")
+    if interaction.household_id != household.id:
+        raise ValueError("delete_note_interaction: note belongs to another household")
+    if interaction.is_private and interaction.created_by_id != getattr(user, "pk", None):
+        raise ValueError("delete_note_interaction: cannot delete another user's private note")
+    interaction.delete()

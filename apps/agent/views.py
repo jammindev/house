@@ -4,10 +4,8 @@ from __future__ import annotations
 import json
 import logging
 
-from django.db import transaction
 from django.http import StreamingHttpResponse
 from django.db.models import Count
-from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
@@ -18,8 +16,9 @@ from rest_framework.views import APIView
 from core.permissions import IsHouseholdMember, resolve_request_household
 
 from . import searchables, service, tools
+from .conversations import ask_inputs as _ask_inputs, persist_turns as _persist_turns
 from .llm import LLMError, LLMTimeoutError
-from .models import AgentConversation, AgentMessage
+from .models import AgentConversation
 from .throttles import AgentBurstRateThrottle, AgentSustainedRateThrottle
 from .serializers import (
     AskRequestSerializer,
@@ -32,61 +31,6 @@ from .serializers import (
 )
 
 logger = logging.getLogger(__name__)
-
-CONVERSATION_HISTORY_LIMIT = 20
-AUTO_TITLE_MAX_LEN = 60
-
-
-def _citations_to_json(citations) -> list[dict]:
-    return [
-        {
-            "entity_type": c.entity_type,
-            "id": str(c.id),
-            "label": c.label,
-            "snippet": c.snippet,
-            "url_path": c.url_path,
-        }
-        for c in citations
-    ]
-
-
-def _derive_title(question: str) -> str:
-    return " ".join((question or "").split())[:AUTO_TITLE_MAX_LEN]
-
-
-def _ask_inputs(conversation) -> tuple[list[dict], tuple[str, str] | None]:
-    """History (bounded, oldest first) + anchor of a conversation, for service.ask*."""
-    prior = list(conversation.messages.all())[-CONVERSATION_HISTORY_LIMIT:]
-    history = [{"role": m.role, "content": m.content} for m in prior]
-    context_entity = (
-        (conversation.context_entity_type, conversation.context_object_id)
-        if conversation.has_context
-        else None
-    )
-    return history, context_entity
-
-
-def _persist_turns(conversation, question: str, user, result) -> AgentMessage:
-    """Persist both turns atomically — a failed call leaves the conversation untouched."""
-    with transaction.atomic():
-        AgentMessage.objects.create(
-            conversation=conversation,
-            role=AgentMessage.Role.USER,
-            content=question,
-            created_by=user,
-        )
-        agent_msg = AgentMessage.objects.create(
-            conversation=conversation,
-            role=AgentMessage.Role.AGENT,
-            content=result.answer,
-            citations=_citations_to_json(result.citations),
-            metadata=result.metadata,
-        )
-        conversation.last_message_at = timezone.now()
-        if not conversation.title:
-            conversation.title = _derive_title(question)
-        conversation.save(update_fields=["last_message_at", "title", "updated_at"])
-    return agent_msg
 
 
 def _sse(event: str, payload: dict) -> str:
