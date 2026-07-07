@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/lib/toast';
 import { fetchMe, patchMe, uploadAvatar, deleteAvatar, changePassword, type UserProfile, type UpdateProfileInput } from '@/lib/api/users';
 import {
+  createTelegramLinkToken,
+  fetchTelegramStatus,
+  unlinkTelegram,
+  type TelegramStatus,
+} from '@/lib/api/telegram';
+import {
   fetchHouseholds,
   createHousehold,
   updateHousehold,
@@ -34,6 +40,7 @@ export const settingsKeys = {
   me: () => [...settingsKeys.all, 'me'] as const,
   households: () => [...settingsKeys.all, 'households'] as const,
   pendingInvitations: () => [...settingsKeys.all, 'pending-invitations'] as const,
+  telegram: () => [...settingsKeys.all, 'telegram'] as const,
 };
 
 // --- User ---
@@ -102,6 +109,42 @@ export function useChangePassword() {
         variant: 'destructive',
       });
     },
+  });
+}
+
+// --- Telegram ---
+
+export function useTelegramStatus() {
+  return useQuery<TelegramStatus>({
+    queryKey: settingsKeys.telegram(),
+    queryFn: fetchTelegramStatus,
+    // Linking finishes inside Telegram — refetch on focus picks up the new
+    // status when the user comes back to this tab (React Query default), and
+    // a short staleTime keeps that refetch honest.
+    staleTime: 10_000,
+  });
+}
+
+export function useTelegramLinkToken() {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: createTelegramLinkToken,
+    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUnlinkTelegram() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: unlinkTelegram,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: settingsKeys.telegram() });
+      toast({ description: t('settings.telegramUnlinked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
   });
 }
 

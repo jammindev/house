@@ -13,6 +13,7 @@ from rest_framework.views import APIView
 
 from . import service
 from .linking import make_link_token
+from .models import TelegramAccount
 
 logger = logging.getLogger(__name__)
 
@@ -61,3 +62,30 @@ class LinkTokenView(APIView):
                 "expires_in": settings.TELEGRAM_LINK_TOKEN_MAX_AGE_SECONDS,
             }
         )
+
+
+class TelegramAccountView(APIView):
+    """``GET``/``DELETE /api/telegram/account/`` — link status + unlink.
+
+    ``enabled`` tells the frontend whether to show the Telegram card at all
+    (the channel is server-side opt-in via env vars).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        account = TelegramAccount.objects.filter(user=request.user).first()
+        return Response(
+            {
+                "enabled": bool(
+                    settings.TELEGRAM_BOT_TOKEN and settings.TELEGRAM_BOT_USERNAME
+                ),
+                "linked": account is not None,
+                "username": account.username if account else "",
+                "linked_at": account.linked_at if account else None,
+            }
+        )
+
+    def delete(self, request):
+        TelegramAccount.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

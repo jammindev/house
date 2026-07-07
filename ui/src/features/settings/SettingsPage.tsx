@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useCurrentUser } from './hooks';
 import { ProfileSection } from './components/ProfileSection';
+import { TelegramSection } from './components/TelegramSection';
 import { ThemeSection } from './components/ThemeSection';
 import { ChangePasswordSection } from './components/ChangePasswordSection';
 import { HouseholdManagement } from './components/HouseholdManagement';
@@ -34,6 +35,7 @@ export default function SettingsPage() {
         switchHouseholdUrl="/api/households/switch/"
       />
       <ProfileSection />
+      <TelegramSection />
       <ThemeSection />
       <ChangePasswordSection />
     </div>
