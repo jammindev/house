@@ -29,10 +29,32 @@ export interface DueMaintenanceAlert {
   severity: AlertSeverity;
 }
 
+export interface LowStockAlert {
+  id: string;
+  title: string;
+  status: 'low_stock' | 'out_of_stock' | 'expired';
+  quantity: string;
+  min_quantity: string | null;
+  unit: string;
+  entity_url: string;
+  severity: AlertSeverity;
+}
+
+export interface LowRunwayTrackerAlert {
+  id: string;
+  title: string;
+  runway_days: string;
+  runway_until: string;
+  entity_url: string;
+  severity: AlertSeverity;
+}
+
 export interface AlertsSummary {
   overdue_tasks: OverdueTaskAlert[];
   expiring_warranties: ExpiringWarrantyAlert[];
   due_maintenances: DueMaintenanceAlert[];
+  low_stock: LowStockAlert[];
+  low_runway_trackers: LowRunwayTrackerAlert[];
   total: number;
 }
 

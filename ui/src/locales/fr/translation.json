@@ -1202,145 +1202,63 @@
   },
   "dashboard": {
     "title": "Tableau de bord",
-    "header": {
-      "eyebrow": "Tableau de bord du foyer",
-      "title": "Tableau de bord",
-      "subtitle": "Suivez ce qui arrive, ce qui bloque et ce qui a changé récemment."
+    "hero": {
+      "greeting": "Bonjour {{name}}",
+      "allClear": "Tout est sous contrôle — rien ne demande votre attention.",
+      "attention_one": "{{count}} chose demande votre attention.",
+      "attention_other": "{{count}} choses demandent votre attention."
     },
-    "empty": {
-      "subtitle": "Sélectionnez ou créez un foyer pour commencer à organiser la gestion de votre maison.",
-      "title": "Aucun foyer disponible",
-      "description": "Créez un foyer depuis les paramètres pour débloquer le tableau de bord.",
-      "cta": "Aller aux paramètres"
+    "triage": {
+      "title": "À traiter",
+      "showAll": "Tout afficher (+{{count}})"
     },
-    "add_event": "Ajouter un événement",
-    "select_type": "Quel type d'événement ?",
-    "more_types": "Autres types",
-    "actions": {
-      "add": "Ajouter",
-      "openSettings": "Ouvrir les paramètres",
-      "newInteraction": "Nouvelle interaction",
-      "newProject": "Nouveau projet",
-      "openTasks": "Ouvrir les tâches",
-      "openDocuments": "Ouvrir les documents"
+    "myWeek": {
+      "title": "Ma semaine",
+      "cta": "Toutes les tâches",
+      "empty": "Rien de prévu cette semaine.",
+      "done": "« {{subject}} » terminée",
+      "markDone": "Marquer « {{subject}} » comme terminée"
     },
-    "typePicker": {
-      "title": "Que voulez-vous ajouter ?",
-      "description": "Choisissez le type d'événement à ajouter dans l'historique du foyer.",
-      "primaryTitle": "Types fréquents",
-      "secondaryTitle": "Autres options",
-      "types": {
-        "note": {
-          "label": "Note",
-          "description": "Consigner une information libre."
-        },
-        "todo": {
-          "label": "Tâche",
-          "description": "Suivre quelque chose à faire."
-        },
-        "expense": {
-          "label": "Dépense",
-          "description": "Enregistrer un coût ou un achat."
-        },
-        "maintenance": {
-          "label": "Maintenance",
-          "description": "Garder la trace d'un entretien ou d'une intervention."
-        },
-        "repair": {
-          "label": "Réparation",
-          "description": "Suivre une correction sur quelque chose de cassé."
-        },
-        "installation": {
-          "label": "Installation",
-          "description": "Enregistrer une nouvelle pose ou mise en place."
-        },
-        "inspection": {
-          "label": "Inspection",
-          "description": "Garder la trace d'un contrôle ou d'une vérification."
-        },
-        "warranty": {
-          "label": "Garantie",
-          "description": "Enregistrer un événement lié à une garantie."
-        },
-        "issue": {
-          "label": "Incident",
-          "description": "Consigner un problème qui demande une attention."
-        },
-        "upgrade": {
-          "label": "Amélioration",
-          "description": "Suivre une amélioration ou une montée en gamme."
-        },
-        "replacement": {
-          "label": "Remplacement",
-          "description": "Enregistrer le remplacement d'un élément."
-        },
-        "disposal": {
-          "label": "Mise au rebut",
-          "description": "Garder la trace d'un retrait ou d'une évacuation."
-        }
+    "metrics": {
+      "last30Days": "30 derniers jours",
+      "expenses": {
+        "title": "Dépenses du mois",
+        "delta": "{{percent}} % vs mois dernier",
+        "subtitle": "Aucune dépense le mois dernier"
+      },
+      "electricity": {
+        "title": "Électricité",
+        "total": "{{kwh}} kWh",
+        "cost": "{{amount}} sur 30 jours"
+      },
+      "water": {
+        "title": "Eau",
+        "avg": "{{liters}} L/jour",
+        "total": "{{m3}} m³ sur 30 jours"
+      },
+      "runways": {
+        "title": "Autonomies",
+        "days_one": "~{{count}} j",
+        "days_other": "~{{count}} j"
       }
     },
-    "summary": {
-      "projects": {
-        "label": "Projets actifs",
-        "helper": "Épinglés : {{count}}"
-      },
-      "tasks": {
-        "label": "Tâches ouvertes",
-        "helper": "Tâches avec le statut backlog, en attente ou en cours"
-      },
-      "documents": {
-        "label": "Documents visibles",
-        "helper": "Fichiers récents liés à ce foyer"
-      },
-      "activity": {
-        "label": "Interactions récentes",
-        "helper": "Toutes les interactions visibles dans ce foyer"
-      }
+    "quickActions": {
+      "expense": "Dépense",
+      "task": "Tâche",
+      "note": "Note",
+      "waterReading": "Relevé eau",
+      "meterReading": "Relevé électricité",
+      "askAgent": "Demander à l'assistant",
+      "taskCreated": "Tâche créée"
     },
-    "sections": {
-      "upcoming": {
-        "title": "Interactions à venir",
-        "description": "Les prochaines interactions planifiées et datées pour ce foyer.",
-        "cta": "Voir toutes les interactions",
-        "empty": "Aucune interaction à venir pour le moment."
-      },
-      "pinned": {
-        "title": "Projets épinglés",
-        "description": "Les projets que vous avez marqués comme importants restent visibles ici.",
-        "cta": "Voir tous les projets",
-        "empty": "Aucun projet épinglé pour le moment."
-      },
-      "tasks": {
-        "title": "Focus tâches",
-        "description": "Tâches ouvertes triées par date prévue.",
-        "cta": "Ouvrir le tableau des tâches",
-        "empty": "Aucune tâche ouverte actuellement."
-      },
-      "activity": {
-        "title": "Activité récente",
-        "description": "Dernières interactions visibles dans l'ensemble du foyer.",
-        "cta": "Ouvrir le flux d'activité",
-        "empty": "Aucune activité récente à afficher."
-      },
-      "documents": {
-        "title": "Documents récents",
-        "description": "Derniers fichiers visibles dans le contexte de ce foyer.",
-        "cta": "Ouvrir la bibliothèque de documents",
-        "empty": "Aucun document téléversé pour le moment."
-      }
+    "activity": {
+      "title": "Activité récente",
+      "cta": "Toute l'activité",
+      "today": "Aujourd'hui"
     },
-    "meta": {
-      "when": "Quand",
-      "project": "Projet",
-      "zones": "Zones",
-      "documents": "Documents",
-      "type": "Type",
-      "openTasks": "Tâches ouvertes",
-      "dueDate": "Date d'échéance",
-      "actualCost": "Coût réel",
-      "added": "Ajouté",
-      "interaction": "Interaction"
+    "projects": {
+      "title": "Projets actifs",
+      "cta": "Tous les projets"
     }
   },
   "insurance": {
@@ -1797,7 +1715,9 @@
     "sections": {
       "overdue": "Tâches en retard",
       "warranties": "Garanties à surveiller",
-      "maintenances": "Maintenances à planifier"
+      "maintenances": "Maintenances à planifier",
+      "stock": "Stock à réapprovisionner",
+      "runways": "Autonomie faible"
     },
     "severity": {
       "critical": "Urgent",
@@ -1808,7 +1728,15 @@
     "warrantyExpiresIn_one": "Expire dans {{count}} jour ({{date}})",
     "warrantyExpiresIn_other": "Expire dans {{count}} jours ({{date}})",
     "maintenanceDueIn_one": "Maintenance dans {{count}} jour ({{date}})",
-    "maintenanceDueIn_other": "Maintenance dans {{count}} jours ({{date}})"
+    "maintenanceDueIn_other": "Maintenance dans {{count}} jours ({{date}})",
+    "stockStatus": {
+      "low_stock": "Stock bas",
+      "out_of_stock": "Épuisé",
+      "expired": "Expiré"
+    },
+    "stockRemaining": "{{quantity}} {{unit}} restant",
+    "runwayLeft_one": "~{{count}} jour restant (jusqu'au {{date}})",
+    "runwayLeft_other": "~{{count}} jours restants (jusqu'au {{date}})"
   },
   "agent": {
     "title": "Agent",

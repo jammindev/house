@@ -1202,145 +1202,63 @@
   },
   "dashboard": {
     "title": "Übersicht",
-    "header": {
-      "eyebrow": "Haushaltsübersicht",
-      "title": "Übersicht",
-      "subtitle": "Verfolgen Sie, was als Nächstes ansteht, was blockiert ist und was sich kürzlich geändert hat."
+    "hero": {
+      "greeting": "Hallo {{name}}",
+      "allClear": "Alles unter Kontrolle — nichts erfordert Ihre Aufmerksamkeit.",
+      "attention_one": "{{count}} Sache erfordert Ihre Aufmerksamkeit.",
+      "attention_other": "{{count}} Dinge erfordern Ihre Aufmerksamkeit."
     },
-    "empty": {
-      "subtitle": "Wählen oder erstellen Sie einen Haushalt, um die Organisation Ihres Zuhauses zu beginnen.",
-      "title": "Kein Haushalt verfügbar",
-      "description": "Erstellen Sie in den Einstellungen einen Haushalt, um die Übersicht freizuschalten.",
-      "cta": "Zu den Einstellungen"
+    "triage": {
+      "title": "Zu erledigen",
+      "showAll": "Alle anzeigen (+{{count}})"
     },
-    "add_event": "Ereignis hinzufügen",
-    "select_type": "Welcher Ereignistyp?",
-    "more_types": "Weitere Typen",
-    "actions": {
-      "add": "Hinzufügen",
-      "openSettings": "Einstellungen öffnen",
-      "newInteraction": "Neue Interaktion",
-      "newProject": "Neues Projekt",
-      "openTasks": "Offene Aufgaben",
-      "openDocuments": "Dokumente öffnen"
+    "myWeek": {
+      "title": "Meine Woche",
+      "cta": "Alle Aufgaben",
+      "empty": "Diese Woche ist nichts geplant.",
+      "done": "„{{subject}}“ erledigt",
+      "markDone": "„{{subject}}“ als erledigt markieren"
     },
-    "typePicker": {
-      "title": "Was möchten Sie hinzufügen?",
-      "description": "Wählen Sie den Ereignistyp aus, den Sie im Haushaltsverlauf erfassen möchten.",
-      "primaryTitle": "Häufige Typen",
-      "secondaryTitle": "Weitere Optionen",
-      "types": {
-        "note": {
-          "label": "Notiz",
-          "description": "Eine freie Information festhalten."
-        },
-        "todo": {
-          "label": "Aufgabe",
-          "description": "Etwas erfassen, das erledigt werden muss."
-        },
-        "expense": {
-          "label": "Ausgabe",
-          "description": "Einen Kauf oder Kostenpunkt erfassen."
-        },
-        "maintenance": {
-          "label": "Wartung",
-          "description": "Eine Pflege oder Intervention protokollieren."
-        },
-        "repair": {
-          "label": "Reparatur",
-          "description": "Die Behebung eines Defekts festhalten."
-        },
-        "installation": {
-          "label": "Installation",
-          "description": "Eine neue Montage oder Einrichtung erfassen."
-        },
-        "inspection": {
-          "label": "Inspektion",
-          "description": "Eine Kontrolle oder Prüfung dokumentieren."
-        },
-        "warranty": {
-          "label": "Garantie",
-          "description": "Ein garantiespezifisches Ereignis speichern."
-        },
-        "issue": {
-          "label": "Problem",
-          "description": "Ein Problem festhalten, das Aufmerksamkeit erfordert."
-        },
-        "upgrade": {
-          "label": "Verbesserung",
-          "description": "Eine Verbesserung oder Aufwertung nachverfolgen."
-        },
-        "replacement": {
-          "label": "Ersatz",
-          "description": "Festhalten, wenn etwas ersetzt wird."
-        },
-        "disposal": {
-          "label": "Entsorgung",
-          "description": "Den Ausbau oder die Entsorgung dokumentieren."
-        }
+    "metrics": {
+      "last30Days": "Letzte 30 Tage",
+      "expenses": {
+        "title": "Ausgaben diesen Monat",
+        "delta": "{{percent}} % ggü. Vormonat",
+        "subtitle": "Keine Ausgaben im Vormonat"
+      },
+      "electricity": {
+        "title": "Strom",
+        "total": "{{kwh}} kWh",
+        "cost": "{{amount}} in 30 Tagen"
+      },
+      "water": {
+        "title": "Wasser",
+        "avg": "{{liters}} L/Tag",
+        "total": "{{m3}} m³ in 30 Tagen"
+      },
+      "runways": {
+        "title": "Reichweiten",
+        "days_one": "~{{count}} Tag",
+        "days_other": "~{{count}} Tage"
       }
     },
-    "summary": {
-      "projects": {
-        "label": "Aktive Projekte",
-        "helper": "Angeheftet: {{count}}"
-      },
-      "tasks": {
-        "label": "Offene Aufgaben",
-        "helper": "Aufgaben mit dem Status Backlog, Ausstehend oder In Bearbeitung"
-      },
-      "documents": {
-        "label": "Sichtbare Dokumente",
-        "helper": "Neueste mit diesem Haushalt verknüpfte Dateien"
-      },
-      "activity": {
-        "label": "Neueste Interaktionen",
-        "helper": "Alle sichtbaren Interaktionen in diesem Haushalt"
-      }
+    "quickActions": {
+      "expense": "Ausgabe",
+      "task": "Aufgabe",
+      "note": "Notiz",
+      "waterReading": "Wasserzählerstand",
+      "meterReading": "Stromzählerstand",
+      "askAgent": "Assistenten fragen",
+      "taskCreated": "Aufgabe erstellt"
     },
-    "sections": {
-      "upcoming": {
-        "title": "Bevorstehende Interaktionen",
-        "description": "Die nächsten terminierten Interaktionen für diesen Haushalt.",
-        "cta": "Alle Interaktionen anzeigen",
-        "empty": "Noch keine bevorstehenden Interaktionen."
-      },
-      "pinned": {
-        "title": "Angeheftete Projekte",
-        "description": "Projekte, die Sie als wichtig markiert haben, bleiben hier sichtbar.",
-        "cta": "Alle Projekte anzeigen",
-        "empty": "Noch keine angehefteten Projekte."
-      },
-      "tasks": {
-        "title": "Aufgabenfokus",
-        "description": "Offene Aufgaben, sortiert nach ihrem geplanten Datum.",
-        "cta": "Aufgabenboard öffnen",
-        "empty": "Zurzeit keine offenen Aufgaben."
-      },
-      "activity": {
-        "title": "Letzte Aktivität",
-        "description": "Neueste sichtbare Interaktionen im gesamten Haushalt.",
-        "cta": "Aktivitätsverlauf öffnen",
-        "empty": "Keine aktuelle Aktivität zum Anzeigen."
-      },
-      "documents": {
-        "title": "Neueste Dokumente",
-        "description": "Neueste Dateien, die in diesem Haushaltskontext sichtbar sind.",
-        "cta": "Dokumentenbibliothek öffnen",
-        "empty": "Noch keine Dokumente hochgeladen."
-      }
+    "activity": {
+      "title": "Letzte Aktivität",
+      "cta": "Gesamte Aktivität",
+      "today": "Heute"
     },
-    "meta": {
-      "when": "Wann",
-      "project": "Projekt",
-      "zones": "Zonen",
-      "documents": "Dokumente",
-      "type": "Typ",
-      "openTasks": "Offene Aufgaben",
-      "dueDate": "Fälligkeitsdatum",
-      "actualCost": "Tatsächliche Kosten",
-      "added": "Hinzugefügt",
-      "interaction": "Interaktion"
+    "projects": {
+      "title": "Aktive Projekte",
+      "cta": "Alle Projekte"
     }
   },
   "insurance": {
@@ -1797,7 +1715,9 @@
     "sections": {
       "overdue": "Überfällige Aufgaben",
       "warranties": "Auslaufende Garantien",
-      "maintenances": "Anstehende Wartungen"
+      "maintenances": "Anstehende Wartungen",
+      "stock": "Vorrat auffüllen",
+      "runways": "Geringe Reichweite"
     },
     "severity": {
       "critical": "Dringend",
@@ -1808,7 +1728,15 @@
     "warrantyExpiresIn_one": "Läuft in {{count}} Tag ab ({{date}})",
     "warrantyExpiresIn_other": "Läuft in {{count}} Tagen ab ({{date}})",
     "maintenanceDueIn_one": "Wartung in {{count}} Tag ({{date}})",
-    "maintenanceDueIn_other": "Wartung in {{count}} Tagen ({{date}})"
+    "maintenanceDueIn_other": "Wartung in {{count}} Tagen ({{date}})",
+    "stockStatus": {
+      "low_stock": "Wenig Vorrat",
+      "out_of_stock": "Aufgebraucht",
+      "expired": "Abgelaufen"
+    },
+    "stockRemaining": "{{quantity}} {{unit}} übrig",
+    "runwayLeft_one": "~{{count}} Tag übrig (bis {{date}})",
+    "runwayLeft_other": "~{{count}} Tage übrig (bis {{date}})"
   },
   "agent": {
     "title": "Agent",
