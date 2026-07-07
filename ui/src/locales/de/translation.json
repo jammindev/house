@@ -227,6 +227,23 @@
       "updated": "Ablesung aktualisiert.",
       "deleted": "Ablesung gelöscht."
     },
+    "tariff": {
+      "manage": "Tarife verwalten",
+      "title": "Tarife — {{meter}}",
+      "new": "Neuer Tarif",
+      "edit": "Tarif bearbeiten",
+      "created": "Tarif hinzugefügt.",
+      "updated": "Tarif aktualisiert.",
+      "deleted": "Tarif gelöscht.",
+      "validFrom": "Gültig ab",
+      "priceBase": "Preis (€/kWh)",
+      "priceHp": "Hochtarif (€/kWh)",
+      "priceHc": "Niedertarif (€/kWh)",
+      "subscription": "Grundgebühr (€/Monat)",
+      "subscriptionValue": "Grundgebühr {{amount}}/Monat",
+      "since": "Ab {{date}}",
+      "empty": "Noch kein Tarif. Fügen Sie Ihren kWh-Preis hinzu, um den Verbrauch in Euro zu bewerten."
+    },
     "consumption": {
       "registerLabel": "Zählwerk",
       "register": {
@@ -246,6 +263,10 @@
       "estimatedShare": "davon {{kwh}} kWh aus Ablesungen geschätzt",
       "noData": "Keine Verbrauchsdaten in diesem Zeitraum.",
       "noHourlyData": "Die Stundenansicht zeigt nur importierte Daten (Lastgang). Importieren Sie eine Datei."
+    },
+    "cost": {
+      "energy": "davon Verbrauch {{amount}}",
+      "subscription": "davon Grundgebühr {{amount}}"
     },
     "import": {
       "title": "Daten importieren",

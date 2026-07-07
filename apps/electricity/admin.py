@@ -7,6 +7,7 @@ from .models import (
     ConsumptionRecord,
     ElectricityMeter,
     MeterReading,
+    MeterTariff,
     ElectricCircuit,
     ElectricityBoard,
     MaintenanceEvent,
@@ -78,6 +79,13 @@ class MeterReadingAdmin(admin.ModelAdmin):
     list_filter = ("register",)
     search_fields = ("meter__name",)
     date_hierarchy = "reading_at"
+
+
+@admin.register(MeterTariff)
+class MeterTariffAdmin(admin.ModelAdmin):
+    list_display = ("meter", "valid_from", "price_base", "price_hp", "price_hc", "subscription_eur_month")
+    search_fields = ("meter__name",)
+    date_hierarchy = "valid_from"
 
 
 @admin.register(ConsumptionRecord)

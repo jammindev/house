@@ -227,6 +227,23 @@
       "updated": "Reading updated.",
       "deleted": "Reading deleted."
     },
+    "tariff": {
+      "manage": "Manage tariffs",
+      "title": "Tariffs — {{meter}}",
+      "new": "New tariff",
+      "edit": "Edit tariff",
+      "created": "Tariff added.",
+      "updated": "Tariff updated.",
+      "deleted": "Tariff deleted.",
+      "validFrom": "Effective date",
+      "priceBase": "Price (€/kWh)",
+      "priceHp": "Peak price (€/kWh)",
+      "priceHc": "Off-peak price (€/kWh)",
+      "subscription": "Subscription (€/month)",
+      "subscriptionValue": "Subscription {{amount}}/month",
+      "since": "From {{date}}",
+      "empty": "No tariff yet. Add your kWh price to value consumption in euros."
+    },
     "consumption": {
       "registerLabel": "Register",
       "register": {
@@ -246,6 +263,10 @@
       "estimatedShare": "incl. {{kwh}} kWh estimated from readings",
       "noData": "No consumption data on this period.",
       "noHourlyData": "The hourly view only shows imported data (load curve). Import a file to see it."
+    },
+    "cost": {
+      "energy": "incl. consumption {{amount}}",
+      "subscription": "incl. subscription {{amount}}"
     },
     "import": {
       "title": "Import data",
