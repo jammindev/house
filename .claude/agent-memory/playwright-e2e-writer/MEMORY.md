@@ -7,3 +7,6 @@
 - [dropdown_radix_roles.md](dropdown_radix_roles.md) — Rôles ARIA des composants Radix UI (menuitem, menuitemradio, etc.)
 - [task_card_structure.md](task_card_structure.md) — Structure DOM de TaskCard et helpers getTaskCard/openTaskMenu
 - [electricity_module_patterns.md](electricity_module_patterns.md) — Sélecteurs, chaînes FR et patterns spécifiques au module Électricité (/app/electricity)
+- [electricity_consumption_patterns.md](electricity_consumption_patterns.md) — Patterns onglet Consommation : apiCreateMeter, CardActions barre compteur, toast Import strict-mode, navigation période, contrainte unique reading
+- [electricity_tariffs_patterns.md](electricity_tariffs_patterns.md) — Patterns TariffsDialog : CardActions LEFT container, SheetDialog Close button, undo toast derrière Sheet overlay, granularité "Jour" vs "Mois" pour navigation mensuelle, bandeau coût €
+- [water_module_patterns.md](water_module_patterns.md) — Patterns module Eau : pas de compteur, apiCreateReading/deleteAllReadings, IDs #water-reading-date / #water-reading-index, 3 granularités (sans Heure), p.text-lg pour total m³, isolation tests via delete-all + reload
