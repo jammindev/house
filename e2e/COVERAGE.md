@@ -299,3 +299,27 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Supprimer un relevé → disparaît immédiatement + toast "Annuler" | ✅ |
 | Undo de la suppression → le relevé réapparaît | ✅ |
 | Erreur de monotonie : index inférieur au précédent → erreur dans le dialog, dialog reste ouvert | ✅ |
+
+---
+
+## Dashboard (`dashboard.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page : h1 de salutation avec le prénom | ✅ |
+| Quick actions principaux visibles (Dépense, Tâche, Note, Demander à l'assistant) | ✅ |
+| Card "Ma semaine" toujours affichée | ✅ |
+| Données demo de projets actifs visibles ("Rénovation salle de bain") | ✅ |
+| Bouton Tâche ouvre le dialog de création | ✅ |
+| Créer une tâche (due +3j) via le dashboard → apparaît dans "Ma semaine" + toast "Tâche créée" | ✅ |
+| Cocher une tâche dans "Ma semaine" → elle disparaît de la liste + toast avec sujet "terminée" | ✅ |
+| Undo de la complétion → la tâche réapparaît dans "Ma semaine" | ✅ |
+| Bouton Note navigue vers /app/interactions/new?type=note | ✅ |
+| Tâche en retard (-3j) → bloc "À traiter" apparaît | ✅ |
+| Item en retard dans "À traiter" est cliquable → navigue vers /app/tasks | ✅ |
+| Card Électricité conditionnelle (masquée si aucun compteur dans le main) | ✅ |
+| Card Eau conditionnelle (masquée si < 2 relevés dans le main) | ✅ |
+| Section "Activité récente" visible si des interactions existent | ✅ |
+| Section "Projets actifs" visible + lien "Tous les projets" | ✅ |
+| Quick action Expense ouvre ExpenseAdHocDialog | ❌ (déjà couvert dans expense-adhoc.spec.ts) |
+| Quick actions conditionnels : Relevé eau / Relevé électricité (visibles si module a des données) | 🚧 (foyer demo sans relevés eau/elec au moment des tests) |
