@@ -251,17 +251,7 @@
         "hp": "Heures pleines",
         "hc": "Heures creuses"
       },
-      "granularity": {
-        "hour": "Heure",
-        "day": "Jour",
-        "month": "Mois",
-        "year": "Année"
-      },
-      "previousPeriod": "Période précédente",
-      "nextPeriod": "Période suivante",
-      "overPeriod": "sur la période",
       "estimatedShare": "dont {{kwh}} kWh estimés depuis les relevés",
-      "noData": "Aucune donnée de consommation sur cette période.",
       "noHourlyData": "La vue horaire n'affiche que les données importées (courbe de charge). Importez un fichier pour la voir."
     },
     "cost": {
@@ -290,6 +280,35 @@
         "generic_csv": "CSV générique",
         "enedis_xlsx": "Enedis — export énergie (XLSX)"
       }
+    }
+  },
+  "consumption": {
+    "granularity": {
+      "hour": "Heure",
+      "day": "Jour",
+      "month": "Mois",
+      "year": "Année"
+    },
+    "previousPeriod": "Période précédente",
+    "nextPeriod": "Période suivante",
+    "overPeriod": "sur la période",
+    "noData": "Aucune donnée de consommation sur cette période."
+  },
+  "water": {
+    "title": "Eau",
+    "description": "Suivez la consommation d'eau du foyer",
+    "emptyTitle": "Aucun relevé",
+    "emptyDescription": "Saisissez le premier relevé de votre compteur d'eau pour commencer à suivre votre consommation.",
+    "reading": {
+      "new": "Nouveau relevé",
+      "edit": "Modifier le relevé",
+      "created": "Relevé créé.",
+      "updated": "Relevé modifié.",
+      "deleted": "Relevé supprimé",
+      "indexM3": "Index (m³)",
+      "readingDate": "Date du relevé",
+      "indexRequired": "La date et l'index sont requis.",
+      "recentTitle": "Derniers relevés"
     }
   },
   "interactions": {

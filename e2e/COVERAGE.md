@@ -276,3 +276,26 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Modification du prix d'un tarif → nouvelle valeur dans la liste | ✅ |
 | Suppression d'un tarif → disparaît immédiatement + toast Annuler | ✅ |
 | Undo de la suppression → le tarif réapparaît dans la liste | ✅ |
+
+---
+
+## Eau (`water.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page avec titre "Eau" | ✅ |
+| État vide : titre "Aucun relevé" affiché | ✅ |
+| Le bouton de l'état vide ouvre le dialog de saisie (champs date + index visibles) | ✅ |
+| Fermer le dialog avec "Annuler" | ✅ |
+| Créer un premier relevé backdaté (index 1250.5 m³) → apparaît dans la liste | ✅ |
+| Deux relevés (index croissants) → card graphe visible avec total m³ | ✅ |
+| Titre "Derniers relevés" visible avec des relevés | ✅ |
+| Les trois FilterPills de granularité (Jour / Mois / Année) sont visibles | ✅ |
+| Vue Mois : card de total m³ visible | ✅ |
+| Vue Année : card de total m³ visible | ✅ |
+| Navigation ◀ change le libellé de période | ✅ |
+| Navigation ▶ change le libellé de période | ✅ |
+| Modifier l'index d'un relevé → nouvelle valeur visible dans la liste | ✅ |
+| Supprimer un relevé → disparaît immédiatement + toast "Annuler" | ✅ |
+| Undo de la suppression → le relevé réapparaît | ✅ |
+| Erreur de monotonie : index inférieur au précédent → erreur dans le dialog, dialog reste ouvert | ✅ |

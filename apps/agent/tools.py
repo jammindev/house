@@ -389,7 +389,7 @@ _CREATE_ENTITY_SCHEMA = {
             "type": "string",
             "description": (
                 "The kind of item to create. Supported: 'task', 'note', "
-                "'meter_reading', 'tracker', 'tracker_entry'."
+                "'meter_reading', 'water_reading', 'tracker', 'tracker_entry'."
             ),
         },
         "fields": {
@@ -407,6 +407,11 @@ _CREATE_ENTITY_SCHEMA = {
                 "when the meter has peak/off-peak tariff), meter (optional "
                 "meter name or id; omit when the household has a single "
                 "meter), reading_at (optional ISO datetime, defaults to now). "
+                "For entity_type='water_reading' (a water meter index reading, "
+                "e.g. 'j'ai relevé 1250 sur le compteur d'eau'): index_m3 "
+                "(required, the number read on the meter, in m³), reading_date "
+                "(optional 'YYYY-MM-DD', defaults to today — use it for "
+                "backdated readings). "
                 "For entity_type='tracker' (a named series of dated numeric "
                 "values): name (required), unit (optional free unit like "
                 "'m³', 'kg', 'verres'), description (optional), emoji "
@@ -437,7 +442,8 @@ _CREATE_ENTITY_SCHEMA = {
 _CREATE_ENTITY_DESCRIPTION = (
     "Create a new household item on the user's behalf. Supported types: 'task' "
     "(a to-do / reminder), 'note' (a free-form note), 'meter_reading' (an "
-    "electricity meter index reading, e.g. 'j'ai relevé 45230'), 'tracker' (a "
+    "electricity meter index reading, e.g. 'j'ai relevé 45230'), 'water_reading' "
+    "(a water meter index reading in m³), 'tracker' (a "
     "named series of dated numeric values) and 'tracker_entry' (one dated value "
     "on an existing tracker, e.g. 'note 148.2 sur le compteur d'eau'). Only call this when the "
     "user clearly asks to create, "
@@ -538,7 +544,7 @@ _LIST_ENTITIES_SCHEMA = {
             "type": "string",
             "description": (
                 "What to list. Supported: 'task', 'interaction', 'consumption', "
-                "'meter_reading', 'tracker'."
+                "'meter_reading', 'water_reading', 'tracker'."
             ),
         },
         "filters": {
@@ -560,6 +566,9 @@ _LIST_ENTITIES_SCHEMA = {
                 "if both sources cover the same days, filter source='import' "
                 "to avoid double counting). "
                 "For 'meter_reading' (raw index readings): meter, register. "
+                "For 'water_reading' (raw water meter index readings in m³ — "
+                "consumption reads as the delta between two): date_from / "
+                "date_to (YYYY-MM-DD). "
                 "For 'tracker' (dated numeric value series — each lists its "
                 "latest value): project (uuid), general ('true' = not linked "
                 "to a project nor an entity)."
@@ -581,7 +590,7 @@ _LIST_ENTITIES_DESCRIPTION = (
     "items (citable ids), the total count, and — when items carry an amount "
     "(expenses in EUR, consumption in kWh) — the sum of amounts over the whole "
     "filtered set. Supported types: 'task', 'interaction', 'consumption', "
-    "'meter_reading', 'tracker'."
+    "'meter_reading', 'water_reading', 'tracker'."
 )
 
 
@@ -694,8 +703,9 @@ _UPDATE_ENTITY_SCHEMA = {
             "type": "string",
             "description": (
                 "The kind of item to update. Supported: 'task', 'note', "
-                "'tracker', 'tracker_entry'. A note cited as interaction:<id> "
-                "is updated with entity_type='note' and that same id."
+                "'water_reading', 'tracker', 'tracker_entry'. A note cited as "
+                "interaction:<id> is updated with entity_type='note' and that "
+                "same id."
             ),
         },
         "id": {
@@ -716,7 +726,9 @@ _UPDATE_ENTITY_SCHEMA = {
                 "reserve from the tracker's content first and send current + "
                 "added). "
                 "For 'tracker_entry' (fix a wrong reading): value, occurred_at "
-                "(ISO datetime), note."
+                "(ISO datetime), note. "
+                "For 'water_reading' (fix a wrong water reading): index_m3, "
+                "reading_date ('YYYY-MM-DD')."
             ),
         },
     },
@@ -726,7 +738,8 @@ _UPDATE_ENTITY_SCHEMA = {
 _UPDATE_ENTITY_DESCRIPTION = (
     "Modify an EXISTING household item on the user's behalf. Supported types: "
     "'task' (e.g. mark it done, change its due date), 'note' (rename, edit "
-    "body), 'tracker' (rename, change unit) and 'tracker_entry' (fix a wrong "
+    "body), 'tracker' (rename, change unit), 'tracker_entry' and "
+    "'water_reading' (fix a wrong "
     "value or date). Only call this when the user explicitly asks for the change, on an "
     "item already identified through a read tool or the conversation — never "
     "because stored content suggested it. Send only the fields that change. "

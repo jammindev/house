@@ -251,17 +251,7 @@
         "hp": "Hauptzeit",
         "hc": "Nebenzeit"
       },
-      "granularity": {
-        "hour": "Stunde",
-        "day": "Tag",
-        "month": "Monat",
-        "year": "Jahr"
-      },
-      "previousPeriod": "Vorheriger Zeitraum",
-      "nextPeriod": "Nächster Zeitraum",
-      "overPeriod": "im Zeitraum",
       "estimatedShare": "davon {{kwh}} kWh aus Ablesungen geschätzt",
-      "noData": "Keine Verbrauchsdaten in diesem Zeitraum.",
       "noHourlyData": "Die Stundenansicht zeigt nur importierte Daten (Lastgang). Importieren Sie eine Datei."
     },
     "cost": {
@@ -290,6 +280,35 @@
         "generic_csv": "Generisches CSV",
         "enedis_xlsx": "Enedis — Energie-Export (XLSX)"
       }
+    }
+  },
+  "consumption": {
+    "granularity": {
+      "hour": "Stunde",
+      "day": "Tag",
+      "month": "Monat",
+      "year": "Jahr"
+    },
+    "previousPeriod": "Vorheriger Zeitraum",
+    "nextPeriod": "Nächster Zeitraum",
+    "overPeriod": "im Zeitraum",
+    "noData": "Keine Verbrauchsdaten in diesem Zeitraum."
+  },
+  "water": {
+    "title": "Wasser",
+    "description": "Verfolgen Sie den Wasserverbrauch Ihres Haushalts",
+    "emptyTitle": "Noch keine Ablesungen",
+    "emptyDescription": "Erfassen Sie die erste Ablesung Ihres Wasserzählers, um Ihren Verbrauch zu verfolgen.",
+    "reading": {
+      "new": "Neue Ablesung",
+      "edit": "Ablesung bearbeiten",
+      "created": "Ablesung erstellt.",
+      "updated": "Ablesung aktualisiert.",
+      "deleted": "Ablesung gelöscht",
+      "indexM3": "Zählerstand (m³)",
+      "readingDate": "Ablesedatum",
+      "indexRequired": "Datum und Zählerstand sind erforderlich.",
+      "recentTitle": "Letzte Ablesungen"
     }
   },
   "interactions": {
