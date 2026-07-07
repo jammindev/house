@@ -62,9 +62,10 @@ class TestBuildEntityContext:
     def test_anchor_and_related_are_rendered_and_citable(
         self, household, owner, make_project, make_document
     ):
+        from django.contrib.contenttypes.models import ContentType
         from django.utils import timezone
         from interactions.models import Interaction
-        from projects.models import ProjectDocument
+        from projects.models import Project, ProjectDocument
         from tasks.models import Task
 
         project = make_project(title="Rénovation PAC", description="devis en cours")
@@ -72,7 +73,9 @@ class TestBuildEntityContext:
         ProjectDocument.objects.create(project=project, document=doc)
         interaction = Interaction.objects.create(
             household=household, created_by=owner, subject="Dépense PAC",
-            occurred_at=timezone.now(), project=project,
+            occurred_at=timezone.now(),
+            source_content_type=ContentType.objects.get_for_model(Project),
+            source_object_id=project.pk,
         )
         task = Task.objects.create(
             household=household, created_by=owner, subject="Commander la PAC", project=project

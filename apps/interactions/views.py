@@ -1,8 +1,10 @@
 """
 Interaction views for REST API.
 """
+import uuid
 from datetime import datetime, time, timedelta, timezone as dt_timezone
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
@@ -64,7 +66,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
     """
     permission_classes = [IsHouseholdMember]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'status', 'is_private', 'project', 'created_by']
+    filterset_fields = ['type', 'status', 'is_private', 'created_by']
     search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
@@ -79,7 +81,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
         """Filter interactions to households where current user is a member."""
         queryset = Interaction.objects.for_user_households(self.request.user).select_related(
             'created_by'
-        ).prefetch_related('zones', 'documents', 'project', 'tags__tag')
+        ).prefetch_related('zones', 'documents', 'source', 'tags__tag')
 
         selected_household = self.request.household
         if selected_household:
@@ -89,6 +91,22 @@ class InteractionViewSet(viewsets.ModelViewSet):
         zone_id = self.request.query_params.get('zone')
         if zone_id:
             queryset = queryset.filter(zones__id=zone_id)
+
+        # Filter by polymorphic source (e.g. ?source_type=projects.project&source_id=<uuid>)
+        source_type = self.request.query_params.get('source_type')
+        if source_type:
+            try:
+                app_label, model = source_type.strip().lower().split('.')
+                source_ct = ContentType.objects.get_by_natural_key(app_label, model)
+            except (ValueError, ContentType.DoesNotExist):
+                return queryset.none()
+            queryset = queryset.filter(source_content_type=source_ct)
+        source_id = self.request.query_params.get('source_id')
+        if source_id:
+            try:
+                queryset = queryset.filter(source_object_id=uuid.UUID(source_id))
+            except ValueError:
+                return queryset.none()
 
         # Filter by contact
         contact_id = self.request.query_params.get('contact')

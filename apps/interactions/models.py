@@ -80,14 +80,6 @@ class Interaction(HouseholdScopedModel):
     )
     
     # Relations
-    project = models.ForeignKey(
-        'projects.Project',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='interactions',
-        db_column='project_id'
-    )
     source_content_type = models.ForeignKey(
         ContentType,
         on_delete=models.SET_NULL,
@@ -118,7 +110,6 @@ class Interaction(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'type'], name='idx_int_hh_type'),
             models.Index(fields=['household', '-occurred_at'], name='idx_int_hh_date'),
-            models.Index(fields=['project'], name='idx_int_project'),
             models.Index(
                 fields=['source_content_type', 'source_object_id'],
                 name='idx_int_source',

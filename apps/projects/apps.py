@@ -7,12 +7,21 @@ def _project_related(project):
     Walks the reverse relations to gather the project's documents, expenses /
     interactions, tasks and zones. Each returned instance is turned into a
     citable Hit through its own registered spec (unregistered types are skipped).
+    Interactions are linked via the polymorphic source FK, not a reverse relation.
     """
+    from django.contrib.contenttypes.models import ContentType
+    from interactions.models import Interaction
+
     items = []
     items.extend(
         pd.document for pd in project.project_documents.select_related("document")
     )
-    items.extend(project.interactions.all())
+    items.extend(
+        Interaction.objects.filter(
+            source_content_type=ContentType.objects.get_for_model(type(project)),
+            source_object_id=project.pk,
+        )
+    )
     items.extend(project.tasks.all())
     items.extend(pz.zone for pz in project.project_zones.select_related("zone"))
     return items
