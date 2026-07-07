@@ -12,6 +12,8 @@ from .models import (
     ConsumptionRecord,
     ElectricityMeter,
     MeterReading,
+    MeterTariff,
+    MeterTariffType,
     ElectricCircuit,
     ElectricityBoard,
     MaintenanceEvent,
@@ -507,6 +509,97 @@ class MeterReadingSerializer(HouseholdScopedModelSerializer):
             raise serializers.ValidationError(
                 {"reading_at": _("A reading already exists at this time for this register.")}
             )
+
+        return attrs
+
+    def _resolve_household_id(self, instance):
+        if instance is not None:
+            return instance.household_id
+        household_id = self.context.get("household_id")
+        if household_id:
+            return household_id
+        request = self.context.get("request")
+        if request is not None and request.household is not None:
+            return request.household.id
+        return None
+
+
+class MeterTariffSerializer(HouseholdScopedModelSerializer):
+    class Meta:
+        model = MeterTariff
+        fields = [
+            "id",
+            "household",
+            "meter",
+            "valid_from",
+            "price_base",
+            "price_hp",
+            "price_hc",
+            "subscription_eur_month",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["household", "created_at", "updated_at"]
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+        instance = getattr(self, "instance", None)
+
+        def current(field):
+            if field in attrs:
+                return attrs[field]
+            return getattr(instance, field, None) if instance is not None else None
+
+        meter = current("meter")
+        valid_from = current("valid_from")
+        price_base = current("price_base")
+        price_hp = current("price_hp")
+        price_hc = current("price_hc")
+        subscription = current("subscription_eur_month")
+
+        for field, value in (
+            ("price_base", price_base),
+            ("price_hp", price_hp),
+            ("price_hc", price_hc),
+            ("subscription_eur_month", subscription),
+        ):
+            if value is not None and value < 0:
+                raise serializers.ValidationError({field: _("Must be zero or positive.")})
+
+        if meter is None:
+            return attrs
+
+        household_id = self._resolve_household_id(instance)
+        if household_id and meter.household_id != household_id:
+            raise serializers.ValidationError({"meter": _("Meter must belong to the same household.")})
+
+        if meter.tariff_type == MeterTariffType.HP_HC:
+            if price_hp is None or price_hc is None:
+                raise serializers.ValidationError(
+                    {"price_hp": _("Peak and off-peak prices are required for a peak/off-peak meter.")}
+                )
+            if price_base is not None:
+                raise serializers.ValidationError(
+                    {"price_base": _("Base price must be empty for a peak/off-peak meter.")}
+                )
+        else:
+            if price_base is None:
+                raise serializers.ValidationError(
+                    {"price_base": _("Base price is required for a base meter.")}
+                )
+            if price_hp is not None or price_hc is not None:
+                raise serializers.ValidationError(
+                    {"price_hp": _("Peak/off-peak prices must be empty for a base meter.")}
+                )
+
+        if valid_from is not None:
+            siblings = MeterTariff.objects.filter(meter=meter, valid_from=valid_from)
+            if instance is not None:
+                siblings = siblings.exclude(id=instance.id)
+            if siblings.exists():
+                raise serializers.ValidationError(
+                    {"valid_from": _("A tariff already starts on this date for this meter.")}
+                )
 
         return attrs
 

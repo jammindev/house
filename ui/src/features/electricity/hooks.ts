@@ -30,6 +30,10 @@ import {
   createMeterReading,
   updateMeterReading,
   deleteMeterReading,
+  fetchMeterTariffs,
+  createMeterTariff,
+  updateMeterTariff,
+  deleteMeterTariff,
   fetchConsumptionSummary,
   fetchConsumptionImports,
   uploadConsumptionImport,
@@ -40,6 +44,7 @@ import {
   type UsagePointPayload,
   type MeterPayload,
   type MeterReadingPayload,
+  type MeterTariffPayload,
   type Granularity,
 } from '@/lib/api/electricity';
 
@@ -316,6 +321,7 @@ export const consumptionKeys = {
   summary: (params: { meter: string; granularity: string; date_from: string; date_to: string }) =>
     [...electricityKeys.all, 'summary', params] as const,
   imports: () => [...electricityKeys.all, 'imports'] as const,
+  tariffs: (meterId?: string) => [...electricityKeys.all, 'tariffs', meterId ?? 'all'] as const,
 };
 
 export function useMeters() {
@@ -427,6 +433,47 @@ export function useDeleteMeterReading() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteMeterReading(id),
+    onSuccess: () => invalidateConsumption(qc),
+  });
+}
+
+export function useMeterTariffs(meterId?: string) {
+  return useQuery({
+    queryKey: consumptionKeys.tariffs(meterId),
+    queryFn: () => fetchMeterTariffs(meterId),
+    enabled: Boolean(meterId),
+  });
+}
+
+export function useCreateMeterTariff() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: MeterTariffPayload) => createMeterTariff(payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.tariff.created'), variant: 'success' });
+    },
+  });
+}
+
+export function useUpdateMeterTariff() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<MeterTariffPayload> }) =>
+      updateMeterTariff(id, payload),
+    onSuccess: () => {
+      invalidateConsumption(qc);
+      toast({ description: t('electricity.tariff.updated'), variant: 'success' });
+    },
+  });
+}
+
+export function useDeleteMeterTariff() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteMeterTariff(id),
     onSuccess: () => invalidateConsumption(qc),
   });
 }

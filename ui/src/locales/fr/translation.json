@@ -227,6 +227,23 @@
       "updated": "Relevé modifié.",
       "deleted": "Relevé supprimé."
     },
+    "tariff": {
+      "manage": "Gérer les tarifs",
+      "title": "Tarifs — {{meter}}",
+      "new": "Nouveau tarif",
+      "edit": "Modifier le tarif",
+      "created": "Tarif ajouté.",
+      "updated": "Tarif mis à jour.",
+      "deleted": "Tarif supprimé.",
+      "validFrom": "Date d'effet",
+      "priceBase": "Prix (€/kWh)",
+      "priceHp": "Prix HP (€/kWh)",
+      "priceHc": "Prix HC (€/kWh)",
+      "subscription": "Abonnement (€/mois)",
+      "subscriptionValue": "Abonnement {{amount}}/mois",
+      "since": "À partir du {{date}}",
+      "empty": "Aucun tarif. Ajoutez le prix du kWh pour valoriser la consommation en euros."
+    },
     "consumption": {
       "registerLabel": "Cadran",
       "register": {
@@ -246,6 +263,10 @@
       "estimatedShare": "dont {{kwh}} kWh estimés depuis les relevés",
       "noData": "Aucune donnée de consommation sur cette période.",
       "noHourlyData": "La vue horaire n'affiche que les données importées (courbe de charge). Importez un fichier pour la voir."
+    },
+    "cost": {
+      "energy": "dont conso {{amount}}",
+      "subscription": "dont abonnement {{amount}}"
     },
     "import": {
       "title": "Importer des données",

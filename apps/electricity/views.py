@@ -29,6 +29,7 @@ from .models import (
     ElectricityMeter,
     MaintenanceEvent,
     MeterReading,
+    MeterTariff,
     PlanChangeLog,
     ProtectiveDevice,
     UsagePoint,
@@ -42,6 +43,7 @@ from .serializers import (
     ElectricityMeterSerializer,
     MaintenanceEventSerializer,
     MeterReadingSerializer,
+    MeterTariffSerializer,
     PlanChangeLogSerializer,
     ProtectiveDeviceSerializer,
     UsagePointSerializer,
@@ -304,6 +306,21 @@ class MeterReadingViewSet(HouseholdScopedModelViewSet):
 
     def perform_destroy(self, instance):
         services.delete_meter_reading(instance)
+
+
+class MeterTariffViewSet(HouseholdScopedModelViewSet):
+    """Pricing periods CRUD — validation (register/tariff_type coherence,
+    unique start date) lives in ``MeterTariffSerializer``."""
+
+    model = MeterTariff
+    serializer_class = MeterTariffSerializer
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        meter_id = self.request.query_params.get("meter")
+        if meter_id:
+            queryset = queryset.filter(meter_id=meter_id)
+        return queryset.order_by("-valid_from")
 
 
 class ConsumptionSummaryView(APIView):

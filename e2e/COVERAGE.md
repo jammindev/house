@@ -261,3 +261,18 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Undo de la suppression d'un relevé → relevé réapparaît | ✅ |
 | Modification d'un relevé via ⋯ → nouvelle valeur visible | ✅ |
 | Modification du nom d'un compteur via CardActions → nouveau nom affiché | ✅ |
+
+---
+
+## Électricité — Tarifs (`electricity-tariffs.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Sans tarif configuré, le bandeau € (dont conso / dont abonnement) est absent | ✅ |
+| Ouvrir "Gérer les tarifs" via CardActions du compteur | ✅ |
+| Créer un tarif base (prix + abonnement) → apparaît dans la liste | ✅ |
+| Après création d'un tarif, le bandeau € "dont conso" apparaît dans la card graphe | ✅ |
+| Tarif avec abonnement → "dont abonnement" visible dans le bandeau € | ✅ |
+| Modification du prix d'un tarif → nouvelle valeur dans la liste | ✅ |
+| Suppression d'un tarif → disparaît immédiatement + toast Annuler | ✅ |
+| Undo de la suppression → le tarif réapparaît dans la liste | ✅ |

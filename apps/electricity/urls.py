@@ -11,6 +11,7 @@ from .views import (
     ElectricityMeterViewSet,
     MaintenanceEventViewSet,
     MeterReadingViewSet,
+    MeterTariffViewSet,
     PlanChangeLogViewSet,
     ProtectiveDeviceViewSet,
     UsagePointViewSet,
@@ -26,6 +27,7 @@ router.register(r"maintenance-events", MaintenanceEventViewSet, basename="electr
 router.register(r"change-logs", PlanChangeLogViewSet, basename="electricity-change-log")
 router.register(r"meters", ElectricityMeterViewSet, basename="electricity-meter")
 router.register(r"meter-readings", MeterReadingViewSet, basename="electricity-meter-reading")
+router.register(r"meter-tariffs", MeterTariffViewSet, basename="electricity-meter-tariff")
 router.register(r"consumption/imports", ConsumptionImportViewSet, basename="electricity-consumption-import")
 
 urlpatterns = [

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight, Gauge, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Euro, Gauge, Pencil, Plus, Trash2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';
@@ -25,6 +25,7 @@ import ConsumptionChart from './ConsumptionChart';
 import ImportDialog from './ImportDialog';
 import MeterDialog from './MeterDialog';
 import ReadingDialog from './ReadingDialog';
+import TariffsDialog from './TariffsDialog';
 
 const GRANULARITIES: Granularity[] = ['hour', 'day', 'month', 'year'];
 
@@ -83,6 +84,10 @@ function periodLabel(anchor: Date, granularity: Granularity, locale: string): st
 
 function formatKwh(wh: number): string {
   return (wh / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+function formatEur(value: number, locale: string): string {
+  return value.toLocaleString(locale, { style: 'currency', currency: 'EUR' });
 }
 
 // ── Readings list ─────────────────────────────────────────────────────────────
@@ -154,6 +159,7 @@ export default function ConsumptionTab() {
   const [readingDialogOpen, setReadingDialogOpen] = React.useState(false);
   const [editingReading, setEditingReading] = React.useState<MeterReading | undefined>(undefined);
   const [importDialogOpen, setImportDialogOpen] = React.useState(false);
+  const [tariffsDialogOpen, setTariffsDialogOpen] = React.useState(false);
 
   const deleteMeter = useDeleteMeter();
   const deleteReading = useDeleteMeterReading();
@@ -199,6 +205,7 @@ export default function ConsumptionTab() {
 
   const meterActions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => { setEditingMeter(meter); setMeterDialogOpen(true); } },
+    { label: t('electricity.tariff.manage'), icon: Euro, onClick: () => setTariffsDialogOpen(true) },
     {
       label: t('common.delete'),
       icon: Trash2,
@@ -293,6 +300,21 @@ export default function ConsumptionTab() {
             </p>
           ) : null}
         </div>
+        {summary && summary.total_cost_eur !== null ? (
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 pb-2 text-sm">
+            <span className="font-semibold">{formatEur(summary.total_cost_eur, locale)}</span>
+            {summary.energy_cost_eur !== null ? (
+              <span className="text-muted-foreground">
+                {t('electricity.cost.energy', { amount: formatEur(summary.energy_cost_eur, locale) })}
+              </span>
+            ) : null}
+            {summary.subscription_cost_eur !== null ? (
+              <span className="text-muted-foreground">
+                {t('electricity.cost.subscription', { amount: formatEur(summary.subscription_cost_eur, locale) })}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
         {summaryLoading && !summary ? (
           <div className="h-64 animate-pulse rounded-lg bg-muted sm:h-80" />
         ) : hasData && summary ? (
@@ -345,6 +367,7 @@ export default function ConsumptionTab() {
         existing={editingReading}
       />
       <ImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} meter={meter} />
+      <TariffsDialog open={tariffsDialogOpen} onOpenChange={setTariffsDialogOpen} meter={meter} />
     </div>
   );
 }

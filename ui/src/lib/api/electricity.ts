@@ -321,11 +321,34 @@ export interface MeterReadingPayload {
   index_kwh: string;
 }
 
+export interface MeterTariff {
+  id: string;
+  household: string;
+  meter: string;
+  valid_from: string;
+  price_base: string | null;
+  price_hp: string | null;
+  price_hc: string | null;
+  subscription_eur_month: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MeterTariffPayload {
+  meter: string;
+  valid_from: string;
+  price_base?: string | null;
+  price_hp?: string | null;
+  price_hc?: string | null;
+  subscription_eur_month?: string | null;
+}
+
 export interface ConsumptionBucket {
   ts: string;
   total_wh: number;
   estimated_wh: number;
   registers: Partial<Record<EnergyRegister, number>>;
+  cost_eur: number | null;
 }
 
 export interface ConsumptionSummary {
@@ -336,6 +359,9 @@ export interface ConsumptionSummary {
   timezone: string;
   total_wh: number;
   estimated_wh: number;
+  energy_cost_eur: number | null;
+  subscription_cost_eur: number | null;
+  total_cost_eur: number | null;
   buckets: ConsumptionBucket[];
 }
 
@@ -405,6 +431,27 @@ export async function updateMeterReading(id: string, payload: Partial<MeterReadi
 
 export async function deleteMeterReading(id: string): Promise<void> {
   await api.delete(`/electricity/meter-readings/${id}/`);
+}
+
+export async function fetchMeterTariffs(meterId?: string): Promise<MeterTariff[]> {
+  const { data } = await api.get('/electricity/meter-tariffs/', {
+    params: meterId ? { meter: meterId } : undefined,
+  });
+  return normalizeList<MeterTariff>(data);
+}
+
+export async function createMeterTariff(payload: MeterTariffPayload): Promise<MeterTariff> {
+  const { data } = await api.post('/electricity/meter-tariffs/', payload);
+  return data as MeterTariff;
+}
+
+export async function updateMeterTariff(id: string, payload: Partial<MeterTariffPayload>): Promise<MeterTariff> {
+  const { data } = await api.patch(`/electricity/meter-tariffs/${id}/`, payload);
+  return data as MeterTariff;
+}
+
+export async function deleteMeterTariff(id: string): Promise<void> {
+  await api.delete(`/electricity/meter-tariffs/${id}/`);
 }
 
 export async function fetchConsumptionSummary(params: {

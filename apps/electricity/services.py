@@ -9,8 +9,11 @@ regeneration of the derived daily estimates). Callers pass an explicit
 """
 from __future__ import annotations
 
-from datetime import datetime, time, timedelta
+from bisect import bisect_right
+from calendar import monthrange
+from datetime import date, datetime, time, timedelta
 from datetime import timezone as dt_timezone
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from django.db import transaction
@@ -22,6 +25,7 @@ from .models import (
     ConsumptionSource,
     ElectricityMeter,
     MeterReading,
+    MeterTariff,
 )
 
 GRANULARITIES = ("hour", "day", "month", "year")
@@ -151,6 +155,46 @@ def rebuild_reading_records(meter: ElectricityMeter, register: str) -> int:
     return len(records)
 
 
+# --- cost (parcours 10 — lot 5) --------------------------------------------------
+
+_PRICE_FIELDS = {"base": "price_base", "hp": "price_hp", "hc": "price_hc"}
+
+
+def _tariff_lookup(meter: ElectricityMeter):
+    """Return (tariffs, applicable) where ``applicable(day)`` is the tariff in
+    force on a local day — the row with the latest ``valid_from`` ≤ day, or None."""
+    tariffs = list(MeterTariff.objects.filter(meter=meter).order_by("valid_from"))
+    dates = [t.valid_from for t in tariffs]
+
+    def applicable(day: date) -> MeterTariff | None:
+        i = bisect_right(dates, day)
+        return tariffs[i - 1] if i else None
+
+    return tariffs, applicable
+
+
+def _subscription_cost_eur(tariffs, applicable, tz, date_from: date, date_to: date) -> Decimal | None:
+    """Subscription share of [date_from, date_to] — prorated per calendar day of
+    the real month, bounded to today (never accrued in the future), starting at
+    the first tariff. None when no applicable day carries a subscription (no
+    misleading zero)."""
+    if not tariffs:
+        return None
+    today_local = datetime.now(tz).date()
+    day = max(date_from, tariffs[0].valid_from)
+    end = min(date_to, today_local)
+    total = Decimal("0")
+    charged = False
+    while day <= end:
+        tariff = applicable(day)
+        subscription = tariff.subscription_eur_month if tariff else None
+        if subscription is not None:
+            total += subscription / monthrange(day.year, day.month)[1]
+            charged = True
+        day += timedelta(days=1)
+    return total if charged else None
+
+
 # --- aggregation ---------------------------------------------------------------
 
 
@@ -173,6 +217,12 @@ def consumption_summary(household, meter: ElectricityMeter, *, granularity: str,
 
     Each bucket carries ``estimated_wh`` (the reading-derived share) so the UI
     can flag estimates.
+
+    Costing: each local day is valued at the tariff in force that day (per
+    register for HP/HC). A day with no applicable tariff or no price for its
+    register contributes no cost — ``cost_eur`` / ``energy_cost_eur`` stay None
+    when nothing is valued (no misleading zero). ``subscription_cost_eur`` is
+    prorated per calendar day of the real month and never accrued in the future.
     """
     if granularity not in GRANULARITIES:
         raise ValueError(f"unknown granularity: {granularity}")
@@ -223,19 +273,38 @@ def consumption_summary(household, meter: ElectricityMeter, *, granularity: str,
             return local.replace(month=1, day=1)
         return local  # hour and day rows are already at bucket resolution
 
+    tariffs, tariff_for = _tariff_lookup(meter)
+
     buckets: dict[datetime, dict] = {}
     for day, register, source, energy in day_rows:
         key = bucket_key(day)
         bucket = buckets.setdefault(
             key,
-            {"ts": key, "total_wh": 0, "estimated_wh": 0, "registers": {}},
+            {"ts": key, "total_wh": 0, "estimated_wh": 0, "registers": {}, "cost_eur": None},
         )
         bucket["total_wh"] += energy
         if source == ConsumptionSource.READING:
             bucket["estimated_wh"] += energy
         bucket["registers"][register] = bucket["registers"].get(register, 0) + energy
 
+        tariff = tariff_for(day.astimezone(tz).date())
+        price = getattr(tariff, _PRICE_FIELDS[register], None) if tariff else None
+        if price is not None:
+            bucket["cost_eur"] = (bucket["cost_eur"] or Decimal("0")) + Decimal(energy) * price / 1000
+
     ordered = [buckets[key] for key in sorted(buckets)]
+    costed = [b["cost_eur"] for b in ordered if b["cost_eur"] is not None]
+    energy_cost = sum(costed, Decimal("0")) if costed else None
+    subscription_cost = _subscription_cost_eur(tariffs, tariff_for, tz, date_from, date_to)
+    total_cost = (
+        None
+        if energy_cost is None and subscription_cost is None
+        else (energy_cost or Decimal("0")) + (subscription_cost or Decimal("0"))
+    )
+
+    def eur(value: Decimal | None) -> float | None:
+        return None if value is None else round(float(value), 2)
+
     return {
         "meter": str(meter.id),
         "granularity": granularity,
@@ -244,12 +313,16 @@ def consumption_summary(household, meter: ElectricityMeter, *, granularity: str,
         "timezone": str(tz.key),
         "total_wh": sum(b["total_wh"] for b in ordered),
         "estimated_wh": sum(b["estimated_wh"] for b in ordered),
+        "energy_cost_eur": eur(energy_cost),
+        "subscription_cost_eur": eur(subscription_cost),
+        "total_cost_eur": eur(total_cost),
         "buckets": [
             {
                 "ts": b["ts"].astimezone(tz).isoformat(),
                 "total_wh": b["total_wh"],
                 "estimated_wh": b["estimated_wh"],
                 "registers": b["registers"],
+                "cost_eur": eur(b["cost_eur"]),
             }
             for b in ordered
         ],

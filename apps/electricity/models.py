@@ -615,6 +615,46 @@ class ConsumptionRecord(HouseholdScopedModel):
         return f"{self.meter_id} {self.register} {self.ts_start:%Y-%m-%d %H:%M} +{self.interval_minutes}min = {self.energy_wh} Wh"
 
 
+class MeterTariff(HouseholdScopedModel):
+    """A pricing period of a meter — TTC €/kWh per register + monthly subscription.
+
+    The tariff applicable on a local day (meter timezone) is the row with the
+    latest ``valid_from`` ≤ that day. Which price fields are set is constrained
+    by the meter's ``tariff_type`` (enforced in the serializer): ``base`` meters
+    carry ``price_base`` only, ``hp_hc`` meters carry ``price_hp`` + ``price_hc``.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meter = models.ForeignKey(
+        ElectricityMeter,
+        on_delete=models.CASCADE,
+        related_name="tariffs",
+        db_column="meter_id",
+    )
+    valid_from = models.DateField()
+    price_base = models.DecimalField(max_digits=8, decimal_places=5, null=True, blank=True)
+    price_hp = models.DecimalField(max_digits=8, decimal_places=5, null=True, blank=True)
+    price_hc = models.DecimalField(max_digits=8, decimal_places=5, null=True, blank=True)
+    subscription_eur_month = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "electricity_meter_tariffs"
+        verbose_name = _("meter tariff")
+        verbose_name_plural = _("meter tariffs")
+        ordering = ["-valid_from"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["meter", "valid_from"],
+                name="uq_electricity_tariff_meter_valid_from",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.meter_id} @ {self.valid_from}"
+
+
 class ImportStatus(models.TextChoices):
     COMPLETED = "completed", _("Completed")
     FAILED = "failed", _("Failed")
