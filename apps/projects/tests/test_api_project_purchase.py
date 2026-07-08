@@ -54,7 +54,7 @@ def _purchase_url(project):
 
 
 @pytest.mark.django_db
-def test_register_purchase_increments_actual_cost_and_creates_expense(
+def test_register_purchase_reflects_computed_actual_cost_and_creates_expense(
     client, user, household, project, membership
 ):
     client.force_login(user)
@@ -87,31 +87,71 @@ def test_register_purchase_increments_actual_cost_and_creates_expense(
     assert interaction.metadata["supplier"] == "Leroy Merlin"
     assert interaction.metadata["project_title"] == "Kitchen reno"
 
+    # The DB column is dead: never written anymore (#234)
     project.refresh_from_db()
-    assert project.actual_cost_cached == Decimal("450.00")
+    assert project.actual_cost_cached == Decimal("0.00")
 
 
 @pytest.mark.django_db
-def test_register_purchase_accumulates_actual_cost(client, user, project, membership):
+def test_actual_cost_accumulates_over_purchases(client, user, project, membership):
     client.force_login(user)
-    project.actual_cost_cached = Decimal("100.00")
-    project.save(update_fields=["actual_cost_cached"])
+
+    first = client.post(
+        _purchase_url(project), data={"amount": "100.00"}, content_type="application/json"
+    )
+    assert first.status_code == 201, first.content
+    assert first.json()["actual_cost_cached"] == "100.00"
+
+    second = client.post(
+        _purchase_url(project), data={"amount": "50.50"}, content_type="application/json"
+    )
+    assert second.status_code == 201, second.content
+    assert second.json()["actual_cost_cached"] == "150.50"
+
+
+@pytest.mark.django_db
+def test_actual_cost_reflects_expense_deletion(client, user, project, membership):
+    client.force_login(user)
 
     response = client.post(
-        _purchase_url(project),
-        data={"amount": "50.50"},
-        content_type="application/json",
+        _purchase_url(project), data={"amount": "80.00"}, content_type="application/json"
     )
     assert response.status_code == 201, response.content
-    project.refresh_from_db()
-    assert project.actual_cost_cached == Decimal("150.50")
+    Interaction.objects.get(id=response.json()["interaction_id"]).delete()
+
+    detail = client.get(reverse("project-detail", kwargs={"pk": project.id}))
+    assert detail.status_code == 200
+    assert detail.json()["actual_cost_cached"] == "0.00"
 
 
 @pytest.mark.django_db
-def test_register_purchase_without_amount_does_not_touch_cost(client, user, project, membership):
+def test_actual_cost_counts_every_source_linked_expense(client, user, household, project, membership):
+    """Expenses created outside register_purchase count too — the whole point of #234."""
+    from django.utils import timezone
+
     client.force_login(user)
-    project.actual_cost_cached = Decimal("100.00")
-    project.save(update_fields=["actual_cost_cached"])
+    Interaction.objects.create(
+        household=household,
+        created_by=user,
+        subject="Achat direct",
+        type="expense",
+        occurred_at=timezone.now(),
+        metadata={"kind": "manual", "amount": "19.99", "supplier": ""},
+        source_content_type=ContentType.objects.get_for_model(Project),
+        source_object_id=project.id,
+    )
+
+    detail = client.get(reverse("project-detail", kwargs={"pk": project.id}))
+    assert detail.status_code == 200
+    assert detail.json()["actual_cost_cached"] == "19.99"
+
+
+@pytest.mark.django_db
+def test_register_purchase_without_amount_does_not_change_cost(client, user, project, membership):
+    client.force_login(user)
+    client.post(
+        _purchase_url(project), data={"amount": "100.00"}, content_type="application/json"
+    )
 
     response = client.post(
         _purchase_url(project),
@@ -121,8 +161,7 @@ def test_register_purchase_without_amount_does_not_touch_cost(client, user, proj
     assert response.status_code == 201, response.content
     payload = response.json()
     assert "interaction_id" in payload
-    project.refresh_from_db()
-    assert project.actual_cost_cached == Decimal("100.00")
+    assert payload["actual_cost_cached"] == "100.00"
     interaction = Interaction.objects.get(id=payload["interaction_id"])
     assert interaction.metadata["amount"] is None
 
