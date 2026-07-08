@@ -6,8 +6,9 @@
 
 - **Backend** : `apps/agent/` — orchestrateur (`service.py`), tools function-calling (`tools.py`), retrieval full-text (`retrieval.py`), registry des entités searchables (`searchables.py`), prompts (`prompts.py`), contexte ancré (`context.py`), persistance conversations (`models.py`).
 - **Frontend** : `ui/src/features/agent/` — `AgentPage` (pleine page, sidebar de conversations), `EntityAssistant` (chat ancré sans sidebar), `ChatBubble` (markdown + citations), `PrivacyNotice`.
-- **Locales (en/fr/de/es)** : namespace `agent` (dont `agent.entity.*` pour le chat ancré).
-- **Tests** : `apps/agent/tests/` — `test_service.py`, `test_tools.py`, `test_context.py`, `test_conversations_api.py`, `test_retrieval.py`, `test_prompts.py`, `test_registry.py`, `test_query_expansion.py`, `test_retention.py`, `test_llm.py`, `test_models.py`, `test_views.py`.
+- **Locales (en/fr/de/es)** : namespace `agent` (dont `agent.entity.*` pour le chat ancré, `agent.memory.*` pour la mémoire utilisateur).
+- **Mémoire utilisateur** : `apps/agent/memory.py` (service), modèle `AgentMemory`, tool `manage_memory`, page `ui/src/features/agent/MemoryPage.tsx`, toggle `AgentMemorySection` dans les réglages.
+- **Tests** : `apps/agent/tests/` — `test_service.py`, `test_tools.py`, `test_context.py`, `test_conversations_api.py`, `test_retrieval.py`, `test_prompts.py`, `test_registry.py`, `test_query_expansion.py`, `test_retention.py`, `test_llm.py`, `test_models.py`, `test_views.py`, `test_memory.py`.
 
 ## Boucle agent (function calling)
 
@@ -94,6 +95,36 @@ ré-injecté à chaque tour (reste frais), borné par les budgets `RELATED_*`.
 Aucune modification de `apps/agent/` n'est nécessaire pour brancher une nouvelle
 entité.
 
+## Mémoire utilisateur (2026-07)
+
+L'agent retient des **faits durables sur l'utilisateur** (préférences, habitudes,
+contexte perso) au fil des conversations — distinct des données du foyer, qui
+vivent dans leurs propres modèles et **priment** toujours en cas de conflit.
+
+- **Modèle `AgentMemory`** (`HouseholdScopedModel`, champ `content` ≤ 500 car.),
+  scopé `(household, created_by)` : privé par utilisateur, jamais partagé entre
+  membres. Comme les conversations, **pas** dans `searchables` — les mémoires
+  sont injectées telles quelles dans le system prompt, jamais retrouvées/citées.
+- **Service `apps/agent/memory.py`** = source de vérité des écritures (comme
+  `tasks/services.py`) : `save`/`update`/`forget`/`clear`, `user_memories`,
+  `resolve_memory`, cap `MEMORY_LIMIT=50` (les plus anciennes sont élaguées
+  silencieusement). Le tool ET le viewset REST passent par lui.
+- **Tool `manage_memory(action, content, memory_id)`** (`save`/`update`/`forget`).
+  Chaque écriture remonte dans `ToolResult.memories` → `metadata.memory_events`
+  (`{action, id, content, previous?}`), pour l'undo front + l'indication 📌.
+- **Injection + capture** (`service.ask_stream` + `prompts.build_system_prompt`) :
+  - `agent_memory_enabled=True` → mode `auto` : mémoires injectées (avec leur
+    `memory_id`) + capture spontanée autorisée.
+  - flag `False` → mode `manual` : le tool reste décrit (pour un « retiens
+    que… » explicite) mais **rien n'est injecté ni capté automatiquement**.
+  - pas d'`user` (bare `ask`, tests) → la mémoire n'est pas mentionnée du tout.
+- **Toggle** : champ `User.agent_memory_enabled` (défaut `True`), exposé par
+  `UserSerializer` et patchable via `PATCH /accounts/users/me/`.
+- **Frontend** : `MemoryPage` (`/app/agent/memory`) liste/édite/supprime (undo) +
+  « tout effacer » (confirm) ; `AgentMemorySection` (réglages) = toggle + lien ;
+  `useAgentMemoryEvents` (toast undo) + `MemoryNotice` (ligne 📌 persistante dans
+  la bulle, rejouée depuis `metadata.memory_events`).
+
 ## API
 
 Sous `/api/agent/` :
@@ -110,6 +141,8 @@ Sous `/api/agent/` :
   (générateur, `ask()` le draine pour les appels non-streamés) → view SSE.
 - `GET conversations/for_context/?entity_type=&object_id=` — get-or-create de la
   conversation ancrée d'une entité pour l'utilisateur courant.
+- `memories/` (CRUD, privé par user × foyer) + `DELETE memories/clear/` (efface
+  tout, renvoie `{deleted: n}`) — mémoire utilisateur.
 - Permissions : `IsAuthenticated, IsHouseholdMember` ; `ask`, `messages` et
   `messages/stream` sont throttlés (`agent_burst`/`agent_sustained`).
 

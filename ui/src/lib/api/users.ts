@@ -12,6 +12,7 @@ export interface UserProfile {
   avatar: string | null;
   theme: string;
   color_theme: string;
+  agent_memory_enabled: boolean;
   full_name: string;
   is_active: boolean;
   is_staff: boolean;
@@ -45,6 +46,7 @@ export interface UpdateProfileInput {
   locale?: Locale;
   theme?: Theme;
   color_theme?: ColorTheme;
+  agent_memory_enabled?: boolean;
 }
 
 export async function fetchMe(): Promise<UserProfile> {

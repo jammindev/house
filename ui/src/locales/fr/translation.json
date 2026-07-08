@@ -1823,7 +1823,8 @@
       "get_related": "Chargement des éléments liés…",
       "create_entity": "Création en cours…",
       "update_entity": "Mise à jour en cours…",
-      "default": "En cours…"
+      "default": "En cours…",
+      "manage_memory": "Mise à jour de la mémoire…"
     },
     "error": "Une erreur est survenue, réessaie.",
     "retry": "Réessayer",
@@ -1856,7 +1857,38 @@
     "rename_title": "Renommer la conversation",
     "rename_placeholder": "Titre de la conversation",
     "deleted": "Conversation supprimée",
-    "conversations_empty": "Aucune conversation"
+    "conversations_empty": "Aucune conversation",
+    "memory": {
+      "title": "Mémoire de l'assistant",
+      "description": "Ce que l'assistant retient sur toi au fil des conversations.",
+      "emptyTitle": "L'assistant ne sait encore rien sur toi",
+      "emptyDescription": "Au fil des échanges, l'assistant retient des faits durables sur toi (préférences, habitudes) pour personnaliser ses réponses. Tu peux aussi lui demander de « retenir que… ».",
+      "clearAll": "Tout effacer",
+      "clearConfirmTitle": "Effacer toute la mémoire ?",
+      "clearConfirmDescription": "L'assistant oubliera tout ce qu'il sait sur toi. Cette action est irréversible.",
+      "deleted": "Souvenir supprimé",
+      "editLabel": "Modifier le souvenir",
+      "updatedToast": "Souvenir mis à jour",
+      "clearedToast": "Mémoire entièrement effacée",
+      "settingsTitle": "Mémoire de l'assistant",
+      "settingsDescription": "Laisse l'assistant retenir des faits durables sur toi pour personnaliser ses réponses.",
+      "settingsSaved": "Préférence enregistrée",
+      "manage": "Gérer",
+      "toggleLabel": "Retenir automatiquement des faits sur moi",
+      "toggleHint": "Désactivé, l'assistant ne capte plus et n'utilise plus de souvenirs automatiquement. Tu peux toujours lui demander de retenir quelque chose explicitement.",
+      "saved": {
+        "title": "📌 Mémorisé",
+        "notice": "Mémorisé :"
+      },
+      "updated": {
+        "title": "📌 Souvenir mis à jour",
+        "notice": "Souvenir mis à jour :"
+      },
+      "forgotten": {
+        "title": "📌 Souvenir oublié",
+        "notice": "Un souvenir a été oublié."
+      }
+    }
   },
   "expenses": {
     "title": "Dépenses",

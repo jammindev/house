@@ -57,6 +57,32 @@ class AgentConversation(HouseholdScopedModel):
         return bool(self.context_entity_type and self.context_object_id)
 
 
+class AgentMemory(HouseholdScopedModel):
+    """A durable fact the agent knows about ONE user, learned from conversations.
+
+    This is the agent's memory of the USER (preferences, habits, personal
+    context — "prefers gardening on weekends"), not household data: household
+    facts already live in their own models and always win over a memory in case
+    of conflict. Scope: per (household, created_by) — memories are private to
+    the user who talked to the agent and are never shared between members.
+
+    Like conversations, memories are NOT registered in ``agent.searchables``:
+    they are injected verbatim into the system prompt, never retrieved/cited.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    content = models.TextField(max_length=500)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        ordering = ["-updated_at"]
+        verbose_name_plural = "agent memories"
+
+    def __str__(self) -> str:
+        return (self.content or "").strip()[:60]
+
+
 class AgentMessage(TimestampedModel):
     """A single turn in a conversation (a user question or an agent answer)."""
 

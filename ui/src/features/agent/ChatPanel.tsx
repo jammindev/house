@@ -7,8 +7,18 @@ import { cn } from '@/lib/utils';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
 import { hasAcceptedAgentPrivacy, acceptAgentPrivacy } from './privacyStorage';
-import { useAgentCreatedUndo, useAgentUpdatedUndo, useStreamMessage } from './hooks';
-import type { AgentCitation, AgentConversationDetail, AgentMessageRow } from './api';
+import {
+  useAgentCreatedUndo,
+  useAgentMemoryEvents,
+  useAgentUpdatedUndo,
+  useStreamMessage,
+} from './hooks';
+import type {
+  AgentCitation,
+  AgentConversationDetail,
+  AgentMemoryEvent,
+  AgentMessageRow,
+} from './api';
 
 interface UserMessage {
   id: string;
@@ -22,6 +32,8 @@ interface AgentMessage {
   text: string;
   citations: AgentCitation[];
   truncated?: boolean;
+  /** Memories the agent wrote this turn — rendered as a persistent 📌 line. */
+  memoryEvents?: AgentMemoryEvent[];
 }
 
 interface ErrorMessage {
@@ -44,6 +56,7 @@ function toMessage(row: AgentMessageRow): Message {
     text: row.content,
     citations: row.citations,
     truncated: Boolean(row.metadata?.truncated),
+    memoryEvents: row.metadata?.memory_events,
   };
 }
 
@@ -55,6 +68,7 @@ const KNOWN_TOOLS = new Set([
   'get_related',
   'create_entity',
   'update_entity',
+  'manage_memory',
 ]);
 
 interface ChatPanelProps {
@@ -98,6 +112,7 @@ export default function ChatPanel({
   const streamMessage = useStreamMessage();
   const notifyCreated = useAgentCreatedUndo();
   const notifyUpdated = useAgentUpdatedUndo();
+  const notifyMemory = useAgentMemoryEvents();
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
@@ -198,10 +213,12 @@ export default function ChatPanel({
             text: agentMsg.content,
             citations: agentMsg.citations,
             truncated: Boolean(agentMsg.metadata?.truncated),
+            memoryEvents: agentMsg.metadata?.memory_events,
           },
         ]);
         notifyCreated(agentMsg.metadata?.created_entities);
         notifyUpdated(agentMsg.metadata?.updated_entities);
+        notifyMemory(agentMsg.metadata?.memory_events);
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -211,7 +228,7 @@ export default function ChatPanel({
         setLive(null);
       }
     },
-    [draft, isBusy, conversationId, ensureConversation, streamMessage, notifyCreated, notifyUpdated, t],
+    [draft, isBusy, conversationId, ensureConversation, streamMessage, notifyCreated, notifyUpdated, notifyMemory, t],
   );
 
   const toolLabel = live?.tool
@@ -251,6 +268,7 @@ export default function ChatPanel({
                   text={msg.text}
                   citations={msg.citations}
                   truncated={msg.truncated}
+                  memoryEvents={msg.memoryEvents}
                 />
               );
             }
