@@ -82,15 +82,15 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
             </div>
           ) : null}
 
-          {item.project && item.project_title ? (
+          {item.source_type === 'projects.project' && item.source_id && item.source_label ? (
             <div className="mt-1 text-xs text-muted-foreground">
               <span>{t('interactions.project_label')}: </span>
               <Link
-                to={`/app/projects/${item.project}`}
+                to={`/app/projects/${item.source_id}`}
                 state={pushBack(location)}
                 className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
               >
-                {item.project_title}
+                {item.source_label}
               </Link>
             </div>
           ) : null}

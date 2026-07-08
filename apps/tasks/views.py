@@ -1,6 +1,8 @@
 """
 Task REST API views.
 """
+from datetime import date
+
 from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
@@ -61,6 +63,14 @@ class TaskViewSet(viewsets.ModelViewSet):
             qs = qs.filter(
                 due_date__lt=timezone.now().date()
             ).exclude(status__in=['done', 'archived'])
+
+        due_before = self.request.query_params.get('due_before', '').strip()
+        if due_before:
+            try:
+                due_limit = date.fromisoformat(due_before)
+            except ValueError:
+                raise ValidationError({'due_before': 'Must be an ISO date (YYYY-MM-DD).'})
+            qs = qs.filter(due_date__lte=due_limit)
 
         return qs
 
@@ -130,11 +140,9 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.save(**kwargs)
 
     def perform_destroy(self, instance):
-        if instance.created_by_id != self.request.user.pk:
-            raise PermissionDenied("Only the creator can delete this task.")
-        instance.status = Task.Status.ARCHIVED
-        instance.updated_by = self.request.user
-        instance.save(update_fields=['status', 'updated_by'])
+        from .services import archive_task
+
+        archive_task(self.request.user, instance)
 
 
 class TaskDocumentViewSet(viewsets.ModelViewSet):

@@ -20,7 +20,7 @@ Après chaque session produit importante :
 
 ## État actuel
 
-Dernière mise à jour : 2026-07-07
+Dernière mise à jour : 2026-07-08
 
 ### Parcours métier
 
@@ -30,7 +30,7 @@ Dernière mise à jour : 2026-07-07
 - Parcours 04 — Suivre un projet de bout en bout : **V1 livrée**
 - Parcours 05 — Naviguer par zone ou équipement pour comprendre et agir : **V1 livrée**
 - Parcours 06 — Recevoir les bons rappels au bon moment pour ne rien rater : **cadrage initial — à démarrer**
-- Parcours 07 — Poser une question en langage naturel sur son foyer : **V1 livrée** (lot 6 #109 reste à finir, non bloquant) ; lot 9 canal Telegram : **cadré le 2026-07-07 — à démarrer** (issues #221–#224 ; V2 différée #225)
+- Parcours 07 — Poser une question en langage naturel sur son foyer : **V1 livrée** (lot 6 #109 reste à finir, non bloquant) ; lot 9 canal Telegram : **livré le 2026-07-08** (#221–#224 ; recette avec un vrai bot @BotFather à faire ; V2 différée #225)
 - Parcours 08 — Suivre les dépenses : **lots V1 fermés** (#122, #123, #124)
 - Parcours 09 — Voir et piloter la maison connectée : **cadré le 2026-07-03 — à démarrer** (issues #183, #185–#188 ; V2 différée #189)
 - Parcours 10 — Analyser la consommation électrique : **V1 livrée le 2026-07-05** (PRs #204–#207 ; recette avec le fichier Enedis réel à faire ; V2 différée #202)

@@ -65,6 +65,11 @@ LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
 LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")
 LLM_VISION_MODEL = env("LLM_VISION_MODEL", default="claude-haiku-4-5-20251001")
 
+# Telegram bot channel — leave blank to disable (default).
+TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
+TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
+
 # Django Vite Configuration (HMR for local development)
 DJANGO_VITE = {
     "default": {

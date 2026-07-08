@@ -237,8 +237,9 @@ def create_note_interaction(
 
     Used by the agent's ``create_entity`` tool (entity_type='note'). The subject
     is provided by the user (no gettext template). Optionally linked to a project
-    (e.g. an anchored conversation) and/or zones. No expense metadata: a note
-    carries no amount/supplier, so ``metadata`` stays at its model default.
+    (e.g. an anchored conversation) via the polymorphic source FK, and/or zones.
+    No expense metadata: a note carries no amount/supplier, so ``metadata`` stays
+    at its model default.
 
     Args:
         household: Household instance (required).
@@ -251,6 +252,14 @@ def create_note_interaction(
     """
     if not subject or not subject.strip():
         raise ValueError("create_note_interaction: subject is required")
+
+    source_ct = None
+    source_object_id = None
+    if project is not None:
+        from projects.models import Project
+
+        source_ct = ContentType.objects.get_for_model(Project)
+        source_object_id = getattr(project, "pk", project)
 
     zones: list[Zone] = []
     if zone_ids:
@@ -268,7 +277,8 @@ def create_note_interaction(
             content=content or "",
             type="note",
             occurred_at=occurred_at or timezone.now(),
-            project_id=getattr(project, "pk", project),
+            source_content_type=source_ct,
+            source_object_id=source_object_id,
         )
         for zone in zones:
             InteractionZone.objects.create(interaction=interaction, zone=zone)
@@ -310,3 +320,19 @@ def update_note_interaction(
     interaction.updated_by = user
     interaction.save(update_fields=[*updates.keys(), "updated_by", "updated_at"])
     return interaction
+
+
+def delete_note_interaction(*, household, user, interaction: Interaction) -> None:
+    """Delete a note — the undo of ``create_note_interaction``.
+
+    Mirrors the interaction DELETE API (a plain hard delete) so the agent's
+    channel undo and a manual delete behave identically. Restricted to notes,
+    scoped to the household, and defensive about another user's private note.
+    """
+    if interaction.type != "note":
+        raise ValueError("delete_note_interaction: only notes can be deleted")
+    if interaction.household_id != household.id:
+        raise ValueError("delete_note_interaction: note belongs to another household")
+    if interaction.is_private and interaction.created_by_id != getattr(user, "pk", None):
+        raise ValueError("delete_note_interaction: cannot delete another user's private note")
+    interaction.delete()

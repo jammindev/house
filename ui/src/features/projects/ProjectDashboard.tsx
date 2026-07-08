@@ -296,7 +296,8 @@ function QuickNoteForm({ project }: { project: ProjectListItem }) {
         type: 'note',
         occurred_at: new Date().toISOString(),
         zone_ids: zoneIds,
-        project: project.id,
+        source_type: 'projects.project',
+        source_id: project.id,
       },
       {
         onSuccess: () => {

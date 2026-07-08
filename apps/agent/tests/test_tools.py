@@ -297,8 +297,9 @@ class TestGetRelated:
         self, household, owner, make_project, make_document
     ):
         from django.utils import timezone
+        from django.contrib.contenttypes.models import ContentType
         from interactions.models import Interaction
-        from projects.models import ProjectZone
+        from projects.models import Project, ProjectZone
         from tasks.models import Task
         from zones.models import Zone
 
@@ -307,7 +308,9 @@ class TestGetRelated:
         self._link_document(project, doc)
         interaction = Interaction.objects.create(
             household=household, created_by=owner, subject="Dépense PAC",
-            occurred_at=timezone.now(), project=project,
+            occurred_at=timezone.now(),
+            source_content_type=ContentType.objects.get_for_model(Project),
+            source_object_id=project.pk,
         )
         task = Task.objects.create(
             household=household, created_by=owner, subject="Commander la PAC", project=project
@@ -495,7 +498,7 @@ class TestCreateEntity:
             context_entity=("project", str(project.pk)),
         )
         note = Interaction.objects.get(subject="Penser au budget")
-        assert note.project_id == project.pk
+        assert note.source == project
 
     def test_unknown_entity_type_is_recoverable(self, household, owner):
         result = dispatch(

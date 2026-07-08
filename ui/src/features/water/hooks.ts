@@ -29,15 +29,20 @@ export function useWaterReadings() {
   });
 }
 
-export function useWaterConsumptionSummary(params: {
+export function useWaterConsumptionSummary({
+  enabled = true,
+  ...params
+}: {
   granularity: WaterGranularity;
   date_from: string;
   date_to: string;
+  enabled?: boolean;
 }) {
   return useQuery({
     queryKey: waterKeys.summary(params),
     queryFn: () => fetchWaterConsumptionSummary(params),
     placeholderData: (prev) => prev,
+    enabled,
   });
 }
 

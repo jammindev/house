@@ -205,7 +205,8 @@ export async function fetchProjectInteractions(
   type?: string,
 ): Promise<ProjectInteractionItem[]> {
   const params: Record<string, string | number> = {
-    project: projectId,
+    source_type: 'projects.project',
+    source_id: projectId,
     ordering: '-occurred_at',
     limit: 100,
   };

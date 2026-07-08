@@ -62,6 +62,22 @@ anti-doublon par tour (`service.ask`), et **Undo** côté client (toast « Annul
 qui supprime l'item). Une écriture est un effet de bord réversible, pas une
 proposition à valider.
 
+**Undo backend (`delete`)** : `WritableSpec` porte un champ optionnel
+`delete(household, user, object_id)` — miroir serveur des `UNDO_HANDLERS` du
+front, appelé par les canaux non-web (bouton « Annuler » de Telegram) via le
+point d'entrée unique `writables.delete_created(...)`. Il réutilise le service
+métier de la DELETE API (`task` → archive, `note` → delete) et lève `LookupError`
+si l'item est déjà parti (double-tap idempotent). Voir
+[telegram.md](./telegram.md).
+
+## Conversation, tous canaux — `conversations.py`
+
+`agent.conversations` factorise les deux gestes autour de `ask()` quand une
+conversation persistée est en jeu : `ask_inputs(conversation)` (historique borné
++ ancre) et `persist_turns(conversation, question, user, result)` (écriture
+atomique des deux tours, auto-titre, `last_message_at`). Les vues DRF **et** le
+canal Telegram s'en servent — même sémantique partout, pas de re-dérivation.
+
 ## Registry searchable — ajouter une entité
 
 Chaque app déclare ses entités depuis `apps.py::ready()` via

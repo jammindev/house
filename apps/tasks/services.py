@@ -100,3 +100,20 @@ def update_task(household, user, task: Task, *, fields: dict) -> Task:
         kwargs["completed_at"] = None
         kwargs["completed_by"] = None
     return serializer.save(**kwargs)
+
+
+def archive_task(user, task: Task) -> Task:
+    """Archive ``task`` — the meaning of "delete" for tasks (history is kept).
+
+    Single source of truth for the DELETE semantics: the REST viewset's
+    ``perform_destroy`` and the agent writable's ``delete`` (channel undo) both
+    call this. Only the creator may archive, same rule as the API always had.
+    """
+    from rest_framework.exceptions import PermissionDenied
+
+    if task.created_by_id != getattr(user, "pk", None):
+        raise PermissionDenied("Only the creator can delete this task.")
+    task.status = Task.Status.ARCHIVED
+    task.updated_by = user
+    task.save(update_fields=["status", "updated_by"])
+    return task

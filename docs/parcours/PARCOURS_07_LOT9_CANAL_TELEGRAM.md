@@ -1,6 +1,8 @@
 # Parcours 07 — Lot 9 : Canal Telegram (parler à la maison depuis sa messagerie)
 
-> **État : 🧭 cadré le 2026-07-07, non démarré.**
+> **État : ✅ livré le 2026-07-08** (lots 9a–9d, #221–#224). Fiche module :
+> [docs/MODULES/telegram.md](../MODULES/telegram.md). Recette avec un vrai bot
+> @BotFather à faire.
 > L'agent conversationnel devient joignable depuis **Telegram** : on pose sa
 > question dans sa messagerie habituelle, l'agent répond avec ses citations,
 > et peut créer des items (tâche, note) avec un Undo inline.

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "alerts",
     "agent",
     "ai_usage",
+    "telegram",
 ]
 
 MIDDLEWARE = [
@@ -218,3 +219,14 @@ AGENT_MAX_TOOL_ITERATIONS = 4
 # Agent conversation retention: conversations untouched for longer than this are
 # eligible for cleanup by `manage.py cleanup_agent_conversations`. 0 disables it.
 AGENT_CONVERSATION_RETENTION_DAYS = 365
+
+# Telegram bot channel for the agent. Empty token = channel disabled: the
+# webhook rejects everything and no outbound call is ever made.
+# Overridden per environment in local.py / production.py.
+TELEGRAM_BOT_TOKEN = ""
+TELEGRAM_BOT_USERNAME = ""  # public @username of the bot, for t.me deep-links
+TELEGRAM_WEBHOOK_SECRET = ""
+TELEGRAM_LINK_TOKEN_MAX_AGE_SECONDS = 15 * 60
+# Per-chat cooldown between agent questions — a burst of messages costs one
+# LLM call, the rest get a "slow down" reply.
+TELEGRAM_COOLDOWN_SECONDS = 5

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Bell, Clock, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, Bell, Clock, Hourglass, Package, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
@@ -12,6 +12,8 @@ import {
   type AlertSeverity,
   type DueMaintenanceAlert,
   type ExpiringWarrantyAlert,
+  type LowRunwayTrackerAlert,
+  type LowStockAlert,
   type OverdueTaskAlert,
 } from '@/lib/api/alerts';
 import { useAlertsSummary } from './hooks';
@@ -67,7 +69,14 @@ export default function AlertsPage() {
     );
   }
 
-  const summary = data ?? { overdue_tasks: [], expiring_warranties: [], due_maintenances: [], total: 0 };
+  const summary = data ?? {
+    overdue_tasks: [],
+    expiring_warranties: [],
+    due_maintenances: [],
+    low_stock: [],
+    low_runway_trackers: [],
+    total: 0,
+  };
 
   if (summary.total === 0) {
     return (
@@ -146,6 +155,56 @@ export default function AlertsPage() {
                   meta={t('alerts.maintenanceDueIn', {
                     count: item.days_remaining,
                     date: item.next_service_due,
+                  })}
+                  severityLabel={t(`alerts.severity.${item.severity}`)}
+                  severity={item.severity}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {summary.low_stock.length > 0 ? (
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Package className="h-4 w-4 text-amber-500" aria-hidden />
+              {t('alerts.sections.stock')}
+              <span className="text-muted-foreground">({summary.low_stock.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {summary.low_stock.map((item: LowStockAlert) => (
+                <AlertCard
+                  key={`stock-${item.id}`}
+                  to={item.entity_url}
+                  title={item.title}
+                  meta={`${t(`alerts.stockStatus.${item.status}`)} · ${t('alerts.stockRemaining', {
+                    quantity: item.quantity,
+                    unit: item.unit,
+                  })}`}
+                  severityLabel={t(`alerts.severity.${item.severity}`)}
+                  severity={item.severity}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {summary.low_runway_trackers.length > 0 ? (
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Hourglass className="h-4 w-4 text-destructive" aria-hidden />
+              {t('alerts.sections.runways')}
+              <span className="text-muted-foreground">({summary.low_runway_trackers.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {summary.low_runway_trackers.map((item: LowRunwayTrackerAlert) => (
+                <AlertCard
+                  key={`tracker-${item.id}`}
+                  to={item.entity_url}
+                  title={item.title}
+                  meta={t('alerts.runwayLeft', {
+                    count: Math.round(parseFloat(item.runway_days)),
+                    date: item.runway_until,
                   })}
                   severityLabel={t(`alerts.severity.${item.severity}`)}
                   severity={item.severity}
