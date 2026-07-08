@@ -49,11 +49,19 @@ export default function InteractionNewPage() {
   const createMutation = useCreateInteraction();
 
   // Read initial values from query params
-  const paramType = searchParams.get('type') ?? 'note';
+  const rawParamType = searchParams.get('type') ?? 'note';
   const paramZoneId = searchParams.get('zone_id') ?? '';
   const paramProjectId = searchParams.get('project_id') ?? '';
   const paramEquipmentId = searchParams.get('equipment_id') ?? '';
   const paramSourceInteractionId = searchParams.get('source_interaction_id') ?? '';
+
+  // Une dépense liée à un projet passe exclusivement par le dialog d'achat
+  // (ProjectPurchaseDialog, #235) — le form complet ne propose pas ce type
+  // quand un projet est imposé via l'URL.
+  const paramType = paramProjectId && rawParamType === 'expense' ? 'note' : rawParamType;
+  const typeOptions = paramProjectId
+    ? TYPE_OPTIONS.filter((v) => v !== 'expense')
+    : TYPE_OPTIONS;
 
   const [subject, setSubject] = React.useState('');
   const [type, setType] = React.useState(paramType);
@@ -218,7 +226,7 @@ export default function InteractionNewPage() {
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              {TYPE_OPTIONS.map((v) => (
+              {typeOptions.map((v) => (
                 <option key={v} value={v}>
                   {t(`equipment.interaction_type.${v}`, { defaultValue: v })}
                 </option>

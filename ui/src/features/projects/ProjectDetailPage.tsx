@@ -56,12 +56,14 @@ function TabInteractions({
   emptyKey,
   addUrl,
   addLabel,
+  onAdd,
 }: {
   projectId: string;
   type?: string;
   emptyKey: string;
   addUrl?: string;
   addLabel?: string;
+  onAdd?: () => void;
 }) {
   const { t } = useTranslation();
   const location = useLocation();
@@ -85,7 +87,18 @@ function TabInteractions({
 
   return (
     <div className="space-y-3">
-      {addUrl ? (
+      {onAdd ? (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={onAdd}
+            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {addLabel}
+          </button>
+        </div>
+      ) : addUrl ? (
         <div className="flex justify-end">
           <Link
             to={addUrl}
@@ -334,6 +347,8 @@ export default function ProjectDetailPage() {
                     projectId={project.id}
                     type="expense"
                     emptyKey="projects.empty_expenses"
+                    onAdd={() => setPurchaseOpen(true)}
+                    addLabel={t('projects.purchase.actions.add')}
                   />
                 ) : null}
 
