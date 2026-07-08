@@ -150,7 +150,9 @@ export default function InteractionNewPage() {
         occurred_at: occurredAt.toISOString(),
         zone_ids: [zoneId],
         tags_input: tags,
-        project: paramProjectId || null,
+        ...(paramProjectId
+          ? { source_type: 'projects.project', source_id: paramProjectId }
+          : {}),
         contact_ids: contactId ? [contactId] : [],
         structure_ids: structureId ? [structureId] : [],
         equipment_ids: equipmentId ? [equipmentId] : [],

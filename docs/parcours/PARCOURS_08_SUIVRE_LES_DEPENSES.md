@@ -1,6 +1,6 @@
 # Parcours 08 — Voir et enregistrer ses dépenses depuis n'importe où dans le foyer
 
-> **À démarrer** — la branche `feat/interaction-source-polymorphic` (PR à merger) pose la fondation technique : FK polymorphe sur `Interaction` + service helper `create_expense_interaction` + composant frontend `PurchaseForm` partagé. Le présent parcours capitalise dessus pour livrer la vue dépense + l'extension aux projets + la dépense ad-hoc. Backlog technique : [PARCOURS_08_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
+> **✅ Livré** — fondation technique mergée (FK polymorphe sur `Interaction`, service `create_expense_interaction`, composant frontend `PurchaseForm` partagé — #119, migration `0015`) et les trois lots (#122, #123, #124) sont en prod. Depuis #131 (PR 1), la FK polymorphe est la **seule** liaison dépense↔projet : l'ancienne FK directe `Interaction.project` a été supprimée (migrations `0016`/`0017`), l'API filtre par `?source_type=&source_id=`. Backlog technique : [PARCOURS_08_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_08_BACKLOG_TECHNIQUE.md).
 
 ## Résumé
 

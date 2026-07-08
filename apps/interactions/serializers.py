@@ -17,6 +17,28 @@ from .models import (
 )
 
 
+# Source models a client may link an interaction to via the generic write API.
+# Stock/equipment purchases go through their own endpoints, but the read shape
+# is shared so the write allowlist mirrors it.
+ALLOWED_SOURCE_TYPES = {'projects.project', 'stock.stockitem', 'equipment.equipment'}
+
+
+class SourceContentTypeField(serializers.Field):
+    """Read/write the polymorphic source type as an 'app_label.model' string."""
+
+    def to_representation(self, value):
+        return f"{value.app_label}.{value.model}"
+
+    def to_internal_value(self, data):
+        key = str(data).strip().lower()
+        if key not in ALLOWED_SOURCE_TYPES:
+            raise serializers.ValidationError(
+                f"Unsupported source type. Allowed: {', '.join(sorted(ALLOWED_SOURCE_TYPES))}."
+            )
+        app_label, model = key.split('.')
+        return ContentType.objects.get_by_natural_key(app_label, model)
+
+
 class ManualExpenseSerializer(serializers.Serializer):
     """Input for POST /api/interactions/expenses/manual/."""
 
@@ -44,9 +66,12 @@ class InteractionSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True
     )
-    project_title = serializers.SerializerMethodField()
-    source_type = serializers.SerializerMethodField()
-    source_id = serializers.UUIDField(source='source_object_id', read_only=True)
+    source_type = SourceContentTypeField(
+        source='source_content_type', required=False, allow_null=True
+    )
+    source_id = serializers.UUIDField(
+        source='source_object_id', required=False, allow_null=True
+    )
     source_label = serializers.SerializerMethodField()
     zone_names = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
@@ -93,7 +118,6 @@ class InteractionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'household', 'subject', 'content', 'type', 'status',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
-            'project', 'project_title',
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
             'contacts', 'contact_ids', 'structures', 'structure_ids',
@@ -107,18 +131,27 @@ class InteractionSerializer(serializers.ModelSerializer):
         interaction_type = data.get('type') or (self.instance.type if self.instance else None)
         if interaction_type != 'todo' and not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
             raise serializers.ValidationError({'occurred_at': 'This field is required for this interaction type.'})
-        return data
-    
-    def get_project_title(self, obj):
-        if obj.project_id:
-            return obj.project.title if obj.project else None
-        return None
 
-    def get_source_type(self, obj):
-        if obj.source_content_type_id is None:
-            return None
-        ct = obj.source_content_type
-        return f"{ct.app_label}.{ct.model}"
+        has_ct = 'source_content_type' in data
+        has_oid = 'source_object_id' in data
+        if has_ct or has_oid:
+            ct = data['source_content_type'] if has_ct else getattr(self.instance, 'source_content_type', None)
+            oid = data['source_object_id'] if has_oid else getattr(self.instance, 'source_object_id', None)
+            if (ct is None) != (oid is None):
+                raise serializers.ValidationError(
+                    {'source_id': 'source_type and source_id must be provided together.'}
+                )
+        return data
+
+    def _validate_source_in_household(self, source_ct, source_object_id, household_id):
+        """The linked source object must exist in the interaction's household."""
+        if source_ct is None or source_object_id is None:
+            return
+        model = source_ct.model_class()
+        if not model.objects.filter(pk=source_object_id, household_id=household_id).exists():
+            raise serializers.ValidationError(
+                {'source_id': 'Source object not found in this household.'}
+            )
 
     def get_source_label(self, obj):
         source = obj.source
@@ -238,6 +271,12 @@ class InteractionSerializer(serializers.ModelSerializer):
         structure_ids = validated_data.pop('structure_ids', [])
         equipment_ids = validated_data.pop('equipment_ids', [])
 
+        self._validate_source_in_household(
+            validated_data.get('source_content_type'),
+            validated_data.get('source_object_id'),
+            validated_data.get('household_id') or getattr(validated_data.get('household'), 'id', None),
+        )
+
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
 
@@ -264,6 +303,12 @@ class InteractionSerializer(serializers.ModelSerializer):
         contact_ids = validated_data.pop('contact_ids', None)
         structure_ids = validated_data.pop('structure_ids', None)
         equipment_ids = validated_data.pop('equipment_ids', None)
+
+        self._validate_source_in_household(
+            validated_data.get('source_content_type', instance.source_content_type),
+            validated_data.get('source_object_id', instance.source_object_id),
+            instance.household_id,
+        )
 
         # Update interaction fields
         for attr, value in validated_data.items():

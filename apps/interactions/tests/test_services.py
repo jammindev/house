@@ -269,7 +269,7 @@ class TestCreateNoteInteraction:
             project=project,
         )
         assert note.content == "carreaux 20x20 chez X"
-        assert note.project_id == project.pk
+        assert note.source == project
 
     def test_zone_link(self, user, household, membership, zone):
         note = create_note_interaction(

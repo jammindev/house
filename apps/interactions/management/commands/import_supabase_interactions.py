@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
@@ -210,6 +211,7 @@ class Command(BaseCommand):
         counters = ImportCounters()
         valid_types = {choice for choice, _label in Interaction.INTERACTION_TYPES}
         valid_statuses = {choice for choice, _label in Interaction.STATUS_CHOICES}
+        project_content_type = ContentType.objects.get_for_model(Project)
 
         for row in rows:
             interaction_id = row.get("id")
@@ -252,7 +254,8 @@ class Command(BaseCommand):
                 "occurred_at": occurred_at,
                 "metadata": metadata_value,
                 "enriched_text": row.get("enriched_text") or "",
-                "project_id": project_id,
+                "source_content_type": project_content_type if project_id else None,
+                "source_object_id": project_id,
                 "created_by_id": self._map_user_id(row.get("created_by"), fallback_user_id, existing_user_ids),
                 "updated_by_id": self._map_user_id(row.get("updated_by"), fallback_user_id, existing_user_ids),
             }

@@ -2,6 +2,7 @@ import uuid
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
@@ -114,7 +115,8 @@ class ImportSupabaseInteractionsCommandTests(TestCase):
         self.assertEqual(len(interaction.subject), 500)
         self.assertEqual(interaction.content, "")
         self.assertEqual(interaction.metadata, {})
-        self.assertEqual(interaction.project_id, project_id)
+        self.assertEqual(interaction.source_object_id, project_id)
+        self.assertEqual(interaction.source_content_type, ContentType.objects.get_for_model(Project))
         self.assertEqual(interaction.created_by_id, 1)
         self.assertEqual(interaction.updated_by_id, 1)
 

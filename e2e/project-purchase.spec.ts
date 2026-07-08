@@ -3,12 +3,14 @@ import { test, expect } from '@playwright/test';
 /**
  * Parcours 08 — Lot 1.1 : enregistrer une dépense liée à un projet.
  *
- * Issue: https://github.com/jammindev/house/issues/123
+ * Issues: https://github.com/jammindev/house/issues/123
+ *         https://github.com/jammindev/house/issues/131 (onglet Dépenses)
  *
- * Le test crée un projet, déclenche le quick-add depuis sa card, vérifie que
+ * Le test déclenche le quick-add depuis la card d'un projet, vérifie que
  * l'`Interaction(type=expense, kind='project_purchase')` est créée et listée
- * dans /app/interactions, et que `actual_cost_cached` est incrémenté côté
- * card (BudgetBar visible).
+ * dans /app/interactions ET dans l'onglet Dépenses du projet (liaison via la
+ * source polymorphe — c'était le bug de désync de #131), et qu'elle apparaît
+ * dans la vue dépenses.
  */
 
 test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', async ({ page }) => {
@@ -36,6 +38,13 @@ test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', 
   await page.locator('#purchase-supplier').fill(supplier);
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
   await expect(dialog).toBeHidden();
+
+  // Vérifier que la dépense apparaît dans l'onglet Dépenses du projet
+  // (régression #131 : les achats du dialog n'y étaient pas visibles)
+  await page.getByText(projectTitle, { exact: true }).first().click();
+  await expect(page).toHaveURL(/\/app\/projects\/[0-9a-f-]+/);
+  await page.getByRole('button', { name: 'Dépenses', exact: true }).click();
+  await expect(page.getByText(`Achat — ${projectTitle}`).first()).toBeVisible();
 
   // Vérifier que l'interaction expense est listée dans /app/interactions
   await page.goto('/app/interactions');

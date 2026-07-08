@@ -1,6 +1,8 @@
+import uuid
 from datetime import timedelta
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -51,6 +53,11 @@ def household(db, owner):
 @pytest.fixture
 def owner_client(owner):
     return _client_for(owner)
+
+
+@pytest.fixture
+def other_household(db):
+    return _create_household("Foreign House")
 
 
 @pytest.fixture
@@ -572,43 +579,100 @@ class TestInteractionLinks:
         }
 
 @pytest.mark.django_db
-class TestInteractionProjectLink:
-    def test_create_interaction_with_project_links_correctly(self, owner_client, household, owner, primary_zone):
-        project = Project.objects.create(
+class TestInteractionSourceLink:
+    def _project(self, household, owner, title='Rénovation cuisine'):
+        return Project.objects.create(
             household=household,
             created_by=owner,
-            title='Rénovation cuisine',
+            title=title,
             type='renovation',
             status='active',
         )
 
+    def _linked_interaction(self, household, owner, project, subject='Tâche du projet'):
+        return Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject=subject,
+            type='todo',
+            occurred_at=timezone.now(),
+            source_content_type=ContentType.objects.get_for_model(Project),
+            source_object_id=project.id,
+        )
+
+    def test_create_interaction_with_project_source_links_correctly(self, owner_client, household, owner, primary_zone):
+        project = self._project(household, owner)
+
         url = reverse("interaction-list")
         response = owner_client.post(
             url,
-            _interaction_payload([primary_zone.id], type="todo", project=str(project.id)),
+            _interaction_payload(
+                [primary_zone.id],
+                type="todo",
+                source_type="projects.project",
+                source_id=str(project.id),
+            ),
             format="json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["source_type"] == "projects.project"
+        assert response.data["source_id"] == str(project.id)
         interaction = Interaction.objects.get(id=response.data["id"])
-        assert interaction.project == project
+        assert interaction.source == project
 
-    def test_list_interactions_filtered_by_project(self, owner_client, household, owner, primary_zone):
-        project = Project.objects.create(
-            household=household,
-            created_by=owner,
-            title='Projet filtrage',
-            type='other',
-            status='active',
+    def test_create_interaction_with_unsupported_source_type_rejected(self, owner_client, household, owner, primary_zone):
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload(
+                [primary_zone.id],
+                type="todo",
+                source_type="accounts.user",
+                source_id=str(uuid.uuid4()),
+            ),
+            format="json",
         )
-        linked = Interaction.objects.create(
-            household=household,
-            created_by=owner,
-            subject='Tâche du projet',
-            type='todo',
-            occurred_at=timezone.now(),
-            project=project,
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "source_type" in response.data
+
+    def test_create_interaction_with_source_type_alone_rejected(self, owner_client, household, owner, primary_zone):
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload(
+                [primary_zone.id],
+                type="todo",
+                source_type="projects.project",
+            ),
+            format="json",
         )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "source_id" in response.data
+
+    def test_create_interaction_with_foreign_household_source_rejected(self, owner_client, household, owner, primary_zone, other_household):
+        foreign_project = self._project(other_household, owner, title='Projet étranger')
+
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload(
+                [primary_zone.id],
+                type="todo",
+                source_type="projects.project",
+                source_id=str(foreign_project.id),
+            ),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "source_id" in response.data
+
+    def test_list_interactions_filtered_by_source(self, owner_client, household, owner, primary_zone):
+        project = self._project(household, owner, title='Projet filtrage')
+        linked = self._linked_interaction(household, owner, project)
         linked.zones.add(primary_zone)
         unlinked = Interaction.objects.create(
             household=household,
@@ -622,7 +686,7 @@ class TestInteractionProjectLink:
         url = reverse("interaction-list")
         response = owner_client.get(
             url,
-            {"project": str(project.id)},
+            {"source_type": "projects.project", "source_id": str(project.id)},
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -630,22 +694,28 @@ class TestInteractionProjectLink:
         assert str(linked.id) in result_ids
         assert str(unlinked.id) not in result_ids
 
-    def test_patch_interaction_does_not_erase_project(self, owner_client, household, owner, primary_zone):
-        project = Project.objects.create(
-            household=household,
-            created_by=owner,
-            title='Projet stable',
-            type='other',
-            status='active',
-        )
+    def test_list_interactions_with_invalid_source_params_returns_empty(self, owner_client, household, owner, primary_zone):
         interaction = Interaction.objects.create(
             household=household,
             created_by=owner,
-            subject='Tâche initiale',
+            subject='Tâche',
             type='todo',
             occurred_at=timezone.now(),
-            project=project,
         )
+        interaction.zones.add(primary_zone)
+
+        url = reverse("interaction-list")
+        response = owner_client.get(url, {"source_type": "not-a-model"})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data.get("results", response.data) == []
+
+        response = owner_client.get(url, {"source_id": "not-a-uuid"})
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data.get("results", response.data) == []
+
+    def test_patch_interaction_does_not_erase_source(self, owner_client, household, owner, primary_zone):
+        project = self._project(household, owner, title='Projet stable')
+        interaction = self._linked_interaction(household, owner, project, subject='Tâche initiale')
         interaction.zones.add(primary_zone)
 
         url = reverse("interaction-detail", kwargs={"pk": interaction.id})
@@ -658,4 +728,4 @@ class TestInteractionProjectLink:
         assert response.status_code == status.HTTP_200_OK
         interaction.refresh_from_db()
         assert interaction.subject == "Tâche mise à jour"
-        assert interaction.project == project
+        assert interaction.source == project

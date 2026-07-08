@@ -142,14 +142,14 @@ export default function InteractionDetailPage() {
             </InfoField>
           )}
 
-          {interaction.project && interaction.project_title && (
+          {interaction.source_type === 'projects.project' && interaction.source_id && interaction.source_label && (
             <InfoField label={t('interactions.project_label')}>
               <Link
-                to={`/app/projects/${interaction.project}`}
+                to={`/app/projects/${interaction.source_id}`}
                 state={pushBack(location)}
                 className="text-primary hover:underline"
               >
-                {interaction.project_title}
+                {interaction.source_label}
               </Link>
             </InfoField>
           )}

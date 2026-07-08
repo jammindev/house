@@ -17,7 +17,6 @@ class InteractionAdmin(admin.ModelAdmin):
     list_filter = ['type', 'status', 'is_private', 'household', 'occurred_at', 'created_at']
     search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     readonly_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
-    # autocomplete_fields = ['project']  # TODO: Uncomment after projects app
     inlines = [InteractionZoneInline]
     
     fieldsets = [
@@ -31,9 +30,6 @@ class InteractionAdmin(admin.ModelAdmin):
             'fields': ['metadata', 'enriched_text'],
             'classes': ['collapse']
         }),
-        # ('Relations', {  # TODO: Uncomment after projects
-        #     'fields': ['project']
-        # }),
         ('Audit', {
             'fields': ['id', 'created_at', 'updated_at', 'created_by', 'updated_by'],
             'classes': ['collapse']

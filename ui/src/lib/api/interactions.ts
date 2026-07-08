@@ -26,8 +26,6 @@ export interface InteractionListItem {
   zone_names: string[];
   document_count: number;
   created_by_name?: string;
-  project?: string | null;
-  project_title?: string | null;
   metadata?: Record<string, unknown>;
   source_type?: string | null;
   source_id?: string | null;
@@ -47,7 +45,8 @@ export interface CreateInteractionInput {
   tags_input?: string[];
   metadata?: Record<string, unknown>;
   document_ids?: string[];
-  project?: string | null;
+  source_type?: string | null;
+  source_id?: string | null;
   contact_ids?: string[];
   structure_ids?: string[];
   equipment_ids?: string[];
