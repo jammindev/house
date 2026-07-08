@@ -1759,7 +1759,8 @@
       "get_related": "Loading linked items…",
       "create_entity": "Creating…",
       "update_entity": "Updating…",
-      "default": "Working…"
+      "default": "Working…",
+      "manage_memory": "Updating memory…"
     },
     "error": "Something went wrong, please try again.",
     "retry": "Retry",
@@ -1792,7 +1793,38 @@
     "rename_title": "Rename conversation",
     "rename_placeholder": "Conversation title",
     "deleted": "Conversation deleted",
-    "conversations_empty": "No conversations yet"
+    "conversations_empty": "No conversations yet",
+    "memory": {
+      "title": "Agent memory",
+      "description": "What the assistant remembers about you across conversations.",
+      "emptyTitle": "The assistant doesn't know anything about you yet",
+      "emptyDescription": "As you chat, the assistant remembers durable facts about you (preferences, habits) to personalize its answers. You can also ask it to \"remember that…\".",
+      "clearAll": "Clear all",
+      "clearConfirmTitle": "Clear all memories?",
+      "clearConfirmDescription": "The assistant will forget everything it knows about you. This can't be undone.",
+      "deleted": "Memory deleted",
+      "editLabel": "Edit memory",
+      "updatedToast": "Memory updated",
+      "clearedToast": "All memories cleared",
+      "settingsTitle": "Assistant memory",
+      "settingsDescription": "Let the assistant remember durable facts about you to personalize its answers.",
+      "settingsSaved": "Preference saved",
+      "manage": "Manage",
+      "toggleLabel": "Remember facts about me automatically",
+      "toggleHint": "When off, the assistant no longer captures or uses memories automatically. You can still ask it to remember something explicitly.",
+      "saved": {
+        "title": "📌 Remembered",
+        "notice": "Remembered:"
+      },
+      "updated": {
+        "title": "📌 Memory updated",
+        "notice": "Updated memory:"
+      },
+      "forgotten": {
+        "title": "📌 Memory forgotten",
+        "notice": "Forgot a memory."
+      }
+    }
   },
   "expenses": {
     "title": "Expenses",

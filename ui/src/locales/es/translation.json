@@ -1759,7 +1759,8 @@
       "get_related": "Cargando elementos vinculados…",
       "create_entity": "Creando…",
       "update_entity": "Actualizando…",
-      "default": "Trabajando…"
+      "default": "Trabajando…",
+      "manage_memory": "Actualizando memoria…"
     },
     "error": "Algo salió mal, inténtalo de nuevo.",
     "retry": "Reintentar",
@@ -1792,7 +1793,38 @@
     "rename_title": "Renombrar conversación",
     "rename_placeholder": "Título de la conversación",
     "deleted": "Conversación eliminada",
-    "conversations_empty": "Aún no hay conversaciones"
+    "conversations_empty": "Aún no hay conversaciones",
+    "memory": {
+      "title": "Memoria del asistente",
+      "description": "Lo que el asistente recuerda sobre ti a lo largo de las conversaciones.",
+      "emptyTitle": "El asistente aún no sabe nada sobre ti",
+      "emptyDescription": "A medida que conversas, el asistente recuerda datos duraderos sobre ti (preferencias, hábitos) para personalizar sus respuestas. También puedes pedirle que «recuerde que…».",
+      "clearAll": "Borrar todo",
+      "clearConfirmTitle": "¿Borrar toda la memoria?",
+      "clearConfirmDescription": "El asistente olvidará todo lo que sabe sobre ti. Esta acción no se puede deshacer.",
+      "deleted": "Recuerdo eliminado",
+      "editLabel": "Editar recuerdo",
+      "updatedToast": "Recuerdo actualizado",
+      "clearedToast": "Memoria borrada por completo",
+      "settingsTitle": "Memoria del asistente",
+      "settingsDescription": "Permite que el asistente recuerde datos duraderos sobre ti para personalizar sus respuestas.",
+      "settingsSaved": "Preferencia guardada",
+      "manage": "Gestionar",
+      "toggleLabel": "Recordar datos sobre mí automáticamente",
+      "toggleHint": "Si está desactivado, el asistente deja de captar y usar recuerdos automáticamente. Aún puedes pedirle que recuerde algo de forma explícita.",
+      "saved": {
+        "title": "📌 Recordado",
+        "notice": "Recordado:"
+      },
+      "updated": {
+        "title": "📌 Recuerdo actualizado",
+        "notice": "Recuerdo actualizado:"
+      },
+      "forgotten": {
+        "title": "📌 Recuerdo olvidado",
+        "notice": "Se olvidó un recuerdo."
+      }
+    }
   },
   "expenses": {
     "title": "Gastos",

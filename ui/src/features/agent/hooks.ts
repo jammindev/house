@@ -18,17 +18,24 @@ import { electricityKeys } from '@/features/electricity/hooks';
 import { waterKeys } from '@/features/water/hooks';
 import { trackerKeys } from '@/features/trackers/hooks';
 import {
+  clearMemories,
   createConversation,
+  createMemory,
   deleteConversation,
+  deleteMemory,
   getConversation,
   getOrCreateEntityConversation,
   listConversations,
+  listMemories,
   postConversationMessage,
   renameConversation,
   streamConversationMessage,
+  updateMemory,
   type AgentConversationDetail,
   type AgentConversationRow,
   type AgentCreatedEntity,
+  type AgentMemory,
+  type AgentMemoryEvent,
   type AgentMessageRow,
   type AgentStreamHandlers,
   type AgentUpdatedEntity,
@@ -40,6 +47,7 @@ export const agentKeys = {
   conversation: (id: string | null) => [...agentKeys.all, 'conversation', id] as const,
   entityConversation: (entityType: string, objectId: string) =>
     [...agentKeys.all, 'entity-conversation', entityType, objectId] as const,
+  memories: () => [...agentKeys.all, 'memories'] as const,
 };
 
 export function useConversations() {
@@ -283,4 +291,87 @@ export function useDeleteConversation() {
     mutationFn: (id) => deleteConversation(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: agentKeys.conversations() }),
   });
+}
+
+// --- User memory ---------------------------------------------------------------
+
+export function useMemories() {
+  return useQuery<AgentMemory[]>({
+    queryKey: agentKeys.memories(),
+    queryFn: listMemories,
+  });
+}
+
+export function useUpdateMemory() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation<AgentMemory, unknown, { id: string; content: string }>({
+    mutationFn: ({ id, content }) => updateMemory(id, content),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: agentKeys.memories() });
+      toast({ description: t('agent.memory.updatedToast'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useDeleteMemory() {
+  const qc = useQueryClient();
+  return useMutation<void, unknown, string>({
+    mutationFn: (id) => deleteMemory(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agentKeys.memories() }),
+  });
+}
+
+export function useClearMemories() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation<number, unknown, void>({
+    mutationFn: () => clearMemories(),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: agentKeys.memories() });
+      toast({ description: t('agent.memory.clearedToast'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Surface a "📌 memorized · Undo" toast for each memory the agent wrote this
+ * turn (saved / updated / forgotten via manage_memory). The undo reverses the
+ * write: delete a save, restore the previous text of an update, re-create a
+ * forgotten memory. Shared by AgentPage and EntityAssistant, like the
+ * created/updated undo hooks.
+ */
+export function useAgentMemoryEvents() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+
+  return React.useCallback(
+    (events: AgentMemoryEvent[] | undefined) => {
+      if (!events?.length) return;
+      const refresh = () => void qc.invalidateQueries({ queryKey: agentKeys.memories() });
+      refresh();
+      for (const event of events) {
+        const undo =
+          event.action === 'saved'
+            ? () => deleteMemory(event.id)
+            : event.action === 'updated'
+              ? () => updateMemory(event.id, event.previous ?? event.content)
+              : () => createMemory(event.content);
+        toast({
+          title: t(`agent.memory.${event.action}.title`),
+          description: event.content,
+          duration: 8000,
+          action: {
+            label: t('common.undo'),
+            onClick: () => {
+              void Promise.resolve(undo()).then(refresh);
+            },
+          },
+        });
+      }
+    },
+    [qc, t],
+  );
 }

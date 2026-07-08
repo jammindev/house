@@ -5,6 +5,7 @@ import { useCurrentUser } from './hooks';
 import { ProfileSection } from './components/ProfileSection';
 import { TelegramSection } from './components/TelegramSection';
 import { ThemeSection } from './components/ThemeSection';
+import { AgentMemorySection } from './components/AgentMemorySection';
 import { ChangePasswordSection } from './components/ChangePasswordSection';
 import { HouseholdManagement } from './components/HouseholdManagement';
 import { PendingInvitations } from './components/PendingInvitations';
@@ -37,6 +38,7 @@ export default function SettingsPage() {
       <ProfileSection />
       <TelegramSection />
       <ThemeSection />
+      <AgentMemorySection />
       <ChangePasswordSection />
     </div>
   );

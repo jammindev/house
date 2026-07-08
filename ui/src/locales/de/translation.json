@@ -1759,7 +1759,8 @@
       "get_related": "Lade verknüpfte Einträge…",
       "create_entity": "Erstelle…",
       "update_entity": "Aktualisiere…",
-      "default": "Arbeite…"
+      "default": "Arbeite…",
+      "manage_memory": "Aktualisiere Gedächtnis…"
     },
     "error": "Etwas ist schiefgelaufen, bitte erneut versuchen.",
     "retry": "Erneut versuchen",
@@ -1792,7 +1793,38 @@
     "rename_title": "Unterhaltung umbenennen",
     "rename_placeholder": "Titel der Unterhaltung",
     "deleted": "Unterhaltung gelöscht",
-    "conversations_empty": "Noch keine Unterhaltungen"
+    "conversations_empty": "Noch keine Unterhaltungen",
+    "memory": {
+      "title": "Gedächtnis des Assistenten",
+      "description": "Was sich der Assistent über dich in den Gesprächen merkt.",
+      "emptyTitle": "Der Assistent weiß noch nichts über dich",
+      "emptyDescription": "Im Laufe der Gespräche merkt sich der Assistent dauerhafte Fakten über dich (Vorlieben, Gewohnheiten), um seine Antworten zu personalisieren. Du kannst ihn auch bitten, sich etwas zu „merken…“.",
+      "clearAll": "Alles löschen",
+      "clearConfirmTitle": "Gesamtes Gedächtnis löschen?",
+      "clearConfirmDescription": "Der Assistent vergisst alles, was er über dich weiß. Das kann nicht rückgängig gemacht werden.",
+      "deleted": "Eintrag gelöscht",
+      "editLabel": "Eintrag bearbeiten",
+      "updatedToast": "Eintrag aktualisiert",
+      "clearedToast": "Gesamtes Gedächtnis gelöscht",
+      "settingsTitle": "Gedächtnis des Assistenten",
+      "settingsDescription": "Lass den Assistenten dauerhafte Fakten über dich merken, um seine Antworten zu personalisieren.",
+      "settingsSaved": "Einstellung gespeichert",
+      "manage": "Verwalten",
+      "toggleLabel": "Fakten über mich automatisch merken",
+      "toggleHint": "Wenn deaktiviert, erfasst und verwendet der Assistent keine Einträge mehr automatisch. Du kannst ihn weiterhin ausdrücklich bitten, sich etwas zu merken.",
+      "saved": {
+        "title": "📌 Gemerkt",
+        "notice": "Gemerkt:"
+      },
+      "updated": {
+        "title": "📌 Eintrag aktualisiert",
+        "notice": "Eintrag aktualisiert:"
+      },
+      "forgotten": {
+        "title": "📌 Eintrag vergessen",
+        "notice": "Ein Eintrag wurde vergessen."
+      }
+    }
   },
   "expenses": {
     "title": "Ausgaben",

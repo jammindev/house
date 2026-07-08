@@ -15,14 +15,16 @@ from rest_framework.views import APIView
 
 from core.permissions import IsHouseholdMember, resolve_request_household
 
+from . import memory as memory_service
 from . import searchables, service, tools
 from .conversations import ask_inputs as _ask_inputs, persist_turns as _persist_turns
 from .llm import LLMError, LLMTimeoutError
-from .models import AgentConversation
+from .models import AgentConversation, AgentMemory
 from .throttles import AgentBurstRateThrottle, AgentSustainedRateThrottle
 from .serializers import (
     AskRequestSerializer,
     AskResponseSerializer,
+    AgentMemorySerializer,
     AgentMessageSerializer,
     ConversationDetailSerializer,
     ConversationListSerializer,
@@ -258,3 +260,53 @@ class ConversationViewSet(viewsets.ModelViewSet):
             self.get_queryset().get(pk=conversation.pk)
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AgentMemoryViewSet(viewsets.ModelViewSet):
+    """CRUD on the current user's agent memories + a `clear` action.
+
+    Memories are private per (household, user): another member never sees them.
+    `create` exists mainly for the frontend undo of a chat-side "forget" (the
+    normal creation path is the agent's `manage_memory` tool). Writes delegate
+    to `agent.memory` — the same service the tool uses.
+    """
+
+    permission_classes = [IsAuthenticated, IsHouseholdMember]
+    serializer_class = AgentMemorySerializer
+
+    def get_queryset(self):
+        qs = AgentMemory.objects.for_user_households(self.request.user).filter(
+            created_by=self.request.user
+        )
+        household = getattr(self.request, "household", None)
+        if household is not None:
+            qs = qs.filter(household=household)
+        return qs
+
+    def _resolve_household(self):
+        household = getattr(self.request, "household", None) or resolve_request_household(
+            self.request
+        )
+        if household is None:
+            raise ValidationError("No active household for this user.")
+        return household
+
+    def perform_create(self, serializer):
+        serializer.instance = memory_service.save_memory(
+            self._resolve_household(),
+            self.request.user,
+            serializer.validated_data["content"],
+        )
+
+    def perform_update(self, serializer):
+        serializer.instance = memory_service.update_memory(
+            serializer.instance,
+            serializer.validated_data["content"],
+            user=self.request.user,
+        )
+
+    @action(detail=False, methods=["delete"], url_path="clear")
+    def clear(self, request):
+        """Delete ALL memories of the current user in the active household."""
+        deleted = memory_service.clear_memories(self._resolve_household(), request.user)
+        return Response({"deleted": deleted}, status=status.HTTP_200_OK)

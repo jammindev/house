@@ -20,6 +20,7 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar",
             "theme",
             "color_theme",
+            "agent_memory_enabled",
             "full_name",
             "password",
             "is_active",

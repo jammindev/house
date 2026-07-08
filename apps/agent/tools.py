@@ -65,6 +65,9 @@ class ToolResult:
     hits: list[Hit] = field(default_factory=list)
     created: list[dict[str, Any]] = field(default_factory=list)
     updated: list[dict[str, Any]] = field(default_factory=list)
+    # User-memory events (``manage_memory``): saved/updated/forgotten facts,
+    # surfaced in ``metadata.memory_events`` for the 📌 indication + undo.
+    memories: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -846,4 +849,129 @@ def build_update_entity_tool() -> AgentTool:
         description=_UPDATE_ENTITY_DESCRIPTION,
         input_schema=_UPDATE_ENTITY_SCHEMA,
         handler=_update_entity_handler,
+    )
+
+
+# --- manage_memory ------------------------------------------------------------
+
+MANAGE_MEMORY = "manage_memory"
+
+_MANAGE_MEMORY_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "action": {
+            "type": "string",
+            "enum": ["save", "update", "forget"],
+            "description": (
+                "'save' remembers a new fact about the user, 'update' rewrites "
+                "an existing memory, 'forget' deletes one."
+            ),
+        },
+        "content": {
+            "type": "string",
+            "description": (
+                "The fact to store, as ONE short self-contained sentence in the "
+                "user's language. Required for 'save' and 'update'."
+            ),
+        },
+        "memory_id": {
+            "type": "string",
+            "description": (
+                "The id of the memory to modify, from the USER MEMORY block "
+                "(memory_id=…). Required for 'update' and 'forget'."
+            ),
+        },
+    },
+    "required": ["action"],
+}
+
+_MANAGE_MEMORY_DESCRIPTION = (
+    "Manage what you remember about THIS user across conversations: durable "
+    "personal facts (preferences, habits, constraints), never household data. "
+    "'save' a new fact, 'update' one that changed, 'forget' one that no longer "
+    "holds. Follow the memory rules in the system prompt. The change is applied "
+    "immediately and the user can undo it from the interface."
+)
+
+
+def _manage_memory_handler(
+    *,
+    household,
+    user=None,
+    tool_input: dict[str, Any],
+    client: LLMClient | None = None,
+    context_entity: tuple[str, str] | None = None,
+) -> ToolResult:
+    """Save/update/forget one user memory. Events land in metadata.memory_events.
+
+    Memories are not citable Hits — they are prompt-injected user facts, not
+    household data. The returned ``memories`` events let the frontend show the
+    "📌 remembered" indication and offer an undo.
+    """
+    from . import memory as memory_service
+
+    if user is None or getattr(user, "pk", None) is None:
+        return ToolResult(rendered="(memory is unavailable on this call — no user)")
+
+    action = (tool_input.get("action") or "").strip()
+    content = (tool_input.get("content") or "").strip()
+    memory_id = (tool_input.get("memory_id") or "").strip()
+
+    try:
+        if action == "save":
+            if not content:
+                return ToolResult(rendered="(save needs a content)")
+            saved = memory_service.save_memory(household, user, content)
+            return ToolResult(
+                rendered=f"Saved memory memory_id={saved.pk}",
+                memories=[{"action": "saved", "id": str(saved.pk), "content": saved.content}],
+            )
+
+        if action in {"update", "forget"}:
+            target = memory_service.resolve_memory(household, user, memory_id)
+            if target is None:
+                return ToolResult(
+                    rendered="(no such memory_id for this user — check the USER MEMORY block)"
+                )
+            if action == "update":
+                if not content:
+                    return ToolResult(rendered="(update needs a content)")
+                previous = target.content
+                updated = memory_service.update_memory(target, content, user=user)
+                return ToolResult(
+                    rendered=f"Updated memory memory_id={updated.pk}",
+                    memories=[
+                        {
+                            "action": "updated",
+                            "id": str(updated.pk),
+                            "content": updated.content,
+                            "previous": previous,
+                        }
+                    ],
+                )
+            forgotten_content = target.content
+            forgotten_id = str(target.pk)
+            memory_service.forget_memory(target)
+            return ToolResult(
+                rendered=f"Forgot memory memory_id={forgotten_id}",
+                memories=[
+                    {"action": "forgotten", "id": forgotten_id, "content": forgotten_content}
+                ],
+            )
+
+        return ToolResult(rendered="(unknown action — use save, update or forget)")
+    except DRFValidationError as exc:
+        detail = getattr(exc, "detail", None) or str(exc)
+        return ToolResult(rendered=f"(could not {action} memory: {detail})")
+    except Exception:  # noqa: BLE001 — never crash the loop on a memory failure
+        logger.exception("agent.tools: manage_memory failed (action=%s)", action)
+        return ToolResult(rendered=f"(could not {action} memory: unexpected error)")
+
+
+def build_manage_memory_tool() -> AgentTool:
+    return AgentTool(
+        name=MANAGE_MEMORY,
+        description=_MANAGE_MEMORY_DESCRIPTION,
+        input_schema=_MANAGE_MEMORY_SCHEMA,
+        handler=_manage_memory_handler,
     )

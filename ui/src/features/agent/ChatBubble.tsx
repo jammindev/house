@@ -5,7 +5,7 @@ import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markd
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import AgentCitation from './AgentCitation';
-import type { AgentCitation as Citation } from './api';
+import type { AgentCitation as Citation, AgentMemoryEvent } from './api';
 
 const CITE_REGEX = /<cite\s+id="([^"]+)"\s*\/?>/gi;
 const CITE_HREF_PREFIX = 'cite:';
@@ -21,6 +21,8 @@ interface AgentBubbleProps {
   citations: Citation[];
   /** True when the answer was cut short by the model's token limit. */
   truncated?: boolean;
+  /** Memories written this turn — rendered as a persistent 📌 line. */
+  memoryEvents?: AgentMemoryEvent[];
 }
 
 interface LoadingBubbleProps {
@@ -80,10 +82,35 @@ export default function ChatBubble(props: Props) {
     <AgentBubbleShell>
       <AnswerWithInlineCitations text={props.text} citations={props.citations} />
       {props.truncated ? <TruncatedNotice /> : null}
+      {props.memoryEvents && props.memoryEvents.length > 0 ? (
+        <MemoryNotice events={props.memoryEvents} />
+      ) : null}
       {props.citations.length > 0 ? (
         <CitationsPanel citations={props.citations} />
       ) : null}
     </AgentBubbleShell>
+  );
+}
+
+// Persistent "📌 remembered / updated / forgotten" line under an agent answer.
+// Survives reloads (driven by the message's stored metadata.memory_events),
+// unlike the transient undo toast.
+function MemoryNotice({ events }: { events: AgentMemoryEvent[] }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="mt-1.5 space-y-0.5 text-xs text-muted-foreground"
+      data-testid="agent-memory-notice"
+    >
+      {events.map((event) => (
+        <p key={`${event.action}-${event.id}`}>
+          📌 {t(`agent.memory.${event.action}.notice`)}
+          {event.action === 'forgotten' ? null : (
+            <span className="italic"> {event.content}</span>
+          )}
+        </p>
+      ))}
+    </div>
   );
 }
 

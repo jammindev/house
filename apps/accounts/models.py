@@ -112,6 +112,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name=_("active household"),
     )
 
+    agent_memory_enabled = models.BooleanField(
+        default=True,
+        help_text=_(
+            "When enabled, the AI agent automatically remembers durable facts "
+            "about the user from conversations and uses them in its answers. "
+            "When disabled, memories are neither captured automatically nor "
+            "injected; explicit 'remember that…' requests still work."
+        ),
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

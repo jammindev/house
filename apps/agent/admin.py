@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 
-from .models import AgentConversation, AgentMessage
+from .models import AgentConversation, AgentMemory, AgentMessage
 
 
 class AgentMessageInline(admin.TabularInline):
@@ -29,4 +29,12 @@ class AgentMessageAdmin(admin.ModelAdmin):
     list_display = ("__str__", "conversation", "role", "created_at")
     list_filter = ("role",)
     search_fields = ("content", "conversation__id")
+    readonly_fields = ("id", "created_at", "updated_at")
+
+
+@admin.register(AgentMemory)
+class AgentMemoryAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "household", "created_by", "updated_at")
+    list_filter = ("household",)
+    search_fields = ("content", "created_by__email")
     readonly_fields = ("id", "created_at", "updated_at")

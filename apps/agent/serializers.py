@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from rest_framework import serializers
 
-from .models import AgentConversation, AgentMessage
+from .models import AgentConversation, AgentMemory, AgentMessage
 
 
 class AskRequestSerializer(serializers.Serializer):
@@ -82,3 +82,21 @@ class ConversationUpdateSerializer(serializers.ModelSerializer):
 
 class PostMessageSerializer(serializers.Serializer):
     question = serializers.CharField(min_length=1, max_length=2000, trim_whitespace=True)
+
+
+# --- User memory ---------------------------------------------------------------
+
+
+class AgentMemorySerializer(serializers.ModelSerializer):
+    """One durable fact the agent knows about the current user.
+
+    Validation is shared: the ``manage_memory`` tool and the REST viewset both
+    funnel writes through ``agent.memory``, which uses this serializer.
+    """
+
+    content = serializers.CharField(min_length=1, max_length=500, trim_whitespace=True)
+
+    class Meta:
+        model = AgentMemory
+        fields = ["id", "content", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]

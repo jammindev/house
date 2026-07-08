@@ -29,6 +29,7 @@ from typing import Any
 from django.conf import settings
 
 from . import context as context_builder
+from . import memory as memory_service
 from . import tools
 from .llm import LLMClient, LLMError, LLMTimeoutError, get_llm_client
 from .prompts import build_system_prompt
@@ -139,10 +140,26 @@ def ask_stream(
         for hit in entity_context.hits:
             hit_pool[(hit.entity_type, hit.id)] = hit
 
-    system_prompt = build_system_prompt(anchored=anchored)
+    # User memory: with a user and their flag ON, inject their stored memories
+    # and let the model capture new facts spontaneously; flag OFF keeps the tool
+    # for explicit "remember that…" requests but injects nothing. No user (bare
+    # `ask`, tests) → the prompt never mentions memory.
+    memory_mode = None
+    memories: list = []
+    if user is not None and getattr(user, "pk", None) is not None:
+        if memory_service.memory_enabled(user):
+            memory_mode = "auto"
+            memories = memory_service.user_memories(household, user)
+        else:
+            memory_mode = "manual"
+
+    system_prompt = build_system_prompt(
+        anchored=anchored, memory_mode=memory_mode, memories=memories
+    )
     messages = _build_messages(cleaned, history, entity_context)
     created_entities: list[dict] = []
     updated_entities: list[dict] = []
+    memory_events: list[dict] = []
     write_signatures: set = set()
     answer_text = ""
     stop_reason = ""
@@ -207,9 +224,11 @@ def ask_stream(
             tool_calls += 1
             # Anti-duplicate guard for writes: if the model repeats the same
             # create/update call in this turn, skip the DB write and tell it so.
-            if call.name in (tools.CREATE_ENTITY, tools.UPDATE_ENTITY) and _is_duplicate_write(
-                call.name, call.input, write_signatures
-            ):
+            if call.name in (
+                tools.CREATE_ENTITY,
+                tools.UPDATE_ENTITY,
+                tools.MANAGE_MEMORY,
+            ) and _is_duplicate_write(call.name, call.input, write_signatures):
                 tool_results.append(
                     {
                         "type": "tool_result",
@@ -232,6 +251,7 @@ def ask_stream(
                 hit_pool[(hit.entity_type, hit.id)] = hit
             created_entities.extend(result.created)
             updated_entities.extend(result.updated)
+            memory_events.extend(result.memories)
             tool_results.append(
                 {
                     "type": "tool_result",
@@ -265,6 +285,7 @@ def ask_stream(
             "anchored": anchored,
             "created_entities": created_entities,
             "updated_entities": updated_entities,
+            "memory_events": memory_events,
         },
     )}
 
@@ -274,17 +295,21 @@ def _is_duplicate_write(name: str, tool_input: dict, seen: set) -> bool:
 
     The signature covers the tool name, the target (entity_type + id for
     updates) and the fields — so "create task A" then "create task B" both run,
-    but the same call repeated verbatim is skipped.
+    but the same call repeated verbatim is skipped. ``manage_memory`` has a flat
+    input (action/content/memory_id), so its whole input is the signature.
     """
-    entity_type = (tool_input or {}).get("entity_type") or ""
-    target_id = str((tool_input or {}).get("id") or "")
-    fields = (tool_input or {}).get("fields") or {}
-    signature = (
-        name,
-        entity_type,
-        target_id,
-        tools._stable_signature(fields if isinstance(fields, dict) else {}),
-    )
+    if name == tools.MANAGE_MEMORY:
+        signature = (name, tools._stable_signature(tool_input or {}))
+    else:
+        entity_type = (tool_input or {}).get("entity_type") or ""
+        target_id = str((tool_input or {}).get("id") or "")
+        fields = (tool_input or {}).get("fields") or {}
+        signature = (
+            name,
+            entity_type,
+            target_id,
+            tools._stable_signature(fields if isinstance(fields, dict) else {}),
+        )
     if signature in seen:
         return True
     seen.add(signature)

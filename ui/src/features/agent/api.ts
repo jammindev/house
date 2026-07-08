@@ -27,6 +27,23 @@ export interface AgentUpdatedEntity {
   changed: Record<string, unknown>;
 }
 
+/** A durable fact the agent remembers about the current user. */
+export interface AgentMemory {
+  id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** A user-memory write the agent performed this turn (via manage_memory). */
+export interface AgentMemoryEvent {
+  action: 'saved' | 'updated' | 'forgotten';
+  id: string;
+  content: string;
+  /** For 'updated': the content BEFORE the rewrite — re-applied on undo. */
+  previous?: string;
+}
+
 export interface AgentAnswerMetadata {
   duration_ms?: number;
   tokens_in?: number;
@@ -38,6 +55,7 @@ export interface AgentAnswerMetadata {
   truncated?: boolean;
   created_entities?: AgentCreatedEntity[];
   updated_entities?: AgentUpdatedEntity[];
+  memory_events?: AgentMemoryEvent[];
   [key: string]: unknown;
 }
 
@@ -139,6 +157,34 @@ export async function renameConversation(
 
 export async function deleteConversation(id: string): Promise<void> {
   await api.delete(`/agent/conversations/${id}/`);
+}
+
+// --- User memory ---------------------------------------------------------------
+
+export async function listMemories(): Promise<AgentMemory[]> {
+  const { data } = await api.get('/agent/memories/');
+  return asArray<AgentMemory>(data);
+}
+
+/** Direct creation exists mainly to undo a chat-side "forget". */
+export async function createMemory(content: string): Promise<AgentMemory> {
+  const { data } = await api.post<AgentMemory>('/agent/memories/', { content });
+  return data;
+}
+
+export async function updateMemory(id: string, content: string): Promise<AgentMemory> {
+  const { data } = await api.patch<AgentMemory>(`/agent/memories/${id}/`, { content });
+  return data;
+}
+
+export async function deleteMemory(id: string): Promise<void> {
+  await api.delete(`/agent/memories/${id}/`);
+}
+
+/** Delete ALL memories of the current user. Returns the number removed. */
+export async function clearMemories(): Promise<number> {
+  const { data } = await api.delete<{ deleted: number }>('/agent/memories/clear/');
+  return data.deleted;
 }
 
 /** Progress events emitted while the agent works on a streamed question. */
