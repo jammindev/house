@@ -10,6 +10,7 @@ from .models import (
     ProjectZone,
     UserPinnedProject,
 )
+from .services import project_actual_cost
 
 
 class ProjectPurchaseSerializer(serializers.Serializer):
@@ -63,6 +64,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         required=False,
     )
     project_group_name = serializers.SerializerMethodField()
+    # Calculé (SUM des Interaction expense liées par la source polymorphe, #234) —
+    # la colonne DB du même nom n'est plus jamais écrite. Le nom de champ API est
+    # conservé pour ne pas casser les clients.
+    actual_cost_cached = serializers.SerializerMethodField()
     # Le modèle a default="" mais pas blank=True : DRF rejette les chaînes vides
     # par défaut. Le formulaire React envoie systématiquement description="" quand
     # l'utilisateur n'écrit rien — rendre le champ optionnel + blank-OK ici.
@@ -96,6 +101,12 @@ class ProjectSerializer(serializers.ModelSerializer):
             "updated_by",
         ]
         read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by"]
+
+    def get_actual_cost_cached(self, obj):
+        total = getattr(obj, "actual_cost_computed", None)
+        if total is None:
+            total = project_actual_cost(obj)
+        return str(Decimal(total).quantize(Decimal("0.01")))
 
     def get_is_pinned(self, obj):
         request = self.context.get("request")

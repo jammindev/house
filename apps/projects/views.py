@@ -1,6 +1,3 @@
-from decimal import Decimal
-
-from django.db import transaction
 from django.utils import timezone
 from rest_framework import status as drf_status, viewsets
 from rest_framework.decorators import action
@@ -24,6 +21,7 @@ from .serializers import (
     ProjectPurchaseSerializer,
     ProjectZoneSerializer,
 )
+from .services import annotate_actual_cost
 
 
 class _HouseholdScopedViewSet(viewsets.ModelViewSet):
@@ -63,7 +61,7 @@ class ProjectViewSet(_HouseholdScopedViewSet):
         status = self.request.query_params.get('status', '').strip()
         if status:
             queryset = queryset.filter(status=status)
-        return queryset
+        return annotate_actual_cost(queryset)
 
     def perform_create(self, serializer):
         household = self.request.household
@@ -96,38 +94,29 @@ class ProjectViewSet(_HouseholdScopedViewSet):
 
     @action(detail=True, methods=["post"], url_path="register-purchase")
     def register_purchase(self, request, pk=None):
-        """Increment Project.actual_cost_cached + create an expense Interaction.
+        """Create an Interaction(type=expense) linked to the project.
 
-        Single-action endpoint: increments the project's cached actual cost
-        AND creates an Interaction(type=expense) linked via the polymorphic
-        source FK.
+        The project's actual cost is computed from its expense interactions
+        (#234) — this endpoint only creates the interaction, nothing to sync.
         """
         project = self.get_object()
         serializer = ProjectPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        amount = serializer.validated_data.get("amount")
-        supplier = serializer.validated_data.get("supplier", "") or ""
-        occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
-        notes = serializer.validated_data.get("notes", "") or ""
+        interaction = create_expense_interaction(
+            source=project,
+            user=request.user,
+            amount=serializer.validated_data.get("amount"),
+            supplier=serializer.validated_data.get("supplier", "") or "",
+            occurred_at=serializer.validated_data.get("occurred_at") or timezone.now(),
+            notes=serializer.validated_data.get("notes", "") or "",
+            kind="project_purchase",
+            extra_metadata={"project_title": project.title},
+        )
 
-        with transaction.atomic():
-            if amount is not None:
-                project.actual_cost_cached = (project.actual_cost_cached or Decimal("0")) + amount
-                project.updated_by = request.user
-                project.save(update_fields=["actual_cost_cached", "updated_by", "updated_at"])
-
-            interaction = create_expense_interaction(
-                source=project,
-                user=request.user,
-                amount=amount,
-                supplier=supplier,
-                occurred_at=occurred_at,
-                notes=notes,
-                kind="project_purchase",
-                extra_metadata={"project_title": project.title},
-            )
-
+        # Re-fetch through the annotated queryset so the response includes the
+        # freshly created expense in actual_cost_cached.
+        project = self.get_queryset().get(pk=project.pk)
         payload = ProjectSerializer(project, context={"request": request}).data
         payload["interaction_id"] = str(interaction.id)
         return Response(payload, status=drf_status.HTTP_201_CREATED)
