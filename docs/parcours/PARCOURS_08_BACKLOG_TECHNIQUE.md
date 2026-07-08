@@ -1,14 +1,14 @@
 # Parcours 08 — Backlog technique V1
 
-> **À démarrer** — la fondation est posée par la branche `feat/interaction-source-polymorphic` (FK polymorphe sur `Interaction`, service `create_expense_interaction`, composant frontend partagé `PurchaseForm`). Issue parente du chantier de fondation : **#119**. Issue qui définit le périmètre de **non-traitement** (catégorisation différée) : **#120**.
+> **✅ Livré** — la fondation (#119 : FK polymorphe sur `Interaction`, service `create_expense_interaction`, composant frontend partagé `PurchaseForm`) et les trois lots sont mergés. Suite : **#131** (PR 1 livrée) supprime l'ancienne FK directe `Interaction.project` — la source polymorphe est désormais l'unique liaison, l'API filtre par `?source_type=&source_id=`. Issue qui définit le périmètre de **non-traitement** (catégorisation différée) : **#120**.
 
 ## Tableau de bord
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 1.0 | Vue dépense agrégée + endpoint summary | ⏳ À démarrer | #122 |
-| 1.1 | Quick-add depuis Project | ⏳ À démarrer | #123 |
-| 1.2 | Dépense ad-hoc + split du service | ⏳ À démarrer | #124 |
+| 1.0 | Vue dépense agrégée + endpoint summary | ✅ Livré | #122 |
+| 1.1 | Quick-add depuis Project | ✅ Livré | #123 |
+| 1.2 | Dépense ad-hoc + split du service | ✅ Livré | #124 |
 
 **Issues annexes liées** :
 
