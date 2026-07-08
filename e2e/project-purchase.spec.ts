@@ -46,6 +46,15 @@ test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', 
   await page.getByRole('button', { name: 'Dépenses', exact: true }).click();
   await expect(page.getByText(`Achat — ${projectTitle}`).first()).toBeVisible();
 
+  // Point d'entrée unique (#235) : le bouton « Dépense » de l'onglet ouvre le
+  // dialog d'achat (pas le form complet)
+  await page.getByRole('button', { name: 'Dépense', exact: true }).last().click();
+  const tabDialog = page.getByRole('dialog');
+  await expect(tabDialog).toBeVisible();
+  await expect(tabDialog).toContainText('Enregistrer une dépense');
+  await tabDialog.getByRole('button', { name: 'Annuler' }).click();
+  await expect(tabDialog).toBeHidden();
+
   // Vérifier que l'interaction expense est listée dans /app/interactions
   await page.goto('/app/interactions');
   await expect(page.getByText(`Achat — ${projectTitle}`).first()).toBeVisible();
