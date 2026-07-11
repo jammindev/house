@@ -110,7 +110,6 @@ export default function DocumentEditDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={updateDocument.isPending}
             >
               {t('common.cancel')}
             </Button>

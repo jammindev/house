@@ -173,7 +173,6 @@ export default function ContactDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
             >
               {t('common.cancel')}
             </Button>

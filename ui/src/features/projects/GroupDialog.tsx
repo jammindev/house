@@ -101,7 +101,6 @@ export default function GroupDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
             >
               {t('common.cancel')}
             </Button>

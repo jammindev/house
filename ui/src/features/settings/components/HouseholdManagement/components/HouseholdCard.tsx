@@ -253,7 +253,7 @@ export function HouseholdCard({
         description={t('common.confirmArchive', { defaultValue: 'Archive this household? It will no longer be accessible.' })}
       >
         <div className="flex justify-end gap-2 pt-2">
-          <Button type="button" variant="ghost" onClick={onClosePanel} disabled={loading}>
+          <Button type="button" variant="ghost" onClick={onClosePanel}>
             {t('common.cancel', { defaultValue: 'Cancel' })}
           </Button>
           <Button

@@ -328,7 +328,7 @@ export function DocumentSelector({
                     ? t('documentSelector.upload_submitting', { defaultValue: 'Uploading…' })
                     : t('documentSelector.upload_submit', { defaultValue: 'Upload and link' })}
                 </Button>
-                <Button type="button" variant="ghost" size="sm" onClick={() => setUploadOpen(false)} disabled={uploading}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setUploadOpen(false)}>
                   <X className="mr-1 h-4 w-4" />
                   {t('common.cancel', { defaultValue: 'Cancel' })}
                 </Button>

@@ -430,6 +430,19 @@ export default function FeatureDialog({ open, onOpenChange, existing }: Props) {
 }
 ```
 
+Boutons du footer — **ne jamais désactiver « Annuler »/« Fermer » pendant
+`isPending`** : si la mutation traîne ou reste bloquée, l'utilisateur doit
+toujours pouvoir sortir du dialog. Seul le bouton submit se désactive :
+
+```tsx
+<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+  {t('common.cancel')}
+</Button>
+<Button type="submit" disabled={isPending}>
+  {t('common.save')}
+</Button>
+```
+
 ---
 
 ## Assistant IA ancré sur une entité (agent générique)

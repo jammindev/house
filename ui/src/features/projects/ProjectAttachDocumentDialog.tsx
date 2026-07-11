@@ -131,7 +131,6 @@ export default function ProjectAttachDocumentDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={attachMutation.isPending}
             >
               {t('common.cancel')}
             </Button>

@@ -175,7 +175,6 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending}
             >
               {t('common.cancel')}
             </Button>

@@ -217,7 +217,7 @@ export function ProfileSection() {
                 <Check className="mr-2 h-4 w-4" />
                 {saving ? t('settings.updating') : t('common.save')}
               </Button>
-              <Button size="sm" type="button" variant="outline" onClick={handleCancel} disabled={saving}>
+              <Button size="sm" type="button" variant="outline" onClick={handleCancel}>
                 <X className="mr-2 h-4 w-4" />
                 {t('common.cancel')}
               </Button>

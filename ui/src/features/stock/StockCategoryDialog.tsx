@@ -140,7 +140,6 @@ export default function StockCategoryDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending}
             >
               {t('common.cancel')}
             </Button>

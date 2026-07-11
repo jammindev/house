@@ -7,5 +7,11 @@ export const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
     },
+    mutations: {
+      // Par défaut ('online'), une mutation soumise hors-ligne est mise en pause :
+      // la promesse ne settle jamais, isPending reste true et aucun onError ne
+      // s'exécute — dialog figé sans message. 'always' la fait échouer immédiatement.
+      networkMode: 'always',
+    },
   },
 });

@@ -392,7 +392,6 @@ export default function NewTaskDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
             >
               {t('common.cancel')}
             </Button>

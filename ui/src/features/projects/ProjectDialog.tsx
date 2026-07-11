@@ -235,7 +235,6 @@ export default function ProjectDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={loading}
             >
               {t('common.cancel')}
             </Button>
