@@ -30,6 +30,15 @@ class InteractionsConfig(AppConfig):
             url_template='/app/interactions/{id}',
         ))
 
+        register_writable(WritableSpec(
+            entity_type='renovation',
+            create=_create_renovation_from_agent,
+            resolve=_resolve_renovation_for_agent,
+            delete=_delete_renovation_from_agent,
+            label_attr='subject',
+            url_template='/app/interactions/{id}',
+        ))
+
         register_listable(ListableSpec(
             entity_type='interaction',
             model=Interaction,
@@ -108,6 +117,60 @@ def _delete_note_from_agent(household, user, object_id):
     if note is None:
         raise LookupError(f"no note {object_id} in this household")
     delete_note_interaction(household=household, user=user, interaction=note)
+
+
+# --- renovation writable (parcours 13) ---------------------------------------
+#
+# Agent can CREATE renovation log entries and UNDO (delete) them. Edits stay on
+# the UI/REST side: the structured fields live in ``metadata`` and the agent's
+# update-undo snapshot reads model attributes only, so agent-side update is out
+# of scope here by design.
+
+def _create_renovation_from_agent(household, user, fields, *, anchor=None):
+    """Map the agent's raw ``fields`` to ``services.create_renovation_interaction``.
+
+    An anchored zone conversation attaches the entry to that zone; otherwise the
+    agent must pass ``zone_ids`` (the service rejects a zone-less entry).
+    """
+    from .services import create_renovation_interaction
+
+    zone_ids = list(fields.get('zone_ids') or [])
+    if anchor:
+        anchor_type, anchor_id = anchor
+        if anchor_type == 'zone' and anchor_id not in zone_ids:
+            zone_ids.append(anchor_id)
+
+    return create_renovation_interaction(
+        household=household,
+        user=user,
+        element=(fields.get('element') or 'other'),
+        product=fields.get('product') or '',
+        brand=fields.get('brand') or '',
+        reference=fields.get('reference') or '',
+        interaction_type=fields.get('interaction_type') or 'installation',
+        subject=(fields.get('subject') or None),
+        notes=fields.get('notes') or fields.get('content') or '',
+        zone_ids=zone_ids,
+    )
+
+
+def _resolve_renovation_for_agent(household, raw_id):
+    """Household-scoped renovation-entry lookup (metadata.kind='renovation')."""
+    from .models import Interaction
+
+    return Interaction.objects.filter(
+        household_id=household.id, pk=raw_id, metadata__kind='renovation'
+    ).first()
+
+
+def _delete_renovation_from_agent(household, user, object_id):
+    """Undo a created renovation entry — hard-delete via the shared service."""
+    from .services import delete_renovation_interaction
+
+    entry = _resolve_renovation_for_agent(household, object_id)
+    if entry is None:
+        raise LookupError(f"no renovation entry {object_id} in this household")
+    delete_renovation_interaction(household=household, user=user, interaction=entry)
 
 
 # --- list_entities filters ---------------------------------------------------

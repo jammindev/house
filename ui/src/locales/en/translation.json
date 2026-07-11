@@ -546,7 +546,8 @@
       "projects": "Projects",
       "photos": "Photos",
       "documents": "Documents",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "renovation": "Renovation"
     },
     "photos": {
       "title": "Zone photos",
@@ -1907,6 +1908,59 @@
       "ok": "OK",
       "error": "Error",
       "empty": "No calls yet."
+    }
+  },
+  "renovation": {
+    "add": "Add entry",
+    "created": "Renovation entry added",
+    "updated": "Entry updated",
+    "deleted": "Entry deleted",
+    "empty": {
+      "title": "No renovation entries",
+      "description": "Keep a record of what was renovated or decorated in this room."
+    },
+    "card": {
+      "ref": "ref. {{reference}}",
+      "moreZones_one": "+{{count}} more room",
+      "moreZones_other": "+{{count}} more rooms"
+    },
+    "form": {
+      "createTitle": "New renovation entry",
+      "editTitle": "Edit entry",
+      "element": "Element",
+      "type": "Type of work",
+      "product": "Product / material",
+      "productPlaceholder": "e.g. oiled oak parquet",
+      "brand": "Brand",
+      "reference": "Reference",
+      "date": "Date of work",
+      "subject": "Title (optional)",
+      "subjectPlaceholder": "Auto-generated if left empty",
+      "notes": "Notes",
+      "zones": "Rooms concerned",
+      "wholeHouse": "Whole house",
+      "clearZones": "Reset",
+      "submit": "Add",
+      "zonesRequired": "Select at least one room."
+    },
+    "elements": {
+      "paint": "Paint",
+      "floor": "Flooring",
+      "wall": "Wall",
+      "ceiling": "Ceiling",
+      "joinery": "Joinery",
+      "plumbing": "Plumbing",
+      "electrical": "Electrical",
+      "heating": "Heating",
+      "furniture": "Furniture",
+      "other": "Other"
+    },
+    "types": {
+      "installation": "Installation",
+      "replacement": "Replacement",
+      "upgrade": "Upgrade",
+      "repair": "Repair",
+      "maintenance": "Maintenance"
     }
   }
 }

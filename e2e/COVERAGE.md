@@ -91,6 +91,22 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Carnet de rénovation par zone (`renovation.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Onglet "Rénovation" visible dans le détail d'une zone | ✅ |
+| État vide : EmptyState "Aucune entrée de rénovation" + bouton "Ajouter une entrée" | ✅ |
+| Ouverture du RenovationDialog depuis l'EmptyState | ✅ |
+| Ouverture du RenovationDialog depuis le bouton d'en-tête | ✅ |
+| Formulaire : champs reno-element, reno-type, reno-product, reno-brand, reno-reference, reno-date, reno-subject, reno-notes, Toute la maison, Ajouter | ✅ |
+| Création d'une entrée (élément Sol, produit Parquet chêne, marque Panaget) → badge "Sol" + produit/marque visible | ✅ |
+| Création d'une entrée avec date → date formatée visible dans la card | ✅ |
+| Modification d'une entrée (via CardActions → Modifier → changer produit) → nouvelle valeur visible | ✅ |
+| Suppression avec undo (optimistic delete → toast "Entrée supprimée" → Annuler → réapparaît) | ✅ |
+
+---
+
 ## Documents
 
 | Parcours | Statut |
