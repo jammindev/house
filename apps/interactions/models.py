@@ -1,5 +1,5 @@
 """
-Interactions models - time-based entries (notes, todos, expenses, maintenance).
+Interactions models - time-based entries (notes, expenses, maintenance).
 """
 import uuid
 from django.db import models
@@ -13,12 +13,13 @@ from core.managers import HouseholdScopedManager
 class Interaction(HouseholdScopedModel):
     """
     Time-based interaction/entry in household journal.
-    Supports multiple types: note, todo, expense, maintenance events.
-    Mirrors Supabase interactions table.
+    Supports multiple types: note, expense, maintenance events.
+    Todos are NOT interactions: they were extracted to the Task model
+    (tasks.0002_migrate_todos) — a journal entry is a dated flat fact,
+    a todo has a state machine. See CLAUDE.md « Interaction vs modèle dédié ».
     """
     INTERACTION_TYPES = [
         ('note', 'Note'),
-        ('todo', 'Todo'),
         ('expense', 'Expense'),
         ('maintenance', 'Maintenance'),
         ('repair', 'Repair'),
@@ -31,14 +32,6 @@ class Interaction(HouseholdScopedModel):
         ('disposal', 'Disposal'),
     ]
     
-    STATUS_CHOICES = [
-        ('backlog', 'Backlog'),
-        ('pending', 'Pending'),
-        ('in_progress', 'In Progress'),
-        ('done', 'Done'),
-        ('archived', 'Archived'),
-    ]
-    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     subject = models.CharField(max_length=500)
     content = models.TextField(blank=True, default='')
@@ -46,13 +39,6 @@ class Interaction(HouseholdScopedModel):
         max_length=50,
         choices=INTERACTION_TYPES,
         default='note'
-    )
-    status = models.CharField(
-        max_length=50,
-        choices=STATUS_CHOICES,
-        blank=True,
-        null=True,
-        help_text="Status (mainly for todos)"
     )
     is_private = models.BooleanField(
         default=False,
@@ -114,7 +100,6 @@ class Interaction(HouseholdScopedModel):
                 fields=['source_content_type', 'source_object_id'],
                 name='idx_int_source',
             ),
-            models.Index(fields=['status'], name='idx_int_status'),
             models.Index(fields=['is_private'], name='idx_int_private'),
         ]
         constraints = [
@@ -122,7 +107,6 @@ class Interaction(HouseholdScopedModel):
                 condition=models.Q(
                     type__in=[
                         'note',
-                        'todo',
                         'expense',
                         'maintenance',
                         'repair',
@@ -138,13 +122,8 @@ class Interaction(HouseholdScopedModel):
                 name='interactions_type_check',
             ),
             models.CheckConstraint(
-                condition=models.Q(status__isnull=True)
-                | models.Q(status__in=['backlog', 'pending', 'in_progress', 'done', 'archived']),
-                name='interactions_status_check',
-            ),
-            models.CheckConstraint(
-                condition=models.Q(type='todo') | models.Q(occurred_at__isnull=False),
-                name='interactions_occurred_at_required_for_non_todo',
+                condition=models.Q(occurred_at__isnull=False),
+                name='interactions_occurred_at_required',
             ),
         ]
     

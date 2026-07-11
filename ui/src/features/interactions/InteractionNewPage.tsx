@@ -15,7 +15,6 @@ import ExpenseFields from './ExpenseFields';
 
 const TYPE_OPTIONS = [
   'note',
-  'todo',
   'expense',
   'maintenance',
   'repair',
@@ -27,8 +26,6 @@ const TYPE_OPTIONS = [
   'replacement',
   'disposal',
 ];
-
-const STATUS_OPTIONS = ['backlog', 'pending', 'in_progress', 'done', 'archived'];
 
 function todayDateInput(): string {
   const now = new Date();
@@ -48,8 +45,10 @@ export default function InteractionNewPage() {
   const [searchParams] = useSearchParams();
   const createMutation = useCreateInteraction();
 
-  // Read initial values from query params
-  const rawParamType = searchParams.get('type') ?? 'note';
+  // Read initial values from query params. 'todo' is no longer an interaction
+  // type (todos live in the Task model) — old links fall back to 'note'.
+  const requestedType = searchParams.get('type') ?? 'note';
+  const rawParamType = TYPE_OPTIONS.includes(requestedType) ? requestedType : 'note';
   const paramZoneId = searchParams.get('zone_id') ?? '';
   const paramProjectId = searchParams.get('project_id') ?? '';
   const paramEquipmentId = searchParams.get('equipment_id') ?? '';
@@ -65,7 +64,6 @@ export default function InteractionNewPage() {
 
   const [subject, setSubject] = React.useState('');
   const [type, setType] = React.useState(paramType);
-  const [status, setStatus] = React.useState('pending');
   const [occurredOn, setOccurredOn] = React.useState(todayDateInput);
   const [includeTime, setIncludeTime] = React.useState(false);
   const [occurredTime, setOccurredTime] = React.useState(nowTimeInput);
@@ -83,7 +81,6 @@ export default function InteractionNewPage() {
   const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
 
-  const isTodo = type === 'todo';
   const isExpense = type === 'expense';
   const zoneIsLocked = !!paramZoneId;
 
@@ -154,7 +151,6 @@ export default function InteractionNewPage() {
         subject: subject.trim(),
         content: description,
         type,
-        status: isTodo ? status : null,
         occurred_at: occurredAt.toISOString(),
         zone_ids: [zoneId],
         tags_input: tags,
@@ -214,7 +210,7 @@ export default function InteractionNewPage() {
           />
         </div>
 
-        {/* Type + Status (when todo) */}
+        {/* Type */}
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <label htmlFor="interaction-type" className="text-sm font-medium">
@@ -233,26 +229,6 @@ export default function InteractionNewPage() {
               ))}
             </select>
           </div>
-
-          {isTodo ? (
-            <div className="space-y-2">
-              <label htmlFor="interaction-status" className="text-sm font-medium">
-                {t('interactions.status_label')}
-              </label>
-              <select
-                id="interaction-status"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-              >
-                {STATUS_OPTIONS.map((v) => (
-                  <option key={v} value={v}>
-                    {t(`equipment.interaction_status.${v}`, { defaultValue: v })}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
         </div>
 
         {isExpense ? (

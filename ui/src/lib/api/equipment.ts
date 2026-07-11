@@ -48,7 +48,6 @@ export interface EquipmentInteractionItem {
   interaction: string;
   interaction_subject?: string;
   interaction_type?: string;
-  interaction_status?: string | null;
   interaction_occurred_at?: string;
   role?: string;
   note?: string;

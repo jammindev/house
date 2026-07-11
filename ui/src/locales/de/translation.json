@@ -318,7 +318,6 @@
     "subject_label": "Betreff",
     "subject_placeholder": "Kurze Zusammenfassung",
     "type_label": "Typ",
-    "status_label": "Status (Aufgabe)",
     "selected_type_label": "Ausgewählter Typ",
     "date_label": "Datum und Uhrzeit",
     "date_only_label": "Datum",
@@ -376,9 +375,7 @@
     "search_label": "Suche",
     "search_placeholder": "Nach Titel, Beschreibung oder Tag suchen",
     "filter_type": "Typ",
-    "filter_status": "Status",
     "all_types": "Alle Typen",
-    "all_statuses": "Alle Status",
     "filter_zone": "Zone",
     "all_zones": "Alle Zonen",
     "filter_contact": "Kontakt",
@@ -1180,7 +1177,6 @@
     },
     "interaction_type": {
       "note": "Notiz",
-      "todo": "Aufgabe",
       "maintenance": "Wartung",
       "repair": "Reparatur",
       "inspection": "Inspektion",
@@ -1191,13 +1187,6 @@
       "upgrade": "Upgrade",
       "disposal": "Entsorgung",
       "expense": "Ausgabe"
-    },
-    "interaction_status": {
-      "backlog": "Backlog",
-      "pending": "Ausstehend",
-      "in_progress": "In Bearbeitung",
-      "done": "Erledigt",
-      "archived": "Archiviert"
     },
     "deleted": "Gerät gelöscht",
     "empty_description": "Fügen Sie Ihr erstes Gerät hinzu, um Ihre Haushaltsgeräte und Werkzeuge zu verwalten.",

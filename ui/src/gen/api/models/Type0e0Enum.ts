@@ -4,7 +4,6 @@
 /* eslint-disable */
 /**
  * * `note` - Note
- * * `todo` - Todo
  * * `expense` - Expense
  * * `maintenance` - Maintenance
  * * `repair` - Repair
@@ -16,4 +15,4 @@
  * * `replacement` - Replacement
  * * `disposal` - Disposal
  */
-export type Type43eEnum = 'note' | 'todo' | 'expense' | 'maintenance' | 'repair' | 'installation' | 'inspection' | 'warranty' | 'issue' | 'upgrade' | 'replacement' | 'disposal';
+export type Type0e0Enum = 'note' | 'expense' | 'maintenance' | 'repair' | 'installation' | 'inspection' | 'warranty' | 'issue' | 'upgrade' | 'replacement' | 'disposal';

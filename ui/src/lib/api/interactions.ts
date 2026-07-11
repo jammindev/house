@@ -20,7 +20,6 @@ export interface InteractionListItem {
   subject: string;
   content: string;
   type: string;
-  status: string | null;
   occurred_at: string;
   tags: string[];
   zone_names: string[];
@@ -40,7 +39,6 @@ export interface CreateInteractionInput {
   subject: string;
   content?: string;
   type: string;
-  status?: string | null;
   occurred_at: string;
   zone_ids: string[];
   tags_input?: string[];
@@ -63,7 +61,6 @@ export interface LinkDocumentToInteractionInput {
 interface FetchInteractionsOptions {
   search?: string;
   type?: string;
-  status?: string;
   zone?: string;
   contact?: string;
   structure?: string;
@@ -127,7 +124,6 @@ export async function fetchInteractions(
   const {
     search,
     type,
-    status,
     zone,
     contact,
     structure,
@@ -143,7 +139,6 @@ export async function fetchInteractions(
   const params: Record<string, string | number> = { ordering: '-occurred_at' };
   if (search) params.search = search;
   if (type) params.type = type;
-  if (status) params.status = status;
   if (zone) params.zone = zone;
   if (contact) params.contact = contact;
   if (structure) params.structure = structure;
@@ -175,7 +170,6 @@ export async function createInteraction(
   const { data } = await api.post('/interactions/interactions/', {
     ...input,
     content: input.content ?? '',
-    status: input.status ?? null,
     metadata: input.metadata ?? {},
     document_ids: input.document_ids ?? [],
     enriched_text: '',

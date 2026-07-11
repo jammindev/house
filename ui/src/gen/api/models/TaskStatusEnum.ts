@@ -9,4 +9,4 @@
  * * `done` - Done
  * * `archived` - Archived
  */
-export type StatusF9bEnum = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived';
+export type TaskStatusEnum = 'backlog' | 'pending' | 'in_progress' | 'done' | 'archived';

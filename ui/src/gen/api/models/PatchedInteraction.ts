@@ -2,10 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { BlankEnum } from './BlankEnum';
-import type { NullEnum } from './NullEnum';
-import type { StatusF9bEnum } from './StatusF9bEnum';
-import type { Type43eEnum } from './Type43eEnum';
+import type { Type0e0Enum } from './Type0e0Enum';
 /**
  * Interaction list/create serializer.
  */
@@ -14,17 +11,7 @@ export type PatchedInteraction = {
     readonly household?: string;
     subject?: string;
     content?: string;
-    type?: Type43eEnum;
-    /**
-     * Status (mainly for todos)
-     *
-     * * `backlog` - Backlog
-     * * `pending` - Pending
-     * * `in_progress` - In Progress
-     * * `done` - Done
-     * * `archived` - Archived
-     */
-    status?: (StatusF9bEnum | BlankEnum | NullEnum) | null;
+    type?: Type0e0Enum;
     /**
      * Whether this interaction is private to the creator
      */
@@ -43,13 +30,12 @@ export type PatchedInteraction = {
      * Full-text searchable content with OCR from documents
      */
     enriched_text?: string;
-    project?: string | null;
-    readonly project_title?: string;
-    readonly source_type?: string;
-    readonly source_id?: string;
+    source_type?: string | null;
+    source_id?: string | null;
     readonly source_label?: string;
     zone_ids?: Array<string>;
     readonly zone_names?: string;
+    readonly zone_id_list?: string;
     readonly document_count?: string;
     readonly linked_document_ids?: string;
     document_ids?: Array<string>;

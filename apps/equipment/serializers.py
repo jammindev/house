@@ -93,7 +93,6 @@ class EquipmentSerializer(serializers.ModelSerializer):
 class EquipmentInteractionSerializer(serializers.ModelSerializer):
     interaction_subject = serializers.CharField(source="interaction.subject", read_only=True)
     interaction_type = serializers.CharField(source="interaction.type", read_only=True)
-    interaction_status = serializers.CharField(source="interaction.status", read_only=True)
     interaction_occurred_at = serializers.DateTimeField(source="interaction.occurred_at", read_only=True)
 
     class Meta:
@@ -103,7 +102,6 @@ class EquipmentInteractionSerializer(serializers.ModelSerializer):
             "interaction",
             "interaction_subject",
             "interaction_type",
-            "interaction_status",
             "interaction_occurred_at",
             "role",
             "note",

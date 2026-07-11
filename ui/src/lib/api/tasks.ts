@@ -114,10 +114,10 @@ export function formatRelativeDate(dateStr: string | null): string | null {
   }
 }
 
-export async function fetchTasks(): Promise<Task[]> {
-  const { data } = await api.get('/tasks/tasks/', {
-    params: { limit: 200, ordering: 'due_date,created_at' },
-  });
+export async function fetchTasks(filters: { zone?: string } = {}): Promise<Task[]> {
+  const params: Record<string, string | number> = { limit: 200, ordering: 'due_date,created_at' };
+  if (filters.zone) params.zone = filters.zone;
+  const { data } = await api.get('/tasks/tasks/', { params });
   return Array.isArray(data)
     ? (data as Task[])
     : ((data as { results?: Task[] }).results ?? []);

@@ -16,7 +16,7 @@ export type PatchedProject = {
     closed_at?: string | null;
     tags?: Array<string>;
     planned_budget?: string;
-    actual_cost_cached?: string;
+    readonly actual_cost_cached?: string;
     cover_interaction?: string | null;
     project_group?: string | null;
     readonly project_group_name?: string;

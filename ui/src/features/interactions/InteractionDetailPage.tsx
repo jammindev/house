@@ -97,11 +97,6 @@ export default function InteractionDetailPage() {
               <Badge variant="outline">
                 {t(`equipment.interaction_type.${interaction.type}`)}
               </Badge>
-              {interaction.status ? (
-                <Badge variant="secondary">
-                  {t(`equipment.interaction_status.${interaction.status}`)}
-                </Badge>
-              ) : null}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {formatDateTime(interaction.occurred_at)}

@@ -68,11 +68,11 @@ def _parse_period(from_param: str | None, to_param: str | None):
 
 class InteractionViewSet(viewsets.ModelViewSet):
     """
-    Interaction CRUD with filtering by type, status, tags, zones, dates.
+    Interaction CRUD with filtering by type, tags, zones, dates.
     """
     permission_classes = [IsHouseholdMember]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['type', 'status', 'is_private', 'created_by']
+    filterset_fields = ['type', 'is_private', 'created_by']
     search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     ordering_fields = ['occurred_at', 'created_at', 'subject']
     ordering = ['-occurred_at']
@@ -211,21 +211,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
                 }
         
         return Response(type_counts)
-    
-    @action(detail=False, methods=['get'])
-    def tasks(self, request):
-        """Get todos grouped by status for kanban board."""
-        queryset = self.get_queryset().filter(type='todo')
-        
-        tasks_by_status = {}
-        for status_key, label in Interaction.STATUS_CHOICES:
-            tasks = queryset.filter(status=status_key)
-            tasks_by_status[status_key] = InteractionSerializer(
-                tasks, many=True, context={'request': request}
-            ).data
-        
-        return Response(tasks_by_status)
-    
+
     @action(detail=False, methods=['post'], url_path='expenses/manual')
     def expenses_manual(self, request):
         """POST /api/interactions/expenses/manual/
@@ -361,25 +347,6 @@ class InteractionViewSet(viewsets.ModelViewSet):
             supplier=supplier if supplier else None,
             kind=kind if kind else None,
         ))
-
-    @action(detail=True, methods=['patch'])
-    def update_status(self, request, pk=None):
-        """Quick status update for todos."""
-        interaction = self.get_object()
-        new_status = request.data.get('status')
-        
-        if new_status not in dict(Interaction.STATUS_CHOICES):
-            return Response(
-                {'error': 'Invalid status'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        interaction.status = new_status
-        interaction.save()
-        
-        return Response(
-            InteractionSerializer(interaction, context={'request': request}).data
-        )
 
 
 class _InteractionLinkBaseViewSet(viewsets.ModelViewSet):

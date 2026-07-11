@@ -318,7 +318,6 @@
     "subject_label": "Asunto",
     "subject_placeholder": "Resumen breve",
     "type_label": "Tipo",
-    "status_label": "Estado (tarea)",
     "selected_type_label": "Tipo seleccionado",
     "date_label": "Fecha y hora",
     "date_only_label": "Fecha",
@@ -376,9 +375,7 @@
     "search_label": "Buscar",
     "search_placeholder": "Buscar por título, descripción o tag",
     "filter_type": "Tipo",
-    "filter_status": "Estado",
     "all_types": "Todos los tipos",
-    "all_statuses": "Todos los estados",
     "filter_zone": "Zona",
     "all_zones": "Todas las zonas",
     "filter_contact": "Contacto",
@@ -1180,7 +1177,6 @@
     },
     "interaction_type": {
       "note": "Nota",
-      "todo": "Tarea",
       "maintenance": "Mantenimiento",
       "repair": "Reparación",
       "inspection": "Inspección",
@@ -1191,13 +1187,6 @@
       "upgrade": "Mejora",
       "disposal": "Desecho",
       "expense": "Gasto"
-    },
-    "interaction_status": {
-      "backlog": "Backlog",
-      "pending": "Pendiente",
-      "in_progress": "En progreso",
-      "done": "Hecho",
-      "archived": "Archivado"
     },
     "deleted": "Equipo eliminado",
     "empty_description": "Añade tu primer equipo para comenzar a registrar tus electrodomésticos y herramientas.",

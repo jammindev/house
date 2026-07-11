@@ -308,7 +308,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param limit Number of results to return per page.
      * @param offset The initial index from which to return the results.
      * @param ordering Which field to use when ordering the results.
@@ -334,7 +334,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param requestBody
      * @returns Interaction
      * @throws ApiError
@@ -350,7 +350,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param id
      * @returns InteractionDetail
      * @throws ApiError
@@ -367,7 +367,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param id
      * @param requestBody
      * @returns Interaction
@@ -388,7 +388,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param id
      * @param requestBody
      * @returns Interaction
@@ -409,7 +409,7 @@ export class InteractionsService {
         });
     }
     /**
-     * Interaction CRUD with filtering by type, status, tags, zones, dates.
+     * Interaction CRUD with filtering by type, tags, zones, dates.
      * @param id
      * @returns void
      * @throws ApiError
@@ -426,19 +426,22 @@ export class InteractionsService {
         });
     }
     /**
-     * Quick status update for todos.
+     * PATCH /api/interactions/{id}/renovation/
+     *
+     * Edit a renovation log entry via the shared service. Every field optional;
+     * zone_ids resyncs the M2M when provided.
      * @param id
      * @param requestBody
      * @returns Interaction
      * @throws ApiError
      */
-    public static interactionsInteractionsUpdateStatusPartialUpdate(
+    public static interactionsInteractionsRenovationPartialUpdate(
         id: string,
         requestBody?: PatchedInteraction,
     ): CancelablePromise<Interaction> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/api/interactions/interactions/{id}/update_status/',
+            url: '/api/interactions/interactions/{id}/renovation/',
             path: {
                 'id': id,
             },
@@ -492,14 +495,23 @@ export class InteractionsService {
         });
     }
     /**
-     * Get todos grouped by status for kanban board.
+     * POST /api/interactions/renovation/
+     *
+     * Create a renovation/decoration log entry (parcours 13): an Interaction
+     * discriminated by metadata.kind="renovation", attachable to several zones
+     * at once. Delegates to interactions.services.create_renovation_interaction.
+     * @param requestBody
      * @returns Interaction
      * @throws ApiError
      */
-    public static interactionsInteractionsTasksRetrieve(): CancelablePromise<Interaction> {
+    public static interactionsInteractionsRenovationCreate(
+        requestBody: Interaction,
+    ): CancelablePromise<Interaction> {
         return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/interactions/interactions/tasks/',
+            method: 'POST',
+            url: '/api/interactions/interactions/renovation/',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }

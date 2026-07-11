@@ -176,7 +176,7 @@ def _delete_renovation_from_agent(household, user, object_id):
 # --- list_entities filters ---------------------------------------------------
 
 _INTERACTION_TYPES = {
-    'note', 'todo', 'expense', 'maintenance', 'repair', 'installation',
+    'note', 'expense', 'maintenance', 'repair', 'installation',
     'inspection', 'warranty', 'issue', 'upgrade', 'replacement', 'disposal',
 }
 

@@ -585,7 +585,7 @@ _LIST_ENTITIES_SCHEMA = {
                 "in_progress, done, archived), due_before / due_after "
                 "(YYYY-MM-DD), overdue ('true' = due date passed and not "
                 "done/archived). "
-                "For 'interaction': type (comma-separated among note, todo, "
+                "For 'interaction': type (comma-separated among note, "
                 "expense, maintenance, repair, installation, inspection, "
                 "warranty, issue, upgrade, replacement, disposal), "
                 "occurred_after / occurred_before (YYYY-MM-DD). "

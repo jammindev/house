@@ -60,6 +60,10 @@ export type PatchedUser = {
      */
     color_theme?: (ColorThemeEnum | BlankEnum);
     /**
+     * When enabled, the AI agent automatically remembers durable facts about the user from conversations and uses them in its answers. When disabled, memories are neither captured automatically nor injected; explicit 'remember that…' requests still work.
+     */
+    agent_memory_enabled?: boolean;
+    /**
      * Return display_name if set, otherwise first_name + last_name
      */
     readonly full_name?: string;

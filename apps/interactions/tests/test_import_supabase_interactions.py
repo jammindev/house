@@ -111,7 +111,6 @@ class ImportSupabaseInteractionsCommandTests(TestCase):
         interaction = Interaction.objects.get(id=interaction_id)
         self.assertEqual(str(interaction.household_id), self.target_household_id)
         self.assertEqual(interaction.type, "note")
-        self.assertIsNone(interaction.status)
         self.assertEqual(len(interaction.subject), 500)
         self.assertEqual(interaction.content, "")
         self.assertEqual(interaction.metadata, {})
@@ -135,7 +134,6 @@ class ImportSupabaseInteractionsCommandTests(TestCase):
             subject="Initial",
             content="",
             type="note",
-            status=None,
             occurred_at=occurred_at,
             metadata={},
             enriched_text="",
@@ -182,8 +180,8 @@ class ImportSupabaseInteractionsCommandTests(TestCase):
 
         interaction = Interaction.objects.get(id=interaction_id)
         self.assertEqual(interaction.subject, "Updated")
-        self.assertEqual(interaction.type, "todo")
-        self.assertEqual(interaction.status, "done")
+        # 'todo' n'est plus un type d'interaction (extrait vers Task) — fallback note
+        self.assertEqual(interaction.type, "note")
         self.assertEqual(interaction.content, "updated content")
         self.assertEqual(interaction.enriched_text, "text")
         self.assertEqual(interaction.metadata, {"k": "v"})

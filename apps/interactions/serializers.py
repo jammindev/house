@@ -150,7 +150,7 @@ class InteractionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Interaction
         fields = [
-            'id', 'household', 'subject', 'content', 'type', 'status',
+            'id', 'household', 'subject', 'content', 'type',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'zone_id_list', 'document_count', 'linked_document_ids', 'document_ids',
@@ -162,9 +162,8 @@ class InteractionSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         data = super().validate(data)
-        interaction_type = data.get('type') or (self.instance.type if self.instance else None)
-        if interaction_type != 'todo' and not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
-            raise serializers.ValidationError({'occurred_at': 'This field is required for this interaction type.'})
+        if not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
+            raise serializers.ValidationError({'occurred_at': 'This field is required.'})
 
         has_ct = 'source_content_type' in data
         has_oid = 'source_object_id' in data

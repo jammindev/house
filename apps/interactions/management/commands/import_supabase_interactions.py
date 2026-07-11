@@ -210,7 +210,6 @@ class Command(BaseCommand):
     ) -> ImportCounters:
         counters = ImportCounters()
         valid_types = {choice for choice, _label in Interaction.INTERACTION_TYPES}
-        valid_statuses = {choice for choice, _label in Interaction.STATUS_CHOICES}
         project_content_type = ContentType.objects.get_for_model(Project)
 
         for row in rows:
@@ -228,12 +227,6 @@ class Command(BaseCommand):
             if type_value not in valid_types:
                 type_value = "note"
 
-            status_value = row.get("status")
-            if status_value is not None:
-                status_value = str(status_value).strip() or None
-            if status_value and status_value not in valid_statuses:
-                status_value = None
-
             subject_value = (row.get("subject") or "").strip() or "Untitled interaction"
             if len(subject_value) > 500:
                 subject_value = subject_value[:500]
@@ -249,7 +242,6 @@ class Command(BaseCommand):
                 "subject": subject_value,
                 "content": row.get("content") or "",
                 "type": type_value,
-                "status": status_value,
                 "is_private": bool(row.get("is_private", False)),
                 "occurred_at": occurred_at,
                 "metadata": metadata_value,

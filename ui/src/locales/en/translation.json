@@ -318,7 +318,6 @@
     "subject_label": "Subject",
     "subject_placeholder": "Short summary",
     "type_label": "Type",
-    "status_label": "Status (todo)",
     "selected_type_label": "Selected type",
     "date_label": "Date and time",
     "date_only_label": "Date",
@@ -376,9 +375,7 @@
     "search_label": "Search",
     "search_placeholder": "Search by title, description, or tag",
     "filter_type": "Type",
-    "filter_status": "Status",
     "all_types": "All types",
-    "all_statuses": "All statuses",
     "filter_zone": "Zone",
     "all_zones": "All zones",
     "filter_contact": "Contact",
@@ -1180,7 +1177,6 @@
     },
     "interaction_type": {
       "note": "Note",
-      "todo": "Task",
       "maintenance": "Maintenance",
       "repair": "Repair",
       "inspection": "Inspection",
@@ -1191,13 +1187,6 @@
       "upgrade": "Upgrade",
       "disposal": "Disposal",
       "expense": "Expense"
-    },
-    "interaction_status": {
-      "backlog": "Backlog",
-      "pending": "Pending",
-      "in_progress": "In progress",
-      "done": "Done",
-      "archived": "Archived"
     },
     "deleted": "Equipment deleted",
     "empty_description": "Add your first piece of equipment to start tracking your home appliances and tools.",
