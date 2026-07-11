@@ -19,6 +19,7 @@ const ProjectDetailPage = lazyWithReload(() => import('./features/projects/Proje
 const EquipmentPage = lazyWithReload(() => import('./features/equipment/EquipmentPage'));
 const EquipmentDetailPage = lazyWithReload(() => import('./features/equipment/EquipmentDetailPage'));
 const StockPage = lazyWithReload(() => import('./features/stock/StockPage'));
+const StockItemDetailPage = lazyWithReload(() => import('./features/stock/StockItemDetailPage'));
 const DocumentsPage = lazyWithReload(() => import('./features/documents/DocumentsPage'));
 const DocumentDetailPage = lazyWithReload(() => import('./features/documents/DocumentDetailPage'));
 const DirectoryPage = lazyWithReload(() => import('./features/directory/DirectoryFeaturePage'));
@@ -75,6 +76,7 @@ export const router = createBrowserRouter([
       { path: 'equipment', element: <EquipmentPage /> },
       { path: 'equipment/:id', element: <EquipmentDetailPage /> },
       { path: 'stock', element: <StockPage /> },
+      { path: 'stock/:id', element: <StockItemDetailPage /> },
       { path: 'documents', element: <DocumentsPage /> },
       { path: 'documents/:id', element: <DocumentDetailPage /> },
       { path: 'directory', element: <DirectoryPage /> },

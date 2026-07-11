@@ -195,6 +195,33 @@ export async function purchaseStockItem(
   return data as StockPurchaseResponse;
 }
 
+export interface StockItemInteractionItem {
+  id: string;
+  subject: string;
+  type: string;
+  occurred_at: string;
+  metadata: {
+    kind?: string;
+    amount?: string | number | null;
+    unit_price?: string | number | null;
+    supplier?: string | null;
+    delta?: string;
+    unit?: string;
+  } | null;
+}
+
+export async function fetchStockItemInteractions(itemId: string): Promise<StockItemInteractionItem[]> {
+  const { data } = await api.get('/interactions/interactions/', {
+    params: {
+      source_type: 'stock.stockitem',
+      source_id: itemId,
+      ordering: '-occurred_at',
+      limit: 100,
+    },
+  });
+  return normalizeList<StockItemInteractionItem>(data);
+}
+
 export async function fetchStockCategories(): Promise<StockCategory[]> {
   const { data } = await api.get('/stock/categories/', {
     params: { ordering: 'sort_order,name' },

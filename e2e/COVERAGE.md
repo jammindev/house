@@ -136,7 +136,7 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
-## Stock (`stock-purchase.spec.ts`)
+## Stock (`stock-purchase.spec.ts`, `stock-item-detail.spec.ts`)
 
 | Parcours | Statut |
 |---|---|
@@ -144,6 +144,13 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 | Création d'un article de stock | ✅ |
 | Approvisionnement d'un article (delta + prix + fournisseur) en un seul geste | ✅ |
 | L'achat crée une `Interaction(type=expense)` liée et listée dans `/app/interactions` | ✅ |
+| Navigation liste → détail via le titre de la card | ✅ |
+| Retour vers la liste via le BackLink (mode "Retour" avec state.back) | ✅ |
+| Affichage des infos (nom, statut, catégorie, quantité, fournisseur) sur la page détail | ✅ |
+| Section "Historique des achats" vide par défaut | ✅ |
+| Enregistrer un achat depuis la page détail → entrée visible dans l'historique | ✅ |
+| Suppression depuis la page détail → retour à la liste, article absent | ✅ |
+| Accès direct par URL (deep-link) → page se charge, BackLink affiche "Stock" | ✅ |
 
 ---
 
