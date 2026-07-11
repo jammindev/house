@@ -180,7 +180,6 @@ function MemoryEditor({ memory, onDone }: { memory: AgentMemory; onDone: () => v
             size="sm"
             variant="ghost"
             onClick={onDone}
-            disabled={updateMemory.isPending}
             aria-label={t('common.cancel')}
           >
             <X className="h-4 w-4" />

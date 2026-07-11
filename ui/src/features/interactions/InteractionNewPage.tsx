@@ -192,7 +192,6 @@ export default function InteractionNewPage() {
             else if (paramProjectId) navigate(`/app/projects/${paramProjectId}`);
             else navigate('/app/interactions');
           }}
-          disabled={submitting}
         >
           {t('common.cancel')}
         </Button>
@@ -445,7 +444,6 @@ export default function InteractionNewPage() {
               else if (paramProjectId) navigate(`/app/projects/${paramProjectId}`);
               else navigate('/app/interactions');
             }}
-            disabled={submitting}
           >
             {t('common.cancel')}
           </Button>

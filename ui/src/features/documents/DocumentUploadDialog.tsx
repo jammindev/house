@@ -188,7 +188,6 @@ export default function DocumentUploadDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={createDocument.isPending}
             >
               {t('common.cancel')}
             </Button>

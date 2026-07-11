@@ -211,7 +211,6 @@ export default function PurchaseForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          disabled={isPending}
         >
           {t('common.cancel')}
         </Button>

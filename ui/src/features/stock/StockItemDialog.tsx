@@ -283,7 +283,6 @@ export default function StockItemDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending}
             >
               {t('common.cancel')}
             </Button>

@@ -216,7 +216,6 @@ export default function InteractionEditPage() {
           type="button"
           variant="outline"
           onClick={() => navigate(-1)}
-          disabled={submitting}
         >
           {t('common.cancel')}
         </Button>
@@ -469,7 +468,6 @@ export default function InteractionEditPage() {
             type="button"
             variant="outline"
             onClick={() => navigate(-1)}
-            disabled={submitting}
           >
             {t('common.cancel')}
           </Button>
