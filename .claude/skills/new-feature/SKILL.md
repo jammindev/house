@@ -35,6 +35,13 @@ Pour un changement non-trivial : feature branch depuis `main`
 
 Dans `apps/<app>/` (créer l'app si nécessaire, ou étendre une existante) :
 
+0. **Choix de modélisation AVANT tout schéma** : pour chaque entrée « journal »
+   de la feature, trancher **`Interaction` vs modèle dédié** avec la règle de
+   décision du CLAUDE.md (section « Interaction vs modèle dédié »). En bref :
+   fait daté, plat, sans invariant → `Interaction` + `metadata.kind` ; besoin
+   d'une contrainte DB, d'une machine à états, d'une FK typée ou de requêtes sur
+   les champs structurés → modèle dédié. Ne pas créer de table qui duplique ce
+   que le journal du foyer offre déjà (fil d'activité, dépenses, RAG, liaisons).
 1. **`models.py`** — hériter de `HouseholdScopedModel` (scope foyer). Puis
    `makemigrations` + `migrate`.
 2. **`serializers.py`** — validation, champs exposés.

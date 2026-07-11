@@ -190,6 +190,36 @@ Les clés i18n `purchase.*` (génériques au form) sont **shared** ; les clés `
 
 **Limite acceptée** : si l'user change sa langue plus tard, ses anciennes interactions auto-créées restent dans l'ancienne langue. Acceptable car rare.
 
+### Interaction vs modèle dédié — règle de décision
+
+`Interaction` est le **journal du foyer**, pas une table générique. Une entrée y a sa
+place parce qu'elle bénéficie gratuitement des quatre consommateurs transverses :
+fil d'activité du dashboard, page dépenses + agrégations (`Project.actual_cost`),
+RAG de l'agent (recherche/citation/`sum_amount`), liaisons génériques (zones M2M,
+documents, tâches).
+
+**Utiliser `Interaction`** (type existant + discriminateur `metadata.kind`) tant que
+l'entrée est **un fait daté, plat, sans invariant** : dépenses (`*_purchase`,
+`manual`), notes, carnet de rénovation (`renovation`).
+
+**Créer un modèle dédié** dès qu'UN de ces besoins apparaît :
+
+- machine à états / transitions (ex : `Task`, historiquement **extraite**
+  d'`Interaction` — voir `Task.source_interaction`) ;
+- contrainte DB (unicité, check) sur les données métier — impossible dans
+  `metadata` JSON (ex : `EggLog` et son `unique(household, date)` qui fonde l'upsert) ;
+- FK typée avec cascade / timeline par objet (ex : `ChickenEvent.chicken`) ;
+- types métier sans équivalent dans `INTERACTION_TYPES` (couvaison, mue…) ;
+- requêtes ou filtres sur les champs structurés (dans `metadata`, ils doivent rester
+  **affichés, jamais requêtés ni contraints** — c'est la limite du carnet de rénovation).
+
+Coûts du pattern à garder en tête : `metadata.kind` est stringly-typed (aucune
+contrainte DB, une faute de frappe crée une catégorie silencieuse), les invariants ne
+tiennent que si toutes les écritures passent par `interactions/services.py`, et les
+filtres `metadata__kind=` sont dispersés dans plusieurs apps (renommer un kind est un
+chantier transverse). Scorie connue : le type `todo` subsiste dans
+`INTERACTION_TYPES` alors que les tâches sont un modèle à part — ne pas s'en inspirer.
+
 ## Composants UI
 
 ### Cartes (`Card`)
