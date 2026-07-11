@@ -101,3 +101,40 @@ class TestGenerateChangelog:
             key=lambda e: e.module,
         )
         assert feat.summary == "nouvelle fonctionnalité"
+
+
+class TestGenerateFromStdin:
+    """Mode prod : historique fourni via ``raw_log`` (stdin), sans lancer git."""
+
+    def test_uses_raw_log_without_touching_git(self, db, monkeypatch):
+        def _boom(**kwargs):
+            raise AssertionError("read_git_log ne doit pas être appelé en mode raw_log")
+
+        monkeypatch.setattr(services, "read_git_log", _boom)
+        raw = _raw(
+            ("sha_a", ISO, "feat(agent): streaming (#50)"),
+            ("sha_b", ISO, "chore: bump"),
+        )
+        created = services.generate_changelog(raw_log=raw, use_llm=False)
+        assert len(created) == 1
+        assert created[0].module == "agent"
+
+    def test_updates_state_from_first_record(self, db, monkeypatch):
+        monkeypatch.setattr(
+            services, "read_git_log",
+            lambda **kw: (_ for _ in ()).throw(AssertionError("git interdit")),
+        )
+        raw = _raw(
+            ("head_sha", ISO, "feat(x): a (#1)"),
+            ("older_sha", ISO, "fix(y): b (#2)"),
+        )
+        services.generate_changelog(raw_log=raw, use_llm=False)
+        assert ChangelogState.load().head_sha == "head_sha"
+
+    def test_idempotent_across_repeated_pipes(self, db, monkeypatch):
+        monkeypatch.setattr(services, "read_git_log", lambda **kw: "")
+        raw = _raw(("s1", ISO, "feat(z): c (#9)"))
+        services.generate_changelog(raw_log=raw, use_llm=False)
+        again = services.generate_changelog(raw_log=raw, use_llm=False)
+        assert again == []
+        assert ChangelogEntry.objects.count() == 1
