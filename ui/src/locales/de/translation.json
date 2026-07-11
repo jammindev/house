@@ -1517,7 +1517,17 @@
     "resetSubmit": "Passwort zurücksetzen",
     "resetting": "Zurücksetzen…",
     "tokenInvalid": "Dieser Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen an.",
-    "passwordResetSuccess": "Passwort zurückgesetzt. Sie können sich jetzt anmelden."
+    "passwordResetSuccess": "Passwort zurückgesetzt. Sie können sich jetzt anmelden.",
+    "signupTitle": "Konto erstellen",
+    "signupSubmit": "Konto erstellen",
+    "signupInProgress": "Konto wird erstellt…",
+    "signupSuccess": "Konto erstellt. Du kannst dich jetzt anmelden.",
+    "signupError": "Konto konnte nicht erstellt werden. Überprüfe die Felder und versuche es erneut.",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "alreadyHaveAccount": "Schon ein Konto?",
+    "noAccountYet": "Noch kein Konto?",
+    "createAccount": "Konto erstellen"
   },
   "projects": {
     "app_title": "Projekte-Mini-App",

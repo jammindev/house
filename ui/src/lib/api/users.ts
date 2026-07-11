@@ -49,6 +49,18 @@ export interface UpdateProfileInput {
   agent_memory_enabled?: boolean;
 }
 
+export interface SignupInput {
+  email: string;
+  password: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export async function signup(input: SignupInput): Promise<UserProfile> {
+  const { data } = await api.post('/accounts/users/', input);
+  return data as UserProfile;
+}
+
 export async function fetchMe(): Promise<UserProfile> {
   const { data } = await api.get('/accounts/users/me/');
   return data as UserProfile;

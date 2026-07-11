@@ -1517,7 +1517,17 @@
     "resetSubmit": "Restablecer contraseña",
     "resetting": "Restableciendo…",
     "tokenInvalid": "Este enlace no es válido o ha expirado. Solicita uno nuevo.",
-    "passwordResetSuccess": "Contraseña restablecida. Ahora puedes iniciar sesión."
+    "passwordResetSuccess": "Contraseña restablecida. Ahora puedes iniciar sesión.",
+    "signupTitle": "Crear una cuenta",
+    "signupSubmit": "Crear cuenta",
+    "signupInProgress": "Creando cuenta…",
+    "signupSuccess": "Cuenta creada. Ahora puedes iniciar sesión.",
+    "signupError": "No se pudo crear la cuenta. Revisa los campos e inténtalo de nuevo.",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?",
+    "noAccountYet": "¿Aún no tienes cuenta?",
+    "createAccount": "Crear una cuenta"
   },
   "projects": {
     "app_title": "Mini-app Proyectos",
