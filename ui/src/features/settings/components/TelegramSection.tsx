@@ -18,7 +18,11 @@ export function TelegramSection() {
 
   async function handleConnect() {
     const { deep_link } = await linkToken.mutateAsync();
-    window.open(deep_link, '_blank', 'noopener');
+    // Same-tab navigation, not window.open: a popup opened AFTER the await is
+    // outside the click's user-gesture tick and gets blocked on iOS Safari and
+    // installed PWAs (the button appeared to do nothing). Navigating to the
+    // t.me deep link isn't popup-blocked and hands off to the Telegram app.
+    window.location.href = deep_link;
   }
 
   const linkedSince = status.linked_at
