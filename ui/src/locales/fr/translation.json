@@ -1249,6 +1249,15 @@
         "title": "Autonomies",
         "days_one": "~{{count}} j",
         "days_other": "~{{count}} j"
+      },
+      "chickens": {
+        "title": "Poulailler",
+        "eggs_today_one": "{{count}} œuf aujourd'hui",
+        "eggs_today_other": "{{count}} œufs aujourd'hui",
+        "eggs_7d": "{{count}} sur 7 jours",
+        "flock_one": "{{count}} poule",
+        "flock_other": "{{count}} poules",
+        "feed_runway": "Nourriture : ~{{days}} j"
       }
     },
     "quickActions": {
@@ -1720,6 +1729,123 @@
       "feat": "Nouveauté",
       "fix": "Correction",
       "perf": "Performance"
+    }
+  },
+  "chickens": {
+    "title": "Poulailler",
+    "description": "Suivi du troupeau, de la ponte, de la nourriture et des soins",
+    "created": "Poule ajoutée",
+    "updated": "Poule mise à jour",
+    "deleted": "Poule supprimée",
+    "not_found": "Cette poule est introuvable.",
+    "no_details": "Aucun détail",
+    "actions": {
+      "new": "Nouvelle poule",
+      "create": "Créer"
+    },
+    "status": {
+      "active": "Active",
+      "broody": "En couvaison",
+      "sick": "Malade",
+      "deceased": "Décédée",
+      "gone": "Partie"
+    },
+    "filters": {
+      "flock": "Troupeau",
+      "all": "Toutes",
+      "history": "Historique"
+    },
+    "empty": {
+      "title": "Pas encore de poules",
+      "description": "Ajoute ta première poule pour démarrer le registre du troupeau.",
+      "filtered": "Aucune poule ne correspond à ce filtre."
+    },
+    "fields": {
+      "name": "Nom",
+      "breed": "Race",
+      "color": "Couleur",
+      "hatched_on": "Date d'éclosion",
+      "acquired_on": "Date d'arrivée",
+      "status": "Statut",
+      "zone": "Zone",
+      "no_zone": "Aucune zone",
+      "notes": "Notes"
+    },
+    "dialog": {
+      "new_title": "Ajouter une poule",
+      "edit_title": "Modifier la poule"
+    },
+    "eggs": {
+      "logged": "Ponte enregistrée",
+      "today_question": "Combien d'œufs aujourd'hui ?",
+      "date_question": "Œufs ramassés ce jour-là",
+      "pick_date": "Choisir une date",
+      "decrement": "Un œuf de moins",
+      "increment": "Un œuf de plus",
+      "stats_title": "Ponte",
+      "stats_empty": "Saisis un premier relevé pour voir les tendances.",
+      "stat_today": "Aujourd'hui",
+      "stat_avg7": "Moy. 7 j",
+      "stat_avg30": "Moy. 30 j",
+      "stat_month": "Ce mois-ci"
+    },
+    "events": {
+      "title": "Journal",
+      "created": "Événement ajouté",
+      "updated": "Événement mis à jour",
+      "deleted": "Événement supprimé",
+      "empty": "Pas encore d'événements.",
+      "recent_title": "Derniers événements",
+      "new_title": "Nouvel événement",
+      "edit_title": "Modifier l'événement",
+      "whole_flock": "Tout le troupeau",
+      "remind_me": "Me le rappeler",
+      "reminder_date": "Date du rappel",
+      "actions": {
+        "new": "Événement",
+        "create": "Créer"
+      },
+      "fields": {
+        "type": "Type",
+        "occurred_on": "Date",
+        "title": "Titre",
+        "chicken": "Poule",
+        "notes": "Notes"
+      },
+      "types": {
+        "arrival": "Arrivée",
+        "care": "Soin",
+        "illness": "Maladie",
+        "broody": "Couvaison",
+        "molt": "Mue",
+        "predator": "Prédateur",
+        "death": "Décès",
+        "departure": "Départ",
+        "other": "Autre"
+      }
+    },
+    "purchase": {
+      "title": "Achat — {{name}}",
+      "created": "Dépense enregistrée",
+      "action": "Déclarer un achat"
+    },
+    "feed": {
+      "title": "Nourriture",
+      "not_linked": "Aucun tracker de nourriture lié",
+      "link_action": "Lier un tracker",
+      "pick_tracker": "Choisir un tracker",
+      "link_confirm": "Lier",
+      "no_consumption_trackers": "Aucun tracker de consommation — crée-le depuis Trackers.",
+      "linked": "Tracker lié",
+      "rate": "≈ {{rate}} {{unit}}/jour",
+      "runway": "~{{days}} j d'autonomie",
+      "reserve": "{{reserve}} {{unit}} restants",
+      "no_rate_yet": "Pas encore de rythme"
+    },
+    "cost": {
+      "title": "Coût",
+      "per_egg": "{{amount}} € / œuf",
+      "totals": "{{total}} € au total · {{year}} € cette année"
     }
   },
   "alerts": {

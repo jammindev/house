@@ -1249,6 +1249,15 @@
         "title": "Autonomy",
         "days_one": "~{{count}} day",
         "days_other": "~{{count}} days"
+      },
+      "chickens": {
+        "title": "Chicken coop",
+        "eggs_today_one": "{{count}} egg today",
+        "eggs_today_other": "{{count}} eggs today",
+        "eggs_7d": "{{count}} over 7 days",
+        "flock_one": "{{count}} hen",
+        "flock_other": "{{count}} hens",
+        "feed_runway": "Feed: ~{{days}} d"
       }
     },
     "quickActions": {
@@ -1720,6 +1729,123 @@
       "feat": "New",
       "fix": "Fix",
       "perf": "Performance"
+    }
+  },
+  "chickens": {
+    "title": "Chicken coop",
+    "description": "Track the flock, egg laying, feed and care",
+    "created": "Hen added",
+    "updated": "Hen updated",
+    "deleted": "Hen deleted",
+    "not_found": "This hen was not found.",
+    "no_details": "No details",
+    "actions": {
+      "new": "New hen",
+      "create": "Create"
+    },
+    "status": {
+      "active": "Active",
+      "broody": "Broody",
+      "sick": "Sick",
+      "deceased": "Deceased",
+      "gone": "Gone"
+    },
+    "filters": {
+      "flock": "Flock",
+      "all": "All",
+      "history": "History"
+    },
+    "empty": {
+      "title": "No hens yet",
+      "description": "Add your first hen to start the flock register.",
+      "filtered": "No hen matches this filter."
+    },
+    "fields": {
+      "name": "Name",
+      "breed": "Breed",
+      "color": "Color",
+      "hatched_on": "Hatch date",
+      "acquired_on": "Arrival date",
+      "status": "Status",
+      "zone": "Zone",
+      "no_zone": "No zone",
+      "notes": "Notes"
+    },
+    "dialog": {
+      "new_title": "Add a hen",
+      "edit_title": "Edit hen"
+    },
+    "eggs": {
+      "logged": "Egg count saved",
+      "today_question": "How many eggs today?",
+      "date_question": "Eggs collected that day",
+      "pick_date": "Pick a date",
+      "decrement": "One egg less",
+      "increment": "One egg more",
+      "stats_title": "Egg laying",
+      "stats_empty": "Log a first count to see the trends.",
+      "stat_today": "Today",
+      "stat_avg7": "Avg 7 d",
+      "stat_avg30": "Avg 30 d",
+      "stat_month": "This month"
+    },
+    "events": {
+      "title": "Journal",
+      "created": "Event added",
+      "updated": "Event updated",
+      "deleted": "Event deleted",
+      "empty": "No events yet.",
+      "recent_title": "Latest events",
+      "new_title": "New event",
+      "edit_title": "Edit event",
+      "whole_flock": "Whole flock",
+      "remind_me": "Remind me",
+      "reminder_date": "Reminder date",
+      "actions": {
+        "new": "Event",
+        "create": "Create"
+      },
+      "fields": {
+        "type": "Type",
+        "occurred_on": "Date",
+        "title": "Title",
+        "chicken": "Hen",
+        "notes": "Notes"
+      },
+      "types": {
+        "arrival": "Arrival",
+        "care": "Care",
+        "illness": "Illness",
+        "broody": "Broody",
+        "molt": "Molt",
+        "predator": "Predator",
+        "death": "Death",
+        "departure": "Departure",
+        "other": "Other"
+      }
+    },
+    "purchase": {
+      "title": "Purchase — {{name}}",
+      "created": "Expense saved",
+      "action": "Log a purchase"
+    },
+    "feed": {
+      "title": "Feed",
+      "not_linked": "No feed tracker linked yet",
+      "link_action": "Link a tracker",
+      "pick_tracker": "Pick a tracker",
+      "link_confirm": "Link",
+      "no_consumption_trackers": "No consumption tracker yet — create one from Trackers.",
+      "linked": "Tracker linked",
+      "rate": "≈ {{rate}} {{unit}}/day",
+      "runway": "~{{days}} d of runway",
+      "reserve": "{{reserve}} {{unit}} left",
+      "no_rate_yet": "No rate yet"
+    },
+    "cost": {
+      "title": "Cost",
+      "per_egg": "{{amount}} € / egg",
+      "totals": "{{total}} € total · {{year}} € this year"
     }
   },
   "alerts": {

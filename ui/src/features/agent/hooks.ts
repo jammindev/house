@@ -12,7 +12,9 @@ import {
   updateTracker,
   updateTrackerEntry,
 } from '@/lib/api/trackers';
+import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
 import { taskKeys } from '@/features/tasks/hooks';
+import { chickenKeys } from '@/features/chickens/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
 import { waterKeys } from '@/features/water/hooks';
@@ -182,6 +184,15 @@ const UNDO_HANDLERS: Record<
     remove: (id) => deleteTrackerEntry(id),
     keys: [trackerKeys.all as unknown as unknown[]],
   },
+  chicken: {
+    remove: (id) => deleteChicken(id),
+    keys: [chickenKeys.all as unknown as unknown[]],
+  },
+  egg_log: {
+    // one row per day (upserted) — undo removes the whole day's log
+    remove: (id) => deleteEggLog(id),
+    keys: [chickenKeys.all as unknown as unknown[]],
+  },
 };
 
 /**
@@ -253,6 +264,11 @@ const UPDATE_UNDO_HANDLERS: Record<
     restore: (id, previous) =>
       updateWaterReading(id, previous as Parameters<typeof updateWaterReading>[1]),
     keys: [waterKeys.all as unknown as unknown[]],
+  },
+  chicken: {
+    restore: (id, previous) =>
+      updateChicken(id, previous as Parameters<typeof updateChicken>[1]),
+    keys: [chickenKeys.all as unknown as unknown[]],
   },
 };
 

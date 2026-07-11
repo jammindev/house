@@ -339,3 +339,18 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Section "Projets actifs" visible + lien "Tous les projets" | ✅ |
 | Quick action Expense ouvre ExpenseAdHocDialog | ❌ (déjà couvert dans expense-adhoc.spec.ts) |
 | Quick actions conditionnels : Relevé eau / Relevé électricité (visibles si module a des données) | 🚧 (foyer demo sans relevés eau/elec au moment des tests) |
+
+---
+
+## Poulailler (`chickens.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page avec titre "Poulailler" | ✅ |
+| Création d'une poule (nom + race) via le dialog → apparaît dans la grille | ✅ |
+| Logger 2 œufs via le bandeau (+/+), toast "Ponte enregistrée", compteur = 2 | ✅ |
+| Re-saisir 3 œufs (upsert) → compteur = 3, toujours 1 ligne en DB (pas de doublon) | ✅ |
+| Ouvrir la fiche poule depuis l'API, vérifier le titre h1 avec emoji | ✅ |
+| Ajouter un événement Soin depuis la fiche → apparaît dans la timeline | ✅ |
+| Changer le statut à "Décédée" via le dialog d'édition → badge "Décédée" + événement "Décès" auto dans la timeline | ✅ |
+| Supprimer un événement (optimistic delete) → toast "Événement supprimé" → Annuler → réapparaît | ✅ |
