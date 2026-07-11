@@ -15,8 +15,11 @@
 
 Contrairement à la quasi-totalité des modèles du projet, `ChangelogEntry` n'hérite
 **pas** de `HouseholdScopedModel` : le changelog est le même pour tous les foyers
-(c'est de l'infra applicative, pas de la donnée foyer). L'API est donc en lecture
-seule, permission `IsAuthenticated` simple (pas `IsHouseholdMember`).
+(c'est de l'infra applicative, pas de la donnée foyer). L'API est en lecture seule
+et **réservée au staff/superuser Django** — permission `IsAdminUser` (pas
+`IsHouseholdMember` ni le rôle owner de foyer : c'est de l'info de développement
+plateforme, visible du seul admin). Le front reflète ça : entrée sidebar dans la
+section Admin (gate `user.is_staff`) + garde-fou page (message si non-staff).
 
 ## Modèles & API
 
@@ -59,8 +62,8 @@ python manage.py generate_changelog --rebuild  # purge + reconstruit
 - `ui/src/features/changelog/ChangelogPage.tsx` : pattern feature-page standard —
   carte « Production à jour », `FilterPill` par module (triés par fréquence),
   liste de cards (badge type + chip module + résumé + date + lien PR).
-- Nav : entrée « Nouveautés » (icône `Rocket`) dans le groupe du haut de la
-  sidebar ; route `/app/changelog`.
+- Nav : entrée « Nouveautés » (icône `Rocket`) dans la **section Admin** de la
+  sidebar (visible si `user.is_staff`) ; route `/app/admin/changelog`.
 
 ## Contrat de commit
 

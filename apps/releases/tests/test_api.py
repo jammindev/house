@@ -1,4 +1,4 @@
-"""Tests de l'API changelog — lecture seule, authentifiée, non scopée foyer."""
+"""Tests de l'API changelog — lecture seule, réservée au staff (IsAdminUser)."""
 import pytest
 from django.utils import timezone
 from rest_framework import status
@@ -9,14 +9,14 @@ from releases.models import ChangelogEntry, ChangelogState
 
 
 @pytest.fixture
-def user(db):
-    return UserFactory(email="changelog-reader@example.com")
+def staff_user(db):
+    return UserFactory(email="changelog-admin@example.com", is_staff=True)
 
 
 @pytest.fixture
-def client(user):
+def client(staff_user):
     c = APIClient()
-    c.force_authenticate(user=user)
+    c.force_authenticate(user=staff_user)
     return c
 
 
@@ -38,6 +38,13 @@ class TestChangelogApi:
     def test_requires_authentication(self, db):
         resp = APIClient().get("/api/releases/changelog/")
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_forbidden_for_non_staff(self, db, entries):
+        non_staff = UserFactory(email="changelog-member@example.com", is_staff=False)
+        c = APIClient()
+        c.force_authenticate(user=non_staff)
+        assert c.get("/api/releases/changelog/").status_code == status.HTTP_403_FORBIDDEN
+        assert c.get("/api/releases/changelog/state/").status_code == status.HTTP_403_FORBIDDEN
 
     def test_lists_entries_newest_first(self, client, entries):
         resp = client.get("/api/releases/changelog/")
