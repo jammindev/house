@@ -198,15 +198,25 @@ def generate_changelog(
     since_sha: str | None = "auto",
     limit: int | None = None,
     use_llm: bool = True,
+    raw_log: str | None = None,
 ) -> list[ChangelogEntry]:
     """Génère les entrées manquantes depuis le git log et met à jour l'état.
 
     ``since_sha='auto'`` (défaut) : ne traite que les commits postérieurs à la
     dernière entrée connue. ``None`` : tout l'historique (backfill). Une valeur
     explicite : depuis ce SHA. Idempotent — les commits déjà stockés sont ignorés.
+
+    ``raw_log`` : sortie de ``git log`` déjà capturée (format interne), à utiliser
+    au lieu de lancer ``git`` soi-même. Indispensable en prod : le conteneur n'a
+    pas le ``.git`` (exclu par ``.dockerignore``), le runner de déploiement pipe
+    donc l'historique via stdin. Quand fourni, ``since_sha``/``limit`` sont ignorés
+    (la déduplication par ``commit_sha`` assure l'idempotence).
     """
-    resolved_since = _resolve_since(since_sha)
-    raw = read_git_log(since_sha=resolved_since, limit=limit)
+    if raw_log is None:
+        resolved_since = _resolve_since(since_sha)
+        raw = read_git_log(since_sha=resolved_since, limit=limit)
+    else:
+        raw = raw_log
     commits = parse_git_log(raw)
 
     existing = set(
@@ -231,7 +241,7 @@ def generate_changelog(
         for c, summary in zip(fresh, summaries)
     ]
 
-    _update_state()
+    _update_state(raw if raw_log is not None else None)
     return created
 
 
@@ -242,9 +252,13 @@ def _resolve_since(since_sha: str | None) -> str | None:
     return latest.commit_sha if latest else None
 
 
-def _update_state() -> None:
-    """Enregistre le tip de main courant comme état live."""
-    head = read_git_log(limit=1)
+def _update_state(raw: str | None = None) -> None:
+    """Enregistre le tip de main courant comme état live.
+
+    ``raw`` : log déjà capturé (mode stdin) — son premier record est le HEAD
+    (git log est anti-chronologique). Sinon on relit ``git log`` localement.
+    """
+    head = raw if raw is not None else read_git_log(limit=1)
     for record in head.split(_RECORD_SEP):
         record = record.strip("\n")
         if not record:

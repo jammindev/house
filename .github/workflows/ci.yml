@@ -90,3 +90,14 @@ jobs:
         run: |
           cd ~/jammin-dev/apps/house
           /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
+
+      # Alimente la page « Nouveautés » (/app/changelog). Le conteneur n'a pas le
+      # .git (exclu par .dockerignore) : le runner, lui, l'a → on pipe le git log
+      # via stdin. continue-on-error : un échec ici ne doit jamais bloquer le deploy.
+      - name: Generate changelog
+        continue-on-error: true
+        run: |
+          cd ~/jammin-dev/apps/house
+          git log --pretty=format:'%H%x1f%cI%x1f%s%x1e' | \
+            /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web \
+            python manage.py generate_changelog --from-stdin
