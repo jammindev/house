@@ -1708,6 +1708,19 @@
     "accept": "Aceptar",
     "acceptAndSwitch": "Aceptar & unirse"
   },
+  "changelog": {
+    "title": "Novedades",
+    "description": "Funciones y correcciones publicadas en producción, las más recientes primero.",
+    "liveTitle": "La producción está al día.",
+    "liveSubtitle": "Último cambio el {{date}} · {{sha}}",
+    "empty": "Aún no hay cambios registrados.",
+    "allModules": "Todo",
+    "type": {
+      "feat": "Novedad",
+      "fix": "Corrección",
+      "perf": "Rendimiento"
+    }
+  },
   "alerts": {
     "title": "Alertas",
     "subtitle": "Lo que necesita tu atención en este hogar.",
