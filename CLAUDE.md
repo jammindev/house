@@ -11,7 +11,7 @@
 ### Format des commits — contrat pour le changelog
 
 Les messages de commit alimentent **automatiquement** la page « Nouveautés »
-(`/app/changelog`, voir plus bas). Le sujet DOIT être un commit conventionnel :
+(`/app/admin/changelog`, réservée au staff — voir plus bas). Le sujet DOIT être un commit conventionnel :
 
 ```
 <type>(<scope>): <description>
@@ -489,10 +489,11 @@ Doc complète : `docs/MODULES/agent.md` + `docs/parcours/PARCOURS_07_LOT8_ACTION
 
 ## Changelog / « Nouveautés » (`apps/releases/`)
 
-Page `/app/changelog` : liste, à un coup d'œil, ce qui a été livré en prod, avec un
-résumé lisible par changement. Alimentée **automatiquement** par le `git log` — pas
-de saisie manuelle. C'est de l'infra applicative : modèle **global** (pas
-household-scoped), lecture seule via l'API.
+Page `/app/admin/changelog` (**réservée au staff/superuser Django**, section Admin
+de la sidebar) : liste, à un coup d'œil, ce qui a été livré en prod, avec un résumé
+lisible par changement. Alimentée **automatiquement** par le `git log` — pas de
+saisie manuelle. C'est de l'infra applicative : modèle **global** (pas
+household-scoped), lecture seule via l'API (permission `IsAdminUser`).
 
 ### Comment ça marche
 

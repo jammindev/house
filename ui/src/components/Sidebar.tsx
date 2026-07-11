@@ -17,7 +17,6 @@ const NAV_GROUPS = [
       { to: '/app/dashboard', labelKey: 'dashboard.title', Icon: LayoutDashboard },
       { to: '/app/agent', labelKey: 'agent.title', Icon: Sparkles },
       { to: '/app/alerts', labelKey: 'alerts.title', Icon: AlertCircle, badge: 'alerts' as const },
-      { to: '/app/changelog', labelKey: 'changelog.title', Icon: Rocket },
     ],
   },
   {
@@ -168,6 +167,26 @@ export default function Sidebar() {
                     <>
                       <ShieldCheck className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
                       {t('admin.users.title')}
+                    </>
+                  )}
+                </NavLink>
+              )}
+              {user?.is_staff && (
+                <NavLink
+                  to="/app/admin/changelog"
+                  onClick={closeSidebar}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2.5 w-full px-2.5 py-1.5 text-sm rounded-md transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <Rocket className={`h-4 w-4 shrink-0 ${isActive ? 'text-primary' : ''}`} />
+                      {t('changelog.title')}
                     </>
                   )}
                 </NavLink>

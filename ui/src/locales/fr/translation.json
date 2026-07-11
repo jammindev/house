@@ -1724,6 +1724,7 @@
     "liveTitle": "La production est à jour.",
     "liveSubtitle": "Dernier changement le {{date}} · {{sha}}",
     "empty": "Aucun changement enregistré pour l'instant.",
+    "adminOnly": "Cette page est réservée aux administrateurs.",
     "allModules": "Tout",
     "type": {
       "feat": "Nouveauté",

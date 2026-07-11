@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Sparkles, ExternalLink, Rocket } from 'lucide-react';
+import { Sparkles, ExternalLink, Rocket, ShieldAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Badge } from '@/design-system/badge';
@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
+import { useAuth } from '@/lib/auth/useAuth';
 import { prUrl, type ChangeType, type ChangelogEntry } from '@/lib/api/changelog';
 import { useChangelog, useChangelogState } from './hooks';
 
@@ -20,6 +21,7 @@ const TYPE_VARIANT: Record<ChangeType, 'default' | 'secondary' | 'outline'> = {
 
 export default function ChangelogPage() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
   const { data: entries, isLoading } = useChangelog();
   const { data: state } = useChangelogState();
   const [activeModule, setActiveModule] = useSessionState<string>('changelog.module', 'all');
@@ -43,6 +45,19 @@ export default function ChangelogPage() {
     if (activeModule === 'all') return entries;
     return entries.filter((e) => e.module === activeModule);
   }, [entries, activeModule]);
+
+  // Réservé au staff — garde-fou UX (le backend renvoie 403 de toute façon).
+  if (user && !user.is_staff) {
+    return (
+      <div>
+        <PageHeader title={t('changelog.title')} description={t('changelog.description')} />
+        <Card className="flex items-center gap-3 p-4 text-sm text-muted-foreground">
+          <ShieldAlert className="h-5 w-5 shrink-0 text-destructive" />
+          {t('changelog.adminOnly')}
+        </Card>
+      </div>
+    );
+  }
 
   if (showSkeleton) {
     return (
