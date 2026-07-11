@@ -1460,6 +1460,12 @@
       "actions": {
         "add": "Comprar"
       }
+    },
+    "detail": {
+      "title": "Detalles del artículo",
+      "history_title": "Historial de compras",
+      "no_history": "Aún no hay compras registradas.",
+      "confirm_delete": "¿Eliminar el artículo \"{{name}}\"?"
     }
   },
   "purchase": {

@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   fetchStockItems,
+  fetchStockItem,
+  fetchStockItemInteractions,
   fetchStockCategories,
   createStockItem,
   updateStockItem,
@@ -35,6 +37,22 @@ export function useStockItems(filters: StockFilters = {}) {
   return useQuery({
     queryKey: stockKeys.items(filters),
     queryFn: () => fetchStockItems(filters),
+  });
+}
+
+export function useStockItem(id: string) {
+  return useQuery({
+    queryKey: stockKeys.detail(id),
+    queryFn: () => fetchStockItem(id),
+    enabled: !!id,
+  });
+}
+
+export function useStockItemHistory(id: string) {
+  return useQuery({
+    queryKey: [...stockKeys.detail(id), 'interactions'],
+    queryFn: () => fetchStockItemInteractions(id),
+    enabled: !!id,
   });
 }
 

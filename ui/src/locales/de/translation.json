@@ -1460,6 +1460,12 @@
       "actions": {
         "add": "Kauf"
       }
+    },
+    "detail": {
+      "title": "Artikeldetails",
+      "history_title": "Kaufverlauf",
+      "no_history": "Noch keine Käufe erfasst.",
+      "confirm_delete": "Artikel \"{{name}}\" löschen?"
     }
   },
   "purchase": {

@@ -1460,6 +1460,12 @@
       "actions": {
         "add": "Buy"
       }
+    },
+    "detail": {
+      "title": "Item details",
+      "history_title": "Purchase history",
+      "no_history": "No purchase recorded yet.",
+      "confirm_delete": "Delete item \"{{name}}\"?"
     }
   },
   "purchase": {

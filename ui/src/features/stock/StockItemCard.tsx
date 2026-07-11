@@ -1,10 +1,13 @@
 import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { pushBack } from '@/lib/backNavigation';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
+import { formatQty, formatDate } from './format';
 
 interface StockItemCardProps {
   item: StockItem;
@@ -20,21 +23,9 @@ function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'dest
   return 'default';
 }
 
-function formatQty(qty: string, unit: string): string {
-  const parsed = Number(qty);
-  if (Number.isNaN(parsed)) return `${qty} ${unit}`;
-  return `${parsed % 1 === 0 ? parsed.toString() : parsed.toFixed(3).replace(/\.?0+$/, '')} ${unit}`;
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
-}
-
 export default function StockItemCard({ item, onEdit, onDelete, onPurchase }: StockItemCardProps) {
   const { t } = useTranslation();
+  const location = useLocation();
 
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
@@ -45,7 +36,15 @@ export default function StockItemCard({ item, onEdit, onDelete, onPurchase }: St
     <li className="rounded-md border border-border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <CardTitle>{item.name}</CardTitle>
+          <Link
+            to={`/app/stock/${item.id}`}
+            state={pushBack(location)}
+            className="group text-foreground hover:text-primary"
+          >
+            <CardTitle className="text-inherit [&>span:last-child]:group-hover:underline">
+              {item.name}
+            </CardTitle>
+          </Link>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {item.category_name || t('stock.labels.not_available')}
             {item.zone_name ? ` · ${item.zone_name}` : ` · ${t('stock.labels.no_zone')}`}
