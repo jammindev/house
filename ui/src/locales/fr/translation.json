@@ -1709,6 +1709,19 @@
     "accept": "Accepter",
     "acceptAndSwitch": "Accepter & rejoindre"
   },
+  "changelog": {
+    "title": "Nouveautés",
+    "description": "Fonctionnalités et corrections livrées en production, les plus récentes d'abord.",
+    "liveTitle": "La production est à jour.",
+    "liveSubtitle": "Dernier changement le {{date}} · {{sha}}",
+    "empty": "Aucun changement enregistré pour l'instant.",
+    "allModules": "Tout",
+    "type": {
+      "feat": "Nouveauté",
+      "fix": "Correction",
+      "perf": "Performance"
+    }
+  },
   "alerts": {
     "title": "Alertes",
     "subtitle": "Ce qui demande attention dans votre foyer.",

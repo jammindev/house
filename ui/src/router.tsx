@@ -38,6 +38,7 @@ const AIUsagePage = lazyWithReload(() => import('./features/ai-usage/AIUsagePage
 const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 const MemoryPage = lazyWithReload(() => import('./features/agent/MemoryPage'));
 const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
+const ChangelogPage = lazyWithReload(() => import('./features/changelog/ChangelogPage'));
 
 export const router = createBrowserRouter([
   {
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'changelog', element: <ChangelogPage /> },
       { path: 'agent', element: <AgentPage /> },
       { path: 'agent/memory', element: <MemoryPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },

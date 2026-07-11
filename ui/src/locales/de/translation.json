@@ -1709,6 +1709,19 @@
     "accept": "Annehmen",
     "acceptAndSwitch": "Annehmen & wechseln"
   },
+  "changelog": {
+    "title": "Neuigkeiten",
+    "description": "Funktionen und Korrekturen, die in Produktion ausgeliefert wurden, neueste zuerst.",
+    "liveTitle": "Die Produktion ist aktuell.",
+    "liveSubtitle": "Letzte Änderung am {{date}} · {{sha}}",
+    "empty": "Noch keine Änderungen erfasst.",
+    "allModules": "Alle",
+    "type": {
+      "feat": "Neu",
+      "fix": "Korrektur",
+      "perf": "Performance"
+    }
+  },
   "alerts": {
     "title": "Hinweise",
     "subtitle": "Worauf du in diesem Haushalt achten solltest.",

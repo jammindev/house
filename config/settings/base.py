@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "agent",
     "ai_usage",
     "telegram",
+    "releases",
 ]
 
 MIDDLEWARE = [

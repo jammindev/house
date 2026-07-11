@@ -1709,6 +1709,19 @@
     "accept": "Accept",
     "acceptAndSwitch": "Accept & join"
   },
+  "changelog": {
+    "title": "What's new",
+    "description": "Features and fixes shipped to production, most recent first.",
+    "liveTitle": "Production is up to date.",
+    "liveSubtitle": "Latest change on {{date}} · {{sha}}",
+    "empty": "No changes recorded yet.",
+    "allModules": "All",
+    "type": {
+      "feat": "New",
+      "fix": "Fix",
+      "perf": "Performance"
+    }
+  },
   "alerts": {
     "title": "Alerts",
     "subtitle": "What needs your attention in this household.",

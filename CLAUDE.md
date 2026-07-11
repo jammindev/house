@@ -8,6 +8,26 @@
 - Nommage des branches : `<type>/<app>-<description-courte>` (ex: `fix/general-theme-logout`, `feat/tasks-delete`).
 - Pas de branche `develop` ni d'environnement staging — tester localement (settings.production possible) avant de pusher.
 
+### Format des commits — contrat pour le changelog
+
+Les messages de commit alimentent **automatiquement** la page « Nouveautés »
+(`/app/changelog`, voir plus bas). Le sujet DOIT être un commit conventionnel :
+
+```
+<type>(<scope>): <description>
+```
+
+- **`type`** : `feat`, `fix`, `perf` apparaissent dans le changelog ; `refactor`,
+  `chore`, `docs`, `test`, `ci`, `build`, `style` sont ignorés (internes).
+- **`scope`** = le module concerné (`projects`, `tasks`, `agent`…) → devient le
+  **filtre/chip** de l'entrée. **Toujours mettre un scope** ; sans lui l'entrée
+  tombe dans `general`.
+- **`description`** : peut rester technique — elle est **repolie par l'IA** en
+  phrase grand-public à la génération. Ce qui compte, c'est la **structure**
+  (bon type, bon scope), pas la prose.
+
+Le n° de PR de merge (`(#238)`) est extrait automatiquement pour le lien GitHub.
+
 ## Commandes utiles
 
 ### Backend Django
@@ -464,3 +484,35 @@ l'undo d'une nouvelle entité = une entrée dans `UNDO_HANDLERS`
 demande explicite) + anti-doublon par tour dans `service.ask`.
 
 Doc complète : `docs/MODULES/agent.md` + `docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md`.
+
+---
+
+## Changelog / « Nouveautés » (`apps/releases/`)
+
+Page `/app/changelog` : liste, à un coup d'œil, ce qui a été livré en prod, avec un
+résumé lisible par changement. Alimentée **automatiquement** par le `git log` — pas
+de saisie manuelle. C'est de l'infra applicative : modèle **global** (pas
+household-scoped), lecture seule via l'API.
+
+### Comment ça marche
+
+- `ChangelogEntry` = un commit user-facing (`feat`/`fix`/`perf`) sur `main`.
+- La command `python manage.py generate_changelog` parse le `git log`, extrait
+  `type(scope): description (#PR)`, repolit la description via Claude (SDK direct,
+  fallback = description brute si pas de clé), et persiste. Idempotent.
+- `ChangelogState` (singleton) garde le tip de `main` à la dernière génération →
+  carte « Production à jour » en tête de page.
+- Le contrat de forme des commits est documenté plus haut (« Format des commits »).
+
+### Générer
+
+```bash
+python manage.py generate_changelog            # incrémental (nouveaux commits)
+python manage.py generate_changelog --all      # backfill historique complet
+python manage.py generate_changelog --dry-run  # aperçu sans écrire ni appeler l'IA
+python manage.py generate_changelog --rebuild  # purge + reconstruit
+```
+
+**À câbler au déploiement** (non fait à ce jour) : lancer `generate_changelog`
+après chaque push sur `main` depuis le workflow GitHub Actions (le runner a le
+`.git` complet + la clé Anthropic). Voir `docs/MODULES/releases.md`.
