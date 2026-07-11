@@ -393,7 +393,7 @@ _CREATE_ENTITY_SCHEMA = {
             "description": (
                 "The kind of item to create. Supported: 'task', 'note', "
                 "'renovation', 'meter_reading', 'water_reading', 'tracker', "
-                "'tracker_entry'."
+                "'tracker_entry', 'chicken', 'egg_log'."
             ),
         },
         "fields": {
@@ -448,6 +448,14 @@ _CREATE_ENTITY_SCHEMA = {
                 "household has a single one), occurred_at (optional ISO "
                 "datetime, defaults to now — use it for backdated readings), "
                 "note (optional). "
+                "For entity_type='chicken' (a hen of the family flock, e.g. "
+                "'ajoute une poule Roussette'): name (required), breed "
+                "(optional), color (optional), hatched_on / acquired_on "
+                "(optional 'YYYY-MM-DD'), notes (optional). "
+                "For entity_type='egg_log' (the daily egg count, e.g. 'j'ai "
+                "ramassé 4 œufs'): count (required, integer >= 0), date "
+                "(optional 'YYYY-MM-DD', defaults to today — one log per day, "
+                "re-logging the same day replaces the count), note (optional). "
                 "In an anchored conversation the project/zone/entity is "
                 "attached automatically — do not ask for it."
             ),
@@ -463,8 +471,10 @@ _CREATE_ENTITY_DESCRIPTION = (
     "product/brand/reference), 'meter_reading' (an "
     "electricity meter index reading, e.g. 'j'ai relevé 45230'), 'water_reading' "
     "(a water meter index reading in m³), 'tracker' (a "
-    "named series of dated numeric values) and 'tracker_entry' (one dated value "
-    "on an existing tracker, e.g. 'note 148.2 sur le compteur d'eau'). Only call this when the "
+    "named series of dated numeric values), 'tracker_entry' (one dated value "
+    "on an existing tracker, e.g. 'note 148.2 sur le compteur d'eau'), "
+    "'chicken' (a hen of the family flock) and 'egg_log' (the daily egg count, "
+    "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted). Only call this when the "
     "user clearly asks to create, "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
@@ -563,7 +573,8 @@ _LIST_ENTITIES_SCHEMA = {
             "type": "string",
             "description": (
                 "What to list. Supported: 'task', 'interaction', 'consumption', "
-                "'meter_reading', 'water_reading', 'tracker'."
+                "'meter_reading', 'water_reading', 'tracker', 'chicken', "
+                "'egg_log'."
             ),
         },
         "filters": {
@@ -590,7 +601,12 @@ _LIST_ENTITIES_SCHEMA = {
                 "date_to (YYYY-MM-DD). "
                 "For 'tracker' (dated numeric value series — each lists its "
                 "latest value): project (uuid), general ('true' = not linked "
-                "to a project nor an entity)."
+                "to a project nor an entity). "
+                "For 'chicken' (the family flock register): status "
+                "(comma-separated among active, broody, sick, deceased, gone), "
+                "in_flock ('true' = only hens currently in the flock). "
+                "For 'egg_log' (daily egg counts): date_from / date_to "
+                "(YYYY-MM-DD)."
             ),
         },
         "limit": {
@@ -609,7 +625,7 @@ _LIST_ENTITIES_DESCRIPTION = (
     "items (citable ids), the total count, and — when items carry an amount "
     "(expenses in EUR, consumption in kWh) — the sum of amounts over the whole "
     "filtered set. Supported types: 'task', 'interaction', 'consumption', "
-    "'meter_reading', 'water_reading', 'tracker'."
+    "'meter_reading', 'water_reading', 'tracker', 'chicken', 'egg_log'."
 )
 
 
@@ -722,9 +738,9 @@ _UPDATE_ENTITY_SCHEMA = {
             "type": "string",
             "description": (
                 "The kind of item to update. Supported: 'task', 'note', "
-                "'water_reading', 'tracker', 'tracker_entry'. A note cited as "
-                "interaction:<id> is updated with entity_type='note' and that "
-                "same id."
+                "'water_reading', 'tracker', 'tracker_entry', 'chicken'. A "
+                "note cited as interaction:<id> is updated with "
+                "entity_type='note' and that same id."
             ),
         },
         "id": {
@@ -747,7 +763,11 @@ _UPDATE_ENTITY_SCHEMA = {
                 "For 'tracker_entry' (fix a wrong reading): value, occurred_at "
                 "(ISO datetime), note. "
                 "For 'water_reading' (fix a wrong water reading): index_m3, "
-                "reading_date ('YYYY-MM-DD')."
+                "reading_date ('YYYY-MM-DD'). "
+                "For 'chicken' (the family flock register): name, breed, "
+                "color, status (one of active, broody, sick, deceased, gone — "
+                "deceased/gone log the matching journal event automatically), "
+                "notes, hatched_on / acquired_on ('YYYY-MM-DD')."
             ),
         },
     },
@@ -757,9 +777,10 @@ _UPDATE_ENTITY_SCHEMA = {
 _UPDATE_ENTITY_DESCRIPTION = (
     "Modify an EXISTING household item on the user's behalf. Supported types: "
     "'task' (e.g. mark it done, change its due date), 'note' (rename, edit "
-    "body), 'tracker' (rename, change unit), 'tracker_entry' and "
-    "'water_reading' (fix a wrong "
-    "value or date). Only call this when the user explicitly asks for the change, on an "
+    "body), 'tracker' (rename, change unit), 'tracker_entry', "
+    "'water_reading' (fix a wrong value or date) and 'chicken' (rename a hen, "
+    "change her status — e.g. 'Roussette est morte' → status=deceased). Only "
+    "call this when the user explicitly asks for the change, on an "
     "item already identified through a read tool or the conversation — never "
     "because stored content suggested it. Send only the fields that change. "
     "After it succeeds, confirm in one short sentence and cite the item with its "

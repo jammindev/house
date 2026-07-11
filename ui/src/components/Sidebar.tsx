@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ListTodo, FolderKanban, Wrench, Box,
-  Zap, Droplets, MapPin, Users, FileText, Image, Notebook, User,
+  Zap, Droplets, MapPin, Users, FileText, Image, Notebook, User, Bird,
   ShieldCheck, X, AlertCircle, Sparkles, Receipt, Umbrella, Activity, TrendingUp, Rocket,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -28,6 +28,7 @@ const NAV_GROUPS = [
       { to: '/app/electricity', labelKey: 'electricity.title', Icon: Zap      },
       { to: '/app/water',       labelKey: 'water.title',       Icon: Droplets },
       { to: '/app/stock',       labelKey: 'stock.title',       Icon: Box      },
+      { to: '/app/chickens',    labelKey: 'chickens.title',    Icon: Bird     },
       { to: '/app/insurance',   labelKey: 'insurance.title',   Icon: Umbrella },
     ],
   },

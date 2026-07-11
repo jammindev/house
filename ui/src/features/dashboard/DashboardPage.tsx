@@ -6,6 +6,7 @@ import ExpensesCard from './ExpensesCard';
 import ElectricityCard from './ElectricityCard';
 import WaterCard from './WaterCard';
 import RunwaysCard from './RunwaysCard';
+import ChickensCard from './ChickensCard';
 import ActivityTimeline from './ActivityTimeline';
 import PinnedProjects from './PinnedProjects';
 
@@ -30,6 +31,7 @@ export default function DashboardPage() {
         <ElectricityCard />
         <WaterCard />
         <RunwaysCard />
+        <ChickensCard />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">

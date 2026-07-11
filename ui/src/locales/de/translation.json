@@ -1249,6 +1249,15 @@
         "title": "Reichweiten",
         "days_one": "~{{count}} Tag",
         "days_other": "~{{count}} Tage"
+      },
+      "chickens": {
+        "title": "Hühnerstall",
+        "eggs_today_one": "{{count}} Ei heute",
+        "eggs_today_other": "{{count}} Eier heute",
+        "eggs_7d": "{{count}} in 7 Tagen",
+        "flock_one": "{{count}} Henne",
+        "flock_other": "{{count}} Hennen",
+        "feed_runway": "Futter: ~{{days}} T"
       }
     },
     "quickActions": {
@@ -1720,6 +1729,123 @@
       "feat": "Neu",
       "fix": "Korrektur",
       "perf": "Performance"
+    }
+  },
+  "chickens": {
+    "title": "Hühnerstall",
+    "description": "Herde, Eierlegen, Futter und Pflege im Blick",
+    "created": "Henne hinzugefügt",
+    "updated": "Henne aktualisiert",
+    "deleted": "Henne gelöscht",
+    "not_found": "Diese Henne wurde nicht gefunden.",
+    "no_details": "Keine Details",
+    "actions": {
+      "new": "Neue Henne",
+      "create": "Erstellen"
+    },
+    "status": {
+      "active": "Aktiv",
+      "broody": "Brütend",
+      "sick": "Krank",
+      "deceased": "Verstorben",
+      "gone": "Abgegeben"
+    },
+    "filters": {
+      "flock": "Herde",
+      "all": "Alle",
+      "history": "Verlauf"
+    },
+    "empty": {
+      "title": "Noch keine Hennen",
+      "description": "Füge deine erste Henne hinzu, um das Herdenregister zu starten.",
+      "filtered": "Keine Henne entspricht diesem Filter."
+    },
+    "fields": {
+      "name": "Name",
+      "breed": "Rasse",
+      "color": "Farbe",
+      "hatched_on": "Schlupfdatum",
+      "acquired_on": "Ankunftsdatum",
+      "status": "Status",
+      "zone": "Zone",
+      "no_zone": "Keine Zone",
+      "notes": "Notizen"
+    },
+    "dialog": {
+      "new_title": "Henne hinzufügen",
+      "edit_title": "Henne bearbeiten"
+    },
+    "eggs": {
+      "logged": "Eierzahl gespeichert",
+      "today_question": "Wie viele Eier heute?",
+      "date_question": "An diesem Tag gesammelte Eier",
+      "pick_date": "Datum wählen",
+      "decrement": "Ein Ei weniger",
+      "increment": "Ein Ei mehr",
+      "stats_title": "Legeleistung",
+      "stats_empty": "Erfasse eine erste Zählung, um Trends zu sehen.",
+      "stat_today": "Heute",
+      "stat_avg7": "Ø 7 T",
+      "stat_avg30": "Ø 30 T",
+      "stat_month": "Diesen Monat"
+    },
+    "events": {
+      "title": "Journal",
+      "created": "Ereignis hinzugefügt",
+      "updated": "Ereignis aktualisiert",
+      "deleted": "Ereignis gelöscht",
+      "empty": "Noch keine Ereignisse.",
+      "recent_title": "Letzte Ereignisse",
+      "new_title": "Neues Ereignis",
+      "edit_title": "Ereignis bearbeiten",
+      "whole_flock": "Ganze Herde",
+      "remind_me": "Mich erinnern",
+      "reminder_date": "Erinnerungsdatum",
+      "actions": {
+        "new": "Ereignis",
+        "create": "Erstellen"
+      },
+      "fields": {
+        "type": "Typ",
+        "occurred_on": "Datum",
+        "title": "Titel",
+        "chicken": "Henne",
+        "notes": "Notizen"
+      },
+      "types": {
+        "arrival": "Ankunft",
+        "care": "Pflege",
+        "illness": "Krankheit",
+        "broody": "Brut",
+        "molt": "Mauser",
+        "predator": "Raubtier",
+        "death": "Tod",
+        "departure": "Abgang",
+        "other": "Sonstiges"
+      }
+    },
+    "purchase": {
+      "title": "Kauf — {{name}}",
+      "created": "Ausgabe gespeichert",
+      "action": "Kauf erfassen"
+    },
+    "feed": {
+      "title": "Futter",
+      "not_linked": "Noch kein Futter-Tracker verknüpft",
+      "link_action": "Tracker verknüpfen",
+      "pick_tracker": "Tracker wählen",
+      "link_confirm": "Verknüpfen",
+      "no_consumption_trackers": "Noch kein Verbrauchs-Tracker — erstelle einen unter Tracker.",
+      "linked": "Tracker verknüpft",
+      "rate": "≈ {{rate}} {{unit}}/Tag",
+      "runway": "~{{days}} T Reichweite",
+      "reserve": "{{reserve}} {{unit}} übrig",
+      "no_rate_yet": "Noch kein Verbrauchsrhythmus"
+    },
+    "cost": {
+      "title": "Kosten",
+      "per_egg": "{{amount}} € / Ei",
+      "totals": "{{total}} € gesamt · {{year}} € dieses Jahr"
     }
   },
   "alerts": {

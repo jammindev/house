@@ -1249,6 +1249,15 @@
         "title": "Autonomías",
         "days_one": "~{{count}} día",
         "days_other": "~{{count}} días"
+      },
+      "chickens": {
+        "title": "Gallinero",
+        "eggs_today_one": "{{count}} huevo hoy",
+        "eggs_today_other": "{{count}} huevos hoy",
+        "eggs_7d": "{{count}} en 7 días",
+        "flock_one": "{{count}} gallina",
+        "flock_other": "{{count}} gallinas",
+        "feed_runway": "Pienso: ~{{days}} d"
       }
     },
     "quickActions": {
@@ -1720,6 +1729,123 @@
       "feat": "Novedad",
       "fix": "Corrección",
       "perf": "Rendimiento"
+    }
+  },
+  "chickens": {
+    "title": "Gallinero",
+    "description": "Seguimiento del corral, la puesta, el pienso y los cuidados",
+    "created": "Gallina añadida",
+    "updated": "Gallina actualizada",
+    "deleted": "Gallina eliminada",
+    "not_found": "No se encontró esta gallina.",
+    "no_details": "Sin detalles",
+    "actions": {
+      "new": "Nueva gallina",
+      "create": "Crear"
+    },
+    "status": {
+      "active": "Activa",
+      "broody": "Clueca",
+      "sick": "Enferma",
+      "deceased": "Fallecida",
+      "gone": "Se fue"
+    },
+    "filters": {
+      "flock": "Corral",
+      "all": "Todas",
+      "history": "Historial"
+    },
+    "empty": {
+      "title": "Aún no hay gallinas",
+      "description": "Añade tu primera gallina para empezar el registro del corral.",
+      "filtered": "Ninguna gallina coincide con este filtro."
+    },
+    "fields": {
+      "name": "Nombre",
+      "breed": "Raza",
+      "color": "Color",
+      "hatched_on": "Fecha de eclosión",
+      "acquired_on": "Fecha de llegada",
+      "status": "Estado",
+      "zone": "Zona",
+      "no_zone": "Sin zona",
+      "notes": "Notas"
+    },
+    "dialog": {
+      "new_title": "Añadir una gallina",
+      "edit_title": "Editar gallina"
+    },
+    "eggs": {
+      "logged": "Puesta registrada",
+      "today_question": "¿Cuántos huevos hoy?",
+      "date_question": "Huevos recogidos ese día",
+      "pick_date": "Elegir una fecha",
+      "decrement": "Un huevo menos",
+      "increment": "Un huevo más",
+      "stats_title": "Puesta",
+      "stats_empty": "Registra un primer recuento para ver las tendencias.",
+      "stat_today": "Hoy",
+      "stat_avg7": "Prom. 7 d",
+      "stat_avg30": "Prom. 30 d",
+      "stat_month": "Este mes"
+    },
+    "events": {
+      "title": "Diario",
+      "created": "Evento añadido",
+      "updated": "Evento actualizado",
+      "deleted": "Evento eliminado",
+      "empty": "Aún no hay eventos.",
+      "recent_title": "Últimos eventos",
+      "new_title": "Nuevo evento",
+      "edit_title": "Editar evento",
+      "whole_flock": "Todo el corral",
+      "remind_me": "Recordármelo",
+      "reminder_date": "Fecha del recordatorio",
+      "actions": {
+        "new": "Evento",
+        "create": "Crear"
+      },
+      "fields": {
+        "type": "Tipo",
+        "occurred_on": "Fecha",
+        "title": "Título",
+        "chicken": "Gallina",
+        "notes": "Notas"
+      },
+      "types": {
+        "arrival": "Llegada",
+        "care": "Cuidado",
+        "illness": "Enfermedad",
+        "broody": "Cloquez",
+        "molt": "Muda",
+        "predator": "Depredador",
+        "death": "Muerte",
+        "departure": "Salida",
+        "other": "Otro"
+      }
+    },
+    "purchase": {
+      "title": "Compra — {{name}}",
+      "created": "Gasto registrado",
+      "action": "Registrar una compra"
+    },
+    "feed": {
+      "title": "Pienso",
+      "not_linked": "Aún no hay un tracker de pienso vinculado",
+      "link_action": "Vincular un tracker",
+      "pick_tracker": "Elegir un tracker",
+      "link_confirm": "Vincular",
+      "no_consumption_trackers": "No hay tracker de consumo — créalo desde Trackers.",
+      "linked": "Tracker vinculado",
+      "rate": "≈ {{rate}} {{unit}}/día",
+      "runway": "~{{days}} d de autonomía",
+      "reserve": "Quedan {{reserve}} {{unit}}",
+      "no_rate_yet": "Aún sin ritmo"
+    },
+    "cost": {
+      "title": "Coste",
+      "per_egg": "{{amount}} € / huevo",
+      "totals": "{{total}} € en total · {{year}} € este año"
     }
   },
   "alerts": {
