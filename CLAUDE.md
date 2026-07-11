@@ -217,8 +217,9 @@ Coûts du pattern à garder en tête : `metadata.kind` est stringly-typed (aucun
 contrainte DB, une faute de frappe crée une catégorie silencieuse), les invariants ne
 tiennent que si toutes les écritures passent par `interactions/services.py`, et les
 filtres `metadata__kind=` sont dispersés dans plusieurs apps (renommer un kind est un
-chantier transverse). Scorie connue : le type `todo` subsiste dans
-`INTERACTION_TYPES` alors que les tâches sont un modèle à part — ne pas s'en inspirer.
+chantier transverse). Le type `todo` (et le champ `status` qui l'accompagnait) a été
+retiré d'`Interaction` — les données ont été purgées vers `Task`
+(`interactions.0018_purge_todo_interactions`).
 
 ## Composants UI
 

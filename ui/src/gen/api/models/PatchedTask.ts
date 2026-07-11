@@ -4,7 +4,7 @@
 /* eslint-disable */
 import type { NullEnum } from './NullEnum';
 import type { PriorityEnum } from './PriorityEnum';
-import type { StatusF9bEnum } from './StatusF9bEnum';
+import type { TaskStatusEnum } from './TaskStatusEnum';
 /**
  * Full read/write serializer for the Task API.
  */
@@ -13,7 +13,7 @@ export type PatchedTask = {
     readonly household?: string;
     subject?: string;
     content?: string;
-    status?: StatusF9bEnum;
+    status?: TaskStatusEnum;
     priority?: (PriorityEnum | NullEnum) | null;
     due_date?: string | null;
     is_private?: boolean;

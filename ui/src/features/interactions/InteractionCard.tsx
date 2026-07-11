@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { Pencil, Trash2, ListTodo } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -6,6 +7,7 @@ import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import { pushBack } from '@/lib/backNavigation';
 import type { InteractionListItem } from '@/lib/api/interactions';
+import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 
 interface InteractionCardProps {
   item: InteractionListItem;
@@ -25,9 +27,9 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
 
   const typeLabelKey = `equipment.interaction_type.${item.type}`;
-  const statusLabelKey = item.status ? `equipment.interaction_status.${item.status}` : null;
 
   return (
     <Card className="p-3 transition-shadow hover:shadow-md">
@@ -44,11 +46,6 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
               </CardTitle>
             </Link>
             <Badge variant="outline">{t(typeLabelKey, { defaultValue: item.type })}</Badge>
-            {statusLabelKey ? (
-              <Badge variant="secondary">
-                {t(statusLabelKey, { defaultValue: item.status ?? '' })}
-              </Badge>
-            ) : null}
           </div>
 
           {item.content ? (
@@ -99,19 +96,17 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
         </div>
 
         <div className="flex flex-shrink-0 items-center gap-0.5">
-          {item.type !== 'todo' ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
-              onClick={() => navigate(`/app/interactions/new?type=todo`)}
-              aria-label={t('interactions.createTask')}
-              title={t('interactions.createTask')}
-              type="button"
-            >
-              <ListTodo className="h-3.5 w-3.5" />
-            </Button>
-          ) : null}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+            onClick={() => setTaskDialogOpen(true)}
+            aria-label={t('interactions.createTask')}
+            title={t('interactions.createTask')}
+            type="button"
+          >
+            <ListTodo className="h-3.5 w-3.5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -134,6 +129,14 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
           </Button>
         </div>
       </div>
+      <NewTaskDialog
+        open={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        onCreated={() => setTaskDialogOpen(false)}
+        defaultSubject={item.subject}
+        defaultZoneIds={item.zone_id_list ?? []}
+        sourceInteractionId={item.id}
+      />
     </Card>
   );
 }

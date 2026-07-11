@@ -7,7 +7,8 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class AlertsService {
     /**
-     * GET /api/alerts/summary/ — overdue tasks, expiring warranties, due maintenances.
+     * GET /api/alerts/summary/ — overdue tasks, expiring warranties, due
+     * maintenances, low/out/expired stock, low-runway consumption trackers.
      * @returns any No response body
      * @throws ApiError
      */

@@ -13,15 +13,15 @@ class InteractionZoneInline(admin.TabularInline):
 
 @admin.register(Interaction)
 class InteractionAdmin(admin.ModelAdmin):
-    list_display = ['subject', 'type', 'status', 'is_private', 'occurred_at', 'household', 'created_by']
-    list_filter = ['type', 'status', 'is_private', 'household', 'occurred_at', 'created_at']
+    list_display = ['subject', 'type', 'is_private', 'occurred_at', 'household', 'created_by']
+    list_filter = ['type', 'is_private', 'household', 'occurred_at', 'created_at']
     search_fields = ['subject', 'content', 'enriched_text', 'tags__tag__name']
     readonly_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
     inlines = [InteractionZoneInline]
     
     fieldsets = [
         ('Basic Info', {
-            'fields': ['household', 'subject', 'content', 'type', 'status', 'is_private']
+            'fields': ['household', 'subject', 'content', 'type', 'is_private']
         }),
         ('Timeline', {
             'fields': ['occurred_at']

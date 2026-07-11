@@ -75,7 +75,6 @@ def _interaction_payload(zone_ids, **overrides):
         "subject": "Replace filter",
         "content": "Changed the ventilation filter.",
         "type": "maintenance",
-        "status": "pending",
         "occurred_at": timezone.now().isoformat(),
         "zone_ids": [str(zone_id) for zone_id in zone_ids],
         "tags_input": ["maintenance", "urgent"],
@@ -119,6 +118,28 @@ class TestInteractionCrud:
         assert interaction.type == "expense"
         assert interaction.metadata["amount"] == 149.9
         assert interaction.metadata["currency"] == "EUR"
+
+    def test_create_todo_type_rejected(self, owner_client, household, owner, primary_zone):
+        """'todo' n'est plus un type d'interaction — les todos vivent dans Task."""
+        url = reverse("interaction-list")
+        response = owner_client.post(
+            url,
+            _interaction_payload([primary_zone.id], type="todo"),
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "type" in response.data
+
+    def test_create_without_occurred_at_rejected(self, owner_client, household, owner, primary_zone):
+        """occurred_at est requis pour tous les types depuis le retrait de l'exemption todo."""
+        url = reverse("interaction-list")
+        payload = _interaction_payload([primary_zone.id])
+        payload.pop("occurred_at")
+        response = owner_client.post(url, payload, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "occurred_at" in response.data
 
     def test_create_interaction_links_documents_atomically(self, owner_client, household, owner, primary_zone):
         document = Document.objects.create(
@@ -213,7 +234,6 @@ class TestInteractionCrud:
             subject="Old subject",
             content="Old content",
             type="maintenance",
-            status="pending",
             occurred_at=timezone.now(),
         )
         interaction.zones.add(primary_zone)
@@ -298,8 +318,7 @@ class TestInteractionQuerying:
             household=household,
             created_by=owner,
             subject="Targeted",
-            type="todo",
-            status="backlog",
+            type="note",
             occurred_at=timezone.now(),
         )
         targeted.zones.add(primary_zone)
@@ -307,8 +326,7 @@ class TestInteractionQuerying:
             household=household,
             created_by=owner,
             subject="Other",
-            type="todo",
-            status="done",
+            type="note",
             occurred_at=timezone.now() - timedelta(days=1),
         )
         other.zones.add(secondary_zone)
@@ -355,78 +373,22 @@ class TestInteractionCustomActions:
             type="note",
             occurred_at=timezone.now(),
         )
-        todo = Interaction.objects.create(
+        maintenance = Interaction.objects.create(
             household=household,
             created_by=owner,
-            subject="Todo one",
-            type="todo",
-            status="pending",
+            subject="Maintenance one",
+            type="maintenance",
             occurred_at=timezone.now(),
         )
         note.zones.add(primary_zone)
-        todo.zones.add(primary_zone)
+        maintenance.zones.add(primary_zone)
 
         url = reverse("interaction-by-type")
         response = owner_client.get(url)
 
         assert response.status_code == status.HTTP_200_OK
         assert response.data["note"]["count"] == 1
-        assert response.data["todo"]["count"] == 1
-
-    def test_tasks_groups_todos_by_status(self, owner_client, household, owner, primary_zone):
-        backlog = Interaction.objects.create(
-            household=household,
-            created_by=owner,
-            subject="Backlog task",
-            type="todo",
-            status="backlog",
-            occurred_at=timezone.now(),
-        )
-        done = Interaction.objects.create(
-            household=household,
-            created_by=owner,
-            subject="Done task",
-            type="todo",
-            status="done",
-            occurred_at=timezone.now(),
-        )
-        backlog.zones.add(primary_zone)
-        done.zones.add(primary_zone)
-
-        url = reverse("interaction-tasks")
-        response = owner_client.get(url)
-
-        assert response.status_code == status.HTTP_200_OK
-        assert [item["subject"] for item in response.data["backlog"]] == ["Backlog task"]
-        assert [item["subject"] for item in response.data["done"]] == ["Done task"]
-
-    def test_update_status_validates_choice(self, owner_client, household, owner, primary_zone):
-        interaction = Interaction.objects.create(
-            household=household,
-            created_by=owner,
-            subject="Status task",
-            type="todo",
-            status="pending",
-            occurred_at=timezone.now(),
-        )
-        interaction.zones.add(primary_zone)
-
-        url = reverse("interaction-update-status", kwargs={"pk": interaction.id})
-        invalid = owner_client.patch(
-            url,
-            {"status": "invalid"},
-            format="json",
-        )
-        valid = owner_client.patch(
-            url,
-            {"status": "done"},
-            format="json",
-        )
-
-        assert invalid.status_code == status.HTTP_400_BAD_REQUEST
-        assert valid.status_code == status.HTTP_200_OK
-        interaction.refresh_from_db()
-        assert interaction.status == "done"
+        assert response.data["maintenance"]["count"] == 1
 
 
 @pytest.mark.django_db
@@ -436,7 +398,7 @@ class TestInteractionLinks:
             household=household,
             created_by=owner,
             subject="Call plumber",
-            type="todo",
+            type="note",
             occurred_at=timezone.now(),
         )
         interaction.zones.add(primary_zone)
@@ -594,7 +556,7 @@ class TestInteractionSourceLink:
             household=household,
             created_by=owner,
             subject=subject,
-            type='todo',
+            type='note',
             occurred_at=timezone.now(),
             source_content_type=ContentType.objects.get_for_model(Project),
             source_object_id=project.id,
@@ -608,7 +570,7 @@ class TestInteractionSourceLink:
             url,
             _interaction_payload(
                 [primary_zone.id],
-                type="todo",
+                type="note",
                 source_type="projects.project",
                 source_id=str(project.id),
             ),
@@ -627,7 +589,7 @@ class TestInteractionSourceLink:
             url,
             _interaction_payload(
                 [primary_zone.id],
-                type="todo",
+                type="note",
                 source_type="accounts.user",
                 source_id=str(uuid.uuid4()),
             ),
@@ -643,7 +605,7 @@ class TestInteractionSourceLink:
             url,
             _interaction_payload(
                 [primary_zone.id],
-                type="todo",
+                type="note",
                 source_type="projects.project",
             ),
             format="json",
@@ -660,7 +622,7 @@ class TestInteractionSourceLink:
             url,
             _interaction_payload(
                 [primary_zone.id],
-                type="todo",
+                type="note",
                 source_type="projects.project",
                 source_id=str(foreign_project.id),
             ),
@@ -678,7 +640,7 @@ class TestInteractionSourceLink:
             household=household,
             created_by=owner,
             subject='Tâche sans projet',
-            type='todo',
+            type='note',
             occurred_at=timezone.now(),
         )
         unlinked.zones.add(primary_zone)
@@ -699,7 +661,7 @@ class TestInteractionSourceLink:
             household=household,
             created_by=owner,
             subject='Tâche',
-            type='todo',
+            type='note',
             occurred_at=timezone.now(),
         )
         interaction.zones.add(primary_zone)

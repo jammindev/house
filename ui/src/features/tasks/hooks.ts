@@ -21,7 +21,7 @@ export const taskKeys = {
 export function useTasks() {
   return useQuery({
     queryKey: taskKeys.list(),
-    queryFn: fetchTasks,
+    queryFn: () => fetchTasks(),
     select: (data) => data.filter((t) => t.status !== 'archived'),
   });
 }

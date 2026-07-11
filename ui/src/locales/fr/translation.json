@@ -318,7 +318,6 @@
     "subject_label": "Sujet",
     "subject_placeholder": "Résumé court",
     "type_label": "Type",
-    "status_label": "Statut (tâche)",
     "selected_type_label": "Type sélectionné",
     "date_label": "Date et heure",
     "date_only_label": "Date",
@@ -376,9 +375,7 @@
     "search_label": "Recherche",
     "search_placeholder": "Chercher par titre, description ou tag",
     "filter_type": "Type",
-    "filter_status": "Statut",
     "all_types": "Tous les types",
-    "all_statuses": "Tous les statuts",
     "filter_zone": "Zone",
     "all_zones": "Toutes les zones",
     "filter_contact": "Contact",
@@ -1180,7 +1177,6 @@
     },
     "interaction_type": {
       "note": "Note",
-      "todo": "Tâche",
       "maintenance": "Maintenance",
       "repair": "Réparation",
       "inspection": "Inspection",
@@ -1191,13 +1187,6 @@
       "upgrade": "Amélioration",
       "disposal": "Mise au rebut",
       "expense": "Dépense"
-    },
-    "interaction_status": {
-      "backlog": "Backlog",
-      "pending": "En attente",
-      "in_progress": "En cours",
-      "done": "Terminé",
-      "archived": "Archivé"
     },
     "deleted": "Équipement supprimé",
     "empty_description": "Ajoutez votre premier équipement pour commencer à suivre vos appareils et outils.",

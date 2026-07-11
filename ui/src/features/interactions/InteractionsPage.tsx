@@ -15,7 +15,6 @@ import InteractionCard from './InteractionCard';
 
 const TYPE_OPTIONS = [
   'note',
-  'todo',
   'expense',
   'maintenance',
   'repair',
@@ -28,7 +27,6 @@ const TYPE_OPTIONS = [
   'disposal',
 ];
 
-const STATUS_OPTIONS = ['backlog', 'pending', 'in_progress', 'done', 'archived'];
 
 export default function InteractionsPage() {
   const { t } = useTranslation();
@@ -38,7 +36,6 @@ export default function InteractionsPage() {
 
   const [search, setSearch] = React.useState('');
   const [type, setType] = React.useState('');
-  const [status, setStatus] = React.useState('');
   const [zone, setZone] = React.useState('');
   const [contact, setContact] = React.useState(searchParams.get('contact') ?? '');
   const [structure, setStructure] = React.useState(searchParams.get('structure') ?? '');
@@ -58,7 +55,6 @@ export default function InteractionsPage() {
     () => ({
       ...(search ? { search } : {}),
       ...(type ? { type } : {}),
-      ...(status ? { status } : {}),
       ...(zone ? { zone } : {}),
       ...(contact ? { contact } : {}),
       ...(structure ? { structure } : {}),
@@ -66,7 +62,7 @@ export default function InteractionsPage() {
       ...(startDate ? { start_date: startDate } : {}),
       ...(endDate ? { end_date: endDate } : {}),
     }),
-    [search, type, status, zone, contact, structure, tagsFilter, startDate, endDate],
+    [search, type, zone, contact, structure, tagsFilter, startDate, endDate],
   );
 
   const { data, isLoading, error } = useInteractions(filters);
@@ -104,7 +100,6 @@ export default function InteractionsPage() {
   function resetFilters() {
     setSearch('');
     setType('');
-    setStatus('');
     setZone('');
     setContact('');
     setStructure('');
@@ -163,20 +158,6 @@ export default function InteractionsPage() {
             },
             {
               type: 'select',
-              id: 'interactions-status',
-              label: t('interactions.filter_status'),
-              value: status,
-              onChange: setStatus,
-              options: [
-                { value: '', label: t('interactions.all_statuses') },
-                ...STATUS_OPTIONS.map((v) => ({
-                  value: v,
-                  label: t(`equipment.interaction_status.${v}`, { defaultValue: v }),
-                })),
-              ],
-            },
-            {
-              type: 'select',
               id: 'interactions-zone',
               label: t('interactions.filter_zone'),
               value: zone,
@@ -224,7 +205,7 @@ export default function InteractionsPage() {
             },
           ]}
           onReset={resetFilters}
-          hasActiveFilters={!!(search || type || status || zone || contact || structure || tagsFilter || startDate || endDate)}
+          hasActiveFilters={!!(search || type || zone || contact || structure || tagsFilter || startDate || endDate)}
           resetLabel={t('interactions.reset_filters')}
           applyLabel={t('interactions.apply_filters')}
         />

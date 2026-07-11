@@ -13,7 +13,7 @@
 ## Modèles & API
 
 - Modèles principaux : `Interaction`, `InteractionZone` (M2M obligatoire ≥1 zone), `InteractionContact`, `InteractionStructure`, `InteractionDocument` (lien canonique parcours 02)
-- Endpoints exposés sous `/api/interactions/` : `interactions/` (CRUD + actions `by_type`, `tasks`, `update_status`), `interaction-contacts/`, `interaction-structures/`, `interaction-documents/` — pagination `LimitOffsetPagination` (default 8, max 100)
+- Endpoints exposés sous `/api/interactions/` : `interactions/` (CRUD + action `by_type` ; les actions todo `tasks`/`update_status` ont été retirées avec le type `todo`, extrait vers le modèle Task), `interaction-contacts/`, `interaction-structures/`, `interaction-documents/` — pagination `LimitOffsetPagination` (default 8, max 100)
 - Permissions : `IsHouseholdMember` (scoping household via middleware + `for_user_households`) ; pas de permission `is_creator` côté Interaction (contrairement à Task)
 
 ## Notes / décisions produit

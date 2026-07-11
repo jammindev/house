@@ -12,6 +12,7 @@ import {
 } from '@/lib/api/zones';
 import { fetchEquipmentList } from '@/lib/api/equipment';
 import { fetchInteractions } from '@/lib/api/interactions';
+import { fetchTasks } from '@/lib/api/tasks';
 import { fetchProjects } from '@/lib/api/projects';
 import { fetchDocuments, fetchPhotoDocuments } from '@/lib/api/documents';
 
@@ -101,7 +102,10 @@ export function useEquipmentByZone(zoneId: string) {
 export function useZoneTasks(zoneId: string) {
   return useQuery({
     queryKey: zoneInteractionKeys.tasks(zoneId),
-    queryFn: () => fetchInteractions({ zone: zoneId, type: 'todo', status: 'pending', limit: 5 }),
+    queryFn: async () => {
+      const tasks = await fetchTasks({ zone: zoneId });
+      return tasks.filter((task) => task.status !== 'done' && task.status !== 'archived').slice(0, 5);
+    },
     enabled: !!zoneId,
   });
 }

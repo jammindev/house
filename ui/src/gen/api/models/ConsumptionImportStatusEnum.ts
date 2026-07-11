@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * * `socket` - Socket
- * * `light` - Light
+ * * `completed` - Completed
+ * * `failed` - Failed
  */
-export type KindEnum = 'socket' | 'light';
+export type ConsumptionImportStatusEnum = 'completed' | 'failed';

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Layers, NotebookText, FileText, ImageIcon } from 'lucide-react';
@@ -16,7 +17,9 @@ import {
   useZoneProjects,
   useZoneDocuments,
   useZonePhotos,
+  zoneInteractionKeys,
 } from './hooks';
+import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import ZoneDialog from './ZoneDialog';
 import RenovationTab from '@/features/renovation/RenovationTab';
 import EntityAssistant from '@/features/agent/EntityAssistant';
@@ -189,8 +192,9 @@ function TabEquipment({ zoneId }: { zoneId: string }) {
 
 function TabTasks({ zoneId, navigate }: { zoneId: string; navigate: (to: string) => void }) {
   const { t } = useTranslation();
-  const { data: tasksData, isLoading } = useZoneTasks(zoneId);
-  const zoneTasks = tasksData?.items ?? [];
+  const qc = useQueryClient();
+  const { data: zoneTasks = [], isLoading } = useZoneTasks(zoneId);
+  const [taskDialogOpen, setTaskDialogOpen] = React.useState(false);
 
   if (isLoading) {
     return (
@@ -203,11 +207,7 @@ function TabTasks({ zoneId, navigate }: { zoneId: string; navigate: (to: string)
   return (
     <div className="space-y-3">
       <div className="flex justify-end">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => navigate(`/app/interactions/new?type=todo&zone_id=${zoneId}`)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setTaskDialogOpen(true)}>
           {t('zones.detail.add_task')}
         </Button>
       </div>
@@ -220,16 +220,30 @@ function TabTasks({ zoneId, navigate }: { zoneId: string; navigate: (to: string)
               key={task.id}
               className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm"
             >
-              <span className="truncate">{task.subject}</span>
-              {task.status ? (
-                <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  {task.status}
-                </span>
-              ) : null}
+              <button
+                type="button"
+                className="min-w-0 truncate text-left hover:text-primary"
+                onClick={() => navigate(`/app/tasks/${task.id}`)}
+              >
+                {task.subject}
+              </button>
+              <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                {t(`tasks.sections.${task.status}`)}
+              </span>
             </li>
           ))}
         </ul>
       )}
+
+      <NewTaskDialog
+        open={taskDialogOpen}
+        onOpenChange={setTaskDialogOpen}
+        onCreated={() => {
+          void qc.invalidateQueries({ queryKey: zoneInteractionKeys.tasks(zoneId) });
+          void qc.invalidateQueries({ queryKey: ['tasks'] });
+        }}
+        defaultZoneIds={[zoneId]}
+      />
     </div>
   );
 }
@@ -239,7 +253,7 @@ function TabTasks({ zoneId, navigate }: { zoneId: string; navigate: (to: string)
 function TabActivity({ zoneId, navigate }: { zoneId: string; navigate: (to: string) => void }) {
   const { t } = useTranslation();
   const { data: activityData, isLoading } = useZoneActivity(zoneId);
-  const zoneActivity = (activityData?.items ?? []).filter((item) => item.type !== 'todo');
+  const zoneActivity = activityData?.items ?? [];
 
   if (isLoading) {
     return (

@@ -364,11 +364,10 @@ export class ProjectsService {
         });
     }
     /**
-     * Increment Project.actual_cost_cached + create an expense Interaction.
+     * Create an Interaction(type=expense) linked to the project.
      *
-     * Single-action endpoint: increments the project's cached actual cost
-     * AND creates an Interaction(type=expense) linked via the polymorphic
-     * source FK.
+     * The project's actual cost is computed from its expense interactions
+     * (#234) — this endpoint only creates the interaction, nothing to sync.
      * @param id
      * @param requestBody
      * @returns Project
