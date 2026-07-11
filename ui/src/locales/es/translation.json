@@ -546,7 +546,8 @@
       "projects": "Proyectos",
       "photos": "Fotos",
       "documents": "Documentos",
-      "assistant": "Asistente"
+      "assistant": "Asistente",
+      "renovation": "Renovación"
     },
     "photos": {
       "title": "Fotos de la zona",
@@ -1907,6 +1908,59 @@
       "ok": "OK",
       "error": "Error",
       "empty": "Aún no hay llamadas."
+    }
+  },
+  "renovation": {
+    "add": "Añadir entrada",
+    "created": "Entrada de renovación añadida",
+    "updated": "Entrada actualizada",
+    "deleted": "Entrada eliminada",
+    "empty": {
+      "title": "Sin entradas de renovación",
+      "description": "Guarde un registro de lo que se renovó o decoró en esta habitación."
+    },
+    "card": {
+      "ref": "ref. {{reference}}",
+      "moreZones_one": "+{{count}} habitación más",
+      "moreZones_other": "+{{count}} habitaciones más"
+    },
+    "form": {
+      "createTitle": "Nueva entrada de renovación",
+      "editTitle": "Editar entrada",
+      "element": "Elemento",
+      "type": "Tipo de trabajo",
+      "product": "Producto / material",
+      "productPlaceholder": "p. ej. parquet de roble aceitado",
+      "brand": "Marca",
+      "reference": "Referencia",
+      "date": "Fecha de los trabajos",
+      "subject": "Título (opcional)",
+      "subjectPlaceholder": "Se genera automáticamente si se deja vacío",
+      "notes": "Notas",
+      "zones": "Habitaciones afectadas",
+      "wholeHouse": "Toda la casa",
+      "clearZones": "Restablecer",
+      "submit": "Añadir",
+      "zonesRequired": "Seleccione al menos una habitación."
+    },
+    "elements": {
+      "paint": "Pintura",
+      "floor": "Suelo",
+      "wall": "Pared",
+      "ceiling": "Techo",
+      "joinery": "Carpintería",
+      "plumbing": "Fontanería",
+      "electrical": "Electricidad",
+      "heating": "Calefacción",
+      "furniture": "Mobiliario",
+      "other": "Otro"
+    },
+    "types": {
+      "installation": "Instalación",
+      "replacement": "Reemplazo",
+      "upgrade": "Mejora",
+      "repair": "Reparación",
+      "maintenance": "Mantenimiento"
     }
   }
 }

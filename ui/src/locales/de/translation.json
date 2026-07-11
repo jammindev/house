@@ -546,7 +546,8 @@
       "projects": "Projekte",
       "photos": "Fotos",
       "documents": "Dokumente",
-      "assistant": "Assistent"
+      "assistant": "Assistent",
+      "renovation": "Renovierung"
     },
     "photos": {
       "title": "Zonenfotos",
@@ -1907,6 +1908,59 @@
       "ok": "OK",
       "error": "Fehler",
       "empty": "Noch keine Aufrufe."
+    }
+  },
+  "renovation": {
+    "add": "Eintrag hinzufügen",
+    "created": "Renovierungseintrag hinzugefügt",
+    "updated": "Eintrag aktualisiert",
+    "deleted": "Eintrag gelöscht",
+    "empty": {
+      "title": "Keine Renovierungseinträge",
+      "description": "Halten Sie fest, was in diesem Raum renoviert oder dekoriert wurde."
+    },
+    "card": {
+      "ref": "Ref. {{reference}}",
+      "moreZones_one": "+{{count}} weiterer Raum",
+      "moreZones_other": "+{{count}} weitere Räume"
+    },
+    "form": {
+      "createTitle": "Neuer Renovierungseintrag",
+      "editTitle": "Eintrag bearbeiten",
+      "element": "Element",
+      "type": "Art der Arbeit",
+      "product": "Produkt / Material",
+      "productPlaceholder": "z. B. geöltes Eichenparkett",
+      "brand": "Marke",
+      "reference": "Referenz",
+      "date": "Datum der Arbeiten",
+      "subject": "Titel (optional)",
+      "subjectPlaceholder": "Wird automatisch generiert, wenn leer",
+      "notes": "Notizen",
+      "zones": "Betroffene Räume",
+      "wholeHouse": "Ganzes Haus",
+      "clearZones": "Zurücksetzen",
+      "submit": "Hinzufügen",
+      "zonesRequired": "Wählen Sie mindestens einen Raum aus."
+    },
+    "elements": {
+      "paint": "Farbe",
+      "floor": "Bodenbelag",
+      "wall": "Wand",
+      "ceiling": "Decke",
+      "joinery": "Schreinerei",
+      "plumbing": "Sanitär",
+      "electrical": "Elektrik",
+      "heating": "Heizung",
+      "furniture": "Möbel",
+      "other": "Sonstiges"
+    },
+    "types": {
+      "installation": "Installation",
+      "replacement": "Austausch",
+      "upgrade": "Modernisierung",
+      "repair": "Reparatur",
+      "maintenance": "Wartung"
     }
   }
 }

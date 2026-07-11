@@ -157,6 +157,11 @@ const UNDO_HANDLERS: Record<
     remove: (id) => deleteInteraction(id),
     keys: [interactionKeys.all as unknown as unknown[]],
   },
+  renovation: {
+    // a renovation log entry is an Interaction — same hard delete as a note
+    remove: (id) => deleteInteraction(id),
+    keys: [interactionKeys.all as unknown as unknown[], ['renovation'], ['zones']],
+  },
   meter_reading: {
     // the DELETE regenerates the derived daily estimates server-side
     remove: (id) => deleteMeterReading(id),

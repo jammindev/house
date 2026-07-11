@@ -18,13 +18,14 @@ import {
   useZonePhotos,
 } from './hooks';
 import ZoneDialog from './ZoneDialog';
+import RenovationTab from '@/features/renovation/RenovationTab';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Tab types ──────────────────────────────────────────────
 
-type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'projects' | 'photos' | 'documents' | 'assistant';
-const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'projects', 'photos', 'documents', 'assistant'];
+type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'renovation' | 'projects' | 'photos' | 'documents' | 'assistant';
+const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'renovation', 'projects', 'photos', 'documents', 'assistant'];
 
 // ── Tab: Info ──────────────────────────────────────────────
 
@@ -540,6 +541,8 @@ export default function ZoneDetailPage() {
                 {tab === 'tasks' ? <TabTasks zoneId={id} navigate={navigate} /> : null}
 
                 {tab === 'activity' ? <TabActivity zoneId={id} navigate={navigate} /> : null}
+
+                {tab === 'renovation' ? <RenovationTab zoneId={id} /> : null}
 
                 {tab === 'projects' ? <TabProjects zoneId={id} /> : null}
 

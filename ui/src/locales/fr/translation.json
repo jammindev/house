@@ -546,7 +546,8 @@
       "projects": "Projets",
       "photos": "Photos",
       "documents": "Documents",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "renovation": "Rénovation"
     },
     "photos": {
       "title": "Photos de la zone",
@@ -1907,6 +1908,59 @@
       "ok": "OK",
       "error": "Erreur",
       "empty": "Aucun appel pour le moment."
+    }
+  },
+  "renovation": {
+    "add": "Ajouter une entrée",
+    "created": "Entrée de rénovation ajoutée",
+    "updated": "Entrée mise à jour",
+    "deleted": "Entrée supprimée",
+    "empty": {
+      "title": "Aucune entrée de rénovation",
+      "description": "Gardez une trace de ce qui a été rénové ou décoré dans cette pièce."
+    },
+    "card": {
+      "ref": "réf. {{reference}}",
+      "moreZones_one": "+{{count}} autre pièce",
+      "moreZones_other": "+{{count}} autres pièces"
+    },
+    "form": {
+      "createTitle": "Nouvelle entrée de rénovation",
+      "editTitle": "Modifier l'entrée",
+      "element": "Élément",
+      "type": "Nature des travaux",
+      "product": "Produit / matériau",
+      "productPlaceholder": "ex. parquet chêne huilé",
+      "brand": "Marque",
+      "reference": "Référence",
+      "date": "Date des travaux",
+      "subject": "Titre (optionnel)",
+      "subjectPlaceholder": "Généré automatiquement si vide",
+      "notes": "Notes",
+      "zones": "Pièces concernées",
+      "wholeHouse": "Toute la maison",
+      "clearZones": "Réinitialiser",
+      "submit": "Ajouter",
+      "zonesRequired": "Sélectionnez au moins une pièce."
+    },
+    "elements": {
+      "paint": "Peinture",
+      "floor": "Sol",
+      "wall": "Mur",
+      "ceiling": "Plafond",
+      "joinery": "Menuiserie",
+      "plumbing": "Plomberie",
+      "electrical": "Électricité",
+      "heating": "Chauffage",
+      "furniture": "Mobilier",
+      "other": "Autre"
+    },
+    "types": {
+      "installation": "Installation",
+      "replacement": "Remplacement",
+      "upgrade": "Amélioration",
+      "repair": "Réparation",
+      "maintenance": "Entretien"
     }
   }
 }

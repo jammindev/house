@@ -83,6 +83,245 @@ def _build_expense_metadata(
     return metadata
 
 
+# --- Renovation log ----------------------------------------------------------
+#
+# A renovation/decoration log entry is a plain Interaction discriminated by
+# ``metadata.kind == "renovation"`` (parcours 13). No dedicated model: it reuses
+# the existing interaction types and the M2M zones (so one entry can cover many
+# rooms — e.g. "changed all the windows"). Structured fields live in metadata,
+# built through a single helper for a uniform shape (mirrors expenses).
+
+# element = *what* was renovated. Keys are stored in metadata; labels are
+# localized write-time for the auto-composed subject.
+RENOVATION_ELEMENTS: dict[str, Any] = {
+    "paint": _("Paint"),
+    "floor": _("Flooring"),
+    "wall": _("Wall"),
+    "ceiling": _("Ceiling"),
+    "joinery": _("Joinery"),
+    "plumbing": _("Plumbing"),
+    "electrical": _("Electrical"),
+    "heating": _("Heating"),
+    "furniture": _("Furniture"),
+    "other": _("Other"),
+}
+
+# type = *which action* — a curated subset of Interaction.INTERACTION_TYPES.
+RENOVATION_TYPES: set[str] = {
+    "installation",
+    "replacement",
+    "upgrade",
+    "repair",
+    "maintenance",
+}
+
+# Auto-subject template for a renovation entry, e.g. "Flooring — Léa's room".
+RENOVATION_SUBJECT_TEMPLATE = _("{element} — {name}")
+
+
+def _build_renovation_metadata(
+    *,
+    element: str,
+    product: str = "",
+    brand: str = "",
+    reference: str = "",
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Single source of truth for the `metadata` shape on renovation entries.
+
+    Adding a standard key later (e.g. ``warranty_until``) means touching one place.
+    ``extra`` overrides standard keys on collision — feature-specific escape hatch.
+    """
+    metadata: dict[str, Any] = {
+        "kind": "renovation",
+        "element": element,
+        "product": product or "",
+        "brand": brand or "",
+        "reference": reference or "",
+    }
+    if extra:
+        metadata.update(extra)
+    return metadata
+
+
+def _resolve_household_zones(household, zone_ids) -> list[Zone]:
+    """Resolve zone ids to Zone instances scoped to the household, order preserved.
+
+    Dedups while keeping the first-seen order (the first zone drives the
+    auto-subject). Raises ValueError if any id is missing or out of household.
+    """
+    ordered_ids: list[UUID] = []
+    for raw in zone_ids or []:
+        try:
+            zid = raw if isinstance(raw, UUID) else UUID(str(raw))
+        except (ValueError, TypeError):
+            raise ValueError(f"invalid zone id: {raw!r}")
+        if zid not in ordered_ids:
+            ordered_ids.append(zid)
+    if not ordered_ids:
+        raise ValueError("at least one zone is required")
+
+    zones_by_id = {
+        zone.id: zone
+        for zone in Zone.objects.filter(id__in=ordered_ids, household_id=household.id)
+    }
+    if len(zones_by_id) != len(ordered_ids):
+        raise ValueError("one or more zones do not belong to the household")
+    return [zones_by_id[zid] for zid in ordered_ids]
+
+
+def create_renovation_interaction(
+    *,
+    household,
+    user,
+    element: str,
+    product: str = "",
+    brand: str = "",
+    reference: str = "",
+    interaction_type: str = "installation",
+    subject: str | None = None,
+    occurred_at: datetime | None = None,
+    notes: str = "",
+    zone_ids: list[UUID] | None = None,
+    extra_metadata: dict[str, Any] | None = None,
+) -> Interaction:
+    """Create a renovation/decoration log entry (an ``Interaction``) for a household.
+
+    The entry is discriminated by ``metadata.kind == "renovation"``. It carries a
+    curated interaction ``type`` (installation/replacement/upgrade/repair/
+    maintenance) and structured fields in ``metadata`` (element, product, brand,
+    reference). It can be attached to several zones at once (the "all the windows
+    in the house" case).
+
+    Args:
+        household: Household instance (required).
+        user: request.user (created_by + locale provider for the auto-subject).
+        element: one of ``RENOVATION_ELEMENTS`` keys (what was renovated).
+        product, brand, reference: free-text structured detail.
+        interaction_type: one of ``RENOVATION_TYPES`` (defaults to "installation").
+        subject: user title. Auto-composed ("{element} — {zone}") when blank,
+            rendered write-time in the user's locale, then stored verbatim.
+        occurred_at: when the work happened (defaults to now).
+        notes: free-text body (stored in ``content``).
+        zone_ids: at least one zone; all must belong to the household.
+        extra_metadata: merged into the metadata payload.
+    """
+    if element not in RENOVATION_ELEMENTS:
+        raise ValueError(f"unknown renovation element: {element!r}")
+    if interaction_type not in RENOVATION_TYPES:
+        raise ValueError(f"unsupported renovation type: {interaction_type!r}")
+
+    zones = _resolve_household_zones(household, zone_ids)
+
+    if subject and subject.strip():
+        subject_text = subject.strip()
+    else:
+        subject_text = RENOVATION_SUBJECT_TEMPLATE.format(
+            element=str(RENOVATION_ELEMENTS[element]),
+            name=zones[0].name,
+        )
+
+    metadata = _build_renovation_metadata(
+        element=element,
+        product=product,
+        brand=brand,
+        reference=reference,
+        extra=extra_metadata,
+    )
+
+    with transaction.atomic():
+        interaction = Interaction.objects.create(
+            household_id=household.id,
+            created_by=user,
+            subject=subject_text,
+            content=notes or "",
+            type=interaction_type,
+            occurred_at=occurred_at or timezone.now(),
+            metadata=metadata,
+        )
+        for zone in zones:
+            InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
+
+
+def update_renovation_interaction(
+    *,
+    household,
+    user,
+    interaction: Interaction,
+    fields: dict,
+    zone_ids: list[UUID] | None = None,
+) -> Interaction:
+    """Update a renovation entry — shared by the REST edit action and the agent.
+
+    Only renovation entries (``metadata.kind == "renovation"``) are editable here.
+    Scalar fields flow through ``fields`` (element, product, brand, reference,
+    interaction_type, subject, notes/content, occurred_at); ``zone_ids`` resyncs
+    the M2M when provided (None = leave zones untouched).
+    """
+    if (interaction.metadata or {}).get("kind") != "renovation":
+        raise ValueError("update_renovation_interaction: not a renovation entry")
+    if interaction.household_id != household.id:
+        raise ValueError("update_renovation_interaction: entry belongs to another household")
+
+    metadata = dict(interaction.metadata or {})
+    for key in ("element", "product", "brand", "reference"):
+        if key not in fields:
+            continue
+        value = fields.get(key)
+        if key == "element" and value not in RENOVATION_ELEMENTS:
+            raise ValueError(f"unknown renovation element: {value!r}")
+        metadata[key] = value if key == "element" else (value or "")
+
+    if "interaction_type" in fields:
+        new_type = fields.get("interaction_type")
+        if new_type not in RENOVATION_TYPES:
+            raise ValueError(f"unsupported renovation type: {new_type!r}")
+        interaction.type = new_type
+
+    if "subject" in fields:
+        subject = (fields.get("subject") or "").strip()
+        if not subject:
+            raise ValueError("update_renovation_interaction: subject cannot be blank")
+        interaction.subject = subject
+
+    if "notes" in fields:
+        interaction.content = fields.get("notes") or ""
+    elif "content" in fields:
+        interaction.content = fields.get("content") or ""
+
+    if "occurred_at" in fields and fields.get("occurred_at") is not None:
+        interaction.occurred_at = fields["occurred_at"]
+
+    interaction.metadata = metadata
+    interaction.updated_by = user
+
+    with transaction.atomic():
+        interaction.save()
+        if zone_ids is not None:
+            zones = _resolve_household_zones(household, zone_ids)
+            interaction.zones.clear()
+            for zone in zones:
+                InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
+
+
+def delete_renovation_interaction(*, household, user, interaction: Interaction) -> None:
+    """Delete a renovation entry — the undo of ``create_renovation_interaction``.
+
+    Restricted to renovation entries, scoped to the household. A plain hard
+    delete, mirroring the interaction DELETE API so the agent's undo and a manual
+    delete behave identically.
+    """
+    if (interaction.metadata or {}).get("kind") != "renovation":
+        raise ValueError("delete_renovation_interaction: not a renovation entry")
+    if interaction.household_id != household.id:
+        raise ValueError("delete_renovation_interaction: entry belongs to another household")
+    interaction.delete()
+
+
 def create_expense_interaction(
     *,
     source,

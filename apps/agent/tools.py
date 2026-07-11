@@ -392,7 +392,8 @@ _CREATE_ENTITY_SCHEMA = {
             "type": "string",
             "description": (
                 "The kind of item to create. Supported: 'task', 'note', "
-                "'meter_reading', 'water_reading', 'tracker', 'tracker_entry'."
+                "'renovation', 'meter_reading', 'water_reading', 'tracker', "
+                "'tracker_entry'."
             ),
         },
         "fields": {
@@ -404,6 +405,19 @@ _CREATE_ENTITY_SCHEMA = {
                 "'YYYY-MM-DD'), priority (optional integer 1=high..5=low). "
                 "For entity_type='note' (a free-form note in the household log): "
                 "subject (required, short title), content (optional body text). "
+                "For entity_type='renovation' (a renovation/decoration log entry "
+                "for a room, e.g. 'j'ai refait la peinture de la chambre avec du "
+                "Farrow & Ball' or 'sol posé en parquet chêne'): element "
+                "(required, one of 'paint', 'floor', 'wall', 'ceiling', "
+                "'joinery', 'plumbing', 'electrical', 'heating', 'furniture', "
+                "'other' — map the user's word), interaction_type (optional, one "
+                "of 'installation' — default —, 'replacement', 'upgrade', "
+                "'repair', 'maintenance'), product (optional, the material/"
+                "product), brand (optional), reference (optional product ref), "
+                "subject (optional title, auto-composed when omitted), notes "
+                "(optional). Attach it to a zone: in a zone-anchored conversation "
+                "the room is added automatically; otherwise pass zone_ids (a "
+                "renovation entry needs at least one zone). "
                 "For entity_type='meter_reading' (an electricity meter index "
                 "reading): index_kwh (required, the number read on the meter, "
                 "in kWh), register (optional: 'base', 'hp' or 'hc' — required "
@@ -444,7 +458,9 @@ _CREATE_ENTITY_SCHEMA = {
 
 _CREATE_ENTITY_DESCRIPTION = (
     "Create a new household item on the user's behalf. Supported types: 'task' "
-    "(a to-do / reminder), 'note' (a free-form note), 'meter_reading' (an "
+    "(a to-do / reminder), 'note' (a free-form note), 'renovation' (a "
+    "renovation/decoration log entry for a room — what was redone, with which "
+    "product/brand/reference), 'meter_reading' (an "
     "electricity meter index reading, e.g. 'j'ai relevé 45230'), 'water_reading' "
     "(a water meter index reading in m³), 'tracker' (a "
     "named series of dated numeric values) and 'tracker_entry' (one dated value "

@@ -54,6 +54,39 @@ class ManualExpenseSerializer(serializers.Serializer):
     )
 
 
+class RenovationSerializer(serializers.Serializer):
+    """Input for POST /api/interactions/renovation/ (create a renovation log entry)."""
+
+    element = serializers.ChoiceField(choices=[])
+    interaction_type = serializers.ChoiceField(choices=[], required=False, default="installation")
+    product = serializers.CharField(required=False, allow_blank=True, default="")
+    brand = serializers.CharField(required=False, allow_blank=True, default="")
+    reference = serializers.CharField(required=False, allow_blank=True, default="")
+    subject = serializers.CharField(required=False, allow_blank=True, max_length=500)
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
+    notes = serializers.CharField(required=False, allow_blank=True, default="")
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=True, allow_empty=False
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Choices are sourced from the service so both stay in sync.
+        from .services import RENOVATION_ELEMENTS, RENOVATION_TYPES
+
+        self.fields["element"].choices = [(key, key) for key in RENOVATION_ELEMENTS]
+        self.fields["interaction_type"].choices = [(key, key) for key in sorted(RENOVATION_TYPES)]
+
+
+class RenovationUpdateSerializer(RenovationSerializer):
+    """Input for PATCH renovation — every field optional, zones optional."""
+
+    element = serializers.ChoiceField(choices=[], required=False)
+    zone_ids = serializers.ListField(
+        child=serializers.UUIDField(), required=False, allow_empty=False
+    )
+
+
 class InteractionSerializer(serializers.ModelSerializer):
     """Interaction list/create serializer."""
     
@@ -74,6 +107,7 @@ class InteractionSerializer(serializers.ModelSerializer):
     )
     source_label = serializers.SerializerMethodField()
     zone_names = serializers.SerializerMethodField()
+    zone_id_list = serializers.SerializerMethodField()
     document_count = serializers.SerializerMethodField()
     tags = serializers.SerializerMethodField()
     linked_document_ids = serializers.SerializerMethodField()
@@ -119,7 +153,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'id', 'household', 'subject', 'content', 'type', 'status',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
             'source_type', 'source_id', 'source_label',
-            'zone_ids', 'zone_names', 'document_count', 'linked_document_ids', 'document_ids',
+            'zone_ids', 'zone_names', 'zone_id_list', 'document_count', 'linked_document_ids', 'document_ids',
             'contacts', 'contact_ids', 'structures', 'structure_ids',
             'equipments', 'equipment_ids',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
@@ -161,6 +195,9 @@ class InteractionSerializer(serializers.ModelSerializer):
 
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
+
+    def get_zone_id_list(self, obj):
+        return [str(zone.id) for zone in obj.zones.all()]
 
     def _get_linked_document_ids(self, obj):
         document_ids = {str(document_id) for document_id in obj.interaction_documents.values_list('document_id', flat=True)}

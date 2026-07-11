@@ -27,8 +27,14 @@ from .serializers import (
     InteractionStructureSerializer,
     InteractionDocumentSerializer,
     ManualExpenseSerializer,
+    RenovationSerializer,
+    RenovationUpdateSerializer,
 )
-from .services import create_manual_expense_interaction
+from .services import (
+    create_manual_expense_interaction,
+    create_renovation_interaction,
+    update_renovation_interaction,
+)
 
 
 def _parse_period(from_param: str | None, to_param: str | None):
@@ -251,6 +257,77 @@ class InteractionViewSet(viewsets.ModelViewSet):
 
         payload = InteractionSerializer(interaction, context={"request": request}).data
         return Response(payload, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'], url_path='renovation')
+    def renovation_create(self, request):
+        """POST /api/interactions/renovation/
+
+        Create a renovation/decoration log entry (parcours 13): an Interaction
+        discriminated by metadata.kind="renovation", attachable to several zones
+        at once. Delegates to interactions.services.create_renovation_interaction.
+        """
+        household = request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        serializer = RenovationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        try:
+            interaction = create_renovation_interaction(
+                household=household,
+                user=request.user,
+                element=data["element"],
+                product=data.get("product", "") or "",
+                brand=data.get("brand", "") or "",
+                reference=data.get("reference", "") or "",
+                interaction_type=data.get("interaction_type", "installation"),
+                subject=data.get("subject") or None,
+                occurred_at=data.get("occurred_at"),
+                notes=data.get("notes", "") or "",
+                zone_ids=data["zone_ids"],
+            )
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)})
+
+        payload = InteractionSerializer(interaction, context={"request": request}).data
+        return Response(payload, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['patch'], url_path='renovation')
+    def renovation_update(self, request, pk=None):
+        """PATCH /api/interactions/{id}/renovation/
+
+        Edit a renovation log entry via the shared service. Every field optional;
+        zone_ids resyncs the M2M when provided.
+        """
+        interaction = self.get_object()
+        household = request.household or interaction.household
+
+        serializer = RenovationUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        fields = {
+            key: data[key]
+            for key in ("element", "product", "brand", "reference",
+                        "interaction_type", "subject", "notes", "occurred_at")
+            if key in data
+        }
+
+        try:
+            interaction = update_renovation_interaction(
+                household=household,
+                user=request.user,
+                interaction=interaction,
+                fields=fields,
+                zone_ids=data.get("zone_ids"),
+            )
+        except ValueError as exc:
+            raise ValidationError({"detail": str(exc)})
+
+        payload = InteractionSerializer(interaction, context={"request": request}).data
+        return Response(payload, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='expenses/summary')
     def expenses_summary(self, request):

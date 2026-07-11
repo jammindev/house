@@ -24,6 +24,7 @@ export interface InteractionListItem {
   occurred_at: string;
   tags: string[];
   zone_names: string[];
+  zone_id_list?: string[];
   document_count: number;
   created_by_name?: string;
   metadata?: Record<string, unknown>;
