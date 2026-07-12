@@ -690,7 +690,6 @@
     "noEntries": "Noch keine Einträge.",
     "nameRequired": "Name ist erforderlich.",
     "valueRequired": "Ein numerischer Wert und ein Datum sind erforderlich.",
-    "targetEntityRequired": "Wähle die verknüpfte Entität.",
     "namePlaceholder": "Wasserzähler",
     "unitPlaceholder": "m³, kg, h, %…",
     "fieldName": "Name",
@@ -699,42 +698,14 @@
     "fieldDescription": "Beschreibung",
     "fieldProject": "Projekt",
     "noProject": "Kein Projekt",
-    "fieldLinkedTo": "Verknüpft mit",
-    "linkedNone": "Nichts",
-    "fieldTargetEntity": "Entität",
-    "linkedType": {
-      "equipment": "Gerät",
-      "zone": "Raum / Bereich",
-      "stock_item": "Vorratsartikel"
-    },
     "fieldValue": "Wert",
     "fieldDate": "Datum",
     "fieldNote": "Notiz",
     "filter": {
       "all": "Alle",
       "general": "Allgemein",
-      "projects": "Projekte",
-      "linked": "Verknüpft"
-    },
-    "fieldKind": "Typ",
-    "kind": {
-      "measure": "Messung",
-      "measureHint": "Zähler, Gewicht, Füllstand… der letzte Stand zählt.",
-      "consumption": "Verbrauch",
-      "consumptionHint": "Futter, Pellets, Brennstoff… verbrauchte Mengen."
-    },
-    "fieldReserve": "Vorrat",
-    "reservePlaceholder": "Verbleibende Menge",
-    "reserveInvalid": "Der Vorrat muss eine Zahl sein.",
-    "reserveLabel": "Vorrat: {{value}} {{unit}}",
-    "perDay": "Tag",
-    "runwayDays": "~{{days}} T. übrig",
-    "runwayUntil": "bis {{date}}",
-    "refillTitle": "Auffüllen",
-    "refillAdded": "Hinzugefügte Menge",
-    "refillCurrent": "Aktueller Vorrat: {{value}} {{unit}}",
-    "refillNewTotal": "Neuer Vorrat: {{value}} {{unit}}",
-    "refillConfirm": "Auffüllen"
+      "projects": "Projekte"
+    }
   },
   "settings": {
     "app_title": "Einstellungen-Mini-App",
@@ -1242,11 +1213,6 @@
         "title": "Wasser",
         "avg": "{{liters}} L/Tag",
         "total": "{{m3}} m³ in 30 Tagen"
-      },
-      "runways": {
-        "title": "Reichweiten",
-        "days_one": "~{{count}} Tag",
-        "days_other": "~{{count}} Tage"
       },
       "chickens": {
         "title": "Hühnerstall",
@@ -1866,8 +1832,7 @@
       "overdue": "Überfällige Aufgaben",
       "warranties": "Auslaufende Garantien",
       "maintenances": "Anstehende Wartungen",
-      "stock": "Vorrat auffüllen",
-      "runways": "Geringe Reichweite"
+      "stock": "Vorrat auffüllen"
     },
     "severity": {
       "critical": "Dringend",
@@ -1884,9 +1849,7 @@
       "out_of_stock": "Aufgebraucht",
       "expired": "Abgelaufen"
     },
-    "stockRemaining": "{{quantity}} {{unit}} übrig",
-    "runwayLeft_one": "~{{count}} Tag übrig (bis {{date}})",
-    "runwayLeft_other": "~{{count}} Tage übrig (bis {{date}})"
+    "stockRemaining": "{{quantity}} {{unit}} übrig"
   },
   "agent": {
     "title": "Agent",

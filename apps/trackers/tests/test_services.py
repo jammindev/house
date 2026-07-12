@@ -6,12 +6,10 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from accounts.tests.factories import UserFactory
-from equipment.models import Equipment
 from households.models import Household, HouseholdMember
 from projects.models import Project
 from trackers import services
-from trackers.models import Tracker, TrackerEntry
-from zones.models import Zone
+from trackers.models import TrackerEntry
 
 from .factories import TrackerFactory
 
@@ -42,7 +40,6 @@ class TestCreateTracker:
         assert tracker.household == household
         assert tracker.created_by == owner
         assert tracker.project is None
-        assert tracker.target is None
 
     def test_create_with_project(self, household, owner):
         project = Project.objects.create(
@@ -52,39 +49,6 @@ class TestCreateTracker:
             household, owner, name="Budget peinture", unit="€", project=project
         )
         assert tracker.project == project
-
-    def test_create_with_equipment_target(self, household, owner):
-        zone = Zone.objects.create(household=household, name="Combles", created_by=owner)
-        vmc = Equipment.objects.create(
-            household=household, name="VMC double flux", zone=zone, created_by=owner
-        )
-        tracker = services.create_tracker(
-            household, owner,
-            name="Heures VMC", unit="h",
-            target_type="equipment", target_id=vmc.id,
-        )
-        assert tracker.target == vmc
-
-    def test_create_rejects_target_from_other_household(
-        self, household, other_household, owner
-    ):
-        foreign_zone = Zone.objects.create(
-            household=other_household, name="Ailleurs", created_by=owner
-        )
-        with pytest.raises(ValidationError):
-            services.create_tracker(
-                household, owner,
-                name="Interdit", target_type="zone", target_id=foreign_zone.id,
-            )
-
-    def test_create_rejects_unknown_target_type(self, household, owner):
-        import uuid
-
-        with pytest.raises(ValidationError):
-            services.create_tracker(
-                household, owner,
-                name="Interdit", target_type="martian", target_id=uuid.uuid4(),
-            )
 
     def test_create_rejects_project_from_other_household(
         self, household, other_household, owner
@@ -106,17 +70,6 @@ class TestUpdateTracker:
         )
         assert updated.name == "Après"
         assert updated.last_value is None
-
-    def test_update_can_clear_target(self, household, owner):
-        zone = Zone.objects.create(household=household, name="Cave", created_by=owner)
-        tracker = services.create_tracker(
-            household, owner, name="Cuve", target_type="zone", target_id=zone.id
-        )
-        updated = services.update_tracker(
-            household, owner, tracker, fields={"target_type": None, "target_id": None}
-        )
-        assert updated.target_content_type is None
-        assert updated.target_object_id is None
 
 
 @pytest.mark.django_db

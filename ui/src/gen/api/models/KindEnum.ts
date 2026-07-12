@@ -6,4 +6,4 @@
  * * `socket` - Socket
  * * `light` - Light
  */
-export type UsagePointKindEnum = 'socket' | 'light';
+export type KindEnum = 'socket' | 'light';

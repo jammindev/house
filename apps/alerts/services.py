@@ -1,5 +1,5 @@
 """Aggregation of household alerts (overdue tasks, expiring warranties, due
-maintenances, low/out/expired stock, low-runway consumption trackers)."""
+maintenances, low/out/expired stock)."""
 
 from datetime import date, timedelta
 
@@ -9,18 +9,14 @@ from equipment.models import Equipment
 from equipment.services import compute_next_service_due
 from stock.models import StockItem
 from tasks.models import Task
-from trackers.models import Tracker
-from trackers.services import runway
 
 
 ALERT_WARRANTY_DAYS = 90
 ALERT_MAINTENANCE_DAYS = 30
-ALERT_RUNWAY_DAYS = 14
 
 OVERDUE_TASK_CRITICAL_DAYS = 3
 WARRANTY_CRITICAL_DAYS = 30
 MAINTENANCE_CRITICAL_DAYS = 7
-RUNWAY_CRITICAL_DAYS = 7
 
 STOCK_ALERT_STATUSES = [
     StockItem.Status.LOW_STOCK,
@@ -138,52 +134,21 @@ def _low_stock(household) -> list[dict]:
     return items
 
 
-def _low_runway_trackers(household) -> list[dict]:
-    qs = Tracker.objects.filter(
-        household=household, kind=Tracker.Kind.CONSUMPTION, is_active=True
-    )
-    items = []
-    for tracker in qs:
-        run = runway(tracker)
-        if run is None:
-            continue
-        days, until = run
-        if days > ALERT_RUNWAY_DAYS:
-            continue
-        title = f"{tracker.emoji} {tracker.name}".strip() if tracker.emoji else tracker.name
-        items.append(
-            {
-                "id": str(tracker.id),
-                "title": title,
-                # Same rendering as TrackerSerializer: days as str(Decimal), until as ISO date.
-                "runway_days": str(days),
-                "runway_until": until.date().isoformat(),
-                "entity_url": f"/app/trackers/{tracker.id}",
-                "severity": "critical" if days <= RUNWAY_CRITICAL_DAYS else "warning",
-            }
-        )
-    items.sort(key=lambda item: float(item["runway_days"]))
-    return items
-
-
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
     expiring_warranties = _expiring_warranties(household, today)
     due_maintenances = _due_maintenances(household, today)
     low_stock = _low_stock(household)
-    low_runway_trackers = _low_runway_trackers(household)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
         "due_maintenances": due_maintenances,
         "low_stock": low_stock,
-        "low_runway_trackers": low_runway_trackers,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
             + len(due_maintenances)
             + len(low_stock)
-            + len(low_runway_trackers)
         ),
     }

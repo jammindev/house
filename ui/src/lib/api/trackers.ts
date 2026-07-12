@@ -5,26 +5,15 @@ export interface TrackerSparklinePoint {
   occurred_at: string;
 }
 
-export type TrackerKind = 'measure' | 'consumption';
-
 export interface Tracker {
   id: string;
   name: string;
   description: string;
   unit: string;
   emoji: string;
-  kind: TrackerKind;
   is_active: boolean;
-  reserve: string | null;
-  rate_per_day: string | null;
-  runway_days: string | null;
-  runway_until: string | null;
   project: string | null;
   project_title: string | null;
-  target_type: string | null;
-  target_id: string | null;
-  target_label: string | null;
-  target_url: string | null;
   last_value: string | null;
   last_entry_at: string | null;
   sparkline: TrackerSparklinePoint[];
@@ -47,11 +36,7 @@ export interface TrackerPayload {
   unit?: string;
   description?: string;
   emoji?: string;
-  kind?: TrackerKind;
-  reserve?: string | null;
   project?: string | null;
-  target_type?: string | null;
-  target_id?: string | null;
 }
 
 export interface TrackerEntryPayload {

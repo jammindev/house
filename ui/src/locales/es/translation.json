@@ -690,7 +690,6 @@
     "noEntries": "Aún no hay entradas.",
     "nameRequired": "El nombre es obligatorio.",
     "valueRequired": "Se requieren un valor numérico y una fecha.",
-    "targetEntityRequired": "Elige la entidad vinculada.",
     "namePlaceholder": "Contador de agua",
     "unitPlaceholder": "m³, kg, h, %…",
     "fieldName": "Nombre",
@@ -699,42 +698,14 @@
     "fieldDescription": "Descripción",
     "fieldProject": "Proyecto",
     "noProject": "Sin proyecto",
-    "fieldLinkedTo": "Vinculado a",
-    "linkedNone": "Nada",
-    "fieldTargetEntity": "Entidad",
-    "linkedType": {
-      "equipment": "Equipo",
-      "zone": "Zona",
-      "stock_item": "Artículo de stock"
-    },
     "fieldValue": "Valor",
     "fieldDate": "Fecha",
     "fieldNote": "Nota",
     "filter": {
       "all": "Todos",
       "general": "Generales",
-      "projects": "Proyectos",
-      "linked": "Vinculados"
-    },
-    "fieldKind": "Tipo",
-    "kind": {
-      "measure": "Medición",
-      "measureHint": "Contador, peso, nivel… lo que cuenta es el último estado.",
-      "consumption": "Consumo",
-      "consumptionHint": "Pienso, pellets, combustible… cantidades consumidas."
-    },
-    "fieldReserve": "Reserva",
-    "reservePlaceholder": "Cantidad restante",
-    "reserveInvalid": "La reserva debe ser un número.",
-    "reserveLabel": "Reserva: {{value}} {{unit}}",
-    "perDay": "día",
-    "runwayDays": "~{{days}} d restantes",
-    "runwayUntil": "hasta el {{date}}",
-    "refillTitle": "Reponer",
-    "refillAdded": "Cantidad añadida",
-    "refillCurrent": "Reserva actual: {{value}} {{unit}}",
-    "refillNewTotal": "Nueva reserva: {{value}} {{unit}}",
-    "refillConfirm": "Reponer"
+      "projects": "Proyectos"
+    }
   },
   "settings": {
     "app_title": "Mini-app Configuración",
@@ -1242,11 +1213,6 @@
         "title": "Agua",
         "avg": "{{liters}} L/día",
         "total": "{{m3}} m³ en 30 días"
-      },
-      "runways": {
-        "title": "Autonomías",
-        "days_one": "~{{count}} día",
-        "days_other": "~{{count}} días"
       },
       "chickens": {
         "title": "Gallinero",
@@ -1866,8 +1832,7 @@
       "overdue": "Tareas atrasadas",
       "warranties": "Garantías a vigilar",
       "maintenances": "Mantenimientos a planificar",
-      "stock": "Stock por reponer",
-      "runways": "Autonomía baja"
+      "stock": "Stock por reponer"
     },
     "severity": {
       "critical": "Urgente",
@@ -1884,9 +1849,7 @@
       "out_of_stock": "Agotado",
       "expired": "Caducado"
     },
-    "stockRemaining": "{{quantity}} {{unit}} restante",
-    "runwayLeft_one": "~{{count}} día restante (hasta el {{date}})",
-    "runwayLeft_other": "~{{count}} días restantes (hasta el {{date}})"
+    "stockRemaining": "{{quantity}} {{unit}} restante"
   },
   "agent": {
     "title": "Agente",

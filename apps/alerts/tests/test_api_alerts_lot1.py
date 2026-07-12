@@ -2,9 +2,8 @@
 Tests for the lot-1 dashboard additions in apps/alerts/:
   - build_alerts_summary / GET /api/alerts/summary/ now returns:
       * low_stock   — StockItems with status ∈ {low_stock, out_of_stock, expired}
-      * low_runway_trackers — consumption trackers whose runway ≤ 14 days
-  - total includes both new lists.
-  - The "no active household" response includes both keys as empty lists.
+  - total includes the new list.
+  - The "no active household" response includes the key as an empty list.
 
 Covers: happy path, severity logic, sorting, DB-state verification, household
 isolation, anonymous 401, and the "no household" early return.
@@ -22,8 +21,6 @@ from rest_framework.test import APIClient
 from accounts.tests.factories import UserFactory
 from households.models import Household, HouseholdMember
 from stock.models import StockCategory, StockItem
-from trackers import services as tracker_services
-from trackers.models import Tracker
 from zones.models import Zone
 
 
@@ -69,31 +66,6 @@ def _create_stock_item(
         unit="unit",
         created_by=user,
     )
-
-
-def _create_consumption_tracker(
-    household, user, *, name: str, reserve: str, daily_consumption: str, emoji: str = ""
-) -> Tracker:
-    """Create a consumption tracker with a deterministic runway.
-
-    One entry dated today with value=daily_consumption gives rate_per_day ≈
-    daily_consumption (coverage floored at 1 day).  runway = reserve / rate.
-    """
-    tracker = tracker_services.create_tracker(
-        household, user,
-        name=name,
-        unit="kg",
-        kind="consumption",
-        reserve=reserve,
-        emoji=emoji or None,
-    )
-    tracker_services.add_entry(
-        household, user, tracker,
-        value=daily_consumption,
-        occurred_at=timezone.now(),
-    )
-    tracker.refresh_from_db()
-    return tracker
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -222,7 +194,6 @@ class TestAlertsSummaryLowStock:
             + len(data["expiring_warranties"])
             + len(data["due_maintenances"])
             + len(data["low_stock"])
-            + len(data["low_runway_trackers"])
         )
         assert data["total"] >= 2
 
@@ -242,192 +213,28 @@ class TestAlertsSummaryLowStock:
         assert response.data["low_stock"][0]["id"] == str(item.id)
 
 
-# ── low_runway_trackers aggregation ──────────────────────────────────────────
-
-@pytest.mark.django_db
-class TestAlertsSummaryLowRunwayTrackers:
-    """Covers the new 'low_runway_trackers' key in build_alerts_summary."""
-
-    def _url(self):
-        return reverse("alerts-summary")
-
-    def test_empty_household_returns_empty_low_runway_trackers(self, owner_client, household):
-        response = owner_client.get(self._url())
-        assert response.status_code == status.HTTP_200_OK
-        assert response.data["low_runway_trackers"] == []
-
-    def test_tracker_above_threshold_excluded(self, owner_client, household, owner):
-        # reserve=300, consumption=3/day → runway ≈ 100 days (> 14 → absent)
-        _create_consumption_tracker(household, owner, name="Long runway", reserve="300", daily_consumption="3")
-        response = owner_client.get(self._url())
-        assert response.data["low_runway_trackers"] == []
-
-    def test_warning_tracker_returned_at_10_days(self, owner_client, household, owner):
-        # reserve=30, consumption=3/day → runway ≈ 10 days (≤ 14, > 7 → warning)
-        tracker = _create_consumption_tracker(
-            household, owner, name="Warning tracker", reserve="30", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        low_runway = response.data["low_runway_trackers"]
-        assert len(low_runway) == 1
-        item = low_runway[0]
-        assert item["id"] == str(tracker.id)
-        assert item["severity"] == "warning"
-        assert item["entity_url"] == f"/app/trackers/{tracker.id}"
-        assert "runway_days" in item
-        assert "runway_until" in item
-
-    def test_critical_tracker_returned_at_2_days(self, owner_client, household, owner):
-        # reserve=6, consumption=3/day → runway ≈ 2 days (≤ 7 → critical)
-        _create_consumption_tracker(
-            household, owner, name="Critical tracker", reserve="6", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        low_runway = response.data["low_runway_trackers"]
-        assert len(low_runway) == 1
-        assert low_runway[0]["severity"] == "critical"
-
-    def test_measure_tracker_excluded(self, owner_client, household, owner):
-        # kind=measure should never appear, regardless of reserve
-        tracker_services.create_tracker(
-            household, owner,
-            name="Measure only",
-            unit="kg",
-            kind="measure",
-        )
-        response = owner_client.get(self._url())
-        assert response.data["low_runway_trackers"] == []
-
-    def test_inactive_tracker_excluded(self, owner_client, household, owner):
-        # reserve=6, consumption=3 → would be critical, but is_active=False → excluded
-        tracker = tracker_services.create_tracker(
-            household, owner,
-            name="Inactive",
-            unit="kg",
-            kind="consumption",
-            reserve="6",
-        )
-        tracker_services.add_entry(household, owner, tracker, value="3")
-        tracker.is_active = False
-        tracker.save(update_fields=["is_active"])
-
-        response = owner_client.get(self._url())
-        assert response.data["low_runway_trackers"] == []
-
-    def test_tracker_without_reserve_excluded(self, owner_client, household, owner):
-        # No reserve → runway() returns None → excluded
-        tracker = tracker_services.create_tracker(
-            household, owner,
-            name="No reserve",
-            unit="kg",
-            kind="consumption",
-        )
-        tracker_services.add_entry(household, owner, tracker, value="3")
-        response = owner_client.get(self._url())
-        assert response.data["low_runway_trackers"] == []
-
-    def test_title_includes_emoji_when_set(self, owner_client, household, owner):
-        _create_consumption_tracker(
-            household, owner,
-            name="Poules",
-            reserve="6",
-            daily_consumption="3",
-            emoji="🐔",
-        )
-        response = owner_client.get(self._url())
-        item = response.data["low_runway_trackers"][0]
-        assert item["title"] == "🐔 Poules"
-
-    def test_title_without_emoji_is_name_only(self, owner_client, household, owner):
-        _create_consumption_tracker(
-            household, owner,
-            name="Grain",
-            reserve="6",
-            daily_consumption="3",
-            emoji="",
-        )
-        response = owner_client.get(self._url())
-        item = response.data["low_runway_trackers"][0]
-        assert item["title"] == "Grain"
-
-    def test_sorting_by_runway_days_ascending(self, owner_client, household, owner):
-        # critical (~2 days) should appear before warning (~10 days)
-        _create_consumption_tracker(
-            household, owner, name="Long warning", reserve="30", daily_consumption="3"
-        )
-        _create_consumption_tracker(
-            household, owner, name="Short critical", reserve="6", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        low_runway = response.data["low_runway_trackers"]
-        assert len(low_runway) == 2
-        runway_days = [float(item["runway_days"]) for item in low_runway]
-        assert runway_days == sorted(runway_days)
-        assert low_runway[0]["title"] == "Short critical"
-        assert low_runway[1]["title"] == "Long warning"
-
-    def test_runway_days_and_runway_until_types(self, owner_client, household, owner):
-        _create_consumption_tracker(
-            household, owner, name="Type check", reserve="6", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        item = response.data["low_runway_trackers"][0]
-        # runway_days is a string representation of a Decimal
-        assert isinstance(item["runway_days"], str)
-        # runway_until is an ISO date string (YYYY-MM-DD)
-        from datetime import date
-        date.fromisoformat(item["runway_until"])  # raises ValueError if wrong format
-
-    def test_low_runway_trackers_included_in_total(self, owner_client, household, owner):
-        _create_consumption_tracker(
-            household, owner, name="In total", reserve="6", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        data = response.data
-        assert data["total"] == (
-            len(data["overdue_tasks"])
-            + len(data["expiring_warranties"])
-            + len(data["due_maintenances"])
-            + len(data["low_stock"])
-            + len(data["low_runway_trackers"])
-        )
-        assert data["total"] >= 1
-
-    def test_low_runway_trackers_household_isolation(self, owner_client, household, owner):
-        other_owner = UserFactory(email="alerts-lot1-tracker-other@example.com")
-        other_hh = _create_household("Other Tracker House")
-        _add_membership(other_owner, other_hh)
-        _create_consumption_tracker(
-            other_hh, other_owner, name="Foreign critical", reserve="6", daily_consumption="3"
-        )
-        response = owner_client.get(self._url())
-        assert response.data["low_runway_trackers"] == []
-
-
-# ── Response shape (both keys present) ───────────────────────────────────────
+# ── Response shape ───────────────────────────────────────────────────────────
 
 @pytest.mark.django_db
 class TestAlertsSummaryResponseShape:
-    """Ensures both new keys are always present in the API response."""
+    """Ensures the low_stock key is always present in the API response."""
 
     def _url(self):
         return reverse("alerts-summary")
 
-    def test_both_new_keys_present_on_empty_household(self, owner_client, household):
+    def test_low_stock_key_present_on_empty_household(self, owner_client, household):
         response = owner_client.get(self._url())
         assert response.status_code == status.HTTP_200_OK
         assert "low_stock" in response.data
-        assert "low_runway_trackers" in response.data
 
     def test_no_active_household_returns_empty_new_keys(self, db):
-        """User with no active household → the early-return branch must include both keys."""
+        """User with no active household → the early-return branch must include the key."""
         user = UserFactory(email="alerts-lot1-nohouse@example.com")
         # No household attached → request.household is None
         client = _client_for(user)
         response = client.get(self._url())
         assert response.status_code == status.HTTP_200_OK
         assert response.data["low_stock"] == []
-        assert response.data["low_runway_trackers"] == []
         assert response.data["total"] == 0
 
     def test_anonymous_request_rejected(self, household):

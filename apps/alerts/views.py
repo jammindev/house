@@ -24,7 +24,6 @@ class AlertsSummaryView(APIView):
                     "expiring_warranties": [],
                     "due_maintenances": [],
                     "low_stock": [],
-                    "low_runway_trackers": [],
                     "total": 0,
                 }
             )

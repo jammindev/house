@@ -3,7 +3,7 @@ Tests for the trackers agent integration — parcours 11, lot 5.
 
 Covers:
   - create_entity / tracker via dispatch (WritableSpec) — same write path as REST
-  - anchor handling: anchored project → project, anchored equipment → target
+  - anchor handling: anchored project → project
   - create_entity / tracker_entry: by name, by id, anchored-tracker fallback,
     single-tracker fallback, error paths
   - update_entity / tracker_entry (fix a wrong reading) and / tracker
@@ -19,12 +19,10 @@ import pytest
 from accounts.tests.factories import UserFactory
 from agent import tools
 from agent.searchables import find_spec
-from equipment.models import Equipment
 from households.models import Household, HouseholdMember
 from projects.models import Project
 from trackers import services
 from trackers.models import Tracker, TrackerEntry
-from zones.models import Zone
 
 from .factories import TrackerFactory
 
@@ -76,20 +74,6 @@ class TestCreateTrackerViaAgent:
         )
         tracker = Tracker.objects.get(pk=result.created[0]["id"])
         assert tracker.project == project
-
-    def test_anchored_equipment_prefills_target(self, household, owner):
-        zone = Zone.objects.create(household=household, name="Combles", created_by=owner)
-        vmc = Equipment.objects.create(
-            household=household, name="VMC", zone=zone, created_by=owner
-        )
-        result = _dispatch(
-            "create_entity", household,
-            {"entity_type": "tracker", "fields": {"name": "Heures VMC", "unit": "h"}},
-            user=owner,
-            context_entity=("equipment", str(vmc.id)),
-        )
-        tracker = Tracker.objects.get(pk=result.created[0]["id"])
-        assert tracker.target == vmc
 
     def test_missing_name_is_recoverable(self, household, owner):
         result = _dispatch(
@@ -280,12 +264,9 @@ class TestTrackerSearchable:
 
     def test_related_returns_anchors(self, household, owner):
         project = Project.objects.create(household=household, title="Réno", created_by=owner)
-        zone = Zone.objects.create(household=household, name="Cave", created_by=owner)
         tracker = services.create_tracker(
-            household, owner, name="Cuve", project=project,
-            target_type="zone", target_id=zone.id,
+            household, owner, name="Budget", project=project,
         )
         spec = find_spec("tracker")
         related = list(spec.related(tracker))
-        assert project in related
-        assert zone in related
+        assert related == [project]

@@ -5,7 +5,6 @@ import MyWeekCard from './MyWeekCard';
 import ExpensesCard from './ExpensesCard';
 import ElectricityCard from './ElectricityCard';
 import WaterCard from './WaterCard';
-import RunwaysCard from './RunwaysCard';
 import ChickensCard from './ChickensCard';
 import ActivityTimeline from './ActivityTimeline';
 import PinnedProjects from './PinnedProjects';
@@ -13,7 +12,7 @@ import { useDisabledModules } from '@/lib/modules';
 
 /**
  * Household control room, top to bottom: what needs action (triage + my week),
- * the household's pulse (money, energy, water, runways — each card hides
+ * the household's pulse (money, energy, water — each card hides
  * itself when its module holds no data), then context (activity, projects).
  * Cards of household-disabled modules are not mounted at all, so their
  * queries never fire.
@@ -34,7 +33,6 @@ export default function DashboardPage() {
         <ExpensesCard />
         {!disabled.has('electricity') && <ElectricityCard />}
         {!disabled.has('water') && <WaterCard />}
-        {!disabled.has('trackers') && <RunwaysCard />}
         {!disabled.has('chickens') && <ChickensCard />}
       </section>
 

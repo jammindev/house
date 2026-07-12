@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { UsagePointKindEnum } from './UsagePointKindEnum';
+import type { KindEnum } from './KindEnum';
 /**
  * Base serializer with shared household validation helpers.
  */
@@ -11,7 +11,7 @@ export type PatchedUsagePoint = {
     readonly household?: string;
     label?: string;
     name?: string;
-    kind?: UsagePointKindEnum;
+    kind?: KindEnum;
     zone?: string;
     max_power_watts?: number | null;
     is_dedicated_circuit?: boolean;

@@ -8,16 +8,9 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Textarea } from '@/design-system/textarea';
-import { fetchEquipmentList } from '@/lib/api/equipment';
 import { fetchProjects } from '@/lib/api/projects';
-import { fetchStockItems } from '@/lib/api/stock';
-import { fetchZones } from '@/lib/api/zones';
-import { formatTrackerValue, type Tracker, type TrackerKind } from '@/lib/api/trackers';
+import type { Tracker } from '@/lib/api/trackers';
 import { useCreateTracker, useUpdateTracker } from './hooks';
-
-/** Linkable entity types offered in the picker (all agent-searchable). */
-type TargetType = 'equipment' | 'zone' | 'stock_item';
-const TARGET_TYPES: TargetType[] = ['equipment', 'zone', 'stock_item'];
 
 interface TrackerDialogProps {
   open: boolean;
@@ -40,11 +33,7 @@ export default function TrackerDialog({
   const [emoji, setEmoji] = React.useState('');
   const [unit, setUnit] = React.useState('');
   const [description, setDescription] = React.useState('');
-  const [kind, setKind] = React.useState<TrackerKind>('measure');
-  const [reserve, setReserve] = React.useState('');
   const [projectId, setProjectId] = React.useState('');
-  const [targetType, setTargetType] = React.useState<'' | TargetType>('');
-  const [targetId, setTargetId] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
   const createTracker = useCreateTracker();
@@ -56,21 +45,6 @@ export default function TrackerDialog({
     queryFn: () => fetchProjects(),
     enabled: open && !defaultProjectId,
   });
-  const { data: equipment } = useQuery({
-    queryKey: ['equipment'],
-    queryFn: () => fetchEquipmentList(),
-    enabled: open && targetType === 'equipment',
-  });
-  const { data: zones } = useQuery({
-    queryKey: ['zones'],
-    queryFn: fetchZones,
-    enabled: open && targetType === 'zone',
-  });
-  const { data: stockItems } = useQuery({
-    queryKey: ['stock-items'],
-    queryFn: () => fetchStockItems(),
-    enabled: open && targetType === 'stock_item',
-  });
 
   React.useEffect(() => {
     if (!open) return;
@@ -79,37 +53,16 @@ export default function TrackerDialog({
       setEmoji(existing.emoji);
       setUnit(existing.unit);
       setDescription(existing.description);
-      setKind(existing.kind);
-      setReserve(existing.reserve != null ? formatTrackerValue(existing.reserve) : '');
       setProjectId(existing.project ?? '');
-      setTargetType((existing.target_type as TargetType | null) ?? '');
-      setTargetId(existing.target_id ?? '');
     } else {
       setName('');
       setEmoji('');
       setUnit('');
       setDescription('');
-      setKind('measure');
-      setReserve('');
       setProjectId(defaultProjectId ?? '');
-      setTargetType('');
-      setTargetId('');
     }
     setError(null);
   }, [open, existing, defaultProjectId]);
-
-  const targetOptions = React.useMemo(() => {
-    if (targetType === 'equipment') {
-      return (equipment ?? []).map((e) => ({ value: e.id, label: e.name }));
-    }
-    if (targetType === 'zone') {
-      return (zones ?? []).map((z) => ({ value: z.id, label: z.name }));
-    }
-    if (targetType === 'stock_item') {
-      return (stockItems ?? []).map((s) => ({ value: s.id, label: s.name }));
-    }
-    return [];
-  }, [targetType, equipment, zones, stockItems]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -118,30 +71,13 @@ export default function TrackerDialog({
       setError(t('trackers.nameRequired'));
       return;
     }
-    if (targetType && !targetId) {
-      setError(t('trackers.targetEntityRequired'));
-      return;
-    }
-
-    const normalizedReserve = reserve.trim().replace(',', '.');
-    if (kind === 'consumption' && normalizedReserve && Number.isNaN(Number(normalizedReserve))) {
-      setError(t('trackers.reserveInvalid'));
-      return;
-    }
 
     const payload = {
       name: name.trim(),
       emoji: emoji.trim(),
       unit: unit.trim(),
       description: description.trim(),
-      // kind is immutable server-side — only sent at creation
-      ...(isEditing ? {} : { kind }),
-      ...(kind === 'consumption'
-        ? { reserve: normalizedReserve ? normalizedReserve : null }
-        : {}),
       project: projectId || null,
-      target_type: targetType || null,
-      target_id: targetType ? targetId : null,
     };
 
     try {
@@ -186,58 +122,15 @@ export default function TrackerDialog({
           </FormField>
         </div>
 
-        {!isEditing ? (
-          <FormField label={t('trackers.fieldKind')} htmlFor="tracker-kind">
-            <div className="grid grid-cols-2 gap-2" id="tracker-kind" role="radiogroup">
-              {(['measure', 'consumption'] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  role="radio"
-                  aria-checked={kind === option}
-                  onClick={() => setKind(option)}
-                  className={[
-                    'rounded-lg border p-2 text-left transition-colors',
-                    kind === option
-                      ? 'border-primary bg-primary/10'
-                      : 'border-border hover:border-primary/50',
-                  ].join(' ')}
-                >
-                  <span className="block text-sm font-medium text-foreground">
-                    {t(`trackers.kind.${option}`)}
-                  </span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    {t(`trackers.kind.${option}Hint`)}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </FormField>
-        ) : null}
-
-        <div className={kind === 'consumption' ? 'grid grid-cols-2 gap-3' : ''}>
-          <FormField label={t('trackers.fieldUnit')} htmlFor="tracker-unit">
-            <Input
-              id="tracker-unit"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              placeholder={t('trackers.unitPlaceholder')}
-              maxLength={50}
-            />
-          </FormField>
-          {kind === 'consumption' ? (
-            <FormField label={t('trackers.fieldReserve')} htmlFor="tracker-reserve">
-              <Input
-                id="tracker-reserve"
-                type="text"
-                inputMode="decimal"
-                value={reserve}
-                onChange={(e) => setReserve(e.target.value)}
-                placeholder={t('trackers.reservePlaceholder')}
-              />
-            </FormField>
-          ) : null}
-        </div>
+        <FormField label={t('trackers.fieldUnit')} htmlFor="tracker-unit">
+          <Input
+            id="tracker-unit"
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+            placeholder={t('trackers.unitPlaceholder')}
+            maxLength={50}
+          />
+        </FormField>
 
         <FormField label={t('trackers.fieldDescription')} htmlFor="tracker-description">
           <Textarea
@@ -261,36 +154,6 @@ export default function TrackerDialog({
             />
           </FormField>
         ) : null}
-
-        <div className="grid grid-cols-2 gap-3">
-          <FormField label={t('trackers.fieldLinkedTo')} htmlFor="tracker-target-type">
-            <Select
-              id="tracker-target-type"
-              value={targetType}
-              onChange={(e) => {
-                setTargetType(e.target.value as '' | TargetType);
-                setTargetId('');
-              }}
-              options={[
-                { value: '', label: t('trackers.linkedNone') },
-                ...TARGET_TYPES.map((type) => ({
-                  value: type,
-                  label: t(`trackers.linkedType.${type}`),
-                })),
-              ]}
-            />
-          </FormField>
-          {targetType ? (
-            <FormField label={t('trackers.fieldTargetEntity')} htmlFor="tracker-target-id">
-              <Select
-                id="tracker-target-id"
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                options={[{ value: '', label: '—' }, ...targetOptions]}
-              />
-            </FormField>
-          ) : null}
-        </div>
 
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
 

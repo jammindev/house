@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { Check, FolderKanban, Link2, PackagePlus, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Check, FolderKanban, Pencil, Plus, Trash2 } from 'lucide-react';
 
 import CardActions, { type CardAction } from '@/components/CardActions';
 import Sparkline from '@/components/Sparkline';
@@ -15,11 +15,7 @@ interface TrackerCardProps {
   onEdit: (tracker: Tracker) => void;
   onDelete: (trackerId: string) => void;
   onQuickAdd: (tracker: Tracker, value: string) => Promise<void>;
-  onRefill: (tracker: Tracker) => void;
 }
-
-/** Runway below this many days is highlighted as urgent. */
-const RUNWAY_WARNING_DAYS = 7;
 
 function formatRelativeFrom(iso: string | null, locale?: string): string | null {
   if (!iso) return null;
@@ -38,7 +34,6 @@ export default function TrackerCard({
   onEdit,
   onDelete,
   onQuickAdd,
-  onRefill,
 }: TrackerCardProps) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
@@ -53,15 +48,8 @@ export default function TrackerCard({
     v: Number(p.value),
   }));
 
-  const isConsumption = tracker.kind === 'consumption';
-  const runwayDays = tracker.runway_days != null ? Number(tracker.runway_days) : null;
-  const runwayUrgent = runwayDays != null && runwayDays < RUNWAY_WARNING_DAYS;
-
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(tracker) },
-    ...(isConsumption
-      ? [{ label: t('trackers.refillTitle'), icon: PackagePlus, onClick: () => onRefill(tracker) }]
-      : []),
     {
       label: t('common.delete'),
       icon: Trash2,
@@ -71,10 +59,7 @@ export default function TrackerCard({
   ];
 
   const openQuickAdd = () => {
-    // A consumption entry is an amount, not a state — never prefill it.
-    setQuickValue(
-      !isConsumption && tracker.last_value ? formatTrackerValue(tracker.last_value) : '',
-    );
+    setQuickValue(tracker.last_value ? formatTrackerValue(tracker.last_value) : '');
     setQuickAddOpen(true);
     requestAnimationFrame(() => inputRef.current?.select());
   };
@@ -106,69 +91,28 @@ export default function TrackerCard({
             </CardTitle>
           </Link>
 
-          {isConsumption ? (
-            <div className="mt-1 space-y-0.5">
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                {tracker.rate_per_day != null ? (
-                  <span className="text-lg font-semibold text-foreground">
-                    ≈ {formatTrackerValue(tracker.rate_per_day)}
+          <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            {tracker.last_value != null ? (
+              <>
+                <span className="text-lg font-semibold text-foreground">
+                  {formatTrackerValue(tracker.last_value)}
+                  {tracker.unit ? (
                     <span className="ml-1 text-xs font-normal text-muted-foreground">
-                      {tracker.unit ? `${tracker.unit}/${t('trackers.perDay')}` : `/${t('trackers.perDay')}`}
+                      {tracker.unit}
                     </span>
-                  </span>
-                ) : (
-                  <span className="text-xs text-muted-foreground">{t('trackers.noEntries')}</span>
-                )}
-                {runwayDays != null ? (
-                  <span
-                    className={[
-                      'text-xs font-medium',
-                      runwayUrgent ? 'text-destructive' : 'text-muted-foreground',
-                    ].join(' ')}
-                    title={
-                      tracker.runway_until
-                        ? t('trackers.runwayUntil', { date: tracker.runway_until })
-                        : undefined
-                    }
-                  >
-                    ⏳ {t('trackers.runwayDays', { days: formatTrackerValue(tracker.runway_days ?? '') })}
-                  </span>
-                ) : null}
-              </div>
-              {tracker.reserve != null ? (
-                <div className="text-[11px] text-muted-foreground">
-                  {t('trackers.reserveLabel', {
-                    value: formatTrackerValue(tracker.reserve),
-                    unit: tracker.unit,
-                  })}
-                  {relative ? ` · ${relative}` : ''}
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              {tracker.last_value != null ? (
-                <>
-                  <span className="text-lg font-semibold text-foreground">
-                    {formatTrackerValue(tracker.last_value)}
-                    {tracker.unit ? (
-                      <span className="ml-1 text-xs font-normal text-muted-foreground">
-                        {tracker.unit}
-                      </span>
-                    ) : null}
-                  </span>
-                  {relative ? (
-                    <span className="text-xs text-muted-foreground">{relative}</span>
                   ) : null}
-                </>
-              ) : (
-                <span className="text-xs text-muted-foreground">{t('trackers.noEntries')}</span>
-              )}
-            </div>
-          )}
+                </span>
+                {relative ? (
+                  <span className="text-xs text-muted-foreground">{relative}</span>
+                ) : null}
+              </>
+            ) : (
+              <span className="text-xs text-muted-foreground">{t('trackers.noEntries')}</span>
+            )}
+          </div>
 
-          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-            {tracker.project && tracker.project_title ? (
+          {tracker.project && tracker.project_title ? (
+            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
               <Link
                 to={`/app/projects/${tracker.project}`}
                 state={pushBack(location)}
@@ -177,18 +121,8 @@ export default function TrackerCard({
                 <FolderKanban className="h-3 w-3" />
                 {tracker.project_title}
               </Link>
-            ) : null}
-            {tracker.target_url && tracker.target_label ? (
-              <Link
-                to={tracker.target_url}
-                state={pushBack(location)}
-                className="inline-flex items-center gap-1 hover:text-foreground hover:underline"
-              >
-                <Link2 className="h-3 w-3" />
-                {tracker.target_label}
-              </Link>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </div>
 
         <div className="flex flex-shrink-0 flex-col items-end gap-1">

@@ -1,14 +1,11 @@
 from datetime import timedelta
 
 import pytest
-from django.contrib.contenttypes.models import ContentType
-from django.db import IntegrityError
 from django.utils import timezone
 
 from accounts.tests.factories import UserFactory
 from households.models import Household, HouseholdMember
 from trackers.models import Tracker, TrackerEntry
-from zones.models import Zone
 
 from .factories import TrackerEntryFactory, TrackerFactory
 
@@ -30,27 +27,6 @@ class TestTrackerModel:
     def test_requires_household(self, owner):
         with pytest.raises(ValueError):
             Tracker(name="No household", created_by=owner).save()
-
-    def test_target_integrity_constraint_rejects_type_without_id(self, household, owner):
-        ct = ContentType.objects.get_for_model(Zone)
-        with pytest.raises(IntegrityError):
-            Tracker.objects.create(
-                household=household,
-                created_by=owner,
-                name="Broken target",
-                target_content_type=ct,
-                target_object_id=None,
-            )
-
-    def test_generic_target_resolves_to_zone(self, household, owner):
-        zone = Zone.objects.create(household=household, name="Cave", created_by=owner)
-        tracker = TrackerFactory(
-            household=household,
-            created_by=owner,
-            target_content_type=ContentType.objects.get_for_model(Zone),
-            target_object_id=zone.id,
-        )
-        assert tracker.target == zone
 
     def test_household_scoping(self, household, owner):
         other = Household.objects.create(name="Other House")

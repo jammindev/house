@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Bell, Clock, Hourglass, Package, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, Bell, Clock, Package, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
@@ -12,7 +12,6 @@ import {
   type AlertSeverity,
   type DueMaintenanceAlert,
   type ExpiringWarrantyAlert,
-  type LowRunwayTrackerAlert,
   type LowStockAlert,
   type OverdueTaskAlert,
 } from '@/lib/api/alerts';
@@ -74,7 +73,6 @@ export default function AlertsPage() {
     expiring_warranties: [],
     due_maintenances: [],
     low_stock: [],
-    low_runway_trackers: [],
     total: 0,
   };
 
@@ -189,30 +187,6 @@ export default function AlertsPage() {
           </section>
         ) : null}
 
-        {summary.low_runway_trackers.length > 0 ? (
-          <section>
-            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
-              <Hourglass className="h-4 w-4 text-destructive" aria-hidden />
-              {t('alerts.sections.runways')}
-              <span className="text-muted-foreground">({summary.low_runway_trackers.length})</span>
-            </h2>
-            <div className="space-y-2">
-              {summary.low_runway_trackers.map((item: LowRunwayTrackerAlert) => (
-                <AlertCard
-                  key={`tracker-${item.id}`}
-                  to={item.entity_url}
-                  title={item.title}
-                  meta={t('alerts.runwayLeft', {
-                    count: Math.round(parseFloat(item.runway_days)),
-                    date: item.runway_until,
-                  })}
-                  severityLabel={t(`alerts.severity.${item.severity}`)}
-                  severity={item.severity}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
       </div>
 
       <p className="mt-8 flex items-center gap-1.5 text-xs text-muted-foreground">
