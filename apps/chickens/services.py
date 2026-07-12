@@ -244,20 +244,32 @@ def egg_stats(household, *, today: date | None = None) -> dict:
     }
 
 
-def _cost_totals(household, *, today: date) -> dict:
-    """Cumulated module expenses (metadata.kind == 'chickens_purchase') + cost per egg.
+def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
+    """Cumulated module expenses + cost per egg.
 
-    V1 scope: only purchases declared through the module count (feed bought via
-    the stock module is not attributed here — accepted limit, documented in the
-    parcours doc).
+    Counts the module's own purchases (metadata.kind == 'chickens_purchase')
+    plus, when a feed stock item is linked, the stock purchases of that item
+    (kind == 'stock_purchase' whose polymorphic source is the item). Accepted
+    limit: re-linking to another item stops attributing the old item's
+    purchases.
     """
+    from django.contrib.contenttypes.models import ContentType
+    from django.db.models import Q
+
     from interactions.models import Interaction
 
     year_start = today.replace(month=1, day=1)
     total = Decimal('0')
     year = Decimal('0')
+    kinds = Q(metadata__kind='chickens_purchase')
+    if feed_stock_item is not None:
+        kinds |= Q(
+            metadata__kind='stock_purchase',
+            source_content_type=ContentType.objects.get_for_model(type(feed_stock_item)),
+            source_object_id=feed_stock_item.pk,
+        )
     qs = Interaction.objects.filter(
-        household=household, type='expense', metadata__kind='chickens_purchase'
+        kinds, household=household, type='expense'
     ).values('occurred_at', 'metadata')
     for row in qs:
         raw = (row['metadata'] or {}).get('amount')
@@ -305,25 +317,18 @@ def flock_summary(household, *, today: date | None = None) -> dict:
     )
 
     settings_obj = ChickenSettings.objects.filter(household=household).select_related(
-        'feed_tracker'
+        'feed_stock_item'
     ).first()
     feed = None
-    tracker = settings_obj.feed_tracker if settings_obj else None
-    if tracker is not None:
-        runway_days = None
-        if tracker.reserve is not None and tracker.rate_per_day:
-            try:
-                runway_days = int(Decimal(tracker.reserve) / Decimal(tracker.rate_per_day))
-            except (InvalidOperation, ZeroDivisionError):
-                runway_days = None
+    item = settings_obj.feed_stock_item if settings_obj else None
+    if item is not None:
         feed = {
-            'tracker_id': str(tracker.id),
-            'name': tracker.name,
-            'emoji': tracker.emoji,
-            'unit': tracker.unit,
-            'reserve': str(tracker.reserve) if tracker.reserve is not None else None,
-            'rate_per_day': str(tracker.rate_per_day) if tracker.rate_per_day is not None else None,
-            'runway_days': runway_days,
+            'stock_item_id': str(item.id),
+            'name': item.name,
+            'quantity': str(item.quantity),
+            'unit': item.unit,
+            'status': item.status,
+            'min_quantity': str(item.min_quantity) if item.min_quantity is not None else None,
         }
 
     has_data = active_count > 0 or EggLog.objects.filter(household=household).exists()
@@ -333,6 +338,6 @@ def flock_summary(household, *, today: date | None = None) -> dict:
         'eggs_today': eggs_today,
         'eggs_7d': eggs_7d or 0,
         'feed': feed,
-        'cost': _cost_totals(household, today=today),
+        'cost': _cost_totals(household, today=today, feed_stock_item=item),
         'has_data': has_data,
     }

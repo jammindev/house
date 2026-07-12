@@ -186,7 +186,7 @@ class ChickenEventViewSet(viewsets.ModelViewSet):
 
 
 class ChickenSettingsView(APIView):
-    """GET/PUT the household's module settings (feed tracker link) — US-8."""
+    """GET/PUT the household's module settings (feed stock item link) — US-8."""
 
     permission_classes = [IsHouseholdMember]
 

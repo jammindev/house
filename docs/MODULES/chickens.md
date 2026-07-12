@@ -1,6 +1,6 @@
 # Module — chickens
 
-> Rôle : le poulailler familial — registre du troupeau (poules nominatives), relevé de ponte quotidien, journal d'événements (soins, couvaison, décès…), coût par œuf, lien vers le tracker de nourriture. Parcours 14 — cadrage : `docs/parcours/PARCOURS_14_GERER_LE_POULAILLER_FAMILIAL.md`.
+> Rôle : le poulailler familial — registre du troupeau (poules nominatives), relevé de ponte quotidien, journal d'événements (soins, couvaison, décès…), coût par œuf, lien vers l'article de stock « nourriture ». Parcours 14 — cadrage : `docs/parcours/PARCOURS_14_GERER_LE_POULAILLER_FAMILIAL.md`.
 
 ## État synthétique
 
@@ -14,7 +14,7 @@
 - **`Chicken`** (`chickens`) : `name`, `breed`, `color`, `hatched_on`/`acquired_on` (dates approximatives, nullable), `status` (`active`/`broody`/`sick`/`deceased`/`gone` — `FLOCK_STATUSES` = les 3 premiers, seuls comptés dans l'effectif), `notes`, FK `zone` nullable. DELETE = hard delete (undo = toast différé côté front).
 - **`EggLog`** (`chicken_egg_logs`) : `date`, `count` (≥ 0), `note`. **Une row par (foyer, jour)** — contrainte unique, la création est un **upsert** (`update_or_create`) : re-saisir le même jour remplace le compte. C'est aussi ce qui rend idempotent le « j'ai ramassé 4 œufs » de l'agent.
 - **`ChickenEvent`** (`chicken_events`) : `chicken` nullable (**null = tout le troupeau**), `type` (`arrival`/`care`/`illness`/`broody`/`molt`/`predator`/`death`/`departure`/`other`), `occurred_on`, `title`, `notes`. CASCADE sur la poule.
-- **`ChickenSettings`** (`chicken_settings`) : une row par foyer (get-or-create), FK `feed_tracker` vers un tracker **consumption** — la réserve/le rythme vivent dans le tracker (module trackers), ce modèle ne fait que pointer.
+- **`ChickenSettings`** (`chicken_settings`) : une row par foyer (get-or-create), FK `feed_stock_item` (`SET_NULL`) vers un **`StockItem`** — la réserve (quantité), les seuils et les achats vivent dans le module stock, ce modèle ne fait que pointer (lot 7, remplace l'ancien `feed_tracker`).
 
 ## Services — le point d'entrée unique des écritures
 
@@ -23,19 +23,19 @@
 - **`update_chicken`** : une transition vers `deceased`/`gone` **auto-crée le `ChickenEvent`** correspondant (death/departure) daté du jour — l'historique du troupeau reste complet quel que soit le canal (REST ou agent).
 - **`create_event`** : si `reminder_due_date` est fourni (option « Me le rappeler » d'un soin), une **Task** est créée via `tasks.services.create_task` (jamais l'ORM) — le rappel bénéficie ensuite des alertes de retard existantes, aucune mécanique nouvelle.
 - **`egg_stats`** : today, moyennes 7/30 j, total du mois, série de 30 points. Les jours sans relevé sont **absents (null), pas 0** — ils sont exclus des moyennes.
-- **`flock_summary`** : effectif actif, œufs du jour/7 j, snapshot du tracker nourriture (runway = réserve ÷ rythme), coûts (`total`, `year`, `per_egg`), `has_data` (pilote l'affichage du widget dashboard).
+- **`flock_summary`** : effectif actif, œufs du jour/7 j, snapshot de l'article de stock nourriture (quantité, unité, statut, seuil bas — pas de runway), coûts (`total`, `year`, `per_egg`), `has_data` (pilote l'affichage du widget dashboard).
 
 ## Dépenses & coût par œuf
 
 - POST `/api/chickens/{id}/purchase/` (payload compatible `PurchaseForm` : `amount`, `supplier`, `occurred_at`, `notes`) → `interactions.services.create_expense_interaction(kind='chickens_purchase')`, zone de la poule héritée. Template enregistré dans `AUTO_SUBJECT_TEMPLATES` (même msgid « Purchase — {name} » que stock/equipment → déjà traduit dans les .po).
-- Coût cumulé = somme des Interactions `metadata.kind == 'chickens_purchase'` ; coût par œuf = total ÷ œufs loggés. **Limite V1 assumée** : la nourriture achetée via le module Stock n'est pas attribuée au poulailler.
+- Coût cumulé = somme des Interactions `metadata.kind == 'chickens_purchase'` **plus** les `stock_purchase` dont la source polymorphe est l'article de stock lié (lot 7 — la nourriture achetée via Stock est attribuée au poulailler) ; coût par œuf = total ÷ œufs loggés. Limite acceptée : changer d'article lié désattribue les achats de l'ancien.
 
 ## API — `/api/chickens/`
 
 - CRUD `''` (poules) — filtres `?status=`, `?in_flock=true` ; action `purchase`.
 - CRUD `egg-logs/` — POST upsert (201 créé / 200 remplacé), filtres `?date_from=&date_to=`, action GET `stats/`.
 - CRUD `events/` — filtres `?type=`, `?chicken=` ; `reminder_due_date` write-only à la création.
-- GET/PUT `settings/` — `feed_tracker` (validation : tracker du foyer + kind=consumption).
+- GET/PUT `settings/` — `feed_stock_item` (validation : article du foyer) + snapshot `feed_stock_item_detail`.
 - GET `summary/` — le payload du widget dashboard et de l'en-tête de page.
 
 ## Intégration agent (tout dans `apps.py::ready()`)

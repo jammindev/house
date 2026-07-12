@@ -1255,7 +1255,7 @@
         "eggs_7d": "{{count}} over 7 days",
         "flock_one": "{{count}} hen",
         "flock_other": "{{count}} hens",
-        "feed_runway": "Feed: ~{{days}} d"
+        "feed_stock": "Feed: {{quantity}}"
       }
     },
     "quickActions": {
@@ -1836,16 +1836,13 @@
     },
     "feed": {
       "title": "Feed",
-      "not_linked": "No feed tracker linked yet",
-      "link_action": "Link a tracker",
-      "pick_tracker": "Pick a tracker",
+      "not_linked": "No feed stock item linked yet",
+      "link_action": "Link a stock item",
+      "pick_item": "Pick a stock item",
       "link_confirm": "Link",
-      "no_consumption_trackers": "No consumption tracker yet — create one from Trackers.",
-      "linked": "Tracker linked",
-      "rate": "≈ {{rate}} {{unit}}/day",
-      "runway": "~{{days}} d of runway",
-      "reserve": "{{reserve}} {{unit}} left",
-      "no_rate_yet": "No rate yet"
+      "no_stock_items": "No stock item yet — create one from Stock.",
+      "linked": "Stock item linked",
+      "buy": "Buy"
     },
     "cost": {
       "title": "Cost",

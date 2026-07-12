@@ -1255,7 +1255,7 @@
         "eggs_7d": "{{count}} sur 7 jours",
         "flock_one": "{{count}} poule",
         "flock_other": "{{count}} poules",
-        "feed_runway": "Nourriture : ~{{days}} j"
+        "feed_stock": "Nourriture : {{quantity}}"
       }
     },
     "quickActions": {
@@ -1836,16 +1836,13 @@
     },
     "feed": {
       "title": "Nourriture",
-      "not_linked": "Aucun tracker de nourriture lié",
-      "link_action": "Lier un tracker",
-      "pick_tracker": "Choisir un tracker",
+      "not_linked": "Aucun article de stock lié",
+      "link_action": "Lier un article de stock",
+      "pick_item": "Choisir un article",
       "link_confirm": "Lier",
-      "no_consumption_trackers": "Aucun tracker de consommation — crée-le depuis Trackers.",
-      "linked": "Tracker lié",
-      "rate": "≈ {{rate}} {{unit}}/jour",
-      "runway": "~{{days}} j d'autonomie",
-      "reserve": "{{reserve}} {{unit}} restants",
-      "no_rate_yet": "Pas encore de rythme"
+      "no_stock_items": "Aucun article de stock — crée-le depuis Stock.",
+      "linked": "Article lié",
+      "buy": "Acheter"
     },
     "cost": {
       "title": "Coût",

@@ -25,4 +25,4 @@ class ChickenEventAdmin(admin.ModelAdmin):
 
 @admin.register(ChickenSettings)
 class ChickenSettingsAdmin(admin.ModelAdmin):
-    list_display = ('household', 'feed_tracker')
+    list_display = ('household', 'feed_stock_item')

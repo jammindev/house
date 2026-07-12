@@ -92,31 +92,29 @@ export interface ChickenEventPayload {
   reminder_due_date?: string | null;
 }
 
-export interface FeedTrackerDetail {
+export interface FeedStockItemDetail {
   id: string;
   name: string;
-  emoji: string;
+  quantity: string;
   unit: string;
-  reserve: string | null;
-  rate_per_day: string | null;
-  last_entry_at: string | null;
+  status: string;
+  min_quantity: string | null;
 }
 
 export interface ChickenSettings {
   id: string;
   household: string;
-  feed_tracker: string | null;
-  feed_tracker_detail: FeedTrackerDetail | null;
+  feed_stock_item: string | null;
+  feed_stock_item_detail: FeedStockItemDetail | null;
 }
 
 export interface FlockFeedSummary {
-  tracker_id: string;
+  stock_item_id: string;
   name: string;
-  emoji: string;
+  quantity: string;
   unit: string;
-  reserve: string | null;
-  rate_per_day: string | null;
-  runway_days: number | null;
+  status: string;
+  min_quantity: string | null;
 }
 
 export interface FlockSummary {
@@ -249,7 +247,7 @@ export async function fetchChickenSettings(): Promise<ChickenSettings> {
   return data as ChickenSettings;
 }
 
-export async function updateChickenSettings(payload: { feed_tracker: string | null }): Promise<ChickenSettings> {
+export async function updateChickenSettings(payload: { feed_stock_item: string | null }): Promise<ChickenSettings> {
   const { data } = await api.put('/chickens/settings/', payload);
   return data as ChickenSettings;
 }
