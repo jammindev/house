@@ -844,6 +844,381 @@
       "saved": "Module aktualisiert"
     }
   },
+  "tutorials": {
+    "title": "Tutorial",
+    "description": "Lernen Sie die App kennen, Modul für Modul",
+    "progressTitle": "Ihr Fortschritt",
+    "progressCount": "{{done}} von {{total}} abgeschlossen",
+    "gettingStarted": "Erste Schritte",
+    "gettingStartedHint": "Die ersten wichtigen Aktionen, um Ihren Haushalt einzurichten.",
+    "guides": "Anleitungen nach Modul",
+    "guidesHint": "Eine Schritt-für-Schritt-Anleitung für jeden Bereich der App.",
+    "goThere": "Öffnen",
+    "openPage": "Seite öffnen",
+    "openPageLong": "Die Seite zu dieser Anleitung öffnen",
+    "markDone": "Als erledigt markieren",
+    "markUndone": "Erneut ansehen",
+    "done": "Erledigt",
+    "stepCount_one": "{{count}} Schritt",
+    "stepCount_other": "{{count}} Schritte",
+    "notFound": "Diese Anleitung existiert nicht.",
+    "start": {
+      "items": {
+        "create-zone": {
+          "title": "Ihr Zuhause in Zonen beschreiben",
+          "description": "Legen Sie Zimmer, Etagen oder Gebäude an: Zonen geben der ganzen App ihren Kontext."
+        },
+        "add-equipment": {
+          "title": "Ein erstes Gerät hinzufügen",
+          "description": "Heizung, Lüftung, Haushaltsgeräte… erfassen Sie ein Gerät, um Garantie und Wartung zu verfolgen."
+        },
+        "first-task": {
+          "title": "Ihre erste Aufgabe erstellen",
+          "description": "Notieren Sie eine Aufgabe, weisen Sie sie zu und geben Sie ihr eine Frist."
+        },
+        "log-note": {
+          "title": "Eine Notiz ins Journal schreiben",
+          "description": "Das Journal hält alles fest, was im Haushalt passiert."
+        },
+        "ask-agent": {
+          "title": "Dem Assistenten eine Frage stellen",
+          "description": "Fragen Sie z. B. „Wie viel haben wir diesen Monat ausgegeben?“ — er antwortet mit Quellen."
+        },
+        "invite-member": {
+          "title": "Ein Haushaltsmitglied einladen",
+          "description": "Laden Sie Ihre Familie über die Einstellungen in den Haushalt ein."
+        }
+      }
+    },
+    "guide": {
+      "dashboard": {
+        "title": "Das Dashboard entdecken",
+        "intro": "Das Dashboard gibt Ihnen direkt nach der Anmeldung einen Überblick über Ihren Haushalt.",
+        "steps": {
+          "overview": {
+            "title": "Die Übersicht lesen",
+            "body": "Karten fassen jedes Modul zusammen: laufende Aufgaben, letzte Ausgaben, aktuelle Zählerstände…"
+          },
+          "activity": {
+            "title": "Dem Aktivitätsverlauf folgen",
+            "body": "Der Verlauf zeigt die letzten Journal-Einträge: Notizen, Ausgaben, Wartungen."
+          },
+          "alerts": {
+            "title": "Warnungen im Blick behalten",
+            "body": "Das Badge in der Seitenleiste zeigt, was Ihre Aufmerksamkeit braucht; Details auf der Warnungen-Seite."
+          }
+        }
+      },
+      "agent": {
+        "title": "Den KI-Assistenten nutzen",
+        "intro": "Der Assistent beantwortet Fragen zu Ihren Haushaltsdaten in natürlicher Sprache, mit überprüfbaren Quellen.",
+        "steps": {
+          "ask": {
+            "title": "Eine Frage stellen",
+            "body": "Öffnen Sie die Agent-Seite und fragen Sie z. B. „Welche Aufgaben sind überfällig?“."
+          },
+          "citations": {
+            "title": "Die Quellen prüfen",
+            "body": "Jede Antwort zitiert die verwendeten Elemente; klicken Sie ein Zitat, um das Element zu öffnen."
+          },
+          "create": {
+            "title": "Aus dem Chat erstellen",
+            "body": "Sagen Sie „erstelle eine Aufgabe…“ oder „notiere, dass…“: das Element wird sofort erstellt, mit Rückgängig-Knopf."
+          },
+          "memory": {
+            "title": "Das Gedächtnis verwalten",
+            "body": "Der Assistent merkt sich dauerhafte Fakten über Sie; einsehen und löschen auf der Gedächtnis-Seite."
+          }
+        }
+      },
+      "zones": {
+        "title": "Das Zuhause in Zonen gliedern",
+        "intro": "Zonen (Zimmer, Etagen, Gebäude) strukturieren die Navigation der gesamten App.",
+        "steps": {
+          "create": {
+            "title": "Ihre Zonen anlegen",
+            "body": "Fügen Sie Ihre wichtigsten Räume hinzu: Küche, Wohnzimmer, Garage, Garten…"
+          },
+          "hierarchy": {
+            "title": "Die Hierarchie aufbauen",
+            "body": "Verschachteln Sie Zonen (Etage → Schlafzimmer), um Ihr Zuhause abzubilden."
+          },
+          "navigate": {
+            "title": "Nach Zone navigieren",
+            "body": "Die Seite einer Zone bündelt die zugehörigen Geräte, Aufgaben und Ereignisse."
+          }
+        }
+      },
+      "equipment": {
+        "title": "Ihre Geräte verfolgen",
+        "intro": "Garantie, Wartung, Verlauf: alles zu einem Gerät an einem Ort.",
+        "steps": {
+          "add": {
+            "title": "Ein Gerät hinzufügen",
+            "body": "Erfassen Sie Name, Zone und — falls vorhanden — Kaufdatum und Garantie."
+          },
+          "purchase": {
+            "title": "Einen Kauf erfassen",
+            "body": "Der Kauf-Knopf erstellt automatisch die passende Ausgabe im Haushaltsjournal."
+          },
+          "history": {
+            "title": "Den Verlauf ansehen",
+            "body": "Eingriffe, Defekte und Wartungen zum Gerät erscheinen auf seiner Detailseite."
+          }
+        }
+      },
+      "electricity": {
+        "title": "Ihre Elektroinstallation abbilden",
+        "intro": "Beschreiben Sie den Verteilerkasten und verfolgen Sie Ihren Verbrauch.",
+        "steps": {
+          "board": {
+            "title": "Den Verteiler beschreiben",
+            "body": "Legen Sie Verteiler, Sicherungen und Stromkreise an und verbinden Sie sie mit den Verbrauchsstellen."
+          },
+          "readings": {
+            "title": "Zählerstände erfassen",
+            "body": "Tragen Sie regelmäßig Ihren Zählerstand ein oder importieren Sie eine Datei."
+          },
+          "analyze": {
+            "title": "Den Verbrauch analysieren",
+            "body": "Diagramme aggregieren Ihre Zählerstände nach Zeitraum, um Abweichungen zu erkennen."
+          }
+        }
+      },
+      "water": {
+        "title": "Den Wasserverbrauch verfolgen",
+        "intro": "Manuelle Zählerstände genügen, um Ihren Wasserverbrauch zu verfolgen.",
+        "steps": {
+          "readings": {
+            "title": "Einen Zählerstand erfassen",
+            "body": "Notieren Sie Datum und Stand in m³; regelmäßige Ablesungen ergeben verlässliche Kurven."
+          },
+          "charts": {
+            "title": "Die Diagramme lesen",
+            "body": "Navigieren Sie nach Zeitraum und vergleichen Sie den Verbrauch, wie beim Strom."
+          }
+        }
+      },
+      "stock": {
+        "title": "Den Haushaltsvorrat verwalten",
+        "intro": "Verbrauchsmaterial und Vorräte: Mengen, Kategorien und Haltbarkeit im Griff.",
+        "steps": {
+          "add": {
+            "title": "Artikel anlegen",
+            "body": "Fügen Sie Ihre Verbrauchsgüter (Futter, Glühbirnen, Holz…) mit ihrer Einheit hinzu."
+          },
+          "quantities": {
+            "title": "Mengen anpassen",
+            "body": "Aktualisieren Sie Mengen bei Kauf und Verbrauch; ein Kauf erstellt seine Ausgabe automatisch."
+          },
+          "expiry": {
+            "title": "Haltbarkeit überwachen",
+            "body": "Tragen Sie Verfallsdaten ein, um rechtzeitig gewarnt zu werden."
+          }
+        }
+      },
+      "chickens": {
+        "title": "Den Hühnerstall führen",
+        "intro": "Herdenregister, tägliches Eier-Protokoll und Kosten pro Ei.",
+        "steps": {
+          "flock": {
+            "title": "Ihre Hühner erfassen",
+            "body": "Legen Sie pro Henne einen Eintrag an: Name, Rasse, Ankunftsdatum."
+          },
+          "eggs": {
+            "title": "Die Eier protokollieren",
+            "body": "Tragen Sie täglich die Zahl der gesammelten Eier ein — der Verlauf entsteht von selbst."
+          },
+          "events": {
+            "title": "Ereignisse festhalten",
+            "body": "Pflege, Brut, Mauser, Tod: der Eintrag jeder Henne behält ihre Chronik."
+          }
+        }
+      },
+      "insurance": {
+        "title": "Ihre Versicherungen verfolgen",
+        "intro": "Alle Verträge des Haushalts (Wohnen, Gesundheit, Auto…) an einem Ort.",
+        "steps": {
+          "contracts": {
+            "title": "Ihre Verträge hinzufügen",
+            "body": "Erfassen Sie Versicherer, Art, Nummer und Fälligkeit jedes Vertrags."
+          },
+          "documents": {
+            "title": "Dokumente anhängen",
+            "body": "Verknüpfen Sie Verträge und Bescheinigungen (PDF) aus dem Modul Dokumente."
+          }
+        }
+      },
+      "tasks": {
+        "title": "Aufgaben verwalten",
+        "intro": "Die To-do-Liste des Haushalts: Zuweisung, Fristen und Nachverfolgung.",
+        "steps": {
+          "create": {
+            "title": "Eine Aufgabe erstellen",
+            "body": "Ein Titel genügt; ergänzen Sie bei Bedarf Frist, Zone und Verantwortliche."
+          },
+          "organize": {
+            "title": "Filtern und ordnen",
+            "body": "Filter (offen, überfällig, erledigt…) halten die Liste übersichtlich."
+          },
+          "complete": {
+            "title": "Abschließen und wiederfinden",
+            "body": "Haken Sie eine Aufgabe ab, um sie zu erledigen; der Verlauf bleibt einsehbar."
+          }
+        }
+      },
+      "projects": {
+        "title": "Ein Projekt steuern",
+        "intro": "Renovierung, Anschaffung, Urlaub: verfolgen Sie ein Projekt von Anfang bis Ende mit Budget und Ausgaben.",
+        "steps": {
+          "create": {
+            "title": "Das Projekt anlegen",
+            "body": "Geben Sie ihm einen Namen, eine Beschreibung und ein geplantes Budget."
+          },
+          "plan": {
+            "title": "Aufgaben und Notizen bündeln",
+            "body": "Verknüpfen Sie Aufgaben, Notizen und Dokumente mit dem Projekt, um alles beisammen zu halten."
+          },
+          "budget": {
+            "title": "Das Budget verfolgen",
+            "body": "Verknüpfte Ausgaben speisen die Ist-Kosten, automatisch mit dem Budget verglichen."
+          }
+        }
+      },
+      "interactions": {
+        "title": "Das Haushaltsjournal führen",
+        "intro": "Das Journal hält alles fest: Notizen, Ausgaben, Wartungen…",
+        "steps": {
+          "log": {
+            "title": "Einen Eintrag hinzufügen",
+            "body": "Erstellen Sie in Sekunden eine Notiz oder Ausgabe über die Journal-Seite."
+          },
+          "types": {
+            "title": "Den richtigen Typ wählen",
+            "body": "Notiz, Ausgabe, Wartung… der Typ bestimmt, wo der Eintrag erscheint (Ausgaben-Seite, Aktivitätsverlauf)."
+          },
+          "link": {
+            "title": "Mit dem Kontext verknüpfen",
+            "body": "Verbinden Sie Zonen, Dokumente oder Aufgaben mit einem Eintrag, um ihn leicht wiederzufinden."
+          }
+        }
+      },
+      "trackers": {
+        "title": "Werte über die Zeit verfolgen",
+        "intro": "Zählerstände, Gewicht, Tankfüllstand: datierte Wertreihen mit Diagrammen.",
+        "steps": {
+          "create": {
+            "title": "Einen Tracker anlegen",
+            "body": "Wählen Sie einen Namen und eine Einheit (kg, m³, Stunden…)."
+          },
+          "entries": {
+            "title": "Werte hinzufügen",
+            "body": "Erfassen Sie bei jeder Ablesung einen datierten Wert; die Reihe wächst mit."
+          },
+          "charts": {
+            "title": "Die Entwicklung lesen",
+            "body": "Das Diagramm des Trackers zeigt den Trend; ein Tracker kann auch in einem Projekt leben."
+          }
+        }
+      },
+      "expenses": {
+        "title": "Ausgaben verfolgen",
+        "intro": "Alle Ausgaben des Haushalts, von Hand erfasst oder automatisch durch Käufe erstellt.",
+        "steps": {
+          "record": {
+            "title": "Eine Ausgabe erfassen",
+            "body": "Restaurant, Geschenk, Einkauf: fügen Sie eine einmalige Ausgabe mit Betrag und Anbieter hinzu."
+          },
+          "sources": {
+            "title": "Automatische Ausgaben verstehen",
+            "body": "Käufe von Vorrat oder Geräten erstellen ihre Ausgabe selbst — nichts doppelt erfassen."
+          },
+          "review": {
+            "title": "Nach Zeitraum analysieren",
+            "body": "Filtern Sie nach Zeitraum oder Zone, um zu sehen, wohin das Geld fließt."
+          }
+        }
+      },
+      "documents": {
+        "title": "Ihre Dokumente ablegen",
+        "intro": "Rechnungen, Anleitungen, Bescheinigungen: die Dateien des Haushalts, mit ihrem Kontext verknüpft.",
+        "steps": {
+          "upload": {
+            "title": "Eine Datei hochladen",
+            "body": "Importieren Sie ein PDF oder Bild und geben Sie ihm einen sprechenden Titel."
+          },
+          "link": {
+            "title": "Mit dem richtigen Objekt verknüpfen",
+            "body": "Hängen Sie das Dokument an ein Gerät, einen Vertrag oder ein Projekt."
+          },
+          "find": {
+            "title": "Ein Dokument wiederfinden",
+            "body": "Suche und Filter nach Typ; auch der KI-Assistent findet sie."
+          }
+        }
+      },
+      "photos": {
+        "title": "Fotos durchstöbern",
+        "intro": "Eine eigene Ansicht der Haushaltsfotos, gespeist vom Modul Dokumente.",
+        "steps": {
+          "browse": {
+            "title": "Die Galerie durchsehen",
+            "body": "In Dokumente hochgeladene Bilder erscheinen hier automatisch."
+          },
+          "add": {
+            "title": "Fotos hinzufügen",
+            "body": "Laden Sie Ihre Fotos wie jedes andere Dokument vom Typ Bild hoch."
+          }
+        }
+      },
+      "directory": {
+        "title": "Das Adressbuch aufbauen",
+        "intro": "Handwerker, Nachbarn, Dienste: die nützlichen Kontakte des Haushalts, mit allen Mitgliedern geteilt.",
+        "steps": {
+          "contacts": {
+            "title": "Kontakte hinzufügen",
+            "body": "Name, Telefon, E-Mail, Notizen: legen Sie pro Person einen Eintrag an."
+          },
+          "structures": {
+            "title": "Organisationen erfassen",
+            "body": "Firmen, Behörden, Vereine — verknüpfen Sie deren Kontakte mit ihnen."
+          }
+        }
+      },
+      "alerts": {
+        "title": "Warnungen bearbeiten",
+        "intro": "Warnungen bündeln, was Ihre Aufmerksamkeit braucht: Haltbarkeit, Fristen, Garantien…",
+        "steps": {
+          "review": {
+            "title": "Durchsehen",
+            "body": "Das Badge in der Seitenleiste zählt aktive Warnungen; die Seite listet sie nach Typ."
+          },
+          "act": {
+            "title": "Auf eine Warnung reagieren",
+            "body": "Öffnen Sie das betroffene Element aus der Warnung und beheben Sie die Ursache: die Warnung verschwindet."
+          }
+        }
+      },
+      "settings": {
+        "title": "App und Haushalt einstellen",
+        "intro": "Profil, Aussehen, Mitglieder und Module: alles wird in den Einstellungen konfiguriert.",
+        "steps": {
+          "profile": {
+            "title": "Ihr Profil anpassen",
+            "body": "Anzeigename, Sprache, helles/dunkles Thema und Farbpalette."
+          },
+          "household": {
+            "title": "Den Haushalt verwalten",
+            "body": "Laden Sie Mitglieder ein, verwalten Sie Rollen, wechseln Sie den aktiven Haushalt."
+          },
+          "modules": {
+            "title": "Die richtigen Module aktivieren",
+            "body": "Deaktivieren Sie unnötige Module (Hühnerstall, Versicherung…), um die Navigation zu entlasten."
+          }
+        }
+      }
+    }
+  },
   "photos": {
     "app_title": "Fotos-Mini-App",
     "section_label": "Django-App-Knoten: {{section}}",

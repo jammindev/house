@@ -24,6 +24,7 @@ class UserSerializer(serializers.ModelSerializer):
             "theme",
             "color_theme",
             "pinned_modules",
+            "completed_tutorials",
             "agent_memory_enabled",
             "full_name",
             "password",
@@ -42,6 +43,19 @@ class UserSerializer(serializers.ModelSerializer):
                 _("Module(s) not pinnable: %(keys)s") % {'keys': ', '.join(sorted(unknown))}
             )
         return list(dict.fromkeys(value))
+
+    def validate_completed_tutorials(self, value):
+        # Keys live in the frontend tutorial registry, which evolves with the
+        # app — only the shape is enforced here so shipping a new guide never
+        # requires a backend change.
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of tutorial keys."))
+        if any(len(k) > 100 for k in value):
+            raise serializers.ValidationError(_("Tutorial key too long."))
+        deduped = list(dict.fromkeys(value))
+        if len(deduped) > 500:
+            raise serializers.ValidationError(_("Too many tutorial keys."))
+        return deduped
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)

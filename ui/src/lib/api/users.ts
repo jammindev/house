@@ -13,6 +13,7 @@ export interface UserProfile {
   theme: string;
   color_theme: string;
   pinned_modules: string[];
+  completed_tutorials: string[];
   agent_memory_enabled: boolean;
   full_name: string;
   is_active: boolean;
@@ -48,6 +49,7 @@ export interface UpdateProfileInput {
   theme?: Theme;
   color_theme?: ColorTheme;
   pinned_modules?: string[];
+  completed_tutorials?: string[];
   agent_memory_enabled?: boolean;
 }
 
