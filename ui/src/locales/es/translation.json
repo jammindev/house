@@ -754,7 +754,9 @@
       "hint": "Todo está desactivado por defecto. El asistente nunca pide un dato que ya hayas registrado ese día.",
       "saved": "Preferencia guardada",
       "types": {
-        "egg_log": "Recuento de huevos de la tarde"
+        "egg_log": "Recuento de huevos de la tarde",
+        "meter_reading": "Recordatorio de lectura eléctrica",
+        "water_reading": "Recordatorio de lectura de agua"
       }
     },
     "theme": "Tema",

@@ -96,6 +96,22 @@ scheduler, ni le front ne changent.
 | ping_type | app | module | question | skip |
 |---|---|---|---|---|
 | `egg_log` | chickens | chickens | « 🥚 Combien d'œufs ramassés aujourd'hui ? » (19h) | pas de poule au poulailler, ou `EggLog` du jour déjà saisi |
+| `water_reading` | water | water | « 💧 … dernier relevé ({index} m³ le {date}) — qu'affiche le compteur ? » (19h) | aucun relevé jamais saisi (module inutilisé), ou dernier relevé < 30 jours |
+| `meter_reading` | electricity | electricity | « ⚡ … compteur « {name} » ({index} kWh le {date}) ? » — multi-compteurs : une ligne par compteur en retard (19h) | aucun compteur actif avec relevé, ou tous relevés < 30 jours |
+
+La **fréquence** n'est pas un concept du scheduler : pour les rappels mensuels,
+`build_message` retourne `None` tant que le dernier relevé a moins de
+`REMINDER_INTERVAL_DAYS` (30 j, constante dans le `pings.py` de l'app). Le ping
+part le premier soir où le relevé devient « vieux », puis se tait dès que
+l'utilisateur répond (le nouveau relevé rafraîchit la condition).
+
+## « stop » conversationnel
+
+Répondre `stop` (ou `/stop`) au bot désactive **toutes** les `PingPreference`
+du user (tous foyers) — un « stop » signifie « ne m'écris plus en premier »,
+pas « pas ce ping-là ». Intercepté en dur dans `telegram/service.py` (aucun
+appel LLM), uniquement sur le mot seul : « stop la lumière » reste une question
+normale. Réactivation par ping depuis les réglages.
 
 ## La réponse de l'utilisateur
 
@@ -106,8 +122,8 @@ question dans le contexte et enregistre via le writable existant (`egg_log` →
 `chickens.services.log_eggs`, upsert idempotent) — avec le clavier « Annuler »
 habituel. Répondre une deuxième fois le même soir **remplace** le compte.
 
-## Hors scope V1 (→ parcours 16)
+## Hors scope (→ parcours 16)
 
-Plage de silence globale et plafond quotidien (garde-fous A4), « stop »
-conversationnel, digest des alertes, rappels relevés eau/élec/trackers,
-échéances de tâches, stock bas, pings générés par le LLM.
+Plage de silence globale et plafond quotidien (reste du garde-fou A4), rappels
+par tracker (fréquence configurable, #197), digest des alertes, échéances de
+tâches, stock bas, pings générés par le LLM.

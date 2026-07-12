@@ -445,6 +445,28 @@ msgstr ""
 msgid "consumption imports"
 msgstr ""
 
+#: apps/electricity/pings.py:47
+#, python-brace-format
+msgid ""
+"⚡ It's been a while since the last reading of meter “{name}” ({index} kWh "
+"on {date}) — what does it show today?"
+msgstr ""
+"⚡ Ça fait un moment depuis le dernier relevé du compteur « {name} » "
+"({index} kWh le {date}) — qu'affiche-t-il aujourd'hui ?"
+
+#: apps/electricity/pings.py:51
+msgid "⚡ Some electricity meters are overdue for a reading:"
+msgstr "⚡ Des compteurs électriques attendent un relevé :"
+
+#: apps/electricity/pings.py:53
+#, python-brace-format
+msgid "• {name} — last reading {index} kWh on {date}"
+msgstr "• {name} — dernier relevé {index} kWh le {date}"
+
+#: apps/electricity/pings.py:58
+msgid "What do they show today?"
+msgstr "Qu'affichent-ils aujourd'hui ?"
+
 #: apps/electricity/serializers.py:48
 msgid "Household cannot be changed."
 msgstr "Le foyer ne peut pas être modifié."
@@ -1174,6 +1196,18 @@ msgstr ""
 msgid "Undone."
 msgstr ""
 
+#: apps/telegram/service.py:177
+msgid ""
+"🔕 Done — I won't message you first anymore. You can re-enable proactive "
+"messages anytime in the app settings."
+msgstr ""
+"🔕 C'est noté — je ne t'écrirai plus en premier. Tu peux réactiver les "
+"messages proactifs à tout moment dans les réglages de l'app."
+
+#: apps/telegram/service.py:183
+msgid "You have no proactive messages enabled — nothing to stop."
+msgstr "Tu n'as aucun message proactif activé — rien à arrêter."
+
 #: apps/telegram/service.py:304
 msgid ""
 "This Telegram account is not linked to House yet. Open the app settings and "
@@ -1184,8 +1218,23 @@ msgstr ""
 msgid ""
 "Ask me anything about your home — expenses, tasks, equipment, notes…\n"
 "/reset starts a fresh conversation.\n"
+"Reply “stop” to turn off proactive messages.\n"
 "/help shows this message."
 msgstr ""
+"Pose-moi n'importe quelle question sur ta maison — dépenses, tâches, "
+"équipements, notes…\n"
+"/reset démarre une nouvelle conversation.\n"
+"Réponds « stop » pour couper les messages proactifs.\n"
+"/help affiche ce message."
+
+#: apps/water/pings.py:40
+#, python-brace-format
+msgid ""
+"💧 It's been a while since your last water meter reading ({index} m³ on "
+"{date}) — what does the meter show today?"
+msgstr ""
+"💧 Ça fait un moment depuis ton dernier relevé d'eau ({index} m³ le {date}) "
+"— qu'affiche le compteur aujourd'hui ?"
 
 #: apps/water/serializers.py:53
 msgid "Index is lower than the previous reading."

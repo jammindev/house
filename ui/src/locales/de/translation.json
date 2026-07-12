@@ -754,7 +754,9 @@
       "hint": "Standardmäßig ist alles deaktiviert. Der Assistent fragt nie nach Daten, die du an dem Tag bereits erfasst hast.",
       "saved": "Einstellung gespeichert",
       "types": {
-        "egg_log": "Abendliche Eierzählung"
+        "egg_log": "Abendliche Eierzählung",
+        "meter_reading": "Erinnerung Stromzählerstand",
+        "water_reading": "Erinnerung Wasserzählerstand"
       }
     },
     "theme": "Design",
