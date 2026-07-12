@@ -112,6 +112,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name=_("active household"),
     )
 
+    # Navigation entries pinned to the top of the sidebar, in display order
+    # (keys from households.modules.PINNABLE_MODULES).
+    pinned_modules = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Sidebar module keys pinned by the user, in order."),
+    )
+
     agent_memory_enabled = models.BooleanField(
         default=True,
         help_text=_(

@@ -447,3 +447,77 @@ class TestHouseholdMembershipSignals:
         user.refresh_from_db()
         assert user.active_household is None
 
+
+
+@pytest.mark.django_db
+class TestDisabledModules:
+    """PATCH /api/households/{id}/ disabled_modules — parcours 15."""
+
+    def _url(self, household):
+        return reverse("household-detail", kwargs={"pk": household.pk})
+
+    def test_field_present_and_empty_by_default(self, owner_client, household):
+        response = owner_client.get(self._url(household))
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["disabled_modules"] == []
+
+    def test_owner_can_disable_optional_modules(self, owner_client, household):
+        response = owner_client.patch(
+            self._url(household),
+            {"disabled_modules": ["chickens", "electricity"]},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        household.refresh_from_db()
+        assert household.disabled_modules == ["chickens", "electricity"]
+
+    def test_duplicates_are_removed_preserving_order(self, owner_client, household):
+        response = owner_client.patch(
+            self._url(household),
+            {"disabled_modules": ["water", "chickens", "water"]},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["disabled_modules"] == ["water", "chickens"]
+
+    def test_member_cannot_update_modules(self, household):
+        member = UserFactory(email="member-modules@example.com")
+        HouseholdMember.objects.create(
+            household=household, user=member, role=HouseholdMember.Role.MEMBER
+        )
+        client = APIClient()
+        client.force_authenticate(user=member)
+        response = client.patch(
+            self._url(household), {"disabled_modules": ["chickens"]}, format="json"
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+        household.refresh_from_db()
+        assert household.disabled_modules == []
+
+    def test_unknown_module_rejected(self, owner_client, household):
+        response = owner_client.patch(
+            self._url(household), {"disabled_modules": ["foobar"]}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_core_module_rejected(self, owner_client, household):
+        # tasks is core navigation — not in OPTIONAL_MODULES, cannot be disabled
+        response = owner_client.patch(
+            self._url(household), {"disabled_modules": ["tasks"]}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_non_list_payload_rejected(self, owner_client, household):
+        response = owner_client.patch(
+            self._url(household), {"disabled_modules": "chickens"}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_reenabling_restores_nothing_lost(self, owner_client, household):
+        # disable then re-enable — the field round-trips, no side effect on data
+        self_url = self._url(household)
+        owner_client.patch(self_url, {"disabled_modules": ["stock"]}, format="json")
+        response = owner_client.patch(self_url, {"disabled_modules": []}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        household.refresh_from_db()
+        assert household.disabled_modules == []

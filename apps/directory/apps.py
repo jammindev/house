@@ -11,6 +11,7 @@ class DirectoryConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='contact',
+            module='directory',
             model=Contact,
             search_fields=('first_name', 'last_name', 'notes'),
             label_attr=lambda c: f"{c.first_name} {c.last_name}".strip() or str(c.id),
@@ -19,6 +20,7 @@ class DirectoryConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='structure',
+            module='directory',
             model=Structure,
             search_fields=('name', 'description'),
             label_attr='name',

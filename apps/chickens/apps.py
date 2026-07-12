@@ -13,6 +13,7 @@ class ChickensConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='chicken',
+            module='chickens',
             model=Chicken,
             search_fields=('name', 'breed', 'notes'),
             label_attr='name',
@@ -24,6 +25,7 @@ class ChickensConfig(AppConfig):
         # les poules ?"). No detail page — the deep link opens the module page.
         register(SearchableSpec(
             entity_type='chicken_event',
+            module='chickens',
             model=ChickenEvent,
             search_fields=('title', 'notes'),
             label_attr='title',
@@ -32,6 +34,7 @@ class ChickensConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='chicken',
+            module='chickens',
             create=_create_chicken_from_agent,
             update=_update_chicken_from_agent,
             updatable_fields=(
@@ -45,6 +48,7 @@ class ChickensConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='egg_log',
+            module='chickens',
             create=_create_egg_log_from_agent,
             resolve=_resolve_egg_log_for_agent,
             delete=_delete_egg_log_from_agent,
@@ -54,6 +58,7 @@ class ChickensConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='chicken',
+            module='chickens',
             model=Chicken,
             filters=(
                 ListFilter('status', 'comma-separated statuses', _filter_chicken_status),
@@ -65,6 +70,7 @@ class ChickensConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='egg_log',
+            module='chickens',
             model=EggLog,
             filters=(
                 ListFilter('date_from', 'date >= YYYY-MM-DD', _filter_date_from),

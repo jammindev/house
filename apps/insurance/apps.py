@@ -11,6 +11,7 @@ class InsuranceConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='insurance_contract',
+            module='insurance',
             model=InsuranceContract,
             search_fields=('name', 'provider', 'coverage_summary', 'notes'),
             label_attr='name',

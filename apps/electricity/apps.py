@@ -15,6 +15,7 @@ class ElectricityConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='meter',
+            module='electricity',
             model=ElectricityMeter,
             search_fields=('name', 'serial_number', 'notes'),
             label_attr='name',
@@ -23,6 +24,7 @@ class ElectricityConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='meter_reading',
+            module='electricity',
             create=_create_reading_from_agent,
             label_attr=_reading_label,
             url_template='/app/electricity?reading={id}',
@@ -30,6 +32,7 @@ class ElectricityConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='consumption',
+            module='electricity',
             model=ConsumptionRecord,
             filters=(
                 ListFilter('meter', 'meter name or id', _filter_meter),
@@ -45,6 +48,7 @@ class ElectricityConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='meter_reading',
+            module='electricity',
             model=MeterReading,
             filters=(
                 ListFilter('meter', 'meter name or id', _filter_meter),

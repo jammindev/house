@@ -13,6 +13,7 @@ class TrackersConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='tracker',
+            module='trackers',
             model=Tracker,
             # entries_summary carries the latest values with deltas — the RAG
             # bridge that makes "où en est le compteur d'eau ?" citable.
@@ -24,6 +25,7 @@ class TrackersConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='tracker',
+            module='trackers',
             create=_create_tracker_from_agent,
             update=_update_tracker_from_agent,
             # 'reserve' is the refill path ("j'ai racheté un sac de 60 verres"
@@ -36,6 +38,7 @@ class TrackersConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='tracker_entry',
+            module='trackers',
             create=_create_entry_from_agent,
             update=_update_entry_from_agent,
             updatable_fields=('value', 'occurred_at', 'note'),
@@ -47,6 +50,7 @@ class TrackersConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='tracker',
+            module='trackers',
             model=Tracker,
             filters=(
                 ListFilter('project', 'project id (uuid)', _filter_project),

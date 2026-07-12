@@ -8,6 +8,7 @@ import { ThemeSection } from './components/ThemeSection';
 import { AgentMemorySection } from './components/AgentMemorySection';
 import { ChangePasswordSection } from './components/ChangePasswordSection';
 import { HouseholdManagement } from './components/HouseholdManagement';
+import { ModulesSection } from './components/ModulesSection';
 import { PendingInvitations } from './components/PendingInvitations';
 
 export default function SettingsPage() {
@@ -35,6 +36,7 @@ export default function SettingsPage() {
         currentUserId={user.id}
         switchHouseholdUrl="/api/households/switch/"
       />
+      <ModulesSection />
       <ProfileSection />
       <TelegramSection />
       <ThemeSection />

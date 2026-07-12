@@ -14,6 +14,7 @@ class WaterConfig(AppConfig):
 
         register_writable(WritableSpec(
             entity_type='water_reading',
+            module='water',
             create=_create_reading_from_agent,
             update=_update_reading_from_agent,
             updatable_fields=('reading_date', 'index_m3'),
@@ -24,6 +25,7 @@ class WaterConfig(AppConfig):
 
         register_listable(ListableSpec(
             entity_type='water_reading',
+            module='water',
             model=WaterReading,
             filters=(
                 ListFilter('date_from', 'reading date >= YYYY-MM-DD', _filter_date_from),

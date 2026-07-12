@@ -1,8 +1,10 @@
 """
 Households serializers.
 """
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from .models import Household, HouseholdMember, HouseholdInvitation
+from .modules import OPTIONAL_MODULES
 
 
 class HouseholdMemberSerializer(serializers.ModelSerializer):
@@ -26,10 +28,20 @@ class HouseholdSerializer(serializers.ModelSerializer):
         model = Household
         fields = [
             'id', 'name', 'created_at', 'address', 'city', 'postal_code', 'country', 'timezone',
-            'context_notes', 'ai_prompt_context', 'inbound_email_alias',
+            'context_notes', 'ai_prompt_context', 'inbound_email_alias', 'disabled_modules',
             'members_count', 'current_user_role', 'members', 'archived_at'
         ]
         read_only_fields = ['id', 'created_at', 'inbound_email_alias', 'archived_at']
+
+    def validate_disabled_modules(self, value):
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of module keys."))
+        unknown = [k for k in value if k not in OPTIONAL_MODULES]
+        if unknown:
+            raise serializers.ValidationError(
+                _("Unknown or non-optional module(s): %(keys)s") % {'keys': ', '.join(sorted(unknown))}
+            )
+        return list(dict.fromkeys(value))
 
     def get_members_count(self, obj):
         return obj.householdmember_set.count()

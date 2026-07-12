@@ -22,6 +22,7 @@ export interface Household {
   context_notes: string;
   ai_prompt_context: string;
   inbound_email_alias: string | null;
+  disabled_modules: string[];
   default_household: boolean;
   members_count: number;
   current_user_role: 'owner' | 'member' | null;
@@ -50,6 +51,7 @@ export interface UpdateHouseholdInput {
   context_notes?: string;
   ai_prompt_context?: string;
   default_household?: boolean;
+  disabled_modules?: string[];
 }
 
 export async function fetchHouseholds(): Promise<Household[]> {

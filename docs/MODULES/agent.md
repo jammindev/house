@@ -85,6 +85,17 @@ Chaque app déclare ses entités depuis `apps.py::ready()` via
 search_fields, label_attr, url_template, `related` optionnel). L'agent ne connaît
 pas la liste — ajouter un module = ~5 lignes, zéro touche à `apps/agent/`.
 
+### Gating par modules du foyer (parcours 15)
+
+Les trois specs (`SearchableSpec`, `ListableSpec`, `WritableSpec`) portent un champ
+déclaratif `module: str | None` (clé de `households.modules.OPTIONAL_MODULES`,
+`None` = socle jamais filtré). Quand le foyer a désactivé un module
+(`Household.disabled_modules`), `retrieval.search`/`search_multi` sautent ses specs
+et les tools (`resolve_entity`, `list_entities`, `create_entity`, `update_entity`)
+refusent ses entity_types avec un message recoverable. Helpers dans
+`apps/agent/modules.py` ; tests dans `apps/agent/tests/test_module_gating.py`.
+Déclarer une entité d'un module optionnel = ajouter `module='<clé>'` au spec.
+
 ## Conversation ancrée sur une entité (2026-07)
 
 Une `AgentConversation` peut porter une ancre optionnelle

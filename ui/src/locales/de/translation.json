@@ -38,7 +38,10 @@
     "groupHome": "Zuhause",
     "groupTracking": "Übersicht",
     "groupResources": "Ressourcen",
-    "groupAccount": "Konto"
+    "groupAccount": "Konto",
+    "pinned": "Angepinnt",
+    "pin": "Anpinnen",
+    "unpin": "Lösen"
   },
   "electricity": {
     "title": "Elektrizität",
@@ -849,7 +852,13 @@
     "aiPromptContext": "KI-Prompt-Kontext",
     "description": "Verwalten Sie Ihr Profil, Ihre Haushalte und Einstellungen.",
     "colorPalette": "Farbpalette",
-    "showPasswords": "Passwörter anzeigen"
+    "showPasswords": "Passwörter anzeigen",
+    "modules": {
+      "title": "Module",
+      "description": "Wähle aus, welche Module für diesen Haushalt aktiv sind.",
+      "hint": "Deaktivierte Module werden für alle Mitglieder ausgeblendet (Seitenleiste, Dashboard, Assistent). Es werden keine Daten gelöscht — beim Reaktivieren ist alles wieder da.",
+      "saved": "Module aktualisiert"
+    }
   },
   "photos": {
     "app_title": "Fotos-Mini-App",

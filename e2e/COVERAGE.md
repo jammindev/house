@@ -361,3 +361,18 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Ajouter un événement Soin depuis la fiche → apparaît dans la timeline | ✅ |
 | Changer le statut à "Décédée" via le dialog d'édition → badge "Décédée" + événement "Décès" auto dans la timeline | ✅ |
 | Supprimer un événement (optimistic delete) → toast "Événement supprimé" → Annuler → réapparaît | ✅ |
+
+---
+
+## Modules & sidebar (`modules-sidebar.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Épingler un module → section « Épinglés » en tête, item sort de son groupe | ✅ |
+| Persistance des épinglés au reload (User.pinned_modules) | ✅ |
+| Désépingler → retour dans le groupe d'origine | ✅ |
+| Owner désactive un module dans Réglages → disparaît de la sidebar | ✅ |
+| URL directe d'un module désactivé → redirect dashboard | ✅ |
+| Réactivation → module de retour dans la sidebar | ✅ |
+| Section Modules invisible pour un membre non-owner | ✅ |
+| Cards dashboard filtrées par modules désactivés | ❌ |

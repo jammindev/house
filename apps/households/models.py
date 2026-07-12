@@ -45,6 +45,15 @@ class Household(models.Model):
         default=PreferredLanguage.FR,
     )
     
+    # Optional modules disabled for this household (keys from
+    # households.modules.OPTIONAL_MODULES). Empty list = everything active,
+    # so newly shipped modules are enabled by default.
+    disabled_modules = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Optional module keys hidden for this household."),
+    )
+
     # Email ingestion
     inbound_email_alias = models.CharField(max_length=255, unique=True, blank=True, null=True)
     

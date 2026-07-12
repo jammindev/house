@@ -34,6 +34,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
 from . import listables, query_expansion, retrieval, searchables, writables
+from .modules import spec_disabled
 from .llm import LLMClient, get_llm_client
 from .prompts import DATA_CLOSE, DATA_OPEN, neutralize, render_context_block
 from .retrieval import Hit
@@ -227,6 +228,20 @@ _GET_ENTITY_DESCRIPTION = (
 )
 
 
+def _module_disabled(spec, household) -> bool:
+    """True when the spec's module is disabled for this household (parcours 15)."""
+    return spec_disabled(spec, frozenset(getattr(household, 'disabled_modules', None) or []))
+
+
+def _module_disabled_result(entity_type: str) -> "ToolResult":
+    return ToolResult(
+        rendered=(
+            f"(the '{entity_type}' module is disabled for this household; "
+            "do not mention its data)"
+        )
+    )
+
+
 def resolve_entity(entity_type: str, raw_id: str, household):
     """Shared (entity_type, id) → instance resolution for get_entity/get_related.
 
@@ -240,6 +255,8 @@ def resolve_entity(entity_type: str, raw_id: str, household):
     spec = searchables.find_spec(entity_type)
     if spec is None:
         return None, ToolResult(rendered=f"(unknown entity_type: {entity_type})")
+    if _module_disabled(spec, household):
+        return None, _module_disabled_result(entity_type)
 
     try:
         obj = spec.model.objects.filter(household_id=household.id, pk=raw_id).first()
@@ -508,6 +525,8 @@ def _create_entity_handler(
         return ToolResult(
             rendered=f"(cannot create '{entity_type}'; creatable types: {supported})"
         )
+    if _module_disabled(spec, household):
+        return _module_disabled_result(entity_type)
 
     try:
         instance = spec.create(household, user, fields, anchor=context_entity)
@@ -645,6 +664,8 @@ def _list_entities_handler(
         return ToolResult(
             rendered=f"(cannot list '{entity_type}'; listable types: {supported})"
         )
+    if _module_disabled(spec, household):
+        return _module_disabled_result(entity_type)
 
     raw_filters = tool_input.get("filters") or {}
     if not isinstance(raw_filters, dict):
@@ -829,6 +850,8 @@ def _update_entity_handler(
         return ToolResult(
             rendered=f"(cannot update '{entity_type}'; updatable types: {supported})"
         )
+    if _module_disabled(spec, household):
+        return _module_disabled_result(entity_type)
 
     try:
         instance = spec.resolve(household, raw_id)
