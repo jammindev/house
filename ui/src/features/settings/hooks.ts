@@ -10,6 +10,12 @@ import {
   type TelegramStatus,
 } from '@/lib/api/telegram';
 import {
+  fetchPings,
+  updatePing,
+  type PingRow,
+  type UpdatePingInput,
+} from '@/lib/api/pings';
+import {
   fetchHouseholds,
   createHousehold,
   updateHousehold,
@@ -41,6 +47,7 @@ export const settingsKeys = {
   households: () => [...settingsKeys.all, 'households'] as const,
   pendingInvitations: () => [...settingsKeys.all, 'pending-invitations'] as const,
   telegram: () => [...settingsKeys.all, 'telegram'] as const,
+  pings: () => [...settingsKeys.all, 'pings'] as const,
 };
 
 // --- User ---
@@ -143,6 +150,32 @@ export function useUnlinkTelegram() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: settingsKeys.telegram() });
       toast({ description: t('settings.telegramUnlinked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Proactive pings ---
+
+export function usePings() {
+  return useQuery<PingRow[]>({
+    queryKey: settingsKeys.pings(),
+    queryFn: fetchPings,
+  });
+}
+
+export function useUpdatePing() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ pingType, payload }: { pingType: string; payload: UpdatePingInput }) =>
+      updatePing(pingType, payload),
+    onSuccess: (row) => {
+      qc.setQueryData<PingRow[]>(settingsKeys.pings(), (rows) =>
+        rows?.map((r) => (r.ping_type === row.ping_type ? row : r)),
+      );
+      toast({ description: t('settings.pings.saved'), variant: 'success' });
     },
     onError: () => toast({ description: t('settings.requestFailed'), variant: 'destructive' }),
   });

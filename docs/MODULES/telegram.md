@@ -83,7 +83,16 @@ Déploiement : renseigner les 3 variables, puis
 doit être en HTTPS). Pas de conteneur ni de worker dédié : le webhook vit dans le
 service `web`, le traitement dans un thread daemon.
 
+## Envoi sortant proactif (pings)
+
+`outbound.py::send_agent_message(account, household, text)` — le seul chemin
+d'envoi initié serveur : délivre via `client.send_message` **puis** persiste le
+tour assistant dans LA conversation canal (rien n'est persisté si Telegram
+rejette). Consommé par le module [pings](./pings.md) (scheduler + préférences) ;
+la réponse de l'utilisateur suit le flux entrant standard ci-dessus.
+
 ## Hors scope (→ #225, V2)
 
-Notifications sortantes proactives, photos → documents, messages vocaux, groupe
-foyer, streaming, WhatsApp (même architecture de canal).
+Photos → documents, messages vocaux, groupe foyer, streaming, WhatsApp (même
+architecture de canal). Les notifications sortantes proactives sont couvertes
+par le module [pings](./pings.md).

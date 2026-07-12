@@ -746,6 +746,17 @@
     "telegramLinkedSince": "Linked since {{date}}",
     "telegramUnlink": "Unlink",
     "telegramUnlinked": "Telegram account unlinked",
+    "pings": {
+      "title": "Proactive messages",
+      "description": "Let the assistant reach out on Telegram to ask the right question at the right time.",
+      "linkFirst": "Connect your Telegram account first to receive these messages.",
+      "sendAt": "Send time",
+      "hint": "Everything is off by default. The assistant never asks for data you already entered that day.",
+      "saved": "Preference saved",
+      "types": {
+        "egg_log": "Evening egg count"
+      }
+    },
     "theme": "Theme",
     "themeDescription": "Choose your display theme",
     "themeUpdated": "Theme updated",
