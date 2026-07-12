@@ -558,6 +558,7 @@ python manage.py generate_changelog --dry-run  # aperçu sans écrire ni appeler
 python manage.py generate_changelog --rebuild  # purge + reconstruit
 ```
 
-**À câbler au déploiement** (non fait à ce jour) : lancer `generate_changelog`
-après chaque push sur `main` depuis le workflow GitHub Actions (le runner a le
-`.git` complet + la clé Anthropic). Voir `docs/MODULES/releases.md`.
+**Câblé au déploiement** : le job `deploy` de `.github/workflows/ci.yml` lance
+`generate_changelog --from-stdin` après chaque push sur `main` (le conteneur n'a
+pas le `.git` : le runner pipe le `git log`). `continue-on-error` — un échec de
+génération ne bloque jamais le deploy. Voir `docs/MODULES/releases.md`.

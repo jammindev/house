@@ -9,7 +9,7 @@
 - **Locales (en/fr/de/es)** : ok (namespace `changelog.*`)
 - **Tests** : `apps/releases/tests/` (parsing services + API)
 - **Migrations** : 1
-- **Déploiement** : ⚠️ **génération pas encore câblée au CI/deploy** (voir « À faire »)
+- **Déploiement** : ok — step « Generate changelog » du job `deploy` (`.github/workflows/ci.yml`), mode `--from-stdin`, `continue-on-error`
 
 ## Particularité — modèle global, non household-scoped
 
@@ -72,14 +72,16 @@ Le module dépend de commits conventionnels bien formés. Voir la section
 `type(scope): description` — `scope` obligatoire (= module/chip), `type` dans
 `feat|fix|perf` pour apparaître, description repolie par l'IA.
 
+## Génération au déploiement (fait — PR #245)
+
+Après chaque push sur `main`, le job `deploy` pipe l'historique du runner vers le
+conteneur (`git log --pretty=… | docker compose exec -T web python manage.py
+generate_changelog --from-stdin`) — le conteneur n'a pas le `.git` (exclu par
+`.dockerignore`). Step en `continue-on-error` : un échec de génération ne bloque
+jamais le deploy.
+
 ## À faire
 
-- **Câbler la génération au déploiement** (temps 2) : après chaque push sur
-  `main`, lancer `generate_changelog` depuis le workflow GitHub Actions. Le runner
-  `vps` a le `.git` complet (donc l'historique) et la clé Anthropic en secret.
-  Piste : après `docker compose up -d`, exécuter la command dans le conteneur web.
-  Le conteneur n'ayant pas forcément le `.git`, prévoir soit de monter le git, soit
-  un mode `--from-stdin` alimenté par le runner (`git log … | docker compose exec -T web …`).
 - **Blocage dur du format de commit** (optionnel) : hook `commit-msg` /
   commitlint pour refuser un commit mal formé, en complément de la doc + du skill
   `/ship`.
