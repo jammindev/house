@@ -1,5 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+
+from households.modules import PINNABLE_MODULES
 
 User = get_user_model()
 
@@ -20,6 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
             "avatar",
             "theme",
             "color_theme",
+            "pinned_modules",
             "agent_memory_enabled",
             "full_name",
             "password",
@@ -28,6 +32,16 @@ class UserSerializer(serializers.ModelSerializer):
             "date_joined",
         ]
         read_only_fields = ["id", "is_active", "is_staff", "date_joined", "full_name"]
+
+    def validate_pinned_modules(self, value):
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of module keys."))
+        unknown = [k for k in value if k not in PINNABLE_MODULES]
+        if unknown:
+            raise serializers.ValidationError(
+                _("Module(s) not pinnable: %(keys)s") % {'keys': ', '.join(sorted(unknown))}
+            )
+        return list(dict.fromkeys(value))
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)

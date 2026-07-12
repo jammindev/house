@@ -63,6 +63,11 @@ class WritableSpec:
     users…). May raise ``ValueError``/``ValidationError`` on malformed ids —
     the tool turns that into a recoverable message."""
 
+    module: str | None = None
+    """Optional module key (households.modules.OPTIONAL_MODULES). When the
+    household disabled that module, ``create_entity``/``update_entity`` refuse
+    the entity type. None = core."""
+
     delete: Callable[..., None] | None = None
     """Optional ``delete(household, user, object_id) -> None`` — the undo of
     ``create``.

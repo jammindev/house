@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
+import ModuleRoute from './components/ModuleRoute';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
@@ -75,20 +76,20 @@ export const router = createBrowserRouter([
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },
       { path: 'equipment/:id', element: <EquipmentDetailPage /> },
-      { path: 'stock', element: <StockPage /> },
-      { path: 'stock/:id', element: <StockItemDetailPage /> },
+      { path: 'stock', element: <ModuleRoute moduleKey="stock"><StockPage /></ModuleRoute> },
+      { path: 'stock/:id', element: <ModuleRoute moduleKey="stock"><StockItemDetailPage /></ModuleRoute> },
       { path: 'documents', element: <DocumentsPage /> },
       { path: 'documents/:id', element: <DocumentDetailPage /> },
-      { path: 'directory', element: <DirectoryPage /> },
-      { path: 'electricity', element: <ElectricityPage /> },
-      { path: 'water', element: <WaterPage /> },
-      { path: 'chickens', element: <ChickensPage /> },
-      { path: 'chickens/:id', element: <ChickenDetailPage /> },
-      { path: 'trackers', element: <TrackersPage /> },
-      { path: 'trackers/:id', element: <TrackerDetailPage /> },
-      { path: 'tracker-entries/:id', element: <TrackerEntryRedirect /> },
-      { path: 'insurance', element: <InsurancePage /> },
-      { path: 'photos', element: <PhotosPage /> },
+      { path: 'directory', element: <ModuleRoute moduleKey="directory"><DirectoryPage /></ModuleRoute> },
+      { path: 'electricity', element: <ModuleRoute moduleKey="electricity"><ElectricityPage /></ModuleRoute> },
+      { path: 'water', element: <ModuleRoute moduleKey="water"><WaterPage /></ModuleRoute> },
+      { path: 'chickens', element: <ModuleRoute moduleKey="chickens"><ChickensPage /></ModuleRoute> },
+      { path: 'chickens/:id', element: <ModuleRoute moduleKey="chickens"><ChickenDetailPage /></ModuleRoute> },
+      { path: 'trackers', element: <ModuleRoute moduleKey="trackers"><TrackersPage /></ModuleRoute> },
+      { path: 'trackers/:id', element: <ModuleRoute moduleKey="trackers"><TrackerDetailPage /></ModuleRoute> },
+      { path: 'tracker-entries/:id', element: <ModuleRoute moduleKey="trackers"><TrackerEntryRedirect /></ModuleRoute> },
+      { path: 'insurance', element: <ModuleRoute moduleKey="insurance"><InsurancePage /></ModuleRoute> },
+      { path: 'photos', element: <ModuleRoute moduleKey="photos"><PhotosPage /></ModuleRoute> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'settings', element: <SettingsPage /> },

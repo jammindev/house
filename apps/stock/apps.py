@@ -11,6 +11,7 @@ class StockConfig(AppConfig):
 
         register(SearchableSpec(
             entity_type='stock_item',
+            module='stock',
             model=StockItem,
             search_fields=('name', 'description', 'notes', 'supplier'),
             label_attr='name',

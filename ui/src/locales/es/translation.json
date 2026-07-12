@@ -38,7 +38,10 @@
     "groupHome": "Hogar",
     "groupTracking": "Seguimiento",
     "groupResources": "Recursos",
-    "groupAccount": "Cuenta"
+    "groupAccount": "Cuenta",
+    "pinned": "Fijados",
+    "pin": "Fijar",
+    "unpin": "Desfijar"
   },
   "electricity": {
     "title": "Electricidad",
@@ -849,7 +852,13 @@
     "aiPromptContext": "Contexto para IA",
     "description": "Gestiona tu perfil, hogares y preferencias.",
     "colorPalette": "Paleta de colores",
-    "showPasswords": "Mostrar contraseñas"
+    "showPasswords": "Mostrar contraseñas",
+    "modules": {
+      "title": "Módulos",
+      "description": "Elige qué módulos están activos para este hogar.",
+      "hint": "Los módulos desactivados se ocultan para todos los miembros (barra lateral, panel, asistente). No se elimina ningún dato: reactiva un módulo para recuperarlo todo.",
+      "saved": "Módulos actualizados"
+    }
   },
   "photos": {
     "app_title": "Mini-app Fotos",

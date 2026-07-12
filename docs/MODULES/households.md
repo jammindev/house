@@ -23,6 +23,15 @@
 
 ## Notes
 
+- **Modules activables (parcours 15)** : `Household.disabled_modules` (JSONField, défaut `[]`)
+  stocke les clés de modules optionnels masqués pour le foyer, validées contre
+  `apps/households/modules.py::OPTIONAL_MODULES` (miroir frontend : `ui/src/lib/modules.ts`
+  — les clés doivent rester identiques des deux côtés). Modifié par l'owner via le `PATCH`
+  household standard (section « Modules » de `/app/settings`). Consommé par la sidebar, le
+  dashboard, le guard de route (`ui/src/components/ModuleRoute.tsx`) et le gating agent
+  (`apps/agent/modules.py`). Désactiver ne touche à aucune donnée ; on stocke les
+  *désactivés* (pas les activés) → un nouveau module livré est actif par défaut.
+  Les épinglés perso vivent côté `accounts` (`User.pinned_modules`).
 - Soft-delete via `archived_at` (`destroy` met simplement le timestamp). Filtrage `archived_at__isnull=True` dans `get_queryset` (`apps/households/views.py:41`).
 - Signaux `post_save` / `post_delete` sur `HouseholdMember` gèrent automatiquement `User.active_household` à l'arrivée et au départ d'un membre — `apps/households/signals.py`.
 - Signal `post_save` sur `Household` crée automatiquement une zone racine "Maison" (`parent=None`) à la création de chaque foyer — `apps/households/signals.py:7-13`.

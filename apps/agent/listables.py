@@ -61,6 +61,10 @@ class ListableSpec:
     set, the tool sums it over the WHOLE filtered set — this is what answers
     "how much did we spend on X"."""
 
+    module: str | None = None
+    """Optional module key (households.modules.OPTIONAL_MODULES). Skipped by
+    ``list_entities`` when the household disabled that module. None = core."""
+
 
 REGISTRY: dict[str, ListableSpec] = {}
 

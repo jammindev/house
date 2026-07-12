@@ -20,6 +20,7 @@ from django.contrib.postgres.search import (
 )
 from django.db.models import F, Value
 
+from .modules import disabled_modules_for, spec_disabled
 from .searchables import REGISTRY, SearchableSpec, resolve_label
 
 SNIPPET_MAX_WORDS = 30
@@ -195,13 +196,27 @@ def _pick_snippet(obj, fields: tuple[str, ...]) -> str:
     return max(pool, key=len)
 
 
-def search(household_id: UUID, query: str, limit: int = 20) -> list[Hit]:
-    """Return up to `limit` hits across all registered entities, ranked desc."""
+def search(
+    household_id: UUID,
+    query: str,
+    limit: int = 20,
+    disabled: frozenset[str] | None = None,
+) -> list[Hit]:
+    """Return up to `limit` hits across all registered entities, ranked desc.
+
+    Specs of household-disabled modules are skipped. ``disabled`` lets callers
+    that loop over several queries (``search_multi``) fetch the set once.
+    """
     if not query or not query.strip():
         return []
 
+    if disabled is None:
+        disabled = disabled_modules_for(household_id)
+
     all_hits: list[Hit] = []
     for spec in REGISTRY:
+        if spec_disabled(spec, disabled):
+            continue
         all_hits.extend(_search_one(spec, household_id, query, limit))
 
     all_hits.sort(key=lambda h: h.rank, reverse=True)
@@ -219,11 +234,12 @@ def search_multi(household_id: UUID, queries: list[str], limit: int = 20) -> lis
     Ranks produced by different tsqueries are not strictly comparable, so this
     is a heuristic merge — good enough for the modest household volume.
     """
+    disabled = disabled_modules_for(household_id)
     best: dict[tuple[str, Any], Hit] = {}
     for query in queries:
         if not query or not query.strip():
             continue
-        for hit in search(household_id, query, limit=limit):
+        for hit in search(household_id, query, limit=limit, disabled=disabled):
             key = (hit.entity_type, hit.id)
             existing = best.get(key)
             if existing is None or hit.rank > existing.rank:

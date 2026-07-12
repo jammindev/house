@@ -38,7 +38,10 @@
     "groupHome": "Maison",
     "groupTracking": "Suivi",
     "groupResources": "Ressources",
-    "groupAccount": "Compte"
+    "groupAccount": "Compte",
+    "pinned": "Épinglés",
+    "pin": "Épingler",
+    "unpin": "Désépingler"
   },
   "electricity": {
     "title": "Électricité",
@@ -849,7 +852,13 @@
     "aiPromptContext": "Contexte pour l'IA",
     "description": "Gérez votre profil, vos foyers et vos préférences.",
     "colorPalette": "Palette de couleurs",
-    "showPasswords": "Afficher les mots de passe"
+    "showPasswords": "Afficher les mots de passe",
+    "modules": {
+      "title": "Modules",
+      "description": "Choisissez les modules actifs pour ce foyer.",
+      "hint": "Les modules désactivés sont masqués pour tous les membres (sidebar, dashboard, assistant). Aucune donnée n’est supprimée — réactivez un module pour tout retrouver.",
+      "saved": "Modules mis à jour"
+    }
   },
   "photos": {
     "app_title": "Mini-app Photos",

@@ -39,6 +39,12 @@ class SearchableSpec:
     agent tool. Each returned instance is turned into a citable Hit via its own
     registered spec, so only entities that are themselves searchable surface."""
 
+    module: str | None = None
+    """Optional module key (households.modules.OPTIONAL_MODULES). When the
+    household has disabled that module, the spec is skipped by retrieval and
+    tools — the agent behaves as if the entity type did not exist. None = core,
+    never filtered."""
+
 
 REGISTRY: list[SearchableSpec] = []
 

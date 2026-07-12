@@ -38,7 +38,10 @@
     "groupHome": "Home",
     "groupTracking": "Tracking",
     "groupResources": "Resources",
-    "groupAccount": "Account"
+    "groupAccount": "Account",
+    "pinned": "Pinned",
+    "pin": "Pin",
+    "unpin": "Unpin"
   },
   "electricity": {
     "title": "Electricity",
@@ -849,7 +852,13 @@
     "aiPromptContext": "AI prompt context",
     "description": "Manage your profile, households, and preferences.",
     "colorPalette": "Color palette",
-    "showPasswords": "Show passwords"
+    "showPasswords": "Show passwords",
+    "modules": {
+      "title": "Modules",
+      "description": "Choose which modules are active for this household.",
+      "hint": "Disabled modules are hidden for every member (sidebar, dashboard, assistant). No data is deleted — re-enable a module to get everything back.",
+      "saved": "Modules updated"
+    }
   },
   "photos": {
     "app_title": "Photos mini-app",

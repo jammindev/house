@@ -12,6 +12,7 @@ export interface UserProfile {
   avatar: string | null;
   theme: string;
   color_theme: string;
+  pinned_modules: string[];
   agent_memory_enabled: boolean;
   full_name: string;
   is_active: boolean;
@@ -46,6 +47,7 @@ export interface UpdateProfileInput {
   locale?: Locale;
   theme?: Theme;
   color_theme?: ColorTheme;
+  pinned_modules?: string[];
   agent_memory_enabled?: boolean;
 }
 
