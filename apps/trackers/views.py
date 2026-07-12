@@ -37,12 +37,11 @@ class TrackerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = Tracker.objects.for_user_households(self.request.user).select_related(
-            'project', 'target_content_type', 'created_by'
+            'project', 'created_by'
         ).prefetch_related(
             Prefetch(
                 'entries',
-                # 120 rows cover 30 days of a several-entries-per-day
-                # consumption tracker; the serializer trims to 30 points.
+                # 120 rows absorb backdated bursts; the serializer trims to 30 points.
                 queryset=TrackerEntry.objects.order_by('-occurred_at', '-created_at')[:120],
                 to_attr='sparkline_entries',
             )
@@ -54,21 +53,7 @@ class TrackerViewSet(viewsets.ModelViewSet):
         if params.get('include_archived') not in ('1', 'true'):
             qs = qs.filter(is_active=True)
         if params.get('general') == 'true':
-            qs = qs.filter(project__isnull=True, target_content_type__isnull=True)
-        target_type = (params.get('target_type') or '').strip()
-        target_id = (params.get('target_id') or '').strip()
-        if target_type and target_id:
-            from agent.searchables import find_spec
-
-            spec = find_spec(target_type)
-            if spec is None:
-                return qs.none()
-            from django.contrib.contenttypes.models import ContentType
-
-            qs = qs.filter(
-                target_content_type=ContentType.objects.get_for_model(spec.model),
-                target_object_id=target_id,
-            )
+            qs = qs.filter(project__isnull=True)
         return qs
 
     def get_serializer_context(self):
@@ -81,10 +66,7 @@ class TrackerViewSet(viewsets.ModelViewSet):
         serializer.save(household=self.request.household, created_by=self.request.user)
 
     def perform_update(self, serializer):
-        instance = serializer.save(updated_by=self.request.user)
-        if 'reserve' in serializer.validated_data:
-            # The runway in the RAG summary depends on the reserve.
-            services.refresh_tracker_cache(instance)
+        serializer.save(updated_by=self.request.user)
 
     def perform_destroy(self, instance):
         instance.is_active = False

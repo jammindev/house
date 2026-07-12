@@ -24,6 +24,10 @@ export type PatchedHousehold = {
     context_notes?: string;
     ai_prompt_context?: string;
     readonly inbound_email_alias?: string | null;
+    /**
+     * Optional module keys hidden for this household.
+     */
+    disabled_modules?: any;
     readonly members_count?: string;
     readonly current_user_role?: string;
     readonly members?: Array<HouseholdMember>;

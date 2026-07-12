@@ -690,7 +690,6 @@
     "noEntries": "No entries yet.",
     "nameRequired": "Name is required.",
     "valueRequired": "A numeric value and a date are required.",
-    "targetEntityRequired": "Choose the linked entity.",
     "namePlaceholder": "Water meter",
     "unitPlaceholder": "m³, kg, h, %…",
     "fieldName": "Name",
@@ -699,42 +698,14 @@
     "fieldDescription": "Description",
     "fieldProject": "Project",
     "noProject": "No project",
-    "fieldLinkedTo": "Linked to",
-    "linkedNone": "Nothing",
-    "fieldTargetEntity": "Entity",
-    "linkedType": {
-      "equipment": "Equipment",
-      "zone": "Zone",
-      "stock_item": "Stock item"
-    },
     "fieldValue": "Value",
     "fieldDate": "Date",
     "fieldNote": "Note",
     "filter": {
       "all": "All",
       "general": "General",
-      "projects": "Projects",
-      "linked": "Linked"
-    },
-    "fieldKind": "Type",
-    "kind": {
-      "measure": "Measure",
-      "measureHint": "Meter, weight, level… the latest state matters.",
-      "consumption": "Consumption",
-      "consumptionHint": "Feed, pellets, fuel… amounts consumed per event."
-    },
-    "fieldReserve": "Reserve",
-    "reservePlaceholder": "Remaining quantity",
-    "reserveInvalid": "The reserve must be a number.",
-    "reserveLabel": "Reserve: {{value}} {{unit}}",
-    "perDay": "day",
-    "runwayDays": "~{{days}} d left",
-    "runwayUntil": "until {{date}}",
-    "refillTitle": "Refill",
-    "refillAdded": "Quantity added",
-    "refillCurrent": "Current reserve: {{value}} {{unit}}",
-    "refillNewTotal": "New reserve: {{value}} {{unit}}",
-    "refillConfirm": "Refill"
+      "projects": "Projects"
+    }
   },
   "settings": {
     "app_title": "Settings mini-app",
@@ -1242,11 +1213,6 @@
         "title": "Water",
         "avg": "{{liters}} L/day",
         "total": "{{m3}} m³ over 30 days"
-      },
-      "runways": {
-        "title": "Autonomy",
-        "days_one": "~{{count}} day",
-        "days_other": "~{{count}} days"
       },
       "chickens": {
         "title": "Chicken coop",
@@ -1866,8 +1832,7 @@
       "overdue": "Overdue tasks",
       "warranties": "Warranties to watch",
       "maintenances": "Upcoming maintenances",
-      "stock": "Stock to restock",
-      "runways": "Low autonomy"
+      "stock": "Stock to restock"
     },
     "severity": {
       "critical": "Urgent",
@@ -1884,9 +1849,7 @@
       "out_of_stock": "Out of stock",
       "expired": "Expired"
     },
-    "stockRemaining": "{{quantity}} {{unit}} left",
-    "runwayLeft_one": "~{{count}} day left (until {{date}})",
-    "runwayLeft_other": "~{{count}} days left (until {{date}})"
+    "stockRemaining": "{{quantity}} {{unit}} left"
   },
   "agent": {
     "title": "Agent",

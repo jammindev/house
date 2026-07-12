@@ -12,7 +12,6 @@ from households.models import Household, HouseholdMember
 from projects.models import Project
 from trackers import services
 from trackers.models import Tracker, TrackerEntry
-from zones.models import Zone
 
 from .factories import TrackerFactory
 
@@ -72,51 +71,6 @@ class TestTrackerCrud:
         assert tracker.household == household
         assert tracker.created_by == owner
 
-    def test_create_with_target_returns_label_and_url(self, owner_client, household, owner):
-        zone = Zone.objects.create(household=household, name="Cave", created_by=owner)
-        response = owner_client.post(
-            reverse("tracker-list"),
-            {
-                "name": "Niveau cuve", "unit": "%",
-                "target_type": "zone", "target_id": str(zone.id),
-            },
-            format="json",
-        )
-        assert response.status_code == status.HTTP_201_CREATED
-        body = response.json()
-        assert body["target_type"] == "zone"
-        assert body["target_id"] == str(zone.id)
-        assert body["target_label"] == "Cave"
-        assert body["target_url"] == f"/app/zones/{zone.id}"
-
-    def test_create_rejects_foreign_target(self, owner_client, household, owner):
-        other = Household.objects.create(name="Elsewhere")
-        foreign_zone = Zone.objects.create(household=other, name="Ailleurs", created_by=owner)
-        response = owner_client.post(
-            reverse("tracker-list"),
-            {"name": "Interdit", "target_type": "zone", "target_id": str(foreign_zone.id)},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_create_rejects_unknown_target_type(self, owner_client, household):
-        import uuid
-
-        response = owner_client.post(
-            reverse("tracker-list"),
-            {"name": "Interdit", "target_type": "martian", "target_id": str(uuid.uuid4())},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
-    def test_create_rejects_type_without_id(self, owner_client, household):
-        response = owner_client.post(
-            reverse("tracker-list"),
-            {"name": "Interdit", "target_type": "zone"},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-
     def test_delete_archives_instead_of_destroying(self, owner_client, household, owner):
         tracker = TrackerFactory(household=household, created_by=owner)
         response = owner_client.delete(reverse("tracker-detail", args=[tracker.id]))
@@ -140,34 +94,26 @@ class TestTrackerFilters:
         project = Project.objects.create(
             household=household, title="Réno", created_by=owner
         )
-        zone = Zone.objects.create(household=household, name="Cave", created_by=owner)
-        from django.contrib.contenttypes.models import ContentType
-
         general = TrackerFactory(household=household, created_by=owner, name="Poids")
         in_project = TrackerFactory(
             household=household, created_by=owner, name="Budget", project=project
-        )
-        on_zone = TrackerFactory(
-            household=household, created_by=owner, name="Cuve",
-            target_content_type=ContentType.objects.get_for_model(Zone),
-            target_object_id=zone.id,
         )
         archived = TrackerFactory(
             household=household, created_by=owner, name="Archivé", is_active=False
         )
         return {
-            "project": project, "zone": zone,
+            "project": project,
             "general": general, "in_project": in_project,
-            "on_zone": on_zone, "archived": archived,
+            "archived": archived,
         }
 
     def test_default_hides_archived(self, owner_client, dataset):
         names = {t["name"] for t in _results(owner_client.get(reverse("tracker-list")))}
-        assert names == {"Poids", "Budget", "Cuve"}
+        assert names == {"Poids", "Budget"}
 
     def test_include_archived(self, owner_client, dataset):
         response = owner_client.get(reverse("tracker-list"), {"include_archived": "1"})
-        assert {t["name"] for t in _results(response)} == {"Poids", "Budget", "Cuve", "Archivé"}
+        assert {t["name"] for t in _results(response)} == {"Poids", "Budget", "Archivé"}
 
     def test_filter_by_project(self, owner_client, dataset):
         response = owner_client.get(
@@ -178,13 +124,6 @@ class TestTrackerFilters:
     def test_filter_general(self, owner_client, dataset):
         response = owner_client.get(reverse("tracker-list"), {"general": "true"})
         assert [t["name"] for t in _results(response)] == ["Poids"]
-
-    def test_filter_by_target(self, owner_client, dataset):
-        response = owner_client.get(
-            reverse("tracker-list"),
-            {"target_type": "zone", "target_id": str(dataset["zone"].id)},
-        )
-        assert [t["name"] for t in _results(response)] == ["Cuve"]
 
 
 # ── Entries ──────────────────────────────────────────────────────────────────

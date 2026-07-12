@@ -5,7 +5,6 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   ArrowRight,
   Clock,
-  Hourglass,
   Package,
   ShieldAlert,
   Wrench,
@@ -35,10 +34,6 @@ function severityClass(severity: AlertSeverity): string {
   return severity === 'critical'
     ? 'bg-destructive/10 text-destructive border-destructive/30'
     : 'bg-amber-500/10 text-amber-600 border-amber-500/30 dark:text-amber-400';
-}
-
-function formatRunwayDays(days: string): number {
-  return Math.round(parseFloat(days));
 }
 
 function buildItems(data: AlertsSummary, t: TFunction): TriageItem[] {
@@ -75,17 +70,6 @@ function buildItems(data: AlertsSummary, t: TFunction): TriageItem[] {
         quantity: item.quantity,
         unit: item.unit,
       })}`,
-      url: item.entity_url,
-      severity: item.severity,
-    })),
-    ...data.low_runway_trackers.map((item) => ({
-      key: `tracker-${item.id}`,
-      icon: Hourglass,
-      title: item.title,
-      meta: t('alerts.runwayLeft', {
-        count: formatRunwayDays(item.runway_days),
-        date: item.runway_until,
-      }),
       url: item.entity_url,
       severity: item.severity,
     })),

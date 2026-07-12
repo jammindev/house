@@ -357,7 +357,7 @@ export class ChickensService {
         });
     }
     /**
-     * GET/PUT the household's module settings (feed tracker link) — US-8.
+     * GET/PUT the household's module settings (feed stock item link) — US-8.
      * @returns any No response body
      * @throws ApiError
      */
@@ -368,7 +368,7 @@ export class ChickensService {
         });
     }
     /**
-     * GET/PUT the household's module settings (feed tracker link) — US-8.
+     * GET/PUT the household's module settings (feed stock item link) — US-8.
      * @returns any No response body
      * @throws ApiError
      */

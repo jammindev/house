@@ -1,15 +1,14 @@
 """
 Tracker models — dated numeric value series attached to the household.
 
-A Tracker is a series of dated numeric entries (water meter, weight, tank
-level, running hours, project budget…). It can be general, attached to a
-project (FK, like Task.project) or linked to any household entity through a
-generic target (same polymorphic pattern as Interaction.source_*).
+A Tracker is a series of dated point-in-time readings (water meter, weight,
+tank level, running hours, project budget…). It can be general or attached to
+a project (FK, like Task.project). Consumables (feed, pellets…) are the stock
+module's job — the consumption kind and its reserve/rate/runway were removed
+in lot 7 (PARCOURS_11_LOT7).
 """
 import uuid
 
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from core.managers import HouseholdScopedManager
@@ -19,35 +18,13 @@ from core.models import HouseholdScopedModel
 class Tracker(HouseholdScopedModel):
     """A named series of dated numeric values."""
 
-    class Kind(models.TextChoices):
-        # A point-in-time state: meter index, weight, tank level. Entries are
-        # readings; the latest value is the headline, deltas read between two.
-        MEASURE = 'measure', 'Measure'
-        # A quantity consumed per event: chicken feed, pellets, fuel. Entries
-        # are amounts; the headline is the rate (per day) and the runway
-        # (how long the reserve lasts).
-        CONSUMPTION = 'consumption', 'Consumption'
-
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True, default='')
     unit = models.CharField(max_length=50, blank=True, default='')
     emoji = models.CharField(max_length=16, blank=True, default='')
-    # Immutable after creation — flipping the meaning of an existing history
-    # makes no sense (enforced in the serializer).
-    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.MEASURE)
     # DELETE through the API archives instead of destroying (history has value).
     is_active = models.BooleanField(default=True)
-
-    # Consumption only: what's left, in the entries' unit. An external fact
-    # (refilled by the user), NOT recomputable from the DB — entry writes adjust
-    # it incrementally in services.py. May go negative (signals the gap).
-    reserve = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
-    # Consumption only: cached average consumption per day over a sliding
-    # window, recomputed by services.refresh_tracker_cache.
-    rate_per_day = models.DecimalField(
-        max_digits=12, decimal_places=3, null=True, blank=True
-    )
 
     project = models.ForeignKey(
         'projects.Project',
@@ -57,20 +34,6 @@ class Tracker(HouseholdScopedModel):
         related_name='trackers',
         db_column='project_id',
     )
-    target_content_type = models.ForeignKey(
-        ContentType,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='+',
-        help_text="Polymorphic target: type of the entity this tracker is about.",
-    )
-    target_object_id = models.UUIDField(
-        null=True,
-        blank=True,
-        help_text="Polymorphic target: id of the entity this tracker is about.",
-    )
-    target = GenericForeignKey('target_content_type', 'target_object_id')
 
     # Denormalized caches — recomputed from the DB by services.refresh_tracker_cache
     # on every entry write (never incremented), so they cannot drift.
@@ -92,19 +55,6 @@ class Tracker(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'is_active'], name='idx_tracker_hh_active'),
             models.Index(fields=['project'], name='idx_tracker_project'),
-            models.Index(
-                fields=['target_content_type', 'target_object_id'],
-                name='idx_tracker_target',
-            ),
-        ]
-        constraints = [
-            models.CheckConstraint(
-                condition=(
-                    models.Q(target_content_type__isnull=True, target_object_id__isnull=True)
-                    | models.Q(target_content_type__isnull=False, target_object_id__isnull=False)
-                ),
-                name='tracker_target_integrity',
-            ),
         ]
 
     def __str__(self):
