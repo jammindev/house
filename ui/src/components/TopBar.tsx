@@ -14,7 +14,7 @@ export default function TopBar() {
   const displayName = [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.email;
 
   return (
-    <header className="sticky top-0 h-12 shrink-0 bg-sidebar flex items-center gap-3 px-4 z-30">
+    <header className="h-12 shrink-0 bg-sidebar flex items-center gap-3 px-4 z-30">
       {/* Mobile hamburger */}
       <button
         onClick={toggleSidebar}
