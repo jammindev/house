@@ -172,6 +172,14 @@ Les deux fonctions (`create_expense_interaction` + `create_manual_expense_intera
 3. Éditer les 3 `.po` (`locale/fr|de|es/LC_MESSAGES/django.po`) pour ajouter la traduction
 4. `python manage.py compilemessages`
 
+> **`makemessages` est overridé** (`apps/core/management/commands/makemessages.py`) :
+> `venv/`, `node_modules/` et `htmlcov/` sont ignorés par défaut. Sans ça, la
+> commande scanne le venv (présent dans le repo) et injecte des centaines de
+> `#:` vers Django/DRF dans les `.po`. Ne jamais réintroduire ces refs : si un
+> diff `.po` fait apparaître des chemins `venv/lib/...`, c'est que l'override a
+> été contourné. **Ne pas traduire les strings tierces** — Django fournit les
+> siennes.
+
 ### Frontend — formulaire partagé
 
 Pour la partie UI, `ui/src/features/interactions/PurchaseForm.tsx` est le composant partagé (champs prix/fournisseur/date/notes + delta optionnel). Chaque feature wrappe ce form dans son propre dialog (`StockPurchaseDialog`, `EquipmentPurchaseDialog`, etc.) qui gère :
