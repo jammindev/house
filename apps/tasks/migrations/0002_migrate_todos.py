@@ -8,6 +8,15 @@ from django.db import migrations
 
 def migrate_todos_to_tasks(apps, schema_editor):
     Interaction = apps.get_model('interactions', 'Interaction')
+
+    # Sur une base vierge, le graphe peut appliquer interactions.0016+ (qui
+    # supprime Interaction.project) AVANT cette data migration : le modèle
+    # historique n'a alors plus 'project' et le select_related casse. Dans ce
+    # cas il n'existe aucune donnée à backfiller (tables vides) — on sort.
+    field_names = {f.name for f in Interaction._meta.get_fields()}
+    if 'project' not in field_names:
+        return
+
     Task = apps.get_model('tasks', 'Task')
     TaskZone = apps.get_model('tasks', 'TaskZone')
     InteractionZone = apps.get_model('interactions', 'InteractionZone')
