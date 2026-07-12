@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Card, CardTitle } from '@/design-system/card';
 import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { formatQty } from '@/features/stock/format';
 import { useFlockSummary } from '@/features/chickens/hooks';
 
 export default function ChickensCard() {
@@ -28,9 +29,17 @@ export default function ChickensCard() {
           {' · '}
           {t('dashboard.metrics.chickens.flock', { count: summary.active_count })}
         </p>
-        {summary.feed?.runway_days != null ? (
+        {summary.feed ? (
           <p className="mt-auto pt-3 text-xs text-muted-foreground">
-            {t('dashboard.metrics.chickens.feed_runway', { days: summary.feed.runway_days })}
+            {t('dashboard.metrics.chickens.feed_stock', {
+              quantity: formatQty(summary.feed.quantity, summary.feed.unit),
+            })}
+            {['low_stock', 'out_of_stock'].includes(summary.feed.status) ? (
+              <span className="font-medium text-destructive">
+                {' · '}
+                {t(`stock.status.${summary.feed.status}`)}
+              </span>
+            ) : null}
           </p>
         ) : null}
       </Card>

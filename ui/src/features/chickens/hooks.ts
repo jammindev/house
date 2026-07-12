@@ -200,7 +200,7 @@ export function useUpdateChickenSettings() {
   const qc = useQueryClient();
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: (payload: { feed_tracker: string | null }) => updateChickenSettings(payload),
+    mutationFn: (payload: { feed_stock_item: string | null }) => updateChickenSettings(payload),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: chickenKeys.all });
       toast({ description: t('chickens.feed.linked'), variant: 'success' });

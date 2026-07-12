@@ -113,35 +113,32 @@ class ChickenPurchaseSerializer(serializers.Serializer):
 
 
 class ChickenSettingsSerializer(serializers.ModelSerializer):
-    """Module settings — the feed tracker reference plus a read-only snapshot of it."""
+    """Module settings — the feed stock item reference plus a read-only snapshot of it."""
 
-    feed_tracker_detail = serializers.SerializerMethodField()
+    feed_stock_item_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = ChickenSettings
-        fields = ['id', 'household', 'feed_tracker', 'feed_tracker_detail']
+        fields = ['id', 'household', 'feed_stock_item', 'feed_stock_item_detail']
         read_only_fields = ['id', 'household']
 
-    def get_feed_tracker_detail(self, obj):
-        tracker = obj.feed_tracker
-        if tracker is None:
+    def get_feed_stock_item_detail(self, obj):
+        item = obj.feed_stock_item
+        if item is None:
             return None
         return {
-            'id': str(tracker.id),
-            'name': tracker.name,
-            'emoji': tracker.emoji,
-            'unit': tracker.unit,
-            'reserve': str(tracker.reserve) if tracker.reserve is not None else None,
-            'rate_per_day': str(tracker.rate_per_day) if tracker.rate_per_day is not None else None,
-            'last_entry_at': tracker.last_entry_at,
+            'id': str(item.id),
+            'name': item.name,
+            'quantity': str(item.quantity),
+            'unit': item.unit,
+            'status': item.status,
+            'min_quantity': str(item.min_quantity) if item.min_quantity is not None else None,
         }
 
-    def validate_feed_tracker(self, value):
+    def validate_feed_stock_item(self, value):
         if value is None:
             return value
         household_id = self.context.get('household_id')
         if household_id and str(value.household_id) != str(household_id):
-            raise serializers.ValidationError("Tracker does not belong to the household.")
-        if value.kind != 'consumption':
-            raise serializers.ValidationError("Feed tracker must be a consumption tracker.")
+            raise serializers.ValidationError("Stock item does not belong to the household.")
         return value

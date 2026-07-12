@@ -27,8 +27,8 @@ from rest_framework.test import APIClient
 from chickens.models import Chicken, ChickenEvent, ChickenSettings, EggLog
 from households.models import Household, HouseholdMember
 from interactions.models import Interaction
+from stock.models import StockCategory, StockItem
 from tasks.models import Task
-from trackers.models import Tracker
 from zones.models import Zone
 
 from .factories import (
@@ -77,15 +77,18 @@ def _create_zone(household, user, name="Poulailler Zone"):
     return Zone.objects.create(household=household, name=name, created_by=user)
 
 
-def _create_tracker(household, user, kind="consumption", name="Feed tracker"):
-    return Tracker.objects.create(
+def _create_stock_item(household, user, name="Feed bag", quantity="20.000"):
+    category = StockCategory.objects.create(
+        household=household, name=f"Food — {name}", created_by=user
+    )
+    return StockItem.objects.create(
         household=household,
         created_by=user,
+        category=category,
         name=name,
-        kind=kind,
+        quantity=Decimal(quantity),
         unit="kg",
-        reserve=Decimal("20.000"),
-        rate_per_day=Decimal("2.000"),
+        min_quantity=Decimal("5.000"),
     )
 
 
@@ -808,7 +811,7 @@ class TestChickenPurchase:
 
 @pytest.mark.django_db
 class TestChickenSettingsView:
-    """GET/PUT /api/chickens/settings/ — module settings, feed tracker validation."""
+    """GET/PUT /api/chickens/settings/ — module settings, feed stock item validation."""
 
     def test_get_creates_settings_if_missing(self):
         hh = HouseholdFactory()
@@ -825,58 +828,64 @@ class TestChickenSettingsView:
         _client_for(owner).get(reverse("chicken-settings"))
         assert ChickenSettings.objects.filter(household=hh).count() == 1
 
-    def test_put_valid_consumption_tracker(self):
+    def test_put_valid_stock_item(self):
         hh = HouseholdFactory()
         owner = _make_owner(hh)
-        tracker = _create_tracker(hh, owner, kind="consumption")
+        item = _create_stock_item(hh, owner)
         response = _client_for(owner).put(
             reverse("chicken-settings"),
-            {"feed_tracker": str(tracker.id)},
+            {"feed_stock_item": str(item.id)},
             format="json",
         )
         assert response.status_code == status.HTTP_200_OK
         settings = ChickenSettings.objects.get(household=hh)
-        assert settings.feed_tracker == tracker
+        assert settings.feed_stock_item == item
+        detail = response.data["feed_stock_item_detail"]
+        assert detail["name"] == item.name
+        assert detail["quantity"] == "20.000"
+        assert detail["unit"] == "kg"
+        assert detail["status"] == item.status
+        assert detail["min_quantity"] == "5.000"
 
-    def test_put_non_consumption_tracker_returns_400(self):
-        hh = HouseholdFactory()
-        owner = _make_owner(hh)
-        measure_tracker = _create_tracker(hh, owner, kind="measure", name="Measure tracker")
-        response = _client_for(owner).put(
-            reverse("chicken-settings"),
-            {"feed_tracker": str(measure_tracker.id)},
-            format="json",
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "feed_tracker" in response.data
-
-    def test_put_tracker_from_other_household_returns_400(self):
+    def test_put_item_from_other_household_returns_400(self):
         hh_a = HouseholdFactory()
         hh_b = HouseholdFactory()
         owner_a = _make_owner(hh_a)
         owner_b = _make_owner(hh_b)
-        tracker_b = _create_tracker(hh_b, owner_b, kind="consumption")
+        item_b = _create_stock_item(hh_b, owner_b)
         response = _client_for(owner_a).put(
             reverse("chicken-settings"),
-            {"feed_tracker": str(tracker_b.id)},
+            {"feed_stock_item": str(item_b.id)},
             format="json",
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        assert "feed_tracker" in response.data
+        assert "feed_stock_item" in response.data
 
-    def test_put_null_feed_tracker_clears_link(self):
+    def test_put_null_feed_stock_item_clears_link(self):
         hh = HouseholdFactory()
         owner = _make_owner(hh)
-        tracker = _create_tracker(hh, owner)
-        ChickenSettings.objects.create(household=hh, feed_tracker=tracker)
+        item = _create_stock_item(hh, owner)
+        ChickenSettings.objects.create(household=hh, feed_stock_item=item)
         response = _client_for(owner).put(
             reverse("chicken-settings"),
-            {"feed_tracker": None},
+            {"feed_stock_item": None},
             format="json",
         )
         assert response.status_code == status.HTTP_200_OK
         settings = ChickenSettings.objects.get(household=hh)
-        assert settings.feed_tracker is None
+        assert settings.feed_stock_item is None
+
+    def test_deleted_stock_item_clears_link(self):
+        # Lesson from the feed_tracker bug: never show a dead link. StockItem
+        # delete is a hard delete, so SET_NULL must clear the reference.
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        item = _create_stock_item(hh, owner)
+        ChickenSettings.objects.create(household=hh, feed_stock_item=item)
+        item.delete()
+        response = _client_for(owner).get(reverse("chicken-settings"))
+        assert response.data["feed_stock_item"] is None
+        assert response.data["feed_stock_item_detail"] is None
 
     def test_anonymous_gets_401(self):
         response = _anon_client().get(reverse("chicken-settings"))
@@ -934,18 +943,57 @@ class TestChickenSummaryView:
         response = _client_for(owner).get(reverse("chicken-summary"))
         assert response.data["eggs_7d"] == 7  # 3+4, the 99 is beyond 7 days
 
-    def test_feed_section_present_when_tracker_configured(self):
+    def test_feed_section_present_when_stock_item_configured(self):
         hh = HouseholdFactory()
         owner = _make_owner(hh)
-        tracker = _create_tracker(hh, owner, kind="consumption")
-        ChickenSettings.objects.create(household=hh, feed_tracker=tracker)
+        item = _create_stock_item(hh, owner)
+        ChickenSettings.objects.create(household=hh, feed_stock_item=item)
         response = _client_for(owner).get(reverse("chicken-summary"))
         feed = response.data["feed"]
         assert feed is not None
-        assert str(feed["tracker_id"]) == str(tracker.id)
-        assert "runway_days" in feed
-        # 20 kg reserve / 2 kg per day = 10 days
-        assert feed["runway_days"] == 10
+        assert str(feed["stock_item_id"]) == str(item.id)
+        assert feed["name"] == item.name
+        assert feed["quantity"] == "20.000"
+        assert feed["unit"] == "kg"
+        assert feed["status"] == item.status
+        assert feed["min_quantity"] == "5.000"
+
+    def test_feed_section_null_after_stock_item_deleted(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        item = _create_stock_item(hh, owner)
+        ChickenSettings.objects.create(household=hh, feed_stock_item=item)
+        item.delete()
+        response = _client_for(owner).get(reverse("chicken-summary"))
+        assert response.data["feed"] is None
+
+    def test_cost_includes_stock_purchases_of_linked_item(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        item = _create_stock_item(hh, owner)
+        other_item = _create_stock_item(hh, owner, name="Straw")
+        ChickenSettings.objects.create(household=hh, feed_stock_item=item)
+        client = _client_for(owner)
+        # Module purchase (hen) + stock purchase of the linked feed item
+        chicken = ChickenFactory(household=hh, created_by=owner)
+        client.post(
+            reverse("chicken-purchase", args=[chicken.id]),
+            {"amount": "10.00"},
+            format="json",
+        )
+        client.post(
+            reverse("stock-item-purchase", args=[item.id]),
+            {"delta": "25", "amount": "30.00"},
+            format="json",
+        )
+        # Purchase of an UNLINKED item must not be attributed
+        client.post(
+            reverse("stock-item-purchase", args=[other_item.id]),
+            {"delta": "5", "amount": "99.00"},
+            format="json",
+        )
+        response = client.get(reverse("chicken-summary"))
+        assert Decimal(response.data["cost"]["total"]) == Decimal("40.00")
 
     def test_cost_total_from_chickens_purchase_interactions(self):
         hh = HouseholdFactory()

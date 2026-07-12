@@ -1246,7 +1246,7 @@
         "eggs_7d": "{{count}} in 7 Tagen",
         "flock_one": "{{count}} Henne",
         "flock_other": "{{count}} Hennen",
-        "feed_runway": "Futter: ~{{days}} T"
+        "feed_stock": "Futter: {{quantity}}"
       }
     },
     "quickActions": {
@@ -1827,16 +1827,13 @@
     },
     "feed": {
       "title": "Futter",
-      "not_linked": "Noch kein Futter-Tracker verknüpft",
-      "link_action": "Tracker verknüpfen",
-      "pick_tracker": "Tracker wählen",
+      "not_linked": "Noch kein Vorratsartikel verknüpft",
+      "link_action": "Vorratsartikel verknüpfen",
+      "pick_item": "Artikel wählen",
       "link_confirm": "Verknüpfen",
-      "no_consumption_trackers": "Noch kein Verbrauchs-Tracker — erstelle einen unter Tracker.",
-      "linked": "Tracker verknüpft",
-      "rate": "≈ {{rate}} {{unit}}/Tag",
-      "runway": "~{{days}} T Reichweite",
-      "reserve": "{{reserve}} {{unit}} übrig",
-      "no_rate_yet": "Noch kein Verbrauchsrhythmus"
+      "no_stock_items": "Noch kein Vorratsartikel — erstelle einen unter Vorräte.",
+      "linked": "Artikel verknüpft",
+      "buy": "Kaufen"
     },
     "cost": {
       "title": "Kosten",

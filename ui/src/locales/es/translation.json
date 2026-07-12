@@ -1246,7 +1246,7 @@
         "eggs_7d": "{{count}} en 7 días",
         "flock_one": "{{count}} gallina",
         "flock_other": "{{count}} gallinas",
-        "feed_runway": "Pienso: ~{{days}} d"
+        "feed_stock": "Pienso: {{quantity}}"
       }
     },
     "quickActions": {
@@ -1827,16 +1827,13 @@
     },
     "feed": {
       "title": "Pienso",
-      "not_linked": "Aún no hay un tracker de pienso vinculado",
-      "link_action": "Vincular un tracker",
-      "pick_tracker": "Elegir un tracker",
+      "not_linked": "Aún no hay un artículo de stock vinculado",
+      "link_action": "Vincular un artículo de stock",
+      "pick_item": "Elegir un artículo",
       "link_confirm": "Vincular",
-      "no_consumption_trackers": "No hay tracker de consumo — créalo desde Trackers.",
-      "linked": "Tracker vinculado",
-      "rate": "≈ {{rate}} {{unit}}/día",
-      "runway": "~{{days}} d de autonomía",
-      "reserve": "Quedan {{reserve}} {{unit}}",
-      "no_rate_yet": "Aún sin ritmo"
+      "no_stock_items": "No hay artículos de stock — créalo desde Stock.",
+      "linked": "Artículo vinculado",
+      "buy": "Comprar"
     },
     "cost": {
       "title": "Coste",

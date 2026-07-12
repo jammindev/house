@@ -3,8 +3,8 @@ Chicken coop models — family-scale flock keeping (parcours 14).
 
 Three entities: the flock register (Chicken), the daily egg log (EggLog, one
 row per household per day, upserted) and the flock journal (ChickenEvent —
-care, illness, broodiness, death…). Feed stays in the existing stock/trackers
-modules; ChickenSettings only references the household's feed tracker.
+care, illness, broodiness, death…). Feed stays in the existing stock module;
+ChickenSettings only references the household's feed stock item.
 """
 import uuid
 
@@ -139,20 +139,20 @@ class ChickenEvent(HouseholdScopedModel):
 
 
 class ChickenSettings(HouseholdScopedModel):
-    """Per-household module settings — currently just the feed tracker reference.
+    """Per-household module settings — currently just the feed stock item reference.
 
-    The feed reserve/rate live in the referenced CONSUMPTION tracker (trackers
-    app); this model only points at it, no duplication.
+    The feed reserve lives in the referenced StockItem (quantity, thresholds,
+    purchases); this model only points at it, no duplication.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    feed_tracker = models.ForeignKey(
-        'trackers.Tracker',
+    feed_stock_item = models.ForeignKey(
+        'stock.StockItem',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='+',
-        db_column='feed_tracker_id',
+        db_column='feed_stock_item_id',
     )
 
     objects = HouseholdScopedManager()
