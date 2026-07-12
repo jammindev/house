@@ -754,7 +754,9 @@
       "hint": "Everything is off by default. The assistant never asks for data you already entered that day.",
       "saved": "Preference saved",
       "types": {
-        "egg_log": "Evening egg count"
+        "egg_log": "Evening egg count",
+        "meter_reading": "Electricity meter reading reminder",
+        "water_reading": "Water meter reading reminder"
       }
     },
     "theme": "Theme",

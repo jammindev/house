@@ -7,10 +7,14 @@ class WaterConfig(AppConfig):
     name = "water"
 
     def ready(self):
+        from datetime import time as dt_time
+
         from agent.listables import ListableSpec, ListFilter, register as register_listable
         from agent.writables import WritableSpec, register as register_writable
+        from pings.registry import PingSpec, register as register_ping
 
         from .models import WaterReading
+        from .pings import build_water_ping
 
         register_writable(WritableSpec(
             entity_type='water_reading',
@@ -33,6 +37,13 @@ class WaterConfig(AppConfig):
             ),
             order_by=('-reading_date',),
             describe=_describe_reading,
+        ))
+
+        register_ping(PingSpec(
+            ping_type='water_reading',
+            module='water',
+            build_message=build_water_ping,
+            default_send_at=dt_time(19, 0),
         ))
 
 

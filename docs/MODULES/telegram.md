@@ -91,6 +91,11 @@ tour assistant dans LA conversation canal (rien n'est persisté si Telegram
 rejette). Consommé par le module [pings](./pings.md) (scheduler + préférences) ;
 la réponse de l'utilisateur suit le flux entrant standard ci-dessus.
 
+Opt-out conversationnel : un message `stop` (ou `/stop`, mot seul, insensible à
+la casse) désactive toutes les `PingPreference` du user — intercepté en dur
+dans `service.py` avant l'agent, comme `/help` et `/reset`. Détail dans
+[pings.md](./pings.md).
+
 ## Hors scope (→ #225, V2)
 
 Photos → documents, messages vocaux, groupe foyer, streaming, WhatsApp (même

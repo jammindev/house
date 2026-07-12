@@ -84,6 +84,9 @@ def _handle_message(message: dict) -> None:
         if text.startswith("/reset"):
             _handle_reset(account, chat_id)
             return
+        if text.lower() in ("stop", "/stop"):
+            _handle_stop(account, chat_id)
+            return
         _handle_question(account, chat_id, text)
 
 
@@ -149,6 +152,36 @@ def _handle_reset(account: TelegramAccount, chat_id: int) -> None:
     get_client().send_message(
         chat_id, _("Fresh start — your next message opens a new conversation.")
     )
+
+
+def _handle_stop(account: TelegramAccount, chat_id: int) -> None:
+    """A bare "stop" (or `/stop`) — the universal opt-out of proactive pings.
+
+    Disables every ping preference of the user across all their households: a
+    "stop" texted to the bot means "leave me alone", not "leave me alone in
+    this household". Re-enabling is per ping, from the app settings.
+    """
+    from pings.models import PingPreference
+
+    prefs = PingPreference.objects.filter(user=account.user, enabled=True)
+    count = 0
+    for pref in prefs:
+        pref.enabled = False
+        pref.updated_by = account.user
+        pref.save(update_fields=["enabled", "updated_by", "updated_at"])
+        count += 1
+    if count:
+        get_client().send_message(
+            chat_id,
+            _(
+                "🔕 Done — I won't message you first anymore. "
+                "You can re-enable proactive messages anytime in the app settings."
+            ),
+        )
+    else:
+        get_client().send_message(
+            chat_id, _("You have no proactive messages enabled — nothing to stop.")
+        )
 
 
 def _process_question(account: TelegramAccount, chat_id: int, text: str) -> None:
@@ -311,6 +344,7 @@ def _help_text() -> str:
     return _(
         "Ask me anything about your home — expenses, tasks, equipment, notes…\n"
         "/reset starts a fresh conversation.\n"
+        "Reply “stop” to turn off proactive messages.\n"
         "/help shows this message."
     )
 

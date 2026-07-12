@@ -754,7 +754,9 @@
       "hint": "Tout est désactivé par défaut. L'assistant ne demande jamais une donnée déjà saisie dans la journée.",
       "saved": "Préférence enregistrée",
       "types": {
-        "egg_log": "Relevé de ponte du soir"
+        "egg_log": "Relevé de ponte du soir",
+        "meter_reading": "Rappel de relevé électrique",
+        "water_reading": "Rappel de relevé d'eau"
       }
     },
     "theme": "Thème",

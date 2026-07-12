@@ -38,7 +38,7 @@
 | A1 | Recevoir un message initié par l'agent (envoi + persistance conversation, langue user, skip silencieux si non lié, échec loggé sans casser le job) | ✅ V1 |
 | A2 | Répondre au ping → écriture via writables + undo (contexte = historique de conversation, réponse hors sujet traitée normalement) | ✅ V1 (pipeline existant) |
 | A3 | Scheduler fiable (heure fixe par foyer, idempotent, fault-isolé, observable, compatible compose prod) | ✅ V1 |
-| A4 | Anti-spam global : plage de silence, plafond quotidien, « stop » conversationnel | ⏳ V2 (la dédup jour + skip donnée-déjà-saisie sont en V1) |
+| A4 | Anti-spam global : plage de silence, plafond quotidien, « stop » conversationnel | ⏳ partiel — « stop » ✅ V1.1 ; plage de silence + plafond restent V2 (peu utiles tant que chaque ping est plafonné à 1/jour) |
 
 ### Lot B — Contrôle utilisateur
 
@@ -53,8 +53,8 @@
 |---|---|---|
 | C1 | ⭐ Relevé de ponte quotidien (« combien d'œufs ? » 19h, upsert `log_eggs`, skip si déjà saisi / pas de poule) | ✅ V1 |
 | C2 | Rappel de relevé par tracker (fréquence configurable, dernière valeur en contexte) — rejoint #197 | V2 |
-| C3 | Rappel compteur d'eau mensuel (dernier index en contexte, monotonie) | V2 |
-| C4 | Rappel compteur électrique (multi-compteurs) | V2 |
+| C3 | Rappel compteur d'eau mensuel (dernier index en contexte, monotonie) | ✅ V1.1 (`water_reading`, la fréquence vit dans `build_message` : skip tant que le dernier relevé a < 30 j) |
+| C4 | Rappel compteur électrique (multi-compteurs) | ✅ V1.1 (`meter_reading`, une ligne par compteur en retard, compteurs sans relevé ou inactifs ignorés) |
 | C5 | « Une dépense à noter ? » hebdo (opt-in explicite) | V2 |
 
 ### Lot D — Échéances et seuils

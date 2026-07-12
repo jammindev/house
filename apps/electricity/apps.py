@@ -7,11 +7,15 @@ class ElectricityConfig(AppConfig):
     name = "electricity"
 
     def ready(self):
+        from datetime import time as dt_time
+
         from agent.listables import ListableSpec, ListFilter, register as register_listable
         from agent.searchables import SearchableSpec, register
         from agent.writables import WritableSpec, register as register_writable
+        from pings.registry import PingSpec, register as register_ping
 
         from .models import ConsumptionRecord, ElectricityMeter, MeterReading
+        from .pings import build_meter_ping
 
         register(SearchableSpec(
             entity_type='meter',
@@ -56,6 +60,13 @@ class ElectricityConfig(AppConfig):
             ),
             order_by=('-reading_at',),
             describe=_describe_reading,
+        ))
+
+        register_ping(PingSpec(
+            ping_type='meter_reading',
+            module='electricity',
+            build_message=build_meter_ping,
+            default_send_at=dt_time(19, 0),
         ))
 
 
