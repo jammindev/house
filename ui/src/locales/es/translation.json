@@ -746,6 +746,17 @@
     "telegramLinkedSince": "Vinculado desde el {{date}}",
     "telegramUnlink": "Desvincular",
     "telegramUnlinked": "Cuenta de Telegram desvinculada",
+    "pings": {
+      "title": "Mensajes proactivos",
+      "description": "El asistente puede escribirte por Telegram para hacerte la pregunta adecuada en el momento oportuno.",
+      "linkFirst": "Conecta primero tu cuenta de Telegram para recibir estos mensajes.",
+      "sendAt": "Hora de envío",
+      "hint": "Todo está desactivado por defecto. El asistente nunca pide un dato que ya hayas registrado ese día.",
+      "saved": "Preferencia guardada",
+      "types": {
+        "egg_log": "Recuento de huevos de la tarde"
+      }
+    },
     "theme": "Tema",
     "themeDescription": "Elige tu tema de visualización",
     "themeUpdated": "Tema actualizado",

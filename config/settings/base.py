@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "telegram",
     "releases",
     "chickens",
+    "pings",
 ]
 
 MIDDLEWARE = [

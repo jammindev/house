@@ -80,6 +80,18 @@ class ChickensConfig(AppConfig):
             describe=_describe_egg_log,
         ))
 
+        from datetime import time as dt_time
+
+        from pings.registry import PingSpec, register as register_ping
+        from .pings import build_egg_ping
+
+        register_ping(PingSpec(
+            ping_type='egg_log',
+            module='chickens',
+            build_message=build_egg_ping,
+            default_send_at=dt_time(19, 0),
+        ))
+
 
 def _chicken_related(chicken):
     """A hen's recent journal entries — injected in the anchored assistant context."""

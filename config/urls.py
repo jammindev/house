@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/telegram/", include("telegram.urls")),
     path("api/releases/", include("releases.urls")),
     path("api/chickens/", include("chickens.urls")),
+    path("api/pings/", include("pings.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 

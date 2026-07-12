@@ -746,6 +746,17 @@
     "telegramLinkedSince": "Verknüpft seit {{date}}",
     "telegramUnlink": "Trennen",
     "telegramUnlinked": "Telegram-Konto getrennt",
+    "pings": {
+      "title": "Proaktive Nachrichten",
+      "description": "Der Assistent kann dir auf Telegram schreiben und zur richtigen Zeit die richtige Frage stellen.",
+      "linkFirst": "Verbinde zuerst dein Telegram-Konto, um diese Nachrichten zu erhalten.",
+      "sendAt": "Sendezeit",
+      "hint": "Standardmäßig ist alles deaktiviert. Der Assistent fragt nie nach Daten, die du an dem Tag bereits erfasst hast.",
+      "saved": "Einstellung gespeichert",
+      "types": {
+        "egg_log": "Abendliche Eierzählung"
+      }
+    },
     "theme": "Design",
     "themeDescription": "Anzeigedesign wählen",
     "themeUpdated": "Design aktualisiert",

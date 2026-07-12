@@ -746,6 +746,17 @@
     "telegramLinkedSince": "Lié depuis le {{date}}",
     "telegramUnlink": "Délier",
     "telegramUnlinked": "Compte Telegram délié",
+    "pings": {
+      "title": "Messages proactifs",
+      "description": "L'assistant peut t'écrire sur Telegram pour te poser la bonne question au bon moment.",
+      "linkFirst": "Connecte d'abord ton compte Telegram pour recevoir ces messages.",
+      "sendAt": "Heure d'envoi",
+      "hint": "Tout est désactivé par défaut. L'assistant ne demande jamais une donnée déjà saisie dans la journée.",
+      "saved": "Préférence enregistrée",
+      "types": {
+        "egg_log": "Relevé de ponte du soir"
+      }
+    },
     "theme": "Thème",
     "themeDescription": "Choisissez votre thème d'affichage",
     "themeUpdated": "Thème mis à jour",

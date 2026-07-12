@@ -31,6 +31,24 @@ services:
     networks:
       - internal
 
+  # Scheduler des pings proactifs (agent → Telegram). Même image que web, mais
+  # l'entrypoint gunicorn est remplacé par un tick idempotent en boucle
+  # (voir apps/pings/services.py::send_due_pings).
+  scheduler:
+    image: house:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+    entrypoint: ["python", "manage.py", "send_scheduled_pings", "--loop"]
+    networks:
+      - internal
+
   nginx:
     image: nginx:alpine
     restart: always
