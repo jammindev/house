@@ -24,19 +24,19 @@ export default function DashboardPage() {
       <HeroGreeting />
       <QuickActions />
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <TriageSection />
         <MyWeekCard />
       </section>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <ExpensesCard />
         {!disabled.has('electricity') && <ElectricityCard />}
         {!disabled.has('water') && <WaterCard />}
         {!disabled.has('chickens') && <ChickensCard />}
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <ActivityTimeline />
         <PinnedProjects />
       </section>
