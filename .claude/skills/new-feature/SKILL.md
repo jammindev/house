@@ -113,7 +113,10 @@ Tout se fait par déclaration — **aucune modification de la logique de
 2. **Tests E2E** — agent `playwright-e2e-writer` sur le flow critique de la page.
 3. **Docs** — créer/mettre à jour `docs/MODULES/<app>.md` (structure : voir les
    fiches existantes).
-4. `pytest` + `npm run lint` avant de pousser la PR.
+4. **Tutoriels** — skill `/tutorials` : ajouter le guide du nouveau module (ou
+   l'étape correspondante d'un guide existant) dans la page Tutoriel, registre +
+   4 locales.
+5. `pytest` + `npm run lint` avant de pousser la PR.
 
 ## Check final anti-duplication
 

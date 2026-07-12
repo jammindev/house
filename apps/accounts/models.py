@@ -120,6 +120,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("Sidebar module keys pinned by the user, in order."),
     )
 
+    # Tutorial keys (guides + getting-started items) the user marked as done.
+    # Keys are defined by the frontend content registry
+    # (ui/src/features/tutorials/content.ts) — the backend only validates shape.
+    completed_tutorials = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Tutorial keys the user has completed."),
+    )
+
     agent_memory_enabled = models.BooleanField(
         default=True,
         help_text=_(

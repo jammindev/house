@@ -842,6 +842,381 @@
       "saved": "Modules updated"
     }
   },
+  "tutorials": {
+    "title": "Tutorial",
+    "description": "Learn how to use the app, module by module",
+    "progressTitle": "Your progress",
+    "progressCount": "{{done}} of {{total}} completed",
+    "gettingStarted": "Getting started",
+    "gettingStartedHint": "The first key actions to set up your household.",
+    "guides": "Guides by module",
+    "guidesHint": "A step-by-step guide for each part of the app.",
+    "goThere": "Go there",
+    "openPage": "Open the page",
+    "openPageLong": "Open the page this guide is about",
+    "markDone": "Mark as done",
+    "markUndone": "Mark to revisit",
+    "done": "Done",
+    "stepCount_one": "{{count}} step",
+    "stepCount_other": "{{count}} steps",
+    "notFound": "This guide does not exist.",
+    "start": {
+      "items": {
+        "create-zone": {
+          "title": "Describe your home in zones",
+          "description": "Create your rooms, floors or buildings: zones provide context across the whole app."
+        },
+        "add-equipment": {
+          "title": "Add a first piece of equipment",
+          "description": "Boiler, ventilation, appliances… register equipment to track warranty and maintenance."
+        },
+        "first-task": {
+          "title": "Create your first task",
+          "description": "Write down something to do, assign it and give it a due date."
+        },
+        "log-note": {
+          "title": "Write a note in the journal",
+          "description": "The journal keeps track of everything happening in the household."
+        },
+        "ask-agent": {
+          "title": "Ask the assistant a question",
+          "description": "Try asking \"how much did we spend this month?\" — it answers with sources."
+        },
+        "invite-member": {
+          "title": "Invite a household member",
+          "description": "From settings, invite your family to join the household."
+        }
+      }
+    },
+    "guide": {
+      "dashboard": {
+        "title": "Discover the dashboard",
+        "intro": "The dashboard gives you an overview of your household as soon as you log in.",
+        "steps": {
+          "overview": {
+            "title": "Read the overview",
+            "body": "Cards summarise each module: ongoing tasks, latest expenses, recent readings…"
+          },
+          "activity": {
+            "title": "Follow the activity feed",
+            "body": "The feed shows the latest household journal entries: notes, expenses, maintenance."
+          },
+          "alerts": {
+            "title": "Keep an eye on alerts",
+            "body": "The sidebar badge shows what needs your attention; the Alerts page has the details."
+          }
+        }
+      },
+      "agent": {
+        "title": "Use the AI assistant",
+        "intro": "The assistant answers questions about your household data in plain language, with verifiable sources.",
+        "steps": {
+          "ask": {
+            "title": "Ask a question",
+            "body": "Open the Agent page and ask, for example, \"which tasks are overdue?\"."
+          },
+          "citations": {
+            "title": "Check the sources",
+            "body": "Every answer cites the items it used; click a citation to open the item."
+          },
+          "create": {
+            "title": "Create from the chat",
+            "body": "Ask \"create a task…\" or \"note that…\": the item is created immediately, with an Undo button."
+          },
+          "memory": {
+            "title": "Manage memory",
+            "body": "The assistant remembers durable facts about you; review and delete them from the Memory page."
+          }
+        }
+      },
+      "zones": {
+        "title": "Organise your home into zones",
+        "intro": "Zones (rooms, floors, buildings) structure navigation across the whole app.",
+        "steps": {
+          "create": {
+            "title": "Create your zones",
+            "body": "Add your main rooms: kitchen, living room, garage, garden…"
+          },
+          "hierarchy": {
+            "title": "Build the hierarchy",
+            "body": "Nest zones (floor → bedroom) to mirror your home."
+          },
+          "navigate": {
+            "title": "Navigate by zone",
+            "body": "A zone's page gathers the equipment, tasks and events attached to it."
+          }
+        }
+      },
+      "equipment": {
+        "title": "Track your equipment",
+        "intro": "Warranty, maintenance, history: everything about a piece of equipment in one place.",
+        "steps": {
+          "add": {
+            "title": "Add equipment",
+            "body": "Fill in the name, the zone and, if you have them, the purchase date and warranty."
+          },
+          "purchase": {
+            "title": "Record a purchase",
+            "body": "The purchase button automatically creates the matching expense in the household journal."
+          },
+          "history": {
+            "title": "Browse the history",
+            "body": "Interventions, breakdowns and maintenance linked to the equipment show on its detail page."
+          }
+        }
+      },
+      "electricity": {
+        "title": "Model your electrical installation",
+        "intro": "Describe the electrical panel and track your consumption.",
+        "steps": {
+          "board": {
+            "title": "Describe the panel",
+            "body": "Create the panel, its breakers and circuits, then link them to usage points."
+          },
+          "readings": {
+            "title": "Enter readings",
+            "body": "Regularly add your meter index, or import a readings file."
+          },
+          "analyze": {
+            "title": "Analyse consumption",
+            "body": "Charts aggregate your readings by period to spot drifts."
+          }
+        }
+      },
+      "water": {
+        "title": "Track water consumption",
+        "intro": "Manual meter readings are enough to follow your water consumption.",
+        "steps": {
+          "readings": {
+            "title": "Enter a reading",
+            "body": "Note the date and the index in m³; regular readings give reliable curves."
+          },
+          "charts": {
+            "title": "Read the charts",
+            "body": "Browse by period and compare consumption, just like electricity."
+          }
+        }
+      },
+      "stock": {
+        "title": "Manage household stock",
+        "intro": "Consumables and supplies: quantities, categories and expiry dates under control.",
+        "steps": {
+          "add": {
+            "title": "Create items",
+            "body": "Add your consumables (pet food, bulbs, firewood…) with their unit."
+          },
+          "quantities": {
+            "title": "Adjust quantities",
+            "body": "Update quantities as you buy and consume; a purchase creates its expense automatically."
+          },
+          "expiry": {
+            "title": "Watch expiry dates",
+            "body": "Fill in expiry dates to be alerted before it's too late."
+          }
+        }
+      },
+      "chickens": {
+        "title": "Keep the chicken coop",
+        "intro": "Flock register, daily egg log and cost per egg.",
+        "steps": {
+          "flock": {
+            "title": "Register your hens",
+            "body": "Create a record per hen: name, breed, arrival date."
+          },
+          "eggs": {
+            "title": "Log the eggs",
+            "body": "Enter the number of eggs collected each day — the history builds itself."
+          },
+          "events": {
+            "title": "Record events",
+            "body": "Care, brooding, moulting, death: each hen's record keeps its timeline."
+          }
+        }
+      },
+      "insurance": {
+        "title": "Track your insurance",
+        "intro": "All household contracts (home, health, car…) in one place.",
+        "steps": {
+          "contracts": {
+            "title": "Add your contracts",
+            "body": "Fill in the insurer, type, number and renewal date of each contract."
+          },
+          "documents": {
+            "title": "Attach documents",
+            "body": "Link PDF contracts and certificates from the Documents module."
+          }
+        }
+      },
+      "tasks": {
+        "title": "Manage tasks",
+        "intro": "The household to-do list: assignment, due dates and follow-up.",
+        "steps": {
+          "create": {
+            "title": "Create a task",
+            "body": "A title is enough; add a due date, a zone and an assignee if needed."
+          },
+          "organize": {
+            "title": "Filter and organise",
+            "body": "Filters (to do, overdue, done…) keep the list readable."
+          },
+          "complete": {
+            "title": "Complete and find again",
+            "body": "Check a task to complete it; the history remains available."
+          }
+        }
+      },
+      "projects": {
+        "title": "Run a project",
+        "intro": "Renovation, purchase, holidays: follow a project end to end with budget and expenses.",
+        "steps": {
+          "create": {
+            "title": "Create the project",
+            "body": "Give it a name, a description and a planned budget."
+          },
+          "plan": {
+            "title": "Gather tasks and notes",
+            "body": "Link tasks, notes and documents to the project to keep everything together."
+          },
+          "budget": {
+            "title": "Track the budget",
+            "body": "Linked expenses feed the actual cost, automatically compared to the budget."
+          }
+        }
+      },
+      "interactions": {
+        "title": "Keep the household journal",
+        "intro": "The journal records everything that happens: notes, expenses, maintenance…",
+        "steps": {
+          "log": {
+            "title": "Add an entry",
+            "body": "Create a note or an expense in seconds from the Journal page."
+          },
+          "types": {
+            "title": "Pick the right type",
+            "body": "Note, expense, maintenance… the type decides where the entry shows up (Expenses page, activity feed)."
+          },
+          "link": {
+            "title": "Link to context",
+            "body": "Attach zones, documents or tasks to an entry to find it back easily."
+          }
+        }
+      },
+      "trackers": {
+        "title": "Track values over time",
+        "intro": "Meter readings, weight, tank level: dated value series with charts.",
+        "steps": {
+          "create": {
+            "title": "Create a tracker",
+            "body": "Pick a name and a unit (kg, m³, hours…)."
+          },
+          "entries": {
+            "title": "Add values",
+            "body": "Enter a dated value at each reading; the series builds up."
+          },
+          "charts": {
+            "title": "Read the trend",
+            "body": "The tracker's chart shows the trend; a tracker can also live inside a project."
+          }
+        }
+      },
+      "expenses": {
+        "title": "Track expenses",
+        "intro": "All household expenses, entered by hand or created automatically by purchases.",
+        "steps": {
+          "record": {
+            "title": "Enter an expense",
+            "body": "Restaurant, gift, groceries: add a one-off expense with amount and supplier."
+          },
+          "sources": {
+            "title": "Understand automatic expenses",
+            "body": "Stock or equipment purchases create their expense on their own — nothing to re-enter."
+          },
+          "review": {
+            "title": "Analyse by period",
+            "body": "Filter by period or by zone to see where the money goes."
+          }
+        }
+      },
+      "documents": {
+        "title": "File your documents",
+        "intro": "Invoices, manuals, certificates: household files, linked to their context.",
+        "steps": {
+          "upload": {
+            "title": "Upload a file",
+            "body": "Import a PDF or an image and give it a meaningful title."
+          },
+          "link": {
+            "title": "Link to the right object",
+            "body": "Attach the document to a piece of equipment, a contract or a project."
+          },
+          "find": {
+            "title": "Find a document again",
+            "body": "Search and filter by type; the AI assistant can find them too."
+          }
+        }
+      },
+      "photos": {
+        "title": "Browse photos",
+        "intro": "A dedicated view of household photos, fed by the Documents module.",
+        "steps": {
+          "browse": {
+            "title": "Browse the gallery",
+            "body": "Images uploaded in Documents automatically show up here."
+          },
+          "add": {
+            "title": "Add photos",
+            "body": "Upload your photos like any other document of type image."
+          }
+        }
+      },
+      "directory": {
+        "title": "Build the address book",
+        "intro": "Craftsmen, neighbours, services: the household's useful contacts, shared with all members.",
+        "steps": {
+          "contacts": {
+            "title": "Add contacts",
+            "body": "Name, phone, email, notes: create a record per person."
+          },
+          "structures": {
+            "title": "Register organisations",
+            "body": "Companies, administrations, associations — link their contacts to them."
+          }
+        }
+      },
+      "alerts": {
+        "title": "Handle alerts",
+        "intro": "Alerts gather what needs your attention: expiry dates, deadlines, warranties…",
+        "steps": {
+          "review": {
+            "title": "Review them",
+            "body": "The sidebar badge counts active alerts; the page lists them by type."
+          },
+          "act": {
+            "title": "Act on an alert",
+            "body": "Open the related item from the alert and fix the cause: the alert goes away."
+          }
+        }
+      },
+      "settings": {
+        "title": "Configure the app and household",
+        "intro": "Profile, appearance, members and modules: everything is configured in settings.",
+        "steps": {
+          "profile": {
+            "title": "Personalise your profile",
+            "body": "Display name, language, light/dark theme and colour palette."
+          },
+          "household": {
+            "title": "Manage the household",
+            "body": "Invite members, manage roles, switch the active household."
+          },
+          "modules": {
+            "title": "Enable the right modules",
+            "body": "Disable modules you don't need (chicken coop, insurance…) to lighten the navigation."
+          }
+        }
+      }
+    }
+  },
   "photos": {
     "app_title": "Photos mini-app",
     "section_label": "Django app scoped node: {{section}}",

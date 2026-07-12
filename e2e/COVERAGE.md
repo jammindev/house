@@ -376,3 +376,17 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Réactivation → module de retour dans la sidebar | ✅ |
 | Section Modules invisible pour un membre non-owner | ✅ |
 | Cards dashboard filtrées par modules désactivés | ❌ |
+
+---
+
+## Tutoriel (`tutorials.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Accès depuis la sidebar (section Compte) → /app/tutorial | ✅ |
+| Progression + checklist « Bien démarrer » + grille de guides visibles | ✅ |
+| Cocher un item de la checklist → compteur de progression, persistance au reload (User.completed_tutorials) | ✅ |
+| Ouvrir un guide → étapes numérotées, marquer terminé/à revoir (toggle), retour à la liste | ✅ |
+| Lien « Ouvrir la page » du guide → deep-link vers le module | ✅ |
+| Clé de guide inconnue → état vide « Ce guide n'existe pas. » | ✅ |
+| Masquage des guides d'un module désactivé | ❌ |

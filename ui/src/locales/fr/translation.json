@@ -842,6 +842,381 @@
       "saved": "Modules mis à jour"
     }
   },
+  "tutorials": {
+    "title": "Tutoriel",
+    "description": "Apprenez à utiliser l'application, module par module",
+    "progressTitle": "Votre progression",
+    "progressCount": "{{done}} sur {{total}} terminés",
+    "gettingStarted": "Bien démarrer",
+    "gettingStartedHint": "Les premières actions pour prendre en main votre foyer.",
+    "guides": "Guides par module",
+    "guidesHint": "Un guide pas à pas pour chaque partie de l'application.",
+    "goThere": "Y aller",
+    "openPage": "Ouvrir la page",
+    "openPageLong": "Ouvrir la page concernée par ce guide",
+    "markDone": "Marquer comme terminé",
+    "markUndone": "Marquer à revoir",
+    "done": "Terminé",
+    "stepCount_one": "{{count}} étape",
+    "stepCount_other": "{{count}} étapes",
+    "notFound": "Ce guide n'existe pas.",
+    "start": {
+      "items": {
+        "create-zone": {
+          "title": "Décrire votre logement en zones",
+          "description": "Créez vos pièces, étages ou bâtiments : les zones servent de contexte à toute l'application."
+        },
+        "add-equipment": {
+          "title": "Ajouter un premier équipement",
+          "description": "Chaudière, VMC, électroménager… enregistrez un équipement pour suivre garantie et entretien."
+        },
+        "first-task": {
+          "title": "Créer votre première tâche",
+          "description": "Notez une chose à faire, assignez-la et donnez-lui une échéance."
+        },
+        "log-note": {
+          "title": "Écrire une note dans le journal",
+          "description": "Le journal garde la trace de tout ce qui se passe dans le foyer."
+        },
+        "ask-agent": {
+          "title": "Poser une question à l'assistant",
+          "description": "Demandez par exemple « combien avons-nous dépensé ce mois-ci ? » — il répond avec des sources."
+        },
+        "invite-member": {
+          "title": "Inviter un membre du foyer",
+          "description": "Depuis les réglages, invitez votre famille à rejoindre le foyer."
+        }
+      }
+    },
+    "guide": {
+      "dashboard": {
+        "title": "Découvrir le tableau de bord",
+        "intro": "Le tableau de bord donne une vue d'ensemble de votre foyer dès la connexion.",
+        "steps": {
+          "overview": {
+            "title": "Lire la vue d'ensemble",
+            "body": "Les cartes résument l'état des modules : tâches en cours, dernières dépenses, relevés récents…"
+          },
+          "activity": {
+            "title": "Suivre le fil d'activité",
+            "body": "Le fil reprend les dernières entrées du journal du foyer : notes, dépenses, maintenances."
+          },
+          "alerts": {
+            "title": "Garder un œil sur les alertes",
+            "body": "Le badge de la sidebar indique ce qui demande votre attention ; la page Alertes les détaille."
+          }
+        }
+      },
+      "agent": {
+        "title": "Utiliser l'assistant IA",
+        "intro": "L'assistant répond en langage naturel sur les données de votre foyer, avec des sources vérifiables.",
+        "steps": {
+          "ask": {
+            "title": "Poser une question",
+            "body": "Ouvrez la page Agent et demandez par exemple « quelles tâches sont en retard ? »."
+          },
+          "citations": {
+            "title": "Vérifier les sources",
+            "body": "Chaque réponse cite les éléments utilisés ; cliquez une citation pour ouvrir l'élément."
+          },
+          "create": {
+            "title": "Créer depuis le chat",
+            "body": "Demandez « crée une tâche… » ou « note que… » : l'élément est créé immédiatement, avec un bouton Annuler."
+          },
+          "memory": {
+            "title": "Gérer la mémoire",
+            "body": "L'assistant retient des faits durables vous concernant ; consultez-les et supprimez-les depuis la page Mémoire."
+          }
+        }
+      },
+      "zones": {
+        "title": "Organiser le logement en zones",
+        "intro": "Les zones (pièces, étages, bâtiments) structurent la navigation de toute l'application.",
+        "steps": {
+          "create": {
+            "title": "Créer vos zones",
+            "body": "Ajoutez vos pièces principales : cuisine, salon, garage, jardin…"
+          },
+          "hierarchy": {
+            "title": "Construire la hiérarchie",
+            "body": "Imbriquez les zones (étage → chambre) pour refléter votre logement."
+          },
+          "navigate": {
+            "title": "Naviguer par zone",
+            "body": "La page d'une zone regroupe équipements, tâches et événements qui s'y rattachent."
+          }
+        }
+      },
+      "equipment": {
+        "title": "Suivre vos équipements",
+        "intro": "Garantie, entretien, historique : tout ce qui concerne un équipement au même endroit.",
+        "steps": {
+          "add": {
+            "title": "Ajouter un équipement",
+            "body": "Renseignez le nom, la zone et, si vous les avez, la date d'achat et la garantie."
+          },
+          "purchase": {
+            "title": "Enregistrer un achat",
+            "body": "Le bouton d'achat crée automatiquement la dépense correspondante dans le journal du foyer."
+          },
+          "history": {
+            "title": "Consulter l'historique",
+            "body": "Interventions, pannes et maintenances liées à l'équipement s'affichent sur sa page de détail."
+          }
+        }
+      },
+      "electricity": {
+        "title": "Modéliser votre installation électrique",
+        "intro": "Décrivez le tableau électrique et suivez votre consommation.",
+        "steps": {
+          "board": {
+            "title": "Décrire le tableau",
+            "body": "Créez le tableau, ses protections et ses circuits, puis reliez-les aux points d'usage."
+          },
+          "readings": {
+            "title": "Saisir des relevés",
+            "body": "Ajoutez régulièrement l'index de votre compteur, ou importez un fichier de relevés."
+          },
+          "analyze": {
+            "title": "Analyser la consommation",
+            "body": "Les graphiques agrègent vos relevés par période pour repérer les dérives."
+          }
+        }
+      },
+      "water": {
+        "title": "Suivre la consommation d'eau",
+        "intro": "Des relevés manuels du compteur suffisent pour suivre votre consommation d'eau.",
+        "steps": {
+          "readings": {
+            "title": "Saisir un relevé",
+            "body": "Notez la date et l'index en m³ ; un relevé régulier donne des courbes fiables."
+          },
+          "charts": {
+            "title": "Lire les graphiques",
+            "body": "Naviguez par période et comparez les consommations, comme pour l'électricité."
+          }
+        }
+      },
+      "stock": {
+        "title": "Gérer le stock du foyer",
+        "intro": "Consommables et fournitures : quantités, catégories et péremptions sous contrôle.",
+        "steps": {
+          "add": {
+            "title": "Créer des articles",
+            "body": "Ajoutez vos consommables (croquettes, ampoules, bois…) avec leur unité."
+          },
+          "quantities": {
+            "title": "Ajuster les quantités",
+            "body": "Mettez à jour les quantités au fil des achats et des consommations ; un achat crée sa dépense automatiquement."
+          },
+          "expiry": {
+            "title": "Surveiller les péremptions",
+            "body": "Renseignez les dates de péremption pour être alerté avant qu'il ne soit trop tard."
+          }
+        }
+      },
+      "chickens": {
+        "title": "Tenir le poulailler",
+        "intro": "Registre du troupeau, ponte quotidienne et coût de revient de vos œufs.",
+        "steps": {
+          "flock": {
+            "title": "Enregistrer vos poules",
+            "body": "Créez une fiche par poule : nom, race, date d'arrivée."
+          },
+          "eggs": {
+            "title": "Noter la ponte",
+            "body": "Saisissez chaque jour le nombre d'œufs ramassés — l'historique se construit tout seul."
+          },
+          "events": {
+            "title": "Consigner les événements",
+            "body": "Soins, couvaison, mue, décès : la fiche de chaque poule garde sa chronologie."
+          }
+        }
+      },
+      "insurance": {
+        "title": "Suivre vos assurances",
+        "intro": "Tous les contrats du foyer (habitation, santé, auto…) au même endroit.",
+        "steps": {
+          "contracts": {
+            "title": "Ajouter vos contrats",
+            "body": "Renseignez l'assureur, le type, le numéro et l'échéance de chaque contrat."
+          },
+          "documents": {
+            "title": "Joindre les documents",
+            "body": "Reliez les contrats et attestations PDF depuis le module Documents."
+          }
+        }
+      },
+      "tasks": {
+        "title": "Gérer les tâches",
+        "intro": "Les choses à faire du foyer : assignation, échéances et suivi.",
+        "steps": {
+          "create": {
+            "title": "Créer une tâche",
+            "body": "Un titre suffit ; ajoutez si besoin une échéance, une zone et un responsable."
+          },
+          "organize": {
+            "title": "Filtrer et organiser",
+            "body": "Les filtres (à faire, en retard, terminées…) gardent la liste lisible."
+          },
+          "complete": {
+            "title": "Terminer et retrouver",
+            "body": "Cochez une tâche pour la terminer ; l'historique reste consultable."
+          }
+        }
+      },
+      "projects": {
+        "title": "Piloter un projet",
+        "intro": "Rénovation, achat, vacances : suivez un projet de bout en bout avec budget et dépenses.",
+        "steps": {
+          "create": {
+            "title": "Créer le projet",
+            "body": "Donnez-lui un nom, une description et un budget prévisionnel."
+          },
+          "plan": {
+            "title": "Rassembler tâches et notes",
+            "body": "Reliez tâches, notes et documents au projet pour tout garder au même endroit."
+          },
+          "budget": {
+            "title": "Suivre le budget",
+            "body": "Les dépenses liées alimentent le coût réel, comparé automatiquement au budget."
+          }
+        }
+      },
+      "interactions": {
+        "title": "Tenir le journal du foyer",
+        "intro": "Le journal enregistre tout ce qui se passe : notes, dépenses, maintenances…",
+        "steps": {
+          "log": {
+            "title": "Ajouter une entrée",
+            "body": "Créez une note ou une dépense en quelques secondes depuis la page Journal."
+          },
+          "types": {
+            "title": "Choisir le bon type",
+            "body": "Note, dépense, maintenance… le type détermine où l'entrée apparaît (page Dépenses, fil d'activité)."
+          },
+          "link": {
+            "title": "Relier au contexte",
+            "body": "Associez zones, documents ou tâches à une entrée pour la retrouver facilement."
+          }
+        }
+      },
+      "trackers": {
+        "title": "Suivre des valeurs dans le temps",
+        "intro": "Relevés de compteur, poids, niveau de cuve : des séries de valeurs datées avec graphiques.",
+        "steps": {
+          "create": {
+            "title": "Créer un tracker",
+            "body": "Choisissez un nom et une unité (kg, m³, heures…)."
+          },
+          "entries": {
+            "title": "Ajouter des valeurs",
+            "body": "Saisissez une valeur datée à chaque relevé ; la série se construit."
+          },
+          "charts": {
+            "title": "Lire l'évolution",
+            "body": "Le graphique du tracker montre la tendance ; un tracker peut aussi vivre dans un projet."
+          }
+        }
+      },
+      "expenses": {
+        "title": "Suivre les dépenses",
+        "intro": "Toutes les dépenses du foyer, saisies à la main ou créées automatiquement par les achats.",
+        "steps": {
+          "record": {
+            "title": "Saisir une dépense",
+            "body": "Resto, cadeau, courses : ajoutez une dépense ponctuelle avec montant et fournisseur."
+          },
+          "sources": {
+            "title": "Comprendre les dépenses automatiques",
+            "body": "Les achats de stock ou d'équipement créent leur dépense tout seuls — rien à ressaisir."
+          },
+          "review": {
+            "title": "Analyser par période",
+            "body": "Filtrez par période ou par zone pour voir où part l'argent."
+          }
+        }
+      },
+      "documents": {
+        "title": "Classer vos documents",
+        "intro": "Factures, manuels, attestations : les fichiers du foyer, reliés à leur contexte.",
+        "steps": {
+          "upload": {
+            "title": "Déposer un fichier",
+            "body": "Importez un PDF ou une image et donnez-lui un titre parlant."
+          },
+          "link": {
+            "title": "Relier au bon objet",
+            "body": "Attachez le document à un équipement, un contrat ou un projet."
+          },
+          "find": {
+            "title": "Retrouver un document",
+            "body": "Recherche et filtres par type ; l'assistant IA sait aussi les retrouver."
+          }
+        }
+      },
+      "photos": {
+        "title": "Parcourir les photos",
+        "intro": "Une vue dédiée aux photos du foyer, alimentée par le module Documents.",
+        "steps": {
+          "browse": {
+            "title": "Parcourir la galerie",
+            "body": "Les images déposées dans Documents apparaissent automatiquement ici."
+          },
+          "add": {
+            "title": "Ajouter des photos",
+            "body": "Déposez vos photos comme n'importe quel document de type image."
+          }
+        }
+      },
+      "directory": {
+        "title": "Constituer le carnet d'adresses",
+        "intro": "Artisans, voisins, services : les contacts utiles du foyer, partagés avec tous les membres.",
+        "steps": {
+          "contacts": {
+            "title": "Ajouter des contacts",
+            "body": "Nom, téléphone, e-mail, notes : créez une fiche par personne."
+          },
+          "structures": {
+            "title": "Enregistrer des structures",
+            "body": "Entreprises, administrations, associations — reliez-y leurs contacts."
+          }
+        }
+      },
+      "alerts": {
+        "title": "Traiter les alertes",
+        "intro": "Les alertes regroupent ce qui demande votre attention : péremptions, échéances, garanties…",
+        "steps": {
+          "review": {
+            "title": "Passer en revue",
+            "body": "Le badge de la sidebar compte les alertes actives ; la page les liste par type."
+          },
+          "act": {
+            "title": "Agir sur une alerte",
+            "body": "Ouvrez l'élément concerné depuis l'alerte et réglez la cause : l'alerte disparaît."
+          }
+        }
+      },
+      "settings": {
+        "title": "Régler l'application et le foyer",
+        "intro": "Profil, apparence, membres et modules : tout se configure dans les réglages.",
+        "steps": {
+          "profile": {
+            "title": "Personnaliser votre profil",
+            "body": "Nom d'affichage, langue, thème clair/sombre et palette de couleurs."
+          },
+          "household": {
+            "title": "Gérer le foyer",
+            "body": "Invitez des membres, gérez les rôles, changez de foyer actif."
+          },
+          "modules": {
+            "title": "Activer les bons modules",
+            "body": "Désactivez les modules inutiles (poulailler, assurance…) pour alléger la navigation."
+          }
+        }
+      }
+    }
+  },
   "photos": {
     "app_title": "Mini-app Photos",
     "section_label": "Nœud Django scopé : {{section}}",

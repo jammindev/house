@@ -531,6 +531,22 @@ Doc complète : `docs/MODULES/agent.md` + `docs/parcours/PARCOURS_07_LOT8_ACTION
 
 ---
 
+## Page Tutoriel (`ui/src/features/tutorials/`)
+
+Page `/app/tutorial` (sidebar, section Compte) : checklist « Bien démarrer » +
+un guide pas à pas par module. Le contenu est **du code** : registre typé
+`content.ts` + prose dans le namespace `tutorials` des 4 locales — aucune table
+backend. La progression est une liste de clés opaques sur
+`User.completed_tutorials` (validation de forme uniquement : ajouter un guide ne
+touche jamais le backend). Les guides adossés à un module (`moduleKey`) héritent
+de son icône et sont masqués si le module est désactivé pour le foyer.
+
+**Règle : toute feature qui change le parcours utilisateur met à jour les
+tutoriels dans la même PR** — skill `/tutorials` (étape intégrée au skill
+`/new-feature`). Doc : `docs/MODULES/tutorials.md`.
+
+---
+
 ## Changelog / « Nouveautés » (`apps/releases/`)
 
 Page `/app/admin/changelog` (**réservée au staff/superuser Django**, section Admin

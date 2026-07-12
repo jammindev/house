@@ -842,6 +842,381 @@
       "saved": "Módulos actualizados"
     }
   },
+  "tutorials": {
+    "title": "Tutorial",
+    "description": "Aprende a usar la aplicación, módulo a módulo",
+    "progressTitle": "Tu progreso",
+    "progressCount": "{{done}} de {{total}} completados",
+    "gettingStarted": "Primeros pasos",
+    "gettingStartedHint": "Las primeras acciones clave para poner en marcha tu hogar.",
+    "guides": "Guías por módulo",
+    "guidesHint": "Una guía paso a paso para cada parte de la aplicación.",
+    "goThere": "Ir",
+    "openPage": "Abrir la página",
+    "openPageLong": "Abrir la página de esta guía",
+    "markDone": "Marcar como terminado",
+    "markUndone": "Volver a repasar",
+    "done": "Terminado",
+    "stepCount_one": "{{count}} paso",
+    "stepCount_other": "{{count}} pasos",
+    "notFound": "Esta guía no existe.",
+    "start": {
+      "items": {
+        "create-zone": {
+          "title": "Describir tu vivienda en zonas",
+          "description": "Crea tus habitaciones, plantas o edificios: las zonas dan contexto a toda la aplicación."
+        },
+        "add-equipment": {
+          "title": "Añadir un primer equipo",
+          "description": "Caldera, ventilación, electrodomésticos… registra un equipo para seguir garantía y mantenimiento."
+        },
+        "first-task": {
+          "title": "Crear tu primera tarea",
+          "description": "Anota algo por hacer, asígnalo y ponle una fecha límite."
+        },
+        "log-note": {
+          "title": "Escribir una nota en el diario",
+          "description": "El diario guarda constancia de todo lo que ocurre en el hogar."
+        },
+        "ask-agent": {
+          "title": "Hacer una pregunta al asistente",
+          "description": "Prueba con «¿cuánto hemos gastado este mes?» — responde con fuentes."
+        },
+        "invite-member": {
+          "title": "Invitar a un miembro del hogar",
+          "description": "Desde los ajustes, invita a tu familia a unirse al hogar."
+        }
+      }
+    },
+    "guide": {
+      "dashboard": {
+        "title": "Descubrir el panel",
+        "intro": "El panel ofrece una vista general de tu hogar nada más iniciar sesión.",
+        "steps": {
+          "overview": {
+            "title": "Leer la vista general",
+            "body": "Las tarjetas resumen cada módulo: tareas en curso, últimos gastos, lecturas recientes…"
+          },
+          "activity": {
+            "title": "Seguir el hilo de actividad",
+            "body": "El hilo muestra las últimas entradas del diario del hogar: notas, gastos, mantenimientos."
+          },
+          "alerts": {
+            "title": "Vigilar las alertas",
+            "body": "La insignia de la barra lateral indica lo que requiere tu atención; la página de Alertas da el detalle."
+          }
+        }
+      },
+      "agent": {
+        "title": "Usar el asistente de IA",
+        "intro": "El asistente responde en lenguaje natural sobre los datos de tu hogar, con fuentes verificables.",
+        "steps": {
+          "ask": {
+            "title": "Hacer una pregunta",
+            "body": "Abre la página del Agente y pregunta, por ejemplo, «¿qué tareas están atrasadas?»."
+          },
+          "citations": {
+            "title": "Comprobar las fuentes",
+            "body": "Cada respuesta cita los elementos usados; haz clic en una cita para abrir el elemento."
+          },
+          "create": {
+            "title": "Crear desde el chat",
+            "body": "Pide «crea una tarea…» o «anota que…»: el elemento se crea al instante, con botón de Deshacer."
+          },
+          "memory": {
+            "title": "Gestionar la memoria",
+            "body": "El asistente recuerda datos duraderos sobre ti; consúltalos y bórralos desde la página de Memoria."
+          }
+        }
+      },
+      "zones": {
+        "title": "Organizar la vivienda en zonas",
+        "intro": "Las zonas (habitaciones, plantas, edificios) estructuran la navegación de toda la aplicación.",
+        "steps": {
+          "create": {
+            "title": "Crear tus zonas",
+            "body": "Añade tus estancias principales: cocina, salón, garaje, jardín…"
+          },
+          "hierarchy": {
+            "title": "Construir la jerarquía",
+            "body": "Anida las zonas (planta → dormitorio) para reflejar tu vivienda."
+          },
+          "navigate": {
+            "title": "Navegar por zona",
+            "body": "La página de una zona reúne los equipos, tareas y eventos asociados."
+          }
+        }
+      },
+      "equipment": {
+        "title": "Seguir tus equipos",
+        "intro": "Garantía, mantenimiento, historial: todo lo relativo a un equipo en un solo lugar.",
+        "steps": {
+          "add": {
+            "title": "Añadir un equipo",
+            "body": "Indica el nombre, la zona y, si los tienes, la fecha de compra y la garantía."
+          },
+          "purchase": {
+            "title": "Registrar una compra",
+            "body": "El botón de compra crea automáticamente el gasto correspondiente en el diario del hogar."
+          },
+          "history": {
+            "title": "Consultar el historial",
+            "body": "Las intervenciones, averías y mantenimientos del equipo aparecen en su página de detalle."
+          }
+        }
+      },
+      "electricity": {
+        "title": "Modelar tu instalación eléctrica",
+        "intro": "Describe el cuadro eléctrico y sigue tu consumo.",
+        "steps": {
+          "board": {
+            "title": "Describir el cuadro",
+            "body": "Crea el cuadro, sus protecciones y sus circuitos, y enlázalos con los puntos de uso."
+          },
+          "readings": {
+            "title": "Introducir lecturas",
+            "body": "Añade regularmente el índice de tu contador, o importa un archivo de lecturas."
+          },
+          "analyze": {
+            "title": "Analizar el consumo",
+            "body": "Los gráficos agregan tus lecturas por periodo para detectar desviaciones."
+          }
+        }
+      },
+      "water": {
+        "title": "Seguir el consumo de agua",
+        "intro": "Las lecturas manuales del contador bastan para seguir tu consumo de agua.",
+        "steps": {
+          "readings": {
+            "title": "Introducir una lectura",
+            "body": "Anota la fecha y el índice en m³; lecturas regulares dan curvas fiables."
+          },
+          "charts": {
+            "title": "Leer los gráficos",
+            "body": "Navega por periodo y compara consumos, igual que con la electricidad."
+          }
+        }
+      },
+      "stock": {
+        "title": "Gestionar el stock del hogar",
+        "intro": "Consumibles y suministros: cantidades, categorías y caducidades bajo control.",
+        "steps": {
+          "add": {
+            "title": "Crear artículos",
+            "body": "Añade tus consumibles (pienso, bombillas, leña…) con su unidad."
+          },
+          "quantities": {
+            "title": "Ajustar cantidades",
+            "body": "Actualiza las cantidades según compras y consumos; una compra crea su gasto automáticamente."
+          },
+          "expiry": {
+            "title": "Vigilar las caducidades",
+            "body": "Indica las fechas de caducidad para recibir avisos antes de que sea tarde."
+          }
+        }
+      },
+      "chickens": {
+        "title": "Llevar el gallinero",
+        "intro": "Registro del corral, puesta diaria y coste por huevo.",
+        "steps": {
+          "flock": {
+            "title": "Registrar tus gallinas",
+            "body": "Crea una ficha por gallina: nombre, raza, fecha de llegada."
+          },
+          "eggs": {
+            "title": "Anotar la puesta",
+            "body": "Introduce cada día el número de huevos recogidos — el historial se construye solo."
+          },
+          "events": {
+            "title": "Registrar los eventos",
+            "body": "Cuidados, incubación, muda, muerte: la ficha de cada gallina guarda su cronología."
+          }
+        }
+      },
+      "insurance": {
+        "title": "Seguir tus seguros",
+        "intro": "Todos los contratos del hogar (vivienda, salud, coche…) en un mismo lugar.",
+        "steps": {
+          "contracts": {
+            "title": "Añadir tus contratos",
+            "body": "Indica la aseguradora, el tipo, el número y el vencimiento de cada contrato."
+          },
+          "documents": {
+            "title": "Adjuntar los documentos",
+            "body": "Enlaza los contratos y certificados PDF desde el módulo Documentos."
+          }
+        }
+      },
+      "tasks": {
+        "title": "Gestionar las tareas",
+        "intro": "Las cosas por hacer del hogar: asignación, plazos y seguimiento.",
+        "steps": {
+          "create": {
+            "title": "Crear una tarea",
+            "body": "Con un título basta; añade si quieres una fecha límite, una zona y un responsable."
+          },
+          "organize": {
+            "title": "Filtrar y organizar",
+            "body": "Los filtros (pendientes, atrasadas, terminadas…) mantienen la lista legible."
+          },
+          "complete": {
+            "title": "Terminar y reencontrar",
+            "body": "Marca una tarea para terminarla; el historial sigue disponible."
+          }
+        }
+      },
+      "projects": {
+        "title": "Dirigir un proyecto",
+        "intro": "Reforma, compra, vacaciones: sigue un proyecto de principio a fin con presupuesto y gastos.",
+        "steps": {
+          "create": {
+            "title": "Crear el proyecto",
+            "body": "Dale un nombre, una descripción y un presupuesto previsto."
+          },
+          "plan": {
+            "title": "Reunir tareas y notas",
+            "body": "Enlaza tareas, notas y documentos al proyecto para tenerlo todo junto."
+          },
+          "budget": {
+            "title": "Seguir el presupuesto",
+            "body": "Los gastos vinculados alimentan el coste real, comparado automáticamente con el presupuesto."
+          }
+        }
+      },
+      "interactions": {
+        "title": "Llevar el diario del hogar",
+        "intro": "El diario registra todo lo que pasa: notas, gastos, mantenimientos…",
+        "steps": {
+          "log": {
+            "title": "Añadir una entrada",
+            "body": "Crea una nota o un gasto en segundos desde la página del Diario."
+          },
+          "types": {
+            "title": "Elegir el tipo adecuado",
+            "body": "Nota, gasto, mantenimiento… el tipo decide dónde aparece la entrada (página de Gastos, hilo de actividad)."
+          },
+          "link": {
+            "title": "Enlazar con el contexto",
+            "body": "Asocia zonas, documentos o tareas a una entrada para reencontrarla fácilmente."
+          }
+        }
+      },
+      "trackers": {
+        "title": "Seguir valores en el tiempo",
+        "intro": "Lecturas de contador, peso, nivel de depósito: series de valores con fecha y gráficos.",
+        "steps": {
+          "create": {
+            "title": "Crear un tracker",
+            "body": "Elige un nombre y una unidad (kg, m³, horas…)."
+          },
+          "entries": {
+            "title": "Añadir valores",
+            "body": "Introduce un valor con fecha en cada lectura; la serie va creciendo."
+          },
+          "charts": {
+            "title": "Leer la evolución",
+            "body": "El gráfico del tracker muestra la tendencia; un tracker también puede vivir dentro de un proyecto."
+          }
+        }
+      },
+      "expenses": {
+        "title": "Seguir los gastos",
+        "intro": "Todos los gastos del hogar, introducidos a mano o creados automáticamente por las compras.",
+        "steps": {
+          "record": {
+            "title": "Introducir un gasto",
+            "body": "Restaurante, regalo, compra: añade un gasto puntual con importe y proveedor."
+          },
+          "sources": {
+            "title": "Entender los gastos automáticos",
+            "body": "Las compras de stock o de equipos crean su gasto solas — nada que volver a introducir."
+          },
+          "review": {
+            "title": "Analizar por periodo",
+            "body": "Filtra por periodo o por zona para ver adónde va el dinero."
+          }
+        }
+      },
+      "documents": {
+        "title": "Archivar tus documentos",
+        "intro": "Facturas, manuales, certificados: los archivos del hogar, enlazados con su contexto.",
+        "steps": {
+          "upload": {
+            "title": "Subir un archivo",
+            "body": "Importa un PDF o una imagen y dale un título significativo."
+          },
+          "link": {
+            "title": "Enlazar con el objeto correcto",
+            "body": "Adjunta el documento a un equipo, un contrato o un proyecto."
+          },
+          "find": {
+            "title": "Reencontrar un documento",
+            "body": "Búsqueda y filtros por tipo; el asistente de IA también sabe encontrarlos."
+          }
+        }
+      },
+      "photos": {
+        "title": "Explorar las fotos",
+        "intro": "Una vista dedicada a las fotos del hogar, alimentada por el módulo Documentos.",
+        "steps": {
+          "browse": {
+            "title": "Explorar la galería",
+            "body": "Las imágenes subidas en Documentos aparecen aquí automáticamente."
+          },
+          "add": {
+            "title": "Añadir fotos",
+            "body": "Sube tus fotos como cualquier otro documento de tipo imagen."
+          }
+        }
+      },
+      "directory": {
+        "title": "Crear la agenda de contactos",
+        "intro": "Artesanos, vecinos, servicios: los contactos útiles del hogar, compartidos con todos los miembros.",
+        "steps": {
+          "contacts": {
+            "title": "Añadir contactos",
+            "body": "Nombre, teléfono, correo, notas: crea una ficha por persona."
+          },
+          "structures": {
+            "title": "Registrar organizaciones",
+            "body": "Empresas, administraciones, asociaciones — enlaza en ellas sus contactos."
+          }
+        }
+      },
+      "alerts": {
+        "title": "Tratar las alertas",
+        "intro": "Las alertas reúnen lo que requiere tu atención: caducidades, vencimientos, garantías…",
+        "steps": {
+          "review": {
+            "title": "Revisarlas",
+            "body": "La insignia de la barra lateral cuenta las alertas activas; la página las lista por tipo."
+          },
+          "act": {
+            "title": "Actuar sobre una alerta",
+            "body": "Abre el elemento afectado desde la alerta y arregla la causa: la alerta desaparece."
+          }
+        }
+      },
+      "settings": {
+        "title": "Configurar la aplicación y el hogar",
+        "intro": "Perfil, apariencia, miembros y módulos: todo se configura en los ajustes.",
+        "steps": {
+          "profile": {
+            "title": "Personalizar tu perfil",
+            "body": "Nombre visible, idioma, tema claro/oscuro y paleta de colores."
+          },
+          "household": {
+            "title": "Gestionar el hogar",
+            "body": "Invita a miembros, gestiona los roles, cambia de hogar activo."
+          },
+          "modules": {
+            "title": "Activar los módulos adecuados",
+            "body": "Desactiva los módulos que no uses (gallinero, seguros…) para aligerar la navegación."
+          }
+        }
+      }
+    }
+  },
   "photos": {
     "app_title": "Mini-app Fotos",
     "section_label": "Nodo Django de sección: {{section}}",
