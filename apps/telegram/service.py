@@ -20,6 +20,7 @@ from django.core.cache import cache
 from django.db import close_old_connections
 from django.utils import translation
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy
 
 from .client import get_client
 from .linking import consume_link_token, link_account
@@ -39,6 +40,20 @@ SUPPORTED_LANGUAGES = {"en", "fr", "de", "es"}
 # entity, so it is never passed to `ask()` as context_entity.
 CHANNEL_ENTITY_TYPE = "channel"
 CHANNEL_OBJECT_ID = "telegram"
+
+# SOURCE OF TRUTH for the bot's command menu (the `/` autocomplete in Telegram).
+# `telegram_set_commands` pushes this list to Telegram (setMyCommands) at every
+# deploy, so it is NOT auto-derived from the handlers below — if you add or
+# rename a slash command in `_handle_message`, add/rename it HERE too, otherwise
+# the menu drifts from what the bot actually accepts. `/start` is intentionally
+# absent: Telegram surfaces it as the built-in "Start" button.
+# Descriptions use gettext_lazy: they must resolve at push time (under
+# translation.override per language), not at import time.
+BOT_COMMANDS: tuple[tuple[str, object], ...] = (
+    ("help", gettext_lazy("Show what I can do")),
+    ("reset", gettext_lazy("Start a fresh conversation")),
+    ("stop", gettext_lazy("Turn off proactive messages")),
+)
 
 
 def handle_update(update: dict) -> None:

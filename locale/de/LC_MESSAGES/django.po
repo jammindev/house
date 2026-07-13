@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 22:43+0000\n"
+"POT-Creation-Date: 2026-07-12 22:58+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: German\n"
@@ -64,7 +64,11 @@ msgstr "aktiver Haushalt"
 msgid "Sidebar module keys pinned by the user, in order."
 msgstr ""
 
-#: apps/accounts/models.py:126
+#: apps/accounts/models.py:129
+msgid "Tutorial keys the user has completed."
+msgstr ""
+
+#: apps/accounts/models.py:135
 msgid ""
 "When enabled, the AI agent automatically remembers durable facts about the "
 "user from conversations and uses them in its answers. When disabled, "
@@ -72,21 +76,33 @@ msgid ""
 "that…' requests still work."
 msgstr ""
 
-#: apps/accounts/models.py:143
+#: apps/accounts/models.py:152
 msgid "user"
 msgstr "Benutzer"
 
-#: apps/accounts/models.py:144
+#: apps/accounts/models.py:153
 msgid "users"
 msgstr "Benutzer"
 
-#: apps/accounts/serializers.py:38 apps/households/serializers.py:38
+#: apps/accounts/serializers.py:39 apps/households/serializers.py:38
 msgid "Expected a list of module keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:42
+#: apps/accounts/serializers.py:43
 #, python-format
 msgid "Module(s) not pinnable: %(keys)s"
+msgstr ""
+
+#: apps/accounts/serializers.py:52
+msgid "Expected a list of tutorial keys."
+msgstr ""
+
+#: apps/accounts/serializers.py:54
+msgid "Tutorial key too long."
+msgstr ""
+
+#: apps/accounts/serializers.py:57
+msgid "Too many tutorial keys."
 msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:3
@@ -1153,25 +1169,42 @@ msgstr ""
 msgid "Adjustment would produce a negative quantity."
 msgstr ""
 
-#: apps/telegram/service.py:113
+#: apps/telegram/service.py:53
+msgid "Show what I can do"
+msgstr "Zeigen, was ich kann"
+
+#: apps/telegram/service.py:54
+msgid "Start a fresh conversation"
+msgstr "Neue Unterhaltung starten"
+
+#: apps/telegram/service.py:55
+msgid "Turn off proactive messages"
+msgstr "Proaktive Nachrichten ausschalten"
+
+#: apps/telegram/service.py:128
 msgid ""
 "This link is invalid or has expired. Generate a new one from the app "
 "settings."
-msgstr "Dieser Link ist ungültig oder abgelaufen. Erstelle in den App-Einstellungen einen neuen."
+msgstr ""
+"Dieser Link ist ungültig oder abgelaufen. Erstelle in den App-Einstellungen "
+"einen neuen."
 
-#: apps/telegram/service.py:121
+#: apps/telegram/service.py:136
 msgid "✅ Your Telegram account is linked. Ask me anything about your home!"
-msgstr "✅ Dein Telegram-Konto ist verknüpft. Frag mich alles über dein Zuhause!"
+msgstr ""
+"✅ Dein Telegram-Konto ist verknüpft. Frag mich alles über dein Zuhause!"
 
-#: apps/telegram/service.py:130
+#: apps/telegram/service.py:145
 msgid "One question at a time 🙂 — give me a few seconds and try again."
-msgstr "Eine Frage nach der anderen 🙂 — gib mir ein paar Sekunden und versuch es erneut."
+msgstr ""
+"Eine Frage nach der anderen 🙂 — gib mir ein paar Sekunden und versuch es "
+"erneut."
 
-#: apps/telegram/service.py:153
+#: apps/telegram/service.py:168
 msgid "Fresh start — your next message opens a new conversation."
 msgstr "Neustart — deine nächste Nachricht öffnet eine neue Unterhaltung."
 
-#: apps/telegram/service.py:177
+#: apps/telegram/service.py:192
 msgid ""
 "🔕 Done — I won't message you first anymore. You can re-enable proactive "
 "messages anytime in the app settings."
@@ -1179,48 +1212,52 @@ msgstr ""
 "🔕 Alles klar — ich schreibe dir nicht mehr zuerst. Du kannst proaktive "
 "Nachrichten jederzeit in den App-Einstellungen wieder aktivieren."
 
-#: apps/telegram/service.py:183
+#: apps/telegram/service.py:198
 msgid "You have no proactive messages enabled — nothing to stop."
 msgstr "Du hast keine proaktiven Nachrichten aktiviert — nichts zu stoppen."
 
-#: apps/telegram/service.py:200
+#: apps/telegram/service.py:215
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "You are not a member of any household yet."
 msgstr "Sie sind kein Mitglied dieses Haushalts."
 
-#: apps/telegram/service.py:221
+#: apps/telegram/service.py:236
 msgid "The assistant is unavailable right now — please try again in a minute."
-msgstr "Der Assistent ist gerade nicht verfügbar — bitte versuch es in einer Minute erneut."
+msgstr ""
+"Der Assistent ist gerade nicht verfügbar — bitte versuch es in einer Minute "
+"erneut."
 
-#: apps/telegram/service.py:230
+#: apps/telegram/service.py:245
 msgid "Something went wrong on my side — please try again."
 msgstr "Bei mir ist etwas schiefgelaufen — bitte versuch es erneut."
 
-#: apps/telegram/service.py:242
+#: apps/telegram/service.py:257 apps/telegram/tests/test_i18n.py:35
 #, python-brace-format
 msgid "↩️ Undo: {label}"
 msgstr "↩️ Rückgängig: {label}"
 
-#: apps/telegram/service.py:288
+#: apps/telegram/service.py:303
 msgid "Nothing to undo."
 msgstr "Nichts rückgängig zu machen."
 
-#: apps/telegram/service.py:295
+#: apps/telegram/service.py:310
 msgid "Couldn't undo — try from the app."
 msgstr "Konnte nicht rückgängig gemacht werden — versuch es in der App."
 
-#: apps/telegram/service.py:298
+#: apps/telegram/service.py:313
 msgid "Undone."
 msgstr "Rückgängig gemacht."
 
-#: apps/telegram/service.py:337
+#: apps/telegram/service.py:352
 msgid ""
 "This Telegram account is not linked to House yet. Open the app settings and "
 "tap “Connect Telegram”."
-msgstr "Dieses Telegram-Konto ist noch nicht mit House verknüpft. Öffne die App-Einstellungen und tippe auf „Telegram verbinden“."
+msgstr ""
+"Dieses Telegram-Konto ist noch nicht mit House verknüpft. Öffne die App-"
+"Einstellungen und tippe auf „Telegram verbinden“."
 
-#: apps/telegram/service.py:345
+#: apps/telegram/service.py:360
 msgid ""
 "Ask me anything about your home — expenses, tasks, equipment, notes…\n"
 "/reset starts a fresh conversation.\n"

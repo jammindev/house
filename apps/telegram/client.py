@@ -1,5 +1,5 @@
 """
-Thin wrapper over the Telegram Bot API — 5 methods, no third-party SDK.
+Thin wrapper over the Telegram Bot API — a handful of methods, no third-party SDK.
 
 Every call is fire-and-forget from the caller's point of view: network or API
 errors are logged and swallowed (`None` returned), never raised — a Telegram
@@ -78,6 +78,19 @@ class TelegramClient:
                 "allowed_updates": ["message", "callback_query"],
             },
         )
+
+    def set_my_commands(
+        self, commands: list[dict], *, language_code: str | None = None
+    ) -> dict | None:
+        """Register the bot's command menu (the `/` autocomplete).
+
+        ``commands`` is a list of ``{"command", "description"}``. ``language_code``
+        scopes the list to one language; Telegram serves the default (language-less)
+        list to any locale without its own."""
+        payload: dict[str, Any] = {"commands": commands}
+        if language_code:
+            payload["language_code"] = language_code
+        return self._call("setMyCommands", payload)
 
     def _call(self, method: str, payload: dict) -> dict | None:
         if not self.enabled:

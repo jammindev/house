@@ -9,11 +9,12 @@
 - **Backend** : `apps/telegram/`
   - `models.py` — `TelegramAccount` (OneToOne user ↔ `chat_id`, source unique d'identité).
   - `linking.py` — tokens de liaison signés/expirants (aucun stockage), `link_account`.
-  - `client.py` — wrapper mince sur l'API Bot (`httpx`, 5 méthodes, erreurs avalées).
-  - `service.py` — routage des updates (messages + `callback_query`), thread de traitement, cooldown, dédup, i18n.
+  - `client.py` — wrapper mince sur l'API Bot (`httpx`, erreurs avalées).
+  - `service.py` — routage des updates (messages + `callback_query`), thread de traitement, cooldown, dédup, i18n. Porte aussi `BOT_COMMANDS`, la **source de vérité** du menu de commandes.
   - `rendering.py` — `AnswerResult` → messages HTML (citations en liens, découpage 4096), clavier inline d'undo.
   - `views.py` — webhook sécurisé, `link-token`, `account` (statut/délier).
   - `management/commands/telegram_set_webhook.py` — enregistre l'URL + le secret (à lancer au déploiement).
+  - `management/commands/telegram_set_commands.py` — pousse `BOT_COMMANDS` vers Telegram (`setMyCommands`, par langue). Câblé au job `deploy` (`continue-on-error`).
 - **Frontend** : `ui/src/features/settings/components/TelegramSection.tsx` (carte réglages : connecter / statut / délier), `ui/src/lib/api/telegram.ts`, hooks dans `ui/src/features/settings/hooks.ts`.
 - **Locales (en/fr/de/es)** : clés `settings.telegram*`. Les messages du bot sont côté serveur (`gettext`, `locale/`).
 - **Tests** : `apps/telegram/tests/` — `test_webhook.py`, `test_linking.py`, `test_service.py`, `test_bridge.py`, `test_rendering.py`, `test_account_api.py`, `test_undo.py`.
@@ -82,6 +83,20 @@ Déploiement : renseigner les 3 variables, puis
 `python manage.py telegram_set_webhook` (URL par défaut : `<FRONTEND_URL>/api/telegram/webhook/`,
 doit être en HTTPS). Pas de conteneur ni de worker dédié : le webhook vit dans le
 service `web`, le traitement dans un thread daemon.
+
+## Menu de commandes (`/` autocomplete)
+
+Telegram n'apprend PAS les commandes du comportement du bot : le menu `/` est une
+liste qu'on enregistre via `setMyCommands` et que Telegram garde côté serveur.
+La **source de vérité** est `BOT_COMMANDS` dans `service.py` (nom + description
+`gettext_lazy`). `telegram_set_commands` la pousse par langue ; **le job `deploy`
+le lance à chaque push sur `main`** (`continue-on-error`), donc le menu se met à
+jour tout seul.
+
+> **En ajoutant/renommant une commande slash dans `_handle_message`, mets à jour
+> `BOT_COMMANDS`** — sinon le menu diverge de ce que le bot accepte réellement.
+> Le test `test_set_commands.py::test_commands_mirror_the_handlers` garde ce
+> couplage. `/start` n'y figure pas (bouton « Start » natif de Telegram).
 
 ## Envoi sortant proactif (pings)
 
