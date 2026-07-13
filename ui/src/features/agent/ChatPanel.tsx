@@ -18,6 +18,7 @@ import type {
   AgentConversationDetail,
   AgentMemoryEvent,
   AgentMessageRow,
+  AgentWebSource,
 } from './api';
 
 interface UserMessage {
@@ -34,6 +35,8 @@ interface AgentMessage {
   truncated?: boolean;
   /** Memories the agent wrote this turn — rendered as a persistent 📌 line. */
   memoryEvents?: AgentMemoryEvent[];
+  /** Public web sources the agent used this turn (web_search tool). */
+  webSources?: AgentWebSource[];
 }
 
 interface ErrorMessage {
@@ -57,6 +60,7 @@ function toMessage(row: AgentMessageRow): Message {
     citations: row.citations,
     truncated: Boolean(row.metadata?.truncated),
     memoryEvents: row.metadata?.memory_events,
+    webSources: row.metadata?.web_sources,
   };
 }
 
@@ -214,6 +218,7 @@ export default function ChatPanel({
             citations: agentMsg.citations,
             truncated: Boolean(agentMsg.metadata?.truncated),
             memoryEvents: agentMsg.metadata?.memory_events,
+            webSources: agentMsg.metadata?.web_sources,
           },
         ]);
         notifyCreated(agentMsg.metadata?.created_entities);
@@ -269,6 +274,7 @@ export default function ChatPanel({
                   citations={msg.citations}
                   truncated={msg.truncated}
                   memoryEvents={msg.memoryEvents}
+                  webSources={msg.webSources}
                 />
               );
             }

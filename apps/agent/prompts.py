@@ -140,6 +140,25 @@ the full text of a document only summarised there).
 """
 
 
+# Appended when web search is enabled (settings.AGENT_WEB_SEARCH_ENABLED). Adds a
+# fourth response mode: reach out to the public web for facts that are neither in
+# the household data nor stable general knowledge. Household tools still own
+# household facts; the web tool owns current/external ones.
+WEB_SEARCH_ADDENDUM = """
+
+You also have a `web_search` tool that searches the PUBLIC WEB and returns
+results with their source URLs. Use it ONLY when answering well needs
+information that is (a) not in this family's data and (b) beyond stable general
+knowledge — current facts, recent events, prices, product specs, precise how-to
+details, or anything time-sensitive or that you are not confident about. Do NOT
+search for household facts (use the household tools) or for stable general
+knowledge you already know (answer directly). When you rely on web results, base
+your answer on them and name the source; never present old memory as a current
+fact. Web sources are shown to the user separately — you do not need a <cite/>
+marker for them (those are only for household items).
+"""
+
+
 # The memory tool + rules. Two variants: when the user's agent_memory_enabled
 # flag is ON, the model captures durable facts spontaneously; when OFF, only an
 # explicit "remember that…" from the user may write a memory (and nothing is
@@ -219,14 +238,18 @@ def build_system_prompt(
     anchored: bool = False,
     memory_mode: str | None = None,
     memories: list | None = None,
+    web_search: bool = False,
 ) -> str:
     """Return the system prompt, optionally extended for an anchored conversation.
 
     ``memory_mode`` is ``"auto"`` (capture spontaneously + inject memories),
     ``"manual"`` (explicit requests only, nothing injected) or ``None`` (no
-    user on this call — the memory tool is not described at all).
+    user on this call — the memory tool is not described at all). ``web_search``
+    appends the web-search capability when the server-side tool is enabled.
     """
     prompt = SYSTEM_PROMPT + ANCHORED_ADDENDUM if anchored else SYSTEM_PROMPT
+    if web_search:
+        prompt += WEB_SEARCH_ADDENDUM
     if memory_mode == "auto":
         prompt += MEMORY_TOOL_ADDENDUM + MEMORY_AUTO_ADDENDUM
         if memories:

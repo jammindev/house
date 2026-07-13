@@ -80,6 +80,9 @@ LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
 LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")
 LLM_VISION_MODEL = env("LLM_VISION_MODEL", default="claude-haiku-4-5-20251001")
 
+# Agent web search — requires the agent on Sonnet 4.6+ (dynamic filtering).
+AGENT_WEB_SEARCH_ENABLED = env.bool("AGENT_WEB_SEARCH_ENABLED", default=False)
+
 # Telegram bot channel — leave blank to disable.
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
 TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")

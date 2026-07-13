@@ -809,3 +809,80 @@ class TestHouseholdScope:
         # The tool searched `household`, not `other` → no hits, no citation.
         assert result.citations == []
         assert result.metadata["hits_count"] == 0
+
+
+# ---------------------------------------------------------------------------
+# Web search (server-side tool)
+# ---------------------------------------------------------------------------
+
+
+def _run_pause(web_sources, *, blocks=None) -> LLMRunResponse:
+    """A `pause_turn` turn: the server web-search loop paused mid-turn."""
+    return LLMRunResponse(
+        assistant_blocks=blocks
+        or [{"type": "server_tool_use", "id": "s1", "name": "web_search", "input": {"query": "q"}}],
+        tool_calls=[],
+        text="",
+        stop_reason="pause_turn",
+        input_tokens=3,
+        output_tokens=1,
+        duration_ms=1,
+        model="stub-model",
+        web_sources=web_sources,
+    )
+
+
+class TestWebSearch:
+    def test_flag_passed_to_run_when_enabled(self, with_api_key, settings, household, owner):
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        stub = _ToolUseClient(script=[_run_text("Bonjour")])
+        service.ask("salut", household, user=owner, client=stub)
+        assert stub.run_calls[0]["web_search"] is True
+
+    def test_flag_off_by_default(self, with_api_key, household, owner):
+        stub = _ToolUseClient(script=[_run_text("Bonjour")])
+        service.ask("salut", household, user=owner, client=stub)
+        assert stub.run_calls[0]["web_search"] is False
+
+    def test_pause_turn_resumes_and_collects_web_sources(
+        self, with_api_key, settings, household, owner
+    ):
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        source = {"url": "https://ex.com/a", "title": "A"}
+        stub = _ToolUseClient(script=[_run_pause([source]), _run_text("La réponse web.")])
+
+        result = service.ask("actu du jour ?", household, user=owner, client=stub)
+
+        # The pause_turn turn was replayed (2 run calls) and resumed to an answer.
+        assert len(stub.run_calls) == 2
+        assert result.answer == "La réponse web."
+        assert result.metadata["web_sources"] == [source]
+        assert result.metadata["answer_kind"] == "web"
+
+    def test_pause_resume_on_last_iteration_keeps_tools(
+        self, with_api_key, settings, household, owner
+    ):
+        # max=2: iter1 pauses, iter2 is the "final forced-answer" pass. Resuming a
+        # paused search must keep tools declared (else the server can't continue).
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        settings.AGENT_MAX_TOOL_ITERATIONS = 2
+        stub = _ToolUseClient(script=[_run_pause([]), _run_text("Fini.")])
+
+        service.ask("actu ?", household, user=owner, client=stub)
+
+        assert len(stub.run_calls) == 2
+        # The resume pass (2nd, the last iteration) still offers the tools.
+        assert stub.run_calls[1]["tools"]
+        assert stub.run_calls[1]["web_search"] is True
+
+    def test_web_sources_deduped_by_url(self, with_api_key, settings, household, owner):
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        dup = {"url": "https://ex.com/a", "title": "A"}
+        final = _run_text("Réponse.")
+        final.web_sources = [dup, {"url": "https://ex.com/b", "title": "B"}]
+        stub = _ToolUseClient(script=[_run_pause([dup]), final])
+
+        result = service.ask("actu ?", household, user=owner, client=stub)
+
+        urls = [s["url"] for s in result.metadata["web_sources"]]
+        assert urls == ["https://ex.com/a", "https://ex.com/b"]

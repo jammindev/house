@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Bot, User } from 'lucide-react';
+import { Bot, Globe, User } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import AgentCitation from './AgentCitation';
-import type { AgentCitation as Citation, AgentMemoryEvent } from './api';
+import type { AgentCitation as Citation, AgentMemoryEvent, AgentWebSource } from './api';
 
 const CITE_REGEX = /<cite\s+id="([^"]+)"\s*\/?>/gi;
 const CITE_HREF_PREFIX = 'cite:';
@@ -23,6 +23,8 @@ interface AgentBubbleProps {
   truncated?: boolean;
   /** Memories written this turn — rendered as a persistent 📌 line. */
   memoryEvents?: AgentMemoryEvent[];
+  /** Public web pages the agent used this turn — rendered as a sources list. */
+  webSources?: AgentWebSource[];
 }
 
 interface LoadingBubbleProps {
@@ -88,7 +90,38 @@ export default function ChatBubble(props: Props) {
       {props.citations.length > 0 ? (
         <CitationsPanel citations={props.citations} />
       ) : null}
+      {props.webSources && props.webSources.length > 0 ? (
+        <WebSourcesPanel sources={props.webSources} />
+      ) : null}
     </AgentBubbleShell>
+  );
+}
+
+// External web pages the agent consulted via the web_search tool. Distinct from
+// CitationsPanel (internal household items) — these open the public web.
+function WebSourcesPanel({ sources }: { sources: AgentWebSource[] }) {
+  const { t } = useTranslation();
+  return (
+    <div className="mt-2 border-t border-border pt-2" data-testid="agent-web-sources">
+      <p className="mb-1.5 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <Globe className="h-3 w-3" />
+        {t('agent.web_sources_label')}
+      </p>
+      <ol className="list-decimal space-y-0.5 pl-5 text-xs">
+        {sources.map((s) => (
+          <li key={s.url} className="break-words">
+            <a
+              href={s.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary underline underline-offset-2"
+            >
+              {s.title || s.url}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 

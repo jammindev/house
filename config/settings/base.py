@@ -223,6 +223,15 @@ AGENT_MAX_TOOL_ITERATIONS = 4
 # eligible for cleanup by `manage.py cleanup_agent_conversations`. 0 disables it.
 AGENT_CONVERSATION_RETENTION_DAYS = 365
 
+# Agent web search (Anthropic server-side `web_search` tool). Off by default: it
+# calls the public web (cost + external content) and its dynamic result filtering
+# requires the agent to run on Sonnet 4.6+ (set LLM_TEXT_MODEL accordingly).
+# When ON, the model may search the web for current/external facts it can't
+# answer from household data or stable general knowledge. `MAX_USES` caps the
+# number of searches per question (0 = no cap).
+AGENT_WEB_SEARCH_ENABLED = False
+AGENT_WEB_SEARCH_MAX_USES = 5
+
 # Telegram bot channel for the agent. Empty token = channel disabled: the
 # webhook rejects everything and no outbound call is ever made.
 # Overridden per environment in local.py / production.py.

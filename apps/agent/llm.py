@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, NoReturn, Protocol
 from uuid import UUID
 
@@ -24,6 +24,13 @@ from django.conf import settings
 from ai_usage.services import log_ai_usage
 
 logger = logging.getLogger(__name__)
+
+# Anthropic server-side web search tool. The model calls it, Anthropic runs the
+# search and returns results (with source URLs) in the same round-trip — no
+# client-side handler. The `_20260209` version does dynamic result filtering,
+# which requires the agent on Sonnet 4.6+.
+WEB_SEARCH_TOOL_TYPE = "web_search_20260209"
+WEB_SEARCH_TOOL_NAME = "web_search"
 
 
 class LLMTimeoutError(Exception):
@@ -73,6 +80,9 @@ class LLMRunResponse:
     output_tokens: int | None
     duration_ms: int
     model: str
+    # Sources returned by the server-side ``web_search`` tool this round-trip:
+    # ``[{"url", "title"}, ...]``. Empty when web search was off or unused.
+    web_sources: list[dict] = field(default_factory=list)
 
 
 class LLMClient(Protocol):
@@ -104,6 +114,7 @@ class LLMClient(Protocol):
         user_id: int | None = None,
         max_tokens: int = 1024,
         metadata: dict[str, Any] | None = None,
+        web_search: bool = False,
     ) -> LLMRunResponse:
         ...
 
@@ -293,19 +304,22 @@ class AnthropicClient:
         user_id: int | None = None,
         max_tokens: int = 1024,
         metadata: dict[str, Any] | None = None,
+        web_search: bool = False,
     ) -> LLMRunResponse:
         """One tool-enabled round-trip. The tool-use loop lives in the caller.
 
         This makes a single ``messages.create`` call with the provided
         conversation ``messages`` and ``tools``, logs it into ``AIUsageLog``, and
         returns the assistant turn (normalized), the requested tool calls, and
-        the stop reason so the caller can decide whether to loop.
+        the stop reason so the caller can decide whether to loop. When
+        ``web_search`` is set (and ``tools`` is non-empty), the server-side
+        ``web_search`` tool is offered alongside the registered tools.
         """
         started = time.monotonic()
         try:
             client = self._client()
             message = client.messages.create(
-                **self._run_create_kwargs(system, messages, tools, max_tokens)
+                **self._run_create_kwargs(system, messages, tools, max_tokens, web_search)
             )
         except Exception as exc:
             self._log_and_raise_failure(
@@ -337,6 +351,7 @@ class AnthropicClient:
         user_id: int | None = None,
         max_tokens: int = 1024,
         metadata: dict[str, Any] | None = None,
+        web_search: bool = False,
     ):
         """Streaming variant of ``run()``.
 
@@ -350,7 +365,7 @@ class AnthropicClient:
         try:
             client = self._client()
             with client.messages.stream(
-                **self._run_create_kwargs(system, messages, tools, max_tokens)
+                **self._run_create_kwargs(system, messages, tools, max_tokens, web_search)
             ) as stream:
                 for text in stream.text_stream:
                     yield ("delta", text)
@@ -378,7 +393,12 @@ class AnthropicClient:
         )
 
     def _run_create_kwargs(
-        self, system: str, messages: list[dict], tools: list[dict], max_tokens: int
+        self,
+        system: str,
+        messages: list[dict],
+        tools: list[dict],
+        max_tokens: int,
+        web_search: bool = False,
     ) -> dict[str, Any]:
         """The ``messages.create``/``messages.stream`` kwargs shared by run/run_stream."""
         create_kwargs: dict[str, Any] = {
@@ -396,9 +416,25 @@ class AnthropicClient:
             ],
             "messages": messages,
         }
-        if tools:
-            create_kwargs["tools"] = tools
+        # Only offer web search alongside the registered tools — never on the
+        # final, tool-less pass where the caller forces a text answer.
+        effective_tools = list(tools) if tools else []
+        if effective_tools and web_search:
+            effective_tools += self._server_tools()
+        if effective_tools:
+            create_kwargs["tools"] = effective_tools
         return create_kwargs
+
+    def _server_tools(self) -> list[dict]:
+        """Anthropic server-side tool schemas to add to the tool list (web search)."""
+        tool: dict[str, Any] = {"type": WEB_SEARCH_TOOL_TYPE, "name": WEB_SEARCH_TOOL_NAME}
+        try:
+            max_uses = int(getattr(settings, "AGENT_WEB_SEARCH_MAX_USES", 5) or 0)
+        except (TypeError, ValueError):
+            max_uses = 0
+        if max_uses > 0:
+            tool["max_uses"] = max_uses
+        return [tool]
 
     def _finalize_run(
         self,
@@ -414,6 +450,7 @@ class AnthropicClient:
         duration_ms = int((time.monotonic() - started) * 1000)
         assistant_blocks = _normalize_blocks(message)
         tool_calls = _extract_tool_calls(message)
+        web_sources = _extract_web_sources(message)
         text = _extract_text(message)
         stop_reason = getattr(message, "stop_reason", "") or ""
         usage = getattr(message, "usage", None)
@@ -442,6 +479,7 @@ class AnthropicClient:
             output_tokens=output_tokens,
             duration_ms=duration_ms,
             model=self.model,
+            web_sources=web_sources,
         )
 
     def _log_and_raise_failure(
@@ -521,7 +559,43 @@ def _normalize_blocks(message) -> list[dict]:
                     "input": _block_get(block, "input") or {},
                 }
             )
+        elif btype in ("server_tool_use", "web_search_tool_result"):
+            # Server-side tool blocks (web search) must be replayed VERBATIM so a
+            # `pause_turn` continuation resumes correctly. Dump the exact SDK
+            # shape rather than hand-rebuild it — it carries fields we don't model.
+            blocks.append(_dump_block(block))
     return blocks
+
+
+def _dump_block(block) -> dict:
+    """Serialize an SDK content block to a replay-safe dict (verbatim)."""
+    if hasattr(block, "model_dump"):
+        return block.model_dump(mode="json", exclude_none=True)
+    if isinstance(block, dict):
+        return block
+    return {}
+
+
+def _extract_web_sources(message) -> list[dict]:
+    """Collect ``{url, title}`` from the message's ``web_search_tool_result`` blocks.
+
+    Errored searches carry a single error object instead of a result list — skip
+    those. Deduping across the whole turn is the caller's job.
+    """
+    sources: list[dict] = []
+    for block in getattr(message, "content", []) or []:
+        if _block_get(block, "type") != "web_search_tool_result":
+            continue
+        content = _block_get(block, "content")
+        if not isinstance(content, list):
+            continue  # error shape (web_search_tool_result_error)
+        for item in content:
+            if _block_get(item, "type") != "web_search_result":
+                continue
+            url = _block_get(item, "url")
+            if url:
+                sources.append({"url": url, "title": _block_get(item, "title") or url})
+    return sources
 
 
 def _extract_tool_calls(message) -> list[ToolCall]:
