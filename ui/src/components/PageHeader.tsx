@@ -19,14 +19,16 @@ export default function PageHeader({ title, description, children }: PageHeaderP
 
   return (
     <div className="mb-6">
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
           {description ? (
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        {children ? <div className="flex shrink-0 items-center gap-2">{children}</div> : null}
+        {children ? (
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{children}</div>
+        ) : null}
       </div>
       <Separator />
     </div>
