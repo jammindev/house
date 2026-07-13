@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import type { StockItem } from '@/lib/api/stock';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
 import { usePurchaseStockItem } from './hooks';
@@ -43,12 +43,11 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{t('stock.purchase.title', { name: item.name })}</DialogTitle>
-        </DialogHeader>
-
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('stock.purchase.title', { name: item.name })}
+    >
         <p className="text-sm text-muted-foreground">
           {t('stock.purchase.current_quantity', { quantity: item.quantity, unit: item.unit })}
         </p>
@@ -61,7 +60,6 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
           onCancel={() => onOpenChange(false)}
           externalError={error}
         />
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

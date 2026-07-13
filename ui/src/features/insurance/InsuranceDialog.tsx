@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
@@ -145,12 +145,11 @@ export default function InsuranceDialog({ open, onOpenChange, onSaved, existing 
   const submitting = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? t('insurance.edit_title') : t('insurance.new_title')}</DialogTitle>
-        </DialogHeader>
-
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('insurance.edit_title') : t('insurance.new_title')}
+    >
         <form onSubmit={handleSubmit} className="space-y-4">
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -308,7 +307,6 @@ export default function InsuranceDialog({ open, onOpenChange, onSaved, existing 
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

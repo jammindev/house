@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
@@ -149,15 +149,12 @@ export default function StockItemDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('stock.form.title_edit') : t('stock.form.title_create')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('stock.form.title_edit') : t('stock.form.title_create')}
+    >
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
           <FormField label={`${t('stock.fields.name')} *`} htmlFor="stock-item-name">
             <Input
@@ -295,7 +292,6 @@ export default function StockItemDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

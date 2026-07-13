@@ -4,13 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { cn } from '@/lib/utils';
@@ -123,39 +117,35 @@ export default function ConversationList({ currentId, onSelect, onNew, onCurrent
         )}
       </div>
 
-      <Dialog
+      <SheetDialog
         open={renaming !== null}
         onOpenChange={(open) => {
           if (!open) setRenaming(null);
         }}
+        title={t('agent.rename_title')}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('agent.rename_title')}</DialogTitle>
-          </DialogHeader>
-          <Input
-            value={renameTitle}
-            onChange={(e) => setRenameTitle(e.target.value)}
-            placeholder={t('agent.rename_placeholder')}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                submitRename();
-              }
-            }}
-            autoFocus
-            data-testid="agent-rename-input"
-          />
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setRenaming(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button onClick={submitRename} data-testid="agent-rename-save">
-              {t('common.save')}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        <Input
+          value={renameTitle}
+          onChange={(e) => setRenameTitle(e.target.value)}
+          placeholder={t('agent.rename_placeholder')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              submitRename();
+            }
+          }}
+          autoFocus
+          data-testid="agent-rename-input"
+        />
+        <div className="flex justify-end gap-2 pt-2">
+          <Button variant="ghost" onClick={() => setRenaming(null)}>
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={submitRename} data-testid="agent-rename-save">
+            {t('common.save')}
+          </Button>
+        </div>
+      </SheetDialog>
     </div>
   );
 }

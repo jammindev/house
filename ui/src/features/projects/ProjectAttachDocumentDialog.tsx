@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
 import { useDocuments, documentKeys } from '@/features/documents/hooks';
@@ -71,13 +71,12 @@ export default function ProjectAttachDocumentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{t('projects.attach_document.title')}</DialogTitle>
-        </DialogHeader>
-
-        <div className="mt-2 space-y-3">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('projects.attach_document.title')}
+    >
+      <div className="space-y-3">
           {error ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-2 text-sm text-destructive">
               {error}
@@ -144,8 +143,7 @@ export default function ProjectAttachDocumentDialog({
                 : t('projects.attach_document.attach', { count: selected.size })}
             </Button>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </SheetDialog>
   );
 }

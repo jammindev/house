@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
@@ -178,15 +178,12 @@ export default function EquipmentDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('equipment.form.title_edit') : t('equipment.form.title_create')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('equipment.form.title_edit') : t('equipment.form.title_create')}
+    >
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Row 1: name, category */}
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label={t('equipment.form.fields.name')} htmlFor="eq-name">
@@ -404,7 +401,6 @@ export default function EquipmentDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

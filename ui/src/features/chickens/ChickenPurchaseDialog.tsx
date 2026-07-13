@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import type { Chicken } from '@/lib/api/chickens';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
 import { usePurchaseChicken } from './hooks';
@@ -42,19 +42,17 @@ export default function ChickenPurchaseDialog({ open, onOpenChange, chicken }: C
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{t('chickens.purchase.title', { name: chicken.name })}</DialogTitle>
-        </DialogHeader>
-
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('chickens.purchase.title', { name: chicken.name })}
+    >
         <PurchaseForm
           isPending={purchaseMutation.isPending}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
           externalError={error}
         />
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

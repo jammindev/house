@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import type { EquipmentListItem } from '@/lib/api/equipment';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
 import { useRegisterEquipmentPurchase } from './hooks';
@@ -46,19 +46,17 @@ export default function EquipmentPurchaseDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{t('equipment.purchase.title', { name: equipment.name })}</DialogTitle>
-        </DialogHeader>
-
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('equipment.purchase.title', { name: equipment.name })}
+    >
         <PurchaseForm
           isPending={purchaseMutation.isPending}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}
           externalError={error}
         />
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
@@ -45,24 +45,21 @@ export default function ExpenseAdHocDialog({ open, onOpenChange }: ExpenseAdHocD
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>{t('expenses.adhoc.title')}</DialogTitle>
-        </DialogHeader>
-
-        <div className="mt-4">
-          <FormField label={`${t('expenses.adhoc.subject')} *`} htmlFor="adhoc-subject">
-            <Input
-              id="adhoc-subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder={t('expenses.adhoc.subjectPlaceholder')}
-              autoFocus
-              required
-            />
-          </FormField>
-        </div>
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('expenses.adhoc.title')}
+    >
+        <FormField label={`${t('expenses.adhoc.subject')} *`} htmlFor="adhoc-subject">
+          <Input
+            id="adhoc-subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            placeholder={t('expenses.adhoc.subjectPlaceholder')}
+            autoFocus
+            required
+          />
+        </FormField>
 
         <PurchaseForm
           isPending={mutation.isPending}
@@ -70,7 +67,6 @@ export default function ExpenseAdHocDialog({ open, onOpenChange }: ExpenseAdHocD
           onCancel={() => onOpenChange(false)}
           externalError={error}
         />
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

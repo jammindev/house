@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
@@ -83,15 +83,12 @@ export default function ChickenDialog({ open, onOpenChange, existing }: ChickenD
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('chickens.dialog.edit_title') : t('chickens.dialog.new_title')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('chickens.dialog.edit_title') : t('chickens.dialog.new_title')}
+    >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <FormField label={`${t('chickens.fields.name')} *`} htmlFor="chicken-name">
             <Input
               id="chicken-name"
@@ -176,7 +173,6 @@ export default function ChickenDialog({ open, onOpenChange, existing }: ChickenD
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -94,15 +94,12 @@ export default function StockCategoryDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('stock.categories.edit_title') : t('stock.categories.create_title')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('stock.categories.edit_title') : t('stock.categories.create_title')}
+    >
+        <form onSubmit={handleSubmit} className="space-y-4">
           <FormField label={`${t('stock.fields.name')} *`} htmlFor="cat-name">
             <Input
               id="cat-name"
@@ -152,7 +149,6 @@ export default function StockCategoryDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </SheetDialog>
   );
 }

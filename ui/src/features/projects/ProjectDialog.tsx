@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
@@ -111,15 +111,12 @@ export default function ProjectDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('projects.form.title_edit') : t('projects.form.title_create')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('projects.form.title_edit') : t('projects.form.title_create')}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
           {error ? (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>
           ) : null}
@@ -242,8 +239,7 @@ export default function ProjectDialog({
               {loading ? t('common.saving') : t('common.save')}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </SheetDialog>
   );
 }

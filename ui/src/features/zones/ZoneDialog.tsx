@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -97,15 +97,12 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('zones.editTitle') : t('zones.newTitle')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-2 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('zones.editTitle') : t('zones.newTitle')}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
           {error ? (
             <div className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           ) : null}
@@ -182,8 +179,7 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
               {isPending ? t('common.saving') : t('common.save')}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </SheetDialog>
   );
 }

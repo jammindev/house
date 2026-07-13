@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/design-system/dialog';
+import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
@@ -143,15 +143,12 @@ export default function RenovationDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? t('renovation.form.editTitle') : t('renovation.form.createTitle')}
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+    <SheetDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={isEditing ? t('renovation.form.editTitle') : t('renovation.form.createTitle')}
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <FormField label={t('renovation.form.element')} htmlFor="reno-element">
               <Select
@@ -257,8 +254,7 @@ export default function RenovationDialog({
               {isEditing ? t('common.save') : t('renovation.form.submit')}
             </Button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+      </form>
+    </SheetDialog>
   );
 }
