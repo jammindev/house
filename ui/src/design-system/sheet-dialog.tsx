@@ -4,7 +4,9 @@ import {
   type ReactElement,
   type ReactNode,
   useCallback,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react"
 
@@ -87,6 +89,22 @@ export function SheetDialog({
   const [internalOpen, setInternalOpen] = useState(false)
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
+  const contentRef = useRef<HTMLDivElement | null>(null)
+
+  // Sur mobile, aucun champ ne doit être focus à l'ouverture (sinon le clavier
+  // sort tout seul). `onOpenAutoFocus` (plus bas) couvre les formulaires sans
+  // `autoFocus` explicite. Mais quand un input porte l'attribut `autoFocus`,
+  // React le focus dès le commit — avant l'effet de Radix, qui voit alors le
+  // focus déjà à l'intérieur et ne déclenche jamais `onOpenAutoFocus`. Ce
+  // layout effect s'exécute après ce commit mais avant le paint : on retire le
+  // focus du champ sans faire clignoter le clavier.
+  useLayoutEffect(() => {
+    if (!open || !isMobile) return
+    const active = document.activeElement as HTMLElement | null
+    if (active && contentRef.current?.contains(active)) {
+      active.blur()
+    }
+  }, [open, isMobile])
 
   const setOpen = useCallback(
     (next: boolean) => {
@@ -126,8 +144,10 @@ export function SheetDialog({
       {triggerWithHandler}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
+          ref={contentRef}
           variant={isMobile ? "mobileSheet" : "default"}
           hideDefaultCloseButton={isMobile}
+          onOpenAutoFocus={isMobile ? (event) => event.preventDefault() : undefined}
           onInteractOutside={(event) => {
             const originalTarget = (event as CustomEvent).detail?.originalEvent?.target
             if (originalTarget instanceof Element && originalTarget.closest("[data-allow-interact]")) {
