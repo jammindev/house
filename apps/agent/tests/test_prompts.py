@@ -48,6 +48,16 @@ class TestSystemPrompt:
         assert "GENERAL KNOWLEDGE" in upper
 
 
+class TestWebSearchAddendum:
+    def test_absent_by_default(self):
+        assert "web_search" not in build_system_prompt()
+
+    def test_present_when_enabled(self):
+        prompt = build_system_prompt(web_search=True)
+        assert "web_search" in prompt
+        assert "PUBLIC WEB" in prompt
+
+
 class TestCurrentDate:
     def test_system_prompt_carries_todays_date(self):
         today = timezone.localdate()

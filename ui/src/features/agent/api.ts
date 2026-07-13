@@ -44,6 +44,12 @@ export interface AgentMemoryEvent {
   previous?: string;
 }
 
+/** A public web page the agent used this turn (via the web_search tool). */
+export interface AgentWebSource {
+  url: string;
+  title: string;
+}
+
 export interface AgentAnswerMetadata {
   duration_ms?: number;
   tokens_in?: number;
@@ -56,6 +62,8 @@ export interface AgentAnswerMetadata {
   created_entities?: AgentCreatedEntity[];
   updated_entities?: AgentUpdatedEntity[];
   memory_events?: AgentMemoryEvent[];
+  /** Public web sources the agent cited this turn (web_search tool). */
+  web_sources?: AgentWebSource[];
   [key: string]: unknown;
 }
 

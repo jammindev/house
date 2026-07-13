@@ -152,6 +152,35 @@ vivent dans leurs propres modèles et **priment** toujours en cas de conflit.
   `useAgentMemoryEvents` (toast undo) + `MemoryNotice` (ligne 📌 persistante dans
   la bulle, rejouée depuis `metadata.memory_events`).
 
+## Recherche web (tool serveur Anthropic, 2026-07)
+
+L'agent peut consulter le **web public** via le tool **serveur** Anthropic
+`web_search` (`web_search_20260209`) — pas un `AgentTool` du registry : Anthropic
+exécute la recherche côté serveur et renvoie les résultats (avec URLs sources)
+dans le même round-trip, sans handler client.
+
+- **Activation** : `AGENT_WEB_SEARCH_ENABLED` (défaut **False**). Off par défaut
+  car (a) ça appelle le web (coût + contenu externe) et (b) le *dynamic filtering*
+  des résultats exige l'agent sur **Sonnet 4.6+** (`LLM_TEXT_MODEL`). `AGENT_WEB_SEARCH_MAX_USES`
+  borne le nombre de recherches par question (0 = pas de plafond).
+- **Injection** : `AnthropicClient._run_create_kwargs` ajoute le schéma serveur à
+  la liste des tools **uniquement** quand des tools custom sont aussi offerts —
+  jamais sur la passe finale sans tool (réponse forcée). Le service passe
+  `web_search=_web_search_enabled()` à `run`/`run_stream`. Le registry provider-neutre
+  (`tools.schemas()`) reste inchangé ; le détail Anthropic vit dans `llm.py`.
+- **Boucle** : les blocs `server_tool_use` / `web_search_tool_result` sont
+  préservés verbatim par `_normalize_blocks` (via `_dump_block`) pour rejouer un
+  `pause_turn` ; `service.ask` gère `stop_reason == "pause_turn"` en rejouant le
+  tour assistant sans tool_result (le serveur reprend).
+- **Sources** : `_extract_web_sources` collecte `{url, title}` depuis les blocs
+  résultat ; `service.ask` les dédoublonne par URL dans `metadata.web_sources`.
+  Le front les rend sous la bulle (`WebSourcesPanel`, clé `agent.web_sources_label`),
+  distinct des citations foyer (`<cite/>`). `answer_kind = "web"` quand la réponse
+  vient du web sans donnée foyer.
+- **Prompt** : `WEB_SEARCH_ADDENDUM` (ajouté par `build_system_prompt(web_search=True)`)
+  cadre l'usage : web seulement pour le factuel courant/externe, jamais pour les
+  faits foyer ni la connaissance générale stable.
+
 ## API
 
 Sous `/api/agent/` :

@@ -2272,6 +2272,7 @@
       "empty_hint": "The assistant already knows this item and everything linked to it — its details, documents, expenses and tasks — and cites its sources."
     },
     "citations_label": "Sources",
+    "web_sources_label": "Web sources",
     "privacy": {
       "title": "Before you start",
       "intro": "The agent reads the data of your household to answer your questions. A few things to know:",

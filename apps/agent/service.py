@@ -153,13 +153,18 @@ def ask_stream(
         else:
             memory_mode = "manual"
 
+    web_search_on = _web_search_enabled()
     system_prompt = build_system_prompt(
-        anchored=anchored, memory_mode=memory_mode, memories=memories
+        anchored=anchored,
+        memory_mode=memory_mode,
+        memories=memories,
+        web_search=web_search_on,
     )
     messages = _build_messages(cleaned, history, entity_context)
     created_entities: list[dict] = []
     updated_entities: list[dict] = []
     memory_events: list[dict] = []
+    web_sources: list[dict] = []
     write_signatures: set = set()
     answer_text = ""
     stop_reason = ""
@@ -169,11 +174,15 @@ def ask_stream(
     duration_ms = 0
     tool_calls = 0
     iterations = 0
+    resuming_pause = False
 
     for iterations in range(1, max_iterations + 1):
         # On the final allowed pass, drop the tools so the model is forced to
-        # produce a text answer rather than requesting yet another search.
-        offered_tools = tool_schemas if iterations < max_iterations else []
+        # produce a text answer rather than requesting yet another search —
+        # UNLESS we're resuming a paused server search, which needs the tools
+        # (incl. web_search) still declared to continue.
+        offered_tools = tool_schemas if (iterations < max_iterations or resuming_pause) else []
+        resuming_pause = False
 
         run_kwargs = dict(
             system=system_prompt,
@@ -184,6 +193,7 @@ def ask_stream(
             user_id=getattr(user, "id", None),
             max_tokens=DEFAULT_MAX_TOKENS,
             metadata={"iteration": iterations},
+            web_search=web_search_on,
         )
         try:
             # Stream when the client supports it, forwarding text chunks as they
@@ -212,6 +222,15 @@ def ask_stream(
         model = response.model
         stop_reason = response.stop_reason
         answer_text = response.text.strip()
+        web_sources.extend(getattr(response, "web_sources", None) or [])
+
+        # The server-side web search loop paused mid-turn (hit its own iteration
+        # limit). Replay the assistant turn — which includes the trailing
+        # server_tool_use block — with no client tool_result; the server resumes.
+        if response.stop_reason == "pause_turn":
+            messages.append({"role": "assistant", "content": response.assistant_blocks})
+            resuming_pause = True
+            continue
 
         if response.stop_reason != "tool_use" or not response.tool_calls:
             break
@@ -263,7 +282,8 @@ def ask_stream(
 
     hits = list(hit_pool.values())
     citations = _resolve_citations(answer_text, hits)
-    answer_kind = _classify_answer(tool_calls, hits, citations)
+    web_sources = _dedupe_web_sources(web_sources)
+    answer_kind = _classify_answer(tool_calls, hits, citations, web_sources)
 
     yield {"type": "result", "result": AnswerResult(
         answer=answer_text or _dont_know_message(),
@@ -286,6 +306,8 @@ def ask_stream(
             "created_entities": created_entities,
             "updated_entities": updated_entities,
             "memory_events": memory_events,
+            # Public web sources the model used this turn (web_search tool).
+            "web_sources": web_sources,
         },
     )}
 
@@ -375,21 +397,35 @@ def _build_messages(
     return messages
 
 
-def _classify_answer(tool_calls: int, hits: list, citations: list) -> str:
+def _classify_answer(tool_calls: int, hits: list, citations: list, web_sources: list) -> str:
     """Coarse label for observability (metadata.answer_kind).
 
     - ``direct``  : no tool call (dialogue or general knowledge)
-    - ``idk``     : searched but found nothing
+    - ``web``     : answered from a web search, with no household data
+    - ``idk``     : searched household data but found nothing
     - ``household``: searched, found data, and cited it
     - ``uncited`` : searched, found data, but produced no citation
     """
     if tool_calls == 0:
-        return "direct"
+        return "web" if web_sources else "direct"
     if not hits:
-        return "idk"
+        return "web" if web_sources else "idk"
     if citations:
         return "household"
     return "uncited"
+
+
+def _dedupe_web_sources(sources: list[dict]) -> list[dict]:
+    """Drop duplicate web sources by URL, preserving first-seen order."""
+    seen: set[str] = set()
+    unique: list[dict] = []
+    for source in sources:
+        url = (source or {}).get("url")
+        if not url or url in seen:
+            continue
+        seen.add(url)
+        unique.append(source)
+    return unique
 
 
 def _max_tool_iterations() -> int:
@@ -402,6 +438,11 @@ def _max_tool_iterations() -> int:
 
 def _llm_enabled() -> bool:
     return bool(getattr(settings, "ANTHROPIC_API_KEY", "") or "")
+
+
+def _web_search_enabled() -> bool:
+    """Whether the agent may use the server-side web search tool (settings flag)."""
+    return bool(getattr(settings, "AGENT_WEB_SEARCH_ENABLED", False))
 
 
 def _dont_know_message() -> str:

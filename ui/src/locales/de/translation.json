@@ -2272,6 +2272,7 @@
       "empty_hint": "Der Assistent kennt dieses Element und alles, was damit verknüpft ist, bereits — seine Details, Dokumente, Ausgaben und Aufgaben — und nennt seine Quellen."
     },
     "citations_label": "Quellen",
+    "web_sources_label": "Web-Quellen",
     "privacy": {
       "title": "Bevor du loslegst",
       "intro": "Der Agent liest die Daten deines Haushalts, um deine Fragen zu beantworten. Wichtig zu wissen:",

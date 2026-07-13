@@ -357,3 +357,85 @@ class TestFactory:
     def test_unknown_provider_raises(self):
         with pytest.raises(LLMError):
             get_llm_client(provider="ollama")
+
+
+class TestWebSearchTool:
+    def _run(self, client, fake, monkeypatch, household, **overrides):
+        monkeypatch.setattr(client, "_client", lambda: fake)
+        kwargs = dict(
+            system="sys",
+            messages=[{"role": "user", "content": "hi"}],
+            tools=[{"name": "search_household"}],
+            feature="agent_ask",
+            household_id=household.id,
+        )
+        kwargs.update(overrides)
+        return client.run(**kwargs)
+
+    def test_injects_web_search_tool_when_enabled(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        self._run(client, fake, monkeypatch, household, web_search=True)
+
+        tools = fake.messages.last_kwargs["tools"]
+        assert {"name": "search_household"} in tools
+        assert {"type": "web_search_20260209", "name": "web_search", "max_uses": 5} in tools
+
+    def test_not_injected_when_web_search_off(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        self._run(client, fake, monkeypatch, household, web_search=False)
+
+        assert fake.messages.last_kwargs["tools"] == [{"name": "search_household"}]
+
+    def test_not_injected_on_toolless_pass(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        self._run(client, fake, monkeypatch, household, tools=[], web_search=True)
+
+        # No custom tools = the final forced-answer pass; web search stays off too.
+        assert "tools" not in fake.messages.last_kwargs
+
+    def test_max_uses_zero_omits_cap(self, with_api_key, settings, monkeypatch, household):
+        settings.AGENT_WEB_SEARCH_MAX_USES = 0
+        client = AnthropicClient()
+        fake = _FakeClient(response=_fake_run_message([_text_block("ok")]))
+        self._run(client, fake, monkeypatch, household, web_search=True)
+
+        ws = [t for t in fake.messages.last_kwargs["tools"] if t.get("type") == "web_search_20260209"]
+        assert ws and "max_uses" not in ws[0]
+
+    def test_preserves_server_blocks_and_extracts_sources(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        server_use = {"type": "server_tool_use", "id": "s1", "name": "web_search", "input": {"query": "x"}}
+        web_result = {
+            "type": "web_search_tool_result",
+            "tool_use_id": "s1",
+            "content": [
+                {"type": "web_search_result", "url": "https://ex.com/a", "title": "A"},
+                {"type": "web_search_result", "url": "https://ex.com/b", "title": "B"},
+            ],
+        }
+        content = [_text_block("Voici."), server_use, web_result]
+        fake = _FakeClient(response=_fake_run_message(content, "end_turn"))
+        result = self._run(client, fake, monkeypatch, household, web_search=True)
+
+        assert {"type": "text", "text": "Voici."} in result.assistant_blocks
+        assert server_use in result.assistant_blocks
+        assert web_result in result.assistant_blocks
+        assert result.web_sources == [
+            {"url": "https://ex.com/a", "title": "A"},
+            {"url": "https://ex.com/b", "title": "B"},
+        ]
+
+    def test_errored_search_yields_no_sources(self, with_api_key, monkeypatch, household):
+        client = AnthropicClient()
+        errored = {
+            "type": "web_search_tool_result",
+            "tool_use_id": "s1",
+            "content": {"type": "web_search_tool_result_error", "error_code": "max_uses_exceeded"},
+        }
+        fake = _FakeClient(response=_fake_run_message([_text_block("oops"), errored], "end_turn"))
+        result = self._run(client, fake, monkeypatch, household, web_search=True)
+
+        assert result.web_sources == []

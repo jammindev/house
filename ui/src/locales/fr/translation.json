@@ -2272,6 +2272,7 @@
       "empty_hint": "L'assistant connaît déjà cet élément et tout ce qui lui est lié — ses détails, documents, dépenses et tâches — et cite ses sources."
     },
     "citations_label": "Sources",
+    "web_sources_label": "Sources web",
     "privacy": {
       "title": "Avant de commencer",
       "intro": "L'agent lit les données de ton foyer pour répondre à tes questions. Quelques infos utiles :",
