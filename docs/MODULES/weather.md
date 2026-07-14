@@ -56,10 +56,16 @@ est volontairement vide.
   détail tâche affiche `TaskWeatherHint` (jours favorables des 7 prochains jours,
   calculés côté front via `useWeather()` + `favorableDays.ts`, seuil pluie ≤ 30 %).
   L'intégration ne touche pas `apps/weather/` — elle consomme l'endpoint existant.
+- **Alertes (Lot 4, livré)** : `apps/weather/alerts.py::evaluate_weather_alerts`
+  (pur, seuils fixes gel/canicule/vent/orage) est la source de vérité, consommée par
+  trois canaux : carte dashboard/Alertes (`alerts.build_alerts_summary`, on-read),
+  ping Telegram (`PingSpec('weather_alert')`, opt-in, anti-spam `PingLog` 1/jour) et
+  notification cloche (`notifications.service.send`, idempotente par jour via
+  `payload.day`). Le `daily[]` du forecast expose `wind_gusts_max` pour le seuil vent.
+  Aucun nouveau modèle, aucun cron : réutilise le scheduler `send_scheduled_pings`.
 
 ## Limitations connues / lots suivants (parcours 17)
 
-- **Lot 4** — alertes météo (gel/canicule/vent/orage) via le module alertes + job périodique.
 - **Lot 5** — contexte météo exposé à l'agent (searchable/tool lecture).
 - **Lot 6** — corrélations conso (électricité/eau) avec l'historique météo.
 - Une seule localisation par foyer (pas par zone) ; °C uniquement ; pas d'historique (arrive au Lot 6).

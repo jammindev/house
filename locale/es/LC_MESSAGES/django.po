@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-12 22:58+0000\n"
+"POT-Creation-Date: 2026-07-14 21:06+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: Spanish\n"
@@ -21,7 +21,7 @@ msgstr ""
 msgid "Display name shown in the UI"
 msgstr "Nombre mostrado en la interfaz"
 
-#: apps/accounts/models.py:48 apps/households/models.py:38
+#: apps/accounts/models.py:48 apps/households/models.py:48
 msgid "English"
 msgstr "Inglés"
 
@@ -85,7 +85,7 @@ msgstr "usuario"
 msgid "users"
 msgstr "usuarios"
 
-#: apps/accounts/serializers.py:39 apps/households/serializers.py:38
+#: apps/accounts/serializers.py:39 apps/households/serializers.py:49
 msgid "Expected a list of module keys."
 msgstr ""
 
@@ -811,47 +811,67 @@ msgstr ""
 msgid "IANA timezone (e.g. Europe/Paris). Leave blank for UTC."
 msgstr ""
 
-#: apps/households/models.py:37
+#: apps/households/models.py:34
+msgid "Latitude for the weather module (decimal degrees)."
+msgstr ""
+
+#: apps/households/models.py:36
+msgid "Longitude for the weather module (decimal degrees)."
+msgstr ""
+
+#: apps/households/models.py:38
+msgid "Human-readable place name shown in the weather module."
+msgstr ""
+
+#: apps/households/models.py:47
 msgid "French"
 msgstr ""
 
-#: apps/households/models.py:39
+#: apps/households/models.py:49
 msgid "German"
 msgstr ""
 
-#: apps/households/models.py:40
+#: apps/households/models.py:50
 msgid "Spanish"
 msgstr ""
 
-#: apps/households/models.py:54
+#: apps/households/models.py:64
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "Optional module keys hidden for this household."
 msgstr "No es miembro de este hogar."
 
-#: apps/households/models.py:65
+#: apps/households/models.py:75
 msgid "household"
 msgstr "hogar"
 
-#: apps/households/models.py:66
+#: apps/households/models.py:76
 msgid "households"
 msgstr "hogares"
 
-#: apps/households/models.py:126
+#: apps/households/models.py:136
 #, fuzzy
 #| msgid "Pending tasks"
 msgid "Pending"
 msgstr "Tareas pendientes"
 
-#: apps/households/models.py:127
+#: apps/households/models.py:137
 msgid "Accepted"
 msgstr ""
 
-#: apps/households/models.py:128
+#: apps/households/models.py:138
 msgid "Declined"
 msgstr ""
 
-#: apps/households/serializers.py:42
+#: apps/households/serializers.py:39
+msgid "Latitude must be between -90 and 90."
+msgstr ""
+
+#: apps/households/serializers.py:44
+msgid "Longitude must be between -180 and 180."
+msgstr ""
+
+#: apps/households/serializers.py:53
 #, python-format
 msgid "Unknown or non-optional module(s): %(keys)s"
 msgstr ""
@@ -1287,6 +1307,33 @@ msgstr ""
 #: apps/water/views.py:74
 msgid "Must be one of: day, month, year."
 msgstr ""
+
+#: apps/weather/alerts.py:124
+#, python-format
+msgid "Frost expected: down to %(v)s°C"
+msgstr "Se espera helada: hasta %(v)s°C"
+
+#: apps/weather/alerts.py:126
+#, python-format
+msgid "Heatwave: up to %(v)s°C"
+msgstr "Ola de calor: hasta %(v)s°C"
+
+#: apps/weather/alerts.py:128
+#, python-format
+msgid "Strong wind: gusts up to %(v)s km/h"
+msgstr "Viento fuerte: rachas de hasta %(v)s km/h"
+
+#: apps/weather/alerts.py:130
+msgid "Thunderstorm expected"
+msgstr "Tormenta prevista"
+
+#: apps/weather/alerts.py:132 apps/weather/pings.py:58
+msgid "Weather alert"
+msgstr "Alerta meteorológica"
+
+#: apps/weather/alerts.py:150
+msgid "⚠️ Weather alert for the days ahead:"
+msgstr "⚠️ Alerta meteorológica para los próximos días:"
 
 #: apps/zones/models.py:52
 msgid "zone"

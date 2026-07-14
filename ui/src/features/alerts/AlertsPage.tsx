@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Bell, Clock, Package, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, Bell, Clock, CloudSun, Package, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
@@ -14,6 +14,7 @@ import {
   type ExpiringWarrantyAlert,
   type LowStockAlert,
   type OverdueTaskAlert,
+  type WeatherAlert,
 } from '@/lib/api/alerts';
 import { useAlertsSummary } from './hooks';
 
@@ -50,8 +51,14 @@ function AlertCard({ to, title, meta, severityLabel, severity }: AlertCardProps)
   );
 }
 
+function weatherAlertLabel(t: (k: string, o?: Record<string, unknown>) => string, item: WeatherAlert): string {
+  return item.value !== null
+    ? t(`alerts.weather.${item.kind}`, { value: item.value })
+    : t(`alerts.weather.${item.kind}`);
+}
+
 export default function AlertsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data, isLoading } = useAlertsSummary();
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -73,6 +80,7 @@ export default function AlertsPage() {
     expiring_warranties: [],
     due_maintenances: [],
     low_stock: [],
+    weather_alerts: [],
     total: 0,
   };
 
@@ -179,6 +187,32 @@ export default function AlertsPage() {
                     quantity: item.quantity,
                     unit: item.unit,
                   })}`}
+                  severityLabel={t(`alerts.severity.${item.severity}`)}
+                  severity={item.severity}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {summary.weather_alerts.length > 0 ? (
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <CloudSun className="h-4 w-4 text-primary" aria-hidden />
+              {t('alerts.sections.weather')}
+              <span className="text-muted-foreground">({summary.weather_alerts.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {summary.weather_alerts.map((item: WeatherAlert, index: number) => (
+                <AlertCard
+                  key={`weather-${item.kind}-${item.date}-${index}`}
+                  to={item.entity_url}
+                  title={weatherAlertLabel(t, item)}
+                  meta={new Date(`${item.date}T00:00:00`).toLocaleDateString(i18n.language, {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'short',
+                  })}
                   severityLabel={t(`alerts.severity.${item.severity}`)}
                   severity={item.severity}
                 />

@@ -798,7 +798,8 @@
       "types": {
         "egg_log": "Evening egg count",
         "meter_reading": "Electricity meter reading reminder",
-        "water_reading": "Water meter reading reminder"
+        "water_reading": "Water meter reading reminder",
+        "weather_alert": "Weather alert"
       }
     },
     "theme": "Theme",
@@ -1056,6 +1057,10 @@
           "dashboard": {
             "title": "A glance from the dashboard",
             "body": "A weather summary appears on the dashboard — click it to open the full page."
+          },
+          "alerts": {
+            "title": "Get weather alerts",
+            "body": "On the Alerts page you see weather risks (frost, heatwave, wind, storm). Enable the weather ping in Settings for a proactive Telegram + bell alert."
           }
         }
       },
@@ -2284,7 +2289,8 @@
       "overdue": "Overdue tasks",
       "warranties": "Warranties to watch",
       "maintenances": "Upcoming maintenances",
-      "stock": "Stock to restock"
+      "stock": "Stock to restock",
+      "weather": "Weather"
     },
     "severity": {
       "critical": "Urgent",
@@ -2301,7 +2307,14 @@
       "out_of_stock": "Out of stock",
       "expired": "Expired"
     },
-    "stockRemaining": "{{quantity}} {{unit}} left"
+    "stockRemaining": "{{quantity}} {{unit}} left",
+    "weather": {
+      "frost": "Frost: down to {{value}}°C",
+      "heatwave": "Heatwave: up to {{value}}°C",
+      "wind": "Strong wind: gusts up to {{value}} km/h",
+      "storm": "Thunderstorm expected",
+      "ahead": "Coming days"
+    }
   },
   "agent": {
     "title": "Agent",

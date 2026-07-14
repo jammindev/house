@@ -798,7 +798,8 @@
       "types": {
         "egg_log": "Relevé de ponte du soir",
         "meter_reading": "Rappel de relevé électrique",
-        "water_reading": "Rappel de relevé d'eau"
+        "water_reading": "Rappel de relevé d'eau",
+        "weather_alert": "Alerte météo"
       }
     },
     "theme": "Thème",
@@ -1056,6 +1057,10 @@
           "dashboard": {
             "title": "Un coup d'œil au dashboard",
             "body": "Un résumé météo apparaît sur le tableau de bord : cliquez dessus pour ouvrir la page complète."
+          },
+          "alerts": {
+            "title": "Recevoir les alertes météo",
+            "body": "La page Alertes affiche les risques météo (gel, canicule, vent, orage). Activez le rappel météo dans les Réglages pour une alerte proactive Telegram + cloche."
           }
         }
       },
@@ -2284,7 +2289,8 @@
       "overdue": "Tâches en retard",
       "warranties": "Garanties à surveiller",
       "maintenances": "Maintenances à planifier",
-      "stock": "Stock à réapprovisionner"
+      "stock": "Stock à réapprovisionner",
+      "weather": "Météo"
     },
     "severity": {
       "critical": "Urgent",
@@ -2301,7 +2307,14 @@
       "out_of_stock": "Épuisé",
       "expired": "Expiré"
     },
-    "stockRemaining": "{{quantity}} {{unit}} restant"
+    "stockRemaining": "{{quantity}} {{unit}} restant",
+    "weather": {
+      "frost": "Gel : jusqu'à {{value}}°C",
+      "heatwave": "Canicule : jusqu'à {{value}}°C",
+      "wind": "Vent fort : rafales jusqu'à {{value}} km/h",
+      "storm": "Orage prévu",
+      "ahead": "Jours à venir"
+    }
   },
   "agent": {
     "title": "Agent",

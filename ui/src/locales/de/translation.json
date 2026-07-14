@@ -798,7 +798,8 @@
       "types": {
         "egg_log": "Abendliche Eierzählung",
         "meter_reading": "Erinnerung Stromzählerstand",
-        "water_reading": "Erinnerung Wasserzählerstand"
+        "water_reading": "Erinnerung Wasserzählerstand",
+        "weather_alert": "Wetterwarnung"
       }
     },
     "theme": "Design",
@@ -1056,6 +1057,10 @@
           "dashboard": {
             "title": "Ein Blick aufs Dashboard",
             "body": "Eine Wetterübersicht erscheint auf dem Dashboard — klicken Sie darauf, um die vollständige Seite zu öffnen."
+          },
+          "alerts": {
+            "title": "Wetterwarnungen erhalten",
+            "body": "Auf der Warnungsseite sehen Sie Wetterrisiken (Frost, Hitze, Wind, Gewitter). Aktivieren Sie den Wetter-Ping in den Einstellungen für eine proaktive Telegram- + Glocken-Warnung."
           }
         }
       },
@@ -2284,7 +2289,8 @@
       "overdue": "Überfällige Aufgaben",
       "warranties": "Auslaufende Garantien",
       "maintenances": "Anstehende Wartungen",
-      "stock": "Vorrat auffüllen"
+      "stock": "Vorrat auffüllen",
+      "weather": "Wetter"
     },
     "severity": {
       "critical": "Dringend",
@@ -2301,7 +2307,14 @@
       "out_of_stock": "Aufgebraucht",
       "expired": "Abgelaufen"
     },
-    "stockRemaining": "{{quantity}} {{unit}} übrig"
+    "stockRemaining": "{{quantity}} {{unit}} übrig",
+    "weather": {
+      "frost": "Frost: bis zu {{value}}°C",
+      "heatwave": "Hitzewelle: bis zu {{value}}°C",
+      "wind": "Starker Wind: Böen bis zu {{value}} km/h",
+      "storm": "Gewitter erwartet",
+      "ahead": "Kommende Tage"
+    }
   },
   "agent": {
     "title": "Agent",

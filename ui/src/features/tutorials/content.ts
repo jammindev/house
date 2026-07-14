@@ -61,7 +61,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'purchase', 'history'] },
   { key: 'electricity', moduleKey: 'electricity', to: '/app/electricity', stepIds: ['board', 'readings', 'analyze'] },
   { key: 'water', moduleKey: 'water', to: '/app/water', stepIds: ['readings', 'charts'] },
-  { key: 'weather', moduleKey: 'weather', to: '/app/weather', stepIds: ['location', 'forecast', 'dashboard'] },
+  { key: 'weather', moduleKey: 'weather', to: '/app/weather', stepIds: ['location', 'forecast', 'dashboard', 'alerts'] },
   { key: 'stock', moduleKey: 'stock', to: '/app/stock', stepIds: ['add', 'quantities', 'expiry'] },
   { key: 'chickens', moduleKey: 'chickens', to: '/app/chickens', stepIds: ['flock', 'eggs', 'events'] },
   { key: 'insurance', moduleKey: 'insurance', to: '/app/insurance', stepIds: ['contracts', 'documents'] },

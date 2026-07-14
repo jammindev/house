@@ -155,6 +155,7 @@ def get_forecast(latitude: float, longitude: float, *, use_cache: bool = True) -
                 "temperature_2m_max",
                 "temperature_2m_min",
                 "precipitation_probability_max",
+                "wind_gusts_10m_max",
                 "sunrise",
                 "sunset",
             ]),
@@ -208,6 +209,7 @@ def _normalize_forecast(raw: dict) -> dict:
     d_max = daily_src.get("temperature_2m_max") or []
     d_min = daily_src.get("temperature_2m_min") or []
     d_precip = daily_src.get("precipitation_probability_max") or []
+    d_wind = daily_src.get("wind_gusts_10m_max") or []
     d_sunrise = daily_src.get("sunrise") or []
     d_sunset = daily_src.get("sunset") or []
     daily = [
@@ -218,6 +220,7 @@ def _normalize_forecast(raw: dict) -> dict:
             "temp_max": d_max[i] if i < len(d_max) else None,
             "temp_min": d_min[i] if i < len(d_min) else None,
             "precipitation_probability_max": d_precip[i] if i < len(d_precip) else None,
+            "wind_gusts_max": d_wind[i] if i < len(d_wind) else None,
             "sunrise": d_sunrise[i] if i < len(d_sunrise) else None,
             "sunset": d_sunset[i] if i < len(d_sunset) else None,
         }
