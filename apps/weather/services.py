@@ -24,8 +24,10 @@ logger = logging.getLogger(__name__)
 
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
+ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 REQUEST_TIMEOUT_SECONDS = 8.0
 CACHE_TTL_SECONDS = 30 * 60  # 30 min — forecasts don't move faster than that
+HISTORY_CACHE_TTL_SECONDS = 24 * 60 * 60  # 24 h — the past doesn't change
 FORECAST_DAYS = 7
 
 # WMO weather interpretation codes → stable condition slug. The frontend maps
@@ -238,3 +240,44 @@ def _normalize_forecast(raw: dict) -> dict:
         "hourly": hourly,
         "daily": daily,
     }
+
+
+def get_history(latitude: float, longitude: float, date_from: str, date_to: str,
+                *, use_cache: bool = True) -> list[dict]:
+    """Daily mean temperatures over ``[date_from, date_to]`` (ISO dates).
+
+    Read from the Open-Meteo **archive** API — daily granularity only; the
+    frontend aggregates to the consumption buckets it already has (parcours 17
+    Lot 6). Cached 24 h (the past doesn't change). Returns a list of
+    ``{date, temp_mean}`` (days Open-Meteo can't provide yet are simply absent —
+    the archive lags a few days, so the overlay degrades gracefully). Raises
+    :class:`WeatherUnavailable` on transport error (and no cache hit).
+    """
+    key = f"weather:history:{round(latitude, 2)}:{round(longitude, 2)}:{date_from}:{date_to}"
+    if use_cache:
+        cached = cache.get(key)
+        if cached is not None:
+            return cached
+
+    raw = _get_json(
+        ARCHIVE_URL,
+        {
+            "latitude": latitude,
+            "longitude": longitude,
+            "start_date": date_from,
+            "end_date": date_to,
+            "daily": "temperature_2m_mean",
+            "timezone": "auto",
+        },
+    )
+    daily = raw.get("daily") or {}
+    dates = daily.get("time") or []
+    means = daily.get("temperature_2m_mean") or []
+    points = [
+        {"date": dates[i], "temp_mean": means[i]}
+        for i in range(len(dates))
+        if i < len(means) and means[i] is not None
+    ]
+    if use_cache:
+        cache.set(key, points, HISTORY_CACHE_TTL_SECONDS)
+    return points

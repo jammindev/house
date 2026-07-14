@@ -25,6 +25,7 @@ pytestmark = pytest.mark.django_db
 
 WEATHER_URL = "/api/weather/"
 GEOCODE_URL = "/api/weather/geocode/"
+HISTORY_URL = "/api/weather/history/"
 
 
 def _member_of(household):
@@ -122,3 +123,41 @@ def test_geocode_error_state(monkeypatch):
     assert resp.status_code == status.HTTP_200_OK
     assert resp.data["results"] == []
     assert resp.data["error"] is True
+
+
+# ── history (Lot 6) ──────────────────────────────────────────────────────────
+
+def test_history_not_configured(monkeypatch):
+    user = _member_of(HouseholdFactory())  # no coords
+    monkeypatch.setattr(services, "get_history", lambda *a, **k: pytest.fail("no fetch"))
+    resp = _client_for(user).get(HISTORY_URL, {"date_from": "2026-01-01", "date_to": "2026-01-10"})
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data == {"configured": False, "points": []}
+
+
+def test_history_returns_points(monkeypatch):
+    user = _member_of(HouseholdFactory(latitude=48.85, longitude=2.35))
+    pts = [{"date": "2026-01-01", "temp_mean": 0.5}]
+    monkeypatch.setattr(services, "get_history", lambda lat, lon, df, dt: pts)
+    resp = _client_for(user).get(HISTORY_URL, {"date_from": "2026-01-01", "date_to": "2026-01-10"})
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data == {"configured": True, "error": False, "points": pts}
+
+
+def test_history_bad_dates(monkeypatch):
+    user = _member_of(HouseholdFactory(latitude=1.0, longitude=1.0))
+    resp = _client_for(user).get(HISTORY_URL, {"date_from": "nope", "date_to": "2026-01-10"})
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_history_upstream_error(monkeypatch):
+    user = _member_of(HouseholdFactory(latitude=1.0, longitude=1.0))
+
+    def _raise(lat, lon, df, dt):
+        raise services.WeatherUnavailable("down")
+
+    monkeypatch.setattr(services, "get_history", _raise)
+    resp = _client_for(user).get(HISTORY_URL, {"date_from": "2026-01-01", "date_to": "2026-01-10"})
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data["error"] is True
+    assert resp.data["points"] == []

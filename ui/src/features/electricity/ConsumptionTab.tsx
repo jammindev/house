@@ -22,6 +22,8 @@ import {
   useMeterReadings,
   useMeters,
 } from './hooks';
+import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
+import { useTemperatureOverlay } from '@/features/weather/overlay';
 import ConsumptionChart from './ConsumptionChart';
 import ImportDialog from './ImportDialog';
 import MeterDialog from './MeterDialog';
@@ -101,6 +103,19 @@ export default function ConsumptionTab() {
     date_to: to,
   });
   const { data: readings = [] } = useMeterReadings(meter?.id);
+
+  const [showWeather, setShowWeather] = useSessionState<boolean>('electricity.consumption.showWeather', false);
+  const overlayBuckets = React.useMemo(
+    () => (summary?.buckets ?? []).map((b) => ({ ts: b.ts })),
+    [summary],
+  );
+  const { available: weatherAvailable, overlay: weatherOverlay } = useTemperatureOverlay({
+    from,
+    to,
+    granularity,
+    buckets: overlayBuckets,
+    show: showWeather,
+  });
 
   const [meterDialogOpen, setMeterDialogOpen] = React.useState(false);
   const [editingMeter, setEditingMeter] = React.useState<ElectricityMeter | undefined>(undefined);
@@ -211,6 +226,9 @@ export default function ConsumptionTab() {
               {t(`consumption.granularity.${g}`)}
             </FilterPill>
           ))}
+          {weatherAvailable && (
+            <WeatherOverlayToggle active={showWeather} onToggle={setShowWeather} />
+          )}
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -266,7 +284,7 @@ export default function ConsumptionTab() {
         {summaryLoading && !summary ? (
           <div className="h-64 animate-pulse rounded-lg bg-muted sm:h-80" />
         ) : hasData && summary ? (
-          <ConsumptionChart summary={summary} granularity={granularity} />
+          <ConsumptionChart summary={summary} granularity={granularity} overlay={weatherOverlay} />
         ) : (
           <div className="flex h-64 items-center justify-center text-sm text-muted-foreground sm:h-80">
             {granularity === 'hour'

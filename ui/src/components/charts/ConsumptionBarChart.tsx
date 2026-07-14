@@ -2,9 +2,10 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Bar,
-  BarChart,
   CartesianGrid,
+  ComposedChart,
   Legend,
+  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -25,6 +26,16 @@ export interface ConsumptionChartSeries {
 export interface ConsumptionChartBucket {
   ts: string;
   values: Record<string, number>;
+}
+
+// Optional secondary series drawn as a line on a right-hand axis (e.g. the
+// temperature overlay, parcours 17 Lot 6). Points are matched to buckets by ts.
+export interface ConsumptionChartOverlay {
+  key: string;
+  label: string;
+  color: string;
+  unit: string;
+  points: { ts: string; value: number }[];
 }
 
 function formatTick(ts: string, granularity: Granularity, locale: string): string {
@@ -60,6 +71,8 @@ interface ConsumptionBarChartProps {
   series: ConsumptionChartSeries[];
   granularity: Granularity;
   unit: string;
+  /** Optional line on a right-hand axis (e.g. temperature). */
+  overlay?: ConsumptionChartOverlay;
 }
 
 export default function ConsumptionBarChart({
@@ -67,24 +80,32 @@ export default function ConsumptionBarChart({
   series,
   granularity,
   unit,
+  overlay,
 }: ConsumptionBarChartProps) {
   const { i18n } = useTranslation();
   const locale = i18n.language;
 
-  const data = React.useMemo(
-    () => buckets.map((bucket) => ({ ts: bucket.ts, ...bucket.values })),
-    [buckets],
-  );
+  const data = React.useMemo(() => {
+    const overlayByTs = new Map((overlay?.points ?? []).map((p) => [p.ts, p.value]));
+    return buckets.map((bucket) => ({
+      ts: bucket.ts,
+      ...bucket.values,
+      ...(overlay ? { [overlay.key]: overlayByTs.get(bucket.ts) ?? null } : {}),
+    }));
+  }, [buckets, overlay]);
 
   const seriesLabel = React.useCallback(
-    (key: string) => series.find((s) => s.key === key)?.label ?? key,
-    [series],
+    (key: string) => {
+      if (overlay && key === overlay.key) return overlay.label;
+      return series.find((s) => s.key === key)?.label ?? key;
+    },
+    [series, overlay],
   );
 
   return (
     <div className="h-64 w-full sm:h-80">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="ts"
@@ -96,12 +117,24 @@ export default function ConsumptionBarChart({
             minTickGap={16}
           />
           <YAxis
+            yAxisId="main"
             tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
             axisLine={false}
             width={44}
             unit={` ${unit}`}
           />
+          {overlay && (
+            <YAxis
+              yAxisId="overlay"
+              orientation="right"
+              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+              tickLine={false}
+              axisLine={false}
+              width={40}
+              unit={` ${overlay.unit}`}
+            />
+          )}
           <Tooltip
             cursor={{ fill: 'hsl(var(--muted))', opacity: 0.4 }}
             contentStyle={{
@@ -111,21 +144,36 @@ export default function ConsumptionBarChart({
               fontSize: 12,
             }}
             labelFormatter={(ts) => formatLabel(String(ts), granularity, locale)}
-            formatter={(value, name) => [`${String(value)} ${unit}`, seriesLabel(String(name))]}
+            formatter={(value, name) => {
+              const u = overlay && name === overlay.key ? overlay.unit : unit;
+              return [`${String(value)} ${u}`, seriesLabel(String(name))];
+            }}
           />
-          {series.length > 1 && (
+          {(series.length > 1 || overlay) && (
             <Legend formatter={(value: string) => seriesLabel(value)} wrapperStyle={{ fontSize: 12 }} />
           )}
           {series.map((s, index) => (
             <Bar
               key={s.key}
+              yAxisId="main"
               dataKey={s.key}
               stackId="consumption"
               fill={s.color}
               radius={index === series.length - 1 ? [3, 3, 0, 0] : undefined}
             />
           ))}
-        </BarChart>
+          {overlay && (
+            <Line
+              yAxisId="overlay"
+              type="monotone"
+              dataKey={overlay.key}
+              stroke={overlay.color}
+              strokeWidth={2}
+              dot={false}
+              connectNulls
+            />
+          )}
+        </ComposedChart>
       </ResponsiveContainer>
     </div>
   );

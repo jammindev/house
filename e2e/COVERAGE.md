@@ -448,3 +448,21 @@ Requiert un build frontend à jour (`npm run build`) car la feature weather_aler
 | Alerte orage sans valeur affiche le libellé fixe ("Orage prévu") | ✅ |
 | Alertes météo remontées dans TriageSection du dashboard (title + badge "Urgent") | ✅ |
 | TriageSection absente du dashboard quand `total: 0` | ✅ |
+
+---
+
+## Overlay météo — consommation (`weather-overlay.spec.ts`)
+
+API `/api/households/`, `/api/water/consumption/summary/`, `/api/weather/history/` et `/api/water/readings/` stubées via `page.route` — aucun appel réseau réel.
+Households stubés pour contrôler la présence ou l'absence de lat/lon.
+
+| Parcours | Statut |
+|---|---|
+| Toggle "Météo" visible à côté des granularités quand foyer a lat/lon + granularité `day` | ✅ |
+| Activer le toggle déclenche un appel GET `/api/weather/history/` | ✅ |
+| Activer le toggle fait apparaître la légende "Température" dans le graphe recharts | ✅ |
+| Activer le toggle fait apparaître une ligne SVG recharts (Line) dans le graphe | ✅ |
+| Toggle "Météo" absent en vue Année (granularité non supportée par l'overlay) | ✅ |
+| Toggle "Météo" visible en vue Mois (granularité supportée) | ✅ |
+| Toggle "Météo" absent quand le foyer n'a pas de lat/lon | ✅ |
+| Toggle "Météo" visible sur l'onglet Consommation d'Électricité en vue Jour (smoke) | ✅ |

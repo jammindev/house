@@ -90,3 +90,24 @@ export async function geocodePlace(q: string): Promise<GeocodeResult[]> {
   const { data } = await api.get('/weather/geocode/', { params: { q } });
   return (data as { results?: GeocodeResult[] }).results ?? [];
 }
+
+// ── History (Lot 6 — consumption overlay) ────────────────────────────────────
+
+export interface WeatherHistoryPoint {
+  date: string; // YYYY-MM-DD
+  temp_mean: number;
+}
+
+export interface WeatherHistory {
+  configured: boolean;
+  error?: boolean;
+  points: WeatherHistoryPoint[];
+}
+
+export async function fetchWeatherHistory(params: {
+  date_from: string;
+  date_to: string;
+}): Promise<WeatherHistory> {
+  const { data } = await api.get('/weather/history/', { params });
+  return data as WeatherHistory;
+}

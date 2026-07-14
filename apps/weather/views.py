@@ -6,7 +6,9 @@ No model, no writes: the weather module reads live forecasts from Open-Meteo
 proxies the geocoding search used by the settings UI to pick that location.
 """
 import logging
+from datetime import date
 
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -44,6 +46,38 @@ class WeatherView(APIView):
         except services.WeatherUnavailable:
             return Response({**base, "error": True})
         return Response({**base, "error": False, **forecast})
+
+
+class WeatherHistoryView(APIView):
+    """Daily mean temperatures over a period, to overlay on the consumption
+    charts (parcours 17 Lot 6). Always HTTP 200; ``configured=False`` when the
+    household has no location, ``error=True`` when the archive is unreachable.
+    The frontend aggregates these daily points to its own consumption buckets.
+    """
+
+    permission_classes = [IsHouseholdMember]
+
+    def get(self, request):
+        household = request.household
+        if household is None or household.latitude is None or household.longitude is None:
+            return Response({"configured": False, "points": []})
+
+        try:
+            date_from = date.fromisoformat(request.query_params.get("date_from", ""))
+            date_to = date.fromisoformat(request.query_params.get("date_to", ""))
+        except ValueError:
+            raise ValidationError({"date_from": "date_from and date_to must be ISO dates (YYYY-MM-DD)."})
+        if date_to < date_from:
+            raise ValidationError({"date_to": "date_to must be on or after date_from."})
+
+        try:
+            points = services.get_history(
+                household.latitude, household.longitude,
+                date_from.isoformat(), date_to.isoformat(),
+            )
+        except services.WeatherUnavailable:
+            return Response({"configured": True, "error": True, "points": []})
+        return Response({"configured": True, "error": False, "points": points})
 
 
 class WeatherGeocodeView(APIView):

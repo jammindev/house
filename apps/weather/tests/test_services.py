@@ -135,6 +135,50 @@ def test_get_forecast_raises_on_transport_error(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# get_history (Lot 6)
+# ---------------------------------------------------------------------------
+
+_ARCHIVE_PAYLOAD = {
+    "daily": {
+        "time": ["2026-01-01", "2026-01-02", "2026-01-03"],
+        "temperature_2m_mean": [0.5, None, 3.3],
+    }
+}
+
+
+def test_get_history_normalizes_and_drops_nulls(monkeypatch):
+    monkeypatch.setattr(services.httpx, "get", _fake_get(_ARCHIVE_PAYLOAD))
+    points = services.get_history(48.85, 2.35, "2026-01-01", "2026-01-03", use_cache=False)
+    # The None day is dropped.
+    assert points == [
+        {"date": "2026-01-01", "temp_mean": 0.5},
+        {"date": "2026-01-03", "temp_mean": 3.3},
+    ]
+
+
+def test_get_history_uses_cache(monkeypatch):
+    calls = {"n": 0}
+
+    def _counting_get(url, params=None, timeout=None):
+        calls["n"] += 1
+        return _FakeResponse(_ARCHIVE_PAYLOAD)
+
+    monkeypatch.setattr(services.httpx, "get", _counting_get)
+    services.get_history(48.85, 2.35, "2026-01-01", "2026-01-03")
+    services.get_history(48.85, 2.35, "2026-01-01", "2026-01-03")
+    assert calls["n"] == 1
+
+
+def test_get_history_raises_on_transport_error(monkeypatch):
+    def _raise(*a, **k):
+        raise httpx.ConnectError("boom")
+
+    monkeypatch.setattr(services.httpx, "get", _raise)
+    with pytest.raises(services.WeatherUnavailable):
+        services.get_history(48.85, 2.35, "2026-01-01", "2026-01-03", use_cache=False)
+
+
+# ---------------------------------------------------------------------------
 # Helpers / fixtures data
 # ---------------------------------------------------------------------------
 

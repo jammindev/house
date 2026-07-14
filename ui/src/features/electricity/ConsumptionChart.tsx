@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
+import ConsumptionBarChart, { type ConsumptionChartOverlay } from '@/components/charts/ConsumptionBarChart';
 import type { ConsumptionSummary, EnergyRegister, Granularity } from '@/lib/api/electricity';
 
 const REGISTER_COLORS: Record<EnergyRegister, string> = {
@@ -12,11 +12,12 @@ const REGISTER_COLORS: Record<EnergyRegister, string> = {
 interface ConsumptionChartProps {
   summary: ConsumptionSummary;
   granularity: Granularity;
+  overlay?: ConsumptionChartOverlay;
 }
 
 // Electricity wrapper of the shared ConsumptionBarChart: one stacked series per
 // register present in the data, Wh converted to kWh.
-export default function ConsumptionChart({ summary, granularity }: ConsumptionChartProps) {
+export default function ConsumptionChart({ summary, granularity, overlay }: ConsumptionChartProps) {
   const { t } = useTranslation();
 
   const registers = React.useMemo(() => {
@@ -48,5 +49,13 @@ export default function ConsumptionChart({ summary, granularity }: ConsumptionCh
     [summary.buckets, registers],
   );
 
-  return <ConsumptionBarChart buckets={buckets} series={series} granularity={granularity} unit="kWh" />;
+  return (
+    <ConsumptionBarChart
+      buckets={buckets}
+      series={series}
+      granularity={granularity}
+      unit="kWh"
+      overlay={overlay}
+    />
+  );
 }
