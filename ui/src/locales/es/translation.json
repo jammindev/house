@@ -798,7 +798,8 @@
       "types": {
         "egg_log": "Recuento de huevos de la tarde",
         "meter_reading": "Recordatorio de lectura eléctrica",
-        "water_reading": "Recordatorio de lectura de agua"
+        "water_reading": "Recordatorio de lectura de agua",
+        "weather_alert": "Alerta meteorológica"
       }
     },
     "theme": "Tema",
@@ -1056,6 +1057,10 @@
           "dashboard": {
             "title": "Un vistazo desde el panel",
             "body": "Un resumen del tiempo aparece en el panel: haz clic en él para abrir la página completa."
+          },
+          "alerts": {
+            "title": "Recibir alertas del tiempo",
+            "body": "La página de Alertas muestra los riesgos meteorológicos (helada, calor, viento, tormenta). Activa el aviso del tiempo en Ajustes para una alerta proactiva por Telegram + campana."
           }
         }
       },
@@ -2284,7 +2289,8 @@
       "overdue": "Tareas atrasadas",
       "warranties": "Garantías a vigilar",
       "maintenances": "Mantenimientos a planificar",
-      "stock": "Stock por reponer"
+      "stock": "Stock por reponer",
+      "weather": "Tiempo"
     },
     "severity": {
       "critical": "Urgente",
@@ -2301,7 +2307,14 @@
       "out_of_stock": "Agotado",
       "expired": "Caducado"
     },
-    "stockRemaining": "{{quantity}} {{unit}} restante"
+    "stockRemaining": "{{quantity}} {{unit}} restante",
+    "weather": {
+      "frost": "Helada: hasta {{value}}°C",
+      "heatwave": "Ola de calor: hasta {{value}}°C",
+      "wind": "Viento fuerte: rachas de hasta {{value}} km/h",
+      "storm": "Tormenta prevista",
+      "ahead": "Próximos días"
+    }
   },
   "agent": {
     "title": "Agente",

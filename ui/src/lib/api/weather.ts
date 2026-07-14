@@ -45,6 +45,7 @@ export interface WeatherDay {
   temp_max: number | null;
   temp_min: number | null;
   precipitation_probability_max: number | null;
+  wind_gusts_max: number | null;
   sunrise: string | null;
   sunset: string | null;
 }

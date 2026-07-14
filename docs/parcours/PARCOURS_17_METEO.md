@@ -34,7 +34,7 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
 | **1** | Localisation foyer + service Open-Meteo (cache) + widget dashboard | **V1** |
 | **2** | Page météo (horaire du jour + prévisions 7 jours) | **V1** |
 | 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | **livré** (2026-07-14) |
-| 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + job périodique | backlog |
+| 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + pings | **livré** (2026-07-14) |
 | 5 | Contexte météo exposé à l'agent IA | backlog |
 | 6 | Corrélations conso (électricité/eau/poules) avec l'historique météo | backlog |
 
@@ -89,6 +89,61 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
   (via `useWeather()`) — pas de nouvel endpoint, pas d'appel Open-Meteo supplémentaire.
 - Agent : `needs_dry_weather` câblé dans `create_entity`/`update_entity` (create +
   update via les services `tasks.services`), description du tool étendue.
+
+## Lot 4 — Alertes météo (cadrage validé 2026-07-14)
+
+Objectif : prévenir le foyer quand la météo à venir franchit un seuil à risque
+(**gel, canicule, vent fort, orage**). Décisions figées avec le PO :
+- **Canaux** : les trois — carte dashboard (in-app, universel), ping Telegram
+  (proactif, opt-in), notification cloche in-app.
+- **Seuils** : **défauts fixes** (constante registry), l'utilisateur active/désactive
+  seulement l'alerte (+ heure d'envoi du ping). Pas d'écran de seuils en V1.
+- **Types V1** : gel, canicule, vent fort, orage/forte pluie.
+
+### Décision d'architecture — réutilisation maximale, zéro nouveau modèle
+
+Le socle existant couvre tout ; **aucune nouvelle table** :
+- **Ordonnanceur** : le conteneur `send_scheduled_pings --loop` (tick 5 min,
+  idempotent) existe déjà — on **ne crée pas de cron**. On enregistre un
+  `PingSpec('weather_alert')`.
+- **Opt-in + heure** : `PingPreference` (ping_type `weather_alert`) — déjà le
+  modèle des préférences de ping. **Anti-spam 1/jour/user** : `PingLog`.
+- **Cloche** : `notifications.service.send(...)`.
+
+### Source de vérité unique — l'évaluateur
+
+`apps/weather/alerts.py::evaluate_weather_alerts(household) -> list[WeatherAlert]`
+est **pur** (lit `weather.services.get_forecast` + seuils fixes, aucune écriture).
+Les **trois canaux le consomment** — jamais de logique de seuil dupliquée :
+
+| Canal | Consommateur | Cadence | Opt-in ? |
+|-------|--------------|---------|----------|
+| Carte dashboard / page Alertes | `alerts.build_alerts_summary` (5e catégorie `weather`) | on-read | non (juste module actif + localisation) |
+| Ping Telegram | `PingSpec('weather_alert').build_message` | scheduler quotidien | oui (`PingPreference`) |
+| Notification cloche | créée dans `build_message` quand une alerte se déclenche | idem ping | oui (couplée au ping) |
+
+Seuils par défaut (constante dans `weather/alerts.py`) : gel `temp_min < 0 °C`,
+canicule `temp_max > 35 °C`, vent `> 50 km/h`, orage `weather_code ∈ {95,96,99}`.
+L'évaluateur inspecte les prochains jours du `daily[]` (fenêtre ~48 h) et renvoie
+une liste structurée `{kind, severity, date, value, message}` — le message est
+rendu i18n (langue user) pour le ping/cloche ; la carte dashboard reçoit les champs
+structurés et rend côté front.
+
+### US4.1 — Voir les risques météo dans l'app (carte)
+- **En tant que** membre, **je veux** voir les risques météo à venir sur la carte
+  Alertes / le dashboard, **afin de** anticiper sans dépendre de Telegram.
+- Toujours visible si module météo actif + localisation définie ; sinon absent.
+
+### US4.2 — Être prévenu proactivement (ping + cloche)
+- **En tant que** membre, **je veux** activer un rappel météo qui me pousse une
+  alerte (Telegram + cloche) **afin d'** être prévenu sans ouvrir l'app.
+- Opt-in via les préférences de ping (comme les autres pings). Anti-spam 1/jour.
+- Le ping Telegram requiert un compte Telegram lié (précondition de l'infra pings) ;
+  la **carte dashboard reste le canal universel** pour les non-Telegram.
+
+### Hors périmètre Lot 4
+- Seuils configurables (V2), alerte poulailler dédiée (peut se greffer plus tard
+  via un message contextualisé si module chickens actif), historique des alertes.
 
 ## Contrats techniques V1
 

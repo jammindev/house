@@ -427,3 +427,24 @@ API `/api/weather/` stubée via `page.route` — aucun appel réseau vers Open-M
 | Widget Météo absent du dashboard quand non configurée | ✅ |
 | Cliquer le widget navigue vers /app/weather | ✅ |
 | Sidebar affiche un lien "Météo" vers /app/weather | ✅ |
+
+---
+
+## Alertes météo (`weather-alerts.spec.ts`)
+
+API `/api/alerts/summary/` stubée via `page.route` — aucun appel réseau réel.
+Requiert un build frontend à jour (`npm run build`) car la feature weather_alerts est récente.
+
+| Parcours | Statut |
+|---|---|
+| Section "Météo" affichée avec gel + canicule (frost + heatwave) | ✅ |
+| Badge "Urgent" visible pour une alerte `severity: critical` | ✅ |
+| Badge "À surveiller" visible pour une alerte `severity: warning` | ✅ |
+| Alertes météo = liens vers `/app/weather` (entity_url) | ✅ |
+| Cliquer une alerte navigue vers `/app/weather` | ✅ |
+| Empty state "Tout est sous contrôle." quand `weather_alerts: []` et `total: 0` | ✅ |
+| Section "Météo" absente du `<main>` quand weather_alerts vide | ✅ |
+| Alerte vent affiche la valeur interpolée ("Vent fort : rafales jusqu'à 95 km/h") | ✅ |
+| Alerte orage sans valeur affiche le libellé fixe ("Orage prévu") | ✅ |
+| Alertes météo remontées dans TriageSection du dashboard (title + badge "Urgent") | ✅ |
+| TriageSection absente du dashboard quand `total: 0` | ✅ |

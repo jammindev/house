@@ -134,21 +134,49 @@ def _low_stock(household) -> list[dict]:
     return items
 
 
+def _weather_alerts(household) -> list[dict]:
+    """Weather risks ahead (frost/heatwave/wind/storm) — parcours 17 Lot 4.
+
+    On-read channel of the shared evaluator; rendered client-side from the
+    structured fields (kind/value), so no server-side i18n here. Skipped when the
+    weather module is disabled for the household (the evaluator already returns
+    ``[]`` when no location is set).
+    """
+    if "weather" in (household.disabled_modules or []):
+        return []
+    from weather.alerts import evaluate_weather_alerts
+
+    return [
+        {
+            "kind": alert["kind"],
+            "date": alert["date"],
+            "value": alert["value"],
+            "unit": alert["unit"],
+            "entity_url": "/app/weather",
+            "severity": alert["severity"],
+        }
+        for alert in evaluate_weather_alerts(household)
+    ]
+
+
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
     expiring_warranties = _expiring_warranties(household, today)
     due_maintenances = _due_maintenances(household, today)
     low_stock = _low_stock(household)
+    weather_alerts = _weather_alerts(household)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
         "due_maintenances": due_maintenances,
         "low_stock": low_stock,
+        "weather_alerts": weather_alerts,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
             + len(due_maintenances)
             + len(low_stock)
+            + len(weather_alerts)
         ),
     }

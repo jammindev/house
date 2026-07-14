@@ -45,7 +45,19 @@ export interface AlertsSummary {
   expiring_warranties: ExpiringWarrantyAlert[];
   due_maintenances: DueMaintenanceAlert[];
   low_stock: LowStockAlert[];
+  weather_alerts: WeatherAlert[];
   total: number;
+}
+
+export type WeatherAlertKind = 'frost' | 'heatwave' | 'wind' | 'storm';
+
+export interface WeatherAlert {
+  kind: WeatherAlertKind;
+  date: string;
+  value: number | null;
+  unit: string | null;
+  entity_url: string;
+  severity: AlertSeverity;
 }
 
 export async function fetchAlertsSummary(): Promise<AlertsSummary> {

@@ -5,6 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   ArrowRight,
   Clock,
+  CloudSun,
   Package,
   ShieldAlert,
   Wrench,
@@ -70,6 +71,16 @@ function buildItems(data: AlertsSummary, t: TFunction): TriageItem[] {
         quantity: item.quantity,
         unit: item.unit,
       })}`,
+      url: item.entity_url,
+      severity: item.severity,
+    })),
+    ...(data.weather_alerts ?? []).map((item, index) => ({
+      key: `weather-${item.kind}-${item.date}-${index}`,
+      icon: CloudSun,
+      title: item.value !== null
+        ? t(`alerts.weather.${item.kind}`, { value: item.value })
+        : t(`alerts.weather.${item.kind}`),
+      meta: t('alerts.weather.ahead'),
       url: item.entity_url,
       severity: item.severity,
     })),
