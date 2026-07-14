@@ -3,10 +3,11 @@ Server-initiated Telegram messages (proactive pings).
 
 The inbound flow (`service.py`) always reacts to a webhook update; this module
 is the opposite direction: the app speaks first. The message is delivered to
-the user's chat AND persisted as an assistant turn in THE channel conversation
-of (household, user) — so when the user replies, the regular inbound pipeline
-(`agent.service.ask` + bounded history) sees the question the bot just asked
-and can act on the answer with full context.
+the user's chat AND persisted as an assistant turn in the current session's
+channel conversation (`resolve_channel_conversation`) — so when the user
+replies, the regular inbound pipeline (`agent.service.ask` + bounded history)
+sees the question the bot just asked and can act on the answer with full
+context. A ping after a long gap or on a new day opens a fresh session.
 """
 from __future__ import annotations
 
@@ -29,9 +30,9 @@ def send_agent_message(account: TelegramAccount, household, text: str) -> bool:
     delivery problems are the caller's signal to retry later, not a crash.
     """
     from agent.conversations import derive_title
-    from agent.models import AgentConversation, AgentMessage
+    from agent.models import AgentMessage
 
-    from .service import CHANNEL_ENTITY_TYPE, CHANNEL_OBJECT_ID
+    from .service import resolve_channel_conversation
 
     if get_client().send_message(account.chat_id, text) is None:
         logger.warning(
@@ -39,12 +40,7 @@ def send_agent_message(account: TelegramAccount, household, text: str) -> bool:
         )
         return False
 
-    conversation, _created = AgentConversation.objects.get_or_create(
-        household=household,
-        created_by=account.user,
-        context_entity_type=CHANNEL_ENTITY_TYPE,
-        context_object_id=CHANNEL_OBJECT_ID,
-    )
+    conversation = resolve_channel_conversation(household, account.user)
     AgentMessage.objects.create(
         conversation=conversation,
         role=AgentMessage.Role.AGENT,

@@ -14,11 +14,12 @@ from __future__ import annotations
 
 import logging
 import threading
+from datetime import timedelta
 
 from django.conf import settings
 from django.core.cache import cache
 from django.db import close_old_connections
-from django.utils import translation
+from django.utils import timezone, translation
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 
@@ -35,11 +36,76 @@ UPDATE_DEDUP_TTL_SECONDS = 15 * 60
 
 SUPPORTED_LANGUAGES = {"en", "fr", "de", "es"}
 
-# Anchor pair identifying THE Telegram conversation of (household, user). The
-# anchor fields act as a channel discriminator here — this is not a household
-# entity, so it is never passed to `ask()` as context_entity.
+# Anchor pair tagging a conversation as belonging to the Telegram channel of
+# (household, user). It is a channel discriminator, NOT a household entity, so
+# it is never passed to `ask()` as context_entity. Several channel conversations
+# can coexist per user — one per session (see `resolve_channel_conversation`).
 CHANNEL_ENTITY_TYPE = "channel"
 CHANNEL_OBJECT_ID = "telegram"
+
+# A channel conversation is a "session": consecutive turns close in time. Past
+# this idle gap — or across a calendar-day boundary — the next turn opens a
+# fresh conversation instead of dragging stale context (e.g. yesterday's
+# "j'ai noté 2 œufs aujourd'hui") into today's history.
+SESSION_MAX_IDLE = timedelta(hours=6)
+
+
+def _channel_conversations(household, user):
+    """Every channel conversation of (household, user), newest-active first."""
+    from agent.models import AgentConversation
+
+    return AgentConversation.objects.filter(
+        household=household,
+        created_by=user,
+        context_entity_type=CHANNEL_ENTITY_TYPE,
+        context_object_id=CHANNEL_OBJECT_ID,
+    )
+
+
+def _session_expired(conversation, now) -> bool:
+    """True when `conversation`'s last activity is a different day or too old."""
+    ref = conversation.last_message_at or conversation.created_at
+    local_now, local_ref = timezone.localtime(now), timezone.localtime(ref)
+    if local_now.date() != local_ref.date():
+        return True
+    return (now - ref) > SESSION_MAX_IDLE
+
+
+def resolve_channel_conversation(household, user, *, force_new=False):
+    """The channel conversation the next Telegram turn belongs to.
+
+    Reuses the current session's conversation while it stays fresh (same day,
+    within `SESSION_MAX_IDLE`); otherwise opens a NEW one so each session keeps
+    a clean, self-contained history. Both directions go through here — inbound
+    replies and outbound pings — so a session groups the ping and its answer.
+
+    `force_new` (used by `/reset`) forces a fresh conversation WITHOUT deleting
+    anything; an already-empty latest one is reused so repeated resets don't pile
+    up blank rows.
+    """
+    from agent.models import AgentConversation
+
+    latest = _channel_conversations(household, user).first()  # recency-ordered
+    if latest is None:
+        return AgentConversation.objects.create(
+            household=household,
+            created_by=user,
+            context_entity_type=CHANNEL_ENTITY_TYPE,
+            context_object_id=CHANNEL_OBJECT_ID,
+        )
+    has_messages = latest.messages.exists()
+    if force_new:
+        needs_new = has_messages
+    else:
+        needs_new = has_messages and _session_expired(latest, timezone.now())
+    if needs_new:
+        return AgentConversation.objects.create(
+            household=household,
+            created_by=user,
+            context_entity_type=CHANNEL_ENTITY_TYPE,
+            context_object_id=CHANNEL_OBJECT_ID,
+        )
+    return latest
 
 # SOURCE OF TRUTH for the bot's command menu (the `/` autocomplete in Telegram).
 # `telegram_set_commands` pushes this list to Telegram (setMyCommands) at every
@@ -149,21 +215,15 @@ def _handle_question(account: TelegramAccount, chat_id: int, text: str) -> None:
 
 
 def _handle_reset(account: TelegramAccount, chat_id: int) -> None:
-    """`/reset` — drop the channel conversation, the next message starts fresh.
+    """`/reset` — open a fresh conversation; the next message starts a new thread.
 
-    Same effect as deleting a conversation from the web sidebar (hard delete,
-    messages cascade); the bot recreates one lazily on the next question.
+    Non-destructive: the previous conversation is kept (still visible in the web
+    history), we merely stop threading into it. A brand-new empty conversation
+    becomes the active one, so the next turn lands in a clean session.
     """
-    from agent.models import AgentConversation
-
     household = _resolve_household(account.user)
     if household is not None:
-        AgentConversation.objects.filter(
-            household=household,
-            created_by=account.user,
-            context_entity_type=CHANNEL_ENTITY_TYPE,
-            context_object_id=CHANNEL_OBJECT_ID,
-        ).delete()
+        resolve_channel_conversation(household, account.user, force_new=True)
     get_client().send_message(
         chat_id, _("Fresh start — your next message opens a new conversation.")
     )
@@ -204,7 +264,6 @@ def _process_question(account: TelegramAccount, chat_id: int, text: str) -> None
     from agent import service as agent_service
     from agent.conversations import ask_inputs, persist_turns
     from agent.llm import LLMError, LLMTimeoutError
-    from agent.models import AgentConversation
 
     client = get_client()
     try:
@@ -216,12 +275,7 @@ def _process_question(account: TelegramAccount, chat_id: int, text: str) -> None
                 )
                 return
             client.send_chat_action(chat_id, "typing")
-            conversation, _created = AgentConversation.objects.get_or_create(
-                household=household,
-                created_by=account.user,
-                context_entity_type=CHANNEL_ENTITY_TYPE,
-                context_object_id=CHANNEL_OBJECT_ID,
-            )
+            conversation = resolve_channel_conversation(household, account.user)
             # The channel anchor is a discriminator, not a household entity —
             # history flows, context_entity deliberately does not.
             history, _anchor = ask_inputs(conversation)

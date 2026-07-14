@@ -30,7 +30,7 @@ TelegramAccount.chat_id → user  (chat inconnu → réponse fixe, zéro donnée
    ▼  thread daemon (Telegram retente sinon ; ask() = 10–30 s)
 household résolu (active_household / 1er membership)
    ▼
-AgentConversation get-or-create (ancre channel/telegram = discriminateur, PAS passée à ask())
+resolve_channel_conversation (session courante ; ancre channel/telegram = discriminateur, PAS passée à ask())
    ▼
 agent.service.ask(text, household, user=…, history=…)  ← même entrée que l'API web
    ▼
@@ -102,9 +102,26 @@ jour tout seul.
 
 `outbound.py::send_agent_message(account, household, text)` — le seul chemin
 d'envoi initié serveur : délivre via `client.send_message` **puis** persiste le
-tour assistant dans LA conversation canal (rien n'est persisté si Telegram
-rejette). Consommé par le module [pings](./pings.md) (scheduler + préférences) ;
-la réponse de l'utilisateur suit le flux entrant standard ci-dessus.
+tour assistant dans la conversation canal de la session courante (rien n'est
+persisté si Telegram rejette). Consommé par le module [pings](./pings.md)
+(scheduler + préférences) ; la réponse de l'utilisateur suit le flux entrant
+standard ci-dessus.
+
+## Sessions & `/reset`
+
+Le canal n'est **pas** une conversation unique qui grossit sans fin : entrant et
+sortant passent par `resolve_channel_conversation(household, user)`, qui **réutilise**
+la conversation tant que la session reste fraîche (même jour **et** moins de
+`SESSION_MAX_IDLE` = 6 h depuis le dernier tour) et **en ouvre une nouvelle** sinon.
+Objectif : qu'un « j'ai noté 2 œufs **aujourd'hui** » d'hier ne pollue pas
+l'historique (`ask_inputs`) de la session d'aujourd'hui — chaque session a un
+contexte propre. Côté web, une conversation par session/jour, empilée dans
+l'historique.
+
+`/reset` est **non destructif** : il appelle `resolve_channel_conversation(…,
+force_new=True)` → ouvre une conversation vierge sans rien supprimer (l'ancienne
+reste consultable). Deux `/reset` d'affilée réutilisent la conversation encore
+vide (pas d'empilement de lignes blanches).
 
 Opt-out conversationnel : un message `stop` (ou `/stop`, mot seul, insensible à
 la casse) désactive toutes les `PingPreference` du user — intercepté en dur

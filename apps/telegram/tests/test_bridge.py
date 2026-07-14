@@ -1,9 +1,12 @@
 """The agent bridge: linked question -> service.ask -> persisted turns -> reply."""
 from __future__ import annotations
 
+from datetime import timedelta
 from unittest import mock
 
 import pytest
+
+from django.utils import timezone
 
 from agent.llm import LLMTimeoutError
 from agent.models import AgentConversation, AgentMessage
@@ -122,16 +125,84 @@ class TestCooldown:
 
 
 class TestReset:
-    def test_reset_deletes_channel_conversation(self, bot, monkeypatch, linked_account, household, user):
+    def test_reset_opens_fresh_conversation_without_deleting(
+        self, bot, monkeypatch, linked_account, household, user
+    ):
         _patch_ask(monkeypatch, return_value=_answer())
         service.handle_update(text_update(linked_account.chat_id, "question", update_id=1))
-        assert _channel_conversation(household, user).exists()
+        first = _channel_conversation(household, user).get()
 
         service.handle_update(text_update(linked_account.chat_id, "/reset", update_id=2))
-        assert not _channel_conversation(household, user).exists()
-        # Reset confirmation was sent.
+
+        # Non-destructive: the old conversation stays, a fresh empty one is opened.
+        convs = _channel_conversation(household, user)
+        assert convs.count() == 2
+        assert convs.filter(pk=first.pk).exists()
+        fresh = convs.exclude(pk=first.pk).get()
+        assert not fresh.messages.exists()
+        # Answer + reset confirmation.
         assert bot.send_message.call_count == 2
 
     def test_reset_without_conversation_is_fine(self, bot, linked_account):
         service.handle_update(text_update(linked_account.chat_id, "/reset"))
         assert bot.send_message.call_count == 1
+
+    def test_reset_twice_reuses_the_empty_fresh_conversation(
+        self, bot, monkeypatch, linked_account, household, user
+    ):
+        _patch_ask(monkeypatch, return_value=_answer())
+        service.handle_update(text_update(linked_account.chat_id, "question", update_id=1))
+        service.handle_update(text_update(linked_account.chat_id, "/reset", update_id=2))
+        service.handle_update(text_update(linked_account.chat_id, "/reset", update_id=3))
+
+        # The second reset reuses the still-empty conversation — no pile-up.
+        assert _channel_conversation(household, user).count() == 2
+
+    def test_message_after_reset_threads_into_the_fresh_conversation(
+        self, bot, monkeypatch, linked_account, household, user, settings
+    ):
+        settings.TELEGRAM_COOLDOWN_SECONDS = 0
+        _patch_ask(monkeypatch, return_value=_answer())
+        service.handle_update(text_update(linked_account.chat_id, "q1", update_id=1))
+        first = _channel_conversation(household, user).get()
+        service.handle_update(text_update(linked_account.chat_id, "/reset", update_id=2))
+        service.handle_update(text_update(linked_account.chat_id, "q2", update_id=3))
+
+        first.refresh_from_db()
+        assert [m.content for m in first.messages.all()] == ["q1", "Réponse."]
+        fresh = _channel_conversation(household, user).exclude(pk=first.pk).get()
+        assert "q2" in [m.content for m in fresh.messages.all()]
+
+
+class TestSessionGrouping:
+    def test_stale_session_opens_a_new_conversation(
+        self, bot, monkeypatch, linked_account, household, user, settings
+    ):
+        settings.TELEGRAM_COOLDOWN_SECONDS = 0
+        _patch_ask(monkeypatch, return_value=_answer())
+        service.handle_update(text_update(linked_account.chat_id, "q1", update_id=1))
+        conv = _channel_conversation(household, user).get()
+        # Simulate the session being from a previous day.
+        AgentConversation.objects.filter(pk=conv.pk).update(
+            last_message_at=timezone.now() - timedelta(days=1)
+        )
+
+        service.handle_update(text_update(linked_account.chat_id, "q2", update_id=2))
+
+        # A fresh session is opened rather than reusing yesterday's.
+        assert _channel_conversation(household, user).count() == 2
+
+    def test_fresh_session_history_is_empty(
+        self, bot, monkeypatch, linked_account, household, user, settings
+    ):
+        settings.TELEGRAM_COOLDOWN_SECONDS = 0
+        ask = _patch_ask(monkeypatch, return_value=_answer())
+        service.handle_update(text_update(linked_account.chat_id, "q1", update_id=1))
+        conv = _channel_conversation(household, user).get()
+        AgentConversation.objects.filter(pk=conv.pk).update(
+            last_message_at=timezone.now() - timedelta(days=1)
+        )
+        service.handle_update(text_update(linked_account.chat_id, "q2", update_id=2))
+
+        # The second ask sees no history — the new session starts clean.
+        assert ask.call_args.kwargs["history"] == []
