@@ -1,33 +1,24 @@
 import * as React from 'react';
-import { History } from 'lucide-react';
+import { History, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/design-system/button';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import ChatPanel from './ChatPanel';
 import ConversationList from './ConversationList';
-import { useConversation, useConversations, useCreateConversation } from './hooks';
+import { useConversation, useCreateConversation } from './hooks';
+import { useAgentSuggestions } from './suggestions';
 
 export default function AgentPage() {
   const { t } = useTranslation();
 
-  const conversationsQuery = useConversations();
+  // Always open on a fresh, empty conversation (à la ChatGPT/Claude): the past
+  // threads stay one tap away in the list, but the landing screen is a blank
+  // page — never an arbitrary old conversation auto-reopened.
   const [currentId, setCurrentId] = React.useState<string | null>(null);
   const conversationQuery = useConversation(currentId);
   const createConversation = useCreateConversation();
-
-  // Auto-select the latest conversation only once, on first load — so clicking
-  // "New conversation" (currentId → null) isn't immediately overridden.
-  const initializedRef = React.useRef(false);
-
-  React.useEffect(() => {
-    if (!initializedRef.current && conversationsQuery.data) {
-      initializedRef.current = true;
-      if (conversationsQuery.data.length > 0) {
-        setCurrentId(conversationsQuery.data[0].id);
-      }
-    }
-  }, [conversationsQuery.data]);
+  const suggestions = useAgentSuggestions();
 
   const handleSelect = React.useCallback((id: string) => {
     setCurrentId(id);
@@ -45,39 +36,66 @@ export default function AgentPage() {
     return conversation.id;
   }, [createConversation]);
 
+  // Title shown in the mobile bar: the open conversation's, or a "new" label.
+  const currentTitle = currentId
+    ? conversationQuery.data?.title || t('agent.untitled')
+    : t('agent.new_conversation');
+
+  const historyButton = (extraClass: string) => (
+    <SheetDialog
+      title={t('agent.conversations')}
+      trigger={
+        <Button
+          variant="outline"
+          size="icon"
+          className={extraClass}
+          aria-label={t('agent.conversations')}
+          data-testid="agent-conversations-toggle"
+        >
+          <History className="h-4 w-4" />
+        </Button>
+      }
+    >
+      {({ close }) => (
+        <ConversationList
+          currentId={currentId}
+          onSelect={(id) => {
+            handleSelect(id);
+            close();
+          }}
+          onNew={() => {
+            handleNew();
+            close();
+          }}
+          onCurrentDeleted={handleNew}
+        />
+      )}
+    </SheetDialog>
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <PageHeader title={t('agent.title')} description={t('agent.description')}>
-        <SheetDialog
-          title={t('agent.conversations')}
-          trigger={
-            <Button
-              variant="outline"
-              size="icon"
-              className="md:hidden"
-              aria-label={t('agent.conversations')}
-              data-testid="agent-conversations-toggle"
-            >
-              <History className="h-4 w-4" />
-            </Button>
-          }
+      {/* Desktop: full page header + persistent sidebar. */}
+      <div className="hidden md:block">
+        <PageHeader title={t('agent.title')} description={t('agent.description')} />
+      </div>
+
+      {/* Mobile: a thin bar (history · title · new) so the chat gets the screen. */}
+      <div className="mb-2 flex items-center gap-2 md:hidden">
+        {historyButton('')}
+        <span className="min-w-0 flex-1 truncate text-center text-sm font-medium text-foreground">
+          {currentTitle}
+        </span>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={handleNew}
+          aria-label={t('agent.new_conversation')}
+          data-testid="agent-new-conversation-mobile"
         >
-          {({ close }) => (
-            <ConversationList
-              currentId={currentId}
-              onSelect={(id) => {
-                handleSelect(id);
-                close();
-              }}
-              onNew={() => {
-                handleNew();
-                close();
-              }}
-              onCurrentDeleted={handleNew}
-            />
-          )}
-        </SheetDialog>
-      </PageHeader>
+          <Plus className="h-4 w-4" />
+        </Button>
+      </div>
 
       <div className="flex min-h-0 flex-1 gap-4">
         <aside className="hidden w-64 shrink-0 border-r border-border pr-3 md:flex md:flex-col">
@@ -96,6 +114,7 @@ export default function AgentPage() {
           creating={createConversation.isPending}
           emptyTitle={t('agent.empty_title')}
           emptyHint={t('agent.empty_hint')}
+          suggestions={suggestions}
           testIdPrefix="agent"
           className="flex-1"
         />

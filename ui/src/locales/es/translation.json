@@ -2318,6 +2318,23 @@
         "title": "📌 Recuerdo olvidado",
         "notice": "Se olvidó un recuerdo."
       }
+    },
+    "groups": {
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "last7": "Últimos 7 días",
+      "last30": "Últimos 30 días",
+      "older": "Más antiguo"
+    },
+    "suggestions": {
+      "tasks_due": "¿Qué tareas hay que hacer esta semana?",
+      "last_expense": "¿Cuáles son mis últimos gastos?",
+      "equipment_warranty": "¿Qué equipos siguen en garantía?",
+      "electricity_trend": "¿Ha aumentado mi consumo de electricidad?",
+      "eggs_this_week": "¿Cuántos huevos esta semana?",
+      "stock_low": "¿Qué se está agotando en mi stock?",
+      "find_document": "Encuentra un documento importante",
+      "project_cost": "¿Cuánto costó mi último proyecto?"
     }
   },
   "expenses": {

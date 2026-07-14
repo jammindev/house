@@ -2318,6 +2318,23 @@
         "title": "📌 Souvenir oublié",
         "notice": "Un souvenir a été oublié."
       }
+    },
+    "groups": {
+      "today": "Aujourd'hui",
+      "yesterday": "Hier",
+      "last7": "7 derniers jours",
+      "last30": "30 derniers jours",
+      "older": "Plus ancien"
+    },
+    "suggestions": {
+      "tasks_due": "Quelles tâches sont à faire cette semaine ?",
+      "last_expense": "Quelles sont mes dernières dépenses ?",
+      "equipment_warranty": "Quels équipements sont encore sous garantie ?",
+      "electricity_trend": "Ma consommation d'électricité a-t-elle augmenté ?",
+      "eggs_this_week": "Combien d'œufs cette semaine ?",
+      "stock_low": "Qu'est-ce qui manque dans mon stock ?",
+      "find_document": "Retrouve un document important",
+      "project_cost": "Combien m'a coûté mon dernier projet ?"
     }
   },
   "expenses": {
