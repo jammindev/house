@@ -1,9 +1,9 @@
 # Parcours 17 — La météo entre dans la maison
 
-> **Statut V1 (Lot 1 + 2) : en cours de livraison.**
+> **Statut : module complet — lots 1 à 6 livrés (2026-07-14 / 2026-07-15).**
 > Décisions de cadrage figées : localisation **sur le foyer** (`Household`),
-> fournisseur **Open-Meteo** (gratuit, sans clé), périmètre initial = socle
-> lecture-seule (localisation + widget dashboard + page prévisions).
+> fournisseur **Open-Meteo** (gratuit, sans clé). Le module reste une intégration
+> **lecture seule** (aucun modèle météo en DB ; seule la localisation est persistée).
 
 ## Intention
 
@@ -36,7 +36,7 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
 | 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | **livré** (2026-07-14) |
 | 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + pings | **livré** (2026-07-14) |
 | 5 | Contexte météo exposé à l'agent IA (tool `get_weather`) | **livré** (2026-07-14) |
-| 6 | Corrélations conso (électricité/eau) avec l'historique météo | **cadré** (à implémenter) |
+| 6 | Corrélations conso (électricité/eau) avec l'historique météo | **livré** (2026-07-15) |
 
 ## Lot 1 — Fondations
 
@@ -199,7 +199,21 @@ expose `AgentTool(name, description, input_schema, handler)` + `register()` dans
 - Écriture depuis l'agent (la météo est lecture seule), historique conversationnel
   météo, actions automatiques déclenchées par la météo.
 
-## Lot 6 — Corrélations consommation ↔ météo (cadrage — à valider avant code)
+## Lot 6 — Corrélations consommation ↔ météo (livré 2026-07-15)
+
+> **Livré** : endpoint `GET /api/weather/history/` (`weather.services.get_history`,
+> Open-Meteo **Archive API**, moyennes journalières, cache 24 h, on-demand — pas de
+> modèle DB). Overlay d'une **ligne température** (axe droit) sur `ConsumptionBarChart`
+> (passé en `ComposedChart` + `Line`, nouvelle prop `overlay`). Toggle « Météo »
+> partagé (`WeatherOverlayToggle`) sur les pages électricité + eau, visible seulement
+> si module météo actif + localisation définie + granularité day/month. Alignement des
+> points sur les buckets conso **côté front** (`overlay.ts::buildTemperatureOverlay`,
+> clé sur le préfixe ISO du `ts` → robuste malgré les formats de `ts` différents
+> eau/électricité). Décisions du cadrage retenues : élec+eau, on-demand+cache, day/month,
+> température moyenne. Dégradation gracieuse : pas de localisation → toggle masqué ;
+> historique indispo → conso affichée sans la ligne.
+
+### Cadrage initial (conservé pour mémoire)
 
 Objectif : superposer la **température passée** aux relevés de consommation
 (électricité, eau) pour expliquer les pics (chauffage en froid, arrosage en

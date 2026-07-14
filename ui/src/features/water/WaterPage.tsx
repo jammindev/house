@@ -8,6 +8,8 @@ import CardActions, { type CardAction } from '@/components/CardActions';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import ConsumptionBarChart from '@/components/charts/ConsumptionBarChart';
+import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
+import { useTemperatureOverlay } from '@/features/weather/overlay';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
@@ -101,6 +103,15 @@ export default function WaterPage() {
     [summary],
   );
 
+  const [showWeather, setShowWeather] = useSessionState<boolean>('water.showWeather', false);
+  const { available: weatherAvailable, overlay: weatherOverlay } = useTemperatureOverlay({
+    from,
+    to,
+    granularity,
+    buckets: chartBuckets,
+    show: showWeather,
+  });
+
   const showSkeleton = useDelayedLoading(readingsLoading);
   if (showSkeleton) {
     return (
@@ -156,6 +167,9 @@ export default function WaterPage() {
               {t(`consumption.granularity.${g}`)}
             </FilterPill>
           ))}
+          {weatherAvailable && (
+            <WeatherOverlayToggle active={showWeather} onToggle={setShowWeather} />
+          )}
         </div>
         <div className="flex items-center gap-1">
           <Button
@@ -196,6 +210,7 @@ export default function WaterPage() {
             series={chartSeries}
             granularity={granularity}
             unit="m³"
+            overlay={weatherOverlay}
           />
         ) : (
           <div className="flex h-64 items-center justify-center text-sm text-muted-foreground sm:h-80">

@@ -71,8 +71,20 @@ est volontairement vide.
   toujours déclaré, répond « non configuré » sans localisation. Pas d'i18n backend
   (données neutres, comme les résultats de recherche).
 
-## Limitations connues / lots suivants (parcours 17)
+- **Corrélations conso (Lot 6, livré)** : endpoint `GET /api/weather/history/`
+  (`services.get_history`, Open-Meteo Archive, moyennes journalières, cache 24 h,
+  on-demand — pas de modèle). `ConsumptionBarChart` gagne une prop `overlay`
+  (ligne température sur axe droit, `ComposedChart`). Toggle « Météo »
+  (`WeatherOverlayToggle`) sur les pages électricité + eau, visible si module actif +
+  localisation + granularité day/month. Alignement front (`overlay.ts`) sur les
+  buckets conso via le préfixe ISO du `ts` (robuste aux formats ts eau vs élec).
 
-- **Lot 6** — corrélations conso (électricité/eau) avec l'historique météo.
-- Une seule localisation par foyer (pas par zone) ; °C uniquement ; pas d'historique (arrive au Lot 6).
+## Limitations connues (parcours 17 — module complet)
+
+- Le module météo (parcours 17) est **complet** : lots 1-6 livrés.
+- Une seule localisation par foyer (pas par zone) ; °C uniquement.
+- Overlay conso limité aux granularités **day/month** (horaire trop fin, année =
+  fetch trop lourd) ; température **moyenne** journalière seulement.
+- L'archive Open-Meteo a un décalage de quelques jours → les jours très récents
+  n'ont pas de point d'overlay (dégradation gracieuse, la ligne saute le jour).
 - Cache LocMem non partagé entre workers en prod — acceptable (données non critiques, TTL court) ; passer sur un cache partagé si l'app scale horizontalement.

@@ -346,6 +346,10 @@
       "searching": "Buscando…",
       "noResults": "No se encontró ningún lugar.",
       "clear": "Quitar ubicación"
+    },
+    "overlay": {
+      "toggle": "Tiempo",
+      "temperature": "Temperatura"
     }
   },
   "interactions": {
