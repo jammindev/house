@@ -31,6 +31,11 @@ Un **4ᵉ tool, d'écriture**, complète les trois de lecture :
   `metadata.created_entities` pour l'Undo côté client. Livré au **lot 8** (voir
   `docs/parcours/PARCOURS_07_LOT8_ACTIONS_ECRITURE.md`).
 
+Une app peut aussi **enregistrer son propre tool de lecture** via
+`agent.tools.register(AgentTool(...))` depuis son `apps.py::ready()`, sans toucher
+`apps/agent/` — utile pour une source sans modèle DB (donc hors `searchables`).
+Exemple : `get_weather` (module météo, parcours 17 Lot 5) rend prévisions + alertes.
+
 ## Registry d'écriture `writables` — rendre une entité créable
 
 Miroir de `searchables`, pour l'écriture. Chaque app déclare depuis

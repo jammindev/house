@@ -64,9 +64,15 @@ est volontairement vide.
   `payload.day`). Le `daily[]` du forecast expose `wind_gusts_max` pour le seuil vent.
   Aucun nouveau modèle, aucun cron : réutilise le scheduler `send_scheduled_pings`.
 
+- **Agent (Lot 5, livré)** : tool de lecture `get_weather` (`apps/weather/agent.py`,
+  enregistré depuis `apps.py::ready()` via `agent.tools.register` — **sans toucher
+  `apps/agent/`**). Handler → `get_forecast` + `evaluate_weather_alerts`, rend des
+  données neutres (le modèle localise). Pas de `SearchableSpec` (aucun modèle DB) ;
+  toujours déclaré, répond « non configuré » sans localisation. Pas d'i18n backend
+  (données neutres, comme les résultats de recherche).
+
 ## Limitations connues / lots suivants (parcours 17)
 
-- **Lot 5** — contexte météo exposé à l'agent (searchable/tool lecture).
 - **Lot 6** — corrélations conso (électricité/eau) avec l'historique météo.
 - Une seule localisation par foyer (pas par zone) ; °C uniquement ; pas d'historique (arrive au Lot 6).
 - Cache LocMem non partagé entre workers en prod — acceptable (données non critiques, TTL court) ; passer sur un cache partagé si l'app scale horizontalement.
