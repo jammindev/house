@@ -37,14 +37,27 @@ class AgentMessageSerializer(serializers.ModelSerializer):
 
 
 class ConversationListSerializer(serializers.ModelSerializer):
-    """Lightweight row for the conversation list (no messages)."""
+    """Lightweight row for the conversation list (no messages).
+
+    ``last_message_preview`` (the newest message's text, annotated in the view)
+    lets the sidebar show a one-line snippet under the title — a recency cue à la
+    ChatGPT/Claude without loading the whole thread.
+    """
 
     message_count = serializers.IntegerField(read_only=True)
+    last_message_preview = serializers.CharField(read_only=True, default="")
 
     class Meta:
         model = AgentConversation
-        fields = ["id", "title", "last_message_at", "created_at", "message_count"]
-        read_only_fields = ["id", "last_message_at", "created_at", "message_count"]
+        fields = [
+            "id",
+            "title",
+            "last_message_at",
+            "created_at",
+            "message_count",
+            "last_message_preview",
+        ]
+        read_only_fields = fields
 
 
 class ConversationDetailSerializer(serializers.ModelSerializer):

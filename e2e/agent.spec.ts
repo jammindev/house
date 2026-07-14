@@ -331,9 +331,13 @@ test('la sidebar liste les conversations et permet de basculer', async ({ page }
 
   await page.goto('/app/agent');
 
-  // Au montage, la plus récente (conv-a) est ouverte.
+  // Au montage : écran vierge (à la ChatGPT), les conversations restent listées.
   await expect(page.getByTestId('agent-conversation-list')).toContainText('Chaudière');
   await expect(page.getByTestId('agent-conversation-list')).toContainText('Assurance');
+  await expect(page.getByTestId('agent-bubble-agent')).toHaveCount(0);
+
+  // Ouvre une conversation depuis la liste.
+  await page.getByTestId('agent-conversation-item').filter({ hasText: 'Chaudière' }).getByRole('button').first().click();
   await expect(page.getByTestId('agent-bubble-agent')).toContainText('Réponse chaudière');
 
   // Bascule vers l'autre conversation.
@@ -346,6 +350,9 @@ test('« nouvelle conversation » vide l\'écran', async ({ page }) => {
   await mockSidebar(page);
 
   await page.goto('/app/agent');
+
+  // Ouvre une conversation, puis repasse en création.
+  await page.getByTestId('agent-conversation-item').filter({ hasText: 'Chaudière' }).getByRole('button').first().click();
   await expect(page.getByTestId('agent-bubble-agent')).toContainText('Réponse chaudière');
 
   await page.getByTestId('agent-new-conversation').first().click();

@@ -90,6 +90,8 @@ interface ChatPanelProps {
   creating?: boolean;
   emptyTitle: string;
   emptyHint: string;
+  /** Clickable starter questions shown on the empty screen (household mode). */
+  suggestions?: string[];
   /** Prefix for data-testid attributes ('agent' or 'agent-entity'). */
   testIdPrefix: string;
   className?: string;
@@ -108,6 +110,7 @@ export default function ChatPanel({
   creating = false,
   emptyTitle,
   emptyHint,
+  suggestions,
   testIdPrefix,
   className,
 }: ChatPanelProps) {
@@ -170,14 +173,15 @@ export default function ChatPanel({
     textareaRef.current?.focus();
   }, []);
 
-  // `retryQuestion` re-submits a failed turn: the user bubble is already in the
-  // transcript, so we only clear the stale error bubbles instead of re-adding it.
+  // `text` overrides the draft (a suggestion chip or a retry). `retry` re-submits
+  // a failed turn: the user bubble is already in the transcript, so we only clear
+  // the stale error bubbles instead of re-adding it.
   const submit = React.useCallback(
-    async (retryQuestion?: string) => {
-      const trimmed = (retryQuestion ?? draft).trim();
+    async (opts?: { text?: string; retry?: boolean }) => {
+      const trimmed = (opts?.text ?? draft).trim();
       if (!trimmed || isBusy) return;
       if (!conversationId && !ensureConversation) return;
-      if (retryQuestion) {
+      if (opts?.retry) {
         setMessages((prev) => prev.filter((m) => m.variant !== 'error'));
       } else {
         setDraft('');
@@ -247,6 +251,14 @@ export default function ChatPanel({
     }
   };
 
+  // Focus the composer when the screen is ready to type on — on mount and each
+  // time a fresh, empty conversation is opened (privacy accepted, not busy).
+  React.useEffect(() => {
+    if (!needsPrivacy && messages.length === 0 && !isBusy) {
+      textareaRef.current?.focus();
+    }
+  }, [needsPrivacy, conversationId, messages.length, isBusy]);
+
   const isEmpty = messages.length === 0 && !isBusy;
   const disabled = needsPrivacy || isBusy || (!conversationId && !ensureConversation);
 
@@ -259,7 +271,13 @@ export default function ChatPanel({
         data-testid={`${testIdPrefix}-messages`}
       >
         {isEmpty ? (
-          <EmptyHint title={emptyTitle} hint={emptyHint} />
+          <EmptyHint
+            title={emptyTitle}
+            hint={emptyHint}
+            suggestions={disabled ? [] : suggestions}
+            onPick={(text) => void submit({ text })}
+            testIdPrefix={testIdPrefix}
+          />
         ) : (
           messages.map((msg) => {
             if (msg.variant === 'user') {
@@ -283,7 +301,7 @@ export default function ChatPanel({
                 key={msg.id}
                 text={msg.text}
                 testIdPrefix={testIdPrefix}
-                onRetry={() => void submit(msg.question)}
+                onRetry={() => void submit({ text: msg.question, retry: true })}
               />
             );
           })
@@ -325,14 +343,44 @@ export default function ChatPanel({
   );
 }
 
-function EmptyHint({ title, hint }: { title: string; hint: string }) {
+function EmptyHint({
+  title,
+  hint,
+  suggestions,
+  onPick,
+  testIdPrefix,
+}: {
+  title: string;
+  hint: string;
+  suggestions?: string[];
+  onPick: (text: string) => void;
+  testIdPrefix: string;
+}) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 py-12 text-center text-muted-foreground">
+    <div className="flex h-full flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Sparkles className="h-6 w-6" />
       </div>
       <p className="text-sm font-medium text-foreground">{title}</p>
       <p className="max-w-md text-sm">{hint}</p>
+      {suggestions && suggestions.length > 0 ? (
+        <div
+          className="flex max-w-md flex-wrap justify-center gap-2 pt-2"
+          data-testid={`${testIdPrefix}-suggestions`}
+        >
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => onPick(s)}
+              className="rounded-full border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-primary hover:text-primary"
+              data-testid={`${testIdPrefix}-suggestion`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

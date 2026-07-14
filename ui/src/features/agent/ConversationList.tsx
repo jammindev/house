@@ -19,6 +19,37 @@ interface Props {
   onCurrentDeleted: () => void;
 }
 
+/** Recency bucket keys, newest first — drive the i18n group headers. */
+type Bucket = 'today' | 'yesterday' | 'last7' | 'last30' | 'older';
+
+/** Which recency bucket a conversation falls in, by its last activity. */
+function bucketOf(conv: AgentConversationRow): Bucket {
+  const ts = new Date(conv.last_message_at ?? conv.created_at).getTime();
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const day = 86_400_000;
+  if (ts >= startOfToday) return 'today';
+  if (ts >= startOfToday - day) return 'yesterday';
+  if (ts >= startOfToday - 7 * day) return 'last7';
+  if (ts >= startOfToday - 30 * day) return 'last30';
+  return 'older';
+}
+
+/**
+ * Group the (already recency-sorted) rows into consecutive buckets. Relies on
+ * the server order — we never re-sort, just split at bucket boundaries.
+ */
+function groupByBucket(items: AgentConversationRow[]): { bucket: Bucket; rows: AgentConversationRow[] }[] {
+  const groups: { bucket: Bucket; rows: AgentConversationRow[] }[] = [];
+  for (const conv of items) {
+    const bucket = bucketOf(conv);
+    const last = groups[groups.length - 1];
+    if (last && last.bucket === bucket) last.rows.push(conv);
+    else groups.push({ bucket, rows: [conv] });
+  }
+  return groups;
+}
+
 export default function ConversationList({ currentId, onSelect, onNew, onCurrentDeleted }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
@@ -57,6 +88,52 @@ export default function ConversationList({ currentId, onSelect, onNew, onCurrent
   };
 
   const items = conversations ?? [];
+  const groups = groupByBucket(items);
+
+  const renderRow = (conv: AgentConversationRow) => {
+    const active = conv.id === currentId;
+    const actions: CardAction[] = [
+      { label: t('common.edit'), icon: Pencil, onClick: () => openRename(conv) },
+      {
+        label: t('common.delete'),
+        icon: Trash2,
+        onClick: () => handleDelete(conv),
+        variant: 'danger',
+      },
+    ];
+    return (
+      <div
+        key={conv.id}
+        className={cn(
+          'group flex items-center gap-1 rounded-lg px-1',
+          active ? 'bg-primary/10' : 'hover:bg-muted',
+        )}
+        data-testid="agent-conversation-item"
+      >
+        <button
+          type="button"
+          onClick={() => onSelect(conv.id)}
+          className="flex min-w-0 flex-1 flex-col gap-0.5 px-2 py-2 text-left"
+        >
+          <span
+            className={cn(
+              'flex items-center gap-2 text-sm',
+              active ? 'text-primary' : 'text-foreground',
+            )}
+          >
+            <MessageSquare className="h-3.5 w-3.5 shrink-0 opacity-60" />
+            <span className="truncate">{conv.title || t('agent.untitled')}</span>
+          </span>
+          {conv.last_message_preview ? (
+            <span className="truncate pl-[1.375rem] text-xs text-muted-foreground">
+              {conv.last_message_preview}
+            </span>
+          ) : null}
+        </button>
+        <CardActions actions={actions} />
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
@@ -79,41 +156,14 @@ export default function ConversationList({ currentId, onSelect, onNew, onCurrent
             {t('agent.conversations_empty')}
           </p>
         ) : (
-          items.map((conv) => {
-            const active = conv.id === currentId;
-            const actions: CardAction[] = [
-              { label: t('common.edit'), icon: Pencil, onClick: () => openRename(conv) },
-              {
-                label: t('common.delete'),
-                icon: Trash2,
-                onClick: () => handleDelete(conv),
-                variant: 'danger',
-              },
-            ];
-            return (
-              <div
-                key={conv.id}
-                className={cn(
-                  'group flex items-center gap-1 rounded-lg px-1',
-                  active ? 'bg-primary/10' : 'hover:bg-muted',
-                )}
-                data-testid="agent-conversation-item"
-              >
-                <button
-                  type="button"
-                  onClick={() => onSelect(conv.id)}
-                  className={cn(
-                    'flex min-w-0 flex-1 items-center gap-2 px-2 py-2 text-left text-sm',
-                    active ? 'text-primary' : 'text-foreground',
-                  )}
-                >
-                  <MessageSquare className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                  <span className="truncate">{conv.title || t('agent.untitled')}</span>
-                </button>
-                <CardActions actions={actions} />
-              </div>
-            );
-          })
+          groups.map((group) => (
+            <div key={group.bucket} className="space-y-1">
+              <p className="px-2 pt-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t(`agent.groups.${group.bucket}`)}
+              </p>
+              {group.rows.map(renderRow)}
+            </div>
+          ))
         )}
       </div>
 

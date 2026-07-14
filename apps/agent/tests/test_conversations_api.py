@@ -110,6 +110,22 @@ class TestCreateAndList:
         row = next(r for r in _rows(resp) if r["id"] == str(conversation.id))
         assert row["message_count"] == 1
 
+    def test_list_includes_last_message_preview(self, owner_client, conversation):
+        AgentMessage.objects.create(
+            conversation=conversation, role=AgentMessage.Role.USER, content="première"
+        )
+        AgentMessage.objects.create(
+            conversation=conversation, role=AgentMessage.Role.AGENT, content="dernière réponse"
+        )
+        resp = owner_client.get(BASE)
+        row = next(r for r in _rows(resp) if r["id"] == str(conversation.id))
+        assert row["last_message_preview"] == "dernière réponse"
+
+    def test_list_preview_empty_when_no_messages(self, owner_client, conversation):
+        resp = owner_client.get(BASE)
+        row = next(r for r in _rows(resp) if r["id"] == str(conversation.id))
+        assert row["last_message_preview"] in ("", None)
+
 
 class TestRetrieve:
     def test_retrieve_includes_messages(self, owner_client, conversation):

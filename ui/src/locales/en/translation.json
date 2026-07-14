@@ -2370,6 +2370,23 @@
         "title": "📌 Memory forgotten",
         "notice": "Forgot a memory."
       }
+    },
+    "groups": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "last7": "Previous 7 days",
+      "last30": "Previous 30 days",
+      "older": "Older"
+    },
+    "suggestions": {
+      "tasks_due": "What tasks are due this week?",
+      "last_expense": "What are my latest expenses?",
+      "equipment_warranty": "Which equipment is still under warranty?",
+      "electricity_trend": "Has my electricity use gone up?",
+      "eggs_this_week": "How many eggs this week?",
+      "stock_low": "What's running low in my stock?",
+      "find_document": "Find an important document",
+      "project_cost": "How much did my last project cost?"
     }
   },
   "expenses": {

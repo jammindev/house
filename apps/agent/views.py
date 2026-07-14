@@ -5,7 +5,8 @@ import json
 import logging
 
 from django.http import StreamingHttpResponse
-from django.db.models import Count
+from django.db.models import Count, OuterRef, Subquery
+from django.db.models.functions import Coalesce
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, ValidationError
@@ -19,7 +20,7 @@ from . import memory as memory_service
 from . import searchables, service, tools
 from .conversations import ask_inputs as _ask_inputs, persist_turns as _persist_turns
 from .llm import LLMError, LLMTimeoutError
-from .models import AgentConversation, AgentMemory
+from .models import AgentConversation, AgentMemory, AgentMessage
 from .throttles import AgentBurstRateThrottle, AgentSustainedRateThrottle
 from .serializers import (
     AskRequestSerializer,
@@ -125,6 +126,16 @@ class ConversationViewSet(viewsets.ModelViewSet):
         household = getattr(self.request, "household", None)
         if household is not None:
             qs = qs.filter(household=household)
+        if self.action == "list":
+            # One-line preview of the newest turn, for the sidebar. Explicit
+            # ordering here (not just Meta) because the Count() annotation adds a
+            # GROUP BY — pin recency-first so an aggregate never reshuffles rows.
+            newest = AgentMessage.objects.filter(
+                conversation=OuterRef("pk")
+            ).order_by("-created_at")
+            qs = qs.annotate(
+                last_message_preview=Subquery(newest.values("content")[:1])
+            ).order_by(Coalesce("last_message_at", "created_at").desc(), "-created_at")
         if self.action in {"retrieve", "messages", "messages_stream", "for_context"}:
             qs = qs.prefetch_related("messages")
         return qs

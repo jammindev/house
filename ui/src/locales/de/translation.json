@@ -2370,6 +2370,23 @@
         "title": "📌 Eintrag vergessen",
         "notice": "Ein Eintrag wurde vergessen."
       }
+    },
+    "groups": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "last7": "Letzte 7 Tage",
+      "last30": "Letzte 30 Tage",
+      "older": "Älter"
+    },
+    "suggestions": {
+      "tasks_due": "Welche Aufgaben stehen diese Woche an?",
+      "last_expense": "Was waren meine letzten Ausgaben?",
+      "equipment_warranty": "Welche Geräte sind noch in der Garantie?",
+      "electricity_trend": "Ist mein Stromverbrauch gestiegen?",
+      "eggs_this_week": "Wie viele Eier diese Woche?",
+      "stock_low": "Was geht in meinem Vorrat zur Neige?",
+      "find_document": "Finde ein wichtiges Dokument",
+      "project_cost": "Wie viel hat mein letztes Projekt gekostet?"
     }
   },
   "expenses": {

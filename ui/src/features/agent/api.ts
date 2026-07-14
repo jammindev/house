@@ -84,6 +84,8 @@ export interface AgentConversationRow {
   last_message_at: string | null;
   created_at: string;
   message_count?: number;
+  /** One-line snippet of the newest turn, shown under the title in the sidebar. */
+  last_message_preview?: string;
 }
 
 /** Full conversation with its ordered messages. */
