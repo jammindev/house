@@ -35,7 +35,7 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
 | **2** | Page météo (horaire du jour + prévisions 7 jours) | **V1** |
 | 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | **livré** (2026-07-14) |
 | 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + pings | **livré** (2026-07-14) |
-| 5 | Contexte météo exposé à l'agent IA (tool `get_weather`) | **cadré** (à implémenter) |
+| 5 | Contexte météo exposé à l'agent IA (tool `get_weather`) | **livré** (2026-07-14) |
 | 6 | Corrélations conso (électricité/eau) avec l'historique météo | **cadré** (à implémenter) |
 
 ## Lot 1 — Fondations
@@ -145,7 +145,19 @@ structurés et rend côté front.
 - Seuils configurables (V2), alerte poulailler dédiée (peut se greffer plus tard
   via un message contextualisé si module chickens actif), historique des alertes.
 
-## Lot 5 — Contexte météo pour l'agent IA (cadrage — à valider avant code)
+## Lot 5 — Contexte météo pour l'agent IA (livré 2026-07-14)
+
+> **Livré** : tool `get_weather` dans `apps/weather/agent.py`, enregistré depuis
+> `weather/apps.py::ready()` via `agent.tools.register` — **aucune modification de
+> `apps/agent/`**. Handler → `weather.services.get_forecast` +
+> `weather.alerts.evaluate_weather_alerts`, rend un bloc de données neutres
+> (conditions + 7 j + alertes actives) que le modèle reformule dans la langue de
+> l'utilisateur. Cas « non configuré » (pas de localisation) / « module désactivé »
+> / « indisponible » gérés dans le handler. Toujours déclaré (pas de gating par
+> foyer) : réponse explicite quand la météo n'est pas configurée. Décisions du
+> cadrage retenues : tool dédié, pas de tool d'historique, gating simple.
+
+### Cadrage initial (conservé pour mémoire)
 
 Objectif : que l'assistant conversationnel puisse **répondre avec la météo**
 (« quand tondre cette semaine ? », « faut-il protéger les tomates ce week-end ? »,
