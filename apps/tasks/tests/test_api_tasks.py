@@ -106,6 +106,33 @@ class TestTaskCrud:
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["due_date"] == "2026-06-01"
 
+    def test_create_with_needs_dry_weather(self, owner_client, household, zone):
+        url = reverse("task-list")
+        response = owner_client.post(
+            url,
+            _task_payload([zone.id], needs_dry_weather=True),
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["needs_dry_weather"] is True
+        assert Task.objects.get(id=response.data["id"]).needs_dry_weather is True
+
+    def test_create_defaults_needs_dry_weather_false(self, owner_client, household, zone):
+        url = reverse("task-list")
+        response = owner_client.post(url, _task_payload([zone.id]), format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["needs_dry_weather"] is False
+
+    def test_patch_toggles_needs_dry_weather(self, owner_client, household, zone, owner):
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Nettoyer la terrasse"
+        )
+        url = reverse("task-detail", kwargs={"pk": str(task.id)})
+        response = owner_client.patch(url, {"needs_dry_weather": True}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        task.refresh_from_db()
+        assert task.needs_dry_weather is True
+
     def test_create_falls_back_to_household_root_when_no_zone(self, owner_client, household):
         # Sans zone explicite → on rattache à la racine 'Maison' (créée par signal).
         url = reverse("task-list")

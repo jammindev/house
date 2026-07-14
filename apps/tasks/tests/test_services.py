@@ -68,3 +68,26 @@ class TestCreateTask:
         with pytest.raises(ValidationError):
             create_task(household, owner, subject="")
         assert not Task.objects.filter(household=household).exists()
+
+    def test_needs_dry_weather_defaults_false(self, household, owner):
+        task = create_task(household, owner, subject="Ranger le garage")
+        assert task.needs_dry_weather is False
+
+    def test_needs_dry_weather_set(self, household, owner):
+        task = create_task(
+            household, owner, subject="Peindre le portail", needs_dry_weather=True
+        )
+        assert task.needs_dry_weather is True
+
+
+class TestUpdateTaskDryWeather:
+    def test_update_toggles_needs_dry_weather(self, household, owner):
+        from tasks.services import update_task
+
+        task = create_task(household, owner, subject="Tondre la pelouse")
+        assert task.needs_dry_weather is False
+
+        updated = update_task(
+            household, owner, task, fields={"needs_dry_weather": True}
+        )
+        assert updated.needs_dry_weather is True

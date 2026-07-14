@@ -31,6 +31,7 @@ export interface Task {
   priority: TaskPriority;
   due_date: string | null;           // YYYY-MM-DD
   is_private: boolean;
+  needs_dry_weather: boolean;        // tâche extérieure — suggère des jours secs
   assigned_to: string | null;        // UUID user assigné
   assigned_to_name: string | null;
   completed_by: string | null;
@@ -148,6 +149,7 @@ export async function updateTask(
     status?: TaskStatus;
     project?: string | null;
     is_private?: boolean;
+    needs_dry_weather?: boolean;
   },
 ): Promise<Task> {
   const { data } = await api.patch(`/tasks/tasks/${id}/`, payload);
@@ -165,6 +167,7 @@ export async function createTask(
     status?: TaskStatus;
     project?: string | null;
     is_private?: boolean;
+    needs_dry_weather?: boolean;
     document_ids?: string[];
     interaction_ids?: string[];
     source_interaction?: string | null;

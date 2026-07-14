@@ -702,7 +702,15 @@
     "pickDocument": "Select a document",
     "pickInteraction": "Select an interaction",
     "attachmentUnlinked": "Link removed",
-    "attachmentLinked": "Attachment added"
+    "attachmentLinked": "Attachment added",
+    "weather": {
+      "fieldNeedsDryWeather": "Needs dry weather",
+      "fieldNeedsDryWeatherHint": "Outdoor task — we'll suggest dry days from the forecast.",
+      "needsDryWeatherBadge": "Needs dry weather",
+      "suggestionTitle": "Best days",
+      "goodDaysIntro": "Dry days coming up:",
+      "noDryDays": "No dry day expected in the next 7 days."
+    }
   },
   "trackers": {
     "title": "Trackers",
@@ -1112,6 +1120,10 @@
           "organize": {
             "title": "Filter and organise",
             "body": "Filters (to do, overdue, done…) keep the list readable."
+          },
+          "weather": {
+            "title": "Plan around the weather",
+            "body": "Mark an outdoor task as “needs dry weather” and its detail suggests the dry days ahead."
           },
           "complete": {
             "title": "Complete and find again",

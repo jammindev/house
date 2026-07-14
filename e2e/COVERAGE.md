@@ -58,6 +58,20 @@ Données requises : automatique via `npm run test:e2e` (migrate + seed_demo_data
 
 ---
 
+## Tâches "temps sec" (`tasks-weather.spec.ts`)
+
+API `/api/weather/` stubée via `page.route` — aucun appel réseau vers Open-Meteo.
+Agent privacy pré-acceptée via localStorage pour les tests de page détail.
+
+| Parcours | Statut |
+|---|---|
+| Création d'une tâche avec checkbox "Nécessite un temps sec" → badge CloudSun (`aria-label`) visible sur la carte | ✅ |
+| Page détail avec forecast mixte (jours secs + pluvieux) → carte "Meilleurs jours" + intro "Jours secs à venir :" | ✅ |
+| Page détail avec tous les jours pluvieux (précip > 30 %) → message "Aucun jour sec prévu dans les 7 prochains jours." | ✅ |
+| Page détail avec météo non configurée → carte de suggestions absente | ✅ |
+
+---
+
 ## Tâches dans un projet (`project-tasks.spec.ts`)
 
 | Parcours | Statut |

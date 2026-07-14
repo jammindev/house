@@ -702,7 +702,15 @@
     "pickDocument": "Sélectionner un document",
     "pickInteraction": "Sélectionner une interaction",
     "attachmentUnlinked": "Lien supprimé",
-    "attachmentLinked": "Pièce jointe ajoutée"
+    "attachmentLinked": "Pièce jointe ajoutée",
+    "weather": {
+      "fieldNeedsDryWeather": "Nécessite un temps sec",
+      "fieldNeedsDryWeatherHint": "Tâche d'extérieur — on suggère les jours secs d'après les prévisions.",
+      "needsDryWeatherBadge": "Nécessite un temps sec",
+      "suggestionTitle": "Meilleurs jours",
+      "goodDaysIntro": "Jours secs à venir :",
+      "noDryDays": "Aucun jour sec prévu dans les 7 prochains jours."
+    }
   },
   "trackers": {
     "title": "Trackers",
@@ -1112,6 +1120,10 @@
           "organize": {
             "title": "Filtrer et organiser",
             "body": "Les filtres (à faire, en retard, terminées…) gardent la liste lisible."
+          },
+          "weather": {
+            "title": "Planifier selon la météo",
+            "body": "Marquez une tâche d'extérieur « nécessite un temps sec » : son détail propose les jours secs à venir."
           },
           "complete": {
             "title": "Terminer et retrouver",

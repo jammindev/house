@@ -37,6 +37,7 @@ def create_task(
     priority: int | None = None,
     project=None,
     zone_ids=None,
+    needs_dry_weather: bool = False,
 ) -> Task:
     """Create a task for ``household`` on behalf of ``user``.
 
@@ -56,6 +57,8 @@ def create_task(
         payload["priority"] = priority
     if project is not None:
         payload["project"] = getattr(project, "pk", project)
+    if needs_dry_weather:
+        payload["needs_dry_weather"] = True
 
     serializer = TaskSerializer(data=payload, context={"household_id": household.id})
     serializer.is_valid(raise_exception=True)
@@ -73,7 +76,7 @@ def update_task(household, user, task: Task, *, fields: dict) -> Task:
     from django.utils import timezone
     from rest_framework.exceptions import PermissionDenied
 
-    allowed = {"subject", "content", "status", "due_date", "priority"}
+    allowed = {"subject", "content", "status", "due_date", "priority", "needs_dry_weather"}
     payload = {k: v for k, v in fields.items() if k in allowed}
 
     serializer = TaskSerializer(

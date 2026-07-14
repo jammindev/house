@@ -33,7 +33,7 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
 |-----|-------|--------|
 | **1** | Localisation foyer + service Open-Meteo (cache) + widget dashboard | **V1** |
 | **2** | Page météo (horaire du jour + prévisions 7 jours) | **V1** |
-| 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | backlog |
+| 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | **livré** (2026-07-14) |
 | 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + job périodique | backlog |
 | 5 | Contexte météo exposé à l'agent IA | backlog |
 | 6 | Corrélations conso (électricité/eau/poules) avec l'historique météo | backlog |
@@ -67,6 +67,28 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
   (min/max, condition, probabilité de pluie, vent) **afin de** planifier.
 - États vide (pas de localisation) et erreur gérés ; skeleton de chargement ;
   °C par défaut ; i18n complet (en/fr/de/es), y compris les libellés de condition.
+
+## Lot 3 — Tâches météo-conscientes (livré 2026-07-14)
+
+### US3.1 — Repérer les tâches sensibles à la météo
+- Champ booléen `Task.needs_dry_weather` (défaut `false`, migration `tasks.0005`,
+  opt-in → tâches existantes inchangées). Exposé par `TaskSerializer` (les deux
+  chemins d'écriture, REST + agent, passent par lui).
+- Case à cocher « nécessite un temps sec » dans le dialog tâche, **masquée si le
+  module météo est désactivé** pour le foyer. Pictogramme `CloudSun` sur la card.
+
+### US3.2 — Suggérer le meilleur créneau
+- Sur le détail d'une tâche « temps sec » **sans échéance** et non terminée : encart
+  `TaskWeatherHint` qui liste les **jours favorables** des 7 prochains jours.
+- Règle V1 (`ui/src/features/weather/favorableDays.ts`) : jour favorable =
+  `precipitation_probability_max ≤ 30 %` (ou inconnue). Précipitations seulement,
+  pas de vent — volontairement simple, seuil ajustable en un point.
+- Aucun jour favorable → message neutre ; localisation/prévisions absentes ou module
+  désactivé → l'encart **se masque en silence**, jamais de blocage de la tâche.
+- **Calcul côté frontend** à partir du `daily[]` déjà fourni par `GET /api/weather/`
+  (via `useWeather()`) — pas de nouvel endpoint, pas d'appel Open-Meteo supplémentaire.
+- Agent : `needs_dry_weather` câblé dans `create_entity`/`update_entity` (create +
+  update via les services `tasks.services`), description du tool étendue.
 
 ## Contrats techniques V1
 

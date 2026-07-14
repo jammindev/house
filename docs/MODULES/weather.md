@@ -50,9 +50,15 @@ est volontairement vide.
 
 `weather` est dans `OPTIONAL_MODULES` (backend `apps/households/modules.py` + front `ui/src/lib/modules.ts`) et `PINNABLE_MODULES`. Désactivable par l'owner ; route gardée par `ModuleRoute`. Entrée sidebar groupe « Maison », icône `CloudSun`.
 
+## Consommateurs transverses
+
+- **Tâches (Lot 3, livré)** : `Task.needs_dry_weather` tague une tâche d'extérieur. Le
+  détail tâche affiche `TaskWeatherHint` (jours favorables des 7 prochains jours,
+  calculés côté front via `useWeather()` + `favorableDays.ts`, seuil pluie ≤ 30 %).
+  L'intégration ne touche pas `apps/weather/` — elle consomme l'endpoint existant.
+
 ## Limitations connues / lots suivants (parcours 17)
 
-- **Lot 3** — tâches météo-conscientes (tag + suggestion de créneau sec).
 - **Lot 4** — alertes météo (gel/canicule/vent/orage) via le module alertes + job périodique.
 - **Lot 5** — contexte météo exposé à l'agent (searchable/tool lecture).
 - **Lot 6** — corrélations conso (électricité/eau) avec l'historique météo.

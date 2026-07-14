@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { CloudSun, FileText, Link, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { useAuth } from '@/lib/auth/useAuth';
 import type { HouseholdMember, Task, TaskStatus } from '@/lib/api/tasks';
@@ -121,6 +121,11 @@ export default function TaskCard({
             )}
             {task.is_private && (
               <Lock className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/50" />
+            )}
+            {task.needs_dry_weather && !isDone && (
+              <span className="mt-0.5 flex-shrink-0" title={t('tasks.weather.needsDryWeatherBadge')}>
+                <CloudSun className="h-3.5 w-3.5 text-primary" aria-label={t('tasks.weather.needsDryWeatherBadge')} />
+              </span>
             )}
             {onViewDetail ? (
               <button

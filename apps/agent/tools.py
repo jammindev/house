@@ -419,7 +419,9 @@ _CREATE_ENTITY_SCHEMA = {
                 "The item's fields. "
                 "For entity_type='task': subject (required, short imperative "
                 "title), content (optional details), due_date (optional, "
-                "'YYYY-MM-DD'), priority (optional integer 1=high..5=low). "
+                "'YYYY-MM-DD'), priority (optional integer 1=high..5=low), "
+                "needs_dry_weather (optional bool — set true for outdoor tasks "
+                "that need dry weather, e.g. painting outside, mowing). "
                 "For entity_type='note' (a free-form note in the household log): "
                 "subject (required, short title), content (optional body text). "
                 "For entity_type='renovation' (a renovation/decoration log entry "
@@ -765,7 +767,7 @@ _UPDATE_ENTITY_SCHEMA = {
             "type": "object",
             "description": (
                 "ONLY the fields to change. "
-                "For 'task': subject, content, status (one of backlog, pending, "
+                "For 'task': subject, content, needs_dry_weather (bool), status (one of backlog, pending, "
                 "in_progress, done, archived — 'done' marks it complete), "
                 "due_date ('YYYY-MM-DD'), priority (integer 1=high..3=low). "
                 "For 'note': subject, content. "
