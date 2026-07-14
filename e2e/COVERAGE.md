@@ -390,3 +390,26 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 | Lien « Ouvrir la page » du guide → deep-link vers le module | ✅ |
 | Clé de guide inconnue → état vide « Ce guide n'existe pas. » | ✅ |
 | Masquage des guides d'un module désactivé | ❌ |
+
+---
+
+## Météo (`weather.spec.ts`)
+
+API `/api/weather/` stubée via `page.route` — aucun appel réseau vers Open-Meteo.
+
+| Parcours | Statut |
+|---|---|
+| Page non configurée : titre "Météo" + EmptyState "Aucun lieu défini" | ✅ |
+| CTA "Définir le lieu" pointe vers /app/settings | ✅ |
+| Cliquer sur "Définir le lieu" navigue vers /app/settings | ✅ |
+| Page configurée : titre + libellé du lieu en description | ✅ |
+| Température actuelle (18°) visible | ✅ |
+| Section "Aujourd'hui" avec le ruban horaire visible | ✅ |
+| Section "Prévisions sur 7 jours" visible | ✅ |
+| Premier jour de prévisions affiché "Auj." | ✅ |
+| Lien "Changer de lieu" vers /app/settings | ✅ |
+| Message d'erreur quand Open-Meteo indisponible | ✅ |
+| Widget Météo affiché sur le dashboard quand configurée | ✅ |
+| Widget Météo absent du dashboard quand non configurée | ✅ |
+| Cliquer le widget navigue vers /app/weather | ✅ |
+| Sidebar affiche un lien "Météo" vers /app/weather | ✅ |

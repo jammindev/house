@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "stock",
     "electricity",
     "water",
+    "weather",
     "projects",
     "insurance",
     "tasks",

@@ -314,6 +314,40 @@
       "recentTitle": "Latest readings"
     }
   },
+  "weather": {
+    "title": "Weather",
+    "description": "Weather at your home",
+    "changeLocation": "Change location",
+    "error": "Weather is unavailable right now. Try again later.",
+    "feelsLike": "Feels like",
+    "today": "Today",
+    "forecast7d": "7-day forecast",
+    "dayToday": "Today",
+    "notConfigured": {
+      "title": "No location set",
+      "description": "Set your home's location to see the local weather.",
+      "cta": "Set location"
+    },
+    "condition": {
+      "clear": "Clear",
+      "partly_cloudy": "Partly cloudy",
+      "cloudy": "Cloudy",
+      "fog": "Fog",
+      "drizzle": "Drizzle",
+      "rain": "Rain",
+      "snow": "Snow",
+      "thunderstorm": "Thunderstorm",
+      "unknown": "Unknown"
+    },
+    "location": {
+      "field": "Weather location",
+      "hint": "Search for a city to enable the weather module for this household.",
+      "searchPlaceholder": "Search a city…",
+      "searching": "Searching…",
+      "noResults": "No place found.",
+      "clear": "Remove location"
+    }
+  },
   "interactions": {
     "form_title": "Add event",
     "submit_label": "Add event",
@@ -996,6 +1030,24 @@
           "charts": {
             "title": "Read the charts",
             "body": "Browse by period and compare consumption, just like electricity."
+          }
+        }
+      },
+      "weather": {
+        "title": "Track your home's weather",
+        "intro": "See your home's local weather — today's conditions and a 7-day forecast.",
+        "steps": {
+          "location": {
+            "title": "Set your location",
+            "body": "In Settings > your household, the “Weather location” field, search for your city to enable the module."
+          },
+          "forecast": {
+            "title": "Check the forecast",
+            "body": "The Weather page shows current conditions, how today evolves, and a 7-day forecast."
+          },
+          "dashboard": {
+            "title": "A glance from the dashboard",
+            "body": "A weather summary appears on the dashboard — click it to open the full page."
           }
         }
       },

@@ -26,6 +26,7 @@ const DocumentDetailPage = lazyWithReload(() => import('./features/documents/Doc
 const DirectoryPage = lazyWithReload(() => import('./features/directory/DirectoryFeaturePage'));
 const ElectricityPage = lazyWithReload(() => import('./features/electricity/ElectricityPage'));
 const WaterPage = lazyWithReload(() => import('./features/water/WaterPage'));
+const WeatherPage = lazyWithReload(() => import('./features/weather/WeatherPage'));
 const TrackersPage = lazyWithReload(() => import('./features/trackers/TrackersPage'));
 const ChickensPage = lazyWithReload(() => import('./features/chickens/ChickensPage'));
 const ChickenDetailPage = lazyWithReload(() => import('./features/chickens/ChickenDetailPage'));
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
       { path: 'directory', element: <ModuleRoute moduleKey="directory"><DirectoryPage /></ModuleRoute> },
       { path: 'electricity', element: <ModuleRoute moduleKey="electricity"><ElectricityPage /></ModuleRoute> },
       { path: 'water', element: <ModuleRoute moduleKey="water"><WaterPage /></ModuleRoute> },
+      { path: 'weather', element: <ModuleRoute moduleKey="weather"><WeatherPage /></ModuleRoute> },
       { path: 'chickens', element: <ModuleRoute moduleKey="chickens"><ChickensPage /></ModuleRoute> },
       { path: 'chickens/:id', element: <ModuleRoute moduleKey="chickens"><ChickenDetailPage /></ModuleRoute> },
       { path: 'trackers', element: <ModuleRoute moduleKey="trackers"><TrackersPage /></ModuleRoute> },

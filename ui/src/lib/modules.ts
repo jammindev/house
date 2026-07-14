@@ -1,5 +1,5 @@
 import {
-  Bird, Box, Droplets, FileText, FolderKanban, Image, ListTodo, MapPin,
+  Bird, Box, CloudSun, Droplets, FileText, FolderKanban, Image, ListTodo, MapPin,
   Notebook, Receipt, TrendingUp, Umbrella, Users, Wrench, Zap,
   type LucideIcon,
 } from 'lucide-react';
@@ -38,6 +38,7 @@ export const MODULES: ModuleDef[] = [
   { key: 'equipment',    to: '/app/equipment',    labelKey: 'equipment.title',    Icon: Wrench,       group: 'home',      optional: false },
   { key: 'electricity',  to: '/app/electricity',  labelKey: 'electricity.title',  Icon: Zap,          group: 'home',      optional: true  },
   { key: 'water',        to: '/app/water',        labelKey: 'water.title',        Icon: Droplets,     group: 'home',      optional: true  },
+  { key: 'weather',      to: '/app/weather',      labelKey: 'weather.title',      Icon: CloudSun,     group: 'home',      optional: true  },
   { key: 'stock',        to: '/app/stock',        labelKey: 'stock.title',        Icon: Box,          group: 'home',      optional: true  },
   { key: 'chickens',     to: '/app/chickens',     labelKey: 'chickens.title',     Icon: Bird,         group: 'home',      optional: true  },
   { key: 'insurance',    to: '/app/insurance',    labelKey: 'insurance.title',    Icon: Umbrella,     group: 'home',      optional: true  },
