@@ -35,8 +35,8 @@ externes en direct (Open-Meteo) et les met en cache. Conséquences sur le patter
 | **2** | Page météo (horaire du jour + prévisions 7 jours) | **V1** |
 | 3 | Tâches météo-conscientes (tag + suggestion de créneau sec) | **livré** (2026-07-14) |
 | 4 | Alertes météo (gel/canicule/vent/orage) via module alertes + pings | **livré** (2026-07-14) |
-| 5 | Contexte météo exposé à l'agent IA | backlog |
-| 6 | Corrélations conso (électricité/eau/poules) avec l'historique météo | backlog |
+| 5 | Contexte météo exposé à l'agent IA (tool `get_weather`) | **cadré** (à implémenter) |
+| 6 | Corrélations conso (électricité/eau) avec l'historique météo | **cadré** (à implémenter) |
 
 ## Lot 1 — Fondations
 
@@ -144,6 +144,95 @@ structurés et rend côté front.
 ### Hors périmètre Lot 4
 - Seuils configurables (V2), alerte poulailler dédiée (peut se greffer plus tard
   via un message contextualisé si module chickens actif), historique des alertes.
+
+## Lot 5 — Contexte météo pour l'agent IA (cadrage — à valider avant code)
+
+Objectif : que l'assistant conversationnel puisse **répondre avec la météo**
+(« quand tondre cette semaine ? », « faut-il protéger les tomates ce week-end ? »,
+« quel temps demain ? ») en s'appuyant sur les prévisions du foyer.
+
+### Nature — un tool de lecture, pas un `SearchableSpec`
+
+La météo n'a **pas de modèle DB** → elle ne peut pas passer par le registry
+`searchables` (qui indexe des lignes). Le bon véhicule est un **tool agent dédié**
+en lecture seule, à l'image de `search_household` / `list_entities`.
+
+L'architecture agent le permet **sans toucher `apps/agent/`** : `apps/agent/tools.py`
+expose `AgentTool(name, description, input_schema, handler)` + `register()` dans un
+`REGISTRY`. On enregistre un `get_weather` depuis `apps/weather/apps.py::ready()`
+(comme les apps enregistrent leurs `writables`/`listables`).
+
+### US5.1 — L'agent connaît la météo
+- **En tant qu'** utilisateur, **je veux** interroger l'assistant sur la météo à
+  venir, **afin d'** obtenir des conseils d'entretien contextualisés.
+- Tool `get_weather` : handler → `weather.services.get_forecast` +
+  `weather.alerts.evaluate_weather_alerts`, rend un bloc texte (conditions
+  actuelles, min/max + pluie sur 7 j, alertes actives). Pas de `hits`/citation
+  (donnée externe, pas une entité du foyer).
+- `input_schema` minimal (aucun paramètre, ou `days` optionnel).
+- Si pas de localisation / module désactivé → le tool renvoie un message clair
+  « météo non configurée » (le modèle le relaie sans inventer).
+
+### Décisions à trancher avant implémentation
+- **Tool dédié `get_weather`** (recommandé) vs injection systématique de la météo
+  dans le contexte de chaque conversation (plus coûteux en tokens, non ciblé).
+- **Gating par foyer** : le `REGISTRY` de tools est global (pas de filtre par
+  foyer aujourd'hui — cf. `web_search` gated par un flag global dans
+  `service.py`). V1 simple = tool toujours déclaré, réponse « non configurée »
+  si pas de localisation ; gating fin par foyer = petite extension de `service.py`.
+- Faut-il un **tool d'historique** pour « quel temps faisait-il en janvier ? »
+  (recoupe le Lot 6) → probablement non en V1, s'en tenir aux prévisions.
+
+### Hors périmètre Lot 5
+- Écriture depuis l'agent (la météo est lecture seule), historique conversationnel
+  météo, actions automatiques déclenchées par la météo.
+
+## Lot 6 — Corrélations consommation ↔ météo (cadrage — à valider avant code)
+
+Objectif : superposer la **température passée** aux relevés de consommation
+(électricité, eau) pour expliquer les pics (chauffage en froid, arrosage en
+canicule).
+
+### Nature — historique météo + overlay sur les graphes existants
+
+- **Source** : Open-Meteo **Archive API** (`archive-api.open-meteo.com/v1/archive`,
+  gratuit, sans clé) — `daily=temperature_2m_mean` sur la période affichée.
+- **Pas de modèle DB** (fidèle à la philosophie lecture seule) : fetch à la
+  demande pour la période + cache Django (clé lat/lon + période + granularité).
+  Un modèle `WeatherHistory` ne se justifierait que si le volume/agrégation
+  devient un coût — à réévaluer, pas en V1.
+- **Consommateurs** : les graphes conso existants — `electricity` et `water`
+  partagent `ui/src/components/charts/ConsumptionBarChart.tsx` (Recharts). L'overlay
+  = passer d'un `BarChart` à un `ComposedChart` (barres conso + **ligne
+  température**), activable par un toggle.
+
+### US6.1 — Voir la température sur les graphes de conso
+- **En tant que** propriétaire, **je veux** superposer la température moyenne à
+  mes courbes élec/eau, **afin de** comprendre mes pics de consommation.
+- Toggle « afficher la météo » sur les pages électricité et eau ; la série
+  température s'aligne sur les buckets de la période/granularité courante.
+- États : pas de localisation → toggle masqué/désactivé ; historique indispo sur
+  la période → la conso s'affiche normalement, sans la ligne (dégradation gracieuse).
+
+### Contrat technique pressenti
+- **Backend** : endpoint `GET /api/weather/history/?date_from&date_to&granularity`
+  → `{ points: [{ ts, temp_mean }] }` (agrégation day/month alignée sur les
+  granularités conso). Vit dans `apps/weather/` (concern météo), consommé par le
+  front élec/eau — pas de logique météo dupliquée dans ces apps.
+- **Frontend** : `ConsumptionBarChart` gagne une prop optionnelle `overlaySeries`
+  (ligne) ; les pages élec/eau fetchent l'historique météo et la passent.
+
+### Décisions à trancher avant implémentation
+- **Modules couverts** : électricité + eau (recommandé, les deux partagent le
+  chart) ; trackers génériques hors scope V1.
+- **On-demand + cache** (recommandé) vs persistance `WeatherHistory`.
+- **Granularités** : day + month (pas d'historique horaire) ; borne passée de
+  l'archive (Open-Meteo remonte loin, mais limiter la fenêtre requêtée).
+- Unité/agrégat : température **moyenne** journalière (vs min/max) pour la V1.
+
+### Hors périmètre Lot 6
+- Corrélation statistique automatique (coefficient, « +X kWh par °C »),
+  autres variables (pluie, degrés-jours de chauffage), export.
 
 ## Contrats techniques V1
 
