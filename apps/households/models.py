@@ -26,7 +26,17 @@ class Household(models.Model):
                                help_text=_("ISO 3166-1 alpha-2 country code (e.g. FR, DE, US)"))
     timezone = models.CharField(max_length=64, default='', blank=True,
                                 help_text=_("IANA timezone (e.g. Europe/Paris). Leave blank for UTC."))
-    
+
+    # Weather module (parcours 17) — one household = one point on the map.
+    # Set by the owner via a city search (Open-Meteo geocoding). Null coords =
+    # the weather module has nothing to show yet (state "not configured").
+    latitude = models.FloatField(null=True, blank=True,
+                                 help_text=_("Latitude for the weather module (decimal degrees)."))
+    longitude = models.FloatField(null=True, blank=True,
+                                  help_text=_("Longitude for the weather module (decimal degrees)."))
+    location_label = models.CharField(max_length=255, default='', blank=True,
+                                      help_text=_("Human-readable place name shown in the weather module."))
+
     # AI/context fields
     context_notes = models.TextField(default='', blank=True)
     ai_prompt_context = models.TextField(default='', blank=True)

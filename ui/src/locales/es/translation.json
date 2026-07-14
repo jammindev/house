@@ -314,6 +314,40 @@
       "recentTitle": "Últimas lecturas"
     }
   },
+  "weather": {
+    "title": "Tiempo",
+    "description": "El tiempo en tu casa",
+    "changeLocation": "Cambiar ubicación",
+    "error": "El tiempo no está disponible ahora. Inténtalo más tarde.",
+    "feelsLike": "Sensación",
+    "today": "Hoy",
+    "forecast7d": "Previsión a 7 días",
+    "dayToday": "Hoy",
+    "notConfigured": {
+      "title": "Sin ubicación definida",
+      "description": "Define la ubicación de tu casa para ver el tiempo local.",
+      "cta": "Definir ubicación"
+    },
+    "condition": {
+      "clear": "Despejado",
+      "partly_cloudy": "Parcialmente nublado",
+      "cloudy": "Nublado",
+      "fog": "Niebla",
+      "drizzle": "Llovizna",
+      "rain": "Lluvia",
+      "snow": "Nieve",
+      "thunderstorm": "Tormenta",
+      "unknown": "Desconocido"
+    },
+    "location": {
+      "field": "Ubicación del tiempo",
+      "hint": "Busca una ciudad para activar el módulo del tiempo en este hogar.",
+      "searchPlaceholder": "Buscar una ciudad…",
+      "searching": "Buscando…",
+      "noResults": "No se encontró ningún lugar.",
+      "clear": "Quitar ubicación"
+    }
+  },
   "interactions": {
     "form_title": "Añadir evento",
     "submit_label": "Añadir evento",
@@ -996,6 +1030,24 @@
           "charts": {
             "title": "Leer los gráficos",
             "body": "Navega por periodo y compara consumos, igual que con la electricidad."
+          }
+        }
+      },
+      "weather": {
+        "title": "Sigue el tiempo de tu casa",
+        "intro": "Consulta el tiempo local de tu casa: las condiciones de hoy y la previsión a 7 días.",
+        "steps": {
+          "location": {
+            "title": "Definir la ubicación",
+            "body": "En Ajustes > tu hogar, en el campo «Ubicación del tiempo», busca tu ciudad para activar el módulo."
+          },
+          "forecast": {
+            "title": "Consultar la previsión",
+            "body": "La página del Tiempo muestra las condiciones actuales, la evolución del día y la previsión a 7 días."
+          },
+          "dashboard": {
+            "title": "Un vistazo desde el panel",
+            "body": "Un resumen del tiempo aparece en el panel: haz clic en él para abrir la página completa."
           }
         }
       },

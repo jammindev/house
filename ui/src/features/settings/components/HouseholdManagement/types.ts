@@ -16,6 +16,9 @@ export interface HouseholdEditFormValues {
   postal_code: string;
   country: string;
   timezone: string;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string;
   context_notes: string;
   ai_prompt_context: string;
 }

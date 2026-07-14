@@ -195,7 +195,13 @@ export function useUpdateHousehold() {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: UpdateHouseholdInput }) =>
       updateHousehold(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: settingsKeys.households() }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: settingsKeys.households() });
+      // Shared household list (sidebar/dashboard gating) + weather module, whose
+      // forecast keys off the household's stored location.
+      void qc.invalidateQueries({ queryKey: ['households', 'list'] });
+      void qc.invalidateQueries({ queryKey: ['weather'] });
+    },
   });
 }
 

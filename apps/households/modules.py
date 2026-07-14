@@ -17,6 +17,7 @@ stay identical on both sides. Two sets:
 OPTIONAL_MODULES = frozenset({
     'electricity',
     'water',
+    'weather',
     'stock',
     'chickens',
     'insurance',
@@ -31,6 +32,7 @@ PINNABLE_MODULES = frozenset({
     'equipment',
     'electricity',
     'water',
+    'weather',
     'stock',
     'chickens',
     'insurance',

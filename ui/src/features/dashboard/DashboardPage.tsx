@@ -5,6 +5,7 @@ import MyWeekCard from './MyWeekCard';
 import ExpensesCard from './ExpensesCard';
 import ElectricityCard from './ElectricityCard';
 import WaterCard from './WaterCard';
+import WeatherCard from './WeatherCard';
 import ChickensCard from './ChickensCard';
 import ActivityTimeline from './ActivityTimeline';
 import PinnedProjects from './PinnedProjects';
@@ -31,6 +32,7 @@ export default function DashboardPage() {
 
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <ExpensesCard />
+        {!disabled.has('weather') && <WeatherCard />}
         {!disabled.has('electricity') && <ElectricityCard />}
         {!disabled.has('water') && <WaterCard />}
         {!disabled.has('chickens') && <ChickensCard />}

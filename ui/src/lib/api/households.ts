@@ -19,6 +19,9 @@ export interface Household {
   postal_code: string;
   country: string;
   timezone: string;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string;
   context_notes: string;
   ai_prompt_context: string;
   inbound_email_alias: string | null;
@@ -37,6 +40,9 @@ export interface CreateHouseholdInput {
   postal_code?: string;
   country?: string;
   timezone?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_label?: string;
   context_notes?: string;
   ai_prompt_context?: string;
 }
@@ -48,6 +54,9 @@ export interface UpdateHouseholdInput {
   postal_code?: string;
   country?: string;
   timezone?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_label?: string;
   context_notes?: string;
   ai_prompt_context?: string;
   default_household?: boolean;

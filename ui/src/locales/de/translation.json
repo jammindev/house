@@ -314,6 +314,40 @@
       "recentTitle": "Letzte Ablesungen"
     }
   },
+  "weather": {
+    "title": "Wetter",
+    "description": "Das Wetter bei Ihnen zu Hause",
+    "changeLocation": "Ort ändern",
+    "error": "Wetter derzeit nicht verfügbar. Bitte später erneut versuchen.",
+    "feelsLike": "Gefühlt",
+    "today": "Heute",
+    "forecast7d": "7-Tage-Vorhersage",
+    "dayToday": "Heute",
+    "notConfigured": {
+      "title": "Kein Ort festgelegt",
+      "description": "Legen Sie den Standort Ihres Zuhauses fest, um das lokale Wetter zu sehen.",
+      "cta": "Ort festlegen"
+    },
+    "condition": {
+      "clear": "Klar",
+      "partly_cloudy": "Teilweise bewölkt",
+      "cloudy": "Bewölkt",
+      "fog": "Nebel",
+      "drizzle": "Nieselregen",
+      "rain": "Regen",
+      "snow": "Schnee",
+      "thunderstorm": "Gewitter",
+      "unknown": "Unbekannt"
+    },
+    "location": {
+      "field": "Wetter-Standort",
+      "hint": "Suchen Sie eine Stadt, um das Wettermodul für diesen Haushalt zu aktivieren.",
+      "searchPlaceholder": "Stadt suchen…",
+      "searching": "Suche läuft…",
+      "noResults": "Kein Ort gefunden.",
+      "clear": "Standort entfernen"
+    }
+  },
   "interactions": {
     "form_title": "Ereignis hinzufügen",
     "submit_label": "Ereignis hinzufügen",
@@ -996,6 +1030,24 @@
           "charts": {
             "title": "Die Diagramme lesen",
             "body": "Navigieren Sie nach Zeitraum und vergleichen Sie den Verbrauch, wie beim Strom."
+          }
+        }
+      },
+      "weather": {
+        "title": "Das Wetter Ihres Zuhauses verfolgen",
+        "intro": "Sehen Sie das lokale Wetter Ihres Zuhauses — die heutigen Bedingungen und eine 7-Tage-Vorhersage.",
+        "steps": {
+          "location": {
+            "title": "Standort festlegen",
+            "body": "Suchen Sie in Einstellungen > Ihr Haushalt im Feld „Wetter-Standort“ Ihre Stadt, um das Modul zu aktivieren."
+          },
+          "forecast": {
+            "title": "Vorhersage ansehen",
+            "body": "Die Wetterseite zeigt die aktuellen Bedingungen, den Tagesverlauf und eine 7-Tage-Vorhersage."
+          },
+          "dashboard": {
+            "title": "Ein Blick aufs Dashboard",
+            "body": "Eine Wetterübersicht erscheint auf dem Dashboard — klicken Sie darauf, um die vollständige Seite zu öffnen."
           }
         }
       },

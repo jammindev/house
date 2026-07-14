@@ -6,6 +6,7 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import type { SelectOption } from '@/design-system/select';
+import WeatherLocationField from '@/features/weather/WeatherLocationField';
 
 import type { HouseholdEditFormValues } from '../types';
 
@@ -106,7 +107,7 @@ export function HouseholdFormFields({
   onFieldChange,
   onSubmit,
 }: HouseholdFormFieldsProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const locale = i18n.language ?? 'en';
   const countryOptions = useCountryOptions(locale);
   const timezoneOptions = useTimezoneOptions();
@@ -176,6 +177,26 @@ export function HouseholdFormFields({
           options={timezoneOptions}
           placeholder={labels.timezonePlaceholder}
         />
+      </FieldGroup>
+
+      {/* Weather location (parcours 17) — powers the weather module. */}
+      <FieldGroup id="hh-weather-location" label={t('weather.location.field')}>
+        <WeatherLocationField
+          label={values.location_label}
+          latitude={values.latitude}
+          longitude={values.longitude}
+          onSelect={(loc) => {
+            onFieldChange('location_label', loc.location_label);
+            onFieldChange('latitude', loc.latitude);
+            onFieldChange('longitude', loc.longitude);
+          }}
+          onClear={() => {
+            onFieldChange('location_label', '');
+            onFieldChange('latitude', null);
+            onFieldChange('longitude', null);
+          }}
+        />
+        <p className="text-xs text-muted-foreground">{t('weather.location.hint')}</p>
       </FieldGroup>
 
       {/* Context section */}

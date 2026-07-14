@@ -28,10 +28,21 @@ class HouseholdSerializer(serializers.ModelSerializer):
         model = Household
         fields = [
             'id', 'name', 'created_at', 'address', 'city', 'postal_code', 'country', 'timezone',
+            'latitude', 'longitude', 'location_label',
             'context_notes', 'ai_prompt_context', 'inbound_email_alias', 'disabled_modules',
             'members_count', 'current_user_role', 'members', 'archived_at'
         ]
         read_only_fields = ['id', 'created_at', 'inbound_email_alias', 'archived_at']
+
+    def validate_latitude(self, value):
+        if value is not None and not (-90 <= value <= 90):
+            raise serializers.ValidationError(_("Latitude must be between -90 and 90."))
+        return value
+
+    def validate_longitude(self, value):
+        if value is not None and not (-180 <= value <= 180):
+            raise serializers.ValidationError(_("Longitude must be between -180 and 180."))
+        return value
 
     def validate_disabled_modules(self, value):
         if not isinstance(value, list) or not all(isinstance(k, str) for k in value):

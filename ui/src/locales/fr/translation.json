@@ -314,6 +314,40 @@
       "recentTitle": "Derniers relevés"
     }
   },
+  "weather": {
+    "title": "Météo",
+    "description": "La météo chez vous",
+    "changeLocation": "Changer de lieu",
+    "error": "Météo indisponible pour le moment. Réessayez plus tard.",
+    "feelsLike": "Ressenti",
+    "today": "Aujourd'hui",
+    "forecast7d": "Prévisions sur 7 jours",
+    "dayToday": "Auj.",
+    "notConfigured": {
+      "title": "Aucun lieu défini",
+      "description": "Définissez la localisation de votre maison pour voir la météo locale.",
+      "cta": "Définir le lieu"
+    },
+    "condition": {
+      "clear": "Ciel dégagé",
+      "partly_cloudy": "Partiellement nuageux",
+      "cloudy": "Nuageux",
+      "fog": "Brouillard",
+      "drizzle": "Bruine",
+      "rain": "Pluie",
+      "snow": "Neige",
+      "thunderstorm": "Orage",
+      "unknown": "Inconnu"
+    },
+    "location": {
+      "field": "Localisation météo",
+      "hint": "Recherchez une ville pour activer le module météo de ce foyer.",
+      "searchPlaceholder": "Rechercher une ville…",
+      "searching": "Recherche…",
+      "noResults": "Aucun lieu trouvé.",
+      "clear": "Retirer le lieu"
+    }
+  },
   "interactions": {
     "form_title": "Ajouter un événement",
     "submit_label": "Ajouter un événement",
@@ -996,6 +1030,24 @@
           "charts": {
             "title": "Lire les graphiques",
             "body": "Naviguez par période et comparez les consommations, comme pour l'électricité."
+          }
+        }
+      },
+      "weather": {
+        "title": "Suivre la météo du foyer",
+        "intro": "Consultez la météo locale de votre maison, conditions du jour et prévisions sur 7 jours.",
+        "steps": {
+          "location": {
+            "title": "Définir la localisation",
+            "body": "Dans Réglages > votre foyer, champ « Localisation météo », recherchez votre ville pour activer le module."
+          },
+          "forecast": {
+            "title": "Consulter les prévisions",
+            "body": "La page Météo affiche les conditions actuelles, l'évolution du jour et les prévisions sur 7 jours."
+          },
+          "dashboard": {
+            "title": "Un coup d'œil au dashboard",
+            "body": "Un résumé météo apparaît sur le tableau de bord : cliquez dessus pour ouvrir la page complète."
           }
         }
       },
