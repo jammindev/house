@@ -9,6 +9,7 @@ import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { CheckboxField } from '@/design-system/checkbox-field';
 import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
+import { useDisabledModules } from '@/lib/modules';
 import { fetchProjects } from '@/lib/api/projects';
 import type { ProjectListItem } from '@/lib/api/projects';
 import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/api/documents';
@@ -49,6 +50,8 @@ export default function NewTaskDialog({
 }: NewTaskDialogProps) {
   const { t } = useTranslation();
   const isEditing = Boolean(existingTask);
+  const { disabled } = useDisabledModules();
+  const weatherEnabled = !disabled.has('weather');
 
   const priorityOptions = [
     { value: '1', label: t('tasks.priorityHigh_label') },
@@ -70,6 +73,7 @@ export default function NewTaskDialog({
   const [zoneIds, setZoneIds] = React.useState<string[]>([]);
   const [projectId, setProjectId] = React.useState('');
   const [isPrivate, setIsPrivate] = React.useState(false);
+  const [needsDryWeather, setNeedsDryWeather] = React.useState(false);
   const [zones, setZones] = React.useState<Zone[]>([]);
   const [projects, setProjects] = React.useState<ProjectListItem[]>([]);
   const [zonesLoading, setZonesLoading] = React.useState(false);
@@ -117,6 +121,7 @@ export default function NewTaskDialog({
       setAssignedToId(existingTask.assigned_to ?? '');
       setProjectId(existingTask.project ?? defaultProjectId ?? '');
       setIsPrivate(existingTask.is_private ?? false);
+      setNeedsDryWeather(existingTask.needs_dry_weather ?? false);
     } else {
       setSubject(defaultSubject ?? '');
       setContent('');
@@ -127,6 +132,7 @@ export default function NewTaskDialog({
       setZoneIds(defaultZoneIds ?? []);
       setProjectId(defaultProjectId ?? '');
       setIsPrivate(false);
+      setNeedsDryWeather(false);
       setSelectedDocumentIds([]);
       setSelectedInteractionIds([]);
       setAttachmentsLoaded(false);
@@ -175,6 +181,7 @@ export default function NewTaskDialog({
       assigned_to_id: assignedToId || null,
       project: projectId || null,
       is_private: isPrivate,
+      needs_dry_weather: needsDryWeather,
     };
 
     if (isEditing && existingTask) {
@@ -322,6 +329,20 @@ export default function NewTaskDialog({
               checked={isPrivate}
               onChange={(val) => { setIsPrivate(val); if (val) setAssignedToId(''); }}
             />
+          )}
+
+          {weatherEnabled && (
+            <div className="space-y-1">
+              <CheckboxField
+                id="task-needs-dry-weather"
+                label={t('tasks.weather.fieldNeedsDryWeather')}
+                checked={needsDryWeather}
+                onChange={setNeedsDryWeather}
+              />
+              <p className="pl-6 text-xs text-muted-foreground">
+                {t('tasks.weather.fieldNeedsDryWeatherHint')}
+              </p>
+            </div>
           )}
 
           {!isEditing && (

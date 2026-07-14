@@ -13,7 +13,8 @@
 
 ## Modèles & API
 
-- Modèles principaux : `Task` (status, priority, `due_date`, `assigned_to`, `completed_by`, `completed_at`, `is_private`, `source_interaction`), `TaskZone`, `TaskDocument`, `TaskInteraction`
+- Modèles principaux : `Task` (status, priority, `due_date`, `assigned_to`, `completed_by`, `completed_at`, `is_private`, `needs_dry_weather`, `source_interaction`), `TaskZone`, `TaskDocument`, `TaskInteraction`
+  - `needs_dry_weather` (parcours 17, Lot 3) : tâche d'extérieur nécessitant un temps sec. Opt-in (défaut `false`). Le détail tâche affiche alors une suggestion de jours secs (`TaskWeatherHint`, calcul front via le module météo) ; case masquée si le module `weather` est désactivé pour le foyer.
 - Endpoints exposés sous `/api/tasks/` : `tasks/` (CRUD + filtres `overdue`, `zone`, `status`, `priority`, `assigned_to`, `project`, `is_private`), `task-documents/`, `task-interactions/` — pagination `LimitOffsetPagination` (default 200, max 500)
 - Permissions : `IsHouseholdMember` + permissions custom (`_check_update_permission` views.py:97) — créateur peut tout modifier ; assigné ne peut modifier que `status` ; seul le créateur peut supprimer ou gérer les attachments. `perform_destroy` fait un soft-delete vers `status='archived'`
 

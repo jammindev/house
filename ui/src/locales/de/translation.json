@@ -702,7 +702,15 @@
     "pickDocument": "Dokument auswählen",
     "pickInteraction": "Ereignis auswählen",
     "attachmentUnlinked": "Verknüpfung entfernt",
-    "attachmentLinked": "Anhang hinzugefügt"
+    "attachmentLinked": "Anhang hinzugefügt",
+    "weather": {
+      "fieldNeedsDryWeather": "Benötigt trockenes Wetter",
+      "fieldNeedsDryWeatherHint": "Aufgabe im Freien — wir schlagen trockene Tage aus der Vorhersage vor.",
+      "needsDryWeatherBadge": "Benötigt trockenes Wetter",
+      "suggestionTitle": "Beste Tage",
+      "goodDaysIntro": "Kommende trockene Tage:",
+      "noDryDays": "In den nächsten 7 Tagen ist kein trockener Tag zu erwarten."
+    }
   },
   "trackers": {
     "title": "Tracker",
@@ -1112,6 +1120,10 @@
           "organize": {
             "title": "Filtern und ordnen",
             "body": "Filter (offen, überfällig, erledigt…) halten die Liste übersichtlich."
+          },
+          "weather": {
+            "title": "Nach dem Wetter planen",
+            "body": "Markieren Sie eine Aufgabe im Freien als „benötigt trockenes Wetter“ — die Detailansicht schlägt die kommenden trockenen Tage vor."
           },
           "complete": {
             "title": "Abschließen und wiederfinden",

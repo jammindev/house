@@ -107,6 +107,7 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'household',
             'subject', 'content', 'status', 'priority', 'due_date', 'is_private',
+            'needs_dry_weather',
             'assigned_to', 'assigned_to_id', 'assigned_to_name',
             'completed_by', 'completed_by_name', 'completed_at',
             'project', 'project_title', 'project_status',

@@ -23,6 +23,7 @@ import TaskStatusBadge from './TaskStatusBadge';
 import TaskAssigneeBadge from './TaskAssigneeBadge';
 import NewTaskDialog from './NewTaskDialog';
 import TaskAttachmentsDialog from './TaskAttachmentsDialog';
+import TaskWeatherHint from './TaskWeatherHint';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 
 function formatDate(value?: string | null): string {
@@ -262,6 +263,9 @@ export default function TaskDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Weather suggestion (parcours 17, Lot 3) — outdoor dry-weather tasks */}
+        <TaskWeatherHint task={task} />
 
         {/* Linked documents */}
         <section className="space-y-2">

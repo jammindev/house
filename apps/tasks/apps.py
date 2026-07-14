@@ -23,7 +23,7 @@ class TasksConfig(AppConfig):
             entity_type='task',
             create=_create_task_from_agent,
             update=_update_task_from_agent,
-            updatable_fields=('subject', 'content', 'status', 'due_date', 'priority'),
+            updatable_fields=('subject', 'content', 'status', 'due_date', 'priority', 'needs_dry_weather'),
             resolve=_resolve_task_for_agent,
             delete=_delete_task_from_agent,
             label_attr='subject',
@@ -72,6 +72,7 @@ def _create_task_from_agent(household, user, fields, *, anchor=None):
         priority=int(priority) if priority not in (None, '') else None,
         project=project,
         zone_ids=zone_ids,
+        needs_dry_weather=bool(fields.get('needs_dry_weather')),
     )
 
 

@@ -45,6 +45,11 @@ class Task(HouseholdScopedModel):
     due_date = models.DateField(null=True, blank=True)
     is_private = models.BooleanField(default=False)
 
+    # Weather module (parcours 17, Lot 3) — outdoor task that needs dry weather.
+    # When true, the task detail suggests favorable days from the forecast. Opt-in
+    # (default false), so existing tasks are unaffected.
+    needs_dry_weather = models.BooleanField(default=False)
+
     # Assignation
     assigned_to = models.ForeignKey(
         settings.AUTH_USER_MODEL,
