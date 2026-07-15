@@ -2328,7 +2328,8 @@
       "link_confirm": "Vincular",
       "no_stock_items": "No hay artículos de stock — créalo desde Stock.",
       "linked": "Artículo vinculado",
-      "buy": "Comprar"
+      "buy": "Comprar",
+      "depletion": "Se agota hacia el {{date}}"
     },
     "cost": {
       "title": "Coste",

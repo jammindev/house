@@ -202,6 +202,110 @@ def record_inventory(
     return item
 
 
+def resolve_category(household, raw: str):
+    """Resolve a stock category by id or (case-insensitive) name within a household.
+
+    Raises ``ValueError`` when unknown or ambiguous — the agent surfaces the hint
+    and never creates a category silently.
+    """
+    from .models import StockCategory
+
+    raw = (raw or "").strip()
+    if not raw:
+        raise ValueError("a category is required")
+
+    qs = StockCategory.objects.filter(household_id=household.id)
+    match = qs.filter(pk=raw).first() if _looks_like_uuid(raw) else None
+    if match is None:
+        by_name = list(qs.filter(name__iexact=raw)[:2])
+        if len(by_name) > 1:
+            raise ValueError(f"several categories match {raw!r}; be more specific")
+        match = by_name[0] if by_name else None
+    if match is None:
+        raise ValueError(f"no stock category named {raw!r} — create it first")
+    return match
+
+
+def _looks_like_uuid(value: str) -> bool:
+    from uuid import UUID
+
+    try:
+        UUID(str(value))
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def create_stock_item(household, user, *, category, **fields):
+    """Create a StockItem through ``StockItemSerializer`` (validation + scope).
+
+    Shared by the agent's ``create_entity``. ``category`` is a StockCategory
+    instance already resolved to the household. Extra ``fields`` (name, unit,
+    quantity, min_quantity, notes, zone) are passed to the serializer as-is.
+    """
+    from .serializers import StockItemSerializer
+
+    data = {"category": str(category.pk), **{k: v for k, v in fields.items() if v is not None}}
+    serializer = StockItemSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(household=household, created_by=user)
+
+
+def resolve_stock_item(household, raw_id):
+    """Household-scoped stock item lookup for the agent's ``update_entity``."""
+    return StockItem.objects.filter(household_id=household.id, pk=raw_id).first()
+
+
+def update_stock_item(household, user, instance, fields):
+    """Partial update of a StockItem through its serializer (agent ``update_entity``)."""
+    from .serializers import StockItemSerializer
+
+    serializer = StockItemSerializer(instance, data=fields, partial=True, context={"request": None})
+    serializer.is_valid(raise_exception=True)
+    return serializer.save(updated_by=user)
+
+
+@transaction.atomic
+def undo_purchase(*, household, user, interaction_id) -> None:
+    """Reverse a ``stock_purchase`` — the undo of ``purchase_stock_item``.
+
+    Deletes the expense interaction and the ``purchase`` level reading it created,
+    and subtracts the purchased ``delta`` from the item quantity (recomputing the
+    status). Raises ``LookupError`` when the purchase is already gone so a double
+    undo is idempotent.
+
+    Limitation: an ``inventory`` reading written from a ``remaining_before`` count
+    is a real measurement and is intentionally kept (not linked to the purchase).
+    """
+    from interactions.models import Interaction
+
+    interaction = (
+        Interaction.objects.filter(
+            household_id=household.id, id=interaction_id, metadata__kind="stock_purchase"
+        )
+        .first()
+    )
+    if interaction is None:
+        raise LookupError(f"no stock purchase {interaction_id} in this household")
+
+    item = interaction.source  # the StockItem via the polymorphic FK
+    delta = Decimal(str((interaction.metadata or {}).get("delta") or "0"))
+
+    StockLevelReading.objects.filter(source_interaction=interaction).delete()
+    interaction.delete()
+
+    if item is not None:
+        item.quantity = max(Decimal("0"), Decimal(item.quantity) - delta)
+        recompute_status(item)
+        item.updated_by = user
+        item.save()
+
+
+def recent_level_readings(item: StockItem, *, limit: int = 12):
+    """The item's most recent level readings (for the anchored assistant context)."""
+    return list(item.level_readings.order_by("-reading_at", "-created_at")[:limit])
+
+
 def compute_consumption(item: StockItem, *, period: str = "90d") -> dict:
     """Build the consumption curve of an item + derived depletion metrics.
 

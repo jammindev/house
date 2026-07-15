@@ -410,7 +410,8 @@ _CREATE_ENTITY_SCHEMA = {
             "description": (
                 "The kind of item to create. Supported: 'task', 'note', "
                 "'renovation', 'meter_reading', 'water_reading', 'tracker', "
-                "'tracker_entry', 'chicken', 'egg_log'."
+                "'tracker_entry', 'chicken', 'egg_log', 'stock_item', "
+                "'stock_reading', 'stock_purchase'."
             ),
         },
         "fields": {
@@ -468,6 +469,27 @@ _CREATE_ENTITY_SCHEMA = {
                 "ramassé 4 œufs'): count (required, integer >= 0), date "
                 "(optional 'YYYY-MM-DD', defaults to today — one log per day, "
                 "re-logging the same day replaces the count), note (optional). "
+                "For entity_type='stock_item' (a new item in the household "
+                "inventory, e.g. 'ajoute litière poules, catégorie Animaux, "
+                "seuil 5 kg'): name (required), category (required, an existing "
+                "category name or id — never invent one, tell the user if it "
+                "doesn't exist), unit (optional, e.g. 'kg', 'unit'), quantity "
+                "(optional starting quantity), min_quantity (optional low-stock "
+                "threshold), notes (optional). "
+                "For entity_type='stock_reading' (an inventory count = the "
+                "absolute quantity currently LEFT of an existing item, e.g. 'il "
+                "reste 3 kg de graines'): quantity (required, the remaining "
+                "amount), stock_item (item name or id; omit when the "
+                "conversation is anchored on the item or the household has a "
+                "single one). "
+                "For entity_type='stock_purchase' (a purchase/restock of an "
+                "existing item, e.g. 'j'ai acheté 20 kg de graines chez Gamm "
+                "Vert à 15 €, il restait 2 kg'): delta (required, the quantity "
+                "bought), stock_item (item name or id; omit when anchored or "
+                "single), amount (optional total price paid), supplier "
+                "(optional store), brand (optional), remaining_before (optional, "
+                "how much was left before restocking — recalibrates the stock), "
+                "occurred_at (optional ISO datetime), notes (optional). "
                 "In an anchored conversation the project/zone/entity is "
                 "attached automatically — do not ask for it."
             ),
@@ -485,9 +507,11 @@ _CREATE_ENTITY_DESCRIPTION = (
     "(a water meter index reading in m³), 'tracker' (a "
     "named series of dated numeric values), 'tracker_entry' (one dated value "
     "on an existing tracker, e.g. 'note 148.2 sur le compteur d'eau'), "
-    "'chicken' (a hen of the family flock) and 'egg_log' (the daily egg count, "
-    "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted). Only call this when the "
-    "user clearly asks to create, "
+    "'chicken' (a hen of the family flock), 'egg_log' (the daily egg count, "
+    "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted), 'stock_item' (a "
+    "new inventory item), 'stock_reading' (an inventory count of what's left of "
+    "an item) and 'stock_purchase' (a purchase/restock of an item, records the "
+    "expense too). Only call this when the "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
     "is created immediately; the user can undo it from the interface."
@@ -754,8 +778,8 @@ _UPDATE_ENTITY_SCHEMA = {
             "type": "string",
             "description": (
                 "The kind of item to update. Supported: 'task', 'note', "
-                "'water_reading', 'tracker', 'tracker_entry', 'chicken'. A "
-                "note cited as interaction:<id> is updated with "
+                "'water_reading', 'tracker', 'tracker_entry', 'chicken', "
+                "'stock_item'. A note cited as interaction:<id> is updated with "
                 "entity_type='note' and that same id."
             ),
         },
@@ -779,7 +803,11 @@ _UPDATE_ENTITY_SCHEMA = {
                 "For 'chicken' (the family flock register): name, breed, "
                 "color, status (one of active, broody, sick, deceased, gone — "
                 "deceased/gone log the matching journal event automatically), "
-                "notes, hatched_on / acquired_on ('YYYY-MM-DD')."
+                "notes, hatched_on / acquired_on ('YYYY-MM-DD'). "
+                "For 'stock_item' (an inventory item — edits its fields, NOT its "
+                "quantity: use stock_reading/stock_purchase to change quantity): "
+                "name, description, notes, unit, min_quantity, max_quantity, "
+                "supplier."
             ),
         },
     },

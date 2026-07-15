@@ -2,6 +2,9 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { FilterPill } from '@/design-system/filter-pill';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useSessionState } from '@/lib/useSessionState';
+import WeatherOverlayToggle from '@/features/weather/WeatherOverlayToggle';
+import { useTemperatureOverlay } from '@/features/weather/overlay';
 import type { ConsumptionPeriod } from '@/lib/api/stock';
 import { useStockConsumption } from './hooks';
 import { formatDate } from './format';
@@ -31,6 +34,25 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
 
   const hasCurve = data != null && data.points_count >= 2;
 
+  // Temperature overlay (parcours 18 lot 5) — reuses the electricity/water hook.
+  const [showWeather, setShowWeather] = useSessionState<boolean>(`stock.consumption.showWeather`, false);
+  const overlayBuckets = React.useMemo(
+    () => (data?.points ?? []).map((p) => ({ ts: p.date })),
+    [data],
+  );
+  const range = React.useMemo(() => {
+    const points = data?.points ?? [];
+    if (points.length === 0) return { from: '', to: '' };
+    return { from: points[0].date.slice(0, 10), to: points[points.length - 1].date.slice(0, 10) };
+  }, [data]);
+  const { available: weatherAvailable, overlay: weatherOverlay } = useTemperatureOverlay({
+    from: range.from,
+    to: range.to,
+    granularity: 'day',
+    buckets: overlayBuckets,
+    show: showWeather,
+  });
+
   return (
     <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-1.5">
@@ -39,6 +61,9 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
             {t(`stock.consumption.periods.${p}`)}
           </FilterPill>
         ))}
+        {hasCurve && weatherAvailable ? (
+          <WeatherOverlayToggle active={showWeather} onToggle={setShowWeather} />
+        ) : null}
       </div>
 
       {showSkeleton ? (
@@ -68,7 +93,7 @@ export default function StockConsumptionTab({ itemId, unit }: StockConsumptionTa
             />
           </dl>
 
-          <StockConsumptionChart points={data.points} unit={unit} />
+          <StockConsumptionChart points={data.points} unit={unit} overlay={weatherOverlay} />
         </>
       ) : (
         <p className="text-sm italic text-muted-foreground">

@@ -7,9 +7,9 @@ import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
 import { pushBack } from '@/lib/backNavigation';
 import { fetchStockItems } from '@/lib/api/stock';
-import { useStockItem } from '@/features/stock/hooks';
+import { useStockItem, useStockConsumption } from '@/features/stock/hooks';
 import StockPurchaseDialog from '@/features/stock/StockPurchaseDialog';
-import { formatQty } from '@/features/stock/format';
+import { formatQty, formatDate } from '@/features/stock/format';
 import { chickenKeys, useChickenSettings, useFlockSummary, useUpdateChickenSettings } from './hooks';
 
 const LOW_STATUSES = ['low_stock', 'out_of_stock'];
@@ -40,6 +40,8 @@ export default function FeedCard() {
   const feed = summary?.feed ?? null;
   // Full StockItem for the purchase dialog (the summary only carries a snapshot).
   const { data: feedItem } = useStockItem(feed?.stock_item_id ?? '');
+  // Projected depletion date derived from the consumption curve (parcours 18 lot 5).
+  const { data: feedConsumption } = useStockConsumption(feed?.stock_item_id ?? '', '90d');
 
   if (settings && !settings.feed_stock_item) {
     return (
@@ -117,6 +119,13 @@ export default function FeedCard() {
                 {t(`stock.status.${feed.status}`)}
               </span>
             </p>
+            {feedConsumption?.projected_depletion_date ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t('chickens.feed.depletion', {
+                  date: formatDate(feedConsumption.projected_depletion_date),
+                })}
+              </p>
+            ) : null}
           </Link>
           <Button type="button" variant="outline" size="sm" onClick={() => setPurchasing(true)}>
             {t('chickens.feed.buy')}

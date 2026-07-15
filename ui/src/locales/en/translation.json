@@ -2328,7 +2328,8 @@
       "link_confirm": "Link",
       "no_stock_items": "No stock item yet — create one from Stock.",
       "linked": "Stock item linked",
-      "buy": "Buy"
+      "buy": "Buy",
+      "depletion": "Empty around {{date}}"
     },
     "cost": {
       "title": "Cost",

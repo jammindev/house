@@ -2328,7 +2328,8 @@
       "link_confirm": "Lier",
       "no_stock_items": "Aucun article de stock — crée-le depuis Stock.",
       "linked": "Article lié",
-      "buy": "Acheter"
+      "buy": "Acheter",
+      "depletion": "À court vers le {{date}}"
     },
     "cost": {
       "title": "Coût",

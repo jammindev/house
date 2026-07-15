@@ -2328,7 +2328,8 @@
       "link_confirm": "Verknüpfen",
       "no_stock_items": "Noch kein Vorratsartikel — erstelle einen unter Vorräte.",
       "linked": "Artikel verknüpft",
-      "buy": "Kaufen"
+      "buy": "Kaufen",
+      "depletion": "Leer etwa am {{date}}"
     },
     "cost": {
       "title": "Kosten",

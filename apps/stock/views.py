@@ -22,7 +22,13 @@ from .serializers import (
     StockQuantityAdjustSerializer,
     build_category_summary,
 )
-from .services import compute_consumption, purchase_stock_item, recompute_status, record_inventory
+from .services import (
+    compute_consumption,
+    purchase_stock_item,
+    recompute_status,
+    record_inventory,
+    undo_purchase,
+)
 
 
 class StockCategoryViewSet(viewsets.ModelViewSet):
@@ -176,3 +182,24 @@ class StockItemViewSet(viewsets.ModelViewSet):
         item = self.get_object()
         period = request.query_params.get("period", "90d")
         return Response(compute_consumption(item, period=period))
+
+    @action(detail=False, methods=["post"], url_path="undo-purchase")
+    def undo_purchase(self, request):
+        """Reverse a stock purchase created via the agent (undo of ``purchase``).
+
+        Body: ``{"interaction_id": "<uuid>"}``. Delegates to
+        ``services.undo_purchase`` (deletes the expense + readings, restores the
+        quantity). Idempotent: an already-undone purchase returns 404.
+        """
+        interaction_id = request.data.get("interaction_id")
+        if not interaction_id:
+            raise ValidationError({"interaction_id": _("This field is required.")})
+        try:
+            undo_purchase(
+                household=request.household,
+                user=request.user,
+                interaction_id=interaction_id,
+            )
+        except LookupError:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response(status=status.HTTP_204_NO_CONTENT)

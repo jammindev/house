@@ -13,7 +13,9 @@ import {
   updateTrackerEntry,
 } from '@/lib/api/trackers';
 import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
+import { deleteStockItem, undoStockPurchase } from '@/lib/api/stock';
 import { taskKeys } from '@/features/tasks/hooks';
+import { stockKeys } from '@/features/stock/hooks';
 import { chickenKeys } from '@/features/chickens/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
@@ -192,6 +194,15 @@ const UNDO_HANDLERS: Record<
     // one row per day (upserted) — undo removes the whole day's log
     remove: (id) => deleteEggLog(id),
     keys: [chickenKeys.all as unknown as unknown[]],
+  },
+  stock_item: {
+    remove: (id) => deleteStockItem(id),
+    keys: [stockKeys.all as unknown as unknown[]],
+  },
+  stock_purchase: {
+    // reverses the expense + level readings and restores the item quantity
+    remove: (id) => undoStockPurchase(id),
+    keys: [stockKeys.all as unknown as unknown[], ['interactions']],
   },
 };
 

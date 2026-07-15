@@ -204,6 +204,11 @@ export interface StockInventoryPayload {
   occurred_at?: string | null;
 }
 
+/** Undo of an agent-created stock purchase: reverses the expense + readings + quantity. */
+export async function undoStockPurchase(interactionId: string): Promise<void> {
+  await api.post('/stock/undo-purchase/', { interaction_id: interactionId });
+}
+
 export async function recordStockInventory(
   itemId: string,
   payload: StockInventoryPayload,
