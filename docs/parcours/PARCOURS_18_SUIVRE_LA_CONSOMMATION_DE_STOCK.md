@@ -1,5 +1,8 @@
 # Parcours 18 — Comprendre à quel rythme on consomme un article de stock
 
+> **Statut : livré — lots 18.1 à 18.5 (2026-07-15).** PRs #293 (lots 1-3) et
+> #294 (lots 4-5). Issues #288–#292 closes.
+>
 > Cadré le 2026-07-15 avec l'utilisateur (session `/po`). **Reprend l'idée
 > explicitement reportée au Parcours 11 Lot 7** (« estimer un rythme depuis les
 > achats datés `stock_purchase` si le besoin revient » — hors scope à l'époque).
