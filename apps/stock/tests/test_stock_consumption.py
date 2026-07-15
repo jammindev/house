@@ -1,12 +1,15 @@
-"""Lot 18.1 — StockLevelReading, remaining_before recalibration, brand, inventory."""
+"""Lot 18.1/18.3 — StockLevelReading, recalibration, inventory, consumption curve."""
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import User
 from households.models import Household, HouseholdMember
 from stock.models import StockCategory, StockItem, StockLevelReading
+from stock.services import record_inventory
 
 
 @pytest.fixture
@@ -49,6 +52,10 @@ def _purchase_url(item):
 
 def _inventory_url(item):
     return reverse("stock-item-inventory", kwargs={"pk": item.id})
+
+
+def _consumption_url(item):
+    return reverse("stock-item-consumption", kwargs={"pk": item.id})
 
 
 def _readings(item):
@@ -186,3 +193,53 @@ def test_inventory_requires_authentication(client, feed):
     )
     assert response.status_code in (401, 403)
     assert _readings(feed) == []
+
+
+@pytest.mark.django_db
+def test_consumption_needs_two_points(client, user, feed, membership):
+    client.force_login(user)
+    record_inventory(item=feed, user=user, quantity=Decimal("10"))
+
+    response = client.get(_consumption_url(feed))
+    assert response.status_code == 200, response.content
+    data = response.json()
+    assert data["points_count"] == 1
+    assert data["rate_per_day"] is None
+    assert data["projected_depletion_date"] is None
+    assert data["last_level"] == 10.0
+
+
+@pytest.mark.django_db
+def test_consumption_derives_rate_and_depletion(client, user, feed, membership):
+    client.force_login(user)
+    now = timezone.now()
+    # 10 kg ten days ago, 2 kg now → 8 kg over 10 days = 0.8 kg/day.
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=10))
+    record_inventory(item=feed, user=user, quantity=Decimal("2"), occurred_at=now)
+
+    response = client.get(_consumption_url(feed))
+    assert response.status_code == 200
+    data = response.json()
+    assert data["points_count"] == 2
+    assert data["rate_per_day"] == pytest.approx(0.8, abs=0.01)
+    assert data["last_level"] == 2.0
+    # 2 kg / 0.8 kg/day ≈ 2.5 days of runway → a future date.
+    assert data["projected_depletion_date"] is not None
+    assert data["projected_depletion_date"] > now.date().isoformat()
+
+
+@pytest.mark.django_db
+def test_consumption_ignores_restock_jumps(client, user, feed, membership):
+    client.force_login(user)
+    now = timezone.now()
+    record_inventory(item=feed, user=user, quantity=Decimal("10"), occurred_at=now - timedelta(days=10))
+    record_inventory(item=feed, user=user, quantity=Decimal("2"), occurred_at=now - timedelta(days=5))
+    # A restock jump upward must not count as (negative) consumption.
+    record_inventory(item=feed, user=user, quantity=Decimal("12"), occurred_at=now - timedelta(days=4))
+    record_inventory(item=feed, user=user, quantity=Decimal("4"), occurred_at=now)
+
+    response = client.get(_consumption_url(feed))
+    data = response.json()
+    # Consumed: 8 (day0→5) + 8 (day6→10) = 16 over 10 days = 1.6 kg/day.
+    assert data["rate_per_day"] == pytest.approx(1.6, abs=0.01)
+    assert data["points_count"] == 4

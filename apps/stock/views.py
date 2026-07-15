@@ -22,7 +22,7 @@ from .serializers import (
     StockQuantityAdjustSerializer,
     build_category_summary,
 )
-from .services import purchase_stock_item, recompute_status, record_inventory
+from .services import compute_consumption, purchase_stock_item, recompute_status, record_inventory
 
 
 class StockCategoryViewSet(viewsets.ModelViewSet):
@@ -165,3 +165,14 @@ class StockItemViewSet(viewsets.ModelViewSet):
             StockItemSerializer(item, context={"request": request}).data,
             status=status.HTTP_200_OK,
         )
+
+    @action(detail=True, methods=["get"], url_path="consumption")
+    def consumption(self, request, pk=None):
+        """Return the item's consumption curve (dated levels) + depletion metrics.
+
+        Delegates to ``services.compute_consumption``. Query param ``period`` is
+        one of ``30d``/``90d``/``1y``/``all`` (default ``90d``).
+        """
+        item = self.get_object()
+        period = request.query_params.get("period", "90d")
+        return Response(compute_consumption(item, period=period))

@@ -1913,6 +1913,7 @@
       "confirm_delete": "Artikel \"{{name}}\" löschen?",
       "tabs": {
         "info": "Info",
+        "consumption": "Verbrauch",
         "history": "Verlauf",
         "assistant": "Assistent"
       }
@@ -1931,6 +1932,19 @@
       "actions": {
         "record": "Inventur"
       }
+    },
+    "consumption": {
+      "periods": {
+        "30d": "30 Tage",
+        "90d": "90 Tage",
+        "1y": "1 Jahr",
+        "all": "Alle"
+      },
+      "rate": "Verbrauchsrate",
+      "rate_value": "{{rate}} {{unit}}/Tag",
+      "depletion": "Voraussichtlich leer",
+      "last_level": "Letzter bekannter Stand",
+      "not_enough_data": "Noch nicht genug Verlauf für eine Kurve. Erfasse einen Kauf oder eine Inventur."
     }
   },
   "purchase": {

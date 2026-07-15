@@ -12,7 +12,7 @@ directly: routing every write through here keeps that invariant true.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 
 from django.db import transaction
@@ -22,6 +22,14 @@ from interactions.services import create_expense_interaction
 
 from .models import StockItem, StockLevelReading
 from .notifications import notify_stock_status_change
+
+# Selectable windows for the consumption curve. None = full history.
+CONSUMPTION_PERIOD_DAYS: dict[str, int | None] = {
+    "30d": 30,
+    "90d": 90,
+    "1y": 365,
+    "all": None,
+}
 
 
 def recompute_status(item: StockItem) -> None:
@@ -192,3 +200,68 @@ def record_inventory(
     )
 
     return item
+
+
+def compute_consumption(item: StockItem, *, period: str = "90d") -> dict:
+    """Build the consumption curve of an item + derived depletion metrics.
+
+    Returns the dated level points over the selected window plus a burn rate and
+    a projected depletion date. The rate is derived from the *descents* between
+    consecutive readings (restock jumps upward are excluded); the honest daily
+    average is ``total consumed / calendar days spanned``. Both metrics are
+    ``None`` when there are fewer than two points to interpolate.
+
+    Shape::
+
+        {
+          "period": "90d",
+          "points": [{"date": iso, "quantity": float, "kind": str}, ...],
+          "last_level": float,
+          "points_count": int,
+          "rate_per_day": float | None,
+          "projected_depletion_date": iso date | None,
+        }
+    """
+    period_days = CONSUMPTION_PERIOD_DAYS.get(period, 90)
+
+    readings = StockLevelReading.objects.filter(stock_item=item)
+    if period_days is not None:
+        cutoff = timezone.now() - timedelta(days=period_days)
+        readings = readings.filter(reading_at__gte=cutoff)
+    readings = list(readings.order_by("reading_at", "created_at"))
+
+    points = [
+        {"date": r.reading_at.isoformat(), "quantity": float(r.quantity), "kind": r.kind}
+        for r in readings
+    ]
+    last_level = float(item.quantity)
+
+    rate_per_day: float | None = None
+    projected_depletion_date: str | None = None
+
+    if len(readings) >= 2:
+        total_consumed = Decimal("0")
+        for previous, current in zip(readings, readings[1:]):
+            if current.quantity < previous.quantity:
+                total_consumed += previous.quantity - current.quantity
+
+        span_seconds = (readings[-1].reading_at - readings[0].reading_at).total_seconds()
+        span_days = span_seconds / 86400 if span_seconds > 0 else 0
+
+        if total_consumed > 0 and span_days > 0:
+            rate = float(total_consumed) / span_days
+            rate_per_day = round(rate, 3)
+            if last_level > 0:
+                days_left = last_level / rate
+                projected_depletion_date = (
+                    timezone.now() + timedelta(days=days_left)
+                ).date().isoformat()
+
+    return {
+        "period": period,
+        "points": points,
+        "last_level": last_level,
+        "points_count": len(readings),
+        "rate_per_day": rate_per_day,
+        "projected_depletion_date": projected_depletion_date,
+    }

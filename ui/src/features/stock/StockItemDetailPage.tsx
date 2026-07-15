@@ -20,6 +20,7 @@ import { formatQty, formatDate, formatDateTime } from './format';
 import StockItemDialog from './StockItemDialog';
 import StockPurchaseDialog from './StockPurchaseDialog';
 import StockInventoryDialog from './StockInventoryDialog';
+import StockConsumptionTab from './StockConsumptionTab';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
@@ -53,8 +54,8 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-type Tab = 'info' | 'history' | 'assistant';
-const TABS: Tab[] = ['info', 'history', 'assistant'];
+type Tab = 'info' | 'consumption' | 'history' | 'assistant';
+const TABS: Tab[] = ['info', 'consumption', 'history', 'assistant'];
 
 export default function StockItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -270,6 +271,10 @@ export default function StockItemDetailPage() {
                     </p>
                   ) : null}
                 </section>
+              ) : null}
+
+              {tab === 'consumption' ? (
+                <StockConsumptionTab itemId={item.id} unit={item.unit} />
               ) : null}
 
               {tab === 'history' ? (

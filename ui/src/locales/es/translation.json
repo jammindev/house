@@ -1913,6 +1913,7 @@
       "confirm_delete": "¿Eliminar el artículo \"{{name}}\"?",
       "tabs": {
         "info": "Info",
+        "consumption": "Consumo",
         "history": "Historial",
         "assistant": "Asistente"
       }
@@ -1931,6 +1932,19 @@
       "actions": {
         "record": "Inventario"
       }
+    },
+    "consumption": {
+      "periods": {
+        "30d": "30 días",
+        "90d": "90 días",
+        "1y": "1 año",
+        "all": "Todo"
+      },
+      "rate": "Ritmo de consumo",
+      "rate_value": "{{rate}} {{unit}}/día",
+      "depletion": "Agotamiento previsto",
+      "last_level": "Último nivel conocido",
+      "not_enough_data": "Aún no hay suficiente historial para trazar una curva. Registra una compra o un inventario."
     }
   },
   "purchase": {

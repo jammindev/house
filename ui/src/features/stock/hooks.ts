@@ -13,10 +13,12 @@ import {
   deleteStockCategory,
   purchaseStockItem,
   recordStockInventory,
+  fetchStockConsumption,
   type StockItem,
   type StockCategory,
   type StockPurchasePayload,
   type StockInventoryPayload,
+  type ConsumptionPeriod,
 } from '@/lib/api/stock';
 import { fetchZones } from '@/lib/api/zones';
 import { toast } from '@/lib/toast';
@@ -54,6 +56,14 @@ export function useStockItemHistory(id: string) {
   return useQuery({
     queryKey: [...stockKeys.detail(id), 'interactions'],
     queryFn: () => fetchStockItemInteractions(id),
+    enabled: !!id,
+  });
+}
+
+export function useStockConsumption(id: string, period: ConsumptionPeriod) {
+  return useQuery({
+    queryKey: [...stockKeys.detail(id), 'consumption', period],
+    queryFn: () => fetchStockConsumption(id, period),
     enabled: !!id,
   });
 }

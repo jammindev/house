@@ -243,6 +243,31 @@ export async function fetchStockItemInteractions(itemId: string): Promise<StockI
   return normalizeList<StockItemInteractionItem>(data);
 }
 
+export type ConsumptionPeriod = '30d' | '90d' | '1y' | 'all';
+
+export interface StockConsumptionPoint {
+  date: string;
+  quantity: number;
+  kind: 'inventory' | 'purchase';
+}
+
+export interface StockConsumption {
+  period: string;
+  points: StockConsumptionPoint[];
+  last_level: number;
+  points_count: number;
+  rate_per_day: number | null;
+  projected_depletion_date: string | null;
+}
+
+export async function fetchStockConsumption(
+  itemId: string,
+  period: ConsumptionPeriod,
+): Promise<StockConsumption> {
+  const { data } = await api.get(`/stock/${itemId}/consumption/`, { params: { period } });
+  return data as StockConsumption;
+}
+
 export async function fetchStockCategories(): Promise<StockCategory[]> {
   const { data } = await api.get('/stock/categories/', {
     params: { ordering: 'sort_order,name' },
