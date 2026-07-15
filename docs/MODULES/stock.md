@@ -12,10 +12,11 @@
 
 ## Modèles & API
 
-- Modèles principaux : `StockCategory` (nom, color, emoji, sort_order) ; `StockItem` (quantity, min/max, expiration, status, supplier)
-- Endpoints exposés : `/api/stock/` (`StockItemViewSet` + actions `adjust-quantity/` et `purchase/`), `/api/stock/categories/` (`StockCategoryViewSet` + action `summary/`)
+- Modèles principaux : `StockCategory` (nom, color, emoji, sort_order) ; `StockItem` (quantity, min/max, expiration, status, supplier) ; `StockLevelReading` (niveau daté absolu — socle de la courbe de conso, parcours 18)
+- Endpoints exposés : `/api/stock/` (`StockItemViewSet` + actions `adjust-quantity/`, `purchase/`, `inventory/`), `/api/stock/categories/` (`StockCategoryViewSet` + action `summary/`)
 - Permissions : `IsAuthenticated, IsHouseholdMember` (pas de custom)
-- L'action `purchase/` compose ajustement de quantité + `Interaction` expense liée via la FK polymorphe (`create_expense_interaction`, `kind=stock_purchase`)
+- **Écritures via `apps/stock/services.py`** (parcours 18, lot 18.1) — source de vérité partagée view + agent : `purchase_stock_item` (recalage quantité, snapshots, relevés, interaction dépense, statut+notif), `record_inventory` (quantité absolue + relevé), `recompute_status` (transitions in/low/out/expired). L'action `purchase/` compose l'`Interaction` expense liée via la FK polymorphe (`create_expense_interaction`, `kind=stock_purchase`, avec `brand` en metadata).
+- **`StockLevelReading`** : chaque achat/inventaire persiste un point `(reading_at, quantity, kind)`. Un achat avec `remaining_before` recale la quantité (`remaining_before + delta`) et écrit deux relevés (`inventory` du restant + `purchase` du nouveau total). Invariant : le dernier relevé coïncide avec `StockItem.quantity`. Modèle dédié (pas `metadata`) car les niveaux sont *requêtés/tracés* — même logique que `MeterReading`/`EggLog`.
 
 ## Notes / décisions produit
 
