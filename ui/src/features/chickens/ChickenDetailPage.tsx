@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
+import { TabShell } from '@/components/TabShell';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
@@ -23,6 +24,9 @@ import ChickenDialog from './ChickenDialog';
 import ChickenEventDialog from './ChickenEventDialog';
 import ChickenPurchaseDialog from './ChickenPurchaseDialog';
 import EventTimeline from './EventTimeline';
+
+type Tab = 'info' | 'events' | 'assistant';
+const TABS: Tab[] = ['info', 'events', 'assistant'];
 
 export default function ChickenDetailPage() {
   const { id = '' } = useParams();
@@ -113,48 +117,71 @@ export default function ChickenDetailPage() {
         </Button>
       </PageHeader>
 
-      <div className="space-y-4">
-        <Card className="p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <ChickenStatusBadge status={chicken.status} />
-          </div>
-          <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
-            {facts
-              .filter((fact) => fact.value)
-              .map((fact) => (
-                <div key={fact.label} className="flex items-baseline justify-between gap-3 sm:justify-start">
-                  <dt className="text-xs text-muted-foreground">{fact.label}</dt>
-                  <dd className="text-sm text-foreground">{fact.value}</dd>
+      <TabShell<Tab>
+        tabs={TABS.map((tab) => ({ key: tab, label: t(`chickens.tabs.${tab}`) }))}
+        sessionKey={`chicken-detail.${chicken.id}.tab`}
+        defaultTab="info"
+      >
+        {(tab) => (
+          <>
+            {tab === 'info' ? (
+              <Card className="p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <ChickenStatusBadge status={chicken.status} />
                 </div>
-              ))}
-          </dl>
-          {chicken.notes ? (
-            <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">{chicken.notes}</p>
-          ) : null}
-        </Card>
+                <dl className="mt-3 grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                  {facts
+                    .filter((fact) => fact.value)
+                    .map((fact) => (
+                      <div
+                        key={fact.label}
+                        className="flex items-baseline justify-between gap-3 sm:justify-start"
+                      >
+                        <dt className="text-xs text-muted-foreground">{fact.label}</dt>
+                        <dd className="text-sm text-foreground">{fact.value}</dd>
+                      </div>
+                    ))}
+                </dl>
+                {chicken.notes ? (
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
+                    {chicken.notes}
+                  </p>
+                ) : null}
+              </Card>
+            ) : null}
 
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">{t('chickens.events.title')}</h2>
-          <Button variant="outline" size="sm" onClick={() => setEventDialogOpen(true)}>
-            {t('chickens.events.actions.new')}
-          </Button>
-        </div>
+            {tab === 'events' ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    {t('chickens.events.title')}
+                  </h2>
+                  <Button variant="outline" size="sm" onClick={() => setEventDialogOpen(true)}>
+                    {t('chickens.events.actions.new')}
+                  </Button>
+                </div>
 
-        {events.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('chickens.events.empty')}</p>
-        ) : (
-          <EventTimeline
-            events={events}
-            onEdit={(event) => {
-              setEditingEvent(event);
-              setEventDialogOpen(true);
-            }}
-            onDelete={handleDeleteEvent}
-          />
+                {events.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">{t('chickens.events.empty')}</p>
+                ) : (
+                  <EventTimeline
+                    events={events}
+                    onEdit={(event) => {
+                      setEditingEvent(event);
+                      setEventDialogOpen(true);
+                    }}
+                    onDelete={handleDeleteEvent}
+                  />
+                )}
+              </div>
+            ) : null}
+
+            {tab === 'assistant' ? (
+              <EntityAssistant entityType="chicken" objectId={chicken.id} />
+            ) : null}
+          </>
         )}
-
-        <EntityAssistant entityType="chicken" objectId={chicken.id} />
-      </div>
+      </TabShell>
 
       <ChickenDialog open={editOpen} onOpenChange={setEditOpen} existing={chicken} />
       <ChickenEventDialog

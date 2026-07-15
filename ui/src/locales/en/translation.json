@@ -714,6 +714,12 @@
       "suggestionTitle": "Best days",
       "goodDaysIntro": "Dry days coming up:",
       "noDryDays": "No dry day expected in the next 7 days."
+    },
+    "tabs": {
+      "info": "Info",
+      "documents": "Documents",
+      "activity": "Activity",
+      "assistant": "Assistant"
     }
   },
   "trackers": {
@@ -751,6 +757,10 @@
       "all": "All",
       "general": "General",
       "projects": "Projects"
+    },
+    "tabs": {
+      "entries": "Entries",
+      "assistant": "Assistant"
     }
   },
   "settings": {
@@ -1481,7 +1491,12 @@
       "title": "Create an activity from this document",
       "cta": "Create activity"
     },
-    "createTask": "Create task"
+    "createTask": "Create task",
+    "tabs": {
+      "info": "Info",
+      "activity": "Activity",
+      "assistant": "Assistant"
+    }
   },
   "equipment": {
     "app_title": "Equipment mini-app",
@@ -1637,6 +1652,11 @@
       "actions": {
         "add": "Buy"
       }
+    },
+    "tabs": {
+      "info": "Info",
+      "history": "History",
+      "assistant": "Assistant"
     }
   },
   "dashboard": {
@@ -1890,7 +1910,12 @@
       "title": "Item details",
       "history_title": "Purchase history",
       "no_history": "No purchase recorded yet.",
-      "confirm_delete": "Delete item \"{{name}}\"?"
+      "confirm_delete": "Delete item \"{{name}}\"?",
+      "tabs": {
+        "info": "Info",
+        "history": "History",
+        "assistant": "Assistant"
+      }
     }
   },
   "purchase": {
@@ -2275,6 +2300,11 @@
       "title": "Cost",
       "per_egg": "{{amount}} € / egg",
       "totals": "{{total}} € total · {{year}} € this year"
+    },
+    "tabs": {
+      "info": "Info",
+      "events": "Journal",
+      "assistant": "Assistant"
     }
   },
   "alerts": {
