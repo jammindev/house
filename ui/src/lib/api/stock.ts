@@ -173,6 +173,8 @@ export interface StockPurchasePayload {
   delta: number;
   amount?: number | null;
   supplier?: string;
+  brand?: string;
+  remaining_before?: number | null;
   occurred_at?: string | null;
   notes?: string;
 }
@@ -189,10 +191,28 @@ export async function purchaseStockItem(
     delta: payload.delta,
     amount: payload.amount ?? null,
     supplier: payload.supplier ?? '',
+    brand: payload.brand ?? '',
+    remaining_before: payload.remaining_before ?? null,
     occurred_at: payload.occurred_at ?? null,
     notes: payload.notes ?? '',
   });
   return data as StockPurchaseResponse;
+}
+
+export interface StockInventoryPayload {
+  quantity: number;
+  occurred_at?: string | null;
+}
+
+export async function recordStockInventory(
+  itemId: string,
+  payload: StockInventoryPayload,
+): Promise<StockItem> {
+  const { data } = await api.post(`/stock/${itemId}/inventory/`, {
+    quantity: payload.quantity,
+    occurred_at: payload.occurred_at ?? null,
+  });
+  return data as StockItem;
 }
 
 export interface StockItemInteractionItem {
@@ -205,6 +225,7 @@ export interface StockItemInteractionItem {
     amount?: string | number | null;
     unit_price?: string | number | null;
     supplier?: string | null;
+    brand?: string | null;
     delta?: string;
     unit?: string;
   } | null;
@@ -220,6 +241,31 @@ export async function fetchStockItemInteractions(itemId: string): Promise<StockI
     },
   });
   return normalizeList<StockItemInteractionItem>(data);
+}
+
+export type ConsumptionPeriod = '30d' | '90d' | '1y' | 'all';
+
+export interface StockConsumptionPoint {
+  date: string;
+  quantity: number;
+  kind: 'inventory' | 'purchase';
+}
+
+export interface StockConsumption {
+  period: string;
+  points: StockConsumptionPoint[];
+  last_level: number;
+  points_count: number;
+  rate_per_day: number | null;
+  projected_depletion_date: string | null;
+}
+
+export async function fetchStockConsumption(
+  itemId: string,
+  period: ConsumptionPeriod,
+): Promise<StockConsumption> {
+  const { data } = await api.get(`/stock/${itemId}/consumption/`, { params: { period } });
+  return data as StockConsumption;
 }
 
 export async function fetchStockCategories(): Promise<StockCategory[]> {

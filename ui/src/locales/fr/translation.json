@@ -1913,9 +1913,38 @@
       "confirm_delete": "Supprimer l'article \"{{name}}\" ?",
       "tabs": {
         "info": "Infos",
+        "consumption": "Consommation",
         "history": "Historique",
         "assistant": "Assistant"
       }
+    },
+    "inventory": {
+      "title": "Inventaire — {{name}}",
+      "current_quantity": "Quantité actuelle : {{quantity}} {{unit}}",
+      "recorded": "Inventaire mis à jour",
+      "fields": {
+        "quantity": "Quantité restante ({{unit}})",
+        "quantity_hint": "Saisis la quantité réellement restante — pas besoin de calculer un écart."
+      },
+      "errors": {
+        "invalid": "Indique une quantité de 0 ou plus."
+      },
+      "actions": {
+        "record": "Inventaire"
+      }
+    },
+    "consumption": {
+      "periods": {
+        "30d": "30 jours",
+        "90d": "90 jours",
+        "1y": "1 an",
+        "all": "Tout"
+      },
+      "rate": "Rythme de consommation",
+      "rate_value": "{{rate}} {{unit}}/jour",
+      "depletion": "Rupture estimée",
+      "last_level": "Dernier niveau connu",
+      "not_enough_data": "Pas encore assez d'historique pour tracer une courbe. Enregistre un achat ou un inventaire."
     }
   },
   "purchase": {
@@ -1924,6 +1953,10 @@
       "price": "Prix",
       "price_placeholder": "Optionnel",
       "supplier": "Fournisseur",
+      "brand": "Marque",
+      "remaining_before": "Quantité restante avant achat ({{unit}})",
+      "remaining_before_hint": "Optionnel — combien il restait avant de réapprovisionner. Alimente ton historique de consommation.",
+      "remaining_adjusted": "Stock ajusté de {{from}} à {{to}} {{unit}}",
       "occurred_at": "Date d'achat",
       "notes": "Notes"
     },
@@ -1938,7 +1971,8 @@
     "errors": {
       "delta_required": "Indique une quantité achetée supérieure à 0.",
       "price_invalid": "Le prix doit être positif.",
-      "save_failed": "Impossible d'enregistrer l'achat."
+      "save_failed": "Impossible d'enregistrer l'achat.",
+      "remaining_invalid": "La quantité restante doit être positive."
     }
   },
   "admin": {

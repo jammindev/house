@@ -150,8 +150,19 @@ class StockPurchaseSerializer(serializers.Serializer):
         max_digits=12, decimal_places=2, required=False, allow_null=True, min_value=Decimal("0")
     )
     supplier = serializers.CharField(required=False, allow_blank=True, default="")
+    brand = serializers.CharField(required=False, allow_blank=True, default="")
+    remaining_before = serializers.DecimalField(
+        max_digits=12, decimal_places=3, required=False, allow_null=True, min_value=Decimal("0")
+    )
     occurred_at = serializers.DateTimeField(required=False, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+
+
+class StockInventorySerializer(serializers.Serializer):
+    """Input for /stock-items/{id}/inventory: set the measured absolute quantity."""
+
+    quantity = serializers.DecimalField(max_digits=12, decimal_places=3, min_value=Decimal("0"))
+    occurred_at = serializers.DateTimeField(required=False, allow_null=True)
 
 
 class StockCategorySummarySerializer(serializers.Serializer):

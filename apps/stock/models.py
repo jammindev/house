@@ -71,3 +71,49 @@ class StockItem(HouseholdScopedModel):
             models.Index(fields=["expiration_date"], name="idx_stock_item_exp"),
         ]
         ordering = ["name"]
+
+
+class StockLevelReading(HouseholdScopedModel):
+    """A dated absolute snapshot of a stock item's quantity.
+
+    Every quantity-altering action (purchase, inventory count) persists a
+    ``(reading_at, quantity)`` point so the consumption of an item can be plotted
+    and its depletion rate derived. Dedicated model (not ``Interaction.metadata``)
+    because these levels are *queried and aggregated over time* — same rationale
+    as ``MeterReading`` (electricity) and ``EggLog`` (chickens).
+
+    Invariant: the most recent reading of an item coincides with
+    ``StockItem.quantity``. All writes go through ``stock.services`` — never the
+    raw ORM — so this holds.
+    """
+
+    class Kind(models.TextChoices):
+        INVENTORY = "inventory", _("Inventory count")
+        PURCHASE = "purchase", _("Post-purchase level")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    stock_item = models.ForeignKey(StockItem, on_delete=models.CASCADE, related_name="level_readings")
+    reading_at = models.DateTimeField()
+    quantity = models.DecimalField(max_digits=12, decimal_places=3)
+    kind = models.CharField(max_length=16, choices=Kind.choices, default=Kind.INVENTORY)
+    source_interaction = models.ForeignKey(
+        "interactions.Interaction",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="stock_level_readings",
+    )
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "stock_level_readings"
+        verbose_name = _("stock level reading")
+        verbose_name_plural = _("stock level readings")
+        indexes = [
+            models.Index(fields=["stock_item", "reading_at"], name="idx_stock_reading_item_at"),
+        ]
+        ordering = ["reading_at"]
+
+    def __str__(self):
+        return f"{self.stock_item_id} @ {self.reading_at:%Y-%m-%d %H:%M} = {self.quantity}"

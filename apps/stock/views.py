@@ -1,7 +1,5 @@
-from datetime import timedelta
 from decimal import Decimal
 
-from django.db import transaction
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,18 +10,19 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
-from interactions.services import create_expense_interaction
 
 from .models import StockCategory, StockItem
 from .notifications import notify_stock_status_change
 from .serializers import (
     StockCategorySerializer,
     StockCategorySummarySerializer,
+    StockInventorySerializer,
     StockItemSerializer,
     StockPurchaseSerializer,
     StockQuantityAdjustSerializer,
     build_category_summary,
 )
+from .services import compute_consumption, purchase_stock_item, recompute_status, record_inventory
 
 
 class StockCategoryViewSet(viewsets.ModelViewSet):
@@ -103,15 +102,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
         old_status = item.status
         item.quantity = new_quantity
         item.last_restocked_at = timezone.now() if delta > 0 else item.last_restocked_at
-
-        if item.quantity <= 0:
-            item.status = StockItem.Status.OUT_OF_STOCK
-        elif item.min_quantity is not None and item.quantity <= item.min_quantity:
-            item.status = StockItem.Status.LOW_STOCK
-        elif item.expiration_date and item.expiration_date < timezone.now().date():
-            item.status = StockItem.Status.EXPIRED
-        elif item.status in [StockItem.Status.LOW_STOCK, StockItem.Status.OUT_OF_STOCK, StockItem.Status.EXPIRED]:
-            item.status = StockItem.Status.IN_STOCK
+        recompute_status(item)
 
         item.updated_by = request.user
         item.save(update_fields=["quantity", "last_restocked_at", "status", "updated_by", "updated_at"])
@@ -123,63 +114,65 @@ class StockItemViewSet(viewsets.ModelViewSet):
     def purchase(self, request, pk=None):
         """Compose an inbound stock movement with an expense interaction.
 
-        Single-action endpoint: increments item quantity by `delta` and creates an
-        Interaction(type=expense) linked to the item. Side-effects on the item
-        (unit_price, purchase_date, supplier, last_restocked_at) are best-effort
-        snapshots of the most recent purchase.
+        Single-action endpoint delegating to ``services.purchase_stock_item``:
+        increments the item quantity by `delta` (recalibrating from
+        `remaining_before` when provided) and creates an Interaction(type=expense)
+        linked to the item, persisting the dated level readings the consumption
+        curve consumes.
         """
         item = self.get_object()
         serializer = StockPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        delta = Decimal(serializer.validated_data["delta"])
-        amount = serializer.validated_data.get("amount")
-        supplier = serializer.validated_data.get("supplier", "") or ""
-        occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
-        notes = serializer.validated_data.get("notes", "") or ""
-
-        unit_price = (amount / delta).quantize(Decimal("0.01")) if amount is not None and delta > 0 else None
-
-        with transaction.atomic():
-            # Stock-specific side-effects on the item
-            old_status = item.status
-            item.quantity = Decimal(item.quantity) + delta
-            item.last_restocked_at = timezone.now()
-            if unit_price is not None:
-                item.unit_price = unit_price
-            item.purchase_date = occurred_at.date()
-            if supplier:
-                item.supplier = supplier
-            if item.quantity <= 0:
-                item.status = StockItem.Status.OUT_OF_STOCK
-            elif item.min_quantity is not None and item.quantity <= item.min_quantity:
-                item.status = StockItem.Status.LOW_STOCK
-            elif item.status in [
-                StockItem.Status.LOW_STOCK,
-                StockItem.Status.OUT_OF_STOCK,
-                StockItem.Status.ORDERED,
-            ]:
-                item.status = StockItem.Status.IN_STOCK
-            item.updated_by = request.user
-            item.save()
-            notify_stock_status_change(item, old_status, item.status)
-
-            interaction = create_expense_interaction(
-                source=item,
-                user=request.user,
-                amount=amount,
-                unit_price=unit_price,
-                supplier=supplier,
-                occurred_at=occurred_at,
-                notes=notes,
-                kind="stock_purchase",
-                extra_metadata={
-                    "stock_item_name": item.name,
-                    "delta": str(delta),
-                    "unit": item.unit,
-                },
-            )
+        item, interaction = purchase_stock_item(
+            item=item,
+            user=request.user,
+            delta=data["delta"],
+            amount=data.get("amount"),
+            supplier=data.get("supplier", "") or "",
+            brand=data.get("brand", "") or "",
+            remaining_before=data.get("remaining_before"),
+            occurred_at=data.get("occurred_at"),
+            notes=data.get("notes", "") or "",
+        )
 
         payload = StockItemSerializer(item, context={"request": request}).data
         payload["interaction_id"] = str(interaction.id)
         return Response(payload, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="inventory")
+    def inventory(self, request, pk=None):
+        """Set the item quantity to a measured absolute value (an inventory count).
+
+        Delegates to ``services.record_inventory``: unlike ``adjust-quantity``
+        (a signed delta), the payload is the *remaining* amount directly. Persists
+        an ``inventory`` level reading so the consumption curve has a point.
+        """
+        item = self.get_object()
+        serializer = StockInventorySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        item = record_inventory(
+            item=item,
+            user=request.user,
+            quantity=data["quantity"],
+            occurred_at=data.get("occurred_at"),
+        )
+
+        return Response(
+            StockItemSerializer(item, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["get"], url_path="consumption")
+    def consumption(self, request, pk=None):
+        """Return the item's consumption curve (dated levels) + depletion metrics.
+
+        Delegates to ``services.compute_consumption``. Query param ``period`` is
+        one of ``30d``/``90d``/``1y``/``all`` (default ``90d``).
+        """
+        item = self.get_object()
+        period = request.query_params.get("period", "90d")
+        return Response(compute_consumption(item, period=period))

@@ -1913,9 +1913,38 @@
       "confirm_delete": "¿Eliminar el artículo \"{{name}}\"?",
       "tabs": {
         "info": "Info",
+        "consumption": "Consumo",
         "history": "Historial",
         "assistant": "Asistente"
       }
+    },
+    "inventory": {
+      "title": "Inventario — {{name}}",
+      "current_quantity": "Cantidad actual: {{quantity}} {{unit}}",
+      "recorded": "Inventario actualizado",
+      "fields": {
+        "quantity": "Cantidad restante ({{unit}})",
+        "quantity_hint": "Introduce la cantidad real que queda — no hace falta calcular una diferencia."
+      },
+      "errors": {
+        "invalid": "Introduce una cantidad de 0 o más."
+      },
+      "actions": {
+        "record": "Inventario"
+      }
+    },
+    "consumption": {
+      "periods": {
+        "30d": "30 días",
+        "90d": "90 días",
+        "1y": "1 año",
+        "all": "Todo"
+      },
+      "rate": "Ritmo de consumo",
+      "rate_value": "{{rate}} {{unit}}/día",
+      "depletion": "Agotamiento previsto",
+      "last_level": "Último nivel conocido",
+      "not_enough_data": "Aún no hay suficiente historial para trazar una curva. Registra una compra o un inventario."
     }
   },
   "purchase": {
@@ -1924,6 +1953,10 @@
       "price": "Precio",
       "price_placeholder": "Opcional",
       "supplier": "Proveedor",
+      "brand": "Marca",
+      "remaining_before": "Cantidad restante antes de la compra ({{unit}})",
+      "remaining_before_hint": "Opcional — cuánto quedaba antes de reabastecer. Alimenta tu historial de consumo.",
+      "remaining_adjusted": "Existencias ajustadas de {{from}} a {{to}} {{unit}}",
       "occurred_at": "Fecha de compra",
       "notes": "Notas"
     },
@@ -1938,7 +1971,8 @@
     "errors": {
       "delta_required": "Indica una cantidad comprada mayor que 0.",
       "price_invalid": "El precio debe ser positivo.",
-      "save_failed": "No se pudo guardar la compra."
+      "save_failed": "No se pudo guardar la compra.",
+      "remaining_invalid": "La cantidad restante debe ser positiva."
     }
   },
   "admin": {
