@@ -1916,6 +1916,21 @@
         "history": "History",
         "assistant": "Assistant"
       }
+    },
+    "inventory": {
+      "title": "Inventory — {{name}}",
+      "current_quantity": "Current quantity: {{quantity}} {{unit}}",
+      "recorded": "Inventory updated",
+      "fields": {
+        "quantity": "Remaining quantity ({{unit}})",
+        "quantity_hint": "Enter the actual amount left — no need to compute a difference."
+      },
+      "errors": {
+        "invalid": "Enter a quantity of 0 or more."
+      },
+      "actions": {
+        "record": "Inventory"
+      }
     }
   },
   "purchase": {
@@ -1924,6 +1939,10 @@
       "price": "Price",
       "price_placeholder": "Optional",
       "supplier": "Supplier",
+      "brand": "Brand",
+      "remaining_before": "Remaining before purchase ({{unit}})",
+      "remaining_before_hint": "Optional — how much was left before restocking. Feeds your consumption history.",
+      "remaining_adjusted": "Stock adjusted from {{from}} to {{to}} {{unit}}",
       "occurred_at": "Purchase date",
       "notes": "Notes"
     },
@@ -1938,7 +1957,8 @@
     "errors": {
       "delta_required": "Enter a purchased quantity greater than 0.",
       "price_invalid": "Price must be positive.",
-      "save_failed": "Could not save the purchase."
+      "save_failed": "Could not save the purchase.",
+      "remaining_invalid": "Remaining quantity must be positive."
     }
   },
   "admin": {

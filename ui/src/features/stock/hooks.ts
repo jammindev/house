@@ -12,9 +12,11 @@ import {
   updateStockCategory,
   deleteStockCategory,
   purchaseStockItem,
+  recordStockInventory,
   type StockItem,
   type StockCategory,
   type StockPurchasePayload,
+  type StockInventoryPayload,
 } from '@/lib/api/stock';
 import { fetchZones } from '@/lib/api/zones';
 import { toast } from '@/lib/toast';
@@ -105,6 +107,20 @@ export function usePurchaseStockItem() {
       qc.invalidateQueries({ queryKey: stockKeys.all });
       qc.invalidateQueries({ queryKey: ['interactions'] });
       toast({ description: t('stock.purchase.created'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useRecordInventory() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: StockInventoryPayload }) =>
+      recordStockInventory(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: stockKeys.all });
+      toast({ description: t('stock.inventory.recorded'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

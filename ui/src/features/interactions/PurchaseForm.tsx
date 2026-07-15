@@ -9,6 +9,9 @@ export interface PurchaseFormPayload {
   delta?: number;
   amount: number | null;
   supplier: string;
+  brand: string;
+  /** Measured remaining quantity before the purchase (stock only). Null = not provided. */
+  remaining_before: number | null;
   occurred_at: string | null;
   notes: string;
 }
@@ -18,6 +21,8 @@ interface PurchaseFormProps {
   withDelta?: boolean;
   /** Unit label shown next to the delta and as the "per X" toggle option. */
   deltaUnit?: string;
+  /** Current (theoretical) quantity — prefills the "remaining before" field and drives the recalibration hint. Stock only. */
+  currentQuantity?: number;
   /** True while the parent mutation is in flight. */
   isPending: boolean;
   onSubmit: (payload: PurchaseFormPayload) => void | Promise<void>;
@@ -33,6 +38,8 @@ interface FormState {
   priceMode: PriceMode;
   price: string;
   supplier: string;
+  brand: string;
+  remaining: string;
   occurredAt: string;
   notes: string;
 }
@@ -41,12 +48,14 @@ function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function emptyState(): FormState {
+function emptyState(currentQuantity?: number): FormState {
   return {
     delta: '',
     priceMode: 'total',
     price: '',
     supplier: '',
+    brand: '',
+    remaining: currentQuantity != null ? String(currentQuantity) : '',
     occurredAt: todayIsoDate(),
     notes: '',
   };
@@ -62,16 +71,28 @@ function parseDecimal(value: string): number | null {
 export default function PurchaseForm({
   withDelta = false,
   deltaUnit,
+  currentQuantity,
   isPending,
   onSubmit,
   onCancel,
   externalError,
 }: PurchaseFormProps) {
   const { t } = useTranslation();
-  const [form, setForm] = React.useState<FormState>(emptyState);
+  const [form, setForm] = React.useState<FormState>(() => emptyState(currentQuantity));
   const [internalError, setInternalError] = React.useState<string | null>(null);
 
   const error = externalError ?? internalError;
+
+  // A recalibration happens only when the measured remaining differs from the
+  // theoretical current quantity — that's when we send `remaining_before` and
+  // surface the non-blocking "stock adjusted" hint.
+  const parsedRemaining = withDelta ? parseDecimal(form.remaining) : null;
+  const isRecalibrating =
+    withDelta &&
+    currentQuantity != null &&
+    parsedRemaining != null &&
+    parsedRemaining >= 0 &&
+    parsedRemaining !== currentQuantity;
 
   function updateField<Key extends keyof FormState>(key: Key, value: FormState[Key]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -89,6 +110,11 @@ export default function PurchaseForm({
         return;
       }
       delta = parsedDelta;
+    }
+
+    if (withDelta && parsedRemaining !== null && parsedRemaining < 0) {
+      setInternalError(t('purchase.errors.remaining_invalid'));
+      return;
     }
 
     const priceValue = parseDecimal(form.price);
@@ -111,6 +137,8 @@ export default function PurchaseForm({
       delta,
       amount,
       supplier: form.supplier.trim(),
+      brand: form.brand.trim(),
+      remaining_before: isRecalibrating ? parsedRemaining : null,
       occurred_at: occurredAt,
       notes: form.notes.trim(),
     });
@@ -133,6 +161,31 @@ export default function PurchaseForm({
             required
             autoFocus
           />
+        </FormField>
+      ) : null}
+
+      {withDelta ? (
+        <FormField
+          label={t('purchase.fields.remaining_before', { unit: deltaUnit ?? '' })}
+          htmlFor="purchase-remaining"
+        >
+          <Input
+            id="purchase-remaining"
+            type="number"
+            step="0.001"
+            min="0"
+            value={form.remaining}
+            onChange={(e) => updateField('remaining', e.target.value)}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {isRecalibrating
+              ? t('purchase.fields.remaining_adjusted', {
+                  from: currentQuantity,
+                  to: parsedRemaining,
+                  unit: deltaUnit ?? '',
+                })
+              : t('purchase.fields.remaining_before_hint')}
+          </p>
         </FormField>
       ) : null}
 
@@ -181,6 +234,16 @@ export default function PurchaseForm({
             autoComplete="off"
           />
         </FormField>
+        {withDelta ? (
+          <FormField label={t('purchase.fields.brand')} htmlFor="purchase-brand">
+            <Input
+              id="purchase-brand"
+              value={form.brand}
+              onChange={(e) => updateField('brand', e.target.value)}
+              autoComplete="off"
+            />
+          </FormField>
+        ) : null}
         <FormField label={t('purchase.fields.occurred_at')} htmlFor="purchase-date">
           <Input
             id="purchase-date"

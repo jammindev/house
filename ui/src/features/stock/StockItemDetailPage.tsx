@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Package, Plus } from 'lucide-react';
+import { ClipboardCheck, Package, Plus } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -19,6 +19,7 @@ import {
 import { formatQty, formatDate, formatDateTime } from './format';
 import StockItemDialog from './StockItemDialog';
 import StockPurchaseDialog from './StockPurchaseDialog';
+import StockInventoryDialog from './StockInventoryDialog';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
@@ -63,6 +64,7 @@ export default function StockItemDetailPage() {
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [purchaseOpen, setPurchaseOpen] = React.useState(false);
+  const [inventoryOpen, setInventoryOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
 
   const { data: item, isLoading, error } = useStockItem(id ?? '');
@@ -150,6 +152,15 @@ export default function StockItemDetailPage() {
             >
               <Plus className="h-3.5 w-3.5" />
               {t('stock.purchase.actions.add')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 gap-1 px-3 text-sm"
+              onClick={() => setInventoryOpen(true)}
+            >
+              <ClipboardCheck className="h-3.5 w-3.5" />
+              {t('stock.inventory.actions.record')}
             </Button>
             <Button
               type="button"
@@ -306,6 +317,7 @@ export default function StockItemDetailPage() {
                             {entry.metadata?.delta && entry.metadata?.unit
                               ? ` · +${formatQty(entry.metadata.delta, entry.metadata.unit)}`
                               : ''}
+                            {entry.metadata?.brand ? ` · ${entry.metadata.brand}` : ''}
                             {entry.metadata?.supplier ? ` · ${entry.metadata.supplier}` : ''}
                           </p>
                         </li>
@@ -333,6 +345,12 @@ export default function StockItemDetailPage() {
       <StockPurchaseDialog
         open={purchaseOpen}
         onOpenChange={setPurchaseOpen}
+        item={item}
+      />
+
+      <StockInventoryDialog
+        open={inventoryOpen}
+        onOpenChange={setInventoryOpen}
         item={item}
       />
 

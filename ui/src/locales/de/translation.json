@@ -1916,6 +1916,21 @@
         "history": "Verlauf",
         "assistant": "Assistent"
       }
+    },
+    "inventory": {
+      "title": "Inventur — {{name}}",
+      "current_quantity": "Aktuelle Menge: {{quantity}} {{unit}}",
+      "recorded": "Inventur aktualisiert",
+      "fields": {
+        "quantity": "Restmenge ({{unit}})",
+        "quantity_hint": "Gib die tatsächlich verbleibende Menge ein — keine Differenz berechnen."
+      },
+      "errors": {
+        "invalid": "Gib eine Menge von 0 oder mehr an."
+      },
+      "actions": {
+        "record": "Inventur"
+      }
     }
   },
   "purchase": {
@@ -1924,6 +1939,10 @@
       "price": "Preis",
       "price_placeholder": "Optional",
       "supplier": "Lieferant",
+      "brand": "Marke",
+      "remaining_before": "Restmenge vor dem Kauf ({{unit}})",
+      "remaining_before_hint": "Optional — wie viel vor dem Auffüllen übrig war. Fließt in deinen Verbrauchsverlauf ein.",
+      "remaining_adjusted": "Bestand von {{from}} auf {{to}} {{unit}} angepasst",
       "occurred_at": "Kaufdatum",
       "notes": "Notizen"
     },
@@ -1938,7 +1957,8 @@
     "errors": {
       "delta_required": "Gib eine gekaufte Menge größer als 0 an.",
       "price_invalid": "Der Preis muss positiv sein.",
-      "save_failed": "Einkauf konnte nicht gespeichert werden."
+      "save_failed": "Einkauf konnte nicht gespeichert werden.",
+      "remaining_invalid": "Die Restmenge muss positiv sein."
     }
   },
   "admin": {

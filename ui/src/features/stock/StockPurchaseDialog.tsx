@@ -32,6 +32,8 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
           delta: payload.delta,
           amount: payload.amount,
           supplier: payload.supplier,
+          brand: payload.brand,
+          remaining_before: payload.remaining_before,
           occurred_at: payload.occurred_at,
           notes: payload.notes,
         },
@@ -55,6 +57,7 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
         <PurchaseForm
           withDelta
           deltaUnit={item.unit}
+          currentQuantity={Number(item.quantity)}
           isPending={purchaseMutation.isPending}
           onSubmit={handleSubmit}
           onCancel={() => onOpenChange(false)}

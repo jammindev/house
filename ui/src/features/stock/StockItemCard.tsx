@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
@@ -14,6 +14,7 @@ interface StockItemCardProps {
   onEdit: (item: StockItem) => void;
   onDelete: (itemId: string) => void;
   onPurchase: (item: StockItem) => void;
+  onInventory: (item: StockItem) => void;
 }
 
 function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
@@ -23,11 +24,12 @@ function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'dest
   return 'default';
 }
 
-export default function StockItemCard({ item, onEdit, onDelete, onPurchase }: StockItemCardProps) {
+export default function StockItemCard({ item, onEdit, onDelete, onPurchase, onInventory }: StockItemCardProps) {
   const { t } = useTranslation();
   const location = useLocation();
 
   const actions: CardAction[] = [
+    { label: t('stock.inventory.actions.record'), icon: ClipboardCheck, onClick: () => onInventory(item) },
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
     { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(item.id), variant: 'danger' },
   ];
