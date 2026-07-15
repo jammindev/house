@@ -714,6 +714,12 @@
       "suggestionTitle": "Mejores días",
       "goodDaysIntro": "Próximos días secos:",
       "noDryDays": "No se espera ningún día seco en los próximos 7 días."
+    },
+    "tabs": {
+      "info": "Info",
+      "documents": "Documentos",
+      "activity": "Actividad",
+      "assistant": "Asistente"
     }
   },
   "trackers": {
@@ -751,6 +757,10 @@
       "all": "Todos",
       "general": "Generales",
       "projects": "Proyectos"
+    },
+    "tabs": {
+      "entries": "Entradas",
+      "assistant": "Asistente"
     }
   },
   "settings": {
@@ -1481,7 +1491,12 @@
       "title": "Crear una actividad desde este documento",
       "cta": "Crear actividad"
     },
-    "createTask": "Crear tarea"
+    "createTask": "Crear tarea",
+    "tabs": {
+      "info": "Info",
+      "activity": "Actividad",
+      "assistant": "Asistente"
+    }
   },
   "equipment": {
     "app_title": "Mini-app Equipos",
@@ -1637,6 +1652,11 @@
       "actions": {
         "add": "Comprar"
       }
+    },
+    "tabs": {
+      "info": "Info",
+      "history": "Historial",
+      "assistant": "Asistente"
     }
   },
   "dashboard": {
@@ -1890,7 +1910,12 @@
       "title": "Detalles del artículo",
       "history_title": "Historial de compras",
       "no_history": "Aún no hay compras registradas.",
-      "confirm_delete": "¿Eliminar el artículo \"{{name}}\"?"
+      "confirm_delete": "¿Eliminar el artículo \"{{name}}\"?",
+      "tabs": {
+        "info": "Info",
+        "history": "Historial",
+        "assistant": "Asistente"
+      }
     }
   },
   "purchase": {
@@ -2275,6 +2300,11 @@
       "title": "Coste",
       "per_egg": "{{amount}} € / huevo",
       "totals": "{{total}} € en total · {{year}} € este año"
+    },
+    "tabs": {
+      "info": "Info",
+      "events": "Diario",
+      "assistant": "Asistente"
     }
   },
   "alerts": {

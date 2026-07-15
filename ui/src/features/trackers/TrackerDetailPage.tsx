@@ -7,6 +7,7 @@ import BackLink from '@/components/BackLink';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import PageHeader from '@/components/PageHeader';
 import Sparkline from '@/components/Sparkline';
+import { TabShell } from '@/components/TabShell';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import {
@@ -86,6 +87,9 @@ function EntryRow({
     </div>
   );
 }
+
+type Tab = 'entries' | 'assistant';
+const TABS: Tab[] = ['entries', 'assistant'];
 
 export default function TrackerDetailPage() {
   const { id = '' } = useParams();
@@ -187,45 +191,59 @@ export default function TrackerDetailPage() {
         </div>
       ) : null}
 
-      {sparkPoints.length > 1 ? (
-        <Card className="mb-4 p-4">
-          <span className="block text-primary">
-            <Sparkline
-              points={sparkPoints}
-              width={600}
-              height={120}
-              strokeWidth={2}
-              className="h-auto w-full"
-            />
-          </span>
-        </Card>
-      ) : null}
+      <TabShell<Tab>
+        tabs={TABS.map((tab) => ({ key: tab, label: t(`trackers.tabs.${tab}`) }))}
+        sessionKey={`tracker-detail.${tracker.id}.tab`}
+        defaultTab="entries"
+      >
+        {(tab) => (
+          <>
+            {tab === 'entries' ? (
+              <div className="space-y-4">
+                {sparkPoints.length > 1 ? (
+                  <Card className="p-4">
+                    <span className="block text-primary">
+                      <Sparkline
+                        points={sparkPoints}
+                        width={600}
+                        height={120}
+                        strokeWidth={2}
+                        className="h-auto w-full"
+                      />
+                    </span>
+                  </Card>
+                ) : null}
 
-      <Card className="p-4">
-        <h2 className="mb-2 text-sm font-medium text-foreground">
-          {t('trackers.entriesTitle')}
-        </h2>
-        {visibleEntries.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t('trackers.noEntries')}</p>
-        ) : (
-          <div>
-            {visibleEntries.map((entry, index) => (
-              <EntryRow
-                key={entry.id}
-                entry={entry}
-                previous={visibleEntries[index + 1] ?? null}
-                tracker={tracker}
-                onEdit={openEditEntry}
-                onDelete={handleDeleteEntry}
-              />
-            ))}
-          </div>
+                <Card className="p-4">
+                  <h2 className="mb-2 text-sm font-medium text-foreground">
+                    {t('trackers.entriesTitle')}
+                  </h2>
+                  {visibleEntries.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{t('trackers.noEntries')}</p>
+                  ) : (
+                    <div>
+                      {visibleEntries.map((entry, index) => (
+                        <EntryRow
+                          key={entry.id}
+                          entry={entry}
+                          previous={visibleEntries[index + 1] ?? null}
+                          tracker={tracker}
+                          onEdit={openEditEntry}
+                          onDelete={handleDeleteEntry}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              </div>
+            ) : null}
+
+            {tab === 'assistant' ? (
+              <EntityAssistant entityType="tracker" objectId={tracker.id} />
+            ) : null}
+          </>
         )}
-      </Card>
-
-      <div className="mt-4">
-        <EntityAssistant entityType="tracker" objectId={tracker.id} />
-      </div>
+      </TabShell>
 
       <TrackerDialog open={editOpen} onOpenChange={setEditOpen} existing={tracker} />
       <EntryDialog

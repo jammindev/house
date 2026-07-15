@@ -8,6 +8,7 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
 import { formatFileSize } from '@/lib/api/documents';
 import {
@@ -27,6 +28,9 @@ function formatDate(value?: string | null): string {
   if (Number.isNaN(d.getTime())) return value;
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
 }
+
+type Tab = 'info' | 'activity' | 'assistant';
+const TABS: Tab[] = ['info', 'activity', 'assistant'];
 
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -134,137 +138,147 @@ export default function DocumentDetailPage() {
           </div>
         </div>
 
-        {/* File info */}
-        <Card>
-          <CardContent className="pt-4 space-y-2 text-sm">
-            {fileSize && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <span className="font-medium text-foreground">{fileSize}</span>
-              </div>
-            )}
-            {doc.mime_type && (
-              <div className="text-muted-foreground">
-                <span className="font-mono text-xs">{doc.mime_type}</span>
-              </div>
-            )}
-            {doc.notes && (
-              <p className="text-muted-foreground">{doc.notes}</p>
-            )}
-            {doc.file_url ? (
-              <a
-                href={doc.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-              >
-                <Download className="h-3.5 w-3.5" />
-                {t('documents.detail.download')}
-              </a>
-            ) : null}
-          </CardContent>
-        </Card>
+        {/* Tabs */}
+        <TabShell<Tab>
+          tabs={TABS.map((tab) => ({ key: tab, label: t(`documents.tabs.${tab}`) }))}
+          sessionKey={`document-detail.${doc.id}.tab`}
+          defaultTab="info"
+        >
+          {(tab) => (
+            <>
+              {tab === 'info' ? (
+                <div className="space-y-4">
+                  <Card>
+                    <CardContent className="pt-4 space-y-2 text-sm">
+                      {fileSize && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <span className="font-medium text-foreground">{fileSize}</span>
+                        </div>
+                      )}
+                      {doc.mime_type && (
+                        <div className="text-muted-foreground">
+                          <span className="font-mono text-xs">{doc.mime_type}</span>
+                        </div>
+                      )}
+                      {doc.notes && <p className="text-muted-foreground">{doc.notes}</p>}
+                      {doc.file_url ? (
+                        <a
+                          href={doc.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          {t('documents.detail.download')}
+                        </a>
+                      ) : null}
+                    </CardContent>
+                  </Card>
 
-        {/* OCR text */}
-        {showOcrSection && (
-          <Card>
-            <CardContent className="pt-4">
-              <details className="group" {...(ocrText ? { open: true } : {})}>
-                <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-foreground">
-                  <span>{t('documents.ocr.title')}</span>
-                  {ocrMethod && ocrMethod !== 'skipped' && (
-                    <Badge variant="outline" className="h-5 text-[10px]">
-                      {ocrMethod}
-                    </Badge>
+                  {showOcrSection && (
+                    <Card>
+                      <CardContent className="pt-4">
+                        <details className="group" {...(ocrText ? { open: true } : {})}>
+                          <summary className="flex cursor-pointer items-center justify-between gap-2 text-sm font-medium text-foreground">
+                            <span>{t('documents.ocr.title')}</span>
+                            {ocrMethod && ocrMethod !== 'skipped' && (
+                              <Badge variant="outline" className="h-5 text-[10px]">
+                                {ocrMethod}
+                              </Badge>
+                            )}
+                          </summary>
+                          <div className="mt-3 text-sm">
+                            {ocrText ? (
+                              <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-sans text-xs text-foreground">
+                                {ocrText}
+                              </pre>
+                            ) : (
+                              <p className="italic text-muted-foreground">
+                                {t('documents.ocr.empty')}
+                              </p>
+                            )}
+                            <div className="mt-3">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="h-8 px-3 text-xs"
+                                onClick={handleReprocess}
+                                disabled={reprocessMutation.isPending}
+                              >
+                                <RefreshCcw className="mr-1.5 h-3.5 w-3.5" />
+                                {reprocessMutation.isPending
+                                  ? t('documents.ocr.reprocessing')
+                                  : t('documents.ocr.reprocess')}
+                              </Button>
+                            </div>
+                          </div>
+                        </details>
+                      </CardContent>
+                    </Card>
                   )}
-                </summary>
-                <div className="mt-3 text-sm">
-                  {ocrText ? (
-                    <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-sans text-xs text-foreground">
-                      {ocrText}
-                    </pre>
-                  ) : (
-                    <p className="italic text-muted-foreground">{t('documents.ocr.empty')}</p>
-                  )}
-                  <div className="mt-3">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-8 px-3 text-xs"
-                      onClick={handleReprocess}
-                      disabled={reprocessMutation.isPending}
-                    >
-                      <RefreshCcw className="mr-1.5 h-3.5 w-3.5" />
-                      {reprocessMutation.isPending
-                        ? t('documents.ocr.reprocessing')
-                        : t('documents.ocr.reprocess')}
-                    </Button>
-                  </div>
                 </div>
-              </details>
-            </CardContent>
-          </Card>
-        )}
+              ) : null}
 
-        {/* Linked interactions */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">
-              {t('documents.detail.linked_interactions')}
-            </h2>
-            <Link
-              to={`/app/interactions/new?source_document_id=${id}`}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t('documents.detail.add_activity')}
-            </Link>
-          </div>
-
-          {doc.linked_interactions.length === 0 ? (
-            <p className="text-sm italic text-muted-foreground">
-              {t('documents.detail.no_linked_interactions')}
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {doc.linked_interactions.map((item) => (
-                <li key={item.id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium">{item.subject || '—'}</span>
-                      {item.occurred_at && (
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {formatDate(item.occurred_at)}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1">
-                      {item.type && (
-                        <Badge variant="outline" className="h-5 text-[10px]">
-                          {t(`interactions.type.${item.type}`)}
-                        </Badge>
-                      )}
-                      <Link
-                        to={`/app/interactions/${item.id}/edit`}
-                        className="ml-1 inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
-                        aria-label={t('common.edit')}
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Link>
-                    </div>
+              {tab === 'activity' ? (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-semibold text-foreground">
+                      {t('documents.detail.linked_interactions')}
+                    </h2>
+                    <Link
+                      to={`/app/interactions/new?source_document_id=${id}`}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      {t('documents.detail.add_activity')}
+                    </Link>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
 
-        {/* Assistant */}
-        <div className="space-y-2">
-          <h2 className="text-base font-semibold text-foreground">
-            {t('agent.entity.section_title')}
-          </h2>
-          <EntityAssistant entityType="document" objectId={doc.id} />
-        </div>
+                  {doc.linked_interactions.length === 0 ? (
+                    <p className="text-sm italic text-muted-foreground">
+                      {t('documents.detail.no_linked_interactions')}
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {doc.linked_interactions.map((item) => (
+                        <li key={item.id} className="rounded-md border p-3 text-sm">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <span className="font-medium">{item.subject || '—'}</span>
+                              {item.occurred_at && (
+                                <p className="mt-0.5 text-xs text-muted-foreground">
+                                  {formatDate(item.occurred_at)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              {item.type && (
+                                <Badge variant="outline" className="h-5 text-[10px]">
+                                  {t(`interactions.type.${item.type}`)}
+                                </Badge>
+                              )}
+                              <Link
+                                to={`/app/interactions/${item.id}/edit`}
+                                className="ml-1 inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
+                                aria-label={t('common.edit')}
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </Link>
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
+
+              {tab === 'assistant' ? (
+                <EntityAssistant entityType="document" objectId={doc.id} />
+              ) : null}
+            </>
+          )}
+        </TabShell>
       </div>
 
       <DocumentEditDialog
