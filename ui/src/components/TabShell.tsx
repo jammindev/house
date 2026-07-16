@@ -69,7 +69,7 @@ export function TabShell<T extends string>({
           >
             {tab.label}
             {tab.badge !== undefined && tab.badge > 0 ? (
-              <span className="rounded-full bg-current px-1.5 text-[10px] leading-4 opacity-60">
+              <span className="rounded-full bg-current/15 px-1.5 text-[10px] font-semibold leading-4">
                 {tab.badge}
               </span>
             ) : null}
