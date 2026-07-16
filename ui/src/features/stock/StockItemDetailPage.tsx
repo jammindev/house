@@ -26,11 +26,10 @@ import StockItemDialog from './StockItemDialog';
 import StockPurchaseDialog from './StockPurchaseDialog';
 import StockInventoryDialog from './StockInventoryDialog';
 import StockConsumptionTab from './StockConsumptionTab';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
-type Tab = 'info' | 'consumption' | 'history' | 'assistant';
-const TABS: Tab[] = ['info', 'consumption', 'history', 'assistant'];
+type Tab = 'info' | 'consumption' | 'history';
+const TABS: Tab[] = ['info', 'consumption', 'history'];
 
 export default function StockItemDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -279,10 +278,6 @@ export default function StockItemDetailPage() {
                     </ul>
                   )}
                 </section>
-              ) : null}
-
-              {tab === 'assistant' ? (
-                <EntityAssistant entityType="stock_item" objectId={item.id} />
               ) : null}
             </>
           )}

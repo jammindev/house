@@ -29,11 +29,10 @@ import ProjectDialog from './ProjectDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import ProjectDashboard from './ProjectDashboard';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
-type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'assistant';
-const TABS: Tab[] = ['overview', 'tasks', 'trackers', 'notes', 'expenses', 'documents', 'timeline', 'assistant'];
+type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline';
+const TABS: Tab[] = ['overview', 'tasks', 'trackers', 'notes', 'expenses', 'documents', 'timeline'];
 
 // ── Tab: interactions list ─────────────────────────────────
 
@@ -329,10 +328,6 @@ export default function ProjectDetailPage() {
                     addUrl={`/app/interactions/new?project_id=${project.id}`}
                     addLabel={t('projects.add_activity')}
                   />
-                ) : null}
-
-                {tab === 'assistant' ? (
-                  <EntityAssistant entityType="project" objectId={project.id} />
                 ) : null}
               </CardContent>
             </Card>

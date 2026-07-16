@@ -972,7 +972,7 @@
         "steps": {
           "ask": {
             "title": "Hacer una pregunta",
-            "body": "Abre la página del Agente y pregunta, por ejemplo, «¿qué tareas están atrasadas?»."
+            "body": "El asistente está disponible en todas partes con el botón flotante ✨ (abajo a la derecha) o la página del Agente. Pregunta, por ejemplo, «¿qué tareas están atrasadas?»."
           },
           "citations": {
             "title": "Comprobar las fuentes",
@@ -984,7 +984,7 @@
           },
           "context": {
             "title": "Darle contexto",
-            "body": "En una página de detalle, el panel «Lo que sé» muestra lo que el asistente ya conoce — usa «Añadir contexto» para señalarle otro proyecto, nota o equipo."
+            "body": "Abre el asistente desde una página de detalle: se ancla en el elemento actual. Alterna entre «Esta página» y «Todo el hogar», y el panel «Lo que sé» muestra lo que ya conoce — usa «Añadir contexto» para señalarle otro proyecto, nota o equipo."
           },
           "create": {
             "title": "Crear desde el chat",
@@ -2436,6 +2436,12 @@
       "section_title": "Asistente",
       "empty_title": "Pregunta lo que quieras sobre este elemento",
       "empty_hint": "El asistente ya conoce este elemento y todo lo vinculado a él — sus detalles, documentos, gastos y tareas — y cita sus fuentes."
+    },
+    "launcher": {
+      "open": "Abrir el asistente",
+      "title": "Asistente",
+      "scope_page": "Esta página",
+      "scope_household": "Todo el hogar"
     },
     "citations_label": "Fuentes",
     "web_sources_label": "Fuentes web",

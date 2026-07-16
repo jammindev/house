@@ -972,7 +972,7 @@
         "steps": {
           "ask": {
             "title": "Eine Frage stellen",
-            "body": "Öffnen Sie die Agent-Seite und fragen Sie z. B. „Welche Aufgaben sind überfällig?“."
+            "body": "Der Assistent ist überall über die schwebende ✨-Schaltfläche (unten rechts) oder die Agent-Seite erreichbar. Fragen Sie z. B. „Welche Aufgaben sind überfällig?“."
           },
           "citations": {
             "title": "Die Quellen prüfen",
@@ -984,7 +984,7 @@
           },
           "context": {
             "title": "Kontext geben",
-            "body": "Auf einer Detailseite zeigt das Panel „Was ich weiß“, was der Assistent schon kennt — mit „Kontext hinzufügen“ verweisen Sie ihn auf ein anderes Projekt, eine Notiz oder ein Gerät."
+            "body": "Öffnen Sie den Assistenten von einer Detailseite: Er verankert sich am aktuellen Element. Wechseln Sie zwischen „Diese Seite“ und „Ganzer Haushalt“, und das Panel „Was ich weiß“ zeigt, was er schon kennt — mit „Kontext hinzufügen“ verweisen Sie ihn auf ein anderes Projekt, eine Notiz oder ein Gerät."
           },
           "create": {
             "title": "Aus dem Chat erstellen",
@@ -2436,6 +2436,12 @@
       "section_title": "Assistent",
       "empty_title": "Stell jede Frage zu diesem Element",
       "empty_hint": "Der Assistent kennt dieses Element und alles, was damit verknüpft ist, bereits — seine Details, Dokumente, Ausgaben und Aufgaben — und nennt seine Quellen."
+    },
+    "launcher": {
+      "open": "Assistent öffnen",
+      "title": "Assistent",
+      "scope_page": "Diese Seite",
+      "scope_household": "Ganzer Haushalt"
     },
     "citations_label": "Quellen",
     "web_sources_label": "Web-Quellen",
