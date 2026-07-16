@@ -504,14 +504,14 @@ export default function ZoneDetailPage() {
     <>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span
                 className="h-4 w-4 shrink-0 rounded-full"
                 style={{ backgroundColor: displayColor }}
               />
-              <h1 className="text-xl font-semibold text-foreground">{zone.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{zone.name}</h1>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {parentId && parentName ? (
@@ -526,9 +526,11 @@ export default function ZoneDetailPage() {
               )}
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-            {t('zones.detail.edit')}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+            <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+              {t('zones.detail.edit')}
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}

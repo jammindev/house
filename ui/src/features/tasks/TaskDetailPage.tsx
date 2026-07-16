@@ -152,7 +152,7 @@ export default function TaskDetailPage() {
         <BackLink fallback="/app/tasks" fallbackLabel={t('tasks.title')} />
 
         {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               {task.priority === 1 && (
@@ -182,7 +182,7 @@ export default function TaskDetailPage() {
           </div>
 
           {isCreator && (
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
               <Button
                 type="button"
                 variant="outline"

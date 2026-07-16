@@ -218,7 +218,7 @@ export default function ProjectDetailPage() {
         <BackLink fallback="/app/projects" fallbackLabel={t('projects.title')} />
 
         {/* Header */}
-        <div className="flex items-start gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">{project.title}</h1>
@@ -239,7 +239,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
             <Button
               type="button"
               variant="outline"
