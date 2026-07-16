@@ -116,6 +116,21 @@ class TestEquipmentRelated:
         assert f"id=interaction:{interaction.pk}" in result.rendered
         assert "id=zone:" not in result.rendered
 
+    def test_returns_linked_documents(self, household, owner):
+        from equipment.models import EquipmentDocument
+
+        equipment = Equipment.objects.create(
+            household=household, name="Chaudière", created_by=owner
+        )
+        document = Document.objects.create(
+            household=household, created_by=owner, file_path="documents/facture.pdf",
+            name="Facture chaudière", mime_type="application/pdf", type="invoice",
+        )
+        EquipmentDocument.objects.create(equipment=equipment, document=document, created_by=owner)
+
+        result = _related(household, "equipment", equipment)
+        assert f"id=document:{document.pk}" in result.rendered
+
     def test_equipment_without_neighbours_says_so(self, household, owner):
         equipment = Equipment.objects.create(
             household=household, name="Grille-pain", created_by=owner
