@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, ExternalLink, Plus, RefreshCcw } from 'lucide-react';
@@ -12,7 +12,7 @@ import PageHeader from '@/components/PageHeader';
 import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
-import { useNavigateBack } from '@/lib/backNavigation';
+import { useNavigateBack, pushBack } from '@/lib/backNavigation';
 import { formatFileSize } from '@/lib/api/documents';
 import { formatDate } from '@/lib/format';
 import {
@@ -34,6 +34,7 @@ export default function DocumentDetailPage() {
   const { t } = useTranslation();
   const navigateBack = useNavigateBack('/app/documents');
   const qc = useQueryClient();
+  const location = useLocation();
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
@@ -200,7 +201,37 @@ export default function DocumentDetailPage() {
               ) : null}
 
               {tab === 'activity' ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
+                  {(() => {
+                    const backlinks = doc.entity_links.filter((l) => l.entity_type !== 'interaction');
+                    if (backlinks.length === 0) return null;
+                    return (
+                      <div className="space-y-2">
+                        <h2 className="text-base font-semibold text-foreground">
+                          {t('documents.linked_to.title')}
+                        </h2>
+                        <ul className="space-y-2">
+                          {backlinks.map((link) => (
+                            <li key={`${link.entity_type}:${link.id}`}>
+                              <Link
+                                to={link.url_path}
+                                state={pushBack(location)}
+                                className="flex items-center justify-between gap-2 rounded-md border p-3 text-sm hover:bg-muted/40"
+                              >
+                                <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                                  {link.label}
+                                </span>
+                                <Badge variant="outline" className="h-5 shrink-0 text-[10px]">
+                                  {t(`documents.linked_to.types.${link.entity_type}`)}
+                                </Badge>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    );
+                  })()}
+
                   <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold text-foreground">
                       {t('documents.detail.linked_interactions')}

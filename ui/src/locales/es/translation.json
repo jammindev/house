@@ -1496,6 +1496,26 @@
       "info": "Info",
       "activity": "Actividad",
       "assistant": "Asistente"
+    },
+    "link": {
+      "attach_existing": "Elegir existente",
+      "upload": "Subir",
+      "search_placeholder": "Buscar documentos…",
+      "empty_candidates": "No hay documentos disponibles.",
+      "empty": "Aún no hay documentos.",
+      "attach": "Adjuntar ({{count}})",
+      "detach": "Quitar",
+      "detached": "Documento quitado"
+    },
+    "linked_to": {
+      "title": "Vinculado a",
+      "types": {
+        "zone": "Zona",
+        "project": "Proyecto",
+        "equipment": "Equipo",
+        "task": "Tarea",
+        "interaction": "Actividad"
+      }
     }
   },
   "equipment": {
@@ -1658,16 +1678,6 @@
       "history": "Historial",
       "assistant": "Asistente",
       "documents": "Documentos"
-    },
-    "documents": {
-      "attach_existing": "Elegir existente",
-      "upload": "Subir",
-      "search_placeholder": "Buscar documentos…",
-      "empty_candidates": "No hay documentos disponibles.",
-      "empty": "Aún no hay documentos.",
-      "attach": "Adjuntar ({{count}})",
-      "detach": "Quitar",
-      "detached": "Documento quitado"
     }
   },
   "dashboard": {
@@ -2072,15 +2082,6 @@
     "empty_tasks": "Aún no hay tareas.",
     "empty_notes": "Aún no hay notas.",
     "empty_expenses": "Aún no hay gastos.",
-    "empty_documents": "Aún no hay documentos.",
-    "attach_document": {
-      "title": "Adjuntar un documento",
-      "search_placeholder": "Buscar documentos…",
-      "empty": "No hay documentos disponibles.",
-      "attach": "Adjuntar ({{count}})",
-      "detach": "Desvincular",
-      "detached": "Documento desvinculado"
-    },
     "empty_timeline": "Aún no hay actividad.",
     "add_task": "Añadir una tarea",
     "add_note": "Añadir una nota",

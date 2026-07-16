@@ -1496,6 +1496,26 @@
       "info": "Info",
       "activity": "Activity",
       "assistant": "Assistant"
+    },
+    "link": {
+      "attach_existing": "Choose existing",
+      "upload": "Upload",
+      "search_placeholder": "Search documents…",
+      "empty_candidates": "No documents available.",
+      "empty": "No documents yet.",
+      "attach": "Attach ({{count}})",
+      "detach": "Detach",
+      "detached": "Document detached"
+    },
+    "linked_to": {
+      "title": "Attached to",
+      "types": {
+        "zone": "Zone",
+        "project": "Project",
+        "equipment": "Equipment",
+        "task": "Task",
+        "interaction": "Activity"
+      }
     }
   },
   "equipment": {
@@ -1658,16 +1678,6 @@
       "history": "History",
       "assistant": "Assistant",
       "documents": "Documents"
-    },
-    "documents": {
-      "attach_existing": "Choose existing",
-      "upload": "Upload",
-      "search_placeholder": "Search documents…",
-      "empty_candidates": "No documents available.",
-      "empty": "No documents yet.",
-      "attach": "Attach ({{count}})",
-      "detach": "Detach",
-      "detached": "Document detached"
     }
   },
   "dashboard": {
@@ -2072,15 +2082,6 @@
     "empty_tasks": "No tasks yet.",
     "empty_notes": "No notes yet.",
     "empty_expenses": "No expenses yet.",
-    "empty_documents": "No documents yet.",
-    "attach_document": {
-      "title": "Attach a document",
-      "search_placeholder": "Search documents…",
-      "empty": "No documents available.",
-      "attach": "Attach ({{count}})",
-      "detach": "Detach",
-      "detached": "Document detached"
-    },
     "empty_timeline": "No activity yet.",
     "add_task": "Add a task",
     "add_note": "Add a note",

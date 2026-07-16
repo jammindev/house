@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 
 from core.models import HouseholdScopedModel
@@ -50,6 +51,7 @@ class Project(HouseholdScopedModel):
     cover_interaction = models.ForeignKey("interactions.Interaction", on_delete=models.SET_NULL, null=True, blank=True, related_name="cover_for_projects")
     project_group = models.ForeignKey(ProjectGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects")
     type = models.CharField(max_length=32, choices=Type.choices, default=Type.OTHER)
+    document_links = GenericRelation("documents.DocumentLink")
 
     objects = HouseholdScopedManager()
 

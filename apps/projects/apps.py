@@ -4,8 +4,9 @@ from django.apps import AppConfig
 def _project_related(project):
     """Every household item linked to a project, for the `get_related` agent tool.
 
-    Walks the reverse relations to gather the project's documents, expenses /
-    interactions, tasks and zones. Each returned instance is turned into a
+    Walks the reverse relations to gather the project's expenses / interactions,
+    tasks and zones. Linked documents are added centrally by
+    ``agent.related.gather_related``. Each returned instance is turned into a
     citable Hit through its own registered spec (unregistered types are skipped).
     Interactions are linked via the polymorphic source FK, not a reverse relation.
     """
@@ -13,9 +14,6 @@ def _project_related(project):
     from interactions.models import Interaction
 
     items = []
-    items.extend(
-        pd.document for pd in project.project_documents.select_related("document")
-    )
     items.extend(
         Interaction.objects.filter(
             source_content_type=ContentType.objects.get_for_model(type(project)),

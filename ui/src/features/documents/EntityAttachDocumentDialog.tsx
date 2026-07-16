@@ -4,21 +4,22 @@ import { useQueryClient } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
-import { useDocuments, documentKeys } from '@/features/documents/hooks';
-import { useAttachEquipmentDocument } from './hooks';
+import { useDocuments, documentKeys, useAttachEntityDocument } from './hooks';
 import type { DocumentItem } from '@/lib/api/documents';
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  equipmentId: string;
+  entityType: string;
+  objectId: string;
   attachedIds: Set<string>;
 }
 
-export default function EquipmentAttachDocumentDialog({
+export default function EntityAttachDocumentDialog({
   open,
   onOpenChange,
-  equipmentId,
+  entityType,
+  objectId,
   attachedIds,
 }: Props) {
   const { t } = useTranslation();
@@ -29,7 +30,7 @@ export default function EquipmentAttachDocumentDialog({
 
   const filters = React.useMemo(() => (search ? { search } : {}), [search]);
   const { data: documents = [], isLoading } = useDocuments(filters);
-  const attachMutation = useAttachEquipmentDocument(equipmentId);
+  const attachMutation = useAttachEntityDocument(entityType, objectId);
 
   React.useEffect(() => {
     if (!open) {
@@ -71,7 +72,7 @@ export default function EquipmentAttachDocumentDialog({
     <SheetDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('equipment.documents.attach_existing')}
+      title={t('documents.link.attach_existing')}
     >
       <div className="space-y-3">
         {error ? (
@@ -81,7 +82,7 @@ export default function EquipmentAttachDocumentDialog({
         ) : null}
 
         <Input
-          placeholder={t('equipment.documents.search_placeholder')}
+          placeholder={t('documents.link.search_placeholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -91,7 +92,7 @@ export default function EquipmentAttachDocumentDialog({
             <p className="p-3 text-sm text-muted-foreground">{t('common.search')}…</p>
           ) : candidates.length === 0 ? (
             <p className="p-3 text-sm italic text-muted-foreground">
-              {t('equipment.documents.empty_candidates')}
+              {t('documents.link.empty_candidates')}
             </p>
           ) : (
             <ul className="divide-y divide-border">
@@ -133,7 +134,7 @@ export default function EquipmentAttachDocumentDialog({
           >
             {attachMutation.isPending
               ? t('common.saving')
-              : t('equipment.documents.attach', { count: selected.size })}
+              : t('documents.link.attach', { count: selected.size })}
           </Button>
         </div>
       </div>

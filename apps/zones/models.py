@@ -3,6 +3,7 @@ Zones models - hierarchical spatial organization.
 """
 import uuid
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from core.models import TimestampedModel, HouseholdScopedModel
@@ -44,6 +45,7 @@ class Zone(HouseholdScopedModel):
         ],
         help_text="Hex color code for zone display"
     )
+    document_links = GenericRelation("documents.DocumentLink")
 
     objects = HouseholdScopedManager()
 

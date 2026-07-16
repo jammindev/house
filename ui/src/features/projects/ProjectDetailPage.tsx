@@ -26,7 +26,7 @@ import {
   projectKeys,
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
-import ProjectDocumentsTab from './ProjectDocumentsTab';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import ProjectDashboard from './ProjectDashboard';
 import EntityAssistant from '@/features/agent/EntityAssistant';
@@ -319,7 +319,7 @@ export default function ProjectDetailPage() {
                 ) : null}
 
                 {tab === 'documents' ? (
-                  <ProjectDocumentsTab projectId={project.id} />
+                  <EntityDocumentsTab entityType="project" objectId={project.id} />
                 ) : null}
 
                 {tab === 'timeline' ? (

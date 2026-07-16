@@ -4,17 +4,13 @@ from django.apps import AppConfig
 def _equipment_related(equipment):
     """Every household item linked to an equipment, for the `get_related` agent tool.
 
-    Gathers the equipment's zone, its linked documents (invoices, manuals,
-    warranties…) and its interaction history (purchases, maintenances, repairs…).
-    Each instance is turned into a citable Hit through its own registered spec.
+    Gathers the equipment's zone and its interaction history (purchases,
+    maintenances, repairs…). Linked documents are added centrally by
+    ``agent.related.gather_related`` — no need to gather them here.
     """
     items = []
     if equipment.zone_id:
         items.append(equipment.zone)
-    items.extend(
-        ed.document
-        for ed in equipment.equipment_documents.select_related('document')
-    )
     items.extend(
         ei.interaction
         for ei in equipment.equipment_interactions.select_related('interaction')
