@@ -207,6 +207,14 @@ export async function registerEquipmentPurchase(
   return data as EquipmentPurchaseResponse;
 }
 
+export async function attachEquipmentDocument(equipmentId: string, documentId: string): Promise<void> {
+  await api.post(`/equipment/${equipmentId}/attach_document/`, { document_id: documentId });
+}
+
+export async function detachEquipmentDocument(equipmentId: string, documentId: string): Promise<void> {
+  await api.post(`/equipment/${equipmentId}/detach_document/`, { document_id: documentId });
+}
+
 export function zoneLabel(zoneId: string | null | undefined, zones: ZoneOption[]): string {
   if (!zoneId) return '—';
   return zones.find((zone) => zone.id === zoneId)?.full_path ?? zones.find((zone) => zone.id === zoneId)?.name ?? '—';

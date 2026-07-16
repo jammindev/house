@@ -8,10 +8,13 @@ import {
   updateEquipment,
   deleteEquipment,
   registerEquipmentPurchase,
+  attachEquipmentDocument,
+  detachEquipmentDocument,
   type EquipmentPayload,
   type EquipmentPurchasePayload,
 } from '@/lib/api/equipment';
 import { fetchZones } from '@/lib/api/zones';
+import { documentKeys } from '@/features/documents/hooks';
 import { toast } from '@/lib/toast';
 
 interface EquipmentFilters {
@@ -78,6 +81,22 @@ export function useDeleteEquipment() {
   return useMutation({
     mutationFn: (id: string) => deleteEquipment(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: equipmentKeys.all }),
+  });
+}
+
+export function useAttachEquipmentDocument(equipmentId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => attachEquipmentDocument(equipmentId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+  });
+}
+
+export function useDetachEquipmentDocument(equipmentId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => detachEquipmentDocument(equipmentId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
   });
 }
 

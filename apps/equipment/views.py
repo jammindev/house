@@ -9,9 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from documents.models import Document
 from interactions.models import Interaction
 from interactions.services import create_expense_interaction
-from .models import Equipment, EquipmentInteraction
+from .models import Equipment, EquipmentDocument, EquipmentInteraction
 from .serializers import (
     EquipmentInteractionSerializer,
     EquipmentPurchaseSerializer,
@@ -87,6 +88,57 @@ class EquipmentViewSet(viewsets.ModelViewSet):
         payload = EquipmentSerializer(equipment, context={"request": request}).data
         payload["interaction_id"] = str(interaction.id)
         return Response(payload, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"], url_path="attach_document")
+    def attach_document(self, request, pk=None):
+        equipment = self.get_object()
+        document_id = request.data.get("document_id")
+        if not document_id:
+            raise ValidationError({"document_id": _("document_id is required.")})
+
+        document = Document.objects.filter(id=document_id, household_id=equipment.household_id).first()
+        if not document:
+            return Response(
+                {"detail": _("Document not found in this household.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        link, created = EquipmentDocument.objects.get_or_create(
+            equipment=equipment,
+            document=document,
+            defaults={
+                "role": request.data.get("role") or "document",
+                "note": request.data.get("note") or "",
+                "created_by": request.user,
+            },
+        )
+        return Response(
+            {
+                "id": link.id,
+                "equipment": str(equipment.id),
+                "document": str(document.id),
+                "role": link.role,
+                "note": link.note,
+            },
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+
+    @action(detail=True, methods=["post"], url_path="detach_document")
+    def detach_document(self, request, pk=None):
+        equipment = self.get_object()
+        document_id = request.data.get("document_id")
+        if not document_id:
+            raise ValidationError({"document_id": _("document_id is required.")})
+
+        deleted, _unused = EquipmentDocument.objects.filter(
+            equipment=equipment, document_id=document_id
+        ).delete()
+        if deleted == 0:
+            return Response(
+                {"detail": _("Document is not linked to this equipment.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=["get"])
     def audit(self, request, pk=None):

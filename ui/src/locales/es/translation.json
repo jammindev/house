@@ -1656,7 +1656,18 @@
     "tabs": {
       "info": "Info",
       "history": "Historial",
-      "assistant": "Asistente"
+      "assistant": "Asistente",
+      "documents": "Documentos"
+    },
+    "documents": {
+      "attach_existing": "Elegir existente",
+      "upload": "Subir",
+      "search_placeholder": "Buscar documentos…",
+      "empty_candidates": "No hay documentos disponibles.",
+      "empty": "Aún no hay documentos.",
+      "attach": "Adjuntar ({{count}})",
+      "detach": "Quitar",
+      "detached": "Documento quitado"
     }
   },
   "dashboard": {

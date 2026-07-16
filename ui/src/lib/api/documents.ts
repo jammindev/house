@@ -70,6 +70,7 @@ export interface DocumentFilters {
   type?: string;
   zone?: string;
   project?: string;
+  equipment?: string;
   [key: string]: string | undefined;
 }
 
@@ -83,6 +84,7 @@ export async function fetchDocuments(filters: DocumentFilters = {}): Promise<Doc
   if (filters.type) params.type = filters.type;
   if (filters.zone) params.zone = filters.zone;
   if (filters.project) params.project = filters.project;
+  if (filters.equipment) params.equipment = filters.equipment;
 
   const { data } = await api.get('/documents/documents/', { params });
   const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)

@@ -9,13 +9,14 @@ import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { Label } from '@/design-system/label';
 import { fetchZones } from '@/lib/api/zones';
-import { DOCUMENT_TYPES, type DocumentType } from '@/lib/api/documents';
+import { DOCUMENT_TYPES, type DocumentType, type DocumentDetail } from '@/lib/api/documents';
 import { useCreateDocument } from './hooks';
 
 interface DocumentUploadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: () => void;
+  /** Called after a successful upload. Receives the newly created document. */
+  onSaved: (created?: DocumentDetail) => void;
   /** When set, hides the type selector and submits with this type. */
   forcedType?: 'photo';
 }
@@ -72,9 +73,9 @@ export default function DocumentUploadDialog({
     createDocument.mutate(
       { file: selectedFile, name: name || undefined, type: type || undefined, notes: notes || undefined, zone: zone || undefined },
       {
-        onSuccess: () => {
+        onSuccess: (response) => {
           onOpenChange(false);
-          onSaved();
+          onSaved(response.document);
         },
         onError: () => {
           setError(t('documents.uploadFailed'));

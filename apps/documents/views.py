@@ -93,6 +93,10 @@ def get_documents_queryset_for_request(request):
     if project_id:
         queryset = queryset.filter(project_documents__project_id=project_id)
 
+    equipment_id = (query_params.get('equipment') or '').strip()
+    if equipment_id:
+        queryset = queryset.filter(equipment_documents__equipment_id=equipment_id)
+
     return queryset.distinct()
 
 
