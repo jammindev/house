@@ -5,6 +5,7 @@ import {
   attachEntityDocument,
   detachEntityDocument,
   setDocumentPhase,
+  entityDetailQueryKey,
   type PhotoPhase,
 } from '@/lib/api/documents';
 
@@ -48,14 +49,15 @@ export function useEntityPhotos(entityType: string, objectId: string) {
   });
 }
 
-/** Invalidate the entity photos list + the project detail (photos tab count). */
+/** Invalidate the entity photos list + the entity detail (its photos tab count). */
 function useEntityPhotoInvalidation(entityType: string, objectId: string) {
   const qc = useQueryClient();
   return () => {
     void qc.invalidateQueries({ queryKey: photoKeys.entity(entityType, objectId) });
     void qc.invalidateQueries({ queryKey: photoKeys.all });
-    // tab_counts.photos lives on the project detail (projectKeys.all === ['projects']).
-    void qc.invalidateQueries({ queryKey: ['projects'] });
+    // tab_counts.photos lives on the linked entity's detail (project, chicken…).
+    const detailKey = entityDetailQueryKey(entityType);
+    if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });
   };
 }
 

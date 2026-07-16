@@ -13,6 +13,10 @@ class ChickenSerializer(serializers.ModelSerializer):
 
     zone_name = serializers.SerializerMethodField()
     zone_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    # Items behind each detail tab (events/documents/photos). Filled ONLY on the
+    # retrieve (detail) — null in list, to avoid paying the counts per hen. The
+    # frontend hides tabs at 0. Mirrors ProjectSerializer.tab_counts.
+    tab_counts = serializers.SerializerMethodField()
 
     class Meta:
         model = Chicken
@@ -21,12 +25,21 @@ class ChickenSerializer(serializers.ModelSerializer):
             'name', 'breed', 'color', 'hatched_on', 'acquired_on',
             'status', 'notes',
             'zone', 'zone_id', 'zone_name',
+            'tab_counts',
             'created_at', 'updated_at', 'created_by',
         ]
         read_only_fields = ['id', 'household', 'zone', 'created_at', 'updated_at', 'created_by']
 
     def get_zone_name(self, obj):
         return obj.zone.name if obj.zone_id and obj.zone else None
+
+    def get_tab_counts(self, obj):
+        view = self.context.get('view')
+        if view is not None and getattr(view, 'action', None) != 'retrieve':
+            return None
+        from .services import chicken_tab_counts
+
+        return chicken_tab_counts(obj)
 
     def validate_name(self, value):
         if not value or not value.strip():

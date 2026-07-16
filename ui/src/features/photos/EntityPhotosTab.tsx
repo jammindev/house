@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Camera, Upload, Trash2, ArrowRightLeft, GitCompareArrows } from 'lucide-react';
+import { Camera, Upload, Trash2, ArrowRightLeft, GitCompareArrows, Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import DocumentUploadDialog from '@/features/documents/DocumentUploadDialog';
+import EntityAttachDocumentDialog from '@/features/documents/EntityAttachDocumentDialog';
 import PhotoDetailPanel from './PhotoDetailPanel';
 import BeforeAfterCompare from './BeforeAfterCompare';
 import {
@@ -49,6 +51,7 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
   const setPhaseMutation = useSetPhotoPhase(entityType, objectId);
 
   const [uploadPhase, setUploadPhase] = React.useState<PhotoPhase | '' | null>(null);
+  const [attachOpen, setAttachOpen] = React.useState(false);
   const [viewing, setViewing] = React.useState<DocumentItem | null>(null);
   const [comparing, setComparing] = React.useState(false);
 
@@ -56,6 +59,13 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
     () => photoKeys.entity(entityType, objectId),
     [entityType, objectId],
   );
+
+  const attachedIds = React.useMemo(() => new Set(photos.map((p) => p.id)), [photos]);
+
+  const invalidatePhotos = React.useCallback(() => {
+    void qc.invalidateQueries({ queryKey });
+    void qc.invalidateQueries({ queryKey: photoKeys.all });
+  }, [qc, queryKey]);
 
   const { deleteWithUndo } = useDeleteWithUndo({
     label: t('photos.entity.removed'),
@@ -136,6 +146,16 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
           <Button
             type="button"
             size="sm"
+            variant="outline"
+            onClick={() => setAttachOpen(true)}
+            className="gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('photos.entity.attach_existing')}
+          </Button>
+          <Button
+            type="button"
+            size="sm"
             onClick={() => setUploadPhase('')}
             className="gap-1.5"
           >
@@ -145,7 +165,12 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
         </div>
 
         {photos.length === 0 ? (
-          <p className="text-sm italic text-muted-foreground">{t('photos.entity.empty')}</p>
+          <EmptyState
+            icon={Camera}
+            title={t('photos.entity.empty')}
+            description={t('photos.entity.empty_hint')}
+            action={{ label: t('photos.entity.upload'), onClick: () => setUploadPhase('') }}
+          />
         ) : (
           PHASE_ORDER.map((phase) => {
             const items = grouped[phase];
@@ -196,6 +221,18 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
         }}
         onSaved={handleUploaded}
         forcedType="photo"
+      />
+
+      <EntityAttachDocumentDialog
+        open={attachOpen}
+        onOpenChange={setAttachOpen}
+        entityType={entityType}
+        objectId={objectId}
+        attachedIds={attachedIds}
+        documentType="photo"
+        phase=""
+        onAttached={invalidatePhotos}
+        title={t('photos.entity.attach_existing')}
       />
 
       <PhotoDetailPanel

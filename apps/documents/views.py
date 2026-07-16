@@ -84,7 +84,7 @@ def get_documents_queryset_for_request(request):
     from agent import searchables
 
     entity_filters = []
-    for param in ('zone', 'project', 'equipment'):
+    for param in ('zone', 'project', 'equipment', 'task', 'chicken'):
         value = (query_params.get(param) or '').strip()
         if value:
             entity_filters.append((param, value))

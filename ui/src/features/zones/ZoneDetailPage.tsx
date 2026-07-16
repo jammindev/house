@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Layers, NotebookText, FileText, ImageIcon } from 'lucide-react';
+import { Layers, NotebookText } from 'lucide-react';
 import { pushBack } from '@/lib/backNavigation';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
@@ -19,13 +19,13 @@ import {
   useZoneTasks,
   useZoneActivity,
   useZoneProjects,
-  useZoneDocuments,
-  useZonePhotos,
   zoneInteractionKeys,
 } from './hooks';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import ZoneDialog from './ZoneDialog';
 import RenovationTab from '@/features/renovation/RenovationTab';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Tab types ──────────────────────────────────────────────
@@ -342,110 +342,6 @@ function TabProjects({ zoneId }: { zoneId: string }) {
   );
 }
 
-// ── Tab: Photos ────────────────────────────────────────────
-
-function TabPhotos({ zoneId }: { zoneId: string }) {
-  const { t } = useTranslation();
-  const location = useLocation();
-  const { data: photos = [], isLoading } = useZonePhotos(zoneId);
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="aspect-square animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
-  }
-
-  if (photos.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-8 text-center">
-        <ImageIcon className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">{t('zones.photos.empty')}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      {photos.map((photo) => (
-        <Link
-          key={photo.id}
-          to={`/app/documents/${photo.id}`}
-          state={pushBack(location)}
-          className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-muted"
-        >
-          {photo.file_url ? (
-            <img
-              src={photo.file_url}
-              alt={photo.name}
-              className="h-full w-full object-cover transition-transform group-hover:scale-105"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
-            </div>
-          )}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <p className="truncate text-xs text-white">{photo.name}</p>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-}
-
-// ── Tab: Documents ─────────────────────────────────────────
-
-function TabDocuments({ zoneId }: { zoneId: string }) {
-  const { t } = useTranslation();
-  const location = useLocation();
-  const { data: documents = [], isLoading } = useZoneDocuments(zoneId);
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />)}
-      </div>
-    );
-  }
-
-  if (documents.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-3 py-8 text-center">
-        <FileText className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">{t('zones.detail.documents_empty')}</p>
-      </div>
-    );
-  }
-
-  return (
-    <ul className="space-y-1">
-      {documents.map((doc) => (
-        <li key={doc.id}>
-          <Link
-            to={`/app/documents/${doc.id}`}
-            state={pushBack(location)}
-            className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-          >
-            <div className="flex min-w-0 items-center gap-2">
-              <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{doc.name || doc.file_path.split('/').pop()}</span>
-            </div>
-            {doc.type ? (
-              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                {doc.type}
-              </span>
-            ) : null}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
 // ── Main page ──────────────────────────────────────────────
 
 export default function ZoneDetailPage() {
@@ -556,9 +452,11 @@ export default function ZoneDetailPage() {
 
                 {tab === 'projects' ? <TabProjects zoneId={id} /> : null}
 
-                {tab === 'photos' ? <TabPhotos zoneId={id} /> : null}
+                {tab === 'photos' ? <EntityPhotosTab entityType="zone" objectId={id} /> : null}
 
-                {tab === 'documents' ? <TabDocuments zoneId={id} /> : null}
+                {tab === 'documents' ? (
+                  <EntityDocumentsTab entityType="zone" objectId={id} />
+                ) : null}
               </CardContent>
             </Card>
           )}

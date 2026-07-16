@@ -1125,6 +1125,10 @@
           "stats": {
             "title": "Track laying and cost",
             "body": "Pick a period for the laying curve: un-logged days never show as 0, and the coverage rate stays visible. Cost per egg (feed + care) and an abnormal-drop alert (molt, weather) round it out."
+          },
+          "media": {
+            "title": "Photos & documents",
+            "body": "Open the Photos or Documents tab on a hen to attach before/after photos or papers (vet, invoice). Upload a new file or connect an existing one — the tab appears via the « + » menu until it holds something."
           }
         }
       },
@@ -1374,7 +1378,9 @@
       "addToPhase": "Add here",
       "moveTo": "Move to {{phase}}",
       "remove": "Remove",
-      "empty": "No photos yet. Upload one to document the project before and after."
+      "empty": "No photos yet. Upload one to document the project before and after.",
+      "attach_existing": "Choose existing",
+      "empty_hint": "Upload a new one or connect an existing photo."
     }
   },
   "directory": {
@@ -1558,7 +1564,8 @@
       "empty": "No documents yet.",
       "attach": "Attach ({{count}})",
       "detach": "Detach",
-      "detached": "Document detached"
+      "detached": "Document detached",
+      "empty_hint": "Upload a new document or connect an existing one."
     },
     "linked_to": {
       "title": "Attached to",
@@ -1730,7 +1737,8 @@
       "info": "Info",
       "history": "History",
       "assistant": "Assistant",
-      "documents": "Documents"
+      "documents": "Documents",
+      "photos": "Photos"
     }
   },
   "dashboard": {
@@ -2417,7 +2425,9 @@
     "tabs": {
       "info": "Info",
       "events": "Journal",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "documents": "Documents",
+      "photos": "Photos"
     }
   },
   "alerts": {

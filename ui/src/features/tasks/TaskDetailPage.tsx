@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Download, ExternalLink, FileText, Lock, Paperclip, Pencil, Trash2 } from 'lucide-react';
+import { ExternalLink, FileText, Lock, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
@@ -28,8 +28,8 @@ import {
 import TaskStatusBadge from './TaskStatusBadge';
 import TaskAssigneeBadge from './TaskAssigneeBadge';
 import NewTaskDialog from './NewTaskDialog';
-import TaskAttachmentsDialog from './TaskAttachmentsDialog';
 import TaskWeatherHint from './TaskWeatherHint';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 
 function priorityLabelKey(priority: Task['priority']): string {
   if (priority === 1) return 'tasks.priorityHigh_label';
@@ -54,7 +54,6 @@ export default function TaskDetailPage() {
 
   const [editOpen, setEditOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [attachmentsOpen, setAttachmentsOpen] = React.useState(false);
 
   const { data: task, isLoading, error } = useTask(id ?? '');
   const { data: householdMembers = [] } = useHouseholdMembersWithMe();
@@ -118,8 +117,6 @@ export default function TaskDetailPage() {
   const overdue = isTaskOverdue(task);
   const relativeDate = formatRelativeDate(task.due_date);
   const zoneName = task.zone_names?.[0];
-  const totalAttachments =
-    (task.linked_document_count ?? 0) + (task.linked_interaction_count ?? 0);
 
   return (
     <>
@@ -261,54 +258,7 @@ export default function TaskDetailPage() {
               ) : null}
 
               {tab === 'documents' ? (
-                <div className="space-y-2">
-                  {isCreator && (
-                    <div className="flex justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="h-8 px-3 text-sm"
-                        onClick={() => setAttachmentsOpen(true)}
-                      >
-                        <Paperclip className="mr-1.5 h-3.5 w-3.5" />
-                        {t('tasks.manageAttachments')}
-                        {totalAttachments > 0 ? ` (${totalAttachments})` : ''}
-                      </Button>
-                    </div>
-                  )}
-                  {task.linked_documents.length === 0 ? (
-                    <p className="text-sm italic text-muted-foreground">
-                      {t('tasks.noLinkedDocuments')}
-                    </p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {task.linked_documents.map((doc) => (
-                        <li key={doc.id} className="rounded-md border border-border p-3 text-sm">
-                          <div className="flex items-start justify-between gap-2">
-                            <Link
-                              to={`/app/documents/${doc.document_id}`}
-                              state={pushBack(location)}
-                              className="min-w-0 flex-1 truncate font-medium text-foreground hover:text-primary hover:underline"
-                            >
-                              {doc.name || '—'}
-                            </Link>
-                            {doc.file_url && (
-                              <a
-                                href={doc.file_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex shrink-0 items-center text-muted-foreground hover:text-foreground"
-                                aria-label={t('documents.detail.download')}
-                              >
-                                <Download className="h-3.5 w-3.5" />
-                              </a>
-                            )}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                <EntityDocumentsTab entityType="task" objectId={task.id} />
               ) : null}
 
               {tab === 'activity' ? (
@@ -359,12 +309,6 @@ export default function TaskDetailPage() {
         existingTask={task}
         onUpdated={handleEdited}
         householdMembers={householdMembers}
-      />
-
-      <TaskAttachmentsDialog
-        task={attachmentsOpen ? task : null}
-        open={attachmentsOpen}
-        onOpenChange={setAttachmentsOpen}
       />
 
       <ConfirmDialog

@@ -1,11 +1,18 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
-import { useDocuments, documentKeys, useAttachEntityDocument } from './hooks';
-import type { DocumentItem } from '@/lib/api/documents';
+import { documentKeys } from './hooks';
+import {
+  fetchDocuments,
+  fetchPhotoDocuments,
+  attachEntityDocument,
+  entityDetailQueryKey,
+  type DocumentItem,
+  type PhotoPhase,
+} from '@/lib/api/documents';
 
 interface Props {
   open: boolean;
@@ -13,6 +20,14 @@ interface Props {
   entityType: string;
   objectId: string;
   attachedIds: Set<string>;
+  /** Restrict the candidate pool to a document type (e.g. 'photo'). */
+  documentType?: string;
+  /** Phase to store on the link when attaching (photos only). */
+  phase?: PhotoPhase | '';
+  /** Extra invalidation after a successful attach (e.g. the photos entity key). */
+  onAttached?: () => void;
+  /** Dialog title override (defaults to the documents wording). */
+  title?: string;
 }
 
 export default function EntityAttachDocumentDialog({
@@ -21,16 +36,27 @@ export default function EntityAttachDocumentDialog({
   entityType,
   objectId,
   attachedIds,
+  documentType,
+  phase,
+  onAttached,
+  title,
 }: Props) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const [search, setSearch] = React.useState('');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [error, setError] = React.useState<string | null>(null);
+  const [isAttaching, setIsAttaching] = React.useState(false);
 
-  const filters = React.useMemo(() => (search ? { search } : {}), [search]);
-  const { data: documents = [], isLoading } = useDocuments(filters);
-  const attachMutation = useAttachEntityDocument(entityType, objectId);
+  const isPhoto = documentType === 'photo';
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: [...documentKeys.all, 'attach-pool', documentType ?? 'any', search] as const,
+    queryFn: () =>
+      isPhoto
+        ? fetchPhotoDocuments(search ? { search } : {})
+        : fetchDocuments(search ? { search } : {}),
+    enabled: open,
+  });
 
   React.useEffect(() => {
     if (!open) {
@@ -57,14 +83,22 @@ export default function EntityAttachDocumentDialog({
   async function handleAttach() {
     if (selected.size === 0) return;
     setError(null);
+    setIsAttaching(true);
     try {
       await Promise.all(
-        Array.from(selected).map((id) => attachMutation.mutateAsync(id)),
+        Array.from(selected).map((id) =>
+          attachEntityDocument(entityType, objectId, id, phase),
+        ),
       );
       void qc.invalidateQueries({ queryKey: documentKeys.all });
+      const detailKey = entityDetailQueryKey(entityType);
+      if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });
+      onAttached?.();
       onOpenChange(false);
     } catch {
       setError(t('common.saveFailed'));
+    } finally {
+      setIsAttaching(false);
     }
   }
 
@@ -72,7 +106,7 @@ export default function EntityAttachDocumentDialog({
     <SheetDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('documents.link.attach_existing')}
+      title={title ?? t('documents.link.attach_existing')}
     >
       <div className="space-y-3">
         {error ? (
@@ -107,11 +141,19 @@ export default function EntityAttachDocumentDialog({
                         onChange={() => toggle(doc.id)}
                         className="h-4 w-4"
                       />
+                      {isPhoto && (doc.thumbnail_url || doc.file_url) ? (
+                        <img
+                          src={doc.thumbnail_url || doc.file_url || ''}
+                          alt={doc.name}
+                          loading="lazy"
+                          className="h-10 w-10 shrink-0 rounded object-cover"
+                        />
+                      ) : null}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm text-foreground">{doc.name}</p>
-                        {doc.type ? (
+                        {!isPhoto && doc.type ? (
                           <p className="text-xs text-muted-foreground">
-                            {t(`documents.type.${doc.type}`, { defaultValue: doc.type })}
+                            {t(`documents.type.${doc.type}`)}
                           </p>
                         ) : null}
                       </div>
@@ -130,9 +172,9 @@ export default function EntityAttachDocumentDialog({
           <Button
             type="button"
             onClick={handleAttach}
-            disabled={selected.size === 0 || attachMutation.isPending}
+            disabled={selected.size === 0 || isAttaching}
           >
-            {attachMutation.isPending
+            {isAttaching
               ? t('common.saving')
               : t('documents.link.attach', { count: selected.size })}
           </Button>

@@ -8,6 +8,7 @@ ChickenSettings only references the household's feed stock item.
 """
 import uuid
 
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 
 from core.managers import HouseholdScopedManager
@@ -48,6 +49,9 @@ class Chicken(HouseholdScopedModel):
         related_name='chickens',
         db_column='zone_id',
     )
+    # Polymorphic document/photo links (renovation-style before/after photos,
+    # vet papers…) — mirrors Project/Zone/Equipment. No schema change.
+    document_links = GenericRelation('documents.DocumentLink')
 
     objects = HouseholdScopedManager()
 

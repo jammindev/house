@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
+from documents.mixins import DocumentLinkActionsMixin
 from documents.models import Document, DocumentLink
 from interactions.models import Interaction
 from zones.models import Zone
@@ -24,7 +25,7 @@ from .serializers import (
 )
 
 
-class TaskViewSet(viewsets.ModelViewSet):
+class TaskViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
     """
     Task CRUD with filtering by status, priority, zone, assigned_to, overdue.
     completed_by and completed_at are auto-managed on status transitions.
