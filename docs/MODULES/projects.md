@@ -18,6 +18,15 @@
 
 ## Notes / décisions produit
 
+- **Onglets adaptatifs (parcours 20)** : le détail projet ne montre que les onglets
+  qui ont du contenu. `overview` toujours visible ; les autres apparaissent quand
+  leur compteur > 0 (ou s'ils sont l'onglet actif). Les compteurs viennent du champ
+  `tab_counts` du `ProjectSerializer` (**detail seulement**, `null` en liste, via
+  `services.project_tab_counts`). Les onglets vides restent atteignables par un menu
+  « + » du `TabShell` (`moreTabs`) pour pouvoir y ajouter le premier item.
+- **Onglet « Photos » (parcours 20)** : `<EntityPhotosTab entityType="project"
+  objectId={id} />` — photos regroupées par phase avant/pendant/après + comparateur.
+  Voir `docs/MODULES/photos.md`.
 - V1 livrée dans le Parcours 04 : boutons de création rapide (tâche, note, dépense, activité) dans chaque onglet du détail projet, bandeau projet dans `InteractionCreateForm`, bloc de synthèse en tête (tâches ouvertes/retard, budget), `project_title` exposé, `?tab=` lu depuis l'URL — *source : `docs/JOURNAL_PRODUIT.md` lignes 81-96*.
 - **Onglet « Assistant » (2026-07)** : le détail projet expose un onglet chat branché sur l'agent RAG générique. Il s'appuie sur `<EntityAssistant entityType="project" objectId={id} />` (`ui/src/features/agent/`), lui-même adossé à une conversation `agent.AgentConversation` **ancrée** sur le projet (`context_entity_type='project'`, `context_object_id=<id>`). Au démarrage, tout le contexte du projet (détails + documents + dépenses + tâches + zones liés, via `spec.related`) est pré-injecté : l'IA connaît déjà le projet sans avoir à chercher. Voir `docs/MODULES/agent.md`.
 - `ProjectAIThread` / `ProjectAIMessage` (thread IA dédié, jamais consommé) **supprimés le 2026-07** (migration `0007`) : l'onglet Assistant passe par l'agent générique, ce thread parallèle était mort.

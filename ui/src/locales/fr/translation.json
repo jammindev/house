@@ -1169,7 +1169,11 @@
           },
           "plan": {
             "title": "Rassembler tâches et notes",
-            "body": "Reliez tâches, notes et documents au projet pour tout garder au même endroit."
+            "body": "Reliez tâches, notes et documents au projet — le détail n’affiche que les onglets qui ont du contenu, avec un menu « + » pour ouvrir les autres."
+          },
+          "photos": {
+            "title": "Documenter l’avant / après",
+            "body": "Dans l’onglet Photos, ajoutez des clichés et taguez-les avant, pendant ou après — puis ouvrez le comparateur pour voir la transformation côte à côte."
           },
           "budget": {
             "title": "Suivre le budget",

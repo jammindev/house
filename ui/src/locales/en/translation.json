@@ -1169,7 +1169,11 @@
           },
           "plan": {
             "title": "Gather tasks and notes",
-            "body": "Link tasks, notes and documents to the project to keep everything together."
+            "body": "Link tasks, notes and documents to the project — the detail page only shows the tabs that have content, with a « + » menu to open the others."
+          },
+          "photos": {
+            "title": "Document before / after",
+            "body": "In the Photos tab, upload pictures and tag them before, during or after — then open the comparator to see the transformation side by side."
           },
           "budget": {
             "title": "Track the budget",

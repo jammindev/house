@@ -1169,7 +1169,11 @@
           },
           "plan": {
             "title": "Reunir tareas y notas",
-            "body": "Enlaza tareas, notas y documentos al proyecto para tenerlo todo junto."
+            "body": "Vincula tareas, notas y documentos al proyecto — la página de detalle solo muestra las pestañas con contenido, con un menú « + » para abrir las demás."
+          },
+          "photos": {
+            "title": "Documentar el antes / después",
+            "body": "En la pestaña Fotos, sube imágenes y etiquétalas como antes, durante o después — luego abre el comparador para ver la transformación en paralelo."
           },
           "budget": {
             "title": "Seguir el presupuesto",

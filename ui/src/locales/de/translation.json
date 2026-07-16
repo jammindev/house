@@ -1169,7 +1169,11 @@
           },
           "plan": {
             "title": "Aufgaben und Notizen bündeln",
-            "body": "Verknüpfen Sie Aufgaben, Notizen und Dokumente mit dem Projekt, um alles beisammen zu halten."
+            "body": "Verknüpfen Sie Aufgaben, Notizen und Dokumente mit dem Projekt — die Detailseite zeigt nur Tabs mit Inhalt, ein « + »-Menü öffnet die anderen."
+          },
+          "photos": {
+            "title": "Vorher / nachher dokumentieren",
+            "body": "Laden Sie im Tab Fotos Bilder hoch und markieren Sie sie als vorher, während oder nachher — öffnen Sie dann den Vergleich, um die Veränderung nebeneinander zu sehen."
           },
           "budget": {
             "title": "Das Budget verfolgen",

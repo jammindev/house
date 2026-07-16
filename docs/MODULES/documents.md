@@ -55,6 +55,24 @@
 
 Permissions : `IsHouseholdMember` partout. Seul le `created_by` peut changer `is_private` (`views.py:140-144`).
 
+### Phase avant/après sur un lien (`DocumentLink.phase`, parcours 20)
+
+- `DocumentLink.phase` : `CharField` (`before` / `during` / `after`, vide = non
+  classée). **Contextuel au lien**, pas au document — une même photo peut être
+  l'« après » d'un projet sans polluer un autre usage. Générique à tous les types
+  liables ; seul l'UI photos des projets l'écrit en V1.
+- Écriture via `documents.services` : `link_document(..., phase=)` à l'attache,
+  `set_document_phase(entity, document_id, phase)` pour retaguer (valide la phase,
+  retourne le nombre de liens mis à jour).
+- Exposé par le mixin `DocumentLinkActionsMixin` (monté sur les viewsets d'entités
+  liables, ex. `ProjectViewSet`) :
+  - `POST {entity}/{id}/attach_document/` accepte `phase` (en plus de `role`/`note`).
+  - `POST {entity}/{id}/set_document_phase/` → `{document_id, phase}` (404 si non
+    lié, 400 si phase invalide).
+- Lecture : `GET /api/documents/documents/?project={id}` (ou `?zone=`/`?linked_to=`)
+  renseigne `phase` par document **pour l'entité filtrée** (champ `phase` du
+  serializer liste, via le contexte `link_entity_id`). `None` hors contexte.
+
 ### Pipeline OCR / extraction (`apps/documents/extraction.py`)
 
 - Images (JPEG, PNG, WebP, GIF) → Claude Haiku 4.5 Vision (base64).
