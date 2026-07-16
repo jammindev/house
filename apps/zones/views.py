@@ -15,19 +15,21 @@ from .models import Zone
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
 from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
+from documents.mixins import DocumentLinkActionsMixin
 from documents.services import link_document
 
 
-class ZoneViewSet(viewsets.ModelViewSet):
+class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
     """
     ViewSet for zone CRUD operations.
-    
+
     List: Returns zones for user's households (flat or tree)
     Create: Creates new zone
     Retrieve: Gets zone details
     Update: Updates zone
     Delete: Deletes zone (cascades to children)
     """
+    document_link_role = 'document'
     permission_classes = [IsAuthenticated, IsHouseholdMember]
     serializer_class = ZoneSerializer
 

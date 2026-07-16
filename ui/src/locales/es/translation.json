@@ -1125,6 +1125,10 @@
           "stats": {
             "title": "Seguir la puesta y el coste",
             "body": "Elige un periodo para la curva de puesta: los días sin registrar nunca aparecen como 0 y la tasa de registro queda visible. El coste por huevo (pienso + cuidados) y una alerta de caída (muda, clima) lo completan."
+          },
+          "media": {
+            "title": "Fotos y documentos",
+            "body": "Abre la pestaña Fotos o Documentos de una gallina para adjuntar fotos antes/después o papeles (veterinario, factura). Sube un archivo nuevo o vincula uno existente — la pestaña aparece en el menú « + » mientras esté vacía."
           }
         }
       },
@@ -1374,7 +1378,9 @@
       "addToPhase": "Añadir aquí",
       "moveTo": "Mover a {{phase}}",
       "remove": "Quitar",
-      "empty": "Aún no hay fotos. Sube una para documentar el antes y el después del proyecto."
+      "empty": "Aún no hay fotos. Sube una para documentar el antes y el después del proyecto.",
+      "attach_existing": "Elegir existente",
+      "empty_hint": "Sube una nueva o vincula una foto existente."
     }
   },
   "directory": {
@@ -1558,7 +1564,8 @@
       "empty": "Aún no hay documentos.",
       "attach": "Adjuntar ({{count}})",
       "detach": "Quitar",
-      "detached": "Documento quitado"
+      "detached": "Documento quitado",
+      "empty_hint": "Sube un documento o vincula uno existente."
     },
     "linked_to": {
       "title": "Vinculado a",
@@ -1730,7 +1737,8 @@
       "info": "Info",
       "history": "Historial",
       "assistant": "Asistente",
-      "documents": "Documentos"
+      "documents": "Documentos",
+      "photos": "Fotos"
     }
   },
   "dashboard": {
@@ -2417,7 +2425,9 @@
     "tabs": {
       "info": "Info",
       "events": "Diario",
-      "assistant": "Asistente"
+      "assistant": "Asistente",
+      "documents": "Documentos",
+      "photos": "Fotos"
     }
   },
   "alerts": {

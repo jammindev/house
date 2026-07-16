@@ -93,12 +93,13 @@ function normalizeId(d: DocumentItem & { id: string | number }): DocumentItem {
 }
 
 export async function fetchDocuments(filters: DocumentFilters = {}): Promise<DocumentItem[]> {
+  // Forward every filter as a query param: `search`/`type` are reserved, any
+  // other key is an entity link filter (?zone= / ?project= / ?task= / ?chicken=…)
+  // resolved polymorphically by the backend via the searchables registry.
   const params: Record<string, string> = { ordering: '-created_at' };
-  if (filters.search) params.search = filters.search;
-  if (filters.type) params.type = filters.type;
-  if (filters.zone) params.zone = filters.zone;
-  if (filters.project) params.project = filters.project;
-  if (filters.equipment) params.equipment = filters.equipment;
+  for (const [key, value] of Object.entries(filters)) {
+    if (value) params[key] = value;
+  }
 
   const { data } = await api.get('/documents/documents/', { params });
   const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)
@@ -110,10 +111,10 @@ export async function fetchDocuments(filters: DocumentFilters = {}): Promise<Doc
 
 export async function fetchPhotoDocuments(filters: Omit<DocumentFilters, 'type'> = {}): Promise<DocumentItem[]> {
   const params: Record<string, string> = { ordering: '-created_at', type: 'photo' };
-  if (filters.search) params.search = filters.search;
-  if (filters.zone) params.zone = filters.zone;
-  if (filters.project) params.project = filters.project;
-  if (filters.equipment) params.equipment = filters.equipment;
+  for (const [key, value] of Object.entries(filters)) {
+    if (key === 'type') continue; // forced to 'photo'
+    if (value) params[key] = value;
+  }
 
   const { data } = await api.get('/documents/documents/', { params });
   const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)
@@ -169,10 +170,30 @@ export async function deleteDocument(id: string): Promise<void> {
 const DOCUMENT_LINK_ENDPOINTS: Record<string, (id: string) => string> = {
   project: (id) => `/projects/projects/${id}`,
   equipment: (id) => `/equipment/${id}`,
+  zone: (id) => `/zones/${id}`,
+  task: (id) => `/tasks/tasks/${id}`,
+  chicken: (id) => `/chickens/${id}`,
 };
 
 export function supportsDocumentLinking(entityType: string): boolean {
   return entityType in DOCUMENT_LINK_ENDPOINTS;
+}
+
+/**
+ * Root React Query key of an entity's detail cache, so attaching/detaching a
+ * document or photo can refresh its `tab_counts`. Pluralization is irregular
+ * (equipment stays singular) — keep this map explicit rather than guessing.
+ */
+const ENTITY_DETAIL_QUERY_KEYS: Record<string, readonly unknown[]> = {
+  project: ['projects'],
+  equipment: ['equipment'],
+  zone: ['zones'],
+  task: ['tasks'],
+  chicken: ['chickens'],
+};
+
+export function entityDetailQueryKey(entityType: string): readonly unknown[] | null {
+  return ENTITY_DETAIL_QUERY_KEYS[entityType] ?? null;
 }
 
 export async function attachEntityDocument(

@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
-import { TabShell } from '@/components/TabShell';
+import { TabShell, type TabConfig } from '@/components/TabShell';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useNavigateBack } from '@/lib/backNavigation';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import type { ChickenEvent } from '@/lib/api/chickens';
 import {
   chickenKeys,
@@ -24,8 +26,9 @@ import ChickenEventDialog from './ChickenEventDialog';
 import ChickenPurchaseDialog from './ChickenPurchaseDialog';
 import EventTimeline from './EventTimeline';
 
-type Tab = 'info' | 'events';
-const TABS: Tab[] = ['info', 'events'];
+type Tab = 'info' | 'events' | 'documents' | 'photos';
+// Counted tabs — hidden when empty, revealed when populated or reachable via « + ».
+const COUNTED_TABS: Exclude<Tab, 'info'>[] = ['events', 'documents', 'photos'];
 
 export default function ChickenDetailPage() {
   const { id = '' } = useParams();
@@ -40,6 +43,7 @@ export default function ChickenDetailPage() {
   const [eventDialogOpen, setEventDialogOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<ChickenEvent | null>(null);
   const [purchaseOpen, setPurchaseOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<Tab>('info');
 
   const deleteChickenMutation = useDeleteChicken();
   const deleteEventMutation = useDeleteChickenEvent();
@@ -90,6 +94,24 @@ export default function ChickenDetailPage() {
     );
   }
 
+  const counts = chicken.tab_counts ?? null;
+  // Visible tabs: info always, others when they have content OR are currently
+  // active (so the active tab doesn't vanish when it empties).
+  const isVisible = (tab: Exclude<Tab, 'info'>) =>
+    (counts ? counts[tab] > 0 : true) || tab === activeTab;
+  const visibleTabs: TabConfig<Tab>[] = [
+    { key: 'info', label: t('chickens.tabs.info') },
+    ...COUNTED_TABS.filter(isVisible).map((tab) => ({
+      key: tab,
+      label: t(`chickens.tabs.${tab}`),
+      badge: counts?.[tab],
+    })),
+  ];
+  // Empty tabs, reachable via the « + » menu so the first item can still be added.
+  const moreTabs: TabConfig<Tab>[] = COUNTED_TABS.filter((tab) => !isVisible(tab)).map(
+    (tab) => ({ key: tab, label: t(`chickens.tabs.${tab}`) }),
+  );
+
   const facts: Array<{ label: string; value: string | null }> = [
     { label: t('chickens.fields.breed'), value: chicken.breed || null },
     { label: t('chickens.fields.color'), value: chicken.color || null },
@@ -117,9 +139,11 @@ export default function ChickenDetailPage() {
       </PageHeader>
 
       <TabShell<Tab>
-        tabs={TABS.map((tab) => ({ key: tab, label: t(`chickens.tabs.${tab}`) }))}
+        tabs={visibleTabs}
+        moreTabs={moreTabs}
         sessionKey={`chicken-detail.${chicken.id}.tab`}
         defaultTab="info"
+        onTabChange={setActiveTab}
       >
         {(tab) => (
           <>
@@ -173,6 +197,14 @@ export default function ChickenDetailPage() {
                   />
                 )}
               </div>
+            ) : null}
+
+            {tab === 'documents' ? (
+              <EntityDocumentsTab entityType="chicken" objectId={chicken.id} />
+            ) : null}
+
+            {tab === 'photos' ? (
+              <EntityPhotosTab entityType="chicken" objectId={chicken.id} />
             ) : null}
           </>
         )}

@@ -394,3 +394,24 @@ def flock_summary(household, *, today: date | None = None) -> dict:
         'cost': _cost_totals(household, today=today, feed_stock_item=item),
         'has_data': has_data,
     }
+
+
+def chicken_tab_counts(chicken: Chicken) -> dict[str, int]:
+    """Number of items behind each tab of the chicken detail page.
+
+    Consumed by ``ChickenSerializer`` (detail only) so the frontend can hide
+    empty tabs. A couple of aggregate queries — fine for a single object, NOT
+    on a list (would N+1). Mirrors ``projects.services.project_tab_counts``.
+    """
+    from django.contrib.contenttypes.models import ContentType
+
+    from documents.models import DocumentLink
+
+    chicken_ct = ContentType.objects.get_for_model(Chicken)
+    links = DocumentLink.objects.filter(content_type=chicken_ct, object_id=chicken.id)
+
+    return {
+        'events': ChickenEvent.objects.filter(chicken=chicken).count(),
+        'documents': links.exclude(document__type='photo').count(),
+        'photos': links.filter(document__type='photo').count(),
+    }

@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { Plus, Upload } from 'lucide-react';
+import { Plus, Upload, FileText } from 'lucide-react';
 import { Button } from '@/design-system/button';
+import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDocuments, documentKeys, useAttachEntityDocument, useDetachEntityDocument } from './hooks';
@@ -112,9 +113,12 @@ export default function EntityDocumentsTab({ entityType, objectId }: Props) {
         ) : error ? (
           <p className="text-sm text-destructive">{t('common.error_loading')}</p>
         ) : documents.length === 0 ? (
-          <p className="text-sm italic text-muted-foreground">
-            {t('documents.link.empty')}
-          </p>
+          <EmptyState
+            icon={FileText}
+            title={t('documents.link.empty')}
+            description={t('documents.link.empty_hint')}
+            action={{ label: t('documents.link.upload'), onClick: () => setUploadOpen(true) }}
+          />
         ) : (
           <ul className="space-y-2">
             {documents.map((doc) => (

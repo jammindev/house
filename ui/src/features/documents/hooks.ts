@@ -8,9 +8,11 @@ import {
   reprocessDocumentOcr,
   attachEntityDocument,
   detachEntityDocument,
+  entityDetailQueryKey,
   type DocumentFilters,
   type UploadDocumentInput,
 } from '@/lib/api/documents';
+import type { QueryClient } from '@tanstack/react-query';
 
 export const documentKeys = {
   all: ['documents'] as const,
@@ -19,12 +21,19 @@ export const documentKeys = {
   detail: (id: string) => [...documentKeys.all, 'detail', id] as const,
 };
 
+/** Refresh the document lists + the linked entity's detail (its tab_counts). */
+function invalidateEntityDocuments(qc: QueryClient, entityType: string) {
+  void qc.invalidateQueries({ queryKey: documentKeys.all });
+  const detailKey = entityDetailQueryKey(entityType);
+  if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });
+}
+
 /** Attach an existing document to any linkable entity (project, equipment, …). */
 export function useAttachEntityDocument(entityType: string, objectId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (documentId: string) => attachEntityDocument(entityType, objectId, documentId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+    onSuccess: () => invalidateEntityDocuments(qc, entityType),
   });
 }
 
@@ -32,7 +41,7 @@ export function useDetachEntityDocument(entityType: string, objectId: string) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (documentId: string) => detachEntityDocument(entityType, objectId, documentId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+    onSuccess: () => invalidateEntityDocuments(qc, entityType),
   });
 }
 

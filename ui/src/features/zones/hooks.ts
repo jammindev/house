@@ -14,7 +14,6 @@ import { fetchEquipmentList } from '@/lib/api/equipment';
 import { fetchInteractions } from '@/lib/api/interactions';
 import { fetchTasks } from '@/lib/api/tasks';
 import { fetchProjects } from '@/lib/api/projects';
-import { fetchDocuments, fetchPhotoDocuments } from '@/lib/api/documents';
 
 export const zoneKeys = {
   all: ['zones'] as const,
@@ -122,22 +121,6 @@ export function useZoneProjects(zoneId: string) {
   return useQuery({
     queryKey: ['zones', zoneId, 'projects'],
     queryFn: () => fetchProjects({ zone: zoneId, status: 'active' }),
-    enabled: !!zoneId,
-  });
-}
-
-export function useZoneDocuments(zoneId: string) {
-  return useQuery({
-    queryKey: ['zones', zoneId, 'documents'],
-    queryFn: () => fetchDocuments({ zone: zoneId }),
-    enabled: !!zoneId,
-  });
-}
-
-export function useZonePhotos(zoneId: string) {
-  return useQuery({
-    queryKey: ['zones', zoneId, 'photos'],
-    queryFn: () => fetchPhotoDocuments({ zone: zoneId }),
     enabled: !!zoneId,
   });
 }

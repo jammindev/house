@@ -20,6 +20,13 @@ export const CHICKEN_EVENT_TYPES: ChickenEventType[] = [
   'arrival', 'care', 'illness', 'broody', 'molt', 'predator', 'death', 'departure', 'other',
 ];
 
+/** Items behind each chicken-detail tab. Null in list responses (detail only). */
+export interface ChickenTabCounts {
+  events: number;
+  documents: number;
+  photos: number;
+}
+
 export interface Chicken {
   id: string;
   household: string;
@@ -32,6 +39,7 @@ export interface Chicken {
   notes: string;
   zone: string | null;
   zone_name: string | null;
+  tab_counts?: ChickenTabCounts | null;
   created_at: string;
   updated_at: string;
 }

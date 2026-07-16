@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
+from documents.mixins import DocumentLinkActionsMixin
 from interactions.services import create_expense_interaction
 
 from . import services
@@ -25,8 +26,8 @@ from .serializers import (
 )
 
 
-class ChickenViewSet(viewsets.ModelViewSet):
-    """Flock register CRUD + per-hen purchase declaration."""
+class ChickenViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
+    """Flock register CRUD + per-hen purchase declaration + document/photo links."""
 
     permission_classes = [IsHouseholdMember]
     serializer_class = ChickenSerializer

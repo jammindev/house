@@ -25,10 +25,11 @@ import {
 import { statusVariant } from './format';
 import EquipmentDialog from './EquipmentDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
-type Tab = 'info' | 'history' | 'documents';
-const TABS: Tab[] = ['info', 'history', 'documents'];
+type Tab = 'info' | 'history' | 'documents' | 'photos';
+const TABS: Tab[] = ['info', 'history', 'documents', 'photos'];
 
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -287,6 +288,10 @@ export default function EquipmentDetailPage() {
 
               {tab === 'documents' ? (
                 <EntityDocumentsTab entityType="equipment" objectId={equipment.id} />
+              ) : null}
+
+              {tab === 'photos' ? (
+                <EntityPhotosTab entityType="equipment" objectId={equipment.id} />
               ) : null}
             </>
           )}

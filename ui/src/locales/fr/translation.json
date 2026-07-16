@@ -1125,6 +1125,10 @@
           "stats": {
             "title": "Suivre la ponte et le coût",
             "body": "Choisissez une période pour la courbe de ponte : les jours non relevés n'apparaissent pas comme des 0 et le taux de relevé reste visible. Le coût au œuf (alimentation + soins) et une alerte de chute de ponte (mue, météo) complètent le tableau."
+          },
+          "media": {
+            "title": "Photos & documents",
+            "body": "Ouvrez l'onglet Photos ou Documents d'une poule pour y joindre des photos avant/après ou des papiers (véto, facture). Importez un nouveau fichier ou reliez-en un existant — l'onglet apparaît via le menu « + » tant qu'il est vide."
           }
         }
       },
@@ -1374,7 +1378,9 @@
       "addToPhase": "Ajouter ici",
       "moveTo": "Déplacer vers {{phase}}",
       "remove": "Retirer",
-      "empty": "Aucune photo. Ajoutez-en pour documenter l'avant et l'après du projet."
+      "empty": "Aucune photo. Ajoutez-en pour documenter l'avant et l'après du projet.",
+      "attach_existing": "Choisir une existante",
+      "empty_hint": "Ajoutez-en une ou reliez une photo existante."
     }
   },
   "directory": {
@@ -1558,7 +1564,8 @@
       "empty": "Aucun document pour le moment.",
       "attach": "Rattacher ({{count}})",
       "detach": "Détacher",
-      "detached": "Document détaché"
+      "detached": "Document détaché",
+      "empty_hint": "Importez un document ou reliez-en un existant."
     },
     "linked_to": {
       "title": "Rattaché à",
@@ -1730,7 +1737,8 @@
       "info": "Infos",
       "history": "Historique",
       "assistant": "Assistant",
-      "documents": "Documents"
+      "documents": "Documents",
+      "photos": "Photos"
     }
   },
   "dashboard": {
@@ -2417,7 +2425,9 @@
     "tabs": {
       "info": "Infos",
       "events": "Journal",
-      "assistant": "Assistant"
+      "assistant": "Assistant",
+      "documents": "Documents",
+      "photos": "Photos"
     }
   },
   "alerts": {

@@ -1125,6 +1125,10 @@
           "stats": {
             "title": "Legeleistung und Kosten verfolgen",
             "body": "Wählen Sie einen Zeitraum für die Legekurve: nicht erfasste Tage erscheinen nie als 0, und die Erfassungsquote bleibt sichtbar. Kosten pro Ei (Futter + Pflege) und eine Warnung bei Rückgang (Mauser, Wetter) ergänzen das Bild."
+          },
+          "media": {
+            "title": "Fotos & Dokumente",
+            "body": "Öffnen Sie den Tab Fotos oder Dokumente einer Henne, um Vorher/Nachher-Fotos oder Unterlagen (Tierarzt, Rechnung) anzuhängen. Laden Sie eine neue Datei hoch oder verknüpfen Sie eine vorhandene — der Tab erscheint über das Menü « + », solange er leer ist."
           }
         }
       },
@@ -1374,7 +1378,9 @@
       "addToPhase": "Hier hinzufügen",
       "moveTo": "Verschieben nach {{phase}}",
       "remove": "Entfernen",
-      "empty": "Noch keine Fotos. Laden Sie eines hoch, um das Vorher und Nachher des Projekts zu dokumentieren."
+      "empty": "Noch keine Fotos. Laden Sie eines hoch, um das Vorher und Nachher des Projekts zu dokumentieren.",
+      "attach_existing": "Vorhandenes wählen",
+      "empty_hint": "Laden Sie ein neues hoch oder verknüpfen Sie ein vorhandenes Foto."
     }
   },
   "directory": {
@@ -1558,7 +1564,8 @@
       "empty": "Noch keine Dokumente.",
       "attach": "Anhängen ({{count}})",
       "detach": "Entfernen",
-      "detached": "Dokument entfernt"
+      "detached": "Dokument entfernt",
+      "empty_hint": "Laden Sie ein Dokument hoch oder verknüpfen Sie ein vorhandenes."
     },
     "linked_to": {
       "title": "Verknüpft mit",
@@ -1730,7 +1737,8 @@
       "info": "Info",
       "history": "Verlauf",
       "assistant": "Assistent",
-      "documents": "Dokumente"
+      "documents": "Dokumente",
+      "photos": "Fotos"
     }
   },
   "dashboard": {
@@ -2417,7 +2425,9 @@
     "tabs": {
       "info": "Info",
       "events": "Journal",
-      "assistant": "Assistent"
+      "assistant": "Assistent",
+      "documents": "Dokumente",
+      "photos": "Fotos"
     }
   },
   "alerts": {
