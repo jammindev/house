@@ -18,6 +18,8 @@ interface TabShellProps<T extends string> {
   children: (activeTab: T) => React.ReactNode;
   /** Optional actions rendered to the right of the tab pills */
   actions?: (activeTab: T) => React.ReactNode;
+  /** Notified whenever the active tab resolves/changes (e.g. to keep it visible). */
+  onTabChange?: (activeTab: T) => void;
 }
 
 export function TabShell<T extends string>({
@@ -26,11 +28,17 @@ export function TabShell<T extends string>({
   defaultTab,
   children,
   actions,
+  onTabChange,
 }: TabShellProps<T>) {
   const [activeTab, setActiveTab] = useSessionState<T>(sessionKey, defaultTab);
 
   // Guard: if the stored tab no longer exists (e.g. after a config change), reset to default
   const resolvedTab = tabs.some((t) => t.key === activeTab) ? activeTab : defaultTab;
+
+  // Keep the parent informed of the effective tab (used to pin it visible).
+  React.useEffect(() => {
+    onTabChange?.(resolvedTab);
+  }, [resolvedTab, onTabChange]);
 
   return (
     <div className="space-y-4">
