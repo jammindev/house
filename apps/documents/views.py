@@ -2,6 +2,7 @@
 import logging
 from pathlib import Path
 
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
 from django.db import models as db_models, transaction
 from django.db.models import Prefetch
@@ -18,7 +19,7 @@ from core.permissions import IsHouseholdMember
 from core.file_validation import validate_upload, ALLOWED_DOCUMENT_TYPES, DOCUMENT_MAX_SIZE
 from .extraction import extract_text
 from .image_processing import normalize_image
-from .models import Document
+from .models import Document, DocumentLink
 from .serializers import (
     DocumentSerializer,
     DocumentDetailSerializer,
@@ -74,6 +75,11 @@ def get_documents_queryset_for_request(request):
             queryset=ProjectDocument.objects.select_related('project').order_by('-created_at'),
             to_attr='prefetched_project_documents',
         ),
+        Prefetch(
+            'links',
+            queryset=DocumentLink.objects.select_related('content_type').order_by('-created_at'),
+            to_attr='prefetched_links',
+        ),
     )
 
     selected_household = request.household
@@ -96,6 +102,18 @@ def get_documents_queryset_for_request(request):
     equipment_id = (query_params.get('equipment') or '').strip()
     if equipment_id:
         queryset = queryset.filter(equipment_documents__equipment_id=equipment_id)
+
+    # Generic polymorphic filter: ?linked_to=<entity_type>:<uuid> (via DocumentLink).
+    linked_to = (query_params.get('linked_to') or '').strip()
+    if linked_to and ':' in linked_to:
+        entity_type, _, object_id = linked_to.partition(':')
+        from agent import searchables
+        spec = searchables.find_spec(entity_type.strip())
+        if spec is not None and object_id.strip():
+            ct = ContentType.objects.get_for_model(spec.model)
+            queryset = queryset.filter(
+                links__content_type=ct, links__object_id=object_id.strip()
+            )
 
     return queryset.distinct()
 

@@ -24,7 +24,7 @@ import {
 } from './hooks';
 import { statusVariant } from './format';
 import EquipmentDialog from './EquipmentDialog';
-import EquipmentDocumentsTab from './EquipmentDocumentsTab';
+import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
@@ -287,7 +287,7 @@ export default function EquipmentDetailPage() {
               ) : null}
 
               {tab === 'documents' ? (
-                <EquipmentDocumentsTab equipmentId={equipment.id} />
+                <EntityDocumentsTab entityType="equipment" objectId={equipment.id} />
               ) : null}
 
               {tab === 'assistant' ? (

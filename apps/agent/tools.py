@@ -364,11 +364,10 @@ def _get_related_handler(
         return error
     spec, obj = resolved
 
-    if spec.related is None:
-        return ToolResult(rendered=f"({entity_type} has no related items to load)")
+    from .related import gather_related
 
     hits: list[Hit] = []
-    for rel in list(spec.related(obj))[:RELATED_MAX_ITEMS]:
+    for rel in gather_related(spec, obj)[:RELATED_MAX_ITEMS]:
         rel_spec = searchables.find_spec_for_instance(rel)
         if rel_spec is None:
             continue

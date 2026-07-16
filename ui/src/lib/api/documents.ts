@@ -24,6 +24,14 @@ export interface ProjectLinkSummary {
   project_name: string;
 }
 
+/** Generic backlink: any household entity a document is attached to. */
+export interface EntityLinkSummary {
+  entity_type: string;
+  id: string;
+  label: string;
+  url_path: string;
+}
+
 export interface DocumentItem {
   id: string;
   name: string;
@@ -49,6 +57,7 @@ export interface DocumentItem {
 export interface DocumentDetail extends DocumentItem {
   zone_links: ZoneLinkSummary[];
   project_links: ProjectLinkSummary[];
+  entity_links: EntityLinkSummary[];
   recent_interaction_candidates: LinkedInteractionSummary[];
 }
 
@@ -143,6 +152,40 @@ export async function updateDocument(
 
 export async function deleteDocument(id: string): Promise<void> {
   await api.delete(`/documents/documents/${id}/`);
+}
+
+/**
+ * Entity types that expose document attach/detach endpoints, mapped to their
+ * URL base. Reads go through the polymorphic DocumentLink (`?<entityType>=id`);
+ * writes still go through each entity's wrapper endpoint (kept for compat).
+ */
+const DOCUMENT_LINK_ENDPOINTS: Record<string, (id: string) => string> = {
+  project: (id) => `/projects/projects/${id}`,
+  equipment: (id) => `/equipment/${id}`,
+};
+
+export function supportsDocumentLinking(entityType: string): boolean {
+  return entityType in DOCUMENT_LINK_ENDPOINTS;
+}
+
+export async function attachEntityDocument(
+  entityType: string,
+  objectId: string,
+  documentId: string,
+): Promise<void> {
+  const base = DOCUMENT_LINK_ENDPOINTS[entityType];
+  if (!base) throw new Error(`Unsupported entity type for document linking: ${entityType}`);
+  await api.post(`${base(objectId)}/attach_document/`, { document_id: documentId });
+}
+
+export async function detachEntityDocument(
+  entityType: string,
+  objectId: string,
+  documentId: string,
+): Promise<void> {
+  const base = DOCUMENT_LINK_ENDPOINTS[entityType];
+  if (!base) throw new Error(`Unsupported entity type for document linking: ${entityType}`);
+  await api.post(`${base(objectId)}/detach_document/`, { document_id: documentId });
 }
 
 export async function reprocessDocumentOcr(id: string): Promise<DocumentDetail> {

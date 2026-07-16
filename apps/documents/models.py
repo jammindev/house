@@ -5,6 +5,8 @@ from pathlib import Path, PurePosixPath
 from uuid import uuid4
 
 from django.core.files.storage import default_storage
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.contrib.postgres.fields import ArrayField
 from django.utils import timezone
@@ -97,4 +99,44 @@ class Document(HouseholdScopedModel):
             / stamp
             / f'{uuid4().hex}-{safe_name}'
         )
+
+
+class DocumentLink(models.Model):
+    """Polymorphic link between a Document and any household entity.
+
+    Single mechanism replacing the per-model through tables (ZoneDocument,
+    ProjectDocument, EquipmentDocument, TaskDocument, InteractionDocument).
+    Mirrors ``Interaction.source`` — all linkable entities have a UUID PK, so
+    ``object_id`` is a plain UUIDField; the document stays a real FK.
+    """
+
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name='links',
+    )
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name='+',
+    )
+    object_id = models.UUIDField()
+    entity = GenericForeignKey('content_type', 'object_id')
+
+    role = models.TextField(default='document')
+    note = models.TextField(default='', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        db_table = 'document_links'
+        unique_together = [['content_type', 'object_id', 'document']]
+        indexes = [
+            models.Index(fields=['content_type', 'object_id'], name='idx_doclink_entity'),
+        ]
 

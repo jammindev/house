@@ -137,3 +137,24 @@ class TestEquipmentRelated:
         )
         result = _related(household, "equipment", equipment)
         assert "no items linked" in result.rendered
+
+
+class TestCentralizedDocumentVisibility:
+    """Documents surface for ANY entity via agent.related.gather_related — even
+    entities whose ``related`` callable does not gather documents itself."""
+
+    def test_task_linked_document_surfaces_via_get_related(self, household, owner):
+        from tasks.models import Task, TaskDocument
+
+        task = Task.objects.create(
+            household=household, created_by=owner, subject="Poser une étagère"
+        )
+        document = Document.objects.create(
+            household=household, created_by=owner, file_path="documents/plan.pdf",
+            name="Plan de pose", mime_type="application/pdf", type="plan",
+        )
+        # TaskDocument write → signal syncs DocumentLink → gather_related picks it up.
+        TaskDocument.objects.create(task=task, document=document, created_by=owner)
+
+        result = _related(household, "task", task)
+        assert f"id=document:{document.pk}" in result.rendered

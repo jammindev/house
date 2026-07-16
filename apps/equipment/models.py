@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.postgres.fields import ArrayField
 
 from django.utils.translation import gettext_lazy as _
@@ -37,6 +38,7 @@ class Equipment(HouseholdScopedModel):
     retired_at = models.DateField(null=True, blank=True)
     notes = models.TextField(default="", blank=True)
     tags = ArrayField(models.TextField(), default=list, blank=True)
+    document_links = GenericRelation("documents.DocumentLink")
 
     objects = HouseholdScopedManager()
 

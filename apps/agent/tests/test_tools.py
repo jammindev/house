@@ -347,7 +347,8 @@ class TestGetRelated:
     def test_entity_without_relations_declared_is_recoverable(
         self, household, owner, make_document
     ):
-        # documents don't declare a `related` traversal.
+        # documents don't declare a `related` traversal and aren't a linkable
+        # parent, so get_related yields the unified empty marker (no crash).
         doc = make_document(name="lonely doc")
         result = dispatch(
             tools.GET_RELATED,
@@ -356,7 +357,7 @@ class TestGetRelated:
             user=owner,
         )
         assert result.hits == []
-        assert "no related items" in result.rendered
+        assert "no items linked" in result.rendered
 
     def test_project_with_no_links_returns_empty_marker(self, household, owner, make_project):
         project = make_project(title="Solo")

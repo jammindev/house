@@ -97,13 +97,13 @@ def _related_hits(spec, obj, household) -> list[Hit]:
     """Turn the anchor's related instances into citable hits (scoped, bounded).
 
     Same walk and guards as ``tools._get_related_handler``: cap the count, skip
-    unregistered types, and never surface an item from another household.
+    unregistered types, and never surface an item from another household. Linked
+    documents are included automatically via ``gather_related``.
     """
-    if spec.related is None:
-        return []
+    from .related import gather_related
 
     hits: list[Hit] = []
-    for rel in list(spec.related(obj))[:RELATED_MAX_ITEMS]:
+    for rel in gather_related(spec, obj)[:RELATED_MAX_ITEMS]:
         rel_spec = searchables.find_spec_for_instance(rel)
         if rel_spec is None:
             continue

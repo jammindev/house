@@ -6,6 +6,8 @@ import {
   updateDocument,
   deleteDocument,
   reprocessDocumentOcr,
+  attachEntityDocument,
+  detachEntityDocument,
   type DocumentFilters,
   type UploadDocumentInput,
 } from '@/lib/api/documents';
@@ -16,6 +18,23 @@ export const documentKeys = {
     [...documentKeys.all, 'list', filters as Record<string, unknown>] as const,
   detail: (id: string) => [...documentKeys.all, 'detail', id] as const,
 };
+
+/** Attach an existing document to any linkable entity (project, equipment, …). */
+export function useAttachEntityDocument(entityType: string, objectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => attachEntityDocument(entityType, objectId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+  });
+}
+
+export function useDetachEntityDocument(entityType: string, objectId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) => detachEntityDocument(entityType, objectId, documentId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
+  });
+}
 
 export function useDocuments(filters: DocumentFilters = {}) {
   return useQuery({

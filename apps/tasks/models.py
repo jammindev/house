@@ -100,6 +100,7 @@ class Task(HouseholdScopedModel):
         object_id_field='object_id',
         related_query_name='task',
     )
+    document_links = GenericRelation('documents.DocumentLink')
     metadata = models.JSONField(default=dict, blank=True)
 
     objects = HouseholdScopedManager()

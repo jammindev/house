@@ -1496,6 +1496,26 @@
       "info": "Infos",
       "activity": "Activité",
       "assistant": "Assistant"
+    },
+    "link": {
+      "attach_existing": "Choisir un existant",
+      "upload": "Ajouter",
+      "search_placeholder": "Rechercher des documents…",
+      "empty_candidates": "Aucun document disponible.",
+      "empty": "Aucun document pour le moment.",
+      "attach": "Rattacher ({{count}})",
+      "detach": "Détacher",
+      "detached": "Document détaché"
+    },
+    "linked_to": {
+      "title": "Rattaché à",
+      "types": {
+        "zone": "Zone",
+        "project": "Projet",
+        "equipment": "Équipement",
+        "task": "Tâche",
+        "interaction": "Activité"
+      }
     }
   },
   "equipment": {
@@ -1658,16 +1678,6 @@
       "history": "Historique",
       "assistant": "Assistant",
       "documents": "Documents"
-    },
-    "documents": {
-      "attach_existing": "Choisir un existant",
-      "upload": "Ajouter",
-      "search_placeholder": "Rechercher des documents…",
-      "empty_candidates": "Aucun document disponible.",
-      "empty": "Aucun document pour le moment.",
-      "attach": "Rattacher ({{count}})",
-      "detach": "Détacher",
-      "detached": "Document détaché"
     }
   },
   "dashboard": {
@@ -2072,19 +2082,10 @@
     "empty_tasks": "Aucune tâche pour l'instant.",
     "empty_notes": "Aucune note pour l'instant.",
     "empty_expenses": "Aucune dépense pour l'instant.",
-    "empty_documents": "Aucun document pour l'instant.",
     "empty_timeline": "Aucune activité pour l'instant.",
     "add_task": "Ajouter une tâche",
     "add_note": "Ajouter une note",
     "add_activity": "Ajouter une activité",
-    "attach_document": {
-      "title": "Joindre un document",
-      "search_placeholder": "Rechercher un document…",
-      "empty": "Aucun document disponible.",
-      "attach": "Joindre ({{count}})",
-      "detach": "Détacher",
-      "detached": "Document détaché"
-    },
     "status": {
       "draft": "Brouillon",
       "active": "Actif",

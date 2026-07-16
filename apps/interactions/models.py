@@ -85,7 +85,8 @@ class Interaction(HouseholdScopedModel):
         through='InteractionZone',
         related_name='interactions',
     )
-    
+    document_links = GenericRelation('documents.DocumentLink')
+
     objects = HouseholdScopedManager()
     
     class Meta:

@@ -29,6 +29,14 @@ class ProjectLinkSummarySerializer(serializers.Serializer):
     project_name = serializers.CharField()
 
 
+class EntityLinkSummarySerializer(serializers.Serializer):
+    """Generic backlink: any household entity a document is attached to."""
+    entity_type = serializers.CharField()
+    id = serializers.CharField()
+    label = serializers.CharField()
+    url_path = serializers.CharField()
+
+
 class DocumentUploadSerializer(serializers.Serializer):
     file = serializers.FileField()
     name = serializers.CharField(required=False, allow_blank=True, max_length=255)
@@ -150,6 +158,7 @@ class DocumentDetailSerializer(DocumentSerializer):
     interaction_subject = serializers.SerializerMethodField()
     zone_links = serializers.SerializerMethodField()
     project_links = serializers.SerializerMethodField()
+    entity_links = serializers.SerializerMethodField()
     recent_interaction_candidates = serializers.SerializerMethodField()
 
     class Meta(DocumentSerializer.Meta):
@@ -157,6 +166,7 @@ class DocumentDetailSerializer(DocumentSerializer):
             'interaction_subject',
             'zone_links',
             'project_links',
+            'entity_links',
             'recent_interaction_candidates',
         ]
 
@@ -190,6 +200,10 @@ class DocumentDetailSerializer(DocumentSerializer):
             if getattr(link, 'project', None)
         ]
         return ProjectLinkSummarySerializer(payload, many=True).data
+
+    def get_entity_links(self, obj):
+        from .services import entity_links_for_document
+        return EntityLinkSummarySerializer(entity_links_for_document(obj), many=True).data
 
     def get_recent_interaction_candidates(self, obj):
         candidates = self.context.get('recent_interaction_candidates') or []
