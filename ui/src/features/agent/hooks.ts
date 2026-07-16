@@ -31,9 +31,12 @@ import {
   getOrCreateEntityConversation,
   listConversations,
   listMemories,
+  pinContext,
   postConversationMessage,
   renameConversation,
+  searchHouseholdEntities,
   streamConversationMessage,
+  unpinContext,
   updateMemory,
   type AgentConversationDetail,
   type AgentConversationRow,
@@ -41,6 +44,7 @@ import {
   type AgentMemory,
   type AgentMemoryEvent,
   type AgentMessageRow,
+  type AgentSearchResult,
   type AgentStreamHandlers,
   type AgentUpdatedEntity,
 } from './api';
@@ -51,6 +55,7 @@ export const agentKeys = {
   conversation: (id: string | null) => [...agentKeys.all, 'conversation', id] as const,
   entityConversation: (entityType: string, objectId: string) =>
     [...agentKeys.all, 'entity-conversation', entityType, objectId] as const,
+  contextSearch: (query: string) => [...agentKeys.all, 'context-search', query] as const,
   memories: () => [...agentKeys.all, 'memories'] as const,
 };
 
@@ -79,6 +84,52 @@ export function useEntityConversation(entityType: string, objectId: string) {
     queryKey: agentKeys.entityConversation(entityType, objectId),
     queryFn: () => getOrCreateEntityConversation(entityType, objectId),
     enabled: Boolean(entityType && objectId),
+  });
+}
+
+/**
+ * Pin/unpin a household entity to a conversation's context. Both write the
+ * refreshed conversation back into `queryKey` (the caller's cache slot, e.g. the
+ * entity conversation) AND the by-id detail cache, so the "what I know" panel and
+ * every next ask stay in sync without a refetch.
+ */
+function useContextMutation(
+  queryKey: readonly unknown[],
+  fn: (conversationId: string, entityType: string, objectId: string) => Promise<AgentConversationDetail>,
+) {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation<
+    AgentConversationDetail,
+    unknown,
+    { conversationId: string; entityType: string; objectId: string }
+  >({
+    mutationFn: ({ conversationId, entityType, objectId }) =>
+      fn(conversationId, entityType, objectId),
+    onSuccess: (detail) => {
+      qc.setQueryData(queryKey, detail);
+      qc.setQueryData(agentKeys.conversation(detail.id), detail);
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function usePinContext(queryKey: readonly unknown[]) {
+  return useContextMutation(queryKey, pinContext);
+}
+
+export function useUnpinContext(queryKey: readonly unknown[]) {
+  return useContextMutation(queryKey, unpinContext);
+}
+
+/** Search household entities for the context picker (enabled once the query is ≥ 2 chars). */
+export function useContextSearch(query: string) {
+  const trimmed = query.trim();
+  return useQuery<AgentSearchResult[]>({
+    queryKey: agentKeys.contextSearch(trimmed),
+    queryFn: () => searchHouseholdEntities(trimmed),
+    enabled: trimmed.length >= 2,
+    staleTime: 30_000,
   });
 }
 

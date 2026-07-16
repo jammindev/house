@@ -56,7 +56,7 @@ export const GETTING_STARTED: GettingStartedItem[] = [
 /** Guides — pages transverses d'abord, puis un guide par module (ordre MODULES). */
 export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'dashboard', Icon: LayoutDashboard, to: '/app/dashboard', stepIds: ['overview', 'activity', 'alerts'] },
-  { key: 'agent', Icon: Sparkles, to: '/app/agent', stepIds: ['ask', 'citations', 'create', 'memory'] },
+  { key: 'agent', Icon: Sparkles, to: '/app/agent', stepIds: ['ask', 'citations', 'context', 'create', 'memory'] },
   { key: 'zones', moduleKey: 'zones', to: '/app/zones', stepIds: ['create', 'hierarchy', 'navigate'] },
   { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'purchase', 'history'] },
   { key: 'electricity', moduleKey: 'electricity', to: '/app/electricity', stepIds: ['board', 'readings', 'analyze'] },

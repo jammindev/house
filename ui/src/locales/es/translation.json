@@ -978,6 +978,10 @@
             "title": "Comprobar las fuentes",
             "body": "Cada respuesta cita los elementos usados; haz clic en una cita para abrir el elemento."
           },
+          "context": {
+            "title": "Darle contexto",
+            "body": "En una página de detalle, el panel «Lo que sé» muestra lo que el asistente ya conoce — usa «Añadir contexto» para señalarle otro proyecto, nota o equipo."
+          },
           "create": {
             "title": "Crear desde el chat",
             "body": "Pide «crea una tarea…» o «anota que…»: el elemento se crea al instante, con botón de Deshacer."
@@ -2492,6 +2496,21 @@
       "stock_low": "¿Qué se está agotando en mi stock?",
       "find_document": "Encuentra un documento importante",
       "project_cost": "¿Cuánto costó mi último proyecto?"
+    },
+    "context": {
+      "title": "Lo que sé",
+      "empty": "Todavía no tengo contexto vinculado. Añade un elemento para que lo tenga en cuenta.",
+      "add": "Añadir contexto",
+      "addTitle": "Añadir contexto",
+      "addDescription": "Busca un elemento (proyecto, nota, equipo…) para añadir a lo que sé.",
+      "searchPlaceholder": "Buscar en tu hogar…",
+      "searchHint": "Escribe al menos 2 caracteres para buscar.",
+      "noResults": "Ningún elemento encontrado.",
+      "alreadyAdded": "Ya añadido",
+      "added": "«{{label}}» añadido al contexto",
+      "removed": "«{{label}}» eliminado del contexto",
+      "remove": "Eliminar {{label}} del contexto",
+      "unavailable": "Este elemento ya no existe"
     }
   },
   "expenses": {

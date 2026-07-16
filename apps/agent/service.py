@@ -70,6 +70,7 @@ def ask(
     client: LLMClient | None = None,
     history: list[dict] | None = None,
     context_entity: tuple[str, str] | None = None,
+    pinned_entities: list[tuple[str, str]] | None = None,
 ) -> AnswerResult:
     """Answer ``question`` using the data of ``household``. Always returns a result.
 
@@ -85,6 +86,7 @@ def ask(
         client=client,
         history=history,
         context_entity=context_entity,
+        pinned_entities=pinned_entities,
     ):
         if event["type"] == "result":
             result = event["result"]
@@ -100,6 +102,7 @@ def ask_stream(
     client: LLMClient | None = None,
     history: list[dict] | None = None,
     context_entity: tuple[str, str] | None = None,
+    pinned_entities: list[tuple[str, str]] | None = None,
 ):
     """Streaming variant of ``ask`` — a generator of progress events.
 
@@ -114,7 +117,9 @@ def ask_stream(
 
     ``history`` is an optional list of prior turns (``{"role", "content"}``,
     oldest first). ``context_entity`` is an optional ``(entity_type, object_id)``
-    anchor whose full context is pre-injected (see ``ask``).
+    anchor whose full context is pre-injected (see ``ask``). ``pinned_entities``
+    are extra ``(entity_type, object_id)`` contexts the user asked to keep in mind
+    — each is pre-injected exactly like the anchor, in addition to it.
     """
     cleaned = (question or "").strip()
     if not cleaned:
@@ -132,12 +137,15 @@ def ask_stream(
 
     hit_pool: dict[tuple[str, Any], Any] = {}
 
-    # Resolve the anchor (if any) before building the conversation so its context
-    # leads the messages and its hits are citable from the first answer.
-    entity_context = _resolve_context(context_entity, household)
-    anchored = entity_context is not None
-    if anchored:
-        for hit in entity_context.hits:
+    # Resolve the anchor + any pinned contexts before building the conversation
+    # so they lead the messages and their hits are citable from the first answer.
+    # The anchor comes first; each pinned entity is injected just like it.
+    anchor_context = _resolve_context(context_entity, household)
+    pinned_contexts = _resolve_contexts(pinned_entities, household)
+    entity_contexts = ([anchor_context] if anchor_context else []) + pinned_contexts
+    anchored = bool(entity_contexts)
+    for ctx in entity_contexts:
+        for hit in ctx.hits:
             hit_pool[(hit.entity_type, hit.id)] = hit
 
     # User memory: with a user and their flag ON, inject their stored memories
@@ -160,7 +168,7 @@ def ask_stream(
         memories=memories,
         web_search=web_search_on,
     )
-    messages = _build_messages(cleaned, history, entity_context)
+    messages = _build_messages(cleaned, history, entity_contexts)
     created_entities: list[dict] = []
     updated_entities: list[dict] = []
     memory_events: list[dict] = []
@@ -264,7 +272,7 @@ def ask_stream(
                 household=household,
                 user=user,
                 client=llm,
-                context_entity=context_entity if entity_context else None,
+                context_entity=context_entity if anchor_context else None,
             )
             for hit in result.hits:
                 hit_pool[(hit.entity_type, hit.id)] = hit
@@ -352,6 +360,20 @@ def _resolve_context(context_entity, household):
     return context_builder.build_entity_context(entity_type, object_id, household)
 
 
+def _resolve_contexts(entities, household):
+    """Resolve a list of ``(entity_type, object_id)`` into EntityContexts.
+
+    Unresolvable entries (unknown type, orphaned pin) are silently dropped, same
+    tolerance as the single-anchor path — a stale pin never breaks the answer.
+    """
+    contexts = []
+    for entity in entities or []:
+        ctx = _resolve_context(entity, household)
+        if ctx is not None:
+            contexts.append(ctx)
+    return contexts
+
+
 # Frames the pre-injected anchor context as the opening user turn. The assistant
 # ack keeps a valid user/assistant alternation before the real history/question.
 _CONTEXT_PREAMBLE = (
@@ -366,18 +388,18 @@ _CONTEXT_ACK = "Understood — I have the full context of this item and will ans
 def _build_messages(
     question: str,
     history: list[dict] | None,
-    entity_context=None,
+    entity_contexts=None,
 ) -> list[dict]:
-    """Turn the optional anchor context + prior turns + the question into messages.
+    """Turn the pre-injected contexts + prior turns + the question into messages.
 
     History roles come from ``AgentMessage`` (``"user"`` / ``"agent"``); the
-    agent role maps to ``"assistant"``. Empty turns are skipped. When an
-    ``entity_context`` is present it leads as a synthetic user/assistant pair so
-    the model starts already holding the item's data. The current question is
-    always the trailing user turn.
+    agent role maps to ``"assistant"``. Empty turns are skipped. Each
+    ``entity_context`` (the anchor first, then any pinned entity) leads as its own
+    synthetic user/assistant pair so the model starts already holding every
+    item's data. The current question is always the trailing user turn.
     """
     messages: list[dict] = []
-    if entity_context is not None:
+    for entity_context in entity_contexts or []:
         messages.append(
             {
                 "role": "user",

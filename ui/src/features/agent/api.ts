@@ -88,11 +88,37 @@ export interface AgentConversationRow {
   last_message_preview?: string;
 }
 
+/**
+ * One entity currently in the agent's context, for the "what I know" panel.
+ * `origin` marks which chips the user can remove (`pinned`) vs. the structural
+ * anchor + its linked items. `available` is false for a pinned pointer whose
+ * row no longer resolves (a dangling pin, still removable).
+ */
+export interface AgentContextItem {
+  entity_type: string;
+  object_id: string;
+  label: string;
+  url: string;
+  origin: 'anchor' | 'related' | 'pinned';
+  available: boolean;
+}
+
+/** A candidate entity returned by the context search picker. */
+export interface AgentSearchResult {
+  entity_type: string;
+  object_id: string;
+  label: string;
+  url: string;
+  snippet: string;
+}
+
 /** Full conversation with its ordered messages. */
 export interface AgentConversationDetail extends AgentConversationRow {
   /** Set when the conversation is anchored to a household entity (e.g. a project). */
   context_entity_type?: string;
   context_object_id?: string;
+  /** Everything the agent currently knows about — mirrors what `ask` injects. */
+  injected_context?: AgentContextItem[];
   messages: AgentMessageRow[];
 }
 
@@ -153,6 +179,44 @@ export async function postConversationMessage(
     { timeout: AGENT_MESSAGE_TIMEOUT_MS },
   );
   return data;
+}
+
+/** Pin an extra household entity to a conversation's context. Returns the refreshed detail. */
+export async function pinContext(
+  conversationId: string,
+  entityType: string,
+  objectId: string,
+): Promise<AgentConversationDetail> {
+  const { data } = await api.post<AgentConversationDetail>(
+    `/agent/conversations/${conversationId}/pin_context/`,
+    { entity_type: entityType, object_id: objectId },
+  );
+  return data;
+}
+
+/** Remove a pinned entity from a conversation's context. Returns the refreshed detail. */
+export async function unpinContext(
+  conversationId: string,
+  entityType: string,
+  objectId: string,
+): Promise<AgentConversationDetail> {
+  const { data } = await api.post<AgentConversationDetail>(
+    `/agent/conversations/${conversationId}/unpin_context/`,
+    { entity_type: entityType, object_id: objectId },
+  );
+  return data;
+}
+
+/**
+ * Full-text search over the household's entities for the context picker. Reuses
+ * the agent's own retrieval so the picker surfaces exactly what the agent finds.
+ */
+export async function searchHouseholdEntities(query: string): Promise<AgentSearchResult[]> {
+  const { data } = await api.get<AgentSearchResult[]>(
+    '/agent/conversations/search_context/',
+    { params: { q: query } },
+  );
+  return Array.isArray(data) ? data : [];
 }
 
 export async function renameConversation(

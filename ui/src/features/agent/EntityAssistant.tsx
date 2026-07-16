@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import ChatPanel from './ChatPanel';
-import { useEntityConversation } from './hooks';
+import ContextPanel from './ContextPanel';
+import { agentKeys, useEntityConversation } from './hooks';
 
 interface Props {
   /** A household entity type registered in the agent (e.g. 'project'). */
@@ -19,15 +20,24 @@ interface Props {
 export default function EntityAssistant({ entityType, objectId }: Props) {
   const { t } = useTranslation();
   const conversationQuery = useEntityConversation(entityType, objectId);
+  const conversation = conversationQuery.data;
 
   return (
-    <ChatPanel
-      conversationId={conversationQuery.data?.id ?? null}
-      conversation={conversationQuery.data}
-      emptyTitle={t('agent.entity.empty_title')}
-      emptyHint={t('agent.entity.empty_hint')}
-      testIdPrefix="agent-entity"
-      className="h-[60vh]"
-    />
+    <div className="flex flex-col gap-3">
+      {conversation ? (
+        <ContextPanel
+          conversation={conversation}
+          queryKey={agentKeys.entityConversation(entityType, objectId)}
+        />
+      ) : null}
+      <ChatPanel
+        conversationId={conversation?.id ?? null}
+        conversation={conversation}
+        emptyTitle={t('agent.entity.empty_title')}
+        emptyHint={t('agent.entity.empty_hint')}
+        testIdPrefix="agent-entity"
+        className="h-[60vh]"
+      />
+    </div>
   );
 }

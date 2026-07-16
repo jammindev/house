@@ -5,8 +5,8 @@
 ## État synthétique
 
 - **Backend** : `apps/agent/` — orchestrateur (`service.py`), tools function-calling (`tools.py`), retrieval full-text (`retrieval.py`), registry des entités searchables (`searchables.py`), prompts (`prompts.py`), contexte ancré (`context.py`), persistance conversations (`models.py`).
-- **Frontend** : `ui/src/features/agent/` — `AgentPage` (pleine page, sidebar de conversations), `EntityAssistant` (chat ancré sans sidebar), `ChatBubble` (markdown + citations), `PrivacyNotice`.
-- **Locales (en/fr/de/es)** : namespace `agent` (dont `agent.entity.*` pour le chat ancré, `agent.memory.*` pour la mémoire utilisateur).
+- **Frontend** : `ui/src/features/agent/` — `AgentPage` (pleine page, sidebar de conversations), `EntityAssistant` (chat ancré sans sidebar), `ContextPanel` + `AddContextDialog` (panneau « Ce que je sais » : contexte visible + épinglage), `ChatBubble` (markdown + citations), `PrivacyNotice`.
+- **Locales (en/fr/de/es)** : namespace `agent` (dont `agent.entity.*` pour le chat ancré, `agent.context.*` pour le panneau de contexte, `agent.memory.*` pour la mémoire utilisateur).
 - **Mémoire utilisateur** : `apps/agent/memory.py` (service), modèle `AgentMemory`, tool `manage_memory`, page `ui/src/features/agent/MemoryPage.tsx`, toggle `AgentMemorySection` dans les réglages.
 - **Tests** : `apps/agent/tests/` — `test_service.py`, `test_tools.py`, `test_context.py`, `test_conversations_api.py`, `test_retrieval.py`, `test_prompts.py`, `test_registry.py`, `test_query_expansion.py`, `test_retention.py`, `test_llm.py`, `test_models.py`, `test_views.py`, `test_memory.py`.
 
@@ -127,6 +127,36 @@ ré-injecté à chaque tour (reste frais), borné par les budgets `RELATED_*`.
 Aucune modification de `apps/agent/` n'est nécessaire pour brancher une nouvelle
 entité.
 
+### Contexte visible + épinglage (2026-07)
+
+`EntityAssistant` affiche au-dessus du chat un panneau **« Ce que je sais »**
+(`ContextPanel`) : la liste, en chips, de tout ce que l'agent a en contexte —
+l'ancre, ses items liés, et les entités **épinglées** par l'utilisateur. Le but :
+rendre le contexte transparent et laisser l'utilisateur y ajouter un projet, une
+interaction, un équipement… sans quitter la conversation.
+
+- **Source de vérité unique** : `context.describe_conversation_context(conversation,
+  household)` renvoie une liste de `ContextItem` `(entity_type, object_id, label,
+  url, origin, available)` en **réutilisant `build_entity_context`** — donc un chip
+  n'apparaît que si le modèle reçoit effectivement l'item. `origin` ∈
+  `anchor | related | pinned` ; seuls les `pinned` sont retirables. Exposé en
+  lecture via `ConversationDetailSerializer.injected_context`.
+- **Épingles persistées** : champ `AgentConversation.pinned_contexts` (JSON, liste
+  de `{entity_type, object_id}`, plafond `MAX_PINNED_CONTEXTS = 10`). Mêmes strings
+  que l'ancre — pas de table dédiée (petit set de pointeurs, jamais requêté seul).
+  Helpers dans `conversations.py` : `pin_context` / `unpin_context` (idempotents,
+  tolérants) + `pinned_entities`.
+- **Injection** : `service.ask(..., pinned_entities=[...])` pré-injecte **chaque**
+  épingle exactement comme l'ancre (contexte complet + items liés, hits citables,
+  paire de messages synthétique). `anchored` est vrai dès qu'il y a une ancre *ou*
+  une épingle résoluble ; une épingle orpheline est silencieusement ignorée (le
+  chip reste visible en `available=false` pour être retiré).
+- **Picker** : `GET conversations/search_context/?q=` réutilise `retrieval.search`
+  (même ranking, même gating modules que `search_household`) → `AddContextDialog`
+  liste les candidats, grise ceux déjà présents. `pin_context` / `unpin_context`
+  (POST) renvoient la conversation avec son `injected_context` rafraîchi ; le front
+  fait un toast + undo (re-pin) sur retrait.
+
 ## Mémoire utilisateur (2026-07)
 
 L'agent retient des **faits durables sur l'utilisateur** (préférences, habitudes,
@@ -202,6 +232,11 @@ Sous `/api/agent/` :
   (générateur, `ask()` le draine pour les appels non-streamés) → view SSE.
 - `GET conversations/for_context/?entity_type=&object_id=` — get-or-create de la
   conversation ancrée d'une entité pour l'utilisateur courant.
+- `POST {id}/pin_context/` / `POST {id}/unpin_context/` (body `{entity_type,
+  object_id}`) — épingle/retire une entité du contexte de la conversation ; renvoie
+  la conversation avec son `injected_context` rafraîchi.
+- `GET conversations/search_context/?q=` — recherche full-text foyer (réutilise
+  `retrieval.search`) pour le picker « Ajouter du contexte » ; `q` vide → `[]`.
 - `memories/` (CRUD, privé par user × foyer) + `DELETE memories/clear/` (efface
   tout, renvoie `{deleted: n}`) — mémoire utilisateur.
 - Permissions : `IsAuthenticated, IsHouseholdMember` ; `ask`, `messages` et

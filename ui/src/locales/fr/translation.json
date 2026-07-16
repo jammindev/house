@@ -978,6 +978,10 @@
             "title": "Vérifier les sources",
             "body": "Chaque réponse cite les éléments utilisés ; cliquez une citation pour ouvrir l'élément."
           },
+          "context": {
+            "title": "Lui donner du contexte",
+            "body": "Sur une page de détail, le panneau « Ce que je sais » montre ce que l'assistant connaît déjà — utilisez « Ajouter du contexte » pour lui pointer un autre projet, une note ou un équipement."
+          },
           "create": {
             "title": "Créer depuis le chat",
             "body": "Demandez « crée une tâche… » ou « note que… » : l'élément est créé immédiatement, avec un bouton Annuler."
@@ -2492,6 +2496,21 @@
       "stock_low": "Qu'est-ce qui manque dans mon stock ?",
       "find_document": "Retrouve un document important",
       "project_cost": "Combien m'a coûté mon dernier projet ?"
+    },
+    "context": {
+      "title": "Ce que je sais",
+      "empty": "Je n'ai pas encore de contexte lié. Ajoute un élément pour que j'en tienne compte.",
+      "add": "Ajouter du contexte",
+      "addTitle": "Ajouter du contexte",
+      "addDescription": "Recherche un élément (projet, note, équipement…) à ajouter à ce que je sais.",
+      "searchPlaceholder": "Rechercher dans ton foyer…",
+      "searchHint": "Saisis au moins 2 caractères pour rechercher.",
+      "noResults": "Aucun élément trouvé.",
+      "alreadyAdded": "Déjà ajouté",
+      "added": "« {{label}} » ajouté au contexte",
+      "removed": "« {{label}} » retiré du contexte",
+      "remove": "Retirer {{label}} du contexte",
+      "unavailable": "Cet élément n'existe plus"
     }
   },
   "expenses": {

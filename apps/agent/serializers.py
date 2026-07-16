@@ -1,8 +1,11 @@
 """Serializers for the agent API."""
 from __future__ import annotations
 
+import dataclasses
+
 from rest_framework import serializers
 
+from .context import describe_conversation_context
 from .models import AgentConversation, AgentMemory, AgentMessage
 
 
@@ -66,9 +69,15 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
     ``context_entity_type`` / ``context_object_id`` anchor the conversation to a
     household entity (write-on-create only): every ask then pre-injects that
     entity's context. Left blank for a plain, unanchored conversation.
+
+    ``injected_context`` is the resolved, human-readable view of everything the
+    agent currently knows about (anchor + linked items + user-pinned entities) —
+    it mirrors exactly what ``ask`` pre-injects, so the UI "what I know" panel is
+    honest by construction.
     """
 
     messages = AgentMessageSerializer(many=True, read_only=True)
+    injected_context = serializers.SerializerMethodField()
 
     class Meta:
         model = AgentConversation
@@ -79,9 +88,16 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "context_entity_type",
             "context_object_id",
+            "injected_context",
             "messages",
         ]
         read_only_fields = ["id", "last_message_at", "created_at", "messages"]
+
+    def get_injected_context(self, obj) -> list[dict]:
+        return [
+            dataclasses.asdict(item)
+            for item in describe_conversation_context(obj, obj.household)
+        ]
 
 
 class ConversationUpdateSerializer(serializers.ModelSerializer):
