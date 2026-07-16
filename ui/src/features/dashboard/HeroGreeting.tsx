@@ -8,7 +8,7 @@ export default function HeroGreeting() {
   const { user } = useAuth();
   const { data } = useAlertsSummary();
 
-  const name = user?.first_name || user?.email || '';
+  const name = user?.display_name || user?.first_name || user?.email || '';
   const total = data?.total;
 
   return (

@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   first_name: string;
   last_name: string;
+  display_name: string;
   active_household: string | null;
   locale?: string;
   is_staff?: boolean;
