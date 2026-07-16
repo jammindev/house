@@ -978,6 +978,10 @@
             "title": "Vérifier les sources",
             "body": "Chaque réponse cite les éléments utilisés ; cliquez une citation pour ouvrir l'élément."
           },
+          "web": {
+            "title": "L'autoriser à chercher sur le web",
+            "body": "Quand elle est disponible, le bouton 🌐 près de la zone de saisie autorise l'assistant à chercher sur internet si les données du foyer ne suffisent pas. Désactivé par défaut, réglé par conversation, et c'est l'assistant qui décide quand chercher."
+          },
           "context": {
             "title": "Lui donner du contexte",
             "body": "Sur une page de détail, le panneau « Ce que je sais » montre ce que l'assistant connaît déjà — utilisez « Ajouter du contexte » pour lui pointer un autre projet, une note ou un équipement."
@@ -2435,6 +2439,10 @@
     },
     "citations_label": "Sources",
     "web_sources_label": "Sources web",
+    "web_search": {
+      "toggle_label": "Rechercher sur le web",
+      "toggle_hint": "Autorise l'assistant à chercher sur internet quand les données du foyer ne suffisent pas. C'est lui qui décide quand chercher."
+    },
     "privacy": {
       "title": "Avant de commencer",
       "intro": "L'agent lit les données de ton foyer pour répondre à tes questions. Quelques infos utiles :",

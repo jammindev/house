@@ -150,10 +150,10 @@ export function usePostMessage() {
   return useMutation<
     AgentMessageRow,
     unknown,
-    { conversationId: string; question: string }
+    { conversationId: string; question: string; webSearch?: boolean }
   >({
-    mutationFn: ({ conversationId, question }) =>
-      postConversationMessage(conversationId, question),
+    mutationFn: ({ conversationId, question, webSearch }) =>
+      postConversationMessage(conversationId, question, webSearch),
     onSuccess: (_msg, { conversationId }) => {
       // Recency + auto-title change on the server; refresh the list. The detail
       // is kept in sync locally by the page, so we don't refetch it here.
@@ -176,10 +176,15 @@ export function useStreamMessage() {
   return useMutation<
     AgentMessageRow,
     unknown,
-    { conversationId: string; question: string; handlers?: AgentStreamHandlers }
+    {
+      conversationId: string;
+      question: string;
+      handlers?: AgentStreamHandlers;
+      webSearch?: boolean;
+    }
   >({
-    mutationFn: ({ conversationId, question, handlers }) =>
-      streamConversationMessage(conversationId, question, handlers),
+    mutationFn: ({ conversationId, question, handlers, webSearch }) =>
+      streamConversationMessage(conversationId, question, handlers, webSearch),
     onSuccess: (_msg, { conversationId }) => {
       void qc.invalidateQueries({ queryKey: agentKeys.conversations() });
       void qc.invalidateQueries({

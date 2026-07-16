@@ -47,6 +47,21 @@ def _sse(event: str, payload: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(payload, default=str)}\n\n"
 
 
+def _apply_web_search_pref(conversation, validated) -> bool:
+    """Persist the per-turn web-search arming, if the message carried one, and
+    return the effective flag to pass down as ``allow_web_search``.
+
+    ``web_search`` omitted (``None``) → leave the stored preference untouched; a
+    bool updates it. The toggle thus rides with the message: no PATCH endpoint,
+    and a conversation created on its first message is armed in the same call.
+    """
+    web_search = validated.get("web_search")
+    if web_search is not None and web_search != conversation.web_search_enabled:
+        conversation.web_search_enabled = web_search
+        conversation.save(update_fields=["web_search_enabled"])
+    return conversation.web_search_enabled
+
+
 class AskView(APIView):
     """``POST /api/agent/ask/`` — answer a household question."""
 
@@ -171,6 +186,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
         request_serializer = PostMessageSerializer(data=request.data)
         request_serializer.is_valid(raise_exception=True)
         question = request_serializer.validated_data["question"]
+        allow_web_search = _apply_web_search_pref(
+            conversation, request_serializer.validated_data
+        )
 
         # History built before we persist the new question so the current turn
         # isn't fed back to itself. Anchored conversations pre-inject context —
@@ -185,6 +203,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 history=history,
                 context_entity=context_entity,
                 pinned_entities=_pinned_entities(conversation),
+                allow_web_search=allow_web_search,
             )
         except LLMTimeoutError:
             return Response(
@@ -217,6 +236,9 @@ class ConversationViewSet(viewsets.ModelViewSet):
         request_serializer = PostMessageSerializer(data=request.data)
         request_serializer.is_valid(raise_exception=True)
         question = request_serializer.validated_data["question"]
+        allow_web_search = _apply_web_search_pref(
+            conversation, request_serializer.validated_data
+        )
 
         history, context_entity = _ask_inputs(conversation)
         pinned = _pinned_entities(conversation)
@@ -232,6 +254,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                     history=history,
                     context_entity=context_entity,
                     pinned_entities=pinned,
+                    allow_web_search=allow_web_search,
                 ):
                     if event["type"] == "delta":
                         yield _sse("delta", {"text": event["text"]})

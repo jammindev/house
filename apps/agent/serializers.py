@@ -88,10 +88,11 @@ class ConversationDetailSerializer(serializers.ModelSerializer):
             "created_at",
             "context_entity_type",
             "context_object_id",
+            "web_search_enabled",
             "injected_context",
             "messages",
         ]
-        read_only_fields = ["id", "last_message_at", "created_at", "messages"]
+        read_only_fields = ["id", "last_message_at", "created_at", "web_search_enabled", "messages"]
 
     def get_injected_context(self, obj) -> list[dict]:
         return [
@@ -111,6 +112,10 @@ class ConversationUpdateSerializer(serializers.ModelSerializer):
 
 class PostMessageSerializer(serializers.Serializer):
     question = serializers.CharField(min_length=1, max_length=2000, trim_whitespace=True)
+    # Optional per-conversation arming of web search. ``None`` (omitted) leaves the
+    # conversation's stored preference untouched; a bool updates it and applies to
+    # this turn. The toggle "rides" with the message — no separate PATCH endpoint.
+    web_search = serializers.BooleanField(required=False, allow_null=True, default=None)
 
 
 # --- User memory ---------------------------------------------------------------

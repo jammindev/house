@@ -226,6 +226,28 @@ class TestMeEndpoint:
         response = api_client.get(url)
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
+    def test_me_exposes_web_search_capability_from_settings(
+        self, authenticated_client, user, settings
+    ):
+        """`agent_web_search_available` mirrors the instance capability flag."""
+        url = reverse("user-me")
+
+        settings.AGENT_WEB_SEARCH_ENABLED = False
+        assert authenticated_client.get(url).data["agent_web_search_available"] is False
+
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        assert authenticated_client.get(url).data["agent_web_search_available"] is True
+
+    def test_me_web_search_capability_is_read_only(self, authenticated_client, user, settings):
+        """Clients can't flip the capability by PATCHing the computed field."""
+        settings.AGENT_WEB_SEARCH_ENABLED = False
+        url = reverse("user-me")
+        response = authenticated_client.patch(
+            url, {"agent_web_search_available": True}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["agent_web_search_available"] is False
+
     def test_me_patch_updates_display_name(self, authenticated_client, user):
         """PATCH /me/ updates display_name."""
         url = reverse("user-me")

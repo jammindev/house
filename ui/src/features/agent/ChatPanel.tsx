@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Send, Sparkles, AlertTriangle, RotateCcw } from 'lucide-react';
+import { Send, Sparkles, AlertTriangle, RotateCcw, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
+import { useCurrentUser } from '@/features/settings/hooks';
 import { cn } from '@/lib/utils';
 import ChatBubble from './ChatBubble';
 import PrivacyNotice from './PrivacyNotice';
@@ -120,9 +121,16 @@ export default function ChatPanel({
   const notifyCreated = useAgentCreatedUndo();
   const notifyUpdated = useAgentUpdatedUndo();
   const notifyMemory = useAgentMemoryEvents();
+  // Instance capability gate: the toggle only exists on a deployment that enabled
+  // web search (implies a Sonnet 4.6+ model) — never an inert control otherwise.
+  const { data: currentUser } = useCurrentUser();
+  const webSearchAvailable = Boolean(currentUser?.agent_web_search_available);
 
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [draft, setDraft] = React.useState('');
+  // Per-conversation arming of web search. Seeded from the loaded conversation,
+  // reset on switch; the agent still decides *when* to search when it's on.
+  const [webSearch, setWebSearch] = React.useState(false);
   const [needsPrivacy, setNeedsPrivacy] = React.useState(false);
   // Live progress of the in-flight turn: partial text + the tool currently
   // running. Text received before a tool call is preamble ("je cherche…") and
@@ -153,13 +161,15 @@ export default function ChatPanel({
     if (loadedRef.current === conversationId) return; // we created it mid-submit
     loadedRef.current = null;
     setMessages([]);
+    setWebSearch(false);
   }, [conversationId]);
 
-  // Seed local messages from the loaded conversation, once per conversation.
+  // Seed local messages + web-search arming from the loaded conversation, once.
   React.useEffect(() => {
     if (conversation && loadedRef.current !== conversation.id) {
       loadedRef.current = conversation.id;
       setMessages(conversation.messages.map(toMessage));
+      setWebSearch(Boolean(conversation.web_search_enabled));
     }
   }, [conversation]);
 
@@ -203,6 +213,7 @@ export default function ChatPanel({
         const agentMsg = await streamMessage.mutateAsync({
           conversationId: id,
           question: trimmed,
+          webSearch: webSearchAvailable ? webSearch : undefined,
           handlers: {
             onDelta: (text) =>
               // A delta after a tool event starts the next turn's text fresh.
@@ -237,7 +248,7 @@ export default function ChatPanel({
         setLive(null);
       }
     },
-    [draft, isBusy, conversationId, ensureConversation, streamMessage, notifyCreated, notifyUpdated, notifyMemory, t],
+    [draft, isBusy, conversationId, ensureConversation, streamMessage, notifyCreated, notifyUpdated, notifyMemory, webSearch, webSearchAvailable, t],
   );
 
   const toolLabel = live?.tool
@@ -330,6 +341,25 @@ export default function ChatPanel({
           className="min-h-0 flex-1 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
           data-testid={`${testIdPrefix}-input`}
         />
+        {webSearchAvailable ? (
+          <button
+            type="button"
+            onClick={() => setWebSearch((v) => !v)}
+            disabled={needsPrivacy}
+            aria-pressed={webSearch}
+            aria-label={t('agent.web_search.toggle_label')}
+            title={t('agent.web_search.toggle_hint')}
+            data-testid={`${testIdPrefix}-web-search-toggle`}
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors disabled:opacity-50',
+              webSearch
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Globe className="h-4 w-4" />
+          </button>
+        ) : null}
         <Button
           type="submit"
           disabled={disabled || draft.trim().length === 0}

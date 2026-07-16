@@ -117,6 +117,8 @@ export interface AgentConversationDetail extends AgentConversationRow {
   /** Set when the conversation is anchored to a household entity (e.g. a project). */
   context_entity_type?: string;
   context_object_id?: string;
+  /** Per-conversation arming of web search (user toggle). Off by default. */
+  web_search_enabled?: boolean;
   /** Everything the agent currently knows about — mirrors what `ask` injects. */
   injected_context?: AgentContextItem[];
   messages: AgentMessageRow[];
@@ -172,10 +174,11 @@ const AGENT_MESSAGE_TIMEOUT_MS = 180_000;
 export async function postConversationMessage(
   conversationId: string,
   question: string,
+  webSearch?: boolean,
 ): Promise<AgentMessageRow> {
   const { data } = await api.post<AgentMessageRow>(
     `/agent/conversations/${conversationId}/messages/`,
-    { question },
+    { question, ...(webSearch === undefined ? {} : { web_search: webSearch }) },
     { timeout: AGENT_MESSAGE_TIMEOUT_MS },
   );
   return data;
@@ -288,6 +291,7 @@ export async function streamConversationMessage(
   conversationId: string,
   question: string,
   handlers: AgentStreamHandlers = {},
+  webSearch?: boolean,
 ): Promise<AgentMessageRow> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), AGENT_MESSAGE_TIMEOUT_MS);
@@ -302,7 +306,10 @@ export async function streamConversationMessage(
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({
+          question,
+          ...(webSearch === undefined ? {} : { web_search: webSearch }),
+        }),
         signal: controller.signal,
       },
     );

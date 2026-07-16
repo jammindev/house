@@ -886,3 +886,20 @@ class TestWebSearch:
 
         urls = [s["url"] for s in result.metadata["web_sources"]]
         assert urls == ["https://ex.com/a", "https://ex.com/b"]
+
+    def test_caller_disarm_overrides_enabled_instance(
+        self, with_api_key, settings, household, owner
+    ):
+        # Instance capability ON but the conversation didn't arm it → tool stays off.
+        settings.AGENT_WEB_SEARCH_ENABLED = True
+        stub = _ToolUseClient(script=[_run_text("Bonjour")])
+        service.ask("salut", household, user=owner, client=stub, allow_web_search=False)
+        assert stub.run_calls[0]["web_search"] is False
+
+    def test_caller_arm_cannot_bypass_disabled_instance(
+        self, with_api_key, household, owner
+    ):
+        # Capability OFF (default) → arming the conversation can't turn it on.
+        stub = _ToolUseClient(script=[_run_text("Bonjour")])
+        service.ask("salut", household, user=owner, client=stub, allow_web_search=True)
+        assert stub.run_calls[0]["web_search"] is False

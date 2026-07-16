@@ -978,6 +978,10 @@
             "title": "Comprobar las fuentes",
             "body": "Cada respuesta cita los elementos usados; haz clic en una cita para abrir el elemento."
           },
+          "web": {
+            "title": "Dejar que busque en la web",
+            "body": "Cuando está disponible, el botón 🌐 junto al campo de texto permite que el asistente busque en internet si los datos del hogar no bastan. Desactivado por defecto, se ajusta por conversación, y el asistente decide cuándo buscar."
+          },
           "context": {
             "title": "Darle contexto",
             "body": "En una página de detalle, el panel «Lo que sé» muestra lo que el asistente ya conoce — usa «Añadir contexto» para señalarle otro proyecto, nota o equipo."
@@ -2435,6 +2439,10 @@
     },
     "citations_label": "Fuentes",
     "web_sources_label": "Fuentes web",
+    "web_search": {
+      "toggle_label": "Buscar en la web",
+      "toggle_hint": "Permite que el asistente busque en internet cuando los datos del hogar no bastan. Él decide cuándo buscar."
+    },
     "privacy": {
       "title": "Antes de empezar",
       "intro": "El agente lee los datos de tu hogar para responder a tus preguntas. Algunas cosas a saber:",

@@ -15,6 +15,9 @@ export interface UserProfile {
   pinned_modules: string[];
   completed_tutorials: string[];
   agent_memory_enabled: boolean;
+  /** Instance capability: true only when the deployment enabled agent web search
+   * (implies a Sonnet 4.6+ model). Gates the per-conversation web-search toggle. */
+  agent_web_search_available: boolean;
   full_name: string;
   is_active: boolean;
   is_staff: boolean;

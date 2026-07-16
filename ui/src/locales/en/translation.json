@@ -978,6 +978,10 @@
             "title": "Check the sources",
             "body": "Every answer cites the items it used; click a citation to open the item."
           },
+          "web": {
+            "title": "Let it search the web",
+            "body": "When available, the 🌐 button by the input lets the assistant search the internet if your household data isn't enough. It's off by default, set per conversation, and the assistant decides when to search."
+          },
           "context": {
             "title": "Give it context",
             "body": "On a detail page, the assistant's \"What I know\" panel shows what it already knows — use \"Add context\" to point it at another project, note or equipment."
@@ -2435,6 +2439,10 @@
     },
     "citations_label": "Sources",
     "web_sources_label": "Web sources",
+    "web_search": {
+      "toggle_label": "Search the web",
+      "toggle_hint": "Let the assistant search the internet when your household data isn't enough. It decides when to search."
+    },
     "privacy": {
       "title": "Before you start",
       "intro": "The agent reads the data of your household to answer your questions. A few things to know:",

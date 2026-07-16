@@ -48,6 +48,13 @@ class AgentConversation(HouseholdScopedModel):
     # never queried or constrained on its own (mirrors the anchor's design).
     pinned_contexts = models.JSONField(default=list, blank=True)
 
+    # Per-conversation arming of the agent's web search. The server-side tool is
+    # only ever offered when the instance capability is on
+    # (settings.AGENT_WEB_SEARCH_ENABLED) AND this flag is set — the user arms it,
+    # the agent still decides *when* to search. Off by default (cost-conscious).
+    # Persisted so the toggle survives reloads / syncs across the user's devices.
+    web_search_enabled = models.BooleanField(default=False)
+
     objects = HouseholdScopedManager()
 
     class Meta:
