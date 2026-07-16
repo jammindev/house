@@ -71,6 +71,7 @@ def ask(
     history: list[dict] | None = None,
     context_entity: tuple[str, str] | None = None,
     pinned_entities: list[tuple[str, str]] | None = None,
+    allow_web_search: bool = True,
 ) -> AnswerResult:
     """Answer ``question`` using the data of ``household``. Always returns a result.
 
@@ -87,6 +88,7 @@ def ask(
         history=history,
         context_entity=context_entity,
         pinned_entities=pinned_entities,
+        allow_web_search=allow_web_search,
     ):
         if event["type"] == "result":
             result = event["result"]
@@ -103,6 +105,7 @@ def ask_stream(
     history: list[dict] | None = None,
     context_entity: tuple[str, str] | None = None,
     pinned_entities: list[tuple[str, str]] | None = None,
+    allow_web_search: bool = True,
 ):
     """Streaming variant of ``ask`` — a generator of progress events.
 
@@ -120,6 +123,9 @@ def ask_stream(
     anchor whose full context is pre-injected (see ``ask``). ``pinned_entities``
     are extra ``(entity_type, object_id)`` contexts the user asked to keep in mind
     — each is pre-injected exactly like the anchor, in addition to it.
+    ``allow_web_search`` is the caller's per-conversation arming: the web search
+    tool is offered only when it is True *and* the instance capability
+    (``settings.AGENT_WEB_SEARCH_ENABLED``) is on.
     """
     cleaned = (question or "").strip()
     if not cleaned:
@@ -161,7 +167,10 @@ def ask_stream(
         else:
             memory_mode = "manual"
 
-    web_search_on = _web_search_enabled()
+    # Instance capability (settings) ANDed with the caller's arming: the tool is
+    # offered only when both are true. Legacy callers pass allow_web_search=True,
+    # so the global setting alone governs them (unchanged behaviour).
+    web_search_on = _web_search_enabled() and allow_web_search
     system_prompt = build_system_prompt(
         anchored=anchored,
         memory_mode=memory_mode,

@@ -264,6 +264,49 @@ class TestPostMessage:
         )
         assert resp.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_web_search_true_persists_and_arms_the_call(
+        self, owner_client, conversation, monkeypatch
+    ):
+        ask_mock = _patch_ask(monkeypatch, return_value=_answer())
+        owner_client.post(
+            f"{BASE}{conversation.id}/messages/",
+            {"question": "actu ?", "web_search": True},
+            format="json",
+        )
+        conversation.refresh_from_db()
+        assert conversation.web_search_enabled is True
+        assert ask_mock.call_args.kwargs["allow_web_search"] is True
+
+    def test_web_search_false_disarms_and_persists(
+        self, owner_client, household, owner, monkeypatch
+    ):
+        conv = AgentConversation.objects.create(
+            household=household, created_by=owner, web_search_enabled=True
+        )
+        ask_mock = _patch_ask(monkeypatch, return_value=_answer())
+        owner_client.post(
+            f"{BASE}{conv.id}/messages/",
+            {"question": "et là ?", "web_search": False},
+            format="json",
+        )
+        conv.refresh_from_db()
+        assert conv.web_search_enabled is False
+        assert ask_mock.call_args.kwargs["allow_web_search"] is False
+
+    def test_web_search_omitted_keeps_stored_preference(
+        self, owner_client, household, owner, monkeypatch
+    ):
+        conv = AgentConversation.objects.create(
+            household=household, created_by=owner, web_search_enabled=True
+        )
+        ask_mock = _patch_ask(monkeypatch, return_value=_answer())
+        owner_client.post(
+            f"{BASE}{conv.id}/messages/", {"question": "suite"}, format="json"
+        )
+        conv.refresh_from_db()
+        assert conv.web_search_enabled is True
+        assert ask_mock.call_args.kwargs["allow_web_search"] is True
+
 
 class TestForContext:
     """GET /conversations/for_context/ — one conversation per (user, entity)."""

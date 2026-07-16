@@ -978,6 +978,10 @@
             "title": "Die Quellen prüfen",
             "body": "Jede Antwort zitiert die verwendeten Elemente; klicken Sie ein Zitat, um das Element zu öffnen."
           },
+          "web": {
+            "title": "Im Web suchen lassen",
+            "body": "Wenn verfügbar, erlaubt die 🌐-Schaltfläche neben dem Eingabefeld dem Assistenten, im Internet zu suchen, falls die Haushaltsdaten nicht ausreichen. Standardmäßig aus, pro Unterhaltung einstellbar, und der Assistent entscheidet, wann gesucht wird."
+          },
           "context": {
             "title": "Kontext geben",
             "body": "Auf einer Detailseite zeigt das Panel „Was ich weiß“, was der Assistent schon kennt — mit „Kontext hinzufügen“ verweisen Sie ihn auf ein anderes Projekt, eine Notiz oder ein Gerät."
@@ -2435,6 +2439,10 @@
     },
     "citations_label": "Quellen",
     "web_sources_label": "Web-Quellen",
+    "web_search": {
+      "toggle_label": "Im Web suchen",
+      "toggle_hint": "Erlaube dem Assistenten, im Internet zu suchen, wenn die Haushaltsdaten nicht ausreichen. Er entscheidet, wann gesucht wird."
+    },
     "privacy": {
       "title": "Bevor du loslegst",
       "intro": "Der Agent liest die Daten deines Haushalts, um deine Fragen zu beantworten. Wichtig zu wissen:",
