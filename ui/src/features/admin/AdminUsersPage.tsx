@@ -4,6 +4,7 @@ import { UserCheck } from 'lucide-react';
 import { api } from '@/lib/axios';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useNavigate } from 'react-router-dom';
+import PageHeader from '@/components/PageHeader';
 
 interface UserRow {
   id: string;
@@ -36,7 +37,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold">{t('admin.users.title')}</h1>
+      <PageHeader title={t('admin.users.title')} />
 
       {isLoading ? (
         <p className="text-muted-foreground">{t('common.loading', 'Chargement…')}</p>

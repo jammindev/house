@@ -8,9 +8,13 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
 import { formatFileSize } from '@/lib/api/documents';
+import { formatDate } from '@/lib/format';
 import {
   useDocument,
   useDeleteDocument,
@@ -21,13 +25,6 @@ import DocumentEditDialog from './DocumentEditDialog';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useToast } from '@/lib/toast';
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
-}
 
 type Tab = 'info' | 'activity' | 'assistant';
 const TABS: Tab[] = ['info', 'activity', 'assistant'];
@@ -70,22 +67,12 @@ export default function DocumentDetailPage() {
   }
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading) return null;
 
   if (error || !doc) {
-    return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('documents.detail.not_found')}
-      </div>
-    );
+    return <LoadError message={t('documents.detail.not_found')} />;
   }
 
   const fileName = doc.name || doc.file_path.split('/').pop() || '';
@@ -100,43 +87,36 @@ export default function DocumentDetailPage() {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Back */}
-        <BackLink fallback="/app/documents" fallbackLabel={t('documents.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{fileName}</h1>
-              {doc.type && doc.type !== 'photo' && (
-                <Badge variant="secondary" className="text-xs">
-                  {t(`documents.type.${doc.type}`)}
-                </Badge>
-              )}
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">{formatDate(doc.created_at)}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-3 text-sm"
-              onClick={() => setEditOpen(true)}
-            >
-              {t('common.edit')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-8 px-3 text-sm"
-              onClick={() => setDeleteOpen(true)}
-            >
-              {t('common.delete')}
-            </Button>
-          </div>
-        </div>
+      <div className="space-y-6">
+        <PageHeader
+          backLink={<BackLink fallback="/app/documents" fallbackLabel={t('documents.title')} />}
+          title={fileName}
+          titleSuffix={
+            doc.type && doc.type !== 'photo' ? (
+              <Badge variant="secondary" className="text-xs">
+                {t(`documents.type.${doc.type}`)}
+              </Badge>
+            ) : undefined
+          }
+          description={formatDate(doc.created_at)}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 px-3 text-sm"
+            onClick={() => setEditOpen(true)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-8 px-3 text-sm"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {t('common.delete')}
+          </Button>
+        </PageHeader>
 
         {/* Tabs */}
         <TabShell<Tab>

@@ -8,6 +8,7 @@ import { Textarea } from '@/design-system/textarea';
 import { pushBack } from '@/lib/backNavigation';
 import { useProjectTasks } from '@/features/tasks/hooks';
 import { useProjectInteractions, projectKeys } from './hooks';
+import { formatDate, formatDateTime } from './format';
 import { useCreateInteraction, interactionKeys } from '@/features/interactions/hooks';
 import { fetchZones, findRootZone, type Zone } from '@/lib/api/zones';
 import { toast } from '@/lib/toast';
@@ -338,16 +339,3 @@ function QuickNoteForm({ project }: { project: ProjectListItem }) {
 
 // ── Helpers ────────────────────────────────────────────────
 
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
-}
-
-function formatDateTime(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
-}

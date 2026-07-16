@@ -5,15 +5,8 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
-import type { ProjectListItem, ProjectStatus, ProjectType } from '@/lib/api/projects';
-
-function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'outline' | 'destructive' {
-  if (status === 'active') return 'default';
-  if (status === 'completed') return 'secondary';
-  if (status === 'on_hold') return 'outline';
-  if (status === 'cancelled') return 'destructive';
-  return 'outline';
-}
+import type { ProjectListItem, ProjectType } from '@/lib/api/projects';
+import { statusVariant, formatDate, isOverdue, isDueSoon } from './format';
 
 function typeColor(type: ProjectType): string {
   const map: Record<ProjectType, string> = {
@@ -27,26 +20,6 @@ function typeColor(type: ProjectType): string {
     other: 'bg-muted text-muted-foreground border-border',
   };
   return map[type] ?? map.other;
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
-}
-
-function isOverdue(project: ProjectListItem): boolean {
-  if (!project.due_date) return false;
-  if (project.status === 'completed' || project.status === 'cancelled') return false;
-  return new Date(project.due_date) < new Date();
-}
-
-function isDueSoon(project: ProjectListItem): boolean {
-  if (!project.due_date) return false;
-  if (project.status === 'completed' || project.status === 'cancelled') return false;
-  const diffDays = (new Date(project.due_date).getTime() - Date.now()) / 86_400_000;
-  return diffDays >= 0 && diffDays <= 14;
 }
 
 function BudgetBar({ planned, actual }: { planned: number; actual: number }) {

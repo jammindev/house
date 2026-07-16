@@ -7,52 +7,27 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import DetailSection from '@/components/DetailSection';
+import InfoField from '@/components/InfoField';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
-import type { StockItemStatus } from '@/lib/api/stock';
+import { isPast } from '@/lib/format';
 import {
   useStockItem,
   useStockItemHistory,
   useDeleteStockItem,
   stockKeys,
 } from './hooks';
-import { formatQty, formatDate, formatDateTime } from './format';
+import { formatQty, formatDate, formatDateTime, formatAmount, statusVariant } from './format';
 import StockItemDialog from './StockItemDialog';
 import StockPurchaseDialog from './StockPurchaseDialog';
 import StockInventoryDialog from './StockInventoryDialog';
 import StockConsumptionTab from './StockConsumptionTab';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
-
-function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'out_of_stock' || status === 'expired') return 'destructive';
-  if (status === 'low_stock') return 'secondary';
-  if (status === 'ordered' || status === 'reserved') return 'outline';
-  return 'default';
-}
-
-function isExpired(dateStr?: string | null): boolean {
-  if (!dateStr) return false;
-  return new Date(dateStr) < new Date();
-}
-
-function formatAmount(value?: string | number | null): string {
-  if (value == null || value === '') return '—';
-  const parsed = Number(value);
-  if (Number.isNaN(parsed)) return String(value);
-  return `${parsed.toFixed(2)} €`;
-}
-
-function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 text-sm text-foreground">{children}</dd>
-    </div>
-  );
-}
 
 type Tab = 'info' | 'consumption' | 'history' | 'assistant';
 const TABS: Tab[] = ['info', 'consumption', 'history', 'assistant'];
@@ -89,45 +64,34 @@ export default function StockItemDetailPage() {
   if (!id) return null;
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading && !item) return null;
 
   if (error || !item) {
     return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('stock.errors.load_item_failed')}
-        <Link to="/app/stock" className="ml-2 underline hover:no-underline">
-          {t('stock.title')}
-        </Link>
-      </div>
+      <LoadError
+        message={t('stock.errors.load_item_failed')}
+        link={{ to: '/app/stock', label: t('stock.title') }}
+      />
     );
   }
 
-  const expired = isExpired(item.expiration_date);
+  const expired = isPast(item.expiration_date);
 
   return (
     <>
       <div className="space-y-6">
-        {/* Back */}
-        <BackLink fallback="/app/stock" fallbackLabel={t('stock.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{item.name}</h1>
-              <Badge variant={statusVariant(item.status)} className="text-xs">
-                {t(`stock.status.${item.status}`)}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
+        <PageHeader
+          backLink={<BackLink fallback="/app/stock" fallbackLabel={t('stock.title')} />}
+          title={item.name}
+          titleSuffix={
+            <Badge variant={statusVariant(item.status)} className="text-xs">
+              {t(`stock.status.${item.status}`)}
+            </Badge>
+          }
+          description={
+            <>
               {item.category_name || t('stock.labels.not_available')}
               {item.zone ? (
                 <>
@@ -142,45 +106,43 @@ export default function StockItemDetailPage() {
               ) : (
                 ` · ${t('stock.labels.no_zone')}`
               )}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button
-              type="button"
-              className="h-8 gap-1 px-3 text-sm"
-              onClick={() => setPurchaseOpen(true)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t('stock.purchase.actions.add')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 gap-1 px-3 text-sm"
-              onClick={() => setInventoryOpen(true)}
-            >
-              <ClipboardCheck className="h-3.5 w-3.5" />
-              {t('stock.inventory.actions.record')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-3 text-sm"
-              onClick={() => setEditOpen(true)}
-            >
-              {t('common.edit')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-8 px-3 text-sm"
-              onClick={() => setDeleteOpen(true)}
-            >
-              {t('common.delete')}
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        >
+          <Button
+            type="button"
+            className="h-8 gap-1 px-3 text-sm"
+            onClick={() => setPurchaseOpen(true)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('stock.purchase.actions.add')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 gap-1 px-3 text-sm"
+            onClick={() => setInventoryOpen(true)}
+          >
+            <ClipboardCheck className="h-3.5 w-3.5" />
+            {t('stock.inventory.actions.record')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 px-3 text-sm"
+            onClick={() => setEditOpen(true)}
+          >
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-8 px-3 text-sm"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {t('common.delete')}
+          </Button>
+        </PageHeader>
 
         {/* Tabs */}
         <TabShell<Tab>
@@ -191,17 +153,8 @@ export default function StockItemDetailPage() {
           {(tab) => (
             <>
               {tab === 'info' ? (
-                <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60">
-                      <Package className="h-5 w-5 text-muted-foreground" />
-                    </span>
-                    <h2 className="text-base font-semibold text-foreground">
-                      {t('stock.detail.title')}
-                    </h2>
-                  </div>
-
-                  <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <DetailSection title={t('stock.detail.title')} icon={Package}>
+                  <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <InfoField label={t('stock.fields.quantity')}>
                       {formatQty(item.quantity, item.unit)}
                     </InfoField>
@@ -270,7 +223,7 @@ export default function StockItemDetailPage() {
                       {item.notes}
                     </p>
                   ) : null}
-                </section>
+                </DetailSection>
               ) : null}
 
               {tab === 'consumption' ? (
@@ -296,11 +249,7 @@ export default function StockItemDetailPage() {
                   </div>
 
                   {historyLoading ? (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
-                      ))}
-                    </div>
+                    <ListSkeleton rows={3} rowClassName="h-12" />
                   ) : history.length === 0 ? (
                     <p className="text-sm italic text-muted-foreground">
                       {t('stock.detail.no_history')}

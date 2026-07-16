@@ -6,6 +6,10 @@ import { Layers, NotebookText, FileText, ImageIcon } from 'lucide-react';
 import { pushBack } from '@/lib/backNavigation';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
+import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import {
   useZone,
@@ -477,24 +481,16 @@ export default function ZoneDetailPage() {
   if (!id) return null;
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton rows={3} rowClassName="h-12" />;
   }
   if (isLoading && !zone) return null;
 
   if (error || !zone) {
     return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('zones.detail.notFound')}
-        <Link to="/app/zones" className="ml-2 underline hover:no-underline">
-          {t('zones.title')}
-        </Link>
-      </div>
+      <LoadError
+        message={t('zones.detail.notFound')}
+        link={{ to: '/app/zones', label: t('zones.title') }}
+      />
     );
   }
 
@@ -502,36 +498,35 @@ export default function ZoneDetailPage() {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-6">
+        <PageHeader
+          backLink={<BackLink fallback="/app/zones" fallbackLabel={t('zones.title')} />}
+          title={
+            <>
               <span
                 className="h-4 w-4 shrink-0 rounded-full"
                 style={{ backgroundColor: displayColor }}
               />
-              <h1 className="text-2xl font-bold text-foreground">{zone.name}</h1>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {parentId && parentName ? (
-                <Link
-                  to={`/app/zones/${parentId}`}
-                  className="hover:text-foreground hover:underline"
-                >
-                  {parentName}
-                </Link>
-              ) : (
-                t('zones.detail.subtitle')
-              )}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
-              {t('zones.detail.edit')}
-            </Button>
-          </div>
-        </div>
+              <span>{zone.name}</span>
+            </>
+          }
+          description={
+            parentId && parentName ? (
+              <Link
+                to={`/app/zones/${parentId}`}
+                className="hover:text-foreground hover:underline"
+              >
+                {parentName}
+              </Link>
+            ) : (
+              t('zones.detail.subtitle')
+            )
+          }
+        >
+          <Button variant="secondary" size="sm" onClick={() => setEditOpen(true)}>
+            {t('zones.detail.edit')}
+          </Button>
+        </PageHeader>
 
         {/* Tabs */}
         <TabShell

@@ -7,26 +7,13 @@ import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { pushBack } from '@/lib/backNavigation';
 import type { EquipmentListItem } from '@/lib/api/equipment';
+import { statusVariant, formatDate } from './format';
 
 interface EquipmentCardProps {
   item: EquipmentListItem;
   onEdit: (item: EquipmentListItem) => void;
   onDelete: (itemId: string) => void;
   onPurchase: (item: EquipmentListItem) => void;
-}
-
-function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'maintenance') return 'secondary';
-  if (status === 'lost') return 'destructive';
-  if (status === 'retired' || status === 'storage') return 'outline';
-  return 'default';
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
 }
 
 export default function EquipmentCard({ item, onEdit, onDelete, onPurchase }: EquipmentCardProps) {

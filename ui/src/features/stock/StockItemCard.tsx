@@ -6,8 +6,8 @@ import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { pushBack } from '@/lib/backNavigation';
-import type { StockItem, StockItemStatus } from '@/lib/api/stock';
-import { formatQty, formatDate } from './format';
+import type { StockItem } from '@/lib/api/stock';
+import { formatQty, formatDate, statusVariant } from './format';
 
 interface StockItemCardProps {
   item: StockItem;
@@ -15,13 +15,6 @@ interface StockItemCardProps {
   onDelete: (itemId: string) => void;
   onPurchase: (item: StockItem) => void;
   onInventory: (item: StockItem) => void;
-}
-
-function statusVariant(status: StockItemStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'out_of_stock' || status === 'expired') return 'destructive';
-  if (status === 'low_stock') return 'secondary';
-  if (status === 'ordered' || status === 'reserved') return 'outline';
-  return 'default';
 }
 
 export default function StockItemCard({ item, onEdit, onDelete, onPurchase, onInventory }: StockItemCardProps) {

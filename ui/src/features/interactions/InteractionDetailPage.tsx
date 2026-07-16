@@ -7,29 +7,14 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import InfoField from '@/components/InfoField';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { formatDateTime } from '@/lib/format';
 import { useInteraction, useDeleteInteraction } from './hooks';
-
-function formatDateTime(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
-}
-
-// ── Info field cell ────────────────────────────────────────
-
-function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 text-sm text-foreground">{children}</dd>
-    </div>
-  );
-}
 
 // ── Main page ──────────────────────────────────────────────
 
@@ -57,24 +42,16 @@ export default function InteractionDetailPage() {
   if (!id) return null;
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading) return null;
 
   if (error || !interaction) {
     return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('interactions.error_load_failed')}
-        <Link to="/app/interactions" className="ml-2 underline hover:no-underline">
-          {t('interactions.title')}
-        </Link>
-      </div>
+      <LoadError
+        message={t('interactions.error_load_failed')}
+        link={{ to: '/app/interactions', label: t('interactions.title') }}
+      />
     );
   }
 
@@ -86,44 +63,35 @@ export default function InteractionDetailPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Back */}
-        <BackLink fallback="/app/interactions" fallbackLabel={t('interactions.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{interaction.subject}</h1>
-              <Badge variant="outline">
-                {t(`equipment.interaction_type.${interaction.type}`)}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {formatDateTime(interaction.occurred_at)}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-3 text-sm"
-              onClick={() => navigate(`/app/interactions/${id}/edit`)}
-            >
-              <Pencil className="mr-1.5 h-3.5 w-3.5" />
-              {t('common.edit')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-8 px-3 text-sm"
-              onClick={() => setDeleteOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {t('common.delete')}
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          backLink={<BackLink fallback="/app/interactions" fallbackLabel={t('interactions.title')} />}
+          title={interaction.subject}
+          titleSuffix={
+            <Badge variant="outline">
+              {t(`equipment.interaction_type.${interaction.type}`)}
+            </Badge>
+          }
+          description={formatDateTime(interaction.occurred_at)}
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 px-3 text-sm"
+            onClick={() => navigate(`/app/interactions/${id}/edit`)}
+          >
+            <Pencil className="mr-1.5 h-3.5 w-3.5" />
+            {t('common.edit')}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-8 px-3 text-sm"
+            onClick={() => setDeleteOpen(true)}
+          >
+            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+            {t('common.delete')}
+          </Button>
+        </PageHeader>
 
         {/* Info grid */}
         <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

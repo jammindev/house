@@ -8,70 +8,27 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import DetailSection from '@/components/DetailSection';
+import InfoField from '@/components/InfoField';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
+import { formatDate, formatDateTime, isPast } from '@/lib/format';
 import {
   useEquipment,
   useEquipmentHistory,
   useDeleteEquipment,
   equipmentKeys,
 } from './hooks';
+import { statusVariant } from './format';
 import EquipmentDialog from './EquipmentDialog';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
-// ── Helpers ────────────────────────────────────────────────
-
-function statusVariant(status: string): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'maintenance') return 'secondary';
-  if (status === 'lost') return 'destructive';
-  if (status === 'retired' || status === 'storage') return 'outline';
-  return 'default';
-}
-
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
-}
-
-function formatDateTime(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
-}
-
-function isExpired(dateStr?: string | null): boolean {
-  if (!dateStr) return false;
-  return new Date(dateStr) < new Date();
-}
-
-function isOverdue(dateStr?: string | null): boolean {
-  if (!dateStr) return false;
-  return new Date(dateStr) < new Date();
-}
-
-// ── Info field cell ────────────────────────────────────────
-
-function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 text-sm text-foreground">{children}</dd>
-    </div>
-  );
-}
-
-// ── Tabs ───────────────────────────────────────────────────
-
 type Tab = 'info' | 'history' | 'assistant';
 const TABS: Tab[] = ['info', 'history', 'assistant'];
-
-// ── Main page ──────────────────────────────────────────────
 
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -103,29 +60,21 @@ export default function EquipmentDetailPage() {
   if (!id) return null;
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-slate-100" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading && !equipment) return null;
 
   if (error || !equipment) {
     return (
-      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-        {t('equipment.detail.errors.load_failed')}
-        <Link to="/app/equipment" className="ml-2 underline hover:no-underline">
-          {t('equipment.title')}
-        </Link>
-      </div>
+      <LoadError
+        message={t('equipment.detail.errors.load_failed')}
+        link={{ to: '/app/equipment', label: t('equipment.title') }}
+      />
     );
   }
 
-  const warrantyExpired = isExpired(equipment.warranty_expires_on);
-  const serviceOverdue = isOverdue(equipment.next_service_due);
+  const warrantyExpired = isPast(equipment.warranty_expires_on);
+  const serviceOverdue = isPast(equipment.next_service_due);
 
   const logInteractionHref = [
     '/app/interactions/new?type=maintenance',
@@ -136,49 +85,42 @@ export default function EquipmentDetailPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Back */}
-        <BackLink fallback="/app/equipment" fallbackLabel={t('equipment.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{equipment.name}</h1>
-              <Badge variant={statusVariant(equipment.status)} className="text-xs">
-                {t(`equipment.status.${equipment.status}`)}
-              </Badge>
-            </div>
-            {equipment.zone && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                <Link
-                  to={`/app/zones/${equipment.zone}`}
-                  className="hover:text-foreground hover:underline"
-                >
-                  {equipment.zone_name ?? equipment.zone}
-                </Link>
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-3 text-sm"
-              onClick={() => setEditOpen(true)}
-            >
-              {t('equipment.detail.actions.edit')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-8 px-3 text-sm"
-              onClick={() => setDeleteOpen(true)}
-            >
-              {t('equipment.detail.actions.delete')}
-            </Button>
-          </div>
-        </div>
+        <PageHeader
+          backLink={<BackLink fallback="/app/equipment" fallbackLabel={t('equipment.title')} />}
+          title={equipment.name}
+          titleSuffix={
+            <Badge variant={statusVariant(equipment.status)} className="text-xs">
+              {t(`equipment.status.${equipment.status}`)}
+            </Badge>
+          }
+          description={
+            equipment.zone ? (
+              <Link
+                to={`/app/zones/${equipment.zone}`}
+                className="hover:text-foreground hover:underline"
+              >
+                {equipment.zone_name ?? equipment.zone}
+              </Link>
+            ) : undefined
+          }
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 px-3 text-sm"
+            onClick={() => setEditOpen(true)}
+          >
+            {t('equipment.detail.actions.edit')}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-8 px-3 text-sm"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {t('equipment.detail.actions.delete')}
+          </Button>
+        </PageHeader>
 
         {/* Tabs */}
         <TabShell<Tab>
@@ -190,19 +132,8 @@ export default function EquipmentDetailPage() {
             <>
               {tab === 'info' ? (
                 <div className="space-y-6">
-                  <section className="rounded-2xl border border-border/60 bg-card/70 p-5 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border/60">
-                        <Wrench className="h-5 w-5 text-slate-600" />
-                      </span>
-                      <div>
-                        <h2 className="text-base font-semibold text-foreground">
-                          {t('equipment.detail.title')}
-                        </h2>
-                      </div>
-                    </div>
-
-                    <dl className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <DetailSection title={t('equipment.detail.title')} icon={Wrench}>
+                    <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       <InfoField label={t('equipment.detail.fields.category')}>
                         {equipment.category || '—'}
                       </InfoField>
@@ -246,7 +177,7 @@ export default function EquipmentDetailPage() {
                         </InfoField>
                       ) : null}
                     </dl>
-                  </section>
+                  </DetailSection>
 
                   {(equipment.warranty_expires_on || equipment.warranty_provider) ? (
                     <Card>
@@ -256,7 +187,7 @@ export default function EquipmentDetailPage() {
                         </h3>
                         <div className="space-y-2 text-sm">
                           {equipment.warranty_expires_on ? (
-                            <p className={warrantyExpired ? 'text-red-600' : 'text-green-600'}>
+                            <p className={warrantyExpired ? 'text-destructive' : 'text-foreground'}>
                               {warrantyExpired
                                 ? t('equipment.detail.warranty_expired')
                                 : t('equipment.detail.warranty_ok', {
@@ -289,7 +220,7 @@ export default function EquipmentDetailPage() {
                             </p>
                           ) : null}
                           {equipment.next_service_due ? (
-                            <p className={serviceOverdue ? 'text-red-600' : 'text-foreground'}>
+                            <p className={serviceOverdue ? 'text-destructive' : 'text-foreground'}>
                               {serviceOverdue
                                 ? t('equipment.detail.maintenance_overdue', {
                                     date: formatDate(equipment.next_service_due),
@@ -321,11 +252,7 @@ export default function EquipmentDetailPage() {
                   </div>
 
                   {historyLoading ? (
-                    <div className="space-y-2">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 animate-pulse rounded-lg bg-slate-100" />
-                      ))}
-                    </div>
+                    <ListSkeleton rows={3} rowClassName="h-12" />
                   ) : history.length === 0 ? (
                     <p className="text-sm italic text-muted-foreground">
                       {t('equipment.detail.no_history')}

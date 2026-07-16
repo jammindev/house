@@ -2,28 +2,49 @@ import * as React from 'react';
 import { Separator } from '@/design-system/separator';
 
 interface PageHeaderProps {
-  title: string;
-  description?: string;
-  /** Action buttons rendered on the right side of the header */
+  /** Titre — string ou node (permet une pastille/icône devant le nom sur les détails). */
+  title: React.ReactNode;
+  /** Utilisé pour `document.title` quand `title` n'est pas une string. */
+  documentTitle?: string;
+  /** Badges/statuts rendus en ligne, à la suite du titre. */
+  titleSuffix?: React.ReactNode;
+  /** Sous-titre — string ou node (ex: lien vers la zone). */
+  description?: React.ReactNode;
+  /** Lien retour rendu au-dessus du titre (pages de détail). */
+  backLink?: React.ReactNode;
+  /** Boutons d'action rendus à droite du header. */
   children?: React.ReactNode;
 }
 
 /**
- * Common page header rendered by React, replacing Django-rendered H1/description/actions.
- * Updates document.title automatically.
+ * Header de page commun : (lien retour) + titre + suffixe/sous-titre + actions,
+ * responsive (empilé sur mobile, en ligne à partir de `sm`). Met à jour `document.title`.
+ * Utilisé par toutes les pages — listes, pages simples ET pages de détail.
  */
-export default function PageHeader({ title, description, children }: PageHeaderProps) {
+export default function PageHeader({
+  title,
+  documentTitle,
+  titleSuffix,
+  description,
+  backLink,
+  children,
+}: PageHeaderProps) {
+  const docTitle = documentTitle ?? (typeof title === 'string' ? title : undefined);
   React.useEffect(() => {
-    document.title = `${title} — House`;
-  }, [title]);
+    if (docTitle) document.title = `${docTitle} — House`;
+  }, [docTitle]);
 
   return (
     <div className="mb-6">
+      {backLink ? <div className="mb-3">{backLink}</div> : null}
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+            {titleSuffix}
+          </div>
           {description ? (
-            <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+            <div className="mt-1 text-sm text-muted-foreground">{description}</div>
           ) : null}
         </div>
         {children ? (

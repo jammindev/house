@@ -7,8 +7,13 @@ import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import InfoField from '@/components/InfoField';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
+import { formatDate } from '@/lib/format';
 import { useAuth } from '@/lib/auth/useAuth';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { isTaskOverdue, formatRelativeDate, type Task, type TaskStatus } from '@/lib/api/tasks';
@@ -27,30 +32,10 @@ import TaskAttachmentsDialog from './TaskAttachmentsDialog';
 import TaskWeatherHint from './TaskWeatherHint';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 
-function formatDate(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(d);
-}
-
 function priorityLabelKey(priority: Task['priority']): string {
   if (priority === 1) return 'tasks.priorityHigh_label';
   if (priority === 3) return 'tasks.priorityLow_label';
   return 'tasks.priorityNormal_label';
-}
-
-// ── Info field cell ────────────────────────────────────────
-
-function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-border/40 bg-background/60 p-4">
-      <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-2 text-sm text-foreground">{children}</dd>
-    </div>
-  );
 }
 
 // ── Tabs ───────────────────────────────────────────────────
@@ -113,24 +98,16 @@ export default function TaskDetailPage() {
   if (!id) return null;
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading) return null;
 
   if (error || !task) {
     return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('tasks.notFound')}
-        <Link to="/app/tasks" className="ml-2 underline hover:no-underline">
-          {t('tasks.title')}
-        </Link>
-      </div>
+      <LoadError
+        message={t('tasks.notFound')}
+        link={{ to: '/app/tasks', label: t('tasks.title') }}
+      />
     );
   }
 
@@ -148,13 +125,10 @@ export default function TaskDetailPage() {
   return (
     <>
       <div className="space-y-6">
-        {/* Back */}
-        <BackLink fallback="/app/tasks" fallbackLabel={t('tasks.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
+        <PageHeader
+          backLink={<BackLink fallback="/app/tasks" fallbackLabel={t('tasks.title')} />}
+          title={
+            <>
               {task.priority === 1 && (
                 <span
                   className="h-2.5 w-2.5 flex-shrink-0 rounded-full bg-destructive"
@@ -164,25 +138,27 @@ export default function TaskDetailPage() {
               {task.is_private && (
                 <Lock className="h-4 w-4 flex-shrink-0 text-muted-foreground/60" />
               )}
-              <h1 className="text-2xl font-bold text-foreground">
-                {task.subject || t('tasks.untitledTask')}
-              </h1>
-            </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-              {zoneName && <span className="font-medium text-foreground/80">{zoneName}</span>}
-              {relativeDate && (
-                <>
-                  {zoneName && <span className="text-border">·</span>}
-                  <span className={overdue ? 'font-medium text-destructive' : ''}>
-                    {relativeDate}
-                  </span>
-                </>
-              )}
-            </div>
-          </div>
-
+              <span>{task.subject || t('tasks.untitledTask')}</span>
+            </>
+          }
+          description={
+            (zoneName || relativeDate) ? (
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                {zoneName && <span className="font-medium text-foreground/80">{zoneName}</span>}
+                {relativeDate && (
+                  <>
+                    {zoneName && <span className="text-border">·</span>}
+                    <span className={overdue ? 'font-medium text-destructive' : ''}>
+                      {relativeDate}
+                    </span>
+                  </>
+                )}
+              </span>
+            ) : undefined
+          }
+        >
           {isCreator && (
-            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+            <>
               <Button
                 type="button"
                 variant="outline"
@@ -201,9 +177,9 @@ export default function TaskDetailPage() {
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 {t('common.delete')}
               </Button>
-            </div>
+            </>
           )}
-        </div>
+        </PageHeader>
 
         {/* Tabs */}
         <TabShell<Tab>

@@ -9,8 +9,11 @@ import { Card, CardContent } from '@/design-system/card';
 import { TabShell } from '@/components/TabShell';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
+import PageHeader from '@/components/PageHeader';
+import LoadError from '@/components/LoadError';
+import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
-import type { ProjectStatus } from '@/lib/api/projects';
+import { statusVariant, formatDateTime } from './format';
 import TasksPanel from '@/features/tasks/TasksPanel';
 import TrackersPanel from '@/features/trackers/TrackersPanel';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
@@ -29,24 +32,8 @@ import ProjectDashboard from './ProjectDashboard';
 import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
-// ── Helpers ────────────────────────────────────────────────
-
 type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline' | 'assistant';
 const TABS: Tab[] = ['overview', 'tasks', 'trackers', 'notes', 'expenses', 'documents', 'timeline', 'assistant'];
-
-function statusVariant(status: ProjectStatus): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'active') return 'default';
-  if (status === 'on_hold') return 'secondary';
-  if (status === 'cancelled') return 'destructive';
-  return 'outline';
-}
-
-function formatDateTime(value?: string | null): string {
-  if (!value) return '—';
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
-}
 
 // ── Tab: interactions list ─────────────────────────────────
 
@@ -70,13 +57,7 @@ function TabInteractions({
   const { data: items = [], isLoading, error } = useProjectInteractions(projectId, type);
 
   if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-12 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton rows={3} rowClassName="h-12" />;
   }
 
   if (error) {
@@ -189,22 +170,12 @@ export default function ProjectDetailPage() {
   }
 
   if (showSkeleton) {
-    return (
-      <div className="space-y-2 p-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
-    );
+    return <ListSkeleton className="space-y-2 p-4" />;
   }
   if (isLoading) return null;
 
   if (error || !project) {
-    return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
-        {t('projects.detail.error_loading')}
-      </div>
-    );
+    return <LoadError message={t('projects.detail.error_loading')} />;
   }
 
   const planned = Number(project.planned_budget);
@@ -213,15 +184,12 @@ export default function ProjectDetailPage() {
 
   return (
     <>
-      <div className="space-y-4">
-        {/* Back */}
-        <BackLink fallback="/app/projects" fallbackLabel={t('projects.title')} />
-
-        {/* Header */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">{project.title}</h1>
+      <div className="space-y-6">
+        <PageHeader
+          backLink={<BackLink fallback="/app/projects" fallbackLabel={t('projects.title')} />}
+          title={project.title}
+          titleSuffix={
+            <>
               <Badge variant={statusVariant(project.status)} className="text-xs">
                 {t(`projects.status.${project.status}`)}
               </Badge>
@@ -236,53 +204,51 @@ export default function ProjectDetailPage() {
                   {project.project_group_name}
                 </span>
               ) : null}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() =>
-                pinProjectMutation.mutate({ id: project.id, pinned: project.is_pinned })
-              }
-              disabled={pinProjectMutation.isPending}
-              aria-label={project.is_pinned ? t('projects.unpin') : t('projects.pin')}
-            >
-              <Star
-                className="h-4 w-4"
-                fill={project.is_pinned ? 'currentColor' : 'none'}
-              />
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 gap-1 px-3 text-sm"
-              onClick={() => setPurchaseOpen(true)}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              {t('projects.purchase.actions.add')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="h-8 px-3 text-sm"
-              onClick={() => setEditOpen(true)}
-            >
-              {t('projects.edit')}
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-8 px-3 text-sm"
-              onClick={() => setDeleteOpen(true)}
-            >
-              {t('projects.delete')}
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        >
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() =>
+              pinProjectMutation.mutate({ id: project.id, pinned: project.is_pinned })
+            }
+            disabled={pinProjectMutation.isPending}
+            aria-label={project.is_pinned ? t('projects.unpin') : t('projects.pin')}
+          >
+            <Star
+              className="h-4 w-4"
+              fill={project.is_pinned ? 'currentColor' : 'none'}
+            />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 gap-1 px-3 text-sm"
+            onClick={() => setPurchaseOpen(true)}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {t('projects.purchase.actions.add')}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-8 px-3 text-sm"
+            onClick={() => setEditOpen(true)}
+          >
+            {t('projects.edit')}
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            className="h-8 px-3 text-sm"
+            onClick={() => setDeleteOpen(true)}
+          >
+            {t('projects.delete')}
+          </Button>
+        </PageHeader>
 
         {/* Summary bar */}
         {(planned > 0 || actual > 0) ? (
