@@ -26,3 +26,22 @@ class AgentConfig(AppConfig):
         register(build_create_entity_tool())
         register(build_update_entity_tool())
         register(build_manage_memory_tool())
+
+        # Proactive daily digest (parcours 19) — the agent "speaks first".
+        # Reuses the pings scheduler + Telegram delivery; the message is composed
+        # from cross-module signals in ``agent.digest``.
+        from datetime import time as dt_time
+
+        from pings.registry import PingSpec, register as register_ping
+
+        from .digest import DIGEST_PING_TYPE
+        from .digest.ping import build_daily_digest_message
+
+        register_ping(
+            PingSpec(
+                ping_type=DIGEST_PING_TYPE,
+                build_message=build_daily_digest_message,
+                default_send_at=dt_time(7, 30),
+                module=None,  # core: aggregates whatever modules are enabled
+            )
+        )

@@ -813,7 +813,8 @@
         "egg_log": "Relevé de ponte du soir",
         "meter_reading": "Rappel de relevé électrique",
         "water_reading": "Rappel de relevé d'eau",
-        "weather_alert": "Alerte météo"
+        "weather_alert": "Alerte météo",
+        "daily_digest": "Résumé quotidien"
       }
     },
     "theme": "Thème",
@@ -1305,6 +1306,24 @@
           "modules": {
             "title": "Activer les bons modules",
             "body": "Désactivez les modules inutiles (poulailler, assurance…) pour alléger la navigation."
+          }
+        }
+      },
+      "digest": {
+        "title": "Recevoir votre résumé quotidien",
+        "intro": "Laissez l'assistant parler en premier : un court récap quotidien de ce qui mérite votre attention, poussé sur Telegram.",
+        "steps": {
+          "preview": {
+            "title": "Voir le résumé du jour",
+            "body": "Ouvrez la page Résumé quotidien pour prévisualiser ce que contient le récap du jour — tâches à faire, alertes météo, stock bas, etc."
+          },
+          "enable": {
+            "title": "Activer l'envoi",
+            "body": "Reliez votre compte Telegram, puis activez le résumé et choisissez l'heure à laquelle le recevoir chaque matin."
+          },
+          "sections": {
+            "title": "Choisir vos rubriques",
+            "body": "Cochez uniquement les sujets qui vous intéressent. Les rubriques des modules que vous n'utilisez pas sont masquées automatiquement."
           }
         }
       }
@@ -2662,6 +2681,31 @@
       "upgrade": "Amélioration",
       "repair": "Réparation",
       "maintenance": "Entretien"
+    }
+  },
+  "digest": {
+    "title": "Résumé quotidien",
+    "description": "Un récap quotidien que votre assistant vous envoie — c'est lui qui parle en premier.",
+    "delivery": {
+      "title": "Envoi",
+      "linkFirst": "Reliez votre compte Telegram pour recevoir le résumé.",
+      "enable": "M'envoyer un résumé quotidien",
+      "sendAt": "Heure d'envoi",
+      "hint": "Envoyé une fois par jour à votre heure locale. Rien n'est envoyé quand il n'y a rien à signaler."
+    },
+    "sections": {
+      "title": "Rubriques",
+      "description": "Choisissez ce que contient votre résumé.",
+      "tasks": "Tâches à faire",
+      "weather": "Alertes météo",
+      "stock": "Stock bas",
+      "electricity": "Anomalie électricité",
+      "chickens": "Ponte des poules"
+    },
+    "preview": {
+      "title": "Aperçu du jour",
+      "emptyTitle": "Rien à signaler aujourd'hui",
+      "emptyDescription": "Votre résumé est vide pour l'instant — vous ne serez notifié que lorsqu'il y a quelque chose d'important."
     }
   }
 }

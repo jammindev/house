@@ -29,6 +29,13 @@ Lecture recommandée pour reprendre un module après pause — pour les bugs et 
 - [insurance](./insurance.md) — contrats d'assurance
 - [notifications](./notifications.md) — notifications user
 
+## Agent & messagerie proactive
+
+- [agent](./agent.md) — assistant conversationnel (RAG + function calling)
+- [pings](./pings.md) — questions proactives templatées (Telegram)
+- [digest](./digest.md) — résumé quotidien proactif (agrège les signaux du foyer)
+- [telegram](./telegram.md) — canal Telegram entrant/sortant
+
 ## Apps frontend / utilitaires
 
 - [photos](./photos.md) — namespace UI

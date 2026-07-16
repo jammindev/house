@@ -18,7 +18,12 @@ export function ProactiveSection() {
   const { data: pings } = usePings();
   const updatePing = useUpdatePing();
 
-  if (!status?.enabled || !pings?.length) return null;
+  // The daily digest has its own dedicated page (/app/digest) where it is
+  // configured alongside its sections + preview — keep it out of this generic
+  // per-ping list to avoid two places editing the same opt-in.
+  const rows = pings?.filter((p) => p.ping_type !== 'daily_digest') ?? [];
+
+  if (!status?.enabled || rows.length === 0) return null;
 
   const linked = status.linked;
 
@@ -43,7 +48,7 @@ export function ProactiveSection() {
         {!linked && (
           <p className="text-sm text-muted-foreground">{t('settings.pings.linkFirst')}</p>
         )}
-        {pings.map((row) => (
+        {rows.map((row) => (
           <div
             key={row.ping_type}
             className={`flex flex-wrap items-center justify-between gap-2 ${linked ? '' : 'pointer-events-none opacity-50'}`}

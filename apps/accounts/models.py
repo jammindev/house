@@ -139,6 +139,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         ),
     )
 
+    # Digest sections the user turned OFF (keys from agent.digest.collectors).
+    # Storing the *disabled* list means a newly shipped section is active by
+    # default; empty list = every section active. Delivery (on/off + time) is a
+    # separate opt-in living on the 'daily_digest' PingPreference.
+    digest_disabled_sections = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Daily-digest section keys the user turned off."),
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

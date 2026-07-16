@@ -8,7 +8,10 @@
 - **Frontend** : `ui/src/features/agent/` — `AgentPage` (pleine page, sidebar de conversations), `EntityAssistant` (chat ancré sans sidebar), `ContextPanel` + `AddContextDialog` (panneau « Ce que je sais » : contexte visible + épinglage), `ChatBubble` (markdown + citations), `PrivacyNotice`.
 - **Locales (en/fr/de/es)** : namespace `agent` (dont `agent.entity.*` pour le chat ancré, `agent.context.*` pour le panneau de contexte, `agent.memory.*` pour la mémoire utilisateur).
 - **Mémoire utilisateur** : `apps/agent/memory.py` (service), modèle `AgentMemory`, tool `manage_memory`, page `ui/src/features/agent/MemoryPage.tsx`, toggle `AgentMemorySection` dans les réglages.
-- **Tests** : `apps/agent/tests/` — `test_service.py`, `test_tools.py`, `test_context.py`, `test_conversations_api.py`, `test_retrieval.py`, `test_prompts.py`, `test_registry.py`, `test_query_expansion.py`, `test_retention.py`, `test_llm.py`, `test_models.py`, `test_views.py`, `test_memory.py`.
+- **Tests** : `apps/agent/tests/` — `test_service.py`, `test_tools.py`, `test_context.py`, `test_conversations_api.py`, `test_retrieval.py`, `test_prompts.py`, `test_registry.py`, `test_query_expansion.py`, `test_retention.py`, `test_llm.py`, `test_models.py`, `test_views.py`, `test_memory.py`, `test_digest_*.py`.
+- **Proactif (l'agent parle en premier)** : `apps/agent/digest/` — résumé
+  quotidien agrégeant les signaux du foyer, poussé sur Telegram via le socle
+  pings. Sous-package autonome, doc dédiée : [digest.md](./digest.md) (parcours 19).
 
 ## Boucle agent (function calling)
 

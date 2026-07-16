@@ -813,7 +813,8 @@
         "egg_log": "Abendliche Eierzählung",
         "meter_reading": "Erinnerung Stromzählerstand",
         "water_reading": "Erinnerung Wasserzählerstand",
-        "weather_alert": "Wetterwarnung"
+        "weather_alert": "Wetterwarnung",
+        "daily_digest": "Tägliche Zusammenfassung"
       }
     },
     "theme": "Design",
@@ -1305,6 +1306,24 @@
           "modules": {
             "title": "Die richtigen Module aktivieren",
             "body": "Deaktivieren Sie unnötige Module (Hühnerstall, Versicherung…), um die Navigation zu entlasten."
+          }
+        }
+      },
+      "digest": {
+        "title": "Deine tägliche Zusammenfassung erhalten",
+        "intro": "Lass den Assistenten zuerst sprechen: eine kurze tägliche Übersicht dessen, was deine Aufmerksamkeit braucht, direkt auf Telegram.",
+        "steps": {
+          "preview": {
+            "title": "Die heutige Zusammenfassung ansehen",
+            "body": "Öffne die Seite Tägliche Zusammenfassung, um eine Vorschau des heutigen Rückblicks zu sehen — fällige Aufgaben, Wetterwarnungen, niedriger Bestand und mehr."
+          },
+          "enable": {
+            "title": "Zustellung aktivieren",
+            "body": "Verknüpfe dein Telegram-Konto, aktiviere dann die Zusammenfassung und wähle die Uhrzeit, zu der du sie jeden Morgen erhalten möchtest."
+          },
+          "sections": {
+            "title": "Deine Rubriken wählen",
+            "body": "Hake nur die Themen an, die dich interessieren. Rubriken für Module, die du nicht nutzt, werden automatisch ausgeblendet."
           }
         }
       }
@@ -2662,6 +2681,31 @@
       "upgrade": "Modernisierung",
       "repair": "Reparatur",
       "maintenance": "Wartung"
+    }
+  },
+  "digest": {
+    "title": "Tägliche Zusammenfassung",
+    "description": "Eine kurze tägliche Übersicht, die dir dein Assistent schickt — er meldet sich zuerst.",
+    "delivery": {
+      "title": "Zustellung",
+      "linkFirst": "Verknüpfe dein Telegram-Konto, um die Zusammenfassung zu erhalten.",
+      "enable": "Mir eine tägliche Zusammenfassung senden",
+      "sendAt": "Sendezeit",
+      "hint": "Einmal täglich zu deiner Ortszeit. Es wird nichts gesendet, wenn es nichts zu melden gibt."
+    },
+    "sections": {
+      "title": "Rubriken",
+      "description": "Wähle aus, was deine Zusammenfassung enthält.",
+      "tasks": "Fällige Aufgaben",
+      "weather": "Wetterwarnungen",
+      "stock": "Niedriger Bestand",
+      "electricity": "Stromanomalie",
+      "chickens": "Eierlegen"
+    },
+    "preview": {
+      "title": "Vorschau von heute",
+      "emptyTitle": "Heute nichts zu melden",
+      "emptyDescription": "Deine Zusammenfassung ist gerade leer — du wirst nur benachrichtigt, wenn etwas deine Aufmerksamkeit braucht."
     }
   }
 }

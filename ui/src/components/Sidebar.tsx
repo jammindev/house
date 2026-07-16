@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, User, ShieldCheck, X, AlertCircle, Sparkles, Activity,
-  Rocket, Pin, PinOff, GraduationCap, type LucideIcon,
+  Rocket, Pin, PinOff, GraduationCap, Newspaper, type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
@@ -197,6 +197,12 @@ export default function Sidebar() {
 
           <div className="pt-3">
             <GroupLabel>{t('sidebar.groupAccount')}</GroupLabel>
+            <NavItem
+              to="/app/digest"
+              labelKey="digest.title"
+              Icon={Newspaper}
+              onNavigate={closeSidebar}
+            />
             <NavItem
               to="/app/tutorial"
               labelKey="tutorials.title"
