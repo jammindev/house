@@ -8,6 +8,13 @@ interface Props {
   entityType: string;
   /** The anchor entity's id. */
   objectId: string;
+  /**
+   * Height class for the inner chat. Defaults to a fixed `h-[60vh]` (embedded
+   * in a detail page); the launcher passes `flex-1 min-h-0` to fill its sheet.
+   */
+  chatClassName?: string;
+  /** Extra classes for the root wrapper (e.g. to make it fill a flex parent). */
+  className?: string;
 }
 
 /**
@@ -17,13 +24,18 @@ interface Props {
  * detail view (a project's tab, a zone's, an equipment's…) by passing its
  * `entityType` / `objectId`.
  */
-export default function EntityAssistant({ entityType, objectId }: Props) {
+export default function EntityAssistant({
+  entityType,
+  objectId,
+  chatClassName = 'h-[60vh]',
+  className = '',
+}: Props) {
   const { t } = useTranslation();
   const conversationQuery = useEntityConversation(entityType, objectId);
   const conversation = conversationQuery.data;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={`flex flex-col gap-3 ${className}`}>
       {conversation ? (
         <ContextPanel
           conversation={conversation}
@@ -36,7 +48,7 @@ export default function EntityAssistant({ entityType, objectId }: Props) {
         emptyTitle={t('agent.entity.empty_title')}
         emptyHint={t('agent.entity.empty_hint')}
         testIdPrefix="agent-entity"
-        className="h-[60vh]"
+        className={chatClassName}
       />
     </div>
   );

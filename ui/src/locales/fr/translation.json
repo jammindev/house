@@ -972,7 +972,7 @@
         "steps": {
           "ask": {
             "title": "Poser une question",
-            "body": "Ouvrez la page Agent et demandez par exemple « quelles tâches sont en retard ? »."
+            "body": "L'assistant est accessible partout via le bouton flottant ✨ en bas à droite (ou la page Agent). Demandez par exemple « quelles tâches sont en retard ? »."
           },
           "citations": {
             "title": "Vérifier les sources",
@@ -980,7 +980,7 @@
           },
           "context": {
             "title": "Lui donner du contexte",
-            "body": "Sur une page de détail, le panneau « Ce que je sais » montre ce que l'assistant connaît déjà — utilisez « Ajouter du contexte » pour lui pointer un autre projet, une note ou un équipement."
+            "body": "Ouvrez l'assistant depuis une page de détail : il s'ancre sur l'élément courant. Basculez entre « Cette page » et « Tout le foyer », et le panneau « Ce que je sais » montre ce qu'il connaît déjà — « Ajouter du contexte » pour lui pointer un autre projet, une note ou un équipement."
           },
           "create": {
             "title": "Créer depuis le chat",
@@ -2432,6 +2432,12 @@
       "section_title": "Assistant",
       "empty_title": "Pose n'importe quelle question sur cet élément",
       "empty_hint": "L'assistant connaît déjà cet élément et tout ce qui lui est lié — ses détails, documents, dépenses et tâches — et cite ses sources."
+    },
+    "launcher": {
+      "open": "Ouvrir l'assistant",
+      "title": "Assistant",
+      "scope_page": "Cette page",
+      "scope_household": "Tout le foyer"
     },
     "citations_label": "Sources",
     "web_sources_label": "Sources web",

@@ -26,13 +26,12 @@ import {
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import ZoneDialog from './ZoneDialog';
 import RenovationTab from '@/features/renovation/RenovationTab';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 
 // ── Tab types ──────────────────────────────────────────────
 
-type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'renovation' | 'projects' | 'photos' | 'documents' | 'assistant';
-const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'renovation', 'projects', 'photos', 'documents', 'assistant'];
+type Tab = 'info' | 'equipment' | 'tasks' | 'activity' | 'renovation' | 'projects' | 'photos' | 'documents';
+const TABS: Tab[] = ['info', 'equipment', 'tasks', 'activity', 'renovation', 'projects', 'photos', 'documents'];
 
 // ── Tab: Info ──────────────────────────────────────────────
 
@@ -560,10 +559,6 @@ export default function ZoneDetailPage() {
                 {tab === 'photos' ? <TabPhotos zoneId={id} /> : null}
 
                 {tab === 'documents' ? <TabDocuments zoneId={id} /> : null}
-
-                {tab === 'assistant' ? (
-                  <EntityAssistant entityType="zone" objectId={id} />
-                ) : null}
               </CardContent>
             </Card>
           )}

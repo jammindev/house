@@ -5,6 +5,7 @@ import { useMe } from '../features/settings/hooks';
 import { applyDarkMode, applyColorTheme } from '../lib/theme';
 import AppShell from './AppShell';
 import ErrorBoundary from './ErrorBoundary';
+import AgentLauncher from '../features/agent/AgentLauncher';
 
 export default function ProtectedLayout() {
   const { user, isLoading } = useAuth();
@@ -26,6 +27,7 @@ export default function ProtectedLayout() {
           {isLoading ? null : <Outlet />}
         </Suspense>
       </ErrorBoundary>
+      {!isLoading && user ? <AgentLauncher /> : null}
     </AppShell>
   );
 }

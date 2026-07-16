@@ -30,7 +30,6 @@ import TaskAssigneeBadge from './TaskAssigneeBadge';
 import NewTaskDialog from './NewTaskDialog';
 import TaskAttachmentsDialog from './TaskAttachmentsDialog';
 import TaskWeatherHint from './TaskWeatherHint';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 
 function priorityLabelKey(priority: Task['priority']): string {
   if (priority === 1) return 'tasks.priorityHigh_label';
@@ -40,8 +39,8 @@ function priorityLabelKey(priority: Task['priority']): string {
 
 // ── Tabs ───────────────────────────────────────────────────
 
-type Tab = 'info' | 'documents' | 'activity' | 'assistant';
-const TABS: Tab[] = ['info', 'documents', 'activity', 'assistant'];
+type Tab = 'info' | 'documents' | 'activity';
+const TABS: Tab[] = ['info', 'documents', 'activity'];
 
 // ── Main page ──────────────────────────────────────────────
 
@@ -347,10 +346,6 @@ export default function TaskDetailPage() {
                     </ul>
                   )}
                 </div>
-              ) : null}
-
-              {tab === 'assistant' ? (
-                <EntityAssistant entityType="task" objectId={task.id} />
               ) : null}
             </>
           )}

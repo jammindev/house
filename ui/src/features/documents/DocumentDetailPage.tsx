@@ -22,12 +22,11 @@ import {
   documentKeys,
 } from './hooks';
 import DocumentEditDialog from './DocumentEditDialog';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useToast } from '@/lib/toast';
 
-type Tab = 'info' | 'activity' | 'assistant';
-const TABS: Tab[] = ['info', 'activity', 'assistant'];
+type Tab = 'info' | 'activity';
+const TABS: Tab[] = ['info', 'activity'];
 
 export default function DocumentDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -282,10 +281,6 @@ export default function DocumentDetailPage() {
                     </ul>
                   )}
                 </div>
-              ) : null}
-
-              {tab === 'assistant' ? (
-                <EntityAssistant entityType="document" objectId={doc.id} />
               ) : null}
             </>
           )}

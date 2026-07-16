@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
 import { TabShell } from '@/components/TabShell';
-import EntityAssistant from '@/features/agent/EntityAssistant';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
@@ -25,8 +24,8 @@ import ChickenEventDialog from './ChickenEventDialog';
 import ChickenPurchaseDialog from './ChickenPurchaseDialog';
 import EventTimeline from './EventTimeline';
 
-type Tab = 'info' | 'events' | 'assistant';
-const TABS: Tab[] = ['info', 'events', 'assistant'];
+type Tab = 'info' | 'events';
+const TABS: Tab[] = ['info', 'events'];
 
 export default function ChickenDetailPage() {
   const { id = '' } = useParams();
@@ -174,10 +173,6 @@ export default function ChickenDetailPage() {
                   />
                 )}
               </div>
-            ) : null}
-
-            {tab === 'assistant' ? (
-              <EntityAssistant entityType="chicken" objectId={chicken.id} />
             ) : null}
           </>
         )}

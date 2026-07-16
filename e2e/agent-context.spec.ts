@@ -95,8 +95,9 @@ async function findAnchorProjectId(page: import('@playwright/test').Page): Promi
 }
 
 /**
- * Navigue vers l'onglet "Assistant" d'un projet donné.
- * L'onglet est un FilterPill (bouton) dont le label est "Assistant" (fr).
+ * Ouvre l'assistant ancré sur un projet donné via le lanceur global (FAB).
+ * Sur une page de détail, le FAB ouvre l'assistant ancré sur l'entité courante :
+ * le ContextPanel (agent-context-*) est alors rendu dans le panneau.
  */
 async function goToProjectAssistantTab(
   page: import('@playwright/test').Page,
@@ -104,9 +105,10 @@ async function goToProjectAssistantTab(
 ): Promise<void> {
   await page.goto(`/app/projects/${projectId}`);
   await expect(page).toHaveURL(new RegExp(`/app/projects/${projectId}`));
-  // Attendre que la page soit bien chargée (le titre du projet apparaît dans le header)
-  await expect(page.getByRole('main').getByRole('button', { name: 'Assistant' })).toBeVisible();
-  await page.getByRole('main').getByRole('button', { name: 'Assistant' }).click();
+  const fab = page.getByTestId('agent-launcher-fab');
+  await expect(fab).toBeVisible();
+  await fab.click();
+  await expect(page.getByTestId('agent-launcher-panel')).toBeVisible();
 }
 
 // ---------------------------------------------------------------------------
@@ -197,7 +199,7 @@ test.describe('Agent — panneau contexte (ContextPanel)', () => {
     await page.getByTestId('agent-context-add').click();
 
     // Le SheetDialog doit être visible.
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('agent-context-search') });
     await expect(dialog).toBeVisible();
 
     // Taper au moins 2 caractères dans le champ de recherche.
@@ -236,7 +238,7 @@ test.describe('Agent — panneau contexte (ContextPanel)', () => {
 
     // Pin via le picker.
     await page.getByTestId('agent-context-add').click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('agent-context-search') });
     await expect(dialog).toBeVisible();
 
     const searchInput = page.getByTestId('agent-context-search');
@@ -272,7 +274,7 @@ test.describe('Agent — panneau contexte (ContextPanel)', () => {
 
     // Ouvrir le picker et chercher "Rénovation salle de bain" (l'ancre elle-même).
     await page.getByTestId('agent-context-add').click();
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog').filter({ has: page.getByTestId('agent-context-search') });
     await expect(dialog).toBeVisible();
 
     const searchInput = page.getByTestId('agent-context-search');
