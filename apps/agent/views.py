@@ -17,8 +17,14 @@ from rest_framework.views import APIView
 from core.permissions import IsHouseholdMember, resolve_request_household
 
 from . import memory as memory_service
-from . import searchables, service, tools
-from .conversations import ask_inputs as _ask_inputs, persist_turns as _persist_turns
+from . import retrieval, searchables, service, tools
+from .conversations import (
+    ask_inputs as _ask_inputs,
+    persist_turns as _persist_turns,
+    pin_context as _pin_context,
+    pinned_entities as _pinned_entities,
+    unpin_context as _unpin_context,
+)
 from .llm import LLMError, LLMTimeoutError
 from .models import AgentConversation, AgentMemory, AgentMessage
 from .throttles import AgentBurstRateThrottle, AgentSustainedRateThrottle
@@ -136,7 +142,14 @@ class ConversationViewSet(viewsets.ModelViewSet):
             qs = qs.annotate(
                 last_message_preview=Subquery(newest.values("content")[:1])
             ).order_by(Coalesce("last_message_at", "created_at").desc(), "-created_at")
-        if self.action in {"retrieve", "messages", "messages_stream", "for_context"}:
+        if self.action in {
+            "retrieve",
+            "messages",
+            "messages_stream",
+            "for_context",
+            "pin_context",
+            "unpin_context",
+        }:
             qs = qs.prefetch_related("messages")
         return qs
 
@@ -160,7 +173,8 @@ class ConversationViewSet(viewsets.ModelViewSet):
         question = request_serializer.validated_data["question"]
 
         # History built before we persist the new question so the current turn
-        # isn't fed back to itself. Anchored conversations pre-inject context.
+        # isn't fed back to itself. Anchored conversations pre-inject context —
+        # plus any entity the user pinned to the "what I know" panel.
         history, context_entity = _ask_inputs(conversation)
 
         try:
@@ -170,6 +184,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                 user=request.user,
                 history=history,
                 context_entity=context_entity,
+                pinned_entities=_pinned_entities(conversation),
             )
         except LLMTimeoutError:
             return Response(
@@ -204,6 +219,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
         question = request_serializer.validated_data["question"]
 
         history, context_entity = _ask_inputs(conversation)
+        pinned = _pinned_entities(conversation)
         user = request.user
 
         def event_stream():
@@ -215,6 +231,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
                     user=user,
                     history=history,
                     context_entity=context_entity,
+                    pinned_entities=pinned,
                 ):
                     if event["type"] == "delta":
                         yield _sse("delta", {"text": event["text"]})
@@ -271,6 +288,89 @@ class ConversationViewSet(viewsets.ModelViewSet):
             self.get_queryset().get(pk=conversation.pk)
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _resolve_pin_target(self, request, conversation):
+        """Validate an ``{entity_type, object_id}`` body against this household.
+
+        Returns ``(entity_type, object_id)`` or raises the appropriate DRF error.
+        The target must name a registered searchable AND resolve to a real row of
+        the conversation's household — never pin a dangling or cross-household id.
+        """
+        entity_type = (request.data.get("entity_type") or "").strip()
+        object_id = str(request.data.get("object_id") or "").strip()
+        if not entity_type or not object_id:
+            raise ValidationError("entity_type and object_id are required.")
+        if searchables.find_spec(entity_type) is None:
+            raise ValidationError(f"Unknown entity_type: {entity_type}")
+        resolved, _error = tools.resolve_entity(entity_type, object_id, conversation.household)
+        if resolved is None:
+            raise NotFound(f"No {entity_type} with id {object_id} in this household.")
+        return entity_type, object_id
+
+    @action(detail=True, methods=["post"], url_path="pin_context")
+    def pin_context(self, request, pk=None):
+        """Pin an extra household entity to this conversation's context.
+
+        Body: ``{entity_type, object_id}``. Idempotent; every subsequent ask
+        pre-injects the pinned entity's full context. Returns the conversation
+        with its refreshed ``injected_context``.
+        """
+        conversation = self.get_object()
+        entity_type, object_id = self._resolve_pin_target(request, conversation)
+        try:
+            _pin_context(conversation, entity_type, object_id)
+        except ValueError as exc:
+            raise ValidationError(str(exc))
+        serializer = ConversationDetailSerializer(
+            self.get_queryset().get(pk=conversation.pk)
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="unpin_context")
+    def unpin_context(self, request, pk=None):
+        """Remove a pinned entity from this conversation's context.
+
+        Body: ``{entity_type, object_id}``. Tolerant: unpinning something already
+        gone (or a now-deleted row) still succeeds, so a dangling pin is always
+        removable. Returns the conversation with its refreshed ``injected_context``.
+        """
+        conversation = self.get_object()
+        entity_type = (request.data.get("entity_type") or "").strip()
+        object_id = str(request.data.get("object_id") or "").strip()
+        if not entity_type or not object_id:
+            raise ValidationError("entity_type and object_id are required.")
+        _unpin_context(conversation, entity_type, object_id)
+        serializer = ConversationDetailSerializer(
+            self.get_queryset().get(pk=conversation.pk)
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="search_context")
+    def search_context(self, request):
+        """Full-text search over the household's entities, for the context picker.
+
+        Query param ``q``. Reuses the exact retrieval the ``search_household`` tool
+        uses (same ranking, same disabled-module filtering), so the picker surfaces
+        precisely what the agent could find. Returns a light list of candidates.
+        """
+        query = (request.query_params.get("q") or "").strip()
+        household = self._resolve_household()
+        if not query:
+            return Response([], status=status.HTTP_200_OK)
+        hits = retrieval.search(household.id, query, limit=20)
+        return Response(
+            [
+                {
+                    "entity_type": hit.entity_type,
+                    "object_id": str(hit.id),
+                    "label": hit.label,
+                    "url": hit.url_path,
+                    "snippet": hit.snippet,
+                }
+                for hit in hits
+            ],
+            status=status.HTTP_200_OK,
+        )
 
 
 class AgentMemoryViewSet(viewsets.ModelViewSet):

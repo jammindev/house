@@ -53,6 +53,86 @@ class EntityContext:
     hits: list[Hit] = field(default_factory=list)
 
 
+@dataclass
+class ContextItem:
+    """One entity currently visible in the conversation's context, for the UI.
+
+    Mirrors exactly what ``ask`` injects: the anchor, its linked items, and each
+    pinned entity (+ its linked items). ``origin`` tells the frontend which chips
+    are user-removable (``pinned``) versus structural (``anchor`` / ``related``).
+    ``available`` is False for a pinned pointer whose row no longer resolves — the
+    chip is still shown so the user can drop the dangling pin.
+    """
+
+    entity_type: str
+    object_id: str
+    label: str
+    url: str
+    origin: str  # 'anchor' | 'related' | 'pinned'
+    available: bool = True
+
+
+def describe_conversation_context(conversation, household) -> list[ContextItem]:
+    """Resolve a conversation's full injected context into display items.
+
+    Single source of truth for the "what I know" panel: it walks the exact same
+    roots ``ask`` injects — the anchor first, then each pinned entity — and reuses
+    ``build_entity_context`` so a chip appears iff the model actually receives that
+    item. Items are deduped by ``(entity_type, id)`` (first origin wins, anchor >
+    pinned > related). A pinned pointer that no longer resolves is surfaced as an
+    ``available=False`` chip so the dangling pin remains removable.
+    """
+    roots: list[tuple[str, str, str]] = []
+    if conversation.has_context:
+        roots.append(
+            ("anchor", conversation.context_entity_type, conversation.context_object_id)
+        )
+    for entry in conversation.pinned_contexts or []:
+        entity_type = (entry or {}).get("entity_type") or ""
+        object_id = str((entry or {}).get("object_id") or "")
+        if entity_type and object_id:
+            roots.append(("pinned", entity_type, object_id))
+
+    items: list[ContextItem] = []
+    seen: set[tuple[str, str]] = set()
+    for origin, entity_type, object_id in roots:
+        ctx = build_entity_context(entity_type, object_id, household)
+        if ctx is None:
+            # Unresolved anchor is silent (structural); a dangling pin stays
+            # visible so the user can remove it.
+            if origin == "pinned":
+                key = (entity_type, object_id)
+                if key not in seen:
+                    seen.add(key)
+                    items.append(
+                        ContextItem(
+                            entity_type=entity_type,
+                            object_id=object_id,
+                            label=f"{entity_type}:{object_id}",
+                            url="",
+                            origin="pinned",
+                            available=False,
+                        )
+                    )
+            continue
+        for index, hit in enumerate(ctx.hits):
+            key = (hit.entity_type, str(hit.id))
+            if key in seen:
+                continue
+            seen.add(key)
+            items.append(
+                ContextItem(
+                    entity_type=hit.entity_type,
+                    object_id=str(hit.id),
+                    label=hit.label,
+                    url=hit.url_path,
+                    # The root hit carries the origin; its linked items are 'related'.
+                    origin=origin if index == 0 else "related",
+                )
+            )
+    return items
+
+
 def build_entity_context(
     entity_type: str,
     object_id: str,

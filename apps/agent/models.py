@@ -39,6 +39,15 @@ class AgentConversation(HouseholdScopedModel):
     context_entity_type = models.CharField(max_length=64, blank=True, default="")
     context_object_id = models.CharField(max_length=64, blank=True, default="")
 
+    # Extra household entities the user asked the agent to keep in mind, on top
+    # of the anchor. Each entry is ``{"entity_type": str, "object_id": str}`` —
+    # same string addressing as the anchor. Every `ask` pre-injects each pinned
+    # entity's full context (item + linked items), exactly like the anchor. The
+    # UI shows them as removable chips in the "what I know" panel. Kept as a JSON
+    # list rather than a table: it is a small, order-preserving set of pointers,
+    # never queried or constrained on its own (mirrors the anchor's design).
+    pinned_contexts = models.JSONField(default=list, blank=True)
+
     objects = HouseholdScopedManager()
 
     class Meta:

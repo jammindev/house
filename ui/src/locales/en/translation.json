@@ -978,6 +978,10 @@
             "title": "Check the sources",
             "body": "Every answer cites the items it used; click a citation to open the item."
           },
+          "context": {
+            "title": "Give it context",
+            "body": "On a detail page, the assistant's \"What I know\" panel shows what it already knows — use \"Add context\" to point it at another project, note or equipment."
+          },
           "create": {
             "title": "Create from the chat",
             "body": "Ask \"create a task…\" or \"note that…\": the item is created immediately, with an Undo button."
@@ -2493,6 +2497,21 @@
       "stock_low": "What's running low in my stock?",
       "find_document": "Find an important document",
       "project_cost": "How much did my last project cost?"
+    },
+    "context": {
+      "title": "What I know",
+      "empty": "I don't have any linked context yet. Add an item so I take it into account.",
+      "add": "Add context",
+      "addTitle": "Add context",
+      "addDescription": "Search for an item (project, note, equipment…) to add to what I know.",
+      "searchPlaceholder": "Search your household…",
+      "searchHint": "Type at least 2 characters to search.",
+      "noResults": "No item found.",
+      "alreadyAdded": "Already added",
+      "added": "\"{{label}}\" added to the context",
+      "removed": "\"{{label}}\" removed from the context",
+      "remove": "Remove {{label}} from the context",
+      "unavailable": "This item no longer exists"
     }
   },
   "expenses": {

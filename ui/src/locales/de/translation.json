@@ -978,6 +978,10 @@
             "title": "Die Quellen prüfen",
             "body": "Jede Antwort zitiert die verwendeten Elemente; klicken Sie ein Zitat, um das Element zu öffnen."
           },
+          "context": {
+            "title": "Kontext geben",
+            "body": "Auf einer Detailseite zeigt das Panel „Was ich weiß“, was der Assistent schon kennt — mit „Kontext hinzufügen“ verweisen Sie ihn auf ein anderes Projekt, eine Notiz oder ein Gerät."
+          },
           "create": {
             "title": "Aus dem Chat erstellen",
             "body": "Sagen Sie „erstelle eine Aufgabe…“ oder „notiere, dass…“: das Element wird sofort erstellt, mit Rückgängig-Knopf."
@@ -2493,6 +2497,21 @@
       "stock_low": "Was geht in meinem Vorrat zur Neige?",
       "find_document": "Finde ein wichtiges Dokument",
       "project_cost": "Wie viel hat mein letztes Projekt gekostet?"
+    },
+    "context": {
+      "title": "Was ich weiß",
+      "empty": "Ich habe noch keinen verknüpften Kontext. Füge ein Element hinzu, damit ich es berücksichtige.",
+      "add": "Kontext hinzufügen",
+      "addTitle": "Kontext hinzufügen",
+      "addDescription": "Suche ein Element (Projekt, Notiz, Gerät…), das ich berücksichtigen soll.",
+      "searchPlaceholder": "In deinem Haushalt suchen…",
+      "searchHint": "Gib mindestens 2 Zeichen ein, um zu suchen.",
+      "noResults": "Kein Element gefunden.",
+      "alreadyAdded": "Bereits hinzugefügt",
+      "added": "„{{label}}“ zum Kontext hinzugefügt",
+      "removed": "„{{label}}“ aus dem Kontext entfernt",
+      "remove": "{{label}} aus dem Kontext entfernen",
+      "unavailable": "Dieses Element existiert nicht mehr"
     }
   },
   "expenses": {

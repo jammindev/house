@@ -224,6 +224,23 @@ API mockée (`/api/agent/ask/`) — la couverture du retrieval/LLM côté backen
 
 ---
 
+## Agent — Panneau contexte EntityAssistant (`agent-context.spec.ts`)
+
+Aucun appel LLM — pin/unpin/search sont des endpoints REST purs.
+Ancre : projet "Rénovation salle de bain" (seedé). Entité cible : second projet créé via API par test.
+
+| Parcours | Statut |
+|---|---|
+| Panneau "Ce que je sais" visible, étendu (aria-expanded=true), avec chip data-origin="anchor" | ✅ |
+| Collapse via agent-context-toggle → aria-expanded=false, bouton "Ajouter" masqué | ✅ |
+| Expand après collapse → aria-expanded=true, bouton "Ajouter" visible | ✅ |
+| Ouvrir AddContextDialog (agent-context-add) → SheetDialog visible avec agent-context-search | ✅ |
+| Rechercher ≥2 chars → agent-context-result visible, cliquer → chip pinned apparaît + toast "ajouté" | ✅ |
+| Supprimer un chip pinned (agent-context-remove) → chip disparaît + toast "retiré" | ✅ |
+| Résultat déjà en contexte → bouton agent-context-result désactivé (si l'ancre remonte dans les résultats) | ✅ |
+
+---
+
 ## Notifications (`notifications.spec.ts`)
 
 | Parcours | Statut |
