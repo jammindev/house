@@ -225,6 +225,30 @@ test.describe('Poulailler', () => {
     await expect(page.getByText('Décès')).toBeVisible();
   });
 
+  // ── 5b. Stats de ponte — sélecteur de période + taux de relevé ────────────
+
+  test('affiche la courbe de ponte avec période et taux de relevé', async ({ page }) => {
+    const token = await getAccessToken(page);
+    // A hen + one logged day today → the stats card shows real data.
+    await page.request.post('/api/chickens/', {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      data: { name: `Poule Stats ${Date.now()}`, breed: '' },
+    });
+    await page.request.post('/api/chickens/egg-logs/', {
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      data: { date: new Date().toISOString().slice(0, 10), count: 4 },
+    });
+    await page.reload();
+
+    // Stats card title + coverage over the default 30-day window (1 logged day).
+    await expect(page.getByText('🥚 Ponte', { exact: true })).toBeVisible();
+    await expect(page.getByText('1/30 jours relevés')).toBeVisible();
+
+    // Switch to the 7-day period → coverage denominator updates.
+    await page.getByRole('button', { name: '7 j', exact: true }).click();
+    await expect(page.getByText('1/7 jours relevés')).toBeVisible();
+  });
+
   // ── 5. Suppression d'un événement avec undo ───────────────────────────────
 
   test('supprime un événement et peut annuler (undo)', async ({ page }) => {

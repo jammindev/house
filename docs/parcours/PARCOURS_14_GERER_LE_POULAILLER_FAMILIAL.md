@@ -2,9 +2,11 @@
 
 > **État** — cadrage + implémentation V1 livrés le 2026-07-11 (branche
 > `feat/chickens-module`). US-1 à US-13 couvertes, sauf : photo de poule (US-1,
-> reporté), et le coût par œuf (US-9) ne compte que les dépenses déclarées via le
-> module (`kind='chickens_purchase'`), pas les achats de nourriture faits dans
-> Stock — limite documentée dans `docs/MODULES/chickens.md`.
+> reporté). Le coût par œuf compte désormais aussi la nourriture achetée dans
+> Stock (lot 7). **Lot 6 — Stats & santé** (2026-07-16) ajoute : courbe de ponte
+> (période + taux de relevé), coût au œuf transparent (alimentation + soins),
+> alerte de chute anormale croisée météo/mue, tool agent `get_chicken_stats`.
+> Cadrage : `docs/parcours/PARCOURS_14_LOT6_STATS_SANTE_TROUPEAU.md`.
 
 ## Résumé
 

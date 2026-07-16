@@ -159,6 +159,21 @@ def _weather_alerts(household) -> list[dict]:
     ]
 
 
+def _egg_drop_alerts(household, today: date) -> list[dict]:
+    """Abnormal egg-laying drop (parcours 14 Lot 6.3), qualified by cause.
+
+    On-read channel of the chickens app's pure evaluator; rendered client-side
+    from the structured fields (cause/drop_pct), so no server-side i18n here.
+    Skipped when the chickens module is disabled for the household.
+    """
+    if "chickens" in (household.disabled_modules or []):
+        return []
+    from chickens.alerts import evaluate_egg_drop_alert
+
+    alert = evaluate_egg_drop_alert(household, today)
+    return [alert] if alert is not None else []
+
+
 def build_alerts_summary(household, today: date | None = None) -> dict:
     today = today or timezone.localdate()
     overdue_tasks = _overdue_tasks(household, today)
@@ -166,17 +181,20 @@ def build_alerts_summary(household, today: date | None = None) -> dict:
     due_maintenances = _due_maintenances(household, today)
     low_stock = _low_stock(household)
     weather_alerts = _weather_alerts(household)
+    egg_drop_alerts = _egg_drop_alerts(household, today)
     return {
         "overdue_tasks": overdue_tasks,
         "expiring_warranties": expiring_warranties,
         "due_maintenances": due_maintenances,
         "low_stock": low_stock,
         "weather_alerts": weather_alerts,
+        "egg_drop_alerts": egg_drop_alerts,
         "total": (
             len(overdue_tasks)
             + len(expiring_warranties)
             + len(due_maintenances)
             + len(low_stock)
             + len(weather_alerts)
+            + len(egg_drop_alerts)
         ),
     }

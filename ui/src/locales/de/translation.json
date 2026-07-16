@@ -1119,6 +1119,10 @@
           "events": {
             "title": "Ereignisse festhalten",
             "body": "Pflege, Brut, Mauser, Tod: der Eintrag jeder Henne behält ihre Chronik."
+          },
+          "stats": {
+            "title": "Legeleistung und Kosten verfolgen",
+            "body": "Wählen Sie einen Zeitraum für die Legekurve: nicht erfasste Tage erscheinen nie als 0, und die Erfassungsquote bleibt sichtbar. Kosten pro Ei (Futter + Pflege) und eine Warnung bei Rückgang (Mauser, Wetter) ergänzen das Bild."
           }
         }
       },
@@ -2298,7 +2302,18 @@
       "stat_today": "Heute",
       "stat_avg7": "Ø 7 T",
       "stat_avg30": "Ø 30 T",
-      "stat_month": "Diesen Monat"
+      "stat_month": "Diesen Monat",
+      "period": {
+        "7": "7 T",
+        "30": "30 T",
+        "90": "90 T",
+        "365": "1 J"
+      },
+      "stat_period_total": "Zeitraum gesamt",
+      "stat_period_avg": "Ø / Tag",
+      "stat_best": "Bester Tag",
+      "coverage": "{{logged}}/{{total}} Tage erfasst",
+      "chart_aria": "Legekurve"
     },
     "events": {
       "title": "Journal",
@@ -2354,7 +2369,8 @@
     "cost": {
       "title": "Kosten",
       "per_egg": "{{amount}} € / Ei",
-      "totals": "{{total}} € gesamt · {{year}} € dieses Jahr"
+      "totals": "{{total}} € gesamt · {{year}} € dieses Jahr",
+      "breakdown": "Futter {{feed}} € · Herde {{flock}} €"
     },
     "tabs": {
       "info": "Info",
@@ -2379,7 +2395,8 @@
       "warranties": "Auslaufende Garantien",
       "maintenances": "Anstehende Wartungen",
       "stock": "Vorrat auffüllen",
-      "weather": "Wetter"
+      "weather": "Wetter",
+      "eggDrop": "Rückgang der Legeleistung"
     },
     "severity": {
       "critical": "Dringend",
@@ -2403,6 +2420,14 @@
       "wind": "Starker Wind: Böen bis zu {{value}} km/h",
       "storm": "Gewitter erwartet",
       "ahead": "Kommende Tage"
+    },
+    "eggDrop": {
+      "title": "Legeleistung {{percent}} % niedriger",
+      "cause": {
+        "molt": "Wahrscheinlich Mauser · {{recent}} statt {{baseline}} Eier/Tag",
+        "weather": "Kürzlich extremes Wetter · {{recent}} statt {{baseline}} Eier/Tag",
+        "unknown": "Unklare Ursache, beobachten · {{recent}} statt {{baseline}} Eier/Tag"
+      }
     }
   },
   "agent": {

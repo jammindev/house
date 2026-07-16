@@ -1119,6 +1119,10 @@
           "events": {
             "title": "Consigner les événements",
             "body": "Soins, couvaison, mue, décès : la fiche de chaque poule garde sa chronologie."
+          },
+          "stats": {
+            "title": "Suivre la ponte et le coût",
+            "body": "Choisissez une période pour la courbe de ponte : les jours non relevés n'apparaissent pas comme des 0 et le taux de relevé reste visible. Le coût au œuf (alimentation + soins) et une alerte de chute de ponte (mue, météo) complètent le tableau."
           }
         }
       },
@@ -2298,7 +2302,18 @@
       "stat_today": "Aujourd'hui",
       "stat_avg7": "Moy. 7 j",
       "stat_avg30": "Moy. 30 j",
-      "stat_month": "Ce mois-ci"
+      "stat_month": "Ce mois-ci",
+      "period": {
+        "7": "7 j",
+        "30": "30 j",
+        "90": "90 j",
+        "365": "1 an"
+      },
+      "stat_period_total": "Total période",
+      "stat_period_avg": "Moy. / jour",
+      "stat_best": "Meilleur jour",
+      "coverage": "{{logged}}/{{total}} jours relevés",
+      "chart_aria": "Courbe de ponte"
     },
     "events": {
       "title": "Journal",
@@ -2354,7 +2369,8 @@
     "cost": {
       "title": "Coût",
       "per_egg": "{{amount}} € / œuf",
-      "totals": "{{total}} € au total · {{year}} € cette année"
+      "totals": "{{total}} € au total · {{year}} € cette année",
+      "breakdown": "Aliment {{feed}} € · troupeau {{flock}} €"
     },
     "tabs": {
       "info": "Infos",
@@ -2379,7 +2395,8 @@
       "warranties": "Garanties à surveiller",
       "maintenances": "Maintenances à planifier",
       "stock": "Stock à réapprovisionner",
-      "weather": "Météo"
+      "weather": "Météo",
+      "eggDrop": "Chute de ponte"
     },
     "severity": {
       "critical": "Urgent",
@@ -2403,6 +2420,14 @@
       "wind": "Vent fort : rafales jusqu'à {{value}} km/h",
       "storm": "Orage prévu",
       "ahead": "Jours à venir"
+    },
+    "eggDrop": {
+      "title": "Ponte en baisse de {{percent}} %",
+      "cause": {
+        "molt": "Probablement la mue · {{recent}} vs {{baseline}} œufs/jour",
+        "weather": "Météo extrême récente · {{recent}} vs {{baseline}} œufs/jour",
+        "unknown": "Cause inconnue, à surveiller · {{recent}} vs {{baseline}} œufs/jour"
+      }
     }
   },
   "agent": {

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation } from 'react-router-dom';
-import { AlertTriangle, Bell, Clock, CloudSun, Package, ShieldCheck, Wrench } from 'lucide-react';
+import { AlertTriangle, Bell, Clock, CloudSun, Egg, Package, ShieldCheck, Wrench } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { pushBack } from '@/lib/backNavigation';
 import EmptyState from '@/components/EmptyState';
@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import {
   type AlertSeverity,
   type DueMaintenanceAlert,
+  type EggDropAlert,
   type ExpiringWarrantyAlert,
   type LowStockAlert,
   type OverdueTaskAlert,
@@ -81,6 +82,7 @@ export default function AlertsPage() {
     due_maintenances: [],
     low_stock: [],
     weather_alerts: [],
+    egg_drop_alerts: [],
     total: 0,
   };
 
@@ -212,6 +214,31 @@ export default function AlertsPage() {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'short',
+                  })}
+                  severityLabel={t(`alerts.severity.${item.severity}`)}
+                  severity={item.severity}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {summary.egg_drop_alerts.length > 0 ? (
+          <section>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Egg className="h-4 w-4 text-amber-500" aria-hidden />
+              {t('alerts.sections.eggDrop')}
+              <span className="text-muted-foreground">({summary.egg_drop_alerts.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {summary.egg_drop_alerts.map((item: EggDropAlert, index: number) => (
+                <AlertCard
+                  key={`egg-drop-${index}`}
+                  to={item.entity_url}
+                  title={t('alerts.eggDrop.title', { percent: item.drop_pct })}
+                  meta={t(`alerts.eggDrop.cause.${item.cause}`, {
+                    recent: item.recent_avg,
+                    baseline: item.baseline_avg,
                   })}
                   severityLabel={t(`alerts.severity.${item.severity}`)}
                   severity={item.severity}

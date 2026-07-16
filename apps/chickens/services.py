@@ -196,19 +196,32 @@ def get_settings(household) -> ChickenSettings:
 # --- Aggregates ---------------------------------------------------------------
 
 
-def egg_stats(household, *, today: date | None = None) -> dict:
-    """Egg-laying stats for the page header (US-4).
+# Laying-curve periods offered by the UI (days). Anything else falls back to 30.
+EGG_STATS_PERIODS = (7, 30, 90, 365)
 
-    Days without a log are treated as missing (excluded from averages), not as
-    zero — an unlogged day says nothing about the hens.
+
+def egg_stats(household, *, period: int = 30, today: date | None = None) -> dict:
+    """Egg-laying stats + laying curve for a period (Lot 6.1).
+
+    The pivot of this module: a day **without** an ``EggLog`` is *unknown*, never
+    a zero. So the ``series`` carries ``count=null`` for unlogged days (the chart
+    breaks the line there), and every average divides by the number of *logged*
+    days — not calendar days. ``coverage`` exposes that honesty numerically
+    (``logged_days`` / ``total_days``); the drop alert reuses the same idea as a
+    guard against false positives.
     """
     today = today or timezone.localdate()
+    if period not in EGG_STATS_PERIODS:
+        period = 30
+    start = today - timedelta(days=period - 1)
     start_30 = today - timedelta(days=29)
     start_7 = today - timedelta(days=6)
     month_start = today.replace(day=1)
 
+    # One query wide enough for both the period window and the 7/30-day headers.
+    window_start = min(start, start_30)
     logs = list(
-        EggLog.objects.filter(household=household, date__gte=start_30, date__lte=today)
+        EggLog.objects.filter(household=household, date__gte=window_start, date__lte=today)
         .order_by('date')
         .values('date', 'count')
     )
@@ -218,6 +231,22 @@ def egg_stats(household, *, today: date | None = None) -> dict:
         counts = [c for d, c in by_date.items() if d >= since]
         return round(sum(counts) / len(counts), 2) if counts else None
 
+    series = [
+        {
+            'date': (start + timedelta(days=i)).isoformat(),
+            'count': by_date.get(start + timedelta(days=i)),
+        }
+        for i in range(period)
+    ]
+    period_counts = [c for d, c in by_date.items() if start <= d <= today]
+    logged_days = len(period_counts)
+    period_total = sum(period_counts)
+    best = max(
+        ((d, c) for d, c in by_date.items() if start <= d <= today),
+        key=lambda pair: pair[1],
+        default=None,
+    )
+
     month_total = (
         EggLog.objects.filter(household=household, date__gte=month_start, date__lte=today)
         .aggregate(total=Sum('count'))['total']
@@ -226,32 +255,41 @@ def egg_stats(household, *, today: date | None = None) -> dict:
         total=Sum('count')
     )['total']
 
-    series = [
-        {
-            'date': (start_30 + timedelta(days=i)).isoformat(),
-            'count': by_date.get(start_30 + timedelta(days=i)),
-        }
-        for i in range(30)
-    ]
-
     return {
+        'period': period,
         'today': by_date.get(today),
         'avg_7d': _avg(start_7),
         'avg_30d': _avg(start_30),
         'month_total': month_total or 0,
         'total': total_all or 0,
+        'period_total': period_total,
+        'period_avg': round(period_total / logged_days, 2) if logged_days else None,
+        'best_day': {'date': best[0].isoformat(), 'count': best[1]} if best else None,
+        'coverage': {
+            'logged_days': logged_days,
+            'total_days': period,
+            'rate': round(logged_days / period, 3) if period else 0,
+        },
         'series': series,
     }
 
 
 def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
-    """Cumulated module expenses + cost per egg.
+    """Cumulated flock expenses + cost per egg, with a feed/flock breakdown.
 
-    Counts the module's own purchases (metadata.kind == 'chickens_purchase')
-    plus, when a feed stock item is linked, the stock purchases of that item
-    (kind == 'stock_purchase' whose polymorphic source is the item). Accepted
-    limit: re-linking to another item stops attributing the old item's
-    purchases.
+    Product decision (Lot 6.2): cost per egg = **feed + care**, durable gear
+    excluded. That maps onto the existing data with no new field:
+
+    - **feed** = purchases of the linked feed StockItem
+      (``kind='stock_purchase'`` whose polymorphic source is that item);
+    - **flock** = per-hen purchases (``kind='chickens_purchase'`` — vet, wormer,
+      hen acquisition).
+
+    Durable gear (feeder, coop) lives in its own module, is never a
+    ``chickens_purchase``, and is therefore naturally out. The breakdown
+    (``feed_total`` / ``flock_total``) is returned so the UI can show what counts.
+    Accepted limit: re-linking to another feed item stops attributing the old
+    item's purchases.
     """
     from django.contrib.contenttypes.models import ContentType
     from django.db.models import Q
@@ -261,16 +299,21 @@ def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
     year_start = today.replace(month=1, day=1)
     total = Decimal('0')
     year = Decimal('0')
+    feed_total = Decimal('0')
+    flock_total = Decimal('0')
     kinds = Q(metadata__kind='chickens_purchase')
+    feed_ct = None
     if feed_stock_item is not None:
+        feed_ct = ContentType.objects.get_for_model(type(feed_stock_item))
         kinds |= Q(
             metadata__kind='stock_purchase',
-            source_content_type=ContentType.objects.get_for_model(type(feed_stock_item)),
+            source_content_type=feed_ct,
             source_object_id=feed_stock_item.pk,
         )
     qs = Interaction.objects.filter(
         kinds, household=household, type='expense'
-    ).values('occurred_at', 'metadata')
+    ).values('occurred_at', 'metadata', 'source_content_type_id', 'source_object_id')
+    feed_ct_id = feed_ct.id if feed_ct is not None else None
     for row in qs:
         raw = (row['metadata'] or {}).get('amount')
         if raw in (None, ''):
@@ -280,6 +323,14 @@ def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
         except (InvalidOperation, ValueError):
             continue
         total += amount
+        if (
+            feed_ct_id is not None
+            and row['source_content_type_id'] == feed_ct_id
+            and str(row['source_object_id']) == str(feed_stock_item.pk)
+        ):
+            feed_total += amount
+        else:
+            flock_total += amount
         occurred = row['occurred_at']
         if occurred is not None and occurred.date() >= year_start:
             year += amount
@@ -293,6 +344,8 @@ def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
     return {
         'total': str(total),
         'year': str(year),
+        'feed_total': str(feed_total),
+        'flock_total': str(flock_total),
         'per_egg': str(per_egg) if per_egg is not None else None,
         'eggs_total': eggs_total,
     }

@@ -1119,6 +1119,10 @@
           "events": {
             "title": "Registrar los eventos",
             "body": "Cuidados, incubación, muda, muerte: la ficha de cada gallina guarda su cronología."
+          },
+          "stats": {
+            "title": "Seguir la puesta y el coste",
+            "body": "Elige un periodo para la curva de puesta: los días sin registrar nunca aparecen como 0 y la tasa de registro queda visible. El coste por huevo (pienso + cuidados) y una alerta de caída (muda, clima) lo completan."
           }
         }
       },
@@ -2298,7 +2302,18 @@
       "stat_today": "Hoy",
       "stat_avg7": "Prom. 7 d",
       "stat_avg30": "Prom. 30 d",
-      "stat_month": "Este mes"
+      "stat_month": "Este mes",
+      "period": {
+        "7": "7 d",
+        "30": "30 d",
+        "90": "90 d",
+        "365": "1 año"
+      },
+      "stat_period_total": "Total periodo",
+      "stat_period_avg": "Prom. / día",
+      "stat_best": "Mejor día",
+      "coverage": "{{logged}}/{{total}} días registrados",
+      "chart_aria": "Curva de puesta"
     },
     "events": {
       "title": "Diario",
@@ -2354,7 +2369,8 @@
     "cost": {
       "title": "Coste",
       "per_egg": "{{amount}} € / huevo",
-      "totals": "{{total}} € en total · {{year}} € este año"
+      "totals": "{{total}} € en total · {{year}} € este año",
+      "breakdown": "Pienso {{feed}} € · gallinas {{flock}} €"
     },
     "tabs": {
       "info": "Info",
@@ -2379,7 +2395,8 @@
       "warranties": "Garantías a vigilar",
       "maintenances": "Mantenimientos a planificar",
       "stock": "Stock por reponer",
-      "weather": "Tiempo"
+      "weather": "Tiempo",
+      "eggDrop": "Caída de puesta"
     },
     "severity": {
       "critical": "Urgente",
@@ -2403,6 +2420,14 @@
       "wind": "Viento fuerte: rachas de hasta {{value}} km/h",
       "storm": "Tormenta prevista",
       "ahead": "Próximos días"
+    },
+    "eggDrop": {
+      "title": "Puesta baja un {{percent}} %",
+      "cause": {
+        "molt": "Probablemente muda · {{recent}} vs {{baseline}} huevos/día",
+        "weather": "Clima extremo reciente · {{recent}} vs {{baseline}} huevos/día",
+        "unknown": "Causa desconocida, vigilar · {{recent}} vs {{baseline}} huevos/día"
+      }
     }
   },
   "agent": {
