@@ -813,7 +813,8 @@
         "egg_log": "Recuento de huevos de la tarde",
         "meter_reading": "Recordatorio de lectura eléctrica",
         "water_reading": "Recordatorio de lectura de agua",
-        "weather_alert": "Alerta meteorológica"
+        "weather_alert": "Alerta meteorológica",
+        "daily_digest": "Resumen diario"
       }
     },
     "theme": "Tema",
@@ -1309,6 +1310,24 @@
           "modules": {
             "title": "Activar los módulos adecuados",
             "body": "Desactiva los módulos que no uses (gallinero, seguros…) para aligerar la navegación."
+          }
+        }
+      },
+      "digest": {
+        "title": "Recibir tu resumen diario",
+        "intro": "Deja que el asistente hable primero: un breve resumen diario de lo que necesita tu atención, enviado a Telegram.",
+        "steps": {
+          "preview": {
+            "title": "Ver el resumen de hoy",
+            "body": "Abre la página Resumen diario para previsualizar lo que contiene el resumen de hoy — tareas pendientes, alertas meteorológicas, stock bajo y más."
+          },
+          "enable": {
+            "title": "Activar el envío",
+            "body": "Vincula tu cuenta de Telegram, luego activa el resumen y elige la hora a la que quieres recibirlo cada mañana."
+          },
+          "sections": {
+            "title": "Elegir tus secciones",
+            "body": "Marca solo los temas que te interesan. Las secciones de los módulos que no usas se ocultan automáticamente."
           }
         }
       }
@@ -2687,6 +2706,31 @@
       "upgrade": "Mejora",
       "repair": "Reparación",
       "maintenance": "Mantenimiento"
+    }
+  },
+  "digest": {
+    "title": "Resumen diario",
+    "description": "Un breve resumen diario que te envía tu asistente — es él quien habla primero.",
+    "delivery": {
+      "title": "Envío",
+      "linkFirst": "Vincula tu cuenta de Telegram para recibir el resumen.",
+      "enable": "Enviarme un resumen diario",
+      "sendAt": "Hora de envío",
+      "hint": "Se envía una vez al día a tu hora local. No se envía nada cuando no hay nada que informar."
+    },
+    "sections": {
+      "title": "Secciones",
+      "description": "Elige qué incluye tu resumen.",
+      "tasks": "Tareas pendientes",
+      "weather": "Alertas meteorológicas",
+      "stock": "Stock bajo",
+      "electricity": "Anomalía eléctrica",
+      "chickens": "Puesta de huevos"
+    },
+    "preview": {
+      "title": "Vista previa de hoy",
+      "emptyTitle": "Nada que informar hoy",
+      "emptyDescription": "Tu resumen está vacío ahora mismo — solo se te avisará cuando haya algo que requiera tu atención."
     }
   }
 }

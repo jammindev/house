@@ -216,6 +216,7 @@ class UserViewSet(viewsets.ModelViewSet):
         allowed_fields = {
             'display_name', 'locale', 'theme', 'color_theme', 'email',
             'agent_memory_enabled', 'pinned_modules', 'completed_tutorials',
+            'digest_disabled_sections',
         }
         data = {k: v for k, v in request.data.items() if k in allowed_fields}
         serializer = self.get_serializer(

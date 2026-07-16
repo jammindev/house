@@ -31,6 +31,7 @@ class UserSerializer(serializers.ModelSerializer):
             "color_theme",
             "pinned_modules",
             "completed_tutorials",
+            "digest_disabled_sections",
             "agent_memory_enabled",
             "agent_web_search_available",
             "full_name",
@@ -73,6 +74,21 @@ class UserSerializer(serializers.ModelSerializer):
         if len(deduped) > 500:
             raise serializers.ValidationError(_("Too many tutorial keys."))
         return deduped
+
+    def validate_digest_disabled_sections(self, value):
+        # Section keys live in agent.digest.collectors — validate against them
+        # so a typo can't silently disable nothing. Lazy import avoids pulling
+        # the agent app at serializer import time.
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of section keys."))
+        from agent.digest.collectors import SECTION_KEYS
+
+        unknown = [k for k in value if k not in SECTION_KEYS]
+        if unknown:
+            raise serializers.ValidationError(
+                _("Unknown digest section(s): %(keys)s") % {'keys': ', '.join(sorted(unknown))}
+            )
+        return list(dict.fromkeys(value))
 
     def create(self, validated_data):
         password = validated_data.pop("password", None)

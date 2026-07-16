@@ -233,6 +233,16 @@ AGENT_CONVERSATION_RETENTION_DAYS = 365
 AGENT_WEB_SEARCH_ENABLED = False
 AGENT_WEB_SEARCH_MAX_USES = 5
 
+# Proactive daily digest (parcours 19). The digest reuses the pings scheduler +
+# Telegram delivery; these tune its content and optional polish.
+# - ELEC_ANOMALY_THRESHOLD: relative increase (last 30d vs previous 30d) above
+#   which the electricity section fires (0.30 = +30%).
+# - AI_POLISH_ENABLED: when on (and an API key is set), the digest text is
+#   rewritten by the LLM into a warm paragraph; any failure falls back to the
+#   deterministic template. Off by default (cost + keeps the send deterministic).
+DIGEST_ELEC_ANOMALY_THRESHOLD = 0.30
+DIGEST_AI_POLISH_ENABLED = False
+
 # Telegram bot channel for the agent. Empty token = channel disabled: the
 # webhook rejects everything and no outbound call is ever made.
 # Overridden per environment in local.py / production.py.

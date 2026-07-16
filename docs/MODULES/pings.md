@@ -8,6 +8,10 @@
 >
 > Parcours : `docs/parcours/PARCOURS_16_AGENT_PROACTIF_TELEGRAM.md`. Canal :
 > [telegram.md](./telegram.md), socle agent : [agent.md](./agent.md).
+>
+> Le **résumé quotidien** ([digest.md](./digest.md), parcours 19) est un
+> `PingSpec` (`daily_digest`) qui réutilise tout ce socle : il agrège plusieurs
+> signaux en un message, là où les autres pings posent une seule question.
 
 ## État synthétique
 

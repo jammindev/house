@@ -813,7 +813,8 @@
         "egg_log": "Evening egg count",
         "meter_reading": "Electricity meter reading reminder",
         "water_reading": "Water meter reading reminder",
-        "weather_alert": "Weather alert"
+        "weather_alert": "Weather alert",
+        "daily_digest": "Daily digest"
       }
     },
     "theme": "Theme",
@@ -1309,6 +1310,24 @@
           "modules": {
             "title": "Enable the right modules",
             "body": "Disable modules you don't need (chicken coop, insurance…) to lighten the navigation."
+          }
+        }
+      },
+      "digest": {
+        "title": "Get your daily digest",
+        "intro": "Let the assistant speak first: a short daily recap of what needs your attention, pushed to Telegram.",
+        "steps": {
+          "preview": {
+            "title": "See today's digest",
+            "body": "Open the Daily digest page to preview what today's recap contains — tasks due, weather alerts, low stock and more."
+          },
+          "enable": {
+            "title": "Turn on delivery",
+            "body": "Link your Telegram account, then enable the digest and pick the time you want to receive it each morning."
+          },
+          "sections": {
+            "title": "Choose your sections",
+            "body": "Tick only the topics you care about. Sections for modules you don't use are hidden automatically."
           }
         }
       }
@@ -2687,6 +2706,31 @@
       "upgrade": "Upgrade",
       "repair": "Repair",
       "maintenance": "Maintenance"
+    }
+  },
+  "digest": {
+    "title": "Daily digest",
+    "description": "A short daily recap your assistant sends you — so it speaks first.",
+    "delivery": {
+      "title": "Delivery",
+      "linkFirst": "Link your Telegram account to receive the digest.",
+      "enable": "Send me a daily digest",
+      "sendAt": "Send time",
+      "hint": "Sent once a day at your local time. Nothing is sent when there's nothing to report."
+    },
+    "sections": {
+      "title": "Sections",
+      "description": "Choose what your digest includes.",
+      "tasks": "Tasks due",
+      "weather": "Weather alerts",
+      "stock": "Low stock",
+      "electricity": "Electricity anomaly",
+      "chickens": "Egg laying"
+    },
+    "preview": {
+      "title": "Today's preview",
+      "emptyTitle": "Nothing to report today",
+      "emptyDescription": "Your digest is empty right now — you'll only be pinged when something needs your attention."
     }
   }
 }
