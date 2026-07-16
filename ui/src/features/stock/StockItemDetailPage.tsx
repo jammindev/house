@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { ClipboardCheck, Package, Plus } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
+import { Card } from '@/design-system/card';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
 import PageHeader from '@/components/PageHeader';
@@ -34,6 +35,7 @@ const TABS: Tab[] = ['info', 'consumption', 'history'];
 export default function StockItemDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const navigateBack = useNavigateBack('/app/stock');
   const qc = useQueryClient();
 
@@ -256,23 +258,28 @@ export default function StockItemDetailPage() {
                   ) : (
                     <ul className="space-y-2">
                       {history.map((entry) => (
-                        <li key={entry.id} className="rounded-md border border-border p-3 text-sm">
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="font-medium">{entry.subject || '—'}</span>
-                            {entry.metadata?.amount != null ? (
-                              <span className="shrink-0 font-medium">
-                                {formatAmount(entry.metadata.amount)}
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {formatDateTime(entry.occurred_at)}
-                            {entry.metadata?.delta && entry.metadata?.unit
-                              ? ` · +${formatQty(entry.metadata.delta, entry.metadata.unit)}`
-                              : ''}
-                            {entry.metadata?.brand ? ` · ${entry.metadata.brand}` : ''}
-                            {entry.metadata?.supplier ? ` · ${entry.metadata.supplier}` : ''}
-                          </p>
+                        <li key={entry.id}>
+                          <Card
+                            className="cursor-pointer p-3 text-sm transition-shadow hover:shadow-md"
+                            onClick={() => navigate(`/app/interactions/${entry.id}/edit`)}
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="font-medium">{entry.subject || '—'}</span>
+                              {entry.metadata?.amount != null ? (
+                                <span className="shrink-0 font-medium">
+                                  {formatAmount(entry.metadata.amount)}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {formatDateTime(entry.occurred_at)}
+                              {entry.metadata?.delta && entry.metadata?.unit
+                                ? ` · +${formatQty(entry.metadata.delta, entry.metadata.unit)}`
+                                : ''}
+                              {entry.metadata?.brand ? ` · ${entry.metadata.brand}` : ''}
+                              {entry.metadata?.supplier ? ` · ${entry.metadata.supplier}` : ''}
+                            </p>
+                          </Card>
                         </li>
                       ))}
                     </ul>

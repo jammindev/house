@@ -251,6 +251,33 @@ test.describe('Stock — page détail article', () => {
     await expect(historySection.getByText('18.00 €')).toBeVisible();
   });
 
+  // ── 3b. Cliquer sur une entrée d'historique → édition de la dépense ──────
+
+  test('clique sur une entrée d\'historique → ouvre l\'édition de la dépense', async ({ page }) => {
+    await page.goto(`/app/stock/${itemId}`);
+    await expect(page.getByRole('heading', { level: 1, name: itemName })).toBeVisible();
+
+    // Enregistrer un achat pour peupler l'historique
+    await page.getByRole('button', { name: 'Achat' }).first().click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    await dialog.locator('#purchase-delta').fill('1');
+    await dialog.locator('#purchase-price').fill('12');
+    await dialog.locator('#purchase-supplier').fill('Grossiste Clic E2E');
+    await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
+    await expect(dialog).toBeHidden();
+
+    // Aller sur l'onglet Historique
+    await page.getByRole('button', { name: 'Historique', exact: true }).click();
+
+    // L'entrée d'historique doit être cliquable → navigue vers l'édition de l'interaction
+    const historySection = page.locator('section').filter({ hasText: 'Historique des achats' });
+    await historySection.getByText('Grossiste Clic E2E').click();
+
+    await expect(page).toHaveURL(/\/app\/interactions\/[0-9a-f-]+\/edit/);
+    await expect(page.getByRole('heading', { name: "Modifier l'activité" })).toBeVisible();
+  });
+
   // ── 4. Suppression depuis la page détail ─────────────────────────────────
 
   test('supprime l\'article depuis la page détail et retourne à la liste', async ({ page }) => {
