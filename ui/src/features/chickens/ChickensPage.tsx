@@ -127,6 +127,9 @@ export default function ChickensPage() {
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {t('chickens.cost.totals', { total: cost.total, year: cost.year })}
               </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t('chickens.cost.breakdown', { feed: cost.feed_total, flock: cost.flock_total })}
+              </p>
             </Card>
           ) : null}
         </div>

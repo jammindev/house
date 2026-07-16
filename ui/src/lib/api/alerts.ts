@@ -40,12 +40,25 @@ export interface LowStockAlert {
   severity: AlertSeverity;
 }
 
+export type EggDropCause = 'molt' | 'weather' | 'unknown';
+
+export interface EggDropAlert {
+  kind: 'egg_drop';
+  severity: AlertSeverity;
+  drop_pct: number;
+  baseline_avg: number;
+  recent_avg: number;
+  cause: EggDropCause;
+  entity_url: string;
+}
+
 export interface AlertsSummary {
   overdue_tasks: OverdueTaskAlert[];
   expiring_warranties: ExpiringWarrantyAlert[];
   due_maintenances: DueMaintenanceAlert[];
   low_stock: LowStockAlert[];
   weather_alerts: WeatherAlert[];
+  egg_drop_alerts: EggDropAlert[];
   total: number;
 }
 

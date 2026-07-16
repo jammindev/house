@@ -92,6 +92,15 @@ class ChickensConfig(AppConfig):
             default_send_at=dt_time(19, 0),
         ))
 
+        # Parcours 14 Lot 6.4 — read-only agent tool for flock/laying stats.
+        # Aggregates, not listable rows → dedicated tool (like weather's
+        # get_weather). Declared here, never touching apps/agent/.
+        from agent.tools import register as register_tool
+
+        from .agent import build_get_chicken_stats_tool
+
+        register_tool(build_get_chicken_stats_tool())
+
 
 def _chicken_related(chicken):
     """A hen's recent journal entries — injected in the anchored assistant context."""

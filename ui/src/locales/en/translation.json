@@ -1119,6 +1119,10 @@
           "events": {
             "title": "Record events",
             "body": "Care, brooding, moulting, death: each hen's record keeps its timeline."
+          },
+          "stats": {
+            "title": "Track laying and cost",
+            "body": "Pick a period for the laying curve: un-logged days never show as 0, and the coverage rate stays visible. Cost per egg (feed + care) and an abnormal-drop alert (molt, weather) round it out."
           }
         }
       },
@@ -2298,7 +2302,18 @@
       "stat_today": "Today",
       "stat_avg7": "Avg 7 d",
       "stat_avg30": "Avg 30 d",
-      "stat_month": "This month"
+      "stat_month": "This month",
+      "period": {
+        "7": "7d",
+        "30": "30d",
+        "90": "90d",
+        "365": "1y"
+      },
+      "stat_period_total": "Period total",
+      "stat_period_avg": "Avg / day",
+      "stat_best": "Best day",
+      "coverage": "{{logged}}/{{total}} days logged",
+      "chart_aria": "Laying curve"
     },
     "events": {
       "title": "Journal",
@@ -2354,7 +2369,8 @@
     "cost": {
       "title": "Cost",
       "per_egg": "{{amount}} € / egg",
-      "totals": "{{total}} € total · {{year}} € this year"
+      "totals": "{{total}} € total · {{year}} € this year",
+      "breakdown": "Feed {{feed}} € · flock {{flock}} €"
     },
     "tabs": {
       "info": "Info",
@@ -2379,7 +2395,8 @@
       "warranties": "Warranties to watch",
       "maintenances": "Upcoming maintenances",
       "stock": "Stock to restock",
-      "weather": "Weather"
+      "weather": "Weather",
+      "eggDrop": "Egg-laying drop"
     },
     "severity": {
       "critical": "Urgent",
@@ -2403,6 +2420,14 @@
       "wind": "Strong wind: gusts up to {{value}} km/h",
       "storm": "Thunderstorm expected",
       "ahead": "Coming days"
+    },
+    "eggDrop": {
+      "title": "Laying down {{percent}}%",
+      "cause": {
+        "molt": "Likely molt · {{recent}} vs {{baseline}} eggs/day",
+        "weather": "Recent extreme weather · {{recent}} vs {{baseline}} eggs/day",
+        "unknown": "Unknown cause, keep an eye · {{recent}} vs {{baseline}} eggs/day"
+      }
     }
   },
   "agent": {

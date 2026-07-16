@@ -23,6 +23,7 @@ import {
   type ChickenEventPayload,
   type ChickenPayload,
   type ChickenPurchasePayload,
+  type EggStatsPeriod,
 } from '@/lib/api/chickens';
 import { toast } from '@/lib/toast';
 
@@ -32,7 +33,7 @@ export const chickenKeys = {
     [...chickenKeys.all, 'list', filters] as const,
   detail: (id: string) => [...chickenKeys.all, 'detail', id] as const,
   eggLogs: () => [...chickenKeys.all, 'egg-logs'] as const,
-  eggStats: () => [...chickenKeys.all, 'egg-stats'] as const,
+  eggStats: (period: EggStatsPeriod = 30) => [...chickenKeys.all, 'egg-stats', period] as const,
   events: (filters?: { chicken?: string }) => [...chickenKeys.all, 'events', filters] as const,
   settings: () => [...chickenKeys.all, 'settings'] as const,
   summary: () => [...chickenKeys.all, 'summary'] as const,
@@ -60,10 +61,10 @@ export function useEggLogs(filters: { date_from?: string; date_to?: string } = {
   });
 }
 
-export function useEggStats() {
+export function useEggStats(period: EggStatsPeriod = 30) {
   return useQuery({
-    queryKey: chickenKeys.eggStats(),
-    queryFn: fetchEggStats,
+    queryKey: chickenKeys.eggStats(period),
+    queryFn: () => fetchEggStats(period),
   });
 }
 

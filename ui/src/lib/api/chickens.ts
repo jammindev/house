@@ -59,15 +59,30 @@ export interface EggLog {
 
 export interface EggStatsPoint {
   date: string;
+  /** null = the day was never logged (unknown, not zero) — the chart breaks the line. */
   count: number | null;
 }
 
+export type EggStatsPeriod = 7 | 30 | 90 | 365;
+export const EGG_STATS_PERIODS: EggStatsPeriod[] = [7, 30, 90, 365];
+
+export interface EggStatsCoverage {
+  logged_days: number;
+  total_days: number;
+  rate: number;
+}
+
 export interface EggStats {
+  period: EggStatsPeriod;
   today: number | null;
   avg_7d: number | null;
   avg_30d: number | null;
   month_total: number;
   total: number;
+  period_total: number;
+  period_avg: number | null;
+  best_day: { date: string; count: number } | null;
+  coverage: EggStatsCoverage;
   series: EggStatsPoint[];
 }
 
@@ -125,6 +140,8 @@ export interface FlockSummary {
   cost: {
     total: string;
     year: string;
+    feed_total: string;
+    flock_total: string;
     per_egg: string | null;
     eggs_total: number;
   };
@@ -213,8 +230,8 @@ export async function deleteEggLog(id: string): Promise<void> {
   await api.delete(`/chickens/egg-logs/${id}/`);
 }
 
-export async function fetchEggStats(): Promise<EggStats> {
-  const { data } = await api.get('/chickens/egg-logs/stats/');
+export async function fetchEggStats(period: EggStatsPeriod = 30): Promise<EggStats> {
+  const { data } = await api.get('/chickens/egg-logs/stats/', { params: { period } });
   return data as EggStats;
 }
 

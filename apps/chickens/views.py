@@ -140,8 +140,12 @@ class EggLogViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='stats')
     def stats(self, request):
-        """Egg-laying stats: today, 7/30-day averages, month total, 30-day series."""
-        return Response(services.egg_stats(request.household))
+        """Laying stats + curve. ``?period=`` (7/30/90/365) drives the series."""
+        try:
+            period = int(request.query_params.get('period', 30))
+        except (TypeError, ValueError):
+            period = 30
+        return Response(services.egg_stats(request.household, period=period))
 
 
 class ChickenEventViewSet(viewsets.ModelViewSet):

@@ -5,7 +5,7 @@
 ## État synthétique
 
 - **Backend** : `apps/chickens/` — modèles (`Chicken`, `EggLog`, `ChickenEvent`, `ChickenSettings`), services (point d'entrée unique des écritures), serializers, viewsets DRF + vues settings/summary, câblage agent complet dans `apps.py::ready()`.
-- **Frontend** : `ui/src/features/chickens/` — `ChickensPage` (bandeau de ponte, stats, cards poules, journal), `ChickenDetailPage` (fiche + timeline + achat + assistant ancré), `ChickenDialog`, `ChickenEventDialog`, `ChickenPurchaseDialog` (wrap `PurchaseForm`), `EggLogBanner`, `EggStatsSection`, `EventTimeline`, `FeedCard`. Widget dashboard `ui/src/features/dashboard/ChickensCard.tsx` (masqué sans données).
+- **Frontend** : `ui/src/features/chickens/` — `ChickensPage` (bandeau de ponte, stats, cards poules, journal), `ChickenDetailPage` (fiche + timeline + achat + assistant ancré), `ChickenDialog`, `ChickenEventDialog`, `ChickenPurchaseDialog` (wrap `PurchaseForm`), `EggLogBanner`, `EggStatsSection` + `EggChart` (courbe SVG), `EventTimeline`, `FeedCard`. Widget dashboard `ui/src/features/dashboard/ChickensCard.tsx` (masqué sans données).
 - **Locales (en/fr/de/es)** : namespace `chickens` + `dashboard.metrics.chickens`.
 - **Tests** : `apps/chickens/tests/` — `test_api_chickens.py`, `test_agent_integration.py` (111 tests, dont le verrou de non-duplication agent/REST).
 
@@ -22,18 +22,24 @@
 
 - **`update_chicken`** : une transition vers `deceased`/`gone` **auto-crée le `ChickenEvent`** correspondant (death/departure) daté du jour — l'historique du troupeau reste complet quel que soit le canal (REST ou agent).
 - **`create_event`** : si `reminder_due_date` est fourni (option « Me le rappeler » d'un soin), une **Task** est créée via `tasks.services.create_task` (jamais l'ORM) — le rappel bénéficie ensuite des alertes de retard existantes, aucune mécanique nouvelle.
-- **`egg_stats`** : today, moyennes 7/30 j, total du mois, série de 30 points. Les jours sans relevé sont **absents (null), pas 0** — ils sont exclus des moyennes.
-- **`flock_summary`** : effectif actif, œufs du jour/7 j, snapshot de l'article de stock nourriture (quantité, unité, statut, seuil bas — pas de runway), coûts (`total`, `year`, `per_egg`), `has_data` (pilote l'affichage du widget dashboard).
+- **`egg_stats(period=30)`** : today, moyennes 7/30 j, total du mois, + (lot 6.1) `period` ∈ {7,30,90,365}, `series` (un point/jour, `count=null` si non relevé), `coverage {logged_days,total_days,rate}`, `period_total`, `period_avg`, `best_day`. Les jours sans relevé sont **absents (null), pas 0** — exclus des moyennes ; le **taux de relevé** rend cette honnêteté chiffrée.
+- **`flock_summary`** : effectif actif, œufs du jour/7 j, snapshot de l'article de stock nourriture (quantité, unité, statut, seuil bas — pas de runway), coûts (`total`, `year`, `feed_total`, `flock_total`, `per_egg`), `has_data` (pilote l'affichage du widget dashboard).
 
 ## Dépenses & coût par œuf
 
 - POST `/api/chickens/{id}/purchase/` (payload compatible `PurchaseForm` : `amount`, `supplier`, `occurred_at`, `notes`) → `interactions.services.create_expense_interaction(kind='chickens_purchase')`, zone de la poule héritée. Template enregistré dans `AUTO_SUBJECT_TEMPLATES` (même msgid « Purchase — {name} » que stock/equipment → déjà traduit dans les .po).
 - Coût cumulé = somme des Interactions `metadata.kind == 'chickens_purchase'` **plus** les `stock_purchase` dont la source polymorphe est l'article de stock lié (lot 7 — la nourriture achetée via Stock est attribuée au poulailler) ; coût par œuf = total ÷ œufs loggés. Limite acceptée : changer d'article lié désattribue les achats de l'ancien.
+- **Décision produit (lot 6.2) : coût = alimentation + soins**, hors équipement durable. Traduit sans nouveau champ : `feed_total` = achats de l'article nourriture ; `flock_total` = `chickens_purchase` (véto, vermifuge, acquisition). L'équipement durable vit dans son module, n'est jamais un `chickens_purchase` → naturellement exclu. La répartition `{feed_total, flock_total}` est renvoyée pour l'afficher (transparence).
+
+## Stats, santé & alerte de chute (lot 6)
+
+- **Courbe de ponte** (`EggStatsSection` + `EggChart`) : sélecteur 7/30/90/365 j, taux de relevé affiché, courbe SVG sans dépendance. Le pivot rendu visible : jour relevé = point (un vrai 0 = point sur l'axe), jour non relevé = ligne interrompue, bande « couverture » (une case/jour) dessous.
+- **Alerte de chute anormale** (`chickens/alerts.py::evaluate_egg_drop_alert`, fonction **pure** sur le modèle de `weather/alerts.py`) : baseline `[J-37..J-8]` vs récent `[J-6..J]` (moyennes sur jours relevés only) ; garde-fous couverture `MIN_BASELINE_DAYS=10` / `MIN_RECENT_DAYS=3` (anti-faux-positif) ; seuil −40 % (`critical` à −60 %) ; **cause** qualifiée : `molt` (ChickenEvent mue < 45 j) > `weather` (`evaluate_weather_alerts` frost/heatwave) > `unknown`. Câblée on-read dans `alerts.services.build_alerts_summary` (`egg_drop_alerts`, gaté `chickens` in `disabled_modules`), rendue client-side dans `AlertsPage`. Pas de ping en V1.
 
 ## API — `/api/chickens/`
 
 - CRUD `''` (poules) — filtres `?status=`, `?in_flock=true` ; action `purchase`.
-- CRUD `egg-logs/` — POST upsert (201 créé / 200 remplacé), filtres `?date_from=&date_to=`, action GET `stats/`.
+- CRUD `egg-logs/` — POST upsert (201 créé / 200 remplacé), filtres `?date_from=&date_to=`, action GET `stats/?period=` (7/30/90/365).
 - CRUD `events/` — filtres `?type=`, `?chicken=` ; `reminder_due_date` write-only à la création.
 - GET/PUT `settings/` — `feed_stock_item` (validation : article du foyer) + snapshot `feed_stock_item_detail`.
 - GET `summary/` — le payload du widget dashboard et de l'en-tête de page.
@@ -44,6 +50,7 @@
 - `WritableSpec('chicken')` — create/update/delete ; anchor zone → pré-remplit la zone ; « Roussette est morte » → update status=deceased (+ event auto).
 - `WritableSpec('egg_log')` — create = **upsert du jour** via `log_eggs` ; undo = hard delete de la row du jour (limite assumée : si l'agent a remplacé un compte existant, l'undo supprime la journée entière).
 - `ListableSpec('chicken')` (status, in_flock) + `ListableSpec('egg_log')` (date_from/date_to) — « combien d'œufs cette semaine ? » passe par `list_entities`.
+- **Tool agent `get_chicken_stats`** (lot 6.4, `chickens/agent.py`, enregistré depuis `apps.py`) : agrégats (effectif, ponte jour/7 j/30 j, taux de relevé, coût au œuf, état de l'alerte de chute + cause) — comme `get_weather`, un tool dédié plutôt qu'un searchable, **zéro modif de `apps/agent/`**.
 - Descriptions des tools étendues dans `apps/agent/tools.py` (create/update/list) — seule retouche dans `apps/agent/`.
 - Front : entrées `chicken`/`egg_log` dans `UNDO_HANDLERS` + `chicken` dans `UPDATE_UNDO_HANDLERS` (`ui/src/features/agent/hooks.ts`).
 
