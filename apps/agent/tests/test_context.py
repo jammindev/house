@@ -14,6 +14,7 @@ from agent import context
 from documents.models import Document
 from households.models import Household, HouseholdMember
 
+from documents.services import link_document
 
 @pytest.fixture
 def owner(db):
@@ -65,12 +66,12 @@ class TestBuildEntityContext:
         from django.contrib.contenttypes.models import ContentType
         from django.utils import timezone
         from interactions.models import Interaction
-        from projects.models import Project, ProjectDocument
+        from projects.models import Project
         from tasks.models import Task
 
         project = make_project(title="Rénovation PAC", description="devis en cours")
         doc = make_document(name="devis PAC", ocr_text="montant 12000")
-        ProjectDocument.objects.create(project=project, document=doc)
+        link_document(entity=project, document=doc)
         interaction = Interaction.objects.create(
             household=household, created_by=owner, subject="Dépense PAC",
             occurred_at=timezone.now(),

@@ -2,7 +2,7 @@
 Zones admin configuration.
 """
 from django.contrib import admin
-from .models import Zone, ZoneDocument
+from .models import Zone
 
 
 @admin.register(Zone)
@@ -30,13 +30,3 @@ class ZoneAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-
-
-@admin.register(ZoneDocument)
-class ZoneDocumentAdmin(admin.ModelAdmin):
-    """Admin for ZoneDocument model."""
-    list_display = ['zone', 'document', 'role', 'created_at']
-    list_filter = ['role', 'created_at']
-    search_fields = ['zone__name', 'document__name', 'note']
-    readonly_fields = ['created_at']
-    raw_id_fields = ['zone', 'document', 'created_by']

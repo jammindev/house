@@ -7,13 +7,13 @@ from django.db import transaction
 from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 from documents.models import Document
+from documents.services import link_document
 from tags.models import Tag, TagLink
 from .models import (
     Interaction,
     InteractionZone,
     InteractionContact,
     InteractionStructure,
-    InteractionDocument,
 )
 
 
@@ -199,7 +199,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         return [str(zone.id) for zone in obj.zones.all()]
 
     def _get_linked_document_ids(self, obj):
-        document_ids = {str(document_id) for document_id in obj.interaction_documents.values_list('document_id', flat=True)}
+        document_ids = {str(document_id) for document_id in obj.document_links.values_list('document_id', flat=True)}
         document_ids.update(str(document_id) for document_id in obj.documents.values_list('id', flat=True))
         return sorted(document_ids)
     
@@ -323,7 +323,7 @@ class InteractionSerializer(serializers.ModelSerializer):
 
             for document_id in document_ids:
                 document = Document.objects.get(id=document_id, household=interaction.household)
-                InteractionDocument.objects.create(interaction=interaction, document=document)
+                link_document(entity=interaction, document=document, role='attachment')
 
             self._sync_tags(interaction, tag_names)
             self._sync_contacts(interaction, contact_ids)
@@ -384,7 +384,7 @@ class InteractionDetailSerializer(InteractionSerializer):
     
     def get_documents(self, obj):
         legacy_documents = list(obj.documents.all())
-        linked_documents = [link.document for link in obj.interaction_documents.select_related('document').all() if link.document]
+        linked_documents = [link.document for link in obj.document_links.select_related('document').all() if link.document]
         unique_documents = {document.id: document for document in [*legacy_documents, *linked_documents]}.values()
         return [
             {
@@ -411,7 +411,15 @@ class InteractionStructureSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
 
-class InteractionDocumentSerializer(serializers.ModelSerializer):
+class InteractionDocumentSerializer(serializers.Serializer):
+    """Interaction↔Document link, backed by DocumentLink (shape preserved)."""
+
+    interaction = serializers.PrimaryKeyRelatedField(queryset=Interaction.objects.all())
+    document = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all())
+    role = serializers.CharField(required=False, allow_blank=True, default='attachment')
+    note = serializers.CharField(required=False, allow_blank=True, default='')
+    created_at = serializers.DateTimeField(read_only=True)
+
     def validate(self, attrs):
         request = self.context.get('request')
         interaction = attrs.get('interaction')
@@ -440,8 +448,20 @@ class InteractionDocumentSerializer(serializers.ModelSerializer):
 
         return attrs
 
-    class Meta:
-        model = InteractionDocument
-        fields = ['interaction', 'document', 'role', 'note', 'created_at']
-        read_only_fields = ['created_at']
-        validators = []
+    def create(self, validated_data):
+        link, _created = link_document(
+            entity=validated_data['interaction'],
+            document=validated_data['document'],
+            role=validated_data.get('role') or 'attachment',
+            note=validated_data.get('note', ''),
+        )
+        return link
+
+    def to_representation(self, instance):
+        return {
+            'interaction': str(instance.object_id),
+            'document': instance.document_id,
+            'role': instance.role,
+            'note': instance.note,
+            'created_at': instance.created_at,
+        }

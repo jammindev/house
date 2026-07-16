@@ -12,9 +12,12 @@ from accounts.tests.factories import UserFactory
 from documents.models import Document
 from households.models import Household, HouseholdMember
 from interactions.models import Interaction
-from projects.models import Project, ProjectDocument
+from django.contrib.contenttypes.models import ContentType
+
+from documents.models import DocumentLink
+from documents.services import link_document
+from projects.models import Project
 from zones.models import Zone
-from zones.models import ZoneDocument
 
 
 def _jpeg_bytes(width: int = 100, height: int = 100, color: str = "red") -> bytes:
@@ -315,8 +318,8 @@ class TestDocumentsApi:
 
         assert response.status_code == status.HTTP_201_CREATED, response.data
         document = Document.objects.get(pk=response.data['document']['id'])
-        link = ZoneDocument.objects.get(document=document)
-        assert link.zone == zone
+        link = DocumentLink.objects.get(document=document)
+        assert str(link.object_id) == str(zone.id)
         assert link.role == 'photo'
         assert link.created_by == owner
 
@@ -334,7 +337,7 @@ class TestDocumentsApi:
 
         assert response.status_code == status.HTTP_201_CREATED, response.data
         document = Document.objects.get(pk=response.data['document']['id'])
-        link = ZoneDocument.objects.get(document=document)
+        link = DocumentLink.objects.get(document=document)
         assert link.role == 'document'
 
     @override_settings(MEDIA_ROOT='/tmp/house-test-media-zone-foreign')
@@ -353,7 +356,7 @@ class TestDocumentsApi:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert 'zone' in response.data
         assert not Document.objects.filter(name='manual.pdf').exists()
-        assert not ZoneDocument.objects.filter(zone=foreign_zone).exists()
+        assert not DocumentLink.objects.exists()
 
     def test_list_exposes_qualification_flags_from_interaction_documents(self, owner_client, owner, household):
         linked_document = Document.objects.create(
@@ -373,7 +376,7 @@ class TestDocumentsApi:
             type='document',
         )
         interaction = _interaction(household, owner)
-        interaction.interaction_documents.create(document=linked_document)
+        link_document(entity=interaction, document=linked_document, role='attachment')
 
         url = reverse('document-list')
         response = owner_client.get(url)
@@ -413,8 +416,8 @@ class TestDocumentsApi:
             occurred_at='2026-03-08T10:00:00Z',
         )
         recent_interaction.zones.add(zone)
-        linked_interaction.interaction_documents.create(document=document)
-        ZoneDocument.objects.create(zone=zone, document=document, created_by=owner)
+        link_document(entity=linked_interaction, document=document, role='attachment')
+        link_document(entity=zone, document=document, user=owner)
         project = Project.objects.create(
             household=household,
             created_by=owner,
@@ -422,7 +425,7 @@ class TestDocumentsApi:
             type=Project.Type.MAINTENANCE,
             status=Project.Status.ACTIVE,
         )
-        ProjectDocument.objects.create(project=project, document=document, created_by=owner)
+        link_document(entity=project, document=document, user=owner)
 
         url = reverse('document-detail', kwargs={'pk': document.id})
         response = owner_client.get(url)
@@ -451,7 +454,7 @@ class TestDocumentsApi:
         project = Project.objects.create(
             household=household, created_by=owner, title='Renovation',
         )
-        ProjectDocument.objects.create(project=project, document=linked, created_by=owner)
+        link_document(entity=project, document=linked, user=owner)
 
         url = reverse('document-list')
         response = owner_client.get(url, {'project': str(project.id)})
@@ -472,7 +475,7 @@ class TestDocumentsApi:
             file_path='docs/z-other.pdf', name='ZoneOther',
             mime_type='application/pdf', type='document',
         )
-        ZoneDocument.objects.create(zone=zone, document=linked, created_by=owner)
+        link_document(entity=zone, document=linked, user=owner)
 
         url = reverse('document-list')
         response = owner_client.get(url, {'zone': str(zone.id)})

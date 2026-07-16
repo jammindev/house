@@ -1,12 +1,10 @@
-"""Document linking services — read helpers + through-table → DocumentLink sync.
+"""Document linking services — the single write + read layer over ``DocumentLink``.
 
-During the phased migration to the polymorphic ``DocumentLink`` (see
-``migrations/0006_backfill_document_links``), the 5 legacy per-model through
-tables remain the **write model**. Signals (``documents/signals.py``) mirror
-every write into ``DocumentLink``, which is the single **read model** consumed
-by the documents queryset filter, the detail serializer (``entity_links``) and
-the agent's centralized document visibility. This keeps PR1 fully reversible:
-dropping the sync + ``DocumentLink`` leaves the through tables authoritative.
+``DocumentLink`` is the sole store for document↔entity links (the legacy per-model
+through tables were dropped in each app's ``delete_*document`` migration, after the
+``documents.0006`` backfill). Every attach/detach flows through ``link_document`` /
+``unlink_document`` here; the caller is responsible for the household-consistency
+check (document.household == entity.household).
 """
 from __future__ import annotations
 
@@ -17,39 +15,29 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Document, DocumentLink
 
 
-def _parent_content_type(through_instance, parent_attr: str) -> ContentType:
-    """ContentType of the parent entity, without loading the parent instance."""
-    parent_model = type(through_instance)._meta.get_field(parent_attr).related_model
-    return ContentType.objects.get_for_model(parent_model)
+# --- write helpers --------------------------------------------------------------
 
+def link_document(*, entity, document, user=None, role="document", note=""):
+    """Attach ``document`` to any household ``entity``. Idempotent (upsert).
 
-# --- through-table → DocumentLink sync (called from signals) --------------------
-
-def sync_document_link(through_instance, parent_attr: str) -> None:
-    """Upsert the DocumentLink mirroring a legacy through-table row."""
-    ct = _parent_content_type(through_instance, parent_attr)
-    object_id = getattr(through_instance, f"{parent_attr}_id")
-    DocumentLink.objects.update_or_create(
+    Returns ``(link, created)``. Household consistency is the caller's concern.
+    """
+    ct = ContentType.objects.get_for_model(type(entity))
+    return DocumentLink.objects.update_or_create(
         content_type=ct,
-        object_id=object_id,
-        document_id=through_instance.document_id,
-        defaults={
-            "role": getattr(through_instance, "role", None) or "document",
-            "note": getattr(through_instance, "note", "") or "",
-            "created_by_id": getattr(through_instance, "created_by_id", None),
-        },
+        object_id=entity.pk,
+        document=document,
+        defaults={"role": role or "document", "note": note or "", "created_by": user},
     )
 
 
-def unsync_document_link(through_instance, parent_attr: str) -> None:
-    """Delete the DocumentLink mirroring a removed through-table row."""
-    ct = _parent_content_type(through_instance, parent_attr)
-    object_id = getattr(through_instance, f"{parent_attr}_id")
-    DocumentLink.objects.filter(
-        content_type=ct,
-        object_id=object_id,
-        document_id=through_instance.document_id,
+def unlink_document(*, entity, document_id) -> int:
+    """Detach a document from ``entity``. Returns the number of links removed."""
+    ct = ContentType.objects.get_for_model(type(entity))
+    deleted, _ = DocumentLink.objects.filter(
+        content_type=ct, object_id=entity.pk, document_id=document_id
     ).delete()
+    return deleted
 
 
 # --- read helpers ---------------------------------------------------------------

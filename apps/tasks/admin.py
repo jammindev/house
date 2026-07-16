@@ -1,24 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Task, TaskZone, TaskDocument, TaskInteraction
-
-
-class TaskDocumentInline(admin.TabularInline):
-    model = TaskDocument
-    extra = 0
-    readonly_fields = ['document_link', 'created_at', 'created_by']
-    fields = ['document_link', 'note', 'created_at', 'created_by']
-
-    def document_link(self, obj):
-        if obj.document_id:
-            return format_html(
-                '<a href="/admin/documents/document/{}/change/">{}</a>',
-                obj.document_id,
-                obj.document.name,
-            )
-        return '-'
-    document_link.short_description = 'Document'
+from .models import Task, TaskZone, TaskInteraction
 
 
 class TaskInteractionInline(admin.TabularInline):
@@ -47,7 +30,7 @@ class TaskAdmin(admin.ModelAdmin):
     list_filter = ['status', 'priority', 'is_private', 'household', 'due_date']
     search_fields = ['subject', 'content']
     readonly_fields = ['id', 'created_at', 'updated_at', 'created_by', 'updated_by']
-    inlines = [TaskDocumentInline, TaskInteractionInline]
+    inlines = [TaskInteractionInline]
     fieldsets = [
         ('Informations', {
             'fields': ['id', 'subject', 'content', 'status', 'priority', 'due_date', 'is_private'],
@@ -66,7 +49,7 @@ class TaskAdmin(admin.ModelAdmin):
     ]
 
     def doc_count(self, obj):
-        return obj.task_documents.count()
+        return obj.document_links.count()
     doc_count.short_description = 'Docs'
 
     def interaction_count(self, obj):

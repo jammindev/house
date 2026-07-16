@@ -3,7 +3,7 @@ Zones serializers.
 """
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from .models import Zone, ZoneDocument
+from .models import Zone
 
 
 class ZoneSerializer(serializers.ModelSerializer):
@@ -68,15 +68,20 @@ class ZoneTreeSerializer(ZoneSerializer):
         return ZoneTreeSerializer(children, many=True, context=self.context).data
 
 
-class ZoneDocumentSerializer(serializers.ModelSerializer):
-    """Serializer for zone documents."""
+class ZoneDocumentSerializer(serializers.Serializer):
+    """Serializer for a zone's document links (backed by DocumentLink).
+
+    Shape preserved from the former ZoneDocument model serializer so the zone
+    photos frontend is unaffected.
+    """
+    zone = serializers.SerializerMethodField()
+    document = serializers.IntegerField(source='document_id', read_only=True)
     document_name = serializers.CharField(source='document.name', read_only=True)
     document_file_path = serializers.CharField(source='document.file_path', read_only=True)
+    role = serializers.CharField(read_only=True)
+    note = serializers.CharField(read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
 
-    class Meta:
-        model = ZoneDocument
-        fields = [
-            'zone', 'document', 'document_name', 'document_file_path',
-            'role', 'note', 'created_at', 'created_by'
-        ]
-        read_only_fields = ['created_at', 'created_by']
+    def get_zone(self, obj):
+        return str(obj.object_id)

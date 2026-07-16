@@ -20,6 +20,7 @@ from agent.tools import (
     reset_registry,
     schemas,
 )
+from documents.services import link_document
 
 
 @pytest.fixture
@@ -289,9 +290,8 @@ def make_project(household, owner):
 
 class TestGetRelated:
     def _link_document(self, project, doc):
-        from projects.models import ProjectDocument
 
-        return ProjectDocument.objects.create(project=project, document=doc)
+        return link_document(entity=project, document=doc)[0]
 
     def test_loads_linked_items_across_types(
         self, household, owner, make_project, make_document

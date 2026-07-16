@@ -12,7 +12,11 @@ from accounts.tests.factories import UserFactory
 from documents.models import Document
 from directory.models import Contact
 from households.models import Household, HouseholdMember
-from interactions.models import Interaction, InteractionContact, InteractionDocument
+from django.contrib.contenttypes.models import ContentType
+
+from documents.models import DocumentLink
+from documents.services import link_document
+from interactions.models import Interaction, InteractionContact
 from projects.models import Project
 from tags.models import Tag, TagLink
 from zones.models import Zone
@@ -160,7 +164,9 @@ class TestInteractionCrud:
 
         assert response.status_code == status.HTTP_201_CREATED
         interaction = Interaction.objects.get(id=response.data["id"])
-        assert InteractionDocument.objects.filter(interaction=interaction, document=document).exists()
+        assert DocumentLink.objects.filter(
+            content_type=ContentType.objects.get_for_model(Interaction),
+            object_id=interaction.id, document=document).exists()
         assert response.data["linked_document_ids"] == [str(document.id)]
 
     def test_create_interaction_rejects_document_from_another_household_atomically(self, owner_client, household, owner, primary_zone):
@@ -476,7 +482,9 @@ class TestInteractionLinks:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert InteractionDocument.objects.filter(interaction=interaction, document=document).exists()
+        assert DocumentLink.objects.filter(
+            content_type=ContentType.objects.get_for_model(Interaction),
+            object_id=interaction.id, document=document).exists()
 
     def test_create_interaction_document_rejects_household_mismatch(self, owner_client, household, owner, primary_zone):
         other_household = _create_household("Documents Elsewhere")
@@ -525,7 +533,7 @@ class TestInteractionLinks:
             mime_type='application/pdf',
             type='document',
         )
-        InteractionDocument.objects.create(interaction=interaction, document=document, role='attachment')
+        link_document(entity=interaction, document=document, role='attachment')
 
         url = reverse("interaction-document-list")
         response = owner_client.post(

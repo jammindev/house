@@ -9,10 +9,13 @@ from rest_framework.permissions import IsAuthenticated
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
-from .models import Zone, ZoneDocument
+from django.contrib.contenttypes.models import ContentType
+
+from .models import Zone
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
 from core.permissions import IsHouseholdMember
-from documents.models import Document
+from documents.models import Document, DocumentLink
+from documents.services import link_document
 
 
 class ZoneViewSet(viewsets.ModelViewSet):
@@ -123,18 +126,21 @@ class ZoneViewSet(viewsets.ModelViewSet):
     def photos(self, request, pk=None):
         """Get photos linked to this zone."""
         zone = self.get_object()
-        zone_documents = ZoneDocument.objects.filter(zone=zone).select_related('document')
-        serializer = ZoneDocumentSerializer(zone_documents, many=True)
+        ct = ContentType.objects.get_for_model(Zone)
+        links = DocumentLink.objects.filter(
+            content_type=ct, object_id=zone.id
+        ).select_related('document', 'content_type').order_by('-created_at')
+        serializer = ZoneDocumentSerializer(links, many=True)
         return Response(serializer.data)
 
     @action(detail=True, methods=['post'])
     def attach_photo(self, request, pk=None):
         """Attach a photo document to this zone."""
         zone = self.get_object()
-        
+
         document_id = request.data.get('document_id')
         note = request.data.get('note', '')
-        
+
         if not document_id:
             return Response(
                 {"detail": "document_id is required"},
@@ -148,14 +154,8 @@ class ZoneViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Create zone document link
-        zone_doc = ZoneDocument.objects.create(
-            zone=zone,
-            document=document,
-            role='photo',
-            note=note,
-            created_by=request.user
+        link, _created = link_document(
+            entity=zone, document=document, role='photo', note=note, user=request.user
         )
-
-        serializer = ZoneDocumentSerializer(zone_doc)
+        serializer = ZoneDocumentSerializer(link)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

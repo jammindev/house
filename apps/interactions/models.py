@@ -210,28 +210,3 @@ class InteractionStructure(models.Model):
         ]
 
 
-class InteractionDocument(models.Model):
-    """M2M link between interactions and documents."""
-    interaction = models.ForeignKey(
-        Interaction,
-        on_delete=models.CASCADE,
-        db_column='interaction_id',
-        related_name='interaction_documents'
-    )
-    document = models.ForeignKey(
-        'documents.Document',
-        on_delete=models.CASCADE,
-        db_column='document_id',
-        related_name='interaction_documents'
-    )
-    role = models.TextField(default='attachment')
-    note = models.TextField(default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        db_table = 'interaction_documents'
-        unique_together = [['interaction', 'document']]
-        indexes = [
-            models.Index(fields=['interaction']),
-            models.Index(fields=['document']),
-        ]

@@ -4,20 +4,23 @@ Task serializers — CRUD API.
 from django.db import transaction
 from rest_framework import serializers
 from households.models import HouseholdMember
-from .models import Task, TaskZone, TaskDocument, TaskInteraction
+from documents.models import Document
+from documents.services import link_document
+from .models import Task, TaskZone, TaskInteraction
 
 
-class TaskDocumentSummarySerializer(serializers.ModelSerializer):
-    """Minimal document info embedded in Task responses."""
+class TaskDocumentSummarySerializer(serializers.Serializer):
+    """Minimal document info embedded in Task responses (backed by DocumentLink)."""
 
-    document_id = serializers.CharField(source='document.id', read_only=True)
+    id = serializers.IntegerField(read_only=True)
+    document_id = serializers.SerializerMethodField()
     name = serializers.CharField(source='document.name', read_only=True)
     type = serializers.CharField(source='document.type', read_only=True)
     file_url = serializers.SerializerMethodField()
+    note = serializers.CharField(read_only=True)
 
-    class Meta:
-        model = TaskDocument
-        fields = ['id', 'document_id', 'name', 'type', 'file_url', 'note']
+    def get_document_id(self, obj):
+        return str(obj.document_id)
 
     def get_file_url(self, obj):
         if not obj.document.file_path:
@@ -42,15 +45,38 @@ class TaskInteractionSummarySerializer(serializers.ModelSerializer):
         fields = ['id', 'interaction_id', 'subject', 'type', 'occurred_at', 'note']
 
 
-class TaskDocumentLinkSerializer(serializers.ModelSerializer):
-    """Read/write serializer for TaskDocument links."""
+class TaskDocumentLinkSerializer(serializers.Serializer):
+    """Read/write serializer for Task↔Document links (backed by DocumentLink).
 
-    class Meta:
-        model = TaskDocument
-        fields = ['id', 'task', 'document', 'note', 'created_at', 'created_by']
-        read_only_fields = ['id', 'created_at', 'created_by']
-        # Suppress auto-added UniqueTogetherValidator — 409 is handled in the view
-        validators = []
+    Preserves the former TaskDocument link shape: ``id`` is the DocumentLink pk
+    (used by the frontend to detach), ``task`` the task UUID, ``document`` its int pk.
+    """
+
+    id = serializers.IntegerField(read_only=True)
+    task = serializers.PrimaryKeyRelatedField(queryset=Task.objects.all())
+    document = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all())
+    note = serializers.CharField(required=False, allow_blank=True, default='')
+    created_at = serializers.DateTimeField(read_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    def create(self, validated_data):
+        link, _created = link_document(
+            entity=validated_data['task'],
+            document=validated_data['document'],
+            user=validated_data.get('created_by'),
+            note=validated_data.get('note', ''),
+        )
+        return link
+
+    def to_representation(self, instance):
+        return {
+            'id': instance.id,
+            'task': str(instance.object_id),
+            'document': instance.document_id,
+            'note': instance.note,
+            'created_at': instance.created_at,
+            'created_by': instance.created_by_id,
+        }
 
 
 class TaskInteractionLinkSerializer(serializers.ModelSerializer):
@@ -142,7 +168,7 @@ class TaskSerializer(serializers.ModelSerializer):
         return obj.created_by.full_name if obj.created_by_id and obj.created_by else None
 
     def get_linked_documents(self, obj):
-        links = list(obj.task_documents.all())
+        links = list(obj.document_links.select_related('document').all())
         return TaskDocumentSummarySerializer(
             links, many=True, context=self.context
         ).data
@@ -154,7 +180,7 @@ class TaskSerializer(serializers.ModelSerializer):
         ).data
 
     def get_linked_document_count(self, obj):
-        return len(obj.task_documents.all())
+        return obj.document_links.count()
 
     def get_linked_interaction_count(self, obj):
         return len(obj.task_interactions.all())
@@ -211,10 +237,9 @@ class TaskSerializer(serializers.ModelSerializer):
             for zone_id in zone_ids:
                 zone = Zone.objects.get(id=zone_id, household=task.household)
                 TaskZone.objects.create(task=task, zone=zone)
-            from documents.models import Document
             for doc_id in document_ids:
                 doc = Document.objects.get(id=doc_id, household=task.household)
-                TaskDocument.objects.get_or_create(task=task, document=doc)
+                link_document(entity=task, document=doc, user=validated_data.get('created_by'))
             from interactions.models import Interaction
             for int_id in interaction_ids:
                 interaction = Interaction.objects.get(id=int_id, household=task.household)

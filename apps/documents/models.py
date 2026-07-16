@@ -140,3 +140,9 @@ class DocumentLink(models.Model):
             models.Index(fields=['content_type', 'object_id'], name='idx_doclink_entity'),
         ]
 
+    @property
+    def household_id(self):
+        """Household of the linked entity — lets ``IsHouseholdMember`` scope links."""
+        entity = self.entity
+        return entity.household_id if entity is not None else None
+

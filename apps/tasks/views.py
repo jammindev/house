@@ -3,6 +3,7 @@ Task REST API views.
 """
 from datetime import date
 
+from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
 from django.utils import timezone
 from rest_framework import viewsets, filters, status
@@ -12,10 +13,10 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
-from documents.models import Document
+from documents.models import Document, DocumentLink
 from interactions.models import Interaction
 from zones.models import Zone
-from .models import Task, TaskDocument, TaskInteraction
+from .models import Task, TaskInteraction
 from .serializers import (
     TaskSerializer,
     TaskDocumentLinkSerializer,
@@ -48,7 +49,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             'created_by', 'completed_by', 'assigned_to', 'project'
         ).prefetch_related(
             'zones', 'tags__tag',
-            'task_documents__document',
+            'document_links__document',
             'task_interactions__interaction',
         )
 
@@ -151,18 +152,23 @@ class TaskDocumentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsHouseholdMember]
     serializer_class = TaskDocumentLinkSerializer
 
+    def _task_ct(self):
+        return ContentType.objects.get_for_model(Task)
+
     def get_queryset(self):
-        qs = TaskDocument.objects.filter(
-            task__household_id__in=self.request.user.householdmember_set.values_list(
-                'household_id', flat=True
-            )
-        ).select_related('document', 'task')
+        task_ids = Task.objects.for_user_households(self.request.user).values_list('id', flat=True)
+        qs = DocumentLink.objects.filter(
+            content_type=self._task_ct(), object_id__in=task_ids
+        ).select_related('document')
         if self.request.household:
-            qs = qs.filter(task__household=self.request.household)
+            hh_task_ids = Task.objects.filter(
+                household=self.request.household
+            ).values_list('id', flat=True)
+            qs = qs.filter(object_id__in=hh_task_ids)
         task_id = self.request.query_params.get('task', '').strip()
         if task_id:
-            qs = qs.filter(task_id=task_id)
-        return qs
+            qs = qs.filter(object_id=task_id)
+        return qs.order_by('-created_at')
 
     def perform_create(self, serializer):
         task = serializer.validated_data['task']
@@ -178,7 +184,8 @@ class TaskDocumentViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
 
     def perform_destroy(self, instance):
-        if instance.task.created_by_id != self.request.user.pk:
+        task = instance.entity  # the linked Task (GenericForeignKey)
+        if task is None or task.created_by_id != self.request.user.pk:
             raise PermissionDenied("Only the task creator can manage attachments.")
         instance.delete()
 
@@ -188,7 +195,9 @@ class TaskDocumentViewSet(viewsets.ModelViewSet):
 
         task = serializer.validated_data['task']
         document = serializer.validated_data['document']
-        if TaskDocument.objects.filter(task=task, document=document).exists():
+        if DocumentLink.objects.filter(
+            content_type=self._task_ct(), object_id=task.id, document=document
+        ).exists():
             return Response(
                 {'code': 'already_linked', 'detail': 'This document is already linked to this task.'},
                 status=status.HTTP_409_CONFLICT,

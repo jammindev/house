@@ -18,6 +18,7 @@ from agent.llm import LLMError, LLMResponse, LLMRunResponse, LLMTimeoutError, To
 from documents.models import Document
 from households.models import Household, HouseholdMember
 
+from documents.services import link_document
 
 def _run_text(text: str, *, tokens_in: int = 5, tokens_out: int = 7) -> LLMRunResponse:
     """A final answer turn (stop_reason=end_turn, no tool calls)."""
@@ -382,13 +383,13 @@ class TestHouseholdFacts:
         """The 'load everything about this project' scenario: the model searches,
         finds the project, then get_related pulls its linked document into the
         citation pool so it can be cited in the final answer."""
-        from projects.models import Project, ProjectDocument
+        from projects.models import Project
 
         project = Project.objects.create(
             household=household, created_by=owner, title="Pompe à chaleur"
         )
         doc = make_document(name="devis PAC", ocr_text="montant 12000")
-        ProjectDocument.objects.create(project=project, document=doc)
+        link_document(entity=project, document=doc)
 
         stub = _ToolUseClient(
             script=[
@@ -581,11 +582,10 @@ class TestAnchoredContext:
     def test_context_is_pre_injected_and_citable_without_searching(
         self, with_api_key, household, owner, make_project, make_document
     ):
-        from projects.models import ProjectDocument
 
         project = make_project(title="Pompe à chaleur", description="devis en cours")
         doc = make_document(name="devis PAC", ocr_text="montant 12000")
-        ProjectDocument.objects.create(project=project, document=doc)
+        link_document(entity=project, document=doc)
 
         # The model answers directly (no tool call), citing the anchor's document.
         stub = _ToolUseClient(

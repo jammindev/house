@@ -6,12 +6,23 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from django.contrib.contenttypes.models import ContentType
+
 from accounts.tests.factories import UserFactory
-from documents.models import Document
+from documents.models import Document, DocumentLink
+from documents.services import link_document
 from households.models import Household, HouseholdMember
 from interactions.models import Interaction
-from tasks.models import Task, TaskDocument, TaskInteraction
+from tasks.models import Task, TaskInteraction
 from zones.models import Zone
+
+
+def _task_links(task_id, document=None):
+    ct = ContentType.objects.get_for_model(Task)
+    qs = DocumentLink.objects.filter(content_type=ct, object_id=task_id)
+    if document is not None:
+        qs = qs.filter(document=document)
+    return qs
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -147,7 +158,7 @@ class TestTaskDocumentLinks:
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED
-        assert TaskDocument.objects.filter(task=task, document=document).exists()
+        assert _task_links(task.id, document).exists()
 
     def test_link_photo_to_task(self, owner_client, task, photo):
         url = reverse("task-document-list")
@@ -159,7 +170,7 @@ class TestTaskDocumentLinks:
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_list_task_document_links(self, owner_client, task, document):
-        TaskDocument.objects.create(task=task, document=document)
+        link_document(entity=task, document=document)
         url = reverse("task-document-list")
         response = owner_client.get(url, {"task": str(task.id)})
         assert response.status_code == status.HTTP_200_OK
@@ -167,16 +178,16 @@ class TestTaskDocumentLinks:
         assert len(data) == 1
 
     def test_delete_document_link(self, owner_client, task, document):
-        link = TaskDocument.objects.create(task=task, document=document)
+        link, _ = link_document(entity=task, document=document)
         url = reverse("task-document-detail", args=[link.id])
         response = owner_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not TaskDocument.objects.filter(id=link.id).exists()
+        assert not DocumentLink.objects.filter(id=link.id).exists()
         # Document itself should still exist
         assert Document.objects.filter(id=document.id).exists()
 
     def test_duplicate_link_returns_409(self, owner_client, task, document):
-        TaskDocument.objects.create(task=task, document=document)
+        link_document(entity=task, document=document)
         url = reverse("task-document-list")
         response = owner_client.post(
             url,
@@ -223,14 +234,14 @@ class TestTaskDocumentLinks:
         ]
 
     def test_task_deletion_cascades_to_links(self, task, document):
-        TaskDocument.objects.create(task=task, document=document)
+        link_document(entity=task, document=document)
         task_id = task.id
         task.delete()
-        assert not TaskDocument.objects.filter(task_id=task_id).exists()
+        assert not _task_links(task_id).exists()
         assert Document.objects.filter(id=document.id).exists()
 
     def test_task_linked_documents_appear_in_task_serializer(self, owner_client, task, document):
-        TaskDocument.objects.create(task=task, document=document)
+        link_document(entity=task, document=document)
         url = reverse("task-detail", args=[task.id])
         response = owner_client.get(url)
         assert response.status_code == status.HTTP_200_OK
@@ -251,7 +262,7 @@ class TestTaskDocumentLinks:
         )
         assert response.status_code == status.HTTP_201_CREATED, response.data
         task_id = response.data["id"]
-        assert TaskDocument.objects.filter(task_id=task_id, document=document).exists()
+        assert _task_links(task_id, document).exists()
 
 
 # ── Task Interaction Link Tests ────────────────────────────────────────────────
@@ -375,12 +386,12 @@ class TestAttachmentPermissions:
         assert response.status_code == status.HTTP_403_FORBIDDEN
 
     def test_non_creator_cannot_delete_document_link(self, non_creator, task, document):
-        link = TaskDocument.objects.create(task=task, document=document)
+        link, _ = link_document(entity=task, document=document)
         client = _client_for(non_creator)
         url = reverse("task-document-detail", args=[link.id])
         response = client.delete(url)
         assert response.status_code == status.HTTP_403_FORBIDDEN
-        assert TaskDocument.objects.filter(id=link.id).exists()
+        assert DocumentLink.objects.filter(id=link.id).exists()
 
     def test_creator_can_link_document(self, owner_client, task, document):
         url = reverse("task-document-list")
@@ -392,7 +403,7 @@ class TestAttachmentPermissions:
         assert response.status_code == status.HTTP_201_CREATED
 
     def test_creator_can_delete_document_link(self, owner_client, task, document):
-        link = TaskDocument.objects.create(task=task, document=document)
+        link, _ = link_document(entity=task, document=document)
         url = reverse("task-document-detail", args=[link.id])
         response = owner_client.delete(url)
         assert response.status_code == status.HTTP_204_NO_CONTENT

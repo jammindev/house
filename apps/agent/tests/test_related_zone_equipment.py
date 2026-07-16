@@ -15,8 +15,9 @@ from documents.models import Document
 from equipment.models import Equipment, EquipmentInteraction
 from interactions.models import Interaction, InteractionZone
 from tasks.models import Task, TaskZone
-from zones.models import Zone, ZoneDocument
+from zones.models import Zone
 
+from documents.services import link_document
 
 @pytest.fixture
 def owner(db):
@@ -71,7 +72,7 @@ class TestZoneRelated:
             household=household, created_by=owner, file_path="documents/salon.jpg",
             name="Photo salon", mime_type="image/jpeg", type="photo",
         )
-        ZoneDocument.objects.create(zone=zone, document=document, created_by=owner)
+        link_document(entity=zone, document=document, user=owner)
         result = _related(household, "zone", zone)
         assert f"id=document:{document.pk}" in result.rendered
 
@@ -117,8 +118,6 @@ class TestEquipmentRelated:
         assert "id=zone:" not in result.rendered
 
     def test_returns_linked_documents(self, household, owner):
-        from equipment.models import EquipmentDocument
-
         equipment = Equipment.objects.create(
             household=household, name="Chaudière", created_by=owner
         )
@@ -126,7 +125,7 @@ class TestEquipmentRelated:
             household=household, created_by=owner, file_path="documents/facture.pdf",
             name="Facture chaudière", mime_type="application/pdf", type="invoice",
         )
-        EquipmentDocument.objects.create(equipment=equipment, document=document, created_by=owner)
+        link_document(entity=equipment, document=document, user=owner)
 
         result = _related(household, "equipment", equipment)
         assert f"id=document:{document.pk}" in result.rendered
@@ -144,7 +143,7 @@ class TestCentralizedDocumentVisibility:
     entities whose ``related`` callable does not gather documents itself."""
 
     def test_task_linked_document_surfaces_via_get_related(self, household, owner):
-        from tasks.models import Task, TaskDocument
+        from tasks.models import Task
 
         task = Task.objects.create(
             household=household, created_by=owner, subject="Poser une étagère"
@@ -153,8 +152,7 @@ class TestCentralizedDocumentVisibility:
             household=household, created_by=owner, file_path="documents/plan.pdf",
             name="Plan de pose", mime_type="application/pdf", type="plan",
         )
-        # TaskDocument write → signal syncs DocumentLink → gather_related picks it up.
-        TaskDocument.objects.create(task=task, document=document, created_by=owner)
+        link_document(entity=task, document=document, user=owner)
 
         result = _related(household, "task", task)
         assert f"id=document:{document.pk}" in result.rendered
