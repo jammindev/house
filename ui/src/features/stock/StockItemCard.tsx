@@ -1,4 +1,4 @@
-import { ClipboardCheck, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ClipboardCheck, Pencil, Plus, ShoppingCart, Trash2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/design-system/badge';
@@ -6,6 +6,8 @@ import { Button } from '@/design-system/button';
 import { CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { pushBack } from '@/lib/backNavigation';
+import { useDisabledModules } from '@/lib/modules';
+import { useAddStockItemToList } from '@/features/shopping/hooks';
 import type { StockItem } from '@/lib/api/stock';
 import { formatQty, formatDate, statusVariant } from './format';
 
@@ -20,8 +22,18 @@ interface StockItemCardProps {
 export default function StockItemCard({ item, onEdit, onDelete, onPurchase, onInventory }: StockItemCardProps) {
   const { t } = useTranslation();
   const location = useLocation();
+  const { disabled } = useDisabledModules();
+  const addToList = useAddStockItemToList();
+  const shoppingEnabled = !disabled.has('shopping');
 
   const actions: CardAction[] = [
+    ...(shoppingEnabled
+      ? [{
+          label: t('shoppingList.fromStock.action'),
+          icon: ShoppingCart,
+          onClick: () => addToList.mutate({ stockItemId: item.id }),
+        } satisfies CardAction]
+      : []),
     { label: t('stock.inventory.actions.record'), icon: ClipboardCheck, onClick: () => onInventory(item) },
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
     { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(item.id), variant: 'danger' },

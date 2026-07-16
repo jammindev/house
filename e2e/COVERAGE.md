@@ -516,3 +516,27 @@ Households stubés pour contrôler la présence ou l'absence de lat/lon.
 | Toggle "Météo" visible en vue Mois (granularité supportée) | ✅ |
 | Toggle "Météo" absent quand le foyer n'a pas de lat/lon | ✅ |
 | Toggle "Météo" visible sur l'onglet Consommation d'Électricité en vue Jour (smoke) | ✅ |
+
+---
+
+## Liste de courses (`shopping-list.spec.ts`)
+
+Module optionnel `shopping`, page `/app/shopping-list`.
+
+| Parcours | Statut |
+|---|---|
+| Affichage de la page — titre + champ quick-add visible | ✅ |
+| Bouton "Ajouter" désactivé si champ vide, actif après saisie | ✅ |
+| Lien "Liste de courses" visible dans la sidebar | ✅ |
+| État vide — EmptyState "Votre liste de courses est vide" | ✅ |
+| Quick-add via bouton → article apparaît dans la liste | ✅ |
+| Quick-add via touche Entrée → article apparaît dans la liste | ✅ |
+| Cocher → déplace dans section "Pris (N)" avec line-through | ✅ |
+| Décocher → retour dans la liste principale, pas de line-through | ✅ |
+| Parcours complet : quick-add → cocher → "Vider les cochés" → liste vide | ✅ |
+| "Vider les cochés" → toast + Annuler → article restauré (undo) | ✅ |
+| Modification via CardActions → SheetDialog → label + qté + unité mis à jour | ✅ |
+| Suppression via CardActions → disparaît immédiatement + toast + Annuler → restauré (undo) | ✅ |
+| Suppression définitive (sans undo) → item absent après reload | ✅ |
+| Ajout depuis fiche stock → badge "Stock" sur la card de la liste | ✅ |
+| Deuxième ajout du même article stock → toast "déjà dans la liste" | ✅ |

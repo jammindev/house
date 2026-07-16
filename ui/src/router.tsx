@@ -21,6 +21,7 @@ const EquipmentPage = lazyWithReload(() => import('./features/equipment/Equipmen
 const EquipmentDetailPage = lazyWithReload(() => import('./features/equipment/EquipmentDetailPage'));
 const StockPage = lazyWithReload(() => import('./features/stock/StockPage'));
 const StockItemDetailPage = lazyWithReload(() => import('./features/stock/StockItemDetailPage'));
+const ShoppingListPage = lazyWithReload(() => import('./features/shopping/ShoppingListPage'));
 const DocumentsPage = lazyWithReload(() => import('./features/documents/DocumentsPage'));
 const DocumentDetailPage = lazyWithReload(() => import('./features/documents/DocumentDetailPage'));
 const DirectoryPage = lazyWithReload(() => import('./features/directory/DirectoryFeaturePage'));
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
       { path: 'equipment/:id', element: <EquipmentDetailPage /> },
       { path: 'stock', element: <ModuleRoute moduleKey="stock"><StockPage /></ModuleRoute> },
       { path: 'stock/:id', element: <ModuleRoute moduleKey="stock"><StockItemDetailPage /></ModuleRoute> },
+      { path: 'shopping-list', element: <ModuleRoute moduleKey="shopping"><ShoppingListPage /></ModuleRoute> },
       { path: 'documents', element: <DocumentsPage /> },
       { path: 'documents/:id', element: <DocumentDetailPage /> },
       { path: 'directory', element: <ModuleRoute moduleKey="directory"><DirectoryPage /></ModuleRoute> },

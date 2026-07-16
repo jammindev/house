@@ -19,6 +19,7 @@ OPTIONAL_MODULES = frozenset({
     'water',
     'weather',
     'stock',
+    'shopping',
     'chickens',
     'insurance',
     'trackers',
@@ -34,6 +35,7 @@ PINNABLE_MODULES = frozenset({
     'water',
     'weather',
     'stock',
+    'shopping',
     'chickens',
     'insurance',
     # groupe Suivi

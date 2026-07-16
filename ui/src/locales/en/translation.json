@@ -1,4 +1,38 @@
 {
+  "shoppingList": {
+    "title": "Shopping list",
+    "quickAdd": {
+      "placeholder": "Add an item…",
+      "button": "Add"
+    },
+    "empty": {
+      "title": "Your shopping list is empty",
+      "description": "Add what you need to buy — it stays in sync across the household."
+    },
+    "allTaken": "Everything's been picked up.",
+    "takenSection": "Picked up ({{count}})",
+    "clearChecked": "Clear picked",
+    "clearedChecked": "Picked items cleared",
+    "deleted": "Item removed",
+    "edit": {
+      "title": "Edit item"
+    },
+    "fields": {
+      "label": "Item",
+      "quantity": "Quantity",
+      "unit": "Unit",
+      "note": "Note"
+    },
+    "actions": {
+      "toggle": "Toggle {{label}}"
+    },
+    "fromStock": {
+      "badge": "Stock",
+      "action": "Add to shopping list",
+      "added": "{{name}} added to the shopping list",
+      "alreadyInList": "{{name}} is already on the list"
+    }
+  },
   "common": {
     "back": "Back",
     "yes": "yes",
@@ -1103,6 +1137,28 @@
           "expiry": {
             "title": "Watch expiry dates",
             "body": "Fill in expiry dates to be alerted before it's too late."
+          }
+        }
+      },
+      "shopping": {
+        "title": "Keep a shopping list",
+        "intro": "One shared list the whole household ticks off — free-text, from your stock, or via the assistant.",
+        "steps": {
+          "quickAdd": {
+            "title": "Add what you need",
+            "body": "Type an item in the quick-add box and press Add. It appears instantly for everyone in the household."
+          },
+          "fromStock": {
+            "title": "Add from your stock",
+            "body": "On any stock item, use \"Add to shopping list\" — the line is linked to that item and the suggested quantity refills it. Adding it twice won't create a duplicate."
+          },
+          "check": {
+            "title": "Tick it off while shopping",
+            "body": "Check an item to cross it out and move it to \"Picked up\". \"Clear picked\" empties that section (with an undo)."
+          },
+          "agent": {
+            "title": "Let the assistant fill it",
+            "body": "Just say \"add coffee to the list\" — the assistant adds it, links it to your stock when it recognises the name, and you can undo in one tap."
           }
         }
       },
