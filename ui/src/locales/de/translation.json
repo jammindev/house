@@ -23,7 +23,8 @@
     "error_loading": "Laden fehlgeschlagen.",
     "loading": "Wird geladen…",
     "add": "Hinzufügen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "showMore": "Mehr anzeigen"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -1330,7 +1331,24 @@
     "uploading": "Hochladen…",
     "upload_success": "{{count}} Foto(s) hochgeladen.",
     "upload_failed": "Upload fehlgeschlagen.",
-    "delete_confirm": "Dieses Foto löschen?"
+    "delete_confirm": "Dieses Foto löschen?",
+    "phase": {
+      "before": "Vorher",
+      "during": "Während",
+      "after": "Nachher",
+      "unclassified": "Nicht klassifiziert"
+    },
+    "entity": {
+      "removed": "Foto entfernt.",
+      "compare": "Vergleichen",
+      "compareTitle": "Vorher / nachher",
+      "compareSlider": "Vergleichsregler",
+      "upload": "Foto hochladen",
+      "addToPhase": "Hier hinzufügen",
+      "moveTo": "Verschieben nach {{phase}}",
+      "remove": "Entfernen",
+      "empty": "Noch keine Fotos. Laden Sie eines hoch, um das Vorher und Nachher des Projekts zu dokumentieren."
+    }
   },
   "directory": {
     "title": "Verzeichnis",
@@ -2119,7 +2137,8 @@
       "documents": "Dokumente",
       "timeline": "Verlauf",
       "assistant": "Assistent",
-      "trackers": "Tracker"
+      "trackers": "Tracker",
+      "photos": "Fotos"
     },
     "metrics": {
       "planned_budget": "Geplantes Budget",

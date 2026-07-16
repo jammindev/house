@@ -155,6 +155,20 @@ class DocumentViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
+        # When the list is scoped to one linked entity, expose which entity so the
+        # serializer can surface each document's phase for that context.
+        qp = getattr(self.request, 'query_params', self.request.GET)
+        entity_id = ''
+        for param in ('zone', 'project', 'equipment'):
+            entity_id = (qp.get(param) or '').strip()
+            if entity_id:
+                break
+        if not entity_id:
+            linked_to = (qp.get('linked_to') or '').strip()
+            if ':' in linked_to:
+                entity_id = linked_to.split(':', 1)[1].strip()
+        if entity_id:
+            context['link_entity_id'] = entity_id
         if self.action == 'retrieve':
             document = getattr(self, '_cached_document', None)
             if document is None:

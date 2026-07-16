@@ -23,7 +23,8 @@
     "error_loading": "Failed to load.",
     "loading": "Loading…",
     "add": "Add",
-    "create": "Create"
+    "create": "Create",
+    "showMore": "Show more"
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -1330,7 +1331,24 @@
     "uploading": "Uploading…",
     "upload_success": "{{count}} photo(s) uploaded.",
     "upload_failed": "Upload failed.",
-    "delete_confirm": "Delete this photo?"
+    "delete_confirm": "Delete this photo?",
+    "phase": {
+      "before": "Before",
+      "during": "During",
+      "after": "After",
+      "unclassified": "Unclassified"
+    },
+    "entity": {
+      "removed": "Photo removed.",
+      "compare": "Compare",
+      "compareTitle": "Before / after",
+      "compareSlider": "Comparison slider",
+      "upload": "Upload a photo",
+      "addToPhase": "Add here",
+      "moveTo": "Move to {{phase}}",
+      "remove": "Remove",
+      "empty": "No photos yet. Upload one to document the project before and after."
+    }
   },
   "directory": {
     "title": "Directory",
@@ -2119,7 +2137,8 @@
       "documents": "Documents",
       "timeline": "Timeline",
       "assistant": "Assistant",
-      "trackers": "Trackers"
+      "trackers": "Trackers",
+      "photos": "Photos"
     },
     "metrics": {
       "planned_budget": "Planned budget",

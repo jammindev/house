@@ -27,12 +27,21 @@ import {
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import ProjectDashboard from './ProjectDashboard';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 
-type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline';
+type Tab =
+  | 'overview'
+  | 'tasks'
+  | 'trackers'
+  | 'notes'
+  | 'expenses'
+  | 'documents'
+  | 'photos'
+  | 'timeline';
 
 /**
  * `overview` is always shown (pivot + entry points to create content). The other
@@ -45,6 +54,7 @@ const COUNTED_TABS: Exclude<Tab, 'overview'>[] = [
   'notes',
   'expenses',
   'documents',
+  'photos',
   'timeline',
 ];
 
@@ -206,16 +216,20 @@ export default function ProjectDetailPage() {
   const counts = project.tab_counts ?? null;
   // Visible tabs: overview always, others when they have content OR are currently
   // active (so the active tab doesn't vanish under the cursor when it empties).
+  const isVisible = (tab: Exclude<Tab, 'overview'>) =>
+    (counts ? counts[tab] > 0 : true) || tab === activeTab;
   const visibleTabs: TabConfig<Tab>[] = [
     { key: 'overview', label: t('projects.tabs.overview') },
-    ...COUNTED_TABS.filter(
-      (tab) => (counts ? counts[tab] > 0 : true) || tab === activeTab,
-    ).map((tab) => ({
+    ...COUNTED_TABS.filter(isVisible).map((tab) => ({
       key: tab,
       label: t(`projects.tabs.${tab}`),
       badge: counts?.[tab],
     })),
   ];
+  // Empty tabs, reachable via the « + » menu so the first item can still be added.
+  const moreTabs: TabConfig<Tab>[] = COUNTED_TABS.filter((tab) => !isVisible(tab)).map(
+    (tab) => ({ key: tab, label: t(`projects.tabs.${tab}`) }),
+  );
 
   return (
     <>
@@ -306,6 +320,7 @@ export default function ProjectDetailPage() {
         {/* Tabs */}
         <TabShell
           tabs={visibleTabs}
+          moreTabs={moreTabs}
           sessionKey={`project-detail.${project.id}.tab`}
           defaultTab="overview"
           onTabChange={setActiveTab}
@@ -356,6 +371,10 @@ export default function ProjectDetailPage() {
 
                 {tab === 'documents' ? (
                   <EntityDocumentsTab entityType="project" objectId={project.id} />
+                ) : null}
+
+                {tab === 'photos' ? (
+                  <EntityPhotosTab entityType="project" objectId={project.id} />
                 ) : null}
 
                 {tab === 'timeline' ? (

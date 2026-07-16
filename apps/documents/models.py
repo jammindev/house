@@ -124,6 +124,21 @@ class DocumentLink(models.Model):
     entity = GenericForeignKey('content_type', 'object_id')
 
     role = models.TextField(default='document')
+
+    class Phase(models.TextChoices):
+        BEFORE = 'before', _('Before')
+        DURING = 'during', _('During')
+        AFTER = 'after', _('After')
+
+    # Renovation phase of a photo *relative to this entity* (before/during/after
+    # works). Empty = unclassified. Generic to all linkable types; only the
+    # project photo UI writes it in V1. Contextual to the link, not the document.
+    phase = models.CharField(
+        max_length=16,
+        choices=Phase.choices,
+        blank=True,
+        default='',
+    )
     note = models.TextField(default='', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(

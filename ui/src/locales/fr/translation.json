@@ -23,7 +23,8 @@
     "error_loading": "Erreur lors du chargement.",
     "loading": "Chargement…",
     "add": "Ajouter",
-    "create": "Créer"
+    "create": "Créer",
+    "showMore": "Afficher plus"
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
@@ -1330,7 +1331,24 @@
     "uploading": "Téléversement…",
     "upload_success": "{{count}} photo(s) téléversée(s).",
     "upload_failed": "Échec du téléversement.",
-    "delete_confirm": "Supprimer cette photo ?"
+    "delete_confirm": "Supprimer cette photo ?",
+    "phase": {
+      "before": "Avant",
+      "during": "Pendant",
+      "after": "Après",
+      "unclassified": "Non classées"
+    },
+    "entity": {
+      "removed": "Photo retirée.",
+      "compare": "Comparer",
+      "compareTitle": "Avant / après",
+      "compareSlider": "Curseur de comparaison",
+      "upload": "Ajouter une photo",
+      "addToPhase": "Ajouter ici",
+      "moveTo": "Déplacer vers {{phase}}",
+      "remove": "Retirer",
+      "empty": "Aucune photo. Ajoutez-en pour documenter l'avant et l'après du projet."
+    }
   },
   "directory": {
     "title": "Répertoire",
@@ -2119,7 +2137,8 @@
       "documents": "Documents",
       "timeline": "Historique",
       "assistant": "Assistant",
-      "trackers": "Trackers"
+      "trackers": "Trackers",
+      "photos": "Photos"
     },
     "metrics": {
       "planned_budget": "Budget prévisionnel",
