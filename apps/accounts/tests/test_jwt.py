@@ -54,7 +54,7 @@ class TestJWTAuth:
 
     def test_protected_endpoint_with_valid_token(self, api_client):
         """Authenticated request to /api/accounts/me/ returns user data."""
-        user = UserFactory(email="me@example.com", password="testpass123")
+        user = UserFactory(email="me@example.com", password="testpass123", display_name="Ben")
 
         tokens = api_client.post(
             reverse("token_obtain_pair"),
@@ -66,6 +66,8 @@ class TestJWTAuth:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["email"] == user.email
         assert "active_household" in response.data
+        # Regression: the SPA greeting reads display_name; me_view must expose it.
+        assert response.data["display_name"] == "Ben"
 
     def test_invalid_token_rejected(self, api_client):
         """Invalid token returns 401."""

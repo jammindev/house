@@ -388,6 +388,7 @@ def me_view(request):
         'email': user.email,
         'first_name': user.first_name,
         'last_name': user.last_name,
+        'display_name': user.display_name,
         'active_household': str(user.active_household_id) if user.active_household_id else None,
         'is_staff': user.is_staff,
         'locale': user.locale or '',
