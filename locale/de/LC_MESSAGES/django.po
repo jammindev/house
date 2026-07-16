@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-14 21:06+0000\n"
+"POT-Creation-Date: 2026-07-16 13:26+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: German\n"
@@ -76,33 +76,46 @@ msgid ""
 "that…' requests still work."
 msgstr ""
 
-#: apps/accounts/models.py:152
+#: apps/accounts/models.py:149
+msgid "Daily-digest section keys the user turned off."
+msgstr ""
+
+#: apps/accounts/models.py:162
 msgid "user"
 msgstr "Benutzer"
 
-#: apps/accounts/models.py:153
+#: apps/accounts/models.py:163
 msgid "users"
 msgstr "Benutzer"
 
-#: apps/accounts/serializers.py:39 apps/households/serializers.py:49
+#: apps/accounts/serializers.py:57 apps/households/serializers.py:49
 msgid "Expected a list of module keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:43
+#: apps/accounts/serializers.py:61
 #, python-format
 msgid "Module(s) not pinnable: %(keys)s"
 msgstr ""
 
-#: apps/accounts/serializers.py:52
+#: apps/accounts/serializers.py:70
 msgid "Expected a list of tutorial keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:54
+#: apps/accounts/serializers.py:72
 msgid "Tutorial key too long."
 msgstr ""
 
-#: apps/accounts/serializers.py:57
+#: apps/accounts/serializers.py:75
 msgid "Too many tutorial keys."
+msgstr ""
+
+#: apps/accounts/serializers.py:83
+msgid "Expected a list of section keys."
+msgstr ""
+
+#: apps/accounts/serializers.py:89
+#, python-format
+msgid "Unknown digest section(s): %(keys)s"
 msgstr ""
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:3
@@ -191,37 +204,92 @@ msgstr "Ungültige Anmeldedaten."
 msgid "Password has been reset successfully."
 msgstr "Passwort erfolgreich aktualisiert."
 
-#: apps/accounts/views/api.py:246
+#: apps/accounts/views/api.py:247
 msgid "new_password and confirm_password are required."
 msgstr "new_password und confirm_password sind erforderlich."
 
-#: apps/accounts/views/api.py:252
+#: apps/accounts/views/api.py:253
 msgid "Password must be at least 8 characters."
 msgstr "Das Passwort muss mindestens 8 Zeichen lang sein."
 
-#: apps/accounts/views/api.py:258
+#: apps/accounts/views/api.py:259
 msgid "Passwords do not match."
 msgstr "Die Passwörter stimmen nicht überein."
 
-#: apps/accounts/views/api.py:272
+#: apps/accounts/views/api.py:273
 msgid "Password updated successfully."
 msgstr "Passwort erfolgreich aktualisiert."
 
-#: apps/accounts/views/api.py:284
+#: apps/accounts/views/api.py:285
 msgid "You cannot impersonate yourself."
 msgstr ""
 
-#: apps/accounts/views/api.py:311
+#: apps/accounts/views/api.py:312
 msgid "No avatar to delete."
 msgstr "Kein Avatar zum Löschen."
 
-#: apps/accounts/views/api.py:323
+#: apps/accounts/views/api.py:324
 msgid "Avatar removed."
 msgstr "Avatar entfernt."
 
-#: apps/accounts/views/api.py:329
+#: apps/accounts/views/api.py:330
 msgid "No file was submitted."
 msgstr "Es wurde keine Datei übermittelt."
+
+#: apps/agent/digest/collectors.py:84
+#, python-format
+msgid "Today: %(subject)s"
+msgstr "Heute: %(subject)s"
+
+#: apps/agent/digest/collectors.py:86
+#, python-format
+msgid "Overdue: %(subject)s"
+msgstr "Überfällig: %(subject)s"
+
+#: apps/agent/digest/collectors.py:87
+#, python-format
+msgid "%(count)s task(s) to handle"
+msgstr "%(count)s zu erledigende Aufgabe(n)"
+
+#: apps/agent/digest/collectors.py:107
+msgid "Weather to watch"
+msgstr "Wetter im Blick"
+
+#: apps/agent/digest/collectors.py:127
+#, python-format
+msgid "%(name)s — out of stock"
+msgstr "%(name)s — nicht vorrätig"
+
+#: apps/agent/digest/collectors.py:130
+#, python-format
+msgid "%(name)s — low (%(qty)s %(unit)s)"
+msgstr "%(name)s — niedrig (%(qty)s %(unit)s)"
+
+#: apps/agent/digest/collectors.py:133
+msgid "Stock to restock"
+msgstr "Bestand auffüllen"
+
+#: apps/agent/digest/collectors.py:181
+#, python-format
+msgid "Consumption up %(pct)s%% over the last 30 days vs the previous 30"
+msgstr "Verbrauch %(pct)s%% höher in den letzten 30 Tagen gegenüber den vorherigen 30"
+
+#: apps/agent/digest/collectors.py:183
+msgid "Electricity anomaly"
+msgstr "Stromanomalie"
+
+#: apps/agent/digest/collectors.py:201
+#, python-format
+msgid "Laying down: %(a7)s eggs/day (7-day avg) vs %(a30)s (30-day avg)"
+msgstr "Legeleistung sinkt: %(a7)s Eier/Tag (7-Tage-Schnitt) vs %(a30)s (30-Tage-Schnitt)"
+
+#: apps/agent/digest/collectors.py:203
+msgid "Egg laying dropped"
+msgstr "Legeleistung gesunken"
+
+#: apps/agent/digest/service.py:75
+msgid "☀️ Your daily digest"
+msgstr "☀️ Deine tägliche Zusammenfassung"
 
 #: apps/ai_usage/models.py:21
 msgid "OCR — upload"
@@ -292,11 +360,29 @@ msgstr "Kontakt"
 msgid "contacts"
 msgstr "Kontakte"
 
-#: apps/documents/models.py:80
+#: apps/documents/mixins.py:26 apps/documents/mixins.py:59
+#, fuzzy
+#| msgid "user_id is required."
+msgid "document_id is required."
+msgstr "user_id ist erforderlich."
+
+#: apps/documents/mixins.py:33
+#, fuzzy
+#| msgid "You are not a member of this household."
+msgid "Document not found in this household."
+msgstr "Sie sind kein Mitglied dieses Haushalts."
+
+#: apps/documents/mixins.py:63
+#, fuzzy
+#| msgid "Recent files linked to this household"
+msgid "Document is not linked to this entity."
+msgstr "Neueste mit diesem Haushalt verknüpfte Dateien"
+
+#: apps/documents/models.py:82
 msgid "document"
 msgstr "Dokument"
 
-#: apps/documents/models.py:81
+#: apps/documents/models.py:83
 msgid "documents"
 msgstr "Dokumente"
 
@@ -690,9 +776,9 @@ msgid "Cannot delete resource with active dependencies."
 msgstr "Eine Ressource mit aktiven Abhängigkeiten kann nicht gelöscht werden."
 
 #: apps/electricity/views.py:176 apps/electricity/views.py:334
-#: apps/electricity/views.py:377 apps/equipment/views.py:41
+#: apps/electricity/views.py:377 apps/equipment/views.py:42
 #: apps/insurance/serializers.py:57 apps/insurance/views.py:32
-#: apps/stock/views.py:47 apps/stock/views.py:82 apps/water/views.py:70
+#: apps/stock/views.py:52 apps/stock/views.py:87 apps/water/views.py:70
 msgid "A valid household context is required."
 msgstr "Ein gültiger Haushaltskontext ist erforderlich."
 
@@ -740,7 +826,7 @@ msgstr "Das Enddatum muss am oder nach dem Startdatum liegen."
 msgid "A file is required."
 msgstr "E-Mail ist erforderlich."
 
-#: apps/electricity/views.py:385
+#: apps/electricity/views.py:385 apps/stock/views.py:196
 msgid "This field is required."
 msgstr ""
 
@@ -756,33 +842,33 @@ msgstr "Kein Anbieter angegeben"
 msgid "Must be valid JSON."
 msgstr "Ungültiges JSON"
 
-#: apps/equipment/models.py:12 apps/insurance/models.py:20
+#: apps/equipment/models.py:13 apps/insurance/models.py:20
 #, fuzzy
 #| msgid "Activity"
 msgid "Active"
 msgstr "Aktivität"
 
-#: apps/equipment/models.py:13
+#: apps/equipment/models.py:14
 msgid "Maintenance"
 msgstr ""
 
-#: apps/equipment/models.py:14
+#: apps/equipment/models.py:15
 msgid "Storage"
 msgstr ""
 
-#: apps/equipment/models.py:15
+#: apps/equipment/models.py:16
 msgid "Retired"
 msgstr ""
 
-#: apps/equipment/models.py:16
+#: apps/equipment/models.py:17
 msgid "Lost"
 msgstr ""
 
-#: apps/equipment/models.py:17 apps/stock/models.py:37
+#: apps/equipment/models.py:18 apps/stock/models.py:37
 msgid "Ordered"
 msgstr ""
 
-#: apps/equipment/models.py:45 apps/equipment/models.py:46
+#: apps/equipment/models.py:47 apps/equipment/models.py:48
 msgid "equipment"
 msgstr "Gerät"
 
@@ -794,19 +880,19 @@ msgstr "Ungültige Zone oder Zugriff verweigert."
 msgid "Zone must belong to the same household as equipment."
 msgstr "Die Zone muss zum selben Haushalt wie die Ausstattung gehören."
 
-#: apps/equipment/views.py:133
+#: apps/equipment/views.py:135
 #, fuzzy
 #| msgid "Invalid zone or access denied."
 msgid "Invalid equipment or access denied."
 msgstr "Ungültige Zone oder Zugriff verweigert."
 
-#: apps/equipment/views.py:135
+#: apps/equipment/views.py:137
 msgid "Interaction household must match equipment household."
 msgstr ""
 "Der Haushalt der Interaktion muss mit dem Haushalt der Ausstattung "
 "übereinstimmen."
 
-#: apps/equipment/views.py:137
+#: apps/equipment/views.py:139
 msgid "Invalid interaction or access denied."
 msgstr "Ungültige Interaktion oder Zugriff verweigert."
 
@@ -1044,11 +1130,11 @@ msgstr "Die jährlichen Kosten müssen größer oder gleich null sein."
 msgid "Purchase — {name}"
 msgstr "Einkauf — {name}"
 
-#: apps/interactions/models.py:93
+#: apps/interactions/models.py:94
 msgid "interaction"
 msgstr "Interaktion"
 
-#: apps/interactions/models.py:94
+#: apps/interactions/models.py:95
 msgid "interactions"
 msgstr "Interaktionen"
 
@@ -1139,6 +1225,26 @@ msgstr ""
 msgid "stock items"
 msgstr ""
 
+#: apps/stock/models.py:91
+msgid "Inventory count"
+msgstr ""
+
+#: apps/stock/models.py:92
+msgid "Post-purchase level"
+msgstr ""
+
+#: apps/stock/models.py:111
+#, fuzzy
+#| msgid "Mark read"
+msgid "stock level reading"
+msgstr "Als gelesen markieren"
+
+#: apps/stock/models.py:112
+#, fuzzy
+#| msgid "Mark read"
+msgid "stock level readings"
+msgstr "Als gelesen markieren"
+
 #: apps/stock/notifications.py:30
 #, python-format
 msgid "Out of stock: %(name)s"
@@ -1185,23 +1291,23 @@ msgstr "Das Enddatum muss am oder nach dem Startdatum liegen."
 msgid "Delta must not be zero."
 msgstr ""
 
-#: apps/stock/views.py:101
+#: apps/stock/views.py:106
 msgid "Adjustment would produce a negative quantity."
 msgstr ""
 
-#: apps/telegram/service.py:53
+#: apps/telegram/service.py:119
 msgid "Show what I can do"
 msgstr "Zeigen, was ich kann"
 
-#: apps/telegram/service.py:54
+#: apps/telegram/service.py:120
 msgid "Start a fresh conversation"
 msgstr "Neue Unterhaltung starten"
 
-#: apps/telegram/service.py:55
+#: apps/telegram/service.py:121
 msgid "Turn off proactive messages"
 msgstr "Proaktive Nachrichten ausschalten"
 
-#: apps/telegram/service.py:128
+#: apps/telegram/service.py:194
 msgid ""
 "This link is invalid or has expired. Generate a new one from the app "
 "settings."
@@ -1209,22 +1315,22 @@ msgstr ""
 "Dieser Link ist ungültig oder abgelaufen. Erstelle in den App-Einstellungen "
 "einen neuen."
 
-#: apps/telegram/service.py:136
+#: apps/telegram/service.py:202
 msgid "✅ Your Telegram account is linked. Ask me anything about your home!"
 msgstr ""
 "✅ Dein Telegram-Konto ist verknüpft. Frag mich alles über dein Zuhause!"
 
-#: apps/telegram/service.py:145
+#: apps/telegram/service.py:211
 msgid "One question at a time 🙂 — give me a few seconds and try again."
 msgstr ""
 "Eine Frage nach der anderen 🙂 — gib mir ein paar Sekunden und versuch es "
 "erneut."
 
-#: apps/telegram/service.py:168
+#: apps/telegram/service.py:228
 msgid "Fresh start — your next message opens a new conversation."
 msgstr "Neustart — deine nächste Nachricht öffnet eine neue Unterhaltung."
 
-#: apps/telegram/service.py:192
+#: apps/telegram/service.py:252
 msgid ""
 "🔕 Done — I won't message you first anymore. You can re-enable proactive "
 "messages anytime in the app settings."
@@ -1232,44 +1338,44 @@ msgstr ""
 "🔕 Alles klar — ich schreibe dir nicht mehr zuerst. Du kannst proaktive "
 "Nachrichten jederzeit in den App-Einstellungen wieder aktivieren."
 
-#: apps/telegram/service.py:198
+#: apps/telegram/service.py:258
 msgid "You have no proactive messages enabled — nothing to stop."
 msgstr "Du hast keine proaktiven Nachrichten aktiviert — nichts zu stoppen."
 
-#: apps/telegram/service.py:215
+#: apps/telegram/service.py:274
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "You are not a member of any household yet."
 msgstr "Sie sind kein Mitglied dieses Haushalts."
 
-#: apps/telegram/service.py:236
+#: apps/telegram/service.py:290
 msgid "The assistant is unavailable right now — please try again in a minute."
 msgstr ""
 "Der Assistent ist gerade nicht verfügbar — bitte versuch es in einer Minute "
 "erneut."
 
-#: apps/telegram/service.py:245
+#: apps/telegram/service.py:299
 msgid "Something went wrong on my side — please try again."
 msgstr "Bei mir ist etwas schiefgelaufen — bitte versuch es erneut."
 
-#: apps/telegram/service.py:257 apps/telegram/tests/test_i18n.py:35
+#: apps/telegram/service.py:311 apps/telegram/tests/test_i18n.py:35
 #, python-brace-format
 msgid "↩️ Undo: {label}"
 msgstr "↩️ Rückgängig: {label}"
 
-#: apps/telegram/service.py:303
+#: apps/telegram/service.py:357
 msgid "Nothing to undo."
 msgstr "Nichts rückgängig zu machen."
 
-#: apps/telegram/service.py:310
+#: apps/telegram/service.py:364
 msgid "Couldn't undo — try from the app."
 msgstr "Konnte nicht rückgängig gemacht werden — versuch es in der App."
 
-#: apps/telegram/service.py:313
+#: apps/telegram/service.py:367
 msgid "Undone."
 msgstr "Rückgängig gemacht."
 
-#: apps/telegram/service.py:352
+#: apps/telegram/service.py:406
 msgid ""
 "This Telegram account is not linked to House yet. Open the app settings and "
 "tap “Connect Telegram”."
@@ -1277,7 +1383,7 @@ msgstr ""
 "Dieses Telegram-Konto ist noch nicht mit House verknüpft. Öffne die App-"
 "Einstellungen und tippe auf „Telegram verbinden“."
 
-#: apps/telegram/service.py:360
+#: apps/telegram/service.py:414
 msgid ""
 "Ask me anything about your home — expenses, tasks, equipment, notes…\n"
 "/reset starts a fresh conversation.\n"
@@ -1333,7 +1439,7 @@ msgstr "Starker Wind: Böen bis zu %(v)s km/h"
 msgid "Thunderstorm expected"
 msgstr "Gewitter erwartet"
 
-#: apps/weather/alerts.py:132 apps/weather/pings.py:58
+#: apps/weather/alerts.py:132 apps/weather/pings.py:61
 msgid "Weather alert"
 msgstr "Wetterwarnung"
 
@@ -1341,11 +1447,11 @@ msgstr "Wetterwarnung"
 msgid "⚠️ Weather alert for the days ahead:"
 msgstr "⚠️ Wetterwarnung für die kommenden Tage:"
 
-#: apps/zones/models.py:52
+#: apps/zones/models.py:54
 msgid "zone"
 msgstr "Zone"
 
-#: apps/zones/models.py:53
+#: apps/zones/models.py:55
 msgid "zones"
 msgstr "Zonen"
 
@@ -1526,9 +1632,6 @@ msgstr "Zurück zur Startseite"
 
 #~ msgid "Visible documents"
 #~ msgstr "Sichtbare Dokumente"
-
-#~ msgid "Recent files linked to this household"
-#~ msgstr "Neueste mit diesem Haushalt verknüpfte Dateien"
 
 #~ msgid "Recent interactions"
 #~ msgstr "Neueste Interaktionen"
