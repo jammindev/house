@@ -8,7 +8,10 @@ from django.utils import timezone
 
 from app_settings.tests.factories import HouseholdFactory
 from documents.models import Document
-from zones.models import Zone, ZoneDocument
+from django.contrib.contenttypes.models import ContentType
+
+from documents.models import DocumentLink
+from zones.models import Zone
 
 
 class ImportSupabaseZoneDocumentsCommandTests(TestCase):
@@ -75,7 +78,7 @@ class ImportSupabaseZoneDocumentsCommandTests(TestCase):
             "1",
         )
 
-        link = ZoneDocument.objects.get(zone_id=zone_id, document_id=doc.id)
+        link = DocumentLink.objects.get(content_type=ContentType.objects.get_for_model(Zone), object_id=zone_id, document_id=doc.id)
         self.assertEqual(link.role, "photo")
         self.assertEqual(link.note, "n")
         self.assertEqual(link.created_by_id, 1)
@@ -106,7 +109,7 @@ class ImportSupabaseZoneDocumentsCommandTests(TestCase):
             created_by_id=1,
             updated_by_id=1,
         )
-        ZoneDocument.objects.create(zone_id=zone_id, document_id=doc.id, role="photo", note="", created_by_id=1)
+        DocumentLink.objects.create(content_type=ContentType.objects.get_for_model(Zone), object_id=zone_id, document_id=doc.id, role="photo", note="", created_by_id=1)
 
         fetch_source_rows_mock.return_value = [
             {
@@ -129,6 +132,6 @@ class ImportSupabaseZoneDocumentsCommandTests(TestCase):
             "1",
         )
 
-        link = ZoneDocument.objects.get(zone_id=zone_id, document_id=doc.id)
+        link = DocumentLink.objects.get(content_type=ContentType.objects.get_for_model(Zone), object_id=zone_id, document_id=doc.id)
         self.assertEqual(link.role, "main")
         self.assertEqual(link.note, "updated")

@@ -8,7 +8,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from documents.models import Document
-from zones.models import Zone, ZoneDocument
+from documents.models import DocumentLink
+from django.contrib.contenttypes.models import ContentType
+from zones.models import Zone
 
 
 SOURCE_ZONE_DOCUMENTS_SQL = """
@@ -138,7 +140,7 @@ class Command(BaseCommand):
             role_value = (row.get("role") or "photo").strip() or "photo"
             note_value = row.get("note") or ""
 
-            exists = ZoneDocument.objects.filter(zone_id=zone.id, document_id=document.id).exists()
+            exists = DocumentLink.objects.filter(content_type=ContentType.objects.get_for_model(Zone), object_id=zone.id, document_id=document.id).exists()
             if dry_run:
                 if exists:
                     counters.updated += 1
@@ -146,8 +148,9 @@ class Command(BaseCommand):
                     counters.created += 1
                 continue
 
-            obj, created = ZoneDocument.objects.update_or_create(
-                zone_id=zone.id,
+            obj, created = DocumentLink.objects.update_or_create(
+                content_type=ContentType.objects.get_for_model(Zone),
+                object_id=zone.id,
                 document_id=document.id,
                 defaults={
                     "role": role_value,
@@ -156,7 +159,7 @@ class Command(BaseCommand):
                 },
             )
             if row.get("created_at") is not None:
-                ZoneDocument.objects.filter(pk=obj.pk).update(created_at=row["created_at"])
+                DocumentLink.objects.filter(pk=obj.pk).update(created_at=row["created_at"])
 
             if created:
                 counters.created += 1

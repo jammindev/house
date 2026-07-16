@@ -8,7 +8,10 @@ from django.utils import timezone
 
 from app_settings.tests.factories import HouseholdFactory
 from documents.models import Document
-from projects.models import Project, ProjectDocument, ProjectZone
+from django.contrib.contenttypes.models import ContentType
+
+from documents.models import DocumentLink
+from projects.models import Project, ProjectZone
 from zones.models import Zone
 
 
@@ -95,7 +98,7 @@ class ImportSupabaseProjectLinksCommandTests(TestCase):
         )
 
         self.assertTrue(ProjectZone.objects.filter(project_id=project_id, zone_id=zone_id).exists())
-        link = ProjectDocument.objects.get(project_id=project_id, document_id=doc.id)
+        link = DocumentLink.objects.get(content_type=ContentType.objects.get_for_model(Project), object_id=project_id, document_id=doc.id)
         self.assertEqual(link.role, "supporting")
         self.assertEqual(link.note, "note")
         self.assertEqual(link.created_by_id, 1)

@@ -3,10 +3,18 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from django.contrib.contenttypes.models import ContentType
+
 from accounts.tests.factories import UserFactory
-from documents.models import Document
+from documents.models import Document, DocumentLink
+from documents.services import link_document
 from households.models import Household, HouseholdMember
-from zones.models import Zone, ZoneDocument
+from zones.models import Zone
+
+
+def _zone_links(zone, document, **extra):
+    ct = ContentType.objects.get_for_model(Zone)
+    return DocumentLink.objects.filter(content_type=ct, object_id=zone.id, document=document, **extra)
 
 
 def _client_for(user) -> APIClient:
@@ -109,7 +117,7 @@ class TestZonesExtraApi:
         )
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert ZoneDocument.objects.filter(zone=zone, document=document, note="Reference photo").exists()
+        assert _zone_links(zone, document, note="Reference photo").exists()
 
     def test_attach_photo_rejects_document_from_other_household(self, owner_client, owner, household):
         zone = Zone.objects.create(household=household, name="Office", created_by=owner)
@@ -143,7 +151,7 @@ class TestZonesExtraApi:
             mime_type="image/jpeg",
             type="photo",
         )
-        ZoneDocument.objects.create(zone=zone, document=document, role="photo", created_by=owner)
+        link_document(entity=zone, document=document, role="photo", user=owner)
 
         url = reverse("zone-photos", kwargs={"pk": zone.id})
         response = owner_client.get(url)

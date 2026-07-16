@@ -16,10 +16,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 
 from core.permissions import IsHouseholdMember
-from documents.models import Document
+from documents.models import Document, DocumentLink
 from zones.models import Zone
 from .aggregations import compute_expense_summary
-from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure, InteractionDocument
+from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
 from .serializers import (
     InteractionSerializer,
     InteractionDetailSerializer,
@@ -379,8 +379,29 @@ class InteractionStructureViewSet(_InteractionLinkBaseViewSet):
 
 
 class InteractionDocumentViewSet(_InteractionLinkBaseViewSet):
-    model = InteractionDocument
+    """Interaction↔Document links, backed by the polymorphic DocumentLink."""
     serializer_class = InteractionDocumentSerializer
+
+    def _interaction_ct(self):
+        return ContentType.objects.get_for_model(Interaction)
+
+    def get_queryset(self):
+        int_ids = Interaction.objects.for_user_households(self.request.user).values_list('id', flat=True)
+        qs = DocumentLink.objects.filter(
+            content_type=self._interaction_ct(), object_id__in=int_ids
+        ).select_related('document')
+        if self.request.household:
+            hh_ids = Interaction.objects.filter(
+                household=self.request.household
+            ).values_list('id', flat=True)
+            qs = qs.filter(object_id__in=hh_ids)
+        return qs.order_by('-created_at')
+
+    def perform_create(self, serializer):
+        interaction = serializer.validated_data.get('interaction')
+        if not Interaction.objects.for_user_households(self.request.user).filter(id=interaction.id).exists():
+            raise ValidationError({'interaction': 'Invalid interaction or access denied.'})
+        serializer.save()
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -388,7 +409,9 @@ class InteractionDocumentViewSet(_InteractionLinkBaseViewSet):
 
         interaction = serializer.validated_data['interaction']
         document = serializer.validated_data['document']
-        if InteractionDocument.objects.filter(interaction=interaction, document=document).exists():
+        if DocumentLink.objects.filter(
+            content_type=self._interaction_ct(), object_id=interaction.id, document=document
+        ).exists():
             return Response(
                 {
                     'code': 'already_linked',
@@ -397,16 +420,6 @@ class InteractionDocumentViewSet(_InteractionLinkBaseViewSet):
                 status=status.HTTP_409_CONFLICT,
             )
 
-        try:
-            self.perform_create(serializer)
-        except IntegrityError:
-            return Response(
-                {
-                    'code': 'already_linked',
-                    'detail': 'Exact document-interaction link already exists.',
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
-
+        self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

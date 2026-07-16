@@ -102,15 +102,19 @@ class DocumentSerializer(serializers.ModelSerializer):
     def get_medium_url(self, obj):
         return self._get_thumbnail_url(obj, 'medium')
 
-    def _linked_interactions_payload(self, obj):
-        links = getattr(obj, 'prefetched_interaction_documents', None)
+    def _document_links(self, obj):
+        links = getattr(obj, 'prefetched_links', None)
         if links is None:
-            links = obj.interaction_documents.select_related('interaction').all()
+            links = list(obj.links.select_related('content_type').all())
+        return links
 
+    def _linked_interactions_payload(self, obj):
         payload = []
         seen = set()
-        for link in links:
-            interaction = getattr(link, 'interaction', None)
+        for link in self._document_links(obj):
+            if link.content_type.model != 'interaction':
+                continue
+            interaction = link.entity
             if not interaction or interaction.id in seen:
                 continue
             seen.add(interaction.id)
@@ -125,11 +129,10 @@ class DocumentSerializer(serializers.ModelSerializer):
         return payload
 
     def _has_secondary_context(self, obj):
-        zone_links = getattr(obj, 'prefetched_zone_documents', None)
-        project_links = getattr(obj, 'prefetched_project_documents', None)
-        if zone_links is not None or project_links is not None:
-            return bool(zone_links) or bool(project_links)
-        return obj.zonedocument_set.exists() or obj.project_documents.exists()
+        return any(
+            link.content_type.model in ('zone', 'project')
+            for link in self._document_links(obj)
+        )
 
     def get_qualification(self, obj):
         linked_interactions = self._linked_interactions_payload(obj)
@@ -174,31 +177,25 @@ class DocumentDetailSerializer(DocumentSerializer):
         return obj.interaction.subject if obj.interaction_id and obj.interaction else None
 
     def get_zone_links(self, obj):
-        zone_links = getattr(obj, 'prefetched_zone_documents', None)
-        if zone_links is None:
-            zone_links = obj.zonedocument_set.select_related('zone').all()
-        payload = [
-            {
-                'zone_id': str(link.zone_id),
-                'zone_name': link.zone.name,
-            }
-            for link in zone_links
-            if getattr(link, 'zone', None)
-        ]
+        payload = []
+        for link in self._document_links(obj):
+            if link.content_type.model != 'zone':
+                continue
+            zone = link.entity
+            if zone is None:
+                continue
+            payload.append({'zone_id': str(zone.id), 'zone_name': zone.name})
         return ZoneLinkSummarySerializer(payload, many=True).data
 
     def get_project_links(self, obj):
-        project_links = getattr(obj, 'prefetched_project_documents', None)
-        if project_links is None:
-            project_links = obj.project_documents.select_related('project').all()
-        payload = [
-            {
-                'project_id': str(link.project_id),
-                'project_name': link.project.title,
-            }
-            for link in project_links
-            if getattr(link, 'project', None)
-        ]
+        payload = []
+        for link in self._document_links(obj):
+            if link.content_type.model != 'project':
+                continue
+            project = link.entity
+            if project is None:
+                continue
+            payload.append({'project_id': str(project.id), 'project_name': project.title})
         return ProjectLinkSummarySerializer(payload, many=True).data
 
     def get_entity_links(self, obj):

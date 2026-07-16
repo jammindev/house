@@ -26,10 +26,9 @@ from .serializers import (
     DocumentUploadSerializer,
 )
 from .thumbnails import generate_thumbnails
+from .services import link_document
 from interactions.models import Interaction
-from interactions.models import InteractionDocument
-from projects.models import ProjectDocument
-from zones.models import Zone, ZoneDocument
+from zones.models import Zone
 
 logger = logging.getLogger(__name__)
 
@@ -61,21 +60,6 @@ def get_documents_queryset_for_request(request):
         'interaction',
     ).prefetch_related(
         Prefetch(
-            'interaction_documents',
-            queryset=InteractionDocument.objects.select_related('interaction').order_by('-created_at'),
-            to_attr='prefetched_interaction_documents',
-        ),
-        Prefetch(
-            'zonedocument_set',
-            queryset=ZoneDocument.objects.select_related('zone').order_by('-created_at'),
-            to_attr='prefetched_zone_documents',
-        ),
-        Prefetch(
-            'project_documents',
-            queryset=ProjectDocument.objects.select_related('project').order_by('-created_at'),
-            to_attr='prefetched_project_documents',
-        ),
-        Prefetch(
             'links',
             queryset=DocumentLink.objects.select_related('content_type').order_by('-created_at'),
             to_attr='prefetched_links',
@@ -86,34 +70,36 @@ def get_documents_queryset_for_request(request):
     if selected_household:
         queryset = queryset.filter(household=selected_household)
 
+    # All entity links now live in the polymorphic DocumentLink table.
+    interaction_ct = ContentType.objects.get_for_model(Interaction)
+
     qualification_state = (query_params.get('qualification_state') or '').strip()
     without_activity = (query_params.get('without_activity') or '').strip().lower()
     if qualification_state == 'without_activity' or without_activity in {'1', 'true', 'yes'}:
-        queryset = queryset.filter(interaction_documents__isnull=True)
+        # No linked interaction = not qualified by an activity.
+        queryset = queryset.exclude(links__content_type=interaction_ct)
 
-    zone_id = (query_params.get('zone') or '').strip()
-    if zone_id:
-        queryset = queryset.filter(zonedocument__zone_id=zone_id)
+    # Legacy per-entity params (?zone= / ?project= / ?equipment=) + generic
+    # ?linked_to=<entity_type>:<uuid> all resolve to a DocumentLink filter.
+    from agent import searchables
 
-    project_id = (query_params.get('project') or '').strip()
-    if project_id:
-        queryset = queryset.filter(project_documents__project_id=project_id)
-
-    equipment_id = (query_params.get('equipment') or '').strip()
-    if equipment_id:
-        queryset = queryset.filter(equipment_documents__equipment_id=equipment_id)
-
-    # Generic polymorphic filter: ?linked_to=<entity_type>:<uuid> (via DocumentLink).
+    entity_filters = []
+    for param in ('zone', 'project', 'equipment'):
+        value = (query_params.get(param) or '').strip()
+        if value:
+            entity_filters.append((param, value))
     linked_to = (query_params.get('linked_to') or '').strip()
     if linked_to and ':' in linked_to:
-        entity_type, _, object_id = linked_to.partition(':')
-        from agent import searchables
-        spec = searchables.find_spec(entity_type.strip())
-        if spec is not None and object_id.strip():
-            ct = ContentType.objects.get_for_model(spec.model)
-            queryset = queryset.filter(
-                links__content_type=ct, links__object_id=object_id.strip()
-            )
+        etype, _, oid = linked_to.partition(':')
+        if etype.strip() and oid.strip():
+            entity_filters.append((etype.strip(), oid.strip()))
+
+    for entity_type, object_id in entity_filters:
+        spec = searchables.find_spec(entity_type)
+        if spec is None:
+            continue
+        ct = ContentType.objects.get_for_model(spec.model)
+        queryset = queryset.filter(links__content_type=ct, links__object_id=object_id)
 
     return queryset.distinct()
 
@@ -124,7 +110,8 @@ def get_recent_interaction_candidates(request, household, *, document_id=None, l
 
     queryset = Interaction.objects.for_user_households(request.user).filter(household=household)
     if document_id:
-        queryset = queryset.exclude(interaction_documents__document_id=document_id)
+        # Exclude interactions already linked to this document (via DocumentLink).
+        queryset = queryset.exclude(document_links__document_id=document_id)
     queryset = queryset.order_by('-occurred_at')[:limit]
     return [
         {
@@ -282,11 +269,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     metadata=metadata,
                 )
                 if zone is not None:
-                    ZoneDocument.objects.create(
-                        zone=zone,
+                    link_document(
+                        entity=zone,
                         document=document,
                         role='photo' if doc_type == 'photo' else 'document',
-                        created_by=request.user,
+                        user=request.user,
                     )
         except Exception:
             if default_storage.exists(saved_path):

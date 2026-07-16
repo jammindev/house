@@ -5,17 +5,24 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
+from django.contrib.contenttypes.models import ContentType
+
 from accounts.tests.factories import UserFactory
 from households.models import Household, HouseholdMember
-from documents.models import Document
+from documents.models import Document, DocumentLink
+from documents.services import link_document
 from projects.models import (
     Project,
-    ProjectDocument,
     ProjectGroup,
     ProjectZone,
     UserPinnedProject,
 )
 from zones.models import Zone
+
+
+def _doc_links(project, document):
+    ct = ContentType.objects.get_for_model(Project)
+    return DocumentLink.objects.filter(content_type=ct, object_id=project.id, document=document)
 
 
 def _client_for(user) -> APIClient:
@@ -373,18 +380,18 @@ class TestProjectDocumentLinks:
         response = owner_client.post(url, {"document_id": str(document.id)}, format="json")
 
         assert response.status_code == status.HTTP_201_CREATED
-        assert ProjectDocument.objects.filter(project=project, document=document).exists()
+        assert _doc_links(project, document).exists()
 
     def test_attach_document_is_idempotent(self, owner_client, owner, household):
         project = self._project(household, owner)
         document = self._document(household, owner)
-        ProjectDocument.objects.create(project=project, document=document, created_by=owner)
+        link_document(entity=project, document=document, user=owner)
 
         url = reverse("project-attach-document", kwargs={"pk": project.id})
         response = owner_client.post(url, {"document_id": str(document.id)}, format="json")
 
         assert response.status_code == status.HTTP_200_OK
-        assert ProjectDocument.objects.filter(project=project, document=document).count() == 1
+        assert _doc_links(project, document).count() == 1
 
     def test_attach_document_rejects_other_household(self, owner_client, owner, household):
         project = self._project(household, owner)
@@ -396,18 +403,18 @@ class TestProjectDocumentLinks:
         response = owner_client.post(url, {"document_id": str(foreign_doc.id)}, format="json")
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert not ProjectDocument.objects.filter(project=project, document=foreign_doc).exists()
+        assert not _doc_links(project, foreign_doc).exists()
 
     def test_detach_document_removes_link(self, owner_client, owner, household):
         project = self._project(household, owner)
         document = self._document(household, owner)
-        ProjectDocument.objects.create(project=project, document=document, created_by=owner)
+        link_document(entity=project, document=document, user=owner)
 
         url = reverse("project-detach-document", kwargs={"pk": project.id})
         response = owner_client.post(url, {"document_id": str(document.id)}, format="json")
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        assert not ProjectDocument.objects.filter(project=project, document=document).exists()
+        assert not _doc_links(project, document).exists()
         # Document itself is preserved
         assert Document.objects.filter(id=document.id).exists()
 

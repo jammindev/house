@@ -25,6 +25,7 @@ from agent.conversations import (
     pinned_entities,
     unpin_context,
 )
+from documents.services import link_document
 from agent.llm import LLMResponse, LLMRunResponse, ToolCall
 from agent.models import AgentConversation
 from households.models import Household, HouseholdMember
@@ -511,7 +512,6 @@ class TestInjectedContextSerializer:
         self, owner_client, household, owner
     ):
         from documents.models import Document
-        from projects.models import ProjectDocument
 
         project = _make_project(household, owner, title="Rénovation Salle de bain")
         doc = Document.objects.create(
@@ -524,7 +524,7 @@ class TestInjectedContextSerializer:
             ocr_text="",
             notes="",
         )
-        ProjectDocument.objects.create(project=project, document=doc)
+        link_document(entity=project, document=doc)
 
         conv = AgentConversation.objects.create(
             household=household,

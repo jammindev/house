@@ -114,14 +114,3 @@ class ProjectZone(models.Model):
         unique_together = [["project", "zone"]]
 
 
-class ProjectDocument(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="project_documents")
-    document = models.ForeignKey("documents.Document", on_delete=models.CASCADE, related_name="project_documents")
-    role = models.TextField(default="supporting")
-    note = models.TextField(default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True)
-
-    class Meta:
-        db_table = "project_documents"
-        unique_together = [["project", "document"]]

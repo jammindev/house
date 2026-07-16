@@ -8,7 +8,10 @@ from django.test import TestCase
 from django.utils import timezone
 
 from app_settings.tests.factories import HouseholdFactory
-from interactions.models import Interaction, InteractionDocument, InteractionZone
+from django.contrib.contenttypes.models import ContentType
+
+from documents.models import DocumentLink
+from interactions.models import Interaction, InteractionZone
 from projects.models import Project
 from zones.models import Zone
 
@@ -121,7 +124,7 @@ class ImportSupabaseInteractionsCommandTests(TestCase):
 
         self.assertTrue(InteractionZone.objects.filter(interaction_id=interaction_id, zone_id=zone_id).exists())
         self.assertFalse(InteractionZone.objects.filter(interaction_id=interaction_id, zone_id=missing_zone_id).exists())
-        self.assertFalse(InteractionDocument.objects.filter(interaction_id=interaction_id).exists())
+        self.assertFalse(DocumentLink.objects.filter(content_type=ContentType.objects.get_for_model(Interaction), object_id=interaction_id).exists())
 
     @patch("interactions.management.commands.import_supabase_interactions.Command._fetch_source_rows")
     def test_import_is_idempotent_updates_existing_interaction(self, fetch_source_rows_mock):

@@ -6,11 +6,10 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
-from documents.models import Document
+from documents.mixins import DocumentLinkActionsMixin
 from interactions.services import create_expense_interaction
 from .models import (
     Project,
-    ProjectDocument,
     ProjectGroup,
     ProjectZone,
     UserPinnedProject,
@@ -49,9 +48,10 @@ class ProjectGroupViewSet(_HouseholdScopedViewSet):
     serializer_class = ProjectGroupSerializer
 
 
-class ProjectViewSet(_HouseholdScopedViewSet):
+class ProjectViewSet(DocumentLinkActionsMixin, _HouseholdScopedViewSet):
     model = Project
     serializer_class = ProjectSerializer
+    document_link_role = "supporting"
 
     def get_queryset(self):
         queryset = super().get_queryset()
@@ -141,57 +141,6 @@ class ProjectViewSet(_HouseholdScopedViewSet):
             UserPinnedProject.objects.filter(household_member=member, project=project).delete()
         serializer = self.get_serializer(project)
         return Response(serializer.data)
-
-    @action(detail=True, methods=["post"], url_path="attach_document")
-    def attach_document(self, request, pk=None):
-        project = self.get_object()
-        document_id = request.data.get("document_id")
-        if not document_id:
-            raise ValidationError({"document_id": "document_id is required."})
-
-        document = Document.objects.filter(id=document_id, household_id=project.household_id).first()
-        if not document:
-            return Response(
-                {"detail": "Document not found in this household."},
-                status=drf_status.HTTP_404_NOT_FOUND,
-            )
-
-        link, created = ProjectDocument.objects.get_or_create(
-            project=project,
-            document=document,
-            defaults={
-                "role": request.data.get("role") or "supporting",
-                "note": request.data.get("note") or "",
-                "created_by": request.user,
-            },
-        )
-        return Response(
-            {
-                "id": link.id,
-                "project": str(project.id),
-                "document": str(document.id),
-                "role": link.role,
-                "note": link.note,
-            },
-            status=drf_status.HTTP_201_CREATED if created else drf_status.HTTP_200_OK,
-        )
-
-    @action(detail=True, methods=["post"], url_path="detach_document")
-    def detach_document(self, request, pk=None):
-        project = self.get_object()
-        document_id = request.data.get("document_id")
-        if not document_id:
-            raise ValidationError({"document_id": "document_id is required."})
-
-        deleted, _ = ProjectDocument.objects.filter(
-            project=project, document_id=document_id
-        ).delete()
-        if deleted == 0:
-            return Response(
-                {"detail": "Document is not linked to this project."},
-                status=drf_status.HTTP_404_NOT_FOUND,
-            )
-        return Response(status=drf_status.HTTP_204_NO_CONTENT)
 
 
 class ProjectZoneViewSet(viewsets.ModelViewSet):

@@ -65,14 +65,3 @@ class EquipmentInteraction(models.Model):
         unique_together = [["equipment", "interaction"]]
 
 
-class EquipmentDocument(models.Model):
-    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name="equipment_documents")
-    document = models.ForeignKey("documents.Document", on_delete=models.CASCADE, related_name="equipment_documents")
-    role = models.TextField(default="document")
-    note = models.TextField(default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey("accounts.User", on_delete=models.SET_NULL, null=True, blank=True)
-
-    class Meta:
-        db_table = "equipment_documents"
-        unique_together = [["equipment", "document"]]

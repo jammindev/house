@@ -1,10 +1,17 @@
 import pytest
+from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 
 from accounts.models import User
-from documents.models import Document
-from equipment.models import Equipment, EquipmentDocument
+from documents.models import Document, DocumentLink
+from documents.services import link_document
+from equipment.models import Equipment
 from households.models import Household, HouseholdMember
+
+
+def _links(equipment, document):
+    ct = ContentType.objects.get_for_model(Equipment)
+    return DocumentLink.objects.filter(content_type=ct, object_id=equipment.id, document=document)
 
 
 @pytest.fixture
@@ -62,20 +69,20 @@ def test_attach_document_links_and_is_idempotent(client, user, drill, invoice, m
         _attach_url(drill), data={"document_id": str(invoice.id)}, content_type="application/json"
     )
     assert response.status_code == 201, response.content
-    assert EquipmentDocument.objects.filter(equipment=drill, document=invoice).count() == 1
+    assert _links(drill, invoice).count() == 1
 
     # Re-attaching the same document is a no-op (200, no duplicate).
     response = client.post(
         _attach_url(drill), data={"document_id": str(invoice.id)}, content_type="application/json"
     )
     assert response.status_code == 200, response.content
-    assert EquipmentDocument.objects.filter(equipment=drill, document=invoice).count() == 1
+    assert _links(drill, invoice).count() == 1
 
 
 @pytest.mark.django_db
 def test_attached_document_surfaces_via_equipment_filter(client, user, drill, invoice, membership):
     client.force_login(user)
-    EquipmentDocument.objects.create(equipment=drill, document=invoice, created_by=user)
+    link_document(entity=drill, document=invoice, user=user)
 
     response = client.get("/api/documents/documents/", data={"equipment": str(drill.id)})
     assert response.status_code == 200, response.content
@@ -87,13 +94,13 @@ def test_attached_document_surfaces_via_equipment_filter(client, user, drill, in
 @pytest.mark.django_db
 def test_detach_document_removes_link(client, user, drill, invoice, membership):
     client.force_login(user)
-    EquipmentDocument.objects.create(equipment=drill, document=invoice, created_by=user)
+    link_document(entity=drill, document=invoice, user=user)
 
     response = client.post(
         _detach_url(drill), data={"document_id": str(invoice.id)}, content_type="application/json"
     )
     assert response.status_code == 204, response.content
-    assert not EquipmentDocument.objects.filter(equipment=drill, document=invoice).exists()
+    assert not _links(drill, invoice).exists()
 
     # Detaching an unlinked document returns 404.
     response = client.post(
@@ -114,4 +121,4 @@ def test_attach_document_isolated_between_households(client, other_user, drill, 
         _attach_url(drill), data={"document_id": str(invoice.id)}, content_type="application/json"
     )
     assert response.status_code in (403, 404)
-    assert EquipmentDocument.objects.count() == 0
+    assert DocumentLink.objects.count() == 0

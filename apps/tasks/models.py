@@ -165,37 +165,6 @@ class TaskZone(models.Model):
         ]
 
 
-class TaskDocument(models.Model):
-    """M2M through table linking tasks to documents."""
-
-    task = models.ForeignKey(
-        Task,
-        on_delete=models.CASCADE,
-        related_name='task_documents',
-    )
-    document = models.ForeignKey(
-        'documents.Document',
-        on_delete=models.CASCADE,
-        related_name='task_documents',
-    )
-    note = models.TextField(blank=True, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        db_table = 'task_documents'
-        unique_together = [['task', 'document']]
-
-    @property
-    def household_id(self):
-        return self.task.household_id
-
-
 class TaskInteraction(models.Model):
     """M2M through table linking tasks to interactions."""
 

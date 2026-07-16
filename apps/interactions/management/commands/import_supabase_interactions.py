@@ -12,11 +12,12 @@ from django.utils import timezone
 
 from directory.models import Contact, Structure
 from documents.models import Document
+from documents.models import DocumentLink
+from django.contrib.contenttypes.models import ContentType
 from households.models import Household
 from interactions.models import (
     Interaction,
     InteractionContact,
-    InteractionDocument,
     InteractionStructure,
     InteractionZone,
 )
@@ -416,8 +417,9 @@ class Command(BaseCommand):
             role_value = (row.get("role") or "attachment").strip() or "attachment"
             note_value = row.get("note") or ""
 
-            exists = InteractionDocument.objects.filter(
-                interaction_id=interaction_id,
+            exists = DocumentLink.objects.filter(
+                content_type=ContentType.objects.get_for_model(Interaction),
+                object_id=interaction_id,
                 document_id=document.id,
             ).exists()
             if dry_run:
@@ -427,8 +429,9 @@ class Command(BaseCommand):
                     counters.created += 1
                 continue
 
-            obj, created = InteractionDocument.objects.update_or_create(
-                interaction_id=interaction_id,
+            obj, created = DocumentLink.objects.update_or_create(
+                content_type=ContentType.objects.get_for_model(Interaction),
+                object_id=interaction_id,
                 document_id=document.id,
                 defaults={
                     "role": role_value,
@@ -436,7 +439,7 @@ class Command(BaseCommand):
                 },
             )
             if row.get("created_at") is not None:
-                InteractionDocument.objects.filter(pk=obj.pk).update(created_at=row["created_at"])
+                DocumentLink.objects.filter(pk=obj.pk).update(created_at=row["created_at"])
 
             if created:
                 counters.created += 1
