@@ -10,7 +10,7 @@ from .models import (
     ProjectZone,
     UserPinnedProject,
 )
-from .services import project_actual_cost
+from .services import project_actual_cost, project_tab_counts
 
 
 class ProjectPurchaseSerializer(serializers.Serializer):
@@ -68,6 +68,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     # la colonne DB du même nom n'est plus jamais écrite. Le nom de champ API est
     # conservé pour ne pas casser les clients.
     actual_cost_cached = serializers.SerializerMethodField()
+    # Nombre d'items derrière chaque onglet du détail (tasks, notes, photos…).
+    # Renseigné UNIQUEMENT sur le retrieve (detail) — null en liste, pour ne pas
+    # payer les counts par projet. Le front masque les onglets à 0.
+    tab_counts = serializers.SerializerMethodField()
     # Le modèle a default="" mais pas blank=True : DRF rejette les chaînes vides
     # par défaut. Le formulaire React envoie systématiquement description="" quand
     # l'utilisateur n'écrit rien — rendre le champ optionnel + blank-OK ici.
@@ -88,6 +92,7 @@ class ProjectSerializer(serializers.ModelSerializer):
             "tags",
             "planned_budget",
             "actual_cost_cached",
+            "tab_counts",
             "cover_interaction",
             "project_group",
             "project_group_name",
@@ -107,6 +112,13 @@ class ProjectSerializer(serializers.ModelSerializer):
         if total is None:
             total = project_actual_cost(obj)
         return str(Decimal(total).quantize(Decimal("0.01")))
+
+    def get_tab_counts(self, obj):
+        # Detail seulement : la liste passe view.action == "list" → on n'agrège pas.
+        view = self.context.get("view")
+        if view is not None and getattr(view, "action", None) != "retrieve":
+            return None
+        return project_tab_counts(obj)
 
     def get_is_pinned(self, obj):
         request = self.context.get("request")

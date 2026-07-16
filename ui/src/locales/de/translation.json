@@ -23,7 +23,8 @@
     "error_loading": "Laden fehlgeschlagen.",
     "loading": "Wird geladen…",
     "add": "Hinzufügen",
-    "create": "Erstellen"
+    "create": "Erstellen",
+    "showMore": "Mehr anzeigen"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -1173,7 +1174,11 @@
           },
           "plan": {
             "title": "Aufgaben und Notizen bündeln",
-            "body": "Verknüpfen Sie Aufgaben, Notizen und Dokumente mit dem Projekt, um alles beisammen zu halten."
+            "body": "Verknüpfen Sie Aufgaben, Notizen und Dokumente mit dem Projekt — die Detailseite zeigt nur Tabs mit Inhalt, ein « + »-Menü öffnet die anderen."
+          },
+          "photos": {
+            "title": "Vorher / nachher dokumentieren",
+            "body": "Laden Sie im Tab Fotos Bilder hoch und markieren Sie sie als vorher, während oder nachher — öffnen Sie dann den Vergleich, um die Veränderung nebeneinander zu sehen."
           },
           "budget": {
             "title": "Das Budget verfolgen",
@@ -1353,7 +1358,24 @@
     "uploading": "Hochladen…",
     "upload_success": "{{count}} Foto(s) hochgeladen.",
     "upload_failed": "Upload fehlgeschlagen.",
-    "delete_confirm": "Dieses Foto löschen?"
+    "delete_confirm": "Dieses Foto löschen?",
+    "phase": {
+      "before": "Vorher",
+      "during": "Während",
+      "after": "Nachher",
+      "unclassified": "Nicht klassifiziert"
+    },
+    "entity": {
+      "removed": "Foto entfernt.",
+      "compare": "Vergleichen",
+      "compareTitle": "Vorher / nachher",
+      "compareSlider": "Vergleichsregler",
+      "upload": "Foto hochladen",
+      "addToPhase": "Hier hinzufügen",
+      "moveTo": "Verschieben nach {{phase}}",
+      "remove": "Entfernen",
+      "empty": "Noch keine Fotos. Laden Sie eines hoch, um das Vorher und Nachher des Projekts zu dokumentieren."
+    }
   },
   "directory": {
     "title": "Verzeichnis",
@@ -2142,7 +2164,8 @@
       "documents": "Dokumente",
       "timeline": "Verlauf",
       "assistant": "Assistent",
-      "trackers": "Tracker"
+      "trackers": "Tracker",
+      "photos": "Fotos"
     },
     "metrics": {
       "planned_budget": "Geplantes Budget",

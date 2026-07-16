@@ -60,6 +60,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     linked_interactions = serializers.SerializerMethodField()
     legacy_interaction = serializers.SerializerMethodField()
     legacy_interaction_subject = serializers.SerializerMethodField()
+    phase = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
@@ -70,6 +71,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
+            'phase',
         ]
         read_only_fields = ['id', 'household', 'created_at', 'created_by']
 
@@ -153,6 +155,21 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     def get_legacy_interaction_subject(self, obj):
         return obj.interaction.subject if obj.interaction_id and obj.interaction else None
+
+    def get_phase(self, obj):
+        """Photo phase relative to the entity currently being filtered on.
+
+        ``link_entity_id`` is set by the view when the list is scoped to one
+        entity (``?project=`` / ``?zone=`` / ``?linked_to=``). Returns the phase of
+        the matching link (``''`` if unclassified), or ``None`` when unscoped.
+        """
+        entity_id = self.context.get('link_entity_id')
+        if not entity_id:
+            return None
+        for link in self._document_links(obj):
+            if str(link.object_id) == str(entity_id):
+                return link.phase or ''
+        return None
 
 
 class DocumentDetailSerializer(DocumentSerializer):

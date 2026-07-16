@@ -6,7 +6,7 @@ import { Star, Plus } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
-import { TabShell } from '@/components/TabShell';
+import { TabShell, type TabConfig } from '@/components/TabShell';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
 import PageHeader from '@/components/PageHeader';
@@ -27,12 +27,36 @@ import {
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
+import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
 import ProjectDashboard from './ProjectDashboard';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useSessionState } from '@/lib/useSessionState';
 
-type Tab = 'overview' | 'tasks' | 'trackers' | 'notes' | 'expenses' | 'documents' | 'timeline';
-const TABS: Tab[] = ['overview', 'tasks', 'trackers', 'notes', 'expenses', 'documents', 'timeline'];
+type Tab =
+  | 'overview'
+  | 'tasks'
+  | 'trackers'
+  | 'notes'
+  | 'expenses'
+  | 'documents'
+  | 'photos'
+  | 'timeline';
+
+/**
+ * `overview` is always shown (pivot + entry points to create content). The other
+ * tabs are hidden when empty and revealed as soon as they hold something — the
+ * per-tab counts come from the project detail (`tab_counts`). Order preserved.
+ */
+const COUNTED_TABS: Exclude<Tab, 'overview'>[] = [
+  'tasks',
+  'trackers',
+  'notes',
+  'expenses',
+  'documents',
+  'photos',
+  'timeline',
+];
 
 // ── Tab: interactions list ─────────────────────────────────
 
@@ -143,6 +167,12 @@ export default function ProjectDetailPage() {
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [purchaseOpen, setPurchaseOpen] = React.useState(false);
   const [newTaskOpen, setNewTaskOpen] = React.useState(false);
+  // Mirrors TabShell's active tab (same sessionKey) so an active-but-empty tab
+  // stays visible until the user leaves it.
+  const [activeTab, setActiveTab] = useSessionState<Tab>(
+    `project-detail.${id ?? ''}.tab`,
+    'overview',
+  );
 
   const { data: project, isLoading, error } = useProject(id ?? '');
   const { data: householdMembers = [] } = useHouseholdMembersWithMe();
@@ -157,6 +187,8 @@ export default function ProjectDetailPage() {
     if (!id) return;
     void qc.invalidateQueries({ queryKey: taskKeys.project(id) });
     void qc.invalidateQueries({ queryKey: taskKeys.all });
+    // Refresh tab_counts so the Tasks tab appears after the first task.
+    void qc.invalidateQueries({ queryKey: projectKeys.detail(id) });
   }, [qc, id]);
 
   const showSkeleton = useDelayedLoading(isLoading);
@@ -180,6 +212,24 @@ export default function ProjectDetailPage() {
   const planned = Number(project.planned_budget);
   const actual = Number(project.actual_cost_cached);
   const overBudget = actual > planned && planned > 0;
+
+  const counts = project.tab_counts ?? null;
+  // Visible tabs: overview always, others when they have content OR are currently
+  // active (so the active tab doesn't vanish under the cursor when it empties).
+  const isVisible = (tab: Exclude<Tab, 'overview'>) =>
+    (counts ? counts[tab] > 0 : true) || tab === activeTab;
+  const visibleTabs: TabConfig<Tab>[] = [
+    { key: 'overview', label: t('projects.tabs.overview') },
+    ...COUNTED_TABS.filter(isVisible).map((tab) => ({
+      key: tab,
+      label: t(`projects.tabs.${tab}`),
+      badge: counts?.[tab],
+    })),
+  ];
+  // Empty tabs, reachable via the « + » menu so the first item can still be added.
+  const moreTabs: TabConfig<Tab>[] = COUNTED_TABS.filter((tab) => !isVisible(tab)).map(
+    (tab) => ({ key: tab, label: t(`projects.tabs.${tab}`) }),
+  );
 
   return (
     <>
@@ -269,9 +319,11 @@ export default function ProjectDetailPage() {
 
         {/* Tabs */}
         <TabShell
-          tabs={TABS.map((tab) => ({ key: tab, label: t(`projects.tabs.${tab}`) }))}
+          tabs={visibleTabs}
+          moreTabs={moreTabs}
           sessionKey={`project-detail.${project.id}.tab`}
           defaultTab="overview"
+          onTabChange={setActiveTab}
         >
           {(tab) => (
             <Card>
@@ -319,6 +371,10 @@ export default function ProjectDetailPage() {
 
                 {tab === 'documents' ? (
                   <EntityDocumentsTab entityType="project" objectId={project.id} />
+                ) : null}
+
+                {tab === 'photos' ? (
+                  <EntityPhotosTab entityType="project" objectId={project.id} />
                 ) : null}
 
                 {tab === 'timeline' ? (

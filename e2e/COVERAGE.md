@@ -96,6 +96,22 @@ Agent privacy pré-acceptée via localStorage pour les tests de page détail.
 
 ---
 
+## Détail projet — onglets adaptatifs & photos (`project-detail-tabs.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Projet vierge : seul l'onglet "Aperçu" visible dans la barre | ✅ |
+| Menu « + » présent et liste les onglets masqués (Tâches, Photos, Notes…) | ✅ |
+| Cliquer un onglet dans le menu « + » l'active | ✅ |
+| Après création d'une tâche liée, l'onglet "Tâches" apparaît dans la barre | ✅ |
+| Onglet Photos : état vide | ✅ |
+| Upload d'une photo → section "Non classées" visible avec l'image | ✅ |
+| Déplacer une photo vers la section "Après" via CardActions | ✅ |
+| Bouton "Comparer" absent avec une seule phase remplie | ✅ |
+| Bouton "Comparer" visible avec "Avant" ET "Après", et ouvre le comparateur (slider + titre) | ✅ |
+
+---
+
 ## Zones
 
 | Parcours | Statut |

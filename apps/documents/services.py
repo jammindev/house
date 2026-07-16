@@ -17,18 +17,41 @@ from .models import Document, DocumentLink
 
 # --- write helpers --------------------------------------------------------------
 
-def link_document(*, entity, document, user=None, role="document", note=""):
+def link_document(*, entity, document, user=None, role="document", note="", phase=""):
     """Attach ``document`` to any household ``entity``. Idempotent (upsert).
 
-    Returns ``(link, created)``. Household consistency is the caller's concern.
+    ``phase`` is the optional renovation phase of a photo relative to the entity
+    (``before``/``during``/``after`` or empty). Returns ``(link, created)``.
+    Household consistency is the caller's concern.
     """
     ct = ContentType.objects.get_for_model(type(entity))
     return DocumentLink.objects.update_or_create(
         content_type=ct,
         object_id=entity.pk,
         document=document,
-        defaults={"role": role or "document", "note": note or "", "created_by": user},
+        defaults={
+            "role": role or "document",
+            "note": note or "",
+            "phase": phase or "",
+            "created_by": user,
+        },
     )
+
+
+def set_document_phase(*, entity, document_id, phase) -> int:
+    """Set the renovation phase of the ``(entity, document)`` link.
+
+    ``phase`` must be a valid ``DocumentLink.Phase`` value or empty (unclassified).
+    Returns the number of links updated (0 if the link doesn't exist).
+    """
+    valid = {"", *DocumentLink.Phase.values}
+    phase = phase or ""
+    if phase not in valid:
+        raise ValueError(f"Invalid phase: {phase!r}")
+    ct = ContentType.objects.get_for_model(type(entity))
+    return DocumentLink.objects.filter(
+        content_type=ct, object_id=entity.pk, document_id=document_id
+    ).update(phase=phase)
 
 
 def unlink_document(*, entity, document_id) -> int:

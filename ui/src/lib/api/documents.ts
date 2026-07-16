@@ -1,5 +1,8 @@
 import { api } from '@/lib/axios';
 
+/** Renovation phase of a photo relative to a linked entity. Empty = unclassified. */
+export type PhotoPhase = 'before' | 'during' | 'after';
+
 export interface LinkedInteractionSummary {
   id: string;
   subject: string;
@@ -52,6 +55,8 @@ export interface DocumentItem {
   linked_interactions: LinkedInteractionSummary[];
   legacy_interaction?: string | null;
   legacy_interaction_subject?: string | null;
+  /** Phase of this photo for the entity being filtered on (null when unscoped). */
+  phase?: PhotoPhase | '' | null;
 }
 
 export interface DocumentDetail extends DocumentItem {
@@ -107,6 +112,8 @@ export async function fetchPhotoDocuments(filters: Omit<DocumentFilters, 'type'>
   const params: Record<string, string> = { ordering: '-created_at', type: 'photo' };
   if (filters.search) params.search = filters.search;
   if (filters.zone) params.zone = filters.zone;
+  if (filters.project) params.project = filters.project;
+  if (filters.equipment) params.equipment = filters.equipment;
 
   const { data } = await api.get('/documents/documents/', { params });
   const list: Array<DocumentItem & { id: string | number }> = Array.isArray(data)
@@ -172,10 +179,29 @@ export async function attachEntityDocument(
   entityType: string,
   objectId: string,
   documentId: string,
+  phase?: PhotoPhase | '',
 ): Promise<void> {
   const base = DOCUMENT_LINK_ENDPOINTS[entityType];
   if (!base) throw new Error(`Unsupported entity type for document linking: ${entityType}`);
-  await api.post(`${base(objectId)}/attach_document/`, { document_id: documentId });
+  await api.post(`${base(objectId)}/attach_document/`, {
+    document_id: documentId,
+    ...(phase ? { phase } : {}),
+  });
+}
+
+/** Set the renovation phase of a photo relative to a linked entity ('' clears it). */
+export async function setDocumentPhase(
+  entityType: string,
+  objectId: string,
+  documentId: string,
+  phase: PhotoPhase | '',
+): Promise<void> {
+  const base = DOCUMENT_LINK_ENDPOINTS[entityType];
+  if (!base) throw new Error(`Unsupported entity type for document linking: ${entityType}`);
+  await api.post(`${base(objectId)}/set_document_phase/`, {
+    document_id: documentId,
+    phase,
+  });
 }
 
 export async function detachEntityDocument(

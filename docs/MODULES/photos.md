@@ -16,6 +16,24 @@
 - Endpoints exposés : aucun propre — utilise `GET /api/documents/documents/?type=photo&ordering=-created_at` — *source : `ui/src/lib/api/photos.ts:17`*
 - Permissions : héritées de `documents` (IsAuthenticated + IsHouseholdMember)
 
+## Onglet Photos par entité + avant/après (parcours 20)
+
+- `EntityPhotosTab` (`ui/src/features/photos/EntityPhotosTab.tsx`) : onglet photos
+  générique, à poser dans le `TabShell` de n'importe quelle entité liable —
+  `<EntityPhotosTab entityType="project" objectId={id} />`. Première intégration :
+  onglet « Photos » du détail projet.
+- Les photos sont regroupées par **phase** (Avant / Pendant / Après / Non classées),
+  la phase étant portée par `DocumentLink.phase` (voir `docs/MODULES/documents.md`).
+  Upload (auto-attaché, phase présélectionnée depuis la section), retag via le menu
+  d'actions de la vignette (`useSetPhotoPhase`), détach avec undo.
+- Hooks entité-scopés dans `hooks.ts` : `useEntityPhotos`, `useAttachEntityPhoto`,
+  `useDetachEntityPhoto`, `useSetPhotoPhase` (clé `photoKeys.entity(type, id)`,
+  invalident aussi `['projects']` pour rafraîchir le compteur d'onglet).
+- `BeforeAfterCompare` (`BeforeAfterCompare.tsx`) : comparateur avant/après en
+  `SheetDialog` — superpose la photo « après » sur l'« avant » avec un slider
+  (`clip-path` + `<input type=range>`, tactile). Bouton « Comparer » visible dans
+  l'onglet seulement si ≥ 1 photo `before` **et** ≥ 1 `after`.
+
 ## Notes
 
 - **Pas de modèle propre** : `photos` est uniquement un namespace UI, le stockage et l'API passent par l'app `documents` — *source : `apps/photos/` ne contient ni `models.py` ni `views.py` ni `urls.py`*

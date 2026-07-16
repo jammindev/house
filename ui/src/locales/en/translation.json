@@ -23,7 +23,8 @@
     "error_loading": "Failed to load.",
     "loading": "Loading…",
     "add": "Add",
-    "create": "Create"
+    "create": "Create",
+    "showMore": "Show more"
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -1173,7 +1174,11 @@
           },
           "plan": {
             "title": "Gather tasks and notes",
-            "body": "Link tasks, notes and documents to the project to keep everything together."
+            "body": "Link tasks, notes and documents to the project — the detail page only shows the tabs that have content, with a « + » menu to open the others."
+          },
+          "photos": {
+            "title": "Document before / after",
+            "body": "In the Photos tab, upload pictures and tag them before, during or after — then open the comparator to see the transformation side by side."
           },
           "budget": {
             "title": "Track the budget",
@@ -1353,7 +1358,24 @@
     "uploading": "Uploading…",
     "upload_success": "{{count}} photo(s) uploaded.",
     "upload_failed": "Upload failed.",
-    "delete_confirm": "Delete this photo?"
+    "delete_confirm": "Delete this photo?",
+    "phase": {
+      "before": "Before",
+      "during": "During",
+      "after": "After",
+      "unclassified": "Unclassified"
+    },
+    "entity": {
+      "removed": "Photo removed.",
+      "compare": "Compare",
+      "compareTitle": "Before / after",
+      "compareSlider": "Comparison slider",
+      "upload": "Upload a photo",
+      "addToPhase": "Add here",
+      "moveTo": "Move to {{phase}}",
+      "remove": "Remove",
+      "empty": "No photos yet. Upload one to document the project before and after."
+    }
   },
   "directory": {
     "title": "Directory",
@@ -2142,7 +2164,8 @@
       "documents": "Documents",
       "timeline": "Timeline",
       "assistant": "Assistant",
-      "trackers": "Trackers"
+      "trackers": "Trackers",
+      "photos": "Photos"
     },
     "metrics": {
       "planned_budget": "Planned budget",

@@ -17,6 +17,17 @@ export interface ProjectZoneItem {
   color?: string | null;
 }
 
+/** Item count behind each detail tab. Populated on retrieve only (null in list). */
+export interface ProjectTabCounts {
+  tasks: number;
+  trackers: number;
+  notes: number;
+  expenses: number;
+  documents: number;
+  photos: number;
+  timeline: number;
+}
+
 export interface ProjectListItem {
   id: string;
   household: string;
@@ -31,6 +42,7 @@ export interface ProjectListItem {
   tags: string[];
   planned_budget: string;
   actual_cost_cached: string;
+  tab_counts?: ProjectTabCounts | null;
   cover_interaction: string | null;
   project_group: string | null;
   project_group_name: string | null;

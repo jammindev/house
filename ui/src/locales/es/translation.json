@@ -23,7 +23,8 @@
     "error_loading": "Error al cargar.",
     "loading": "Cargando…",
     "add": "Añadir",
-    "create": "Crear"
+    "create": "Crear",
+    "showMore": "Mostrar más"
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",
@@ -1173,7 +1174,11 @@
           },
           "plan": {
             "title": "Reunir tareas y notas",
-            "body": "Enlaza tareas, notas y documentos al proyecto para tenerlo todo junto."
+            "body": "Vincula tareas, notas y documentos al proyecto — la página de detalle solo muestra las pestañas con contenido, con un menú « + » para abrir las demás."
+          },
+          "photos": {
+            "title": "Documentar el antes / después",
+            "body": "En la pestaña Fotos, sube imágenes y etiquétalas como antes, durante o después — luego abre el comparador para ver la transformación en paralelo."
           },
           "budget": {
             "title": "Seguir el presupuesto",
@@ -1353,7 +1358,24 @@
     "uploading": "Subiendo…",
     "upload_success": "{{count}} foto(s) subida(s).",
     "upload_failed": "Error al subir.",
-    "delete_confirm": "¿Eliminar esta foto?"
+    "delete_confirm": "¿Eliminar esta foto?",
+    "phase": {
+      "before": "Antes",
+      "during": "Durante",
+      "after": "Después",
+      "unclassified": "Sin clasificar"
+    },
+    "entity": {
+      "removed": "Foto eliminada.",
+      "compare": "Comparar",
+      "compareTitle": "Antes / después",
+      "compareSlider": "Control deslizante de comparación",
+      "upload": "Subir una foto",
+      "addToPhase": "Añadir aquí",
+      "moveTo": "Mover a {{phase}}",
+      "remove": "Quitar",
+      "empty": "Aún no hay fotos. Sube una para documentar el antes y el después del proyecto."
+    }
   },
   "directory": {
     "title": "Directorio",
@@ -2142,7 +2164,8 @@
       "documents": "Documentos",
       "timeline": "Historial",
       "assistant": "Asistente",
-      "trackers": "Trackers"
+      "trackers": "Trackers",
+      "photos": "Fotos"
     },
     "metrics": {
       "planned_budget": "Presupuesto planificado",
