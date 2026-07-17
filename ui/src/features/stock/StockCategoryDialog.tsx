@@ -10,7 +10,7 @@ import { useCreateCategory, useUpdateCategory } from './hooks';
 interface StockCategoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSaved: () => void;
+  onSaved: (category?: StockCategory) => void;
   existingCategory?: StockCategory;
 }
 
@@ -81,13 +81,14 @@ export default function StockCategoryDialog({
     };
 
     try {
+      let saved: StockCategory;
       if (isEditing && existingCategory) {
-        await updateMutation.mutateAsync({ id: existingCategory.id, payload });
+        saved = await updateMutation.mutateAsync({ id: existingCategory.id, payload });
       } else {
-        await createMutation.mutateAsync(payload);
+        saved = await createMutation.mutateAsync(payload);
       }
       onOpenChange(false);
-      onSaved();
+      onSaved(saved);
     } catch {
       setError(t('stock.errors.create_failed'));
     }

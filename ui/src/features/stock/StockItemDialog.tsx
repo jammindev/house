@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Plus } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
@@ -8,6 +9,7 @@ import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { StockItem, StockItemStatus } from '@/lib/api/stock';
 import { useCreateStockItem, useUpdateStockItem, useStockCategories, useZones } from './hooks';
+import StockCategoryDialog from './StockCategoryDialog';
 
 interface StockItemDialogProps {
   open: boolean;
@@ -84,6 +86,7 @@ export default function StockItemDialog({
 
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [error, setError] = React.useState<string | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = React.useState(false);
 
   const { data: categories = [] } = useStockCategories();
   const { data: zones = [] } = useZones();
@@ -169,18 +172,31 @@ export default function StockItemDialog({
           {/* Category + Zone */}
           <div className="grid gap-4 md:grid-cols-2">
             <FormField label={t('stock.fields.category')} htmlFor="stock-item-category">
-              <Select
-                id="stock-item-category"
-                value={form.category}
-                onChange={(e) => updateField('category', e.target.value)}
-              >
-                <option value="">{t('stock.fields.select_category')}</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.emoji} {cat.name}
-                  </option>
-                ))}
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  id="stock-item-category"
+                  className="flex-1"
+                  value={form.category}
+                  onChange={(e) => updateField('category', e.target.value)}
+                >
+                  <option value="">{t('stock.fields.select_category')}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.emoji} {cat.name}
+                    </option>
+                  ))}
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  aria-label={t('stock.categories.new')}
+                  title={t('stock.categories.new')}
+                  onClick={() => setCategoryDialogOpen(true)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </FormField>
             <FormField label={t('stock.fields.zone')} htmlFor="stock-item-zone">
               <Select
@@ -292,6 +308,14 @@ export default function StockItemDialog({
             </Button>
           </div>
         </form>
+
+        <StockCategoryDialog
+          open={categoryDialogOpen}
+          onOpenChange={setCategoryDialogOpen}
+          onSaved={(category) => {
+            if (category) updateField('category', category.id);
+          }}
+        />
     </SheetDialog>
   );
 }
