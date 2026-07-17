@@ -243,3 +243,118 @@ def test_consumption_ignores_restock_jumps(client, user, feed, membership):
     # Consumed: 8 (day0→5) + 8 (day6→10) = 16 over 10 days = 1.6 kg/day.
     assert data["rate_per_day"] == pytest.approx(1.6, abs=0.01)
     assert data["points_count"] == 4
+
+
+# --- CRUD writes must go through the inventory path (regression #325) ---------
+
+
+@pytest.mark.django_db
+def test_create_item_with_quantity_records_initial_inventory_reading(client, user, category, membership):
+    """Creating an item with an initial quantity writes the origin level reading.
+
+    Without it the consumption curve has no starting point and the documented
+    invariant (last reading == item.quantity) is broken from creation.
+    """
+    client.force_login(user)
+    response = client.post(
+        reverse("stock-item-list"),
+        data={
+            "category": str(category.id),
+            "name": "Sugar",
+            "quantity": "10.000",
+            "unit": "kg",
+            "status": "in_stock",
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 201
+    item = StockItem.objects.get(id=response.json()["id"])
+    readings = _readings(item)
+    assert len(readings) == 1
+    assert readings[0].kind == StockLevelReading.Kind.INVENTORY
+    assert readings[0].quantity == Decimal("10.000")
+    assert readings[-1].quantity == item.quantity
+
+
+@pytest.mark.django_db
+def test_create_item_with_zero_quantity_records_no_reading(client, user, category, membership):
+    """An item created empty has nothing to plot yet — no spurious reading."""
+    client.force_login(user)
+    response = client.post(
+        reverse("stock-item-list"),
+        data={
+            "category": str(category.id),
+            "name": "Flour",
+            "quantity": "0",
+            "unit": "kg",
+            "status": "out_of_stock",
+        },
+        content_type="application/json",
+    )
+
+    assert response.status_code == 201
+    item = StockItem.objects.get(id=response.json()["id"])
+    assert _readings(item) == []
+
+
+@pytest.mark.django_db
+def test_edit_quantity_records_inventory_and_recomputes_status(client, user, category, membership, household):
+    """Editing the quantity via the form is a de-facto inventory count.
+
+    It must persist a reading, recompute the status from the new level, and keep
+    the invariant (last reading == item.quantity).
+    """
+    item = StockItem.objects.create(
+        household=household,
+        category=category,
+        name="Beans",
+        quantity=Decimal("5.000"),
+        min_quantity=Decimal("2"),
+        unit="kg",
+        status="in_stock",
+        created_by=user,
+    )
+
+    client.force_login(user)
+    response = client.patch(
+        reverse("stock-item-detail", kwargs={"pk": item.id}),
+        data={"quantity": "1.000"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["quantity"] == "1.000"
+    assert payload["status"] == "low_stock"
+
+    item.refresh_from_db()
+    readings = _readings(item)
+    assert len(readings) == 1
+    assert readings[0].kind == StockLevelReading.Kind.INVENTORY
+    assert readings[0].quantity == Decimal("1.000")
+    assert readings[-1].quantity == item.quantity
+
+
+@pytest.mark.django_db
+def test_edit_without_quantity_change_records_no_reading(client, user, category, membership, household):
+    """Editing another field (not the quantity) must not fabricate a reading."""
+    item = StockItem.objects.create(
+        household=household,
+        category=category,
+        name="Rice",
+        quantity=Decimal("3.000"),
+        unit="kg",
+        status="in_stock",
+        created_by=user,
+    )
+
+    client.force_login(user)
+    response = client.patch(
+        reverse("stock-item-detail", kwargs={"pk": item.id}),
+        data={"name": "Basmati rice"},
+        content_type="application/json",
+    )
+
+    assert response.status_code == 200
+    assert _readings(item) == []
