@@ -106,10 +106,16 @@ export default function Sidebar() {
   // Modules visibles = actifs pour le foyer ; un module épinglé sort de son
   // groupe et remonte dans la section « Épinglés » (pas de doublon).
   const visibleModules = MODULES.filter((m) => !disabled.has(m.key));
+  // Météo reste un module optionnel (désactivable, dans Réglages), mais son
+  // entrée de nav est remontée en tête de sidebar juste sous le bloc fixe.
+  // On l'exclut donc des épinglés et des groupes pour éviter le doublon.
+  const weatherModule = visibleModules.find((m) => m.key === 'weather');
   const pinnedModules = pinned
     .map((key) => visibleModules.find((m) => m.key === key))
-    .filter((m): m is ModuleDef => Boolean(m));
-  const groupedModules = visibleModules.filter((m) => !pinned.includes(m.key));
+    .filter((m): m is ModuleDef => m != null && m.key !== 'weather');
+  const groupedModules = visibleModules.filter(
+    (m) => !pinned.includes(m.key) && m.key !== 'weather',
+  );
 
   return (
     <>
@@ -157,6 +163,15 @@ export default function Sidebar() {
                 onNavigate={closeSidebar}
               />
             ))}
+            {weatherModule && (
+              <NavItem
+                key={weatherModule.key}
+                to={weatherModule.to}
+                labelKey={weatherModule.labelKey}
+                Icon={weatherModule.Icon}
+                onNavigate={closeSidebar}
+              />
+            )}
           </div>
 
           {pinnedModules.length > 0 && (
