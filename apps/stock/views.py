@@ -26,6 +26,7 @@ from .services import (
     compute_consumption,
     purchase_stock_item,
     recompute_status,
+    record_initial_level,
     record_inventory,
     undo_purchase,
 )
@@ -90,9 +91,18 @@ class StockItemViewSet(viewsets.ModelViewSet):
         if item.status == StockItem.Status.ORDERED and item.quantity > 0:
             item.last_restocked_at = timezone.now()
             item.save(update_fields=["last_restocked_at", "updated_at"])
+        # Origin point for the consumption curve — keeps the invariant
+        # (last reading == quantity) true from creation. No-op when empty.
+        record_initial_level(item=item, user=self.request.user)
 
     def perform_update(self, serializer):
-        serializer.save(updated_by=self.request.user)
+        old_quantity = Decimal(serializer.instance.quantity)
+        item = serializer.save(updated_by=self.request.user)
+        # Editing the quantity via the form is a de-facto inventory count: route
+        # it through the same path (level reading + status recompute + notify)
+        # instead of a silent direct write. Untouched quantity → nothing.
+        if Decimal(item.quantity) != old_quantity:
+            record_inventory(item=item, user=self.request.user, quantity=Decimal(item.quantity))
 
     @action(detail=True, methods=["post"], url_path="adjust-quantity")
     def adjust_quantity(self, request, pk=None):

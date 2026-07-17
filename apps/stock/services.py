@@ -202,6 +202,26 @@ def record_inventory(
     return item
 
 
+def record_initial_level(*, item: StockItem, user, occurred_at: datetime | None = None) -> StockLevelReading | None:
+    """Write the origin ``inventory`` reading for a freshly created item.
+
+    Called from ``perform_create`` so an item created with an initial quantity
+    has a starting point on its consumption curve and satisfies the invariant
+    (last reading == quantity) from birth. No status recompute nor notification:
+    the create form owns the item's initial status. Returns ``None`` for an empty
+    item (nothing to plot yet).
+    """
+    if Decimal(item.quantity) <= 0:
+        return None
+    return _record_level(
+        item,
+        quantity=Decimal(item.quantity),
+        kind=StockLevelReading.Kind.INVENTORY,
+        reading_at=occurred_at or timezone.now(),
+        user=user,
+    )
+
+
 def resolve_category(household, raw: str):
     """Resolve a stock category by id or (case-insensitive) name within a household.
 
