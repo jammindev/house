@@ -1,8 +1,13 @@
 # Parcours 21 — Backlog technique : recherche sémantique hybride
 
-> **État au 2026-07-21** — Chantier **cadré, non démarré**. Doc produit et fiche
-> concept écrites, issues GitHub ouvertes. Ordre d'implémentation : lot 0 → 1 → 2
-> → 3 → 4, le lot 5 étant un backlog d'idées V2.
+> **État au 2026-07-21** — **Lots 0 → 4 livrés et mergés** (PRs #333→#337).
+> Le socle, l'index `EmbeddingChunk`, le backfill, le retrieval hybride RRF et le
+> harnais d'éval sont en place. Tout est **derrière deux flags off par défaut**
+> (`EMBEDDING_INDEXING_ENABLED`, `AGENT_HYBRID_RETRIEVAL_ENABLED`) → aucun
+> changement de comportement en prod pour l'instant. **Activation restante
+> (manuelle)** : poser `VOYAGE_API_KEY`, activer l'indexation + `backfill_embeddings`,
+> valider via `eval_retrieval`, puis activer le flag hybride. Le lot 5 reste un
+> backlog d'idées V2 (#332).
 
 Doc produit : [PARCOURS_21_RECHERCHE_SEMANTIQUE_HYBRIDE.md](./PARCOURS_21_RECHERCHE_SEMANTIQUE_HYBRIDE.md)
 Fiche concept (le cours) : [docs/fiches/EMBEDDINGS.md](../fiches/EMBEDDINGS.md)
@@ -16,7 +21,7 @@ Socle dont on hérite : [PARCOURS_07_BACKLOG_TECHNIQUE.md](./PARCOURS_07_BACKLOG
 | 1 | Modèle `EmbeddingChunk` + chunking + indexation write-time | ✅ Livré (PR #334) | #328 |
 | 2 | Backfill par management command (`backfill_embeddings`) | ✅ Livré (PR #335) | #329 |
 | 3 | Retrieval hybride (full-text + vecteur, fusion RRF) + flag | ✅ Livré (PR #336) | #330 |
-| 4 | Observabilité (`AIUsageLog` feature `embed`) + harnais d'évaluation | 🚧 En PR | #331 |
+| 4 | Observabilité (`AIUsageLog` feature `embed`) + harnais d'évaluation | ✅ Livré (PR #337) | #331 |
 | 5 | Idées V2 (reranking, index HNSW, chunking sémantique) | 💡 Idée | #332 |
 
 ## Philosophie d'implémentation
