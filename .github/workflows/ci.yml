@@ -13,7 +13,9 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16-alpine
+        # postgres:16 + pgvector extension (parcours 21). The migration
+        # apps/agent/0008 runs CREATE EXTENSION vector during test DB setup.
+        image: pgvector/pgvector:pg16
         env:
           POSTGRES_DB: house_test
           POSTGRES_USER: house_user

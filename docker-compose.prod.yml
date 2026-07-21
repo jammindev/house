@@ -1,6 +1,11 @@
 services:
   db:
-    image: postgres:16-alpine
+    # pgvector/pgvector:pg16 = official postgres:16 (Debian) + the `vector`
+    # extension preinstalled (parcours 21, hybrid semantic retrieval). Same PG
+    # major as before, so the postgres-data volume is compatible; a REINDEX after
+    # the alpine(musl)->debian(glibc) switch is prudent if text-index collation
+    # ever looks off. See docs/parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md.
+    image: pgvector/pgvector:pg16
     restart: always
     volumes:
       - postgres-data:/var/lib/postgresql/data

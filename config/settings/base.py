@@ -214,6 +214,21 @@ LLM_REQUEST_TIMEOUT_SECONDS = 30
 # Vision OCR (full-page images) is slower than chat round-trips.
 LLM_VISION_TIMEOUT_SECONDS = 60
 
+# Embedding provider (hybrid semantic retrieval, parcours 21). Anthropic has no
+# embeddings API, so vectors come from a separate provider behind
+# `apps.agent.embeddings.get_embedding_client()`, keyed on `EMBEDDING_PROVIDER`.
+# Prod default: Voyage AI (hosted, 0 GB RAM on the VPS). Ollama local (bge-m3) is
+# the target once the machine has >= 8 GB RAM — flip EMBEDDING_PROVIDER=ollama,
+# no refactor. See docs/fiches/EMBEDDINGS.md.
+EMBEDDING_PROVIDER = "voyage"
+EMBEDDING_MODEL = "voyage-3"
+EMBEDDING_DIMENSIONS = 1024
+EMBEDDING_REQUEST_TIMEOUT_SECONDS = 30
+# Ollama endpoint, only used when EMBEDDING_PROVIDER=ollama.
+EMBEDDING_BASE_URL = "http://localhost:11434"
+# Voyage API key — empty by default; set per environment / in .env.
+VOYAGE_API_KEY = ""
+
 # Agent tool-use loop: max LLM round-trips per question. Each iteration is one
 # LLM call; the tools are dropped on the last pass to force a final answer.
 # Bounds latency and cost of the function-calling loop. 4 leaves room to chain

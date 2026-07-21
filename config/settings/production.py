@@ -80,6 +80,14 @@ LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
 LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")
 LLM_VISION_MODEL = env("LLM_VISION_MODEL", default="claude-haiku-4-5-20251001")
 
+# Embedding provider (parcours 21). Prod default: Voyage AI (VOYAGE_API_KEY
+# required). Switch to local Ollama (bge-m3) only once the host has >= 8 GB RAM.
+EMBEDDING_PROVIDER = env("EMBEDDING_PROVIDER", default="voyage")
+EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="voyage-3")
+EMBEDDING_DIMENSIONS = env.int("EMBEDDING_DIMENSIONS", default=1024)
+EMBEDDING_BASE_URL = env("EMBEDDING_BASE_URL", default="http://ollama:11434")
+VOYAGE_API_KEY = env("VOYAGE_API_KEY", default="")
+
 # Agent web search — requires the agent on Sonnet 4.6+ (dynamic filtering).
 AGENT_WEB_SEARCH_ENABLED = env.bool("AGENT_WEB_SEARCH_ENABLED", default=False)
 
