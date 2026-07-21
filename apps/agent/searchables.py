@@ -45,6 +45,12 @@ class SearchableSpec:
     tools — the agent behaves as if the entity type did not exist. None = core,
     never filtered."""
 
+    embed: bool = True
+    """Whether this entity is embedded into the vector index (parcours 21). Same
+    ``search_fields`` as the full-text side. Set to False to keep an entity in the
+    lexical retrieval but out of the semantic one (e.g. a mostly-numeric model
+    whose text carries no meaningful semantics)."""
+
 
 REGISTRY: list[SearchableSpec] = []
 

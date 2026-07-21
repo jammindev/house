@@ -45,3 +45,8 @@ class AgentConfig(AppConfig):
                 module=None,  # core: aggregates whatever modules are enabled
             )
         )
+
+        # Vector index sync on entity writes (parcours 21). Connecting the
+        # post_save/post_delete receivers; they self-gate on
+        # settings.EMBEDDING_INDEXING_ENABLED (off by default).
+        from . import signals  # noqa: F401
