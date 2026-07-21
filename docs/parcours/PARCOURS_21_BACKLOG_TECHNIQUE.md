@@ -14,8 +14,8 @@ Socle dont on hérite : [PARCOURS_07_BACKLOG_TECHNIQUE.md](./PARCOURS_07_BACKLOG
 |---|---|---|---|
 | 0 | Socle pgvector + abstraction `EmbeddingClient` (Voyage `voyage-3`) | ✅ Livré (PR #333) | #327 |
 | 1 | Modèle `EmbeddingChunk` + chunking + indexation write-time | ✅ Livré (PR #334) | #328 |
-| 2 | Backfill par management command (`backfill_embeddings`) | 🚧 En PR | #329 |
-| 3 | Retrieval hybride (full-text + vecteur, fusion RRF) + flag | ⬜ À faire | #330 |
+| 2 | Backfill par management command (`backfill_embeddings`) | ✅ Livré (PR #335) | #329 |
+| 3 | Retrieval hybride (full-text + vecteur, fusion RRF) + flag | 🚧 En PR | #330 |
 | 4 | Observabilité (`AIUsageLog` feature `embed`) + harnais d'évaluation | ⬜ À faire | #331 |
 | 5 | Idées V2 (reranking, index HNSW, chunking sémantique) | 💡 Idée | #332 |
 

@@ -1,17 +1,25 @@
 """
-Naive full-text retrieval over household entities.
+Retrieval over household entities — lexical (full-text) + optional semantic.
 
-Iterates over the registry, runs a `SearchVector` query per model with
-`config='simple'` (multi-tenant safe — no stemming), merges hits, and ranks
-them globally by the Postgres `SearchRank`. Snippets are produced via
-`SearchHeadline`.
+Lexical: iterates the registry, runs a `SearchVector` query per model with
+`config='simple_unaccent'` (multi-tenant safe — no stemming), merges hits, ranks
+them by the Postgres `SearchRank`, snippets via `SearchHeadline`.
+
+Hybrid (parcours 21, behind `AGENT_HYBRID_RETRIEVAL_ENABLED`): a second semantic
+leg embeds the query and runs a pgvector k-NN over `EmbeddingChunk`, then the two
+rankings are merged by Reciprocal Rank Fusion. The public contract —
+`search(household_id, query) -> list[Hit]` — is unchanged, so the agent (tools,
+service, anchored context) is transparent to the change. Flag off = byte-identical
+to the pure full-text behaviour.
 """
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
+from django.conf import settings
 from django.contrib.postgres.search import (
     SearchHeadline,
     SearchQuery,
@@ -19,9 +27,20 @@ from django.contrib.postgres.search import (
     SearchVector,
 )
 from django.db.models import F, Value
+from pgvector.django import CosineDistance
 
 from .modules import disabled_modules_for, spec_disabled
-from .searchables import REGISTRY, SearchableSpec, resolve_label
+from .searchables import REGISTRY, SearchableSpec, find_spec, resolve_label
+
+logger = logging.getLogger(__name__)
+
+# Reciprocal Rank Fusion damping constant (Cormack 2009 convention). Overridable
+# via settings.RRF_K. Higher = flatter contribution of top ranks.
+_RRF_K_DEFAULT = 60
+
+# Chunks fetched from the k-NN before deduping to entities. One entity can own
+# several chunks; over-fetching lets us still surface `limit` distinct entities.
+_VECTOR_CHUNK_FANOUT = 5
 
 SNIPPET_MAX_WORDS = 30
 SNIPPET_MIN_WORDS = 8
@@ -220,7 +239,109 @@ def search(
         all_hits.extend(_search_one(spec, household_id, query, limit))
 
     all_hits.sort(key=lambda h: h.rank, reverse=True)
-    return all_hits[:limit]
+    fulltext_hits = all_hits[:limit]
+
+    if not _hybrid_enabled():
+        return fulltext_hits
+
+    vector_hits = _vector_search(household_id, query, limit, disabled=disabled)
+    if not vector_hits:
+        # No semantic leg (embeddings disabled/unavailable/empty index) → behave
+        # exactly like pure full-text. Never worse than today.
+        return fulltext_hits
+
+    return _fuse_rrf([fulltext_hits, vector_hits])[:limit]
+
+
+def _hybrid_enabled() -> bool:
+    return bool(getattr(settings, "AGENT_HYBRID_RETRIEVAL_ENABLED", False))
+
+
+def _vector_search(
+    household_id: UUID,
+    query: str,
+    limit: int,
+    disabled: frozenset[str] | None = None,
+) -> list[Hit]:
+    """Semantic leg: embed the query, k-NN over `EmbeddingChunk`, dedupe to entities.
+
+    Best-effort — any embedding failure degrades to `[]` so `search()` falls back
+    to full-text. Chunks are resolved back to their source entity via the registry
+    and rendered as citable Hits (interface identical to the lexical leg).
+    """
+    from .embeddings import EmbeddingError, get_embedding_client
+    from .models import EmbeddingChunk
+
+    if disabled is None:
+        disabled = disabled_modules_for(household_id)
+
+    try:
+        vector = get_embedding_client().embed_query(
+            query, household_id=household_id, feature="embed_query"
+        )
+    except EmbeddingError:
+        logger.warning("hybrid retrieval: query embedding failed, falling back to full-text")
+        return []
+    if not vector:
+        return []
+
+    rows = (
+        EmbeddingChunk.objects.filter(household_id=household_id)
+        .annotate(distance=CosineDistance("embedding", vector))
+        .order_by("distance")[: limit * _VECTOR_CHUNK_FANOUT]
+    )
+
+    hits: list[Hit] = []
+    seen: set[tuple[str, str]] = set()
+    for chunk in rows:
+        key = (chunk.entity_type, chunk.object_id)
+        if key in seen:  # rows are distance-ordered → first per entity is its best chunk
+            continue
+        spec = find_spec(chunk.entity_type)
+        if spec is None or spec_disabled(spec, disabled):
+            continue
+        instance = spec.model.objects.filter(
+            household_id=household_id, pk=chunk.object_id
+        ).first()
+        if instance is None:  # stale chunk (source deleted) — skip
+            continue
+        seen.add(key)
+        hit = hit_from_instance(spec, instance, rank=1.0 - float(chunk.distance))
+        # Prefer the matched chunk as the snippet when the source has one.
+        if chunk.content:
+            hit.snippet = chunk.content[:200].strip()
+        hits.append(hit)
+        if len(hits) >= limit:
+            break
+    return hits
+
+
+def _fuse_rrf(rankings: list[list[Hit]], k: int | None = None) -> list[Hit]:
+    """Merge several ranked Hit lists by Reciprocal Rank Fusion.
+
+    Uses only each hit's *position* (scores from ts_rank and cosine distance are
+    not comparable). A hit present in several lists accumulates score, so an entity
+    surfaced by both the lexical and semantic legs rises to the top. The kept
+    representative is the first-seen hit (full-text list is passed first, so its
+    highlighted snippet wins); its `rank` is overwritten with the RRF score so
+    downstream `search_multi` ordering stays consistent.
+    """
+    if k is None:
+        k = int(getattr(settings, "RRF_K", _RRF_K_DEFAULT))
+
+    scores: dict[tuple[str, Any], float] = {}
+    representative: dict[tuple[str, Any], Hit] = {}
+    for hits in rankings:
+        for position, hit in enumerate(hits):
+            key = (hit.entity_type, hit.id)
+            scores[key] = scores.get(key, 0.0) + 1.0 / (k + position + 1)
+            representative.setdefault(key, hit)
+
+    fused = list(representative.values())
+    for hit in fused:
+        hit.rank = scores[(hit.entity_type, hit.id)]
+    fused.sort(key=lambda h: h.rank, reverse=True)
+    return fused
 
 
 def search_multi(household_id: UUID, queries: list[str], limit: int = 20) -> list[Hit]:

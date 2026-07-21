@@ -259,21 +259,30 @@ Sous `/api/agent/` :
   (`PrivacyNotice` + `privacyStorage`), partagée entre `AgentPage` et
   `EntityAssistant`.
 
-## À venir — retrieval hybride (parcours 21, cadré 2026-07-21)
+## Retrieval hybride (parcours 21) — full-text + sémantique
 
-Le retrieval est aujourd'hui **100 % full-text** (`retrieval.py`, `tsvector`). Un
-chantier cadré (non démarré) ajoute une **jambe sémantique** (embeddings
-`pgvector`) **à côté** du full-text, fusionnée par Reciprocal Rank Fusion — pour
-retrouver par le sens quand le vocabulaire de la question diverge des documents.
+Le retrieval combine deux jambes, fusionnées par **Reciprocal Rank Fusion** :
 
-Point d'architecture qui concerne ce module : **rien dans `apps/agent/` ne change
-sur le fond**. La fusion se fait **dans** `retrieval.search()`, dont la signature
-et le type de retour (`list[Hit]`) restent identiques ; les tools
-(`search_household`…), le service, la conversation ancrée, le digest et Telegram
-sont transparents au changement. Nouveaux artefacts prévus côté module :
-`embeddings.py` (abstraction `EmbeddingClient`, miroir de `llm.py`), modèle
-`EmbeddingChunk`, `indexing.py`, command `backfill_embeddings`, flag
-`AGENT_HYBRID_RETRIEVAL_ENABLED`.
+- **lexicale** — `tsvector` / `simple_unaccent` (comme avant) ;
+- **sémantique** — embeddings `pgvector`, pour retrouver par le sens quand le
+  vocabulaire de la question diverge des documents (« chauffage » → facture
+  « pompe à chaleur »).
+
+**`apps/agent/` reste transparent au changement** : la fusion vit **dans**
+`retrieval.search()`, dont la signature et le type de retour (`list[Hit]`) ne
+bougent pas ; tools (`search_household`…), service, conversation ancrée, digest et
+Telegram n'en savent rien.
+
+Artefacts : `embeddings.py` (`EmbeddingClient`, miroir de `llm.py` ; provider
+`voyage` par défaut, `ollama` en cible), modèle `EmbeddingChunk` (+ `indexing.py`
+write-time, gated par `EMBEDDING_INDEXING_ENABLED`), command `backfill_embeddings`,
+et les fonctions `_vector_search` / `_fuse_rrf` de `retrieval.py`.
+
+**Deux flags, off par défaut** (rollout maîtrisé) :
+- `EMBEDDING_INDEXING_ENABLED` — indexation write-time sur `post_save`/`post_delete` ;
+- `AGENT_HYBRID_RETRIEVAL_ENABLED` — jambe sémantique dans `search()` (off =
+  full-text à l'octet près). À activer une fois `VOYAGE_API_KEY` posé et le corpus
+  indexé (`manage.py backfill_embeddings`).
 
 Fiche concept (le cours) : [docs/fiches/EMBEDDINGS.md](../fiches/EMBEDDINGS.md).
 Backlog : [PARCOURS_21_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md).

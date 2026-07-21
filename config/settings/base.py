@@ -235,6 +235,14 @@ VOYAGE_API_KEY = ""
 # The backfill command indexes regardless of this flag.
 EMBEDDING_INDEXING_ENABLED = False
 
+# Hybrid retrieval (parcours 21 lot 3): when True, `retrieval.search()` adds a
+# semantic (pgvector k-NN) leg alongside full-text and fuses both with Reciprocal
+# Rank Fusion. Off by default → byte-identical to pure full-text. Turn on only
+# once the index is populated (VOYAGE_API_KEY set + `backfill_embeddings` run).
+AGENT_HYBRID_RETRIEVAL_ENABLED = False
+# RRF damping constant (rank fusion). 60 is the standard default.
+RRF_K = 60
+
 # Agent tool-use loop: max LLM round-trips per question. Each iteration is one
 # LLM call; the tools are dropped on the last pass to force a final answer.
 # Bounds latency and cost of the function-calling loop. 4 leaves room to chain
