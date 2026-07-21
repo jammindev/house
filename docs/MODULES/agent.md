@@ -259,4 +259,23 @@ Sous `/api/agent/` :
   (`PrivacyNotice` + `privacyStorage`), partagée entre `AgentPage` et
   `EntityAssistant`.
 
+## À venir — retrieval hybride (parcours 21, cadré 2026-07-21)
+
+Le retrieval est aujourd'hui **100 % full-text** (`retrieval.py`, `tsvector`). Un
+chantier cadré (non démarré) ajoute une **jambe sémantique** (embeddings
+`pgvector`) **à côté** du full-text, fusionnée par Reciprocal Rank Fusion — pour
+retrouver par le sens quand le vocabulaire de la question diverge des documents.
+
+Point d'architecture qui concerne ce module : **rien dans `apps/agent/` ne change
+sur le fond**. La fusion se fait **dans** `retrieval.search()`, dont la signature
+et le type de retour (`list[Hit]`) restent identiques ; les tools
+(`search_household`…), le service, la conversation ancrée, le digest et Telegram
+sont transparents au changement. Nouveaux artefacts prévus côté module :
+`embeddings.py` (abstraction `EmbeddingClient`, miroir de `llm.py`), modèle
+`EmbeddingChunk`, `indexing.py`, command `backfill_embeddings`, flag
+`AGENT_HYBRID_RETRIEVAL_ENABLED`.
+
+Fiche concept (le cours) : [docs/fiches/EMBEDDINGS.md](../fiches/EMBEDDINGS.md).
+Backlog : [PARCOURS_21_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md).
+
 Voir aussi : fiche concept [docs/fiches/RAG.md](../fiches/RAG.md) (section « conversation ancrée »), parcours [PARCOURS_07](../parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md).

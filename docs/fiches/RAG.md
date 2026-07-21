@@ -103,6 +103,14 @@ Le retrieval c'est **trouver les bons passages** parmi les milliers d'entités d
 - on ne saura ce qui craque qu'à l'usage : pas la peine d'investir dans pgvector avant d'avoir touché les limites du full-text
 - migration vers embeddings reste possible plus tard, sans réécrire l'API agent
 
+> **➡️ Suite 2026-07 — parcours 21.** Ce « plus tard » est arrivé : on ajoute une
+> jambe **sémantique** (embeddings + pgvector) **à côté** du full-text, fusionnée
+> par Reciprocal Rank Fusion. Ce n'est **pas** un remplacement — le full-text
+> reste imbattable sur les identifiants exacts (marques, montants, n° série). Le
+> concept complet est expliqué dans la fiche dédiée
+> [EMBEDDINGS.md](EMBEDDINGS.md) ; le chantier dans
+> [PARCOURS_21_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md).
+
 #### Le pattern registry — extensible par construction
 
 Hardcoder la liste des modèles cherchables dans `retrieval.py` = inscrire le problème dans le code. Tu veux pouvoir ajouter `apps/livestock/`, `apps/garden/`, `apps/gite/` plus tard sans toucher à l'agent.
@@ -276,7 +284,7 @@ Plutôt que viser un retrieval parfait avant de toucher au LLM, on livre la cha�
 
 | Idée | Pourquoi écartée en V1 |
 |---|---|
-| **Embeddings vectoriels** (`pgvector`) | Sur < 100k entités texte modeste, gain marginal. Migration possible plus tard sans réécrire l'API. |
+| **Embeddings vectoriels** (`pgvector`) | ~~Sur < 100k entités texte modeste, gain marginal. Migration possible plus tard sans réécrire l'API.~~ **Repris au parcours 21** (2026-07) en mode **hybride** (full-text + vecteur, fusion RRF), pas en remplacement. Voir [EMBEDDINGS.md](EMBEDDINGS.md). |
 | **Index `tsvector` matérialisé** | Pas nécessaire à ce volume. Si latence devient un sujet → optimisation locale. |
 | **Streaming de réponse** | Complexité UI + back. Bloc en V1 suffit. |
 | **Tool-calling** (agent qui crée des tâches, etc.) | ~~Périmètre énorme + risque d'erreurs côté écriture. V2.~~ **Livré** : lecture au lot 7 (3 tools), écriture au lot 8 (`create_entity`, tâche). |
@@ -376,6 +384,7 @@ Voir `docs/MODULES/agent.md` pour le mode d'emploi.
 - [Django `django.contrib.postgres.search`](https://docs.djangoproject.com/en/5.0/ref/contrib/postgres/search/) — API ORM
 - [Anthropic — Claude API](https://docs.anthropic.com/en/api) — référence du SDK utilisé
 - [Anthropic Cookbook — RAG](https://github.com/anthropics/anthropic-cookbook) — exemples de patterns RAG avec Claude
-- [pgvector](https://github.com/pgvector/pgvector) — pour quand on passera aux embeddings (V2 potentielle)
+- [pgvector](https://github.com/pgvector/pgvector) — le vectoriel dans Postgres, utilisé au parcours 21
+- [EMBEDDINGS.md](EMBEDDINGS.md) — la fiche concept dédiée à la recherche sémantique hybride (parcours 21)
 - Backlog technique du parcours : [docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md](../../docs/parcours/PARCOURS_07_BACKLOG_TECHNIQUE.md)
 - Doc produit du parcours : [docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md](../../docs/parcours/PARCOURS_07_AGENT_CONVERSATIONNEL.md)

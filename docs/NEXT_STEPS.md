@@ -91,12 +91,20 @@ Tant qu'on est en solo user, le bar de qualité reste indulgent. Avant d'ouvrir 
 | #52 | Compte démo en lecture seule |
 | #39 | Séparer Documents et Photos (modèles distincts) |
 
+## Moyen terme — parcours 21 : recherche sémantique hybride (embeddings)
+
+Cadré le 2026-07-21. **Chantier technique transverse** (pas de surface UI nouvelle) : ajouter une jambe sémantique (embeddings `pgvector`) **à côté** du full-text actuel, fusionnée par Reciprocal Rank Fusion — l'agent retrouve par le sens quand le vocabulaire de la question diverge des documents (« le chauffage » → facture « pompe à chaleur »). Abstraction `EmbeddingClient` (miroir de `LLMClient`) ; fournisseur prod tranché : **API Voyage AI** (`voyage-3`, multilingue) — le VPS 4 Go ne peut pas héberger un modèle local sans risquer l'OOM, l'API = 0 Go RAM + coût négligeable ; Ollama local (`bge-m3`) reste la cible RAM ≥ 8 Go, activable en un flag. Table d'index `EmbeddingChunk` + chunking, backfill par management command, flag de rollback, qualité validée par éval `recall@k`/`MRR`. `retrieval.search()` garde sa signature → tout `apps/agent/` est transparent au changement. Prend le relais de l'ancienne idée « embeddings si le full-text plafonne » : le plafond a été touché à l'usage.
+
+- doc produit : [`docs/parcours/PARCOURS_21_RECHERCHE_SEMANTIQUE_HYBRIDE.md`](./parcours/PARCOURS_21_RECHERCHE_SEMANTIQUE_HYBRIDE.md)
+- fiche concept (le cours) : [`docs/fiches/EMBEDDINGS.md`](./fiches/EMBEDDINGS.md)
+- backlog : [`docs/parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md`](./parcours/PARCOURS_21_BACKLOG_TECHNIQUE.md)
+- issues : #327 (lot 0 socle), #328 (lot 1 EmbeddingChunk), #329 (lot 2 backfill), #330 (lot 3 retrieval hybride RRF), #331 (lot 4 éval + observabilité), #332 (lot 5 idées V2)
+
 ## Idées long terme
 
 - Lot 4 du parcours 07 — mémoire conversationnelle multi-tour (basculée V2). À arbitrer si l'usage one-shot devient frustrant.
 - Streaming de réponse dans le chat agent (UX, pas critique tant que latence reste à 2-4s).
 - `OllamaClient` pour faire tourner l'agent en local (l'abstraction `LLMClient` est déjà prête).
-- Embeddings vectoriels (`pgvector`) si le full-text plafonne — refactor incrémental, pas une refonte.
 - **Chiffrement des documents** (milestone GitHub [#8](https://github.com/jammindev/house/milestone/8)) — protéger le contenu des documents/photos, aujourd'hui stockés en clair (`MEDIA_ROOT` sur le VPS, `ocr_text` en clair en DB). Deux phases :
   - **Phase 1 — chiffrement au repos** (le serveur garde la clé) : protège contre un vol de disque / backup qui fuite, **sans casser** OCR / full-text / RAG. Meilleur rapport bénéfice/coût, à faire en premier.
   - **Phase 2 — coffre E2EE sélectif** (le client garde la clé) : s'appuie sur `documents.is_private`, l'user marque un doc comme « coffre » → chiffré côté client, **exclu** de l'OCR / full-text / RAG (trade-off assumé et affiché).
