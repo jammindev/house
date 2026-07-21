@@ -89,12 +89,16 @@ def _delete_chunks(entity_type: str, object_id: str) -> int:
     return deleted
 
 
-def reindex_instance(instance: Model, *, client: EmbeddingClient | None = None) -> int:
+def reindex_instance(
+    instance: Model, *, client: EmbeddingClient | None = None, force: bool = False
+) -> int:
     """(Re)build the vector index for one searchable instance. Returns #chunks written.
 
     Idempotent: returns 0 without embedding when the content hash and model are
-    unchanged. Unregistered / non-embeddable / empty-text instances are cleaned
-    of any stale chunks and return 0.
+    unchanged, unless ``force`` (used by the backfill after a model/provider
+    switch, where the vectors must be recomputed even though the text is the same).
+    Unregistered / non-embeddable / empty-text instances are cleaned of any stale
+    chunks and return 0.
     """
     spec = find_spec_for_instance(instance)
     if spec is None:
@@ -121,7 +125,12 @@ def reindex_instance(instance: Model, *, client: EmbeddingClient | None = None) 
     existing = list(
         EmbeddingChunk.objects.filter(entity_type=entity_type, object_id=object_id)[:1]
     )
-    if existing and existing[0].content_hash == new_hash and existing[0].model == model_name:
+    if (
+        not force
+        and existing
+        and existing[0].content_hash == new_hash
+        and existing[0].model == model_name
+    ):
         return 0  # nothing changed — skip the embedding call entirely
 
     chunks = chunk_text(text)
