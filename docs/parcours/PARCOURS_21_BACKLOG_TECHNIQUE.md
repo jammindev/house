@@ -12,8 +12,8 @@ Socle dont on hérite : [PARCOURS_07_BACKLOG_TECHNIQUE.md](./PARCOURS_07_BACKLOG
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 0 | Socle pgvector + abstraction `EmbeddingClient` (Voyage `voyage-3`) | ⬜ À faire | #327 |
-| 1 | Modèle `EmbeddingChunk` + chunking + indexation write-time | ⬜ À faire | #328 |
+| 0 | Socle pgvector + abstraction `EmbeddingClient` (Voyage `voyage-3`) | ✅ Livré (PR #333) | #327 |
+| 1 | Modèle `EmbeddingChunk` + chunking + indexation write-time | 🚧 En PR | #328 |
 | 2 | Backfill par management command (`backfill_embeddings`) | ⬜ À faire | #329 |
 | 3 | Retrieval hybride (full-text + vecteur, fusion RRF) + flag | ⬜ À faire | #330 |
 | 4 | Observabilité (`AIUsageLog` feature `embed`) + harnais d'évaluation | ⬜ À faire | #331 |
@@ -186,6 +186,22 @@ dans une table d'index. Maintenir cet index **à l'écriture** de l'entité sour
    (paresseux : le registry est peuplé à `ready()`)
 7. tests : chunking (texte court = 1 chunk, long = N, overlap correct), idempotence
    (2 reindex sans changement = 0 nouvel embed), scope household, delete purge
+
+### Notes d'implémentation (livré)
+
+- **Adressage `(entity_type, object_id)` en CharField**, pas de `ContentType` +
+  `GenericForeignKey` comme prévu au cadrage : le registry `searchables` résout
+  déjà `entity_type → model` (adressage identique à celui des tools /
+  `AgentConversation`), et un FK typé ne peut pas couvrir les **pk mixtes** du
+  registry (`Document` = pk entier, le reste UUID). `object_id = str(pk)`.
+- **Write-time gaté par `EMBEDDING_INDEXING_ENABLED`** (défaut off) : le signal
+  `post_save`/`post_delete` (récepteur global, filtré par le registry) ne fait
+  rien tant que le flag n'est pas activé → aucune régression ni appel réseau dans
+  la suite de tests. `reindex_instance` (backfill lot 2) reste actif indépendamment.
+- **Tests + `--nomigrations`** : la migration 0008 (extension) étant sautée par
+  pytest, le type `vector` est garanti via un `conftest.py` racine qui crée
+  l'extension dans `template1` (hook `django_db_modify_db_settings`, avant le sync
+  du schéma). Prérequis dev local : Postgres avec pgvector installé.
 
 ### Critères de validation
 

@@ -15,8 +15,10 @@ from __future__ import annotations
 
 import uuid
 
+from django.conf import settings
 from django.db import models
 from django.db.models.functions import Coalesce
+from pgvector.django import VectorField
 
 from core.managers import HouseholdScopedManager
 from core.models import HouseholdScopedModel, TimestampedModel
@@ -97,6 +99,58 @@ class AgentMemory(HouseholdScopedModel):
 
     def __str__(self) -> str:
         return (self.content or "").strip()[:60]
+
+
+class EmbeddingChunk(HouseholdScopedModel):
+    """One embedded slice of a searchable household entity (parcours 21).
+
+    Long texts (a facture's OCR) are split into chunks and embedded chunk by
+    chunk, so one source entity maps to N rows. The source is addressed the same
+    way the agent addresses everything — ``(entity_type, object_id)`` strings from
+    the ``agent.searchables`` registry — rather than a ContentType/GenericForeignKey:
+    the registry already resolves ``entity_type -> model`` (see retrieval/tools),
+    and a plain FK can't span the registry's mixed pk types (Document is an int
+    pk, everything else UUID). ``object_id`` is therefore a string (``str(pk)``).
+
+    Idempotence: ``content_hash`` is the hash of the source's full searchable text
+    (identical across all of a source's chunks). Re-indexing skips work when the
+    hash **and** ``model`` are unchanged. ``model`` records which embedding model
+    produced the vector, so a provider/model switch (→ different vectors) is
+    detectable and forces a re-embed. See docs/fiches/EMBEDDINGS.md §6.1.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Registry key of the source entity (e.g. 'document', 'task') + its pk as a
+    # string — same addressing as AgentConversation.context_entity_type/object_id.
+    entity_type = models.CharField(max_length=64)
+    object_id = models.CharField(max_length=64)
+    chunk_index = models.PositiveIntegerField(default=0)
+    content = models.TextField()
+    # Both target models (voyage-3 and bge-m3) are 1024-dim, so one column fits
+    # both providers. A model with a different dimension needs a migration + re-embed.
+    embedding = VectorField(dimensions=settings.EMBEDDING_DIMENSIONS)
+    model = models.CharField(max_length=64)
+    content_hash = models.CharField(max_length=64)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["entity_type", "object_id", "chunk_index"],
+                name="uq_embedding_chunk_source_pos",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["household", "entity_type", "object_id"],
+                name="idx_embchunk_hh_source",
+            ),
+            models.Index(fields=["entity_type", "object_id"], name="idx_embchunk_source"),
+        ]
+
+    def __str__(self) -> str:
+        return f"{self.entity_type}:{self.object_id}#{self.chunk_index}"
 
 
 class AgentMessage(TimestampedModel):

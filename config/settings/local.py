@@ -72,6 +72,7 @@ EMBEDDING_MODEL = env("EMBEDDING_MODEL", default="voyage-3")
 EMBEDDING_DIMENSIONS = env.int("EMBEDDING_DIMENSIONS", default=1024)
 EMBEDDING_BASE_URL = env("EMBEDDING_BASE_URL", default="http://localhost:11434")
 VOYAGE_API_KEY = env("VOYAGE_API_KEY", default="")
+EMBEDDING_INDEXING_ENABLED = env.bool("EMBEDDING_INDEXING_ENABLED", default=False)
 
 # Agent web search — requires the agent on Sonnet 4.6+ (dynamic filtering).
 AGENT_WEB_SEARCH_ENABLED = env.bool("AGENT_WEB_SEARCH_ENABLED", default=False)

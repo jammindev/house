@@ -228,6 +228,12 @@ EMBEDDING_REQUEST_TIMEOUT_SECONDS = 30
 EMBEDDING_BASE_URL = "http://localhost:11434"
 # Voyage API key — empty by default; set per environment / in .env.
 VOYAGE_API_KEY = ""
+# Write-time indexing: when True, post_save/post_delete of a searchable entity
+# (re)builds its EmbeddingChunk rows synchronously (best-effort). Off by default
+# so tests and provider-less setups incur no side effect; enable via env once
+# VOYAGE_API_KEY is set (aligns with activating hybrid retrieval, parcours 21).
+# The backfill command indexes regardless of this flag.
+EMBEDDING_INDEXING_ENABLED = False
 
 # Agent tool-use loop: max LLM round-trips per question. Each iteration is one
 # LLM call; the tools are dropped on the last pass to force a final answer.
