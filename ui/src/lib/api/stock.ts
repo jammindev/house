@@ -1,13 +1,7 @@
 import { api } from '@/lib/axios';
 import type { ZoneOption } from './zones';
 
-export type StockItemStatus =
-  | 'in_stock'
-  | 'low_stock'
-  | 'out_of_stock'
-  | 'ordered'
-  | 'expired'
-  | 'reserved';
+export type StockItemStatus = 'in_stock' | 'low_stock' | 'out_of_stock';
 
 export interface StockCategory {
   id: string;
@@ -31,7 +25,6 @@ export interface StockCategorySummary {
   total_value: string;
   low_stock_count: number;
   out_of_stock_count: number;
-  expiring_soon_count: number;
 }
 
 export interface StockItem {
@@ -52,7 +45,6 @@ export interface StockItem {
   unit_price: string | null;
   total_value: string | null;
   purchase_date: string | null;
-  expiration_date: string | null;
   last_restocked_at: string | null;
   status: StockItemStatus;
   supplier: string;
@@ -86,8 +78,6 @@ interface StockItemPayload {
   max_quantity?: number | null;
   unit_price?: number | null;
   purchase_date?: string | null;
-  expiration_date?: string | null;
-  status: StockItemStatus;
   supplier?: string;
   notes?: string;
   tags?: string[];
@@ -134,7 +124,6 @@ export async function createStockItem(payload: StockItemPayload): Promise<StockI
     max_quantity: payload.max_quantity ?? null,
     unit_price: payload.unit_price ?? null,
     purchase_date: payload.purchase_date || null,
-    expiration_date: payload.expiration_date || null,
     description: payload.description ?? '',
     supplier: payload.supplier ?? '',
     notes: payload.notes ?? '',
@@ -151,7 +140,6 @@ export async function updateStockItem(itemId: string, payload: StockItemPayload)
     max_quantity: payload.max_quantity ?? null,
     unit_price: payload.unit_price ?? null,
     purchase_date: payload.purchase_date || null,
-    expiration_date: payload.expiration_date || null,
     description: payload.description ?? '',
     supplier: payload.supplier ?? '',
     notes: payload.notes ?? '',

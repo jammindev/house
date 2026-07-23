@@ -32,7 +32,7 @@ export interface DueMaintenanceAlert {
 export interface LowStockAlert {
   id: string;
   title: string;
-  status: 'low_stock' | 'out_of_stock' | 'expired';
+  status: 'low_stock' | 'out_of_stock';
   quantity: string;
   min_quantity: string | null;
   unit: string;

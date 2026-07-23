@@ -70,7 +70,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ["status", "zone", "category"]
     search_fields = ["name", "description", "sku", "barcode", "supplier", "notes"]
-    ordering_fields = ["name", "quantity", "expiration_date", "created_at", "updated_at"]
+    ordering_fields = ["name", "quantity", "created_at", "updated_at"]
     ordering = ["name"]
 
     def get_queryset(self):
@@ -88,9 +88,9 @@ class StockItemViewSet(viewsets.ModelViewSet):
             raise ValidationError({"household_id": _("A valid household context is required.")})
 
         item = serializer.save(household=household, created_by=self.request.user)
-        if item.status == StockItem.Status.ORDERED and item.quantity > 0:
-            item.last_restocked_at = timezone.now()
-            item.save(update_fields=["last_restocked_at", "updated_at"])
+        # Status is fully derived — never trust an incoming value at creation.
+        recompute_status(item)
+        item.save(update_fields=["status", "updated_at"])
         # Origin point for the consumption curve — keeps the invariant
         # (last reading == quantity) true from creation. No-op when empty.
         record_initial_level(item=item, user=self.request.user)

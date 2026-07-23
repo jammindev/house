@@ -34,9 +34,6 @@ class StockItem(HouseholdScopedModel):
         IN_STOCK = "in_stock", _("In stock")
         LOW_STOCK = "low_stock", _("Low stock")
         OUT_OF_STOCK = "out_of_stock", _("Out of stock")
-        ORDERED = "ordered", _("Ordered")
-        EXPIRED = "expired", _("Expired")
-        RESERVED = "reserved", _("Reserved")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     category = models.ForeignKey(StockCategory, on_delete=models.PROTECT, related_name="items")
@@ -51,7 +48,6 @@ class StockItem(HouseholdScopedModel):
     max_quantity = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
     unit_price = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     purchase_date = models.DateField(null=True, blank=True)
-    expiration_date = models.DateField(null=True, blank=True)
     last_restocked_at = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=32, choices=Status.choices, default=Status.IN_STOCK)
     supplier = models.TextField(default="", blank=True)
@@ -68,7 +64,6 @@ class StockItem(HouseholdScopedModel):
             models.Index(fields=["household", "status"], name="idx_stock_item_hh_status"),
             models.Index(fields=["household", "category"], name="idx_stock_item_hh_cat"),
             models.Index(fields=["zone"], name="idx_stock_item_zone"),
-            models.Index(fields=["expiration_date"], name="idx_stock_item_exp"),
         ]
         ordering = ["name"]
 

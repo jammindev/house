@@ -2005,7 +2005,6 @@
       "unit_price": "Unit price",
       "total_value": "Total value",
       "purchase_date": "Purchase date",
-      "expiration_date": "Expiration date",
       "last_restocked_at": "Last restocked",
       "sku": "SKU",
       "barcode": "Barcode",
@@ -2032,10 +2031,7 @@
     "status": {
       "in_stock": "In stock",
       "low_stock": "Low stock",
-      "out_of_stock": "Out of stock",
-      "ordered": "Ordered",
-      "expired": "Expired",
-      "reserved": "Reserved"
+      "out_of_stock": "Out of stock"
     },
     "categories": {
       "new": "New category",

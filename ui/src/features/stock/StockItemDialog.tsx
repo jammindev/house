@@ -7,7 +7,7 @@ import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import type { StockItem, StockItemStatus } from '@/lib/api/stock';
+import type { StockItem } from '@/lib/api/stock';
 import { useCreateStockItem, useUpdateStockItem, useStockCategories, useZones } from './hooks';
 import StockCategoryDialog from './StockCategoryDialog';
 
@@ -26,8 +26,6 @@ type FormState = {
   unit: string;
   min_quantity: string;
   max_quantity: string;
-  status: StockItemStatus;
-  expiration_date: string;
   notes: string;
 };
 
@@ -39,19 +37,8 @@ const EMPTY_STATE: FormState = {
   unit: 'unit',
   min_quantity: '',
   max_quantity: '',
-  status: 'in_stock',
-  expiration_date: '',
   notes: '',
 };
-
-const STATUS_OPTIONS: StockItemStatus[] = [
-  'in_stock',
-  'low_stock',
-  'out_of_stock',
-  'ordered',
-  'expired',
-  'reserved',
-];
 
 function fromApi(item: StockItem): FormState {
   return {
@@ -62,8 +49,6 @@ function fromApi(item: StockItem): FormState {
     unit: item.unit || 'unit',
     min_quantity: item.min_quantity ? String(item.min_quantity) : '',
     max_quantity: item.max_quantity ? String(item.max_quantity) : '',
-    status: item.status,
-    expiration_date: item.expiration_date || '',
     notes: item.notes || '',
   };
 }
@@ -133,8 +118,6 @@ export default function StockItemDialog({
       unit: form.unit.trim() || 'unit',
       min_quantity: toNumberOrNull(form.min_quantity),
       max_quantity: toNumberOrNull(form.max_quantity),
-      status: form.status,
-      expiration_date: form.expiration_date || null,
       notes: form.notes,
     };
 
@@ -248,31 +231,6 @@ export default function StockItemDialog({
                 step="0.001"
                 value={form.max_quantity}
                 onChange={(e) => updateField('max_quantity', e.target.value)}
-              />
-            </FormField>
-          </div>
-
-          {/* Status + Expiration */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label={t('stock.fields.status')} htmlFor="stock-item-status">
-              <Select
-                id="stock-item-status"
-                value={form.status}
-                onChange={(e) => updateField('status', e.target.value as StockItemStatus)}
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <option key={s} value={s}>
-                    {t(`stock.status.${s}`)}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-            <FormField label={t('stock.fields.expiration_date')} htmlFor="stock-item-expiry">
-              <Input
-                id="stock-item-expiry"
-                type="date"
-                value={form.expiration_date}
-                onChange={(e) => updateField('expiration_date', e.target.value)}
               />
             </FormField>
           </div>

@@ -2005,7 +2005,6 @@
       "unit_price": "Stückpreis",
       "total_value": "Gesamtwert",
       "purchase_date": "Kaufdatum",
-      "expiration_date": "Ablaufdatum",
       "last_restocked_at": "Zuletzt nachgefüllt",
       "sku": "SKU",
       "barcode": "Barcode",
@@ -2032,10 +2031,7 @@
     "status": {
       "in_stock": "Auf Lager",
       "low_stock": "Niedriger Bestand",
-      "out_of_stock": "Nicht auf Lager",
-      "ordered": "Bestellt",
-      "expired": "Abgelaufen",
-      "reserved": "Reserviert"
+      "out_of_stock": "Nicht auf Lager"
     },
     "categories": {
       "new": "Neue Kategorie",

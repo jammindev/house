@@ -33,25 +33,17 @@ CONSUMPTION_PERIOD_DAYS: dict[str, int | None] = {
 
 
 def recompute_status(item: StockItem) -> None:
-    """Recompute ``item.status`` in place from its quantity / thresholds.
+    """Recompute ``item.status`` in place — the status is fully derived.
 
-    Mirrors the transitions historically inlined in the purchase/adjust views:
-    out when empty, low when at/under the minimum, expired when past its date,
-    and a promotion back to in_stock from a depleted/ordered state otherwise.
-    Reserved is left untouched (a manual state).
+    There are no manual states: the status is a pure function of the quantity and
+    its minimum threshold. Out when empty, low when at/under the minimum, in stock
+    otherwise. Callers never set ``status`` by hand.
     """
     if item.quantity <= 0:
         item.status = StockItem.Status.OUT_OF_STOCK
     elif item.min_quantity is not None and item.quantity <= item.min_quantity:
         item.status = StockItem.Status.LOW_STOCK
-    elif item.expiration_date and item.expiration_date < timezone.now().date():
-        item.status = StockItem.Status.EXPIRED
-    elif item.status in [
-        StockItem.Status.LOW_STOCK,
-        StockItem.Status.OUT_OF_STOCK,
-        StockItem.Status.ORDERED,
-        StockItem.Status.EXPIRED,
-    ]:
+    else:
         item.status = StockItem.Status.IN_STOCK
 
 

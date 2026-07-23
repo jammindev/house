@@ -17,7 +17,6 @@ import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
 import { useDisabledModules } from '@/lib/modules';
 import { useAddStockItemToList } from '@/features/shopping/hooks';
-import { isPast } from '@/lib/format';
 import {
   useStockItem,
   useStockItemHistory,
@@ -81,8 +80,6 @@ export default function StockItemDetailPage() {
       />
     );
   }
-
-  const expired = isPast(item.expiration_date);
 
   return (
     <>
@@ -195,12 +192,6 @@ export default function StockItemDetailPage() {
 
                     <InfoField label={t('stock.fields.purchase_date')}>
                       {formatDate(item.purchase_date)}
-                    </InfoField>
-
-                    <InfoField label={t('stock.fields.expiration_date')}>
-                      <span className={expired ? 'text-destructive' : undefined}>
-                        {formatDate(item.expiration_date)}
-                      </span>
                     </InfoField>
 
                     <InfoField label={t('stock.fields.last_restocked_at')}>
