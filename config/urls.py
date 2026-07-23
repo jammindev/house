@@ -43,6 +43,7 @@ urlpatterns = [
     path("api/pings/", include("pings.urls")),
     path("api/budget/", include("budget.urls")),
     path("api/shopping/", include("shopping.urls")),
+    path("api/briefings/", include("briefings.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 

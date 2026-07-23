@@ -44,6 +44,7 @@ const AIUsagePage = lazyWithReload(() => import('./features/ai-usage/AIUsagePage
 const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 const MemoryPage = lazyWithReload(() => import('./features/agent/MemoryPage'));
 const DigestPage = lazyWithReload(() => import('./features/digest/DigestPage'));
+const BriefingsPage = lazyWithReload(() => import('./features/briefings/BriefingsPage'));
 const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
 const BudgetPage = lazyWithReload(() => import('./features/budget/BudgetPage'));
 const ChangelogPage = lazyWithReload(() => import('./features/changelog/ChangelogPage'));
@@ -107,6 +108,7 @@ export const router = createBrowserRouter([
       { path: 'agent', element: <AgentPage /> },
       { path: 'agent/memory', element: <MemoryPage /> },
       { path: 'digest', element: <DigestPage /> },
+      { path: 'briefings', element: <BriefingsPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
       { path: 'admin/ai-usage', element: <AIUsagePage /> },
       { path: 'admin/changelog', element: <ChangelogPage /> },

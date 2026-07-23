@@ -1,0 +1,68 @@
+import { useTranslation } from 'react-i18next';
+import { Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
+import { Card, CardTitle } from '@/design-system/card';
+import { Badge } from '@/design-system/badge';
+import { Button } from '@/design-system/button';
+import CardActions, { type CardAction } from '@/components/CardActions';
+import { cn } from '@/lib/utils';
+import type { Briefing } from '@/lib/api/briefings';
+
+interface Props {
+  briefing: Briefing;
+  onEdit: (briefing: Briefing) => void;
+  onDelete: (briefing: Briefing) => void;
+  onToggleActive: (briefing: Briefing) => void;
+}
+
+export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActive }: Props) {
+  const { t } = useTranslation();
+
+  const actions: CardAction[] = [
+    { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(briefing) },
+    { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(briefing), variant: 'danger' },
+  ];
+
+  return (
+    <Card className="p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle>{briefing.title}</CardTitle>
+            <Badge variant="secondary" className="gap-1">
+              {briefing.is_private ? (
+                <Lock className="h-3 w-3" />
+              ) : (
+                <Users className="h-3 w-3" />
+              )}
+              {briefing.is_private ? t('briefings.visibility.private') : t('briefings.visibility.shared')}
+            </Badge>
+          </div>
+
+          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{briefing.prompt}</p>
+
+          {briefing.condition ? (
+            <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+              <span className="font-medium">{t('briefings.fields.condition')}:</span>{' '}
+              {briefing.condition}
+            </p>
+          ) : null}
+        </div>
+
+        <CardActions actions={actions} />
+      </div>
+
+      <div className="mt-2 flex items-center justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className={cn('gap-1', briefing.is_active ? 'text-primary' : 'text-muted-foreground')}
+          onClick={() => onToggleActive(briefing)}
+        >
+          <Power className="h-4 w-4" />
+          {briefing.is_active ? t('briefings.active') : t('briefings.inactive')}
+        </Button>
+      </div>
+    </Card>
+  );
+}

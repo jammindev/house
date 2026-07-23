@@ -1,4 +1,45 @@
 {
+  "briefings": {
+    "title": "Briefings",
+    "subtitle": "Personal recaps your assistant sends you, on your own rules.",
+    "created": "Briefing created",
+    "deleted": "Briefing deleted",
+    "active": "Active",
+    "inactive": "Inactive",
+    "new": {
+      "title": "New briefing",
+      "button": "New briefing"
+    },
+    "edit": {
+      "title": "Edit briefing"
+    },
+    "empty": {
+      "title": "No briefings yet",
+      "description": "Create a briefing to have your assistant send you a recap — your tasks for the week, today's weather, and more."
+    },
+    "filters": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "visibility": {
+      "private": "Private",
+      "shared": "Shared",
+      "privateHint": "Private — only me",
+      "sharedHint": "Shared — the whole household"
+    },
+    "fields": {
+      "title": "Title",
+      "titlePlaceholder": "Morning briefing",
+      "prompt": "Content",
+      "promptHint": "Describe in plain language what the briefing should contain.",
+      "promptPlaceholder": "My tasks for the week and today's weather",
+      "condition": "Condition",
+      "conditionHint": "Optional. The assistant only sends the briefing when this is true — e.g. \"if it rains today\".",
+      "conditionPlaceholder": "If it rains today",
+      "visibility": "Visibility"
+    }
+  },
   "shoppingList": {
     "title": "Shopping list",
     "quickAdd": {
