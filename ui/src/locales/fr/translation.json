@@ -911,7 +911,8 @@
         "meter_reading": "Rappel de relevé électrique",
         "water_reading": "Rappel de relevé d'eau",
         "weather_alert": "Alerte météo",
-        "daily_digest": "Résumé quotidien"
+        "daily_digest": "Résumé quotidien",
+        "recurring_due": "Échéance de dépense récurrente"
       }
     },
     "theme": "Thème",
@@ -1481,6 +1482,10 @@
           "track": {
             "title": "Suivre le mois",
             "body": "Chaque budget affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Les compteurs repartent à zéro chaque mois."
+          },
+          "recurring": {
+            "title": "Anticiper les factures récurrentes",
+            "body": "Ouvre « Dépenses récurrentes » depuis la page budget pour déclarer abonnements, assurances et factures. Vois ce qui tombe sur 30/90 jours, et confirme chaque échéance en un clic quand elle est payée (le montant est éditable) — elle rejoint ton journal et avance à la date suivante."
           }
         }
       }
@@ -2950,13 +2955,75 @@
     },
     "overBy": "Dépassé de {{amount}}",
     "percentUsed": "{{pct}} % utilisé",
-    "namedExceedsGlobal": "Tes budgets totalisent {{named}}, plus que le plafond global de {{global}}."
+    "namedExceedsGlobal": "Tes budgets totalisent {{named}}, plus que le plafond global de {{global}}.",
+    "committed": "Engagé à venir : {{amount}}",
+    "recurringAccess": {
+      "hint": "Abonnements, assurances, factures & prévision de trésorerie.",
+      "committed": "{{amount}} engagés ce mois"
+    }
   },
   "pwa": {
     "install": {
       "title": "Installez l'app",
       "iosInstructions": "Appuyez sur Partager puis « Sur l'écran d'accueil ».",
       "dismiss": "Fermer"
+    }
+  },
+  "recurring": {
+    "title": "Dépenses récurrentes",
+    "description": "Abonnements, assurances, factures — anticipe ce qui tombe et confirme en un clic.",
+    "created": "Récurrence créée",
+    "updated": "Récurrence mise à jour",
+    "deleted": "Récurrence supprimée",
+    "empty": "Aucune dépense récurrente",
+    "emptyDescription": "Ajoute un abonnement ou une facture pour anticiper ta trésorerie.",
+    "new": {
+      "title": "Nouvelle récurrence",
+      "action": "Nouvelle récurrence"
+    },
+    "edit": {
+      "title": "Modifier la récurrence"
+    },
+    "fields": {
+      "label": "Libellé",
+      "labelPlaceholder": "ex. Netflix, assurance habitation",
+      "amount": "Montant",
+      "cadence": "Cadence",
+      "nextDue": "Prochaine échéance",
+      "supplier": "Fournisseur",
+      "budget": "Budget",
+      "budgetNone": "Aucun budget",
+      "notes": "Notes"
+    },
+    "cadence": {
+      "monthly": "Mensuelle",
+      "quarterly": "Trimestrielle",
+      "yearly": "Annuelle"
+    },
+    "errors": {
+      "labelRequired": "Merci d’indiquer un libellé.",
+      "amountInvalid": "Saisis un montant positif.",
+      "dateRequired": "Merci de choisir une échéance."
+    },
+    "confirm": {
+      "title": "Confirmer cette dépense",
+      "hint": "Enregistre la dépense dans ton journal et avance l’échéance à la prochaine occurrence. Ajuste le montant si la facture a changé.",
+      "amount": "Montant payé",
+      "action": "Confirmer"
+    },
+    "confirmed": "« {{label}} » confirmée",
+    "dueOn": "échéance {{date}}",
+    "nextOn": "prochaine {{date}}",
+    "due": {
+      "heading": "À confirmer ({{count}})"
+    },
+    "upcoming": {
+      "heading": "À venir",
+      "empty": "Rien d’autre de programmé."
+    },
+    "projection": {
+      "horizon": "{{days}} prochains jours",
+      "count": "{{count}} échéance(s)"
     }
   }
 }

@@ -911,7 +911,8 @@
         "meter_reading": "Erinnerung Stromzählerstand",
         "water_reading": "Erinnerung Wasserzählerstand",
         "weather_alert": "Wetterwarnung",
-        "daily_digest": "Tägliche Zusammenfassung"
+        "daily_digest": "Tägliche Zusammenfassung",
+        "recurring_due": "Fällige wiederkehrende Ausgabe"
       }
     },
     "theme": "Design",
@@ -1481,6 +1482,10 @@
           "track": {
             "title": "Den Monat verfolgen",
             "body": "Jedes Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Die Zähler starten jeden Monat neu."
+          },
+          "recurring": {
+            "title": "Wiederkehrende Rechnungen planen",
+            "body": "Öffne „Wiederkehrende Ausgaben“ auf der Budgetseite, um Abos, Versicherungen und Rechnungen zu erfassen. Sieh, was in den nächsten 30/90 Tagen fällig wird, und bestätige jede Fälligkeit mit einem Klick, wenn sie bezahlt ist (Betrag editierbar) — sie landet im Journal und rückt aufs nächste Datum vor."
           }
         }
       }
@@ -2950,13 +2955,75 @@
     },
     "overBy": "Überschritten um {{amount}}",
     "percentUsed": "{{pct}} % genutzt",
-    "namedExceedsGlobal": "Deine Budgets ergeben {{named}}, mehr als die globale Obergrenze von {{global}}."
+    "namedExceedsGlobal": "Deine Budgets ergeben {{named}}, mehr als die globale Obergrenze von {{global}}.",
+    "committed": "Zugesagt: {{amount}}",
+    "recurringAccess": {
+      "hint": "Abos, Versicherungen, Rechnungen & Liquiditätsprognose.",
+      "committed": "{{amount}} diesen Monat zugesagt"
+    }
   },
   "pwa": {
     "install": {
       "title": "App installieren",
       "iosInstructions": "Tippen Sie auf Teilen und dann auf „Zum Home-Bildschirm“.",
       "dismiss": "Schließen"
+    }
+  },
+  "recurring": {
+    "title": "Wiederkehrende Ausgaben",
+    "description": "Abos, Versicherungen, Rechnungen — sieh, was fällig wird, und bestätige mit einem Klick.",
+    "created": "Wiederkehrende Ausgabe erstellt",
+    "updated": "Wiederkehrende Ausgabe aktualisiert",
+    "deleted": "Wiederkehrende Ausgabe gelöscht",
+    "empty": "Noch keine wiederkehrende Ausgabe",
+    "emptyDescription": "Füge ein Abo oder eine Rechnung hinzu, um deine Liquidität zu planen.",
+    "new": {
+      "title": "Neue wiederkehrende Ausgabe",
+      "action": "Neue wiederkehrende Ausgabe"
+    },
+    "edit": {
+      "title": "Wiederkehrende Ausgabe bearbeiten"
+    },
+    "fields": {
+      "label": "Bezeichnung",
+      "labelPlaceholder": "z. B. Netflix, Hausratversicherung",
+      "amount": "Betrag",
+      "cadence": "Rhythmus",
+      "nextDue": "Nächste Fälligkeit",
+      "supplier": "Anbieter",
+      "budget": "Budget",
+      "budgetNone": "Kein Budget",
+      "notes": "Notizen"
+    },
+    "cadence": {
+      "monthly": "Monatlich",
+      "quarterly": "Vierteljährlich",
+      "yearly": "Jährlich"
+    },
+    "errors": {
+      "labelRequired": "Bitte gib eine Bezeichnung ein.",
+      "amountInvalid": "Gib einen positiven Betrag ein.",
+      "dateRequired": "Bitte wähle eine Fälligkeit."
+    },
+    "confirm": {
+      "title": "Diese Ausgabe bestätigen",
+      "hint": "Erfasst die Ausgabe im Journal und setzt den Termin auf die nächste Fälligkeit. Passe den Betrag an, falls sich die Rechnung geändert hat.",
+      "amount": "Gezahlter Betrag",
+      "action": "Bestätigen"
+    },
+    "confirmed": "„{{label}}“ bestätigt",
+    "dueOn": "fällig {{date}}",
+    "nextOn": "nächste {{date}}",
+    "due": {
+      "heading": "Zu bestätigen ({{count}})"
+    },
+    "upcoming": {
+      "heading": "Bevorstehend",
+      "empty": "Nichts weiter geplant."
+    },
+    "projection": {
+      "horizon": "Nächste {{days}} Tage",
+      "count": "{{count}} Fälligkeit(en)"
     }
   }
 }

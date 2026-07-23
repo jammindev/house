@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Plus, PiggyBank, AlertTriangle } from 'lucide-react';
+import { Plus, PiggyBank, AlertTriangle, CalendarClock, ChevronRight } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
@@ -7,6 +8,7 @@ import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { pushBack } from '@/lib/backNavigation';
 import type { Budget, BudgetOverviewRow } from '@/lib/api/budget';
 import { useBudgetOverview, useDeleteBudget } from './hooks';
 import BudgetCard from './BudgetCard';
@@ -27,6 +29,7 @@ function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
 
 export default function BudgetPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const overviewQuery = useBudgetOverview();
   const deleteMutation = useDeleteBudget();
 
@@ -157,6 +160,27 @@ export default function BudgetPage() {
             </Card>
           </div>
         )
+      ) : null}
+
+      {!overviewQuery.isLoading && overview ? (
+        <Link
+          to="/app/budget/recurring"
+          state={pushBack(location)}
+          className="mt-5 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
+        >
+          <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-foreground">{t('recurring.title')}</p>
+            <p className="text-xs text-muted-foreground">
+              {overview.total_committed && Number(overview.total_committed) > 0
+                ? t('budget.recurringAccess.committed', {
+                    amount: formatAmount(overview.total_committed),
+                  })
+                : t('budget.recurringAccess.hint')}
+            </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
       ) : null}
 
       <BudgetDialog

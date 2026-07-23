@@ -59,3 +59,57 @@ class Budget(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.name} ({self.monthly_amount}/mo)"
+
+
+class RecurringExpense(HouseholdScopedModel):
+    """A recurring expense (subscription, insurance, bill) — parcours 21 lot 2.
+
+    A dedicated model (not an ``Interaction``): it carries a **schedule** whose
+    ``next_due_date`` advances each time an occurrence is confirmed (a small state
+    machine) and is **queried** by due date for the treasury projection and the
+    "à confirmer" list — two of the criteria that, per the CLAUDE.md decision rule,
+    call for a dedicated model over a flat journal entry.
+
+    Confirming an occurrence creates a real ``Interaction(type='expense')`` via
+    ``interactions.services`` (so it feeds the journal, the budget counters and the
+    RAG) and advances ``next_due_date`` by the cadence. Recurrences are never
+    auto-materialized — confirmation is always an explicit user action.
+    """
+
+    class Cadence(models.TextChoices):
+        MONTHLY = "monthly", _("Monthly")
+        QUARTERLY = "quarterly", _("Quarterly")
+        YEARLY = "yearly", _("Yearly")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    label = models.CharField(max_length=200)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    cadence = models.CharField(max_length=12, choices=Cadence.choices, default=Cadence.MONTHLY)
+    next_due_date = models.DateField()
+    supplier = models.CharField(max_length=200, blank=True, default="")
+    notes = models.TextField(blank=True, default="")
+    budget = models.ForeignKey(
+        "budget.Budget",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recurring_expenses",
+        help_text=_(
+            "Optional budget each confirmed occurrence counts against, and whose "
+            "'committed' (engagé à venir) it feeds. Null resets on budget delete."
+        ),
+    )
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "recurring_expenses"
+        verbose_name = _("recurring expense")
+        verbose_name_plural = _("recurring expenses")
+        ordering = ["next_due_date", "label"]
+        indexes = [
+            models.Index(fields=["household", "next_due_date"], name="idx_recexp_hh_due"),
+        ]
+
+    def __str__(self):
+        return f"{self.label} ({self.amount}/{self.cadence})"

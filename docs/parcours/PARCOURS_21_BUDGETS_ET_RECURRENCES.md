@@ -65,9 +65,15 @@ Budget global : 1 850 / 2 000 €   92 %
 
 | # | Story | État |
 |---|---|---|
-| 2.1 | Déclarer une récurrence (libellé, montant, cadence, échéance, fournisseur, budget) | ⏳ à faire |
-| 2.2 | Prévision de trésorerie à 30 / 90 jours + « engagé à venir » sur le compteur mensuel | ⏳ à faire |
-| 2.3 | Rappel d'échéance + confirmation 1-clic (montant éditable) → crée l'`Interaction`, undo | ⏳ à faire |
+| 2.1 | Déclarer une récurrence (libellé, montant, cadence, échéance, fournisseur, budget) | ✅ V1 |
+| 2.2 | Prévision de trésorerie à 30 / 90 jours + « engagé à venir » sur le compteur mensuel | ✅ V1 |
+| 2.3 | Rappel d'échéance + confirmation 1-clic (montant éditable) → crée l'`Interaction`, undo | ✅ V1 |
+
+> Lot 2 livré : modèle `RecurringExpense` (app `budget`) + confirmation qui crée
+> une `Interaction` (`metadata.kind='recurring'`) et avance l'échéance + projection
+> de trésorerie + `committed` sur l'overview + ping `recurring_due` + sous-page
+> `/app/budget/recurring`. **Rappel V1 = nudge Telegram informatif** (pointe vers
+> l'app), la confirmation 1-clic reste in-app. Voir [docs/MODULES/budget.md](../MODULES/budget.md).
 
 ### Lot 3 — Bilan mensuel rédigé par l'IA · Should · #314
 

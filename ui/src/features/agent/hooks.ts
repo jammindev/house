@@ -14,7 +14,7 @@ import {
 } from '@/lib/api/trackers';
 import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
 import { deleteStockItem, undoStockPurchase } from '@/lib/api/stock';
-import { deleteBudget, updateBudget } from '@/lib/api/budget';
+import { deleteBudget, deleteRecurringExpense, updateBudget } from '@/lib/api/budget';
 import { deleteShoppingItem } from '@/lib/api/shopping';
 import { taskKeys } from '@/features/tasks/hooks';
 import { stockKeys } from '@/features/stock/hooks';
@@ -267,6 +267,11 @@ const UNDO_HANDLERS: Record<
   budget: {
     // hard delete; attached expenses fall back to "hors budget" (SET_NULL)
     remove: (id) => deleteBudget(id),
+    keys: [budgetKeys.all as unknown as unknown[]],
+  },
+  recurring_expense: {
+    // hard delete of the schedule; already-confirmed expenses are left untouched
+    remove: (id) => deleteRecurringExpense(id),
     keys: [budgetKeys.all as unknown as unknown[]],
   },
   shopping_item: {

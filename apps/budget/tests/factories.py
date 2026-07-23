@@ -51,3 +51,21 @@ class BudgetFactory(DjangoModelFactory):
     )
     is_global = False
     # household and created_by must be provided by each test
+
+
+from budget.models import RecurringExpense  # noqa: E402
+
+
+class RecurringExpenseFactory(DjangoModelFactory):
+    class Meta:
+        model = RecurringExpense
+        skip_postgeneration_save = True
+
+    label = factory.Sequence(lambda n: f"Recurring {n}")
+    amount = factory.Faker("pydecimal", left_digits=3, right_digits=2, positive=True)
+    cadence = RecurringExpense.Cadence.MONTHLY
+    next_due_date = factory.Faker("date_object")
+    supplier = ""
+    notes = ""
+    budget = None
+    # household and created_by must be provided by each test
