@@ -6,6 +6,7 @@ class ShoppingConfig(AppConfig):
     name = "shopping"
 
     def ready(self):
+        from agent.listables import ListableSpec, ListFilter, register as register_listable
         from agent.searchables import SearchableSpec, register
         from agent.writables import WritableSpec, register as register_writable
 
@@ -18,6 +19,20 @@ class ShoppingConfig(AppConfig):
             search_fields=('label', 'note'),
             label_attr='label',
             url_template='/app/shopping-list?item={id}',
+        ))
+
+        # Structured listing — answers "qu'est-ce qu'il me manque ?" (checked=false)
+        # where full-text search can't: nothing lexical to match, it's a state query.
+        register_listable(ListableSpec(
+            entity_type='shopping_item',
+            module='shopping',
+            model=ShoppingListItem,
+            filters=(
+                ListFilter('checked', "'true' = only picked-up lines, 'false' = only still-to-buy", _filter_checked),
+                ListFilter('linked', "'true' = only lines linked to a stock item, 'false' = only free-text lines", _filter_linked),
+            ),
+            order_by=('sort_order', 'created_at'),
+            describe=_describe_shopping_item,
         ))
 
         # Add an item to the shopping list. Reversible: the undo hard-deletes it.
@@ -87,3 +102,33 @@ def _delete_shopping_item_from_agent(household, user, object_id):
     if item is None:
         raise LookupError(f"no shopping list item {object_id} in this household")
     delete_list_item(item)
+
+
+# --- list_entities filters ---------------------------------------------------
+
+def _parse_bool(value):
+    """Parse a filter flag; raise ValueError on anything unrecognised."""
+    normalized = str(value).strip().lower()
+    if normalized in ('true', '1', 'yes'):
+        return True
+    if normalized in ('false', '0', 'no'):
+        return False
+    raise ValueError(f"expected true/false, got {value!r}")
+
+
+def _filter_checked(qs, value):
+    return qs.filter(checked_at__isnull=not _parse_bool(value))
+
+
+def _filter_linked(qs, value):
+    return qs.filter(stock_item__isnull=not _parse_bool(value))
+
+
+def _describe_shopping_item(item) -> str:
+    parts = ['picked' if item.checked else 'to buy']
+    if item.quantity:
+        qty = str(item.quantity.normalize()) if hasattr(item.quantity, 'normalize') else str(item.quantity)
+        parts.append(f"{qty} {item.unit}".strip())
+    if item.stock_item_id:
+        parts.append('stock-linked')
+    return ' | '.join(parts)
