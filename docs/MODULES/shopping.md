@@ -26,10 +26,11 @@
 
 ## Agent
 
-- `SearchableSpec('shopping_item')` — l'agent liste/cite ce qu'il reste à acheter (`search_fields = label, note`).
+- `SearchableSpec('shopping_item')` — l'agent cite un item par recherche plein-texte (`search_fields = label, note`).
+- `ListableSpec('shopping_item')` (**Lot 5**) — répond à « qu'est-ce qu'il me manque ? » là où la recherche plein-texte échoue (rien de lexical à matcher, c'est une requête d'**état**). Filtres : `checked` (`false` = à acheter, `true` = pris) et `linked` (`true` = seulement les lignes liées au stock). `describe` rend « to buy | 2 kg | stock-linked ». Ordre = `sort_order, created_at`.
 - `WritableSpec('shopping_item')` — create/update/delete, tous adossés à `services.py`. Le create (`_create_shopping_item_from_agent`) est **intelligent** : « ajoute du café à la liste » lie la ligne au `StockItem` « Café » existant (et déduplique) via `resolve_stock_item_hint` ; un libellé inconnu crée une ligne texte libre. L'ancre de conversation `stock_item` pré-sélectionne aussi la cible.
 - Réversible : undo par hard-delete côté front (`UNDO_HANDLERS['shopping_item']` dans `ui/src/features/agent/hooks.ts`).
-- Descriptions du tool `create_entity` étendues dans `apps/agent/tools.py` (schéma + description).
+- Descriptions des tools `create_entity` **et** `list_entities` étendues dans `apps/agent/tools.py` (types supportés + filtres).
 
 ## Frontend
 
@@ -41,6 +42,6 @@
 
 ## Limites V1 / suites (parcours 22)
 
-- **Lot 3** (suggestions depuis le stock bas), **Lot 4** (enregistrer les cochés → stock, créer l'item si absent), **Lot 5** (agent — déjà partiellement là via le writable), **Lot 6** (planification de repas adossée au stock) restent à faire — issues #317/#318/#319/#320.
+- **Lot 5 (agent — lire/remplir la liste)** : ✅ livré — writable (create/update/delete lié au stock + dédup), searchable, et `ListableSpec` pour « qu'est-ce qu'il me manque ? ». Restent : **Lot 3** (suggestions depuis le stock bas), **Lot 4** (enregistrer les cochés → stock, créer l'item si absent), **Lot 6** (planification de repas adossée au stock) — issues #317/#318/#320.
 - Pas de page détail par ligne : le `url_template` des specs agent pointe la page liste avec l'id en query (`/app/shopping-list?item={id}`, `{id}` requis par le test de registry ; le param est inoffensif, la page peut l'ignorer).
 - Concurrence : dernier écrivain gagne (pas de merge), acceptable pour une liste de foyer.

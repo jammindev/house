@@ -303,3 +303,73 @@ class TestAgentDelete:
             _dispatch_delete(household, owner, foreign_item.id)
         # The item must still exist
         assert ShoppingListItem.objects.filter(id=foreign_item.id).exists()
+
+
+# ── list_entities (Lot 5 — "qu'est-ce qu'il me manque ?") ──────────────────────
+
+def _dispatch_list(household, filters=None):
+    return tools.dispatch(
+        "list_entities",
+        {"entity_type": "shopping_item", "filters": filters or {}},
+        household=household,
+    )
+
+
+@pytest.mark.django_db
+class TestAgentListShoppingItem:
+    def test_listablespec_registered(self):
+        from agent import listables
+
+        assert listables.find_spec("shopping_item") is not None
+        assert "shopping_item" in listables.supported_entity_types()
+
+    def _seed(self, household, owner):
+        """Café (to buy, stock-linked), Piles (to buy, free), Pain (picked)."""
+        from shopping import services
+
+        stock = _make_stock_item(household, owner, name="Café", unit="kg")
+        cafe, _ = services.add_stock_item_to_list(household, owner, stock)
+        piles = services.create_list_item(household, owner, label="Piles AA", quantity="4")
+        pain = services.create_list_item(household, owner, label="Pain")
+        services.update_list_item(household, owner, pain, fields={"checked": True})
+        return cafe, piles, pain
+
+    def test_to_buy_filter_excludes_picked(self, household, owner):
+        cafe, piles, pain = self._seed(household, owner)
+        result = _dispatch_list(household, {"checked": "false"})
+        assert str(cafe.id) in result.rendered
+        assert str(piles.id) in result.rendered
+        assert str(pain.id) not in result.rendered
+        assert "total=2" in result.rendered
+
+    def test_picked_filter_returns_only_checked(self, household, owner):
+        cafe, piles, pain = self._seed(household, owner)
+        result = _dispatch_list(household, {"checked": "true"})
+        assert str(pain.id) in result.rendered
+        assert str(cafe.id) not in result.rendered
+        assert "total=1" in result.rendered
+
+    def test_linked_filter_returns_only_stock_linked(self, household, owner):
+        cafe, piles, pain = self._seed(household, owner)
+        result = _dispatch_list(household, {"linked": "true"})
+        assert str(cafe.id) in result.rendered
+        assert str(piles.id) not in result.rendered
+
+    def test_no_filter_lists_all(self, household, owner):
+        self._seed(household, owner)
+        result = _dispatch_list(household)
+        assert "total=3" in result.rendered
+
+    def test_invalid_flag_is_recoverable(self, household, owner):
+        self._seed(household, owner)
+        # A bad flag must not 500 — the tool turns ValueError into a message.
+        result = _dispatch_list(household, {"checked": "maybe"})
+        assert "total=" not in result.rendered
+
+    def test_scoped_to_household(self, household, owner):
+        self._seed(household, owner)
+        other_owner = _make_user("other-list@test.dev")
+        other_hh = _make_household("Other House List")
+        _add_member(other_owner, other_hh)
+        result = _dispatch_list(other_hh, {"checked": "false"})
+        assert "total=0" in result.rendered
