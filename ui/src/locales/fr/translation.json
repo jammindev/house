@@ -2005,7 +2005,6 @@
       "unit_price": "Prix unitaire",
       "total_value": "Valeur totale",
       "purchase_date": "Date d'achat",
-      "expiration_date": "Date d'expiration",
       "last_restocked_at": "Dernier réappro",
       "sku": "SKU",
       "barcode": "Code-barres",
@@ -2032,10 +2031,7 @@
     "status": {
       "in_stock": "En stock",
       "low_stock": "Stock faible",
-      "out_of_stock": "Rupture",
-      "ordered": "Commandé",
-      "expired": "Expiré",
-      "reserved": "Réservé"
+      "out_of_stock": "Rupture"
     },
     "categories": {
       "new": "Nouvelle catégorie",

@@ -9,7 +9,7 @@ import { pushBack } from '@/lib/backNavigation';
 import { useDisabledModules } from '@/lib/modules';
 import { useAddStockItemToList } from '@/features/shopping/hooks';
 import type { StockItem } from '@/lib/api/stock';
-import { formatQty, formatDate, statusVariant } from './format';
+import { formatQty, statusVariant } from './format';
 
 interface StockItemCardProps {
   item: StockItem;
@@ -70,11 +70,6 @@ export default function StockItemCard({ item, onEdit, onDelete, onPurchase, onIn
           <p>
             {t('stock.fields.quantity')}: {formatQty(item.quantity, item.unit)}
           </p>
-          {item.expiration_date ? (
-            <p>
-              {t('stock.fields.expiration_date')}: {formatDate(item.expiration_date)}
-            </p>
-          ) : null}
           {item.min_quantity ? (
             <p>
               {t('stock.fields.min_max')}: {item.min_quantity} / {item.max_quantity || '—'}

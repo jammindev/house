@@ -12,8 +12,7 @@ export function formatQty(qty: string, unit: string): string {
 export function statusVariant(
   status: StockItemStatus,
 ): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'out_of_stock' || status === 'expired') return 'destructive';
+  if (status === 'out_of_stock') return 'destructive';
   if (status === 'low_stock') return 'secondary';
-  if (status === 'ordered' || status === 'reserved') return 'outline';
   return 'default';
 }

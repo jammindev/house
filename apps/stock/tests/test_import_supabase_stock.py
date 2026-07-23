@@ -173,13 +173,13 @@ class ImportSupabaseStockCommandTests(TestCase):
                     "barcode": "999",
                     "quantity": "3",
                     "unit": "box",
-                    "min_quantity": None,
+                    "min_quantity": "5",
                     "max_quantity": None,
                     "unit_price": "2.00",
                     "purchase_date": None,
                     "expiration_date": None,
                     "last_restocked_at": None,
-                    "status": "low_stock",
+                    "status": "in_stock",
                     "supplier": "Supplier",
                     "notes": "Updated",
                     "tags": ["updated"],
@@ -209,5 +209,7 @@ class ImportSupabaseStockCommandTests(TestCase):
         self.assertEqual(StockItem.objects.filter(id=item_id).count(), 1)
         item = StockItem.objects.get(id=item_id)
         self.assertEqual(item.name, "Updated item")
+        # Status is derived from quantity/min (3 <= 5 → low_stock), not read from
+        # the source row (which says in_stock — deliberately ignored).
         self.assertEqual(item.status, StockItem.Status.LOW_STOCK)
         self.assertEqual(item.tags, ["updated"])

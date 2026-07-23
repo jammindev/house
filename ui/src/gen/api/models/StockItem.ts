@@ -21,9 +21,8 @@ export type StockItem = {
     unit_price?: string | null;
     readonly total_value: string;
     purchase_date?: string | null;
-    expiration_date?: string | null;
     last_restocked_at?: string | null;
-    status?: StockItemStatusEnum;
+    readonly status: StockItemStatusEnum;
     supplier?: string;
     notes?: string;
     tags?: Array<string>;
