@@ -2829,5 +2829,12 @@
     "overBy": "Überschritten um {{amount}}",
     "percentUsed": "{{pct}} % genutzt",
     "namedExceedsGlobal": "Deine Budgets ergeben {{named}}, mehr als die globale Obergrenze von {{global}}."
+  },
+  "pwa": {
+    "install": {
+      "title": "App installieren",
+      "iosInstructions": "Tippen Sie auf Teilen und dann auf „Zum Home-Bildschirm“.",
+      "dismiss": "Schließen"
+    }
   }
 }

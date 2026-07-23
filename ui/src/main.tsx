@@ -7,8 +7,11 @@ import { router } from './router';
 import { queryClient } from './lib/queryClient';
 import { AuthProvider } from './lib/auth/context';
 import { Toaster } from './design-system/toast';
+import { registerServiceWorker } from './lib/pwa/registerServiceWorker';
 import './lib/i18n';
 import './styles.css';
+
+registerServiceWorker();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

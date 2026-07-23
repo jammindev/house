@@ -2829,5 +2829,12 @@
     "overBy": "Over by {{amount}}",
     "percentUsed": "{{pct}}% used",
     "namedExceedsGlobal": "Your budgets total {{named}}, more than the global cap of {{global}}."
+  },
+  "pwa": {
+    "install": {
+      "title": "Install the app",
+      "iosInstructions": "Tap Share, then “Add to Home Screen”.",
+      "dismiss": "Dismiss"
+    }
   }
 }
