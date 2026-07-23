@@ -411,6 +411,23 @@ Ancre : projet "Rénovation salle de bain" (seedé). Entité cible : second proj
 
 ---
 
+## Budgets (`budget.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Sidebar "Budgets" → /app/budget | ✅ |
+| État vide (EmptyState "Aucun budget" + bouton "Nouveau budget") | ✅ |
+| Ouverture du SheetDialog (champs nom, montant, case "Budget global") | ✅ |
+| Validation : montant invalide → erreur, dialog reste ouvert | ✅ |
+| Création d'un budget nommé "Courses" 400 € → card + progressbar + "0,00 € / 400,00 €" | ✅ |
+| Card "Hors budget" présente dès qu'un budget existe | ✅ |
+| Suppression avec undo (optimistic delete → toast "Budget supprimé" → Annuler → réapparaît) | ✅ |
+| Suppression définitive (disparaît, undo non cliqué) | ✅ |
+| Select "Budget" dans ExpenseAdHocDialog quand un budget nommé existe | ✅ |
+| Dépense ad-hoc rattachée à un budget → montant dépensé incrémenté sur BudgetPage | ✅ |
+
+---
+
 ## Modules & sidebar (`modules-sidebar.spec.ts`)
 
 | Parcours | Statut |

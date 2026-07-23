@@ -42,6 +42,7 @@ PINNABLE_MODULES = frozenset({
     'interactions',
     'trackers',
     'expenses',
+    'budget',
     # groupe Ressources
     'documents',
     'photos',

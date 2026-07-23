@@ -145,6 +145,25 @@ def _build_renovation_metadata(
     return metadata
 
 
+def _resolve_expense_budget(household_id, budget_id):
+    """Resolve an optional budget id to a named ``Budget`` scoped to the household.
+
+    Returns ``None`` when ``budget_id`` is falsy. Raises ``ValueError`` when the
+    budget does not belong to the household or is the global budget (the global
+    cap covers everything and is never a per-expense assignment target).
+    """
+    if not budget_id:
+        return None
+    from budget.models import Budget
+
+    budget = Budget.objects.filter(id=budget_id, household_id=household_id).first()
+    if budget is None:
+        raise ValueError("budget not found in this household")
+    if budget.is_global:
+        raise ValueError("cannot attach an expense to the global budget")
+    return budget
+
+
 def _resolve_household_zones(household, zone_ids) -> list[Zone]:
     """Resolve zone ids to Zone instances scoped to the household, order preserved.
 
@@ -334,6 +353,7 @@ def create_expense_interaction(
     notes: str = "",
     extra_metadata: dict[str, Any] | None = None,
     kind: str | None = None,
+    budget_id=None,
 ) -> Interaction:
     """Create an Interaction(type=expense) linked to `source` via polymorphic FK.
 
@@ -374,6 +394,8 @@ def create_expense_interaction(
 
     source_ct = ContentType.objects.get_for_model(source.__class__)
 
+    budget = _resolve_expense_budget(source.household_id, budget_id)
+
     with transaction.atomic():
         interaction = Interaction.objects.create(
             household_id=source.household_id,
@@ -385,6 +407,7 @@ def create_expense_interaction(
             metadata=metadata,
             source_content_type=source_ct,
             source_object_id=source.pk,
+            budget=budget,
         )
         zone = getattr(source, "zone", None)
         if zone is not None:
@@ -404,6 +427,7 @@ def create_manual_expense_interaction(
     notes: str = "",
     zone_ids: list[UUID] | None = None,
     extra_metadata: dict[str, Any] | None = None,
+    budget_id=None,
 ) -> Interaction:
     """Create an Interaction(type=expense) NOT linked to a domain source object.
 
@@ -445,6 +469,8 @@ def create_manual_expense_interaction(
                 "belong to the household"
             )
 
+    budget = _resolve_expense_budget(household.id, budget_id)
+
     with transaction.atomic():
         interaction = Interaction.objects.create(
             household_id=household.id,
@@ -456,6 +482,7 @@ def create_manual_expense_interaction(
             metadata=metadata,
             source_content_type=None,
             source_object_id=None,
+            budget=budget,
         )
         for zone in zones:
             InteractionZone.objects.create(interaction=interaction, zone=zone)

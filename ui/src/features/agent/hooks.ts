@@ -14,8 +14,10 @@ import {
 } from '@/lib/api/trackers';
 import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
 import { deleteStockItem, undoStockPurchase } from '@/lib/api/stock';
+import { deleteBudget, updateBudget } from '@/lib/api/budget';
 import { taskKeys } from '@/features/tasks/hooks';
 import { stockKeys } from '@/features/stock/hooks';
+import { budgetKeys } from '@/features/budget/hooks';
 import { chickenKeys } from '@/features/chickens/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
@@ -260,6 +262,11 @@ const UNDO_HANDLERS: Record<
     remove: (id) => undoStockPurchase(id),
     keys: [stockKeys.all as unknown as unknown[], ['interactions']],
   },
+  budget: {
+    // hard delete; attached expenses fall back to "hors budget" (SET_NULL)
+    remove: (id) => deleteBudget(id),
+    keys: [budgetKeys.all as unknown as unknown[]],
+  },
 };
 
 /**
@@ -336,6 +343,11 @@ const UPDATE_UNDO_HANDLERS: Record<
     restore: (id, previous) =>
       updateChicken(id, previous as Parameters<typeof updateChicken>[1]),
     keys: [chickenKeys.all as unknown as unknown[]],
+  },
+  budget: {
+    restore: (id, previous) =>
+      updateBudget(id, previous as Parameters<typeof updateBudget>[1]),
+    keys: [budgetKeys.all as unknown as unknown[]],
   },
 };
 

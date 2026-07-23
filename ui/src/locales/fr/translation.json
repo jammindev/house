@@ -1335,6 +1335,24 @@
             "body": "Cochez uniquement les sujets qui vous intéressent. Les rubriques des modules que vous n'utilisez pas sont masquées automatiquement."
           }
         }
+      },
+      "budget": {
+        "title": "Budgets",
+        "intro": "Fixe des plafonds mensuels et vois d'un coup d'œil si tes dépenses tiennent dedans.",
+        "steps": {
+          "create": {
+            "title": "Créer un budget",
+            "body": "Touche « Nouveau budget », donne-lui un nom (ex. Courses) et un montant mensuel. Ajoute un budget global pour plafonner l'ensemble de tes dépenses."
+          },
+          "assign": {
+            "title": "Rattacher des dépenses",
+            "body": "À la saisie d'une dépense manuelle, choisis un budget auquel l'imputer. Les dépenses non rattachées apparaissent dans « Hors budget »."
+          },
+          "track": {
+            "title": "Suivre le mois",
+            "body": "Chaque budget affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Les compteurs repartent à zéro chaque mois."
+          }
+        }
       }
     }
   },
@@ -2639,7 +2657,9 @@
       "created": "Dépense enregistrée",
       "actions": {
         "add": "Dépense"
-      }
+      },
+      "budget": "Budget",
+      "budgetNone": "Aucun budget"
     }
   },
   "aiUsage": {
@@ -2755,5 +2775,49 @@
       "emptyTitle": "Rien à signaler aujourd'hui",
       "emptyDescription": "Votre résumé est vide pour l'instant — vous ne serez notifié que lorsqu'il y a quelque chose d'important."
     }
+  },
+  "budget": {
+    "title": "Budgets",
+    "description": "Fixe des plafonds mensuels et suis tes dépenses en temps réel.",
+    "created": "Budget créé",
+    "updated": "Budget mis à jour",
+    "deleted": "Budget supprimé",
+    "empty": "Aucun budget",
+    "emptyDescription": "Crée un budget pour suivre tes dépenses du mois.",
+    "new": {
+      "title": "Nouveau budget",
+      "action": "Nouveau budget"
+    },
+    "edit": {
+      "title": "Modifier le budget"
+    },
+    "fields": {
+      "name": "Nom",
+      "namePlaceholder": "ex. Courses",
+      "monthlyAmount": "Montant mensuel",
+      "isGlobal": "Budget global (plafonne toutes les dépenses)"
+    },
+    "errors": {
+      "amountInvalid": "Saisis un montant positif.",
+      "nameRequired": "Merci d'indiquer un nom."
+    },
+    "global": {
+      "defaultName": "Budget global",
+      "heading": "Budget global",
+      "hint": "Le budget global plafonne toutes tes dépenses du mois, qu'elles soient rattachées à une enveloppe ou non.",
+      "cta": "Ajoute un budget global pour plafonner l'ensemble de tes dépenses du mois.",
+      "ctaAction": "Définir un budget global"
+    },
+    "named": {
+      "heading": "Budgets",
+      "empty": "Aucune enveloppe de budget pour l'instant."
+    },
+    "unbudgeted": {
+      "label": "Hors budget",
+      "hint": "Dépenses non rattachées à un budget."
+    },
+    "overBy": "Dépassé de {{amount}}",
+    "percentUsed": "{{pct}} % utilisé",
+    "namedExceedsGlobal": "Tes budgets totalisent {{named}}, plus que le plafond global de {{global}}."
   }
 }

@@ -86,7 +86,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Filter interactions to households where current user is a member."""
         queryset = Interaction.objects.for_user_households(self.request.user).select_related(
-            'created_by'
+            'created_by', 'budget'
         ).prefetch_related('zones', 'documents', 'source', 'tags__tag')
 
         selected_household = self.request.household
@@ -237,6 +237,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
                 occurred_at=serializer.validated_data.get("occurred_at"),
                 notes=serializer.validated_data.get("notes", "") or "",
                 zone_ids=serializer.validated_data.get("zone_ids") or None,
+                budget_id=serializer.validated_data.get("budget_id"),
             )
         except ValueError as exc:
             raise ValidationError({"detail": str(exc)})
