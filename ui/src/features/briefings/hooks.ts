@@ -4,6 +4,8 @@ import {
   createBriefing,
   deleteBriefing,
   fetchBriefings,
+  previewBriefing,
+  sendBriefingNow,
   updateBriefing,
   type Briefing,
   type BriefingPayload,
@@ -53,5 +55,30 @@ export function useDeleteBriefing() {
   return useMutation({
     mutationFn: (id: string) => deleteBriefing(id),
     onSuccess: () => void qc.invalidateQueries({ queryKey: briefingKeys.list() }),
+  });
+}
+
+export function usePreviewBriefing() {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => previewBriefing(id),
+    onError: () => toast({ description: t('briefings.preview.failed'), variant: 'destructive' }),
+  });
+}
+
+export function useSendBriefingNow() {
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (id: string) => sendBriefingNow(id),
+    onSuccess: (summary) => {
+      if (summary.sent > 0) {
+        toast({ description: t('briefings.send.sent', { count: summary.sent }), variant: 'success' });
+      } else if (summary.skipped_no_telegram > 0) {
+        toast({ description: t('briefings.send.noTelegram'), variant: 'destructive' });
+      } else {
+        toast({ description: t('briefings.send.failed'), variant: 'destructive' });
+      }
+    },
+    onError: () => toast({ description: t('briefings.send.failed'), variant: 'destructive' }),
   });
 }

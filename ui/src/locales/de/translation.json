@@ -38,6 +38,21 @@
       "conditionHint": "Optional. Der Assistent sendet das Briefing nur, wenn dies zutrifft — z. B. „wenn es heute regnet\".",
       "conditionPlaceholder": "Wenn es heute regnet",
       "visibility": "Sichtbarkeit"
+    },
+    "preview": {
+      "action": "Vorschau",
+      "title": "Vorschau & senden",
+      "description": "Dein Assistent erstellt die Nachricht jetzt — prüfe sie vor dem Senden.",
+      "failed": "Briefing konnte nicht erstellt werden. Versuche es erneut.",
+      "empty": "Der Assistent hat für dieses Briefing nichts zurückgegeben.",
+      "linkFirst": "Verknüpfe dein Telegram-Konto, um Briefings zu erhalten.",
+      "linkCta": "Telegram verknüpfen"
+    },
+    "send": {
+      "button": "Jetzt senden",
+      "sent": "An {{count}} Empfänger gesendet",
+      "noTelegram": "Nichts gesendet — kein Empfänger hat Telegram verknüpft.",
+      "failed": "Senden fehlgeschlagen."
     }
   },
   "shoppingList": {
@@ -99,7 +114,8 @@
     "loading": "Wird geladen…",
     "add": "Hinzufügen",
     "create": "Erstellen",
-    "showMore": "Mehr anzeigen"
+    "showMore": "Mehr anzeigen",
+    "close": "Schließen"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",

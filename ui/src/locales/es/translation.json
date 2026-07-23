@@ -38,6 +38,21 @@
       "conditionHint": "Opcional. El asistente solo envía el briefing cuando esto es cierto, p. ej. «si llueve hoy».",
       "conditionPlaceholder": "Si llueve hoy",
       "visibility": "Visibilidad"
+    },
+    "preview": {
+      "action": "Vista previa",
+      "title": "Vista previa y envío",
+      "description": "Tu asistente genera el mensaje ahora — revísalo antes de enviarlo.",
+      "failed": "No se pudo generar el briefing. Inténtalo de nuevo.",
+      "empty": "El asistente no devolvió nada para este briefing.",
+      "linkFirst": "Vincula tu cuenta de Telegram para recibir briefings.",
+      "linkCta": "Vincular Telegram"
+    },
+    "send": {
+      "button": "Enviar ahora",
+      "sent": "Enviado a {{count}} destinatario(s)",
+      "noTelegram": "No se envió nada: ningún destinatario tiene Telegram vinculado.",
+      "failed": "Error al enviar."
     }
   },
   "shoppingList": {
@@ -99,7 +114,8 @@
     "loading": "Cargando…",
     "add": "Añadir",
     "create": "Crear",
-    "showMore": "Mostrar más"
+    "showMore": "Mostrar más",
+    "close": "Cerrar"
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",

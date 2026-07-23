@@ -38,6 +38,21 @@
       "conditionHint": "Optionnel. L'assistant n'envoie le briefing que si c'est vrai — ex. « s'il pleut aujourd'hui ».",
       "conditionPlaceholder": "S'il pleut aujourd'hui",
       "visibility": "Visibilité"
+    },
+    "preview": {
+      "action": "Aperçu",
+      "title": "Aperçu et envoi",
+      "description": "Votre assistant génère le message maintenant — relisez-le avant de l'envoyer.",
+      "failed": "Impossible de générer le briefing. Réessayez.",
+      "empty": "L'assistant n'a rien renvoyé pour ce briefing.",
+      "linkFirst": "Liez votre compte Telegram pour recevoir les briefings.",
+      "linkCta": "Lier Telegram"
+    },
+    "send": {
+      "button": "Envoyer maintenant",
+      "sent": "Envoyé à {{count}} destinataire(s)",
+      "noTelegram": "Rien envoyé — aucun destinataire n'a lié Telegram.",
+      "failed": "Échec de l'envoi."
     }
   },
   "shoppingList": {
@@ -99,7 +114,8 @@
     "loading": "Chargement…",
     "add": "Ajouter",
     "create": "Créer",
-    "showMore": "Afficher plus"
+    "showMore": "Afficher plus",
+    "close": "Fermer"
   },
   "errors": {
     "notFoundTitle": "Page introuvable",

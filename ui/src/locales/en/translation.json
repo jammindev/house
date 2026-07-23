@@ -38,6 +38,21 @@
       "conditionHint": "Optional. The assistant only sends the briefing when this is true — e.g. \"if it rains today\".",
       "conditionPlaceholder": "If it rains today",
       "visibility": "Visibility"
+    },
+    "preview": {
+      "action": "Preview",
+      "title": "Preview & send",
+      "description": "Your assistant generates the message now — review it before sending.",
+      "failed": "Couldn't generate the briefing. Try again.",
+      "empty": "The assistant returned nothing for this briefing.",
+      "linkFirst": "Link your Telegram account to receive briefings.",
+      "linkCta": "Link Telegram"
+    },
+    "send": {
+      "button": "Send now",
+      "sent": "Sent to {{count}} recipient(s)",
+      "noTelegram": "Nothing sent — no recipient has Telegram linked.",
+      "failed": "Sending failed."
     }
   },
   "shoppingList": {
@@ -99,7 +114,8 @@
     "loading": "Loading…",
     "add": "Add",
     "create": "Create",
-    "showMore": "Show more"
+    "showMore": "Show more",
+    "close": "Close"
   },
   "errors": {
     "notFoundTitle": "Page not found",

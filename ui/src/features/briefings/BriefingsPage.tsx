@@ -18,6 +18,7 @@ import {
 } from './hooks';
 import BriefingCard from './BriefingCard';
 import BriefingDialog from './BriefingDialog';
+import BriefingPreviewDialog from './BriefingPreviewDialog';
 
 type FilterKey = 'all' | 'active' | 'inactive';
 
@@ -39,6 +40,8 @@ export default function BriefingsPage() {
   const [filter, setFilter] = useSessionState<FilterKey>('briefings.filter', 'all');
   const [editing, setEditing] = React.useState<Briefing | undefined>();
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [previewing, setPreviewing] = React.useState<Briefing | undefined>();
+  const [previewOpen, setPreviewOpen] = React.useState(false);
 
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -61,6 +64,11 @@ export default function BriefingsPage() {
   function openEdit(briefing: Briefing) {
     setEditing(briefing);
     setDialogOpen(true);
+  }
+
+  function openPreview(briefing: Briefing) {
+    setPreviewing(briefing);
+    setPreviewOpen(true);
   }
 
   function toggleActive(briefing: Briefing) {
@@ -124,12 +132,14 @@ export default function BriefingsPage() {
               onEdit={openEdit}
               onDelete={remove}
               onToggleActive={toggleActive}
+              onPreview={openPreview}
             />
           ))}
         </div>
       )}
 
       <BriefingDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
+      <BriefingPreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} briefing={previewing} />
     </div>
   );
 }

@@ -1,13 +1,21 @@
 """Briefings REST API."""
-from django.db.models import Q
-from rest_framework import filters, viewsets
+import logging
 
+from django.db.models import Q
+from rest_framework import filters, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+from agent.llm import LLMError, LLMTimeoutError
 from core.permissions import IsHouseholdMember
 
+from .generation import generate_briefing_text, send_briefing_now
 from .models import Briefing
 from .permissions import CanManageBriefing
 from .serializers import BriefingSerializer
 from .services import create_briefing, update_briefing
+
+logger = logging.getLogger(__name__)
 
 
 class BriefingViewSet(viewsets.ModelViewSet):
@@ -55,3 +63,32 @@ class BriefingViewSet(viewsets.ModelViewSet):
             serializer.instance,
             fields=serializer.validated_data,
         )
+
+    def get_permissions(self):
+        # Preview is a read-grade action (generate, no side effect): any member
+        # who can *see* the briefing may preview it — the queryset already hides
+        # others' private briefings (404). Sending is a manage action.
+        if self.action == "preview":
+            return [IsHouseholdMember()]
+        return [IsHouseholdMember(), CanManageBriefing()]
+
+    @action(detail=True, methods=["post"])
+    def preview(self, request, pk=None):
+        """Generate the briefing content for the requesting user — no Telegram send."""
+        briefing = self.get_object()
+        try:
+            text = generate_briefing_text(briefing, recipient=request.user)
+        except (LLMTimeoutError, LLMError):
+            logger.warning("briefings.preview: LLM error for briefing=%s", briefing.pk)
+            return Response(
+                {"detail": "generation_failed"},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response({"text": text})
+
+    @action(detail=True, methods=["post"], url_path="send-now")
+    def send_now(self, request, pk=None):
+        """Generate + push the briefing to its recipients right now (manual)."""
+        briefing = self.get_object()
+        summary = send_briefing_now(briefing, triggered_by=request.user)
+        return Response(summary)
