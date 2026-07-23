@@ -8,8 +8,15 @@ from core.permissions import IsHouseholdMember
 from stock.models import StockItem
 
 from .models import ShoppingListItem
-from .serializers import ShoppingListItemSerializer
-from .services import add_stock_item_to_list, create_list_item, update_list_item
+from .serializers import ShoppingListItemSerializer, StockSuggestionSerializer
+from .services import (
+    add_stock_item_to_list,
+    commit_item_to_stock,
+    create_list_item,
+    dismiss_suggestion,
+    list_suggestions,
+    update_list_item,
+)
 
 
 class ShoppingListItemViewSet(viewsets.ModelViewSet):
@@ -101,3 +108,55 @@ class ShoppingListItemViewSet(viewsets.ModelViewSet):
             raise ValidationError({"ids": "Expected a list of ids."})
         deleted, _ = self.get_queryset().filter(pk__in=[str(i) for i in ids]).delete()
         return Response({"deleted": deleted}, status=status.HTTP_200_OK)
+
+    # --- Lot 3: suggestions from low stock -----------------------------------
+
+    @action(detail=False, methods=["get"], url_path="suggestions")
+    def suggestions(self, request):
+        """Low-stock items to propose adding to the list (not already on it, not dismissed)."""
+        items = list_suggestions(request.household)
+        return Response(StockSuggestionSerializer(items, many=True).data)
+
+    @action(detail=False, methods=["post"], url_path="suggestions/dismiss")
+    def dismiss(self, request):
+        """Hide a suggestion until its item is restocked and drops low again."""
+        stock_item = self._resolve_household_stock_item(request)
+        dismiss_suggestion(request.household, request.user, stock_item)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # --- Lot 4: commit a checked line back into the stock --------------------
+
+    @action(detail=True, methods=["post"], url_path="commit-to-stock")
+    def commit_to_stock(self, request, pk=None):
+        """Record a purchase from a shopping line (reincrements stock + expense).
+
+        Free-text lines require ``category``; linked lines reuse their stock item.
+        On success the line is removed and the stock item is returned.
+        """
+        item = self.get_object()
+        stock_item = commit_item_to_stock(
+            request.household,
+            request.user,
+            item,
+            delta=request.data.get("delta"),
+            amount=request.data.get("amount"),
+            supplier=request.data.get("supplier") or "",
+            occurred_at=request.data.get("occurred_at") or None,
+            notes=request.data.get("notes") or "",
+            category=request.data.get("category"),
+            unit=request.data.get("unit"),
+        )
+        return Response({"stock_item": str(stock_item.id)}, status=status.HTTP_200_OK)
+
+    def _resolve_household_stock_item(self, request) -> StockItem:
+        stock_item_id = str(request.data.get("stock_item") or "").strip()
+        if not stock_item_id:
+            raise ValidationError({"stock_item": "This field is required."})
+        stock_item = (
+            StockItem.objects.for_user_households(request.user).filter(pk=stock_item_id).first()
+        )
+        if stock_item is None or (
+            request.household and str(stock_item.household_id) != str(request.household.id)
+        ):
+            raise ValidationError({"stock_item": "Invalid stock item or access denied."})
+        return stock_item

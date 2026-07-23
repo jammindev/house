@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import ShoppingListItem
+from .models import ShoppingListItem, ShoppingSuggestionDismissal
+
+
+@admin.register(ShoppingSuggestionDismissal)
+class ShoppingSuggestionDismissalAdmin(admin.ModelAdmin):
+    list_display = ["stock_item", "household", "dismissed_at", "created_by"]
+    list_filter = ["household"]
+    readonly_fields = ["id", "dismissed_at", "created_at", "updated_at", "created_by", "updated_by"]
+    raw_id_fields = ["stock_item"]
 
 
 @admin.register(ShoppingListItem)

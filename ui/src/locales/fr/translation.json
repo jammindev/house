@@ -72,6 +72,27 @@
       "action": "Ajouter à la liste de courses",
       "added": "{{name}} ajouté à la liste de courses",
       "alreadyInList": "{{name}} est déjà dans la liste"
+    },
+    "suggestions": {
+      "title": "Suggestions ({{count}})",
+      "addAll": "Tout ajouter",
+      "add": "Ajouter",
+      "dismiss": "Ignorer {{name}}",
+      "suggestedQty": "conseillé {{qty}} {{unit}}",
+      "reason": {
+        "low_stock": "Bientôt épuisé",
+        "out_of_stock": "En rupture"
+      }
+    },
+    "commit": {
+      "action": "Enregistrer dans le stock",
+      "title": "Enregistrer « {{name}} » dans le stock",
+      "done": "Enregistré dans le stock",
+      "category": "Catégorie",
+      "selectCategory": "Choisir une catégorie",
+      "categoryRequired": "Choisissez une catégorie pour créer l'article.",
+      "createHint": "Cet article n'est pas encore dans votre stock — il sera créé, puis l'achat enregistré.",
+      "restockHint": "Enregistre un achat de « {{name}} » — réapprovisionne le stock et note la dépense."
     }
   },
   "common": {
@@ -1200,6 +1221,14 @@
           "agent": {
             "title": "Laisser l'assistant la remplir",
             "body": "Dites simplement « ajoute du café à la liste » — l'assistant l'ajoute, le lie à votre stock quand il reconnaît le nom, et vous pouvez annuler d'un geste."
+          },
+          "suggestions": {
+            "title": "Réapprovisionner ce qui manque",
+            "body": "La section Suggestions propose les articles de stock sous leur seuil — ajoutez-les d'un geste, avec une quantité de réappro pré-remplie."
+          },
+          "commit": {
+            "title": "Renvoyer les achats vers le stock",
+            "body": "De retour des courses, cochez les articles puis « Enregistrer dans le stock » : l'achat réapprovisionne l'article (le crée au besoin) et note la dépense."
           }
         }
       },

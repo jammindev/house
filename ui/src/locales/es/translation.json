@@ -72,6 +72,27 @@
       "action": "Añadir a la lista de la compra",
       "added": "{{name}} añadido a la lista de la compra",
       "alreadyInList": "{{name}} ya está en la lista"
+    },
+    "suggestions": {
+      "title": "Sugerencias ({{count}})",
+      "addAll": "Añadir todo",
+      "add": "Añadir",
+      "dismiss": "Descartar {{name}}",
+      "suggestedQty": "sugerido {{qty}} {{unit}}",
+      "reason": {
+        "low_stock": "Casi agotado",
+        "out_of_stock": "Agotado"
+      }
+    },
+    "commit": {
+      "action": "Guardar en el stock",
+      "title": "Guardar «{{name}}» en el stock",
+      "done": "Guardado en el stock",
+      "category": "Categoría",
+      "selectCategory": "Elegir una categoría",
+      "categoryRequired": "Elige una categoría para crear el artículo.",
+      "createHint": "Este artículo aún no está en tu stock — se creará y luego se registrará la compra.",
+      "restockHint": "Registra una compra de «{{name}}» — reabastece el stock y anota el gasto."
     }
   },
   "common": {
@@ -1200,6 +1221,14 @@
           "agent": {
             "title": "Deja que el asistente la rellene",
             "body": "Solo di «añade café a la lista» — el asistente lo añade, lo vincula a tu stock cuando reconoce el nombre, y puedes deshacerlo con un toque."
+          },
+          "suggestions": {
+            "title": "Reabastece lo que se agota",
+            "body": "La sección Sugerencias propone los artículos de stock por debajo de su umbral — añádelos con un toque, con la cantidad de reabastecimiento prerrellenada."
+          },
+          "commit": {
+            "title": "Registra las compras en el stock",
+            "body": "Al volver de la compra, marca los artículos y usa «Guardar en el stock»: la compra reabastece el artículo (lo crea si hace falta) y anota el gasto."
           }
         }
       },

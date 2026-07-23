@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { PackagePlus, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { Card } from '@/design-system/card';
@@ -10,6 +10,8 @@ interface Props {
   onToggle: (item: ShoppingListItem) => void;
   onEdit: (item: ShoppingListItem) => void;
   onDelete: (item: ShoppingListItem) => void;
+  /** Lot 4 — record this line as a stock purchase. Shown only when provided. */
+  onCommit?: (item: ShoppingListItem) => void;
 }
 
 function quantityLabel(item: ShoppingListItem): string | null {
@@ -18,11 +20,18 @@ function quantityLabel(item: ShoppingListItem): string | null {
   return item.unit ? `${qty} ${item.unit}` : qty;
 }
 
-export default function ShoppingListItemRow({ item, onToggle, onEdit, onDelete }: Props) {
+export default function ShoppingListItemRow({ item, onToggle, onEdit, onDelete, onCommit }: Props) {
   const { t } = useTranslation();
   const qty = quantityLabel(item);
 
   const actions: CardAction[] = [
+    ...(onCommit
+      ? [{
+          label: t('shoppingList.commit.action'),
+          icon: PackagePlus,
+          onClick: () => onCommit(item),
+        } satisfies CardAction]
+      : []),
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(item) },
     { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(item), variant: 'danger' },
   ];

@@ -72,6 +72,27 @@
       "action": "Add to shopping list",
       "added": "{{name}} added to the shopping list",
       "alreadyInList": "{{name}} is already on the list"
+    },
+    "suggestions": {
+      "title": "Suggestions ({{count}})",
+      "addAll": "Add all",
+      "add": "Add",
+      "dismiss": "Dismiss {{name}}",
+      "suggestedQty": "suggest {{qty}} {{unit}}",
+      "reason": {
+        "low_stock": "Running low",
+        "out_of_stock": "Out of stock"
+      }
+    },
+    "commit": {
+      "action": "Save to stock",
+      "title": "Save “{{name}}” to stock",
+      "done": "Saved to stock",
+      "category": "Category",
+      "selectCategory": "Choose a category",
+      "categoryRequired": "Pick a category to create the stock item.",
+      "createHint": "This item isn't in your stock yet — it'll be created, then the purchase recorded.",
+      "restockHint": "Records a purchase of “{{name}}” — restocks it and logs the expense."
     }
   },
   "common": {
@@ -1200,6 +1221,14 @@
           "agent": {
             "title": "Let the assistant fill it",
             "body": "Just say \"add coffee to the list\" — the assistant adds it, links it to your stock when it recognises the name, and you can undo in one tap."
+          },
+          "suggestions": {
+            "title": "Restock what's running low",
+            "body": "The Suggestions section proposes stock items below their threshold — add them in one tap, with a refill quantity prefilled."
+          },
+          "commit": {
+            "title": "Log purchases back to stock",
+            "body": "Once shopping, tick items off then use “Save to stock” to record the purchase — it restocks the item (creating it if needed) and logs the expense."
           }
         }
       },
