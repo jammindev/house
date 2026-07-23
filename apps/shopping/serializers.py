@@ -7,6 +7,28 @@ from stock.models import StockItem
 from .models import ShoppingListItem
 
 
+class StockSuggestionSerializer(serializers.ModelSerializer):
+    """A low-stock item proposed for the shopping list (Lot 3), read-only."""
+
+    category_name = serializers.CharField(source="category.name", read_only=True)
+    category_emoji = serializers.CharField(source="category.emoji", read_only=True)
+    suggested_quantity = serializers.SerializerMethodField()
+
+    class Meta:
+        model = StockItem
+        fields = [
+            "id", "name", "unit", "status",
+            "quantity", "min_quantity", "max_quantity",
+            "category_name", "category_emoji", "suggested_quantity",
+        ]
+
+    def get_suggested_quantity(self, obj):
+        from .services import suggested_quantity
+
+        value = suggested_quantity(obj)
+        return str(value) if value is not None else None
+
+
 class ShoppingListItemSerializer(serializers.ModelSerializer):
     """Read/write serializer for a shopping list line.
 

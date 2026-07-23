@@ -19,6 +19,8 @@ import {
 } from './hooks';
 import ShoppingListItemRow from './ShoppingListItemRow';
 import ShoppingItemDialog from './ShoppingItemDialog';
+import ShoppingSuggestions from './ShoppingSuggestions';
+import ShoppingCommitDialog from './ShoppingCommitDialog';
 
 export default function ShoppingListPage() {
   const { t } = useTranslation();
@@ -34,6 +36,8 @@ export default function ShoppingListPage() {
   const [quickAdd, setQuickAdd] = React.useState('');
   const [editing, setEditing] = React.useState<ShoppingListItem | undefined>();
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [committing, setCommitting] = React.useState<ShoppingListItem | undefined>();
+  const [commitOpen, setCommitOpen] = React.useState(false);
 
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -71,6 +75,11 @@ export default function ShoppingListPage() {
   function openEdit(item: ShoppingListItem) {
     setEditing(item);
     setDialogOpen(true);
+  }
+
+  function openCommit(item: ShoppingListItem) {
+    setCommitting(item);
+    setCommitOpen(true);
   }
 
   function remove(item: ShoppingListItem) {
@@ -114,6 +123,10 @@ export default function ShoppingListPage() {
           {t('shoppingList.quickAdd.button')}
         </Button>
       </form>
+
+      <div className="mb-6">
+        <ShoppingSuggestions />
+      </div>
 
       {showSkeleton ? (
         <div className="space-y-2">
@@ -163,6 +176,7 @@ export default function ShoppingListPage() {
                   onToggle={toggle}
                   onEdit={openEdit}
                   onDelete={remove}
+                  onCommit={openCommit}
                 />
               ))}
             </div>
@@ -171,6 +185,7 @@ export default function ShoppingListPage() {
       )}
 
       <ShoppingItemDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
+      <ShoppingCommitDialog open={commitOpen} onOpenChange={setCommitOpen} item={committing} />
     </div>
   );
 }

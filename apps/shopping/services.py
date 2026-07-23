@@ -9,10 +9,15 @@ from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation
 
+from django.db import transaction
+from rest_framework.exceptions import ValidationError
+
 from stock.models import StockItem
 
-from .models import ShoppingListItem
+from .models import ShoppingListItem, ShoppingSuggestionDismissal
 from .serializers import ShoppingListItemSerializer
+
+_LOW_STATUSES = (StockItem.Status.LOW_STOCK, StockItem.Status.OUT_OF_STOCK)
 
 
 def _to_decimal(value):
@@ -148,3 +153,120 @@ def _looks_like_uuid(value: str) -> bool:
         return True
     except (ValueError, AttributeError, TypeError):
         return False
+
+
+# --- Lot 3: suggestions from low stock ---------------------------------------
+
+def suggested_quantity(stock_item: StockItem):
+    """Public accessor for the refill quantity proposed for a stock item."""
+    return _suggested_quantity(stock_item)
+
+
+def list_suggestions(household) -> list[StockItem]:
+    """Stock items to *suggest* adding to the list (Lot 3).
+
+    An item qualifies when it is low/out of stock, is not already on an unchecked
+    list line, and has not been dismissed — a dismissal counting only while it is
+    still "fresh" (the item hasn't been restocked since it was dismissed, i.e.
+    ``last_restocked_at`` is not newer than ``dismissed_at``). A new depletion
+    cycle therefore re-suggests naturally.
+    """
+    # "Not already on the list" covers both to-buy and picked lines: an item
+    # sitting in the "Picked" section is still on the list, so don't re-suggest it.
+    on_list_ids = set(
+        ShoppingListItem.objects.filter(
+            household_id=household.id, stock_item__isnull=False
+        ).values_list("stock_item_id", flat=True)
+    )
+    dismissals = {
+        d.stock_item_id: d.dismissed_at
+        for d in ShoppingSuggestionDismissal.objects.filter(household_id=household.id)
+    }
+    items = (
+        StockItem.objects.filter(household_id=household.id, status__in=_LOW_STATUSES)
+        .select_related("category")
+        .order_by("name")
+    )
+
+    suggestions: list[StockItem] = []
+    for item in items:
+        if item.id in on_list_ids:
+            continue
+        dismissed_at = dismissals.get(item.id)
+        if dismissed_at is not None:
+            restocked = item.last_restocked_at
+            if restocked is None or restocked <= dismissed_at:
+                continue  # dismissal still fresh — stay hidden
+        suggestions.append(item)
+    return suggestions
+
+
+def dismiss_suggestion(household, user, stock_item: StockItem) -> ShoppingSuggestionDismissal:
+    """Hide ``stock_item`` from suggestions until it is restocked and drops again."""
+    dismissal, _ = ShoppingSuggestionDismissal.objects.update_or_create(
+        household=household,
+        stock_item=stock_item,
+        defaults={"created_by": user, "updated_by": user},
+    )
+    return dismissal
+
+
+# --- Lot 4: commit a checked line back into the stock -------------------------
+
+@transaction.atomic
+def commit_item_to_stock(
+    household,
+    user,
+    item: ShoppingListItem,
+    *,
+    delta,
+    amount=None,
+    supplier: str = "",
+    occurred_at=None,
+    notes: str = "",
+    category=None,
+    unit: str | None = None,
+) -> StockItem:
+    """Turn a shopping line into a stock purchase (Lot 4), then remove the line.
+
+    - **Linked** line (``item.stock_item`` set) → records a purchase on that item.
+    - **Free-text** line → creates the stock item first (``category`` required),
+      then records the purchase.
+
+    Reuses ``stock.services`` (never raw ORM): the purchase reincrements the stock
+    and creates the linked expense interaction. Atomic — a failure leaves both the
+    stock and the list untouched. Returns the (created or existing) stock item.
+    """
+    from stock.services import create_stock_item, purchase_stock_item, resolve_category
+
+    delta_dec = _to_decimal(delta)
+    if delta_dec is None or delta_dec <= 0:
+        raise ValidationError({"delta": "A positive purchased quantity is required."})
+
+    stock_item = item.stock_item
+    if stock_item is None:
+        if category is None or str(category).strip() == "":
+            raise ValidationError(
+                {"category": "A category is required to create the stock item."}
+            )
+        resolved = category if hasattr(category, "pk") else resolve_category(household, category)
+        stock_item = create_stock_item(
+            household,
+            user,
+            category=resolved,
+            name=item.label,
+            unit=(unit or item.unit or "unit"),
+            quantity=0,
+        )
+
+    purchase_stock_item(
+        item=stock_item,
+        user=user,
+        delta=delta_dec,
+        amount=_to_decimal(amount),
+        supplier=supplier or "",
+        occurred_at=occurred_at,
+        notes=notes or "",
+    )
+    item.delete()
+    return stock_item

@@ -59,3 +59,38 @@ class ShoppingListItem(HouseholdScopedModel):
     @property
     def checked(self) -> bool:
         return self.checked_at is not None
+
+
+class ShoppingSuggestionDismissal(HouseholdScopedModel):
+    """A low-stock item the user dismissed from the "Suggestions" section (Lot 3).
+
+    Records that a suggestion was ignored so it stops resurfacing — *until the
+    item is restocked and drops low again*. Rather than clearing this on restock
+    (which would couple ``stock.services`` to shopping), the suggestion query
+    treats a dismissal as stale once ``StockItem.last_restocked_at`` is newer than
+    ``dismissed_at``: a fresh depletion cycle re-suggests naturally.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    stock_item = models.ForeignKey(
+        "stock.StockItem",
+        on_delete=models.CASCADE,
+        related_name="shopping_dismissals",
+    )
+    dismissed_at = models.DateTimeField(auto_now=True)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "shopping_suggestion_dismissals"
+        verbose_name = _("shopping suggestion dismissal")
+        verbose_name_plural = _("shopping suggestion dismissals")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["household", "stock_item"],
+                name="uniq_shopping_dismissal_hh_item",
+            ),
+        ]
+
+    def __str__(self):
+        return f"dismissed {self.stock_item_id}"

@@ -72,6 +72,27 @@
       "action": "Zur Einkaufsliste hinzufügen",
       "added": "{{name}} zur Einkaufsliste hinzugefügt",
       "alreadyInList": "{{name}} ist bereits auf der Liste"
+    },
+    "suggestions": {
+      "title": "Vorschläge ({{count}})",
+      "addAll": "Alle hinzufügen",
+      "add": "Hinzufügen",
+      "dismiss": "{{name}} ignorieren",
+      "suggestedQty": "empfohlen {{qty}} {{unit}}",
+      "reason": {
+        "low_stock": "Wird knapp",
+        "out_of_stock": "Nicht vorrätig"
+      }
+    },
+    "commit": {
+      "action": "In den Bestand übernehmen",
+      "title": "„{{name}}“ in den Bestand übernehmen",
+      "done": "In den Bestand übernommen",
+      "category": "Kategorie",
+      "selectCategory": "Kategorie wählen",
+      "categoryRequired": "Wähle eine Kategorie, um den Artikel anzulegen.",
+      "createHint": "Dieser Artikel ist noch nicht im Bestand — er wird angelegt und der Kauf erfasst.",
+      "restockHint": "Erfasst einen Kauf von „{{name}}“ — füllt den Bestand auf und bucht die Ausgabe."
     }
   },
   "common": {
@@ -1200,6 +1221,14 @@
           "agent": {
             "title": "Den Assistenten füllen lassen",
             "body": "Sag einfach „füge Kaffee zur Liste hinzu“ — der Assistent fügt ihn hinzu, verknüpft ihn mit deinem Bestand, wenn er den Namen erkennt, und du kannst es mit einem Tipp rückgängig machen."
+          },
+          "suggestions": {
+            "title": "Auffüllen, was knapp wird",
+            "body": "Der Bereich Vorschläge schlägt Bestandsartikel unter ihrer Schwelle vor — mit einem Tipp hinzufügen, die Auffüllmenge ist vorausgefüllt."
+          },
+          "commit": {
+            "title": "Käufe in den Bestand zurückbuchen",
+            "body": "Nach dem Einkauf Artikel abhaken, dann „In den Bestand übernehmen“: der Kauf füllt den Artikel auf (legt ihn bei Bedarf an) und bucht die Ausgabe."
           }
         }
       },

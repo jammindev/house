@@ -89,3 +89,56 @@ export async function addStockItemToList(
 export async function bulkDeleteShoppingItems(ids: string[]): Promise<void> {
   await api.post('/shopping/items/bulk-delete/', { ids });
 }
+
+// --- Lot 3: suggestions from low stock ----------------------------------------
+
+export interface ShoppingSuggestion {
+  id: string;
+  name: string;
+  unit: string;
+  status: StockItemStatus;
+  quantity: string;
+  min_quantity: string | null;
+  max_quantity: string | null;
+  category_name: string | null;
+  category_emoji: string | null;
+  suggested_quantity: string | null;
+}
+
+export async function fetchShoppingSuggestions(): Promise<ShoppingSuggestion[]> {
+  const { data } = await api.get('/shopping/items/suggestions/');
+  return normalizeList<ShoppingSuggestion>(data);
+}
+
+export async function dismissShoppingSuggestion(stockItemId: string): Promise<void> {
+  await api.post('/shopping/items/suggestions/dismiss/', { stock_item: stockItemId });
+}
+
+// --- Lot 4: commit a checked line back into the stock -------------------------
+
+export interface CommitToStockPayload {
+  delta: number;
+  amount?: number | null;
+  supplier?: string;
+  occurred_at?: string | null;
+  notes?: string;
+  /** Required only for a free-text line (creates the stock item). */
+  category?: string;
+  unit?: string;
+}
+
+export async function commitShoppingItemToStock(
+  id: string,
+  payload: CommitToStockPayload,
+): Promise<{ stock_item: string }> {
+  const { data } = await api.post(`/shopping/items/${id}/commit-to-stock/`, {
+    delta: payload.delta,
+    amount: payload.amount ?? null,
+    supplier: payload.supplier ?? '',
+    occurred_at: payload.occurred_at ?? null,
+    notes: payload.notes ?? '',
+    category: payload.category ?? undefined,
+    unit: payload.unit ?? undefined,
+  });
+  return data as { stock_item: string };
+}
