@@ -1,6 +1,6 @@
 import {
   Bird, Box, CloudSun, Droplets, FileText, FolderKanban, Image, ListTodo, MapPin,
-  Notebook, PiggyBank, Receipt, TrendingUp, Umbrella, Users, Wrench, Zap,
+  Notebook, PiggyBank, Receipt, ShoppingCart, TrendingUp, Umbrella, Users, Wrench, Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -45,6 +45,7 @@ export const MODULES: ModuleDef[] = [
   { key: 'tasks',        to: '/app/tasks',        labelKey: 'tasks.title',        Icon: ListTodo,     group: 'tracking',  optional: false },
   { key: 'projects',     to: '/app/projects',     labelKey: 'projects.title',     Icon: FolderKanban, group: 'tracking',  optional: false },
   { key: 'interactions', to: '/app/interactions', labelKey: 'interactions.title', Icon: Notebook,     group: 'tracking',  optional: false },
+  { key: 'shopping',     to: '/app/shopping-list', labelKey: 'shoppingList.title', Icon: ShoppingCart, group: 'tracking',  optional: true  },
   { key: 'trackers',     to: '/app/trackers',     labelKey: 'trackers.title',     Icon: TrendingUp,   group: 'tracking',  optional: true  },
   { key: 'expenses',     to: '/app/expenses',     labelKey: 'expenses.title',     Icon: Receipt,      group: 'tracking',  optional: false },
   { key: 'budget',       to: '/app/budget',       labelKey: 'budget.title',       Icon: PiggyBank,    group: 'tracking',  optional: false },

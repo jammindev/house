@@ -15,9 +15,11 @@ import {
 import { deleteChicken, deleteEggLog, updateChicken } from '@/lib/api/chickens';
 import { deleteStockItem, undoStockPurchase } from '@/lib/api/stock';
 import { deleteBudget, updateBudget } from '@/lib/api/budget';
+import { deleteShoppingItem } from '@/lib/api/shopping';
 import { taskKeys } from '@/features/tasks/hooks';
 import { stockKeys } from '@/features/stock/hooks';
 import { budgetKeys } from '@/features/budget/hooks';
+import { shoppingKeys } from '@/features/shopping/hooks';
 import { chickenKeys } from '@/features/chickens/hooks';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { electricityKeys } from '@/features/electricity/hooks';
@@ -266,6 +268,10 @@ const UNDO_HANDLERS: Record<
     // hard delete; attached expenses fall back to "hors budget" (SET_NULL)
     remove: (id) => deleteBudget(id),
     keys: [budgetKeys.all as unknown as unknown[]],
+  },
+  shopping_item: {
+    remove: (id) => deleteShoppingItem(id),
+    keys: [shoppingKeys.all as unknown as unknown[]],
   },
 };
 

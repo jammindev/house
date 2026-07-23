@@ -410,7 +410,7 @@ _CREATE_ENTITY_SCHEMA = {
                 "The kind of item to create. Supported: 'task', 'note', "
                 "'renovation', 'meter_reading', 'water_reading', 'tracker', "
                 "'tracker_entry', 'chicken', 'egg_log', 'stock_item', "
-                "'stock_reading', 'stock_purchase', 'budget'."
+                "'stock_reading', 'stock_purchase', 'budget', 'shopping_item'."
             ),
         },
         "fields": {
@@ -494,6 +494,13 @@ _CREATE_ENTITY_SCHEMA = {
                 "monthly_amount (required, the monthly ceiling as a number), "
                 "is_global (optional bool — true only for the single household-"
                 "wide cap that covers all expenses; default false). "
+                "For entity_type='shopping_item' (a line on the household's "
+                "shopping list, e.g. 'ajoute du café à la liste de courses'): "
+                "label (required, what to buy — omit only when stock_item is "
+                "given), quantity (optional number), unit (optional, e.g. 'kg'), "
+                "note (optional), stock_item (optional item name or id — when it "
+                "matches something the household stocks the line is linked and "
+                "deduped; otherwise a free-text line is created). "
                 "In an anchored conversation the project/zone/entity is "
                 "attached automatically — do not ask for it."
             ),
@@ -515,7 +522,9 @@ _CREATE_ENTITY_DESCRIPTION = (
     "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted), 'stock_item' (a "
     "new inventory item), 'stock_reading' (an inventory count of what's left of "
     "an item), 'stock_purchase' (a purchase/restock of an item, records the "
-    "expense too) and 'budget' (a monthly spending envelope). Only call this when the "
+    "expense too), 'budget' (a monthly spending envelope) and 'shopping_item' "
+    "(a line on the household shopping list, e.g. 'ajoute du café à la liste'). "
+    "Only call this when the "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
     "is created immediately; the user can undo it from the interface."

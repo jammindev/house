@@ -1,4 +1,38 @@
 {
+  "shoppingList": {
+    "title": "Liste de courses",
+    "quickAdd": {
+      "placeholder": "Ajouter un article…",
+      "button": "Ajouter"
+    },
+    "empty": {
+      "title": "Votre liste de courses est vide",
+      "description": "Ajoutez ce qu'il faut acheter — elle reste synchronisée pour tout le foyer."
+    },
+    "allTaken": "Tout a été pris.",
+    "takenSection": "Pris ({{count}})",
+    "clearChecked": "Vider les cochés",
+    "clearedChecked": "Articles cochés retirés",
+    "deleted": "Article retiré",
+    "edit": {
+      "title": "Modifier l'article"
+    },
+    "fields": {
+      "label": "Article",
+      "quantity": "Quantité",
+      "unit": "Unité",
+      "note": "Note"
+    },
+    "actions": {
+      "toggle": "Cocher {{label}}"
+    },
+    "fromStock": {
+      "badge": "Stock",
+      "action": "Ajouter à la liste de courses",
+      "added": "{{name}} ajouté à la liste de courses",
+      "alreadyInList": "{{name}} est déjà dans la liste"
+    }
+  },
   "common": {
     "back": "Retour",
     "yes": "oui",
@@ -1103,6 +1137,28 @@
           "expiry": {
             "title": "Surveiller les péremptions",
             "body": "Renseignez les dates de péremption pour être alerté avant qu'il ne soit trop tard."
+          }
+        }
+      },
+      "shopping": {
+        "title": "Tenir une liste de courses",
+        "intro": "Une liste partagée que tout le foyer coche — en texte libre, depuis le stock, ou via l'assistant.",
+        "steps": {
+          "quickAdd": {
+            "title": "Ajouter ce qu'il faut",
+            "body": "Tapez un article dans le champ d'ajout rapide puis « Ajouter ». Il apparaît aussitôt pour tout le foyer."
+          },
+          "fromStock": {
+            "title": "Ajouter depuis le stock",
+            "body": "Sur un article de stock, utilisez « Ajouter à la liste de courses » — la ligne est liée à l'article et la quantité proposée le réapprovisionne. L'ajouter deux fois ne crée pas de doublon."
+          },
+          "check": {
+            "title": "Cocher pendant les courses",
+            "body": "Cochez un article pour le rayer et le basculer dans « Pris ». « Vider les cochés » nettoie cette section (avec annulation)."
+          },
+          "agent": {
+            "title": "Laisser l'assistant la remplir",
+            "body": "Dites simplement « ajoute du café à la liste » — l'assistant l'ajoute, le lie à votre stock quand il reconnaît le nom, et vous pouvez annuler d'un geste."
           }
         }
       },

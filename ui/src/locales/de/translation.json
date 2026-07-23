@@ -1,4 +1,38 @@
 {
+  "shoppingList": {
+    "title": "Einkaufsliste",
+    "quickAdd": {
+      "placeholder": "Artikel hinzufügen…",
+      "button": "Hinzufügen"
+    },
+    "empty": {
+      "title": "Deine Einkaufsliste ist leer",
+      "description": "Füge hinzu, was du kaufen musst — sie bleibt für den ganzen Haushalt synchron."
+    },
+    "allTaken": "Alles wurde eingekauft.",
+    "takenSection": "Erledigt ({{count}})",
+    "clearChecked": "Erledigte entfernen",
+    "clearedChecked": "Erledigte Artikel entfernt",
+    "deleted": "Artikel entfernt",
+    "edit": {
+      "title": "Artikel bearbeiten"
+    },
+    "fields": {
+      "label": "Artikel",
+      "quantity": "Menge",
+      "unit": "Einheit",
+      "note": "Notiz"
+    },
+    "actions": {
+      "toggle": "{{label}} abhaken"
+    },
+    "fromStock": {
+      "badge": "Bestand",
+      "action": "Zur Einkaufsliste hinzufügen",
+      "added": "{{name}} zur Einkaufsliste hinzugefügt",
+      "alreadyInList": "{{name}} ist bereits auf der Liste"
+    }
+  },
   "common": {
     "back": "Zurück",
     "yes": "ja",
@@ -1103,6 +1137,28 @@
           "expiry": {
             "title": "Haltbarkeit überwachen",
             "body": "Tragen Sie Verfallsdaten ein, um rechtzeitig gewarnt zu werden."
+          }
+        }
+      },
+      "shopping": {
+        "title": "Eine Einkaufsliste führen",
+        "intro": "Eine gemeinsame Liste, die der ganze Haushalt abhakt — als Freitext, aus dem Bestand oder über den Assistenten.",
+        "steps": {
+          "quickAdd": {
+            "title": "Hinzufügen, was du brauchst",
+            "body": "Tippe einen Artikel in das Schnell-Hinzufügen-Feld und drücke Hinzufügen. Er erscheint sofort für den ganzen Haushalt."
+          },
+          "fromStock": {
+            "title": "Aus dem Bestand hinzufügen",
+            "body": "Nutze bei einem Bestandsartikel „Zur Einkaufsliste hinzufügen“ — die Zeile ist mit dem Artikel verknüpft und die vorgeschlagene Menge füllt ihn wieder auf. Zweimaliges Hinzufügen erzeugt kein Duplikat."
+          },
+          "check": {
+            "title": "Beim Einkaufen abhaken",
+            "body": "Hake einen Artikel ab, um ihn durchzustreichen und nach „Erledigt“ zu verschieben. „Erledigte entfernen“ leert diesen Bereich (mit Rückgängig)."
+          },
+          "agent": {
+            "title": "Den Assistenten füllen lassen",
+            "body": "Sag einfach „füge Kaffee zur Liste hinzu“ — der Assistent fügt ihn hinzu, verknüpft ihn mit deinem Bestand, wenn er den Namen erkennt, und du kannst es mit einem Tipp rückgängig machen."
           }
         }
       },

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
-import { ClipboardCheck, Package, Plus } from 'lucide-react';
+import { ClipboardCheck, Package, Plus, ShoppingCart } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
@@ -15,6 +15,8 @@ import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
+import { useDisabledModules } from '@/lib/modules';
+import { useAddStockItemToList } from '@/features/shopping/hooks';
 import { isPast } from '@/lib/format';
 import {
   useStockItem,
@@ -43,6 +45,8 @@ export default function StockItemDetailPage() {
   const [purchaseOpen, setPurchaseOpen] = React.useState(false);
   const [inventoryOpen, setInventoryOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const { disabled } = useDisabledModules();
+  const addToList = useAddStockItemToList();
 
   const { data: item, isLoading, error } = useStockItem(id ?? '');
   const { data: history = [], isLoading: historyLoading } = useStockItemHistory(id ?? '');
@@ -127,6 +131,17 @@ export default function StockItemDetailPage() {
             <ClipboardCheck className="h-3.5 w-3.5" />
             {t('stock.inventory.actions.record')}
           </Button>
+          {!disabled.has('shopping') ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 gap-1 px-3 text-sm"
+              onClick={() => addToList.mutate({ stockItemId: item.id })}
+            >
+              <ShoppingCart className="h-3.5 w-3.5" />
+              {t('shoppingList.fromStock.action')}
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"

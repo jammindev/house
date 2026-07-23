@@ -1,4 +1,38 @@
 {
+  "shoppingList": {
+    "title": "Lista de la compra",
+    "quickAdd": {
+      "placeholder": "Añadir un artículo…",
+      "button": "Añadir"
+    },
+    "empty": {
+      "title": "Tu lista de la compra está vacía",
+      "description": "Añade lo que necesitas comprar — se mantiene sincronizada para todo el hogar."
+    },
+    "allTaken": "Ya se ha cogido todo.",
+    "takenSection": "Cogidos ({{count}})",
+    "clearChecked": "Vaciar marcados",
+    "clearedChecked": "Artículos marcados eliminados",
+    "deleted": "Artículo eliminado",
+    "edit": {
+      "title": "Editar artículo"
+    },
+    "fields": {
+      "label": "Artículo",
+      "quantity": "Cantidad",
+      "unit": "Unidad",
+      "note": "Nota"
+    },
+    "actions": {
+      "toggle": "Marcar {{label}}"
+    },
+    "fromStock": {
+      "badge": "Stock",
+      "action": "Añadir a la lista de la compra",
+      "added": "{{name}} añadido a la lista de la compra",
+      "alreadyInList": "{{name}} ya está en la lista"
+    }
+  },
   "common": {
     "back": "Volver",
     "yes": "sí",
@@ -1103,6 +1137,28 @@
           "expiry": {
             "title": "Vigilar las caducidades",
             "body": "Indica las fechas de caducidad para recibir avisos antes de que sea tarde."
+          }
+        }
+      },
+      "shopping": {
+        "title": "Llevar una lista de la compra",
+        "intro": "Una lista compartida que todo el hogar va marcando — en texto libre, desde tu stock o mediante el asistente.",
+        "steps": {
+          "quickAdd": {
+            "title": "Añade lo que necesitas",
+            "body": "Escribe un artículo en el campo de añadido rápido y pulsa Añadir. Aparece al instante para todo el hogar."
+          },
+          "fromStock": {
+            "title": "Añadir desde tu stock",
+            "body": "En cualquier artículo de stock, usa «Añadir a la lista de la compra» — la línea queda vinculada al artículo y la cantidad sugerida lo reabastece. Añadirlo dos veces no crea un duplicado."
+          },
+          "check": {
+            "title": "Márcalo mientras compras",
+            "body": "Marca un artículo para tacharlo y moverlo a «Cogidos». «Vaciar marcados» vacía esa sección (con deshacer)."
+          },
+          "agent": {
+            "title": "Deja que el asistente la rellene",
+            "body": "Solo di «añade café a la lista» — el asistente lo añade, lo vincula a tu stock cuando reconoce el nombre, y puedes deshacerlo con un toque."
           }
         }
       },
