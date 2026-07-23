@@ -1,4 +1,45 @@
 {
+  "briefings": {
+    "title": "Briefings",
+    "subtitle": "Persönliche Zusammenfassungen, die dir dein Assistent nach deinen eigenen Regeln schickt.",
+    "created": "Briefing erstellt",
+    "deleted": "Briefing gelöscht",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "new": {
+      "title": "Neues Briefing",
+      "button": "Neues Briefing"
+    },
+    "edit": {
+      "title": "Briefing bearbeiten"
+    },
+    "empty": {
+      "title": "Noch keine Briefings",
+      "description": "Erstelle ein Briefing, damit dir dein Assistent eine Zusammenfassung schickt — deine Aufgaben der Woche, das Wetter von heute und mehr."
+    },
+    "filters": {
+      "all": "Alle",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "visibility": {
+      "private": "Privat",
+      "shared": "Geteilt",
+      "privateHint": "Privat — nur ich",
+      "sharedHint": "Geteilt — der ganze Haushalt"
+    },
+    "fields": {
+      "title": "Titel",
+      "titlePlaceholder": "Morgen-Briefing",
+      "prompt": "Inhalt",
+      "promptHint": "Beschreibe in natürlicher Sprache, was das Briefing enthalten soll.",
+      "promptPlaceholder": "Meine Aufgaben der Woche und das Wetter von heute",
+      "condition": "Bedingung",
+      "conditionHint": "Optional. Der Assistent sendet das Briefing nur, wenn dies zutrifft — z. B. „wenn es heute regnet\".",
+      "conditionPlaceholder": "Wenn es heute regnet",
+      "visibility": "Sichtbarkeit"
+    }
+  },
   "shoppingList": {
     "title": "Einkaufsliste",
     "quickAdd": {

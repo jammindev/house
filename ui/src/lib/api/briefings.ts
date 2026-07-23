@@ -1,0 +1,71 @@
+import { api } from '@/lib/axios';
+
+export type BriefingType = 'recurring' | 'event';
+export type BriefingChannel = 'telegram';
+
+export interface Briefing {
+  id: string;
+  household: string;
+  title: string;
+  prompt: string;
+  condition: string;
+  channel: BriefingChannel;
+  briefing_type: BriefingType;
+  is_private: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  created_by_name: string | null;
+}
+
+interface PaginatedResponse<T> {
+  results?: T[];
+}
+
+function normalizeList<T>(payload: unknown): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === 'object') {
+    const paginated = payload as PaginatedResponse<T>;
+    if (Array.isArray(paginated.results)) return paginated.results;
+  }
+  return [];
+}
+
+export interface BriefingPayload {
+  title: string;
+  prompt: string;
+  condition?: string;
+  is_private?: boolean;
+  briefing_type?: BriefingType;
+  is_active?: boolean;
+}
+
+export async function fetchBriefings(): Promise<Briefing[]> {
+  const { data } = await api.get('/briefings/briefings/', { params: { ordering: '-created_at' } });
+  return normalizeList<Briefing>(data);
+}
+
+export async function createBriefing(payload: BriefingPayload): Promise<Briefing> {
+  const { data } = await api.post('/briefings/briefings/', {
+    title: payload.title,
+    prompt: payload.prompt,
+    condition: payload.condition ?? '',
+    is_private: payload.is_private ?? false,
+    briefing_type: payload.briefing_type ?? 'recurring',
+    is_active: payload.is_active ?? false,
+  });
+  return data as Briefing;
+}
+
+export async function updateBriefing(
+  id: string,
+  payload: Partial<BriefingPayload>,
+): Promise<Briefing> {
+  const { data } = await api.patch(`/briefings/briefings/${id}/`, payload);
+  return data as Briefing;
+}
+
+export async function deleteBriefing(id: string): Promise<void> {
+  await api.delete(`/briefings/briefings/${id}/`);
+}
