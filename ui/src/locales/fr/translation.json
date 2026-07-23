@@ -1,4 +1,45 @@
 {
+  "briefings": {
+    "title": "Briefings",
+    "subtitle": "Des résumés personnalisés que votre assistant vous envoie, selon vos propres règles.",
+    "created": "Briefing créé",
+    "deleted": "Briefing supprimé",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "new": {
+      "title": "Nouveau briefing",
+      "button": "Nouveau briefing"
+    },
+    "edit": {
+      "title": "Modifier le briefing"
+    },
+    "empty": {
+      "title": "Aucun briefing",
+      "description": "Créez un briefing pour que votre assistant vous envoie un résumé — vos tâches de la semaine, la météo du jour, etc."
+    },
+    "filters": {
+      "all": "Tous",
+      "active": "Actifs",
+      "inactive": "Inactifs"
+    },
+    "visibility": {
+      "private": "Privé",
+      "shared": "Partagé",
+      "privateHint": "Privé — moi uniquement",
+      "sharedHint": "Partagé — tout le foyer"
+    },
+    "fields": {
+      "title": "Titre",
+      "titlePlaceholder": "Briefing du matin",
+      "prompt": "Contenu",
+      "promptHint": "Décrivez en langage naturel ce que le briefing doit contenir.",
+      "promptPlaceholder": "Mes tâches de la semaine et la météo du jour",
+      "condition": "Condition",
+      "conditionHint": "Optionnel. L'assistant n'envoie le briefing que si c'est vrai — ex. « s'il pleut aujourd'hui ».",
+      "conditionPlaceholder": "S'il pleut aujourd'hui",
+      "visibility": "Visibilité"
+    }
+  },
   "shoppingList": {
     "title": "Liste de courses",
     "quickAdd": {
@@ -2010,7 +2051,6 @@
       "unit_price": "Prix unitaire",
       "total_value": "Valeur totale",
       "purchase_date": "Date d'achat",
-      "expiration_date": "Date d'expiration",
       "last_restocked_at": "Dernier réappro",
       "sku": "SKU",
       "barcode": "Code-barres",
@@ -2037,10 +2077,7 @@
     "status": {
       "in_stock": "En stock",
       "low_stock": "Stock faible",
-      "out_of_stock": "Rupture",
-      "ordered": "Commandé",
-      "expired": "Expiré",
-      "reserved": "Réservé"
+      "out_of_stock": "Rupture"
     },
     "categories": {
       "new": "Nouvelle catégorie",
@@ -2894,6 +2931,13 @@
     "recurringAccess": {
       "hint": "Abonnements, assurances, factures & prévision de trésorerie.",
       "committed": "{{amount}} engagés ce mois"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "Installez l'app",
+      "iosInstructions": "Appuyez sur Partager puis « Sur l'écran d'accueil ».",
+      "dismiss": "Fermer"
     }
   },
   "recurring": {

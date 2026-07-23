@@ -137,12 +137,58 @@ export class StockService {
         });
     }
     /**
+     * Return the item's consumption curve (dated levels) + depletion metrics.
+     *
+     * Delegates to ``services.compute_consumption``. Query param ``period`` is
+     * one of ``30d``/``90d``/``1y``/``all`` (default ``90d``).
+     * @param id
+     * @returns StockItem
+     * @throws ApiError
+     */
+    public static stockConsumptionRetrieve(
+        id: string,
+    ): CancelablePromise<StockItem> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/stock/{id}/consumption/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Set the item quantity to a measured absolute value (an inventory count).
+     *
+     * Delegates to ``services.record_inventory``: unlike ``adjust-quantity``
+     * (a signed delta), the payload is the *remaining* amount directly. Persists
+     * an ``inventory`` level reading so the consumption curve has a point.
+     * @param id
+     * @param requestBody
+     * @returns StockItem
+     * @throws ApiError
+     */
+    public static stockInventoryCreate(
+        id: string,
+        requestBody: StockItem,
+    ): CancelablePromise<StockItem> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/stock/{id}/inventory/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Compose an inbound stock movement with an expense interaction.
      *
-     * Single-action endpoint: increments item quantity by `delta` and creates an
-     * Interaction(type=expense) linked to the item. Side-effects on the item
-     * (unit_price, purchase_date, supplier, last_restocked_at) are best-effort
-     * snapshots of the most recent purchase.
+     * Single-action endpoint delegating to ``services.purchase_stock_item``:
+     * increments the item quantity by `delta` (recalibrating from
+     * `remaining_before` when provided) and creates an Interaction(type=expense)
+     * linked to the item, persisting the dated level readings the consumption
+     * curve consumes.
      * @param id
      * @param requestBody
      * @returns StockItem
@@ -276,6 +322,26 @@ export class StockService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/stock/categories/summary/',
+        });
+    }
+    /**
+     * Reverse a stock purchase created via the agent (undo of ``purchase``).
+     *
+     * Body: ``{"interaction_id": "<uuid>"}``. Delegates to
+     * ``services.undo_purchase`` (deletes the expense + readings, restores the
+     * quantity). Idempotent: an already-undone purchase returns 404.
+     * @param requestBody
+     * @returns StockItem
+     * @throws ApiError
+     */
+    public static stockUndoPurchaseCreate(
+        requestBody: StockItem,
+    ): CancelablePromise<StockItem> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/stock/undo-purchase/',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }

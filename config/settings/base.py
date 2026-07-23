@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     "pings",
     "budget",
     "shopping",
+    "briefings",
 ]
 
 MIDDLEWARE = [

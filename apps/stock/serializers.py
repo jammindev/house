@@ -1,7 +1,5 @@
-from datetime import timedelta
 from decimal import Decimal
 
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
@@ -68,7 +66,6 @@ class StockItemSerializer(serializers.ModelSerializer):
             "unit_price",
             "total_value",
             "purchase_date",
-            "expiration_date",
             "last_restocked_at",
             "status",
             "supplier",
@@ -79,7 +76,7 @@ class StockItemSerializer(serializers.ModelSerializer):
             "created_by",
             "updated_by",
         ]
-        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by", "total_value"]
+        read_only_fields = ["id", "household", "created_at", "updated_at", "created_by", "updated_by", "total_value", "status"]
 
     def get_total_value(self, obj):
         if obj.unit_price is None:
@@ -175,13 +172,9 @@ class StockCategorySummarySerializer(serializers.Serializer):
     total_value = serializers.DecimalField(max_digits=16, decimal_places=2)
     low_stock_count = serializers.IntegerField()
     out_of_stock_count = serializers.IntegerField()
-    expiring_soon_count = serializers.IntegerField()
 
 
 def build_category_summary(category_queryset):
-    now = timezone.now().date()
-    upcoming = now + timedelta(days=7)
-
     summary = []
     for category in category_queryset:
         items = list(category.items.all())
@@ -193,13 +186,6 @@ def build_category_summary(category_queryset):
         )
         low_stock_count = len([item for item in items if item.min_quantity is not None and item.quantity <= item.min_quantity])
         out_of_stock_count = len([item for item in items if item.quantity <= 0])
-        expiring_soon_count = len(
-            [
-                item
-                for item in items
-                if item.expiration_date is not None and now <= item.expiration_date <= upcoming
-            ]
-        )
 
         summary.append(
             {
@@ -212,7 +198,6 @@ def build_category_summary(category_queryset):
                 "total_value": total_value,
                 "low_stock_count": low_stock_count,
                 "out_of_stock_count": out_of_stock_count,
-                "expiring_soon_count": expiring_soon_count,
             }
         )
 

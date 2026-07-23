@@ -129,13 +129,6 @@ class TestAlertsSummaryLowStock:
         assert len(low_stock) == 1
         assert low_stock[0]["severity"] == "critical"
 
-    def test_expired_item_returned_as_critical(self, owner_client, household, owner):
-        _create_stock_item(household, owner, name="Old flour", item_status=StockItem.Status.EXPIRED, quantity="0.5")
-        response = owner_client.get(self._url())
-        low_stock = response.data["low_stock"]
-        assert len(low_stock) == 1
-        assert low_stock[0]["severity"] == "critical"
-
     def test_quantity_and_min_quantity_serialized_as_strings(self, owner_client, household, owner):
         _create_stock_item(
             household, owner,
@@ -164,7 +157,7 @@ class TestAlertsSummaryLowStock:
         # Insert in reverse-expected order so the test fails if ordering is wrong.
         _create_stock_item(household, owner, name="Zucchini (low)", item_status=StockItem.Status.LOW_STOCK)
         _create_stock_item(household, owner, name="apples (out)", item_status=StockItem.Status.OUT_OF_STOCK)
-        _create_stock_item(household, owner, name="Beans (expired)", item_status=StockItem.Status.EXPIRED)
+        _create_stock_item(household, owner, name="Beans (out)", item_status=StockItem.Status.OUT_OF_STOCK)
         _create_stock_item(household, owner, name="almonds (low)", item_status=StockItem.Status.LOW_STOCK)
 
         response = owner_client.get(self._url())
@@ -177,7 +170,7 @@ class TestAlertsSummaryLowStock:
 
         # Among criticals: apples < Beans (case-insensitive)
         critical_names = [item["title"] for item in low_stock if item["severity"] == "critical"]
-        assert critical_names == ["apples (out)", "Beans (expired)"]
+        assert critical_names == ["apples (out)", "Beans (out)"]
 
         # Among warnings: almonds < Zucchini (case-insensitive)
         warning_names = [item["title"] for item in low_stock if item["severity"] == "warning"]

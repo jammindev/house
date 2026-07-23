@@ -1,5 +1,5 @@
 """Aggregation of household alerts (overdue tasks, expiring warranties, due
-maintenances, low/out/expired stock)."""
+maintenances, low/out-of-stock items)."""
 
 from datetime import date, timedelta
 
@@ -21,10 +21,9 @@ MAINTENANCE_CRITICAL_DAYS = 7
 STOCK_ALERT_STATUSES = [
     StockItem.Status.LOW_STOCK,
     StockItem.Status.OUT_OF_STOCK,
-    StockItem.Status.EXPIRED,
 ]
-# Being out of an item (or keeping an expired one) needs action now; low is a heads-up.
-STOCK_CRITICAL_STATUSES = {StockItem.Status.OUT_OF_STOCK, StockItem.Status.EXPIRED}
+# Being out of an item needs action now; low is a heads-up.
+STOCK_CRITICAL_STATUSES = {StockItem.Status.OUT_OF_STOCK}
 
 
 def _overdue_tasks(household, today: date) -> list[dict]:

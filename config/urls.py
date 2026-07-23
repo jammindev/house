@@ -43,6 +43,7 @@ urlpatterns = [
     path("api/pings/", include("pings.urls")),
     path("api/budget/", include("budget.urls")),
     path("api/shopping/", include("shopping.urls")),
+    path("api/briefings/", include("briefings.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
 ]
 
@@ -65,6 +66,11 @@ urlpatterns += [
         template_name="manifest.json",
         content_type="application/manifest+json",
     ), name="manifest"),
+    # Service worker servi à la racine pour avoir un scope `/` (contrôle /app/*).
+    path("sw.js", TemplateView.as_view(
+        template_name="sw.js",
+        content_type="application/javascript",
+    ), name="service_worker"),
     re_path(r"^(?!api/|admin/|static/|media/|i18n/).*$",
             TemplateView.as_view(template_name="index.html"),
             name="spa_catchall"),

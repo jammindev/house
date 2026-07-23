@@ -26,7 +26,7 @@ import StockCategoryDialog from './StockCategoryDialog';
 
 type ActiveTab = 'items' | 'categories';
 
-const STATUS_OPTIONS = ['', 'in_stock', 'low_stock', 'out_of_stock', 'ordered', 'expired', 'reserved'];
+const STATUS_OPTIONS = ['', 'in_stock', 'low_stock', 'out_of_stock'];
 
 export default function StockPage() {
   const { t } = useTranslation();

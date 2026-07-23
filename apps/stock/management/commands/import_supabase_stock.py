@@ -218,7 +218,6 @@ class Command(BaseCommand):
         dry_run: bool,
     ) -> ImportCounters:
         counters = ImportCounters()
-        valid_statuses = {choice for choice, _label in StockItem.Status.choices}
 
         for row in rows:
             item_id = row.get("id")
@@ -236,8 +235,21 @@ class Command(BaseCommand):
             if zone_id and not Zone.objects.filter(id=zone_id, household_id=target_household_id).exists():
                 zone_id = None
 
-            status_value = (row.get("status") or StockItem.Status.IN_STOCK).strip() or StockItem.Status.IN_STOCK
-            if status_value not in valid_statuses:
+            # Status is fully derived from quantity/threshold — the source value
+            # (which may be a retired state like ordered/expired) is ignored.
+            try:
+                qty = float(row.get("quantity") or 0)
+            except (TypeError, ValueError):
+                qty = 0.0
+            try:
+                min_q = float(row.get("min_quantity")) if row.get("min_quantity") not in (None, "") else None
+            except (TypeError, ValueError):
+                min_q = None
+            if qty <= 0:
+                status_value = StockItem.Status.OUT_OF_STOCK
+            elif min_q is not None and qty <= min_q:
+                status_value = StockItem.Status.LOW_STOCK
+            else:
                 status_value = StockItem.Status.IN_STOCK
 
             defaults = {
@@ -254,7 +266,6 @@ class Command(BaseCommand):
                 "max_quantity": row.get("max_quantity"),
                 "unit_price": row.get("unit_price"),
                 "purchase_date": row.get("purchase_date"),
-                "expiration_date": row.get("expiration_date"),
                 "last_restocked_at": row.get("last_restocked_at"),
                 "status": status_value,
                 "supplier": row.get("supplier") or "",

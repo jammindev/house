@@ -634,7 +634,7 @@ _LIST_ENTITIES_SCHEMA = {
             "description": (
                 "What to list. Supported: 'task', 'interaction', 'consumption', "
                 "'meter_reading', 'water_reading', 'tracker', 'chicken', "
-                "'egg_log'."
+                "'egg_log', 'shopping_item'."
             ),
         },
         "filters": {
@@ -666,7 +666,12 @@ _LIST_ENTITIES_SCHEMA = {
                 "(comma-separated among active, broody, sick, deceased, gone), "
                 "in_flock ('true' = only hens currently in the flock). "
                 "For 'egg_log' (daily egg counts): date_from / date_to "
-                "(YYYY-MM-DD)."
+                "(YYYY-MM-DD). "
+                "For 'shopping_item' (the household shopping list — use it for "
+                "'qu'est-ce qu'il me manque ?' with checked='false'): checked "
+                "('false' = still to buy, 'true' = already picked up), linked "
+                "('true' = only lines tied to a stock item, 'false' = free-text "
+                "only)."
             ),
         },
         "limit": {
@@ -685,7 +690,8 @@ _LIST_ENTITIES_DESCRIPTION = (
     "items (citable ids), the total count, and — when items carry an amount "
     "(expenses in EUR, consumption in kWh) — the sum of amounts over the whole "
     "filtered set. Supported types: 'task', 'interaction', 'consumption', "
-    "'meter_reading', 'water_reading', 'tracker', 'chicken', 'egg_log'."
+    "'meter_reading', 'water_reading', 'tracker', 'chicken', 'egg_log', "
+    "'shopping_item'."
 )
 
 

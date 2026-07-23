@@ -120,7 +120,8 @@ def test_stock_adjust_quantity_rejects_negative_result(client, user, household, 
 
 
 @pytest.mark.django_db
-def test_stock_create_ordered_item_sets_last_restocked_at(client, user, household, dual_membership):
+def test_stock_create_derives_status_ignoring_client_value(client, user, household, dual_membership):
+    """Status is read-only/derived: a client-sent value is ignored, quantity wins."""
     category = StockCategory.objects.create(household=household, name="Supplies", created_by=user)
     zone = Zone.objects.create(household=household, name="Pantry", created_by=user)
 
@@ -130,17 +131,16 @@ def test_stock_create_ordered_item_sets_last_restocked_at(client, user, househol
         data={
             "category": str(category.id),
             "zone": str(zone.id),
-            "name": "Ordered filters",
-            "quantity": 3,
+            "name": "Empty on arrival",
+            "quantity": 0,
             "unit": "pcs",
-            "status": "ordered",
+            "status": "in_stock",  # ignored — derived from quantity
         },
         content_type="application/json",
     )
 
     assert response.status_code == 201
-    created = StockItem.objects.get(id=response.json()["id"])
-    assert created.last_restocked_at is not None
+    assert response.json()["status"] == "out_of_stock"
 
 
 @pytest.mark.django_db

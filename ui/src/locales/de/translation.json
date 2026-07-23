@@ -1,4 +1,45 @@
 {
+  "briefings": {
+    "title": "Briefings",
+    "subtitle": "Persönliche Zusammenfassungen, die dir dein Assistent nach deinen eigenen Regeln schickt.",
+    "created": "Briefing erstellt",
+    "deleted": "Briefing gelöscht",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "new": {
+      "title": "Neues Briefing",
+      "button": "Neues Briefing"
+    },
+    "edit": {
+      "title": "Briefing bearbeiten"
+    },
+    "empty": {
+      "title": "Noch keine Briefings",
+      "description": "Erstelle ein Briefing, damit dir dein Assistent eine Zusammenfassung schickt — deine Aufgaben der Woche, das Wetter von heute und mehr."
+    },
+    "filters": {
+      "all": "Alle",
+      "active": "Aktiv",
+      "inactive": "Inaktiv"
+    },
+    "visibility": {
+      "private": "Privat",
+      "shared": "Geteilt",
+      "privateHint": "Privat — nur ich",
+      "sharedHint": "Geteilt — der ganze Haushalt"
+    },
+    "fields": {
+      "title": "Titel",
+      "titlePlaceholder": "Morgen-Briefing",
+      "prompt": "Inhalt",
+      "promptHint": "Beschreibe in natürlicher Sprache, was das Briefing enthalten soll.",
+      "promptPlaceholder": "Meine Aufgaben der Woche und das Wetter von heute",
+      "condition": "Bedingung",
+      "conditionHint": "Optional. Der Assistent sendet das Briefing nur, wenn dies zutrifft — z. B. „wenn es heute regnet\".",
+      "conditionPlaceholder": "Wenn es heute regnet",
+      "visibility": "Sichtbarkeit"
+    }
+  },
   "shoppingList": {
     "title": "Einkaufsliste",
     "quickAdd": {
@@ -2010,7 +2051,6 @@
       "unit_price": "Stückpreis",
       "total_value": "Gesamtwert",
       "purchase_date": "Kaufdatum",
-      "expiration_date": "Ablaufdatum",
       "last_restocked_at": "Zuletzt nachgefüllt",
       "sku": "SKU",
       "barcode": "Barcode",
@@ -2037,10 +2077,7 @@
     "status": {
       "in_stock": "Auf Lager",
       "low_stock": "Niedriger Bestand",
-      "out_of_stock": "Nicht auf Lager",
-      "ordered": "Bestellt",
-      "expired": "Abgelaufen",
-      "reserved": "Reserviert"
+      "out_of_stock": "Nicht auf Lager"
     },
     "categories": {
       "new": "Neue Kategorie",
@@ -2894,6 +2931,13 @@
     "recurringAccess": {
       "hint": "Abos, Versicherungen, Rechnungen & Liquiditätsprognose.",
       "committed": "{{amount}} diesen Monat zugesagt"
+    }
+  },
+  "pwa": {
+    "install": {
+      "title": "App installieren",
+      "iosInstructions": "Tippen Sie auf Teilen und dann auf „Zum Home-Bildschirm“.",
+      "dismiss": "Schließen"
     }
   },
   "recurring": {
