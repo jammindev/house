@@ -2,11 +2,13 @@ import { SidebarToggleProvider } from './SidebarToggleContext';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import ImpersonationBanner from './ImpersonationBanner';
+import InstallHint from './InstallHint';
 
 function AppShellInner({ children }: { children?: React.ReactNode }) {
   return (
     <div className="fixed inset-0 overscroll-none bg-sidebar flex flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
       <ImpersonationBanner />
+      <InstallHint />
       <TopBar />
       <div className="flex flex-1 overflow-hidden gap-2">
         <Sidebar />

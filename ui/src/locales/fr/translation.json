@@ -2922,5 +2922,12 @@
     "overBy": "Dépassé de {{amount}}",
     "percentUsed": "{{pct}} % utilisé",
     "namedExceedsGlobal": "Tes budgets totalisent {{named}}, plus que le plafond global de {{global}}."
+  },
+  "pwa": {
+    "install": {
+      "title": "Installez l'app",
+      "iosInstructions": "Appuyez sur Partager puis « Sur l'écran d'accueil ».",
+      "dismiss": "Fermer"
+    }
   }
 }
