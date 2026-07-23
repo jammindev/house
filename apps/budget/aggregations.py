@@ -22,7 +22,7 @@ from django.utils import timezone
 
 from interactions.models import Interaction
 
-from .models import Budget
+from .models import Budget, RecurringExpense
 
 # Ratio at which a budget flips to the "attention" state (below the 100% overrun).
 WARNING_RATIO = getattr(settings, "BUDGET_WARNING_RATIO", 0.8)
@@ -79,6 +79,25 @@ def _spent_by_budget(household_id, start, end) -> dict:
     return {row["budget_id"]: row["total"] or _zero() for row in rows}
 
 
+def _committed_by_budget(household_id, start, end) -> dict:
+    """Sum of recurring-expense amounts DUE this month, grouped by ``budget_id``.
+
+    'Engagé à venir' — occurrences scheduled for the current month that have not
+    been confirmed yet (confirming advances ``next_due_date`` out of the month).
+    ``None`` key = recurrences not attached to any budget.
+    """
+    rows = (
+        RecurringExpense.objects.filter(
+            household_id=household_id,
+            next_due_date__gte=start.date(),
+            next_due_date__lt=end.date(),
+        )
+        .values("budget_id")
+        .annotate(total=Coalesce(Sum("amount"), _zero()))
+    )
+    return {row["budget_id"]: row["total"] or _zero() for row in rows}
+
+
 def _state(spent: Decimal, ceiling: Decimal) -> tuple[float, str]:
     """Return (ratio, state) where state is 'ok' | 'warning' | 'over'."""
     if ceiling <= 0:
@@ -91,13 +110,14 @@ def _state(spent: Decimal, ceiling: Decimal) -> tuple[float, str]:
     return ratio, "ok"
 
 
-def _budget_row(budget: Budget, spent: Decimal) -> dict[str, Any]:
+def _budget_row(budget: Budget, spent: Decimal, committed: Decimal | None = None) -> dict[str, Any]:
     ratio, state = _state(spent, budget.monthly_amount)
     return {
         "id": str(budget.id),
         "name": budget.name,
         "amount": _str(budget.monthly_amount),
         "spent": _str(spent),
+        "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
         "state": state,
     }
@@ -120,21 +140,26 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     """
     start, end, month = current_month_range(household)
     spent_map = _spent_by_budget(household.id, start, end)
+    committed_map = _committed_by_budget(household.id, start, end)
 
     budgets = list(Budget.objects.filter(household_id=household.id))
     named = [b for b in budgets if not b.is_global]
     global_budget = next((b for b in budgets if b.is_global), None)
 
     total_spent = sum(spent_map.values(), _zero())
+    total_committed = sum(committed_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
-    named_rows = [_budget_row(b, spent_map.get(b.id, _zero())) for b in named]
+    named_rows = [
+        _budget_row(b, spent_map.get(b.id, _zero()), committed_map.get(b.id, _zero()))
+        for b in named
+    ]
     named_total_amount = sum((b.monthly_amount for b in named), _zero())
 
     global_row = None
     named_exceeds_global = False
     if global_budget is not None:
-        global_row = _budget_row(global_budget, total_spent)
+        global_row = _budget_row(global_budget, total_spent, total_committed)
         named_exceeds_global = named_total_amount > global_budget.monthly_amount
 
     return {
@@ -143,6 +168,64 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         "budgets": named_rows,
         "unbudgeted": _str(unbudgeted),
         "total_spent": _str(total_spent),
+        "total_committed": _str(total_committed),
         "named_total_amount": _str(named_total_amount),
         "named_exceeds_global": named_exceeds_global,
     }
+
+
+def compute_cashflow_projection(*, household, today=None, horizons=(30, 90)) -> dict[str, Any]:
+    """Project upcoming recurring outflows over the next N days.
+
+    For each horizon, sums every recurring occurrence whose date falls in
+    ``[today, today + N days]`` — stepping each recurrence by its cadence so a
+    monthly bill counts ~3× over 90 days. Read-only; no state advanced.
+
+    Shape::
+
+        {
+          "today": "2026-07-23",
+          "horizons": [{"days": 30, "total": "142.00", "count": 3},
+                       {"days": 90, "total": "426.00", "count": 7}],
+        }
+    """
+    from datetime import timedelta
+
+    from .services import advance_due_date
+
+    if today is None:
+        tz_name = getattr(household, "timezone", "") or "UTC"
+        try:
+            tz = ZoneInfo(tz_name)
+        except Exception:  # pragma: no cover
+            tz = ZoneInfo("UTC")
+        today = timezone.now().astimezone(tz).date()
+
+    recurrences = list(RecurringExpense.objects.filter(household_id=household.id))
+    max_horizon = max(horizons) if horizons else 0
+    far_end = today + timedelta(days=max_horizon)
+
+    # Pre-expand each recurrence's occurrences up to the farthest horizon once.
+    occurrences: list[tuple] = []  # (date, amount)
+    for rec in recurrences:
+        due = rec.next_due_date
+        # skip occurrences already in the past relative to today
+        while due < today:
+            due = advance_due_date(due, rec.cadence)
+        while due <= far_end:
+            occurrences.append((due, rec.amount))
+            due = advance_due_date(due, rec.cadence)
+
+    horizon_rows = []
+    for days in horizons:
+        limit = today + timedelta(days=days)
+        due_in_window = [amount for (d, amount) in occurrences if d <= limit]
+        horizon_rows.append(
+            {
+                "days": days,
+                "total": _str(sum(due_in_window, _zero())),
+                "count": len(due_in_window),
+            }
+        )
+
+    return {"today": today.isoformat(), "horizons": horizon_rows}

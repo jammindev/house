@@ -849,7 +849,8 @@
         "meter_reading": "Recordatorio de lectura eléctrica",
         "water_reading": "Recordatorio de lectura de agua",
         "weather_alert": "Alerta meteorológica",
-        "daily_digest": "Resumen diario"
+        "daily_digest": "Resumen diario",
+        "recurring_due": "Vencimiento de gasto recurrente"
       }
     },
     "theme": "Tema",
@@ -1411,6 +1412,10 @@
           "track": {
             "title": "Seguir el mes",
             "body": "Cada presupuesto muestra lo gastado frente al límite con una barra de progreso — ámbar cerca del límite, rojo al superarlo. Los contadores se reinician cada mes."
+          },
+          "recurring": {
+            "title": "Anticipar facturas recurrentes",
+            "body": "Abre «Gastos recurrentes» desde la página de presupuesto para registrar suscripciones, seguros y facturas. Mira lo que vence en los próximos 30/90 días y confirma cada vencimiento en un clic cuando lo pagues (el importe es editable) — entra en tu diario y avanza a la fecha siguiente."
           }
         }
       }
@@ -2884,6 +2889,68 @@
     },
     "overBy": "Superado en {{amount}}",
     "percentUsed": "{{pct}} % usado",
-    "namedExceedsGlobal": "Tus presupuestos suman {{named}}, más que el límite global de {{global}}."
+    "namedExceedsGlobal": "Tus presupuestos suman {{named}}, más que el límite global de {{global}}.",
+    "committed": "Comprometido: {{amount}}",
+    "recurringAccess": {
+      "hint": "Suscripciones, seguros, facturas y previsión de tesorería.",
+      "committed": "{{amount}} comprometidos este mes"
+    }
+  },
+  "recurring": {
+    "title": "Gastos recurrentes",
+    "description": "Suscripciones, seguros, facturas — anticipa lo que vence y confírmalo en un clic.",
+    "created": "Gasto recurrente creado",
+    "updated": "Gasto recurrente actualizado",
+    "deleted": "Gasto recurrente eliminado",
+    "empty": "Aún no hay gastos recurrentes",
+    "emptyDescription": "Añade una suscripción o factura para anticipar tu tesorería.",
+    "new": {
+      "title": "Nuevo gasto recurrente",
+      "action": "Nuevo gasto recurrente"
+    },
+    "edit": {
+      "title": "Editar gasto recurrente"
+    },
+    "fields": {
+      "label": "Etiqueta",
+      "labelPlaceholder": "p. ej. Netflix, seguro del hogar",
+      "amount": "Importe",
+      "cadence": "Frecuencia",
+      "nextDue": "Próximo vencimiento",
+      "supplier": "Proveedor",
+      "budget": "Presupuesto",
+      "budgetNone": "Sin presupuesto",
+      "notes": "Notas"
+    },
+    "cadence": {
+      "monthly": "Mensual",
+      "quarterly": "Trimestral",
+      "yearly": "Anual"
+    },
+    "errors": {
+      "labelRequired": "Introduce una etiqueta.",
+      "amountInvalid": "Introduce un importe positivo.",
+      "dateRequired": "Elige una fecha de vencimiento."
+    },
+    "confirm": {
+      "title": "Confirmar este gasto",
+      "hint": "Registra el gasto en tu diario y avanza al próximo vencimiento. Ajusta el importe si la factura cambió.",
+      "amount": "Importe pagado",
+      "action": "Confirmar"
+    },
+    "confirmed": "«{{label}}» confirmado",
+    "dueOn": "vence {{date}}",
+    "nextOn": "próximo {{date}}",
+    "due": {
+      "heading": "Por confirmar ({{count}})"
+    },
+    "upcoming": {
+      "heading": "Próximos",
+      "empty": "Nada más programado."
+    },
+    "projection": {
+      "horizon": "Próximos {{days}} días",
+      "count": "{{count}} vencimiento(s)"
+    }
   }
 }

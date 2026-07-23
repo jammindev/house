@@ -428,6 +428,21 @@ Ancre : projet "Rénovation salle de bain" (seedé). Entité cible : second proj
 
 ---
 
+## Dépenses récurrentes (`recurring.spec.ts`)
+
+| Parcours | Statut |
+|---|---|
+| Link card "Dépenses récurrentes" depuis /app/budget → /app/budget/recurring + état vide | ✅ |
+| Ouverture du SheetDialog (champs libellé, montant, cadence, échéance, fournisseur, notes) | ✅ |
+| Validation : libellé vide → erreur, dialog reste ouvert | ✅ |
+| Création "Netflix" 15 € échéance aujourd'hui → section "À confirmer (1)" + bouton "Confirmer" | ✅ |
+| Cartes de projection trésorerie "30 prochains jours" / "90 prochains jours" visibles | ✅ |
+| Confirmation d'une occurrence (montant par défaut) → toast "confirmée" + sort de "À confirmer" | ✅ |
+| Suppression via CardActions → toast "Récurrence supprimée" + carte absente | ✅ |
+| Suppression annulable : undo restaure la carte | ✅ |
+
+---
+
 ## Modules & sidebar (`modules-sidebar.spec.ts`)
 
 | Parcours | Statut |

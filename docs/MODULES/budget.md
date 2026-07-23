@@ -67,6 +67,36 @@ critères qui, par la règle « Interaction vs modèle dédié » du CLAUDE.md, 
 un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** (et non
 `metadata`) précisément parce qu'on l'agrège (SUM par budget/mois).
 
+## Dépenses récurrentes (lot 2)
+
+- **Modèle dédié `RecurringExpense`** (app `budget`) : `label`, `amount`,
+  `cadence` (`monthly`/`quarterly`/`yearly`), `next_due_date`, `supplier`,
+  `notes`, FK optionnelle `budget` (`SET_NULL`). Dédié car il porte un
+  **planning** (`next_due_date` avance à chaque confirmation = petite machine à
+  états) **requêté** par date (projection + liste « à confirmer »).
+- **Services** (`services.py`) : `create/update/delete_recurring_expense`,
+  `advance_due_date` (arithmétique de mois avec **clamp fin de mois** : 31 jan
+  +1 mois → 28 fév), et `confirm_recurring_occurrence` — crée une vraie
+  `Interaction(type='expense')` via `interactions.services`
+  (`metadata.kind='recurring'` + `recurring_id`), rattachée au budget, puis
+  **avance l'échéance**. Montant surchargeable à la confirmation (une facture
+  varie). **Jamais auto-matérialisé** : la confirmation est toujours explicite.
+- **Agrégations** : `compute_cashflow_projection` (somme des occurrences à venir
+  sur 30/90 j en dépliant chaque récurrence par sa cadence) ; l'overview budget
+  gagne `committed` par budget + `total_committed` (« engagé à venir » = échéances
+  du mois non encore confirmées).
+- **API** (`/api/budget/recurring/`) : CRUD + `due/` (échéances du jour) +
+  `projection/` + `{id}/confirm/` (retourne la récurrence avancée +
+  `interaction_id` pour un undo exact = supprimer la dépense + restaurer la date).
+- **Rappel** : `PingSpec('recurring_due')` — nudge Telegram **informatif** listant
+  les échéances dues (pointe vers l'app ; la confirmation 1-clic reste in-app).
+- **Agent** : entité `recurring_expense` searchable + writable (create + undo).
+- **Frontend** : sous-page `/app/budget/recurring` (`RecurringPage` : projection,
+  section « à confirmer » avec confirm 1-clic, liste, dialogs, undo compound) ;
+  carte d'accès depuis `BudgetPage` ; `committed` affiché sur les cards budget.
+  i18n namespace `recurring.*` + `budget.committed`/`budget.recurringAccess.*` +
+  `settings.pings.types.recurring_due`.
+
 ## Décisions clés
 
 - **Budgets multiples nommés = la dimension de regroupement** (pas de taxonomie
@@ -85,5 +115,8 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
   encore.
 - **Pas de page détail par budget** : une seule vue d'ensemble ; les liens agent
   pointent vers `/app/budget`.
-- Lots suivants du parcours 21 : récurrences + prévision de trésorerie (#313),
-  bilan mensuel IA (#314).
+- **Récurrences** : le rappel d'échéance est un **nudge Telegram informatif** (pas
+  de confirmation interactive via Telegram en V1) ; la projection ne déplie que
+  les occurrences futures (les échéances passées non confirmées restent dans « à
+  confirmer »).
+- Lot suivant du parcours 21 : bilan mensuel IA (#314).

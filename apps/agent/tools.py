@@ -410,7 +410,8 @@ _CREATE_ENTITY_SCHEMA = {
                 "The kind of item to create. Supported: 'task', 'note', "
                 "'renovation', 'meter_reading', 'water_reading', 'tracker', "
                 "'tracker_entry', 'chicken', 'egg_log', 'stock_item', "
-                "'stock_reading', 'stock_purchase', 'budget', 'shopping_item'."
+                "'stock_reading', 'stock_purchase', 'budget', 'recurring_expense', "
+                "'shopping_item'."
             ),
         },
         "fields": {
@@ -494,6 +495,13 @@ _CREATE_ENTITY_SCHEMA = {
                 "monthly_amount (required, the monthly ceiling as a number), "
                 "is_global (optional bool — true only for the single household-"
                 "wide cap that covers all expenses; default false). "
+                "For entity_type='recurring_expense' (a recurring bill/"
+                "subscription/insurance, e.g. 'ajoute l'abonnement Netflix 15 € "
+                "par mois'): label (required), amount (required, the amount per "
+                "occurrence as a number), cadence (optional, one of 'monthly' — "
+                "default —, 'quarterly', 'yearly'), next_due_date (required, "
+                "'YYYY-MM-DD', when the next occurrence falls), supplier "
+                "(optional), notes (optional). "
                 "For entity_type='shopping_item' (a line on the household's "
                 "shopping list, e.g. 'ajoute du café à la liste de courses'): "
                 "label (required, what to buy — omit only when stock_item is "
@@ -522,7 +530,8 @@ _CREATE_ENTITY_DESCRIPTION = (
     "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted), 'stock_item' (a "
     "new inventory item), 'stock_reading' (an inventory count of what's left of "
     "an item), 'stock_purchase' (a purchase/restock of an item, records the "
-    "expense too), 'budget' (a monthly spending envelope) and 'shopping_item' "
+    "expense too), 'budget' (a monthly spending envelope), 'recurring_expense' "
+    "(a recurring bill/subscription/insurance) and 'shopping_item' "
     "(a line on the household shopping list, e.g. 'ajoute du café à la liste'). "
     "Only call this when the "
     "add or remember something — never speculatively. After it succeeds, confirm "

@@ -60,6 +60,11 @@ export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
               ? t('budget.overBy', { amount: formatAmount(String(overBy)) })
               : t('budget.percentUsed', { pct })}
           </p>
+          {Number(row.committed) > 0 ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t('budget.committed', { amount: formatAmount(row.committed) })}
+            </p>
+          ) : null}
         </div>
 
         <CardActions actions={actions} />

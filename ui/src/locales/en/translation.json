@@ -849,7 +849,8 @@
         "meter_reading": "Electricity meter reading reminder",
         "water_reading": "Water meter reading reminder",
         "weather_alert": "Weather alert",
-        "daily_digest": "Daily digest"
+        "daily_digest": "Daily digest",
+        "recurring_due": "Recurring expense due"
       }
     },
     "theme": "Theme",
@@ -1411,6 +1412,10 @@
           "track": {
             "title": "Track the month",
             "body": "Each budget shows spent vs ceiling with a progress bar — amber near the limit, red once exceeded. Counters reset every month."
+          },
+          "recurring": {
+            "title": "Anticipate recurring bills",
+            "body": "Open “Recurring expenses” from the budget page to log subscriptions, insurance and bills. See what falls due over the next 30/90 days, and confirm each occurrence in one click when paid (the amount is editable) — it lands in your journal and advances to the next date."
           }
         }
       }
@@ -2884,6 +2889,68 @@
     },
     "overBy": "Over by {{amount}}",
     "percentUsed": "{{pct}}% used",
-    "namedExceedsGlobal": "Your budgets total {{named}}, more than the global cap of {{global}}."
+    "namedExceedsGlobal": "Your budgets total {{named}}, more than the global cap of {{global}}.",
+    "committed": "Committed: {{amount}}",
+    "recurringAccess": {
+      "hint": "Subscriptions, insurance, bills & cash-flow forecast.",
+      "committed": "{{amount}} committed this month"
+    }
+  },
+  "recurring": {
+    "title": "Recurring expenses",
+    "description": "Subscriptions, insurance, bills — anticipate what falls due and confirm each in one click.",
+    "created": "Recurring expense created",
+    "updated": "Recurring expense updated",
+    "deleted": "Recurring expense deleted",
+    "empty": "No recurring expense yet",
+    "emptyDescription": "Add a subscription or bill to anticipate your cash flow.",
+    "new": {
+      "title": "New recurring expense",
+      "action": "New recurring expense"
+    },
+    "edit": {
+      "title": "Edit recurring expense"
+    },
+    "fields": {
+      "label": "Label",
+      "labelPlaceholder": "e.g. Netflix, home insurance",
+      "amount": "Amount",
+      "cadence": "Cadence",
+      "nextDue": "Next due date",
+      "supplier": "Supplier",
+      "budget": "Budget",
+      "budgetNone": "No budget",
+      "notes": "Notes"
+    },
+    "cadence": {
+      "monthly": "Monthly",
+      "quarterly": "Quarterly",
+      "yearly": "Yearly"
+    },
+    "errors": {
+      "labelRequired": "Please enter a label.",
+      "amountInvalid": "Enter a positive amount.",
+      "dateRequired": "Please pick a due date."
+    },
+    "confirm": {
+      "title": "Confirm this expense",
+      "hint": "Records the expense in your journal and moves the schedule to the next occurrence. Adjust the amount if the bill changed.",
+      "amount": "Amount paid",
+      "action": "Confirm"
+    },
+    "confirmed": "“{{label}}” confirmed",
+    "dueOn": "due {{date}}",
+    "nextOn": "next {{date}}",
+    "due": {
+      "heading": "To confirm ({{count}})"
+    },
+    "upcoming": {
+      "heading": "Upcoming",
+      "empty": "Nothing else scheduled."
+    },
+    "projection": {
+      "horizon": "Next {{days}} days",
+      "count": "{{count}} occurrence(s)"
+    }
   }
 }
