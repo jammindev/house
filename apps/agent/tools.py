@@ -410,7 +410,7 @@ _CREATE_ENTITY_SCHEMA = {
                 "The kind of item to create. Supported: 'task', 'note', "
                 "'renovation', 'meter_reading', 'water_reading', 'tracker', "
                 "'tracker_entry', 'chicken', 'egg_log', 'stock_item', "
-                "'stock_reading', 'stock_purchase'."
+                "'stock_reading', 'stock_purchase', 'budget'."
             ),
         },
         "fields": {
@@ -489,6 +489,11 @@ _CREATE_ENTITY_SCHEMA = {
                 "(optional store), brand (optional), remaining_before (optional, "
                 "how much was left before restocking — recalibrates the stock), "
                 "occurred_at (optional ISO datetime), notes (optional). "
+                "For entity_type='budget' (a monthly spending envelope, e.g. "
+                "'crée un budget Courses de 400 € par mois'): name (required), "
+                "monthly_amount (required, the monthly ceiling as a number), "
+                "is_global (optional bool — true only for the single household-"
+                "wide cap that covers all expenses; default false). "
                 "In an anchored conversation the project/zone/entity is "
                 "attached automatically — do not ask for it."
             ),
@@ -509,8 +514,8 @@ _CREATE_ENTITY_DESCRIPTION = (
     "'chicken' (a hen of the family flock), 'egg_log' (the daily egg count, "
     "e.g. 'j'ai ramassé 4 œufs' — one log per day, upserted), 'stock_item' (a "
     "new inventory item), 'stock_reading' (an inventory count of what's left of "
-    "an item) and 'stock_purchase' (a purchase/restock of an item, records the "
-    "expense too). Only call this when the "
+    "an item), 'stock_purchase' (a purchase/restock of an item, records the "
+    "expense too) and 'budget' (a monthly spending envelope). Only call this when the "
     "add or remember something — never speculatively. After it succeeds, confirm "
     "in one short sentence and cite the new item with its returned id. The item "
     "is created immediately; the user can undo it from the interface."

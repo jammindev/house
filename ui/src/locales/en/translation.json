@@ -1339,6 +1339,24 @@
             "body": "Tick only the topics you care about. Sections for modules you don't use are hidden automatically."
           }
         }
+      },
+      "budget": {
+        "title": "Budgets",
+        "intro": "Set monthly ceilings and see at a glance whether your spending stays within them.",
+        "steps": {
+          "create": {
+            "title": "Create a budget",
+            "body": "Tap \"New budget\", give it a name (e.g. Groceries) and a monthly amount. Add a global budget to cap all your spending at once."
+          },
+          "assign": {
+            "title": "Attach expenses",
+            "body": "When you add a manual expense, pick a budget to count it against. Expenses left unassigned show up under \"Unbudgeted\"."
+          },
+          "track": {
+            "title": "Track the month",
+            "body": "Each budget shows spent vs ceiling with a progress bar — amber near the limit, red once exceeded. Counters reset every month."
+          }
+        }
       }
     }
   },
@@ -2649,7 +2667,9 @@
       "created": "Expense recorded",
       "actions": {
         "add": "Expense"
-      }
+      },
+      "budget": "Budget",
+      "budgetNone": "No budget"
     }
   },
   "aiUsage": {
@@ -2765,5 +2785,49 @@
       "emptyTitle": "Nothing to report today",
       "emptyDescription": "Your digest is empty right now — you'll only be pinged when something needs your attention."
     }
+  },
+  "budget": {
+    "title": "Budgets",
+    "description": "Set monthly ceilings and track your spending against them.",
+    "created": "Budget created",
+    "updated": "Budget updated",
+    "deleted": "Budget deleted",
+    "empty": "No budget yet",
+    "emptyDescription": "Create a budget to track your monthly spending.",
+    "new": {
+      "title": "New budget",
+      "action": "New budget"
+    },
+    "edit": {
+      "title": "Edit budget"
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Groceries",
+      "monthlyAmount": "Monthly amount",
+      "isGlobal": "Global budget (caps all spending)"
+    },
+    "errors": {
+      "amountInvalid": "Enter a positive amount.",
+      "nameRequired": "Please enter a name."
+    },
+    "global": {
+      "defaultName": "Global budget",
+      "heading": "Global budget",
+      "hint": "The global budget caps all your spending for the month, whether or not it is assigned to an envelope.",
+      "cta": "Add a global budget to cap your total monthly spending.",
+      "ctaAction": "Set a global budget"
+    },
+    "named": {
+      "heading": "Budgets",
+      "empty": "No budget envelope yet."
+    },
+    "unbudgeted": {
+      "label": "Unbudgeted",
+      "hint": "Expenses not assigned to any budget."
+    },
+    "overBy": "Over by {{amount}}",
+    "percentUsed": "{{pct}}% used",
+    "namedExceedsGlobal": "Your budgets total {{named}}, more than the global cap of {{global}}."
   }
 }

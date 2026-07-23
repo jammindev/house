@@ -52,6 +52,8 @@ class ManualExpenseSerializer(serializers.Serializer):
     zone_ids = serializers.ListField(
         child=serializers.UUIDField(), required=False, allow_empty=True, default=list
     )
+    # Optional monthly budget to attach this expense to (parcours 21).
+    budget_id = serializers.UUIDField(required=False, allow_null=True)
 
 
 class RenovationSerializer(serializers.Serializer):
@@ -146,6 +148,9 @@ class InteractionSerializer(serializers.ModelSerializer):
         required=False,
         allow_empty=True,
     )
+    # Optional monthly budget attached to an expense (parcours 21).
+    budget = serializers.SerializerMethodField()
+    budget_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Interaction
@@ -156,6 +161,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'zone_ids', 'zone_names', 'zone_id_list', 'document_count', 'linked_document_ids', 'document_ids',
             'contacts', 'contact_ids', 'structures', 'structure_ids',
             'equipments', 'equipment_ids',
+            'budget', 'budget_id',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
@@ -191,6 +197,34 @@ class InteractionSerializer(serializers.ModelSerializer):
         if source is None:
             return None
         return getattr(source, 'name', None) or getattr(source, 'title', None) or str(source)
+
+    def get_budget(self, obj):
+        if not obj.budget_id:
+            return None
+        return {'id': str(obj.budget_id), 'name': obj.budget.name}
+
+    def _apply_budget(self, interaction, budget_id):
+        """Resolve + attach a budget to an expense, mapping errors to 400s.
+
+        ``budget_id`` None clears the assignment. A budget only makes sense on an
+        expense (the overview sums ``type='expense'`` rows) — enforcing it here
+        keeps the model's documented invariant true instead of silently setting a
+        budget FK on a note/renovation. Reuses the interactions service resolver
+        so household-scope + no-global rules live in one place.
+        """
+        from .services import _resolve_expense_budget
+
+        if budget_id:
+            if interaction.type != 'expense':
+                raise serializers.ValidationError(
+                    {'budget_id': 'Only expenses can be attached to a budget.'}
+                )
+            try:
+                interaction.budget = _resolve_expense_budget(interaction.household_id, budget_id)
+            except ValueError as exc:
+                raise serializers.ValidationError({'budget_id': str(exc)})
+        else:
+            interaction.budget = None
 
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
@@ -306,6 +340,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         contact_ids = validated_data.pop('contact_ids', [])
         structure_ids = validated_data.pop('structure_ids', [])
         equipment_ids = validated_data.pop('equipment_ids', [])
+        budget_id = validated_data.pop('budget_id', None)
 
         self._validate_source_in_household(
             validated_data.get('source_content_type'),
@@ -315,6 +350,10 @@ class InteractionSerializer(serializers.ModelSerializer):
 
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
+
+            if budget_id:
+                self._apply_budget(interaction, budget_id)
+                interaction.save(update_fields=['budget'])
 
             from zones.models import Zone
             for zone_id in zone_ids:
@@ -339,6 +378,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         contact_ids = validated_data.pop('contact_ids', None)
         structure_ids = validated_data.pop('structure_ids', None)
         equipment_ids = validated_data.pop('equipment_ids', None)
+        budget_id = validated_data.pop('budget_id', ...)  # sentinel: absent vs null
 
         self._validate_source_in_household(
             validated_data.get('source_content_type', instance.source_content_type),
@@ -349,6 +389,8 @@ class InteractionSerializer(serializers.ModelSerializer):
         # Update interaction fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        if budget_id is not ...:
+            self._apply_budget(instance, budget_id)
         instance.save()
 
         # Update zones if provided

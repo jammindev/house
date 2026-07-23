@@ -85,6 +85,18 @@ class Interaction(HouseholdScopedModel):
         through='InteractionZone',
         related_name='interactions',
     )
+    budget = models.ForeignKey(
+        'budget.Budget',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='interactions',
+        help_text=(
+            "Optional monthly budget this expense counts against (parcours 21). "
+            "Only meaningful for type='expense'; null = hors budget. Deleting the "
+            "budget resets this to null, never deletes the expense."
+        ),
+    )
     document_links = GenericRelation('documents.DocumentLink')
 
     objects = HouseholdScopedManager()

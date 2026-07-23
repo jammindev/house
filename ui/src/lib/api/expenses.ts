@@ -51,6 +51,8 @@ export interface ManualExpensePayload {
   occurred_at?: string | null;
   notes?: string;
   zone_ids?: string[];
+  /** Optional monthly budget to attach this expense to (parcours 21). */
+  budget_id?: string | null;
 }
 
 export async function createManualExpense(payload: ManualExpensePayload): Promise<{ id: string }> {
@@ -60,6 +62,7 @@ export async function createManualExpense(payload: ManualExpensePayload): Promis
   if (payload.occurred_at) body.occurred_at = payload.occurred_at;
   if (payload.notes) body.notes = payload.notes;
   if (payload.zone_ids && payload.zone_ids.length > 0) body.zone_ids = payload.zone_ids;
+  if (payload.budget_id) body.budget_id = payload.budget_id;
   const { data } = await api.post('/interactions/interactions/expenses/manual/', body);
   return data as { id: string };
 }

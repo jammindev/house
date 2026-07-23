@@ -1339,6 +1339,24 @@
             "body": "Hake nur die Themen an, die dich interessieren. Rubriken für Module, die du nicht nutzt, werden automatisch ausgeblendet."
           }
         }
+      },
+      "budget": {
+        "title": "Budgets",
+        "intro": "Lege monatliche Obergrenzen fest und sieh auf einen Blick, ob deine Ausgaben darin bleiben.",
+        "steps": {
+          "create": {
+            "title": "Budget erstellen",
+            "body": "Tippe auf „Neues Budget“, gib ihm einen Namen (z. B. Lebensmittel) und einen monatlichen Betrag. Füge ein globales Budget hinzu, um alle Ausgaben auf einmal zu begrenzen."
+          },
+          "assign": {
+            "title": "Ausgaben zuordnen",
+            "body": "Wähle beim Erfassen einer manuellen Ausgabe ein Budget, dem sie zugerechnet wird. Nicht zugeordnete Ausgaben erscheinen unter „Ohne Budget“."
+          },
+          "track": {
+            "title": "Den Monat verfolgen",
+            "body": "Jedes Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Die Zähler starten jeden Monat neu."
+          }
+        }
       }
     }
   },
@@ -2649,7 +2667,9 @@
       "created": "Ausgabe erfasst",
       "actions": {
         "add": "Ausgabe"
-      }
+      },
+      "budget": "Budget",
+      "budgetNone": "Kein Budget"
     }
   },
   "aiUsage": {
@@ -2765,5 +2785,49 @@
       "emptyTitle": "Heute nichts zu melden",
       "emptyDescription": "Deine Zusammenfassung ist gerade leer — du wirst nur benachrichtigt, wenn etwas deine Aufmerksamkeit braucht."
     }
+  },
+  "budget": {
+    "title": "Budgets",
+    "description": "Lege monatliche Obergrenzen fest und verfolge deine Ausgaben.",
+    "created": "Budget erstellt",
+    "updated": "Budget aktualisiert",
+    "deleted": "Budget gelöscht",
+    "empty": "Noch kein Budget",
+    "emptyDescription": "Erstelle ein Budget, um deine monatlichen Ausgaben zu verfolgen.",
+    "new": {
+      "title": "Neues Budget",
+      "action": "Neues Budget"
+    },
+    "edit": {
+      "title": "Budget bearbeiten"
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "z. B. Lebensmittel",
+      "monthlyAmount": "Monatlicher Betrag",
+      "isGlobal": "Globales Budget (begrenzt alle Ausgaben)"
+    },
+    "errors": {
+      "amountInvalid": "Gib einen positiven Betrag ein.",
+      "nameRequired": "Bitte gib einen Namen ein."
+    },
+    "global": {
+      "defaultName": "Globales Budget",
+      "heading": "Globales Budget",
+      "hint": "Das globale Budget begrenzt alle deine Ausgaben des Monats, ob einer Kategorie zugeordnet oder nicht.",
+      "cta": "Füge ein globales Budget hinzu, um deine gesamten Monatsausgaben zu begrenzen.",
+      "ctaAction": "Globales Budget festlegen"
+    },
+    "named": {
+      "heading": "Budgets",
+      "empty": "Noch keine Budget-Kategorie."
+    },
+    "unbudgeted": {
+      "label": "Ohne Budget",
+      "hint": "Ausgaben ohne Budgetzuordnung."
+    },
+    "overBy": "Überschritten um {{amount}}",
+    "percentUsed": "{{pct}} % genutzt",
+    "namedExceedsGlobal": "Deine Budgets ergeben {{named}}, mehr als die globale Obergrenze von {{global}}."
   }
 }

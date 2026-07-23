@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "releases",
     "chickens",
     "pings",
+    "budget",
 ]
 
 MIDDLEWARE = [
@@ -271,6 +272,10 @@ AGENT_WEB_SEARCH_MAX_USES = 5
 #   deterministic template. Off by default (cost + keeps the send deterministic).
 DIGEST_ELEC_ANOMALY_THRESHOLD = 0.30
 DIGEST_AI_POLISH_ENABLED = False
+
+# Budgets (parcours 21): ratio at which a monthly budget flips to the "attention"
+# state (below the 100% overrun). 0.8 = warn once 80% of the ceiling is spent.
+BUDGET_WARNING_RATIO = 0.8
 
 # Telegram bot channel for the agent. Empty token = channel disabled: the
 # webhook rejects everything and no outbound call is ever made.

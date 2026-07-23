@@ -1339,6 +1339,24 @@
             "body": "Marca solo los temas que te interesan. Las secciones de los módulos que no usas se ocultan automáticamente."
           }
         }
+      },
+      "budget": {
+        "title": "Presupuestos",
+        "intro": "Fija límites mensuales y comprueba de un vistazo si tus gastos se mantienen dentro.",
+        "steps": {
+          "create": {
+            "title": "Crear un presupuesto",
+            "body": "Toca «Nuevo presupuesto», ponle un nombre (p. ej. Compras) y un importe mensual. Añade un presupuesto global para limitar todos tus gastos a la vez."
+          },
+          "assign": {
+            "title": "Asignar gastos",
+            "body": "Al registrar un gasto manual, elige un presupuesto al que imputarlo. Los gastos sin asignar aparecen en «Sin presupuesto»."
+          },
+          "track": {
+            "title": "Seguir el mes",
+            "body": "Cada presupuesto muestra lo gastado frente al límite con una barra de progreso — ámbar cerca del límite, rojo al superarlo. Los contadores se reinician cada mes."
+          }
+        }
       }
     }
   },
@@ -2649,7 +2667,9 @@
       "created": "Gasto registrado",
       "actions": {
         "add": "Gasto"
-      }
+      },
+      "budget": "Presupuesto",
+      "budgetNone": "Sin presupuesto"
     }
   },
   "aiUsage": {
@@ -2765,5 +2785,49 @@
       "emptyTitle": "Nada que informar hoy",
       "emptyDescription": "Tu resumen está vacío ahora mismo — solo se te avisará cuando haya algo que requiera tu atención."
     }
+  },
+  "budget": {
+    "title": "Presupuestos",
+    "description": "Fija límites mensuales y controla tus gastos en tiempo real.",
+    "created": "Presupuesto creado",
+    "updated": "Presupuesto actualizado",
+    "deleted": "Presupuesto eliminado",
+    "empty": "Aún no hay presupuesto",
+    "emptyDescription": "Crea un presupuesto para controlar tus gastos del mes.",
+    "new": {
+      "title": "Nuevo presupuesto",
+      "action": "Nuevo presupuesto"
+    },
+    "edit": {
+      "title": "Editar presupuesto"
+    },
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "p. ej. Compras",
+      "monthlyAmount": "Importe mensual",
+      "isGlobal": "Presupuesto global (limita todos los gastos)"
+    },
+    "errors": {
+      "amountInvalid": "Introduce un importe positivo.",
+      "nameRequired": "Introduce un nombre."
+    },
+    "global": {
+      "defaultName": "Presupuesto global",
+      "heading": "Presupuesto global",
+      "hint": "El presupuesto global limita todos tus gastos del mes, estén o no asignados a un sobre.",
+      "cta": "Añade un presupuesto global para limitar el total de tus gastos del mes.",
+      "ctaAction": "Definir un presupuesto global"
+    },
+    "named": {
+      "heading": "Presupuestos",
+      "empty": "Aún no hay ningún sobre de presupuesto."
+    },
+    "unbudgeted": {
+      "label": "Sin presupuesto",
+      "hint": "Gastos no asignados a ningún presupuesto."
+    },
+    "overBy": "Superado en {{amount}}",
+    "percentUsed": "{{pct}} % usado",
+    "namedExceedsGlobal": "Tus presupuestos suman {{named}}, más que el límite global de {{global}}."
   }
 }
