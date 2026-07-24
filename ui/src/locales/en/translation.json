@@ -76,6 +76,17 @@
         "sat": "Sat",
         "sun": "Sun"
       }
+    },
+    "history": {
+      "action": "History",
+      "title": "Send history",
+      "empty": "No send yet.",
+      "contentLabel": "Message",
+      "status": {
+        "sent": "Sent",
+        "error": "Failed",
+        "skipped_condition": "Skipped (condition)"
+      }
     }
   },
   "shoppingList": {

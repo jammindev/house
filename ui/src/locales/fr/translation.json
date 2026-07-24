@@ -76,6 +76,17 @@
         "sat": "Sam",
         "sun": "Dim"
       }
+    },
+    "history": {
+      "action": "Historique",
+      "title": "Historique des envois",
+      "empty": "Aucun envoi pour l'instant.",
+      "contentLabel": "Message",
+      "status": {
+        "sent": "Envoyé",
+        "error": "Échec",
+        "skipped_condition": "Sauté (condition)"
+      }
     }
   },
   "shoppingList": {

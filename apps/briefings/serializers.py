@@ -1,8 +1,36 @@
 """Briefing serializers — validation shared by the REST viewset and services."""
 from rest_framework import serializers
 
-from .models import Briefing
+from .models import Briefing, BriefingSendLog
 from .schedule import next_send_at, validate_schedule
+
+
+class BriefingSendLogSerializer(serializers.ModelSerializer):
+    """One line of a briefing's send history (lot 5).
+
+    ``content`` is dual-purpose by status: the sent message when ``sent``, the
+    skip reason when ``skipped_condition``, empty on ``error`` — the UI labels it
+    accordingly.
+    """
+
+    user_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BriefingSendLog
+        fields = [
+            "id",
+            "status",
+            "content",
+            "slot_date",
+            "slot_time",
+            "user",
+            "user_name",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+    def get_user_name(self, obj):
+        return obj.user.full_name if obj.user_id and obj.user else None
 
 
 class BriefingSerializer(serializers.ModelSerializer):
@@ -20,6 +48,7 @@ class BriefingSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(min_value=0, max_value=6), required=False
     )
     next_send_at = serializers.SerializerMethodField()
+    last_send = serializers.SerializerMethodField()
 
     class Meta:
         model = Briefing
@@ -36,6 +65,7 @@ class BriefingSerializer(serializers.ModelSerializer):
             "send_times",
             "weekdays",
             "next_send_at",
+            "last_send",
             "created_at",
             "updated_at",
             "created_by",
@@ -45,6 +75,7 @@ class BriefingSerializer(serializers.ModelSerializer):
             "id",
             "household",
             "next_send_at",
+            "last_send",
             "created_at",
             "updated_at",
             "created_by",
@@ -56,6 +87,17 @@ class BriefingSerializer(serializers.ModelSerializer):
     def get_next_send_at(self, obj):
         dt = next_send_at(obj)
         return dt.isoformat() if dt else None
+
+    def get_last_send(self, obj):
+        """Compact summary of the most recent send attempt, for the card glance."""
+        log = obj.send_logs.order_by("-created_at").first()
+        if log is None:
+            return None
+        return {
+            "status": log.status,
+            "content": log.content,
+            "created_at": log.created_at.isoformat(),
+        }
 
     def validate(self, attrs):
         """Cross-field checks: valid, spaced-out schedule; no activation without one."""

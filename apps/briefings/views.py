@@ -13,10 +13,12 @@ from .conditions import evaluate_condition
 from .generation import generate_briefing_text, send_briefing_now
 from .models import Briefing
 from .permissions import CanManageBriefing
-from .serializers import BriefingSerializer
+from .serializers import BriefingSendLogSerializer, BriefingSerializer
 from .services import create_briefing, update_briefing
 
 logger = logging.getLogger(__name__)
+
+HISTORY_PAGE_SIZE = 30
 
 
 class BriefingViewSet(viewsets.ModelViewSet):
@@ -71,9 +73,18 @@ class BriefingViewSet(viewsets.ModelViewSet):
         # Preview is a read-grade action (generate, no side effect): any member
         # who can *see* the briefing may preview it — the queryset already hides
         # others' private briefings (404). Sending is a manage action.
-        if self.action == "preview":
+        if self.action in ("preview", "history"):
             return [IsHouseholdMember()]
         return [IsHouseholdMember(), CanManageBriefing()]
+
+    @action(detail=True, methods=["get"])
+    def history(self, request, pk=None):
+        """Recent send attempts for this briefing (lot 5) — read-grade access."""
+        briefing = self.get_object()
+        logs = briefing.send_logs.select_related("user").order_by("-created_at")[
+            :HISTORY_PAGE_SIZE
+        ]
+        return Response(BriefingSendLogSerializer(logs, many=True).data)
 
     @action(detail=True, methods=["post"])
     def preview(self, request, pk=None):

@@ -20,6 +20,7 @@ import {
 import BriefingCard from './BriefingCard';
 import BriefingDialog from './BriefingDialog';
 import BriefingPreviewDialog from './BriefingPreviewDialog';
+import BriefingHistoryDialog from './BriefingHistoryDialog';
 
 type FilterKey = 'all' | 'active' | 'inactive';
 
@@ -43,6 +44,8 @@ export default function BriefingsPage() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [previewing, setPreviewing] = React.useState<Briefing | undefined>();
   const [previewOpen, setPreviewOpen] = React.useState(false);
+  const [historyOf, setHistoryOf] = React.useState<Briefing | undefined>();
+  const [historyOpen, setHistoryOpen] = React.useState(false);
 
   const showSkeleton = useDelayedLoading(isLoading);
 
@@ -70,6 +73,11 @@ export default function BriefingsPage() {
   function openPreview(briefing: Briefing) {
     setPreviewing(briefing);
     setPreviewOpen(true);
+  }
+
+  function openHistory(briefing: Briefing) {
+    setHistoryOf(briefing);
+    setHistoryOpen(true);
   }
 
   function toggleActive(briefing: Briefing) {
@@ -139,6 +147,7 @@ export default function BriefingsPage() {
               onDelete={remove}
               onToggleActive={toggleActive}
               onPreview={openPreview}
+              onHistory={openHistory}
             />
           ))}
         </div>
@@ -146,6 +155,7 @@ export default function BriefingsPage() {
 
       <BriefingDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
       <BriefingPreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} briefing={previewing} />
+      <BriefingHistoryDialog open={historyOpen} onOpenChange={setHistoryOpen} briefing={historyOf} />
     </div>
   );
 }

@@ -76,6 +76,17 @@
         "sat": "Sáb",
         "sun": "Dom"
       }
+    },
+    "history": {
+      "action": "Historial",
+      "title": "Historial de envíos",
+      "empty": "Aún no hay envíos.",
+      "contentLabel": "Mensaje",
+      "status": {
+        "sent": "Enviado",
+        "error": "Error",
+        "skipped_condition": "Omitido (condición)"
+      }
     }
   },
   "shoppingList": {

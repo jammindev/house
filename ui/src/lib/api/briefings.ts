@@ -2,6 +2,14 @@ import { api } from '@/lib/axios';
 
 export type BriefingType = 'recurring' | 'event';
 export type BriefingChannel = 'telegram';
+export type BriefingSendStatus = 'sent' | 'error' | 'skipped_condition';
+
+/** Compact summary of the most recent send attempt (card glance). */
+export interface BriefingLastSend {
+  status: BriefingSendStatus;
+  content: string;
+  created_at: string;
+}
 
 export interface Briefing {
   id: string;
@@ -19,6 +27,8 @@ export interface Briefing {
   weekdays: number[];
   /** Next fire instant (ISO), or null if inactive/no schedule. Read-only. */
   next_send_at: string | null;
+  /** Most recent send attempt, or null if never sent. Read-only. */
+  last_send: BriefingLastSend | null;
   created_at: string;
   updated_at: string;
   created_by: number | null;
@@ -108,4 +118,22 @@ export interface BriefingSendSummary {
 export async function sendBriefingNow(id: string): Promise<BriefingSendSummary> {
   const { data } = await api.post(`/briefings/briefings/${id}/send-now/`);
   return data as BriefingSendSummary;
+}
+
+/** One line of a briefing's send history (Lot 5). */
+export interface BriefingSendLogEntry {
+  id: string;
+  status: BriefingSendStatus;
+  /** Sent message (status=sent), skip reason (skipped_condition), or "" (error). */
+  content: string;
+  slot_date: string;
+  slot_time: string;
+  user: number | null;
+  user_name: string | null;
+  created_at: string;
+}
+
+export async function fetchBriefingHistory(id: string): Promise<BriefingSendLogEntry[]> {
+  const { data } = await api.get(`/briefings/briefings/${id}/history/`);
+  return normalizeList<BriefingSendLogEntry>(data);
 }
