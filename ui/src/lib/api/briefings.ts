@@ -80,10 +80,21 @@ export async function deleteBriefing(id: string): Promise<void> {
   await api.delete(`/briefings/briefings/${id}/`);
 }
 
-/** Generate the briefing content for the current user, without sending (Lot 2). */
-export async function previewBriefing(id: string): Promise<{ text: string }> {
+export interface ConditionVerdict {
+  send: boolean;
+  reason: string;
+}
+
+export interface BriefingPreview {
+  text: string;
+  /** null when the briefing has no condition (lot 4). */
+  condition_verdict: ConditionVerdict | null;
+}
+
+/** Generate the briefing content for the current user, without sending (Lot 2/4). */
+export async function previewBriefing(id: string): Promise<BriefingPreview> {
   const { data } = await api.post(`/briefings/briefings/${id}/preview/`);
-  return data as { text: string };
+  return data as BriefingPreview;
 }
 
 export interface BriefingSendSummary {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { AlertCircle, Send } from 'lucide-react';
+import { AlertCircle, Check, Send, X } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
 import { useTelegramStatus } from '@/features/settings/hooks';
@@ -37,6 +37,7 @@ export default function BriefingPreviewDialog({ open, onOpenChange, briefing }: 
   }
 
   const text = preview.data?.text ?? '';
+  const verdict = preview.data?.condition_verdict ?? null;
   const telegramLinked = telegram?.linked ?? true; // don't nag before status loads
 
   return (
@@ -71,6 +72,30 @@ export default function BriefingPreviewDialog({ open, onOpenChange, briefing }: 
             {text || t('briefings.preview.empty')}
           </div>
         )}
+
+        {verdict && !preview.isPending && !preview.isError ? (
+          <div
+            className={
+              verdict.send
+                ? 'flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm text-foreground'
+                : 'flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground'
+            }
+          >
+            {verdict.send ? (
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            ) : (
+              <X className="mt-0.5 h-4 w-4 shrink-0" />
+            )}
+            <div className="flex-1">
+              <p className="font-medium">
+                {verdict.send
+                  ? t('briefings.preview.conditionMet')
+                  : t('briefings.preview.conditionNotMet')}
+              </p>
+              {verdict.reason ? <p className="mt-0.5">{verdict.reason}</p> : null}
+            </div>
+          </div>
+        ) : null}
 
         {!telegramLinked ? (
           <div className="flex items-start gap-2 rounded-md border border-border bg-card p-3 text-sm text-muted-foreground">

@@ -46,7 +46,9 @@
       "failed": "Impossible de générer le briefing. Réessayez.",
       "empty": "L'assistant n'a rien renvoyé pour ce briefing.",
       "linkFirst": "Liez votre compte Telegram pour recevoir les briefings.",
-      "linkCta": "Lier Telegram"
+      "linkCta": "Lier Telegram",
+      "conditionMet": "Condition remplie — ce briefing serait envoyé maintenant.",
+      "conditionNotMet": "Condition non remplie — ce briefing serait ignoré."
     },
     "send": {
       "button": "Envoyer maintenant",

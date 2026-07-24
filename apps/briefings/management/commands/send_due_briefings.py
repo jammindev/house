@@ -47,5 +47,5 @@ class Command(BaseCommand):
         summary = send_due_briefings()
         self.stdout.write(
             "tick: sent={sent} skipped_no_telegram={skipped_no_telegram} "
-            "errors={errors}".format(**summary)
+            "skipped_condition={skipped_condition} errors={errors}".format(**summary)
         )
