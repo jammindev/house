@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ReactMarkdown, { defaultUrlTransform, type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
+import { useCurrentUser } from '@/features/settings/hooks';
 import AgentCitation from './AgentCitation';
 import type { AgentCitation as Citation, AgentMemoryEvent, AgentWebSource } from './api';
 
@@ -43,18 +44,7 @@ type Props = UserBubbleProps | AgentBubbleProps | LoadingBubbleProps | Streaming
 
 export default function ChatBubble(props: Props) {
   if (props.variant === 'user') {
-    return (
-      <div className="flex justify-end" data-testid="agent-bubble-user">
-        <div className="flex max-w-[85%] gap-2">
-          <div className="rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-sm text-primary-foreground">
-            {props.text}
-          </div>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <User className="h-3.5 w-3.5" />
-          </div>
-        </div>
-      </div>
-    );
+    return <UserBubble text={props.text} />;
   }
 
   if (props.variant === 'loading') {
@@ -94,6 +84,33 @@ export default function ChatBubble(props: Props) {
         <WebSourcesPanel sources={props.webSources} />
       ) : null}
     </AgentBubbleShell>
+  );
+}
+
+// User message bubble — its avatar is the user's profile photo when set,
+// falling back to a generic User icon otherwise.
+function UserBubble({ text }: { text: string }) {
+  const { data: user } = useCurrentUser();
+  const avatar = user?.avatar;
+  return (
+    <div className="flex justify-end" data-testid="agent-bubble-user">
+      <div className="flex max-w-[85%] gap-2">
+        <div className="rounded-2xl rounded-tr-sm bg-primary px-3 py-2 text-sm text-primary-foreground">
+          {text}
+        </div>
+        {avatar ? (
+          <img
+            src={avatar}
+            alt=""
+            className="h-7 w-7 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <User className="h-3.5 w-3.5" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
