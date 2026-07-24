@@ -230,8 +230,10 @@ EMBEDDING_DIMENSIONS = 1024
 EMBEDDING_REQUEST_TIMEOUT_SECONDS = 30
 # Ollama endpoint, only used when EMBEDDING_PROVIDER=ollama.
 EMBEDDING_BASE_URL = "http://localhost:11434"
-# Voyage API key — empty by default; set per environment / in .env.
+# Provider API keys — empty by default; set per environment / in .env.
+# EMBEDDING_PROVIDER selects which one is used (voyage | openai | ollama).
 VOYAGE_API_KEY = ""
+OPENAI_API_KEY = ""
 # Write-time indexing: when True, post_save/post_delete of a searchable entity
 # (re)builds its EmbeddingChunk rows synchronously (best-effort). Off by default
 # so tests and provider-less setups incur no side effect; enable via env once

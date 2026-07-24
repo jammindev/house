@@ -336,6 +336,34 @@ RAM le permet :
   (jamais exposé par Traefik). `web`/`scheduler` l'appellent sur
   `http://ollama:11434` ; `EMBEDDING_BASE_URL` pointe là.
 
+### 6.4 Choisir librement provider + modèle (tout par `.env`)
+
+Les **trois** providers sont implémentés (REST via `httpx`, aucun SDK lourd) et
+interchangeables **sans toucher au code** :
+
+| `EMBEDDING_PROVIDER` | `EMBEDDING_MODEL` (exemples) | Clé |
+|---|---|---|
+| `voyage` (défaut) | `voyage-3`, `voyage-finance-2`, `voyage-law-2` | `VOYAGE_API_KEY` |
+| `openai` | `text-embedding-3-small`, `text-embedding-3-large` | `OPENAI_API_KEY` |
+| `ollama` | `bge-m3`, `nomic-embed-text` | — (`EMBEDDING_BASE_URL`) |
+
+**Seule contrainte : la dimension doit valoir `EMBEDDING_DIMENSIONS` (1024)** — la
+largeur de la colonne `EmbeddingChunk.embedding`. En pratique :
+- `voyage-3` / `voyage-finance-2` / `voyage-law-2` / `bge-m3` sont **nativement
+  1024** → aucun réglage ;
+- OpenAI `text-embedding-3-*` (nativement 1536/3072) : le client envoie
+  `dimensions=1024` (réduction Matryoshka) → rentre dans la colonne ;
+- un modèle bloqué à une autre dimension (`voyage-3-lite`=512, `nomic-embed-text`=768)
+  impose de changer `EMBEDDING_DIMENSIONS` **et** de migrer la colonne.
+
+Un **garde-fou** (`embeddings._check_dimensions`) refuse explicitement tout vecteur
+de largeur ≠ `EMBEDDING_DIMENSIONS` au lieu de laisser exploser Postgres à l'insert.
+
+> **Changer de provider/modèle = ré-embedder** (les vecteurs ne sont pas
+> comparables, §6.1) : `EMBEDDING_MODEL=…` dans le `.env` puis
+> `manage.py backfill_embeddings --force`. Le lot 4 (`eval_retrieval`) permet de
+> **benchmarker deux modèles** sur tes vraies questions avant de trancher.
+
 ## 7. Pourquoi cette implémentation — décisions clés
 
 | Décision | Raison |

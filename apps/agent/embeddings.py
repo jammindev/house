@@ -122,6 +122,7 @@ class _BaseEmbeddingClient:
         started = time.monotonic()
         try:
             vectors, total_tokens = self._embed_raw(texts, input_type=input_type)
+            _check_dimensions(vectors, self.provider, self.model)
         except Exception as exc:
             self._log_and_raise_failure(
                 exc,
@@ -291,16 +292,63 @@ class OllamaEmbeddingClient(_BaseEmbeddingClient):
 
 
 class OpenAIEmbeddingClient(_BaseEmbeddingClient):
-    """Optional stub — branchable porte de sortie, not implemented (see EMBEDDINGS.md)."""
+    """OpenAI embeddings over its REST endpoint (no SDK — httpx, like the others).
+
+    Requests `dimensions=EMBEDDING_DIMENSIONS` so a `text-embedding-3-*` model
+    (natively 1536/3072) is projected to the shared 1024-dim column. `input_type`
+    carries no meaning here and is ignored.
+    """
 
     provider = "openai"
+    API_URL = "https://api.openai.com/v1/embeddings"
 
     def __init__(self, *, model: str | None = None, timeout: float | None = None):
         self.model = model or getattr(settings, "EMBEDDING_MODEL", "text-embedding-3-small")
+        self.timeout = timeout or float(getattr(settings, "EMBEDDING_REQUEST_TIMEOUT_SECONDS", 30))
 
     def _embed_raw(self, texts, *, input_type):
+        api_key = getattr(settings, "OPENAI_API_KEY", "") or ""
+        if not api_key:
+            raise EmbeddingError("OPENAI_API_KEY is not configured")
+        import httpx
+
+        body = {"model": self.model, "input": texts}
+        dimensions = int(getattr(settings, "EMBEDDING_DIMENSIONS", 0) or 0)
+        if dimensions:
+            # Only text-embedding-3-* honour this; older models will 400 (loud).
+            body["dimensions"] = dimensions
+
+        response = httpx.post(
+            self.API_URL,
+            headers={"Authorization": f"Bearer {api_key}"},
+            json=body,
+            timeout=self.timeout,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        rows = sorted(payload.get("data", []), key=lambda row: row.get("index", 0))
+        vectors = [row["embedding"] for row in rows]
+        total_tokens = (payload.get("usage") or {}).get("total_tokens")
+        return vectors, total_tokens
+
+
+def _check_dimensions(vectors, provider: str, model: str) -> None:
+    """Fail loudly if a model's vectors don't match the DB column width.
+
+    The `EmbeddingChunk.embedding` column is fixed at ``EMBEDDING_DIMENSIONS``.
+    Selecting a model that emits a different width would otherwise blow up with a
+    cryptic Postgres error on insert; this turns it into an actionable message.
+    """
+    expected = int(getattr(settings, "EMBEDDING_DIMENSIONS", 0) or 0)
+    if not (expected and vectors and vectors[0]):
+        return
+    got = len(vectors[0])
+    if got != expected:
         raise EmbeddingError(
-            "OpenAIEmbeddingClient is not implemented — set EMBEDDING_PROVIDER=voyage or ollama"
+            f"{provider}/{model} returned {got}-dim vectors but the index column is "
+            f"{expected}-dim (EMBEDDING_DIMENSIONS). Pick a {expected}-dim model, set "
+            f"EMBEDDING_DIMENSIONS to match and migrate the column, or reduce the model's "
+            f"output dimension."
         )
 
 

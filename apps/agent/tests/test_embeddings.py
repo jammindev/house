@@ -40,6 +40,13 @@ def with_voyage_key(settings):
     return settings
 
 
+@pytest.fixture(autouse=True)
+def _relax_dimension_guard(settings):
+    # Provider plumbing tests use tiny fake vectors; the dimension guard has its
+    # own dedicated test (TestDimensionGuard). 0 disables it. Prod stays at 1024.
+    settings.EMBEDDING_DIMENSIONS = 0
+
+
 class _FakeResponse:
     def __init__(self, payload):
         self._payload = payload
@@ -185,10 +192,43 @@ class TestFactory:
         with pytest.raises(EmbeddingError):
             get_embedding_client("pinecone")
 
-    def test_openai_stub_raises_and_logs(self, monkeypatch, household):
+
+class TestOpenAIClient:
+    def test_embed_sends_dimensions_and_bearer(self, settings, monkeypatch, household):
+        settings.OPENAI_API_KEY = "sk-test-fake"
+        settings.EMBEDDING_DIMENSIONS = 1024
+        payload = {
+            "data": [{"index": 0, "embedding": [0.0] * 1024}],
+            "usage": {"total_tokens": 7},
+        }
+        fake = _FakePost(payload=payload)
+        monkeypatch.setattr(httpx, "post", fake)
+
+        client = OpenAIEmbeddingClient(model="text-embedding-3-small")
+        result = client.embed(["facture"], household_id=household.id)
+
+        assert result.dimensions == 1024
+        call = fake.calls[0]
+        assert call["url"] == OpenAIEmbeddingClient.API_URL
+        assert call["headers"]["Authorization"] == "Bearer sk-test-fake"
+        assert call["json"]["dimensions"] == 1024
+        assert AIUsageLog.objects.get().provider == "openai"
+
+    def test_missing_key_raises(self, settings, monkeypatch, household):
+        settings.OPENAI_API_KEY = ""
+        monkeypatch.setattr(httpx, "post", _FakePost(payload={"data": []}))
         with pytest.raises(EmbeddingError):
             OpenAIEmbeddingClient().embed(["x"], household_id=household.id)
 
+
+class TestDimensionGuard:
+    def test_mismatch_raises_and_logs(self, with_voyage_key, settings, monkeypatch, household):
+        # Column is 1024-dim but the model returns 3-dim → loud, actionable error.
+        settings.EMBEDDING_DIMENSIONS = 1024
+        monkeypatch.setattr(httpx, "post", _FakePost(payload=_voyage_payload([0.1, 0.2, 0.3])))
+
+        with pytest.raises(EmbeddingError, match="1024"):
+            VoyageEmbeddingClient().embed(["x"], household_id=household.id)
+
         log = AIUsageLog.objects.get()
-        assert log.provider == "openai"
         assert log.success is False
