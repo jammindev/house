@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/lib/toast';
+import { syncAppBadge } from '@/lib/pwa/platform';
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -22,13 +24,23 @@ export function useNotifications() {
 }
 
 export function useUnreadCount() {
-  return useQuery({
+  const query = useQuery({
     queryKey: notificationKeys.unreadCount(),
     queryFn: fetchUnreadCount,
     staleTime: 30_000,
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
+
+  // Keep the PWA app-icon badge in sync while the SPA is open: this polls every
+  // 60s and refetches on focus, and mark-read invalidates it → the badge clears
+  // on read. Push handles the closed-app case (service worker sets the badge).
+  const count = query.data;
+  useEffect(() => {
+    if (typeof count === 'number') syncAppBadge(count);
+  }, [count]);
+
+  return query;
 }
 
 export function useMarkRead() {

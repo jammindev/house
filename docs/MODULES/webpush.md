@@ -3,9 +3,9 @@
 > Rôle : **canal de notifications push** vers la PWA (Web Push / VAPID). Stocke les
 > abonnements des navigateurs des utilisateurs et sait leur envoyer une notification
 > système, même app fermée. Couche de **transport** pure : le *contenu* des notifs
-> vient des sources existantes (`notifications.service.send`, `pings`) — cf. lot 3.
+> vient des sources existantes (`notifications.service.send`, `pings`) — branché au lot 3.
 >
-> Parcours : « app mobile » (lot 0 socle PWA, lot 1 backend). Concepts + décisions :
+> Parcours : « app mobile » (lot 0 socle PWA, lot 1 backend, lot 2 front, lot 3 branchement sources + pastille). Concepts + décisions :
 > [../fiches/PWA_PUSH.md](../fiches/PWA_PUSH.md). Sources de notifs :
 > [notifications.md](./notifications.md), [pings.md](./pings.md).
 
@@ -19,7 +19,11 @@
   - `management/commands/generate_vapid_keys.py` — génère une paire VAPID (formats prêts pour le navigateur + pywebpush).
   - `admin.py` — lecture des abonnements (clés en readonly).
 - **Service worker** (socle PWA, lot 0) : `templates/sw.js`, servi à la racine `/sw.js` par une route Django (`config/urls.py`) pour avoir un scope `/`. Porte les handlers `push` + `notificationclick`. Enregistré en prod par `ui/src/lib/pwa/registerServiceWorker.ts`.
-- **Frontend abonnement** : lot 2 (à venir) — le SW sait déjà recevoir.
+- **Frontend abonnement** (lot 2) : `ui/src/features/settings/components/WebPushSection.tsx` (activer/désactiver + test), `ui/src/lib/api/webpush.ts`, `ui/src/lib/pwa/platform.ts`.
+- **Branchement des sources** (lot 3) :
+  - **Événements** — `notifications.service.send()` mirroir best-effort vers `send_web_push` (deep-link par type, `tag=type`, `data.unreadCount`). Couvre stock/invitation/météo d'un coup (point d'entrée unique).
+  - **Pings** — `pings.services._deliver()` fan-out Telegram + Web Push ; le ping compte comme envoyé dès qu'**un** canal délivre (un user sans Telegram mais abonné push le reçoit). `PingLog` réclamé avant envoi, relâché si aucun canal ne délivre.
+  - **Pastille d'icône** (Badging API) : le `push` du SW pose `self.navigator.setAppBadge(data.unreadCount)` (app fermée) ; `useUnreadCount` synchronise la pastille tant que l'app tourne (`syncAppBadge`) et l'efface à la lecture. Guardé (API optionnelle, iOS 16.4+ PWA installée).
 - **Config** : `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_ADMIN_EMAIL` (env ; défauts vides ⇒ push désactivé proprement).
 - **Dépendance** : `pywebpush==2.3.0` (tire `cryptography`, `py-vapid`, `http-ece`).
 - **Tests** : `apps/webpush/tests/test_webpush.py` — subscribe/unsubscribe/scoping, no-op sans clés, prune 410, garde sur erreur transitoire, endpoint de test.
@@ -41,7 +45,7 @@ Toutes protégées par `IsAuthenticated`.
 ## Flux d'un envoi
 
 ```
-source de notif (stock bas, invitation, ping…)   ← lot 3
+source de notif (stock bas, invitation, ping…)   ← notifications.service.send / pings._deliver
    ▼
 webpush.service.send_web_push(user, title, body, url=…)
    │  is_configured() ? sinon return 0 (no-op)
@@ -73,5 +77,5 @@ push service (FCM/Apple/Mozilla) → SW du navigateur → sw.js `push` → showN
 ## Notes / décisions
 
 - **Pas de `enabled` sur le modèle** : subscribe = create, unsubscribe = delete, prune = delete. Un seul état, pas de flag à synchroniser.
-- **`web` ET `scheduler` doivent avoir les clés** : le `web` envoie les notifs événementielles + le test ; le `scheduler` enverra les pings (lot 3). Les deux lisent `env_file: .env`.
+- **`web` ET `scheduler` doivent avoir les clés** : le `web` envoie les notifs événementielles + le test ; le `scheduler` envoie les pings. Les deux lisent `env_file: .env`.
 - **iOS** : le push n'arrive que si la PWA est **installée** sur l'écran d'accueil (iOS 16.4+) — d'où le bandeau d'installation du lot 0. Cf. fiche PWA_PUSH.

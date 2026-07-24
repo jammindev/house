@@ -27,6 +27,28 @@ export function isPushSupported(): boolean {
 }
 
 /**
+ * Reflète le nombre de notifications non lues sur l'icône de l'app (Badging API).
+ * No-op silencieux si l'API n'est pas exposée (navigateur/OS non compatible, ou
+ * PWA non installée). `count <= 0` efface la pastille.
+ */
+export function syncAppBadge(count: number): void {
+  if (typeof navigator === 'undefined') return;
+  const nav = navigator as Navigator & {
+    setAppBadge?: (n?: number) => Promise<void>;
+    clearAppBadge?: () => Promise<void>;
+  };
+  try {
+    if (count > 0) {
+      void nav.setAppBadge?.(count);
+    } else {
+      void nav.clearAppBadge?.();
+    }
+  } catch {
+    // Badging API absent or refused — ignore.
+  }
+}
+
+/**
  * Convertit une clé publique VAPID (base64url) en Uint8Array, format attendu par
  * `pushManager.subscribe({ applicationServerKey })`.
  */
