@@ -1499,6 +1499,24 @@
           }
         }
       },
+      "install": {
+        "title": "Install the app & get notifications",
+        "intro": "Add the house to your phone's home screen and receive its notifications as push, even when the app is closed.",
+        "steps": {
+          "install": {
+            "title": "Add to your home screen",
+            "body": "On iPhone (Safari): tap Share, then \"Add to Home Screen\". On Android or desktop: use the browser's install button. Then open the app from that icon."
+          },
+          "enable": {
+            "title": "Turn on push notifications",
+            "body": "In Settings, open \"Push notifications\", tap Enable and allow the permission. Use Test to check a notification reaches your device."
+          },
+          "badge": {
+            "title": "Badge on the icon",
+            "body": "Unread notifications show as a count on the app icon, cleared when you read them. On iPhone this works only from the installed app (iOS 16.4+)."
+          }
+        }
+      },
       "budget": {
         "title": "Budgets",
         "intro": "Set monthly ceilings and see at a glance whether your spending stays within them.",

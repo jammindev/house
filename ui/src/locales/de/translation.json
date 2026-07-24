@@ -1499,6 +1499,24 @@
           }
         }
       },
+      "install": {
+        "title": "App installieren & Benachrichtigungen aktivieren",
+        "intro": "Fügen Sie den Haushalt zum Startbildschirm Ihres Handys hinzu und erhalten Sie seine Benachrichtigungen als Push – auch bei geschlossener App.",
+        "steps": {
+          "install": {
+            "title": "Zum Startbildschirm hinzufügen",
+            "body": "Auf dem iPhone (Safari): auf Teilen tippen, dann „Zum Home-Bildschirm\". Auf Android oder Desktop: die Installationsschaltfläche des Browsers verwenden. Öffnen Sie die App danach über dieses Symbol."
+          },
+          "enable": {
+            "title": "Push-Benachrichtigungen einschalten",
+            "body": "Öffnen Sie in den Einstellungen „Push-Benachrichtigungen\", tippen Sie auf Aktivieren und erlauben Sie die Berechtigung. Mit Testen prüfen Sie, ob eine Benachrichtigung Ihr Gerät erreicht."
+          },
+          "badge": {
+            "title": "Zähler auf dem Symbol",
+            "body": "Ungelesene Benachrichtigungen erscheinen als Zähler auf dem App-Symbol und werden beim Lesen gelöscht. Auf dem iPhone funktioniert das nur in der installierten App (iOS 16.4+)."
+          }
+        }
+      },
       "budget": {
         "title": "Budgets",
         "intro": "Lege monatliche Obergrenzen fest und sieh auf einen Blick, ob deine Ausgaben darin bleiben.",
