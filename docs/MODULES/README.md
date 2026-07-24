@@ -35,6 +35,7 @@ Lecture recommandée pour reprendre un module après pause — pour les bugs et 
 - [pings](./pings.md) — questions proactives templatées (Telegram)
 - [digest](./digest.md) — résumé quotidien proactif (agrège les signaux du foyer)
 - [telegram](./telegram.md) — canal Telegram entrant/sortant
+- [webpush](./webpush.md) — canal notifications push PWA (Web Push / VAPID)
 
 ## Apps frontend / utilitaires
 
