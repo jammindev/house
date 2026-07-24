@@ -67,5 +67,8 @@ class TestPushView(APIView):
             "🔔 Notification de test",
             url="/app/dashboard",
             tag="webpush-test",
+            # Demo badge so the test also exercises the app-icon Badging API. It
+            # resyncs to the real unread count as soon as the SPA reopens.
+            data={"unreadCount": 1},
         )
         return Response({"sent": sent})
