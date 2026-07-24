@@ -111,9 +111,14 @@ def send_due_pings(now: datetime | None = None) -> dict:
 
 
 def _send_one(pref: PingPreference, now: datetime) -> bool:
-    """Evaluate one preference; send if due. True = a message went out."""
-    from telegram.outbound import send_agent_message
+    """Evaluate one preference; send if due. True = a message went out.
 
+    A due ping fans out to every channel the user can receive on: Telegram (the
+    original channel, which also persists the question as an agent turn so a
+    reply keeps context) and Web Push. The ping counts as sent as soon as *one*
+    channel delivers; if none do, the claimed ``PingLog`` slot is released so a
+    later tick retries.
+    """
     spec = registry.find_spec(pref.ping_type)
     if spec is None:
         return False  # stale row for an unregistered type
@@ -131,20 +136,14 @@ def _send_one(pref: PingPreference, now: datetime) -> bool:
     ).exists():
         return False  # already sent today
 
-    account = (
-        TelegramAccount.objects.filter(user=pref.user).select_related("user").first()
-    )
-    if account is None:
-        return False  # nowhere to send — silent skip, the UI nudges to link
-
     with translation.override(_recipient_language(pref)):
         text = spec.build_message(household, pref.user, today=today)
         if not text:
             return False  # nothing worth asking today (data already entered…)
 
         # Claim the (day, ping) slot BEFORE sending: overlapping ticks race on
-        # the unique constraint, not on Telegram. A failed delivery releases
-        # the claim so the next tick retries.
+        # the unique constraint, not on a channel. A total delivery failure
+        # releases the claim so the next tick retries.
         log, created = PingLog.objects.get_or_create(
             household=household,
             user=pref.user,
@@ -155,10 +154,33 @@ def _send_one(pref: PingPreference, now: datetime) -> bool:
         if not created:
             return False
 
-        if not send_agent_message(account, household, text):
+        if not _deliver(pref.user, household, text):
             log.delete()
             return False
     return True
+
+
+def _deliver(user, household, text: str) -> bool:
+    """Fan a ping out to every available channel. True if any delivered."""
+    delivered = False
+
+    account = (
+        TelegramAccount.objects.filter(user=user).select_related("user").first()
+    )
+    if account is not None:
+        from telegram.outbound import send_agent_message
+
+        # Telegram also persists the question as an agent turn (reply pipeline).
+        if send_agent_message(account, household, text):
+            delivered = True
+
+    from webpush.service import send_web_push
+
+    # Best-effort, never raises; no-op (0) if the user has no subscription.
+    if send_web_push(user, str(household), text, url="/app/dashboard") > 0:
+        delivered = True
+
+    return delivered
 
 
 def _household_tz(household) -> ZoneInfo:

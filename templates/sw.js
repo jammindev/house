@@ -108,7 +108,18 @@ self.addEventListener('push', (event) => {
     data: { url: payload.url || '/app/dashboard' },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  // App-icon badge (Badging API): the count rides in the payload so the badge
+  // stays right even when the SPA is closed. Guarded — not every UA/OS exposes
+  // it, and it only surfaces on an installed PWA (iOS 16.4+).
+  const tasks = [self.registration.showNotification(title, options)];
+  if (typeof payload.unreadCount === 'number' && self.navigator.setAppBadge) {
+    tasks.push(
+      payload.unreadCount > 0
+        ? self.navigator.setAppBadge(payload.unreadCount)
+        : self.navigator.clearAppBadge()
+    );
+  }
+  event.waitUntil(Promise.all(tasks).catch(() => {}));
 });
 
 self.addEventListener('notificationclick', (event) => {

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, time, timezone as dt_timezone
+from unittest import mock
 
 import pytest
 
@@ -68,6 +69,43 @@ class TestTick:
     def test_no_telegram_account_skips(self, preference, outbound_client):
         assert send_due_pings(now=_utc(17, 5))["sent"] == 0
         outbound_client.send_message.assert_not_called()
+
+
+class TestChannelFanout:
+    """A due ping fans out to Telegram + Web Push; one success = delivered."""
+
+    def test_delivers_via_web_push_without_telegram(self, preference, outbound_client):
+        with mock.patch("webpush.service.send_web_push", return_value=1) as push:
+            summary = send_due_pings(now=_utc(17, 5))
+
+        assert summary["sent"] == 1
+        push.assert_called_once()
+        assert push.call_args.args[0] == preference.user
+        assert push.call_args.kwargs["url"] == "/app/dashboard"
+        assert PingLog.objects.count() == 1
+        outbound_client.send_message.assert_not_called()
+
+    def test_fans_out_to_both_channels(self, preference, linked_account, outbound_client):
+        with mock.patch("webpush.service.send_web_push", return_value=1) as push:
+            assert send_due_pings(now=_utc(17, 5))["sent"] == 1
+
+        outbound_client.send_message.assert_called_once()
+        push.assert_called_once()
+        assert PingLog.objects.count() == 1
+
+    def test_no_channel_delivers_releases_log(self, preference, outbound_client):
+        # No Telegram account and web push delivers to nobody → nothing sent,
+        # log released so a later tick retries.
+        with mock.patch("webpush.service.send_web_push", return_value=0):
+            assert send_due_pings(now=_utc(17, 5))["sent"] == 0
+        assert not PingLog.objects.exists()
+
+    def test_telegram_success_counts_even_if_push_empty(
+        self, preference, linked_account, outbound_client
+    ):
+        with mock.patch("webpush.service.send_web_push", return_value=0):
+            assert send_due_pings(now=_utc(17, 5))["sent"] == 1
+        assert PingLog.objects.count() == 1
 
     def test_module_disabled_since_optin_skips(self, household, user,
                                                 linked_account, outbound_client):
