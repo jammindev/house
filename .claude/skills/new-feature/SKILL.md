@@ -24,9 +24,15 @@ anti-duplication tient en trois points :
 
 ## Étape 0 — Cadrage
 
-Vérifier qu'un cadrage existe (`docs/parcours/` + issues GitHub). S'il n'existe
-pas et que la demande est un nouveau module entier, proposer de cadrer d'abord
-(docs + issues) avant de coder — coder seulement sur demande explicite.
+Vérifier qu'un cadrage existe : doc produit `docs/parcours/PARCOURS_NN_*.md`,
+backlog technique `PARCOURS_NN_BACKLOG_TECHNIQUE.md` et issues GitHub. S'il
+existe, **partir du lot** correspondant du backlog (Fichiers + Critères déjà
+listés) plutôt que de re-cadrer.
+
+S'il n'existe pas et que la demande est un nouveau module entier (ou un chantier
+technique transverse), **ne pas coder à l'aveugle** : lancer d'abord le skill
+`/prepare-feature` pour produire doc + fiche concept + backlog + issues, puis
+revenir ici pour implémenter. Coder seulement sur demande explicite.
 
 Pour un changement non-trivial : feature branch depuis `main`
 (`feat/<app>-<description>`), PR vers `main`.
@@ -117,6 +123,13 @@ Tout se fait par déclaration — **aucune modification de la logique de
    l'étape correspondante d'un guide existant) dans la page Tutoriel, registre +
    4 locales.
 5. `pytest` + `npm run lint` avant de pousser la PR.
+
+## Étape 5 — Livraison
+
+Le lot terminé et vert, livrer avec le skill **`/ship`** : commit conventionnel,
+push, PR vers `main`, attente CI + revue `claude-review`, correctifs, merge. Si le
+lot est rattaché à une issue, fermer l'issue via la PR (`Closes #<lot>`) ; fermer
+l'**issue parente** du parcours seulement une fois tous les lots livrés.
 
 ## Check final anti-duplication
 
