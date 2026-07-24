@@ -8,6 +8,7 @@ import { SheetDialog } from '@/design-system/sheet-dialog';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { cn } from '@/lib/utils';
+import { toPlainText } from '@/lib/plainText';
 import { agentKeys, useConversations, useRenameConversation } from './hooks';
 import { deleteConversation, type AgentConversationRow } from './api';
 
@@ -122,11 +123,11 @@ export default function ConversationList({ currentId, onSelect, onNew, onCurrent
             )}
           >
             <MessageSquare className="h-3.5 w-3.5 shrink-0 opacity-60" />
-            <span className="truncate">{conv.title || t('agent.untitled')}</span>
+            <span className="truncate">{toPlainText(conv.title) || t('agent.untitled')}</span>
           </span>
           {conv.last_message_preview ? (
             <span className="truncate pl-[1.375rem] text-xs text-muted-foreground">
-              {conv.last_message_preview}
+              {toPlainText(conv.last_message_preview)}
             </span>
           ) : null}
         </button>
