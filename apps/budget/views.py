@@ -10,8 +10,10 @@ from rest_framework.response import Response
 from core.permissions import IsHouseholdMember
 
 from .aggregations import compute_budget_overview, compute_cashflow_projection
-from .models import Budget, RecurringExpense
+from .models import Budget, BudgetReport, RecurringExpense
+from .report.service import get_or_generate_report, last_closed_month
 from .serializers import (
+    BudgetReportSerializer,
     BudgetSerializer,
     ConfirmOccurrenceSerializer,
     RecurringExpenseSerializer,
@@ -205,3 +207,37 @@ class RecurringExpenseViewSet(viewsets.ModelViewSet):
                 "interaction_id": str(interaction.id),
             }
         )
+
+
+class BudgetReportViewSet(viewsets.ReadOnlyModelViewSet):
+    """Read-only monthly budget reports (parcours 21 lot 3).
+
+    ``list`` = history (deterministic text, cheap). ``latest`` ensures the last
+    closed month's report exists then returns it with the AI-polished narrative.
+    """
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = BudgetReportSerializer
+    lookup_field = "month"
+    lookup_value_regex = r"\d{4}-\d{2}"
+
+    def get_queryset(self):
+        qs = BudgetReport.objects.for_user_households(self.request.user)
+        if self.request.household:
+            qs = qs.filter(household=self.request.household)
+        return qs
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        # Single-report views render the warm narrative; the list stays cheap.
+        ctx["polish"] = self.action in ("latest", "retrieve")
+        return ctx
+
+    @action(detail=False, methods=["get"])
+    def latest(self, request):
+        """GET /api/budget/reports/latest/ — ensure + return last closed month's report."""
+        household = request.household
+        if household is None:
+            return Response(None)
+        report = get_or_generate_report(household, last_closed_month(household))
+        return Response(self.get_serializer(report).data)

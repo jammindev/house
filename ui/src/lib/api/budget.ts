@@ -153,3 +153,23 @@ export async function confirmRecurringOccurrence(
   const { data } = await api.post<ConfirmResult>(`/budget/recurring/${id}/confirm/`, body);
   return data;
 }
+
+// --- Monthly reports (parcours 21 lot 3) ------------------------------------
+
+export interface BudgetReport {
+  id: string;
+  month: string; // 'YYYY-MM'
+  text: string; // rendered in the user's language (AI-polished on latest/detail)
+  stats: Record<string, unknown>;
+  created_at: string;
+}
+
+export async function fetchBudgetReports(): Promise<BudgetReport[]> {
+  const { data } = await api.get<BudgetReport[] | { results: BudgetReport[] }>('/budget/reports/');
+  return unwrapList(data);
+}
+
+export async function fetchLatestBudgetReport(): Promise<BudgetReport | null> {
+  const { data } = await api.get<BudgetReport | null>('/budget/reports/latest/');
+  return data;
+}

@@ -279,6 +279,10 @@ DIGEST_AI_POLISH_ENABLED = False
 # state (below the 100% overrun). 0.8 = warn once 80% of the ceiling is spent.
 BUDGET_WARNING_RATIO = 0.8
 
+# Monthly budget report (lot 3): when on + an API key exists, the factual report
+# is rewritten into a warm paragraph by the LLM (fallback = deterministic text).
+BUDGET_REPORT_AI_POLISH_ENABLED = False
+
 # Telegram bot channel for the agent. Empty token = channel disabled: the
 # webhook rejects everything and no outbound call is ever made.
 # Overridden per environment in local.py / production.py.

@@ -1,7 +1,7 @@
 """Budget admin registration."""
 from django.contrib import admin
 
-from .models import Budget, RecurringExpense
+from .models import Budget, BudgetReport, RecurringExpense
 
 
 @admin.register(Budget)
@@ -17,4 +17,12 @@ class RecurringExpenseAdmin(admin.ModelAdmin):
     list_display = ("label", "household", "amount", "cadence", "next_due_date", "budget")
     list_filter = ("cadence", "household")
     search_fields = ("label", "supplier")
+    readonly_fields = ("id", "created_at", "updated_at")
+
+
+@admin.register(BudgetReport)
+class BudgetReportAdmin(admin.ModelAdmin):
+    list_display = ("month", "household", "created_at")
+    list_filter = ("household",)
+    search_fields = ("month",)
     readonly_fields = ("id", "created_at", "updated_at")

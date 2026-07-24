@@ -912,7 +912,8 @@
         "water_reading": "Rappel de relevé d'eau",
         "weather_alert": "Alerte météo",
         "daily_digest": "Résumé quotidien",
-        "recurring_due": "Échéance de dépense récurrente"
+        "recurring_due": "Échéance de dépense récurrente",
+        "monthly_budget_report": "Bilan mensuel du budget"
       }
     },
     "theme": "Thème",
@@ -1486,6 +1487,10 @@
           "recurring": {
             "title": "Anticiper les factures récurrentes",
             "body": "Ouvre « Dépenses récurrentes » depuis la page budget pour déclarer abonnements, assurances et factures. Vois ce qui tombe sur 30/90 jours, et confirme chaque échéance en un clic quand elle est payée (le montant est éditable) — elle rejoint ton journal et avance à la date suivante."
+          },
+          "report": {
+            "title": "Lire ton bilan mensuel",
+            "body": "En début de mois, un récap écrit du mois précédent est généré : total dépensé, tenue de chaque budget, plus grosses dépenses, récurrences payées et tendance vs le mois d’avant. Retrouve-le via « Bilan mensuel » sur la page budget — dans ta langue, avec les chiffres bruts en secours si aucune clé IA n’est configurée."
           }
         }
       }
@@ -3024,6 +3029,17 @@
     "projection": {
       "horizon": "{{days}} prochains jours",
       "count": "{{count}} échéance(s)"
+    }
+  },
+  "report": {
+    "title": "Bilan mensuel",
+    "description": "Un récap écrit des dépenses du mois écoulé, budget par budget.",
+    "empty": "Aucun bilan",
+    "emptyDescription": "Ton premier bilan mensuel apparaîtra une fois un mois clôturé avec des dépenses.",
+    "latest": "Mois dernier",
+    "history": "Mois précédents",
+    "access": {
+      "hint": "Récap écrit des dépenses du mois écoulé."
     }
   }
 }

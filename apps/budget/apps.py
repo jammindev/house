@@ -61,6 +61,13 @@ class BudgetConfig(AppConfig):
             default_send_at=time(8, 0),
         ))
 
+        # Monthly budget report: fires on the 1st, pushing last month's report.
+        register_ping(PingSpec(
+            ping_type="monthly_budget_report",
+            build_message=_build_monthly_report_message,
+            default_send_at=time(9, 0),
+        ))
+
 
 def _create_budget_from_agent(household, user, fields, *, anchor=None):
     """Map the agent's raw ``fields`` to ``budget.services.create_budget``."""
@@ -158,3 +165,10 @@ def _build_recurring_due_message(household, user, *, today):
     lines = [f"• {rec.label} — {rec.amount} €" for rec in due]
     footer = _("Confirm them in the app when paid.")
     return "\n".join([header, *lines, "", footer])
+
+
+def _build_monthly_report_message(household, user, *, today):
+    """Ping body: last month's budget report on the 1st (None otherwise/empty)."""
+    from .report.ping import build_monthly_report_message
+
+    return build_monthly_report_message(household, user, today=today)

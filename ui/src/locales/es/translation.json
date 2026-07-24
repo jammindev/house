@@ -912,7 +912,8 @@
         "water_reading": "Recordatorio de lectura de agua",
         "weather_alert": "Alerta meteorológica",
         "daily_digest": "Resumen diario",
-        "recurring_due": "Vencimiento de gasto recurrente"
+        "recurring_due": "Vencimiento de gasto recurrente",
+        "monthly_budget_report": "Balance mensual del presupuesto"
       }
     },
     "theme": "Tema",
@@ -1486,6 +1487,10 @@
           "recurring": {
             "title": "Anticipar facturas recurrentes",
             "body": "Abre «Gastos recurrentes» desde la página de presupuesto para registrar suscripciones, seguros y facturas. Mira lo que vence en los próximos 30/90 días y confirma cada vencimiento en un clic cuando lo pagues (el importe es editable) — entra en tu diario y avanza a la fecha siguiente."
+          },
+          "report": {
+            "title": "Lee tu balance mensual",
+            "body": "Al inicio de cada mes se genera un resumen escrito del mes anterior: total gastado, cómo fue cada presupuesto, mayores gastos, recurrentes pagados y la tendencia frente al mes previo. Lo encuentras en «Balance mensual» en la página de presupuesto — en tu idioma, con las cifras en bruto como alternativa si no hay clave de IA."
           }
         }
       }
@@ -3024,6 +3029,17 @@
     "projection": {
       "horizon": "Próximos {{days}} días",
       "count": "{{count}} vencimiento(s)"
+    }
+  },
+  "report": {
+    "title": "Balance mensual",
+    "description": "Un resumen escrito de los gastos del mes pasado, presupuesto por presupuesto.",
+    "empty": "Aún no hay balance",
+    "emptyDescription": "Tu primer balance mensual aparecerá cuando se cierre un mes con gastos.",
+    "latest": "Mes pasado",
+    "history": "Meses anteriores",
+    "access": {
+      "hint": "Resumen escrito de los gastos del mes pasado."
     }
   }
 }
