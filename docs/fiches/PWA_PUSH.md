@@ -74,13 +74,23 @@ Vu qu'on est solo et que le front est déjà responsive, on a choisi la **PWA**.
 - Clés VAPID générées par `manage.py generate_vapid_keys`, stockées en `.env`.
   Vides ⇒ tout marche mais l'envoi est un **no-op** (dégradation propre).
 
-### Lots 2-3 (à venir)
+### Lot 2 — l'abonnement côté front (livré)
 
-- **Lot 2** : l'abonnement côté front (le SW sait déjà recevoir) + un toggle
-  « Notifications push » dans les réglages + le bouton « notif de test ».
-- **Lot 3** : brancher le push sur les sources existantes — un point central
-  (`notifications.service.send`) pour les événements, et une abstraction canal pour
-  les `pings` (Web Push **à côté** de Telegram, qui reste en filet).
+- Toggle « Notifications push » dans les réglages (`WebPushSection.tsx`) + bouton
+  « notif de test ». État « abonné » lu côté SW (pas serveur). Gating iOS (installer
+  l'app d'abord) et navigateur non compatible. Helpers `ui/src/lib/pwa/platform.ts`.
+
+### Lot 3 — branchement des sources + pastille (livré)
+
+- **Événements** : `notifications.service.send()` miroite chaque notif vers
+  `send_web_push` en best-effort (point d'entrée unique → stock, invitations, météo
+  d'un coup). Deep-link par type + `unreadCount` embarqué.
+- **Pings** : abstraction canal `pings.services._deliver()` — Web Push **à côté** de
+  Telegram (qui reste en filet + garde la persistance du tour pour les réponses). Le
+  ping compte comme envoyé dès qu'un canal délivre ; `PingLog` relâché sinon.
+- **Pastille d'icône** (Badging API) : `sw.js` pose `setAppBadge(unreadCount)` au push
+  (app fermée) ; `syncAppBadge` + `useUnreadCount` la synchronisent app ouverte et
+  l'effacent à la lecture. Pas de pastille par ping (pas de notion « non lu »).
 
 ## 4. Pourquoi cette implémentation
 
