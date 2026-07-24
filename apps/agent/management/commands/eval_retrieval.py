@@ -52,6 +52,13 @@ class Command(BaseCommand):
         parser.add_argument("--auto-out", default=None, help="Save the auto-built golden to this path.")
         parser.add_argument("--mode", choices=(*_MODES, "all"), default="all")
         parser.add_argument("--k", type=int, default=10)
+        parser.add_argument(
+            "--no-expand",
+            action="store_true",
+            help="Feed raw questions to the lexical/hybrid legs instead of query-expanded "
+            "keywords. Off by default: expansion mirrors what the live agent does "
+            "(query_expansion → search_multi), so full-text gets a fair shot.",
+        )
 
     def handle(self, *args, **options):
         household_id = options["household"]
@@ -76,15 +83,32 @@ class Command(BaseCommand):
             if not isinstance(golden, list) or not golden:
                 raise CommandError("--queries must be a non-empty JSON list.")
 
-        self.stdout.write(f"Evaluating {len(golden)} question(s), k={k}\n")
+        # Expand once per question (reused by the fulltext + hybrid legs), mirroring
+        # the agent's search_household → query_expansion → search_multi path.
+        expand = not options["no_expand"]
+        need_terms = expand and any(m in ("fulltext", "hybrid") for m in modes)
+        terms_by_q: dict[str, list[str]] = {}
+        if need_terms:
+            from agent.llm import get_llm_client
+            from agent.query_expansion import expand as expand_query
+
+            client = get_llm_client()
+            for entry in golden:
+                q = entry.get("question", "")
+                terms_by_q[q] = expand_query(q, client=client, household_id=household_id)
+
+        header_suffix = "" if expand else " (raw, no expansion)"
+        self.stdout.write(f"Evaluating {len(golden)} question(s), k={k}{header_suffix}\n")
         self.stdout.write(f"{'mode':<10} {'queries':>8} {'recall@k':>10} {'mrr':>8}")
         self.stdout.write("-" * 40)
         for mode in modes:
-            runs = [
-                (self._retrieve(mode, household_id, entry.get("question", ""), k),
-                 entry.get("expected", []))
-                for entry in golden
-            ]
+            runs = []
+            for entry in golden:
+                q = entry.get("question", "")
+                terms = terms_by_q.get(q, [q]) if expand else [q]
+                runs.append(
+                    (self._retrieve(mode, household_id, q, terms, k), entry.get("expected", []))
+                )
             m = evaluate(runs, k)
             self.stdout.write(
                 f"{mode:<10} {m['queries']:>8} {m['recall_at_k']:>10.3f} {m['mrr']:>8.3f}"
@@ -134,10 +158,13 @@ class Command(BaseCommand):
             )
         return golden
 
-    def _retrieve(self, mode, household_id, question, k) -> list[str]:
+    def _retrieve(self, mode, household_id, question, terms, k) -> list[str]:
+        # Vector leg embeds the full natural question (best for semantics). The
+        # lexical/hybrid legs run search_multi over the (expanded) terms, exactly
+        # like the agent's search_household tool.
         if mode == "vector":
             hits = retrieval._vector_search(household_id, question, k)
         else:
             with override_settings(AGENT_HYBRID_RETRIEVAL_ENABLED=(mode == "hybrid")):
-                hits = retrieval.search(household_id, question, limit=k)
+                hits = retrieval.search_multi(household_id, terms, limit=k)
         return [f"{h.entity_type}:{h.id}" for h in hits]

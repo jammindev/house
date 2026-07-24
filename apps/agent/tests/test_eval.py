@@ -92,6 +92,7 @@ class TestEvalRetrievalCommand:
             queries=str(path),
             mode="fulltext",
             k=10,
+            no_expand=True,
             stdout=out,
         )
         output = out.getvalue()
@@ -130,12 +131,46 @@ class TestAutoGolden:
             auto=10,  # >= entity count so the document gets a question too
             mode="fulltext",
             auto_out=str(path),
+            no_expand=True,
             stdout=out,
         )
 
         golden = json.loads(path.read_text(encoding="utf-8"))
         assert any(entry["expected"] == [f"document:{doc.pk}"] for entry in golden)
         assert all("question" in entry and entry["question"] for entry in golden)
+
+
+class _TermsLLM:
+    provider = "anthropic"
+    model = "fake"
+
+    def complete(self, *, system, user, feature, household_id, user_id=None, max_tokens=1024, metadata=None):
+        from agent.llm import LLMResponse
+
+        return LLMResponse(
+            text="Engie, facture", input_tokens=1, output_tokens=1, duration_ms=1, model=self.model
+        )
+
+
+class TestExpansionPath:
+    def test_expansion_makes_fulltext_find_keywordless_question(
+        self, household, make_document, tmp_path, monkeypatch
+    ):
+        from agent import llm as llm_module
+
+        # Question shares NO word with the doc → raw full-text misses it; expansion
+        # (mocked → "Engie, facture") turns it into keywords that DO match.
+        doc = make_document(household, name="Engie", ocr_text="facture electricite du mois")
+        golden = [{"question": "chez qui je paie le courant ?", "expected": [f"document:{doc.pk}"]}]
+        path = tmp_path / "g.json"
+        path.write_text(json.dumps(golden), encoding="utf-8")
+        monkeypatch.setattr(llm_module, "get_llm_client", lambda *a, **k: _TermsLLM())
+
+        out = StringIO()
+        call_command(
+            "eval_retrieval", household=str(household.id), queries=str(path), mode="fulltext", k=10, stdout=out
+        )
+        assert "1.000" in out.getvalue()
 
 
 class TestEmbeddingsStatusCommand:
