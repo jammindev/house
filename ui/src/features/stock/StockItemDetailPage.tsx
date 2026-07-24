@@ -271,9 +271,9 @@ export default function StockItemDetailPage() {
                           >
                             <div className="flex items-start justify-between gap-2">
                               <span className="font-medium">{entry.subject || '—'}</span>
-                              {entry.metadata?.amount != null ? (
+                              {entry.amount != null ? (
                                 <span className="shrink-0 font-medium">
-                                  {formatAmount(entry.metadata.amount)}
+                                  {formatAmount(entry.amount)}
                                 </span>
                               ) : null}
                             </div>
@@ -283,7 +283,7 @@ export default function StockItemDetailPage() {
                                 ? ` · +${formatQty(entry.metadata.delta, entry.metadata.unit)}`
                                 : ''}
                               {entry.metadata?.brand ? ` · ${entry.metadata.brand}` : ''}
-                              {entry.metadata?.supplier ? ` · ${entry.metadata.supplier}` : ''}
+                              {entry.supplier ? ` · ${entry.supplier}` : ''}
                             </p>
                           </Card>
                         </li>

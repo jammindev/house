@@ -359,12 +359,12 @@ class TestConfirmOccurrence:
         interaction, _ = confirm_recurring_occurrence(hh, user, rec)
         assert Interaction.objects.get(id=interaction.id).subject == "Electricity Bill"
 
-    def test_metadata_kind_is_recurring(self):
+    def test_kind_is_recurring(self):
         hh, user = _make_pair()
         rec = self._create_rec(hh, user)
         interaction, _ = confirm_recurring_occurrence(hh, user, rec)
         from_db = Interaction.objects.get(id=interaction.id)
-        assert from_db.metadata["kind"] == "recurring"
+        assert from_db.kind == "recurring"
 
     def test_metadata_recurring_id_matches(self):
         hh, user = _make_pair()
@@ -393,14 +393,14 @@ class TestConfirmOccurrence:
         rec = self._create_rec(hh, user, amount=Decimal("50.00"))
         interaction, _ = confirm_recurring_occurrence(hh, user, rec, amount=Decimal("65.00"))
         from_db = Interaction.objects.get(id=interaction.id)
-        assert Decimal(from_db.metadata["amount"]) == Decimal("65.00")
+        assert from_db.amount == Decimal("65.00")
 
     def test_no_amount_override_uses_recurring_amount(self):
         hh, user = _make_pair()
         rec = self._create_rec(hh, user, amount=Decimal("29.99"))
         interaction, _ = confirm_recurring_occurrence(hh, user, rec)
         from_db = Interaction.objects.get(id=interaction.id)
-        assert Decimal(from_db.metadata["amount"]) == Decimal("29.99")
+        assert from_db.amount == Decimal("29.99")
 
     def test_interaction_attached_to_budget(self):
         hh, user = _make_pair()

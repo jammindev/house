@@ -213,11 +213,12 @@ export interface StockItemInteractionItem {
   subject: string;
   type: string;
   occurred_at: string;
+  // Expense columns (promoted out of metadata).
+  amount?: string | null;
+  kind?: string;
+  supplier?: string;
   metadata: {
-    kind?: string;
-    amount?: string | number | null;
     unit_price?: string | number | null;
-    supplier?: string | null;
     brand?: string | null;
     delta?: string;
     unit?: string;

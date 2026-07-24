@@ -102,9 +102,9 @@ def test_purchase_increments_quantity_and_creates_expense(client, user, househol
     assert interaction.household_id == household.id
     assert interaction.created_by_id == user.id
     assert interaction.subject == "Purchase — Firewood"
-    assert interaction.metadata["kind"] == "stock_purchase"
+    assert interaction.kind == "stock_purchase"
     assert interaction.metadata["stock_item_name"] == "Firewood"
-    assert interaction.metadata["amount"] == "342.00"
+    assert interaction.amount == Decimal("342.00")
     assert interaction.metadata["unit_price"] == "90.00"
     assert interaction.metadata["delta"] == "3.800"
     assert interaction.metadata["unit"] == "stere"
@@ -128,7 +128,7 @@ def test_purchase_without_amount_creates_interaction_without_unit_price(client, 
     assert payload["unit_price"] is None
 
     interaction = Interaction.objects.get(id=payload["interaction_id"])
-    assert interaction.metadata["amount"] is None
+    assert interaction.amount is None
     assert interaction.metadata["unit_price"] is None
 
 

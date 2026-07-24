@@ -753,9 +753,9 @@ class TestChickenPurchase:
         interaction = Interaction.objects.get(id=response.data["interaction_id"])
         assert interaction.household == hh
         assert interaction.type == "expense"
-        assert interaction.metadata["kind"] == "chickens_purchase"
+        assert interaction.kind == "chickens_purchase"
 
-    def test_purchase_stores_amount_in_metadata(self):
+    def test_purchase_stores_amount(self):
         hh = HouseholdFactory()
         owner = _make_owner(hh)
         chicken = ChickenFactory(household=hh, created_by=owner)
@@ -765,7 +765,7 @@ class TestChickenPurchase:
             format="json",
         )
         interaction = Interaction.objects.get(id=response.data["interaction_id"])
-        assert Decimal(interaction.metadata["amount"]) == Decimal("99.50")
+        assert interaction.amount == Decimal("99.50")
 
     def test_purchase_without_amount_accepted(self):
         """amount is optional on the purchase payload."""

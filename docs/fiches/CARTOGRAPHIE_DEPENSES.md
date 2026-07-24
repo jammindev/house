@@ -17,9 +17,15 @@
 > interaction ; stock hérite via son re-export. Rendu des montants désormais
 > localisé partout (« 12,00 € » en fr au lieu de « 12.00 € »).
 >
-> **Reste (PR3, optionnel)** : basculer le front sur les colonnes API + migration
-> de nettoyage qui strippe `amount/kind/supplier` de `metadata` + retire
-> `_sync_expense_columns`. Le reste de la fiche décrit l'état AVANT ces refactors.
+> **MàJ 2026-07-24 — transition terminée (PR « expense metadata cleanup »).**
+> `amount`/`kind`/`supplier` sont exposés en champs de premier niveau du
+> serializer ; le front (ExpenseList, détail/édition interaction, historique
+> stock) et l'API les lisent/écrivent en direct. Le shim `_sync_expense_columns`
+> est retiré et les clés sont strippées de `metadata` (migration
+> `interactions.0024`). `metadata` ne garde que `source_name`/`unit_price` + extras.
+> L'endpoint liste filtre `Q(kind) | Q(metadata__kind)` (dépense OU renovation).
+> **Chantier dépenses = terminé** (dettes ①②③ résolues). Le reste de la fiche
+> décrit l'état initial AVANT ces refactors.
 >
 > État : 2026-07-24. Photo de l'existant avant chantier d'amélioration.
 > Le mécanisme « dépense » s'est diffusé dans toute l'app depuis le parcours 08

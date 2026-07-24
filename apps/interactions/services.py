@@ -56,28 +56,24 @@ def _source_name(source) -> str:
 
 def _build_expense_metadata(
     *,
-    kind: str,
     source_name: str | None,
-    amount: Decimal | None = None,
     unit_price: Decimal | None = None,
-    supplier: str = "",
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Single source of truth for the `metadata` shape on expense interactions.
 
-    Both `create_expense_interaction` and `create_manual_expense_interaction`
-    flow through this helper, so adding a new key (e.g. `currency`) in the
-    future means touching one place.
+    The queried money fields (``amount``, ``kind``, ``supplier``) live in real
+    columns on ``Interaction`` — set directly by the creators, NOT here (cf.
+    docs/fiches/CARTOGRAPHIE_DEPENSES.md). ``metadata`` only carries the display /
+    feature-specific extras: ``source_name``, ``unit_price``, and whatever the
+    caller passes in ``extra`` (delta, unit, brand, recurring_id…).
 
     `extra` overrides standard keys when collisions occur — intentional escape
     hatch for feature-specific metadata.
     """
     metadata: dict[str, Any] = {
-        "kind": kind,
         "source_name": source_name,
-        "amount": str(amount) if amount is not None else None,
         "unit_price": str(unit_price) if unit_price is not None else None,
-        "supplier": supplier or "",
     }
     if extra:
         metadata.update(extra)
@@ -384,11 +380,8 @@ def create_expense_interaction(
     subject = template.format(name=name)
 
     metadata = _build_expense_metadata(
-        kind=resolved_kind,
         source_name=name,
-        amount=amount,
         unit_price=unit_price,
-        supplier=supplier,
         extra=extra_metadata,
     )
 
@@ -460,11 +453,8 @@ def create_manual_expense_interaction(
         raise ValueError("create_manual_expense_interaction: subject is required")
 
     metadata = _build_expense_metadata(
-        kind=kind,
         source_name=None,
-        amount=amount,
         unit_price=None,
-        supplier=supplier,
         extra=extra_metadata,
     )
 

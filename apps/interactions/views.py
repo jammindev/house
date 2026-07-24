@@ -138,19 +138,18 @@ class InteractionViewSet(viewsets.ModelViewSet):
             tag_list = tags.split(',')
             queryset = queryset.filter(tags__tag__name__in=tag_list).distinct()
 
-        # Filter by metadata.kind — generic across interaction subtypes, incl.
-        # non-expense ones (e.g. renovation) whose kind stays in metadata. The
-        # promoted `kind` column is expense-only; expense aggregations use it,
-        # but this shared list endpoint keeps the metadata lookup so every
-        # subtype filters uniformly.
-        metadata_kind = self.request.query_params.get('kind')
-        if metadata_kind:
-            queryset = queryset.filter(metadata__kind=metadata_kind)
+        # Filter by kind — generic across interaction subtypes. Expense kinds
+        # live in the promoted `kind` column; non-expense subtypes (e.g.
+        # renovation) keep their discriminator in metadata. Match either so this
+        # shared list endpoint filters every subtype uniformly.
+        kind = self.request.query_params.get('kind')
+        if kind:
+            queryset = queryset.filter(Q(kind=kind) | Q(metadata__kind=kind))
 
-        # Filter by metadata.supplier (exact match)
-        metadata_supplier = self.request.query_params.get('supplier')
-        if metadata_supplier is not None:
-            queryset = queryset.filter(metadata__supplier=metadata_supplier)
+        # Filter by supplier (expense-only, now a real column).
+        supplier = self.request.query_params.get('supplier')
+        if supplier is not None:
+            queryset = queryset.filter(supplier=supplier)
 
         return queryset
     

@@ -69,9 +69,9 @@ class TestManualExpenseEndpoint:
         data = response.data
         assert data["subject"] == "Restaurant Le Bistrot"
         assert data["type"] == "expense"
-        assert data["metadata"]["kind"] == "manual"
-        assert data["metadata"]["amount"] == "32.00"
-        assert data["metadata"]["supplier"] == "Le Bistrot"
+        assert data["kind"] == "manual"
+        assert data["amount"] == "32.00"
+        assert data["supplier"] == "Le Bistrot"
         assert data["metadata"]["source_name"] is None
         assert data["source_type"] is None
 
@@ -88,7 +88,7 @@ class TestManualExpenseEndpoint:
             format="json",
         )
         assert response.status_code == status.HTTP_201_CREATED, response.content
-        assert response.data["metadata"]["amount"] is None
+        assert response.data["amount"] is None
 
     def test_subject_is_required(self, owner_client, household):
         response = owner_client.post(

@@ -43,11 +43,6 @@ def _create_expense(household, user, zone, *, amount, occurred_at,
         amount=amount,
         kind=kind,
         supplier=supplier,
-        metadata={
-            'kind': kind,
-            'amount': str(amount) if amount is not None else None,
-            'supplier': supplier,
-        },
     )
     if zone is not None:
         InteractionZone.objects.create(interaction=interaction, zone=zone)
@@ -202,18 +197,18 @@ class TestExpenseSummary:
         assert response.data["total"] == "1.00"
         assert response.data["count"] == 1
 
-    def test_editing_expense_metadata_syncs_columns_and_aggregation(
+    def test_editing_expense_amount_field_updates_aggregation(
         self, owner_client, household, owner, zone
     ):
-        """Editing an expense through the JSON `metadata` field (the current front
-        contract) must keep the promoted columns — and thus the summary — in sync."""
+        """Editing an expense via the promoted `amount`/`supplier` fields (the
+        current front contract) updates the columns — and thus the summary."""
         exp = _create_expense(
             household, owner, zone,
             amount=Decimal("10.00"), occurred_at=timezone.now(), kind="manual",
         )
         resp = owner_client.patch(
             reverse("interaction-detail", kwargs={"pk": exp.id}),
-            {"metadata": {"kind": "manual", "amount": "80.00", "supplier": "Brico"}},
+            {"amount": "80.00", "supplier": "Brico"},
             format="json",
         )
         assert resp.status_code == status.HTTP_200_OK

@@ -157,6 +157,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'household', 'subject', 'content', 'type',
             'is_private', 'occurred_at', 'tags', 'tags_input', 'metadata', 'enriched_text',
+            'amount', 'kind', 'supplier',
             'source_type', 'source_id', 'source_label',
             'zone_ids', 'zone_names', 'zone_id_list', 'document_count', 'linked_document_ids', 'document_ids',
             'contacts', 'contact_ids', 'structures', 'structure_ids',
@@ -225,31 +226,6 @@ class InteractionSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({'budget_id': str(exc)})
         else:
             interaction.budget = None
-
-    def _sync_expense_columns(self, interaction):
-        """Keep the promoted amount/kind/supplier columns in sync with metadata.
-
-        During the "expense columns" transition the frontend still edits expenses
-        through the ``metadata`` JSON field, while the aggregations read the
-        columns. Deriving the columns from ``metadata`` on every write keeps them
-        authoritative without requiring the client to change yet (that flip is a
-        later PR — see docs/fiches/CARTOGRAPHIE_DEPENSES.md). No-op for
-        non-expense interactions.
-        """
-        if interaction.type != 'expense':
-            return
-        meta = interaction.metadata or {}
-        raw = meta.get('amount')
-        if raw in (None, ''):
-            interaction.amount = None
-        else:
-            from decimal import Decimal, InvalidOperation
-            try:
-                interaction.amount = Decimal(str(raw))
-            except (InvalidOperation, ValueError):
-                interaction.amount = None
-        interaction.kind = meta.get('kind') or ''
-        interaction.supplier = meta.get('supplier') or ''
 
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
@@ -376,10 +352,9 @@ class InteractionSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
 
-            self._sync_expense_columns(interaction)
             if budget_id:
                 self._apply_budget(interaction, budget_id)
-            interaction.save(update_fields=['amount', 'kind', 'supplier', 'budget'])
+                interaction.save(update_fields=['budget'])
 
             from zones.models import Zone
             for zone_id in zone_ids:
@@ -412,10 +387,10 @@ class InteractionSerializer(serializers.ModelSerializer):
             instance.household_id,
         )
 
-        # Update interaction fields
+        # Update interaction fields (amount/kind/supplier are now real columns,
+        # written directly from validated_data — no metadata round-trip).
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
-        self._sync_expense_columns(instance)
         if budget_id is not ...:
             self._apply_budget(instance, budget_id)
         instance.save()

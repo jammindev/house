@@ -55,9 +55,8 @@ export default function InteractionDetailPage() {
     );
   }
 
-  const metadata = (interaction.metadata ?? {}) as Record<string, string | null | undefined>;
-  const amount = metadata.amount;
-  const supplier = metadata.supplier;
+  const amount = interaction.amount;
+  const supplier = interaction.supplier;
   const isExpense = interaction.type === 'expense';
 
   return (
