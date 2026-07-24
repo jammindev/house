@@ -46,6 +46,8 @@ def create_briefing(
     briefing_type: str = Briefing.Type.RECURRING,
     is_private: bool = False,
     is_active: bool = False,
+    send_times: list | None = None,
+    weekdays: list | None = None,
 ) -> Briefing:
     """Create one briefing rule. Validation goes through the serializer."""
     if is_active:
@@ -59,6 +61,8 @@ def create_briefing(
         "briefing_type": briefing_type,
         "is_private": bool(is_private),
         "is_active": bool(is_active),
+        "send_times": send_times or [],
+        "weekdays": weekdays or [],
     }
     serializer = BriefingSerializer(data=payload)
     serializer.is_valid(raise_exception=True)
@@ -75,6 +79,8 @@ def update_briefing(household, user, briefing: Briefing, *, fields: dict) -> Bri
         "briefing_type",
         "is_private",
         "is_active",
+        "send_times",
+        "weekdays",
     }
     payload = {k: v for k, v in fields.items() if k in allowed}
 
