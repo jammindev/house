@@ -3,24 +3,35 @@ import { useTranslation } from 'react-i18next';
 import {
   createBriefing,
   deleteBriefing,
+  fetchBriefingHistory,
   fetchBriefings,
   previewBriefing,
   sendBriefingNow,
   updateBriefing,
   type Briefing,
   type BriefingPayload,
+  type BriefingSendLogEntry,
 } from '@/lib/api/briefings';
 import { toast } from '@/lib/toast';
 
 export const briefingKeys = {
   all: ['briefings'] as const,
   list: () => [...briefingKeys.all, 'list'] as const,
+  history: (id: string) => [...briefingKeys.all, id, 'history'] as const,
 };
 
 export function useBriefings() {
   return useQuery<Briefing[]>({
     queryKey: briefingKeys.list(),
     queryFn: fetchBriefings,
+  });
+}
+
+export function useBriefingHistory(id: string | undefined, enabled: boolean) {
+  return useQuery<BriefingSendLogEntry[]>({
+    queryKey: briefingKeys.history(id ?? ''),
+    queryFn: () => fetchBriefingHistory(id as string),
+    enabled: Boolean(id) && enabled,
   });
 }
 

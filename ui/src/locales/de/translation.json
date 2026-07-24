@@ -76,6 +76,17 @@
         "sat": "Sa",
         "sun": "So"
       }
+    },
+    "history": {
+      "action": "Verlauf",
+      "title": "Sendeverlauf",
+      "empty": "Noch kein Versand.",
+      "contentLabel": "Nachricht",
+      "status": {
+        "sent": "Gesendet",
+        "error": "Fehlgeschlagen",
+        "skipped_condition": "Übersprungen (Bedingung)"
+      }
     }
   },
   "shoppingList": {

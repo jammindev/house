@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Clock, Eye, Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
+import { Clock, Eye, History, Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
@@ -14,15 +14,25 @@ interface Props {
   onDelete: (briefing: Briefing) => void;
   onToggleActive: (briefing: Briefing) => void;
   onPreview: (briefing: Briefing) => void;
+  onHistory: (briefing: Briefing) => void;
 }
 
-export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActive, onPreview }: Props) {
+export default function BriefingCard({
+  briefing,
+  onEdit,
+  onDelete,
+  onToggleActive,
+  onPreview,
+  onHistory,
+}: Props) {
   const { t, i18n } = useTranslation();
 
   const nextSend = briefing.is_active ? formatNextSend(briefing.next_send_at, i18n.language) : null;
+  const lastSend = briefing.last_send;
 
   const actions: CardAction[] = [
     { label: t('briefings.preview.action'), icon: Eye, onClick: () => onPreview(briefing) },
+    { label: t('briefings.history.action'), icon: History, onClick: () => onHistory(briefing) },
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(briefing) },
     { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(briefing), variant: 'danger' },
   ];
@@ -76,6 +86,15 @@ export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActiv
           <span className="truncate text-xs text-muted-foreground">
             {t('briefings.schedule.nextSend')} : {nextSend}
           </span>
+        ) : lastSend ? (
+          <button
+            type="button"
+            onClick={() => onHistory(briefing)}
+            className="truncate text-xs text-muted-foreground hover:text-foreground"
+          >
+            {t(`briefings.history.status.${lastSend.status}`)} ·{' '}
+            {formatNextSend(lastSend.created_at, i18n.language)}
+          </button>
         ) : null}
       </div>
     </Card>
