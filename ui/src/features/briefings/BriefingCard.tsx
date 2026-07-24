@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
+import { Eye, Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
@@ -12,12 +12,14 @@ interface Props {
   onEdit: (briefing: Briefing) => void;
   onDelete: (briefing: Briefing) => void;
   onToggleActive: (briefing: Briefing) => void;
+  onPreview: (briefing: Briefing) => void;
 }
 
-export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActive }: Props) {
+export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActive, onPreview }: Props) {
   const { t } = useTranslation();
 
   const actions: CardAction[] = [
+    { label: t('briefings.preview.action'), icon: Eye, onClick: () => onPreview(briefing) },
     { label: t('common.edit'), icon: Pencil, onClick: () => onEdit(briefing) },
     { label: t('common.delete'), icon: Trash2, onClick: () => onDelete(briefing), variant: 'danger' },
   ];

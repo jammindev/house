@@ -69,3 +69,22 @@ export async function updateBriefing(
 export async function deleteBriefing(id: string): Promise<void> {
   await api.delete(`/briefings/briefings/${id}/`);
 }
+
+/** Generate the briefing content for the current user, without sending (Lot 2). */
+export async function previewBriefing(id: string): Promise<{ text: string }> {
+  const { data } = await api.post(`/briefings/briefings/${id}/preview/`);
+  return data as { text: string };
+}
+
+export interface BriefingSendSummary {
+  total_recipients: number;
+  sent: number;
+  skipped_no_telegram: number;
+  errors: number;
+}
+
+/** Generate + push the briefing to its recipients right now (Lot 2). */
+export async function sendBriefingNow(id: string): Promise<BriefingSendSummary> {
+  const { data } = await api.post(`/briefings/briefings/${id}/send-now/`);
+  return data as BriefingSendSummary;
+}
