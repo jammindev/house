@@ -46,7 +46,9 @@
       "failed": "Briefing konnte nicht erstellt werden. Versuche es erneut.",
       "empty": "Der Assistent hat für dieses Briefing nichts zurückgegeben.",
       "linkFirst": "Verknüpfe dein Telegram-Konto, um Briefings zu erhalten.",
-      "linkCta": "Telegram verknüpfen"
+      "linkCta": "Telegram verknüpfen",
+      "conditionMet": "Bedingung erfüllt — dieses Briefing würde jetzt gesendet.",
+      "conditionNotMet": "Bedingung nicht erfüllt — dieses Briefing würde übersprungen."
     },
     "send": {
       "button": "Jetzt senden",

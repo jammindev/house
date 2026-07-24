@@ -96,7 +96,7 @@ class BriefingSendLog(HouseholdScopedModel):
     class Status(models.TextChoices):
         SENT = "sent", _("Sent")
         ERROR = "error", _("Error")
-        # lot 4 adds "skipped_condition"; the field is open on purpose.
+        SKIPPED_CONDITION = "skipped_condition", _("Skipped (condition not met)")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     briefing = models.ForeignKey(

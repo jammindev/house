@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from agent.llm import LLMError, LLMTimeoutError
 from core.permissions import IsHouseholdMember
 
+from .conditions import evaluate_condition
 from .generation import generate_briefing_text, send_briefing_now
 from .models import Briefing
 from .permissions import CanManageBriefing
@@ -76,7 +77,11 @@ class BriefingViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"])
     def preview(self, request, pk=None):
-        """Generate the briefing content for the requesting user — no Telegram send."""
+        """Generate the briefing content for the requesting user — no Telegram send.
+
+        Also evaluates the condition (if any) so the UI can show whether the
+        briefing would actually go out right now.
+        """
         briefing = self.get_object()
         try:
             text = generate_briefing_text(briefing, recipient=request.user)
@@ -86,7 +91,13 @@ class BriefingViewSet(viewsets.ModelViewSet):
                 {"detail": "generation_failed"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
-        return Response({"text": text})
+
+        condition_verdict = None
+        if (briefing.condition or "").strip():
+            verdict = evaluate_condition(briefing, recipient=request.user)
+            condition_verdict = {"send": verdict.send, "reason": verdict.reason}
+
+        return Response({"text": text, "condition_verdict": condition_verdict})
 
     @action(detail=True, methods=["post"], url_path="send-now")
     def send_now(self, request, pk=None):

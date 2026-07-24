@@ -24,6 +24,7 @@ from datetime import datetime
 
 from django.utils import timezone, translation
 
+from .conditions import evaluate_condition
 from .generation import (
     _recipient_language,
     _recipients,
@@ -43,36 +44,36 @@ def send_due_briefings(now: datetime | None = None) -> dict:
     for a single bad briefing.
     """
     now = now or timezone.now()
-    sent = skipped_no_telegram = errors = 0
+    totals = {"sent": 0, "skipped_no_telegram": 0, "skipped_condition": 0, "errors": 0}
 
     briefings = Briefing.objects.filter(is_active=True).select_related("household", "created_by")
     for briefing in briefings:
         try:
             outcome = _send_one_briefing(briefing, now)
         except Exception:  # noqa: BLE001 — isolate failures per briefing
-            errors += 1
+            totals["errors"] += 1
             logger.exception("briefings.tick failed for briefing=%s", briefing.pk)
             continue
-        sent += outcome["sent"]
-        skipped_no_telegram += outcome["skipped_no_telegram"]
-        errors += outcome["errors"]
+        for key in totals:
+            totals[key] += outcome[key]
 
-    if sent or errors:
+    if totals["sent"] or totals["errors"] or totals["skipped_condition"]:
         logger.info(
-            "briefings.tick: sent=%s skipped_no_telegram=%s errors=%s",
-            sent,
-            skipped_no_telegram,
-            errors,
+            "briefings.tick: sent=%s skipped_no_telegram=%s skipped_condition=%s errors=%s",
+            totals["sent"],
+            totals["skipped_no_telegram"],
+            totals["skipped_condition"],
+            totals["errors"],
         )
-    return {"sent": sent, "skipped_no_telegram": skipped_no_telegram, "errors": errors}
+    return totals
 
 
 def _send_one_briefing(briefing: Briefing, now: datetime) -> dict:
     """Evaluate one briefing's due slots for today and deliver them."""
-    sent = skipped_no_telegram = errors = 0
+    totals = {"sent": 0, "skipped_no_telegram": 0, "skipped_condition": 0, "errors": 0}
 
     if not briefing.send_times:
-        return {"sent": 0, "skipped_no_telegram": 0, "errors": 0}
+        return totals
 
     tz = household_tz(briefing.household)
     local_now = now.astimezone(tz)
@@ -80,20 +81,26 @@ def _send_one_briefing(briefing: Briefing, now: datetime) -> dict:
 
     # Weekday gate: empty weekdays = every day.
     if briefing.weekdays and today.weekday() not in briefing.weekdays:
-        return {"sent": 0, "skipped_no_telegram": 0, "errors": 0}
+        return totals
 
     recipients = _recipients(briefing)
+    outcome_to_key = {
+        "sent": "sent",
+        "skipped_no_telegram": "skipped_no_telegram",
+        "skipped_condition": "skipped_condition",
+        "error": "errors",
+    }
 
     for slot in sorted(briefing.send_times):
         if local_now.time() < slot:
             continue  # not due yet today
         for user in recipients:
             outcome = _deliver_slot(briefing, user, today, slot)
-            sent += outcome == "sent"
-            skipped_no_telegram += outcome == "skipped_no_telegram"
-            errors += outcome == "error"
+            key = outcome_to_key.get(outcome)
+            if key:
+                totals[key] += 1
 
-    return {"sent": sent, "skipped_no_telegram": skipped_no_telegram, "errors": errors}
+    return totals
 
 
 def _deliver_slot(briefing: Briefing, user, slot_date, slot_time) -> str:
@@ -123,6 +130,16 @@ def _deliver_slot(briefing: Briefing, user, slot_date, slot_time) -> str:
         return "noop"  # already attempted this slot today
 
     try:
+        # Condition gate (lot 4): an unconditional briefing always sends; a
+        # condition that is false (or unevaluable) skips this slot, recorded so
+        # it is not re-evaluated today.
+        verdict = evaluate_condition(briefing, recipient=user)
+        if not verdict.send:
+            log.status = BriefingSendLog.Status.SKIPPED_CONDITION
+            log.content = verdict.reason
+            log.save(update_fields=["status", "content", "updated_at"])
+            return "skipped_condition"
+
         with translation.override(_recipient_language(user, briefing.household)):
             text = generate_briefing_text(briefing, recipient=user)
             payload = _render_telegram(briefing, text)
