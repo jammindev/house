@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Textarea } from '@/design-system/textarea';
 import { pushBack } from '@/lib/backNavigation';
+import { formatAmount } from '@/lib/format';
 import { useProjectTasks } from '@/features/tasks/hooks';
 import { useProjectInteractions, projectKeys } from './hooks';
 import { formatDate, formatDateTime } from './format';
@@ -69,12 +70,12 @@ function IndicatorsSection({ project }: { project: ProjectListItem }) {
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-lg border border-border p-3">
           <p className="text-xs text-muted-foreground">{t('projects.metrics.planned_budget')}</p>
-          <p className="mt-1 text-xl font-semibold">{planned > 0 ? `${planned.toFixed(2)} €` : '—'}</p>
+          <p className="mt-1 text-xl font-semibold">{planned > 0 ? formatAmount(planned) : '—'}</p>
         </div>
         <div className="rounded-lg border border-border p-3">
           <p className="text-xs text-muted-foreground">{t('projects.metrics.actual_cost')}</p>
           <p className={`mt-1 text-xl font-semibold ${overBudget ? 'text-destructive' : ''}`}>
-            {actual > 0 ? `${actual.toFixed(2)} €` : '—'}
+            {actual > 0 ? formatAmount(actual) : '—'}
           </p>
         </div>
       </div>

@@ -19,12 +19,27 @@ export function formatDateTime(value?: string | null): string {
   return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(d);
 }
 
-/** Montant en euros (« 12.00 € »), ou « — » si vide / non numérique renvoyé tel quel. */
-export function formatAmount(value?: string | number | null): string {
+/**
+ * Montant en devise (EUR), localisé via `Intl.NumberFormat`.
+ * Formatter unique de l'app — ne jamais réintroduire un `.toFixed() + ' €'` local.
+ *
+ * - vide / null → « — » ; non numérique → renvoyé tel quel.
+ * - `fractionDigits` force le nombre de décimales (0 pour les montants « ronds »
+ *   des cards projet / dashboard) ; par défaut le comportement devise EUR (2).
+ */
+export function formatAmount(
+  value?: string | number | null,
+  options?: { fractionDigits?: number },
+): string {
   if (value == null || value === '') return '—';
   const parsed = Number(value);
   if (Number.isNaN(parsed)) return String(value);
-  return `${parsed.toFixed(2)} €`;
+  const digits = options?.fractionDigits;
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'EUR',
+    ...(digits != null ? { minimumFractionDigits: digits, maximumFractionDigits: digits } : {}),
+  }).format(parsed);
 }
 
 /** true si la date est dans le passé (garantie / échéance dépassée, péremption…). */

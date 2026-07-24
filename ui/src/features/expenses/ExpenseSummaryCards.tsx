@@ -1,19 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/design-system/card';
+import { formatAmount } from '@/lib/format';
 import type { ExpenseSummary } from '@/lib/api/expenses';
 
 interface ExpenseSummaryCardsProps {
   summary: ExpenseSummary;
-}
-
-function formatAmount(value: string): string {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return value;
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 2,
-  }).format(numeric);
 }
 
 export default function ExpenseSummaryCards({ summary }: ExpenseSummaryCardsProps) {

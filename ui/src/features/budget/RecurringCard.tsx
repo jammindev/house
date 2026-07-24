@@ -3,9 +3,8 @@ import { Pencil, Trash2, CheckCircle2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import CardActions, { type CardAction } from '@/components/CardActions';
-import { formatDate } from '@/lib/format';
+import { formatAmount, formatDate } from '@/lib/format';
 import type { RecurringExpense } from '@/lib/api/budget';
-import { formatAmount } from './format';
 
 interface Props {
   recurring: RecurringExpense;

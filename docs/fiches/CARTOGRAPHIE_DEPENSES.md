@@ -9,9 +9,17 @@
 > (`create_expense_interaction` / `create_manual_expense_interaction`, param
 > `kind` explicite) renseigne les colonnes **et** garde `metadata` (le front lit
 > encore `metadata` ; le serializer resynchronise les colonnes à chaque édition).
-> **Reste (PR2)** : basculer le front sur les colonnes, unifier `formatAmount`
-> (dette ②), puis migration de nettoyage qui strippe `amount/kind/supplier` de
-> `metadata`. Le reste de la fiche décrit l'état AVANT ce refactor.
+> **MàJ 2026-07-24 — dette ② résolue (PR « money format unify »).** Un seul
+> `formatAmount` dans `@/lib/format.ts` (Intl devise EUR, locale-aware, option
+> `fractionDigits`). Supprimés : `features/budget/format.ts` + les formatters
+> locaux de `expenses/` + dashboard `ExpensesCard`. Repointés sur le partagé :
+> budget, expenses, coût projet, prix d'achat équipement, montant dépense
+> interaction ; stock hérite via son re-export. Rendu des montants désormais
+> localisé partout (« 12,00 € » en fr au lieu de « 12.00 € »).
+>
+> **Reste (PR3, optionnel)** : basculer le front sur les colonnes API + migration
+> de nettoyage qui strippe `amount/kind/supplier` de `metadata` + retire
+> `_sync_expense_columns`. Le reste de la fiche décrit l'état AVANT ces refactors.
 >
 > État : 2026-07-24. Photo de l'existant avant chantier d'amélioration.
 > Le mécanisme « dépense » s'est diffusé dans toute l'app depuis le parcours 08

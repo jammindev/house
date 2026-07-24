@@ -9,11 +9,11 @@ import { Card } from '@/design-system/card';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { pushBack } from '@/lib/backNavigation';
+import { formatAmount } from '@/lib/format';
 import type { Budget, BudgetOverviewRow } from '@/lib/api/budget';
 import { useBudgetOverview, useDeleteBudget } from './hooks';
 import BudgetCard from './BudgetCard';
 import BudgetDialog from './BudgetDialog';
-import { formatAmount } from './format';
 
 /** Rebuild an editable Budget from an overview row (avoids a second fetch). */
 function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
