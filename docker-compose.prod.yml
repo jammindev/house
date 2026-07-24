@@ -54,6 +54,23 @@ services:
     networks:
       - internal
 
+  # Scheduler des briefings personnalisés (parcours 23). Même image, tick
+  # idempotent en boucle (voir apps/briefings/scheduler.py::send_due_briefings).
+  scheduler-briefings:
+    image: house:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+    entrypoint: ["python", "manage.py", "send_due_briefings", "--loop"]
+    networks:
+      - internal
+
   nginx:
     image: nginx:alpine
     restart: always

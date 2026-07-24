@@ -53,6 +53,27 @@
       "sent": "Sent to {{count}} recipient(s)",
       "noTelegram": "Nothing sent — no recipient has Telegram linked.",
       "failed": "Sending failed."
+    },
+    "schedule": {
+      "times": "Send times",
+      "addTime": "Add a time",
+      "removeTime": "Remove",
+      "noTimeYet": "No send time yet — the briefing stays manual until you add one.",
+      "weekdays": "Days",
+      "everyDay": "Every day",
+      "everyDayHint": "No day selected = every day.",
+      "none": "No schedule",
+      "nextSend": "Next",
+      "needsTimeToActivate": "Add at least one send time before activating.",
+      "weekdaysShort": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      }
     }
   },
   "shoppingList": {

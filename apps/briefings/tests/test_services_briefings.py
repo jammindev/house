@@ -7,6 +7,8 @@ Coverage:
 4. resolve_briefing — household-scoped lookup returns instance or None.
 5. Quota isolation — another user's active briefings do not count toward the caller's quota.
 """
+from datetime import time
+
 import pytest
 from rest_framework import serializers as drf_serializers
 
@@ -134,7 +136,10 @@ class TestCreateBriefingService:
         _fill_quota(household, owner)
 
         # The other user can still create an active briefing.
-        b = create_briefing(household, other, title="Other active", prompt="Mine.", is_active=True)
+        b = create_briefing(
+            household, other, title="Other active", prompt="Mine.",
+            is_active=True, send_times=["06:00"],
+        )
         assert b.pk is not None
         assert b.is_active is True
 
@@ -146,7 +151,14 @@ class TestUpdateBriefingService:
     """update_briefing — field edits and quota on is_active toggle."""
 
     def _make_briefing(self, household, user, **kwargs) -> Briefing:
-        defaults = {"title": "Original", "prompt": "Original prompt.", "is_active": False}
+        # A schedule is required to activate a briefing (lot 3), so give every
+        # fixture one send time by default.
+        defaults = {
+            "title": "Original",
+            "prompt": "Original prompt.",
+            "is_active": False,
+            "send_times": [time(6, 0)],
+        }
         defaults.update(kwargs)
         return Briefing.objects.create(household=household, created_by=user, **defaults)
 

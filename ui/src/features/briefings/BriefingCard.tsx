@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { Eye, Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
+import { Clock, Eye, Lock, Pencil, Power, Trash2, Users } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { cn } from '@/lib/utils';
 import type { Briefing } from '@/lib/api/briefings';
+import { formatNextSend, scheduleSummary } from './schedule';
 
 interface Props {
   briefing: Briefing;
@@ -16,7 +17,9 @@ interface Props {
 }
 
 export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActive, onPreview }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const nextSend = briefing.is_active ? formatNextSend(briefing.next_send_at, i18n.language) : null;
 
   const actions: CardAction[] = [
     { label: t('briefings.preview.action'), icon: Eye, onClick: () => onPreview(briefing) },
@@ -48,12 +51,17 @@ export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActiv
               {briefing.condition}
             </p>
           ) : null}
+
+          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+            <Clock className="h-3 w-3 shrink-0" />
+            {scheduleSummary(briefing, t)}
+          </p>
         </div>
 
         <CardActions actions={actions} />
       </div>
 
-      <div className="mt-2 flex items-center justify-between">
+      <div className="mt-2 flex items-center justify-between gap-2">
         <Button
           type="button"
           variant="ghost"
@@ -64,6 +72,11 @@ export default function BriefingCard({ briefing, onEdit, onDelete, onToggleActiv
           <Power className="h-4 w-4" />
           {briefing.is_active ? t('briefings.active') : t('briefings.inactive')}
         </Button>
+        {nextSend ? (
+          <span className="truncate text-xs text-muted-foreground">
+            {t('briefings.schedule.nextSend')} : {nextSend}
+          </span>
+        ) : null}
       </div>
     </Card>
   );

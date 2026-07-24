@@ -1,13 +1,16 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
+import { Plus, X } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
+import { FilterPill } from '@/design-system/filter-pill';
 import { FormField } from '@/design-system/form-field';
 import type { Briefing } from '@/lib/api/briefings';
 import { useCreateBriefing, useUpdateBriefing } from './hooks';
+import { WEEKDAY_KEYS, toHHMM } from './schedule';
 
 interface Props {
   open: boolean;
@@ -25,6 +28,8 @@ export default function BriefingDialog({ open, onOpenChange, existing }: Props) 
   const [prompt, setPrompt] = React.useState('');
   const [condition, setCondition] = React.useState('');
   const [visibility, setVisibility] = React.useState<'shared' | 'private'>('shared');
+  const [sendTimes, setSendTimes] = React.useState<string[]>([]);
+  const [weekdays, setWeekdays] = React.useState<number[]>([]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -33,24 +38,44 @@ export default function BriefingDialog({ open, onOpenChange, existing }: Props) 
       setPrompt(existing.prompt);
       setCondition(existing.condition || '');
       setVisibility(existing.is_private ? 'private' : 'shared');
+      setSendTimes(existing.send_times.map(toHHMM));
+      setWeekdays([...existing.weekdays]);
     } else {
       setTitle('');
       setPrompt('');
       setCondition('');
       setVisibility('shared');
+      setSendTimes([]);
+      setWeekdays([]);
     }
   }, [open, existing]);
+
+  function updateTime(index: number, value: string) {
+    setSendTimes((prev) => prev.map((t, i) => (i === index ? value : t)));
+  }
+  function addTime() {
+    setSendTimes((prev) => [...prev, '']);
+  }
+  function removeTime(index: number) {
+    setSendTimes((prev) => prev.filter((_, i) => i !== index));
+  }
+  function toggleWeekday(day: number) {
+    setWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]));
+  }
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !prompt.trim()) return;
+    const cleanedTimes = sendTimes.map((t) => t.trim()).filter(Boolean);
     const payload = {
       title: title.trim(),
       prompt: prompt.trim(),
       condition: condition.trim(),
       is_private: visibility === 'private',
+      send_times: cleanedTimes,
+      weekdays: [...weekdays].sort((a, b) => a - b),
     };
     if (existing) {
       await updateMutation.mutateAsync({ id: existing.id, payload });
@@ -99,6 +124,53 @@ export default function BriefingDialog({ open, onOpenChange, existing }: Props) 
             placeholder={t('briefings.fields.conditionPlaceholder')}
           />
           <p className="text-xs text-muted-foreground">{t('briefings.fields.conditionHint')}</p>
+        </FormField>
+
+        <FormField label={t('briefings.schedule.times')} htmlFor="briefing-times">
+          <div className="space-y-2">
+            {sendTimes.length === 0 ? (
+              <p className="text-xs text-muted-foreground">{t('briefings.schedule.noTimeYet')}</p>
+            ) : null}
+            {sendTimes.map((time, index) => (
+              <div key={index} className="flex items-center gap-2">
+                <Input
+                  id={index === 0 ? 'briefing-times' : undefined}
+                  type="time"
+                  value={time}
+                  onChange={(e) => updateTime(index, e.target.value)}
+                  className="max-w-[10rem]"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('briefings.schedule.removeTime')}
+                  onClick={() => removeTime(index)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addTime}>
+              <Plus className="h-4 w-4" />
+              {t('briefings.schedule.addTime')}
+            </Button>
+          </div>
+        </FormField>
+
+        <FormField label={t('briefings.schedule.weekdays')} htmlFor="briefing-weekdays">
+          <div className="flex flex-wrap gap-1.5" id="briefing-weekdays">
+            {WEEKDAY_KEYS.map((key, day) => (
+              <FilterPill
+                key={key}
+                active={weekdays.includes(day)}
+                onClick={() => toggleWeekday(day)}
+              >
+                {t(`briefings.schedule.weekdaysShort.${key}`)}
+              </FilterPill>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">{t('briefings.schedule.everyDayHint')}</p>
         </FormField>
 
         <FormField label={t('briefings.fields.visibility')} htmlFor="briefing-visibility">

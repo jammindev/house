@@ -9,6 +9,7 @@ import { FilterPill } from '@/design-system/filter-pill';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
+import { toast } from '@/lib/toast';
 import type { Briefing } from '@/lib/api/briefings';
 import {
   briefingKeys,
@@ -72,6 +73,11 @@ export default function BriefingsPage() {
   }
 
   function toggleActive(briefing: Briefing) {
+    // Can't activate a briefing that has no schedule — the tick would never fire.
+    if (!briefing.is_active && briefing.send_times.length === 0) {
+      toast({ description: t('briefings.schedule.needsTimeToActivate'), variant: 'destructive' });
+      return;
+    }
     // Optimistic flip so the toggle feels instant; the mutation reconciles.
     qc.setQueryData<Briefing[]>(cacheKey, (old) =>
       old?.map((b) => (b.id === briefing.id ? { ...b, is_active: !b.is_active } : b)),
