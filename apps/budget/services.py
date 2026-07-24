@@ -232,7 +232,8 @@ def confirm_recurring_occurrence(
             occurred_at=occurred_at or timezone.now(),
             notes=recurring.notes,
             budget_id=str(recurring.budget_id) if recurring.budget_id else None,
-            extra_metadata={"kind": "recurring", "recurring_id": str(recurring.id)},
+            kind="recurring",
+            extra_metadata={"recurring_id": str(recurring.id)},
         )
         recurring.next_due_date = advance_due_date(recurring.next_due_date, recurring.cadence)
         recurring.updated_by = user

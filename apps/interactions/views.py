@@ -138,7 +138,11 @@ class InteractionViewSet(viewsets.ModelViewSet):
             tag_list = tags.split(',')
             queryset = queryset.filter(tags__tag__name__in=tag_list).distinct()
 
-        # Filter by metadata.kind (e.g. stock_purchase, equipment_purchase, manual)
+        # Filter by metadata.kind — generic across interaction subtypes, incl.
+        # non-expense ones (e.g. renovation) whose kind stays in metadata. The
+        # promoted `kind` column is expense-only; expense aggregations use it,
+        # but this shared list endpoint keeps the metadata lookup so every
+        # subtype filters uniformly.
         metadata_kind = self.request.query_params.get('kind')
         if metadata_kind:
             queryset = queryset.filter(metadata__kind=metadata_kind)

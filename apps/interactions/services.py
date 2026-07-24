@@ -404,6 +404,9 @@ def create_expense_interaction(
             content=notes,
             type="expense",
             occurred_at=occurred_at or timezone.now(),
+            amount=amount,
+            kind=resolved_kind,
+            supplier=supplier or "",
             metadata=metadata,
             source_content_type=source_ct,
             source_object_id=source.pk,
@@ -428,6 +431,7 @@ def create_manual_expense_interaction(
     zone_ids: list[UUID] | None = None,
     extra_metadata: dict[str, Any] | None = None,
     budget_id=None,
+    kind: str = "manual",
 ) -> Interaction:
     """Create an Interaction(type=expense) NOT linked to a domain source object.
 
@@ -443,16 +447,20 @@ def create_manual_expense_interaction(
         zone_ids: optional list of zone UUIDs to attach. Each zone must belong
             to the household.
         extra_metadata: feature-specific metadata merged into the standard payload.
+        kind: expense discriminator (default "manual"). Pass an explicit kind
+            (e.g. "recurring" from a confirmed recurrence) so the ``kind`` column
+            and ``metadata.kind`` stay in sync — do NOT slip it through
+            ``extra_metadata``.
 
-    metadata.kind is always "manual"; metadata.source_name is None to keep
-    the shape uniform with `create_expense_interaction` for downstream consumers
-    (RAG agent, exports, summary aggregations).
+    metadata.source_name is None to keep the shape uniform with
+    `create_expense_interaction` for downstream consumers (RAG agent, exports,
+    summary aggregations).
     """
     if not subject or not subject.strip():
         raise ValueError("create_manual_expense_interaction: subject is required")
 
     metadata = _build_expense_metadata(
-        kind="manual",
+        kind=kind,
         source_name=None,
         amount=amount,
         unit_price=None,
@@ -479,6 +487,9 @@ def create_manual_expense_interaction(
             content=notes,
             type="expense",
             occurred_at=occurred_at or timezone.now(),
+            amount=amount,
+            kind=kind,
+            supplier=supplier or "",
             metadata=metadata,
             source_content_type=None,
             source_object_id=None,

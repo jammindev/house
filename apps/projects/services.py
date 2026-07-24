@@ -2,38 +2,34 @@
 Project cost computation.
 
 The actual cost is no longer a maintained counter: it is the SUM of the
-`metadata.amount` of the expense Interactions linked to the project via the
-polymorphic source FK (#131 / #234). The DB column `actual_cost_cached` is
-kept for now but never written anymore — every creation/edit/deletion path
-(purchase dialog, agent, undo) is reflected without sync logic.
+`amount` of the expense Interactions linked to the project via the polymorphic
+source FK (#131 / #234). The DB column `actual_cost_cached` is kept for now but
+never written anymore — every creation/edit/deletion path (purchase dialog,
+agent, undo) is reflected without sync logic.
 
-Amounts are stored as str(Decimal) in metadata (service convention, see
-`interactions.aggregations`), hence the Postgres cast before summing.
+Expense amount/kind/supplier are real columns on Interaction; the shared
+`interactions.queries` helpers own the expense-select convention.
 """
 from __future__ import annotations
 
 from decimal import Decimal
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import DecimalField, OuterRef, Subquery, Sum, Value
-from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import OuterRef, Subquery, Sum
+from django.db.models.functions import Coalesce
 
 from interactions.models import Interaction
-
-_AMOUNT_FIELD = DecimalField(max_digits=14, decimal_places=2)
-_ZERO = Value(Decimal("0.00"), output_field=_AMOUNT_FIELD)
+from interactions.queries import AMOUNT_FIELD, ZERO, expenses
 
 
 def _expense_amounts(project_ref):
     from .models import Project
 
-    return Interaction.objects.filter(
-        type="expense",
-        source_content_type=ContentType.objects.get_for_model(Project),
-        source_object_id=project_ref,
-    ).annotate(
-        amount_decimal=Cast(KeyTextTransform("amount", "metadata"), _AMOUNT_FIELD)
+    return expenses(
+        base=Interaction.objects.filter(
+            source_content_type=ContentType.objects.get_for_model(Project),
+            source_object_id=project_ref,
+        )
     )
 
 
@@ -42,18 +38,18 @@ def annotate_actual_cost(queryset):
     totals = (
         _expense_amounts(OuterRef("pk"))
         .values("source_object_id")
-        .annotate(total=Sum("amount_decimal"))
+        .annotate(total=Sum("amount"))
         .values("total")[:1]
     )
     return queryset.annotate(
-        actual_cost_computed=Coalesce(Subquery(totals, output_field=_AMOUNT_FIELD), _ZERO)
+        actual_cost_computed=Coalesce(Subquery(totals, output_field=AMOUNT_FIELD), ZERO)
     )
 
 
 def project_actual_cost(project) -> Decimal:
     """Single-project fallback when the annotation is absent (e.g. fresh instance)."""
     return _expense_amounts(project.pk).aggregate(
-        total=Coalesce(Sum("amount_decimal"), _ZERO)
+        total=Coalesce(Sum("amount"), ZERO)
     )["total"]
 
 

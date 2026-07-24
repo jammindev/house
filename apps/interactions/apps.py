@@ -207,22 +207,13 @@ def _describe_interaction(interaction) -> str:
     parts = [interaction.type]
     if interaction.occurred_at:
         parts.append(interaction.occurred_at.date().isoformat())
-    metadata = interaction.metadata or {}
-    if metadata.get('amount'):
-        parts.append(f"amount {metadata['amount']}")
-    if metadata.get('supplier'):
-        parts.append(str(metadata['supplier']))
+    if interaction.amount is not None:
+        parts.append(f"amount {interaction.amount}")
+    if interaction.supplier:
+        parts.append(interaction.supplier)
     return ' | '.join(parts)
 
 
 def _interaction_amount(interaction):
     """Decimal amount of an interaction (expenses), or None."""
-    from decimal import Decimal, InvalidOperation
-
-    raw = (interaction.metadata or {}).get('amount')
-    if raw in (None, ''):
-        return None
-    try:
-        return Decimal(str(raw))
-    except InvalidOperation:
-        return None
+    return interaction.amount

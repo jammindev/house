@@ -293,7 +293,7 @@ def undo_purchase(*, household, user, interaction_id) -> None:
 
     interaction = (
         Interaction.objects.filter(
-            household_id=household.id, id=interaction_id, metadata__kind="stock_purchase"
+            household_id=household.id, id=interaction_id, kind="stock_purchase"
         )
         .first()
     )

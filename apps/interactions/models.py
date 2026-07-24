@@ -58,7 +58,33 @@ class Interaction(HouseholdScopedModel):
     metadata = models.JSONField(
         default=dict,
         blank=True,
-        help_text="Expense amounts, vendor info, etc."
+        help_text="Feature-specific extras (delta, unit, brand, recurring_id…). "
+                  "Structured money fields are now real columns (amount/kind/supplier)."
+    )
+    # Expense columns — promoted out of `metadata` so they can be queried,
+    # aggregated and indexed in SQL instead of casting JSON text every read
+    # (cf. docs/fiches/CARTOGRAPHIE_DEPENSES.md). Only meaningful for
+    # type='expense'; null/blank for every other interaction type.
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Expense amount. Only for type='expense'; null otherwise.",
+    )
+    kind = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        help_text="Expense discriminator (stock_purchase, equipment_purchase, "
+                  "project_purchase, chickens_purchase, manual, recurring). "
+                  "Empty for non-expense interactions.",
+    )
+    supplier = models.CharField(
+        max_length=255,
+        blank=True,
+        default='',
+        help_text="Expense vendor/supplier. Empty when not applicable.",
     )
     enriched_text = models.TextField(
         blank=True,
@@ -109,6 +135,7 @@ class Interaction(HouseholdScopedModel):
         indexes = [
             models.Index(fields=['household', 'type'], name='idx_int_hh_type'),
             models.Index(fields=['household', '-occurred_at'], name='idx_int_hh_date'),
+            models.Index(fields=['household', 'kind'], name='idx_int_hh_kind'),
             models.Index(
                 fields=['source_content_type', 'source_object_id'],
                 name='idx_int_source',
