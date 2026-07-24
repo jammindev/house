@@ -1015,6 +1015,21 @@
       "description": "Wähle aus, welche Module für diesen Haushalt aktiv sind.",
       "hint": "Deaktivierte Module werden für alle Mitglieder ausgeblendet (Seitenleiste, Dashboard, Assistent). Es werden keine Daten gelöscht — beim Reaktivieren ist alles wieder da.",
       "saved": "Module aktualisiert"
+    },
+    "push": {
+      "title": "Push-Benachrichtigungen",
+      "description": "Erhalte Haushalts-Benachrichtigungen, auch wenn die App geschlossen ist.",
+      "enable": "Benachrichtigungen aktivieren",
+      "enableHint": "Erlaube Benachrichtigungen, um auf diesem Gerät informiert zu werden.",
+      "enabled": "Benachrichtigungen auf diesem Gerät aktiviert.",
+      "disable": "Deaktivieren",
+      "disabledToast": "Benachrichtigungen deaktiviert",
+      "enabledToast": "Benachrichtigungen aktiviert",
+      "test": "Testen",
+      "testSent": "Test-Benachrichtigung gesendet",
+      "testNoDevice": "Kein abonniertes Gerät",
+      "permissionDenied": "Benachrichtigungen sind blockiert. Aktiviere sie in den Browsereinstellungen.",
+      "iosHint": "Füge die App auf dem iPhone zuerst zum Startbildschirm hinzu (Teilen → Zum Home-Bildschirm), um Benachrichtigungen zu aktivieren."
     }
   },
   "tutorials": {

@@ -1015,6 +1015,21 @@
       "description": "Elige qué módulos están activos para este hogar.",
       "hint": "Los módulos desactivados se ocultan para todos los miembros (barra lateral, panel, asistente). No se elimina ningún dato: reactiva un módulo para recuperarlo todo.",
       "saved": "Módulos actualizados"
+    },
+    "push": {
+      "title": "Notificaciones push",
+      "description": "Recibe las notificaciones del hogar aunque la app esté cerrada.",
+      "enable": "Activar notificaciones",
+      "enableHint": "Permite las notificaciones para recibir avisos en este dispositivo.",
+      "enabled": "Notificaciones activadas en este dispositivo.",
+      "disable": "Desactivar",
+      "disabledToast": "Notificaciones desactivadas",
+      "enabledToast": "Notificaciones activadas",
+      "test": "Probar",
+      "testSent": "Notificación de prueba enviada",
+      "testNoDevice": "Ningún dispositivo suscrito",
+      "permissionDenied": "Las notificaciones están bloqueadas. Reactívalas en los ajustes del navegador.",
+      "iosHint": "En iPhone, primero añade la app a la pantalla de inicio (Compartir → Añadir a pantalla de inicio) para activar las notificaciones."
     }
   },
   "tutorials": {
