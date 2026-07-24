@@ -13,6 +13,7 @@ import PageHeader from '@/components/PageHeader';
 import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
+import { formatAmount } from '@/lib/format';
 import { statusVariant, formatDateTime } from './format';
 import TasksPanel from '@/features/tasks/TasksPanel';
 import TrackersPanel from '@/features/trackers/TrackersPanel';
@@ -306,9 +307,9 @@ export default function ProjectDetailPage() {
               <span>
                 {t('projects.summary.budget', { defaultValue: 'Budget' })}{' '}
                 <span className={`font-medium ${overBudget ? 'text-destructive' : ''}`}>
-                  {actual > 0 ? `${actual.toFixed(0)} €` : '0 €'}
+                  {formatAmount(actual, { fractionDigits: 0 })}
                 </span>
-                {' / '}{planned.toFixed(0)} €{' '}
+                {' / '}{formatAmount(planned, { fractionDigits: 0 })}{' '}
                 <span className="text-xs text-muted-foreground">
                   ({((actual / planned) * 100).toFixed(0)} %)
                 </span>

@@ -5,18 +5,11 @@ import { Card, CardTitle } from '@/design-system/card';
 import { cn } from '@/lib/utils';
 import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { formatAmount } from '@/lib/format';
 import { useExpenseSummary } from '@/features/expenses/hooks';
 import { isoDate } from './hooks';
 
 const MONTHS_SHOWN = 6;
-
-function formatEur(amount: number): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function monthKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -56,7 +49,7 @@ export default function ExpensesCard() {
           💶 {t('dashboard.metrics.expenses.title')}
         </CardTitle>
         <p className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-          {formatEur(current)}
+          {formatAmount(current, { fractionDigits: 0 })}
         </p>
         {deltaPct !== null ? (
           <p

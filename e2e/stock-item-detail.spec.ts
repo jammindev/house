@@ -247,8 +247,8 @@ test.describe('Stock — page détail article', () => {
     // Le fournisseur est affiché dans l'entrée d'historique (scoped à la section)
     const historySection = page.locator('section').filter({ hasText: 'Historique des achats' });
     await expect(historySection.getByText('Grossiste E2E')).toBeVisible();
-    // Le montant (18.00 €) doit être visible dans l'historique
-    await expect(historySection.getByText('18.00 €')).toBeVisible();
+    // Le montant (18,00 €) doit être visible dans l'historique — format devise localisé
+    await expect(historySection.getByText(/18[.,]00\s*€/)).toBeVisible();
   });
 
   // ── 3b. Cliquer sur une entrée d'historique → édition de la dépense ──────

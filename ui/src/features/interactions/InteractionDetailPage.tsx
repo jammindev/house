@@ -13,7 +13,7 @@ import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
-import { formatDateTime } from '@/lib/format';
+import { formatAmount, formatDateTime } from '@/lib/format';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
 // ── Main page ──────────────────────────────────────────────
@@ -124,7 +124,7 @@ export default function InteractionDetailPage() {
           )}
 
           {isExpense && amount ? (
-            <InfoField label={t('interactions.expense_amount_label')}>{amount} €</InfoField>
+            <InfoField label={t('interactions.expense_amount_label')}>{formatAmount(amount)}</InfoField>
           ) : null}
 
           {isExpense && supplier ? (

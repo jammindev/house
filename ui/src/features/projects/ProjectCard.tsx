@@ -5,6 +5,7 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { formatAmount } from '@/lib/format';
 import type { ProjectListItem, ProjectType } from '@/lib/api/projects';
 import { statusVariant, formatDate, isOverdue, isDueSoon } from './format';
 
@@ -29,8 +30,8 @@ function BudgetBar({ planned, actual }: { planned: number; actual: number }) {
   return (
     <div className="mt-1">
       <div className="mb-0.5 flex justify-between text-[10px] text-muted-foreground">
-        <span>{actual.toFixed(0)}€</span>
-        <span>{planned.toFixed(0)}€</span>
+        <span>{formatAmount(actual, { fractionDigits: 0 })}</span>
+        <span>{formatAmount(planned, { fractionDigits: 0 })}</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div

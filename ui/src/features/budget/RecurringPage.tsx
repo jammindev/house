@@ -21,7 +21,7 @@ import {
 import RecurringCard from './RecurringCard';
 import RecurringExpenseDialog from './RecurringExpenseDialog';
 import ConfirmOccurrenceDialog from './ConfirmOccurrenceDialog';
-import { formatAmount } from './format';
+import { formatAmount } from '@/lib/format';
 
 export default function RecurringPage() {
   const { t } = useTranslation();

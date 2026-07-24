@@ -15,7 +15,7 @@ import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { TabShell } from '@/components/TabShell';
 import { useNavigateBack } from '@/lib/backNavigation';
-import { formatDate, formatDateTime, isPast } from '@/lib/format';
+import { formatAmount, formatDate, formatDateTime, isPast } from '@/lib/format';
 import {
   useEquipment,
   useEquipmentHistory,
@@ -174,7 +174,7 @@ export default function EquipmentDetailPage() {
 
                       {equipment.purchase_price != null ? (
                         <InfoField label={t('equipment.form.fields.purchase_price')}>
-                          {Number(equipment.purchase_price).toFixed(2)} €
+                          {formatAmount(equipment.purchase_price)}
                         </InfoField>
                       ) : null}
                     </dl>

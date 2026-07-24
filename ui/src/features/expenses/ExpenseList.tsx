@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
+import { formatAmount, formatDate } from '@/lib/format';
 import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface ExpenseListProps {
@@ -15,23 +16,6 @@ interface ExpenseMetadata {
   unit_price?: string | null;
 }
 
-function formatAmount(value: string | null | undefined): string | null {
-  if (!value) return null;
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric)) return value;
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'EUR',
-    maximumFractionDigits: 2,
-  }).format(numeric);
-}
-
-function formatDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date);
-}
-
 export default function ExpenseList({ items }: ExpenseListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -40,7 +24,7 @@ export default function ExpenseList({ items }: ExpenseListProps) {
     <ul className="space-y-2">
       {items.map((item) => {
         const metadata = (item.metadata ?? {}) as ExpenseMetadata;
-        const amount = formatAmount(metadata.amount ?? null);
+        const amount = metadata.amount ? formatAmount(metadata.amount) : null;
         return (
           <li key={item.id}>
             <Card

@@ -345,6 +345,19 @@ Toujours utiliser les tokens CSS du design-system, jamais des classes Tailwind �
 
 Tokens disponibles : `bg-card`, `bg-background`, `bg-muted`, `bg-primary/10`, `bg-destructive/10`, `text-foreground`, `text-muted-foreground`, `text-primary`, `text-destructive`, `border-border`, `border-destructive/30`.
 
+### Montants — un seul formatter
+
+Tout affichage de montant passe par **`formatAmount` de `@/lib/format`** (Intl
+devise EUR, locale-aware, option `{ fractionDigits }` pour les montants ronds).
+Ne jamais réintroduire un `formatAmount` local ni un `.toFixed() + ' €'` /
+`Intl.NumberFormat` inline (dette ② de `docs/fiches/CARTOGRAPHIE_DEPENSES.md`).
+
+```tsx
+import { formatAmount } from '@/lib/format';
+formatAmount('12.50')                      // « 12,50 € » (fr)
+formatAmount(420, { fractionDigits: 0 })   // « 420 € »
+```
+
 ---
 
 ## Pattern standard — Feature page

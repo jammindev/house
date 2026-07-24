@@ -2,8 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
+import { formatAmount } from '@/lib/format';
 import type { BudgetOverviewRow, BudgetState } from '@/lib/api/budget';
-import { formatAmount } from './format';
 
 const BAR_CLASS: Record<BudgetState, string> = {
   ok: 'bg-primary',
