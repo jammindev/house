@@ -99,6 +99,45 @@ class TestEvalRetrievalCommand:
         assert "1.000" in output  # the exact-keyword match is recalled
 
 
+class _FakeLLM:
+    provider = "anthropic"
+    model = "fake"
+
+    def complete(self, *, system, user, feature, household_id, max_tokens=1024, metadata=None):
+        from agent.llm import LLMResponse
+
+        return LLMResponse(
+            text="Où est ma facture Engie ?",
+            input_tokens=1,
+            output_tokens=1,
+            duration_ms=1,
+            model=self.model,
+        )
+
+
+class TestAutoGolden:
+    def test_builds_golden_from_entities(self, household, make_document, tmp_path, monkeypatch):
+        from agent import llm as llm_module
+
+        doc = make_document(household, name="Engie", ocr_text="facture engie electricite")
+        monkeypatch.setattr(llm_module, "get_llm_client", lambda *a, **k: _FakeLLM())
+
+        path = tmp_path / "auto.json"
+        out = StringIO()
+        call_command(
+            "eval_retrieval",
+            household=str(household.id),
+            auto=10,  # >= entity count so the document gets a question too
+            mode="fulltext",
+            auto_out=str(path),
+            stdout=out,
+        )
+
+        golden = json.loads(path.read_text(encoding="utf-8"))
+        assert any(entry["expected"] == [f"document:{doc.pk}"] for entry in golden)
+        assert all("question" in entry and entry["question"] for entry in golden)
+
+
 class TestEmbeddingsStatusCommand:
     def test_reports_coverage(self, household, make_document):
         doc = make_document(household, name="Indexé", ocr_text="texte")

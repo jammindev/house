@@ -355,11 +355,14 @@ trancher le fournisseur d'embeddings sur des chiffres, pas au feeling.
   couverture d'index** (combien d'entités searchables ont des chunks, combien
   sont obsolètes vs `EMBEDDING_MODEL` courant) — command `embeddings_status` ou
   intégration à la page `/app/admin/ai-usage/` (à trancher, léger) ;
-- **harnais d'éval** : un jeu de questions figé (`fixtures/eval_queries.json` :
-  `{question, expected_entity_ids}`) + une command `eval_retrieval` qui calcule
-  **recall@k** et **MRR** pour 3 modes (full-text seul / vecteur seul / hybride)
-  sur un foyer donné. Sortie tableau comparatif. Pas de réseau IA en CI (l'éval
-  se lance à la main sur données réelles) ;
+- **harnais d'éval** : command `eval_retrieval` qui calcule **recall@k** et **MRR**
+  pour 3 modes (full-text seul / vecteur seul / hybride) sur un foyer donné, en
+  tableau comparatif. Deux sources de golden : `--queries golden.json` (écrit à la
+  main : `{question, expected}`) **ou `--auto N`** qui **fabrique le golden depuis
+  les vraies entités** (l'IA génère une question par entité échantillonnée, réponse
+  attendue = cette entité ; proxy « self-retrieval », zéro étiquetage manuel,
+  `--auto-out` pour sauvegarder). Pas de réseau IA en CI (l'éval se lance à la main
+  sur données réelles ; le mode `--auto` est testé avec un LLM mocké) ;
 - le fournisseur prod est tranché (Voyage `voyage-3`) ; l'éval **valide la qualité
   de retrieval** sur le corpus réel et arbitre la valeur par défaut du flag
   `AGENT_HYBRID_RETRIEVAL_ENABLED`. Elle sert aussi de **garde-fou pour la bascule
