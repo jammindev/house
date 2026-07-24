@@ -96,9 +96,8 @@ export default function InteractionEditPage() {
     }
     setDescription(interaction.content ?? '');
     setTagsInput((interaction.tags ?? []).join(', '));
-    const md = (interaction.metadata ?? {}) as Record<string, string | null | undefined>;
-    setAmount(md.amount ?? '');
-    setSupplier(md.supplier ?? '');
+    setAmount(interaction.amount ?? '');
+    setSupplier(interaction.supplier ?? '');
     setContactId(interaction.contacts?.[0]?.id ?? '');
     setStructureId(interaction.structures?.[0]?.id ?? '');
     setEquipmentId(interaction.equipments?.[0]?.id ?? '');
@@ -140,17 +139,12 @@ export default function InteractionEditPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    // Merge metadata for expense-specific fields, preserving any existing keys.
-    let nextMetadata: Record<string, unknown> | undefined;
-    if (isExpense) {
-      const existing = (interaction?.metadata ?? {}) as Record<string, unknown>;
-      const trimmedAmount = amount.trim();
-      nextMetadata = {
-        ...existing,
-        amount: trimmedAmount ? trimmedAmount : null,
-        supplier: supplier.trim(),
-      };
-    }
+    // Expense amount/supplier are now real columns — sent as top-level fields
+    // (no metadata round-trip). kind stays as-is; unit_price and other extras
+    // remain in metadata and are left untouched by omitting `metadata` here.
+    const expenseFields = isExpense
+      ? { amount: amount.trim() ? amount.trim() : null, supplier: supplier.trim() }
+      : {};
 
     try {
       setSubmitting(true);
@@ -164,7 +158,7 @@ export default function InteractionEditPage() {
         contact_ids: contactId ? [contactId] : [],
         structure_ids: structureId ? [structureId] : [],
         equipment_ids: equipmentId ? [equipmentId] : [],
-        ...(nextMetadata ? { metadata: nextMetadata } : {}),
+        ...expenseFields,
       });
       navigate(-1);
     } catch {
@@ -273,7 +267,7 @@ export default function InteractionEditPage() {
             sourceLabel={interaction.source_label}
             sourceType={interaction.source_type}
             sourceId={interaction.source_id}
-            kind={(metadata.kind ?? null) as string | null}
+            kind={interaction.kind ?? null}
             unitPrice={(metadata.unit_price ?? null) as string | null}
             unit={(metadata.unit ?? null) as string | null}
           />

@@ -79,10 +79,10 @@ def test_creates_interaction_linked_to_stock_item(user, household, stock_item, m
     assert interaction.source_content_type == ContentType.objects.get_for_model(StockItem)
     assert interaction.source_object_id == stock_item.id
     assert interaction.subject == "Purchase — Pellets"
-    assert interaction.metadata["kind"] == "stock_purchase"
+    assert interaction.kind == "stock_purchase"
     assert interaction.metadata["source_name"] == "Pellets"
-    assert interaction.metadata["amount"] == "25.00"
-    assert interaction.metadata["supplier"] == "HardwareCo"
+    assert interaction.amount == Decimal("25.00")
+    assert interaction.supplier == "HardwareCo"
     # zone of the source is attached
     assert interaction.zones.count() == 1
     assert interaction.zones.first().id == stock_item.zone_id
@@ -99,7 +99,7 @@ def test_creates_interaction_linked_to_equipment(user, household, equipment, mem
     assert interaction.source == equipment
     assert interaction.source_content_type == ContentType.objects.get_for_model(Equipment)
     assert interaction.subject == "Purchase — Drill"
-    assert interaction.metadata["kind"] == "equipment_purchase"
+    assert interaction.kind == "equipment_purchase"
 
 
 @pytest.mark.django_db
@@ -109,7 +109,7 @@ def test_kind_override_takes_precedence(user, household, stock_item, membership)
         user=user,
         kind="custom_kind",
     )
-    assert interaction.metadata["kind"] == "custom_kind"
+    assert interaction.kind == "custom_kind"
 
 
 @pytest.mark.django_db
@@ -118,10 +118,10 @@ def test_extra_metadata_is_merged(user, stock_item, membership):
         source=stock_item,
         user=user,
         amount=Decimal("10"),
-        extra_metadata={"delta": "2.5", "unit": "bag", "amount": "OVERRIDDEN"},
+        extra_metadata={"delta": "2.5", "unit": "bag"},
     )
-    # extra_metadata can override standard keys (intentional escape hatch)
-    assert interaction.metadata["amount"] == "OVERRIDDEN"
+    # amount is a real column; feature-specific extras merge into metadata
+    assert interaction.amount == Decimal("10")
     assert interaction.metadata["delta"] == "2.5"
     assert interaction.metadata["unit"] == "bag"
 
@@ -166,11 +166,11 @@ def test_manual_creates_expense_with_user_subject(user, household, membership):
     assert interaction.created_by == user
     assert interaction.source_content_type_id is None
     assert interaction.source_object_id is None
-    assert interaction.metadata["kind"] == "manual"
+    assert interaction.kind == "manual"
     assert interaction.metadata["source_name"] is None
-    assert interaction.metadata["amount"] == "32.00"
+    assert interaction.amount == Decimal("32.00")
     assert interaction.metadata["unit_price"] is None
-    assert interaction.metadata["supplier"] == "Le Bistrot"
+    assert interaction.supplier == "Le Bistrot"
 
 
 @pytest.mark.django_db
@@ -222,7 +222,7 @@ def test_manual_amount_none_kept_as_null(user, household, membership):
         user=user,
         subject="Free lunch",
     )
-    assert interaction.metadata["amount"] is None
+    assert interaction.amount is None
 
 
 @pytest.mark.django_db
@@ -235,7 +235,7 @@ def test_manual_extra_metadata_is_merged(user, household, membership):
         extra_metadata={"category": "leisure"},
     )
     assert interaction.metadata["category"] == "leisure"
-    assert interaction.metadata["amount"] == "12"
+    assert interaction.amount == Decimal("12")
 
 
 # --- create_note_interaction ------------------------------------------------

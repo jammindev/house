@@ -9,13 +9,6 @@ interface ExpenseListProps {
   items: InteractionListItem[];
 }
 
-interface ExpenseMetadata {
-  amount?: string | null;
-  supplier?: string | null;
-  kind?: string | null;
-  unit_price?: string | null;
-}
-
 export default function ExpenseList({ items }: ExpenseListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -23,8 +16,7 @@ export default function ExpenseList({ items }: ExpenseListProps) {
   return (
     <ul className="space-y-2">
       {items.map((item) => {
-        const metadata = (item.metadata ?? {}) as ExpenseMetadata;
-        const amount = metadata.amount ? formatAmount(metadata.amount) : null;
+        const amount = item.amount ? formatAmount(item.amount) : null;
         return (
           <li key={item.id}>
             <Card
@@ -35,15 +27,15 @@ export default function ExpenseList({ items }: ExpenseListProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{item.subject}</CardTitle>
-                    {metadata.kind ? (
+                    {item.kind ? (
                       <Badge variant="outline" className="text-xs">
-                        {t(`expenses.kind.${metadata.kind}`, { defaultValue: metadata.kind })}
+                        {t(`expenses.kind.${item.kind}`, { defaultValue: item.kind })}
                       </Badge>
                     ) : null}
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span>{formatDate(item.occurred_at)}</span>
-                    {metadata.supplier ? <span>{metadata.supplier}</span> : null}
+                    {item.supplier ? <span>{item.supplier}</span> : null}
                   </div>
                 </div>
                 {amount ? (

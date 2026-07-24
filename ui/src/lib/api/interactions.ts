@@ -27,6 +27,10 @@ export interface InteractionListItem {
   document_count: number;
   created_by_name?: string;
   metadata?: Record<string, unknown>;
+  // Expense columns (promoted out of metadata). Only meaningful for type='expense'.
+  amount?: string | null;
+  kind?: string;
+  supplier?: string;
   source_type?: string | null;
   source_id?: string | null;
   source_label?: string | null;
@@ -43,6 +47,9 @@ export interface CreateInteractionInput {
   zone_ids: string[];
   tags_input?: string[];
   metadata?: Record<string, unknown>;
+  amount?: string | null;
+  kind?: string;
+  supplier?: string;
   document_ids?: string[];
   source_type?: string | null;
   source_id?: string | null;

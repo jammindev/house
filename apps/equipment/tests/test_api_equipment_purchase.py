@@ -86,9 +86,9 @@ def test_register_purchase_snapshots_equipment_and_creates_expense(client, user,
     assert interaction.source_object_id == drill.id
     assert interaction.household_id == household.id
     assert interaction.subject == "Purchase — Cordless drill"
-    assert interaction.metadata["kind"] == "equipment_purchase"
-    assert interaction.metadata["amount"] == "199.00"
-    assert interaction.metadata["supplier"] == "ToolStore"
+    assert interaction.kind == "equipment_purchase"
+    assert interaction.amount == Decimal("199.00")
+    assert interaction.supplier == "ToolStore"
     assert interaction.metadata["equipment_name"] == "Cordless drill"
     assert interaction.zones.count() == 1
     assert interaction.zones.first().id == drill.zone_id
@@ -110,7 +110,7 @@ def test_register_purchase_without_amount_still_creates_interaction(client, user
     assert "interaction_id" in payload
 
     interaction = Interaction.objects.get(id=payload["interaction_id"])
-    assert interaction.metadata["amount"] is None
+    assert interaction.amount is None
 
 
 @pytest.mark.django_db

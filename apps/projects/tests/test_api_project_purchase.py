@@ -82,9 +82,9 @@ def test_register_purchase_reflects_computed_actual_cost_and_creates_expense(
     assert interaction.source_object_id == project.id
     assert interaction.household_id == household.id
     assert interaction.subject == "Purchase — Kitchen reno"
-    assert interaction.metadata["kind"] == "project_purchase"
-    assert interaction.metadata["amount"] == "450.00"
-    assert interaction.metadata["supplier"] == "Leroy Merlin"
+    assert interaction.kind == "project_purchase"
+    assert interaction.amount == Decimal("450.00")
+    assert interaction.supplier == "Leroy Merlin"
     assert interaction.metadata["project_title"] == "Kitchen reno"
 
     # The DB column is dead: never written anymore (#234)
@@ -165,7 +165,7 @@ def test_register_purchase_without_amount_does_not_change_cost(client, user, pro
     assert "interaction_id" in payload
     assert payload["actual_cost_cached"] == "100.00"
     interaction = Interaction.objects.get(id=payload["interaction_id"])
-    assert interaction.metadata["amount"] is None
+    assert interaction.amount is None
 
 
 @pytest.mark.django_db

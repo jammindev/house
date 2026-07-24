@@ -158,7 +158,7 @@ def test_create_stock_purchase_restocks_and_records_expense(household, owner, fe
     assert feed.quantity == Decimal("22.000")  # 2 + 20
 
     interaction = Interaction.objects.get(pk=result.created[0]["id"])
-    assert interaction.metadata["kind"] == "stock_purchase"
+    assert interaction.kind == "stock_purchase"
     assert interaction.metadata["brand"] == "Gasco"
 
 

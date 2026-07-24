@@ -667,7 +667,7 @@ class TestRecurringConfirm:
             reverse("recurring-confirm", args=[rec.id]), {}, format="json"
         )
         interaction = Interaction.objects.get(id=response.data["interaction_id"])
-        assert Decimal(interaction.metadata["amount"]) == Decimal("55.00")
+        assert interaction.amount == Decimal("55.00")
 
     def test_amount_override_in_body(self):
         """Confirming with an edited amount in body overrides the recurring amount."""
@@ -681,7 +681,7 @@ class TestRecurringConfirm:
         )
         assert response.status_code == status.HTTP_200_OK
         interaction = Interaction.objects.get(id=response.data["interaction_id"])
-        assert Decimal(interaction.metadata["amount"]) == Decimal("72.50")
+        assert interaction.amount == Decimal("72.50")
 
     def test_interaction_metadata_kind_recurring(self):
         hh = HouseholdFactory()
@@ -691,7 +691,7 @@ class TestRecurringConfirm:
             reverse("recurring-confirm", args=[rec.id]), {}, format="json"
         )
         interaction = Interaction.objects.get(id=response.data["interaction_id"])
-        assert interaction.metadata["kind"] == "recurring"
+        assert interaction.kind == "recurring"
         assert interaction.metadata["recurring_id"] == str(rec.id)
 
     def test_member_can_confirm(self):

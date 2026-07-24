@@ -130,7 +130,8 @@ interaction = create_expense_interaction(
 
 Le service :
 - localise le subject via `gettext_lazy` + le template enregistré dans `apps/interactions/services.py::AUTO_SUBJECT_TEMPLATES`
-- ajoute `metadata.kind` (discriminateur), `metadata.source_name`, `metadata.amount`, `metadata.unit_price`, `metadata.supplier`
+- renseigne les **colonnes** `amount`, `kind` (discriminateur), `supplier` (voir « Champs promus en colonnes » plus bas)
+- ajoute `metadata.source_name`, `metadata.unit_price` + les extras feature (`delta`, `unit`, `brand`…)
 - lie via la FK polymorphe
 - attache la zone du source si elle existe
 
@@ -163,7 +164,7 @@ Différences vs `create_expense_interaction` :
 
 ### Builder partagé `_build_expense_metadata`
 
-Les deux fonctions (`create_expense_interaction` + `create_manual_expense_interaction`) flow through un helper interne `_build_expense_metadata` qui garantit le shape `metadata` uniforme : `{kind, source_name, amount, unit_price, supplier}` + extra optionnel. Ajouter une clé standard (ex: `currency`) = touche un seul endroit.
+Les deux fonctions (`create_expense_interaction` + `create_manual_expense_interaction`) flow through un helper interne `_build_expense_metadata` qui garantit le shape `metadata` uniforme : `{source_name, unit_price}` + extra optionnel. Les champs monétaires **requêtés** (`amount`, `kind`, `supplier`) ne sont **pas** dans `metadata` — ce sont des colonnes (voir juste en dessous).
 
 ### Champs promus en colonnes : `amount` / `kind` / `supplier`
 
@@ -177,14 +178,15 @@ Voir `docs/fiches/CARTOGRAPHIE_DEPENSES.md`.
   unique) et somme la colonne `amount` — ne jamais réintroduire un cast JSON.
 - Le write path renseigne les colonnes ; un `kind` non-standard (ex: `recurring`
   depuis `confirm_recurring_occurrence`) se passe via le **param `kind`** des
-  créateurs, **jamais** via `extra_metadata` (sinon colonne et metadata divergent).
-- **Transition en cours** : le front édite encore via `metadata` ; le serializer
-  (`_sync_expense_columns`) resynchronise les colonnes à chaque écriture. `metadata`
-  reste écrit (rollback-safe). PR2 = front sur colonnes + strip des clés `metadata`
-  redondantes. `unit_price` et `source_name` restent en `metadata` (non requêtés).
+  créateurs, **jamais** via `extra_metadata`.
+- **Le front et l'API consomment les colonnes** : `amount`/`kind`/`supplier` sont
+  des champs de premier niveau du serializer (`InteractionSerializer`), lus et
+  écrits directement. Ces clés ne sont **plus** dans `metadata` (strippées par la
+  migration `interactions.0024`). `unit_price` et `source_name` restent en
+  `metadata` (non requêtés), avec les extras feature (`delta`, `unit`, `brand`…).
 - Le `kind` d'une entrée **non-dépense** (ex: `renovation`) reste en `metadata` —
   la colonne `kind` est propre aux dépenses ; l'endpoint liste générique filtre
-  donc toujours `metadata__kind` (pas la colonne).
+  donc `Q(kind=…) | Q(metadata__kind=…)` pour couvrir les deux.
 
 ### Ajouter un nouveau template d'auto-subject
 
