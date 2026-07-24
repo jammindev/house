@@ -21,6 +21,7 @@ Chaque fiche suit le même squelette :
 
 - [RAG.md](RAG.md) — Retrieval-Augmented Generation : comment l'agent conversationnel répond à partir de la mémoire du foyer (parcours 07)
 - [EMBEDDINGS.md](EMBEDDINGS.md) — Embeddings & recherche sémantique hybride : ajouter une jambe vectorielle (pgvector + fusion RRF) au retrieval full-text (parcours 21)
+- [PWA_PUSH.md](PWA_PUSH.md) — PWA & Web Push : app installable + notifications système sans app native (VAPID, service worker, django-vite) (parcours app mobile)
 
 ## Quand créer une fiche ?
 

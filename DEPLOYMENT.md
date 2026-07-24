@@ -360,6 +360,25 @@ docker compose -f docker-compose.prod.yml exec web python manage.py createsuperu
 
 Ouvrir `https://house.tondomaine.com` — Traefik doit avoir obtenu le certificat Let's Encrypt automatiquement (peut prendre 30 secondes au premier accès).
 
+### Étape 9 — (Optionnel) Activer les notifications push
+
+La PWA peut envoyer des notifications push (Web Push / VAPID). Sans clés, tout marche
+mais l'envoi est un no-op. Pour activer :
+
+```bash
+# Générer une paire de clés VAPID
+docker compose -f docker-compose.prod.yml exec web python manage.py generate_vapid_keys
+# Copier VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY dans .env, ajouter VAPID_ADMIN_EMAIL=<contact>
+nano .env
+# Recréer les conteneurs qui envoient (web = événements/test, scheduler = pings)
+docker compose -f docker-compose.prod.yml up -d --force-recreate web scheduler
+# Vérifier
+docker compose -f docker-compose.prod.yml exec web \
+  python manage.py shell -c "from webpush.service import is_configured; print(is_configured())"
+```
+
+Concepts + architecture : [docs/fiches/PWA_PUSH.md](docs/fiches/PWA_PUSH.md) · module : [docs/MODULES/webpush.md](docs/MODULES/webpush.md).
+
 ---
 
 ## 6. Mises à jour
