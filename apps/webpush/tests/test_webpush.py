@@ -1,3 +1,4 @@
+import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -181,3 +182,6 @@ def test_test_endpoint_reports_sent_count(user, auth_client, vapid):
     assert response.status_code == status.HTTP_200_OK
     assert response.data["sent"] == 1
     mock_push.assert_called_once()
+    # The test push carries a demo badge so it also exercises the Badging API.
+    payload = json.loads(mock_push.call_args.kwargs["data"])
+    assert payload["unreadCount"] == 1
