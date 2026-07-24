@@ -1499,6 +1499,24 @@
           }
         }
       },
+      "install": {
+        "title": "Instalar la app y activar las notificaciones",
+        "intro": "Añade el hogar a la pantalla de inicio de tu teléfono y recibe sus notificaciones como push, incluso con la app cerrada.",
+        "steps": {
+          "install": {
+            "title": "Añadir a la pantalla de inicio",
+            "body": "En iPhone (Safari): toca Compartir y luego «Añadir a pantalla de inicio». En Android u ordenador: usa el botón de instalación del navegador. Después abre la app desde ese icono."
+          },
+          "enable": {
+            "title": "Activar las notificaciones push",
+            "body": "En Ajustes, abre «Notificaciones push», toca Activar y concede el permiso. Usa Probar para comprobar que llega una notificación a tu dispositivo."
+          },
+          "badge": {
+            "title": "Insignia en el icono",
+            "body": "Las notificaciones sin leer aparecen como contador en el icono de la app y se borran al leerlas. En iPhone solo funciona desde la app instalada (iOS 16.4+)."
+          }
+        }
+      },
       "budget": {
         "title": "Presupuestos",
         "intro": "Fija límites mensuales y comprueba de un vistazo si tus gastos se mantienen dentro.",

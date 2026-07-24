@@ -1499,6 +1499,24 @@
           }
         }
       },
+      "install": {
+        "title": "Installer l'app & activer les notifications",
+        "intro": "Ajoutez le foyer à l'écran d'accueil de votre téléphone et recevez ses notifications en push, même l'app fermée.",
+        "steps": {
+          "install": {
+            "title": "Ajouter à l'écran d'accueil",
+            "body": "Sur iPhone (Safari) : bouton Partager, puis « Sur l'écran d'accueil ». Sur Android ou ordinateur : bouton d'installation du navigateur. Rouvrez ensuite l'app depuis cette icône."
+          },
+          "enable": {
+            "title": "Activer les notifications push",
+            "body": "Dans Réglages, ouvrez « Notifications push », touchez Activer et autorisez la permission. Utilisez Tester pour vérifier qu'une notif arrive sur votre appareil."
+          },
+          "badge": {
+            "title": "Pastille sur l'icône",
+            "body": "Les notifications non lues s'affichent en compteur sur l'icône de l'app, effacé à la lecture. Sur iPhone, cela ne marche que depuis l'app installée (iOS 16.4+)."
+          }
+        }
+      },
       "budget": {
         "title": "Budgets",
         "intro": "Fixe des plafonds mensuels et vois d'un coup d'œil si tes dépenses tiennent dedans.",

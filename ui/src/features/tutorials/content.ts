@@ -1,5 +1,5 @@
 import {
-  AlertCircle, LayoutDashboard, Newspaper, Sparkles, User,
+  AlertCircle, LayoutDashboard, Newspaper, Smartphone, Sparkles, User,
   type LucideIcon,
 } from 'lucide-react';
 import { MODULES } from '@/lib/modules';
@@ -58,6 +58,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'dashboard', Icon: LayoutDashboard, to: '/app/dashboard', stepIds: ['overview', 'activity', 'alerts'] },
   { key: 'agent', Icon: Sparkles, to: '/app/agent', stepIds: ['ask', 'citations', 'web', 'context', 'create', 'memory'] },
   { key: 'digest', Icon: Newspaper, to: '/app/digest', stepIds: ['preview', 'enable', 'sections'] },
+  { key: 'install', Icon: Smartphone, to: '/app/settings', stepIds: ['install', 'enable', 'badge'] },
   { key: 'zones', moduleKey: 'zones', to: '/app/zones', stepIds: ['create', 'hierarchy', 'navigate'] },
   { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'purchase', 'history'] },
   { key: 'electricity', moduleKey: 'electricity', to: '/app/electricity', stepIds: ['board', 'readings', 'analyze'] },
