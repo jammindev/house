@@ -113,3 +113,36 @@ class RecurringExpense(HouseholdScopedModel):
 
     def __str__(self):
         return f"{self.label} ({self.amount}/{self.cadence})"
+
+
+class BudgetReport(HouseholdScopedModel):
+    """Persisted monthly budget report — parcours 21 lot 3.
+
+    One immutable snapshot per (household, month): the numeric ``stats`` are
+    computed once when the month closes and frozen (so later budget/expense edits
+    don't rewrite history). The prose is NOT stored as such — it is rendered from
+    ``stats`` at read time in the viewer's language (deterministic template), with
+    an optional LLM-polished narrative memoized per language inside ``stats``.
+    ``month`` is the reported period as ``YYYY-MM``.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    month = models.CharField(max_length=7, help_text="Reported period, 'YYYY-MM'.")
+    stats = models.JSONField(default=dict, blank=True)
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "budget_reports"
+        verbose_name = _("budget report")
+        verbose_name_plural = _("budget reports")
+        ordering = ["-month"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["household", "month"],
+                name="unique_budget_report_per_month",
+            ),
+        ]
+
+    def __str__(self):
+        return f"Budget report {self.month}"

@@ -79,8 +79,15 @@ Budget global : 1 850 / 2 000 €   92 %
 
 | # | Story | État |
 |---|---|---|
-| 3.1 | Bilan mensuel généré en début de mois (total vs budgets, top dépenses, récurrences, tendance) | ⏳ à faire |
-| 3.2 | Consulter le bilan dans l'app (dernier + historique) ; push Telegram optionnel | ⏳ à faire |
+| 3.1 | Bilan mensuel généré en début de mois (total vs budgets, top dépenses, récurrences, tendance) | ✅ V1 |
+| 3.2 | Consulter le bilan dans l'app (dernier + historique) ; push Telegram optionnel | ✅ V1 |
+
+> Lot 3 livré : modèle `BudgetReport` (snapshot mensuel figé) + sous-package
+> `apps/budget/report/` (stats → rendu déterministe localisé → polish IA optionnel,
+> miroir du digest) + endpoints `/api/budget/reports/` (historique + `latest`
+> lazy-génère) + ping mensuel `monthly_budget_report` + sous-page
+> `/app/budget/reports`. **Rédigé dans la langue de l'user** (rendu au read),
+> **fallback chiffres bruts** si pas de clé IA. **Parcours 21 COMPLET (Lots 1-3).**
 
 ## Limites V1 assumées
 

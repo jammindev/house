@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .models import Budget, RecurringExpense
+from .models import Budget, BudgetReport, RecurringExpense
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -82,6 +82,32 @@ class RecurringExpenseSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("This field cannot be blank.")
         return value
+
+
+class BudgetReportSerializer(serializers.ModelSerializer):
+    """Read serializer for a monthly budget report.
+
+    ``text`` is rendered from the frozen ``stats`` in the request user's active
+    language. ``polish`` in the serializer context enables the LLM narrative
+    (used for the single latest/detail views, not the history list — one LLM
+    call per row would be wasteful). The internal ``_polished`` cache is stripped
+    from the exposed ``stats``.
+    """
+
+    text = serializers.SerializerMethodField()
+    stats = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BudgetReport
+        fields = ["id", "month", "text", "stats", "created_at"]
+
+    def get_text(self, obj):
+        from .report.service import render_report
+
+        return render_report(obj, polish=bool(self.context.get("polish", False)))
+
+    def get_stats(self, obj):
+        return {k: v for k, v in (obj.stats or {}).items() if k != "_polished"}
 
 
 class ConfirmOccurrenceSerializer(serializers.Serializer):

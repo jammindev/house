@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Plus, PiggyBank, AlertTriangle, CalendarClock, ChevronRight } from 'lucide-react';
+import { Plus, PiggyBank, AlertTriangle, CalendarClock, ChevronRight, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
@@ -178,6 +178,21 @@ export default function BudgetPage() {
                   })
                 : t('budget.recurringAccess.hint')}
             </p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      ) : null}
+
+      {!overviewQuery.isLoading && overview ? (
+        <Link
+          to="/app/budget/reports"
+          state={pushBack(location)}
+          className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
+        >
+          <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-foreground">{t('report.title')}</p>
+            <p className="text-xs text-muted-foreground">{t('report.access.hint')}</p>
           </div>
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         </Link>

@@ -928,7 +928,8 @@
         "water_reading": "Erinnerung Wasserzählerstand",
         "weather_alert": "Wetterwarnung",
         "daily_digest": "Tägliche Zusammenfassung",
-        "recurring_due": "Fällige wiederkehrende Ausgabe"
+        "recurring_due": "Fällige wiederkehrende Ausgabe",
+        "monthly_budget_report": "Monatlicher Budgetbericht"
       }
     },
     "theme": "Design",
@@ -1502,6 +1503,10 @@
           "recurring": {
             "title": "Wiederkehrende Rechnungen planen",
             "body": "Öffne „Wiederkehrende Ausgaben“ auf der Budgetseite, um Abos, Versicherungen und Rechnungen zu erfassen. Sieh, was in den nächsten 30/90 Tagen fällig wird, und bestätige jede Fälligkeit mit einem Klick, wenn sie bezahlt ist (Betrag editierbar) — sie landet im Journal und rückt aufs nächste Datum vor."
+          },
+          "report": {
+            "title": "Deinen Monatsbericht lesen",
+            "body": "Zu Monatsbeginn wird eine schriftliche Zusammenfassung des Vormonats erstellt: Gesamtausgaben, wie jedes Budget lief, größte Ausgaben, bezahlte wiederkehrende Rechnungen und der Trend zum Vormonat. Zu finden unter „Monatsbericht“ auf der Budgetseite — in deiner Sprache, mit den reinen Zahlen als Rückfall, wenn kein KI-Schlüssel gesetzt ist."
           }
         }
       }
@@ -3040,6 +3045,17 @@
     "projection": {
       "horizon": "Nächste {{days}} Tage",
       "count": "{{count}} Fälligkeit(en)"
+    }
+  },
+  "report": {
+    "title": "Monatsbericht",
+    "description": "Eine schriftliche Zusammenfassung der Ausgaben des Vormonats, Budget für Budget.",
+    "empty": "Noch kein Bericht",
+    "emptyDescription": "Dein erster Monatsbericht erscheint, sobald ein Monat mit Ausgaben abgeschlossen ist.",
+    "latest": "Letzter Monat",
+    "history": "Frühere Monate",
+    "access": {
+      "hint": "Schriftliche Zusammenfassung der Ausgaben des Vormonats."
     }
   }
 }

@@ -928,7 +928,8 @@
         "water_reading": "Water meter reading reminder",
         "weather_alert": "Weather alert",
         "daily_digest": "Daily digest",
-        "recurring_due": "Recurring expense due"
+        "recurring_due": "Recurring expense due",
+        "monthly_budget_report": "Monthly budget report"
       }
     },
     "theme": "Theme",
@@ -1502,6 +1503,10 @@
           "recurring": {
             "title": "Anticipate recurring bills",
             "body": "Open “Recurring expenses” from the budget page to log subscriptions, insurance and bills. See what falls due over the next 30/90 days, and confirm each occurrence in one click when paid (the amount is editable) — it lands in your journal and advances to the next date."
+          },
+          "report": {
+            "title": "Read your monthly report",
+            "body": "At the start of each month, a written recap of the previous month is generated: total spent, how each budget did, biggest expenses, recurring bills paid and the trend versus the month before. Find it under “Monthly report” on the budget page — in your language, with the raw figures as a fallback when no AI key is set."
           }
         }
       }
@@ -3040,6 +3045,17 @@
     "projection": {
       "horizon": "Next {{days}} days",
       "count": "{{count}} occurrence(s)"
+    }
+  },
+  "report": {
+    "title": "Monthly report",
+    "description": "A written recap of last month’s spending, budget by budget.",
+    "empty": "No report yet",
+    "emptyDescription": "Your first monthly report will appear once a month has closed with expenses.",
+    "latest": "Last month",
+    "history": "Earlier months",
+    "access": {
+      "hint": "Written recap of last month’s spending."
     }
   }
 }

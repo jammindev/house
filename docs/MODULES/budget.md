@@ -97,6 +97,38 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
   i18n namespace `recurring.*` + `budget.committed`/`budget.recurringAccess.*` +
   `settings.pings.types.recurring_due`.
 
+## Bilan mensuel (lot 3)
+
+- **Modèle `BudgetReport`** : un snapshot **figé** par (foyer, mois `YYYY-MM`),
+  `stats` JSON. Les chiffres sont calculés une fois à la clôture du mois et ne
+  sont jamais recalculés (l'historique ne bouge pas si un budget/dépense change
+  après coup). La prose n'est **pas** stockée : elle est rendue depuis `stats` au
+  read-time dans la langue du lecteur.
+- **Sous-package `apps/budget/report/`** (miroir de `agent/digest/`) :
+  - `stats.py::compute_month_stats` — total, par-budget vs plafond, hors budget,
+    top 5 dépenses, récurrences payées (`metadata.kind='recurring'`), tendance vs
+    mois précédent, ligne globale. Réutilise le cast montant du journal.
+  - `render.py` — prose **déterministe localisée** via `gettext` (le fallback
+    « chiffres bruts »).
+  - `polish.py::polish_report` — réécriture LLM optionnelle
+    (`BUDGET_REPORT_AI_POLISH_ENABLED`, fallback `None` → déterministe), miroir
+    exact de `digest.polish`.
+  - `service.py` — `get_or_generate_report` (idempotent, fige le snapshot),
+    `render_report` (déterministe + polish **mémoïsé par langue** dans
+    `stats['_polished'][lang]` → au plus 1 appel LLM par mois+langue),
+    `last_closed_month`.
+  - `ping.py` — `build_monthly_report_message` : le 1er du mois, assure le rapport
+    du mois écoulé et le pousse ; `None` sinon / si mois vide.
+- **API** (`/api/budget/reports/`, read-only) : `list` (historique, texte
+  déterministe), `latest` (lazy-génère le dernier mois clos + narration IA),
+  `retrieve` par mois (`/2026-06/`). Texte rendu dans la langue de la requête.
+- **Ping** : `PingSpec('monthly_budget_report')` (le digest est quotidien ; ici
+  mensuel, la cadence est portée par le `build_message` qui ne renvoie qu'au 1er).
+- **Frontend** : sous-page `/app/budget/reports` (`ReportsPage` : dernier bilan +
+  historique) + carte d'accès depuis `BudgetPage`. i18n namespace `report.*` +
+  `settings.pings.types.monthly_budget_report`.
+- **Réglage** : `BUDGET_REPORT_AI_POLISH_ENABLED` (défaut `False`).
+
 ## Décisions clés
 
 - **Budgets multiples nommés = la dimension de regroupement** (pas de taxonomie

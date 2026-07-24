@@ -48,6 +48,7 @@ const BriefingsPage = lazyWithReload(() => import('./features/briefings/Briefing
 const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
 const BudgetPage = lazyWithReload(() => import('./features/budget/BudgetPage'));
 const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPage'));
+const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage'));
 const ChangelogPage = lazyWithReload(() => import('./features/changelog/ChangelogPage'));
 const TutorialsPage = lazyWithReload(() => import('./features/tutorials/TutorialsPage'));
 const TutorialGuidePage = lazyWithReload(() => import('./features/tutorials/TutorialGuidePage'));
@@ -82,6 +83,7 @@ export const router = createBrowserRouter([
       { path: 'expenses', element: <ExpensesPage /> },
       { path: 'budget', element: <BudgetPage /> },
       { path: 'budget/recurring', element: <RecurringPage /> },
+      { path: 'budget/reports', element: <ReportsPage /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },

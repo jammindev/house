@@ -7,8 +7,10 @@ import {
   deleteBudget,
   deleteRecurringExpense,
   fetchBudgetOverview,
+  fetchBudgetReports,
   fetchBudgets,
   fetchCashflowProjection,
+  fetchLatestBudgetReport,
   fetchRecurringDue,
   fetchRecurringExpenses,
   updateBudget,
@@ -25,6 +27,8 @@ export const budgetKeys = {
   recurring: () => [...budgetKeys.all, 'recurring'] as const,
   recurringDue: () => [...budgetKeys.all, 'recurring', 'due'] as const,
   projection: () => [...budgetKeys.all, 'projection'] as const,
+  reports: () => [...budgetKeys.all, 'reports'] as const,
+  latestReport: () => [...budgetKeys.all, 'reports', 'latest'] as const,
 };
 
 export function useBudgets() {
@@ -138,4 +142,14 @@ export function useConfirmRecurringOccurrence() {
       // the confirmation created an expense — refresh expense/interaction views too
     },
   });
+}
+
+// --- Monthly reports --------------------------------------------------------
+
+export function useBudgetReports() {
+  return useQuery({ queryKey: budgetKeys.reports(), queryFn: fetchBudgetReports });
+}
+
+export function useLatestBudgetReport() {
+  return useQuery({ queryKey: budgetKeys.latestReport(), queryFn: fetchLatestBudgetReport });
 }
