@@ -13,6 +13,12 @@ export interface Briefing {
   briefing_type: BriefingType;
   is_private: boolean;
   is_active: boolean;
+  /** Local times of day it fires, e.g. ["16:00:00"]. */
+  send_times: string[];
+  /** Python weekday ints (Mon=0…Sun=6) it may fire on; empty = every day. */
+  weekdays: number[];
+  /** Next fire instant (ISO), or null if inactive/no schedule. Read-only. */
+  next_send_at: string | null;
   created_at: string;
   updated_at: string;
   created_by: number | null;
@@ -39,6 +45,8 @@ export interface BriefingPayload {
   is_private?: boolean;
   briefing_type?: BriefingType;
   is_active?: boolean;
+  send_times?: string[];
+  weekdays?: number[];
 }
 
 export async function fetchBriefings(): Promise<Briefing[]> {
@@ -54,6 +62,8 @@ export async function createBriefing(payload: BriefingPayload): Promise<Briefing
     is_private: payload.is_private ?? false,
     briefing_type: payload.briefing_type ?? 'recurring',
     is_active: payload.is_active ?? false,
+    send_times: payload.send_times ?? [],
+    weekdays: payload.weekdays ?? [],
   });
   return data as Briefing;
 }

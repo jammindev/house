@@ -53,6 +53,8 @@ class BriefingViewSet(viewsets.ModelViewSet):
             briefing_type=data.get("briefing_type", Briefing.Type.RECURRING),
             is_private=data.get("is_private", False),
             is_active=data.get("is_active", False),
+            send_times=data.get("send_times", []),
+            weekdays=data.get("weekdays", []),
         )
         serializer.instance = briefing
 
