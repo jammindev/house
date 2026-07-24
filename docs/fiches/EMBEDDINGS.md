@@ -409,7 +409,95 @@ Le contrat `search(household_id, query) -> list[Hit]` ne change pas de signature
 Tout `apps/agent/` (tools, service, conversation ancrée, écriture) est
 **transparent** au changement : c'est le sens de l'abstraction posée en V1.
 
-## 10. Glossaire
+## 10. Est-ce que ça marche vraiment ? Évaluer le retrieval
+
+On a ajouté une jambe sémantique — mais **comment savoir si elle aide, sans se
+fier au feeling ?** On mesure. Cette section explique les deux métriques, la
+méthode, et ce que ça a donné sur le corpus réel (elle sert de cours : ces
+notions sont universelles en recherche d'information).
+
+### 10.1 L'intuition
+
+Quand l'utilisateur pose une question, le retrieval rapporte une **petite pile**
+de documents (le top-k, ici k=10) que l'agent donne à lire à Claude. Deux
+questions se posent sur cette pile :
+
+- **Le bon document est-il dedans ?** → c'est le **recall**.
+- **Est-il plutôt en haut de la pile ?** → c'est le **MRR**.
+
+> Image : tu demandes un livre au bibliothécaire, il t'en rapporte 10.
+> Le **recall**, c'est « le bon est-il dans les 10 ? ». Le **MRR**, c'est
+> « est-il sur le dessus de la pile, ou tout au fond ? ».
+
+### 10.2 Les deux métriques, précisément
+
+- **Recall@k** — sur un jeu de questions dont on connaît la bonne réponse, la
+  proportion où le document attendu est dans le top-k. `0,64` = dans 64 % des cas,
+  le bon doc est là. Mesure la capacité à **ne rien rater**.
+- **MRR** (*Mean Reciprocal Rank*) — la position du premier bon résultat, en
+  score : 1ʳᵉ place → `1,0`, 2ᵉ → `0,5`, 3ᵉ → `0,33`… moyenné sur les questions.
+  Mesure la capacité à **mettre le bon en haut**.
+
+**Pour un RAG, le recall prime.** Claude lit *tous* les hits de la pile : si le
+bon doc y est, il le verra, quelle que soit sa position. Le MRR compte surtout si
+on tronque agressivement (top-3) ou pour l'expérience « la 1ʳᵉ citation est la
+bonne ».
+
+### 10.3 La méthode : un « golden set » (et l'astuce auto)
+
+Évaluer suppose un **jeu de questions étalon** (« golden set ») : des questions +
+la ou les entité(s) qui devraient sortir. Deux façons de l'obtenir :
+
+- **à la main** : on écrit les questions et on pointe la bonne réponse (fidèle à
+  l'usage réel, mais fastidieux) ;
+- **auto (« self-retrieval »)** : on prend une vraie entité, on demande à l'IA
+  *« quelle question un utilisateur poserait, à laquelle ce document répond ? »*,
+  et la bonne réponse = ce document. Zéro étiquetage manuel. C'est un **proxy**
+  (biaisé si les questions collent trop au texte), mais **juste pour comparer**
+  les méthodes puisqu'elles tournent sur les **mêmes** questions. C'est le mode
+  `eval_retrieval --auto N`.
+
+> ⚠️ **Piège de méthodologie rencontré.** La première éval envoyait la question
+> brute au full-text, qui exige *tous* les mots présents (sans mots-vides) → il
+> tombait à 0 sur du langage naturel. Or l'agent réel réécrit d'abord la question
+> en mots-clés (`query_expansion`). Corrigé : l'éval passe par la **même chaîne
+> que l'agent**. Leçon générale : **une éval doit reproduire le vrai pipeline**,
+> sinon elle mesure un épouvantail.
+
+### 10.4 Ce que ça a donné (corpus réel, 200 documents)
+
+`eval_retrieval --auto 25 --mode all` sur le foyer réel :
+
+| Méthode | Recall@10 | MRR |
+|---|---|---|
+| Full-text (mots-clés, l'existant) | 0,44 | 0,19 |
+| Vectoriel (sens, question entière) | 0,60 | **0,51** |
+| **Hybride (les deux, RRF)** | **0,64** | 0,29 |
+
+Lecture :
+- **L'hybride rate le moins** (recall 0,64) — **+45 % vs le full-text seul**. Sur
+  la métrique qui compte pour un RAG, c'est le gagnant → **ça justifie d'activer**.
+- Le **vectoriel pur classe mieux** (MRR 0,51) : il embarque la question entière,
+  alors que l'hybride, via l'expansion, embarque des **fragments de mots-clés** —
+  moins bon pour le sens. D'où une piste V2 : embarquer la question entière aussi
+  dans la jambe hybride.
+- **Full-text seul** est nettement le plus faible sur du langage naturel — c'était
+  tout l'enjeu.
+
+Caveats honnêtes : échantillon modeste (25 questions) et golden « self-retrieval »
+→ chiffres **directionnels**, pas au pourcent près. Deux runs (12 puis 25
+questions) ont donné des ordres différents sur l'hybride → **toujours élargir
+l'échantillon avant de conclure** (un petit golden, c'est du bruit).
+
+### 10.5 À retenir (méthode réutilisable)
+
+1. définir un golden set (à la main ou `--auto`) ;
+2. faire tourner **le vrai pipeline** de l'app, pas une version simplifiée ;
+3. comparer les variantes sur **les mêmes** questions ;
+4. regarder **recall** d'abord (pour un RAG), MRR ensuite ;
+5. se méfier des petits échantillons ; élargir avant de trancher.
+
+## 11. Glossaire
 
 | Terme | Sens |
 |---|---|
@@ -423,11 +511,13 @@ Tout `apps/agent/` (tools, service, conversation ancrée, écriture) est
 | **pgvector** | extension Postgres ajoutant le type `vector` et le k-NN |
 | **HNSW / IVFFlat** | index approximatifs de pgvector pour un k-NN rapide à grand volume |
 | **Chunk / chunking** | morceau de texte (~200-500 tokens) ; découper un long texte avant d'embedder |
-| **Rappel (recall)** | proportion des bons résultats effectivement retrouvés |
+| **Recall@k** | proportion des questions où le bon document est dans le top-k (mesure « ne rien rater ») |
+| **MRR** | *Mean Reciprocal Rank* — position moyenne du 1ᵉʳ bon résultat (1ʳᵉ place = 1,0 ; 2ᵉ = 0,5…) |
+| **Golden set** | jeu de questions étalon + réponses attendues, pour mesurer la qualité du retrieval |
 | **Reranking** | 2ᵉ passe qui réordonne finement un top-k (souvent un cross-encoder) |
 | **EmbeddingClient** | abstraction `house` du fournisseur d'embeddings (miroir de `LLMClient`) |
 
-## 11. Pour aller plus loin
+## 12. Pour aller plus loin
 
 - [pgvector](https://github.com/pgvector/pgvector) — l'extension, sa doc, les
   opérateurs de distance et les index
