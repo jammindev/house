@@ -165,6 +165,27 @@ Différences vs `create_expense_interaction` :
 
 Les deux fonctions (`create_expense_interaction` + `create_manual_expense_interaction`) flow through un helper interne `_build_expense_metadata` qui garantit le shape `metadata` uniforme : `{kind, source_name, amount, unit_price, supplier}` + extra optionnel. Ajouter une clé standard (ex: `currency`) = touche un seul endroit.
 
+### Champs promus en colonnes : `amount` / `kind` / `supplier`
+
+Les trois champs **requêtés/agrégés** d'une dépense sont des **vraies colonnes**
+sur `Interaction` (plus seulement dans `metadata`) : `amount`
+(`DecimalField(14,2)`), `kind` (indexé), `supplier`. Raison : ils étaient castés
+depuis le JSON (`Cast(KeyTextTransform(...))`) dans 4 agrégations dupliquées.
+Voir `docs/fiches/CARTOGRAPHIE_DEPENSES.md`.
+
+- **Toute lecture/agrégation passe par `interactions.queries.expenses()`** (helper
+  unique) et somme la colonne `amount` — ne jamais réintroduire un cast JSON.
+- Le write path renseigne les colonnes ; un `kind` non-standard (ex: `recurring`
+  depuis `confirm_recurring_occurrence`) se passe via le **param `kind`** des
+  créateurs, **jamais** via `extra_metadata` (sinon colonne et metadata divergent).
+- **Transition en cours** : le front édite encore via `metadata` ; le serializer
+  (`_sync_expense_columns`) resynchronise les colonnes à chaque écriture. `metadata`
+  reste écrit (rollback-safe). PR2 = front sur colonnes + strip des clés `metadata`
+  redondantes. `unit_price` et `source_name` restent en `metadata` (non requêtés).
+- Le `kind` d'une entrée **non-dépense** (ex: `renovation`) reste en `metadata` —
+  la colonne `kind` est propre aux dépenses ; l'endpoint liste générique filtre
+  donc toujours `metadata__kind` (pas la colonne).
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

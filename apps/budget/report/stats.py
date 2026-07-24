@@ -14,11 +14,10 @@ from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from django.db.models import DecimalField, Sum
-from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
-from interactions.models import Interaction
+from interactions.queries import expenses
 
 from ..aggregations import _state, _str, _zero
 from ..models import Budget
@@ -50,18 +49,13 @@ def previous_month(month: str) -> str:
 
 
 def _expense_qs(household_id, start, end):
-    return Interaction.objects.filter(
-        household_id=household_id, type="expense", occurred_at__gte=start, occurred_at__lt=end
-    ).annotate(
-        amount_decimal=Cast(
-            KeyTextTransform("amount", "metadata"),
-            DecimalField(max_digits=14, decimal_places=2),
-        )
+    return expenses(household_id=household_id).filter(
+        occurred_at__gte=start, occurred_at__lt=end
     )
 
 
 def _total(qs) -> Decimal:
-    return qs.aggregate(t=Coalesce(Sum("amount_decimal"), _zero()))["t"] or _zero()
+    return qs.aggregate(t=Coalesce(Sum("amount"), _zero()))["t"] or _zero()
 
 
 def compute_month_stats(household, month: str) -> dict[str, Any]:
@@ -85,7 +79,7 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
     start, end = month_bounds(household, month)
     qs = _expense_qs(household.id, start, end)
 
-    spent_rows = qs.values("budget_id").annotate(total=Coalesce(Sum("amount_decimal"), _zero()))
+    spent_rows = qs.values("budget_id").annotate(total=Coalesce(Sum("amount"), _zero()))
     spent_map = {r["budget_id"]: r["total"] or _zero() for r in spent_rows}
     total_spent = sum(spent_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
@@ -106,14 +100,14 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
     budget_rows = [_row(b, spent_map.get(b.id, _zero())) for b in budgets if not b.is_global]
     global_row = _row(global_budget, total_spent) if global_budget else None
 
-    # Exclude amount-less expenses: on Postgres a NULL cast sorts NULLS FIRST under
+    # Exclude amount-less expenses: on Postgres a NULL sorts NULLS FIRST under
     # DESC and would otherwise steal the "biggest expense" slot with a 0 amount.
     top = [
-        {"subject": i.subject, "amount": _str(i.amount_decimal or _zero())}
-        for i in qs.filter(amount_decimal__isnull=False).order_by("-amount_decimal")[:TOP_EXPENSES_LIMIT]
+        {"subject": i.subject, "amount": _str(i.amount or _zero())}
+        for i in qs.filter(amount__isnull=False).order_by("-amount")[:TOP_EXPENSES_LIMIT]
     ]
 
-    recurring_qs = qs.filter(metadata__kind="recurring")
+    recurring_qs = qs.filter(kind="recurring")
     recurring = {"count": recurring_qs.count(), "total": _str(_total(recurring_qs))}
 
     prev = previous_month(month)

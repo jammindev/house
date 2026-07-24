@@ -2,9 +2,8 @@
 Expense summary aggregations.
 
 Builds totals + breakdowns over `Interaction(type='expense')` for a given
-period. Reads `metadata.amount` (str(Decimal) per service convention),
-`metadata.kind`, `metadata.supplier`. Casts the amount text to Decimal
-in Postgres so the SUM is correct.
+period. Reads the ``amount`` / ``kind`` / ``supplier`` columns directly via the
+shared ``interactions.queries`` helpers — no more JSON cast.
 """
 from __future__ import annotations
 
@@ -12,32 +11,24 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from django.db.models import Count, DecimalField, Sum
-from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast, Coalesce, TruncMonth
+from django.db.models import Count, Sum
+from django.db.models.functions import Coalesce, TruncMonth
 
-from .models import Interaction
+from .queries import expenses
 
 
 def _expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
                 supplier: str | None = None, kind: str | None = None):
-    qs = Interaction.objects.filter(household_id=household_id, type='expense')
+    qs = expenses(household_id=household_id)
     if from_dt is not None:
         qs = qs.filter(occurred_at__gte=from_dt)
     if to_dt is not None:
         qs = qs.filter(occurred_at__lte=to_dt)
     if supplier is not None:
-        qs = qs.filter(metadata__supplier=supplier)
+        qs = qs.filter(supplier=supplier)
     if kind is not None:
-        qs = qs.filter(metadata__kind=kind)
-    return qs.annotate(
-        amount_decimal=Cast(
-            KeyTextTransform('amount', 'metadata'),
-            DecimalField(max_digits=14, decimal_places=2),
-        ),
-        kind_value=KeyTextTransform('kind', 'metadata'),
-        supplier_value=KeyTextTransform('supplier', 'metadata'),
-    )
+        qs = qs.filter(kind=kind)
+    return qs
 
 
 def _zero() -> Decimal:
@@ -71,18 +62,18 @@ def compute_expense_summary(
     qs = _expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind)
 
     overall = qs.aggregate(
-        total=Coalesce(Sum('amount_decimal'), _zero()),
+        total=Coalesce(Sum('amount'), _zero()),
         count=Count('id'),
     )
 
     by_kind_rows = (
-        qs.values('kind_value')
-        .annotate(total=Coalesce(Sum('amount_decimal'), _zero()), count=Count('id'))
+        qs.values('kind')
+        .annotate(total=Coalesce(Sum('amount'), _zero()), count=Count('id'))
         .order_by('-total')
     )
     by_kind = [
         {
-            'kind': row['kind_value'] or '',
+            'kind': row['kind'] or '',
             'total': _str(row['total']),
             'count': row['count'],
         }
@@ -90,13 +81,13 @@ def compute_expense_summary(
     ]
 
     by_supplier_rows = (
-        qs.values('supplier_value')
-        .annotate(total=Coalesce(Sum('amount_decimal'), _zero()), count=Count('id'))
+        qs.values('supplier')
+        .annotate(total=Coalesce(Sum('amount'), _zero()), count=Count('id'))
         .order_by('-total')
     )
     by_supplier = [
         {
-            'supplier': row['supplier_value'] or '',
+            'supplier': row['supplier'] or '',
             'total': _str(row['total']),
             'count': row['count'],
         }
@@ -106,7 +97,7 @@ def compute_expense_summary(
     by_month_rows = (
         qs.annotate(month_start=TruncMonth('occurred_at'))
         .values('month_start')
-        .annotate(total=Coalesce(Sum('amount_decimal'), _zero()), count=Count('id'))
+        .annotate(total=Coalesce(Sum('amount'), _zero()), count=Count('id'))
         .order_by('month_start')
     )
     by_month = [

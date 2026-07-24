@@ -8,7 +8,7 @@ side-effect and the egg-log upsert semantics live in exactly one place.
 from __future__ import annotations
 
 from datetime import date, timedelta
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 
 from django.db import transaction
 from django.db.models import Sum
@@ -301,26 +301,22 @@ def _cost_totals(household, *, today: date, feed_stock_item=None) -> dict:
     year = Decimal('0')
     feed_total = Decimal('0')
     flock_total = Decimal('0')
-    kinds = Q(metadata__kind='chickens_purchase')
+    kinds = Q(kind='chickens_purchase')
     feed_ct = None
     if feed_stock_item is not None:
         feed_ct = ContentType.objects.get_for_model(type(feed_stock_item))
         kinds |= Q(
-            metadata__kind='stock_purchase',
+            kind='stock_purchase',
             source_content_type=feed_ct,
             source_object_id=feed_stock_item.pk,
         )
     qs = Interaction.objects.filter(
         kinds, household=household, type='expense'
-    ).values('occurred_at', 'metadata', 'source_content_type_id', 'source_object_id')
+    ).values('occurred_at', 'amount', 'source_content_type_id', 'source_object_id')
     feed_ct_id = feed_ct.id if feed_ct is not None else None
     for row in qs:
-        raw = (row['metadata'] or {}).get('amount')
-        if raw in (None, ''):
-            continue
-        try:
-            amount = Decimal(str(raw))
-        except (InvalidOperation, ValueError):
+        amount = row['amount']
+        if amount is None:
             continue
         total += amount
         if (

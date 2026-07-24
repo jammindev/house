@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import date, timedelta
+from decimal import Decimal
 
 import pytest
 from django.utils import timezone
@@ -27,14 +28,18 @@ def _make_task(household, owner, **overrides):
     return Task.objects.create(**payload)
 
 
-def _make_expense(household, owner, amount, **overrides):
+def _make_expense(household, owner, amount, *, kind="manual", supplier="", **overrides):
     payload = dict(
         household=household,
         created_by=owner,
         subject="Achat",
         type="expense",
         occurred_at=timezone.now(),
-        metadata={"kind": "manual", "amount": str(amount)},
+        amount=Decimal(str(amount)) if amount is not None else None,
+        kind=kind,
+        supplier=supplier,
+        metadata={"kind": kind, "amount": str(amount) if amount is not None else None,
+                  "supplier": supplier},
     )
     payload.update(overrides)
     return Interaction.objects.create(**payload)
@@ -161,7 +166,7 @@ class TestInteractionAggregation:
         assert "sum_amount=7.00" in result.rendered
 
     def test_describe_includes_type_and_amount(self, household, owner):
-        _make_expense(household, owner, "42.00", metadata={"amount": "42.00", "supplier": "Leroy"})
+        _make_expense(household, owner, "42.00", supplier="Leroy")
         result = _list(household, {"entity_type": "interaction"})
         assert "expense" in result.rendered
         assert "amount 42.00" in result.rendered
