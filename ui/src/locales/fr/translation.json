@@ -1015,6 +1015,21 @@
       "description": "Choisissez les modules actifs pour ce foyer.",
       "hint": "Les modules désactivés sont masqués pour tous les membres (sidebar, dashboard, assistant). Aucune donnée n’est supprimée — réactivez un module pour tout retrouver.",
       "saved": "Modules mis à jour"
+    },
+    "push": {
+      "title": "Notifications push",
+      "description": "Recevez les notifications du foyer même l'app fermée.",
+      "enable": "Activer les notifications",
+      "enableHint": "Autorisez les notifications pour être prévenu sur cet appareil.",
+      "enabled": "Notifications activées sur cet appareil.",
+      "disable": "Désactiver",
+      "disabledToast": "Notifications désactivées",
+      "enabledToast": "Notifications activées",
+      "test": "Tester",
+      "testSent": "Notification de test envoyée",
+      "testNoDevice": "Aucun appareil abonné",
+      "permissionDenied": "Les notifications sont bloquées. Réactivez-les dans les réglages de votre navigateur.",
+      "iosHint": "Sur iPhone, installez d'abord l'app sur l'écran d'accueil (Partager → Sur l'écran d'accueil) pour activer les notifications."
     }
   },
   "tutorials": {
