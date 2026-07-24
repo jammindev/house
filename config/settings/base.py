@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     "budget",
     "shopping",
     "briefings",
+    "webpush",
 ]
 
 MIDDLEWARE = [
@@ -284,6 +285,15 @@ BUDGET_WARNING_RATIO = 0.8
 # Overridden per environment in local.py / production.py.
 TELEGRAM_BOT_TOKEN = ""
 TELEGRAM_BOT_USERNAME = ""  # public @username of the bot, for t.me deep-links
+# --- Web Push (VAPID) -------------------------------------------------------
+# Empty by default → push is a clean no-op (see webpush.service.is_configured).
+# Generate a pair with `python manage.py generate_vapid_keys`, set them per
+# environment (local.py / production.py via .env). VAPID_PUBLIC_KEY is the
+# base64url application server key the browser needs; VAPID_ADMIN_EMAIL is the
+# `mailto:` contact required by the push services.
+VAPID_PUBLIC_KEY = ""
+VAPID_PRIVATE_KEY = ""
+VAPID_ADMIN_EMAIL = ""
 TELEGRAM_WEBHOOK_SECRET = ""
 TELEGRAM_LINK_TOKEN_MAX_AGE_SECONDS = 15 * 60
 # Per-chat cooldown between agent questions — a burst of messages costs one

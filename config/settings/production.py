@@ -75,6 +75,11 @@ FRONTEND_URL = env("FRONTEND_URL", default=f"https://{_primary_host}")
 # Anthropic API key — must be set in .env for LLM features (OCR, agent).
 ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
 
+# Web Push (VAPID) — set from `generate_vapid_keys`. Empty → push disabled.
+VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", default="")
+VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", default="")
+VAPID_ADMIN_EMAIL = env("VAPID_ADMIN_EMAIL", default="")
+
 # LLM provider/model overrides — usually keep the base.py defaults.
 LLM_PROVIDER = env("LLM_PROVIDER", default="anthropic")
 LLM_TEXT_MODEL = env("LLM_TEXT_MODEL", default="claude-haiku-4-5-20251001")

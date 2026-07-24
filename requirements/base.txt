@@ -23,6 +23,7 @@ psycopg-binary==3.3.2
 PyJWT==2.11.0
 pypdf==5.1.0
 pypdfium2==4.30.1
+pywebpush==2.3.0  # Web Push (VAPID) delivery — parcours mobile. Pulls cryptography/py-vapid/http-ece.
 PyYAML==6.0.3
 referencing==0.37.0
 rpds-py==0.30.0
