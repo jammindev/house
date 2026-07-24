@@ -226,6 +226,31 @@ class InteractionSerializer(serializers.ModelSerializer):
         else:
             interaction.budget = None
 
+    def _sync_expense_columns(self, interaction):
+        """Keep the promoted amount/kind/supplier columns in sync with metadata.
+
+        During the "expense columns" transition the frontend still edits expenses
+        through the ``metadata`` JSON field, while the aggregations read the
+        columns. Deriving the columns from ``metadata`` on every write keeps them
+        authoritative without requiring the client to change yet (that flip is a
+        later PR — see docs/fiches/CARTOGRAPHIE_DEPENSES.md). No-op for
+        non-expense interactions.
+        """
+        if interaction.type != 'expense':
+            return
+        meta = interaction.metadata or {}
+        raw = meta.get('amount')
+        if raw in (None, ''):
+            interaction.amount = None
+        else:
+            from decimal import Decimal, InvalidOperation
+            try:
+                interaction.amount = Decimal(str(raw))
+            except (InvalidOperation, ValueError):
+                interaction.amount = None
+        interaction.kind = meta.get('kind') or ''
+        interaction.supplier = meta.get('supplier') or ''
+
     def get_zone_names(self, obj):
         return [zone.name for zone in obj.zones.all()]
 
@@ -351,9 +376,10 @@ class InteractionSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             interaction = Interaction.objects.create(**validated_data)
 
+            self._sync_expense_columns(interaction)
             if budget_id:
                 self._apply_budget(interaction, budget_id)
-                interaction.save(update_fields=['budget'])
+            interaction.save(update_fields=['amount', 'kind', 'supplier', 'budget'])
 
             from zones.models import Zone
             for zone_id in zone_ids:
@@ -389,6 +415,7 @@ class InteractionSerializer(serializers.ModelSerializer):
         # Update interaction fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        self._sync_expense_columns(instance)
         if budget_id is not ...:
             self._apply_budget(instance, budget_id)
         instance.save()

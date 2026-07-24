@@ -62,28 +62,20 @@ def _make_expense(household, user, amount, *, month, budget=None, kind="manual")
 
 
 def _make_recurring_expense(household, user, amount, *, month):
-    """Create an expense tagged metadata.kind='recurring' for the given month."""
+    """Create an expense tagged kind='recurring' for the given month."""
     from datetime import datetime
-
-    from interactions.models import Interaction
 
     tz = ZoneInfo(getattr(household, "timezone", None) or "UTC")
     year, mon = (int(p) for p in month.split("-"))
     occurred_at = datetime(year, mon, 15, 12, 0, 0, tzinfo=tz)
-    # create_manual_expense_interaction always sets kind='manual'; we patch after
-    interaction = create_manual_expense_interaction(
+    return create_manual_expense_interaction(
         household=household,
         user=user,
         subject=f"Recurring {amount}",
         amount=Decimal(str(amount)),
         occurred_at=occurred_at,
+        kind="recurring",
     )
-    # Override kind to 'recurring' to exercise the recurring filter
-    meta = dict(interaction.metadata)
-    meta["kind"] = "recurring"
-    interaction.metadata = meta
-    interaction.save(update_fields=["metadata"])
-    return interaction
 
 
 # ===========================================================================

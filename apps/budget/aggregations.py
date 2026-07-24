@@ -4,8 +4,8 @@ Budget overview aggregation.
 Computes, for the current calendar month (in the household's timezone), how much
 each budget has spent versus its ceiling, plus the "hors budget" total and the
 optional global cap. Spending is read live from the interactions journal
-(``Interaction(type='expense')``, amount in ``metadata.amount``), never
-denormalized — same casting convention as ``interactions.aggregations``.
+(``Interaction(type='expense')``, ``amount`` column), never denormalized —
+via the shared ``interactions.queries`` helpers.
 """
 from __future__ import annotations
 
@@ -15,12 +15,11 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
-from django.db.models import DecimalField, Sum
-from django.db.models.fields.json import KeyTextTransform
-from django.db.models.functions import Cast, Coalesce
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 
-from interactions.models import Interaction
+from interactions.queries import expenses
 
 from .models import Budget, RecurringExpense
 
@@ -61,20 +60,10 @@ def current_month_range(household) -> tuple[datetime, datetime, str]:
 def _spent_by_budget(household_id, start, end) -> dict:
     """SUM of expense amounts for the month, grouped by ``budget_id`` (None = hors budget)."""
     rows = (
-        Interaction.objects.filter(
-            household_id=household_id,
-            type="expense",
-            occurred_at__gte=start,
-            occurred_at__lt=end,
-        )
-        .annotate(
-            amount_decimal=Cast(
-                KeyTextTransform("amount", "metadata"),
-                DecimalField(max_digits=14, decimal_places=2),
-            )
-        )
+        expenses(household_id=household_id)
+        .filter(occurred_at__gte=start, occurred_at__lt=end)
         .values("budget_id")
-        .annotate(total=Coalesce(Sum("amount_decimal"), _zero()))
+        .annotate(total=Coalesce(Sum("amount"), _zero()))
     )
     return {row["budget_id"]: row["total"] or _zero() for row in rows}
 
