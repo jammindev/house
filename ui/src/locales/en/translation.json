@@ -1584,6 +1584,24 @@
             "body": "At the start of each month, a written recap of the previous month is generated: total spent, how each budget did, biggest expenses, recurring bills paid and the trend versus the month before. Find it under “Monthly report” on the budget page — in your language, with the raw figures as a fallback when no AI key is set."
           }
         }
+      },
+      "banking": {
+        "title": "Accounts",
+        "intro": "Declare your accounts once — they're the foundation your bank statements will build on.",
+        "steps": {
+          "accounts": {
+            "title": "Add your accounts",
+            "body": "Tap “New account” and create one per bank. The name is how you'll tell them apart; add the bank and the last 4 characters of the IBAN if you hold two accounts at the same institution. The full IBAN is never stored."
+          },
+          "cash": {
+            "title": "Track cash too",
+            "body": "Create a “Cash” account for the household's physical money. It behaves like a bank account, and will be topped up from your ATM withdrawals once statements are imported."
+          },
+          "openingBalance": {
+            "title": "Set the opening balance",
+            "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. That's the starting point the app computes your balance from. It may be negative if you're overdrawn."
+          }
+        }
       }
     }
   },
@@ -3056,6 +3074,53 @@
     "recurringAccess": {
       "hint": "Subscriptions, insurance, bills & cash-flow forecast.",
       "committed": "{{amount}} committed this month"
+    }
+  },
+  "banking": {
+    "title": "Accounts",
+    "subtitle": "Your bank accounts and cash — the basis for statements.",
+    "created": "Account created",
+    "updated": "Account updated",
+    "archived": "Account archived",
+    "reopened": "Account reopened",
+    "archive": "Archive",
+    "reopen": "Reopen",
+    "noOpeningBalance": "No opening balance",
+    "openingBalanceOn": "Opening balance {{amount}} on {{date}}",
+    "filters": {
+      "active": "Active",
+      "all": "Including archived"
+    },
+    "kinds": {
+      "bank": "Bank account",
+      "cash": "Cash"
+    },
+    "new": {
+      "title": "New account",
+      "action": "New account"
+    },
+    "edit": {
+      "title": "Edit account"
+    },
+    "empty": {
+      "title": "No accounts yet",
+      "description": "Add an account so you can import your statements."
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Joint account",
+      "kind": "Type",
+      "bankLabel": "Bank",
+      "bankLabelPlaceholder": "e.g. Crédit Agricole",
+      "ibanLast4": "Last 4 of the IBAN",
+      "ibanLast4Hint": "To tell two accounts apart. The full IBAN is never stored.",
+      "openingBalance": "Opening balance",
+      "openingBalanceHint": "Starting point of the balance computation. May be negative (overdraft).",
+      "openingBalanceDate": "Opening balance date"
+    },
+    "errors": {
+      "nameRequired": "Please enter a name.",
+      "openingBalanceInvalid": "Enter a valid amount."
     }
   },
   "pwa": {

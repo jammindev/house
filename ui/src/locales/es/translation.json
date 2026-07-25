@@ -1584,6 +1584,24 @@
             "body": "Al inicio de cada mes se genera un resumen escrito del mes anterior: total gastado, cómo fue cada presupuesto, mayores gastos, recurrentes pagados y la tendencia frente al mes previo. Lo encuentras en «Balance mensual» en la página de presupuesto — en tu idioma, con las cifras en bruto como alternativa si no hay clave de IA."
           }
         }
+      },
+      "banking": {
+        "title": "Cuentas",
+        "intro": "Declara tus cuentas una sola vez: son la base sobre la que se apoyarán tus extractos bancarios.",
+        "steps": {
+          "accounts": {
+            "title": "Añadir tus cuentas",
+            "body": "Toca «Nueva cuenta» y crea una por banco. El nombre es lo que te permitirá distinguirlas; añade el banco y los 4 últimos caracteres del IBAN si tienes dos cuentas en la misma entidad. El IBAN completo nunca se guarda."
+          },
+          "cash": {
+            "title": "Controlar también el efectivo",
+            "body": "Crea una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria y se alimentará de tus retiradas una vez importados los extractos."
+          },
+          "openingBalance": {
+            "title": "Indicar el saldo inicial",
+            "body": "Introduce el saldo de la cuenta en una fecha dada, normalmente el del primer extracto que vayas a importar. Es el punto de partida desde el que la app calcula tu saldo. Puede ser negativo si estás en descubierto."
+          }
+        }
       }
     }
   },
@@ -3056,6 +3074,53 @@
     "recurringAccess": {
       "hint": "Suscripciones, seguros, facturas y previsión de tesorería.",
       "committed": "{{amount}} comprometidos este mes"
+    }
+  },
+  "banking": {
+    "title": "Cuentas",
+    "subtitle": "Tus cuentas bancarias y tu efectivo: la base de los extractos.",
+    "created": "Cuenta creada",
+    "updated": "Cuenta actualizada",
+    "archived": "Cuenta archivada",
+    "reopened": "Cuenta reabierta",
+    "archive": "Archivar",
+    "reopen": "Reabrir",
+    "noOpeningBalance": "Sin saldo inicial",
+    "openingBalanceOn": "Saldo inicial {{amount}} el {{date}}",
+    "filters": {
+      "active": "Activas",
+      "all": "Con archivadas"
+    },
+    "kinds": {
+      "bank": "Cuenta bancaria",
+      "cash": "Efectivo"
+    },
+    "new": {
+      "title": "Nueva cuenta",
+      "action": "Nueva cuenta"
+    },
+    "edit": {
+      "title": "Editar la cuenta"
+    },
+    "empty": {
+      "title": "Aún no hay cuentas",
+      "description": "Añade una cuenta para poder importar tus extractos."
+    },
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "p. ej. Cuenta conjunta",
+      "kind": "Tipo",
+      "bankLabel": "Banco",
+      "bankLabelPlaceholder": "p. ej. Crédit Agricole",
+      "ibanLast4": "Últimos 4 del IBAN",
+      "ibanLast4Hint": "Para distinguir dos cuentas. El IBAN completo nunca se guarda.",
+      "openingBalance": "Saldo inicial",
+      "openingBalanceHint": "Punto de partida del cálculo del saldo. Puede ser negativo (descubierto).",
+      "openingBalanceDate": "Fecha del saldo inicial"
+    },
+    "errors": {
+      "nameRequired": "Introduce un nombre.",
+      "openingBalanceInvalid": "Introduce un importe válido."
     }
   },
   "pwa": {
