@@ -343,6 +343,8 @@
       "namePlaceholder": "Main meter",
       "nameRequired": "A name is required.",
       "serialNumber": "Serial number",
+      "exportUrl": "Data download link",
+      "exportUrlHint": "Page of your provider where you download the file to import. A shortcut will appear in the import dialog.",
       "tariffType": "Tariff",
       "tariffHpHc": "Peak / off-peak",
       "zone": "Zone",
@@ -401,6 +403,12 @@
       "title": "Import data",
       "button": "Import",
       "file": "File",
+      "openExportPage": "Download the file from my provider",
+      "linkLabel": "Download link",
+      "linkHint": "Save the address of the page where you download your file (Enedis, supplier…) to reach it in one click at every import.",
+      "linkSave": "Save link",
+      "linkEdit": "Edit link",
+      "linkInvalid": "The link must start with http:// or https://.",
       "fileRequired": "A file is required.",
       "detected": "Detected format:",
       "useGenericInstead": "Use manual column mapping instead",
@@ -1196,7 +1204,7 @@
           },
           "readings": {
             "title": "Enter readings",
-            "body": "Regularly add your meter index, or import a readings file."
+            "body": "Regularly add your meter index, or import a readings file. Save your provider's download link on the meter: the import dialog then opens it in one click."
           },
           "analyze": {
             "title": "Analyse consumption",

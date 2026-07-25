@@ -343,6 +343,8 @@
       "namePlaceholder": "Compteur principal",
       "nameRequired": "Un nom est requis.",
       "serialNumber": "Numéro de série",
+      "exportUrl": "Lien de téléchargement des données",
+      "exportUrlHint": "Page de votre fournisseur où vous téléchargez le fichier à importer. Un raccourci apparaîtra dans la fenêtre d'import.",
       "tariffType": "Tarification",
       "tariffHpHc": "Heures pleines / creuses",
       "zone": "Zone",
@@ -401,6 +403,12 @@
       "title": "Importer des données",
       "button": "Importer",
       "file": "Fichier",
+      "openExportPage": "Télécharger le fichier chez mon fournisseur",
+      "linkLabel": "Lien de téléchargement",
+      "linkHint": "Enregistrez l'adresse de la page où vous téléchargez votre fichier (Enedis, fournisseur…) pour y accéder en un clic à chaque import.",
+      "linkSave": "Enregistrer le lien",
+      "linkEdit": "Modifier le lien",
+      "linkInvalid": "Le lien doit commencer par http:// ou https://.",
       "fileRequired": "Un fichier est requis.",
       "detected": "Format détecté :",
       "useGenericInstead": "Utiliser le mapping manuel des colonnes",
@@ -1196,7 +1204,7 @@
           },
           "readings": {
             "title": "Saisir des relevés",
-            "body": "Ajoutez régulièrement l'index de votre compteur, ou importez un fichier de relevés."
+            "body": "Ajoutez régulièrement l'index de votre compteur, ou importez un fichier de relevés. Enregistrez le lien de téléchargement de votre fournisseur sur le compteur : la fenêtre d'import y accède ensuite en un clic."
           },
           "analyze": {
             "title": "Analyser la consommation",

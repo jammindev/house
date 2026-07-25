@@ -287,6 +287,7 @@ export interface ElectricityMeter {
   zone?: string | null;
   tariff_type: MeterTariffType;
   timezone: string;
+  export_url?: string;
   notes?: string;
   is_active?: boolean;
   created_at: string;
@@ -299,6 +300,7 @@ export interface MeterPayload {
   zone?: string | null;
   tariff_type: MeterTariffType;
   timezone?: string;
+  export_url?: string;
   notes?: string;
   is_active?: boolean;
 }

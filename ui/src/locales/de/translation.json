@@ -343,6 +343,8 @@
       "namePlaceholder": "Hauptzähler",
       "nameRequired": "Ein Name ist erforderlich.",
       "serialNumber": "Seriennummer",
+      "exportUrl": "Link zum Datendownload",
+      "exportUrlHint": "Seite Ihres Anbieters, auf der Sie die zu importierende Datei herunterladen. Im Import-Dialog erscheint eine Verknüpfung.",
       "tariffType": "Tarif",
       "tariffHpHc": "Haupt-/Nebenzeit",
       "zone": "Zone",
@@ -401,6 +403,12 @@
       "title": "Daten importieren",
       "button": "Importieren",
       "file": "Datei",
+      "openExportPage": "Datei beim Anbieter herunterladen",
+      "linkLabel": "Download-Link",
+      "linkHint": "Speichern Sie die Adresse der Seite, auf der Sie Ihre Datei herunterladen (Enedis, Anbieter…), um sie bei jedem Import mit einem Klick zu erreichen.",
+      "linkSave": "Link speichern",
+      "linkEdit": "Link ändern",
+      "linkInvalid": "Der Link muss mit http:// oder https:// beginnen.",
       "fileRequired": "Eine Datei ist erforderlich.",
       "detected": "Erkanntes Format:",
       "useGenericInstead": "Stattdessen manuelle Spaltenzuordnung verwenden",
@@ -1196,7 +1204,7 @@
           },
           "readings": {
             "title": "Zählerstände erfassen",
-            "body": "Tragen Sie regelmäßig Ihren Zählerstand ein oder importieren Sie eine Datei."
+            "body": "Erfassen Sie regelmäßig Ihren Zählerstand oder importieren Sie eine Messdatei. Speichern Sie den Download-Link Ihres Anbieters am Zähler: Der Import-Dialog öffnet ihn dann mit einem Klick."
           },
           "analyze": {
             "title": "Den Verbrauch analysieren",

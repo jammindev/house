@@ -513,6 +513,10 @@ class ElectricityMeter(HouseholdScopedModel):
     # daily proration of manual readings are computed in this timezone, not in
     # the server timezone (the project runs in UTC).
     timezone = models.CharField(max_length=64, default="UTC")
+    # Page of the energy provider (Enedis…) where the consumption export is
+    # downloaded. Stored per meter so the import dialog can offer a one-click
+    # shortcut instead of making the user navigate the portal from scratch.
+    export_url = models.URLField(max_length=500, blank=True, default="")
     notes = models.TextField(blank=True, default="")
     is_active = models.BooleanField(default=True)
 
