@@ -19,6 +19,7 @@ export type Chicken = {
     readonly zone: string | null;
     zone_id?: string | null;
     readonly zone_name: string;
+    readonly tab_counts: string;
     readonly created_at: string;
     readonly updated_at: string;
     readonly created_by: number | null;

@@ -14,6 +14,7 @@ export type PatchedElectricityMeter = {
     zone?: string | null;
     tariff_type?: TariffTypeEnum;
     timezone?: string;
+    export_url?: string;
     notes?: string;
     is_active?: boolean;
     readonly created_at?: string;

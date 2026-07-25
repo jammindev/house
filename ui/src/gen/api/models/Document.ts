@@ -43,5 +43,6 @@ export type Document = {
     readonly linked_interactions: string;
     readonly legacy_interaction: string;
     readonly legacy_interaction_subject: string;
+    readonly phase: string;
 };
 

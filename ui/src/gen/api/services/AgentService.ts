@@ -209,6 +209,56 @@ export class AgentService {
         });
     }
     /**
+     * Pin an extra household entity to this conversation's context.
+     *
+     * Body: ``{entity_type, object_id}``. Idempotent; every subsequent ask
+     * pre-injects the pinned entity's full context. Returns the conversation
+     * with its refreshed ``injected_context``.
+     * @param id
+     * @param requestBody
+     * @returns ConversationDetail
+     * @throws ApiError
+     */
+    public static agentConversationsPinContextCreate(
+        id: string,
+        requestBody?: ConversationDetail,
+    ): CancelablePromise<ConversationDetail> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/agent/conversations/{id}/pin_context/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Remove a pinned entity from this conversation's context.
+     *
+     * Body: ``{entity_type, object_id}``. Tolerant: unpinning something already
+     * gone (or a now-deleted row) still succeeds, so a dangling pin is always
+     * removable. Returns the conversation with its refreshed ``injected_context``.
+     * @param id
+     * @param requestBody
+     * @returns ConversationDetail
+     * @throws ApiError
+     */
+    public static agentConversationsUnpinContextCreate(
+        id: string,
+        requestBody?: ConversationDetail,
+    ): CancelablePromise<ConversationDetail> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/agent/conversations/{id}/unpin_context/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Get-or-create THE conversation anchored to one entity, for this user.
      *
      * Backs the entity-scoped assistant (e.g. a project's "Assistant" tab):
@@ -222,6 +272,32 @@ export class AgentService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/agent/conversations/for_context/',
+        });
+    }
+    /**
+     * Full-text search over the household's entities, for the context picker.
+     *
+     * Query param ``q``. Reuses the exact retrieval the ``search_household`` tool
+     * uses (same ranking, same disabled-module filtering), so the picker surfaces
+     * precisely what the agent could find. Returns a light list of candidates.
+     * @returns ConversationDetail
+     * @throws ApiError
+     */
+    public static agentConversationsSearchContextRetrieve(): CancelablePromise<ConversationDetail> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/agent/conversations/search_context/',
+        });
+    }
+    /**
+     * Today's composed digest for the current user + section metadata.
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static agentDigestRetrieve(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/agent/digest/',
         });
     }
     /**

@@ -21,6 +21,18 @@ export type HouseholdDetail = {
      * IANA timezone (e.g. Europe/Paris). Leave blank for UTC.
      */
     timezone?: string;
+    /**
+     * Latitude for the weather module (decimal degrees).
+     */
+    latitude?: number | null;
+    /**
+     * Longitude for the weather module (decimal degrees).
+     */
+    longitude?: number | null;
+    /**
+     * Human-readable place name shown in the weather module.
+     */
+    location_label?: string;
     context_notes?: string;
     ai_prompt_context?: string;
     readonly inbound_email_alias: string | null;

@@ -17,6 +17,7 @@ export type Project = {
     tags?: Array<string>;
     planned_budget?: string;
     readonly actual_cost_cached: string;
+    readonly tab_counts: string;
     cover_interaction?: string | null;
     project_group?: string | null;
     readonly project_group_name: string;

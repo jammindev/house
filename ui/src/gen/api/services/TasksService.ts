@@ -343,4 +343,70 @@ export class TasksService {
             },
         });
     }
+    /**
+     * Task CRUD with filtering by status, priority, zone, assigned_to, overdue.
+     * completed_by and completed_at are auto-managed on status transitions.
+     * @param id
+     * @param requestBody
+     * @returns Task
+     * @throws ApiError
+     */
+    public static tasksTasksAttachDocumentCreate(
+        id: string,
+        requestBody: Task,
+    ): CancelablePromise<Task> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/tasks/tasks/{id}/attach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Task CRUD with filtering by status, priority, zone, assigned_to, overdue.
+     * completed_by and completed_at are auto-managed on status transitions.
+     * @param id
+     * @param requestBody
+     * @returns Task
+     * @throws ApiError
+     */
+    public static tasksTasksDetachDocumentCreate(
+        id: string,
+        requestBody: Task,
+    ): CancelablePromise<Task> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/tasks/tasks/{id}/detach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Task CRUD with filtering by status, priority, zone, assigned_to, overdue.
+     * completed_by and completed_at are auto-managed on status transitions.
+     * @param id
+     * @param requestBody
+     * @returns Task
+     * @throws ApiError
+     */
+    public static tasksTasksSetDocumentPhaseCreate(
+        id: string,
+        requestBody: Task,
+    ): CancelablePromise<Task> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/tasks/tasks/{id}/set_document_phase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
 }

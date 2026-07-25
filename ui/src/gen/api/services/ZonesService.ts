@@ -131,6 +131,33 @@ export class ZonesService {
         });
     }
     /**
+     * ViewSet for zone CRUD operations.
+     *
+     * List: Returns zones for user's households (flat or tree)
+     * Create: Creates new zone
+     * Retrieve: Gets zone details
+     * Update: Updates zone
+     * Delete: Deletes zone (cascades to children)
+     * @param id A UUID string identifying this zone.
+     * @param requestBody
+     * @returns Zone
+     * @throws ApiError
+     */
+    public static zonesAttachDocumentCreate(
+        id: string,
+        requestBody: Zone,
+    ): CancelablePromise<Zone> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/zones/{id}/attach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Attach a photo document to this zone.
      * @param id A UUID string identifying this zone.
      * @param requestBody
@@ -169,6 +196,33 @@ export class ZonesService {
         });
     }
     /**
+     * ViewSet for zone CRUD operations.
+     *
+     * List: Returns zones for user's households (flat or tree)
+     * Create: Creates new zone
+     * Retrieve: Gets zone details
+     * Update: Updates zone
+     * Delete: Deletes zone (cascades to children)
+     * @param id A UUID string identifying this zone.
+     * @param requestBody
+     * @returns Zone
+     * @throws ApiError
+     */
+    public static zonesDetachDocumentCreate(
+        id: string,
+        requestBody: Zone,
+    ): CancelablePromise<Zone> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/zones/{id}/detach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Get photos linked to this zone.
      * @param id A UUID string identifying this zone.
      * @returns Zone
@@ -183,6 +237,33 @@ export class ZonesService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * ViewSet for zone CRUD operations.
+     *
+     * List: Returns zones for user's households (flat or tree)
+     * Create: Creates new zone
+     * Retrieve: Gets zone details
+     * Update: Updates zone
+     * Delete: Deletes zone (cascades to children)
+     * @param id A UUID string identifying this zone.
+     * @param requestBody
+     * @returns Zone
+     * @throws ApiError
+     */
+    public static zonesSetDocumentPhaseCreate(
+        id: string,
+        requestBody: Zone,
+    ): CancelablePromise<Zone> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/zones/{id}/set_document_phase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**

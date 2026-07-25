@@ -64,9 +64,18 @@ export type User = {
      */
     pinned_modules?: any;
     /**
+     * Tutorial keys the user has completed.
+     */
+    completed_tutorials?: any;
+    /**
+     * Daily-digest section keys the user turned off.
+     */
+    digest_disabled_sections?: any;
+    /**
      * When enabled, the AI agent automatically remembers durable facts about the user from conversations and uses them in its answers. When disabled, memories are neither captured automatically nor injected; explicit 'remember that…' requests still work.
      */
     agent_memory_enabled?: boolean;
+    readonly agent_web_search_available: boolean;
     /**
      * Return display_name if set, otherwise first_name + last_name
      */

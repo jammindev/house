@@ -393,6 +393,26 @@ export class ProjectsService {
      * @returns Project
      * @throws ApiError
      */
+    public static projectsProjectsSetDocumentPhaseCreate(
+        id: string,
+        requestBody: Project,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/projects/projects/{id}/set_document_phase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Project
+     * @throws ApiError
+     */
     public static projectsProjectsUnpinCreate(
         id: string,
         requestBody: Project,
