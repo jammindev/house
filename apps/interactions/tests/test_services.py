@@ -290,3 +290,37 @@ class TestCreateNoteInteraction:
             create_note_interaction(
                 household=household, user=user, subject="x", zone_ids=[foreign_zone.id]
             )
+
+
+@pytest.mark.django_db
+class TestNoteFromAgentInheritsContextZone:
+    """Regression (#380): an agent note anchored on a project must inherit the
+    project's zone(s), not fall back to the root zone."""
+
+    def test_project_anchor_inherits_project_zones(self, user, household, membership, zone):
+        from interactions.apps import _create_note_from_agent
+        from projects.models import Project, ProjectZone
+
+        project = Project.objects.create(
+            household=household, created_by=user, title="Réno cuisine"
+        )
+        ProjectZone.objects.create(project=project, zone=zone, created_by=user)
+
+        note = _create_note_from_agent(
+            household,
+            user,
+            {"subject": "Acheter la peinture", "content": ""},
+            anchor=("project", project.id),
+        )
+
+        # Linked to the project timeline AND attached to its zone (the bug).
+        assert note.source == project
+        assert zone.id in set(note.zones.values_list("id", flat=True))
+
+    def test_zone_anchor_still_attaches_that_zone(self, user, household, membership, zone):
+        from interactions.apps import _create_note_from_agent
+
+        note = _create_note_from_agent(
+            household, user, {"subject": "Note pièce"}, anchor=("zone", zone.id)
+        )
+        assert zone.id in set(note.zones.values_list("id", flat=True))

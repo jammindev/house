@@ -68,6 +68,15 @@ def _create_note_from_agent(household, user, fields, *, anchor=None):
         anchor_type, anchor_id = anchor
         if anchor_type == 'project':
             project = anchor_id
+            # Inherit the project's zone(s): the note lands in the project timeline
+            # *and* in the right room(s), instead of falling back to the root zone.
+            from projects.models import ProjectZone
+
+            zone_ids = list(
+                ProjectZone.objects.filter(project_id=anchor_id).values_list(
+                    'zone_id', flat=True
+                )
+            ) or None
         elif anchor_type == 'zone':
             zone_ids = [anchor_id]
 
