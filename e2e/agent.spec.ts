@@ -361,3 +361,41 @@ test('« nouvelle conversation » vide l\'écran', async ({ page }) => {
   await expect(page.getByTestId('agent-bubble-agent')).toHaveCount(0);
   await expect(page.getByTestId('agent-messages')).toContainText('Pose toutes tes questions');
 });
+
+// ---------------------------------------------------------------------------
+// Lanceur flottant — la navigation depuis le panneau le referme
+// ---------------------------------------------------------------------------
+
+test('cliquer sur une citation dans le lanceur referme le panneau', async ({ page }) => {
+  await setPrivacyAccepted(page, true);
+  await mockAskAgent(page, {
+    answer: 'Regarde la facture <cite id="document:abc-123"/>.',
+    citations: [
+      {
+        entity_type: 'document',
+        id: 'abc-123',
+        label: 'Facture Engie mars 2026',
+        snippet: 'Total à payer 142,67€ TTC',
+        // Une page réelle : ce qui compte est que la navigation ait lieu.
+        url_path: '/app/documents',
+      },
+    ],
+  });
+
+  await page.goto('/app/dashboard');
+  await page.getByTestId('agent-launcher-fab').click();
+
+  const panel = page.getByTestId('agent-launcher-panel');
+  await expect(panel).toBeVisible();
+
+  await panel.getByTestId('agent-input').fill('Où est ma facture Engie ?');
+  await panel.getByTestId('agent-send').click();
+
+  const citation = panel.getByTestId('agent-bubble-agent').getByTestId('agent-citation').first();
+  await expect(citation).toBeVisible();
+  await citation.click();
+
+  // La navigation a lieu ET le panneau se referme (sinon il masque la destination).
+  await expect(page).toHaveURL(/\/app\/documents/);
+  await expect(panel).not.toBeVisible();
+});

@@ -16,7 +16,8 @@ import { resolveEntityContext, type EntityContext } from './entityRoute';
  * "this page" and "the whole household" without leaving where they are.
  *
  * Context is snapshotted at open time — navigating with the panel open does NOT
- * silently re-anchor it (no surprise conversation switch mid-thread).
+ * silently re-anchor it (no surprise conversation switch mid-thread): any
+ * navigation from inside the panel (citation, context chip…) closes it instead.
  */
 export default function AgentLauncher() {
   const { t } = useTranslation();
@@ -32,12 +33,24 @@ export default function AgentLauncher() {
   // The dedicated /app/agent page already IS the household assistant.
   const onAgentPage = location.pathname.startsWith('/app/agent');
 
+  // Navigation key at open time. Any later navigation — a citation chip, a
+  // context chip, a link in the answer — means the user asked to go somewhere:
+  // the panel must step aside instead of covering the destination. Keyed on
+  // `location.key` (not the pathname) so a link to the page we're already on
+  // closes it too.
+  const openedAtKey = React.useRef<string | null>(null);
+
   const handleOpen = React.useCallback(() => {
     const resolved = resolveEntityContext(location.pathname);
     setPageContext(resolved);
     setContext(resolved);
+    openedAtKey.current = location.key;
     setOpen(true);
-  }, [location.pathname]);
+  }, [location.pathname, location.key]);
+
+  React.useEffect(() => {
+    if (open && location.key !== openedAtKey.current) setOpen(false);
+  }, [open, location.key]);
 
   if (onAgentPage) return null;
 
