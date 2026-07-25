@@ -240,6 +240,31 @@ class TestElectricityMeterCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "name" in response.data
 
+    def test_export_url_persisted(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        url = "https://mon-compte-particulier.enedis.fr/donnees/"
+        payload = self._meter_payload(export_url=url)
+        response = _client_for(owner).post(self.LIST_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["export_url"] == url
+        assert ElectricityMeter.objects.get(id=response.data["id"]).export_url == url
+
+    def test_export_url_defaults_to_blank(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        response = _client_for(owner).post(self.LIST_URL(), self._meter_payload(), format="json")
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["export_url"] == ""
+
+    def test_malformed_export_url_returns_400(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        payload = self._meter_payload(export_url="javascript:alert(1)")
+        response = _client_for(owner).post(self.LIST_URL(), payload, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "export_url" in response.data
+
 
 @pytest.mark.django_db
 class TestElectricityMeterDetail:
@@ -275,6 +300,31 @@ class TestElectricityMeterDetail:
         assert response.status_code == status.HTTP_200_OK
         meter.refresh_from_db()
         assert meter.name == "Updated name"
+
+    def test_owner_can_patch_export_url_alone(self):
+        """The import dialog saves the download link with a single-field PATCH."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        meter = self._create_meter(hh)
+        response = _client_for(owner).patch(
+            self.DETAIL_URL(meter.id),
+            {"export_url": "https://mon-compte-particulier.enedis.fr/donnees/"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_200_OK
+        meter.refresh_from_db()
+        assert meter.export_url == "https://mon-compte-particulier.enedis.fr/donnees/"
+
+    def test_export_url_can_be_cleared(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        meter = self._create_meter(hh, export_url="https://example.org/data/")
+        response = _client_for(owner).patch(
+            self.DETAIL_URL(meter.id), {"export_url": ""}, format="json"
+        )
+        assert response.status_code == status.HTTP_200_OK
+        meter.refresh_from_db()
+        assert meter.export_url == ""
 
     def test_member_cannot_patch_meter(self):
         hh = HouseholdFactory()

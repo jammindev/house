@@ -354,6 +354,8 @@
       "namePlaceholder": "Contador principal",
       "nameRequired": "Se requiere un nombre.",
       "serialNumber": "Número de serie",
+      "exportUrl": "Enlace de descarga de datos",
+      "exportUrlHint": "Página de su proveedor donde descarga el archivo a importar. Aparecerá un acceso directo en la ventana de importación.",
       "tariffType": "Tarifa",
       "tariffHpHc": "Punta / valle",
       "zone": "Zona",
@@ -412,6 +414,12 @@
       "title": "Importar datos",
       "button": "Importar",
       "file": "Archivo",
+      "openExportPage": "Descargar el archivo de mi proveedor",
+      "linkLabel": "Enlace de descarga",
+      "linkHint": "Guarde la dirección de la página donde descarga su archivo (Enedis, proveedor…) para acceder con un clic en cada importación.",
+      "linkSave": "Guardar el enlace",
+      "linkEdit": "Modificar el enlace",
+      "linkInvalid": "El enlace debe empezar por http:// o https://.",
       "fileRequired": "Se requiere un archivo.",
       "detected": "Formato detectado:",
       "useGenericInstead": "Usar el mapeo manual de columnas",
@@ -1207,7 +1215,7 @@
           },
           "readings": {
             "title": "Introducir lecturas",
-            "body": "Añade regularmente el índice de tu contador, o importa un archivo de lecturas."
+            "body": "Añada regularmente el índice de su contador o importe un archivo de lecturas. Guarde el enlace de descarga de su proveedor en el contador: la ventana de importación lo abrirá con un clic."
           },
           "analyze": {
             "title": "Analizar el consumo",

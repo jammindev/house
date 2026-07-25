@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { ExternalLink } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
@@ -12,12 +13,104 @@ import type {
   ImportOptions,
   ImportPreview,
 } from '@/lib/api/electricity';
-import { usePreviewConsumptionImport, useUploadConsumptionImport } from './hooks';
+import { usePreviewConsumptionImport, useUpdateMeter, useUploadConsumptionImport } from './hooks';
+import { ENEDIS_EXPORT_URL } from './exportProviders';
 
 interface ImportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meter: ElectricityMeter;
+}
+
+/**
+ * Shortcut to the provider page where the export file is downloaded, so the
+ * user does not have to navigate the portal by hand at every import. The URL is
+ * saved on the meter and can be recorded straight from here.
+ */
+function ExportLinkBlock({ meter, open }: { meter: ElectricityMeter; open: boolean }) {
+  const { t } = useTranslation();
+  const savedUrl = meter.export_url?.trim() ?? '';
+  const [editing, setEditing] = React.useState(!savedUrl);
+  const [draft, setDraft] = React.useState(savedUrl);
+  const [error, setError] = React.useState<string | null>(null);
+  const updateMeter = useUpdateMeter();
+
+  // Reopening the dialog, switching meter or saving resets to the stored state.
+  React.useEffect(() => {
+    setDraft(savedUrl);
+    setEditing(!savedUrl);
+    setError(null);
+  }, [savedUrl, meter.id, open]);
+
+  async function handleSave() {
+    const value = draft.trim();
+    setError(null);
+    if (value && !/^https?:\/\/\S+$/i.test(value)) {
+      setError(t('electricity.import.linkInvalid'));
+      return;
+    }
+    try {
+      await updateMeter.mutateAsync({ id: meter.id, payload: { export_url: value } });
+      setEditing(false);
+    } catch {
+      // the mutation already surfaces a toast — keep the field open for a retry
+    }
+  }
+
+  if (!editing && savedUrl) {
+    return (
+      <div className="rounded-lg border border-border bg-muted/50 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <a
+            href={savedUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+          >
+            <ExternalLink className="h-4 w-4" />
+            {t('electricity.import.openExportPage')}
+          </a>
+          <button type="button" className="text-xs text-muted-foreground underline" onClick={() => setEditing(true)}>
+            {t('electricity.import.linkEdit')}
+          </button>
+        </div>
+        <p className="truncate pt-1 text-xs text-muted-foreground">{savedUrl}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border bg-muted/50 p-3">
+      <FormField label={t('electricity.import.linkLabel')} htmlFor="import-export-url">
+        <Input
+          id="import-export-url"
+          type="url"
+          inputMode="url"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={ENEDIS_EXPORT_URL}
+        />
+        <p className="text-xs text-muted-foreground">{t('electricity.import.linkHint')}</p>
+      </FormField>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      <div className="flex justify-end gap-2">
+        {savedUrl ? (
+          <Button type="button" variant="ghost" size="sm" onClick={() => { setDraft(savedUrl); setEditing(false); setError(null); }}>
+            {t('common.cancel')}
+          </Button>
+        ) : null}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={updateMeter.isPending || !draft.trim()}
+          onClick={() => void handleSave()}
+        >
+          {t('electricity.import.linkSave')}
+        </Button>
+      </div>
+    </div>
+  );
 }
 
 export default function ImportDialog({ open, onOpenChange, meter }: ImportDialogProps) {
@@ -115,6 +208,8 @@ export default function ImportDialog({ open, onOpenChange, meter }: ImportDialog
   return (
     <SheetDialog open={open} onOpenChange={onOpenChange} title={t('electricity.import.title')}>
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+        <ExportLinkBlock meter={meter} open={open} />
+
         <FormField label={t('electricity.import.file')} htmlFor="import-file">
           <Input id="import-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={(e) => void handleFileChange(e)} />
         </FormField>

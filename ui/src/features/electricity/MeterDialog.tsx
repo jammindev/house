@@ -9,6 +9,7 @@ import { FormField } from '@/design-system/form-field';
 import { fetchZones, type Zone } from '@/lib/api/zones';
 import type { ElectricityMeter, MeterTariffType } from '@/lib/api/electricity';
 import { useCreateMeter, useUpdateMeter } from './hooks';
+import { ENEDIS_EXPORT_URL } from './exportProviders';
 
 interface MeterDialogProps {
   open: boolean;
@@ -24,6 +25,7 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
   const [serialNumber, setSerialNumber] = React.useState('');
   const [tariffType, setTariffType] = React.useState<MeterTariffType>('base');
   const [zoneId, setZoneId] = React.useState('');
+  const [exportUrl, setExportUrl] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [zones, setZones] = React.useState<Zone[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -40,12 +42,14 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
       setSerialNumber(existing.serial_number ?? '');
       setTariffType(existing.tariff_type);
       setZoneId(existing.zone ?? '');
+      setExportUrl(existing.export_url ?? '');
       setNotes(existing.notes ?? '');
     } else {
       setName('');
       setSerialNumber('');
       setTariffType('base');
       setZoneId('');
+      setExportUrl('');
       setNotes('');
     }
     setError(null);
@@ -64,6 +68,7 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
       serial_number: serialNumber.trim(),
       tariff_type: tariffType,
       zone: zoneId || null,
+      export_url: exportUrl.trim(),
       notes: notes.trim(),
     };
 
@@ -131,6 +136,17 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
             onChange={(e) => setZoneId(e.target.value)}
             options={zoneOptions}
           />
+        </FormField>
+        <FormField label={t('electricity.meter.exportUrl')} htmlFor="meter-export-url">
+          <Input
+            id="meter-export-url"
+            type="url"
+            inputMode="url"
+            value={exportUrl}
+            onChange={(e) => setExportUrl(e.target.value)}
+            placeholder={ENEDIS_EXPORT_URL}
+          />
+          <p className="text-xs text-muted-foreground">{t('electricity.meter.exportUrlHint')}</p>
         </FormField>
         <FormField label={t('electricity.meter.notes')} htmlFor="meter-notes">
           <Textarea

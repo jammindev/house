@@ -412,6 +412,7 @@ class ElectricityMeterSerializer(HouseholdScopedModelSerializer):
             "zone",
             "tariff_type",
             "timezone",
+            "export_url",
             "notes",
             "is_active",
             "created_at",
