@@ -22,6 +22,8 @@ Chaque fiche suit le même squelette :
 - [RAG.md](RAG.md) — Retrieval-Augmented Generation : comment l'agent conversationnel répond à partir de la mémoire du foyer (parcours 07)
 - [EMBEDDINGS.md](EMBEDDINGS.md) — Embeddings & recherche sémantique hybride : ajouter une jambe vectorielle (pgvector + fusion RRF) au retrieval full-text (parcours 21)
 - [PWA_PUSH.md](PWA_PUSH.md) — PWA & Web Push : app installable + notifications système sans app native (VAPID, service worker, django-vite) (parcours app mobile)
+- [CARTOGRAPHIE_DEPENSES.md](CARTOGRAPHIE_DEPENSES.md) — Cartographie du mécanisme de dépenses : tous les points d'écriture et de lecture, et la dette résorbée (parcours 08 + 21)
+- [IMPORT_ET_RAPPROCHEMENT.md](IMPORT_ET_RAPPROCHEMENT.md) — Import idempotent & rapprochement flou : dédupliquer un relevé bancaire sans identifiant natif, et apparier une ligne à un achat déjà saisi (parcours 25)
 
 ## Quand créer une fiche ?
 

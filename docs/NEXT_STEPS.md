@@ -1,6 +1,21 @@
 # Next steps
 
-État au 2026-05-02. Petite doc pour ne pas perdre le fil après la livraison de la V1 du parcours 07.
+> **Priorité au 2026-07-25 — Parcours 25 : les relevés bancaires comme source de
+> vérité des dépenses.** Chantier cadré ce jour (doc produit, fiche concept,
+> backlog en 9 lots, issues GitHub) ; implémentation à démarrer au lot 1.
+>
+> C'est le chantier qui lève le plafond des parcours 08 et 21 : aujourd'hui une
+> dépense n'existe que si elle a été saisie, donc un budget n'est fiable que si la
+> discipline de saisie l'est. Ordre : lot 1 (comptes) → lot 2 (import CSV/XLSX) →
+> lot 3 (journal) → **lot 4 (soldes, qui valide que l'import est juste)** → lot 5
+> (ventilation) → **lot 6 (rapprochement auto, qui décide de l'adoption)** → 7-8.
+>
+> - Doc produit : [`PARCOURS_25_RELEVES_BANCAIRES.md`](./parcours/PARCOURS_25_RELEVES_BANCAIRES.md)
+> - Backlog : [`PARCOURS_25_BACKLOG_TECHNIQUE.md`](./parcours/PARCOURS_25_BACKLOG_TECHNIQUE.md)
+> - Fiche concept : [`IMPORT_ET_RAPPROCHEMENT.md`](./fiches/IMPORT_ET_RAPPROCHEMENT.md)
+> - Journal : [`2026-07-25_parcours-25_cadrage_initial.md`](./journal/2026-07-25_parcours-25_cadrage_initial.md)
+
+Le reste de cette page date du **2026-05-02** (fil d'après la V1 du parcours 07) et n'a pas été réactualisé.
 
 ## Maintenant — recette manuelle (1-2 semaines)
 

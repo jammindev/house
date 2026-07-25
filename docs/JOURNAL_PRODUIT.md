@@ -35,6 +35,9 @@ Dernière mise à jour : 2026-07-08
 - Parcours 09 — Voir et piloter la maison connectée : **cadré le 2026-07-03 — à démarrer** (issues #183, #185–#188 ; V2 différée #189)
 - Parcours 10 — Analyser la consommation électrique : **V1 livrée le 2026-07-05** (PRs #204–#207 ; recette avec le fichier Enedis réel à faire ; V2 différée #202)
 - Parcours 11 — Tracker des valeurs dans le temps : **V1 livrée le 2026-07-05** (PRs #209, #213, #212 ; recette manuelle du chat agent à faire ; V2 différée #197)
+- Parcours 25 — Les relevés bancaires comme source de vérité des dépenses : **cadré le 2026-07-25 — à démarrer** (9 lots ; doc produit, fiche `IMPORT_ET_RAPPROCHEMENT.md`, backlog ; lot 9 PDF/photo différé)
+
+Le parcours 25 retourne l'hypothèse des parcours 08 et 21 : la dépense cesse d'être une déclaration (« ce que j'ai pensé à saisir ») pour devenir un fait constaté (« ce qui est sorti du compte »). C'est ce qui rend un budget fiable plutôt qu'indicatif. Décision structurante : **il n'y a pas de table `Allocation`** — une `Interaction(type='expense')` *est* une ventilation de ligne bancaire, ce qui laisse `amount` en colonne scalaire et épargne la réécriture des 9 agrégations existantes.
 
 Les parcours 01 à 05 couvrent le flux de vie d'un foyer : capturer, traiter, agir, piloter et naviguer. Le parcours 06 ouvre la couche proactive : le produit signale ce qui mérite l'attention. Le parcours 07 ouvre la couche IA : la mémoire du foyer est désormais interrogeable en langage naturel.
 

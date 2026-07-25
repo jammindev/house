@@ -188,6 +188,35 @@ Voir `docs/fiches/CARTOGRAPHIE_DEPENSES.md`.
   la colonne `kind` est propre aux dépenses ; l'endpoint liste générique filtre
   donc `Q(kind=…) | Q(metadata__kind=…)` pour couvrir les deux.
 
+### Relevés bancaires — une dépense est une ventilation (parcours 25)
+
+Chantier **cadré, pas encore implémenté** :
+`docs/parcours/PARCOURS_25_RELEVES_BANCAIRES.md` +
+`docs/fiches/IMPORT_ET_RAPPROCHEMENT.md`. Les règles ci-dessous s'appliquent dès
+le premier lot livré.
+
+- **Il n'y a pas de table `Allocation`.** Une ligne de relevé (`banking.BankTransaction`)
+  ventilée 80 € / 40 € produit **deux `Interaction(type='expense')`**, chacune avec
+  son `amount` et son `budget`, reliées à la ligne par la FK nullable
+  `Interaction.bank_transaction` (`SET_NULL`). Conséquence à préserver :
+  **`amount` reste une colonne scalaire** — ne jamais le rendre dérivé, sous peine
+  de réécrire les 9 `Sum("amount")` avec un risque de double comptage par JOIN 1-N.
+- **`Interaction.amount` est toujours positif** ; `BankTransaction.amount` est
+  **signé** (négatif = sortie). Un remboursement n'est jamais une interaction
+  négative — ça casserait `top_expenses` et `_spent_by_budget`.
+- **Ne jamais additionner un total « banque » et un total « interactions ».** Les
+  agrégats budget/dépenses lisent les `Interaction` exclusivement ; les totaux
+  bancaires (et les **recettes**, qui n'entrent pas dans le journal) sont une vue à
+  part. Le pont est un **taux de couverture**, pas une somme.
+- **Le solde n'est jamais dénormalisé** (même règle que le « dépensé » du parcours
+  21) : calculé à la lecture, ancré sur `BankTransaction.balance_after`.
+- Une dépense créée depuis une ligne bancaire prend `occurred_at` à **midi dans la
+  tz du foyer** — à minuit, une opération du 1er ou du 31 changerait de mois, donc
+  de budget.
+- Toute écriture de montant sur une interaction rapprochée passe par
+  `banking.validators.assert_allocation_fits` — y compris le PATCH générique de
+  `InteractionSerializer`.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

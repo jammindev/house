@@ -1,5 +1,25 @@
 # Cartographie du mécanisme de dépenses
 
+> **MàJ 2026-07-25 — chantier suivant cadré : [parcours 25](../parcours/PARCOURS_25_RELEVES_BANCAIRES.md).**
+> Les relevés bancaires importés deviennent la source de vérité financière. Deux
+> conséquences pour cette fiche :
+> - **La limite « une dépense = au plus un budget » (dernière section) est levée** :
+>   une ligne bancaire de 120 € se ventile en N `Interaction(type='expense')`,
+>   chacune avec son `amount` et son `budget`, toutes reliées à la même
+>   `BankTransaction` par une FK nullable. **Il n'y a pas de table `Allocation`** —
+>   une dépense *est* une ventilation. Donc `amount` **reste une colonne scalaire**
+>   et les 9 `Sum("amount")` recensés ici ne bougent pas (c'est le critère de succès
+>   du choix d'architecture).
+> - **Nouvelle règle transverse : on n'additionne jamais un total « banque » et un
+>   total « interactions ».** Les agrégations recensées ci-dessous lisent les
+>   `Interaction` exclusivement ; les totaux bancaires (dont les **recettes**, qui
+>   n'existent pas dans le journal) sont une vue à part. Le pont entre les deux est
+>   un **taux de couverture**, pas une somme.
+>
+> Le `kind` `bank` s'ajoutera aux 6 valeurs recensées en dette ⑤ — d'où l'intro­duction
+> prévue d'`apps/interactions/kinds.py`. Détail : [IMPORT_ET_RAPPROCHEMENT.md](./IMPORT_ET_RAPPROCHEMENT.md)
+> et [PARCOURS_25_BACKLOG_TECHNIQUE.md](../parcours/PARCOURS_25_BACKLOG_TECHNIQUE.md).
+>
 > **MàJ 2026-07-24 — dette ① résolue (PR « expense columns »).** `amount`, `kind`
 > et `supplier` sont désormais de **vraies colonnes** sur `Interaction`
 > (nullable, `kind` indexé `idx_int_hh_kind`), backfillées depuis `metadata`
@@ -134,6 +154,6 @@ API renvoie string (précision Decimal), payloads envoient number, state formula
 
 ## Limites structurelles assumées (héritées)
 
-- Montant en JSON string → agrégations obligatoirement via Cast SQL (pas d'index natif sur le montant).
-- Une dépense = au plus un budget (pas de split).
-- Pas de dénormalisation du « dépensé » : tout recalculé à la lecture (choix parcours 21).
+- Montant en JSON string → agrégations obligatoirement via Cast SQL (pas d'index natif sur le montant). *(Levée : dette ① résolue, `amount` est une colonne.)*
+- Une dépense = au plus un budget (pas de split). *(**Levée par le [parcours 25](../parcours/PARCOURS_25_RELEVES_BANCAIRES.md)** : une ligne bancaire porte N dépenses, chacune avec son budget.)*
+- Pas de dénormalisation du « dépensé » : tout recalculé à la lecture (choix parcours 21). *(Maintenu, et étendu au solde bancaire du parcours 25.)*
