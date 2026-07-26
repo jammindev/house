@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { Landmark, Plus } from 'lucide-react';
+import { Landmark, Plus, Receipt } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
-import { Button } from '@/design-system/button';
+import { Button, buttonVariants } from '@/design-system/button';
 import { FilterPill } from '@/design-system/filter-pill';
+import { pushBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
@@ -22,6 +24,7 @@ import StatementImportDialog from './StatementImportDialog';
 
 export default function BankingPage() {
   const { t } = useTranslation();
+  const location = useLocation();
   const [showArchived, setShowArchived] = useSessionState('banking.showArchived', false);
   const accountsQuery = useBankAccounts(showArchived);
   const archiveMutation = useArchiveBankAccount();
@@ -68,6 +71,14 @@ export default function BankingPage() {
   return (
     <>
       <PageHeader title={t('banking.title')} description={t('banking.subtitle')}>
+        <Link
+          to="/app/banking/transactions"
+          state={pushBack(location)}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          <Receipt className="mr-1.5 h-4 w-4" aria-hidden />
+          {t('banking.journal.title')}
+        </Link>
         <Button onClick={openCreate}>
           <Plus className="mr-1.5 h-4 w-4" aria-hidden />
           {t('banking.new.action')}
