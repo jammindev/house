@@ -1603,19 +1603,19 @@
           },
           "cash": {
             "title": "Track cash too",
-            "body": "Create a “Cash” account for the household's physical money. It behaves like a bank account, and will be topped up from your ATM withdrawals once statements are imported."
+            "body": "Create a “Cash” account for the household's physical money. It behaves like a bank account: withdrawals feed it, and a cash spend becomes an operation on it — so an expense the control can account for, like any other."
           },
           "openingBalance": {
-            "title": "Set the opening balance",
-            "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. That's the starting point the app computes your balance from. It may be negative if you're overdrawn."
+            "title": "Set the starting balance",
+            "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. This is **required**: without a starting point the balance shown would be a guess, and no conformity check would cover this account. It can be negative if you are overdrawn."
           },
           "import": {
             "title": "Import your first statement",
             "body": "On the account card, pick “Import a statement” and drop your bank's CSV or Excel export. Set once which column holds the date, the label and the amount — and if your bank also exports the running balance, map it: that's what tells two identical same-day operations apart and reveals a missing statement. The mapping is remembered, so next time you just drop the file. Re-importing the same statement never creates duplicates."
           },
           "journal": {
-            "title": "Browse and qualify your operations",
-            "body": "From the Accounts page, open “Bank journal”: every line is there, filterable by account, period, direction and label (the search ignores case and accents). Two useful gestures per line: flag an internal movement — an ATM withdrawal or a transfer between your two banks is not spending, and must leave the totals or the money gets counted twice — and add a note. The label and the amount cannot be edited: that is what the bank says."
+            "title": "Browse, qualify, classify",
+            "body": "From the Accounts tab, open “Bank journal”: every line, filterable by account, period, direction and label. Three useful gestures: flag an internal movement (a withdrawal is not spending), classify a receipt (wage, refund, internal transfer — the three do not mean the same thing), and annotate a line."
           },
           "balance": {
             "title": "Check your balance",

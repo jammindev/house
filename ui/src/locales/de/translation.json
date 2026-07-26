@@ -1603,19 +1603,19 @@
           },
           "cash": {
             "title": "Auch Bargeld erfassen",
-            "body": "Lege ein Konto vom Typ „Bargeld“ für das Bargeld des Haushalts an. Es verhält sich wie ein Bankkonto und wird nach dem Import der Auszüge aus deinen Abhebungen gespeist."
+            "body": "Legen Sie ein Konto vom Typ „Bargeld“ an. Es verhält sich wie ein Bankkonto: Abhebungen füllen es, und eine Barausgabe wird eine Buchung darauf — also eine Ausgabe, die die Kontrolle zuordnen kann, wie jede andere."
           },
           "openingBalance": {
             "title": "Anfangssaldo eintragen",
-            "body": "Gib den Kontostand zu einem bestimmten Datum an — typischerweise den des ersten Auszugs, den du importieren willst. Davon ausgehend berechnet die App deinen Saldo. Er darf negativ sein, wenn dein Konto überzogen ist."
+            "body": "Geben Sie den Kontostand zu einem Datum ein — typischerweise der des ersten Auszugs, den Sie importieren wollen. Das ist **erforderlich**: ohne Startpunkt wäre der angezeigte Saldo eine Annahme, und keine Prüfung würde dieses Konto abdecken. Er darf negativ sein."
           },
           "import": {
             "title": "Ersten Kontoauszug importieren",
             "body": "Wähle auf der Kontokarte „Kontoauszug importieren“ und lade den CSV- oder Excel-Export deiner Bank hoch. Gib einmal an, welche Spalte Datum, Verwendungszweck und Betrag enthält — exportiert deine Bank auch den Saldo, ordne ihn zu: Er unterscheidet zwei identische Buchungen am selben Tag und zeigt einen fehlenden Auszug. Die Zuordnung wird gespeichert, beim nächsten Mal lädst du nur noch die Datei hoch. Ein erneuter Import desselben Auszugs erzeugt nie Dubletten."
           },
           "journal": {
-            "title": "Buchungen durchsehen und einordnen",
-            "body": "Öffne auf der Konten-Seite das „Kontojournal“: Dort findest du alle Buchungen, filterbar nach Konto, Zeitraum, Richtung und Verwendungszweck (die Suche ignoriert Groß-/Kleinschreibung und Akzente). Zwei nützliche Aktionen pro Zeile: eine interne Umbuchung markieren — eine Abhebung am Automaten oder eine Überweisung zwischen deinen beiden Banken ist keine Ausgabe und muss aus den Summen heraus, sonst wird das Geld doppelt gezählt — und eine Notiz hinzufügen. Verwendungszweck und Betrag lassen sich nicht ändern: Das sagt die Bank."
+            "title": "Durchsehen, markieren, einordnen",
+            "body": "Öffnen Sie im Reiter Konten das „Bankjournal“: alle Zeilen, filterbar nach Konto, Zeitraum, Richtung und Bezeichnung. Drei nützliche Handgriffe: eine interne Bewegung markieren (eine Abhebung ist keine Ausgabe), eine Einnahme einordnen (Lohn, Rückerstattung, interner Übertrag — die drei bedeuten nicht dasselbe) und eine Zeile kommentieren."
           },
           "balance": {
             "title": "Saldo prüfen",

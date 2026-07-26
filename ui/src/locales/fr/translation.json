@@ -1603,19 +1603,19 @@
           },
           "cash": {
             "title": "Suivre aussi les espèces",
-            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire, et sera alimenté par tes retraits une fois les relevés importés."
+            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire : tes retraits l'alimentent, et une dépense en liquide devient une opération de ce compte — donc une dépense que le contrôle sait rattacher, comme les autres."
           },
           "openingBalance": {
             "title": "Renseigner le solde de départ",
-            "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est le point de départ à partir duquel l'app calculera ton solde. Il peut être négatif si tu es à découvert."
+            "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est **obligatoire** : sans point de départ, le solde affiché serait une supposition, et aucun contrôle de conformité ne porterait sur ce compte. Il peut être négatif si tu es à découvert."
           },
           "import": {
             "title": "Importer ton premier relevé",
             "body": "Sur la carte du compte, choisis « Importer un relevé » et dépose l'export CSV ou Excel de ta banque. Indique une fois quelle colonne porte la date, le libellé et le montant — si ta banque exporte aussi le solde, mappe-le : c'est ce qui permet de distinguer deux opérations identiques le même jour et de repérer un relevé manquant. Le mapping est mémorisé : les fois suivantes, tu déposes le fichier et c'est tout. Réimporter le même relevé ne crée jamais de doublon."
           },
           "journal": {
-            "title": "Parcourir et qualifier tes opérations",
-            "body": "Depuis la page Comptes, ouvre « Journal bancaire » : tu y retrouves toutes tes lignes, filtrables par compte, période, sens et libellé (la recherche ignore accents et majuscules). Deux gestes utiles sur chaque ligne : marquer un mouvement interne — un retrait au distributeur ou un virement entre tes deux banques n'est pas une dépense, et doit sortir des totaux sous peine de compter l'argent deux fois — et ajouter une note. Le libellé et le montant, eux, ne se modifient pas : c'est ce que dit la banque."
+            "title": "Parcourir, qualifier, classer",
+            "body": "Depuis l'onglet Comptes, ouvre « Journal bancaire » : toutes tes lignes, filtrables par compte, période, sens et libellé. Trois gestes utiles : marquer un mouvement interne (un retrait n'est pas une dépense), classer une recette (salaire, remboursement, virement interne — les trois ne disent pas la même chose), et annoter une ligne."
           },
           "balance": {
             "title": "Vérifier ton solde",
