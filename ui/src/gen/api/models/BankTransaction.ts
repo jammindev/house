@@ -2,7 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { BlankEnum } from './BlankEnum';
 import type { DirectionEnum } from './DirectionEnum';
+import type { InflowNatureEnum } from './InflowNatureEnum';
 /**
  * Read serializer for a statement line.
  *
@@ -38,6 +40,15 @@ export type BankTransaction = {
      * Internal movement (ATM withdrawal, transfer between the household's own accounts). Excluded from spending aggregates — counting it would double the money.
      */
     is_internal?: boolean;
+    /**
+     * What this receipt is (parcours 26, lot 5). Empty on an outflow, and empty on an unclassified receipt — which is an écart the conformity control reports.
+     *
+     * * `salary` - Income
+     * * `refund` - Refund
+     * * `transfer` - Transfer between own accounts
+     * * `other` - Other
+     */
+    inflow_nature?: (InflowNatureEnum | BlankEnum);
     /**
      * Running balance after this operation, when the bank exports it. Anchors the lot 4 balance and its chain check.
      */

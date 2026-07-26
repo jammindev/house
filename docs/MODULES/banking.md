@@ -36,7 +36,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | 2 | Module « Argent » à onglets + file de rangement | ✅ **Livré** — voir [money.md](./money.md) |
 | 3 | Une ventilation porte projet, zone et budget | ✅ **Livré** |
 | 4 | Tout est une ligne de compte (espèces) | ✅ **Livré** |
-| 5 | Recettes et mouvements internes | ⬜ |
+| 5 | Recettes et mouvements internes | ✅ **Livré** |
 | 6 | Le relevé confirme les récurrences | ⬜ |
 | 7 | Continuité des relevés et provenance | ⬜ |
 
@@ -498,6 +498,8 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 | `account_chain_broken` | `error` | ✅ | 1 |
 | `expense_without_budget` | `warning` | ✅ | 3 |
 | `account_cash_negative` | `error` | ❌ incohérence | 4 |
+| `inflow_unclassified` | `warning` | ✅ | 5 |
+| `internal_without_counterpart` | `error` | ✅ | 5 |
 
 Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
 les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
@@ -644,6 +646,74 @@ reste pour compatibilité API.
 
 `POST /api/banking/transactions/cash-expense/` → `{transaction, allocations}`.
 Un montant non numérique est un **400**, pas un 500.
+
+## Recettes et mouvements internes (parcours 26, lot 5)
+
+Les deux familles d'orphelins les plus **silencieuses**, laissées ouvertes par le
+parcours 25.
+
+### `inflow_nature` — dire ce qu'est une recette
+
+Un crédit de 2 100 € peut être un salaire, le remboursement de quelque chose déjà
+compté comme dépense, ou le retour du propre virement du foyer. Les trois disent des
+choses **complètement différentes** sur l'argent réellement disponible. Laisser le
+champ vide n'est donc pas un détail cosmétique.
+
+Les recettes n'entrent pas dans le journal des dépenses (un salaire n'est pas une
+`Interaction`), mais `refund` est le cas intéressant : c'est la seule recette qui
+*compense* une dépense — et c'est pourquoi `Interaction.amount` ne devient jamais
+négatif. Un remboursement est une **ligne bancaire qui a une nature**, pas une
+dépense négative (qui casserait `top_expenses` et tous les `Sum("amount")`).
+
+**`""` ≠ `other`.** `other` est un **choix** de l'utilisateur (« cette recette n'a
+pas de catégorie qui compte ») ; vide veut dire « personne n'a regardé ». Confondre
+les deux rendrait le détecteur aveugle.
+
+### `rules.py` — des valeurs de départ, jamais des vérités
+
+`is_internal` décide si l'argent compte comme dépense. Une devinette appliquée comme
+vérité fait donc **disparaître une vraie dépense des totaux, en silence**. D'où trois
+garde-fous :
+
+- la devinette est écrite à l'import comme **valeur initiale** ;
+- l'utilisateur la corrige depuis le journal, et l'idempotence de l'import protège
+  son choix — la ligne existe déjà, donc un ré-import ne re-devine rien ;
+- un mouvement interne sans contrepartie est un **écart signalé**, donc une mauvaise
+  devinette remonte au lieu de se cacher.
+
+`guess_internal` renvoie `False` sur tout ce qu'il ne reconnaît pas : c'est le défaut
+sûr. Un mouvement interne non flaggé apparaît comme sortie non affectée — donc
+l'utilisateur en est informé ; une vraie dépense flaggée à tort disparaîtrait sans un
+mot. La liste de motifs est volontairement **petite** : une liste qui essaie d'être
+maligne finit par mal étiqueter la seule ligne de l'année qui compte.
+
+### `internal_without_counterpart` — la promesse rompue
+
+Un mouvement interne est exclu des dépenses **sur la promesse** que l'argent
+réapparaît ailleurs (en liquide dans une poche, ou en crédit sur un autre compte).
+Contrepartie manquante = promesse rompue : l'argent a quitté le monde suivi et rien
+ne l'explique. C'est la façon la plus discrète de perdre quelques centaines d'euros,
+d'où un détecteur plutôt qu'une note.
+
+### Le taux de couverture — un ratio, jamais une somme
+
+`compute_account_flow` expose `unallocated_outflow` et `coverage_ratio`. Le ratio
+répond à « quelle part de ce qui est sorti est expliquée » — exactement la question
+à laquelle le contrôle répond ligne par ligne.
+
+**Rien sorti ⇒ ratio 1.0.** Rien à expliquer n'est pas un reproche ; renvoyer 0
+dirait « personne n'a rien rangé ».
+
+`unallocated_outflow` est calculé **par différence sur la même requête** que les
+totaux, pas par une somme de dépenses : mélanger les deux sources est précisément ce
+que la règle transverse interdit.
+
+### Le bloc `bank` du bilan mensuel
+
+`budget/report/stats.py` gagne une clé `bank` **additionnelle** — aucune clé
+existante ne change (le rendu du bilan et le digest les lisent). Sa borne haute est
+la **veille** de la borne exclusive des interactions : les lignes bancaires sont
+datées au jour, et se tromper d'un jour ferait disparaître les opérations du 31.
 
 ## Ce que les lots suivants ajouteront *(à venir)*
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total

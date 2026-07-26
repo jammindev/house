@@ -127,6 +127,7 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "currency",
             "direction",
             "is_internal",
+            "inflow_nature",
             "balance_after",
             "external_id",
             "notes",

@@ -180,6 +180,28 @@ class TransactionDirection(models.TextChoices):
     IN = "in", _("Money in")
 
 
+class InflowNature(models.TextChoices):
+    """What a receipt actually is. Empty = not classified yet (parcours 26, lot 5).
+
+    Receipts do not enter the expense journal — a salary is not an ``Interaction``.
+    But leaving them entirely unqualified makes the bank view unreadable: a 2 100 €
+    credit could be a wage, a refund of something already recorded as spending, or
+    the other leg of a transfer between the household's own accounts, and those
+    three mean completely different things about how much money the household
+    actually has.
+
+    ``refund`` is the interesting one: it is the only receipt that *offsets* an
+    expense, which is why ``Interaction.amount`` never goes negative — a refund is
+    a bank line with a nature, not a negative expense (that would break
+    ``top_expenses`` and every ``Sum("amount")``).
+    """
+
+    SALARY = "salary", _("Income")
+    REFUND = "refund", _("Refund")
+    TRANSFER = "transfer", _("Transfer between own accounts")
+    OTHER = "other", _("Other")
+
+
 class BankTransaction(HouseholdScopedModel):
     """One line of a bank statement — immutable in substance.
 
@@ -230,6 +252,17 @@ class BankTransaction(HouseholdScopedModel):
             "Internal movement (ATM withdrawal, transfer between the household's "
             "own accounts). Excluded from spending aggregates — counting it would "
             "double the money."
+        ),
+    )
+    inflow_nature = models.CharField(
+        max_length=10,
+        choices=InflowNature.choices,
+        blank=True,
+        default="",
+        help_text=_(
+            "What this receipt is (parcours 26, lot 5). Empty on an outflow, and "
+            "empty on an unclassified receipt — which is an écart the conformity "
+            "control reports."
         ),
     )
     balance_after = models.DecimalField(

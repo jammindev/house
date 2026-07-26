@@ -79,13 +79,13 @@ incohérence à corriger.
 |---|---|---|---|---|
 | **Non ventilée** | 0 allocation | ventiler | « ne concerne pas le foyer » | 1 ✅ |
 | **Partiellement ventilée** | `Σ allocations < outflow` | compléter | « le reste ne m'intéresse pas » | 1 ✅ |
-| **Interne sans contrepartie** | `is_internal` et `transfer_counterpart IS NULL` | créer la contrepartie | « transfert vers un compte non suivi » | 5 |
+| **Interne sans contrepartie** | `is_internal` et `transfer_counterpart IS NULL` | créer la contrepartie | « transfert vers un compte non suivi » | 5 ✅ |
 
 ### Sur une recette
 
 | Écart | Détection | Résolution | Flag légitime | Lot |
 |---|---|---|---|---|
-| **Non classée** | `inflow_nature` vide | classer (revenu / remboursement / interne) | « sans objet » | 5 |
+| **Non classée** | `inflow_nature` vide | classer (revenu / remboursement / interne) | « sans objet » | 5 ✅ |
 
 ### Sur une dépense (`Interaction type='expense'`)
 
@@ -144,7 +144,7 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | 2 | **Module « Argent »** — coque à onglets, panneau Contrôle, file de rangement, actions groupées | ✅ Livré |
 | 3 | **Une ventilation porte projet, zone et budget** — les deux axes sont indépendants | ✅ Livré |
 | 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ✅ Livré |
-| 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ⬜ |
+| 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ✅ Livré |
 | 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ⬜ |
 | 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ⬜ |
 

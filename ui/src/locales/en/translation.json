@@ -3286,6 +3286,19 @@
       "pickExistingHint": "Expenses the bank never confirmed, that fit in the {{amount}} still free.",
       "noUnreconciled": "No unreconciled expense fits in what is left.",
       "attach": "Attach"
+    },
+    "inflow": {
+      "title": "Classify this receipt",
+      "action": "Classify receipt",
+      "nature": "Nature",
+      "unclassified": "Unclassified",
+      "hint": "“Other” is a choice; leaving it blank means “not looked at yet”, which the control reports.",
+      "natures": {
+        "salary": "Income",
+        "refund": "Refund",
+        "transfer": "Transfer between my accounts",
+        "other": "Other"
+      }
     }
   },
   "pwa": {
@@ -3444,6 +3457,16 @@
           "title": "Expenses outside any budget",
           "hint": "They count against no envelope.",
           "resolution": "Assign a budget, or arbitrate if it is deliberate."
+        },
+        "inflow_unclassified": {
+          "title": "Unclassified receipts",
+          "hint": "Wage, refund or internal transfer? The three do not mean the same thing.",
+          "resolution": "Classify the receipt from the bank journal, or arbitrate if it has no bearing."
+        },
+        "internal_without_counterpart": {
+          "title": "Internal movements with no counterpart",
+          "hint": "The money left the tracked world and nothing accounts for it.",
+          "resolution": "Create the counterpart (“Feed cash”), or clear the “internal” flag if it was not one."
         }
       }
     },

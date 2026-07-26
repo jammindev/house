@@ -619,19 +619,51 @@ class TestSummaryTotals:
         assert group(household, TRANSACTION_UNALLOCATED).detected == 0
         assert group(other, TRANSACTION_UNALLOCATED).detected == 1
 
-    def test_summary_stays_within_a_bounded_query_budget(
-        self, ctx, django_assert_max_num_queries
+    def test_summary_cost_does_not_grow_with_data_volume(
+        self, ctx, django_assert_num_queries, django_assert_max_num_queries
     ):
-        """The badge is read on every navigation. It must cost a handful of indexed
-        counts, not a scan per écart — hence ``count`` being separate from
-        ``findings``. Volume must not move this number."""
+        """The badge is read on every navigation, so its cost must depend on the
+        number of **detectors**, never on the number of écarts.
+
+        Asserting an absolute ceiling would be the wrong test: it grows with every
+        lot and says nothing about the property that matters. What matters is that
+        multiplying the data by six changes **nothing** — which is exactly what
+        ``count`` being a ``COUNT(*)`` rather than a materialised scan buys us.
+        """
         household, user, account, budget = ctx
-        for index in range(60):
-            make_txn(account, label=f"CB ACHAT {index}")
-        for index in range(20):
+        for index in range(10):
+            make_txn(account, label=f"CB PETIT {index}")
+        for index in range(5):
             make_expense(household, user, amount="12.00")
 
-        with django_assert_max_num_queries(30):
+        # Une borne large sert seulement à capturer le compte de référence ; c'est
+        # l'égalité d'après qui porte la garantie.
+        with django_assert_max_num_queries(500) as captured:
+            summary(household)
+        small = len(captured.captured_queries)
+
+        for index in range(60):
+            make_txn(account, label=f"CB GROS {index}")
+        for index in range(30):
+            make_expense(household, user, amount="9.00")
+
+        with django_assert_num_queries(small):
+            summary(household)
+
+    def test_summary_cost_stays_linear_in_the_number_of_detectors(
+        self, ctx, django_assert_max_num_queries
+    ):
+        """A handful of queries per detector, not a handful per écart.
+
+        Expressed against ``REGISTRY`` so adding a detector never means editing a
+        magic number — while a detector that suddenly costs ten queries still trips
+        the guard.
+        """
+        household, user, account, budget = ctx
+        for index in range(20):
+            make_txn(account, label=f"CB ACHAT {index}")
+
+        with django_assert_max_num_queries(6 * len(compliance.REGISTRY) + 5):
             summary(household)
 
 

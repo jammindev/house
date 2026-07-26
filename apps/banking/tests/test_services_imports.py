@@ -228,3 +228,64 @@ class TestFailuresWriteNothing:
         )
         assert imported.status == ImportStatus.FAILED
         assert "not recognized" in imported.error
+
+# --- Heuristiques appliquées à l'import (parcours 26, lot 5) -------------------
+
+
+@pytest.mark.django_db
+class TestImportAppliesHeuristics:
+    """Les devinettes de ``rules.py`` sont écrites comme **valeurs de départ**.
+
+    C'est la nuance qui compte : ``is_internal`` décide si l'argent compte comme
+    dépense, donc une devinette appliquée comme vérité fait disparaître une vraie
+    dépense des totaux, en silence. Ici elle est modifiable, et une erreur remonte
+    par le détecteur « mouvement interne sans contrepartie ».
+    """
+
+    def test_an_atm_withdrawal_arrives_flagged_internal(self, context):
+        run_import(
+            context,
+            "Date;Libelle;Montant\n"
+            "10/03/2026;RETRAIT DAB RUE DES LILAS;-60,00\n"
+            "11/03/2026;CB LECLERC;-42,00\n",
+        )
+
+        withdrawal = BankTransaction.objects.get(label_raw__startswith="RETRAIT DAB")
+        purchase = BankTransaction.objects.get(label_raw="CB LECLERC")
+        assert withdrawal.is_internal is True
+        # Le défaut sûr sur tout ce qui n'est pas reconnu.
+        assert purchase.is_internal is False
+
+    def test_a_salary_arrives_classified(self, context):
+        run_import(
+            context,
+            "Date;Libelle;Montant\n"
+            "01/03/2026;VIREMENT SALAIRE MARS;2100,00\n"
+            "02/03/2026;VIR M DUPONT;30,00\n",
+        )
+
+        salary = BankTransaction.objects.get(label_raw="VIREMENT SALAIRE MARS")
+        unknown = BankTransaction.objects.get(label_raw="VIR M DUPONT")
+        assert salary.inflow_nature == "salary"
+        # Vide, pas ``other`` : personne n'a encore regardé — c'est l'écart que le
+        # contrôle signale.
+        assert unknown.inflow_nature == ""
+
+    def test_an_outflow_never_gets_a_nature(self, context):
+        run_import(context, "Date;Libelle;Montant\n11/03/2026;REMBOURSEMENT PRET;-350,00\n")
+        assert BankTransaction.objects.get(label_raw="REMBOURSEMENT PRET").inflow_nature == ""
+
+    def test_a_user_correction_survives_a_re_import(self, context):
+        """L'idempotence protège le choix de l'utilisateur : la ligne existe déjà,
+        donc le ré-import n'écrit rien et ne re-devine rien."""
+        body = "Date;Libelle;Montant\n10/03/2026;RETRAIT DAB;-60,00\n"
+        run_import(context, body)
+
+        line = BankTransaction.objects.get(label_raw="RETRAIT DAB")
+        line.is_internal = False
+        line.save(update_fields=["is_internal"])
+
+        again = run_import(context, body)
+        assert again.created_count == 0
+        line.refresh_from_db()
+        assert line.is_internal is False

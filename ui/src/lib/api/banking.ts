@@ -152,6 +152,12 @@ export async function importStatementFile(params: {
 
 export type TransactionDirection = 'out' | 'in';
 
+/**
+ * Ce qu'est une recette (parcours 26, lot 5). `''` = non classée, ce qui est un
+ * écart — distinct de `'other'`, qui est un choix de l'utilisateur.
+ */
+export type InflowNature = 'salary' | 'refund' | 'transfer' | 'other' | '';
+
 /** Une ligne de relevé. Immuable sur le fond : seuls `is_internal` et `notes` s'écrivent. */
 export interface BankTransaction {
   id: string;
@@ -164,6 +170,7 @@ export interface BankTransaction {
   currency: string;
   direction: TransactionDirection;
   is_internal: boolean;
+  inflow_nature: InflowNature;
   balance_after: string | null;
   external_id: string;
   notes: string;
@@ -226,7 +233,7 @@ export async function fetchAccountFlow(filters: TransactionFilters = {}): Promis
 /** La seule écriture admise sur une ligne de relevé. */
 export async function qualifyTransaction(
   id: string,
-  payload: { is_internal?: boolean; notes?: string },
+  payload: { is_internal?: boolean; notes?: string; inflow_nature?: InflowNature },
 ): Promise<BankTransaction> {
   const { data } = await api.patch<BankTransaction>(
     `/banking/transactions/${id}/qualify/`,
