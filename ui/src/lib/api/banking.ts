@@ -1,4 +1,4 @@
-import { api } from '@/lib/axios';
+import { api, postMultipart } from '@/lib/axios';
 
 /** Un compte du foyer — compte bancaire ou espèces (parcours 25, lot 1). */
 export interface BankAccount {
@@ -125,7 +125,7 @@ export async function fetchStatementImports(accountId?: string): Promise<Stateme
 export async function previewStatementFile(file: File): Promise<StatementPreview> {
   const form = new FormData();
   form.append('file', file);
-  const { data } = await api.post<StatementPreview>('/banking/imports/preview/', form);
+  const { data } = await postMultipart<StatementPreview>('/banking/imports/preview/', form);
   return data;
 }
 
@@ -144,7 +144,7 @@ export async function importStatementFile(params: {
   form.append('provider', params.provider);
   form.append('file', params.file);
   form.append('options', JSON.stringify(params.options));
-  const { data } = await api.post<StatementImport>('/banking/imports/', form);
+  const { data } = await postMultipart<StatementImport>('/banking/imports/', form);
   return data;
 }
 

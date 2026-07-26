@@ -48,3 +48,16 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * POST d'un `FormData`.
+ *
+ * L'instance `api` impose `Content-Type: application/json` par défaut, et axios
+ * ne l'écrase pas tout seul quand le corps est un FormData : le serveur reçoit
+ * alors du JSON annoncé pour un corps multipart et répond **415**. Chaque upload
+ * doit donc poser l'en-tête — passer par ce helper évite de l'oublier, ce qui
+ * est arrivé sur l'import de relevés bancaires.
+ */
+export function postMultipart<T>(url: string, form: FormData) {
+  return api.post<T>(url, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+}
