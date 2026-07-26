@@ -49,10 +49,12 @@ export default function StatementImportDialog({
     setResult(null);
     setError(null);
     // Le mapping mémorisé du compte est ce qui rend le 2ᵉ import instantané.
-    const remembered = account.import_options as StatementMapping | undefined;
-    const hasRemembered = remembered && remembered.date_column;
-    setMapping(hasRemembered ? remembered : EMPTY_MAPPING);
-    setUseDebitCredit(Boolean(hasRemembered && remembered.debit_column));
+    // `import_options` est un blob JSON côté API : le double cast est assumé, et
+    // la présence de `date_column` sert de contrôle de forme minimal.
+    const remembered = account.import_options as unknown as Partial<StatementMapping>;
+    const hasRemembered = Boolean(remembered?.date_column);
+    setMapping(hasRemembered ? { ...EMPTY_MAPPING, ...remembered } : EMPTY_MAPPING);
+    setUseDebitCredit(Boolean(remembered?.debit_column));
     setProvider(account.default_provider || 'generic_csv');
   }, [open, account]);
 
