@@ -25,6 +25,7 @@ OPTIONAL_MODULES = frozenset({
     'trackers',
     'photos',
     'directory',
+    'banking',
 })
 
 PINNABLE_MODULES = frozenset({
@@ -45,6 +46,7 @@ PINNABLE_MODULES = frozenset({
     'trackers',
     'expenses',
     'budget',
+    'banking',
     # groupe Ressources
     'documents',
     'photos',

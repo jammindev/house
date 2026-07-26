@@ -23,13 +23,25 @@ export type PatchedInteraction = {
     readonly tags?: string;
     tags_input?: Array<string>;
     /**
-     * Expense amounts, vendor info, etc.
+     * Feature-specific extras (delta, unit, brand, recurring_id…). Structured money fields are now real columns (amount/kind/supplier).
      */
     metadata?: any;
     /**
      * Full-text searchable content with OCR from documents
      */
     enriched_text?: string;
+    /**
+     * Expense amount. Only for type='expense'; null otherwise.
+     */
+    amount?: string | null;
+    /**
+     * Expense discriminator (stock_purchase, equipment_purchase, project_purchase, chickens_purchase, manual, recurring). Empty for non-expense interactions.
+     */
+    kind?: string;
+    /**
+     * Expense vendor/supplier. Empty when not applicable.
+     */
+    supplier?: string;
     source_type?: string | null;
     source_id?: string | null;
     readonly source_label?: string;
@@ -45,6 +57,8 @@ export type PatchedInteraction = {
     structure_ids?: Array<string>;
     readonly equipments?: string;
     equipment_ids?: Array<string>;
+    readonly budget?: string;
+    budget_id?: string | null;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

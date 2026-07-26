@@ -118,6 +118,26 @@ export class EquipmentService {
     }
     /**
      * @param id
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentAttachDocumentCreate(
+        id: string,
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/{id}/attach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
      * @returns Equipment
      * @throws ApiError
      */
@@ -130,6 +150,26 @@ export class EquipmentService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentDetachDocumentCreate(
+        id: string,
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/{id}/detach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**
@@ -149,6 +189,26 @@ export class EquipmentService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/equipment/{id}/register-purchase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns Equipment
+     * @throws ApiError
+     */
+    public static equipmentSetDocumentPhaseCreate(
+        id: string,
+        requestBody: Equipment,
+    ): CancelablePromise<Equipment> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/equipment/{id}/set_document_phase/',
             path: {
                 'id': id,
             },

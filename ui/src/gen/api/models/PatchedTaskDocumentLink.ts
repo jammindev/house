@@ -3,7 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Read/write serializer for TaskDocument links.
+ * Read/write serializer for Task↔Document links (backed by DocumentLink).
+ *
+ * Preserves the former TaskDocument link shape: ``id`` is the DocumentLink pk
+ * (used by the frontend to detach), ``task`` the task UUID, ``document`` its int pk.
  */
 export type PatchedTaskDocumentLink = {
     readonly id?: number;
@@ -11,6 +14,6 @@ export type PatchedTaskDocumentLink = {
     document?: number;
     note?: string;
     readonly created_at?: string;
-    readonly created_by?: number | null;
+    readonly created_by?: string;
 };
 

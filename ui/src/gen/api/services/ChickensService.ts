@@ -13,7 +13,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ChickensService {
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @returns Chicken
      * @throws ApiError
      */
@@ -24,7 +24,7 @@ export class ChickensService {
         });
     }
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @param requestBody
      * @returns Chicken
      * @throws ApiError
@@ -40,7 +40,7 @@ export class ChickensService {
         });
     }
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @param id
      * @returns Chicken
      * @throws ApiError
@@ -57,7 +57,7 @@ export class ChickensService {
         });
     }
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @param id
      * @param requestBody
      * @returns Chicken
@@ -78,7 +78,7 @@ export class ChickensService {
         });
     }
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @param id
      * @param requestBody
      * @returns Chicken
@@ -99,7 +99,7 @@ export class ChickensService {
         });
     }
     /**
-     * Flock register CRUD + per-hen purchase declaration.
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
      * @param id
      * @returns void
      * @throws ApiError
@@ -113,6 +113,48 @@ export class ChickensService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
+     * @param id
+     * @param requestBody
+     * @returns Chicken
+     * @throws ApiError
+     */
+    public static chickensAttachDocumentCreate(
+        id: string,
+        requestBody: Chicken,
+    ): CancelablePromise<Chicken> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/chickens/{id}/attach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
+     * @param id
+     * @param requestBody
+     * @returns Chicken
+     * @throws ApiError
+     */
+    public static chickensDetachDocumentCreate(
+        id: string,
+        requestBody: Chicken,
+    ): CancelablePromise<Chicken> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/chickens/{id}/detach_document/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
     /**
@@ -132,6 +174,27 @@ export class ChickensService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/chickens/{id}/purchase/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Flock register CRUD + per-hen purchase declaration + document/photo links.
+     * @param id
+     * @param requestBody
+     * @returns Chicken
+     * @throws ApiError
+     */
+    public static chickensSetDocumentPhaseCreate(
+        id: string,
+        requestBody: Chicken,
+    ): CancelablePromise<Chicken> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/chickens/{id}/set_document_phase/',
             path: {
                 'id': id,
             },
@@ -243,7 +306,7 @@ export class ChickensService {
         });
     }
     /**
-     * Egg-laying stats: today, 7/30-day averages, month total, 30-day series.
+     * Laying stats + curve. ``?period=`` (7/30/90/365) drives the series.
      * @returns EggLog
      * @throws ApiError
      */

@@ -17,6 +17,7 @@ export type PatchedTask = {
     priority?: (PriorityEnum | NullEnum) | null;
     due_date?: string | null;
     is_private?: boolean;
+    needs_dry_weather?: boolean;
     readonly assigned_to?: number | null;
     assigned_to_id?: number | null;
     readonly assigned_to_name?: string;

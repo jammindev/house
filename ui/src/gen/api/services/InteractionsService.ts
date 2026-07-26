@@ -114,6 +114,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @returns InteractionDocument
      * @throws ApiError
      */
@@ -124,6 +125,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @param requestBody
      * @returns InteractionDocument
      * @throws ApiError
@@ -139,6 +141,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @param id
      * @returns InteractionDocument
      * @throws ApiError
@@ -155,6 +158,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @param id
      * @param requestBody
      * @returns InteractionDocument
@@ -175,6 +179,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @param id
      * @param requestBody
      * @returns InteractionDocument
@@ -195,6 +200,7 @@ export class InteractionsService {
         });
     }
     /**
+     * Interaction↔Document links, backed by the polymorphic DocumentLink.
      * @param id
      * @returns void
      * @throws ApiError

@@ -1584,6 +1584,24 @@
             "body": "En début de mois, un récap écrit du mois précédent est généré : total dépensé, tenue de chaque budget, plus grosses dépenses, récurrences payées et tendance vs le mois d’avant. Retrouve-le via « Bilan mensuel » sur la page budget — dans ta langue, avec les chiffres bruts en secours si aucune clé IA n’est configurée."
           }
         }
+      },
+      "banking": {
+        "title": "Comptes",
+        "intro": "Déclare tes comptes une bonne fois : c'est la base sur laquelle viendront s'appuyer tes relevés bancaires.",
+        "steps": {
+          "accounts": {
+            "title": "Ajouter tes comptes",
+            "body": "Touche « Nouveau compte » et crée un compte par banque. Le nom est ce qui te permettra de t'y retrouver ; ajoute la banque et les 4 derniers caractères de l'IBAN si tu as deux comptes chez le même établissement. L'IBAN complet n'est jamais enregistré."
+          },
+          "cash": {
+            "title": "Suivre aussi les espèces",
+            "body": "Crée un compte de type « Espèces » pour l'argent liquide du foyer. Il fonctionne comme un compte bancaire, et sera alimenté par tes retraits une fois les relevés importés."
+          },
+          "openingBalance": {
+            "title": "Renseigner le solde de départ",
+            "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est le point de départ à partir duquel l'app calculera ton solde. Il peut être négatif si tu es à découvert."
+          }
+        }
       }
     }
   },
@@ -3056,6 +3074,53 @@
     "recurringAccess": {
       "hint": "Abonnements, assurances, factures & prévision de trésorerie.",
       "committed": "{{amount}} engagés ce mois"
+    }
+  },
+  "banking": {
+    "title": "Comptes",
+    "subtitle": "Tes comptes bancaires et tes espèces — la base des relevés.",
+    "created": "Compte créé",
+    "updated": "Compte mis à jour",
+    "archived": "Compte archivé",
+    "reopened": "Compte rouvert",
+    "archive": "Archiver",
+    "reopen": "Rouvrir",
+    "noOpeningBalance": "Aucun solde de départ",
+    "openingBalanceOn": "Solde de départ {{amount}} au {{date}}",
+    "filters": {
+      "active": "Actifs",
+      "all": "Avec les archivés"
+    },
+    "kinds": {
+      "bank": "Compte bancaire",
+      "cash": "Espèces"
+    },
+    "new": {
+      "title": "Nouveau compte",
+      "action": "Nouveau compte"
+    },
+    "edit": {
+      "title": "Modifier le compte"
+    },
+    "empty": {
+      "title": "Aucun compte",
+      "description": "Ajoute un compte pour pouvoir importer tes relevés."
+    },
+    "fields": {
+      "name": "Nom",
+      "namePlaceholder": "ex. Compte joint",
+      "kind": "Type",
+      "bankLabel": "Banque",
+      "bankLabelPlaceholder": "ex. Crédit Agricole",
+      "ibanLast4": "4 derniers de l'IBAN",
+      "ibanLast4Hint": "Pour distinguer deux comptes. L'IBAN complet n'est jamais enregistré.",
+      "openingBalance": "Solde de départ",
+      "openingBalanceHint": "Point de départ du calcul du solde. Peut être négatif (découvert).",
+      "openingBalanceDate": "Date du solde de départ"
+    },
+    "errors": {
+      "nameRequired": "Merci d'indiquer un nom.",
+      "openingBalanceInvalid": "Saisis un montant valide."
     }
   },
   "pwa": {

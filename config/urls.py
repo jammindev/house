@@ -42,6 +42,7 @@ urlpatterns = [
     path("api/chickens/", include("chickens.urls")),
     path("api/pings/", include("pings.urls")),
     path("api/budget/", include("budget.urls")),
+    path("api/banking/", include("banking.urls")),
     path("api/shopping/", include("shopping.urls")),
     path("api/briefings/", include("briefings.urls")),
     path("api/webpush/", include("webpush.urls")),

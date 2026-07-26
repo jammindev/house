@@ -43,9 +43,11 @@ export type DocumentDetail = {
     readonly linked_interactions: string;
     readonly legacy_interaction: string;
     readonly legacy_interaction_subject: string;
+    readonly phase: string;
     readonly interaction_subject: string;
     readonly zone_links: string;
     readonly project_links: string;
+    readonly entity_links: string;
     readonly recent_interaction_candidates: string;
 };
 

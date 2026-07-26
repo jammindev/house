@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * * `socket` - Socket
- * * `light` - Light
+ * * `bank` - Bank account
+ * * `cash` - Cash
  */
-export type KindEnum = 'socket' | 'light';
+export type BankAccountKindEnum = 'bank' | 'cash';

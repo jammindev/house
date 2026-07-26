@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "chickens",
     "pings",
     "budget",
+    "banking",
     "shopping",
     "briefings",
     "webpush",
