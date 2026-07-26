@@ -1604,6 +1604,10 @@
           "import": {
             "title": "Importar tu primer extracto",
             "body": "En la tarjeta de la cuenta, elige «Importar un extracto» y sube el archivo CSV o Excel de tu banco. Indica una vez qué columna contiene la fecha, el concepto y el importe; si tu banco exporta también el saldo, asígnalo: es lo que distingue dos operaciones idénticas del mismo día y revela si falta un extracto. La asignación se guarda, así que la próxima vez solo tendrás que subir el archivo. Reimportar el mismo extracto nunca crea duplicados."
+          },
+          "journal": {
+            "title": "Revisar y clasificar tus operaciones",
+            "body": "Desde la página Cuentas, abre «Diario bancario»: ahí están todas tus líneas, filtrables por cuenta, periodo, sentido y concepto (la búsqueda ignora mayúsculas y acentos). Dos gestos útiles en cada línea: marcar un movimiento interno —una retirada en el cajero o una transferencia entre tus dos bancos no es un gasto, y debe salir de los totales o el dinero se contaría dos veces— y añadir una nota. El concepto y el importe no se modifican: es lo que dice el banco."
           }
         }
       }
@@ -3162,6 +3166,34 @@
       "errors": {
         "previewFailed": "No se ha podido leer este archivo. Comprueba que sea un CSV o un Excel.",
         "mappingIncomplete": "Indica al menos la fecha, el concepto y el importe."
+      }
+    },
+    "journal": {
+      "title": "Diario bancario",
+      "subtitle": "Todas tus operaciones, tal como las registró el banco.",
+      "qualified": "Operación actualizada",
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar un concepto…",
+      "filterAccount": "Cuenta",
+      "allAccounts": "Todas las cuentas",
+      "dateFrom": "Desde",
+      "dateTo": "Hasta",
+      "all": "Todo",
+      "outflow": "Salidas",
+      "inflow": "Entradas",
+      "net": "Saldo del periodo",
+      "internal": "Movimiento interno",
+      "internalExcluded_one": "{{count}} movimiento interno excluido",
+      "internalExcluded_other": "{{count}} movimientos internos excluidos",
+      "markInternal": "Marcar como movimiento interno",
+      "unmarkInternal": "No es un movimiento interno",
+      "editNote": "Añadir una nota",
+      "note": "Nota",
+      "balanceAfter": "saldo {{amount}}",
+      "showing": "Mostrando {{shown}} de {{total}} operaciones",
+      "empty": {
+        "title": "Ninguna operación",
+        "description": "Importa un extracto desde la página Cuentas, o amplía los filtros."
       }
     }
   },

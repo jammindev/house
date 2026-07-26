@@ -1,17 +1,25 @@
 """Banking REST API views."""
 import json
+from datetime import date
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
 
 from . import importers
-from .models import BankAccount, StatementImport
-from .serializers import BankAccountSerializer, StatementImportSerializer
+from .aggregations import EMPTY_FLOW, compute_account_flow
+from .models import BankAccount, BankTransaction, StatementImport, TransactionDirection
+from .queries import search
+from .serializers import (
+    BankAccountSerializer,
+    BankTransactionSerializer,
+    StatementImportSerializer,
+)
 from .services import (
     archive_account,
     create_account,
@@ -23,6 +31,20 @@ from .services import (
 #: A household statement is a few hundred lines; anything past this is not a
 #: statement, and we refuse it before reading it into memory.
 STATEMENT_MAX_SIZE = 10 * 1024 * 1024  # 10 MB
+
+
+def _parse_date_param(value: str | None, field: str) -> date | None:
+    """Parse a ``YYYY-MM-DD`` query param, rejecting anything else.
+
+    A malformed filter must be a 400, never a silently ignored parameter that
+    makes the user believe they are looking at a filtered list.
+    """
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        raise ValidationError({field: "Expected a date in YYYY-MM-DD format."})
 
 
 class BankAccountViewSet(viewsets.ModelViewSet):
@@ -177,3 +199,112 @@ class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):
         self._require_household()
         uploaded = self._uploaded_file()
         return Response(preview_statement_file(uploaded.read(), options=self._options()))
+
+
+class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
+    """The bank journal: read and qualify statement lines.
+
+    A transaction is **immutable in substance** — ``label_raw``, ``amount``,
+    ``booked_on`` and ``direction`` are what the bank says, and the serializer
+    marks them read-only. What a user may do is *qualify* the line: flag it as an
+    internal movement, or attach a note. Hence a narrow ``qualify`` action rather
+    than a generic PATCH: the set of writable fields is a decision, not an
+    oversight.
+    """
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = BankTransactionSerializer
+    http_method_names = ["get", "post", "patch", "head", "options"]
+
+    class Pagination(LimitOffsetPagination):
+        default_limit = 50
+        max_limit = 200
+
+    pagination_class = Pagination
+
+    def get_queryset(self):
+        qs = BankTransaction.objects.for_user_households(self.request.user).select_related(
+            "account"
+        )
+        if self.request.household:
+            qs = qs.filter(household=self.request.household)
+
+        params = self.request.query_params
+
+        account_id = params.get("account")
+        if account_id:
+            qs = qs.filter(account_id=account_id)
+
+        date_from = _parse_date_param(params.get("date_from"), "date_from")
+        if date_from:
+            qs = qs.filter(booked_on__gte=date_from)
+        date_to = _parse_date_param(params.get("date_to"), "date_to")
+        if date_to:
+            qs = qs.filter(booked_on__lte=date_to)
+
+        direction = params.get("direction")
+        if direction:
+            if direction not in TransactionDirection.values:
+                raise ValidationError({"direction": "Expected 'out' or 'in'."})
+            qs = qs.filter(direction=direction)
+
+        internal = params.get("is_internal")
+        if internal is not None and internal != "":
+            qs = qs.filter(is_internal=internal.lower() in ("1", "true", "yes"))
+
+        term = params.get("q")
+        if term:
+            qs = search(qs, term)
+
+        return qs
+
+    @action(detail=True, methods=["patch"], url_path="qualify")
+    def qualify(self, request, pk=None):
+        """Flag a line as internal, or annotate it.
+
+        The only mutation a statement line accepts. Everything else about it
+        belongs to the bank.
+        """
+        instance = self.get_object()
+        updated_fields = []
+
+        if "is_internal" in request.data:
+            instance.is_internal = bool(request.data.get("is_internal"))
+            updated_fields.append("is_internal")
+        if "notes" in request.data:
+            instance.notes = str(request.data.get("notes") or "")
+            updated_fields.append("notes")
+
+        if not updated_fields:
+            raise ValidationError({"detail": "Provide 'is_internal' and/or 'notes'."})
+
+        instance.updated_by = request.user
+        instance.save(update_fields=[*updated_fields, "updated_by", "updated_at"])
+        return Response(self.get_serializer(instance).data)
+
+    @action(detail=False, methods=["get"], url_path="flow")
+    def flow(self, request):
+        """Money in / out over a period, internal movements excluded.
+
+        Never add this to a budget or expense total — see the module docstring of
+        ``banking.aggregations``.
+        """
+        household = request.household
+        if household is None:
+            return Response(EMPTY_FLOW)
+
+        account = None
+        account_id = request.query_params.get("account")
+        if account_id:
+            account = BankAccount.objects.filter(household=household, pk=account_id).first()
+            if account is None:
+                raise ValidationError({"account": "Unknown account for this household."})
+
+        return Response(
+            compute_account_flow(
+                household=household,
+                account=account,
+                date_from=_parse_date_param(request.query_params.get("date_from"), "date_from"),
+                date_to=_parse_date_param(request.query_params.get("date_to"), "date_to"),
+            )
+        )

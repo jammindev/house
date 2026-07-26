@@ -1604,6 +1604,10 @@
           "import": {
             "title": "Importer ton premier relevé",
             "body": "Sur la carte du compte, choisis « Importer un relevé » et dépose l'export CSV ou Excel de ta banque. Indique une fois quelle colonne porte la date, le libellé et le montant — si ta banque exporte aussi le solde, mappe-le : c'est ce qui permet de distinguer deux opérations identiques le même jour et de repérer un relevé manquant. Le mapping est mémorisé : les fois suivantes, tu déposes le fichier et c'est tout. Réimporter le même relevé ne crée jamais de doublon."
+          },
+          "journal": {
+            "title": "Parcourir et qualifier tes opérations",
+            "body": "Depuis la page Comptes, ouvre « Journal bancaire » : tu y retrouves toutes tes lignes, filtrables par compte, période, sens et libellé (la recherche ignore accents et majuscules). Deux gestes utiles sur chaque ligne : marquer un mouvement interne — un retrait au distributeur ou un virement entre tes deux banques n'est pas une dépense, et doit sortir des totaux sous peine de compter l'argent deux fois — et ajouter une note. Le libellé et le montant, eux, ne se modifient pas : c'est ce que dit la banque."
           }
         }
       }
@@ -3162,6 +3166,34 @@
       "errors": {
         "previewFailed": "Impossible de lire ce fichier. Vérifie qu'il s'agit bien d'un CSV ou d'un Excel.",
         "mappingIncomplete": "Indique au moins la date, le libellé et le montant."
+      }
+    },
+    "journal": {
+      "title": "Journal bancaire",
+      "subtitle": "Toutes tes opérations, telles que la banque les a enregistrées.",
+      "qualified": "Opération mise à jour",
+      "search": "Rechercher",
+      "searchPlaceholder": "Rechercher un libellé…",
+      "filterAccount": "Compte",
+      "allAccounts": "Tous les comptes",
+      "dateFrom": "Depuis le",
+      "dateTo": "Jusqu'au",
+      "all": "Tout",
+      "outflow": "Sorties",
+      "inflow": "Entrées",
+      "net": "Solde de la période",
+      "internal": "Mouvement interne",
+      "internalExcluded_one": "{{count}} mouvement interne exclu",
+      "internalExcluded_other": "{{count}} mouvements internes exclus",
+      "markInternal": "Marquer comme mouvement interne",
+      "unmarkInternal": "Ce n'est pas un mouvement interne",
+      "editNote": "Ajouter une note",
+      "note": "Note",
+      "balanceAfter": "solde {{amount}}",
+      "showing": "{{shown}} opérations affichées sur {{total}}",
+      "empty": {
+        "title": "Aucune opération",
+        "description": "Importe un relevé depuis la page Comptes, ou élargis tes filtres."
       }
     }
   },

@@ -1604,6 +1604,10 @@
           "import": {
             "title": "Ersten Kontoauszug importieren",
             "body": "Wähle auf der Kontokarte „Kontoauszug importieren“ und lade den CSV- oder Excel-Export deiner Bank hoch. Gib einmal an, welche Spalte Datum, Verwendungszweck und Betrag enthält — exportiert deine Bank auch den Saldo, ordne ihn zu: Er unterscheidet zwei identische Buchungen am selben Tag und zeigt einen fehlenden Auszug. Die Zuordnung wird gespeichert, beim nächsten Mal lädst du nur noch die Datei hoch. Ein erneuter Import desselben Auszugs erzeugt nie Dubletten."
+          },
+          "journal": {
+            "title": "Buchungen durchsehen und einordnen",
+            "body": "Öffne auf der Konten-Seite das „Kontojournal“: Dort findest du alle Buchungen, filterbar nach Konto, Zeitraum, Richtung und Verwendungszweck (die Suche ignoriert Groß-/Kleinschreibung und Akzente). Zwei nützliche Aktionen pro Zeile: eine interne Umbuchung markieren — eine Abhebung am Automaten oder eine Überweisung zwischen deinen beiden Banken ist keine Ausgabe und muss aus den Summen heraus, sonst wird das Geld doppelt gezählt — und eine Notiz hinzufügen. Verwendungszweck und Betrag lassen sich nicht ändern: Das sagt die Bank."
           }
         }
       }
@@ -3162,6 +3166,34 @@
       "errors": {
         "previewFailed": "Diese Datei konnte nicht gelesen werden. Prüfe, ob es eine CSV- oder Excel-Datei ist.",
         "mappingIncomplete": "Bitte gib mindestens Datum, Verwendungszweck und Betrag an."
+      }
+    },
+    "journal": {
+      "title": "Kontojournal",
+      "subtitle": "Alle Buchungen, genau so, wie deine Bank sie erfasst hat.",
+      "qualified": "Buchung aktualisiert",
+      "search": "Suchen",
+      "searchPlaceholder": "Verwendungszweck suchen…",
+      "filterAccount": "Konto",
+      "allAccounts": "Alle Konten",
+      "dateFrom": "Von",
+      "dateTo": "Bis",
+      "all": "Alle",
+      "outflow": "Abgänge",
+      "inflow": "Eingänge",
+      "net": "Saldo des Zeitraums",
+      "internal": "Interne Umbuchung",
+      "internalExcluded_one": "{{count}} interne Umbuchung ausgeschlossen",
+      "internalExcluded_other": "{{count}} interne Umbuchungen ausgeschlossen",
+      "markInternal": "Als interne Umbuchung markieren",
+      "unmarkInternal": "Keine interne Umbuchung",
+      "editNote": "Notiz hinzufügen",
+      "note": "Notiz",
+      "balanceAfter": "Saldo {{amount}}",
+      "showing": "{{shown}} von {{total}} Buchungen angezeigt",
+      "empty": {
+        "title": "Keine Buchungen",
+        "description": "Importiere einen Kontoauszug auf der Konten-Seite oder erweitere deine Filter."
       }
     }
   },

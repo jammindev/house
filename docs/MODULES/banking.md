@@ -18,7 +18,7 @@
 |---|---|---|
 | 1 | `BankAccount` + CRUD + module UI | ✅ **Livré** (#384) |
 | 2 | Import CSV/XLSX (`StatementImport`, `BankTransaction`, dédup) | ✅ **Livré** (#385) |
-| 3 | Journal bancaire (liste, filtres, qualification, flux) | ⬜ #386 |
+| 3 | Journal bancaire (liste, filtres, qualification, flux) | ✅ **Livré** (#386) |
 | 4 | Soldes, continuité & espèces | ⬜ #387 |
 | 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ⬜ #388 |
 | 6 | Rapprochement automatique | ⬜ #389 |
@@ -26,7 +26,7 @@
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lots 1-2).** Les sections marquées *(à venir)*
+**Cette fiche décrit l'état livré (lots 1-3).** Les sections marquées *(à venir)*
 annoncent le contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)
@@ -199,10 +199,62 @@ réimport, qui est un succès), et fichier illisible. `ImportHistoryCard` affich
 l'historique, échecs compris — c'est la seule trace qui explique pourquoi un
 relevé n'est pas dans les comptes.
 
+## Journal bancaire (lot 3)
+
+### `queries.py` — le point de lecture unique
+
+Miroir de `interactions/queries.py`, et pour la même raison : dès que deux modules
+écrivent leur propre filtre, ils divergent. Tout ce qui lit des transactions (le
+journal, les flux, les soldes du lot 4, le matcher du lot 6) passe par là.
+
+**La convention de signe y vit, et nulle part ailleurs.** `BankTransaction.amount`
+est signé alors que `Interaction.amount` est toujours positif : `outflow_expr()` /
+`inflow_expr()` expriment le pont en SQL. Un `Sum("amount")` naïf sur un queryset
+mixte compenserait les entrées avec les sorties et sous-estimerait les deux.
+
+- `transactions(*, household_id, base)` — queryset de base scopé foyer
+- `spendable(qs)` — retire les mouvements internes
+- `sum_outflow(qs)` / `sum_inflow(qs)` — totaux positifs
+- `search(qs, term)` — recherche sur `label_norm`, insensible à la casse **et aux
+  accents** sans appel à `unaccent` : le libellé est déjà normalisé à l'import,
+  c'est précisément la raison d'être de la colonne.
+
+### `aggregations.py` — la vue « banque »
+
+`compute_account_flow(*, household, account, date_from, date_to)` →
+`{outflow, inflow, net, transaction_count, internal_count}`.
+
+Les mouvements internes sont comptés à part et exclus des deux totaux : un retrait
+DAB n'est pas une dépense, c'est du liquide qui change de poche — et il serait
+compté une seconde fois quand ce liquide est dépensé.
+
+### API
+
+| Méthode | URL | Action |
+|---|---|---|
+| GET | `/api/banking/transactions/` | Liste paginée (`LimitOffset`, 50/200), filtres `account`, `date_from`, `date_to`, `direction`, `is_internal`, `q` |
+| GET | `/api/banking/transactions/{id}/` | Détail |
+| PATCH | `/api/banking/transactions/{id}/qualify/` | **Seule écriture admise** : `is_internal` et/ou `notes` |
+| GET | `/api/banking/transactions/flow/` | Flux de la période |
+
+Une ligne de relevé est **immuable sur le fond** : `label_raw`, `amount`,
+`booked_on` et `direction` sont ce que dit la banque, et le serializer les marque
+en lecture seule. D'où une action `qualify` étroite plutôt qu'un PATCH générique —
+l'ensemble des champs écrivables est une décision, pas un oubli. `DELETE` n'existe
+pas.
+
+Un filtre de date malformé est un **400**, jamais un paramètre silencieusement
+ignoré : une liste filtrée à tort est pire qu'une erreur.
+
+### Frontend
+
+Sous-page `/app/banking/transactions` (`TransactionsPage`) : `FlowSummaryCards` en
+tête, `TransactionFilters` (recherche, compte, période, pills direction/interne),
+`TransactionList` + `TransactionRow` avec les deux actions de qualification. Les
+filtres sont persistés en session.
+
 ## Ce que les lots suivants ajouteront *(à venir)*
 
-- **Lot 3** — journal bancaire : liste, filtres, qualification (`is_internal`),
-  flux. Critère : **aucune modification des 9 `Sum("amount")`** du projet.
 - **Lot 4** — soldes ancrés sur `balance_after`, contrôle de chaîne, contrepartie
   espèces des retraits.
 - **Lot 5** — FK `Interaction.bank_transaction` (`SET_NULL`). **Il n'y a pas de

@@ -1604,6 +1604,10 @@
           "import": {
             "title": "Import your first statement",
             "body": "On the account card, pick “Import a statement” and drop your bank's CSV or Excel export. Set once which column holds the date, the label and the amount — and if your bank also exports the running balance, map it: that's what tells two identical same-day operations apart and reveals a missing statement. The mapping is remembered, so next time you just drop the file. Re-importing the same statement never creates duplicates."
+          },
+          "journal": {
+            "title": "Browse and qualify your operations",
+            "body": "From the Accounts page, open “Bank journal”: every line is there, filterable by account, period, direction and label (the search ignores case and accents). Two useful gestures per line: flag an internal movement — an ATM withdrawal or a transfer between your two banks is not spending, and must leave the totals or the money gets counted twice — and add a note. The label and the amount cannot be edited: that is what the bank says."
           }
         }
       }
@@ -3162,6 +3166,34 @@
       "errors": {
         "previewFailed": "Could not read this file. Check that it is a CSV or an Excel file.",
         "mappingIncomplete": "Please set at least the date, the label and the amount."
+      }
+    },
+    "journal": {
+      "title": "Bank journal",
+      "subtitle": "Every operation, exactly as your bank recorded it.",
+      "qualified": "Operation updated",
+      "search": "Search",
+      "searchPlaceholder": "Search a label…",
+      "filterAccount": "Account",
+      "allAccounts": "All accounts",
+      "dateFrom": "From",
+      "dateTo": "To",
+      "all": "All",
+      "outflow": "Money out",
+      "inflow": "Money in",
+      "net": "Period net",
+      "internal": "Internal movement",
+      "internalExcluded_one": "{{count}} internal movement excluded",
+      "internalExcluded_other": "{{count}} internal movements excluded",
+      "markInternal": "Mark as internal movement",
+      "unmarkInternal": "Not an internal movement",
+      "editNote": "Add a note",
+      "note": "Note",
+      "balanceAfter": "balance {{amount}}",
+      "showing": "Showing {{shown}} of {{total}} operations",
+      "empty": {
+        "title": "No operations",
+        "description": "Import a statement from the Accounts page, or widen your filters."
       }
     }
   },

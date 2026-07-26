@@ -3,14 +3,18 @@ import { useTranslation } from 'react-i18next';
 import {
   archiveBankAccount,
   createBankAccount,
+  fetchAccountFlow,
   fetchBankAccounts,
   fetchStatementImports,
+  fetchTransactions,
   importStatementFile,
   previewStatementFile,
+  qualifyTransaction,
   restoreBankAccount,
   updateBankAccount,
   type BankAccountPayload,
   type StatementMapping,
+  type TransactionFilters,
 } from '@/lib/api/banking';
 import { toast } from '@/lib/toast';
 
@@ -19,6 +23,9 @@ export const bankingKeys = {
   accounts: (includeArchived: boolean) =>
     [...bankingKeys.all, 'accounts', includeArchived] as const,
   imports: (accountId?: string) => [...bankingKeys.all, 'imports', accountId ?? 'all'] as const,
+  transactions: (filters: TransactionFilters, limit: number) =>
+    [...bankingKeys.all, 'transactions', filters, limit] as const,
+  flow: (filters: TransactionFilters) => [...bankingKeys.all, 'flow', filters] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -114,5 +121,35 @@ export function useImportStatementFile() {
       options: StatementMapping;
     }) => importStatementFile(params),
     onSuccess: invalidate,
+  });
+}
+
+// --- Journal bancaire (lot 3) -----------------------------------------------
+
+export function useTransactions(filters: TransactionFilters, limit = 50) {
+  return useQuery({
+    queryKey: bankingKeys.transactions(filters, limit),
+    queryFn: () => fetchTransactions(filters, limit),
+  });
+}
+
+export function useAccountFlow(filters: TransactionFilters) {
+  return useQuery({
+    queryKey: bankingKeys.flow(filters),
+    queryFn: () => fetchAccountFlow(filters),
+  });
+}
+
+export function useQualifyTransaction() {
+  const invalidate = useInvalidateBanking();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: { is_internal?: boolean; notes?: string } }) =>
+      qualifyTransaction(id, payload),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.journal.qualified'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }

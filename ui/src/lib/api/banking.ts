@@ -147,3 +147,88 @@ export async function importStatementFile(params: {
   const { data } = await api.post<StatementImport>('/banking/imports/', form);
   return data;
 }
+
+// --- Journal bancaire (parcours 25, lot 3) ----------------------------------
+
+export type TransactionDirection = 'out' | 'in';
+
+/** Une ligne de relevé. Immuable sur le fond : seuls `is_internal` et `notes` s'écrivent. */
+export interface BankTransaction {
+  id: string;
+  account: string;
+  booked_on: string;
+  value_on: string | null;
+  label_raw: string;
+  /** Signé : négatif = sortie. Jamais additionné aux montants d'Interaction. */
+  amount: string;
+  currency: string;
+  direction: TransactionDirection;
+  is_internal: boolean;
+  balance_after: string | null;
+  external_id: string;
+  notes: string;
+  source_import: string | null;
+  created_at: string;
+}
+
+export interface TransactionFilters {
+  account?: string;
+  date_from?: string;
+  date_to?: string;
+  direction?: TransactionDirection | '';
+  is_internal?: 'true' | 'false' | '';
+  q?: string;
+}
+
+export interface TransactionPage {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: BankTransaction[];
+}
+
+/** Vue « banque » : ce qui est sorti du compte. À ne jamais additionner aux dépenses. */
+export interface AccountFlow {
+  date_from: string | null;
+  date_to: string | null;
+  outflow: string;
+  inflow: string;
+  net: string;
+  transaction_count: number;
+  internal_count: number;
+}
+
+function cleanParams(filters: TransactionFilters): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''),
+  ) as Record<string, string>;
+}
+
+export async function fetchTransactions(
+  filters: TransactionFilters = {},
+  limit = 50,
+): Promise<TransactionPage> {
+  const { data } = await api.get<TransactionPage>('/banking/transactions/', {
+    params: { ...cleanParams(filters), limit },
+  });
+  return data;
+}
+
+export async function fetchAccountFlow(filters: TransactionFilters = {}): Promise<AccountFlow> {
+  const { data } = await api.get<AccountFlow>('/banking/transactions/flow/', {
+    params: cleanParams(filters),
+  });
+  return data;
+}
+
+/** La seule écriture admise sur une ligne de relevé. */
+export async function qualifyTransaction(
+  id: string,
+  payload: { is_internal?: boolean; notes?: string },
+): Promise<BankTransaction> {
+  const { data } = await api.patch<BankTransaction>(
+    `/banking/transactions/${id}/qualify/`,
+    payload,
+  );
+  return data;
+}
