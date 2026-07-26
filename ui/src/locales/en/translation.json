@@ -3254,11 +3254,21 @@
       "fields": {
         "subject": "Label",
         "amount": "Amount",
-        "budget": "Budget"
+        "budget": "Budget",
+        "attachTo": "Attach to",
+        "zones": "Zones"
       },
       "errors": {
         "amountInvalid": "Every item needs a positive amount.",
-        "overAllocated": "The items add up to more than {{total}}."
+        "overAllocated": "The items add up to more than {{total}}.",
+        "sourceIncomplete": "Pick the object to attach, or set it back to “Nothing”."
+      },
+      "source": {
+        "none": "Nothing",
+        "project": "Project",
+        "equipment": "Equipment",
+        "stock": "Stock item",
+        "pick": "Pick one…"
       }
     },
     "reconcile": {
@@ -3274,7 +3284,11 @@
       "unknownExpense": "Expense",
       "amountGap": "{{amount}} off",
       "dayGap_one": "{{count}} day apart",
-      "dayGap_other": "{{count}} days apart"
+      "dayGap_other": "{{count}} days apart",
+      "pickExisting": "Attach an expense you already recorded",
+      "pickExistingHint": "Expenses the bank never confirmed, that fit in the {{amount}} still free.",
+      "noUnreconciled": "No unreconciled expense fits in what is left.",
+      "attach": "Attach"
     }
   },
   "pwa": {

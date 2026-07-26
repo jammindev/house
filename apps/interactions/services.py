@@ -610,6 +610,39 @@ def delete_note_interaction(*, household, user, interaction: Interaction) -> Non
     interaction.delete()
 
 
+def resolve_allocation_source(household_id, source_type: str | None, source_id):
+    """Resolve ``('projects.project', uuid)`` to a ``(ContentType, pk)`` pair.
+
+    Returns ``(None, None)`` when no source is asked for — an allocation line
+    without a project is the common case, not an error.
+
+    The **household check is the point of this function**. Without it a client
+    could attach an expense to another household's project and inflate a cost
+    they cannot even see, so the object is fetched and its ``household_id``
+    compared rather than trusted.
+    """
+    from .serializers import ALLOWED_SOURCE_TYPES
+
+    if not source_type and not source_id:
+        return None, None
+    if not source_type or not source_id:
+        raise ValueError("source_type and source_id must be provided together")
+
+    key = str(source_type).strip().lower()
+    if key not in ALLOWED_SOURCE_TYPES:
+        raise ValueError(
+            f"unsupported source type {key!r}; allowed: {', '.join(sorted(ALLOWED_SOURCE_TYPES))}"
+        )
+
+    app_label, model = key.split(".")
+    content_type = ContentType.objects.get_by_natural_key(app_label, model)
+    target = content_type.model_class().objects.filter(pk=source_id).first()
+    if target is None or getattr(target, "household_id", None) != household_id:
+        raise ValueError("source object not found in this household")
+
+    return content_type, target.pk
+
+
 def create_bank_expense_interaction(
     *,
     household,
@@ -620,6 +653,8 @@ def create_bank_expense_interaction(
     budget_id=None,
     zone_ids: list[UUID] | None = None,
     notes: str = "",
+    source_type: str | None = None,
+    source_id=None,
 ) -> Interaction:
     """Create an expense that is an allocation of a bank statement line.
 
@@ -627,6 +662,12 @@ def create_bank_expense_interaction(
     each with its own amount and budget. They are ordinary journal entries —
     searchable by the agent, counted in a project's cost, linkable to zones and
     documents — which is exactly why the split does not need a parallel table.
+
+    ``source_type``/``source_id`` attach the line to a domain object (parcours 26,
+    lot 3). **Budget and project are two independent axes**: 90 € of a 150 € trip
+    to the DIY store counts in the bathroom project *and* in the "Bricolage"
+    envelope. Without the source FK the project side would simply not exist —
+    ``projects.services`` aggregates costs through that FK and nothing else.
 
     ``occurred_at`` is set to **noon in the household's timezone**, never
     midnight: an operation booked on the 1st or the 31st would otherwise slide
@@ -648,6 +689,7 @@ def create_bank_expense_interaction(
             )
 
     budget = _resolve_expense_budget(household.id, budget_id)
+    source_ct, source_pk = resolve_allocation_source(household.id, source_type, source_id)
 
     with transaction_atomic():
         interaction = Interaction.objects.create(
@@ -658,9 +700,15 @@ def create_bank_expense_interaction(
             type="expense",
             occurred_at=household_noon(household, transaction.booked_on),
             amount=amount,
+            # Stays ``bank`` even with a source: the kind says where the expense
+            # came from (a statement line), not what it is about. The allocation
+            # editor's ownership rule reads this field and nothing else — see
+            # ``banking.services.set_allocations``.
             kind=KIND_BANK,
             supplier="",
             metadata=_build_expense_metadata(source_name=None, unit_price=None, extra=None),
+            source_content_type=source_ct,
+            source_object_id=source_pk,
             budget=budget,
             bank_transaction=transaction,
             reconciled_by="manual",
