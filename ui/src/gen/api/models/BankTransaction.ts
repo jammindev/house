@@ -51,6 +51,10 @@ export type BankTransaction = {
      * SET_NULL: transactions outlive the trace of their import.
      */
     readonly source_import: string | null;
+    /**
+     * The other leg of an internal movement — typically an ATM withdrawal and the matching credit on the cash account. SET_NULL so deleting one leg never leaves the other pointing at nothing.
+     */
+    readonly transfer_counterpart: string | null;
     readonly created_at: string;
 };
 
