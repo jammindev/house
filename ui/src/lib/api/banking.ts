@@ -205,6 +205,10 @@ export interface AccountFlow {
   net: string;
   transaction_count: number;
   internal_count: number;
+  /** Part des sorties qu'aucune dépense n'explique (parcours 26, lot 5). */
+  unallocated_outflow: string;
+  /** Entre 0 et 1. Le **seul** pont admis vers les totaux de dépenses — jamais une somme. */
+  coverage_ratio: number;
 }
 
 function cleanParams(filters: TransactionFilters): Record<string, string> {

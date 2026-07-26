@@ -2895,14 +2895,20 @@
       "count_other": "{{count}} dépenses",
       "byKind": "Par type",
       "bySupplier": "Par fournisseur",
-      "empty": "—"
+      "empty": "—",
+      "coverage": "Couverture",
+      "coverageHint": "{{sorted}} rangés sur {{outflow}} sortis du compte",
+      "coverageRemaining": "{{amount}} encore à affecter"
     },
     "kind": {
       "stock_purchase": "Achat de stock",
       "equipment_purchase": "Achat d'équipement",
       "project_purchase": "Dépense projet",
       "manual": "Ad-hoc",
-      "unknown": "Autre"
+      "unknown": "Autre",
+      "bank": "Relevé",
+      "recurring": "Récurrent",
+      "chickens_purchase": "Achat poules"
     },
     "filters": {
       "from": "Du",
@@ -2931,6 +2937,11 @@
       },
       "budget": "Budget",
       "budgetNone": "Aucun budget"
+    },
+    "provenance": {
+      "statement": "Relevé",
+      "cash": "Espèces",
+      "pending": "En attente de rapprochement"
     }
   },
   "aiUsage": {
@@ -3136,11 +3147,13 @@
       "ibanLast4Hint": "Pour distinguer deux comptes. L'IBAN complet n'est jamais enregistré.",
       "openingBalance": "Solde de départ",
       "openingBalanceHint": "Point de départ du calcul du solde. Peut être négatif (découvert).",
-      "openingBalanceDate": "Date du solde de départ"
+      "openingBalanceDate": "Date du solde de départ",
+      "openingBalanceDateHint": "Le point de départ du suivi : sans lui le solde est une supposition, et aucun contrôle ne porte sur ce compte."
     },
     "errors": {
       "nameRequired": "Merci d'indiquer un nom.",
-      "openingBalanceInvalid": "Saisis un montant valide."
+      "openingBalanceInvalid": "Saisis un montant valide.",
+      "openingBalanceDateRequired": "La date du solde d'ouverture est obligatoire."
     },
     "import": {
       "title": "Importer un relevé — {{account}}",
@@ -3479,6 +3492,16 @@
           "title": "Récurrences confirmées deux fois",
           "hint": "Une même facture comptée deux fois le même jour.",
           "resolution": "Supprimez l'occurrence en double depuis la page Dépenses."
+        },
+        "statement_period_gap": {
+          "title": "Périodes non couvertes",
+          "hint": "Un mois qu'aucun relevé n'a jamais couvert — invisible pour le contrôle de chaîne.",
+          "resolution": "Importez le relevé manquant, ou arbitrez s'il n'y a eu aucune opération."
+        },
+        "import_skipped_lines": {
+          "title": "Lignes ignorées à vérifier",
+          "hint": "Le fichier n'avait ni référence ni solde : la dédup ne peut pas être certaine.",
+          "resolution": "Vérifiez que les lignes ignorées étaient bien des doublons, puis arbitrez."
         }
       }
     },

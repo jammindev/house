@@ -143,7 +143,49 @@ test.describe('Module Argent — Contrôle', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 6. Sous-pages autonomes
+// 6. Le solde d'ouverture, prérequis fermé à l'entrée (lot 7)
+// ---------------------------------------------------------------------------
+
+test.describe('Module Argent — création de compte', () => {
+  test('la date de solde d\'ouverture est requise, et pré-remplie à aujourd\'hui', async ({
+    page,
+  }) => {
+    await page.goto('/app/money?tab=accounts');
+    await page.getByRole('button', { name: 'Nouveau compte' }).first().click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+
+    // Pré-remplie : le cas fréquent est « je commence à suivre ce compte
+    // maintenant », et proposer une valeur juste vaut mieux qu'exiger une saisie.
+    await expect(dialog.locator('#account-opening-date')).not.toHaveValue('');
+
+    // Vidée, la création est refusée côté front — sans point de départ le solde est
+    // une supposition et aucun contrôle ne porte sur le compte.
+    await dialog.locator('#account-name').fill(`Compte E2E ${Date.now()}`);
+    await dialog.locator('#account-opening-date').fill('');
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("La date du solde d'ouverture est obligatoire");
+  });
+
+  test('avec une date, le compte est créé', async ({ page }) => {
+    await page.goto('/app/money?tab=accounts');
+    await page.getByRole('button', { name: 'Nouveau compte' }).first().click();
+
+    const dialog = page.getByRole('dialog');
+    const name = `Compte E2E ${Date.now()}`;
+    await dialog.locator('#account-name').fill(name);
+    await dialog.getByRole('button', { name: 'Enregistrer' }).click();
+
+    await expect(dialog).toBeHidden();
+    await expect(page.getByText(name).first()).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 7. Sous-pages autonomes
 // ---------------------------------------------------------------------------
 
 test.describe('Module Argent — sous-pages', () => {

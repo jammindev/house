@@ -98,9 +98,9 @@ incohérence à corriger.
 
 | Écart | Détection | Résolution | Flag légitime | Lot |
 |---|---|---|---|---|
-| **Sans solde d'ouverture** | `opening_balance_date IS NULL` | le renseigner | **aucun — prérequis bloquant** | 1 ✅ |
+| **Sans solde d'ouverture** | `opening_balance_date IS NULL` | le renseigner | **aucun — prérequis bloquant** | 1 ✅ (requis à la création : 7 ✅) |
 | **Chaîne de soldes rompue** | `balances.check_balance_chain` | importer le relevé manquant | « relevé indisponible » | 1 ✅ |
-| **Période non couverte** | trou entre deux `StatementImport` | importer | « pas d'opération sur la période » | 7 |
+| **Période non couverte** | trou entre deux `StatementImport` | importer | « pas d'opération sur la période » | 7 ✅ |
 | **Espèces à découvert** | solde espèces négatif | déclarer le retrait qui l'alimente | **aucun — incohérence** | 4 ✅ |
 
 ### Sur une récurrence
@@ -114,7 +114,7 @@ incohérence à corriger.
 
 | Écart | Détection | Résolution | Flag légitime | Lot |
 |---|---|---|---|---|
-| **Lignes ignorées** | `skipped_count > 0` sans référence ni solde | vérifier manuellement | « doublons confirmés » | 7 |
+| **Lignes ignorées** | `skipped_count > 0` sans référence ni solde | vérifier manuellement | « doublons confirmés » | 7 ✅ |
 
 ## Le mécanisme d'arbitrage
 
@@ -146,9 +146,23 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ✅ Livré |
 | 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ✅ Livré |
 | 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ✅ Livré |
-| 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ⬜ |
+| 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ✅ Livré |
 
 Détail d'implémentation par lot : `docs/MODULES/banking.md`.
+
+## Le catalogue est complet
+
+**13 détecteurs**, couvrant les 16 lignes du catalogue (certaines lignes partagent un
+détecteur). Trois n'admettent **aucun** arbitrage, et c'est structurant :
+
+| Clé | Pourquoi aucun motif ne tient |
+|---|---|
+| `account_no_opening_balance` | Prérequis : sans point de départ, aucun contrôle ne porte sur le compte. |
+| `account_cash_negative` | Physiquement impossible : un retrait n'a pas été déclaré. |
+| `recurring_double_confirmed` | Compter une facture deux fois n'est jamais acceptable. |
+
+Les dix autres sont arbitrables — et chaque arbitrage **périme** si ce qu'il couvrait
+change.
 
 ## La recette qui prouve la garantie
 

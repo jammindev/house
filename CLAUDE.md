@@ -334,6 +334,20 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
   (`interactions__isnull=True`), jamais un `exists()` par ligne : la version naïve
   coûtait 160 allers-retours sur un relevé réel.
 
+#### Continuité et provenance
+
+- **`opening_balance_date` est requise à la création** d'un compte, jamais à
+  l'édition. Sans elle le compte n'a pas de fenêtre de conformité ; mais l'exiger à
+  chaque PATCH rendrait un simple renommage impossible — le détecteur du lot 1 traite
+  l'existant.
+- `statement_period_gap` et `account_chain_broken` sont **complémentaires** : le
+  second attrape les opérations manquantes *dans* une période importée par
+  l'arithmétique, le premier une période jamais importée, qui ne laisse aucune trace
+  arithmétique. Ne pas fusionner.
+- `skipped_count > 0` n'est un écart que sur un fichier **sans référence ni solde** —
+  ailleurs c'est la signature normale d'un ré-import. La présence de ces colonnes est
+  dérivée des lignes créées, pas stockée.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

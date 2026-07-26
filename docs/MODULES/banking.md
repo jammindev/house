@@ -38,7 +38,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | 4 | Tout est une ligne de compte (espèces) | ✅ **Livré** |
 | 5 | Recettes et mouvements internes | ✅ **Livré** |
 | 6 | Le relevé confirme les récurrences | ✅ **Livré** |
-| 7 | Continuité des relevés et provenance | ⬜ |
+| 7 | Continuité des relevés et provenance | ✅ **Livré** |
 
 **Cette fiche décrit l'état livré.** Les sections marquées *(à venir)* annoncent le
 contrat que les lots suivants devront respecter.
@@ -502,6 +502,8 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 | `internal_without_counterpart` | `error` | ✅ | 5 |
 | `recurring_overdue` | `warning` | ✅ | 6 |
 | `recurring_double_confirmed` | `error` | ❌ bug de données | 6 |
+| `statement_period_gap` | `error` | ✅ | 7 |
+| `import_skipped_lines` | `warning` | ✅ | 7 |
 
 Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
 les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
@@ -775,9 +777,68 @@ Compter une facture deux fois n'est jamais acceptable : l'une des deux doit part
 date fait sauter la récurrence), mais le détecteur reste — la confirmation manuelle
 est un autre chemin, et le contrôle ne fait pas confiance aux garde-fous, il vérifie.
 
-## Ce que les lots suivants ajouteront *(à venir)*
-- **Règle transverse** — on n'additionne **jamais** un total banque et un total
-  interactions. Le pont est un taux de couverture, pas une somme.
+## Continuité des relevés et provenance (parcours 26, lot 7)
+
+Le dernier lot. Le catalogue des orphelins est complet : **13 détecteurs**.
+
+### `statement_period_gap` — l'angle mort du contrôle de chaîne
+
+Le contrôle de chaîne attrape les opérations manquantes **à l'intérieur** d'une
+période importée, par l'arithmétique des soldes. Un février que personne n'a jamais
+déposé, lui, ne laisse **aucune trace arithmétique** — seulement un trou dans le
+calendrier. Les deux détecteurs sont complémentaires et ni l'un ni l'autre ne voit
+l'angle mort de l'autre.
+
+Seuls les imports `completed` comptent : un import échoué n'a rien écrit, prétendre
+couvrir sa période serait un mensonge. Les périodes qui se chevauchent sont normales
+(ré-importer un mois est la façon de rattraper) — seul un trou **strictement
+positif** est signalé.
+
+### `import_skipped_lines` — la limite de la dédup, rendue visible
+
+`skipped_count > 0` est normalement la **bonne** nouvelle : c'est à quoi ressemble un
+ré-import. Ça devient un avertissement **uniquement** sur un fichier sans référence
+bancaire ni solde courant, parce que c'est exactement la limite documentée de la
+recette de dédup (`docs/fiches/IMPORT_ET_RAPPROCHEMENT.md` §3.2) : le discriminant
+retombe sur l'index d'occurrence *dans le fichier*, donc un export partiel ultérieur
+d'une ligne identique peut être ignoré comme doublon alors qu'il est vraiment neuf.
+
+La présence de ces colonnes est **dérivée des lignes créées**, pas stockée : une
+colonne qui n'a produit aucune valeur était, du point de vue de la dédup, absente —
+et c'est cette propriété-là qui compte.
+
+### Le solde d'ouverture, requis à l'entrée
+
+`BankAccountSerializer` refuse une création sans `opening_balance_date`. Sans elle le
+compte n'a **pas de fenêtre de conformité** : son solde est une supposition, et aucun
+autre contrôle ne peut rien affirmer à son sujet.
+
+**Uniquement à la création.** Sur l'existant, le détecteur du lot 1 fait le travail ;
+exiger le champ à chaque PATCH rendrait un simple renommage impossible tant que
+l'utilisateur ne l'a pas rempli — une contrainte qui punit la mauvaise personne.
+
+Côté UI la date est **pré-remplie à aujourd'hui** : le cas fréquent est « je commence
+à suivre ce compte maintenant », et proposer une valeur juste vaut mieux qu'exiger
+une saisie de plus.
+
+### Provenance et couverture
+
+`ExpenseList` porte un badge de provenance — **relevé**, **espèces**, ou **en attente
+de rapprochement**. Seule la troisième appelle une action : une dépense que la banque
+n'a jamais confirmée est un écart, pas un état normal. Le dire dans la liste où on la
+lit, pas seulement dans l'onglet Contrôle.
+
+`ExpenseSummaryCards` gagne la carte **Couverture** : « X rangés sur Y sortis du
+compte ». C'est ce qui rend « 340 € dépensés » interprétable — sur combien réellement
+sorti ? Et c'est **un ratio, jamais une somme** des deux mondes.
+
+Nettoyé au passage : trois `t()` avec `defaultValue` dans les composants de dépenses,
+que CLAUDE.md interdit précisément parce qu'ils masquent les traductions manquantes.
+Les clés `bank`, `recurring` et `chickens_purchase` manquaient effectivement.
+
+## Règle transverse
+- On n'additionne **jamais** un total banque et un total interactions. Le pont est un
+  taux de couverture, pas une somme.
 
 ## Points d'attention
 

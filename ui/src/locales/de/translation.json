@@ -2895,14 +2895,20 @@
       "count_other": "{{count}} Ausgaben",
       "byKind": "Nach Typ",
       "bySupplier": "Nach Lieferant",
-      "empty": "—"
+      "empty": "—",
+      "coverage": "Abdeckung",
+      "coverageHint": "{{sorted}} zugeordnet von {{outflow}} abgegangen",
+      "coverageRemaining": "{{amount}} noch zuzuordnen"
     },
     "kind": {
       "stock_purchase": "Lagerkauf",
       "equipment_purchase": "Gerätekauf",
       "project_purchase": "Projektausgabe",
       "manual": "Sonstige",
-      "unknown": "Andere"
+      "unknown": "Andere",
+      "bank": "Auszug",
+      "recurring": "Wiederkehrend",
+      "chickens_purchase": "Hühner-Einkauf"
     },
     "filters": {
       "from": "Von",
@@ -2931,6 +2937,11 @@
       },
       "budget": "Budget",
       "budgetNone": "Kein Budget"
+    },
+    "provenance": {
+      "statement": "Auszug",
+      "cash": "Bargeld",
+      "pending": "Abgleich ausstehend"
     }
   },
   "aiUsage": {
@@ -3136,11 +3147,13 @@
       "ibanLast4Hint": "Um zwei Konten zu unterscheiden. Die vollständige IBAN wird nie gespeichert.",
       "openingBalance": "Anfangssaldo",
       "openingBalanceHint": "Ausgangspunkt der Saldoberechnung. Darf negativ sein (Überziehung).",
-      "openingBalanceDate": "Datum des Anfangssaldos"
+      "openingBalanceDate": "Datum des Anfangssaldos",
+      "openingBalanceDateHint": "Der Startpunkt der Erfassung: ohne ihn ist der Saldo eine Annahme, und keine Prüfung deckt dieses Konto ab."
     },
     "errors": {
       "nameRequired": "Bitte gib einen Namen ein.",
-      "openingBalanceInvalid": "Gib einen gültigen Betrag ein."
+      "openingBalanceInvalid": "Gib einen gültigen Betrag ein.",
+      "openingBalanceDateRequired": "Das Datum des Anfangssaldos ist erforderlich."
     },
     "import": {
       "title": "Kontoauszug importieren — {{account}}",
@@ -3479,6 +3492,16 @@
           "title": "Doppelt bestätigte Wiederholungen",
           "hint": "Dieselbe Rechnung am selben Tag zweimal gezählt.",
           "resolution": "Löschen Sie die doppelte Buchung im Reiter Ausgaben."
+        },
+        "statement_period_gap": {
+          "title": "Nicht abgedeckte Zeiträume",
+          "hint": "Ein Monat, den kein Auszug je abgedeckt hat — für die Saldenprüfung unsichtbar.",
+          "resolution": "Importieren Sie den fehlenden Auszug oder legen Sie es begründet ab, wenn es keine Buchung gab."
+        },
+        "import_skipped_lines": {
+          "title": "Zu prüfende übersprungene Zeilen",
+          "hint": "Die Datei hatte weder Referenz noch Saldo: die Duplikaterkennung kann nicht sicher sein.",
+          "resolution": "Prüfen Sie, ob die übersprungenen Zeilen wirklich Duplikate waren, und legen Sie es dann ab."
         }
       }
     },

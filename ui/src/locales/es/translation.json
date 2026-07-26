@@ -2895,14 +2895,20 @@
       "count_other": "{{count}} gastos",
       "byKind": "Por tipo",
       "bySupplier": "Por proveedor",
-      "empty": "—"
+      "empty": "—",
+      "coverage": "Cobertura",
+      "coverageHint": "{{sorted}} asignados de {{outflow}} salidos de la cuenta",
+      "coverageRemaining": "{{amount}} aún por asignar"
     },
     "kind": {
       "stock_purchase": "Compra de stock",
       "equipment_purchase": "Compra de equipo",
       "project_purchase": "Gasto de proyecto",
       "manual": "Suelto",
-      "unknown": "Otro"
+      "unknown": "Otro",
+      "bank": "Extracto",
+      "recurring": "Recurrente",
+      "chickens_purchase": "Compra gallinas"
     },
     "filters": {
       "from": "Desde",
@@ -2931,6 +2937,11 @@
       },
       "budget": "Presupuesto",
       "budgetNone": "Sin presupuesto"
+    },
+    "provenance": {
+      "statement": "Extracto",
+      "cash": "Efectivo",
+      "pending": "Pendiente de conciliar"
     }
   },
   "aiUsage": {
@@ -3136,11 +3147,13 @@
       "ibanLast4Hint": "Para distinguir dos cuentas. El IBAN completo nunca se guarda.",
       "openingBalance": "Saldo inicial",
       "openingBalanceHint": "Punto de partida del cálculo del saldo. Puede ser negativo (descubierto).",
-      "openingBalanceDate": "Fecha del saldo inicial"
+      "openingBalanceDate": "Fecha del saldo inicial",
+      "openingBalanceDateHint": "El punto de partida del seguimiento: sin él el saldo es una suposición, y ningún control cubre esta cuenta."
     },
     "errors": {
       "nameRequired": "Introduce un nombre.",
-      "openingBalanceInvalid": "Introduce un importe válido."
+      "openingBalanceInvalid": "Introduce un importe válido.",
+      "openingBalanceDateRequired": "La fecha del saldo inicial es obligatoria."
     },
     "import": {
       "title": "Importar un extracto — {{account}}",
@@ -3479,6 +3492,16 @@
           "title": "Recurrencias confirmadas dos veces",
           "hint": "La misma factura contada dos veces el mismo día.",
           "resolution": "Elimine la ocurrencia duplicada desde la pestaña Gastos."
+        },
+        "statement_period_gap": {
+          "title": "Periodos no cubiertos",
+          "hint": "Un mes que ningún extracto cubrió nunca — invisible para el control de cadena.",
+          "resolution": "Importe el extracto que falta, o justifíquelo si no hubo ninguna operación."
+        },
+        "import_skipped_lines": {
+          "title": "Líneas ignoradas por verificar",
+          "hint": "El archivo no tenía referencia ni saldo: la deduplicación no puede estar segura.",
+          "resolution": "Compruebe que las líneas ignoradas eran realmente duplicados, y justifíquelo."
         }
       }
     },

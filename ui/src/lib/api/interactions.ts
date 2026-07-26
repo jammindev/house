@@ -34,6 +34,10 @@ export interface InteractionListItem {
   source_type?: string | null;
   source_id?: string | null;
   source_label?: string | null;
+  /** Ligne de relevé dont cette dépense est une ventilation (parcours 25). */
+  bank_transaction?: string | null;
+  /** `auto` | `manual` | `''` — comment le rapprochement s'est fait. */
+  reconciled_by?: string;
   contacts?: InteractionContactSummary[];
   structures?: InteractionStructureSummary[];
   equipments?: InteractionEquipmentSummary[];
