@@ -89,3 +89,35 @@ test.describe('Page Tutoriel', () => {
     await expect(page.getByText('Ce guide n\'existe pas.')).toBeVisible();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Le guide du mécanisme Argent (parcours 26)
+// ---------------------------------------------------------------------------
+
+test.describe('Tutoriel — comprendre le mécanisme Argent', () => {
+  test('le guide explique la fenêtre de contrôle et le zéro ambigu', async ({ page }) => {
+    await page.goto('/app/tutorial');
+
+    await page.getByRole('link', { name: /Comment l'argent fonctionne ici/ }).click();
+    await expect(
+      page.getByRole('heading', { level: 1, name: /Comment l'argent fonctionne ici/ }),
+    ).toBeVisible();
+
+    // Les deux règles contre-intuitives — celles qu'aucun parcours procédural ne
+    // fait comprendre, et dont l'une a réellement piégé un utilisateur.
+    await expect(page.getByText('Pourquoi tout n\'est pas contrôlé')).toBeVisible();
+    await expect(
+      page.getByText(/la période est vide et rien n'est contrôlé du tout/),
+    ).toBeVisible();
+    await expect(page.getByText('Un zéro peut vouloir dire deux choses')).toBeVisible();
+
+    // Et le lien mène bien à l'onglet Contrôle.
+    await page.getByRole('link', { name: 'Ouvrir la page', exact: true }).click();
+    await expect(page).toHaveURL(/\/app\/money\?.*tab=control/);
+  });
+
+  test('la checklist rappelle le prérequis du compte', async ({ page }) => {
+    await page.goto('/app/tutorial');
+    await expect(page.getByText('Déclarer un compte et son point de départ')).toBeVisible();
+  });
+});

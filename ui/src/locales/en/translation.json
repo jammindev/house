@@ -1117,6 +1117,10 @@
         "invite-member": {
           "title": "Invite a household member",
           "description": "From settings, invite your family to join the household."
+        },
+        "declare-account": {
+          "title": "Declare an account and its starting point",
+          "description": "An account, its opening balance and the matching date: that is the prerequisite for all money tracking. Without it, no check covers your expenses."
         }
       }
     },
@@ -1607,7 +1611,7 @@
           },
           "openingBalance": {
             "title": "Set the starting balance",
-            "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. This is **required**: without a starting point the balance shown would be a guess, and no conformity check would cover this account. It can be negative if you are overdrawn."
+            "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. It is required, for a good reason: without a starting point the balance shown would be a guess, and no conformity check would cover this account. It can be negative if you are overdrawn."
           },
           "import": {
             "title": "Import your first statement",
@@ -1620,6 +1624,40 @@
           "balance": {
             "title": "Check your balance",
             "body": "Each account shows its balance, computed at read time — never frozen in the database. If your bank exports a balance column, House anchors on it and checks the statement chain along the way: when operations are missing you get “chain broken” with the period and the missing amount, rather than a plausible but wrong figure. This is the best test of your imports: if the balance shown matches your paper statement, everything is right. For cash, open the journal and use “Move to cash” on a withdrawal — it leaves the spending totals and feeds your cash account balance."
+          }
+        }
+      },
+      "money": {
+        "title": "How money works here",
+        "intro": "Understand before clicking. The Money module follows a few rules that are not obvious — and one of them explains why not everything is always flagged.",
+        "steps": {
+          "source": {
+            "title": "The statement is the truth, not your memory",
+            "body": "A statement line is a fact: the bank wrote it, the app never rewrites it. Everything else leans on it. That is why importing your statements is not paperwork but the foundation: without them, the app can only take your word for it."
+          },
+          "allocation": {
+            "title": "An expense gives a line its meaning",
+            "body": "A line says “42 € left for Leclerc”. It does not say *why*. The expense is you saying “that was groceries”. Assigning a budget from “To sort” is exactly that — there is no extra step to create the expense, it is the same gesture."
+          },
+          "axes": {
+            "title": "A line can be split, along two axes",
+            "body": "150 € at the DIY store, 90 € of it for the bathroom and 60 € unrelated: you split the line in two. And each part carries two independent facts — a budget (“DIY”) and an object (the bathroom job). Those 90 € therefore count in your envelope *and* in the job's cost, which is not double counting: they answer two different questions."
+          },
+          "window": {
+            "title": "Why not everything is checked",
+            "body": "The app only flags what you can actually fix. So it defines a checking period per account: from your opening balance date up to the last imported statement. Before that: history, and no bank line will ever come to match it. After that: the statement simply has not arrived yet. Between the two, the requirement is total — and that is what makes “zero discrepancy” reachable.\n\nOne consequence worth knowing. If your opening balance date is later than your operations, the period is empty and nothing at all is checked. The app then says so explicitly, instead of letting you believe all is well."
+          },
+          "arbitrate": {
+            "title": "Arbitrating is not hiding",
+            "body": "Some discrepancies are legitimate: bank fees belonging to no budget, a purchase someone else paid for. You “arbitrate” them — with a mandatory motive. The discrepancy leaves your worklist but stays readable, and you can revoke the arbitration in one click: it comes back identical.\n\nAnd an arbitration expires. If you wrote “the rest of this line does not interest me” and then change its split, the discrepancy reappears: your motive no longer described the situation."
+          },
+          "notEvaluable": {
+            "title": "A zero can mean two things",
+            "body": "“Nothing to report” means: the check ran, all is well. “Not evaluable” means: the check could not run, because a prerequisite is missing — typically an account with no opening balance, or one whose date falls outside its own operations.\\n\\nThe app never conflates the two. A non-evaluable check shows a dash, not a zero, and names the prerequisite to clear. Fix it, and everything becomes measurable at once."
+          },
+          "cash": {
+            "title": "Cash is an account like any other",
+            "body": "A note handed over at the market leaves no statement line. So that it does not become an expense the bank never saw — a discrepancy nobody can resolve — the app records it as an operation on your “Cash” account. Feed it with your withdrawals, and your physical money is tracked like the rest."
           }
         }
       }
@@ -3501,12 +3539,17 @@
         "account_without_window": {
           "title": "Account outside the control's reach",
           "hint": "No conformity window: either the opening balance is missing, or its date is later than your statements.",
-          "resolution": "Set the opening balance, or move its date before the account's oldest line. Until then, no other check covers this account."
+          "resolution": "Set the opening balance date to the beginning of the period you imported — not to today. The amount should be the balance at that date: if it is approximate, only the displayed balance suffers, sorting your operations still works. Until the date is fixed, no other check covers this account."
         }
       },
       "blocked": "Control cannot be evaluated",
       "blockedHint": "A prerequisite stops the checks from covering your accounts. Fix it and everything becomes measurable.",
-      "notEvaluable": "Not evaluable — prerequisite: {{prerequisite}}"
+      "notEvaluable": "Not evaluable — prerequisite: {{prerequisite}}",
+      "window": {
+        "noDate": "No opening balance date is set.",
+        "afterData": "Your opening balance date is {{openingDate}}, but your oldest operation is {{earliestLine}}: the checking period is empty."
+      },
+      "fix": "Fix"
     },
     "pending": {
       "count": "{{count}} operation to sort",

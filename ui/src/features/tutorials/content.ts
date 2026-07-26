@@ -1,6 +1,6 @@
 import {
-  AlertCircle, Landmark, LayoutDashboard, Newspaper, PiggyBank, Receipt, Smartphone,
-  Sparkles, User,
+  AlertCircle, Landmark, LayoutDashboard, Newspaper, PiggyBank, Receipt, ShieldCheck,
+  Smartphone, Sparkles, User,
   type LucideIcon,
 } from 'lucide-react';
 import { MODULES } from '@/lib/modules';
@@ -51,6 +51,9 @@ export const GETTING_STARTED: GettingStartedItem[] = [
   { key: 'add-equipment', to: '/app/equipment', moduleKey: 'equipment' },
   { key: 'first-task', to: '/app/tasks', moduleKey: 'tasks' },
   { key: 'log-note', to: '/app/interactions', moduleKey: 'interactions' },
+  // Le prérequis de tout le module Argent : sans compte déclaré et daté, aucun
+  // contrôle ne porte sur l'argent du foyer.
+  { key: 'declare-account', to: '/app/money?tab=accounts', moduleKey: 'money' },
   { key: 'ask-agent', to: '/app/agent' },
   { key: 'invite-member', to: '/app/settings' },
 ];
@@ -74,10 +77,12 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'projects', moduleKey: 'projects', to: '/app/projects', stepIds: ['create', 'plan', 'photos', 'budget'] },
   { key: 'interactions', moduleKey: 'interactions', to: '/app/interactions', stepIds: ['log', 'types', 'link'] },
   { key: 'trackers', moduleKey: 'trackers', to: '/app/trackers', stepIds: ['create', 'entries', 'charts'] },
-  // Module « Argent » (parcours 26) : les trois guides survivent, chacun pointant
-  // sur son onglet. Le guide « expenses » gagne les deux étapes du nouveau parcours
-  // de conformité — ranger et contrôler sont devenus la façon de saisir et de
-  // relire ses dépenses.
+  // Module « Argent » (parcours 26). Le premier guide explique **comment l'app
+  // raisonne** — les trois suivants expliquent quoi cliquer. Cette séparation est
+  // volontaire : le mécanisme de conformité a des règles contre-intuitives (une
+  // fenêtre qui exclut volontairement des données, un zéro qui peut vouloir dire
+  // « non évaluable ») qu'aucun parcours procédural ne fait comprendre.
+  { key: 'money', moduleKey: 'money', Icon: ShieldCheck, to: '/app/money?tab=control', stepIds: ['source', 'allocation', 'axes', 'window', 'arbitrate', 'notEvaluable', 'cash'] },
   { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'sort', 'control', 'sources', 'review'] },
   { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'recurring', 'report'] },
   { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance'] },

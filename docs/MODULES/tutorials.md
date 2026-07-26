@@ -6,6 +6,32 @@
 > code** (registre + i18n), pas de la donnée : zéro table de contenu, mise à
 > jour en PR via le skill `/tutorials`.
 
+## Deux conventions d'écriture
+
+**Le corps d'une étape est du texte brut, pas du markdown.** `TutorialGuidePage`
+l'affiche dans un `<p>` : un `**gras**` s'afficherait littéralement, astérisques
+comprises. Pour appuyer une idée, faire une phrase courte et autonome — c'est de
+meilleure écriture de toute façon.
+
+**Les sauts de ligne, eux, fonctionnent** (`whitespace-pre-line`). Une étape qui
+explique un mécanisme peut donc porter un second paragraphe (« une conséquence à
+connaître… »), ce qui évite le pavé.
+
+### Expliquer un mécanisme ≠ décrire un parcours
+
+Le module « Argent » porte quatre guides, et la séparation est volontaire :
+
+- **`money`** répond à « comment l'app raisonne » — le relevé comme vérité, la
+  ventilation, les deux axes budget/projet, **la fenêtre de contrôle**, l'arbitrage
+  qui périme, et le fait qu'un zéro puisse vouloir dire « non évaluable » ;
+- `banking` / `expenses` / `budget` répondent à « quoi cliquer ».
+
+Ce découpage vient d'un vrai incident : un utilisateur a vu une file de rangement
+vide avec une coche verte, parce que la date de solde d'ouverture de son compte était
+postérieure à ses opérations — la fenêtre de conformité était vide. Le comportement
+était correct, l'app ne l'expliquait nulle part. **Un mécanisme contre-intuitif a
+besoin d'un guide qui l'énonce**, pas seulement d'un parcours qui l'applique.
+
 ## État synthétique
 
 - **Backend** : un seul champ — `User.completed_tutorials` (`apps/accounts/`,
@@ -14,9 +40,10 @@
   uniquement** (liste de strings ≤ 100 chars, ≤ 500 entrées, dédupliquée) — les
   clés vivent côté frontend, ajouter un guide ne touche jamais le backend.
 - **Frontend** : `ui/src/features/tutorials/`
-  - `content.ts` — registre typé : `TUTORIAL_GUIDES` (19 guides : pages
-    transverses + un par module), `GETTING_STARTED` (6 items), `GUIDE_ICONS`
-    (précalculés, icônes héritées de `MODULES` pour les guides à `moduleKey`).
+  - `content.ts` — registre typé : `TUTORIAL_GUIDES` (pages transverses + un ou
+    plusieurs par module), `GETTING_STARTED`, `GUIDE_ICONS` (précalculés). L'icône
+    **explicite gagne** sur celle du module — nécessaire depuis que quatre guides
+    partagent le module « Argent », sinon la liste ne se parcourt plus du regard.
   - `hooks.ts` — `useCompletedTutorials` (Set des clés terminées, cache partagé
     `['settings','me']`), `useToggleTutorial` (mutation optimiste, `next`
     calculé une seule fois avant `onMutate`), `useVisibleTutorials` (masque les
