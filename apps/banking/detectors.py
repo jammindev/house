@@ -6,6 +6,7 @@ would therefore never ask:
 - money left the account and nobody said what for (``transaction_unallocated``);
 - money left and only part of it was accounted for (``transaction_partial``);
 - an expense was typed in that the bank never saw (``expense_unreconciled``);
+- an expense that counts against no envelope (``expense_without_budget``);
 - an account whose starting point is unknown (``account_no_opening_balance``);
 - an account whose statements do not chain (``account_chain_broken``).
 
@@ -44,6 +45,7 @@ ZERO = Value(Decimal("0.00"), output_field=AMOUNT_FIELD)
 TRANSACTION_UNALLOCATED = "transaction_unallocated"
 TRANSACTION_PARTIAL = "transaction_partially_allocated"
 EXPENSE_UNRECONCILED = "expense_unreconciled"
+EXPENSE_WITHOUT_BUDGET = "expense_without_budget"
 ACCOUNT_NO_OPENING_BALANCE = "account_no_opening_balance"
 ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 
@@ -182,6 +184,50 @@ def _unreconciled_qs(household):
 
 def _count_unreconciled(household) -> int:
     return _unreconciled_qs(household).count()
+
+
+def _without_budget_qs(household):
+    """Expenses inside the horizon that count against no envelope.
+
+    Scoped by the same window as the rest, for a reason of its own: a budget is
+    **monthly**, so assigning one to a two-year-old expense changes no figure
+    anybody looks at. Flagging it would be busywork, and busywork is what makes a
+    control panel stop being read.
+    """
+    from interactions.models import Interaction
+    from interactions.queries import expenses
+
+    window = household_covered_period(household)
+    if window is None:
+        return Interaction.objects.none()
+
+    return expenses(household_id=household.id).filter(
+        budget__isnull=True,
+        occurred_at__date__gte=window.start,
+        occurred_at__date__lte=window.end,
+    )
+
+
+def _count_without_budget(household) -> int:
+    return _without_budget_qs(household).count()
+
+
+def _find_without_budget(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=EXPENSE_WITHOUT_BUDGET,
+            object_id=str(expense.pk),
+            label=f"{expense.occurred_at.date().isoformat()} · {expense.subject[:80]}",
+            fingerprint=fingerprint_of(EXPENSE_WITHOUT_BUDGET, expense.amount),
+            detail={
+                "subject": expense.subject,
+                "amount": str(expense.amount or Decimal("0.00")),
+                "occurred_at": expense.occurred_at.isoformat(),
+                "kind": expense.kind,
+            },
+        )
+        for expense in apply_window(_without_budget_qs(household), **window)
+    ]
 
 
 def _find_unreconciled(household, **window) -> list[Finding]:
@@ -352,6 +398,16 @@ def _specs() -> list[DetectorSpec]:
             model=Interaction,
             count=_count_unreconciled,
             findings=_find_unreconciled,
+            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+        ),
+        DetectorSpec(
+            kind=EXPENSE_WITHOUT_BUDGET,
+            severity=WARNING,
+            label="Expense counting against no budget envelope",
+            target="expense",
+            model=Interaction,
+            count=_count_without_budget,
+            findings=_find_without_budget,
             blocked_by=ACCOUNT_NO_OPENING_BALANCE,
         ),
         DetectorSpec(

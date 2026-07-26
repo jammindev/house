@@ -405,10 +405,19 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
     atomic.
 
     The destructive half is deliberately narrow. Only the expenses this editor
-    created (``kind='bank'`` **and** no source object) are deleted; anything else
-    — a stock purchase that was reconciled onto this line — is **detached**, not
-    destroyed. Deleting it would take its documents, tags, zones and possibly a
+    created (``kind='bank'``) are deleted; anything else — a stock purchase that
+    was reconciled onto this line — is **detached**, not destroyed. Deleting it
+    would take its documents, tags, zones and possibly a
     ``Task.source_interaction`` with it, to undo a split.
+
+    ⚠️ The rule reads ``kind`` **alone**. It used to also require no source
+    object, which was redundant (a stock purchase has ``kind='stock_purchase'``,
+    never ``'bank'``) — and became actively wrong in parcours 26 lot 3, when
+    allocation lines started carrying a project. With the extra clause, a line
+    attached to a project stopped being "owned" and was detached instead of
+    deleted on re-edit: **every re-split would leave a phantom expense behind**,
+    still counted in the project's cost. Exactly the orphan this parcours exists
+    to remove.
 
     The row is locked for the duration so two concurrent edits cannot each see a
     stale total and jointly overshoot.
@@ -429,10 +438,7 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
 
         existing = list(locked.interactions.all())
         for interaction in existing:
-            owned = (
-                interaction.kind in OWNED_BY_ALLOCATION_EDITOR
-                and interaction.source_content_type_id is None
-            )
+            owned = interaction.kind in OWNED_BY_ALLOCATION_EDITOR
             if owned:
                 interaction.delete()
             else:
@@ -449,22 +455,34 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
                 )
 
         created = []
-        for line in lines:
+        for index, line in enumerate(lines):
             amount = Decimal(str(line.get("amount") or 0))
             if amount <= 0:
                 raise ValidationError({"amount": "Each allocation must be strictly positive."})
-            created.append(
-                create_bank_expense_interaction(
-                    household=household,
-                    user=user,
-                    transaction=locked,
-                    subject=str(line.get("subject") or "").strip(),
-                    amount=amount,
-                    budget_id=line.get("budget_id"),
-                    zone_ids=line.get("zone_ids"),
-                    notes=str(line.get("notes") or ""),
+            try:
+                created.append(
+                    create_bank_expense_interaction(
+                        household=household,
+                        user=user,
+                        transaction=locked,
+                        subject=str(line.get("subject") or "").strip(),
+                        amount=amount,
+                        budget_id=line.get("budget_id"),
+                        zone_ids=line.get("zone_ids"),
+                        notes=str(line.get("notes") or ""),
+                        # Budget and project are independent axes (lot 3): a line
+                        # can carry both, and counts in both.
+                        source_type=line.get("source_type"),
+                        source_id=line.get("source_id"),
+                    )
                 )
-            )
+            except ValueError as exc:
+                # The creator signals bad references (unknown zone, budget from
+                # another household, source outside the household) with
+                # ``ValueError``. Left alone it surfaces as a 500 on what is a
+                # plain client mistake — and the line number is what makes the
+                # message actionable on a five-line split.
+                raise ValidationError({"lines": f"line {index + 1}: {exc}"})
 
         # Refresh so the caller sees the linked state rather than a stale copy.
         Interaction.objects.filter(pk__in=[i.pk for i in created])
@@ -509,20 +527,18 @@ def unlink_interaction(*, user, interaction):
 def delete_transaction(*, user, transaction) -> None:
     """Delete a bank line, keeping every fact the household journalled.
 
-    Same asymmetry as ``set_allocations``: the expenses this line generated go
-    with it, the pre-existing ones are only detached. ``SET_NULL`` on the FK
-    would handle the detaching by itself, but doing it explicitly also clears
-    ``reconciled_by`` — a reconciliation marker with nothing to point at is a
-    lie waiting to confuse the lot 6 matcher.
+    Same asymmetry as ``set_allocations``, and the same ownership rule: ``kind``
+    alone decides. The expenses this line generated go with it, the pre-existing
+    ones are only detached. ``SET_NULL`` on the FK would handle the detaching by
+    itself, but doing it explicitly also clears ``reconciled_by`` — a
+    reconciliation marker with nothing to point at is a lie waiting to confuse
+    the matcher.
     """
     from interactions.kinds import OWNED_BY_ALLOCATION_EDITOR
 
     with atomic():
         for interaction in list(transaction.interactions.all()):
-            owned = (
-                interaction.kind in OWNED_BY_ALLOCATION_EDITOR
-                and interaction.source_content_type_id is None
-            )
+            owned = interaction.kind in OWNED_BY_ALLOCATION_EDITOR
             if owned:
                 interaction.delete()
             else:

@@ -3254,11 +3254,21 @@
       "fields": {
         "subject": "Intitulé",
         "amount": "Montant",
-        "budget": "Budget"
+        "budget": "Budget",
+        "attachTo": "Rattacher à",
+        "zones": "Zones"
       },
       "errors": {
         "amountInvalid": "Chaque poste doit avoir un montant positif.",
-        "overAllocated": "La somme des postes dépasse {{total}}."
+        "overAllocated": "La somme des postes dépasse {{total}}.",
+        "sourceIncomplete": "Choisissez l'objet à rattacher, ou remettez « Rien »."
+      },
+      "source": {
+        "none": "Rien",
+        "project": "Projet",
+        "equipment": "Équipement",
+        "stock": "Article de stock",
+        "pick": "Choisir…"
       }
     },
     "reconcile": {
@@ -3274,7 +3284,11 @@
       "unknownExpense": "Dépense",
       "amountGap": "écart de {{amount}}",
       "dayGap_one": "{{count}} jour d'écart",
-      "dayGap_other": "{{count}} jours d'écart"
+      "dayGap_other": "{{count}} jours d'écart",
+      "pickExisting": "Rattacher une dépense déjà saisie",
+      "pickExistingHint": "Dépenses que la banque n'a jamais confirmées, et qui tiennent dans les {{amount}} encore libres.",
+      "noUnreconciled": "Aucune dépense non rapprochée ne tient dans le reste.",
+      "attach": "Rattacher"
     }
   },
   "pwa": {

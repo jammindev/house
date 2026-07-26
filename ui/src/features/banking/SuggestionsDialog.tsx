@@ -3,8 +3,9 @@ import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
 import type { BankTransaction } from '@/lib/api/banking';
-import { useLinkInteraction, useSuggestions } from './hooks';
+import { useAllocations, useLinkInteraction, useSuggestions } from './hooks';
 import SuggestionRow from './SuggestionRow';
+import UnreconciledPicker from './UnreconciledPicker';
 
 interface SuggestionsDialogProps {
   open: boolean;
@@ -20,9 +21,11 @@ export default function SuggestionsDialog({
 }: SuggestionsDialogProps) {
   const { t } = useTranslation();
   const suggestionsQuery = useSuggestions(open ? transaction.id : undefined);
+  const allocationsQuery = useAllocations(open ? transaction.id : undefined);
   const linkMutation = useLinkInteraction();
 
   const candidates = suggestionsQuery.data ?? [];
+  const remaining = allocationsQuery.data?.remaining ?? '0';
 
   return (
     <SheetDialog open={open} onOpenChange={onOpenChange} title={t('banking.reconcile.title')}>
@@ -63,6 +66,19 @@ export default function SuggestionsDialog({
             ))}
           </div>
         )}
+
+        {/* Le chemin que le matcher ne peut pas prendre : un achat de 90 € n'est
+            pas un appariement plausible pour une ligne de 150 €, mais il en est
+            bien une *partie*. C'est ce qui ferme l'orphelin « dépense non
+            rapprochée » dans le cas partiel. */}
+        <div className="border-t border-border pt-3">
+          <UnreconciledPicker
+            transactionId={transaction.id}
+            remaining={remaining}
+            excludeIds={candidates.map((candidate) => candidate.interaction_id)}
+            onLinked={() => onOpenChange(false)}
+          />
+        </div>
 
         <div className="flex justify-end pt-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

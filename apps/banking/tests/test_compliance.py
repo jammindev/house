@@ -33,6 +33,7 @@ from banking.detectors import (
     ACCOUNT_CHAIN_BROKEN,
     ACCOUNT_NO_OPENING_BALANCE,
     EXPENSE_UNRECONCILED,
+    EXPENSE_WITHOUT_BUDGET,
     TRANSACTION_PARTIAL,
     TRANSACTION_UNALLOCATED,
 )
@@ -655,3 +656,62 @@ class TestPagination:
         assert len(page) == 3
         waived_ids = {str(t.pk) for t in txns[:2]}
         assert not waived_ids & {f.object_id for f in page}
+
+
+# --- Detector: an expense counting against no envelope (lot 3) ----------------
+
+
+@pytest.mark.django_db
+class TestExpenseWithoutBudget:
+    def test_an_expense_with_no_budget_is_an_ecart(self, ctx):
+        household, user, _, _ = ctx
+        expense = make_expense(household, user)
+
+        findings = open_findings(household, get_detector(EXPENSE_WITHOUT_BUDGET))
+        assert [f.object_id for f in findings] == [str(expense.pk)]
+
+    def test_it_disappears_once_a_budget_is_assigned(self, ctx):
+        household, user, _, budget = ctx
+        expense = make_expense(household, user)
+
+        expense.budget = budget
+        expense.save(update_fields=["budget"])
+
+        assert group(household, EXPENSE_WITHOUT_BUDGET).detected == 0
+
+    def test_an_expense_outside_the_horizon_is_never_an_ecart(self, ctx):
+        """A budget is monthly: assigning one to a two-year-old expense changes no
+        figure anybody looks at, so flagging it would be pure busywork."""
+        household, user, _, _ = ctx
+        make_expense(household, user, occurred_on=date(2024, 5, 3))
+        assert group(household, EXPENSE_WITHOUT_BUDGET).detected == 0
+
+    def test_a_ventilated_line_without_a_budget_shows_up_here(self, ctx):
+        """Ranger une ligne « hors budget » la sort de la file mais pas du contrôle
+        — c'est un choix, qui doit rester visible et arbitrable."""
+        household, user, account, _ = ctx
+        txn = make_txn(account)
+        set_allocations(
+            household=household,
+            user=user,
+            transaction=txn,
+            lines=[{"amount": "120.00", "subject": "Courses", "budget_id": None}],
+        )
+
+        assert group(household, TRANSACTION_UNALLOCATED).detected == 0
+        assert group(household, EXPENSE_WITHOUT_BUDGET).detected == 1
+
+    def test_it_can_be_arbitrated(self, ctx):
+        household, user, _, _ = ctx
+        expense = make_expense(household, user)
+
+        waive_finding(
+            household=household,
+            user=user,
+            finding_kind=EXPENSE_WITHOUT_BUDGET,
+            object_id=str(expense.pk),
+            reason="hors de tout budget, volontairement",
+        )
+
+        result = group(household, EXPENSE_WITHOUT_BUDGET)
+        assert (result.open, result.waived) == (0, 1)

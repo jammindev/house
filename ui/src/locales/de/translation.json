@@ -3254,11 +3254,21 @@
       "fields": {
         "subject": "Bezeichnung",
         "amount": "Betrag",
-        "budget": "Budget"
+        "budget": "Budget",
+        "attachTo": "Zuordnen zu",
+        "zones": "Bereiche"
       },
       "errors": {
         "amountInvalid": "Jeder Posten braucht einen positiven Betrag.",
-        "overAllocated": "Die Posten ergeben zusammen mehr als {{total}}."
+        "overAllocated": "Die Posten ergeben zusammen mehr als {{total}}.",
+        "sourceIncomplete": "Wählen Sie das Objekt aus oder setzen Sie „Nichts“ zurück."
+      },
+      "source": {
+        "none": "Nichts",
+        "project": "Projekt",
+        "equipment": "Gerät",
+        "stock": "Lagerartikel",
+        "pick": "Auswählen…"
       }
     },
     "reconcile": {
@@ -3274,7 +3284,11 @@
       "unknownExpense": "Ausgabe",
       "amountGap": "{{amount}} Abweichung",
       "dayGap_one": "{{count}} Tag Abstand",
-      "dayGap_other": "{{count}} Tage Abstand"
+      "dayGap_other": "{{count}} Tage Abstand",
+      "pickExisting": "Bereits erfasste Ausgabe verknüpfen",
+      "pickExistingHint": "Ausgaben, die die Bank nie bestätigt hat und die in die noch freien {{amount}} passen.",
+      "noUnreconciled": "Keine nicht abgeglichene Ausgabe passt in den Rest.",
+      "attach": "Verknüpfen"
     }
   },
   "pwa": {

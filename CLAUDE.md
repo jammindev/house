@@ -274,6 +274,28 @@ onglets : Contrôle / À ranger / Comptes / Dépenses / Budgets. Doc :
   complet, donc un raccourci sur une ligne partielle détruirait le travail déjà
   fait. Même raison pour la sélection multiple.
 
+#### Ventilation — budget et projet sont deux axes indépendants
+
+Une ligne de ventilation porte un **budget** *et* un **objet** (projet, équipement,
+article de stock) *et* des **zones**. 90 € des 150 € dépensés chez Leroy Merlin
+comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
+
+- **⚠️ La règle de propriété de l'éditeur de ventilation lit `kind` seul**
+  (`OWNED_BY_ALLOCATION_EDITOR`). Ne jamais y rajouter une clause sur
+  `source_content_type_id` : avec elle, une ligne rattachée à un projet cesse
+  d'être « possédée » et se retrouve *détachée* au lieu d'être supprimée à la
+  ré-édition — **chaque ré-édition laisse une dépense fantôme** toujours comptée
+  dans le coût du projet. Test de régression :
+  `banking/tests/test_allocation_axes.py::TestOwnershipRuleRegression`.
+- `kind` reste `bank` même avec une source : il dit *d'où vient* la dépense, pas
+  *sur quoi elle porte*.
+- Toute résolution de source passe par
+  `interactions.services.resolve_allocation_source`, qui **vérifie le foyer** —
+  sans ça un client gonflerait le coût d'un projet qu'il ne peut pas voir.
+- `set_allocations` convertit les `ValueError` du créateur en **400 préfixé du
+  numéro de ligne**. Ne pas les laisser remonter : un mauvais id de zone donnait un
+  500 sur une simple erreur client.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

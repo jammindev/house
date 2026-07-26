@@ -290,11 +290,20 @@ export async function unlinkCashCounterpart(transactionId: string): Promise<void
 
 // --- Ventilation (parcours 25, lot 5) ---------------------------------------
 
-/** Une ligne de ventilation à envoyer. Le PUT est un « set » : on envoie tout. */
+/**
+ * Une ligne de ventilation à envoyer. Le PUT est un « set » : on envoie tout.
+ *
+ * `budget_id` et `source_type`/`source_id` sont deux axes **indépendants** : une
+ * ligne peut porter les deux, et compte dans les deux (parcours 26, lot 3).
+ */
 export interface AllocationLine {
   subject: string;
   amount: string;
   budget_id?: string | null;
+  /** `projects.project` | `equipment.equipment` | `stock.stockitem`. */
+  source_type?: string | null;
+  source_id?: string | null;
+  zone_ids?: string[];
   notes?: string;
 }
 
@@ -305,6 +314,10 @@ export interface AllocatedExpense {
   amount: string | null;
   kind: string;
   budget: { id: string; name: string } | null;
+  source_type: string | null;
+  source_id: string | null;
+  source_label: string | null;
+  zone_ids: string[];
   bank_transaction: string | null;
   reconciled_by: string;
 }

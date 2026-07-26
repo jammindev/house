@@ -7,9 +7,12 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
+import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
 import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
 import { useAllocations, useSetAllocations } from './hooks';
+import AllocationSourceSelect from './AllocationSourceSelect';
+import { NO_SOURCE, type AllocationSource } from './allocationSource';
 
 interface AllocationDialogProps {
   open: boolean;
@@ -28,12 +31,21 @@ interface DraftLine {
   subject: string;
   amount: string;
   budgetId: string;
+  /** Axe « objet » (projet / équipement / stock) — indépendant du budget. */
+  source: AllocationSource;
+  zoneIds: string[];
 }
 
 let lineCounter = 0;
-function blankLine(subject = '', amount = '', budgetId = ''): DraftLine {
+function blankLine(
+  subject = '',
+  amount = '',
+  budgetId = '',
+  source: AllocationSource = NO_SOURCE,
+  zoneIds: string[] = [],
+): DraftLine {
   lineCounter += 1;
-  return { key: `line-${lineCounter}`, subject, amount, budgetId };
+  return { key: `line-${lineCounter}`, subject, amount, budgetId, source, zoneIds };
 }
 
 /**
@@ -67,7 +79,17 @@ export default function AllocationDialog({
     const existing = allocationsQuery.data.allocations;
     setLines(
       existing.length > 0
-        ? existing.map((a) => blankLine(a.subject, a.amount ?? '', a.budget?.id ?? ''))
+        ? existing.map((a) =>
+            blankLine(
+              a.subject,
+              a.amount ?? '',
+              a.budget?.id ?? '',
+              a.source_type && a.source_id
+                ? { type: a.source_type as AllocationSource['type'], id: a.source_id }
+                : NO_SOURCE,
+              a.zone_ids ?? [],
+            ),
+          )
         : // Première ventilation : on pré-remplit une ligne au montant total,
           // le cas le plus fréquent (une opération = un poste).
           [blankLine(label, total.toFixed(2), '')],
@@ -99,10 +121,19 @@ export default function AllocationDialog({
         setError(t('banking.allocation.errors.amountInvalid'));
         return;
       }
+      // Un type de source sans objet choisi est une ligne à moitié remplie : le
+      // serveur la refuserait, autant le dire ici et nommer la ligne.
+      if (line.source.type && !line.source.id) {
+        setError(t('banking.allocation.errors.sourceIncomplete'));
+        return;
+      }
       payload.push({
         subject: line.subject.trim() || label,
         amount: value.toFixed(2),
         budget_id: line.budgetId || null,
+        source_type: line.source.type || null,
+        source_id: line.source.id || null,
+        zone_ids: line.zoneIds,
       });
     }
 
@@ -195,6 +226,31 @@ export default function AllocationDialog({
                     />
                   </FormField>
                 </div>
+
+                {/* Axe « objet », indépendant du budget : ces 90 € comptent dans le
+                    chantier *et* dans l'enveloppe. */}
+                <FormField
+                  label={t('banking.allocation.fields.attachTo')}
+                  htmlFor={`src-${line.key}-source-type`}
+                >
+                  <AllocationSourceSelect
+                    idPrefix={`src-${line.key}`}
+                    value={line.source}
+                    onChange={(source) => update(line.key, { source })}
+                  />
+                </FormField>
+
+                <FormField
+                  label={t('banking.allocation.fields.zones')}
+                  htmlFor={`z-${line.key}`}
+                >
+                  <ZoneMultiSelect
+                    id={`z-${line.key}`}
+                    value={line.zoneIds}
+                    onChange={(zoneIds) => update(line.key, { zoneIds })}
+                    maxHeightClass="max-h-32"
+                  />
+                </FormField>
               </div>
             </div>
           ))}

@@ -34,7 +34,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 |---|---|---|
 | 1 | Socle de conformité (`ComplianceWaiver`, détecteurs, API) | ✅ **Livré** |
 | 2 | Module « Argent » à onglets + file de rangement | ✅ **Livré** — voir [money.md](./money.md) |
-| 3 | Une ventilation porte projet, zone et budget | ⬜ |
+| 3 | Une ventilation porte projet, zone et budget | ✅ **Livré** |
 | 4 | Tout est une ligne de compte (espèces) | ⬜ |
 | 5 | Recettes et mouvements internes | ⬜ |
 | 6 | Le relevé confirme les récurrences | ⬜ |
@@ -489,13 +489,14 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 
 ### Les cinq détecteurs du lot — `detectors.py`
 
-| Clé | Sévérité | Arbitrable |
-|---|---|---|
-| `account_no_opening_balance` | `blocker` | ❌ prérequis |
-| `transaction_unallocated` | `error` | ✅ |
-| `transaction_partially_allocated` | `error` | ✅ |
-| `expense_unreconciled` | `warning` | ✅ |
-| `account_chain_broken` | `error` | ✅ |
+| Clé | Sévérité | Arbitrable | Lot |
+|---|---|---|---|
+| `account_no_opening_balance` | `blocker` | ❌ prérequis | 1 |
+| `transaction_unallocated` | `error` | ✅ | 1 |
+| `transaction_partially_allocated` | `error` | ✅ | 1 |
+| `expense_unreconciled` | `warning` | ✅ | 1 |
+| `account_chain_broken` | `error` | ✅ | 1 |
+| `expense_without_budget` | `warning` | ✅ | 3 |
 
 Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
 les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
@@ -524,6 +525,64 @@ a bougé.
 Le libellé utilisateur de chaque `kind` vit dans le namespace i18n `money` du
 front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
 passage dans quatre `.po`.
+
+## Ventilation multi-axes (parcours 26, lot 3)
+
+### Budget et projet sont deux axes **indépendants**
+
+Le cas réel : 150 € chez Leroy Merlin, dont 90 € pour le chantier salle de bain et
+60 € sans rapport. Ces 90 € comptent dans le chantier **et** dans l'enveloppe
+« Bricolage » — ce ne sont pas deux façons de dire la même chose.
+
+Avant ce lot une ligne de ventilation ne portait qu'un budget. Or
+`projects/services.py::_expense_amounts` agrège les coûts par la **FK polymorphe
+source**, et `create_bank_expense_interaction` ne la posait pas : ces 90 € ne
+remontaient donc dans **aucun** coût de projet.
+
+`create_bank_expense_interaction` accepte désormais `source_type`/`source_id`
+(valeurs de `ALLOWED_SOURCE_TYPES`) et `zone_ids` (qui existait déjà).
+`resolve_allocation_source` fait la résolution — et **vérifie le foyer** : sans ce
+contrôle un client pourrait gonfler le coût d'un projet qu'il ne peut même pas voir.
+
+`kind` reste `bank` même avec une source : le kind dit *d'où vient* la dépense (une
+ligne de relevé), pas *sur quoi elle porte*.
+
+### ⚠️ La règle de propriété lit `kind` seul
+
+`set_allocations` et `delete_transaction` décidaient qu'une dépense leur
+« appartenait » si `kind='bank'` **et** qu'elle n'avait pas d'objet source. La
+seconde clause était redondante (un achat de stock a `kind='stock_purchase'`,
+jamais `'bank'`) — et devient **activement fausse** dès qu'une ligne de ventilation
+porte un projet : la ligne cessait d'être possédée, donc elle était *détachée* au
+lieu d'être supprimée à la ré-édition. **Chaque ré-édition d'un découpage laissait
+une dépense fantôme derrière elle**, toujours comptée dans le coût du projet.
+Exactement l'orphelin que le parcours 26 supprime.
+
+L'asymétrie qui justifiait la règle est préservée : une dépense qui **préexiste** au
+relevé (achat de stock rapproché sur la ligne) est toujours seulement détachée —
+la supprimer emporterait ses documents, tags, zones et parfois une tâche.
+
+### Rattacher une dépense existante — ce que le matcher refuse de deviner
+
+Un achat de 90 € saisi depuis une page projet ne sera **jamais** proposé par
+`matching.score_pair` pour une ligne de 150 € : l'écart de montant dépasse la
+tolérance, par construction, et c'est bien ainsi — 60 € d'écart n'est pas un
+appariement plausible. Mais les 90 € sont bien *une partie* de la ligne.
+
+D'où `UnreconciledPicker` (dans `SuggestionsDialog`) : un sélecteur **explicite**
+alimenté par le détecteur `expense_unreconciled`, qui est déjà l'inventaire exact
+des candidates. Les dépenses plus grosses que le reste à ventiler sont masquées —
+`assert_allocation_fits` les refuserait, et proposer un bouton qui échoue est pire
+que ne rien proposer. **C'est ce qui ferme l'orphelin « dépense non rapprochée »
+dans le cas partiel.**
+
+### Une erreur de référence est un 400 qui nomme la ligne
+
+`create_bank_expense_interaction` signale les mauvaises références (zone inconnue,
+budget d'un autre foyer, source hors foyer) par un `ValueError`. Laissé tel quel il
+remontait en **500** sur une simple erreur client. `set_allocations` le convertit en
+400 en préfixant le numéro de ligne — sur un découpage à cinq lignes, c'est le
+numéro qui rend le message actionnable.
 
 ## Ce que les lots suivants ajouteront *(à venir)*
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total

@@ -3254,11 +3254,21 @@
       "fields": {
         "subject": "Concepto",
         "amount": "Importe",
-        "budget": "Presupuesto"
+        "budget": "Presupuesto",
+        "attachTo": "Vincular a",
+        "zones": "Zonas"
       },
       "errors": {
         "amountInvalid": "Cada partida necesita un importe positivo.",
-        "overAllocated": "Las partidas suman más de {{total}}."
+        "overAllocated": "Las partidas suman más de {{total}}.",
+        "sourceIncomplete": "Elija el objeto a vincular, o vuelva a «Nada»."
+      },
+      "source": {
+        "none": "Nada",
+        "project": "Proyecto",
+        "equipment": "Equipo",
+        "stock": "Artículo de inventario",
+        "pick": "Elegir…"
       }
     },
     "reconcile": {
@@ -3274,7 +3284,11 @@
       "unknownExpense": "Gasto",
       "amountGap": "{{amount}} de diferencia",
       "dayGap_one": "{{count}} día de diferencia",
-      "dayGap_other": "{{count}} días de diferencia"
+      "dayGap_other": "{{count}} días de diferencia",
+      "pickExisting": "Vincular un gasto ya registrado",
+      "pickExistingHint": "Gastos que el banco nunca confirmó y que caben en los {{amount}} aún libres.",
+      "noUnreconciled": "Ningún gasto sin conciliar cabe en lo que queda.",
+      "attach": "Vincular"
     }
   },
   "pwa": {
