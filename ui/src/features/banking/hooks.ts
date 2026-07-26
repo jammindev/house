@@ -4,9 +4,13 @@ import {
   archiveBankAccount,
   createBankAccount,
   fetchBankAccounts,
+  fetchStatementImports,
+  importStatementFile,
+  previewStatementFile,
   restoreBankAccount,
   updateBankAccount,
   type BankAccountPayload,
+  type StatementMapping,
 } from '@/lib/api/banking';
 import { toast } from '@/lib/toast';
 
@@ -14,6 +18,7 @@ export const bankingKeys = {
   all: ['banking'] as const,
   accounts: (includeArchived: boolean) =>
     [...bankingKeys.all, 'accounts', includeArchived] as const,
+  imports: (accountId?: string) => [...bankingKeys.all, 'imports', accountId ?? 'all'] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -76,5 +81,38 @@ export function useRestoreBankAccount() {
       toast({ description: t('banking.reopened'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Import de relevés (lot 2) ----------------------------------------------
+
+export function useStatementImports(accountId?: string) {
+  return useQuery({
+    queryKey: bankingKeys.imports(accountId),
+    queryFn: () => fetchStatementImports(accountId),
+  });
+}
+
+export function usePreviewStatementFile() {
+  return useMutation({ mutationFn: (file: File) => previewStatementFile(file) });
+}
+
+/**
+ * Dépose un relevé.
+ *
+ * Pas de toast ici : l'import réussi, l'import vide (tout en doublon) et l'échec
+ * de lecture sont trois issues différentes que seul le dialog sait raconter —
+ * il lit `status` et `created_count` sur la trace retournée.
+ */
+export function useImportStatementFile() {
+  const invalidate = useInvalidateBanking();
+  return useMutation({
+    mutationFn: (params: {
+      accountId: string;
+      file: File;
+      provider: string;
+      options: StatementMapping;
+    }) => importStatementFile(params),
+    onSuccess: invalidate,
   });
 }

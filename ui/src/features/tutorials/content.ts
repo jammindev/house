@@ -74,7 +74,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'trackers', moduleKey: 'trackers', to: '/app/trackers', stepIds: ['create', 'entries', 'charts'] },
   { key: 'expenses', moduleKey: 'expenses', to: '/app/expenses', stepIds: ['record', 'sources', 'review'] },
   { key: 'budget', moduleKey: 'budget', to: '/app/budget', stepIds: ['create', 'assign', 'track', 'recurring', 'report'] },
-  { key: 'banking', moduleKey: 'banking', to: '/app/banking', stepIds: ['accounts', 'cash', 'openingBalance'] },
+  { key: 'banking', moduleKey: 'banking', to: '/app/banking', stepIds: ['accounts', 'cash', 'openingBalance', 'import'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
   { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },

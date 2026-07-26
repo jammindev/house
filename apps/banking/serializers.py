@@ -1,7 +1,7 @@
-"""Banking serializers — account CRUD API."""
+"""Banking serializers — account CRUD + statement import API."""
 from rest_framework import serializers
 
-from .models import BankAccount
+from .models import BankAccount, BankTransaction, StatementImport
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -75,3 +75,74 @@ class BankAccountSerializer(serializers.ModelSerializer):
             attrs["bank_label"] = ""
             attrs["iban_last4"] = ""
         return attrs
+
+
+class StatementImportSerializer(serializers.ModelSerializer):
+    """Read serializer for the import history.
+
+    Everything is read-only: an import trace is a fact, not a form. A failed
+    import is a perfectly valid row — the client reads ``status`` and ``error``
+    rather than relying on the HTTP code (see ``StatementImportViewSet``).
+    """
+
+    account_name = serializers.CharField(source="account.name", read_only=True)
+
+    class Meta:
+        model = StatementImport
+        fields = [
+            "id",
+            "account",
+            "account_name",
+            "provider",
+            "filename",
+            "status",
+            "created_count",
+            "skipped_count",
+            "error",
+            "period_start",
+            "period_end",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class BankTransactionSerializer(serializers.ModelSerializer):
+    """Read serializer for a statement line.
+
+    ``label_raw``, ``amount``, ``direction`` and ``dedup_hash`` are immutable:
+    this is what the bank says. Only the qualification fields (``is_internal``,
+    ``notes``) are writable — and only through the lot 3 ``qualify`` action.
+    """
+
+    class Meta:
+        model = BankTransaction
+        fields = [
+            "id",
+            "account",
+            "booked_on",
+            "value_on",
+            "label_raw",
+            "amount",
+            "currency",
+            "direction",
+            "is_internal",
+            "balance_after",
+            "external_id",
+            "notes",
+            "source_import",
+            "created_at",
+        ]
+        read_only_fields = [
+            "id",
+            "account",
+            "booked_on",
+            "value_on",
+            "label_raw",
+            "amount",
+            "currency",
+            "direction",
+            "balance_after",
+            "external_id",
+            "source_import",
+            "created_at",
+        ]
