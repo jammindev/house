@@ -9,13 +9,17 @@ etc.) stay in the calling view — the service only owns the Interaction.
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+# Aliased: `create_bank_expense_interaction` takes a BankTransaction parameter
+# named `transaction`, which would otherwise shadow the Django module.
+from django.db.transaction import atomic as transaction_atomic
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -604,3 +608,79 @@ def delete_note_interaction(*, household, user, interaction: Interaction) -> Non
     if interaction.is_private and interaction.created_by_id != getattr(user, "pk", None):
         raise ValueError("delete_note_interaction: cannot delete another user's private note")
     interaction.delete()
+
+
+def create_bank_expense_interaction(
+    *,
+    household,
+    user,
+    transaction,
+    subject: str,
+    amount: Decimal,
+    budget_id=None,
+    zone_ids: list[UUID] | None = None,
+    notes: str = "",
+) -> Interaction:
+    """Create an expense that is an allocation of a bank statement line.
+
+    There is no ``Allocation`` table: a line split 80/40 carries two of these,
+    each with its own amount and budget. They are ordinary journal entries —
+    searchable by the agent, counted in a project's cost, linkable to zones and
+    documents — which is exactly why the split does not need a parallel table.
+
+    ``occurred_at`` is set to **noon in the household's timezone**, never
+    midnight: an operation booked on the 1st or the 31st would otherwise slide
+    into the neighbouring month once converted to UTC, and land in the wrong
+    monthly budget.
+    """
+    from banking.validators import assert_allocation_fits
+    from interactions.kinds import KIND_BANK
+
+    assert_allocation_fits(transaction=transaction, extra_amount=amount)
+
+    zones: list[Zone] = []
+    if zone_ids:
+        zones = list(Zone.objects.filter(id__in=zone_ids, household_id=household.id))
+        if len(zones) != len(zone_ids):
+            raise ValueError(
+                "create_bank_expense_interaction: one or more zones do not "
+                "belong to the household"
+            )
+
+    budget = _resolve_expense_budget(household.id, budget_id)
+
+    with transaction_atomic():
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=user,
+            subject=subject.strip() or transaction.label_raw[:500],
+            content=notes,
+            type="expense",
+            occurred_at=household_noon(household, transaction.booked_on),
+            amount=amount,
+            kind=KIND_BANK,
+            supplier="",
+            metadata=_build_expense_metadata(source_name=None, unit_price=None, extra=None),
+            budget=budget,
+            bank_transaction=transaction,
+            reconciled_by="manual",
+        )
+        for zone in zones:
+            InteractionZone.objects.create(interaction=interaction, zone=zone)
+
+    return interaction
+
+
+def household_noon(household, day) -> datetime:
+    """Noon on ``day`` in the household's timezone, as an aware datetime.
+
+    Midnight would be a bug waiting to happen: converted to UTC, an operation
+    dated the 1st or the 31st changes month — and therefore changes monthly
+    budget. Noon is far enough from both edges for every real timezone offset.
+    """
+    tz_name = getattr(household, "timezone", "") or "UTC"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("UTC")
+    return datetime.combine(day, time(12, 0), tzinfo=tz)

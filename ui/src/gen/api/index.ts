@@ -143,6 +143,7 @@ export type { ProjectTypeEnum } from './models/ProjectTypeEnum';
 export type { ProjectZone } from './models/ProjectZone';
 export type { ProtectiveDevice } from './models/ProtectiveDevice';
 export type { ProtectiveDeviceRoleEnum } from './models/ProtectiveDeviceRoleEnum';
+export type { ReconciledByEnum } from './models/ReconciledByEnum';
 export type { RecurringExpense } from './models/RecurringExpense';
 export type { RegisterEnum } from './models/RegisterEnum';
 export type { RoleAb0Enum } from './models/RoleAb0Enum';

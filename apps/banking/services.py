@@ -18,6 +18,7 @@ from rest_framework.exceptions import ValidationError
 
 from . import importers
 from .dedup import assign_discriminants, compute_dedup_hash
+from .validators import assert_allocation_fits
 from .importers.parsing import normalize_label
 from .models import (
     BankAccount,
@@ -379,3 +380,139 @@ def unlink_counterpart(*, user, transaction) -> None:
                     "updated_at",
                 ]
             )
+
+
+# --- Allocations (lot 5) -----------------------------------------------------
+
+
+def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
+    """Replace the whole allocation of ``transaction`` with ``lines``.
+
+    A **set** operation, not per-line CRUD: the client sends the split it wants
+    and gets it, which is the only way an "80/40 becomes 100/20" edit stays
+    atomic.
+
+    The destructive half is deliberately narrow. Only the expenses this editor
+    created (``kind='bank'`` **and** no source object) are deleted; anything else
+    — a stock purchase that was reconciled onto this line — is **detached**, not
+    destroyed. Deleting it would take its documents, tags, zones and possibly a
+    ``Task.source_interaction`` with it, to undo a split.
+
+    The row is locked for the duration so two concurrent edits cannot each see a
+    stale total and jointly overshoot.
+    """
+    from interactions.kinds import OWNED_BY_ALLOCATION_EDITOR
+    from interactions.models import Interaction
+    from interactions.services import create_bank_expense_interaction
+
+    with atomic():
+        locked = BankTransaction.objects.select_for_update().get(pk=transaction.pk)
+        assert_allocation_fits(transaction=locked, extra_amount=Decimal("0.00"))
+
+        total = sum((Decimal(str(line.get("amount") or 0)) for line in lines), Decimal("0.00"))
+        if total > locked.outflow:
+            raise ValidationError(
+                {"amount": f"Allocations would total {total} on an operation of {locked.outflow}."}
+            )
+
+        existing = list(locked.interactions.all())
+        for interaction in existing:
+            owned = (
+                interaction.kind in OWNED_BY_ALLOCATION_EDITOR
+                and interaction.source_content_type_id is None
+            )
+            if owned:
+                interaction.delete()
+            else:
+                interaction.bank_transaction = None
+                interaction.reconciled_by = ""
+                interaction.updated_by = user
+                interaction.save(
+                    update_fields=[
+                        "bank_transaction",
+                        "reconciled_by",
+                        "updated_by",
+                        "updated_at",
+                    ]
+                )
+
+        created = []
+        for line in lines:
+            amount = Decimal(str(line.get("amount") or 0))
+            if amount <= 0:
+                raise ValidationError({"amount": "Each allocation must be strictly positive."})
+            created.append(
+                create_bank_expense_interaction(
+                    household=household,
+                    user=user,
+                    transaction=locked,
+                    subject=str(line.get("subject") or "").strip(),
+                    amount=amount,
+                    budget_id=line.get("budget_id"),
+                    zone_ids=line.get("zone_ids"),
+                    notes=str(line.get("notes") or ""),
+                )
+            )
+
+        # Refresh so the caller sees the linked state rather than a stale copy.
+        Interaction.objects.filter(pk__in=[i.pk for i in created])
+        return created
+
+
+def link_interaction(*, user, transaction, interaction, by: str = "manual"):
+    """Attach an existing expense to a bank line — the manual reconciliation."""
+    if interaction.household_id != transaction.household_id:
+        raise ValidationError({"interaction": "Belongs to another household."})
+    if interaction.type != "expense":
+        raise ValidationError({"interaction": "Only an expense can be allocated."})
+    if interaction.bank_transaction_id == transaction.pk:
+        return interaction
+
+    with atomic():
+        locked = BankTransaction.objects.select_for_update().get(pk=transaction.pk)
+        assert_allocation_fits(
+            transaction=locked,
+            extra_amount=interaction.amount or Decimal("0.00"),
+        )
+        interaction.bank_transaction = locked
+        interaction.reconciled_by = by
+        interaction.updated_by = user
+        interaction.save(
+            update_fields=["bank_transaction", "reconciled_by", "updated_by", "updated_at"]
+        )
+    return interaction
+
+
+def unlink_interaction(*, user, interaction):
+    """Detach an expense from its bank line. The expense itself survives."""
+    interaction.bank_transaction = None
+    interaction.reconciled_by = ""
+    interaction.updated_by = user
+    interaction.save(
+        update_fields=["bank_transaction", "reconciled_by", "updated_by", "updated_at"]
+    )
+    return interaction
+
+
+def delete_transaction(*, user, transaction) -> None:
+    """Delete a bank line, keeping every fact the household journalled.
+
+    Same asymmetry as ``set_allocations``: the expenses this line generated go
+    with it, the pre-existing ones are only detached. ``SET_NULL`` on the FK
+    would handle the detaching by itself, but doing it explicitly also clears
+    ``reconciled_by`` — a reconciliation marker with nothing to point at is a
+    lie waiting to confuse the lot 6 matcher.
+    """
+    from interactions.kinds import OWNED_BY_ALLOCATION_EDITOR
+
+    with atomic():
+        for interaction in list(transaction.interactions.all()):
+            owned = (
+                interaction.kind in OWNED_BY_ALLOCATION_EDITOR
+                and interaction.source_content_type_id is None
+            )
+            if owned:
+                interaction.delete()
+            else:
+                unlink_interaction(user=user, interaction=interaction)
+        transaction.delete()

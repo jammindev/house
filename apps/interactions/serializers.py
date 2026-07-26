@@ -163,14 +163,22 @@ class InteractionSerializer(serializers.ModelSerializer):
             'contacts', 'contact_ids', 'structures', 'structure_ids',
             'equipments', 'equipment_ids',
             'budget', 'budget_id',
+            'bank_transaction', 'reconciled_by',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
-        read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by']
+        read_only_fields = [
+            'id', 'household', 'created_at', 'updated_at', 'created_by',
+            # The link to a bank line is owned by banking.services (allocate /
+            # link / unlink), never by a generic PATCH on the expense.
+            'bank_transaction', 'reconciled_by',
+        ]
 
     def validate(self, data):
         data = super().validate(data)
         if not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
             raise serializers.ValidationError({'occurred_at': 'This field is required.'})
+
+        self._validate_allocation_still_fits(data)
 
         has_ct = 'source_content_type' in data
         has_oid = 'source_object_id' in data
@@ -182,6 +190,28 @@ class InteractionSerializer(serializers.ModelSerializer):
                     {'source_id': 'source_type and source_id must be provided together.'}
                 )
         return data
+
+    def _validate_allocation_still_fits(self, data):
+        """Keep a reconciled expense within the bank line it is an allocation of.
+
+        This generic PATCH is the write path that knows nothing about banking —
+        which is exactly why the check has to be here too. Without it, editing an
+        80 € allocation into 500 € on a 120 € statement line would break the
+        invariant in silence (parcours 25, ``banking.validators``).
+        """
+        if 'amount' not in data:
+            return
+        transaction = getattr(self.instance, 'bank_transaction', None)
+        if transaction is None:
+            return
+
+        from banking.validators import assert_allocation_fits
+
+        assert_allocation_fits(
+            transaction=transaction,
+            extra_amount=data.get('amount') or Decimal('0.00'),
+            exclude_interaction_id=self.instance.pk,
+        )
 
     def _validate_source_in_household(self, source_ct, source_object_id, household_id):
         """The linked source object must exist in the interaction's household."""

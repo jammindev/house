@@ -3232,6 +3232,26 @@
         "accountRequired": "Elige una cuenta de efectivo.",
         "amountInvalid": "Introduce un importe positivo, como máximo {{max}}."
       }
+    },
+    "allocation": {
+      "title": "Desglosar esta operación",
+      "action": "Desglosar",
+      "saved": "Desglose guardado",
+      "noBudget": "— sin presupuesto —",
+      "line": "Partida {{n}}",
+      "addLine": "Añadir una partida",
+      "removeLine": "Quitar esta partida",
+      "allocated": "Asignado",
+      "remaining": "Pendiente de asignar",
+      "fields": {
+        "subject": "Concepto",
+        "amount": "Importe",
+        "budget": "Presupuesto"
+      },
+      "errors": {
+        "amountInvalid": "Cada partida necesita un importe positivo.",
+        "overAllocated": "Las partidas suman más de {{total}}."
+      }
     }
   },
   "pwa": {
