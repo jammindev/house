@@ -63,6 +63,12 @@ from electricity.models import (
     UsagePoint,
 )
 from households.models import Household, HouseholdMember
+from banking.models import (
+    BankAccount,
+    BankTransaction,
+    ComplianceWaiver,
+    StatementImport,
+)
 from interactions.models import Interaction
 from projects.models import Project
 from stock.models import StockCategory, StockItem
@@ -111,6 +117,15 @@ class Command(BaseCommand):
             ProtectiveDevice.objects.filter(board__household_id__in=household_ids).delete()
             ElectricityBoard.objects.filter(household_id__in=household_ids).delete()
             Interaction.objects.filter(household_id__in=household_ids).delete()
+            # Banking must go before the household: ``BankTransaction.account`` is
+            # PROTECT (an account holding history is archived, never deleted), so a
+            # household carrying a single statement line — or a cash expense typed
+            # from the UI — could not be deleted at all. A flush command that cannot
+            # flush is worse than no flush command.
+            BankTransaction.objects.filter(household_id__in=household_ids).delete()
+            ComplianceWaiver.objects.filter(household_id__in=household_ids).delete()
+            StatementImport.objects.filter(household_id__in=household_ids).delete()
+            BankAccount.objects.filter(household_id__in=household_ids).delete()
             StockItem.objects.filter(household_id__in=household_ids).delete()
             StockCategory.objects.filter(household_id__in=household_ids).delete()
             Zone.objects.filter(household_id__in=household_ids).delete()

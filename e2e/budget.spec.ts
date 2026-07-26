@@ -38,6 +38,29 @@ async function deleteAllBudgets(page: import('@playwright/test').Page): Promise<
   }
 }
 
+/**
+ * Ouvre le dialog de dépense en espèces, en créant le compte espèces au besoin.
+ * Depuis le parcours 26 lot 4, une dépense saisie à la main est une **opération de
+ * compte** : sans compte espèces il n'y a rien à écrire, et le dialog propose de le
+ * créer sur place plutôt que de renvoyer ailleurs.
+ */
+async function openCashDialog(page: import('@playwright/test').Page) {
+  await page.goto('/app/money?tab=expenses');
+  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
+  await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+
+  const createButton = dialog.getByRole('button', { name: 'Créer mon compte espèces' });
+  if (await createButton.isVisible().catch(() => false)) {
+    await createButton.click();
+  }
+
+  await expect(dialog.locator('#cash-label')).toBeVisible();
+  return dialog;
+}
+
 /** Crée un budget nommé via l'API et retourne l'objet créé. */
 async function apiCreateBudget(
   page: import('@playwright/test').Page,
@@ -244,39 +267,25 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
     await apiCreateBudget(page, 'Courses Tests', 500);
   });
 
-  test('le dialog de dépense ad-hoc propose le select de budget quand un budget nommé existe', async ({ page }) => {
-    await page.goto('/app/money?tab=expenses');
-    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
-
-    // Ouvrir le dialog de dépense ad-hoc
-    await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
-
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
-    await expect(dialog).toContainText('Enregistrer une dépense ad-hoc');
+  test('le dialog de dépense en espèces propose le select de budget quand un budget nommé existe', async ({ page }) => {
+    const dialog = await openCashDialog(page);
 
     // Le select "Budget" doit être présent
-    await expect(dialog.getByLabel('Budget')).toBeVisible();
-    await expect(dialog.locator('#adhoc-budget')).toBeVisible();
+    await expect(dialog.locator('#cash-budget')).toBeVisible();
 
     // L'option "Courses Tests" doit être disponible dans le select
-    const select = dialog.locator('#adhoc-budget');
+    const select = dialog.locator('#cash-budget');
     await expect(select.locator('option', { hasText: 'Courses Tests' })).toHaveCount(1);
   });
 
   test('enregistrer une dépense rattachée à un budget incrémente le budget', async ({ page }) => {
-    // Créer la dépense via l'UI
-    await page.goto('/app/money?tab=expenses');
-    await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
-
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible();
+    const dialog = await openCashDialog(page);
 
     const subject = `Supermarché E2E ${Date.now()}`;
-    await page.locator('#adhoc-subject').fill(subject);
+    await dialog.locator('#cash-label').fill(subject);
 
     // Sélectionner le budget "Courses Tests"
-    await page.locator('#adhoc-budget').selectOption({ label: 'Courses Tests' });
+    await dialog.locator('#cash-budget').selectOption({ label: 'Courses Tests' });
 
     await page.locator('#purchase-price').fill('85');
     await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();

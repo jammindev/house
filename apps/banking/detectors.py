@@ -1,4 +1,4 @@
-"""Banking's own compliance detectors — the first five entries of the catalogue.
+"""Banking's own compliance detectors — most of the orphan catalogue.
 
 Each one answers a question the household would otherwise have to ask itself, and
 would therefore never ask:
@@ -8,7 +8,8 @@ would therefore never ask:
 - an expense was typed in that the bank never saw (``expense_unreconciled``);
 - an expense that counts against no envelope (``expense_without_budget``);
 - an account whose starting point is unknown (``account_no_opening_balance``);
-- an account whose statements do not chain (``account_chain_broken``).
+- an account whose statements do not chain (``account_chain_broken``);
+- a cash account in the red, which is physically impossible (``account_cash_negative``).
 
 Every detector that reasons about "money we should know about" is scoped by
 ``banking.coverage``: outside the conformity window an écart is not an écart, it
@@ -48,6 +49,7 @@ EXPENSE_UNRECONCILED = "expense_unreconciled"
 EXPENSE_WITHOUT_BUDGET = "expense_without_budget"
 ACCOUNT_NO_OPENING_BALANCE = "account_no_opening_balance"
 ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
+ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
 
 
 # --- Shared base: spendable outflows inside their account's window -----------
@@ -277,6 +279,59 @@ def _find_no_opening_balance(household, **window) -> list[Finding]:
     ]
 
 
+def _negative_cash_pairs(household) -> list[tuple[BankAccount, Decimal]]:
+    """Cash accounts showing a negative balance, with the figure.
+
+    Physically impossible: you cannot hand over a note you do not have. So it never
+    means "overdraft", it means a withdrawal was never declared — the money left
+    the bank account and nobody said it arrived in the pot. Hence
+    ``waivable=False``: there is no motive that makes this acceptable, only a
+    missing operation to record.
+
+    Python rather than SQL for the same reason as the chain check: the balance is a
+    computation (``balances.compute_balance``), and the cost is bounded by the
+    number of cash accounts — one, usually.
+    """
+    from .balances import compute_balance
+
+    pairs = []
+    for account in BankAccount.objects.filter(
+        household=household, archived=False, kind=BankAccount.Kind.CASH
+    ):
+        balance = compute_balance(account=account)
+        if balance.amount < 0:
+            pairs.append((account, balance.amount))
+    return pairs
+
+
+def _count_negative_cash(household) -> int:
+    return len(_negative_cash_pairs(household))
+
+
+def _find_negative_cash(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    pairs = _negative_cash_pairs(household)
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [p for p in pairs if str(p[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+
+    return [
+        Finding(
+            kind=ACCOUNT_CASH_NEGATIVE,
+            object_id=str(account.pk),
+            label=account.name,
+            fingerprint=fingerprint_of(ACCOUNT_CASH_NEGATIVE, amount),
+            detail={"name": account.name, "balance": str(amount)},
+        )
+        for account, amount in pairs
+    ]
+
+
 def _chain_broken_pairs(household) -> list[tuple[BankAccount, list]]:
     """Accounts whose statement chain does not close, with their gaps.
 
@@ -418,5 +473,17 @@ def _specs() -> list[DetectorSpec]:
             model=BankAccount,
             count=_count_chain_broken,
             findings=_find_chain_broken,
+        ),
+        DetectorSpec(
+            kind=ACCOUNT_CASH_NEGATIVE,
+            severity=ERROR,
+            label="Cash account in the red — a withdrawal was never declared",
+            target="account",
+            model=BankAccount,
+            count=_count_negative_cash,
+            findings=_find_negative_cash,
+            # No motive makes physically impossible money acceptable. There is an
+            # operation missing, not a judgement call to record.
+            waivable=False,
         ),
     ]

@@ -1,6 +1,7 @@
 """Banking REST API views."""
 import json
 from datetime import date
+from decimal import InvalidOperation
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -43,6 +44,7 @@ from .services import (
     archive_account,
     create_account,
     import_statement_file,
+    record_cash_expense,
     link_interaction,
     preview_statement_file,
     record_cash_withdrawal,
@@ -322,6 +324,62 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         instance.updated_by = request.user
         instance.save(update_fields=[*updated_fields, "updated_by", "updated_at"])
         return Response(self.get_serializer(instance).data)
+
+    @action(detail=False, methods=["post"], url_path="cash-expense")
+    def cash_expense(self, request):
+        """Spend cash: create the operation **and** its allocation, together.
+
+        The point of going through the account rather than creating a bare expense:
+        a spend that exists only as an ``Interaction`` is an expense the bank never
+        saw, which the conformity control can only ever report as an écart nobody
+        can resolve. Recording it as a real account line removes that orphan by
+        construction.
+
+        Atomic on purpose — see ``services.record_cash_expense``. Creating the line
+        and letting the user allocate it later would drop a freshly created
+        operation straight into the "unallocated" queue: the app manufacturing its
+        own écarts.
+        """
+        from interactions.serializers import InteractionSerializer
+
+        household = request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        account_id = request.data.get("account")
+        if not account_id:
+            raise ValidationError({"account": "This field is required."})
+        account = BankAccount.objects.filter(household=household, pk=account_id).first()
+        if account is None:
+            raise ValidationError({"account": "Unknown account for this household."})
+
+        booked_on = _parse_date_param(request.data.get("booked_on"), "booked_on") or date.today()
+
+        try:
+            transaction_row, allocations = record_cash_expense(
+                household=household,
+                user=request.user,
+                account=account,
+                booked_on=booked_on,
+                label=str(request.data.get("label") or ""),
+                amount=request.data.get("amount") or 0,
+                budget_id=request.data.get("budget_id"),
+                zone_ids=request.data.get("zone_ids") or [],
+                source_type=request.data.get("source_type"),
+                source_id=request.data.get("source_id"),
+                notes=str(request.data.get("notes") or ""),
+            )
+        except (TypeError, ValueError, InvalidOperation):
+            # A non-numeric amount is a client mistake, not a server fault.
+            raise ValidationError({"amount": "Expected a decimal amount."})
+
+        return Response(
+            {
+                "transaction": self.get_serializer(transaction_row).data,
+                "allocations": InteractionSerializer(allocations, many=True).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
     @action(detail=False, methods=["get"], url_path="flow")
     def flow(self, request):

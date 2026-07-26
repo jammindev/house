@@ -3223,23 +3223,20 @@
       }
     },
     "cash": {
-      "title": "Diese Abhebung ins Bargeld buchen",
-      "action": "Ins Bargeld buchen",
-      "intro": "Eine Abhebung ist keine Ausgabe, sondern Bargeld, das die Tasche wechselt. Buchst du sie auf dein Bargeldkonto, fällt sie hier aus den Summen heraus und wird nur einmal gezählt — wenn du das Geld tatsächlich ausgibst.",
-      "unlink": "Bargeld-Verknüpfung lösen",
-      "linked": "Abhebung ins Bargeld gebucht",
-      "unlinked": "Bargeld-Verknüpfung gelöst",
-      "linkedBadge": "Ins Bargeld gebucht",
-      "noCashAccount": "Lege zuerst auf der Konten-Seite ein Konto vom Typ „Bargeld“ an.",
-      "fields": {
-        "account": "Bargeldkonto",
-        "amount": "Gebuchter Betrag",
-        "amountHint": "Nicht jede Abhebung landet in der gemeinsamen Kasse — passe den Betrag bei Bedarf an."
-      },
-      "errors": {
-        "accountRequired": "Wähle ein Bargeldkonto.",
-        "amountInvalid": "Gib einen positiven Betrag ein, höchstens {{max}}."
-      }
+      "title": "Barausgabe",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "z. B. Markt, Bäckerei",
+      "labelRequired": "Eine Bezeichnung ist erforderlich.",
+      "account": "Barkonto",
+      "accountRequired": "Wählen Sie ein Barkonto.",
+      "amountRequired": "Geben Sie einen positiven Betrag ein.",
+      "budget": "Budget",
+      "budgetNone": "Ohne Budget",
+      "recorded": "Ausgabe auf dem Barkonto erfasst.",
+      "noAccount": "Kein Barkonto",
+      "noAccountHint": "Legen Sie im Reiter Konten ein Konto „Bargeld“ an: eine Barausgabe wird dann eine Kontobuchung wie jede andere.",
+      "createAccount": "Barkonto anlegen",
+      "defaultAccountName": "Bargeld"
     },
     "allocation": {
       "title": "Diese Buchung aufteilen",
@@ -3437,6 +3434,16 @@
           "title": "Saldenkette unterbrochen",
           "hint": "Die Salden des Auszugs passen nicht zusammen: Buchungen fehlen.",
           "resolution": "Importieren Sie den fehlenden Auszug. Bis dahin bleibt der Saldo als unzuverlässig markiert."
+        },
+        "account_cash_negative": {
+          "title": "Barkonto im Minus",
+          "hint": "Physisch unmöglich: eine Abhebung wurde nicht erfasst.",
+          "resolution": "Erfassen Sie die Abhebung, die dieses Konto füllt, im Bankjournal („Bargeld auffüllen“ auf der Abhebungszeile)."
+        },
+        "expense_without_budget": {
+          "title": "Ausgaben ohne Budget",
+          "hint": "Sie zählen auf kein Budget.",
+          "resolution": "Weisen Sie ein Budget zu oder legen Sie es begründet ab, wenn es Absicht ist."
         }
       }
     },

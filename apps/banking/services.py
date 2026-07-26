@@ -619,3 +619,132 @@ def waive_finding(*, household, user, finding_kind: str, object_id: str, reason:
 def revoke_waiver(*, waiver) -> None:
     """Undo an arbitration. The écart comes back identical — that is the point."""
     waiver.delete()
+
+
+# --- Manual account lines (parcours 26, lot 4) --------------------------------
+
+
+def create_manual_transaction(
+    *,
+    household,
+    user,
+    account,
+    booked_on,
+    label: str,
+    amount: Decimal,
+    notes: str = "",
+):
+    """Record an operation nobody's bank will ever export.
+
+    Cash is the case that forced this: a note handed over at the market leaves no
+    statement line, so before this lot such a spend could only exist as a bare
+    ``Interaction`` — an expense the bank never saw, which the conformity control
+    can only ever report as an écart nobody can resolve. Making it a real account
+    line **removes that orphan by construction** rather than teaching the user to
+    arbitrate it every month.
+
+    ``dedup_hash`` carries a ``manual:{uuid4}`` discriminant. Two consequences,
+    both wanted:
+
+    - a manual entry is never a duplicate of itself (typing the same 20 € twice is
+      two spends, and only the user knows whether that is a mistake);
+    - it can never collide with an imported line, whose discriminant always comes
+      from the file (reference, balance, or occurrence index).
+    """
+    import uuid
+
+    from .models import BankAccount, BankTransaction, TransactionDirection
+
+    if account.household_id != household.id:
+        raise ValidationError({"account": "Account belongs to another household."})
+    if account.archived:
+        raise ValidationError({"account": "This account is archived."})
+
+    value = Decimal(str(amount))
+    if value == 0:
+        raise ValidationError({"amount": "Amount cannot be zero."})
+
+    label = (label or "").strip()
+    if not label:
+        raise ValidationError({"label": "A label is required."})
+
+    normalized = normalize_label(label)
+    return BankTransaction.objects.create(
+        household=household,
+        account=account,
+        booked_on=booked_on,
+        label_raw=label[:500],
+        label_norm=normalized[:255],
+        amount=value,
+        currency=account.currency or "EUR",
+        direction=TransactionDirection.OUT if value < 0 else TransactionDirection.IN,
+        dedup_hash=compute_dedup_hash(
+            account_id=account.id,
+            booked_on=booked_on,
+            label_norm=normalized,
+            amount=value,
+            currency=account.currency or "EUR",
+            discriminant=f"manual:{uuid.uuid4()}",
+        ),
+        notes=notes or "",
+        created_by=user,
+        updated_by=user,
+    )
+
+
+def record_cash_expense(
+    *,
+    household,
+    user,
+    account,
+    booked_on,
+    label: str,
+    amount: Decimal,
+    budget_id=None,
+    zone_ids=None,
+    source_type: str | None = None,
+    source_id=None,
+    notes: str = "",
+):
+    """Spend cash: the operation and its allocation are born together.
+
+    Composed in **one** transaction on purpose. Creating the line first and
+    letting the user allocate it later would put a freshly created operation
+    straight into the "unallocated" queue — the app would be manufacturing its own
+    écarts. Here there is no window during which the line exists unaccounted for.
+
+    ``amount`` is given positive (what the user spent) and stored **signed**, like
+    every outflow.
+    """
+    value = abs(Decimal(str(amount)))
+    if value <= 0:
+        raise ValidationError({"amount": "Amount must be positive."})
+
+    with atomic():
+        transaction_row = create_manual_transaction(
+            household=household,
+            user=user,
+            account=account,
+            booked_on=booked_on,
+            label=label,
+            amount=-value,
+            notes=notes,
+        )
+        allocations = set_allocations(
+            household=household,
+            user=user,
+            transaction=transaction_row,
+            lines=[
+                {
+                    "subject": label,
+                    "amount": f"{value:.2f}",
+                    "budget_id": budget_id,
+                    "zone_ids": zone_ids or [],
+                    "source_type": source_type,
+                    "source_id": source_id,
+                    "notes": notes,
+                }
+            ],
+        )
+
+    return transaction_row, allocations

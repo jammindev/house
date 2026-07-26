@@ -531,6 +531,33 @@ export class BankingService {
         });
     }
     /**
+     * Spend cash: create the operation **and** its allocation, together.
+     *
+     * The point of going through the account rather than creating a bare expense:
+     * a spend that exists only as an ``Interaction`` is an expense the bank never
+     * saw, which the conformity control can only ever report as an écart nobody
+     * can resolve. Recording it as a real account line removes that orphan by
+     * construction.
+     *
+     * Atomic on purpose — see ``services.record_cash_expense``. Creating the line
+     * and letting the user allocate it later would drop a freshly created
+     * operation straight into the "unallocated" queue: the app manufacturing its
+     * own écarts.
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsCashExpenseCreate(
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/cash-expense/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Money in / out over a period, internal movements excluded.
      *
      * Never add this to a budget or expense total — see the module docstring of

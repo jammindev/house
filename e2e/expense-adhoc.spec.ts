@@ -1,54 +1,96 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Parcours 08 — Lot 1.2 : enregistrer une dépense ad-hoc.
+ * Parcours 26 — Lot 4 : la dépense en espèces est une opération de compte.
  *
- * Issue: https://github.com/jammindev/house/issues/124
+ * Remplace le parcours « dépense ad-hoc » (parcours 08 lot 1.2, issue #124). Le
+ * formulaire n'a presque pas changé ; ce qu'il **écrit** a changé du tout au tout.
  *
- * La dépense ad-hoc n'a pas de source : c'est l'utilisateur qui saisit
- * le sujet libre. metadata.kind = 'manual', source_content_type = NULL.
+ * Une dépense qui n'existe que comme `Interaction` est une dépense que la banque
+ * n'a jamais vue : le contrôle de conformité ne peut que la signaler, et personne
+ * ne peut la résoudre. En passant par le compte espèces, l'opération et sa
+ * ventilation naissent ensemble — l'orphelin disparaît par construction.
  */
 
-test('parcours dépense ad-hoc — Restaurant Le Bistrot 32€', async ({ page }) => {
+/** Le compte espèces se crée depuis le dialog, en un clic. */
+async function openCashDialog(page: import('@playwright/test').Page) {
   await page.goto('/app/money?tab=expenses');
-  await expect(page).toHaveURL(/\/app\/money/);
   await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
-
-  // Cliquer sur le bouton « + Nouvelle dépense » de l'onglet Dépenses
   await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('Enregistrer une dépense ad-hoc');
 
-  const subject = `Restaurant E2E ${Date.now()}`;
-  await page.locator('#adhoc-subject').fill(subject);
+  // Premier passage : pas encore de compte espèces. Le dialog ne renvoie pas
+  // ailleurs — il propose de le créer sur place.
+  const createButton = dialog.getByRole('button', { name: 'Créer mon compte espèces' });
+  if (await createButton.isVisible().catch(() => false)) {
+    await createButton.click();
+  }
+
+  await expect(dialog.locator('#cash-label')).toBeVisible();
+  return dialog;
+}
+
+test('dépense en espèces — Marché 32 €, opération et ventilation ensemble', async ({ page }) => {
+  const dialog = await openCashDialog(page);
+
+  const label = `Marché E2E ${Date.now()}`;
+  await dialog.locator('#cash-label').fill(label);
   await page.locator('#purchase-price').fill('32');
-  await page.locator('#purchase-supplier').fill('Le Bistrot E2E');
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
   await expect(dialog).toBeHidden();
 
-  // Vérifier que la dépense apparaît dans la vue dépense (le subject est
-  // saisi tel-quel — pas de template gettext)
-  await expect(page.getByText(subject).first()).toBeVisible();
+  // La dépense apparaît dans l'onglet Dépenses — le libellé est saisi tel quel.
+  await expect(page.getByText(label).first()).toBeVisible();
 
-  // Vérifier qu'elle apparaît aussi dans /app/interactions
+  // Et dans le journal du foyer, comme toute dépense.
   await page.goto('/app/interactions');
-  await expect(page.getByText(subject).first()).toBeVisible();
+  await expect(page.getByText(label).first()).toBeVisible();
 });
 
-test('parcours dépense ad-hoc — sujet vide refusé', async ({ page }) => {
-  await page.goto('/app/money?tab=expenses');
-  await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
+test('dépense en espèces — la ligne apparaît dans le journal bancaire', async ({ page }) => {
+  const dialog = await openCashDialog(page);
 
-  const dialog = page.getByRole('dialog');
-  await expect(dialog).toBeVisible();
+  const label = `Boulangerie E2E ${Date.now()}`;
+  await dialog.locator('#cash-label').fill(label);
+  await page.locator('#purchase-price').fill('4.20');
+  await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
+  await expect(dialog).toBeHidden();
 
-  // Tenter de soumettre sans sujet
+  // C'est **une opération de compte**, pas seulement une dépense : elle doit se
+  // voir dans le journal bancaire.
+  await page.goto('/app/money/transactions');
+  await expect(page.getByText(label).first()).toBeVisible();
+});
+
+test('dépense en espèces — libellé vide refusé', async ({ page }) => {
+  const dialog = await openCashDialog(page);
+
   await page.locator('#purchase-price').fill('10');
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
 
-  // Le dialog reste ouvert (validation côté front)
+  // Le dialog reste ouvert : validation côté front avant tout appel réseau.
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText('Un sujet est requis');
+  await expect(dialog).toContainText('Le libellé est obligatoire');
+});
+
+test('dépense en espèces — elle ne produit aucun écart de conformité', async ({ page }) => {
+  const dialog = await openCashDialog(page);
+
+  const label = `Sans écart E2E ${Date.now()}`;
+  await dialog.locator('#cash-label').fill(label);
+  await page.locator('#purchase-price').fill('7.50');
+  await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
+  await expect(dialog).toBeHidden();
+
+  // C'est LE point du lot : l'opération naît ventilée, donc ni « sortie non
+  // affectée » ni « dépense non rapprochée » pour cette ligne.
+  const token = await page.evaluate(() => localStorage.getItem('access_token') ?? '');
+  const resp = await page.request.get('/api/banking/compliance/', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const body = (await resp.json()) as { groups: Array<{ kind: string; open: number }> };
+  const byKind = new Map(body.groups.map((g) => [g.kind, g.open]));
+  expect(byKind.get('transaction_unallocated')).toBe(0);
 });

@@ -35,7 +35,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | 1 | Socle de conformité (`ComplianceWaiver`, détecteurs, API) | ✅ **Livré** |
 | 2 | Module « Argent » à onglets + file de rangement | ✅ **Livré** — voir [money.md](./money.md) |
 | 3 | Une ventilation porte projet, zone et budget | ✅ **Livré** |
-| 4 | Tout est une ligne de compte (espèces) | ⬜ |
+| 4 | Tout est une ligne de compte (espèces) | ✅ **Livré** |
 | 5 | Recettes et mouvements internes | ⬜ |
 | 6 | Le relevé confirme les récurrences | ⬜ |
 | 7 | Continuité des relevés et provenance | ⬜ |
@@ -497,6 +497,7 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 | `expense_unreconciled` | `warning` | ✅ | 1 |
 | `account_chain_broken` | `error` | ✅ | 1 |
 | `expense_without_budget` | `warning` | ✅ | 3 |
+| `account_cash_negative` | `error` | ❌ incohérence | 4 |
 
 Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
 les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
@@ -583,6 +584,66 @@ budget d'un autre foyer, source hors foyer) par un `ValueError`. Laissé tel que
 remontait en **500** sur une simple erreur client. `set_allocations` le convertit en
 400 en préfixant le numéro de ligne — sur un découpage à cinq lignes, c'est le
 numéro qui rend le message actionnable.
+
+## Tout est une ligne de compte (parcours 26, lot 4)
+
+### Pourquoi la dépense en espèces devait changer de nature
+
+Un billet donné au marché ne laisse aucune ligne de relevé. Avant ce lot, une telle
+dépense ne pouvait exister que comme `Interaction` nue — donc comme une **dépense
+que la banque n'a jamais vue**, que le contrôle de conformité ne peut que
+*signaler*, sans que personne puisse la résoudre. Chaque mois, la même liste
+d'écarts inarbitrables : le meilleur moyen de faire abandonner le contrôle.
+
+En faire une vraie opération de compte supprime l'orphelin **par construction**,
+plutôt que d'apprendre à l'utilisateur à l'arbitrer tous les mois.
+
+### `create_manual_transaction`
+
+Le `dedup_hash` porte un discriminant `manual:{uuid4}`. Deux conséquences, toutes
+deux voulues :
+
+- une saisie manuelle n'est **jamais** un doublon d'elle-même — deux fois 20 € en
+  liquide, ce sont deux dépenses, et seul l'utilisateur sait si c'est une erreur ;
+- elle ne peut **jamais** entrer en collision avec une ligne importée, dont le
+  discriminant vient toujours du fichier (référence, solde, index d'occurrence).
+
+### `record_cash_expense` — atomique par nécessité
+
+L'opération et sa ventilation naissent **dans la même transaction**. Créer la ligne
+puis laisser l'utilisateur la ventiler plus tard déposerait une opération
+fraîchement créée directement dans la file « à ranger » : l'app fabriquerait ses
+propres écarts. Ici il n'existe aucun instant où la ligne est non affectée — et un
+budget invalide fait rouler l'ensemble en arrière, opération comprise.
+
+`amount` est **donné positif** (ce que l'utilisateur a dépensé) et **stocké signé**,
+comme toute sortie.
+
+### Détecteur `account_cash_negative` — non arbitrable
+
+Un compte espèces dans le rouge est **physiquement impossible** : on ne donne pas un
+billet qu'on n'a pas. Ça ne veut donc jamais dire « découvert », ça veut dire qu'un
+retrait n'a pas été déclaré. D'où `waivable=False` : aucun motif ne rend acceptable
+de l'argent impossible, il y a une opération à enregistrer.
+
+Un **compte bancaire** à découvert n'est pas concerné — un découvert est légitime.
+Seuls les comptes `kind='cash'` sont vérifiés.
+
+### `CashExpenseDialog` — pas de cul-de-sac
+
+Sans compte espèces il n'y a rien à écrire. Mais renvoyer l'utilisateur vers un
+autre onglet au moment où il veut noter une dépense serait un cul-de-sac : le dialog
+propose de créer le compte **sur place, en un clic** (solde d'ouverture à zéro,
+daté du jour — qui est aussi le prérequis de conformité). La contrainte est tenue
+sans que la saisie soit interrompue.
+
+`ExpenseAdHocDialog` n'est plus utilisé par l'UI. L'endpoint `expenses_manual`
+reste pour compatibilité API.
+
+### API
+
+`POST /api/banking/transactions/cash-expense/` → `{transaction, allocations}`.
+Un montant non numérique est un **400**, pas un 500.
 
 ## Ce que les lots suivants ajouteront *(à venir)*
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total

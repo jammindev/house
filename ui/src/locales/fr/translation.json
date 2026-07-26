@@ -3223,23 +3223,20 @@
       }
     },
     "cash": {
-      "title": "Verser ce retrait aux espèces",
-      "action": "Verser aux espèces",
-      "intro": "Un retrait n'est pas une dépense : c'est du liquide qui change de poche. En le versant sur ton compte espèces, il sort des totaux ici et sera compté une seule fois, quand tu dépenseras cet argent.",
-      "unlink": "Retirer le lien espèces",
-      "linked": "Retrait versé aux espèces",
-      "unlinked": "Lien espèces retiré",
-      "linkedBadge": "Versé aux espèces",
-      "noCashAccount": "Crée d'abord un compte de type « Espèces » depuis la page Comptes.",
-      "fields": {
-        "account": "Compte espèces",
-        "amount": "Montant versé",
-        "amountHint": "Tout le retrait ne finit pas forcément dans le pot commun — ajuste si besoin."
-      },
-      "errors": {
-        "accountRequired": "Choisis un compte espèces.",
-        "amountInvalid": "Saisis un montant positif, au plus {{max}}."
-      }
+      "title": "Dépense en espèces",
+      "label": "Libellé",
+      "labelPlaceholder": "Ex. : marché, boulangerie",
+      "labelRequired": "Le libellé est obligatoire.",
+      "account": "Compte espèces",
+      "accountRequired": "Choisissez un compte espèces.",
+      "amountRequired": "Indiquez un montant positif.",
+      "budget": "Budget",
+      "budgetNone": "Hors budget",
+      "recorded": "Dépense enregistrée sur le compte espèces.",
+      "noAccount": "Aucun compte espèces",
+      "noAccountHint": "Déclarez un compte « Espèces » dans l'onglet Comptes : une dépense en liquide devient alors une opération de compte, comme les autres.",
+      "createAccount": "Créer mon compte espèces",
+      "defaultAccountName": "Espèces"
     },
     "allocation": {
       "title": "Ventiler cette opération",
@@ -3437,6 +3434,16 @@
           "title": "Chaîne de soldes rompue",
           "hint": "Les soldes du relevé ne s'enchaînent pas : des opérations manquent.",
           "resolution": "Importez le relevé manquant. Le solde affiché reste marqué comme non fiable d'ici là."
+        },
+        "account_cash_negative": {
+          "title": "Espèces à découvert",
+          "hint": "Impossible physiquement : un retrait n'a pas été déclaré.",
+          "resolution": "Déclarez le retrait qui alimente ce compte, depuis le journal bancaire (« Alimenter les espèces » sur la ligne de retrait)."
+        },
+        "expense_without_budget": {
+          "title": "Dépenses hors budget",
+          "hint": "Elles ne comptent dans aucune enveloppe.",
+          "resolution": "Affectez un budget, ou arbitrez si c'est volontaire."
         }
       }
     },

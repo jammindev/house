@@ -15,6 +15,7 @@ import {
   previewStatementFile,
   qualifyTransaction,
   reconcileTransactions,
+  recordCashExpense,
   restoreBankAccount,
   setAllocations,
   unlinkCashCounterpart,
@@ -22,6 +23,7 @@ import {
   withdrawToCash,
   type AllocationLine,
   type BankAccountPayload,
+  type CashExpensePayload,
   type StatementMapping,
   type TransactionFilters,
 } from '@/lib/api/banking';
@@ -290,6 +292,27 @@ export function useLinkInteraction() {
       invalidate();
       void qc.invalidateQueries({ queryKey: ['interactions'] });
       toast({ description: t('banking.reconcile.linked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useRecordCashExpense() {
+  const invalidate = useInvalidateBanking();
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (payload: CashExpensePayload) => recordCashExpense(payload),
+    onSuccess: () => {
+      invalidate();
+      // L'opération crée aussi une Interaction : dépenses, budgets et conformité
+      // doivent se rafraîchir, sinon la dépense qu'on vient de saisir n'apparaît
+      // nulle part avant un reload.
+      void qc.invalidateQueries({ queryKey: ['interactions'] });
+      void qc.invalidateQueries({ queryKey: ['expenses'] });
+      void qc.invalidateQueries({ queryKey: ['budget'] });
+      void qc.invalidateQueries({ queryKey: complianceKeys.all });
+      toast({ description: t('banking.cash.recorded'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

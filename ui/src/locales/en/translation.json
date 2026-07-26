@@ -3223,23 +3223,20 @@
       }
     },
     "cash": {
-      "title": "Move this withdrawal to cash",
-      "action": "Move to cash",
-      "intro": "A withdrawal is not spending: it is cash changing pocket. Moving it to your cash account takes it out of the totals here, so the money is counted once — when you actually spend it.",
-      "unlink": "Remove the cash link",
-      "linked": "Withdrawal moved to cash",
-      "unlinked": "Cash link removed",
-      "linkedBadge": "Moved to cash",
-      "noCashAccount": "Create a “Cash” account first, from the Accounts page.",
-      "fields": {
-        "account": "Cash account",
-        "amount": "Amount moved",
-        "amountHint": "Not every withdrawal ends up in the common pot — adjust if needed."
-      },
-      "errors": {
-        "accountRequired": "Pick a cash account.",
-        "amountInvalid": "Enter a positive amount, at most {{max}}."
-      }
+      "title": "Cash expense",
+      "label": "Label",
+      "labelPlaceholder": "E.g. market, bakery",
+      "labelRequired": "A label is required.",
+      "account": "Cash account",
+      "accountRequired": "Pick a cash account.",
+      "amountRequired": "Enter a positive amount.",
+      "budget": "Budget",
+      "budgetNone": "No budget",
+      "recorded": "Expense recorded on the cash account.",
+      "noAccount": "No cash account",
+      "noAccountHint": "Declare a “Cash” account in the Accounts tab: a cash spend then becomes an account operation, like every other.",
+      "createAccount": "Create my cash account",
+      "defaultAccountName": "Cash"
     },
     "allocation": {
       "title": "Split this operation",
@@ -3437,6 +3434,16 @@
           "title": "Broken balance chain",
           "hint": "The statement balances do not chain: operations are missing.",
           "resolution": "Import the missing statement. Until then the balance stays flagged as unreliable."
+        },
+        "account_cash_negative": {
+          "title": "Cash account in the red",
+          "hint": "Physically impossible: a withdrawal was never declared.",
+          "resolution": "Declare the withdrawal that feeds this account, from the bank journal (“Feed cash” on the withdrawal line)."
+        },
+        "expense_without_budget": {
+          "title": "Expenses outside any budget",
+          "hint": "They count against no envelope.",
+          "resolution": "Assign a budget, or arbitrate if it is deliberate."
         }
       }
     },

@@ -3223,23 +3223,20 @@
       }
     },
     "cash": {
-      "title": "Pasar esta retirada al efectivo",
-      "action": "Pasar al efectivo",
-      "intro": "Una retirada no es un gasto: es dinero que cambia de bolsillo. Al pasarla a tu cuenta de efectivo sale de los totales de aquí, y se contará una sola vez, cuando gastes ese dinero.",
-      "unlink": "Quitar el vínculo con efectivo",
-      "linked": "Retirada pasada al efectivo",
-      "unlinked": "Vínculo con efectivo eliminado",
-      "linkedBadge": "Pasada al efectivo",
-      "noCashAccount": "Crea antes una cuenta de tipo «Efectivo» desde la página Cuentas.",
-      "fields": {
-        "account": "Cuenta de efectivo",
-        "amount": "Importe pasado",
-        "amountHint": "No toda la retirada acaba en el fondo común: ajústalo si hace falta."
-      },
-      "errors": {
-        "accountRequired": "Elige una cuenta de efectivo.",
-        "amountInvalid": "Introduce un importe positivo, como máximo {{max}}."
-      }
+      "title": "Gasto en efectivo",
+      "label": "Concepto",
+      "labelPlaceholder": "Ej.: mercado, panadería",
+      "labelRequired": "El concepto es obligatorio.",
+      "account": "Cuenta de efectivo",
+      "accountRequired": "Elija una cuenta de efectivo.",
+      "amountRequired": "Indique un importe positivo.",
+      "budget": "Presupuesto",
+      "budgetNone": "Sin presupuesto",
+      "recorded": "Gasto registrado en la cuenta de efectivo.",
+      "noAccount": "Sin cuenta de efectivo",
+      "noAccountHint": "Declare una cuenta «Efectivo» en la pestaña Cuentas: un gasto en metálico pasa entonces a ser una operación de cuenta, como las demás.",
+      "createAccount": "Crear mi cuenta de efectivo",
+      "defaultAccountName": "Efectivo"
     },
     "allocation": {
       "title": "Desglosar esta operación",
@@ -3437,6 +3434,16 @@
           "title": "Cadena de saldos rota",
           "hint": "Los saldos del extracto no encadenan: faltan operaciones.",
           "resolution": "Importe el extracto que falta. Hasta entonces el saldo queda marcado como no fiable."
+        },
+        "account_cash_negative": {
+          "title": "Efectivo en negativo",
+          "hint": "Físicamente imposible: no se declaró una retirada.",
+          "resolution": "Declare la retirada que alimenta esta cuenta, desde el diario bancario («Alimentar el efectivo» en la línea de retirada)."
+        },
+        "expense_without_budget": {
+          "title": "Gastos sin presupuesto",
+          "hint": "No cuentan en ninguna partida.",
+          "resolution": "Asigne un presupuesto, o justifíquelo si es deliberado."
         }
       }
     },
