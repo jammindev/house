@@ -18,6 +18,9 @@ import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
 import { blockingPrerequisite } from './prerequisites';
+import { ACCOUNT_WITHOUT_WINDOW } from './keys';
+import { useBankAccounts } from '@/features/banking/hooks';
+import AccountDialog from '@/features/banking/AccountDialog';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
 const SEVERITY_ORDER: Record<ComplianceSeverity, number> = { blocker: 0, error: 1, warning: 2 };
@@ -47,6 +50,14 @@ export default function CompliancePanel() {
   const showSkeleton = useDelayedLoading(summaryQuery.isLoading);
   const [openKind, setOpenKind] = React.useState<string | null>(null);
   const [waiving, setWaiving] = React.useState<WaiverTarget | null>(null);
+  // Le prérequis bloquant se règle sur le compte : l'ouvrir depuis le contrôle
+  // évite de renvoyer chercher dans un autre onglet ce qu'on peut corriger ici.
+  const [fixingAccountId, setFixingAccountId] = React.useState<string | null>(null);
+  const accountsQuery = useBankAccounts(true);
+  const fixingAccount = React.useMemo(
+    () => (accountsQuery.data ?? []).find((account) => account.id === fixingAccountId),
+    [accountsQuery.data, fixingAccountId],
+  );
 
   const groups = React.useMemo(() => {
     const rows = summaryQuery.data?.groups ?? [];
@@ -95,12 +106,21 @@ export default function CompliancePanel() {
               expanded={openKind === group.kind}
               onToggle={() => setOpenKind((prev) => (prev === group.kind ? null : group.kind))}
               onWaive={setWaiving}
+              onFixAccount={setFixingAccountId}
             />
           ))}
         </div>
       )}
 
       <WaiverDialog target={waiving} onClose={() => setWaiving(null)} />
+
+      {fixingAccount ? (
+        <AccountDialog
+          open
+          onOpenChange={(next) => !next && setFixingAccountId(null)}
+          existing={fixingAccount}
+        />
+      ) : null}
     </div>
   );
 }
@@ -163,6 +183,7 @@ function GroupRow({
   expanded,
   onToggle,
   onWaive,
+  onFixAccount,
 }: {
   group: ComplianceGroup;
   /** Prérequis encore ouvert : ce groupe n'est pas conforme, il est non évaluable. */
@@ -170,6 +191,7 @@ function GroupRow({
   expanded: boolean;
   onToggle: () => void;
   onWaive: (target: WaiverTarget) => void;
+  onFixAccount: (accountId: string) => void;
 }) {
   const { t } = useTranslation();
   const Icon = SEVERITY_ICON[group.severity];
@@ -237,7 +259,9 @@ function GroupRow({
         )}
       </button>
 
-      {expanded ? <GroupDetail group={group} onWaive={onWaive} /> : null}
+      {expanded ? (
+        <GroupDetail group={group} onWaive={onWaive} onFixAccount={onFixAccount} />
+      ) : null}
     </Card>
   );
 }
@@ -245,9 +269,11 @@ function GroupRow({
 function GroupDetail({
   group,
   onWaive,
+  onFixAccount,
 }: {
   group: ComplianceGroup;
   onWaive: (target: WaiverTarget) => void;
+  onFixAccount: (accountId: string) => void;
 }) {
   const { t } = useTranslation();
   const [showWaived, setShowWaived] = React.useState(false);
@@ -287,6 +313,11 @@ function GroupDetail({
               key={finding.object_id}
               finding={finding}
               waivable={group.waivable}
+              onFix={
+                group.kind === ACCOUNT_WITHOUT_WINDOW
+                  ? () => onFixAccount(finding.object_id)
+                  : undefined
+              }
               onWaive={() =>
                 onWaive({
                   kind: group.kind,
@@ -357,17 +388,37 @@ function FindingRow({
   finding,
   waivable,
   onWaive,
+  onFix,
 }: {
   finding: ComplianceFinding;
   waivable: boolean;
   onWaive: () => void;
+  /** Corriger sur place, quand l'écart se règle sur un objet éditable. */
+  onFix?: () => void;
 }) {
   const { t } = useTranslation();
+  const reason = typeof finding.detail.reason === 'string' ? finding.detail.reason : null;
 
   return (
     <li className="flex items-start gap-2 rounded-lg bg-muted/40 p-2 text-sm">
       <div className="min-w-0 flex-1">
         <p className="truncate text-foreground">{finding.label}</p>
+
+        {/* Les dates concrètes, pas seulement la règle : sans elles l'utilisateur
+            sait qu'il doit changer quelque chose mais pas quoi mettre. */}
+        {reason === 'opening_date_after_data' ? (
+          <p className="text-xs text-muted-foreground">
+            {t('money.compliance.window.afterData', {
+              openingDate: formatMaybeDate(finding.detail.opening_balance_date),
+              earliestLine: formatMaybeDate(finding.detail.earliest_line),
+            })}
+          </p>
+        ) : null}
+        {reason === 'no_opening_date' ? (
+          <p className="text-xs text-muted-foreground">
+            {t('money.compliance.window.noDate')}
+          </p>
+        ) : null}
         {finding.is_stale ? (
           <p className="text-xs text-amber-600">
             {t('money.compliance.stale', { reason: finding.waiver_reason })}
@@ -380,17 +431,29 @@ function FindingRow({
         ) : null}
       </div>
 
+      {onFix ? (
+        <Button type="button" variant="outline" size="sm" onClick={onFix}>
+          {t('money.compliance.fix')}
+        </Button>
+      ) : null}
+
       {waivable ? (
         <Button type="button" variant="ghost" size="sm" onClick={onWaive}>
           {finding.is_stale
             ? t('money.compliance.rearbitrate')
             : t('money.compliance.arbitrate')}
         </Button>
-      ) : (
+      ) : !onFix ? (
         <span className="shrink-0 text-xs italic text-muted-foreground">
           {t('money.compliance.notWaivable')}
         </span>
-      )}
+      ) : null}
     </li>
   );
+}
+
+/** Une date ISO en date locale, ou un tiret quand l'information manque. */
+function formatMaybeDate(value: unknown): string {
+  if (typeof value !== 'string' || !value) return '—';
+  return new Date(value).toLocaleDateString();
 }

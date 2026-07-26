@@ -63,7 +63,11 @@ export default function TutorialGuidePage() {
                 <p className="text-sm font-medium text-foreground">
                   {t(`tutorials.guide.${guide.key}.steps.${stepId}.title`)}
                 </p>
-                <p className="mt-1 text-sm text-muted-foreground">
+                {/* `whitespace-pre-line` : une étape qui explique un mécanisme a
+                    parfois besoin d'un second paragraphe (« conséquence à
+                    connaître… »). Sans ça les `\n` du fichier de traduction sont
+                    écrasés en un simple espace et le texte devient un pavé. */}
+                <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">
                   {t(`tutorials.guide.${guide.key}.steps.${stepId}.body`)}
                 </p>
               </div>

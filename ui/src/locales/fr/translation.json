@@ -1117,6 +1117,10 @@
         "invite-member": {
           "title": "Inviter un membre du foyer",
           "description": "Depuis les réglages, invitez votre famille à rejoindre le foyer."
+        },
+        "declare-account": {
+          "title": "Déclarer un compte et son point de départ",
+          "description": "Un compte, son solde d'ouverture et la date correspondante : c'est le prérequis de tout le suivi de l'argent. Sans lui, aucun contrôle ne porte sur tes dépenses."
         }
       }
     },
@@ -1607,7 +1611,7 @@
           },
           "openingBalance": {
             "title": "Renseigner le solde de départ",
-            "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est **obligatoire** : sans point de départ, le solde affiché serait une supposition, et aucun contrôle de conformité ne porterait sur ce compte. Il peut être négatif si tu es à découvert."
+            "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est obligatoire, et pour une bonne raison : sans point de départ, le solde affiché serait une supposition, et aucun contrôle de conformité ne porterait sur ce compte. Il peut être négatif si tu es à découvert."
           },
           "import": {
             "title": "Importer ton premier relevé",
@@ -1620,6 +1624,40 @@
           "balance": {
             "title": "Vérifier ton solde",
             "body": "Chaque compte affiche son solde, calculé à la lecture — il n'est jamais figé en base. Si ta banque exporte la colonne solde, House s'y ancre et vérifie au passage que la chaîne des relevés est complète : s'il manque des opérations, tu vois « chaîne rompue » avec la période et le montant manquant, plutôt qu'un chiffre plausible mais faux. C'est le meilleur test de tes imports : si le solde affiché tombe sur celui de ton relevé papier, tout est bon. Pour le liquide, ouvre le journal et utilise « Verser aux espèces » sur un retrait : il sort des totaux de dépenses et alimente le solde de ton compte espèces."
+          }
+        }
+      },
+      "money": {
+        "title": "Comment l'argent fonctionne ici",
+        "intro": "Avant de cliquer, comprendre. Le module Argent suit quelques règles qui ne vont pas de soi — et l'une d'elles explique pourquoi tout n'est pas toujours signalé.",
+        "steps": {
+          "source": {
+            "title": "Le relevé est la vérité, pas ta mémoire",
+            "body": "Une ligne de relevé est un fait : la banque l'a écrite, l'app ne la réécrit jamais. Tout le reste s'appuie dessus. C'est pour ça qu'importer tes relevés n'est pas une corvée administrative mais le socle : sans eux, l'app ne peut que te croire sur parole."
+          },
+          "allocation": {
+            "title": "Une dépense donne un sens à une ligne",
+            "body": "Une ligne dit « 42 € sont partis chez Leclerc ». Elle ne dit pas *pourquoi*. La dépense, c'est toi qui dis « c'était les courses ». Affecter un budget depuis « À ranger », c'est exactement ça — il n'y a pas une étape en plus pour créer la dépense, c'est le même geste."
+          },
+          "axes": {
+            "title": "Une ligne peut se découper, sur deux axes",
+            "body": "150 € chez Leroy Merlin, dont 90 € pour la salle de bain et 60 € sans rapport : tu découpes la ligne en deux. Et chaque morceau porte deux informations indépendantes — un budget (« Bricolage ») et un objet (le chantier salle de bain). Les 90 € comptent donc dans ton enveloppe *et* dans le coût du chantier, ce qui n'est pas un double comptage : ce sont deux questions différentes."
+          },
+          "window": {
+            "title": "Pourquoi tout n'est pas contrôlé",
+            "body": "L'app ne te signale que ce que tu peux réellement corriger. Elle définit donc une période de contrôle par compte : de la date de ton solde d'ouverture jusqu'au dernier relevé importé. Avant : c'est de l'historique, aucune ligne bancaire ne viendra jamais s'y rattacher. Après : le relevé n'est simplement pas encore arrivé. Entre les deux, l'exigence est totale — et c'est ce qui rend le « zéro écart » atteignable.\n\nUne conséquence à connaître. Si la date de ton solde d'ouverture est postérieure à tes opérations, la période est vide et rien n'est contrôlé du tout. L'app te le dit alors explicitement, au lieu de laisser croire que tout va bien."
+          },
+          "arbitrate": {
+            "title": "Arbitrer n'est pas cacher",
+            "body": "Certains écarts sont légitimes : des frais bancaires qui ne concernent aucun budget, un achat payé par quelqu'un d'autre. Tu les « arbitres » — avec un motif obligatoire. L'écart quitte ta liste de travail mais reste consultable, et tu peux révoquer l'arbitrage d'un clic : l'écart revient à l'identique.\n\nEt un arbitrage périme. Si tu as écrit « le reste de cette ligne ne m'intéresse pas » puis que tu modifies son découpage, l'écart réapparaît : ton motif ne décrivait plus la situation."
+          },
+          "notEvaluable": {
+            "title": "Un zéro peut vouloir dire deux choses",
+            "body": "« Rien à signaler » veut dire : le contrôle a tourné, tout va bien. « Non évaluable » veut dire : le contrôle n'a pas pu tourner, parce qu'un prérequis manque — typiquement un compte sans solde d'ouverture, ou dont la date sort de ses opérations.\\n\\nL'app ne confond jamais les deux. Un contrôle non évaluable affiche un tiret, pas un zéro, et nomme le prérequis à lever. Règle-le, et tout devient mesurable d'un coup."
+          },
+          "cash": {
+            "title": "Les espèces sont un compte comme un autre",
+            "body": "Un billet donné au marché ne laisse aucune ligne de relevé. Pour qu'il ne devienne pas une dépense que la banque n'a jamais vue — donc un écart que personne ne peut résoudre — l'app en fait une opération de ton compte « Espèces ». Alimente-le avec tes retraits, et ton argent liquide se suit comme le reste."
           }
         }
       }
@@ -3501,12 +3539,17 @@
         "account_without_window": {
           "title": "Compte hors de portée du contrôle",
           "hint": "Aucune fenêtre de conformité : soit le solde d'ouverture manque, soit sa date est postérieure à tes relevés.",
-          "resolution": "Renseigne le solde d'ouverture, ou recule sa date avant la plus ancienne ligne du compte. Tant que ce n'est pas fait, aucun autre contrôle ne porte sur ce compte."
+          "resolution": "Mets la date du solde d'ouverture au début de la période que tu as importée — pas à aujourd'hui. Le montant doit être le solde à cette date-là : s'il est approximatif, seul le solde affiché en pâtira, le rangement de tes opérations fonctionnera quand même. Tant que la date n'est pas corrigée, aucun autre contrôle ne porte sur ce compte."
         }
       },
       "blocked": "Contrôle non évaluable",
       "blockedHint": "Un prérequis empêche les contrôles de porter sur tes comptes. Règle-le et tout devient mesurable.",
-      "notEvaluable": "Non évaluable — prérequis : {{prerequisite}}"
+      "notEvaluable": "Non évaluable — prérequis : {{prerequisite}}",
+      "window": {
+        "noDate": "Aucune date de solde d'ouverture n'est renseignée.",
+        "afterData": "Ta date de solde d'ouverture est le {{openingDate}}, mais ta plus ancienne opération est du {{earliestLine}} : la période de contrôle est vide."
+      },
+      "fix": "Corriger"
     },
     "pending": {
       "count": "{{count}} opération à ranger",

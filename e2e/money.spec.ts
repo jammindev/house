@@ -241,6 +241,17 @@ test.describe('Module Argent — non évaluable ≠ conforme', () => {
     await page.goto('/app/money?tab=control');
     await expect(page.getByText('Tout est conforme')).toHaveCount(0);
     await expect(page.getByText('Compte hors de portée du contrôle').first()).toBeVisible();
+
+    // L'écart doit donner les **dates concrètes** : sans elles l'utilisateur sait
+    // qu'il doit changer quelque chose, mais pas quoi mettre.
+    await page.getByText('Compte hors de portée du contrôle').first().click();
+    await expect(page.getByText(/ta plus ancienne opération est du/)).toBeVisible();
+
+    // Et se corriger sur place, sans aller chercher dans un autre onglet.
+    await page.getByRole('button', { name: 'Corriger' }).first().click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await expect(page.locator('#account-opening-date')).toBeVisible();
+    await page.getByRole('button', { name: 'Annuler' }).click();
     // Les contrôles **dépendants** doivent l'annoncer : un zéro affiché comme
     // « Rien à signaler » était précisément le mensonge à corriger. Les contrôles
     // qui ne dépendent pas de la fenêtre (chaîne de soldes, récurrences, imports)

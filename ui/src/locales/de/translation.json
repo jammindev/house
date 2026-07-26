@@ -1117,6 +1117,10 @@
         "invite-member": {
           "title": "Ein Haushaltsmitglied einladen",
           "description": "Laden Sie Ihre Familie über die Einstellungen in den Haushalt ein."
+        },
+        "declare-account": {
+          "title": "Ein Konto und seinen Startpunkt anlegen",
+          "description": "Ein Konto, sein Anfangssaldo und das passende Datum: das ist die Voraussetzung für die gesamte Geldverfolgung. Ohne sie deckt keine Prüfung Ihre Ausgaben ab."
         }
       }
     },
@@ -1607,7 +1611,7 @@
           },
           "openingBalance": {
             "title": "Anfangssaldo eintragen",
-            "body": "Geben Sie den Kontostand zu einem Datum ein — typischerweise der des ersten Auszugs, den Sie importieren wollen. Das ist **erforderlich**: ohne Startpunkt wäre der angezeigte Saldo eine Annahme, und keine Prüfung würde dieses Konto abdecken. Er darf negativ sein."
+            "body": "Geben Sie den Kontostand zu einem Datum ein — typischerweise der des ersten Auszugs, den Sie importieren wollen. Das ist erforderlich, und das aus gutem Grund: ohne Startpunkt wäre der angezeigte Saldo eine Annahme, und keine Konformitätsprüfung würde dieses Konto abdecken. Er darf negativ sein."
           },
           "import": {
             "title": "Ersten Kontoauszug importieren",
@@ -1620,6 +1624,40 @@
           "balance": {
             "title": "Saldo prüfen",
             "body": "Jedes Konto zeigt seinen Saldo, berechnet beim Lesen — nie in der Datenbank eingefroren. Exportiert deine Bank eine Saldo-Spalte, verankert House sich daran und prüft nebenbei die Auszugskette: Fehlen Buchungen, siehst du „Kette unterbrochen“ mit Zeitraum und fehlendem Betrag statt einer plausiblen, aber falschen Zahl. Das ist der beste Test deiner Importe: Stimmt der angezeigte Saldo mit deinem Papierauszug überein, passt alles. Für Bargeld öffne das Journal und nutze „Ins Bargeld buchen“ bei einer Abhebung — sie verlässt die Ausgabensummen und speist den Saldo deines Bargeldkontos."
+          }
+        }
+      },
+      "money": {
+        "title": "Wie Geld hier funktioniert",
+        "intro": "Erst verstehen, dann klicken. Das Modul Geld folgt einigen Regeln, die nicht selbsterklärend sind — und eine davon erklärt, warum nicht immer alles gemeldet wird.",
+        "steps": {
+          "source": {
+            "title": "Der Auszug ist die Wahrheit, nicht Ihr Gedächtnis",
+            "body": "Eine Auszugszeile ist eine Tatsache: die Bank hat sie geschrieben, die App schreibt sie nie um. Alles andere stützt sich darauf. Deshalb ist der Import Ihrer Auszüge keine Bürokratie, sondern das Fundament: ohne sie kann die App Ihnen nur glauben."
+          },
+          "allocation": {
+            "title": "Eine Ausgabe gibt einer Zeile ihren Sinn",
+            "body": "Eine Zeile sagt „42 € gingen an Leclerc“. Sie sagt nicht *warum*. Die Ausgabe sind Sie, wenn Sie sagen „das war der Einkauf“. Ein Budget im Reiter „Zuordnen“ zu vergeben, ist genau das — es gibt keinen zusätzlichen Schritt, um die Ausgabe zu erzeugen."
+          },
+          "axes": {
+            "title": "Eine Zeile kann aufgeteilt werden, auf zwei Achsen",
+            "body": "150 € im Baumarkt, davon 90 € für das Badezimmer und 60 € ohne Bezug: Sie teilen die Zeile. Und jeder Teil trägt zwei unabhängige Angaben — ein Budget („Heimwerken“) und ein Objekt (das Badprojekt). Diese 90 € zählen also im Budget *und* in den Projektkosten — kein Doppelzählen, sondern zwei verschiedene Fragen."
+          },
+          "window": {
+            "title": "Warum nicht alles geprüft wird",
+            "body": "Die App meldet nur, was Sie wirklich beheben können. Sie definiert daher pro Konto einen Prüfzeitraum: von Ihrem Anfangssaldo-Datum bis zum letzten importierten Auszug. Davor: Historie, dazu wird nie eine Kontozeile passen. Danach: der Auszug ist einfach noch nicht da. Dazwischen gilt der Anspruch vollständig — und genau das macht „null Abweichungen“ erreichbar.\n\nEine Folge, die Sie kennen sollten. Liegt Ihr Anfangssaldo-Datum nach Ihren Buchungen, ist der Zeitraum leer und es wird überhaupt nichts geprüft. Die App sagt das dann ausdrücklich, statt Sie glauben zu lassen, alles sei in Ordnung."
+          },
+          "arbitrate": {
+            "title": "Begründet ablegen heißt nicht verstecken",
+            "body": "Manche Abweichungen sind berechtigt: Bankgebühren ohne Budget, ein von jemand anderem bezahlter Einkauf. Sie legen sie begründet ab — mit Pflichtbegründung. Die Abweichung verlässt Ihre Arbeitsliste, bleibt aber lesbar, und Sie können die Ablage mit einem Klick widerrufen: sie kommt unverändert zurück.\n\nUnd eine Ablage verfällt. Haben Sie „der Rest interessiert mich nicht“ geschrieben und ändern dann die Aufteilung, erscheint die Abweichung wieder: Ihre Begründung beschrieb die Lage nicht mehr."
+          },
+          "notEvaluable": {
+            "title": "Eine Null kann zwei Dinge bedeuten",
+            "body": "„Nichts zu melden“ heißt: die Prüfung lief, alles in Ordnung. „Nicht bewertbar“ heißt: die Prüfung konnte nicht laufen, weil eine Voraussetzung fehlt — typischerweise ein Konto ohne Anfangssaldo oder mit einem Datum außerhalb seiner eigenen Buchungen.\\n\\nDie App verwechselt beides nie. Eine nicht bewertbare Prüfung zeigt einen Strich, keine Null, und benennt die Voraussetzung. Beheben Sie sie, und alles wird auf einmal messbar."
+          },
+          "cash": {
+            "title": "Bargeld ist ein Konto wie jedes andere",
+            "body": "Ein auf dem Markt übergebener Schein hinterlässt keine Auszugszeile. Damit daraus keine Ausgabe wird, die die Bank nie gesehen hat — eine Abweichung, die niemand lösen kann — erfasst die App sie als Buchung auf Ihrem „Bargeld“-Konto. Füllen Sie es mit Ihren Abhebungen, und Ihr Bargeld wird wie alles andere verfolgt."
           }
         }
       }
@@ -3501,12 +3539,17 @@
         "account_without_window": {
           "title": "Konto außerhalb der Kontrolle",
           "hint": "Kein Konformitätsfenster: entweder fehlt der Anfangssaldo, oder sein Datum liegt nach Ihren Auszügen.",
-          "resolution": "Tragen Sie den Anfangssaldo ein oder setzen Sie sein Datum vor die älteste Zeile des Kontos. Bis dahin deckt keine andere Prüfung dieses Konto ab."
+          "resolution": "Setzen Sie das Anfangssaldo-Datum auf den Beginn des importierten Zeitraums — nicht auf heute. Der Betrag sollte der Saldo zu diesem Datum sein: ist er ungefähr, leidet nur der angezeigte Saldo, das Zuordnen Ihrer Buchungen funktioniert weiterhin. Solange das Datum nicht korrigiert ist, deckt keine andere Prüfung dieses Konto ab."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",
       "blockedHint": "Eine Voraussetzung verhindert, dass die Prüfungen Ihre Konten abdecken. Beheben Sie sie, dann wird alles messbar.",
-      "notEvaluable": "Nicht bewertbar — Voraussetzung: {{prerequisite}}"
+      "notEvaluable": "Nicht bewertbar — Voraussetzung: {{prerequisite}}",
+      "window": {
+        "noDate": "Es ist kein Anfangssaldo-Datum eingetragen.",
+        "afterData": "Ihr Anfangssaldo-Datum ist der {{openingDate}}, Ihre älteste Buchung aber vom {{earliestLine}}: der Prüfzeitraum ist leer."
+      },
+      "fix": "Beheben"
     },
     "pending": {
       "count": "{{count}} Buchung zuzuordnen",

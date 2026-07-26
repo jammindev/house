@@ -1117,6 +1117,10 @@
         "invite-member": {
           "title": "Invitar a un miembro del hogar",
           "description": "Desde los ajustes, invita a tu familia a unirse al hogar."
+        },
+        "declare-account": {
+          "title": "Declarar una cuenta y su punto de partida",
+          "description": "Una cuenta, su saldo inicial y la fecha correspondiente: es el requisito de todo el seguimiento del dinero. Sin él, ningún control cubre sus gastos."
         }
       }
     },
@@ -1607,7 +1611,7 @@
           },
           "openingBalance": {
             "title": "Indicar el saldo inicial",
-            "body": "Indique el saldo de la cuenta en una fecha dada — normalmente el del primer extracto que vaya a importar. Es **obligatorio**: sin punto de partida el saldo mostrado sería una suposición, y ningún control de conformidad cubriría esta cuenta. Puede ser negativo si está en descubierto."
+            "body": "Indique el saldo de la cuenta en una fecha dada — normalmente el del primer extracto que vaya a importar. Es obligatorio, y por una buena razón: sin punto de partida el saldo mostrado sería una suposición, y ningún control de conformidad cubriría esta cuenta. Puede ser negativo si está en descubierto."
           },
           "import": {
             "title": "Importar tu primer extracto",
@@ -1620,6 +1624,40 @@
           "balance": {
             "title": "Comprobar tu saldo",
             "body": "Cada cuenta muestra su saldo, calculado al leer: nunca queda congelado en la base de datos. Si tu banco exporta la columna de saldo, House se ancla en ella y comprueba de paso que la cadena de extractos esté completa: si faltan operaciones verás «cadena rota» con el periodo y el importe que falta, en lugar de una cifra plausible pero falsa. Es la mejor prueba de tus importaciones: si el saldo mostrado coincide con tu extracto en papel, todo está bien. Para el efectivo, abre el diario y usa «Pasar al efectivo» en una retirada: sale de los totales de gasto y alimenta el saldo de tu cuenta de efectivo."
+          }
+        }
+      },
+      "money": {
+        "title": "Cómo funciona el dinero aquí",
+        "intro": "Entender antes de hacer clic. El módulo Dinero sigue algunas reglas que no son evidentes — y una de ellas explica por qué no todo se señala siempre.",
+        "steps": {
+          "source": {
+            "title": "El extracto es la verdad, no su memoria",
+            "body": "Una línea de extracto es un hecho: el banco la escribió, la app nunca la reescribe. Todo lo demás se apoya en ella. Por eso importar sus extractos no es papeleo sino el cimiento: sin ellos, la app solo puede creerle."
+          },
+          "allocation": {
+            "title": "Un gasto da sentido a una línea",
+            "body": "Una línea dice «salieron 42 € hacia Leclerc». No dice *por qué*. El gasto es usted diciendo «era la compra». Asignar un presupuesto desde «Por ordenar» es exactamente eso — no hay un paso extra para crear el gasto, es el mismo gesto."
+          },
+          "axes": {
+            "title": "Una línea puede desglosarse, en dos ejes",
+            "body": "150 € en la tienda de bricolaje, 90 € para el baño y 60 € sin relación: desglosa la línea en dos. Y cada parte lleva dos datos independientes — un presupuesto («Bricolaje») y un objeto (la obra del baño). Esos 90 € cuentan por tanto en su partida *y* en el coste de la obra, y no es doble conteo: son dos preguntas distintas."
+          },
+          "window": {
+            "title": "Por qué no todo se controla",
+            "body": "La app solo señala lo que usted puede corregir realmente. Define por tanto un periodo de control por cuenta: desde la fecha de su saldo inicial hasta el último extracto importado. Antes: es historial, y ninguna línea bancaria vendrá nunca a vincularse. Después: el extracto simplemente aún no ha llegado. Entre ambos, la exigencia es total — y eso es lo que hace alcanzable el «cero discrepancias».\n\nUna consecuencia que conviene conocer. Si la fecha de su saldo inicial es posterior a sus operaciones, el periodo está vacío y no se controla absolutamente nada. La app se lo dice entonces explícitamente, en lugar de dejarle creer que todo va bien."
+          },
+          "arbitrate": {
+            "title": "Justificar no es esconder",
+            "body": "Algunas discrepancias son legítimas: comisiones bancarias que no corresponden a ningún presupuesto, una compra pagada por otra persona. Las «justifica» — con un motivo obligatorio. La discrepancia sale de su lista de trabajo pero sigue consultable, y puede revocar la justificación con un clic: vuelve idéntica.\n\nY una justificación caduca. Si escribió «el resto de esta línea no me interesa» y luego cambia su desglose, la discrepancia reaparece: su motivo ya no describía la situación."
+          },
+          "notEvaluable": {
+            "title": "Un cero puede significar dos cosas",
+            "body": "«Nada que señalar» significa: el control se ejecutó, todo va bien. «No evaluable» significa: el control no pudo ejecutarse, porque falta un requisito — normalmente una cuenta sin saldo inicial, o cuya fecha queda fuera de sus propias operaciones.\\n\\nLa app nunca confunde ambos. Un control no evaluable muestra un guion, no un cero, y nombra el requisito a resolver. Resuélvalo, y todo pasa a ser medible de golpe."
+          },
+          "cash": {
+            "title": "El efectivo es una cuenta como las demás",
+            "body": "Un billete entregado en el mercado no deja ninguna línea de extracto. Para que no se convierta en un gasto que el banco nunca vio — una discrepancia que nadie puede resolver — la app lo registra como una operación de su cuenta «Efectivo». Aliméntela con sus retiradas, y su dinero en metálico se sigue como el resto."
           }
         }
       }
@@ -3501,12 +3539,17 @@
         "account_without_window": {
           "title": "Cuenta fuera del alcance del control",
           "hint": "Sin ventana de conformidad: falta el saldo inicial, o su fecha es posterior a sus extractos.",
-          "resolution": "Indique el saldo inicial, o retrase su fecha antes de la línea más antigua de la cuenta. Hasta entonces, ningún otro control cubre esta cuenta."
+          "resolution": "Ponga la fecha del saldo inicial al comienzo del periodo que importó — no a hoy. El importe debe ser el saldo en esa fecha: si es aproximado, solo el saldo mostrado se verá afectado, ordenar sus operaciones seguirá funcionando. Hasta que la fecha no se corrija, ningún otro control cubre esta cuenta."
         }
       },
       "blocked": "Control no evaluable",
       "blockedHint": "Un requisito impide que los controles cubran sus cuentas. Resuélvalo y todo pasa a ser medible.",
-      "notEvaluable": "No evaluable — requisito: {{prerequisite}}"
+      "notEvaluable": "No evaluable — requisito: {{prerequisite}}",
+      "window": {
+        "noDate": "No hay fecha de saldo inicial indicada.",
+        "afterData": "Su fecha de saldo inicial es {{openingDate}}, pero su operación más antigua es del {{earliestLine}}: el periodo de control está vacío."
+      },
+      "fix": "Corregir"
     },
     "pending": {
       "count": "{{count}} operación por ordenar",
