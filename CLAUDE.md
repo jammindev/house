@@ -296,6 +296,25 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
   numéro de ligne**. Ne pas les laisser remonter : un mauvais id de zone donnait un
   500 sur une simple erreur client.
 
+#### Recettes, mouvements internes, taux de couverture
+
+- **`banking.rules` produit des valeurs de départ, jamais des vérités.** `is_internal`
+  décide si l'argent compte comme dépense : une devinette appliquée comme vérité fait
+  disparaître une vraie dépense des totaux, en silence. `guess_internal` renvoie
+  `False` sur l'inconnu (défaut sûr), l'utilisateur corrige, et l'idempotence de
+  l'import protège son choix. Ne pas grossir la liste de motifs pour « mieux faire » :
+  une liste maligne finit par mal étiqueter la seule ligne de l'année qui compte.
+- **`inflow_nature == ""` n'est pas `"other"`.** Vide = personne n'a regardé (écart) ;
+  `other` = choix de l'utilisateur. Confondre les deux rend le détecteur aveugle.
+- **Un remboursement est une ligne bancaire avec une nature, jamais une dépense
+  négative.** `Interaction.amount` reste toujours positif.
+- **Le pont banque ↔ interactions est `coverage_ratio`, jamais une somme.** Il vaut
+  `1.0` quand rien n'est sorti — rien à expliquer n'est pas un reproche.
+  `unallocated_outflow` se calcule **par différence sur la requête bancaire**, jamais
+  en soustrayant une somme de dépenses.
+- Le bloc `bank` du bilan mensuel est **additionnel** : ne jamais modifier les clés
+  existantes du snapshot, le rendu et le digest les lisent.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

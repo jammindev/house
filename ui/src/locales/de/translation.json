@@ -3286,6 +3286,19 @@
       "pickExistingHint": "Ausgaben, die die Bank nie bestätigt hat und die in die noch freien {{amount}} passen.",
       "noUnreconciled": "Keine nicht abgeglichene Ausgabe passt in den Rest.",
       "attach": "Verknüpfen"
+    },
+    "inflow": {
+      "title": "Diese Einnahme einordnen",
+      "action": "Einnahme einordnen",
+      "nature": "Art",
+      "unclassified": "Nicht eingeordnet",
+      "hint": "„Sonstiges“ ist eine Entscheidung; leer bedeutet „noch nicht angesehen“ — genau das meldet die Kontrolle.",
+      "natures": {
+        "salary": "Einkommen",
+        "refund": "Rückerstattung",
+        "transfer": "Übertrag zwischen eigenen Konten",
+        "other": "Sonstiges"
+      }
     }
   },
   "pwa": {
@@ -3444,6 +3457,16 @@
           "title": "Ausgaben ohne Budget",
           "hint": "Sie zählen auf kein Budget.",
           "resolution": "Weisen Sie ein Budget zu oder legen Sie es begründet ab, wenn es Absicht ist."
+        },
+        "inflow_unclassified": {
+          "title": "Nicht eingeordnete Einnahmen",
+          "hint": "Lohn, Rückerstattung oder interner Übertrag? Die drei bedeuten nicht dasselbe.",
+          "resolution": "Ordnen Sie die Einnahme im Bankjournal ein oder legen Sie sie begründet ab."
+        },
+        "internal_without_counterpart": {
+          "title": "Interne Bewegungen ohne Gegenbuchung",
+          "hint": "Das Geld hat den erfassten Bereich verlassen und nichts erklärt es.",
+          "resolution": "Erstellen Sie die Gegenbuchung („Bargeld auffüllen“) oder entfernen Sie die Markierung „intern“."
         }
       }
     },

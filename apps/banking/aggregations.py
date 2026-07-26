@@ -44,6 +44,8 @@ def compute_account_flow(
     outflow = sum_outflow(real)
     inflow = sum_inflow(real)
 
+    unallocated = _unallocated_outflow(real)
+
     return {
         "date_from": date_from.isoformat() if date_from else None,
         "date_to": date_to.isoformat() if date_to else None,
@@ -52,7 +54,53 @@ def compute_account_flow(
         "net": str(inflow - outflow),
         "transaction_count": real.count(),
         "internal_count": qs.filter(is_internal=True).count(),
+        # Le pont entre les deux mondes — **un ratio, jamais une somme**. Additionner
+        # un total banque et un total interactions donnerait un nombre qui ne veut
+        # rien dire (voir CLAUDE.md « Relevés bancaires »). Le taux de couverture dit
+        # « quelle part de ce qui est sorti est expliquée », ce qui est exactement la
+        # question à laquelle le contrôle de conformité répond ligne par ligne.
+        "unallocated_outflow": str(unallocated),
+        "coverage_ratio": _coverage_ratio(outflow, unallocated),
     }
+
+
+def _unallocated_outflow(qs) -> Decimal:
+    """Part des sorties qu'aucune dépense n'explique, sur ``qs``.
+
+    Calculée par différence sur la **même** requête que les totaux, et non par une
+    somme de dépenses : mélanger les deux sources est précisément ce que la règle
+    transverse interdit.
+    """
+    from django.db.models import Q, Sum
+    from django.db.models.functions import Coalesce
+
+    from .queries import ZERO, outflow_expr
+
+    rows = qs.filter(amount__lt=0).annotate(
+        allocated=Coalesce(
+            Sum("interactions__amount", filter=Q(interactions__type="expense")),
+            ZERO,
+        ),
+        outflow_value=outflow_expr(),
+    )
+    total = Decimal("0.00")
+    for row in rows.values("allocated", "outflow_value"):
+        gap = row["outflow_value"] - row["allocated"]
+        if gap > 0:
+            total += gap
+    return total.quantize(Decimal("0.01"))
+
+
+def _coverage_ratio(outflow: Decimal, unallocated: Decimal) -> float:
+    """Part expliquée des sorties, entre 0 et 1. ``1.0`` quand rien n'est sorti.
+
+    Rien sorti = rien à expliquer = couverture parfaite. Renvoyer 0 dirait
+    « personne n'a rien rangé », ce qui serait un reproche adressé à tort.
+    """
+    if outflow <= 0:
+        return 1.0
+    covered = (outflow - unallocated) / outflow
+    return float(round(max(Decimal("0"), min(Decimal("1"), covered)), 4))
 
 
 EMPTY_FLOW = {
@@ -63,4 +111,6 @@ EMPTY_FLOW = {
     "net": str(Decimal("0.00")),
     "transaction_count": 0,
     "internal_count": 0,
+    "unallocated_outflow": str(Decimal("0.00")),
+    "coverage_ratio": 1.0,
 }

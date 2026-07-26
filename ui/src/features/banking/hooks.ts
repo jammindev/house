@@ -24,6 +24,7 @@ import {
   type AllocationLine,
   type BankAccountPayload,
   type CashExpensePayload,
+  type InflowNature,
   type StatementMapping,
   type TransactionFilters,
 } from '@/lib/api/banking';
@@ -162,8 +163,13 @@ export function useQualifyTransaction() {
   const invalidate = useInvalidateBanking();
   const { t } = useTranslation();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: { is_internal?: boolean; notes?: string } }) =>
-      qualifyTransaction(id, payload),
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: { is_internal?: boolean; notes?: string; inflow_nature?: InflowNature };
+    }) => qualifyTransaction(id, payload),
     onSuccess: () => {
       invalidate();
       toast({ description: t('banking.journal.qualified'), variant: 'success' });

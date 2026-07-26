@@ -29,6 +29,7 @@ from .models import (
     BankAccount,
     BankTransaction,
     ComplianceWaiver,
+    InflowNature,
     StatementImport,
     TransactionDirection,
 )
@@ -317,9 +318,26 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         if "notes" in request.data:
             instance.notes = str(request.data.get("notes") or "")
             updated_fields.append("notes")
+        if "inflow_nature" in request.data:
+            nature = str(request.data.get("inflow_nature") or "")
+            if nature and nature not in InflowNature.values:
+                raise ValidationError(
+                    {"inflow_nature": f"Expected one of {', '.join(InflowNature.values)}."}
+                )
+            if nature and instance.amount < 0:
+                # An outflow has no nature: the field exists to say what a *receipt*
+                # is. Silently accepting it would create rows the detector cannot
+                # reason about.
+                raise ValidationError(
+                    {"inflow_nature": "Only a receipt can be classified."}
+                )
+            instance.inflow_nature = nature
+            updated_fields.append("inflow_nature")
 
         if not updated_fields:
-            raise ValidationError({"detail": "Provide 'is_internal' and/or 'notes'."})
+            raise ValidationError(
+                {"detail": "Provide 'is_internal', 'inflow_nature' and/or 'notes'."}
+            )
 
         instance.updated_by = request.user
         instance.save(update_fields=[*updated_fields, "updated_by", "updated_at"])

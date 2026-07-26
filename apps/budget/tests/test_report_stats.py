@@ -408,3 +408,124 @@ class TestComputeMonthStats:
         _make_expense(hh, owner, "30.00", month="2026-06")
         stats = compute_month_stats(hh, "2026-06")
         assert stats["expense_count"] == 3
+
+# --- Bloc « banque » (parcours 26, lot 5) --------------------------------------
+
+
+@pytest.fixture
+def bank_ctx(db):
+    household = HouseholdFactory()
+    return household, _make_owner(household)
+
+
+def _bank_line(household, *, booked_on, amount, label, discriminant):
+    from banking.dedup import compute_dedup_hash
+    from banking.models import BankTransaction, TransactionDirection
+    from banking.tests.factories import BankAccountFactory
+
+    account = BankAccountFactory(household=household)
+    return BankTransaction.objects.create(
+        household=household,
+        account=account,
+        booked_on=booked_on,
+        label_raw=label,
+        label_norm=label,
+        amount=Decimal(amount),
+        direction=(
+            TransactionDirection.OUT if Decimal(amount) < 0 else TransactionDirection.IN
+        ),
+        dedup_hash=compute_dedup_hash(
+            account_id=account.id,
+            booked_on=booked_on,
+            label_norm=label,
+            amount=Decimal(amount),
+            currency="EUR",
+            discriminant=discriminant,
+        ),
+    )
+
+
+@pytest.mark.django_db
+class TestBankBlock:
+    """Le bloc ``bank`` du snapshot vit **à côté** des totaux de dépenses.
+
+    La règle transverse est absolue : on n'additionne jamais un total banque et un
+    total interactions. Les deux répondent à deux questions différentes, et le pont
+    est un taux de couverture. Ces tests protègent la séparation autant que le
+    calcul.
+    """
+
+    def test_a_household_without_statements_gets_zeros_and_full_coverage(self, bank_ctx):
+        """Rien à expliquer n'est pas un reproche."""
+        household, _ = bank_ctx
+        snapshot = compute_month_stats(household, "2026-03")
+        assert snapshot["bank"]["outflow"] == "0.00"
+        assert snapshot["bank"]["coverage_ratio"] == 1.0
+
+    def test_it_reports_what_actually_left_the_account(self, bank_ctx):
+        from datetime import date
+
+        household, _ = bank_ctx
+        _bank_line(
+            household,
+            booked_on=date(2026, 3, 12),
+            amount="-32.50",
+            label="CB LECLERC",
+            discriminant="#report",
+        )
+
+        snapshot = compute_month_stats(household, "2026-03")
+        assert snapshot["bank"]["outflow"] == "32.50"
+        assert snapshot["bank"]["unallocated_outflow"] == "32.50"
+        assert snapshot["bank"]["coverage_ratio"] == 0.0
+
+    def test_a_line_on_the_last_day_of_the_month_is_included(self, bank_ctx):
+        """La borne haute est la veille de la borne exclusive des interactions —
+        se tromper d'un jour ferait disparaître les opérations du 31."""
+        from datetime import date
+
+        household, _ = bank_ctx
+        _bank_line(
+            household,
+            booked_on=date(2026, 3, 31),
+            amount="-10.00",
+            label="CB DERNIER JOUR",
+            discriminant="#last-day",
+        )
+
+        assert compute_month_stats(household, "2026-03")["bank"]["outflow"] == "10.00"
+
+    def test_a_line_from_the_next_month_is_excluded(self, bank_ctx):
+        from datetime import date
+
+        household, _ = bank_ctx
+        _bank_line(
+            household,
+            booked_on=date(2026, 4, 1),
+            amount="-99.00",
+            label="CB AVRIL",
+            discriminant="#next-month",
+        )
+
+        assert compute_month_stats(household, "2026-03")["bank"]["outflow"] == "0.00"
+
+    def test_the_existing_keys_are_untouched(self, bank_ctx):
+        """Ajouter un bloc ne doit rien casser en aval : le rendu du bilan et le
+        digest lisent ces clés."""
+        household, _ = bank_ctx
+        snapshot = compute_month_stats(household, "2026-03")
+        for key in (
+            "month",
+            "total_spent",
+            "prev_month",
+            "prev_total",
+            "trend_delta",
+            "trend_pct",
+            "budgets",
+            "unbudgeted",
+            "top_expenses",
+            "recurring",
+            "global",
+            "expense_count",
+        ):
+            assert key in snapshot

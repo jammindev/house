@@ -1,5 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { Banknote, Link2Off, PieChart, Repeat, Sparkles, StickyNote } from 'lucide-react';
+import {
+  Banknote,
+  Link2Off,
+  PieChart,
+  Repeat,
+  Sparkles,
+  StickyNote,
+  Tag,
+} from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -15,6 +23,8 @@ interface TransactionRowProps {
   onUnlinkCash: () => void;
   onAllocate: () => void;
   onSuggest: () => void;
+  /** Classer une recette (salaire / remboursement / virement / autre). */
+  onClassify: () => void;
 }
 
 export default function TransactionRow({
@@ -26,6 +36,7 @@ export default function TransactionRow({
   onUnlinkCash,
   onAllocate,
   onSuggest,
+  onClassify,
 }: TransactionRowProps) {
   const { t } = useTranslation();
   const isOut = transaction.direction === 'out';
@@ -46,6 +57,10 @@ export default function TransactionRow({
       : []),
     ...(hasCounterpart
       ? [{ label: t('banking.cash.unlink'), icon: Link2Off, onClick: onUnlinkCash }]
+      : []),
+    // Classer n'a de sens que sur une recette : une sortie n'a pas de nature.
+    ...(!isOut && !transaction.is_internal
+      ? [{ label: t('banking.inflow.action'), icon: Tag, onClick: onClassify }]
       : []),
     {
       label: transaction.is_internal
@@ -96,6 +111,23 @@ export default function TransactionRow({
                 <Repeat className="h-3 w-3" aria-hidden />
               )}
               {hasCounterpart ? t('banking.cash.linkedBadge') : t('banking.journal.internal')}
+            </span>
+          ) : null}
+
+          {/* Une recette non classée est un écart : le dire ici, là où on peut la
+              classer, plutôt que seulement dans le panneau Contrôle. */}
+          {!isOut && !transaction.is_internal ? (
+            <span
+              className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                transaction.inflow_nature
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              <Tag className="h-3 w-3" aria-hidden />
+              {transaction.inflow_nature
+                ? t(`banking.inflow.natures.${transaction.inflow_nature}`)
+                : t('banking.inflow.unclassified')}
             </span>
           ) : null}
 

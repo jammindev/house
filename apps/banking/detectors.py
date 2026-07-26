@@ -9,7 +9,9 @@ would therefore never ask:
 - an expense that counts against no envelope (``expense_without_budget``);
 - an account whose starting point is unknown (``account_no_opening_balance``);
 - an account whose statements do not chain (``account_chain_broken``);
-- a cash account in the red, which is physically impossible (``account_cash_negative``).
+- a cash account in the red, which is physically impossible (``account_cash_negative``);
+- a receipt nobody classified (``inflow_unclassified``);
+- an internal movement whose other leg is missing (``internal_without_counterpart``).
 
 Every detector that reasons about "money we should know about" is scoped by
 ``banking.coverage``: outside the conformity window an écart is not an écart, it
@@ -50,6 +52,8 @@ EXPENSE_WITHOUT_BUDGET = "expense_without_budget"
 ACCOUNT_NO_OPENING_BALANCE = "account_no_opening_balance"
 ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
+INFLOW_UNCLASSIFIED = "inflow_unclassified"
+INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
 
 
 # --- Shared base: spendable outflows inside their account's window -----------
@@ -279,6 +283,95 @@ def _find_no_opening_balance(household, **window) -> list[Finding]:
     ]
 
 
+# --- Receipts and internal movements (lot 5) ---------------------------------
+
+
+def _scoped_lines(household):
+    """Every line inside its account's conformity window, unfiltered otherwise."""
+    pairs = accounts_with_window(household)
+    scope = Q(pk__in=[])
+    for account, window in pairs:
+        scope |= Q(account=account, booked_on__gte=window.start, booked_on__lte=window.end)
+    return (
+        BankTransaction.objects.filter(household=household).filter(scope).select_related("account")
+    )
+
+
+def _unclassified_inflow_qs(household):
+    """Receipts nobody has said anything about.
+
+    A 2 100 € credit can be a wage, a refund of money already counted as spending,
+    or the household's own transfer coming back. The three mean completely
+    different things about how much money there actually is, so leaving it blank is
+    a real gap — not a cosmetic one.
+
+    Internal movements are excluded: a transfer already *says* what it is, and its
+    own detector checks it has a counterpart.
+    """
+    return _scoped_lines(household).filter(
+        amount__gt=0, is_internal=False, inflow_nature=""
+    )
+
+
+def _count_unclassified_inflow(household) -> int:
+    return _unclassified_inflow_qs(household).count()
+
+
+def _find_unclassified_inflow(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=INFLOW_UNCLASSIFIED,
+            object_id=str(txn.pk),
+            label=f"{txn.booked_on.isoformat()} · {txn.label_raw[:80]}",
+            fingerprint=fingerprint_of(INFLOW_UNCLASSIFIED, txn.amount),
+            detail={
+                "account_name": txn.account.name,
+                "booked_on": txn.booked_on.isoformat(),
+                "label": txn.label_raw,
+                "amount": str(txn.amount),
+            },
+        )
+        for txn in apply_window(_unclassified_inflow_qs(household), **window)
+    ]
+
+
+def _internal_without_counterpart_qs(household):
+    """Internal movements whose other leg was never recorded.
+
+    An internal movement is excluded from spending on the promise that the money
+    reappears somewhere — as cash in a pot, or as a credit on another account. When
+    the counterpart is missing, that promise is broken: the money left the tracked
+    world and nothing accounts for it. It is the quietest way to lose track of a
+    few hundred euros, which is why it earns a detector rather than a note.
+    """
+    return _scoped_lines(household).filter(
+        is_internal=True, transfer_counterpart__isnull=True
+    )
+
+
+def _count_internal_without_counterpart(household) -> int:
+    return _internal_without_counterpart_qs(household).count()
+
+
+def _find_internal_without_counterpart(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=INTERNAL_WITHOUT_COUNTERPART,
+            object_id=str(txn.pk),
+            label=f"{txn.booked_on.isoformat()} · {txn.label_raw[:80]}",
+            fingerprint=fingerprint_of(INTERNAL_WITHOUT_COUNTERPART, txn.amount),
+            detail={
+                "account_name": txn.account.name,
+                "booked_on": txn.booked_on.isoformat(),
+                "label": txn.label_raw,
+                "amount": str(txn.amount),
+                "direction": txn.direction,
+            },
+        )
+        for txn in apply_window(_internal_without_counterpart_qs(household), **window)
+    ]
+
+
 def _negative_cash_pairs(household) -> list[tuple[BankAccount, Decimal]]:
     """Cash accounts showing a negative balance, with the figure.
 
@@ -473,6 +566,26 @@ def _specs() -> list[DetectorSpec]:
             model=BankAccount,
             count=_count_chain_broken,
             findings=_find_chain_broken,
+        ),
+        DetectorSpec(
+            kind=INFLOW_UNCLASSIFIED,
+            severity=WARNING,
+            label="Receipt nobody has classified",
+            target="transaction",
+            model=BankTransaction,
+            count=_count_unclassified_inflow,
+            findings=_find_unclassified_inflow,
+            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+        ),
+        DetectorSpec(
+            kind=INTERNAL_WITHOUT_COUNTERPART,
+            severity=ERROR,
+            label="Internal movement whose other leg was never recorded",
+            target="transaction",
+            model=BankTransaction,
+            count=_count_internal_without_counterpart,
+            findings=_find_internal_without_counterpart,
+            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
         ),
         DetectorSpec(
             kind=ACCOUNT_CASH_NEGATIVE,

@@ -59,6 +59,7 @@ export type { HouseholdDetail } from './models/HouseholdDetail';
 export type { HouseholdInvitation } from './models/HouseholdInvitation';
 export type { HouseholdInvitationStatusEnum } from './models/HouseholdInvitationStatusEnum';
 export type { HouseholdMember } from './models/HouseholdMember';
+export type { InflowNatureEnum } from './models/InflowNatureEnum';
 export type { InsuranceContract } from './models/InsuranceContract';
 export type { InsuranceContractStatusEnum } from './models/InsuranceContractStatusEnum';
 export type { InsuranceContractTypeEnum } from './models/InsuranceContractTypeEnum';

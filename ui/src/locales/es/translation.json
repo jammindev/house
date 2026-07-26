@@ -3286,6 +3286,19 @@
       "pickExistingHint": "Gastos que el banco nunca confirmó y que caben en los {{amount}} aún libres.",
       "noUnreconciled": "Ningún gasto sin conciliar cabe en lo que queda.",
       "attach": "Vincular"
+    },
+    "inflow": {
+      "title": "Clasificar este ingreso",
+      "action": "Clasificar el ingreso",
+      "nature": "Naturaleza",
+      "unclassified": "Sin clasificar",
+      "hint": "«Otro» es una elección; dejarlo vacío significa «aún sin revisar», que es lo que señala el control.",
+      "natures": {
+        "salary": "Ingreso",
+        "refund": "Reembolso",
+        "transfer": "Transferencia entre mis cuentas",
+        "other": "Otro"
+      }
     }
   },
   "pwa": {
@@ -3444,6 +3457,16 @@
           "title": "Gastos sin presupuesto",
           "hint": "No cuentan en ninguna partida.",
           "resolution": "Asigne un presupuesto, o justifíquelo si es deliberado."
+        },
+        "inflow_unclassified": {
+          "title": "Ingresos sin clasificar",
+          "hint": "¿Sueldo, reembolso o transferencia interna? Los tres no significan lo mismo.",
+          "resolution": "Clasifique el ingreso desde el diario bancario, o justifíquelo si no procede."
+        },
+        "internal_without_counterpart": {
+          "title": "Movimientos internos sin contrapartida",
+          "hint": "El dinero salió del ámbito controlado y nada lo explica.",
+          "resolution": "Cree la contrapartida («Alimentar el efectivo»), o quite la marca «interno» si no lo era."
         }
       }
     },

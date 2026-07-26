@@ -3286,6 +3286,19 @@
       "pickExistingHint": "Dépenses que la banque n'a jamais confirmées, et qui tiennent dans les {{amount}} encore libres.",
       "noUnreconciled": "Aucune dépense non rapprochée ne tient dans le reste.",
       "attach": "Rattacher"
+    },
+    "inflow": {
+      "title": "Classer cette recette",
+      "action": "Classer la recette",
+      "nature": "Nature",
+      "unclassified": "Non classée",
+      "hint": "« Autre » est un choix ; laisser vide veut dire « pas encore regardé », ce que le contrôle signale.",
+      "natures": {
+        "salary": "Revenu",
+        "refund": "Remboursement",
+        "transfer": "Virement entre mes comptes",
+        "other": "Autre"
+      }
     }
   },
   "pwa": {
@@ -3444,6 +3457,16 @@
           "title": "Dépenses hors budget",
           "hint": "Elles ne comptent dans aucune enveloppe.",
           "resolution": "Affectez un budget, ou arbitrez si c'est volontaire."
+        },
+        "inflow_unclassified": {
+          "title": "Recettes non classées",
+          "hint": "Salaire, remboursement ou virement interne ? Les trois ne veulent pas dire la même chose.",
+          "resolution": "Classez la recette depuis le journal bancaire, ou arbitrez si elle est sans objet."
+        },
+        "internal_without_counterpart": {
+          "title": "Mouvements internes sans contrepartie",
+          "hint": "L'argent est sorti du monde suivi et rien ne l'explique.",
+          "resolution": "Créez la contrepartie (« Alimenter les espèces »), ou retirez le marqueur « interne » si ce n'en était pas un."
         }
       }
     },

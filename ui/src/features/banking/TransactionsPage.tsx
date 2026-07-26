@@ -24,6 +24,7 @@ import TransactionList from './TransactionList';
 import WithdrawToCashDialog from './WithdrawToCashDialog';
 import AllocationDialog from './AllocationDialog';
 import SuggestionsDialog from './SuggestionsDialog';
+import ClassifyInflowDialog from './ClassifyInflowDialog';
 
 const PAGE_SIZE = 50;
 const NO_FILTERS: Filters = {};
@@ -43,6 +44,7 @@ export default function TransactionsPage() {
   const [cashTarget, setCashTarget] = React.useState<BankTransaction | null>(null);
   const [allocationTarget, setAllocationTarget] = React.useState<BankTransaction | null>(null);
   const [suggestTarget, setSuggestTarget] = React.useState<BankTransaction | null>(null);
+  const [classifyTarget, setClassifyTarget] = React.useState<BankTransaction | null>(null);
   const reconcileMutation = useReconcile();
 
   const cashAccounts = (accountsQuery.data ?? []).filter((a) => a.kind === 'cash');
@@ -116,6 +118,7 @@ export default function TransactionsPage() {
           onUnlinkCash={(transaction) => unlinkCashMutation.mutate(transaction.id)}
           onAllocate={setAllocationTarget}
           onSuggest={setSuggestTarget}
+          onClassify={setClassifyTarget}
         />
       )}
 
@@ -124,6 +127,14 @@ export default function TransactionsPage() {
           open
           onOpenChange={(next) => !next && setSuggestTarget(null)}
           transaction={suggestTarget}
+        />
+      ) : null}
+
+      {classifyTarget ? (
+        <ClassifyInflowDialog
+          open
+          onOpenChange={(next) => !next && setClassifyTarget(null)}
+          transaction={classifyTarget}
         />
       ) : null}
 

@@ -9,7 +9,7 @@ from this snapshot. Reuses the expense-amount cast convention of
 """
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -130,4 +130,35 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
         "recurring": recurring,
         "global": global_row,
         "expense_count": qs.count(),
+        # Bloc **additionnel** (parcours 26, lot 5). Aucune clé existante ne change,
+        # et surtout : ces chiffres ne s'additionnent JAMAIS aux précédents. Le total
+        # « banque » et le total « interactions » répondent à deux questions
+        # différentes ; le pont est le taux de couverture, pas une somme (règle
+        # transverse de CLAUDE.md).
+        "bank": _bank_block(household, start, end),
+    }
+
+
+def _bank_block(household, start, end) -> dict[str, Any]:
+    """Vue « banque » du mois : ce qui est réellement sorti, et la part expliquée.
+
+    Vit à côté des totaux de dépenses, jamais mélangé avec eux. Un foyer qui
+    n'utilise pas les relevés obtient des zéros et un ratio à 1 — il n'a rien à
+    expliquer, ce n'est pas un reproche.
+    """
+    from banking.aggregations import compute_account_flow
+
+    flow = compute_account_flow(
+        household=household,
+        date_from=start.date(),
+        # ``end`` est exclusif côté interactions ; les lignes bancaires sont datées
+        # au jour, donc la borne haute est la veille.
+        date_to=(end - timedelta(days=1)).date(),
+    )
+    return {
+        "outflow": flow["outflow"],
+        "inflow": flow["inflow"],
+        "unallocated_outflow": flow["unallocated_outflow"],
+        "coverage_ratio": flow["coverage_ratio"],
+        "internal_count": flow["internal_count"],
     }

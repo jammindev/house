@@ -20,6 +20,7 @@ from . import importers
 from .dedup import assign_discriminants, compute_dedup_hash
 from .validators import assert_allocation_fits
 from .importers.parsing import normalize_label
+from .rules import guess_inflow_nature, guess_internal
 from .models import (
     BankAccount,
     BankTransaction,
@@ -222,6 +223,15 @@ def import_statement_file(
                     currency=row.currency,
                     direction=(
                         TransactionDirection.OUT if row.amount < 0 else TransactionDirection.IN
+                    ),
+                    # Heuristiques appliquées comme **valeurs de départ**, jamais
+                    # comme vérités : l'utilisateur les corrige depuis le journal,
+                    # et un mouvement interne sans contrepartie est un écart que le
+                    # contrôle signale — donc une mauvaise devinette remonte au lieu
+                    # de se cacher. Voir ``banking.rules``.
+                    is_internal=guess_internal(label_norm, amount=row.amount),
+                    inflow_nature=(
+                        guess_inflow_nature(label_norm) if row.amount > 0 else ""
                     ),
                     balance_after=row.balance_after,
                     external_id=row.external_id,
