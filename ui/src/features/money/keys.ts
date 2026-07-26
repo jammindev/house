@@ -23,7 +23,7 @@ export const complianceKeys = {
 export const TRANSACTION_UNALLOCATED = 'transaction_unallocated';
 export const TRANSACTION_PARTIAL = 'transaction_partially_allocated';
 export const EXPENSE_UNRECONCILED = 'expense_unreconciled';
-export const ACCOUNT_NO_OPENING_BALANCE = 'account_no_opening_balance';
+export const ACCOUNT_WITHOUT_WINDOW = 'account_without_window';
 export const ACCOUNT_CHAIN_BROKEN = 'account_chain_broken';
 
 /** Les deux écarts que la file « À ranger » traite — même geste de résolution. */

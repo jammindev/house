@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Inbox } from 'lucide-react';
+import { Check, Inbox, ShieldAlert } from 'lucide-react';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import EmptyState from '@/components/EmptyState';
@@ -10,7 +10,8 @@ import AllocationDialog from '@/features/banking/AllocationDialog';
 import { useSetAllocations } from '@/features/banking/hooks';
 import type { ComplianceFinding } from '@/lib/api/banking';
 import { TRANSACTION_PARTIAL, TRANSACTION_UNALLOCATED } from './keys';
-import { useComplianceGroup } from './hooks';
+import { useComplianceGroup, useComplianceSummary } from './hooks';
+import { householdBlocker } from './prerequisites';
 import PendingCard from './PendingCard';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
@@ -58,10 +59,16 @@ function toRow(finding: ComplianceFinding, isPartial: boolean): PendingRow {
  * (une pastille = un clic, sélection multiple pour traiter un lot), pas par la
  * devinette. À ~160 lignes par mois, les actions groupées ne sont pas un confort.
  */
-export default function PendingQueue() {
+interface PendingQueueProps {
+  /** Renvoie vers l'onglet Contrôle, où le prérequis bloquant se règle. */
+  onGoToControl?: () => void;
+}
+
+export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
   const { t } = useTranslation();
   const unallocatedQuery = useComplianceGroup(TRANSACTION_UNALLOCATED, { limit: 50 });
   const partialQuery = useComplianceGroup(TRANSACTION_PARTIAL, { limit: 50 });
+  const summaryQuery = useComplianceSummary();
   const budgetsQuery = useBudgets();
 
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
@@ -115,6 +122,27 @@ export default function PendingQueue() {
           <div key={i} className="h-24 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
+    );
+  }
+
+  // Une file vide a deux sens, et les confondre est exactement le bug qui a shippé :
+  // « tout est rangé » et « rien n'est évaluable ». Le prérequis bloquant passe donc
+  // devant, avec l'action qui le lève.
+  const blocker = householdBlocker(summaryQuery.data);
+
+  if (rows.length === 0 && blocker) {
+    return (
+      <EmptyState
+        icon={ShieldAlert}
+        title={t('money.pending.blocked')}
+        description={t('money.pending.blockedHint', {
+          prerequisite: t(`money.compliance.kinds.${blocker.kind}.title`),
+        })}
+        action={{
+          label: t('money.pending.blockedAction'),
+          onClick: () => onGoToControl?.(),
+        }}
+      />
     );
   }
 

@@ -3438,11 +3438,6 @@
       "noDetectors": "No hay controles disponibles",
       "noDetectorsHint": "Declare una cuenta para que el control tenga algo que verificar.",
       "kinds": {
-        "account_no_opening_balance": {
-          "title": "Cuenta sin saldo inicial",
-          "hint": "Sin punto de partida, el saldo es una suposición.",
-          "resolution": "Indique el saldo inicial de la cuenta y su fecha. Los demás controles pasan entonces a ser evaluables."
-        },
         "transaction_unallocated": {
           "title": "Salidas sin asignar",
           "hint": "Salió dinero sin que nadie dijera para qué.",
@@ -3502,8 +3497,16 @@
           "title": "Líneas ignoradas por verificar",
           "hint": "El archivo no tenía referencia ni saldo: la deduplicación no puede estar segura.",
           "resolution": "Compruebe que las líneas ignoradas eran realmente duplicados, y justifíquelo."
+        },
+        "account_without_window": {
+          "title": "Cuenta fuera del alcance del control",
+          "hint": "Sin ventana de conformidad: falta el saldo inicial, o su fecha es posterior a sus extractos.",
+          "resolution": "Indique el saldo inicial, o retrase su fecha antes de la línea más antigua de la cuenta. Hasta entonces, ningún otro control cubre esta cuenta."
         }
-      }
+      },
+      "blocked": "Control no evaluable",
+      "blockedHint": "Un requisito impide que los controles cubran sus cuentas. Resuélvalo y todo pasa a ser medible.",
+      "notEvaluable": "No evaluable — requisito: {{prerequisite}}"
     },
     "pending": {
       "count": "{{count}} operación por ordenar",
@@ -3521,7 +3524,10 @@
       "allDone": "Lista vacía",
       "allDoneHint": "Todas sus operaciones están asignadas o justificadas.",
       "nothingLeft": "Nada para esta sesión",
-      "nothingLeftHint": "Las operaciones postergadas volverán en su próxima visita."
+      "nothingLeftHint": "Las operaciones postergadas volverán en su próxima visita.",
+      "blocked": "Nada evaluable por ahora",
+      "blockedHint": "Un requisito bloquea el control: {{prerequisite}}. Sus operaciones existen, pero ninguna regla puede cubrirlas todavía.",
+      "blockedAction": "Ver el control"
     }
   }
 }

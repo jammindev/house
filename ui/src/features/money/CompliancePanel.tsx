@@ -1,6 +1,15 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Check, ChevronDown, ChevronRight, Info, ShieldAlert, Undo2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  HelpCircle,
+  Info,
+  ShieldAlert,
+  Undo2,
+} from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';
@@ -8,6 +17,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
+import { blockingPrerequisite } from './prerequisites';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
 const SEVERITY_ORDER: Record<ComplianceSeverity, number> = { blocker: 0, error: 1, warning: 2 };
@@ -66,6 +76,7 @@ export default function CompliancePanel() {
         openTotal={open_total}
         waivedTotal={waived_total}
         staleTotal={stale_total}
+        blocked={groups.some((group) => blockingPrerequisite(groups, group) !== null)}
       />
 
       {groups.length === 0 ? (
@@ -80,6 +91,7 @@ export default function CompliancePanel() {
             <GroupRow
               key={group.kind}
               group={group}
+              blockedBy={blockingPrerequisite(groups, group)}
               expanded={openKind === group.kind}
               onToggle={() => setOpenKind((prev) => (prev === group.kind ? null : group.kind))}
               onWaive={setWaiving}
@@ -97,13 +109,16 @@ function ComplianceHeadline({
   openTotal,
   waivedTotal,
   staleTotal,
+  blocked,
 }: {
   openTotal: number;
   waivedTotal: number;
   staleTotal: number;
+  /** Au moins un contrôle non évaluable : « tout est conforme » serait faux. */
+  blocked: boolean;
 }) {
   const { t } = useTranslation();
-  const isClean = openTotal === 0;
+  const isClean = openTotal === 0 && !blocked;
 
   return (
     <Card className="p-4">
@@ -117,12 +132,16 @@ function ComplianceHeadline({
           <p className="font-medium text-foreground">
             {isClean
               ? t('money.compliance.clean')
-              : t('money.compliance.openCount', { count: openTotal })}
+              : blocked && openTotal === 0
+                ? t('money.compliance.blocked')
+                : t('money.compliance.openCount', { count: openTotal })}
           </p>
           <p className="text-sm text-muted-foreground">
             {isClean
               ? t('money.compliance.cleanHint')
-              : t('money.compliance.openHint')}
+              : blocked && openTotal === 0
+                ? t('money.compliance.blockedHint')
+                : t('money.compliance.openHint')}
           </p>
           {waivedTotal > 0 || staleTotal > 0 ? (
             <p className="mt-1 text-xs text-muted-foreground">
@@ -140,18 +159,24 @@ function ComplianceHeadline({
 
 function GroupRow({
   group,
+  blockedBy,
   expanded,
   onToggle,
   onWaive,
 }: {
   group: ComplianceGroup;
+  /** Prérequis encore ouvert : ce groupe n'est pas conforme, il est non évaluable. */
+  blockedBy: ComplianceGroup | null;
   expanded: boolean;
   onToggle: () => void;
   onWaive: (target: WaiverTarget) => void;
 }) {
   const { t } = useTranslation();
   const Icon = SEVERITY_ICON[group.severity];
-  const isClean = group.open === 0;
+  // Un zéro a deux sens : « rien à signaler » et « rien d'évaluable ». Les confondre
+  // affiche une coche verte sur un contrôle qui n'a rien vérifié.
+  const isBlocked = blockedBy !== null;
+  const isClean = group.open === 0 && !isBlocked;
 
   return (
     <Card className="p-0">
@@ -161,7 +186,9 @@ function GroupRow({
         className="flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-accent/60"
         aria-expanded={expanded}
       >
-        {isClean ? (
+        {isBlocked ? (
+          <HelpCircle className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+        ) : isClean ? (
           <Check className="h-4 w-4 shrink-0 text-primary" aria-hidden />
         ) : (
           <Icon
@@ -179,9 +206,13 @@ function GroupRow({
             {t(`money.compliance.kinds.${group.kind}.title`)}
           </p>
           <p className="truncate text-xs text-muted-foreground">
-            {isClean
-              ? t('money.compliance.groupClean')
-              : t(`money.compliance.kinds.${group.kind}.hint`)}
+            {isBlocked
+              ? t('money.compliance.notEvaluable', {
+                  prerequisite: t(`money.compliance.kinds.${blockedBy.kind}.title`),
+                })
+              : isClean
+                ? t('money.compliance.groupClean')
+                : t(`money.compliance.kinds.${group.kind}.hint`)}
           </p>
         </div>
 
@@ -197,7 +228,7 @@ function GroupRow({
           </span>
         ) : null}
         <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-          {group.open}
+          {isBlocked ? '—' : group.open}
         </span>
         {expanded ? (
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />

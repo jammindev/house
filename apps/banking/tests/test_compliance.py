@@ -31,7 +31,7 @@ from banking.compliance import get_detector, open_findings, summary, waived_find
 from banking.dedup import compute_dedup_hash
 from banking.detectors import (
     ACCOUNT_CHAIN_BROKEN,
-    ACCOUNT_NO_OPENING_BALANCE,
+    ACCOUNT_WITHOUT_WINDOW,
     EXPENSE_UNRECONCILED,
     EXPENSE_WITHOUT_BUDGET,
     TRANSACTION_PARTIAL,
@@ -177,7 +177,7 @@ class TestUnallocatedTransaction:
         account.save(update_fields=["opening_balance_date"])
 
         assert group(household, TRANSACTION_UNALLOCATED).detected == 0
-        assert group(household, ACCOUNT_NO_OPENING_BALANCE).detected == 1
+        assert group(household, ACCOUNT_WITHOUT_WINDOW).detected == 1
 
 
 # --- Detector: an outflow only partly accounted for ---------------------------
@@ -276,13 +276,72 @@ class TestAccountWithoutOpeningBalance:
         account.opening_balance_date = None
         account.save(update_fields=["opening_balance_date"])
 
-        result = group(household, ACCOUNT_NO_OPENING_BALANCE)
+        result = group(household, ACCOUNT_WITHOUT_WINDOW)
         assert result.detected == 1
         assert result.spec.severity == compliance.BLOCKER
 
     def test_it_disappears_once_the_date_is_filled(self, ctx):
         household, _, _, _ = ctx
-        assert group(household, ACCOUNT_NO_OPENING_BALANCE).detected == 0
+        assert group(household, ACCOUNT_WITHOUT_WINDOW).detected == 0
+
+    def test_an_opening_date_later_than_the_statement_is_an_ecart(self, ctx):
+        """THE case that shipped silently.
+
+        The date is filled, so the original detector stayed quiet — while the window
+        excluded the whole statement as « history ». Every control then read
+        « conforme » with nothing checked, and the « À ranger » queue was empty with
+        a green tick. The exact silent orphan this parcours forbids, produced by the
+        horizon that exists to prevent silence.
+        """
+        household, _, account, _ = ctx
+        make_txn(account, booked_on=date(2026, 3, 10))
+        account.opening_balance_date = date(2026, 7, 1)
+        account.save(update_fields=["opening_balance_date"])
+
+        findings = open_findings(household, get_detector(ACCOUNT_WITHOUT_WINDOW))
+        assert [f.object_id for f in findings] == [str(account.pk)]
+        assert findings[0].detail["reason"] == "opening_date_after_data"
+        # And it hands the UI the date that would fix it.
+        assert findings[0].detail["earliest_line"] == "2026-03-10"
+
+    def test_moving_the_date_back_resolves_it(self, ctx):
+        household, _, account, _ = ctx
+        make_txn(account, booked_on=date(2026, 3, 10))
+        account.opening_balance_date = date(2026, 7, 1)
+        account.save(update_fields=["opening_balance_date"])
+        assert group(household, ACCOUNT_WITHOUT_WINDOW).detected == 1
+
+        account.opening_balance_date = date(2026, 1, 1)
+        account.save(update_fields=["opening_balance_date"])
+
+        assert group(household, ACCOUNT_WITHOUT_WINDOW).detected == 0
+        # And the work becomes visible again.
+        assert group(household, TRANSACTION_UNALLOCATED).detected == 1
+
+    def test_a_fresh_account_with_no_data_is_not_reported(self, ctx):
+        """Un compte tout juste déclaré n'a rien à affirmer : le signaler serait du
+        travail pour rien, et c'est ce qui fait arrêter de lire un panneau."""
+        household, _, _, _ = ctx
+        BankAccountFactory(
+            household=household, name="Neuf", opening_balance_date=date(2026, 1, 1)
+        )
+        assert group(household, ACCOUNT_WITHOUT_WINDOW).detected == 0
+
+    def test_the_reason_is_part_of_the_fingerprint(self, ctx):
+        """Passer de « pas de date » à « date après les données » est un autre
+        problème, qui demande une autre correction."""
+        household, _, account, _ = ctx
+        make_txn(account, booked_on=date(2026, 3, 10))
+
+        account.opening_balance_date = None
+        account.save(update_fields=["opening_balance_date"])
+        without_date = open_findings(household, get_detector(ACCOUNT_WITHOUT_WINDOW))[0]
+
+        account.opening_balance_date = date(2026, 7, 1)
+        account.save(update_fields=["opening_balance_date"])
+        after_data = open_findings(household, get_detector(ACCOUNT_WITHOUT_WINDOW))[0]
+
+        assert without_date.fingerprint != after_data.fingerprint
 
     def test_it_cannot_be_arbitrated(self, ctx):
         """« Aucun flag légitime » from the catalogue, enforced as a 400 rather
@@ -295,7 +354,7 @@ class TestAccountWithoutOpeningBalance:
             waive_finding(
                 household=household,
                 user=user,
-                finding_kind=ACCOUNT_NO_OPENING_BALANCE,
+                finding_kind=ACCOUNT_WITHOUT_WINDOW,
                 object_id=str(account.pk),
                 reason="pas envie",
             )
