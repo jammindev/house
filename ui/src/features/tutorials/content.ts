@@ -1,5 +1,6 @@
 import {
-  AlertCircle, LayoutDashboard, Newspaper, Smartphone, Sparkles, User,
+  AlertCircle, Landmark, LayoutDashboard, Newspaper, PiggyBank, Receipt, Smartphone,
+  Sparkles, User,
   type LucideIcon,
 } from 'lucide-react';
 import { MODULES } from '@/lib/modules';
@@ -17,16 +18,17 @@ import { MODULES } from '@/lib/modules';
  * backend à toucher : la progression est stockée comme liste de clés opaques
  * sur `User.completed_tutorials`.
  *
- * Les guides adossés à un module (`moduleKey`) héritent de son icône et sont
- * masqués quand le module est désactivé pour le foyer.
+ * Les guides adossés à un module (`moduleKey`) sont masqués quand le module est
+ * désactivé pour le foyer, et héritent de son icône **à défaut** d'une icône
+ * explicite (nécessaire depuis que trois guides partagent le module « Argent »).
  */
 
 export interface TutorialGuide {
   /** Clé stable — i18n `tutorials.guide.<key>.*` + progression `guide.<key>`. */
   key: string;
-  /** Module du registre MODULES : icône partagée + masquage si désactivé. */
+  /** Module du registre MODULES : masquage si désactivé, icône par défaut. */
   moduleKey?: string;
-  /** Icône explicite pour les guides hors module (dashboard, agent…). */
+  /** Icône explicite — gagne sur celle du module. */
   Icon?: LucideIcon;
   /** Deep-link vers la page concernée par le guide. */
   to: string;
@@ -72,9 +74,13 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'projects', moduleKey: 'projects', to: '/app/projects', stepIds: ['create', 'plan', 'photos', 'budget'] },
   { key: 'interactions', moduleKey: 'interactions', to: '/app/interactions', stepIds: ['log', 'types', 'link'] },
   { key: 'trackers', moduleKey: 'trackers', to: '/app/trackers', stepIds: ['create', 'entries', 'charts'] },
-  { key: 'expenses', moduleKey: 'expenses', to: '/app/expenses', stepIds: ['record', 'sources', 'review'] },
-  { key: 'budget', moduleKey: 'budget', to: '/app/budget', stepIds: ['create', 'assign', 'track', 'recurring', 'report'] },
-  { key: 'banking', moduleKey: 'banking', to: '/app/banking', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance'] },
+  // Module « Argent » (parcours 26) : les trois guides survivent, chacun pointant
+  // sur son onglet. Le guide « expenses » gagne les deux étapes du nouveau parcours
+  // de conformité — ranger et contrôler sont devenus la façon de saisir et de
+  // relire ses dépenses.
+  { key: 'expenses', moduleKey: 'money', Icon: Receipt, to: '/app/money?tab=pending', stepIds: ['record', 'sort', 'control', 'sources', 'review'] },
+  { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'recurring', 'report'] },
+  { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
   { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },
@@ -95,14 +101,19 @@ export function startDoneKey(key: string): string {
 const MODULE_ICONS = new Map(MODULES.map((m) => [m.key, m.Icon]));
 
 function resolveIcon(guide: TutorialGuide): LucideIcon {
+  // L'icône explicite gagne sur celle du module. Depuis que « Argent » réunit
+  // comptes, dépenses et budgets (parcours 26), trois guides partagent un même
+  // `moduleKey` : sans cette priorité ils afficheraient la même icône, et la liste
+  // des guides ne se parcourrait plus du regard.
+  if (guide.Icon) return guide.Icon;
   if (guide.moduleKey) {
     const icon = MODULE_ICONS.get(guide.moduleKey);
     if (icon) return icon;
   }
-  return guide.Icon ?? Sparkles;
+  return Sparkles;
 }
 
-/** Icône par guide — celle du module s'il y en a un, sinon l'explicite.
+/** Icône par guide — l'explicite si elle existe, sinon celle du module.
  *  Précalculé au chargement pour garder des références de composant stables. */
 export const GUIDE_ICONS: Record<string, LucideIcon> = Object.fromEntries(
   TUTORIAL_GUIDES.map((g) => [g.key, resolveIcon(g)]),

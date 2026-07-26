@@ -33,7 +33,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | Lot | Sujet | Statut |
 |---|---|---|
 | 1 | Socle de conformité (`ComplianceWaiver`, détecteurs, API) | ✅ **Livré** |
-| 2 | Module « Argent » à onglets + file de rangement | ⬜ |
+| 2 | Module « Argent » à onglets + file de rangement | ✅ **Livré** — voir [money.md](./money.md) |
 | 3 | Une ventilation porte projet, zone et budget | ⬜ |
 | 4 | Tout est une ligne de compte (espèces) | ⬜ |
 | 5 | Recettes et mouvements internes | ⬜ |

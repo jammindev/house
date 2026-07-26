@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 3 : Bilan mensuel.
  *
  * Couvre :
- *  1. Navigation depuis /app/budget → /app/budget/reports via la link card "Bilan mensuel"
+ *  1. Navigation depuis l'onglet Budgets → /app/budget/reports via la link card "Bilan mensuel"
  *  2. Structure de la page (BackLink vers Budgets, titre, description)
  *  3. État tolérant : soit un état vide ("Aucun bilan"), soit une card de rapport
  *     avec un libellé de mois capitalisé — le contenu dépend des données seedées
@@ -77,15 +77,15 @@ async function apiCreatePreviousMonthExpense(
 test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   test.beforeEach(async ({ page }) => {
     // Hydrater le localStorage (JWT) avant tout appel API
-    await page.goto('/app/budget');
-    await expect(page).toHaveURL(/\/app\/budget/);
+    await page.goto('/app/money?tab=budgets');
+    await expect(page).toHaveURL(/\/app\/money/);
   });
 
   // ── 1. Navigation depuis /app/budget via la link card ──────────────────────
 
-  test('la link card "Bilan mensuel" depuis /app/budget mène à /app/budget/reports', async ({ page }) => {
+  test('la link card "Bilan mensuel" depuis l\'onglet Budgets mène à /app/budget/reports', async ({ page }) => {
     // Attendre que l'overview soit chargé (la link card n'apparaît qu'ensuite)
-    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // La link card est identifiée par son titre "Bilan mensuel"
     await page.getByText('Bilan mensuel').click();
@@ -122,16 +122,16 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
     ).toBeVisible({ timeout: 15000 });
   });
 
-  // ── 4. BackLink ramène à /app/budget ──────────────────────────────────────
+  // ── 4. BackLink ramène au module Argent ───────────────────────────────────
 
-  test('le BackLink "Budgets" navigue bien vers /app/budget', async ({ page }) => {
+  test('le BackLink "Budgets" navigue bien vers l\'onglet Budgets', async ({ page }) => {
     await page.goto('/app/budget/reports');
 
     await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
     await page.getByRole('link', { name: 'Budgets' }).click();
 
-    await expect(page).toHaveURL(/\/app\/budget/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/money/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
   });
 
   // ── 5. Rapport "Mois dernier" : seed + vérification ──────────────────────
@@ -169,7 +169,7 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
 
   // ── 6. Accès direct par URL (deep-link) ───────────────────────────────────
 
-  test('accès direct à /app/budget/reports (sans passer par /app/budget) → page chargée correctement', async ({ page }) => {
+  test('accès direct à /app/budget/reports (sans passer par le module Argent) → page chargée correctement', async ({ page }) => {
     // Accès direct sans state.back → BackLink affichera le fallback "Budgets"
     await page.goto('/app/budget/reports');
 

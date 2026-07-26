@@ -252,6 +252,28 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
   front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
   passage dans quatre `.po`.
 
+#### Le module « Argent » — une seule clé, cinq onglets
+
+Comptes, dépenses et budgets sont **un seul module** (`money`, `/app/money`), à
+onglets : Contrôle / À ranger / Comptes / Dépenses / Budgets. Doc :
+`docs/MODULES/money.md`.
+
+- **Ne pas recréer d'entrée de sidebar** pour `banking`, `expenses` ou `budget` :
+  ces clés n'existent plus dans `MODULES` ni dans `households.modules`. `money` est
+  **core** (non désactivable) — conséquence assumée : les comptes bancaires ne sont
+  plus un opt-in.
+- Toute nouvelle URL de la famille argent vit sous `/app/money`. Les trois
+  anciennes redirigent via `LegacyMoneyRedirect` en **préservant la query string**
+  (l'agent produit `/app/budget?b={id}`) — ne pas remplacer par un `<Navigate to>`
+  en dur.
+- Les panneaux (`AccountsPanel`, `ExpensesPanel`, `BudgetsPanel`) n'ont **pas** de
+  `PageHeader` : la coque porte le titre. Un panneau qui en ajoute un produit deux
+  `h1`.
+- Une pastille de budget de la file « À ranger » n'apparaît que sur une ligne
+  **entièrement** non ventilée : l'écriture d'une ventilation est un remplacement
+  complet, donc un raccourci sur une ligne partielle détruirait le travail déjà
+  fait. Même raison pour la sélection multiple.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

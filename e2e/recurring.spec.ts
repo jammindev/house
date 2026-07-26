@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 2 : Dépenses récurrentes.
  *
  * Couvre :
- *  1. Navigation depuis /app/budget vers /app/budget/recurring via la link card
+ *  1. Navigation depuis l'onglet Budgets vers /app/budget/recurring via la link card
  *  2. État vide ("Aucune dépense récurrente")
  *  3. Création d'une récurrence avec échéance aujourd'hui → apparaît sous "À confirmer"
  *     + cartes de projection trésorerie (30/90 jours)
@@ -80,18 +80,18 @@ function todayIso(): string {
 test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   test.beforeEach(async ({ page }) => {
     // Hydrater le localStorage (JWT) avant tout appel API
-    await page.goto('/app/budget');
-    await expect(page).toHaveURL(/\/app\/budget/);
+    await page.goto('/app/money?tab=budgets');
+    await expect(page).toHaveURL(/\/app\/money/);
 
     // Repartir d'une ardoise vierge
     await deleteAllRecurring(page);
   });
 
-  // ── 1. Navigation depuis /app/budget → /app/budget/recurring ─────────────
+  // ── 1. Navigation depuis l'onglet Budgets → /app/budget/recurring ────────
 
   test('la link card "Dépenses récurrentes" mène à /app/budget/recurring avec état vide', async ({ page }) => {
     // La link card n'apparaît qu'une fois l'overview chargé — attendre le titre
-    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // Cliquer sur la card "Dépenses récurrentes"
     await page.getByText('Dépenses récurrentes').click();

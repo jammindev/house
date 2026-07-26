@@ -7,14 +7,20 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
-import type { AllocationLine, BankTransaction } from '@/lib/api/banking';
+import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
 import { useAllocations, useSetAllocations } from './hooks';
 
 interface AllocationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  transaction: BankTransaction;
+  /**
+   * Id seul, pas l'objet : le dialog charge déjà la ventilation courante, qui
+   * embarque la ligne. Passer l'objet en plus obligerait chaque appelant à le
+   * détenir — or la file de rangement (parcours 26) ne connaît que des écarts,
+   * identifiés par un id.
+   */
+  transactionId: string;
 }
 
 interface DraftLine {
@@ -41,17 +47,19 @@ function blankLine(subject = '', amount = '', budgetId = ''): DraftLine {
 export default function AllocationDialog({
   open,
   onOpenChange,
-  transaction,
+  transactionId,
 }: AllocationDialogProps) {
   const { t } = useTranslation();
-  const allocationsQuery = useAllocations(open ? transaction.id : undefined);
+  const allocationsQuery = useAllocations(open ? transactionId : undefined);
   const budgetsQuery = useBudgets();
   const mutation = useSetAllocations();
 
   const [lines, setLines] = React.useState<DraftLine[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
-  const total = Math.abs(Number(transaction.amount));
+  const transaction = allocationsQuery.data?.transaction;
+  const label = transaction?.label_raw ?? '';
+  const total = Math.abs(Number(transaction?.amount ?? 0));
 
   React.useEffect(() => {
     if (!open || !allocationsQuery.data) return;
@@ -62,9 +70,9 @@ export default function AllocationDialog({
         ? existing.map((a) => blankLine(a.subject, a.amount ?? '', a.budget?.id ?? ''))
         : // Première ventilation : on pré-remplit une ligne au montant total,
           // le cas le plus fréquent (une opération = un poste).
-          [blankLine(transaction.label_raw, total.toFixed(2), '')],
+          [blankLine(label, total.toFixed(2), '')],
     );
-  }, [open, allocationsQuery.data, transaction.label_raw, total]);
+  }, [open, allocationsQuery.data, label, total]);
 
   const allocated = lines.reduce((sum, line) => {
     const value = Number(line.amount.replace(',', '.'));
@@ -92,7 +100,7 @@ export default function AllocationDialog({
         return;
       }
       payload.push({
-        subject: line.subject.trim() || transaction.label_raw,
+        subject: line.subject.trim() || label,
         amount: value.toFixed(2),
         budget_id: line.budgetId || null,
       });
@@ -104,7 +112,7 @@ export default function AllocationDialog({
     }
 
     try {
-      await mutation.mutateAsync({ transactionId: transaction.id, lines: payload });
+      await mutation.mutateAsync({ transactionId, lines: payload });
       onOpenChange(false);
     } catch {
       setError(t('common.saveFailed'));
@@ -122,11 +130,13 @@ export default function AllocationDialog({
     <SheetDialog open={open} onOpenChange={onOpenChange} title={t('banking.allocation.title')}>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
-          <p className="font-medium text-foreground">{transaction.label_raw}</p>
-          <p className="text-xs text-muted-foreground">
-            {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
-            {formatAmount(transaction.amount)}
-          </p>
+          <p className="font-medium text-foreground">{label}</p>
+          {transaction ? (
+            <p className="text-xs text-muted-foreground">
+              {new Date(transaction.booked_on).toLocaleDateString()} ·{' '}
+              {formatAmount(transaction.amount)}
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-3">
@@ -154,7 +164,7 @@ export default function AllocationDialog({
                     id={`s-${line.key}`}
                     value={line.subject}
                     onChange={(e) => update(line.key, { subject: e.target.value })}
-                    placeholder={transaction.label_raw}
+                    placeholder={label}
                   />
                 </FormField>
 
@@ -222,7 +232,7 @@ export default function AllocationDialog({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             {t('common.cancel')}
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={mutation.isPending || !transaction}>
             {t('common.save')}
           </Button>
         </div>

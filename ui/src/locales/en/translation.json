@@ -1442,6 +1442,14 @@
           "review": {
             "title": "Analyse by period",
             "body": "Filter by period or by zone to see where the money goes."
+          },
+          "sort": {
+            "title": "Sort your operations",
+            "body": "The “To sort” tab lists every outflow nobody has accounted for yet. A budget pill covers the common case; “Split into several” is there when one shop trip spans two categories. Select several lines to handle a batch at once."
+          },
+          "control": {
+            "title": "Check that your figures are right",
+            "body": "The “Control” tab lists everything standing between you and accurate figures: unaccounted operations, expenses the bank never saw, balances that do not chain. Each one is resolved — or arbitrated with a motive that stays visible and revocable."
           }
         }
       },
@@ -2919,7 +2927,7 @@
       "subjectRequired": "A subject is required",
       "created": "Expense recorded",
       "actions": {
-        "add": "Expense"
+        "add": "New expense"
       },
       "budget": "Budget",
       "budgetNone": "No budget"
@@ -3342,6 +3350,99 @@
     "history": "Earlier months",
     "access": {
       "hint": "Written recap of last month’s spending."
+    }
+  },
+  "money": {
+    "title": "Money",
+    "description": "Accounts, expenses and budgets — statements are the source of truth.",
+    "tabs": {
+      "control": "Control",
+      "pending": "To sort",
+      "accounts": "Accounts",
+      "expenses": "Expenses",
+      "budgets": "Budgets"
+    },
+    "compliance": {
+      "clean": "Everything checks out",
+      "cleanHint": "Every operation is accounted for or arbitrated. Nothing left hanging.",
+      "openCount": "{{count}} discrepancy to handle",
+      "openCount_plural": "{{count}} discrepancies to handle",
+      "openHint": "Each one is either resolved, or arbitrated with a motive.",
+      "arbitratedCount": "{{count}} arbitrated",
+      "arbitratedCount_plural": "{{count}} arbitrated",
+      "staleCount": "{{count}} expired arbitration",
+      "staleCount_plural": "{{count}} expired arbitrations",
+      "groupClean": "Nothing to report.",
+      "prerequisite": "Prerequisite",
+      "staleBadge": "{{count}} expired",
+      "staleBadge_plural": "{{count}} expired",
+      "waivedShort": "{{count}} arbitrated",
+      "waivedShort_plural": "{{count}} arbitrated",
+      "blockedBy": "This check only covers accounts whose “{{prerequisite}}” prerequisite is cleared.",
+      "andMore": "and {{count}} more…",
+      "showArbitrated": "Show the {{count}} arbitrations",
+      "hideArbitrated": "Hide arbitrations",
+      "revoke": "Revoke",
+      "revoked": "Arbitration revoked — the discrepancy is back.",
+      "arbitrate": "Arbitrate",
+      "rearbitrate": "Re-arbitrate",
+      "notWaivable": "must be fixed",
+      "stale": "Things changed since “{{reason}}”.",
+      "remaining": "Left to account for: {{amount}}",
+      "waived": "Discrepancy arbitrated.",
+      "waiveTitle": "Arbitrate this discrepancy",
+      "waiveHelp": "An arbitration erases nothing: it records why this discrepancy is acceptable. It stays visible and revocable.",
+      "waiveAction": "Arbitrate",
+      "reason": "Motive",
+      "reasonPlaceholder": "E.g. bank fees, belongs to no budget",
+      "reasonRequired": "A motive is required.",
+      "noDetectors": "No checks available",
+      "noDetectorsHint": "Declare an account so the control has something to verify.",
+      "kinds": {
+        "account_no_opening_balance": {
+          "title": "Account without an opening balance",
+          "hint": "With no starting point, the balance is a guess.",
+          "resolution": "Fill in the account's opening balance and its date. The other checks then become meaningful."
+        },
+        "transaction_unallocated": {
+          "title": "Unaccounted outflows",
+          "hint": "Money left without anyone saying what for.",
+          "resolution": "Sort these from the “To sort” tab, or arbitrate them with a motive."
+        },
+        "transaction_partially_allocated": {
+          "title": "Partly accounted outflows",
+          "hint": "Part of the amount is attached to nothing.",
+          "resolution": "Complete the split, or arbitrate the remainder."
+        },
+        "expense_unreconciled": {
+          "title": "Unreconciled expenses",
+          "hint": "Typed into the app, never confirmed by a statement.",
+          "resolution": "Attach them to the matching bank line, or arbitrate them (paid by someone else, for instance)."
+        },
+        "account_chain_broken": {
+          "title": "Broken balance chain",
+          "hint": "The statement balances do not chain: operations are missing.",
+          "resolution": "Import the missing statement. Until then the balance stays flagged as unreliable."
+        }
+      }
+    },
+    "pending": {
+      "count": "{{count}} operation to sort",
+      "count_plural": "{{count}} operations to sort",
+      "selectAll": "Select all",
+      "clearSelection": "Clear selection",
+      "bulkSelected": "{{count}} operation selected",
+      "bulkSelected_plural": "{{count}} operations selected",
+      "bulkLabel": "{{count}} operations",
+      "noBudget": "No budget",
+      "split": "Split into several",
+      "complete": "Complete the split",
+      "later": "Later",
+      "partial": "{{allocated}} accounted for, {{remaining}} left",
+      "allDone": "Queue empty",
+      "allDoneHint": "Every operation is accounted for or arbitrated.",
+      "nothingLeft": "Nothing for this session",
+      "nothingLeftHint": "Postponed operations will be back on your next visit."
     }
   }
 }

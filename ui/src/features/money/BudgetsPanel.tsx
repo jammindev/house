@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Plus, PiggyBank, AlertTriangle, CalendarClock, ChevronRight, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
@@ -11,9 +10,9 @@ import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { pushBack } from '@/lib/backNavigation';
 import { formatAmount } from '@/lib/format';
 import type { Budget, BudgetOverviewRow } from '@/lib/api/budget';
-import { useBudgetOverview, useDeleteBudget } from './hooks';
-import BudgetCard from './BudgetCard';
-import BudgetDialog from './BudgetDialog';
+import { useBudgetOverview, useDeleteBudget } from '@/features/budget/hooks';
+import BudgetCard from '@/features/budget/BudgetCard';
+import BudgetDialog from '@/features/budget/BudgetDialog';
 
 /** Rebuild an editable Budget from an overview row (avoids a second fetch). */
 function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
@@ -27,7 +26,11 @@ function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
   };
 }
 
-export default function BudgetPage() {
+/**
+ * Onglet « Budgets » du module Argent (parcours 26, lot 2).
+ * Anciennement `budget/BudgetPage`, `PageHeader` en moins.
+ */
+export default function BudgetsPanel() {
   const { t } = useTranslation();
   const location = useLocation();
   const overviewQuery = useBudgetOverview();
@@ -74,12 +77,12 @@ export default function BudgetPage() {
 
   return (
     <>
-      <PageHeader title={t('budget.title')} description={t('budget.description')}>
+      <div className="flex justify-end pb-4">
         <Button type="button" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />
           {t('budget.new.action')}
         </Button>
-      </PageHeader>
+      </div>
 
       {showSkeleton ? (
         <div className="space-y-2">

@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 1 : Budgets mensuels.
  *
  * Couvre :
- *  1. Sidebar entry "Budgets" → /app/budget
+ *  1. Sidebar entry "Argent" → /app/money (onglet Budgets)
  *  2. État vide avant tout budget
  *  3. Création d'un budget nommé "Courses 400 €"
  *  4. Présence de la card "Hors budget" dès qu'un budget existe
@@ -66,32 +66,32 @@ test.describe('Budgets — parcours 21', () => {
   test.beforeEach(async ({ page }) => {
     // Naviguer vers la page pour hydrater le localStorage (JWT obligatoire
     // avant tout appel API via page.request)
-    await page.goto('/app/budget');
-    await expect(page).toHaveURL(/\/app\/budget/);
+    await page.goto('/app/money?tab=budgets');
+    await expect(page).toHaveURL(/\/app\/money/);
 
     // Nettoyer tous les budgets pour garantir un état vide au départ
     await deleteAllBudgets(page);
 
     // Recharger pour refléter l'état vide dans l'UI
     await page.reload();
-    await expect(page).toHaveURL(/\/app\/budget/);
+    await expect(page).toHaveURL(/\/app\/money/);
   });
 
   // ── 1. Affichage & sidebar ───────────────────────────────────────────────
 
-  test('la sidebar contient un lien "Budgets" vers /app/budget', async ({ page }) => {
+  test('la sidebar contient un lien "Argent" vers /app/money', async ({ page }) => {
     // budget est dans le groupe Suivi (tracking), non optionnel → toujours visible
-    const budgetLink = page.getByRole('link', { name: 'Budgets' });
+    const budgetLink = page.getByRole('link', { name: 'Argent' });
     await expect(budgetLink).toBeVisible();
     await budgetLink.click();
-    await expect(page).toHaveURL(/\/app\/budget/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+    await expect(page).toHaveURL(/\/app\/money/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
   });
 
   // ── 2. État vide ─────────────────────────────────────────────────────────
 
   test('affiche l\'état vide quand aucun budget n\'existe', async ({ page }) => {
-    await expect(page.getByRole('heading', { level: 1, name: 'Budgets' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // EmptyState avec le texte "Aucun budget"
     await expect(page.getByText('Aucun budget')).toBeVisible();
@@ -142,8 +142,11 @@ test.describe('Budgets — parcours 21', () => {
     // Toast de succès
     await expect(page.getByText('Budget créé', { exact: true })).toBeVisible();
 
-    // La card du budget créé apparaît sous la section "Budgets"
-    await expect(page.getByText('Courses')).toBeVisible();
+    // La card du budget créé apparaît sous la section "Budgets".
+    // `exact` est indispensable : sans lui le locator attrape aussi « Liste de
+    // courses » dans la sidebar (getByText fait du sous-texte insensible à la
+    // casse) et Playwright échoue en strict mode.
+    await expect(page.getByText('Courses', { exact: true })).toBeVisible();
 
     // La barre de progression est présente (aria role progressbar)
     await expect(page.getByRole('progressbar').first()).toBeVisible();
@@ -233,8 +236,8 @@ test.describe('Budgets — parcours 21', () => {
 
 test.describe('Budgets — intégration dépenses ad-hoc', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/app/budget');
-    await expect(page).toHaveURL(/\/app\/budget/);
+    await page.goto('/app/money?tab=budgets');
+    await expect(page).toHaveURL(/\/app\/money/);
 
     // Repartir d'une ardoise vierge, puis créer un budget nommé
     await deleteAllBudgets(page);
@@ -242,11 +245,11 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
   });
 
   test('le dialog de dépense ad-hoc propose le select de budget quand un budget nommé existe', async ({ page }) => {
-    await page.goto('/app/expenses');
-    await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
+    await page.goto('/app/money?tab=expenses');
+    await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // Ouvrir le dialog de dépense ad-hoc
-    await page.getByRole('button', { name: 'Dépense' }).first().click();
+    await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -263,8 +266,8 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
 
   test('enregistrer une dépense rattachée à un budget incrémente le budget', async ({ page }) => {
     // Créer la dépense via l'UI
-    await page.goto('/app/expenses');
-    await page.getByRole('button', { name: 'Dépense' }).first().click();
+    await page.goto('/app/money?tab=expenses');
+    await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
@@ -280,7 +283,7 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
     await expect(dialog).toBeHidden();
 
     // Aller sur la page Budgets et vérifier que le montant dépensé a augmenté
-    await page.goto('/app/budget');
+    await page.goto('/app/money?tab=budgets');
     await expect(page.getByText('Courses Tests')).toBeVisible();
 
     // La dépense de 85 € doit apparaître : "85,00 € / 500,00 €"

@@ -21,7 +21,7 @@ class BudgetConfig(AppConfig):
             model=Budget,
             search_fields=("name",),
             label_attr="name",
-            url_template="/app/budget?b={id}",
+            url_template="/app/money?tab=budgets&b={id}",
         ))
 
         register(SearchableSpec(
@@ -41,7 +41,7 @@ class BudgetConfig(AppConfig):
             resolve=_resolve_budget_for_agent,
             delete=_delete_budget_from_agent,
             label_attr="name",
-            url_template="/app/budget?b={id}",
+            url_template="/app/money?tab=budgets&b={id}",
         ))
 
         register_writable(WritableSpec(

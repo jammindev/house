@@ -75,7 +75,7 @@ export default function TransactionsPage() {
       <PageHeader
         title={t('banking.journal.title')}
         description={t('banking.journal.subtitle')}
-        backLink={<BackLink fallback="/app/banking" fallbackLabel={t('banking.title')} />}
+        backLink={<BackLink fallback="/app/money" fallbackLabel={t('money.title')} />}
       >
         <Button
           variant="outline"
@@ -131,7 +131,7 @@ export default function TransactionsPage() {
         <AllocationDialog
           open
           onOpenChange={(next) => !next && setAllocationTarget(null)}
-          transaction={allocationTarget}
+          transactionId={allocationTarget.id}
         />
       ) : null}
 

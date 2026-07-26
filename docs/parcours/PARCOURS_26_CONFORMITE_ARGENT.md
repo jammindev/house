@@ -141,7 +141,7 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | Lot | Sujet | Statut |
 |---|---|---|
 | 1 | **Socle de conformité** — `ComplianceWaiver`, `coverage.py`, registre de détecteurs, 5 détecteurs, API | ✅ Livré |
-| 2 | **Module « Argent »** — coque à onglets, panneau Contrôle, file de rangement, actions groupées | ⬜ |
+| 2 | **Module « Argent »** — coque à onglets, panneau Contrôle, file de rangement, actions groupées | ✅ Livré |
 | 3 | **Une ventilation porte projet, zone et budget** — les deux axes sont indépendants | ⬜ |
 | 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ⬜ |
 | 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ⬜ |

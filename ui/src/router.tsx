@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
 import ModuleRoute from './components/ModuleRoute';
+import LegacyMoneyRedirect from './components/LegacyMoneyRedirect';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
@@ -45,11 +46,9 @@ const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 const MemoryPage = lazyWithReload(() => import('./features/agent/MemoryPage'));
 const DigestPage = lazyWithReload(() => import('./features/digest/DigestPage'));
 const BriefingsPage = lazyWithReload(() => import('./features/briefings/BriefingsPage'));
-const ExpensesPage = lazyWithReload(() => import('./features/expenses/ExpensesPage'));
-const BudgetPage = lazyWithReload(() => import('./features/budget/BudgetPage'));
+const MoneyPage = lazyWithReload(() => import('./features/money/MoneyPage'));
 const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPage'));
 const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage'));
-const BankingPage = lazyWithReload(() => import('./features/banking/BankingPage'));
 const BankingTransactionsPage = lazyWithReload(
   () => import('./features/banking/TransactionsPage'),
 );
@@ -84,12 +83,17 @@ export const router = createBrowserRouter([
       { path: 'interactions/new', element: <InteractionNewPage /> },
       { path: 'interactions/:id', element: <InteractionDetailPage /> },
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
-      { path: 'expenses', element: <ExpensesPage /> },
-      { path: 'budget', element: <BudgetPage /> },
+      { path: 'money', element: <MoneyPage /> },
+      { path: 'money/transactions', element: <BankingTransactionsPage /> },
       { path: 'budget/recurring', element: <RecurringPage /> },
       { path: 'budget/reports', element: <ReportsPage /> },
-      { path: 'banking', element: <ModuleRoute moduleKey="banking"><BankingPage /></ModuleRoute> },
-      { path: 'banking/transactions', element: <ModuleRoute moduleKey="banking"><BankingTransactionsPage /></ModuleRoute> },
+      // Anciennes URLs (parcours 26, lot 2) : les favoris, les liens de l'agent et
+      // les tutoriels pointent encore dessus. La query string est **préservée** —
+      // `?b={id}` vient de `budget/apps.py::SearchableSpec.url_template`.
+      { path: 'expenses', element: <LegacyMoneyRedirect tab="expenses" /> },
+      { path: 'budget', element: <LegacyMoneyRedirect tab="budgets" /> },
+      { path: 'banking', element: <LegacyMoneyRedirect tab="accounts" /> },
+      { path: 'banking/transactions', element: <Navigate to="/app/money/transactions" replace /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },

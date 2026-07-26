@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Landmark, Plus, Receipt } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { Button, buttonVariants } from '@/design-system/button';
 import { FilterPill } from '@/design-system/filter-pill';
@@ -16,13 +15,21 @@ import {
   useBankAccounts,
   useRestoreBankAccount,
   useStatementImports,
-} from './hooks';
-import AccountCard from './AccountCard';
-import AccountDialog from './AccountDialog';
-import ImportHistoryCard from './ImportHistoryCard';
-import StatementImportDialog from './StatementImportDialog';
+} from '@/features/banking/hooks';
+import AccountCard from '@/features/banking/AccountCard';
+import AccountDialog from '@/features/banking/AccountDialog';
+import ImportHistoryCard from '@/features/banking/ImportHistoryCard';
+import StatementImportDialog from '@/features/banking/StatementImportDialog';
 
-export default function BankingPage() {
+/**
+ * Onglet « Comptes » du module Argent (parcours 26, lot 2).
+ *
+ * Anciennement `banking/BankingPage`. Le contenu est inchangé : seul le
+ * `PageHeader` disparaît, la coque `MoneyPage` portant désormais le titre. Les
+ * actions restent dans le panneau — elles connaissent l'état d'édition local
+ * (compte courant, import en cours), qu'il aurait fallu remonter sans raison.
+ */
+export default function AccountsPanel() {
   const { t } = useTranslation();
   const location = useLocation();
   const [showArchived, setShowArchived] = useSessionState('banking.showArchived', false);
@@ -70,28 +77,29 @@ export default function BankingPage() {
 
   return (
     <>
-      <PageHeader title={t('banking.title')} description={t('banking.subtitle')}>
-        <Link
-          to="/app/banking/transactions"
-          state={pushBack(location)}
-          className={buttonVariants({ variant: 'outline' })}
-        >
-          <Receipt className="mr-1.5 h-4 w-4" aria-hidden />
-          {t('banking.journal.title')}
-        </Link>
-        <Button onClick={openCreate}>
-          <Plus className="mr-1.5 h-4 w-4" aria-hidden />
-          {t('banking.new.action')}
-        </Button>
-      </PageHeader>
-
-      <div className="flex flex-wrap gap-1.5 pb-4">
-        <FilterPill active={!showArchived} onClick={() => setShowArchived(false)}>
-          {t('banking.filters.active')}
-        </FilterPill>
-        <FilterPill active={showArchived} onClick={() => setShowArchived(true)}>
-          {t('banking.filters.all')}
-        </FilterPill>
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-4">
+        <div className="flex flex-wrap gap-1.5">
+          <FilterPill active={!showArchived} onClick={() => setShowArchived(false)}>
+            {t('banking.filters.active')}
+          </FilterPill>
+          <FilterPill active={showArchived} onClick={() => setShowArchived(true)}>
+            {t('banking.filters.all')}
+          </FilterPill>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/app/money/transactions"
+            state={pushBack(location)}
+            className={buttonVariants({ variant: 'outline' })}
+          >
+            <Receipt className="mr-1.5 h-4 w-4" aria-hidden />
+            {t('banking.journal.title')}
+          </Link>
+          <Button onClick={openCreate}>
+            <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+            {t('banking.new.action')}
+          </Button>
+        </div>
       </div>
 
       {showSkeleton ? (

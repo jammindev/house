@@ -1,6 +1,6 @@
 import {
   Bird, Box, CloudSun, Droplets, FileText, FolderKanban, Image, Landmark, ListTodo, MapPin,
-  Notebook, PiggyBank, Receipt, ShoppingCart, TrendingUp, Umbrella, Users, Wrench, Zap,
+  Notebook, ShoppingCart, TrendingUp, Umbrella, Users, Wrench, Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -47,9 +47,12 @@ export const MODULES: ModuleDef[] = [
   { key: 'interactions', to: '/app/interactions', labelKey: 'interactions.title', Icon: Notebook,     group: 'tracking',  optional: false },
   { key: 'shopping',     to: '/app/shopping-list', labelKey: 'shoppingList.title', Icon: ShoppingCart, group: 'tracking',  optional: true  },
   { key: 'trackers',     to: '/app/trackers',     labelKey: 'trackers.title',     Icon: TrendingUp,   group: 'tracking',  optional: true  },
-  { key: 'expenses',     to: '/app/expenses',     labelKey: 'expenses.title',     Icon: Receipt,      group: 'tracking',  optional: false },
-  { key: 'budget',       to: '/app/budget',       labelKey: 'budget.title',       Icon: PiggyBank,    group: 'tracking',  optional: false },
-  { key: 'banking',      to: '/app/banking',      labelKey: 'banking.title',      Icon: Landmark,     group: 'tracking',  optional: true  },
+  // Une seule entrée « Argent » (parcours 26, lot 2) : comptes, dépenses et
+  // budgets sont trois onglets d'un même module, parce que le relevé est la
+  // source de vérité des deux autres. `optional: false` est imposé — dépenses et
+  // budgets n'ont jamais été désactivables, donc la clé fusionnée ne peut pas
+  // l'être. Conséquence assumée : les comptes ne sont plus un opt-in.
+  { key: 'money',        to: '/app/money',        labelKey: 'money.title',        Icon: Landmark,     group: 'tracking',  optional: false },
   { key: 'documents',    to: '/app/documents',    labelKey: 'documents.title',    Icon: FileText,     group: 'resources', optional: false },
   { key: 'photos',       to: '/app/photos',       labelKey: 'photos.title',       Icon: Image,        group: 'resources', optional: true  },
   { key: 'directory',    to: '/app/directory',    labelKey: 'directory.title',    Icon: Users,        group: 'resources', optional: true  },
