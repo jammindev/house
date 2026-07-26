@@ -241,6 +241,18 @@ def import_statement_file(
 
         remember_import_mapping(account=account, provider=importer.key, options=options)
 
+        # Reconcile inside the same transaction, and only against the rows we
+        # just created: an import that links nothing is an import the user has
+        # to sort out by hand, 160 lines a month.
+        from .matching import auto_reconcile
+
+        created_rows = list(base_qs.filter(source_import=imported))
+        outcome = auto_reconcile(
+            household=household, user=user, transactions=created_rows
+        )
+        imported.auto_matched_count = outcome["auto_matched"]
+        imported.save(update_fields=["auto_matched_count", "updated_at"])
+
     return imported
 
 

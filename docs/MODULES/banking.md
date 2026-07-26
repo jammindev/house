@@ -21,12 +21,12 @@
 | 3 | Journal bancaire (liste, filtres, qualification, flux) | ✅ **Livré** (#386) |
 | 4 | Soldes, continuité & espèces | ✅ **Livré** (#387) |
 | 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ✅ **Livré** (#388) |
-| 6 | Rapprochement automatique | ⬜ #389 |
+| 6 | Rapprochement automatique | ✅ **Livré** (#389) |
 | 7 | Recettes, virements internes, couverture | ⬜ #390 |
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lots 1-5).** Les sections marquées *(à venir)*
+**Cette fiche décrit l'état livré (lots 1-6).** Les sections marquées *(à venir)*
 annoncent le contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)
@@ -330,6 +330,73 @@ Le verbe `DELETE` n'est ouvert que pour `unlink-cash` : le viewset n'a pas de
 
 `BalanceBadge` sur chaque card de compte (montant + pastille « à vérifier »),
 `ChainGapAlert` détaillant les ruptures, `WithdrawToCashDialog` depuis le journal.
+
+## Rapprochement automatique (lot 6)
+
+### Le problème, et pourquoi ce lot décide de tout
+
+L'utilisateur achète des granulés le 12 et le saisit le 12 ; la ligne
+`CB LECLERC` arrive sur le relevé le 14. Deux traces d'un même fait. Ne pas les
+réunir, c'est compter deux fois ; exiger le relevé pour saisir, c'est tuer le
+geste immédiat qui fait la valeur de l'app.
+
+Deux banques, c'est ~160 lignes par mois. Si chacune demande un clic,
+l'utilisateur décroche en deux mois — d'où l'importance disproportionnée de ce
+lot par rapport à sa taille.
+
+### Le score
+
+| Dimension | Poids | Règle |
+|---|---|---|
+| Montant | 0.50 | exact → plein ; sinon décroissant jusqu'à la tolérance (max de 5 c et 0,5 %) |
+| Date | 0.30 | fenêtre **asymétrique** −7 / +3 jours : une carte est débitée *après* l'achat, mais l'utilisateur saisit parfois avec un jour de retard |
+| Libellé | 0.20 | `difflib.SequenceMatcher`, **forcé au maximum si le fournisseur est une sous-chaîne du libellé** — le `LECLERC` dans `CB LECLERC 12/07 123456`, de loin le cas le plus fréquent |
+
+Aucune dépendance ajoutée : `difflib` est dans la bibliothèque standard.
+
+### Les deux règles qui protègent l'utilisateur
+
+**Auto-lien uniquement sur montant strictement égal**, en plus du seuil (0.85) et
+de la non-ambiguïté. Un appariement à cinq centimes près est probablement bon,
+mais il casserait l'invariant de ventilation et laisserait des résidus
+inexplicables sur des centaines de lignes. Un écart devient une **suggestion**,
+tranchée par un clic humain.
+
+**Affectation par glouton stable**, jamais un `argmax` par ligne : deux achats de
+20 € face à deux lignes de 20 € produiraient sinon des appariements croisés ou
+doubles. Les paires sont triées par score (puis par écart de date) et retenues
+tant que les deux côtés sont libres.
+
+L'ambiguïté est jugée sur ce qui **change les comptes** : deux rivaux
+interchangeables (même score, même écart de montant) se rapprochent quand même,
+puisque l'un ou l'autre donne des livres identiques. Deux rivaux réellement
+différents — une boulangerie et une pharmacie à 20 € le même jour — ne sont
+jamais liés automatiquement : l'attribution au budget diffère, donc on demande.
+
+### Deux points d'entrée
+
+- **À l'import**, dans la même transaction, sur les seules lignes créées.
+  `StatementImport.auto_matched_count` porte le chiffre qui compte pour
+  l'utilisateur : ce qu'il n'a **pas** eu à trier à la main.
+- **À la demande** (`POST /api/banking/transactions/reconcile/`), pour l'autre
+  sens du décalage : la dépense saisie *après* l'import.
+
+Idempotent : tout ce qui est déjà rapproché est hors du pool de candidats.
+
+Pas de hook dans les six producteurs de dépense — six points de couplage pour un
+gain marginal, alors que le bouton et la passe d'import couvrent les deux sens.
+
+### API
+
+| Méthode | URL | Action |
+|---|---|---|
+| POST | `/api/banking/transactions/reconcile/` | Lance le matcher (`date_from`/`date_to` optionnels) |
+| GET | `/api/banking/transactions/{id}/suggestions/` | Meilleurs candidats pour cette ligne |
+
+### Réglages
+
+`BANKING_MATCH_WINDOW_BEFORE_DAYS` (7), `BANKING_MATCH_WINDOW_AFTER_DAYS` (3),
+`BANKING_MATCH_AUTO_THRESHOLD` (0.85), `BANKING_MATCH_SUGGEST_THRESHOLD` (0.55).
 
 ## Ce que les lots suivants ajouteront *(à venir)*
 - **Lot 5** — FK `Interaction.bank_transaction` (`SET_NULL`). **Il n'y a pas de

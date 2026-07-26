@@ -341,3 +341,49 @@ export async function unlinkAllocation(
 ): Promise<void> {
   await api.delete(`/banking/transactions/${transactionId}/unlink/${interactionId}/`);
 }
+
+// --- Rapprochement automatique (parcours 25, lot 6) -------------------------
+
+/** Un appariement possible, avec les preuves derrière son score. */
+export interface MatchCandidate {
+  interaction_id: string;
+  transaction_id: string;
+  score: number;
+  amount_delta: string;
+  day_gap: number;
+  label_ratio: number;
+  interaction?: AllocatedExpense;
+}
+
+export interface ReconcileOutcome {
+  auto_matched: number;
+  suggestions: MatchCandidate[];
+}
+
+/** Relance le matcher. Idempotent : ce qui est déjà rapproché est hors du pool. */
+export async function reconcileTransactions(params: {
+  date_from?: string;
+  date_to?: string;
+} = {}): Promise<ReconcileOutcome> {
+  const { data } = await api.post<ReconcileOutcome>('/banking/transactions/reconcile/', params);
+  return data;
+}
+
+export async function fetchSuggestions(transactionId: string): Promise<MatchCandidate[]> {
+  const { data } = await api.get<MatchCandidate[]>(
+    `/banking/transactions/${transactionId}/suggestions/`,
+  );
+  return data;
+}
+
+/** Accepte une suggestion : rattache la dépense proposée à la ligne. */
+export async function linkInteraction(
+  transactionId: string,
+  interactionId: string,
+): Promise<AllocatedExpense> {
+  const { data } = await api.post<AllocatedExpense>(
+    `/banking/transactions/${transactionId}/link/`,
+    { interaction: interactionId },
+  );
+  return data;
+}

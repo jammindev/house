@@ -98,6 +98,7 @@ class StatementImportSerializer(serializers.ModelSerializer):
             "status",
             "created_count",
             "skipped_count",
+            "auto_matched_count",
             "error",
             "period_start",
             "period_end",

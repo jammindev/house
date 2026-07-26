@@ -281,6 +281,16 @@ DIGEST_AI_POLISH_ENABLED = False
 
 # Budgets (parcours 21): ratio at which a monthly budget flips to the "attention"
 # state (below the 100% overrun). 0.8 = warn once 80% of the ceiling is spent.
+# --- Banking auto-reconciliation (parcours 25 lot 6) ---
+# A card is debited after the purchase, but users sometimes record a day late,
+# hence an asymmetric window.
+BANKING_MATCH_WINDOW_BEFORE_DAYS = 7
+BANKING_MATCH_WINDOW_AFTER_DAYS = 3
+# Auto-linking also requires a strictly equal amount and a clear winner: an
+# approximate match becomes a suggestion, never a silent link.
+BANKING_MATCH_AUTO_THRESHOLD = 0.85
+BANKING_MATCH_SUGGEST_THRESHOLD = 0.55
+
 BUDGET_WARNING_RATIO = 0.8
 
 # Monthly budget report (lot 3): when on + an API key exists, the factual report

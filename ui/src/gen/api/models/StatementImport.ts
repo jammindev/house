@@ -25,6 +25,10 @@ export type StatementImport = {
      * Lines already present — the normal outcome of a re-import.
      */
     readonly skipped_count: number;
+    /**
+     * Lines this import reconciled by itself with expenses already typed into the app (lot 6). The number the user actually cares about: it is what they did NOT have to sort out by hand.
+     */
+    readonly auto_matched_count: number;
     readonly error: string;
     readonly period_start: string | null;
     readonly period_end: string | null;

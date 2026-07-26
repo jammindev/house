@@ -8,10 +8,13 @@ import {
   fetchAccountFlow,
   fetchBankAccounts,
   fetchStatementImports,
+  fetchSuggestions,
   fetchTransactions,
   importStatementFile,
+  linkInteraction,
   previewStatementFile,
   qualifyTransaction,
+  reconcileTransactions,
   restoreBankAccount,
   setAllocations,
   unlinkCashCounterpart,
@@ -36,6 +39,8 @@ export const bankingKeys = {
     [...bankingKeys.all, 'balance', accountId, asOf ?? 'now'] as const,
   allocations: (transactionId: string) =>
     [...bankingKeys.all, 'allocations', transactionId] as const,
+  suggestions: (transactionId: string) =>
+    [...bankingKeys.all, 'suggestions', transactionId] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -231,6 +236,54 @@ export function useSetAllocations() {
       void qc.invalidateQueries({ queryKey: ['expenses'] });
       void qc.invalidateQueries({ queryKey: ['budget'] });
       toast({ description: t('banking.allocation.saved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Rapprochement automatique (lot 6) --------------------------------------
+
+export function useReconcile() {
+  const invalidate = useInvalidateBanking();
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (params: { date_from?: string; date_to?: string } = {}) =>
+      reconcileTransactions(params),
+    onSuccess: (outcome) => {
+      invalidate();
+      void qc.invalidateQueries({ queryKey: ['interactions'] });
+      toast({
+        description:
+          outcome.auto_matched > 0
+            ? t('banking.reconcile.matched', { count: outcome.auto_matched })
+            : t('banking.reconcile.nothingMatched'),
+        variant: outcome.auto_matched > 0 ? 'success' : undefined,
+      });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useSuggestions(transactionId: string | undefined) {
+  return useQuery({
+    queryKey: bankingKeys.suggestions(transactionId ?? ''),
+    queryFn: () => fetchSuggestions(transactionId as string),
+    enabled: Boolean(transactionId),
+  });
+}
+
+export function useLinkInteraction() {
+  const invalidate = useInvalidateBanking();
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ transactionId, interactionId }: { transactionId: string; interactionId: string }) =>
+      linkInteraction(transactionId, interactionId),
+    onSuccess: () => {
+      invalidate();
+      void qc.invalidateQueries({ queryKey: ['interactions'] });
+      toast({ description: t('banking.reconcile.linked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

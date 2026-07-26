@@ -3252,6 +3252,21 @@
         "amountInvalid": "Cada partida necesita un importe positivo.",
         "overAllocated": "Las partidas suman más de {{total}}."
       }
+    },
+    "reconcile": {
+      "title": "Conciliar esta operación",
+      "action": "Conciliar",
+      "runAll": "Conciliar",
+      "accept": "Es esta",
+      "linked": "Gasto conciliado",
+      "matched_one": "{{count}} operación conciliada automáticamente",
+      "matched_other": "{{count}} operaciones conciliadas automáticamente",
+      "nothingMatched": "No se ha podido conciliar nada automáticamente",
+      "noSuggestion": "Ningún gasto registrado coincide con esta operación.",
+      "unknownExpense": "Gasto",
+      "amountGap": "{{amount}} de diferencia",
+      "dayGap_one": "{{count}} día de diferencia",
+      "dayGap_other": "{{count}} días de diferencia"
     }
   },
   "pwa": {

@@ -3252,6 +3252,21 @@
         "amountInvalid": "Chaque poste doit avoir un montant positif.",
         "overAllocated": "La somme des postes dépasse {{total}}."
       }
+    },
+    "reconcile": {
+      "title": "Rapprocher cette opération",
+      "action": "Rapprocher",
+      "runAll": "Rapprocher",
+      "accept": "C'est ça",
+      "linked": "Dépense rapprochée",
+      "matched_one": "{{count}} opération rapprochée automatiquement",
+      "matched_other": "{{count}} opérations rapprochées automatiquement",
+      "nothingMatched": "Aucun rapprochement automatique possible",
+      "noSuggestion": "Aucune dépense saisie ne correspond à cette opération.",
+      "unknownExpense": "Dépense",
+      "amountGap": "écart de {{amount}}",
+      "dayGap_one": "{{count}} jour d'écart",
+      "dayGap_other": "{{count}} jours d'écart"
     }
   },
   "pwa": {

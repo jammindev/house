@@ -411,6 +411,23 @@ export class BankingService {
         });
     }
     /**
+     * Best candidate expenses for this line, for the manual dialog.
+     * @param id
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsSuggestionsRetrieve(
+        id: string,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/{id}/suggestions/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
      * Undo the cash counterpart — deletes only the leg we generated.
      * @param id
      * @returns void
@@ -483,6 +500,25 @@ export class BankingService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/banking/transactions/flow/',
+        });
+    }
+    /**
+     * Run the matcher on demand.
+     *
+     * Covers the other direction of the delay: the user recorded a purchase
+     * *after* importing the statement, so the import-time pass could not see it.
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsReconcileCreate(
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/reconcile/',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 }
