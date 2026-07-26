@@ -1,7 +1,7 @@
 """Banking serializers — account CRUD + statement import API."""
 from rest_framework import serializers
 
-from .models import BankAccount, BankTransaction, StatementImport
+from .models import BankAccount, BankTransaction, ComplianceWaiver, StatementImport
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -149,3 +149,25 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "transfer_counterpart",
             "created_at",
         ]
+
+
+class ComplianceWaiverSerializer(serializers.ModelSerializer):
+    """Read serializer for an arbitration.
+
+    Writes go through ``services.waive_finding``, never through this serializer:
+    creating a waiver requires re-running the detector (to prove the écart exists
+    and to capture its fingerprint), which is service work, not field validation.
+    """
+
+    class Meta:
+        model = ComplianceWaiver
+        fields = [
+            "id",
+            "finding_kind",
+            "object_id",
+            "reason",
+            "fingerprint",
+            "created_at",
+            "created_by",
+        ]
+        read_only_fields = fields

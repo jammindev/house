@@ -22,12 +22,26 @@
 | 4 | Soldes, continuité & espèces | ✅ **Livré** (#387) |
 | 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ✅ **Livré** (#388) |
 | 6 | Rapprochement automatique | ✅ **Livré** (#389) |
-| 7 | Recettes, virements internes, couverture | ⬜ #390 |
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lots 1-6).** Les sections marquées *(à venir)*
-annoncent le contrat que les lots suivants devront respecter.
+Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
+**absorbé par le parcours 26**, qui le reprend dans un cadre de conformité.
+
+### Parcours 26 — conformité Comptes / Dépenses / Budget
+
+| Lot | Sujet | Statut |
+|---|---|---|
+| 1 | Socle de conformité (`ComplianceWaiver`, détecteurs, API) | ✅ **Livré** |
+| 2 | Module « Argent » à onglets + file de rangement | ⬜ |
+| 3 | Une ventilation porte projet, zone et budget | ⬜ |
+| 4 | Tout est une ligne de compte (espèces) | ⬜ |
+| 5 | Recettes et mouvements internes | ⬜ |
+| 6 | Le relevé confirme les récurrences | ⬜ |
+| 7 | Continuité des relevés et provenance | ⬜ |
+
+**Cette fiche décrit l'état livré.** Les sections marquées *(à venir)* annoncent le
+contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)
 
@@ -398,10 +412,120 @@ gain marginal, alors que le bouton et la passe d'import couvrent les deux sens.
 `BANKING_MATCH_WINDOW_BEFORE_DAYS` (7), `BANKING_MATCH_WINDOW_AFTER_DAYS` (3),
 `BANKING_MATCH_AUTO_THRESHOLD` (0.85), `BANKING_MATCH_SUGGEST_THRESHOLD` (0.55).
 
+## Conformité — le socle (parcours 26, lot 1)
+
+> Parcours : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md`.
+
+### La règle structurante
+
+> Toute entité est soit **résolue**, soit **flaggée avec un motif**.
+> Rien ne reste dans un entre-deux silencieux.
+
+Le parcours 25 a rendu les relevés source de vérité. Ce qui manquait n'était pas
+une fonctionnalité mais une **garantie** : de l'argent sorti que personne n'a
+affecté, des dépenses que la banque n'a jamais vues, des chaînes de soldes rompues
+— autant d'**orphelins silencieux**. Le contrôle les rend comptables.
+
+### L'horizon de conformité — `coverage.py`
+
+Sans borne, le contrôle serait inutilisable dès le premier jour : les dépenses
+saisies avant le premier relevé n'ont **aucune** ligne bancaire à laquelle se
+rattacher, et n'en auront jamais. Des centaines d'écarts irrésolubles, et la
+réaction rationnelle devant une liste irrésoluble est d'arrêter de la lire.
+
+La fenêtre d'un compte est donc `[opening_balance_date, dernière date connue]` :
+
+- **avant** : de l'historique, hors périmètre ;
+- **après** le dernier relevé : pas encore de relevé, c'est normal ;
+- **entre les deux** : l'exigence est totale — et « zéro écart » devient atteignable.
+
+Un compte sans `opening_balance_date` n'a **pas de fenêtre** : les détecteurs
+dépendants l'ignorent, et son absence de solde d'ouverture est signalée seule, en
+prérequis bloquant. Une action rend le reste du contrôle signifiant.
+
+`_latest_known_date` prend le **maximum** entre le `period_end` des imports
+`completed` et le `booked_on` le plus récent — ce second signal est le seul qu'un
+compte espèces possède. Conséquence assumée : une ligne bancaire est toujours dans
+sa propre fenêtre (détenir la ligne, c'est détenir le relevé), donc seule la borne
+basse peut exclure une ligne. La borne haute mord sur les **dépenses**.
+
+### Le registre de détecteurs — `compliance.py`
+
+Modèle de contribution identique à `agent.searchables` : le registre ne sait rien,
+chaque app déclare ses détecteurs depuis `apps.py::ready()`. **Ajouter un
+mécanisme à l'app, c'est ajouter son détecteur** — la règle de revue qui empêche le
+catalogue de prendre du retard sur le code.
+
+`DetectorSpec` sépare **`count`** de **`findings`** : le badge de la coque est lu à
+chaque navigation, il doit coûter un `COUNT(*)` indexé par détecteur, jamais un
+scan matérialisé en Python. `findings` est paginé et ne tourne que pour le groupe
+ouvert.
+
+`waivable=False` porte la colonne « aucun flag légitime » du catalogue et devient
+un **400**, pas un commentaire : un solde d'ouverture manquant est un prérequis,
+pas un arbitrage.
+
+### `ComplianceWaiver` — l'arbitrage, et pourquoi il peut périmer
+
+Un modèle **unique et polymorphe** plutôt que des `dismissed_at` / `ignored` /
+`accepted_gap` éparpillés : des états hétérogènes que personne ne peut compter
+ensemble seraient exactement l'orphelin qu'on supprime.
+
+- `reason` **requis** — un flag sans motif est un bouton « cacher » ;
+- **révocable** — supprimer le waiver fait resurgir l'écart à l'identique ;
+- **`fingerprint`** — le hash de ce qui *fonde* l'écart au moment de l'arbitrage.
+
+Ce dernier point est le garde-fou central. Arbitrer « le reste de cette ligne de
+150 € ne m'intéresse pas », puis ventiler 90 € : sans péremption, 60 € resteraient
+couverts par un motif qui ne décrit plus rien — **le flag deviendrait la meilleure
+cachette de l'app**. Quand le fingerprint ne correspond plus, l'écart réapparaît
+`is_stale`, motif d'origine affiché pour contexte, et un `POST` ré-arbitre.
+
+Trois états, et l'identité comptable `ouverts + arbitrés = détectés` (les périmés
+sont un sous-ensemble des ouverts : ils sont revenus sur la pile).
+
+Un waiver dont l'écart est résolu est **dormant** : listé nulle part, conservé en
+base pour ne pas avoir à arbitrer deux fois la même situation.
+
+### Les cinq détecteurs du lot — `detectors.py`
+
+| Clé | Sévérité | Arbitrable |
+|---|---|---|
+| `account_no_opening_balance` | `blocker` | ❌ prérequis |
+| `transaction_unallocated` | `error` | ✅ |
+| `transaction_partially_allocated` | `error` | ✅ |
+| `expense_unreconciled` | `warning` | ✅ |
+| `account_chain_broken` | `error` | ✅ |
+
+Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
+les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
+tard, quand les espèces sont dépensées — même règle que
+`validators.assert_allocation_fits`), et tout ce qui sort de la fenêtre.
+
+`account_chain_broken` est le seul détecteur en Python : la vérification est une
+marche arithmétique sur des soldes consécutifs, qu'aucun `COUNT(*)` n'exprime. Coût
+borné par le **nombre de comptes**, pas de lignes.
+
+### API
+
+| Verbe | URL | Rôle |
+|---|---|---|
+| `GET` | `/api/banking/compliance/` | compteurs seuls — ce que lit le badge |
+| `GET` | `/api/banking/compliance/{kind}/` | écarts d'un groupe, paginés |
+| `GET` | `…/{kind}/?waived=true` | la liste d'audit, motifs inclus |
+| `GET` | `/api/banking/waivers/` | les arbitrages du foyer |
+| `POST` | `/api/banking/waivers/` | arbitrer (ou ré-arbitrer) |
+| `DELETE` | `/api/banking/waivers/{id}/` | révoquer → l'écart resurgit |
+
+Pas de `PATCH` sur un waiver : éditer le motif seul laisserait un fingerprint
+périmé derrière lui — un arbitrage qui a l'air à jour mais couvre une situation qui
+a bougé.
+
+Le libellé utilisateur de chaque `kind` vit dans le namespace i18n `money` du
+front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
+passage dans quatre `.po`.
+
 ## Ce que les lots suivants ajouteront *(à venir)*
-- **Lot 5** — FK `Interaction.bank_transaction` (`SET_NULL`). **Il n'y a pas de
-  table `Allocation`** : une `Interaction(type='expense')` *est* une ventilation.
-  `amount` reste donc une colonne scalaire et les 9 `Sum("amount")` ne bougent pas.
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total
   interactions. Le pont est un taux de couverture, pas une somme.
 

@@ -528,3 +528,78 @@ def delete_transaction(*, user, transaction) -> None:
             else:
                 unlink_interaction(user=user, interaction=interaction)
         transaction.delete()
+
+
+# --- Compliance arbitration (parcours 26, lot 1) -----------------------------
+
+
+def waive_finding(*, household, user, finding_kind: str, object_id: str, reason: str):
+    """Record a motivated arbitration of one écart.
+
+    Not a "hide" button. Four properties make it an arbitration rather than an
+    erasure, and all four are enforced here:
+
+    - the écart must **currently exist** — arbitrating a hypothesis would let a
+      waiver sit in wait to silence a future problem;
+    - the detector must allow it (``waivable``) — the catalogue's "aucun flag
+      légitime" column becomes a 400, not a comment;
+    - ``reason`` must be non-blank;
+    - the fingerprint is taken from the écart as it stands *now*, so the waiver
+      expires by itself when the situation moves (see ``banking.compliance``).
+
+    Re-arbitrating the same écart updates the motive and the fingerprint instead
+    of stacking rows — which is also how the UI's "ré-arbitrer" on a stale waiver
+    works.
+    """
+    from django.contrib.contenttypes.models import ContentType
+
+    from .compliance import get_detector
+    from .models import ComplianceWaiver
+
+    spec = get_detector(finding_kind)
+    if spec is None:
+        raise ValidationError({"finding_kind": f"Unknown compliance check: {finding_kind}"})
+    if not spec.waivable:
+        raise ValidationError(
+            {
+                "finding_kind": (
+                    "This écart cannot be arbitrated — it has to be fixed. "
+                    f"({finding_kind})"
+                )
+            }
+        )
+
+    reason = (reason or "").strip()
+    if not reason:
+        raise ValidationError(
+            {"reason": "A motive is required: an arbitration without one hides the problem."}
+        )
+
+    found = spec.findings(household, pks=[object_id])
+    if not found:
+        raise ValidationError(
+            {"object_id": "This écart does not currently exist — nothing to arbitrate."}
+        )
+    finding = found[0]
+
+    content_type = ContentType.objects.get_for_model(spec.model)
+    waiver, created = ComplianceWaiver.objects.update_or_create(
+        household=household,
+        finding_kind=finding_kind,
+        content_type=content_type,
+        object_id=str(object_id),
+        defaults={
+            "reason": reason,
+            "fingerprint": finding.fingerprint,
+            "updated_by": user,
+        },
+    )
+    if created:
+        waiver.created_by = user
+        waiver.save(update_fields=["created_by"])
+    return waiver
+
+
+def revoke_waiver(*, waiver) -> None:
+    """Undo an arbitration. The écart comes back identical — that is the point."""
+    waiver.delete()
