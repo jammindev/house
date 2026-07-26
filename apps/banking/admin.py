@@ -1,7 +1,7 @@
 """Banking admin registration."""
 from django.contrib import admin
 
-from .models import BankAccount, BankTransaction, StatementImport
+from .models import BankAccount, BankTransaction, ComplianceWaiver, StatementImport
 
 
 @admin.register(BankAccount)
@@ -38,3 +38,13 @@ class BankTransactionAdmin(admin.ModelAdmin):
     # contract — the admin must not become the back door that rewrites a
     # statement.
     readonly_fields = ("id", "label_raw", "label_norm", "dedup_hash", "created_at", "updated_at")
+
+
+@admin.register(ComplianceWaiver)
+class ComplianceWaiverAdmin(admin.ModelAdmin):
+    list_display = ("finding_kind", "object_id", "household", "created_by", "created_at")
+    list_filter = ("finding_kind", "household")
+    search_fields = ("object_id", "reason")
+    # ``fingerprint`` is what makes a waiver expire; editing it by hand would let
+    # someone silence an écart that has since moved.
+    readonly_fields = ("id", "fingerprint", "created_at", "updated_at")

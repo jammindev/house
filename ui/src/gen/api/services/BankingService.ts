@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { BankAccount } from '../models/BankAccount';
 import type { BankTransaction } from '../models/BankTransaction';
+import type { ComplianceWaiver } from '../models/ComplianceWaiver';
 import type { PaginatedBankTransactionList } from '../models/PaginatedBankTransactionList';
 import type { PatchedBankAccount } from '../models/PatchedBankAccount';
 import type { PatchedBankTransaction } from '../models/PatchedBankTransaction';
@@ -173,6 +174,47 @@ export class BankingService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/banking/accounts/{id}/balance/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * The conformity control — every écart the app knows how to detect.
+     *
+     * Two endpoints, and the split between them is a performance decision, not a
+     * stylistic one:
+     *
+     * - ``GET /compliance/`` returns **counts only**. The shell badge reads it on
+     * every navigation, so it must cost a bounded number of indexed ``COUNT(*)``,
+     * never a scan materialised into Python.
+     * - ``GET /compliance/{kind}/`` returns the paginated list of one group, and only
+     * runs for the group the user actually opened.
+     *
+     * ``?waived=true`` returns the audit list instead of the actionable one: the
+     * arbitrated écarts, each with its motive, revocable in one click. The two lists
+     * together account for every detected écart — ``open + waived == detected``.
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static bankingComplianceRetrieve(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/compliance/',
+        });
+    }
+    /**
+     * One group's findings. ``pk`` is the detector kind.
+     * @param id
+     * @returns any No response body
+     * @throws ApiError
+     */
+    public static bankingComplianceRetrieve2(
+        id: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/compliance/{id}/',
             path: {
                 'id': id,
             },
@@ -519,6 +561,74 @@ export class BankingService {
             url: '/api/banking/transactions/reconcile/',
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * Arbitrations: list, create, revoke.
+     *
+     * No ``PATCH``: re-arbitrating goes through ``POST`` again, which
+     * ``waive_finding`` turns into an update of the motive *and* of the fingerprint.
+     * Letting a client PATCH the motive alone would leave a stale fingerprint
+     * behind — a waiver that looks current but arbitrates a situation that has moved.
+     *
+     * ``DELETE`` brings the écart back identical. That reversibility is what makes
+     * the control trustworthy: nothing here destroys information.
+     * @returns ComplianceWaiver
+     * @throws ApiError
+     */
+    public static bankingWaiversList(): CancelablePromise<Array<ComplianceWaiver>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/waivers/',
+        });
+    }
+    /**
+     * Arbitrations: list, create, revoke.
+     *
+     * No ``PATCH``: re-arbitrating goes through ``POST`` again, which
+     * ``waive_finding`` turns into an update of the motive *and* of the fingerprint.
+     * Letting a client PATCH the motive alone would leave a stale fingerprint
+     * behind — a waiver that looks current but arbitrates a situation that has moved.
+     *
+     * ``DELETE`` brings the écart back identical. That reversibility is what makes
+     * the control trustworthy: nothing here destroys information.
+     * @param requestBody
+     * @returns ComplianceWaiver
+     * @throws ApiError
+     */
+    public static bankingWaiversCreate(
+        requestBody?: ComplianceWaiver,
+    ): CancelablePromise<ComplianceWaiver> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/waivers/',
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Arbitrations: list, create, revoke.
+     *
+     * No ``PATCH``: re-arbitrating goes through ``POST`` again, which
+     * ``waive_finding`` turns into an update of the motive *and* of the fingerprint.
+     * Letting a client PATCH the motive alone would leave a stale fingerprint
+     * behind — a waiver that looks current but arbitrates a situation that has moved.
+     *
+     * ``DELETE`` brings the écart back identical. That reversibility is what makes
+     * the control trustworthy: nothing here destroys information.
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static bankingWaiversDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/banking/waivers/{id}/',
+            path: {
+                'id': id,
+            },
         });
     }
 }

@@ -190,10 +190,8 @@ Voir `docs/fiches/CARTOGRAPHIE_DEPENSES.md`.
 
 ### Relevés bancaires — une dépense est une ventilation (parcours 25)
 
-Chantier **cadré, pas encore implémenté** :
-`docs/parcours/PARCOURS_25_RELEVES_BANCAIRES.md` +
-`docs/fiches/IMPORT_ET_RAPPROCHEMENT.md`. Les règles ci-dessous s'appliquent dès
-le premier lot livré.
+**Livré** (lots 1-6). Doc : `docs/parcours/PARCOURS_25_RELEVES_BANCAIRES.md` +
+`docs/fiches/IMPORT_ET_RAPPROCHEMENT.md` + `docs/MODULES/banking.md`.
 
 - **Il n'y a pas de table `Allocation`.** Une ligne de relevé (`banking.BankTransaction`)
   ventilée 80 € / 40 € produit **deux `Interaction(type='expense')`**, chacune avec
@@ -216,6 +214,43 @@ le premier lot livré.
 - Toute écriture de montant sur une interaction rapprochée passe par
   `banking.validators.assert_allocation_fits` — y compris le PATCH générique de
   `InteractionSerializer`.
+
+### Conformité de l'argent — aucun orphelin silencieux (parcours 26)
+
+Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité » de
+`docs/MODULES/banking.md`. Règle structurante :
+
+> Toute entité est soit **résolue**, soit **flaggée avec un motif**.
+> Rien ne reste dans un entre-deux silencieux.
+
+- **Ajouter un mécanisme à l'argent = ajouter son détecteur.** Le registre
+  `banking.compliance.REGISTRY` est alimenté depuis `apps.py::ready()` (même modèle
+  que `agent.searchables`). C'est cette règle — à vérifier en revue — qui empêche
+  le catalogue des orphelins de prendre du retard sur le code.
+- **Écarter n'est pas cacher.** Un écart s'arbitre via `banking.ComplianceWaiver` :
+  motif **requis**, daté, signé, **révocable**. Ne jamais introduire un
+  `dismissed_at` / `ignored` / `accepted` sur une table métier — des états
+  hétérogènes qu'on ne peut pas compter ensemble sont exactement l'orphelin qu'on
+  supprime.
+- **Un arbitrage périme.** Le waiver stocke le `fingerprint` de ce qu'il arbitre ;
+  quand la situation bouge, l'écart resurgit `is_stale`. Tout nouveau détecteur
+  doit donc faire entrer dans son `fingerprint` ce qui *fonde* l'écart (le reste à
+  ventiler, le montant manquant…) et **rien de cosmétique**, sinon chaque édition
+  invaliderait chaque arbitrage.
+- **Certains écarts ne s'arbitrent pas** (`waivable=False`) : solde d'ouverture
+  manquant, espèces à découvert, double confirmation. Ce sont des incohérences ou
+  des prérequis, pas des choix — le service répond 400.
+- **La conformité est bornée.** Tout détecteur qui raisonne sur « de l'argent qu'on
+  devrait connaître » se scope par `banking.coverage` : hors de la fenêtre
+  `[opening_balance_date, dernière date connue]`, un écart n'est pas un écart. Sans
+  cette borne le contrôle afficherait des centaines d'écarts irrésolubles, et une
+  liste irrésoluble ne se lit pas.
+- **Le badge doit rester bon marché** : `DetectorSpec.count` est un `COUNT(*)`
+  indexé, `findings` est paginé et ne tourne que pour le groupe ouvert. Ne jamais
+  matérialiser les écarts en Python pour les compter.
+- Le libellé utilisateur d'un `kind` vit dans le namespace i18n **`money`** du
+  front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
+  passage dans quatre `.po`.
 
 ### Ajouter un nouveau template d'auto-subject
 

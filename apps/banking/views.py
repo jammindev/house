@@ -2,7 +2,7 @@
 import json
 from datetime import date
 
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import LimitOffsetPagination
@@ -14,13 +14,29 @@ from core.permissions import IsHouseholdMember
 from . import importers
 from .aggregations import EMPTY_FLOW, compute_account_flow
 from .balances import compute_balance, serialize_balance
+from .compliance import (
+    get_detector,
+    open_findings,
+    serialize_finding,
+    serialize_group,
+    serialize_summary,
+    waived_findings,
+)
+from .compliance import summary as compliance_summary
 from .matching import auto_reconcile, serialize_candidate, suggestions_for
-from .models import BankAccount, BankTransaction, StatementImport, TransactionDirection
+from .models import (
+    BankAccount,
+    BankTransaction,
+    ComplianceWaiver,
+    StatementImport,
+    TransactionDirection,
+)
 from .queries import search
 from .validators import allocated_total, remaining_to_allocate
 from .serializers import (
     BankAccountSerializer,
     BankTransactionSerializer,
+    ComplianceWaiverSerializer,
     StatementImportSerializer,
 )
 from .services import (
@@ -30,10 +46,12 @@ from .services import (
     link_interaction,
     preview_statement_file,
     record_cash_withdrawal,
+    revoke_waiver,
     set_allocations,
     unlink_counterpart,
     unlink_interaction,
     update_account,
+    waive_finding,
 )
 
 #: A household statement is a few hundred lines; anything past this is not a
@@ -486,3 +504,132 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
                 if candidate.interaction_id in by_id
             ]
         )
+
+
+class ComplianceViewSet(viewsets.ViewSet):
+    """The conformity control — every écart the app knows how to detect.
+
+    Two endpoints, and the split between them is a performance decision, not a
+    stylistic one:
+
+    - ``GET /compliance/`` returns **counts only**. The shell badge reads it on
+      every navigation, so it must cost a bounded number of indexed ``COUNT(*)``,
+      never a scan materialised into Python.
+    - ``GET /compliance/{kind}/`` returns the paginated list of one group, and only
+      runs for the group the user actually opened.
+
+    ``?waived=true`` returns the audit list instead of the actionable one: the
+    arbitrated écarts, each with its motive, revocable in one click. The two lists
+    together account for every detected écart — ``open + waived == detected``.
+    """
+
+    permission_classes = [IsHouseholdMember]
+
+    #: The list is read at every navigation; keep the page small and bounded.
+    DEFAULT_LIMIT = 25
+    MAX_LIMIT = 200
+
+    def _require_household(self):
+        household = self.request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+        return household
+
+    def list(self, request):
+        household = request.household
+        if household is None:
+            return Response({"groups": [], "open_total": 0, "waived_total": 0, "stale_total": 0})
+        return Response(serialize_summary(compliance_summary(household)))
+
+    def retrieve(self, request, pk=None):
+        """One group's findings. ``pk`` is the detector kind."""
+        household = self._require_household()
+        spec = get_detector(pk)
+        if spec is None:
+            raise ValidationError({"kind": f"Unknown compliance check: {pk}"})
+
+        limit, offset = self._page(request)
+        wants_waived = request.query_params.get("waived") == "true"
+        findings = (
+            waived_findings(household, spec, limit=limit, offset=offset)
+            if wants_waived
+            else open_findings(household, spec, limit=limit, offset=offset)
+        )
+        return Response(
+            {
+                **serialize_group(
+                    next(
+                        group
+                        for group in compliance_summary(household)
+                        if group.spec.kind == spec.kind
+                    )
+                ),
+                "results": [serialize_finding(f) for f in findings],
+                "limit": limit,
+                "offset": offset,
+            }
+        )
+
+    def _page(self, request) -> tuple[int, int]:
+        def _int(name, default):
+            raw = request.query_params.get(name)
+            if raw in (None, ""):
+                return default
+            try:
+                return max(0, int(raw))
+            except ValueError:
+                raise ValidationError({name: "Expected an integer."})
+
+        return min(_int("limit", self.DEFAULT_LIMIT), self.MAX_LIMIT), _int("offset", 0)
+
+
+class ComplianceWaiverViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Arbitrations: list, create, revoke.
+
+    No ``PATCH``: re-arbitrating goes through ``POST`` again, which
+    ``waive_finding`` turns into an update of the motive *and* of the fingerprint.
+    Letting a client PATCH the motive alone would leave a stale fingerprint
+    behind — a waiver that looks current but arbitrates a situation that has moved.
+
+    ``DELETE`` brings the écart back identical. That reversibility is what makes
+    the control trustworthy: nothing here destroys information.
+    """
+
+    permission_classes = [IsHouseholdMember]
+    serializer_class = ComplianceWaiverSerializer
+
+    def get_queryset(self):
+        qs = ComplianceWaiver.objects.for_user_households(self.request.user).select_related(
+            "created_by"
+        )
+        if self.request.household:
+            qs = qs.filter(household=self.request.household)
+        kind = self.request.query_params.get("finding_kind")
+        if kind:
+            qs = qs.filter(finding_kind=kind)
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        household = request.household
+        if household is None:
+            raise ValidationError({"household_id": "A valid household context is required."})
+
+        waiver = waive_finding(
+            household=household,
+            user=request.user,
+            finding_kind=(request.data.get("finding_kind") or "").strip(),
+            object_id=(request.data.get("object_id") or "").strip(),
+            reason=request.data.get("reason") or "",
+        )
+        return Response(
+            self.get_serializer(waiver).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    def perform_destroy(self, instance):
+        revoke_waiver(waiver=instance)

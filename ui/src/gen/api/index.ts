@@ -31,6 +31,7 @@ export type { ChickenEventTypeEnum } from './models/ChickenEventTypeEnum';
 export type { ChickenStatusEnum } from './models/ChickenStatusEnum';
 export type { CircuitUsagePointLink } from './models/CircuitUsagePointLink';
 export type { ColorThemeEnum } from './models/ColorThemeEnum';
+export type { ComplianceWaiver } from './models/ComplianceWaiver';
 export type { ConsumptionImport } from './models/ConsumptionImport';
 export type { Contact } from './models/Contact';
 export type { ContactNested } from './models/ContactNested';

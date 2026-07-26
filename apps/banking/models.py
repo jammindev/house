@@ -21,6 +21,8 @@ source of truth that drifts on the first partial import.
 import uuid
 from decimal import Decimal
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -332,3 +334,88 @@ class BankTransaction(HouseholdScopedModel):
         transaction to an ``Interaction.amount`` (always positive) uses this.
         """
         return -self.amount if self.amount < 0 else Decimal("0.00")
+
+
+class ComplianceWaiver(HouseholdScopedModel):
+    """A motivated, dated, signed and revocable arbitration of one écart.
+
+    Parcours 26 rests on a single rule: every entity is either **resolved** or
+    **flagged with a motive** — nothing stays in a silent in-between. This model
+    is the "flagged" half, and it is deliberately **one uniform table** rather
+    than a ``dismissed_at`` here, an ``ignored`` there and an ``accepted_gap``
+    somewhere else. Scattered flags would be exactly what the parcours is trying
+    to remove: heterogeneous states nobody can count together.
+
+    Consequences of that choice, all of them load-bearing:
+
+    - **``reason`` is required.** A flag without a motive carries no information
+      and would just be a mute "hide" button. The serializer refuses a blank one.
+    - **Revocable.** Deleting the waiver brings the écart back identical. The
+      counter reaches zero because everything was *arbitrated*, never because
+      something was hidden.
+    - **``fingerprint`` makes it expire.** It records what the écart looked like
+      when the arbitration was made. If the figures move, the waiver no longer
+      matches and the écart reappears as stale — see ``banking.compliance``.
+      Without this field, arbitrating "the rest of this line does not interest me"
+      and then re-splitting the line would leave money covered by a motive that
+      describes nothing.
+    - **Polymorphic target**, same pattern as ``Interaction.source_*``: any model
+      can be the subject of an écart without a schema change per detector.
+
+    Not every écart may be waived: ``DetectorSpec.waivable`` carries the
+    catalogue's "aucun flag légitime" column, and the service turns it into a 400.
+    A missing opening balance is a prerequisite, a negative cash balance is an
+    inconsistency — neither is an arbitration.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    finding_kind = models.CharField(
+        max_length=64,
+        help_text=_("Detector key from banking.compliance.REGISTRY."),
+    )
+    content_type = models.ForeignKey(
+        ContentType,
+        on_delete=models.CASCADE,
+        related_name="+",
+        help_text=_("Model of the object being arbitrated."),
+    )
+    object_id = models.CharField(max_length=64)
+    target = GenericForeignKey("content_type", "object_id")
+    reason = models.TextField(
+        help_text=_(
+            "Why this écart is acceptable. Required: an arbitration without a "
+            "motive is indistinguishable from hiding the problem."
+        ),
+    )
+    fingerprint = models.CharField(
+        max_length=64,
+        help_text=_(
+            "State of the écart when it was arbitrated. When it no longer "
+            "matches, the waiver is stale and the écart resurfaces."
+        ),
+    )
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "banking_compliance_waivers"
+        verbose_name = _("compliance waiver")
+        verbose_name_plural = _("compliance waivers")
+        ordering = ["-created_at"]
+        constraints = [
+            # One arbitration per (écart, object): re-arbitrating updates the
+            # motive and the fingerprint instead of stacking rows nobody can read.
+            models.UniqueConstraint(
+                fields=["household", "finding_kind", "content_type", "object_id"],
+                name="uq_waiver_per_finding_object",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["household", "finding_kind"],
+                name="idx_waiver_hh_kind",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.finding_kind} on {self.object_id}"
