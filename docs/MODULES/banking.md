@@ -17,7 +17,7 @@
 | Lot | Sujet | Statut |
 |---|---|---|
 | 1 | `BankAccount` + CRUD + module UI | ✅ **Livré** (#384) |
-| 2 | Import CSV/XLSX (`StatementImport`, `BankTransaction`, dédup) | ⬜ #385 |
+| 2 | Import CSV/XLSX (`StatementImport`, `BankTransaction`, dédup) | ✅ **Livré** (#385) |
 | 3 | Journal bancaire (liste, filtres, qualification, flux) | ⬜ #386 |
 | 4 | Soldes, continuité & espèces | ⬜ #387 |
 | 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ⬜ #388 |
@@ -26,7 +26,7 @@
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lot 1).** Les sections marquées *(à venir)*
+**Cette fiche décrit l'état livré (lots 1-2).** Les sections marquées *(à venir)*
 annoncent le contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)
@@ -116,18 +116,98 @@ pas la base.
 | PATCH | `/api/banking/accounts/{id}/` | Mise à jour (allowlist) |
 | DELETE | `/api/banking/accounts/{id}/` | **Archive** (204), ne supprime pas |
 
+## Import de relevés (lot 2)
+
+### Un adaptateur par **format**, jamais par banque
+
+`apps/banking/importers/` décalque `apps/electricity/importers/` :
+
+```
+BaseStatementImporter (ABC)   key, label, detect(raw), parse(raw, *, options),
+                              columns(raw), sample_lines(raw)
+    ├── generic_csv           detect() → False : un CSV ne dit pas quelle colonne
+    │                         porte le montant, le mapping utilisateur est requis
+    └── generic_xlsx          detect() → magic ZIP ; openpyxl rend des cellules
+                              date/nombre natives, donc zéro devinette de format
+                    ↓
+        NormalizedTransaction  booked_on, label_raw, amount SIGNÉ, currency,
+                               value_on?, balance_after?, external_id?
+                    ↓
+        services.import_statement_file → dédup → BankTransaction
+```
+
+- `importers/mapping.py` porte **toute** la logique commune (validation des
+  options, détection de la ligne d'en-tête, ligne → transaction) : CSV et XLSX ne
+  diffèrent que par la production des lignes. Un bug de parsing se corrige à un
+  seul endroit.
+- `importers/parsing.py` — `parse_amount` (espaces insécables, `1.234,56` vs
+  `1,234.56`, parenthèses comptables, moins suffixe, symboles collés),
+  `parse_date`, `normalize_label`.
+- **Le mapping est mémorisé sur le compte** (`default_provider` +
+  `import_options`, écrits par `remember_import_mapping` après un import réussi)
+  → le 2ᵉ dépôt est un simple glisser-déposer. L'électricité redemande le mapping
+  à chaque fois ; on ne reproduit pas ça.
+
+### L'idempotence, en trois pièces
+
+1. `dedup.assign_discriminants` — discriminant par ordre de qualité :
+   `external_id` → **`balance_after`** (deux opérations identiques le même jour
+   ont forcément des soldes différents) → **index d'occurrence intra-fichier**.
+   Le mot *intra-fichier* est essentiel : compter les lignes déjà en base
+   décalerait l'index au réimport et dupliquerait tout.
+2. `dedup.compute_dedup_hash` — `sha256("v1"|account|date|label_norm|montant|
+   devise|discriminant)`, calculé par le **service** (l'adaptateur ignore le
+   compte, qui fait partie de la clé). `editable=False`, **jamais recalculé**.
+3. `UniqueConstraint(account, dedup_hash)` + `bulk_create(ignore_conflicts=True)`.
+
+Limite assumée et documentée : un export *partiel ultérieur* ne contenant que la
+3ᵉ occurrence d'une ligne identique lui donnerait l'index `#0` et serait ignoré à
+tort. Le cas disparaît dès que le fichier porte un solde ou une référence, et
+`skipped_count` rend l'anomalie visible.
+
+### Tout ou rien
+
+`parse` valide le fichier **entier** avant que le service n'écrive quoi que ce
+soit. Une ligne illisible produit un `StatementImport(status='failed')` avec zéro
+transaction et un message portant le **numéro de ligne** — jamais un relevé à
+moitié importé. Un mapping erroné n'écrase pas non plus le mapping qui marchait.
+
+### API
+
+| Méthode | URL | Action |
+|---|---|---|
+| GET | `/api/banking/imports/` | Historique (`?account=` pour filtrer) |
+| POST | `/api/banking/imports/` | Dépôt d'un relevé (multipart : `account`, `provider`, `file`, `options`) |
+| POST | `/api/banking/imports/preview/` | Colonnes + premières lignes, pour bâtir le mapping |
+
+Deux contrats à ne pas casser :
+
+- **Un échec métier est un 201**, pas un 4xx. Fichier illisible ou mauvais
+  mapping → la trace créée avec `status='failed'` et `error`. Seules les requêtes
+  malformées (compte manquant, provider inconnu, JSON invalide) sont 400.
+- **`DELETE` et `PATCH` n'existent pas** (`ReadOnlyModelViewSet` +
+  `http_method_names`). Supprimer un import puis réimporter recréerait les
+  transactions avec de nouveaux UUID et perdrait silencieusement toutes les
+  ventilations du lot 5.
+
+### Frontend
+
+`StatementImportDialog` en 3 étapes (fichier → mapping → résultat), pré-rempli
+depuis `account.import_options`. Le résultat distingue **trois** issues, parce
+qu'elles n'ont pas le même sens : lignes ajoutées, *rien de nouveau* (le
+réimport, qui est un succès), et fichier illisible. `ImportHistoryCard` affiche
+l'historique, échecs compris — c'est la seule trace qui explique pourquoi un
+relevé n'est pas dans les comptes.
+
 ## Ce que les lots suivants ajouteront *(à venir)*
 
-- **Lot 2** — `StatementImport` + `BankTransaction`, adaptateurs d'import
-  décalqués de `apps/electricity/importers/` (`BaseStatementImporter`, registry,
-  `generic_csv` à mapping utilisateur mémorisé dans `BankAccount.import_options`).
-  Idempotence par `UniqueConstraint(account, dedup_hash)`. **`DELETE` interdit sur
-  `StatementImport`** : supprimer puis réimporter recrée les lignes avec de
-  nouveaux UUID et perdrait toutes les ventilations.
+- **Lot 3** — journal bancaire : liste, filtres, qualification (`is_internal`),
+  flux. Critère : **aucune modification des 9 `Sum("amount")`** du projet.
+- **Lot 4** — soldes ancrés sur `balance_after`, contrôle de chaîne, contrepartie
+  espèces des retraits.
 - **Lot 5** — FK `Interaction.bank_transaction` (`SET_NULL`). **Il n'y a pas de
   table `Allocation`** : une `Interaction(type='expense')` *est* une ventilation.
-  `amount` reste donc une colonne scalaire et les 9 `Sum("amount")` du projet ne
-  bougent pas.
+  `amount` reste donc une colonne scalaire et les 9 `Sum("amount")` ne bougent pas.
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total
   interactions. Le pont est un taux de couverture, pas une somme.
 
@@ -136,7 +216,11 @@ pas la base.
 - La migration `interactions` du lot 5 devra déclarer `dependencies` sur la
   migration `banking` créant `BankTransaction`, et référencer le modèle par
   chaîne (`'banking.BankTransaction'`) pour éviter l'import circulaire.
-- `apps/core/file_validation.py` n'autorise aujourd'hui ni CSV ni XLSX : à
-  élargir au lot 2.
+- `apps/core/file_validation.py` reste **hors du chemin** : comme l'électricité,
+  l'import lit le fichier uploadé sans créer de `Document`, donc la validation
+  par magic bytes ne s'applique pas. La garde est une **limite de taille**
+  (`views.STATEMENT_MAX_SIZE`, 10 Mo) plus la validation de l'adaptateur.
+- Faire évoluer la recette de hachage impose de bumper `HASH_RECIPE_VERSION` et
+  d'écrire une commande de recalcul — jamais une data migration silencieuse.
 - `interactions.queries.sum_amount()` n'a encore aucun appelant — le « reste à
   ventiler » du lot 5 doit l'utiliser plutôt qu'un 10ᵉ `Sum("amount")` en dur.

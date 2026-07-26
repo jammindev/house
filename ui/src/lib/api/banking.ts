@@ -64,3 +64,86 @@ export async function archiveBankAccount(id: string): Promise<void> {
 export async function restoreBankAccount(id: string): Promise<BankAccount> {
   return updateBankAccount(id, { archived: false });
 }
+
+// --- Import de relevés (parcours 25, lot 2) ---------------------------------
+
+export type ImportStatus = 'completed' | 'failed';
+
+/** Trace d'un dépôt de fichier. Un échec métier est une ligne, pas une erreur HTTP. */
+export interface StatementImport {
+  id: string;
+  account: string;
+  account_name: string;
+  provider: string;
+  filename: string;
+  status: ImportStatus;
+  created_count: number;
+  skipped_count: number;
+  error: string;
+  period_start: string | null;
+  period_end: string | null;
+  created_at: string;
+}
+
+/** Aperçu du fichier déposé, pour construire le mapping de colonnes. */
+export interface StatementPreview {
+  detected_provider: string;
+  columns: string[];
+  sample_lines: string[];
+}
+
+/**
+ * Mapping des colonnes de la banque. Décrit une fois, mémorisé sur le compte.
+ * Soit `amount_column`, soit le couple `debit_column`/`credit_column`.
+ */
+export interface StatementMapping {
+  date_column: string;
+  label_column: string;
+  amount_column?: string;
+  debit_column?: string;
+  credit_column?: string;
+  balance_column?: string;
+  reference_column?: string;
+  value_date_column?: string;
+  date_format?: string;
+  decimal_separator?: string;
+  currency?: string;
+  invert_sign?: boolean;
+  delimiter?: string;
+  skip_rows?: number;
+  sheet?: string;
+}
+
+export async function fetchStatementImports(accountId?: string): Promise<StatementImport[]> {
+  const { data } = await api.get<StatementImport[] | { results: StatementImport[] }>(
+    '/banking/imports/',
+    { params: accountId ? { account: accountId } : undefined },
+  );
+  return Array.isArray(data) ? data : data.results;
+}
+
+export async function previewStatementFile(file: File): Promise<StatementPreview> {
+  const form = new FormData();
+  form.append('file', file);
+  const { data } = await api.post<StatementPreview>('/banking/imports/preview/', form);
+  return data;
+}
+
+/**
+ * Dépose un relevé. Renvoie **toujours** la trace : un fichier illisible produit
+ * un 201 avec `status: 'failed'`, jamais une exception. L'appelant lit `status`.
+ */
+export async function importStatementFile(params: {
+  accountId: string;
+  file: File;
+  provider: string;
+  options: StatementMapping;
+}): Promise<StatementImport> {
+  const form = new FormData();
+  form.append('account', params.accountId);
+  form.append('provider', params.provider);
+  form.append('file', params.file);
+  form.append('options', JSON.stringify(params.options));
+  const { data } = await api.post<StatementImport>('/banking/imports/', form);
+  return data;
+}

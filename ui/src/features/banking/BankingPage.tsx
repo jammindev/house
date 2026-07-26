@@ -9,9 +9,16 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
 import type { BankAccount } from '@/lib/api/banking';
-import { useArchiveBankAccount, useBankAccounts, useRestoreBankAccount } from './hooks';
+import {
+  useArchiveBankAccount,
+  useBankAccounts,
+  useRestoreBankAccount,
+  useStatementImports,
+} from './hooks';
 import AccountCard from './AccountCard';
 import AccountDialog from './AccountDialog';
+import ImportHistoryCard from './ImportHistoryCard';
+import StatementImportDialog from './StatementImportDialog';
 
 export default function BankingPage() {
   const { t } = useTranslation();
@@ -20,8 +27,11 @@ export default function BankingPage() {
   const archiveMutation = useArchiveBankAccount();
   const restoreMutation = useRestoreBankAccount();
 
+  const importsQuery = useStatementImports();
+
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<BankAccount | undefined>(undefined);
+  const [importing, setImporting] = React.useState<BankAccount | null>(null);
   const [pendingArchive, setPendingArchive] = React.useState<Set<string>>(new Set());
 
   const { deleteWithUndo } = useDeleteWithUndo({
@@ -95,12 +105,27 @@ export default function BankingPage() {
               onEdit={() => openEdit(account)}
               onArchive={() => handleArchive(account.id)}
               onRestore={() => restoreMutation.mutate(account.id)}
+              onImport={() => setImporting(account)}
             />
           ))}
         </div>
       )}
 
+      {importsQuery.data && importsQuery.data.length > 0 ? (
+        <div className="mt-6">
+          <ImportHistoryCard imports={importsQuery.data} />
+        </div>
+      ) : null}
+
       <AccountDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
+
+      {importing ? (
+        <StatementImportDialog
+          open
+          onOpenChange={(next) => !next && setImporting(null)}
+          account={importing}
+        />
+      ) : null}
     </>
   );
 }

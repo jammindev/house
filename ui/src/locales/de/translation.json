@@ -1600,6 +1600,10 @@
           "openingBalance": {
             "title": "Anfangssaldo eintragen",
             "body": "Gib den Kontostand zu einem bestimmten Datum an — typischerweise den des ersten Auszugs, den du importieren willst. Davon ausgehend berechnet die App deinen Saldo. Er darf negativ sein, wenn dein Konto überzogen ist."
+          },
+          "import": {
+            "title": "Ersten Kontoauszug importieren",
+            "body": "Wähle auf der Kontokarte „Kontoauszug importieren“ und lade den CSV- oder Excel-Export deiner Bank hoch. Gib einmal an, welche Spalte Datum, Verwendungszweck und Betrag enthält — exportiert deine Bank auch den Saldo, ordne ihn zu: Er unterscheidet zwei identische Buchungen am selben Tag und zeigt einen fehlenden Auszug. Die Zuordnung wird gespeichert, beim nächsten Mal lädst du nur noch die Datei hoch. Ein erneuter Import desselben Auszugs erzeugt nie Dubletten."
           }
         }
       }
@@ -3121,6 +3125,44 @@
     "errors": {
       "nameRequired": "Bitte gib einen Namen ein.",
       "openingBalanceInvalid": "Gib einen gültigen Betrag ein."
+    },
+    "import": {
+      "title": "Kontoauszug importieren — {{account}}",
+      "action": "Kontoauszug importieren",
+      "intro": "Lade den Export deiner Bank hoch (CSV oder Excel). Du beschreibst die Spalten einmal — die nächsten Importe gehen sofort.",
+      "reading": "Datei wird gelesen…",
+      "mappingIntro": "Gib an, welche Spalte was enthält. Diese Zuordnung wird am Konto gespeichert.",
+      "fixMapping": "Zuordnung korrigieren",
+      "history": "Import-Verlauf",
+      "fields": {
+        "file": "Auszugsdatei",
+        "none": "— keine —",
+        "autoDetect": "Automatisch erkennen",
+        "comma": "Komma (1 234,56)",
+        "dot": "Punkt (1,234.56)",
+        "dateColumn": "Datumsspalte",
+        "labelColumn": "Verwendungszweck-Spalte",
+        "amountColumn": "Betragsspalte",
+        "useDebitCredit": "Meine Bank trennt Soll und Haben in zwei Spalten",
+        "debitColumn": "Soll-Spalte",
+        "creditColumn": "Haben-Spalte",
+        "balanceColumn": "Saldo-Spalte",
+        "balanceColumnHint": "Dringend empfohlen: Sie unterscheidet zwei identische Buchungen am selben Tag und zeigt, ob ein Auszug fehlt.",
+        "decimalSeparator": "Dezimaltrennzeichen",
+        "invertSign": "Vorzeichen umkehren (meine Bank schreibt Abgänge positiv)"
+      },
+      "result": {
+        "created_one": "{{count}} Buchung hinzugefügt",
+        "created_other": "{{count}} Buchungen hinzugefügt",
+        "skipped_one": "{{count}} bereits vorhanden, übersprungen",
+        "skipped_other": "{{count}} bereits vorhanden, übersprungen",
+        "nothingNew": "Nichts Neues in dieser Datei",
+        "failed": "Datei nicht lesbar — es wurde nichts importiert"
+      },
+      "errors": {
+        "previewFailed": "Diese Datei konnte nicht gelesen werden. Prüfe, ob es eine CSV- oder Excel-Datei ist.",
+        "mappingIncomplete": "Bitte gib mindestens Datum, Verwendungszweck und Betrag an."
+      }
     }
   },
   "pwa": {
