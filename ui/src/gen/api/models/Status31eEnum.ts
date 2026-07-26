@@ -6,4 +6,4 @@
  * * `completed` - Completed
  * * `failed` - Failed
  */
-export type ConsumptionImportStatusEnum = 'completed' | 'failed';
+export type Status31eEnum = 'completed' | 'failed';

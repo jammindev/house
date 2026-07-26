@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ConsumptionImportStatusEnum } from './ConsumptionImportStatusEnum';
+import type { Status31eEnum } from './Status31eEnum';
 /**
  * Base serializer with shared household validation helpers.
  */
@@ -12,7 +12,7 @@ export type ConsumptionImport = {
     readonly meter: string;
     readonly provider: string;
     readonly filename: string;
-    readonly status: ConsumptionImportStatusEnum;
+    readonly status: Status31eEnum;
     readonly created_count: number;
     readonly skipped_count: number;
     readonly error: string;
