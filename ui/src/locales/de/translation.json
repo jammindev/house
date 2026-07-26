@@ -3232,6 +3232,26 @@
         "accountRequired": "Wähle ein Bargeldkonto.",
         "amountInvalid": "Gib einen positiven Betrag ein, höchstens {{max}}."
       }
+    },
+    "allocation": {
+      "title": "Diese Buchung aufteilen",
+      "action": "Aufteilen",
+      "saved": "Aufteilung gespeichert",
+      "noBudget": "— ohne Budget —",
+      "line": "Posten {{n}}",
+      "addLine": "Posten hinzufügen",
+      "removeLine": "Diesen Posten entfernen",
+      "allocated": "Zugeordnet",
+      "remaining": "Noch zuzuordnen",
+      "fields": {
+        "subject": "Bezeichnung",
+        "amount": "Betrag",
+        "budget": "Budget"
+      },
+      "errors": {
+        "amountInvalid": "Jeder Posten braucht einen positiven Betrag.",
+        "overAllocated": "Die Posten ergeben zusammen mehr als {{total}}."
+      }
     }
   },
   "pwa": {

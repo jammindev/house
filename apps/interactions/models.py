@@ -123,6 +123,28 @@ class Interaction(HouseholdScopedModel):
             "budget resets this to null, never deletes the expense."
         ),
     )
+    bank_transaction = models.ForeignKey(
+        'banking.BankTransaction',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='interactions',
+        help_text=(
+            "Bank statement line this expense is an allocation of (parcours 25). "
+            "There is NO Allocation table: a line split 80/40 simply carries two "
+            "expenses, each with its own amount and budget. `amount` therefore "
+            "stays a scalar column and the project's nine Sum('amount') "
+            "aggregations are untouched. SET_NULL: deleting the bank line never "
+            "destroys a journalled fact."
+        ),
+    )
+    reconciled_by = models.CharField(
+        max_length=6,
+        blank=True,
+        default='',
+        choices=[('auto', 'Automatic'), ('manual', 'Manual')],
+        help_text="How this expense got attached to its bank line.",
+    )
     document_links = GenericRelation('documents.DocumentLink')
 
     objects = HouseholdScopedManager()
@@ -141,6 +163,14 @@ class Interaction(HouseholdScopedModel):
                 name='idx_int_source',
             ),
             models.Index(fields=['is_private'], name='idx_int_private'),
+            # Partial index for the lot 6 matcher: it scans expenses that have an
+            # amount but no bank line yet — a small slice of the table that would
+            # otherwise be a full scan on every import.
+            models.Index(
+                fields=['household', 'amount'],
+                condition=models.Q(type='expense', bank_transaction__isnull=True),
+                name='idx_int_unreconciled_amount',
+            ),
         ]
         constraints = [
             models.CheckConstraint(

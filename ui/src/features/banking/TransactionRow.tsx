@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Banknote, Link2Off, Repeat, StickyNote } from 'lucide-react';
+import { Banknote, Link2Off, PieChart, Repeat, StickyNote } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -13,6 +13,7 @@ interface TransactionRowProps {
   onEditNote: () => void;
   onFeedCash: () => void;
   onUnlinkCash: () => void;
+  onAllocate: () => void;
 }
 
 export default function TransactionRow({
@@ -22,12 +23,18 @@ export default function TransactionRow({
   onEditNote,
   onFeedCash,
   onUnlinkCash,
+  onAllocate,
 }: TransactionRowProps) {
   const { t } = useTranslation();
   const isOut = transaction.direction === 'out';
   const hasCounterpart = Boolean(transaction.transfer_counterpart);
 
   const actions: CardAction[] = [
+    // Ventiler n'a de sens que sur une sortie réelle, jamais sur un
+    // mouvement interne (son argent est compté quand le liquide est dépensé).
+    ...(isOut && !hasCounterpart
+      ? [{ label: t('banking.allocation.action'), icon: PieChart, onClick: onAllocate }]
+      : []),
     // Verser aux espèces n'a de sens que sur une sortie encore libre.
     ...(isOut && !hasCounterpart && canFeedCash
       ? [{ label: t('banking.cash.action'), icon: Banknote, onClick: onFeedCash }]

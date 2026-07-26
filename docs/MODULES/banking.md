@@ -20,13 +20,13 @@
 | 2 | Import CSV/XLSX (`StatementImport`, `BankTransaction`, dédup) | ✅ **Livré** (#385) |
 | 3 | Journal bancaire (liste, filtres, qualification, flux) | ✅ **Livré** (#386) |
 | 4 | Soldes, continuité & espèces | ✅ **Livré** (#387) |
-| 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ⬜ #388 |
+| 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ✅ **Livré** (#388) |
 | 6 | Rapprochement automatique | ⬜ #389 |
 | 7 | Recettes, virements internes, couverture | ⬜ #390 |
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lots 1-4).** Les sections marquées *(à venir)*
+**Cette fiche décrit l'état livré (lots 1-5).** Les sections marquées *(à venir)*
 annoncent le contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)

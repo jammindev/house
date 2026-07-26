@@ -3232,6 +3232,26 @@
         "accountRequired": "Choisis un compte espèces.",
         "amountInvalid": "Saisis un montant positif, au plus {{max}}."
       }
+    },
+    "allocation": {
+      "title": "Ventiler cette opération",
+      "action": "Ventiler",
+      "saved": "Ventilation enregistrée",
+      "noBudget": "— hors budget —",
+      "line": "Poste {{n}}",
+      "addLine": "Ajouter un poste",
+      "removeLine": "Retirer ce poste",
+      "allocated": "Ventilé",
+      "remaining": "Reste à ventiler",
+      "fields": {
+        "subject": "Intitulé",
+        "amount": "Montant",
+        "budget": "Budget"
+      },
+      "errors": {
+        "amountInvalid": "Chaque poste doit avoir un montant positif.",
+        "overAllocated": "La somme des postes dépasse {{total}}."
+      }
     }
   },
   "pwa": {

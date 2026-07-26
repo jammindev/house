@@ -16,6 +16,7 @@ from .aggregations import EMPTY_FLOW, compute_account_flow
 from .balances import compute_balance, serialize_balance
 from .models import BankAccount, BankTransaction, StatementImport, TransactionDirection
 from .queries import search
+from .validators import allocated_total, remaining_to_allocate
 from .serializers import (
     BankAccountSerializer,
     BankTransactionSerializer,
@@ -25,9 +26,12 @@ from .services import (
     archive_account,
     create_account,
     import_statement_file,
+    link_interaction,
     preview_statement_file,
     record_cash_withdrawal,
+    set_allocations,
     unlink_counterpart,
+    unlink_interaction,
     update_account,
 )
 
@@ -229,9 +233,10 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = [IsHouseholdMember]
     serializer_class = BankTransactionSerializer
-    # ``delete`` is here only for the ``unlink-cash`` action: the viewset has no
-    # ``destroy``, so a plain DELETE on a transaction is still a 405.
-    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+    # ``put`` and ``delete`` are here only for the ``allocations`` /
+    # ``unlink-cash`` actions: the viewset has no ``update`` and no ``destroy``,
+    # so a plain PUT or DELETE on a transaction is still a 405.
+    http_method_names = ["get", "post", "patch", "put", "delete", "head", "options"]
 
     class Pagination(LimitOffsetPagination):
         default_limit = 50
@@ -358,4 +363,74 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         """Undo the cash counterpart — deletes only the leg we generated."""
         instance = self.get_object()
         unlink_counterpart(user=request.user, transaction=instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=["get", "put"], url_path="allocations")
+    def allocations(self, request, pk=None):
+        """Read or replace the split of this operation.
+
+        ``PUT`` is a **set**: the client sends the whole split it wants. That is
+        the only way "80/40 becomes 100/20" stays atomic — per-line CRUD would
+        pass through states that violate the invariant.
+        """
+        instance = self.get_object()
+
+        if request.method == "GET":
+            return Response(self._allocation_payload(instance))
+
+        lines = request.data.get("lines")
+        if not isinstance(lines, list):
+            raise ValidationError({"lines": "Expected a list of allocation lines."})
+
+        household = request.household or instance.household
+        set_allocations(
+            household=household, user=request.user, transaction=instance, lines=lines
+        )
+        instance.refresh_from_db()
+        return Response(self._allocation_payload(instance))
+
+    def _allocation_payload(self, instance) -> dict:
+        from interactions.serializers import InteractionSerializer
+
+        allocations = list(instance.interactions.all().select_related("budget"))
+        return {
+            "transaction": self.get_serializer(instance).data,
+            "allocations": InteractionSerializer(allocations, many=True).data,
+            "allocated": str(allocated_total(instance)),
+            "remaining": str(remaining_to_allocate(instance)),
+        }
+
+    @action(detail=True, methods=["post"], url_path="link")
+    def link(self, request, pk=None):
+        """Attach an existing expense to this operation (manual reconciliation)."""
+        from interactions.models import Interaction
+        from interactions.serializers import InteractionSerializer
+
+        instance = self.get_object()
+        interaction_id = request.data.get("interaction")
+        if not interaction_id:
+            raise ValidationError({"interaction": "This field is required."})
+
+        interaction = Interaction.objects.filter(
+            pk=interaction_id, household_id=instance.household_id
+        ).first()
+        if interaction is None:
+            raise ValidationError({"interaction": "Unknown expense for this household."})
+
+        link_interaction(user=request.user, transaction=instance, interaction=interaction)
+        return Response(InteractionSerializer(interaction).data)
+
+    @action(detail=True, methods=["delete"], url_path="unlink/(?P<interaction_id>[^/.]+)")
+    def unlink(self, request, pk=None, interaction_id=None):
+        """Detach an expense from this operation. The expense itself survives."""
+        from interactions.models import Interaction
+
+        instance = self.get_object()
+        interaction = Interaction.objects.filter(
+            pk=interaction_id, bank_transaction=instance
+        ).first()
+        if interaction is None:
+            raise ValidationError({"interaction": "Not allocated to this operation."})
+
+        unlink_interaction(user=request.user, interaction=interaction)
         return Response(status=status.HTTP_204_NO_CONTENT)

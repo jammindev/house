@@ -4,6 +4,7 @@ import {
   archiveBankAccount,
   createBankAccount,
   fetchAccountBalance,
+  fetchAllocations,
   fetchAccountFlow,
   fetchBankAccounts,
   fetchStatementImports,
@@ -12,9 +13,11 @@ import {
   previewStatementFile,
   qualifyTransaction,
   restoreBankAccount,
+  setAllocations,
   unlinkCashCounterpart,
   updateBankAccount,
   withdrawToCash,
+  type AllocationLine,
   type BankAccountPayload,
   type StatementMapping,
   type TransactionFilters,
@@ -31,6 +34,8 @@ export const bankingKeys = {
   flow: (filters: TransactionFilters) => [...bankingKeys.all, 'flow', filters] as const,
   balance: (accountId: string, asOf?: string) =>
     [...bankingKeys.all, 'balance', accountId, asOf ?? 'now'] as const,
+  allocations: (transactionId: string) =>
+    [...bankingKeys.all, 'allocations', transactionId] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -196,6 +201,36 @@ export function useUnlinkCashCounterpart() {
     onSuccess: () => {
       invalidate();
       toast({ description: t('banking.cash.unlinked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Ventilation (lot 5) ----------------------------------------------------
+
+export function useAllocations(transactionId: string | undefined) {
+  return useQuery({
+    queryKey: bankingKeys.allocations(transactionId ?? ''),
+    queryFn: () => fetchAllocations(transactionId as string),
+    enabled: Boolean(transactionId),
+  });
+}
+
+export function useSetAllocations() {
+  const invalidate = useInvalidateBanking();
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ transactionId, lines }: { transactionId: string; lines: AllocationLine[] }) =>
+      setAllocations(transactionId, lines),
+    onSuccess: () => {
+      invalidate();
+      // La ventilation crée/supprime des Interaction : les listes de dépenses et
+      // les compteurs de budget doivent se rafraîchir aussi.
+      void qc.invalidateQueries({ queryKey: ['interactions'] });
+      void qc.invalidateQueries({ queryKey: ['expenses'] });
+      void qc.invalidateQueries({ queryKey: ['budget'] });
+      toast({ description: t('banking.allocation.saved'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

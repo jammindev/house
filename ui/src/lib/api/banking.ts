@@ -287,3 +287,57 @@ export async function withdrawToCash(
 export async function unlinkCashCounterpart(transactionId: string): Promise<void> {
   await api.delete(`/banking/transactions/${transactionId}/unlink-cash/`);
 }
+
+// --- Ventilation (parcours 25, lot 5) ---------------------------------------
+
+/** Une ligne de ventilation à envoyer. Le PUT est un « set » : on envoie tout. */
+export interface AllocationLine {
+  subject: string;
+  amount: string;
+  budget_id?: string | null;
+  notes?: string;
+}
+
+/** Une dépense allouée, telle que renvoyée par l'API interactions. */
+export interface AllocatedExpense {
+  id: string;
+  subject: string;
+  amount: string | null;
+  kind: string;
+  budget: { id: string; name: string } | null;
+  bank_transaction: string | null;
+  reconciled_by: string;
+}
+
+export interface AllocationState {
+  transaction: BankTransaction;
+  allocations: AllocatedExpense[];
+  allocated: string;
+  remaining: string;
+}
+
+export async function fetchAllocations(transactionId: string): Promise<AllocationState> {
+  const { data } = await api.get<AllocationState>(
+    `/banking/transactions/${transactionId}/allocations/`,
+  );
+  return data;
+}
+
+/** Remplace la ventilation entière. Atomique : « 80/40 devient 100/20 » en un appel. */
+export async function setAllocations(
+  transactionId: string,
+  lines: AllocationLine[],
+): Promise<AllocationState> {
+  const { data } = await api.put<AllocationState>(
+    `/banking/transactions/${transactionId}/allocations/`,
+    { lines },
+  );
+  return data;
+}
+
+export async function unlinkAllocation(
+  transactionId: string,
+  interactionId: string,
+): Promise<void> {
+  await api.delete(`/banking/transactions/${transactionId}/unlink/${interactionId}/`);
+}

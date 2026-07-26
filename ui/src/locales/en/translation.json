@@ -3232,6 +3232,26 @@
         "accountRequired": "Pick a cash account.",
         "amountInvalid": "Enter a positive amount, at most {{max}}."
       }
+    },
+    "allocation": {
+      "title": "Split this operation",
+      "action": "Split",
+      "saved": "Split saved",
+      "noBudget": "— no budget —",
+      "line": "Item {{n}}",
+      "addLine": "Add an item",
+      "removeLine": "Remove this item",
+      "allocated": "Allocated",
+      "remaining": "Left to allocate",
+      "fields": {
+        "subject": "Label",
+        "amount": "Amount",
+        "budget": "Budget"
+      },
+      "errors": {
+        "amountInvalid": "Every item needs a positive amount.",
+        "overAllocated": "The items add up to more than {{total}}."
+      }
     }
   },
   "pwa": {

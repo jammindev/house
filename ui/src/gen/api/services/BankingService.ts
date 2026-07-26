@@ -320,6 +320,73 @@ export class BankingService {
         });
     }
     /**
+     * Read or replace the split of this operation.
+     *
+     * ``PUT`` is a **set**: the client sends the whole split it wants. That is
+     * the only way "80/40 becomes 100/20" stays atomic — per-line CRUD would
+     * pass through states that violate the invariant.
+     * @param id
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsAllocationsRetrieve(
+        id: string,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/{id}/allocations/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Read or replace the split of this operation.
+     *
+     * ``PUT`` is a **set**: the client sends the whole split it wants. That is
+     * the only way "80/40 becomes 100/20" stays atomic — per-line CRUD would
+     * pass through states that violate the invariant.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsAllocationsUpdate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/banking/transactions/{id}/allocations/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Attach an existing expense to this operation (manual reconciliation).
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsLinkCreate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/{id}/link/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Flag a line as internal, or annotate it.
      *
      * The only mutation a statement line accepts. Everything else about it
@@ -357,6 +424,26 @@ export class BankingService {
             url: '/api/banking/transactions/{id}/unlink-cash/',
             path: {
                 'id': id,
+            },
+        });
+    }
+    /**
+     * Detach an expense from this operation. The expense itself survives.
+     * @param id
+     * @param interactionId
+     * @returns void
+     * @throws ApiError
+     */
+    public static bankingTransactionsUnlinkDestroy(
+        id: string,
+        interactionId: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/banking/transactions/{id}/unlink/{interaction_id}/',
+            path: {
+                'id': id,
+                'interaction_id': interactionId,
             },
         });
     }

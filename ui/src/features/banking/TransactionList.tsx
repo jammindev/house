@@ -12,6 +12,7 @@ interface TransactionListProps {
   onEditNote: (transaction: BankTransaction) => void;
   onFeedCash: (transaction: BankTransaction) => void;
   onUnlinkCash: (transaction: BankTransaction) => void;
+  onAllocate: (transaction: BankTransaction) => void;
 }
 
 export default function TransactionList({
@@ -22,6 +23,7 @@ export default function TransactionList({
   onEditNote,
   onFeedCash,
   onUnlinkCash,
+  onAllocate,
 }: TransactionListProps) {
   const { t } = useTranslation();
 
@@ -46,6 +48,7 @@ export default function TransactionList({
           onEditNote={() => onEditNote(transaction)}
           onFeedCash={() => onFeedCash(transaction)}
           onUnlinkCash={() => onUnlinkCash(transaction)}
+          onAllocate={() => onAllocate(transaction)}
         />
       ))}
 
