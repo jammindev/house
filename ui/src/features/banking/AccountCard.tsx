@@ -4,6 +4,9 @@ import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
 import type { BankAccount } from '@/lib/api/banking';
+import { useAccountBalance } from './hooks';
+import BalanceBadge from './BalanceBadge';
+import ChainGapAlert from './ChainGapAlert';
 
 interface AccountCardProps {
   account: BankAccount;
@@ -23,6 +26,8 @@ export default function AccountCard({
   const { t } = useTranslation();
   const isCash = account.kind === 'cash';
   const Icon = isCash ? Banknote : Landmark;
+  // Un compte archivé n'a plus de solde à surveiller — on évite la requête.
+  const balanceQuery = useAccountBalance(account.archived ? undefined : account.id);
 
   const actions: CardAction[] = account.archived
     ? [{ label: t('banking.reopen'), icon: ArchiveRestore, onClick: onRestore }]
@@ -51,7 +56,12 @@ export default function AccountCard({
           </span>
 
           <div className="min-w-0 flex-1">
-            <CardTitle className="truncate">{account.name}</CardTitle>
+            <div className="flex items-baseline justify-between gap-2">
+              <CardTitle className="truncate">{account.name}</CardTitle>
+              {!account.archived ? (
+                <BalanceBadge balance={balanceQuery.data} isLoading={balanceQuery.isLoading} />
+              ) : null}
+            </div>
 
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
               {details || t(isCash ? 'banking.kinds.cash' : 'banking.kinds.bank')}
@@ -72,6 +82,12 @@ export default function AccountCard({
               <span className="mt-2 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                 {t('banking.archived')}
               </span>
+            ) : null}
+
+            {balanceQuery.data ? (
+              <div className="mt-2">
+                <ChainGapAlert balance={balanceQuery.data} accountName={account.name} />
+              </div>
             ) : null}
           </div>
         </div>

@@ -1608,6 +1608,10 @@
           "journal": {
             "title": "Revisar y clasificar tus operaciones",
             "body": "Desde la página Cuentas, abre «Diario bancario»: ahí están todas tus líneas, filtrables por cuenta, periodo, sentido y concepto (la búsqueda ignora mayúsculas y acentos). Dos gestos útiles en cada línea: marcar un movimiento interno —una retirada en el cajero o una transferencia entre tus dos bancos no es un gasto, y debe salir de los totales o el dinero se contaría dos veces— y añadir una nota. El concepto y el importe no se modifican: es lo que dice el banco."
+          },
+          "balance": {
+            "title": "Comprobar tu saldo",
+            "body": "Cada cuenta muestra su saldo, calculado al leer: nunca queda congelado en la base de datos. Si tu banco exporta la columna de saldo, House se ancla en ella y comprueba de paso que la cadena de extractos esté completa: si faltan operaciones verás «cadena rota» con el periodo y el importe que falta, en lugar de una cifra plausible pero falsa. Es la mejor prueba de tus importaciones: si el saldo mostrado coincide con tu extracto en papel, todo está bien. Para el efectivo, abre el diario y usa «Pasar al efectivo» en una retirada: sale de los totales de gasto y alimenta el saldo de tu cuenta de efectivo."
           }
         }
       }
@@ -3194,6 +3198,39 @@
       "empty": {
         "title": "Ninguna operación",
         "description": "Importa un extracto desde la página Cuentas, o amplía los filtros."
+      }
+    },
+    "balance": {
+      "uncertain": "por comprobar",
+      "chainBrokenShort": "Faltan operaciones entre dos extractos.",
+      "noOpeningDateShort": "Saldo inicial sin indicar.",
+      "chainBroken": {
+        "title": "Cadena de extractos rota — {{account}}",
+        "gap": "Entre el {{from}} y el {{to}}: faltan {{amount}} en operaciones.",
+        "hint": "Importa el extracto de ese periodo para recuperar un saldo exacto."
+      },
+      "noOpeningDate": {
+        "title": "Saldo calculado desde cero",
+        "body": "Indica el saldo inicial de «{{account}}» y su fecha para que el saldo mostrado sea exacto."
+      }
+    },
+    "cash": {
+      "title": "Pasar esta retirada al efectivo",
+      "action": "Pasar al efectivo",
+      "intro": "Una retirada no es un gasto: es dinero que cambia de bolsillo. Al pasarla a tu cuenta de efectivo sale de los totales de aquí, y se contará una sola vez, cuando gastes ese dinero.",
+      "unlink": "Quitar el vínculo con efectivo",
+      "linked": "Retirada pasada al efectivo",
+      "unlinked": "Vínculo con efectivo eliminado",
+      "linkedBadge": "Pasada al efectivo",
+      "noCashAccount": "Crea antes una cuenta de tipo «Efectivo» desde la página Cuentas.",
+      "fields": {
+        "account": "Cuenta de efectivo",
+        "amount": "Importe pasado",
+        "amountHint": "No toda la retirada acaba en el fondo común: ajústalo si hace falta."
+      },
+      "errors": {
+        "accountRequired": "Elige una cuenta de efectivo.",
+        "amountInvalid": "Introduce un importe positivo, como máximo {{max}}."
       }
     }
   },

@@ -8,7 +8,12 @@ Never write accounts via the raw ORM from a caller — always here.
 """
 from __future__ import annotations
 
+from decimal import Decimal
+
 from django.db import IntegrityError, transaction
+# Imported directly so the cash-counterpart helpers can take a parameter named
+# ``transaction`` (a BankTransaction) without shadowing the Django module.
+from django.db.transaction import atomic
 from rest_framework.exceptions import ValidationError
 
 from . import importers
@@ -221,6 +226,7 @@ def import_statement_file(
                     external_id=row.external_id,
                     dedup_hash=digest,
                     source_import=imported,
+                    line_no=row.line_no,
                     created_by=user,
                 )
                 for digest, (row, label_norm) in unique.items()
@@ -261,3 +267,115 @@ def preview_statement_file(raw: bytes, *, options: dict | None = None) -> dict:
         "columns": columns,
         "sample_lines": sample_lines,
     }
+
+
+# --- Cash counterpart (lot 4) ------------------------------------------------
+
+
+def record_cash_withdrawal(*, user, transaction, cash_account, amount=None):
+    """Mirror an ATM withdrawal as a credit on the cash account.
+
+    Without this, tracking a cash balance is pointless: the withdrawal leaves the
+    bank account but nothing ever *arrives* in the cash one, so the cash balance
+    goes negative on the first coffee paid in coins.
+
+    Both legs are flagged ``is_internal``: the withdrawal is not spending, it is
+    money changing pocket. It is counted once — later, when that cash is actually
+    spent. Both legs point at each other, so either side can find the other.
+
+    Proposed, never imposed: not every withdrawal ends up in the household's
+    common pot, so this is an explicit user action.
+    """
+    from .models import BankAccount, BankTransaction, TransactionDirection
+
+    if transaction.amount >= 0:
+        raise ValidationError({"transaction": "Only an outgoing operation can feed cash."})
+    if cash_account.kind != BankAccount.Kind.CASH:
+        raise ValidationError({"cash_account": "Target account must be a cash account."})
+    if cash_account.household_id != transaction.household_id:
+        raise ValidationError({"cash_account": "Account belongs to another household."})
+    if transaction.transfer_counterpart_id is not None:
+        raise ValidationError({"transaction": "This operation already has a counterpart."})
+
+    value = abs(Decimal(amount)) if amount is not None else transaction.outflow
+    if value <= 0:
+        raise ValidationError({"amount": "Amount must be positive."})
+    if value > transaction.outflow:
+        raise ValidationError({"amount": "Amount cannot exceed the withdrawal."})
+
+    with atomic():
+        mirror = BankTransaction.objects.create(
+            household=transaction.household,
+            account=cash_account,
+            booked_on=transaction.booked_on,
+            label_raw=transaction.label_raw,
+            label_norm=transaction.label_norm,
+            amount=value,
+            currency=transaction.currency,
+            direction=TransactionDirection.IN,
+            is_internal=True,
+            # Derived from the source operation's id: deterministic, unique, and
+            # it makes the generated row impossible to confuse with an imported
+            # one (which always carries a hash of its file line).
+            dedup_hash=compute_dedup_hash(
+                account_id=cash_account.id,
+                booked_on=transaction.booked_on,
+                label_norm=transaction.label_norm,
+                amount=value,
+                currency=transaction.currency,
+                discriminant=f"cash-of:{transaction.id}",
+            ),
+            transfer_counterpart=transaction,
+            created_by=user,
+            updated_by=user,
+        )
+        transaction.transfer_counterpart = mirror
+        transaction.is_internal = True
+        transaction.updated_by = user
+        transaction.save(
+            update_fields=["transfer_counterpart", "is_internal", "updated_by", "updated_at"]
+        )
+
+    return mirror
+
+
+def unlink_counterpart(*, user, transaction) -> None:
+    """Undo a cash counterpart.
+
+    Deletes only the leg **we** generated — recognised by having no
+    ``source_import`` and living on a cash account. An imported line is never
+    destroyed here: it is merely unlinked and un-flagged, exactly like the lot 5
+    allocation editor which only removes what it created.
+    """
+    from .models import BankAccount
+
+    counterpart = transaction.transfer_counterpart
+    if counterpart is None:
+        return
+
+    with atomic():
+        generated = counterpart.source_import_id is None and (
+            counterpart.account.kind == BankAccount.Kind.CASH
+        )
+        # SET_NULL on the self-FK clears the other side by itself.
+        transaction.transfer_counterpart = None
+        transaction.is_internal = False
+        transaction.updated_by = user
+        transaction.save(
+            update_fields=["transfer_counterpart", "is_internal", "updated_by", "updated_at"]
+        )
+
+        if generated:
+            counterpart.delete()
+        else:
+            counterpart.transfer_counterpart = None
+            counterpart.is_internal = False
+            counterpart.updated_by = user
+            counterpart.save(
+                update_fields=[
+                    "transfer_counterpart",
+                    "is_internal",
+                    "updated_by",
+                    "updated_at",
+                ]
+            )

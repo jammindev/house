@@ -254,6 +254,27 @@ class BankTransaction(HouseholdScopedModel):
         related_name="transactions",
         help_text=_("SET_NULL: transactions outlive the trace of their import."),
     )
+    line_no = models.PositiveIntegerField(
+        default=0,
+        help_text=_(
+            "Row position in the source file. Two operations booked the same day "
+            "must keep the statement's own order, otherwise the balance chain "
+            "check (banking.balances) cannot tell which balance follows which — "
+            "and 'created_at' is not dependable for that after a bulk_create."
+        ),
+    )
+    transfer_counterpart = models.OneToOneField(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="counterpart_of",
+        help_text=_(
+            "The other leg of an internal movement — typically an ATM withdrawal "
+            "and the matching credit on the cash account. SET_NULL so deleting "
+            "one leg never leaves the other pointing at nothing."
+        ),
+    )
     notes = models.TextField(blank=True, default="")
 
     objects = HouseholdScopedManager()
@@ -262,7 +283,9 @@ class BankTransaction(HouseholdScopedModel):
         db_table = "bank_transactions"
         verbose_name = _("bank transaction")
         verbose_name_plural = _("bank transactions")
-        ordering = ["-booked_on", "-created_at"]
+        # Newest first for reading; ``line_no`` keeps same-day operations in the
+        # statement's own order, which the balance chain check depends on.
+        ordering = ["-booked_on", "-line_no", "-created_at"]
         constraints = [
             # THE import guarantee: re-importing the same file writes nothing.
             models.UniqueConstraint(

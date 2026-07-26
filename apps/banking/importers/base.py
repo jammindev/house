@@ -50,6 +50,10 @@ class NormalizedTransaction:
     value_on: date | None = None
     balance_after: Decimal | None = None
     external_id: str = ""
+    #: 1-based row position in the source file. Carried through to
+    #: ``BankTransaction.line_no``: two operations booked the same day must keep
+    #: the statement's own order for the balance chain check to make sense.
+    line_no: int = 0
 
 
 class BaseStatementImporter(ABC):
