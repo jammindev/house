@@ -24,7 +24,13 @@ from .compliance import (
     waived_findings,
 )
 from .compliance import summary as compliance_summary
-from .matching import auto_reconcile, serialize_candidate, suggestions_for
+from .matching import (
+    auto_reconcile,
+    match_recurrences,
+    serialize_candidate,
+    serialize_recurring_match,
+    suggestions_for,
+)
 from .models import (
     BankAccount,
     BankTransaction,
@@ -539,7 +545,14 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         """
         household = request.household
         if household is None:
-            return Response({"auto_matched": 0, "suggestions": []})
+            return Response(
+                {
+                    "auto_matched": 0,
+                    "suggestions": [],
+                    "recurring_confirmed": 0,
+                    "recurring_suggestions": [],
+                }
+            )
 
         outcome = auto_reconcile(
             household=household,
@@ -547,10 +560,19 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             date_from=_parse_date_param(request.data.get("date_from"), "date_from"),
             date_to=_parse_date_param(request.data.get("date_to"), "date_to"),
         )
+        # Puis les récurrences, sur ce qui reste libre (parcours 26 lot 6). Même
+        # raison que pour les dépenses : l'utilisateur a pu créer la récurrence
+        # *après* l'import, donc le passage à l'import ne pouvait pas la voir.
+        recurring = match_recurrences(household=household, user=request.user)
+
         return Response(
             {
                 "auto_matched": outcome["auto_matched"],
                 "suggestions": [serialize_candidate(c) for c in outcome["suggestions"]],
+                "recurring_confirmed": recurring["confirmed"],
+                "recurring_suggestions": [
+                    serialize_recurring_match(m) for m in recurring["suggestions"]
+                ],
             }
         )
 

@@ -3285,7 +3285,9 @@
       "pickExisting": "Attach an expense you already recorded",
       "pickExistingHint": "Expenses the bank never confirmed, that fit in the {{amount}} still free.",
       "noUnreconciled": "No unreconciled expense fits in what is left.",
-      "attach": "Attach"
+      "attach": "Attach",
+      "recurringConfirmed": "{{count}} recurrence confirmed",
+      "recurringConfirmed_plural": "{{count}} recurrences confirmed"
     },
     "inflow": {
       "title": "Classify this receipt",
@@ -3467,6 +3469,16 @@
           "title": "Internal movements with no counterpart",
           "hint": "The money left the tracked world and nothing accounts for it.",
           "resolution": "Create the counterpart (“Feed cash”), or clear the “internal” flag if it was not one."
+        },
+        "recurring_overdue": {
+          "title": "Recurrences past due",
+          "hint": "The treasury projection and the “committed” figure lie until the due date advances.",
+          "resolution": "Confirm the occurrence, let the next statement do it, or arbitrate if the debit stopped."
+        },
+        "recurring_double_confirmed": {
+          "title": "Recurrences confirmed twice",
+          "hint": "The same bill counted twice on the same day.",
+          "resolution": "Delete the duplicate occurrence from the Expenses tab."
         }
       }
     },

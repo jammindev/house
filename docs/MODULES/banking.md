@@ -37,7 +37,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | 3 | Une ventilation porte projet, zone et budget | ✅ **Livré** |
 | 4 | Tout est une ligne de compte (espèces) | ✅ **Livré** |
 | 5 | Recettes et mouvements internes | ✅ **Livré** |
-| 6 | Le relevé confirme les récurrences | ⬜ |
+| 6 | Le relevé confirme les récurrences | ✅ **Livré** |
 | 7 | Continuité des relevés et provenance | ⬜ |
 
 **Cette fiche décrit l'état livré.** Les sections marquées *(à venir)* annoncent le
@@ -500,6 +500,8 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 | `account_cash_negative` | `error` | ❌ incohérence | 4 |
 | `inflow_unclassified` | `warning` | ✅ | 5 |
 | `internal_without_counterpart` | `error` | ✅ | 5 |
+| `recurring_overdue` | `warning` | ✅ | 6 |
+| `recurring_double_confirmed` | `error` | ❌ bug de données | 6 |
 
 Les sorties « à affecter » excluent les recettes (leur détecteur arrive au lot 5),
 les mouvements internes et leurs contreparties (l'argent est compté une fois, plus
@@ -714,6 +716,64 @@ que la règle transverse interdit.
 existante ne change (le rendu du bilan et le digest les lisent). Sa borne haute est
 la **veille** de la borne exclusive des interactions : les lignes bancaires sont
 datées au jour, et se tromper d'un jour ferait disparaître les opérations du 31.
+
+## Le relevé confirme les récurrences (parcours 26, lot 6)
+
+### Le problème, tel qu'il se vit
+
+Une douzaine de prélèvements tombent chaque mois. Les confirmer un par un est la
+corvée qui fait qu'on **arrête** de confirmer — après quoi « échéance passée non
+confirmée » s'empile, `next_due_date` n'avance plus, et la projection de trésorerie
+comme l'« engagé à venir » de chaque budget se mettent à mentir. Le relevé sait déjà
+que ces prélèvements ont eu lieu.
+
+### ⚠️ Prérequis modèle : `recurring_id` promu en FK
+
+`Interaction.recurring_expense` (FK `SET_NULL`, index partiel). Le détecteur de
+**double confirmation** doit `GROUP BY` la récurrence — et CLAUDE.md interdit de
+requêter `metadata` : une clé JSON ne peut être ni indexée ni contrainte, donc le
+détecteur aurait été à la fois lent et invérifiable.
+
+Migration de données `interactions.0027` : la clé JSON est **conservée** (elle ne
+coûte rien, c'est ce que lit l'affichage existant, et la retirer dans la même
+migration rendrait le rollback destructeur). Un id qui pointe dans le vide est
+**ignoré, pas levé** : `recurring_id` était une string sans intégrité référentielle,
+et faire échouer un déploiement pour une donnée déjà perdue serait absurde.
+
+### `match_recurrences` — mêmes protections que le matcher de dépenses
+
+- **auto-confirmation sur montant strictement égal seulement.** Une facture qui
+  varie de cinq centimes est probablement la même facture, mais la confirmer
+  écrirait une occurrence que l'utilisateur n'a pas vérifiée, **à un montant qu'il
+  n'a jamais vu**. Elle reste non confirmée et visible ;
+- **affectation greedy stable**, jamais un argmax par ligne : deux abonnements à
+  15 € face à deux lignes à 15 € se croiseraient.
+
+Fenêtre plus large que pour un achat carte (±10 jours contre −7/+3) : un prélèvement
+tombe au calendrier de la banque, pas au jour où l'utilisateur a noté quelque chose.
+
+**La ligne est intégralement ventilée** à la confirmation — sinon on créerait un
+écart « sortie partiellement ventilée » en confirmant, l'app fabriquant son propre
+travail.
+
+### L'ordre à l'import compte
+
+`auto_reconcile` **puis** `match_recurrences`, sur ce qui reste libre. Une dépense
+déjà saisie par l'utilisateur est une information plus sûre qu'une échéance prévue,
+donc elle gagne la ligne ; la récurrence sera confirmée par le relevé du mois
+suivant.
+
+Le bouton « Rapprocher » fait les deux passes, pour la même raison qu'au parcours 25 :
+l'utilisateur a pu créer la récurrence **après** l'import.
+
+### `recurring_double_confirmed` — non arbitrable
+
+Seule la course entre une confirmation manuelle et un import peut le produire.
+Compter une facture deux fois n'est jamais acceptable : l'une des deux doit partir.
+
+`match_recurrences` s'en protège en amont (une occurrence existant déjà pour cette
+date fait sauter la récurrence), mais le détecteur reste — la confirmation manuelle
+est un autre chemin, et le contrôle ne fait pas confiance aux garde-fous, il vérifie.
 
 ## Ce que les lots suivants ajouteront *(à venir)*
 - **Règle transverse** — on n'additionne **jamais** un total banque et un total

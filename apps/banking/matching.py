@@ -20,9 +20,11 @@ from difflib import SequenceMatcher
 from zoneinfo import ZoneInfo
 
 from django.conf import settings
+from django.db.transaction import atomic
 
 from .importers.parsing import normalize_label
 from .models import BankTransaction
+from interactions.kinds import KIND_RECURRING
 from .queries import transactions as transactions_qs
 
 # Weights sum to 1. The amount dominates because it is the only near-certain
@@ -302,4 +304,210 @@ def serialize_candidate(candidate: MatchCandidate) -> dict:
         "amount_delta": str(candidate.amount_delta),
         "day_gap": candidate.day_gap,
         "label_ratio": candidate.label_ratio,
+    }
+
+
+# --- Recurrences confirmed by the statement (parcours 26, lot 6) --------------
+
+#: A recurrence is scored against a wider window than a card purchase: a direct
+#: debit lands on the bank's schedule, not on the day the user wrote down.
+RECURRING_WINDOW_BEFORE_DAYS = 10
+RECURRING_WINDOW_AFTER_DAYS = 10
+
+
+@dataclass(frozen=True)
+class RecurringMatch:
+    """A statement line that looks like a due recurrence."""
+
+    recurring_id: str
+    transaction_id: str
+    score: float
+    amount_delta: Decimal
+    day_gap: int
+    label_ratio: float
+
+    @property
+    def is_exact_amount(self) -> bool:
+        return self.amount_delta == 0
+
+
+def _score_recurrence(recurring, transaction) -> RecurringMatch | None:
+    """Score one (recurrence, line) pair, or ``None`` when out of the window."""
+    target = transaction.outflow
+    amount = recurring.amount or Decimal("0.00")
+    if amount <= 0 or target <= 0:
+        return None
+
+    tolerance = max(Decimal("0.05"), target * Decimal("0.005"))
+    delta = abs(target - amount)
+    if delta > tolerance:
+        return None
+
+    gap = (transaction.booked_on - recurring.next_due_date).days
+    if gap > RECURRING_WINDOW_AFTER_DAYS or gap < -RECURRING_WINDOW_BEFORE_DAYS:
+        return None
+
+    haystack = transaction.label_norm or normalize_label(transaction.label_raw)
+    needle = normalize_label(recurring.supplier or "") or normalize_label(recurring.label or "")
+    if not needle or not haystack:
+        ratio = 0.0
+    elif needle in haystack or haystack in needle:
+        ratio = 1.0
+    else:
+        ratio = SequenceMatcher(None, needle, haystack).ratio()
+
+    amount_score = WEIGHT_AMOUNT * (1 - float(delta / tolerance))
+    span = max(RECURRING_WINDOW_BEFORE_DAYS, RECURRING_WINDOW_AFTER_DAYS)
+    date_score = WEIGHT_DATE * max(0.0, 1 - abs(gap) / span)
+    label_score = WEIGHT_LABEL * ratio
+
+    return RecurringMatch(
+        recurring_id=str(recurring.pk),
+        transaction_id=str(transaction.pk),
+        score=round(amount_score + date_score + label_score, 4),
+        amount_delta=delta,
+        day_gap=gap,
+        label_ratio=round(ratio, 4),
+    )
+
+
+def match_recurrences(*, household, user, transactions=None) -> dict:
+    """Let the statement confirm the recurrences it covers.
+
+    The everyday shape of the problem: a dozen direct debits land every month, and
+    confirming each by hand is the chore that makes people stop confirming — after
+    which « échéance passée non confirmée » piles up and the treasury projection
+    lies. The statement already knows they happened.
+
+    Same two protections as the expense matcher, for the same reasons:
+
+    - **auto-confirmation requires a strictly equal amount.** A bill that varies by
+      five cents is probably the same bill, but confirming it would write an
+      occurrence the user never checked, at an amount they never saw. It stays
+      unconfirmed and visible instead;
+    - **stable greedy assignment**, never an argmax per line: two 15 €
+      subscriptions facing two 15 € lines would otherwise cross-assign.
+
+    A recurrence whose occurrence for this due date already exists is skipped —
+    which is what keeps a re-import from double-confirming, the écart the control
+    reports as a data bug with no legitimate motive.
+
+    Returns ``{"confirmed": int, "suggestions": [RecurringMatch]}``.
+    """
+    from budget.models import RecurringExpense
+    from budget.services import advance_due_date
+    from interactions.models import Interaction
+    from interactions.services import create_bank_expense_interaction
+
+    from .services import set_allocations
+
+    if transactions is None:
+        qs = transactions_qs(household_id=household.id).filter(
+            interactions__isnull=True, is_internal=False, amount__lt=0
+        )
+        transactions = list(qs.distinct())
+
+    outflows = [t for t in transactions if t.amount < 0 and not t.is_internal]
+    if not outflows:
+        return {"confirmed": 0, "suggestions": []}
+
+    recurrences = list(RecurringExpense.objects.filter(household=household))
+    if not recurrences:
+        return {"confirmed": 0, "suggestions": []}
+
+    pairs = []
+    for recurring in recurrences:
+        for transaction in outflows:
+            match = _score_recurrence(recurring, transaction)
+            if match is not None:
+                pairs.append(match)
+
+    auto_threshold = float(_setting("BANKING_MATCH_AUTO_THRESHOLD", 0.85))
+    suggest_threshold = float(_setting("BANKING_MATCH_SUGGEST_THRESHOLD", 0.55))
+
+    by_recurrence = {str(r.pk): r for r in recurrences}
+    by_transaction = {str(t.pk): t for t in outflows}
+
+    eligible = [p for p in pairs if p.score >= auto_threshold and p.is_exact_amount]
+    eligible.sort(key=lambda p: (-p.score, abs(p.day_gap)))
+
+    taken_recurrences: set[str] = set()
+    taken_transactions: set[str] = set()
+    confirmed = 0
+
+    for pair in eligible:
+        if pair.recurring_id in taken_recurrences or pair.transaction_id in taken_transactions:
+            continue
+
+        recurring = by_recurrence[pair.recurring_id]
+        transaction = by_transaction[pair.transaction_id]
+
+        # Anti double-confirmation: the FK is what makes this checkable in SQL
+        # (metadata could not be indexed nor grouped — see CLAUDE.md).
+        already = Interaction.objects.filter(
+            recurring_expense=recurring,
+            occurred_at__date=transaction.booked_on,
+        ).exists()
+        if already:
+            taken_recurrences.add(pair.recurring_id)
+            continue
+
+        with atomic():
+            interaction = create_bank_expense_interaction(
+                household=household,
+                user=user,
+                transaction=transaction,
+                subject=recurring.label,
+                amount=transaction.outflow,
+                budget_id=str(recurring.budget_id) if recurring.budget_id else None,
+                notes=recurring.notes,
+            )
+            interaction.kind = KIND_RECURRING
+            interaction.supplier = recurring.supplier or ""
+            interaction.recurring_expense = recurring
+            interaction.metadata = {
+                **(interaction.metadata or {}),
+                "recurring_id": str(recurring.id),
+            }
+            interaction.reconciled_by = "auto"
+            interaction.save(
+                update_fields=[
+                    "kind",
+                    "supplier",
+                    "recurring_expense",
+                    "metadata",
+                    "reconciled_by",
+                    "updated_at",
+                ]
+            )
+
+            recurring.next_due_date = advance_due_date(
+                recurring.next_due_date, recurring.cadence
+            )
+            recurring.updated_by = user
+            recurring.save(update_fields=["next_due_date", "updated_by", "updated_at"])
+
+        taken_recurrences.add(pair.recurring_id)
+        taken_transactions.add(pair.transaction_id)
+        confirmed += 1
+
+    suggestions = [
+        p
+        for p in pairs
+        if p.score >= suggest_threshold
+        and p.recurring_id not in taken_recurrences
+        and p.transaction_id not in taken_transactions
+    ]
+
+    return {"confirmed": confirmed, "suggestions": suggestions}
+
+
+def serialize_recurring_match(match: RecurringMatch) -> dict:
+    return {
+        "recurring_id": match.recurring_id,
+        "transaction_id": match.transaction_id,
+        "score": match.score,
+        "amount_delta": str(match.amount_delta),
+        "day_gap": match.day_gap,
+        "label_ratio": match.label_ratio,
     }

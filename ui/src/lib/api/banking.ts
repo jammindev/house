@@ -375,9 +375,22 @@ export interface MatchCandidate {
   interaction?: AllocatedExpense;
 }
 
+/** Un appariement possible entre une récurrence et une ligne (parcours 26, lot 6). */
+export interface RecurringMatch {
+  recurring_id: string;
+  transaction_id: string;
+  score: number;
+  amount_delta: string;
+  day_gap: number;
+  label_ratio: number;
+}
+
 export interface ReconcileOutcome {
   auto_matched: number;
   suggestions: MatchCandidate[];
+  /** Échéances que le relevé a confirmées de lui-même. */
+  recurring_confirmed: number;
+  recurring_suggestions: RecurringMatch[];
 }
 
 /** Relance le matcher. Idempotent : ce qui est déjà rapproché est hors du pool. */

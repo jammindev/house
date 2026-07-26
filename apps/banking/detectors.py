@@ -11,7 +11,9 @@ would therefore never ask:
 - an account whose statements do not chain (``account_chain_broken``);
 - a cash account in the red, which is physically impossible (``account_cash_negative``);
 - a receipt nobody classified (``inflow_unclassified``);
-- an internal movement whose other leg is missing (``internal_without_counterpart``).
+- an internal movement whose other leg is missing (``internal_without_counterpart``);
+- a recurrence past due with nothing recorded (``recurring_overdue``);
+- a recurrence confirmed twice for the same day (``recurring_double_confirmed``).
 
 Every detector that reasons about "money we should know about" is scoped by
 ``banking.coverage``: outside the conformity window an écart is not an écart, it
@@ -21,6 +23,7 @@ Registered from ``banking.apps.BankingConfig.ready()``.
 """
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
 from django.db.models import Case, DecimalField, F, Q, Sum, Value, When
@@ -54,6 +57,8 @@ ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
 INFLOW_UNCLASSIFIED = "inflow_unclassified"
 INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
+RECURRING_OVERDUE = "recurring_overdue"
+RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
 
 
 # --- Shared base: spendable outflows inside their account's window -----------
@@ -372,6 +377,122 @@ def _find_internal_without_counterpart(household, **window) -> list[Finding]:
     ]
 
 
+# --- Recurrences (lot 6) ------------------------------------------------------
+
+
+def _overdue_recurring_qs(household):
+    """Recurrences whose due date has passed with nothing recorded.
+
+    Not cosmetic: ``next_due_date`` feeds the treasury projection and the
+    « engagé à venir » of each budget. A due date that never advances makes both
+    lie — the app claims money is still committed that has in fact already left,
+    or has not left at all because the direct debit was stopped and nobody said so.
+
+    No conformity window here: a recurrence is a *schedule*, not a statement line.
+    Its due date being in the past is a fact regardless of which periods have been
+    imported.
+    """
+    from budget.models import RecurringExpense
+
+    return RecurringExpense.objects.filter(
+        household=household, next_due_date__lt=date.today()
+    )
+
+
+def _count_overdue_recurring(household) -> int:
+    return _overdue_recurring_qs(household).count()
+
+
+def _find_overdue_recurring(household, **window) -> list[Finding]:
+    today = date.today()
+    return [
+        Finding(
+            kind=RECURRING_OVERDUE,
+            object_id=str(recurring.pk),
+            label=recurring.label,
+            # The due date founds the écart: confirming one occurrence advances it,
+            # so an arbitration made for « prélèvement arrêté » must be reconsidered
+            # if the schedule moves.
+            fingerprint=fingerprint_of(RECURRING_OVERDUE, recurring.next_due_date),
+            detail={
+                "label": recurring.label,
+                "amount": str(recurring.amount),
+                "next_due_date": recurring.next_due_date.isoformat(),
+                "days_late": (today - recurring.next_due_date).days,
+                "cadence": recurring.cadence,
+            },
+        )
+        for recurring in apply_window(_overdue_recurring_qs(household), **window)
+    ]
+
+
+def _double_confirmed_pairs(household) -> list[tuple[object, list]]:
+    """Recurrences with two occurrences on the same day — a data bug.
+
+    Only possible through two paths racing: a manual confirmation and an import
+    confirming the same debit. ``waivable=False`` because there is no motive that
+    makes counting one bill twice acceptable; one of the two has to go.
+
+    Grouping is done on the **FK**, which is exactly why it was promoted out of
+    ``metadata``: a JSON key can be neither indexed nor grouped in SQL, so this
+    detector would have been impossible to write honestly (see CLAUDE.md).
+    """
+    from django.db.models import Count
+
+    from budget.models import RecurringExpense
+    from interactions.models import Interaction
+
+    duplicated = (
+        Interaction.objects.filter(
+            household=household, recurring_expense__isnull=False, type="expense"
+        )
+        .values("recurring_expense_id", "occurred_at__date")
+        .annotate(n=Count("id"))
+        .filter(n__gt=1)
+    )
+
+    by_recurrence: dict[str, list[dict]] = {}
+    for row in duplicated:
+        by_recurrence.setdefault(str(row["recurring_expense_id"]), []).append(
+            {"date": row["occurred_at__date"].isoformat(), "count": row["n"]}
+        )
+    if not by_recurrence:
+        return []
+
+    recurrences = RecurringExpense.objects.filter(pk__in=by_recurrence.keys())
+    return [(r, by_recurrence[str(r.pk)]) for r in recurrences]
+
+
+def _count_double_confirmed(household) -> int:
+    return len(_double_confirmed_pairs(household))
+
+
+def _find_double_confirmed(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    pairs = _double_confirmed_pairs(household)
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [p for p in pairs if str(p[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+
+    return [
+        Finding(
+            kind=RECURRING_DOUBLE_CONFIRMED,
+            object_id=str(recurring.pk),
+            label=recurring.label,
+            fingerprint=fingerprint_of(
+                RECURRING_DOUBLE_CONFIRMED, len(days), sorted(d["date"] for d in days)
+            ),
+            detail={"label": recurring.label, "occurrences": days},
+        )
+        for recurring, days in pairs
+    ]
+
+
 def _negative_cash_pairs(household) -> list[tuple[BankAccount, Decimal]]:
     """Cash accounts showing a negative balance, with the figure.
 
@@ -500,6 +621,12 @@ def register_detectors() -> None:
             register(spec)
 
 
+def _recurring_model():
+    from budget.models import RecurringExpense
+
+    return RecurringExpense
+
+
 def _specs() -> list[DetectorSpec]:
     """Declared in the order the control panel should read them: the blocking
     prerequisite first, because it is what makes the others meaningful."""
@@ -586,6 +713,26 @@ def _specs() -> list[DetectorSpec]:
             count=_count_internal_without_counterpart,
             findings=_find_internal_without_counterpart,
             blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+        ),
+        DetectorSpec(
+            kind=RECURRING_OVERDUE,
+            severity=WARNING,
+            label="Recurrence past due with nothing recorded",
+            target="recurring",
+            model=_recurring_model(),
+            count=_count_overdue_recurring,
+            findings=_find_overdue_recurring,
+        ),
+        DetectorSpec(
+            kind=RECURRING_DOUBLE_CONFIRMED,
+            severity=ERROR,
+            label="Recurrence confirmed twice for the same day",
+            target="recurring",
+            model=_recurring_model(),
+            count=_count_double_confirmed,
+            findings=_find_double_confirmed,
+            # Counting one bill twice is never acceptable — one of the two has to go.
+            waivable=False,
         ),
         DetectorSpec(
             kind=ACCOUNT_CASH_NEGATIVE,

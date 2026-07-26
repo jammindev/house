@@ -3285,7 +3285,9 @@
       "pickExisting": "Vincular un gasto ya registrado",
       "pickExistingHint": "Gastos que el banco nunca confirmó y que caben en los {{amount}} aún libres.",
       "noUnreconciled": "Ningún gasto sin conciliar cabe en lo que queda.",
-      "attach": "Vincular"
+      "attach": "Vincular",
+      "recurringConfirmed": "{{count}} vencimiento confirmado",
+      "recurringConfirmed_plural": "{{count}} vencimientos confirmados"
     },
     "inflow": {
       "title": "Clasificar este ingreso",
@@ -3467,6 +3469,16 @@
           "title": "Movimientos internos sin contrapartida",
           "hint": "El dinero salió del ámbito controlado y nada lo explica.",
           "resolution": "Cree la contrapartida («Alimentar el efectivo»), o quite la marca «interno» si no lo era."
+        },
+        "recurring_overdue": {
+          "title": "Vencimientos pasados sin confirmar",
+          "hint": "La proyección de tesorería y el «comprometido» mienten mientras el vencimiento no avanza.",
+          "resolution": "Confirme la ocurrencia, deje que lo haga el próximo extracto, o justifíquelo si se detuvo el cargo."
+        },
+        "recurring_double_confirmed": {
+          "title": "Recurrencias confirmadas dos veces",
+          "hint": "La misma factura contada dos veces el mismo día.",
+          "resolution": "Elimine la ocurrencia duplicada desde la pestaña Gastos."
         }
       }
     },

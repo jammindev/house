@@ -3285,7 +3285,9 @@
       "pickExisting": "Rattacher une dépense déjà saisie",
       "pickExistingHint": "Dépenses que la banque n'a jamais confirmées, et qui tiennent dans les {{amount}} encore libres.",
       "noUnreconciled": "Aucune dépense non rapprochée ne tient dans le reste.",
-      "attach": "Rattacher"
+      "attach": "Rattacher",
+      "recurringConfirmed": "{{count}} échéance confirmée",
+      "recurringConfirmed_plural": "{{count}} échéances confirmées"
     },
     "inflow": {
       "title": "Classer cette recette",
@@ -3467,6 +3469,16 @@
           "title": "Mouvements internes sans contrepartie",
           "hint": "L'argent est sorti du monde suivi et rien ne l'explique.",
           "resolution": "Créez la contrepartie (« Alimenter les espèces »), ou retirez le marqueur « interne » si ce n'en était pas un."
+        },
+        "recurring_overdue": {
+          "title": "Échéances passées non confirmées",
+          "hint": "La projection de trésorerie et l'« engagé à venir » mentent tant que l'échéance n'avance pas.",
+          "resolution": "Confirmez l'occurrence, laissez le prochain relevé le faire, ou arbitrez si le prélèvement est arrêté."
+        },
+        "recurring_double_confirmed": {
+          "title": "Récurrences confirmées deux fois",
+          "hint": "Une même facture comptée deux fois le même jour.",
+          "resolution": "Supprimez l'occurrence en double depuis la page Dépenses."
         }
       }
     },
