@@ -1,7 +1,18 @@
 # Parcours 25 — Backlog technique V1
 
-> Cadrage réalisé le 2026-07-25. Aucun code écrit à ce stade.
-> Implémentation lot par lot avec le skill `/new-feature`, qui consomme ce backlog comme point de départ.
+> Cadrage réalisé le 2026-07-25. **Lots 1 à 6 livrés le 2026-07-26.**
+> Restent : lot 7 (recettes & couverture), lot 8 (agent), lot 9 (PDF/photo, différé).
+>
+> **Écarts au cadrage, assumés et documentés dans les PR :**
+> - `BankTransaction.line_no` ajouté au lot 4 — sans lui le contrôle de chaîne est
+>   non déterministe sur les journées à plusieurs opérations, et `created_at` n'est
+>   pas fiable après un `bulk_create`.
+> - `with_allocated` et `coverage_ratio` retirés du lot 3 : ils dépendent de la FK
+>   du lot 5. Le taux de couverture appartient au lot 7, qui le porte déjà.
+> - `file_validation` non élargi au lot 2 : l'import lit le fichier sans créer de
+>   `Document`, donc la validation par magic bytes n'est jamais sur le chemin.
+> - Lot 6 : « candidat unique » raffiné en « pas de rival **qui change les
+>   comptes** » — deux rivaux interchangeables se rapprochent quand même.
 
 ## Tableau de bord
 
@@ -9,12 +20,12 @@
 
 | Lot | Sujet | Statut | Issue |
 |---|---|---|---|
-| 1 | Socle `apps/banking` — `BankAccount` + CRUD + module UI | ⬜ À faire | #384 |
-| 2 | Import CSV/XLSX — importers, registry, dédup, `StatementImport` | ⬜ À faire | #385 |
-| 3 | Journal bancaire — liste, filtres, qualification, flux | ⬜ À faire | #386 |
-| 4 | Soldes, continuité & espèces | ⬜ À faire | #387 |
-| 5 | Ventilation — FK `bank_transaction` + split + invariant | ⬜ À faire | #388 |
-| 6 | Rapprochement automatique + file de suggestions | ⬜ À faire | #389 |
+| 1 | Socle `apps/banking` — `BankAccount` + CRUD + module UI | ✅ Livré (#393) | #384 |
+| 2 | Import CSV/XLSX — importers, registry, dédup, `StatementImport` | ✅ Livré (#399) | #385 |
+| 3 | Journal bancaire — liste, filtres, qualification, flux | ✅ Livré (#395) | #386 |
+| 4 | Soldes, continuité & espèces | ✅ Livré (#396) | #387 |
+| 5 | Ventilation — FK `bank_transaction` + split + invariant | ✅ Livré (#397) | #388 |
+| 6 | Rapprochement automatique + file de suggestions | ✅ Livré (#398) | #389 |
 | 7 | Recettes, virements internes, couverture dans le bilan | ⬜ À faire | #390 |
 | 8 | Intégration agent (lecture seule) | ⬜ À faire | #391 |
 | 9 | **Différé V2** — import PDF/photo via le pipeline vision | ⬜ Différé | #392 |
