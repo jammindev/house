@@ -26,6 +26,7 @@ import {
   type TransactionFilters,
 } from '@/lib/api/banking';
 import { toast } from '@/lib/toast';
+import { complianceKeys } from '@/features/money/keys';
 
 export const bankingKeys = {
   all: ['banking'] as const,
@@ -235,6 +236,11 @@ export function useSetAllocations() {
       void qc.invalidateQueries({ queryKey: ['interactions'] });
       void qc.invalidateQueries({ queryKey: ['expenses'] });
       void qc.invalidateQueries({ queryKey: ['budget'] });
+      // Ventiler résout (ou déplace) un écart : sans cette invalidation, le badge
+      // « Contrôle » et la file « À ranger » afficheraient encore la ligne qu'on
+      // vient de ranger — un compteur qui contredit l'écran est pire que pas de
+      // compteur.
+      void qc.invalidateQueries({ queryKey: complianceKeys.all });
       toast({ description: t('banking.allocation.saved'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),

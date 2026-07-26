@@ -387,3 +387,100 @@ export async function linkInteraction(
   );
   return data;
 }
+
+// --- Conformité (parcours 26, lot 1) ----------------------------------------
+
+export type ComplianceSeverity = 'blocker' | 'error' | 'warning';
+
+/**
+ * Un écart, sur un objet. `fingerprint` est le hash de ce qui **fonde** l'écart :
+ * c'est lui qui fait périmer un arbitrage quand la situation bouge.
+ */
+export interface ComplianceFinding {
+  kind: string;
+  object_id: string;
+  label: string;
+  fingerprint: string;
+  detail: Record<string, string | number | boolean | null | unknown>;
+  /** Arbitrage périmé : l'écart est revenu sur la pile, motif d'origine affiché. */
+  is_stale: boolean;
+  waiver_id: string | null;
+  waiver_reason: string;
+}
+
+/** Les compteurs d'un détecteur. Invariant : `open + waived === detected`. */
+export interface ComplianceGroup {
+  kind: string;
+  severity: ComplianceSeverity;
+  label: string;
+  target: string;
+  /** Faux quand le catalogue dit « aucun flag légitime » — l'écart se corrige. */
+  waivable: boolean;
+  /** Clé d'un prérequis : explique pourquoi ce contrôle ne porte pas sur tout. */
+  blocked_by: string;
+  detected: number;
+  open: number;
+  waived: number;
+  stale: number;
+}
+
+export interface ComplianceSummary {
+  groups: ComplianceGroup[];
+  open_total: number;
+  waived_total: number;
+  stale_total: number;
+}
+
+export interface ComplianceGroupPage extends ComplianceGroup {
+  results: ComplianceFinding[];
+  limit: number;
+  offset: number;
+}
+
+/** Compteurs seuls — lu à chaque navigation, doit rester bon marché côté serveur. */
+export async function fetchComplianceSummary(): Promise<ComplianceSummary> {
+  const { data } = await api.get<ComplianceSummary>('/banking/compliance/');
+  return data;
+}
+
+export async function fetchComplianceGroup(
+  kind: string,
+  params: { waived?: boolean; limit?: number; offset?: number } = {},
+): Promise<ComplianceGroupPage> {
+  const { data } = await api.get<ComplianceGroupPage>(`/banking/compliance/${kind}/`, {
+    params: {
+      ...(params.waived ? { waived: 'true' } : {}),
+      ...(params.limit !== undefined ? { limit: params.limit } : {}),
+      ...(params.offset ? { offset: params.offset } : {}),
+    },
+  });
+  return data;
+}
+
+export interface ComplianceWaiver {
+  id: string;
+  finding_kind: string;
+  object_id: string;
+  reason: string;
+  fingerprint: string;
+  created_at: string;
+}
+
+/**
+ * Arbitre un écart — jamais un « ignorer ». Le motif est **requis** côté serveur,
+ * et un second appel sur le même écart met à jour le motif *et* le fingerprint
+ * (c'est le chemin du « ré-arbitrer » sur un arbitrage périmé).
+ */
+export async function createWaiver(payload: {
+  finding_kind: string;
+  object_id: string;
+  reason: string;
+}): Promise<ComplianceWaiver> {
+  const { data } = await api.post<ComplianceWaiver>('/banking/waivers/', payload);
+  return data;
+}
+
+/** Révoque un arbitrage : l'écart resurgit à l'identique. */
+export async function deleteWaiver(id: string): Promise<void> {
+  await api.delete(`/banking/waivers/${id}/`);
+}

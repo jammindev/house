@@ -61,6 +61,6 @@ test('parcours achat projet — Rénovation salle de bain 450€ Leroy Merlin', 
 
   // Vérifier qu'elle apparaît aussi dans la vue dépense (filtrée par supplier
   // pour distinguer cette execution des autres)
-  await page.goto('/app/expenses');
+  await page.goto('/app/money?tab=expenses');
   await expect(page.getByText(supplier).first()).toBeVisible();
 });

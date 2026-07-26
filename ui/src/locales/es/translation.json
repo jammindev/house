@@ -1442,6 +1442,14 @@
           "review": {
             "title": "Analizar por periodo",
             "body": "Filtra por periodo o por zona para ver adónde va el dinero."
+          },
+          "sort": {
+            "title": "Ordene sus operaciones",
+            "body": "La pestaña «Por ordenar» enumera cada salida que nadie ha asignado todavía. Una etiqueta de presupuesto basta para el caso habitual; «Desglosar en varios» sirve cuando una misma compra cubre dos partidas. Seleccione varias líneas para tratar un lote de una vez."
+          },
+          "control": {
+            "title": "Compruebe que su visión es correcta",
+            "body": "La pestaña «Control» enumera todo lo que impide que sus cifras sean exactas: operaciones sin asignar, gastos que el banco nunca vio, saldos que no encadenan. Cada discrepancia se resuelve — o se justifica con un motivo que sigue visible y se puede revocar."
           }
         }
       },
@@ -2919,7 +2927,7 @@
       "subjectRequired": "Se requiere un asunto",
       "created": "Gasto registrado",
       "actions": {
-        "add": "Gasto"
+        "add": "Nuevo gasto"
       },
       "budget": "Presupuesto",
       "budgetNone": "Sin presupuesto"
@@ -3342,6 +3350,99 @@
     "history": "Meses anteriores",
     "access": {
       "hint": "Resumen escrito de los gastos del mes pasado."
+    }
+  },
+  "money": {
+    "title": "Dinero",
+    "description": "Cuentas, gastos y presupuestos — los extractos son la fuente de verdad.",
+    "tabs": {
+      "control": "Control",
+      "pending": "Por ordenar",
+      "accounts": "Cuentas",
+      "expenses": "Gastos",
+      "budgets": "Presupuestos"
+    },
+    "compliance": {
+      "clean": "Todo cuadra",
+      "cleanHint": "Cada operación está asignada o justificada. No queda nada suelto.",
+      "openCount": "{{count}} discrepancia por tratar",
+      "openCount_plural": "{{count}} discrepancias por tratar",
+      "openHint": "Cada una se resuelve o se justifica con un motivo.",
+      "arbitratedCount": "{{count}} justificada",
+      "arbitratedCount_plural": "{{count}} justificadas",
+      "staleCount": "{{count}} justificación caducada",
+      "staleCount_plural": "{{count}} justificaciones caducadas",
+      "groupClean": "Nada que señalar.",
+      "prerequisite": "Requisito",
+      "staleBadge": "{{count}} caducada",
+      "staleBadge_plural": "{{count}} caducadas",
+      "waivedShort": "{{count}} justificada",
+      "waivedShort_plural": "{{count}} justificadas",
+      "blockedBy": "Este control solo cubre las cuentas cuyo requisito «{{prerequisite}}» está resuelto.",
+      "andMore": "y {{count}} más…",
+      "showArbitrated": "Ver las {{count}} justificaciones",
+      "hideArbitrated": "Ocultar las justificaciones",
+      "revoke": "Revocar",
+      "revoked": "Justificación revocada — la discrepancia ha vuelto.",
+      "arbitrate": "Justificar",
+      "rearbitrate": "Volver a justificar",
+      "notWaivable": "hay que corregirlo",
+      "stale": "La situación ha cambiado desde «{{reason}}».",
+      "remaining": "Queda por asignar: {{amount}}",
+      "waived": "Discrepancia justificada.",
+      "waiveTitle": "Justificar esta discrepancia",
+      "waiveHelp": "Una justificación no borra nada: registra por qué esta discrepancia es aceptable. Sigue visible y se puede revocar.",
+      "waiveAction": "Justificar",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Ej.: comisiones bancarias, no corresponde a ningún presupuesto",
+      "reasonRequired": "El motivo es obligatorio.",
+      "noDetectors": "No hay controles disponibles",
+      "noDetectorsHint": "Declare una cuenta para que el control tenga algo que verificar.",
+      "kinds": {
+        "account_no_opening_balance": {
+          "title": "Cuenta sin saldo inicial",
+          "hint": "Sin punto de partida, el saldo es una suposición.",
+          "resolution": "Indique el saldo inicial de la cuenta y su fecha. Los demás controles pasan entonces a ser evaluables."
+        },
+        "transaction_unallocated": {
+          "title": "Salidas sin asignar",
+          "hint": "Salió dinero sin que nadie dijera para qué.",
+          "resolution": "Ordénelas desde la pestaña «Por ordenar», o justifíquelas con un motivo."
+        },
+        "transaction_partially_allocated": {
+          "title": "Salidas asignadas en parte",
+          "hint": "Parte del importe no está vinculada a nada.",
+          "resolution": "Complete el desglose, o justifique el resto."
+        },
+        "expense_unreconciled": {
+          "title": "Gastos sin conciliar",
+          "hint": "Registrados en la app, nunca confirmados por un extracto.",
+          "resolution": "Vincúlelos a la línea bancaria correspondiente, o justifíquelos (pagado por un tercero, por ejemplo)."
+        },
+        "account_chain_broken": {
+          "title": "Cadena de saldos rota",
+          "hint": "Los saldos del extracto no encadenan: faltan operaciones.",
+          "resolution": "Importe el extracto que falta. Hasta entonces el saldo queda marcado como no fiable."
+        }
+      }
+    },
+    "pending": {
+      "count": "{{count}} operación por ordenar",
+      "count_plural": "{{count}} operaciones por ordenar",
+      "selectAll": "Seleccionar todo",
+      "clearSelection": "Quitar la selección",
+      "bulkSelected": "{{count}} operación seleccionada",
+      "bulkSelected_plural": "{{count}} operaciones seleccionadas",
+      "bulkLabel": "{{count}} operaciones",
+      "noBudget": "Sin presupuesto",
+      "split": "Desglosar en varios",
+      "complete": "Completar el desglose",
+      "later": "Más tarde",
+      "partial": "{{allocated}} asignados, {{remaining}} pendientes",
+      "allDone": "Lista vacía",
+      "allDoneHint": "Todas sus operaciones están asignadas o justificadas.",
+      "nothingLeft": "Nada para esta sesión",
+      "nothingLeftHint": "Las operaciones postergadas volverán en su próxima visita."
     }
   }
 }

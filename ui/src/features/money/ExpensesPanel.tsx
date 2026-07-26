@@ -2,21 +2,24 @@ import * as React from 'react';
 import { Plus, Receipt } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { Button } from '@/design-system/button';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { interactionKeys } from '@/features/interactions/hooks';
-import { useExpenseSummary } from './hooks';
-import ExpenseSummaryCards from './ExpenseSummaryCards';
-import ExpenseFilters from './ExpenseFilters';
-import { resolvePeriod, type PeriodRange } from './period';
-import ExpenseList from './ExpenseList';
-import ExpenseAdHocDialog from './ExpenseAdHocDialog';
+import { useExpenseSummary } from '@/features/expenses/hooks';
+import ExpenseSummaryCards from '@/features/expenses/ExpenseSummaryCards';
+import ExpenseFilters from '@/features/expenses/ExpenseFilters';
+import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
+import ExpenseList from '@/features/expenses/ExpenseList';
+import ExpenseAdHocDialog from '@/features/expenses/ExpenseAdHocDialog';
 
-export default function ExpensesPage() {
+/**
+ * Onglet « Dépenses » du module Argent (parcours 26, lot 2).
+ * Anciennement `expenses/ExpensesPage`, `PageHeader` en moins.
+ */
+export default function ExpensesPanel() {
   const { t } = useTranslation();
 
   const [period, setPeriod] = useSessionState<PeriodRange>('expenses.period', { preset: 'currentMonth' });
@@ -75,16 +78,12 @@ export default function ExpensesPage() {
 
   return (
     <>
-      <PageHeader title={t('expenses.title')} description={t('expenses.description')}>
-        <Button
-          type="button"
-          onClick={() => setAdhocOpen(true)}
-          className="gap-1.5"
-        >
+      <div className="flex justify-end pb-4">
+        <Button type="button" onClick={() => setAdhocOpen(true)} className="gap-1.5">
           <Plus className="h-4 w-4" />
           {t('expenses.adhoc.actions.add')}
         </Button>
-      </PageHeader>
+      </div>
 
       <div className="space-y-5">
         <ExpenseFilters

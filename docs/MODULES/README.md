@@ -29,6 +29,12 @@ Lecture recommandée pour reprendre un module après pause — pour les bugs et 
 - [insurance](./insurance.md) — contrats d'assurance
 - [notifications](./notifications.md) — notifications user
 
+## Argent
+
+- [money](./money.md) — la coque « Argent » : Contrôle / À ranger / Comptes / Dépenses / Budgets
+- [banking](./banking.md) — comptes, relevés, rapprochement, **conformité**
+- [budget](./budget.md) — enveloppes mensuelles, récurrences, bilan
+
 ## Agent & messagerie proactive
 
 - [agent](./agent.md) — assistant conversationnel (RAG + function calling)

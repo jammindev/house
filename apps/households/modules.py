@@ -25,7 +25,6 @@ OPTIONAL_MODULES = frozenset({
     'trackers',
     'photos',
     'directory',
-    'banking',
 })
 
 PINNABLE_MODULES = frozenset({
@@ -44,11 +43,20 @@ PINNABLE_MODULES = frozenset({
     'projects',
     'interactions',
     'trackers',
-    'expenses',
-    'budget',
-    'banking',
+    'money',
     # groupe Ressources
     'documents',
     'photos',
     'directory',
 })
+
+#: Module keys the parcours 26 « Argent » shell replaced, kept only to migrate
+#: stored user/household configuration. Nothing new must reference them: the three
+#: pages became tabs of ``money``.
+#:
+#: Note that ``banking`` was **optional** while ``expenses`` and ``budget`` were
+#: core. The merged key has to be core — a household cannot switch off ``money``
+#: without losing expenses and budgets, which were never switchable. Assumed
+#: consequence: bank accounts are no longer an opt-in, which is coherent with
+#: « les relevés sont la source de vérité ».
+LEGACY_MONEY_MODULES = frozenset({'banking', 'expenses', 'budget'})

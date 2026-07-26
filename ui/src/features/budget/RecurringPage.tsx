@@ -104,7 +104,7 @@ export default function RecurringPage() {
 
   return (
     <>
-      <BackLink fallback="/app/budget" fallbackLabel={t('budget.title')} />
+      <BackLink fallback="/app/money?tab=budgets" fallbackLabel={t('budget.title')} />
       <PageHeader title={t('recurring.title')} description={t('recurring.description')}>
         <Button type="button" onClick={openCreate} className="gap-1.5">
           <Plus className="h-4 w-4" />

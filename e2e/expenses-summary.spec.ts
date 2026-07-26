@@ -6,7 +6,7 @@ import { test, expect } from '@playwright/test';
  * Issue: https://github.com/jammindev/house/issues/122
  *
  * Le test crée une dépense via le parcours stock (déjà rodé) puis vérifie
- * que la page /app/expenses affiche le total + le breakdown.
+ * que l'onglet Dépenses du module Argent affiche le total + le breakdown.
  */
 
 test('parcours dépenses — total mensuel + breakdown via achat de stock', async ({ page }) => {
@@ -52,10 +52,10 @@ test('parcours dépenses — total mensuel + breakdown via achat de stock', asyn
   await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();
   await expect(dialog).toBeHidden();
 
-  // 3. Naviguer vers /app/expenses et vérifier le total
-  await page.goto('/app/expenses');
-  await expect(page).toHaveURL(/\/app\/expenses/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
+  // 3. Naviguer vers l'onglet Dépenses et vérifier le total
+  await page.goto('/app/money?tab=expenses');
+  await expect(page).toHaveURL(/\/app\/money/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
   // Le total du mois courant doit refléter au moins notre achat de 150 €.
   // On évite d'asserter exactement 150,00 € pour ne pas casser si la DB

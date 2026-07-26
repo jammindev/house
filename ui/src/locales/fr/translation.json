@@ -1442,6 +1442,14 @@
           "review": {
             "title": "Analyser par période",
             "body": "Filtrez par période ou par zone pour voir où part l'argent."
+          },
+          "sort": {
+            "title": "Rangez vos opérations",
+            "body": "L'onglet « À ranger » liste chaque sortie que personne n'a encore affectée. Une pastille de budget suffit pour le cas courant ; « Ventiler en plusieurs » sert quand une même course couvre deux postes. Sélectionnez plusieurs lignes pour traiter un lot d'un coup."
+          },
+          "control": {
+            "title": "Vérifiez que votre vision est juste",
+            "body": "L'onglet « Contrôle » énumère tout ce qui empêche vos chiffres d'être exacts : opérations non affectées, dépenses jamais vues par la banque, soldes qui ne s'enchaînent pas. Chaque écart se résout — ou s'arbitre avec un motif, qui reste consultable et révocable."
           }
         }
       },
@@ -2919,7 +2927,7 @@
       "subjectRequired": "Un sujet est requis",
       "created": "Dépense enregistrée",
       "actions": {
-        "add": "Dépense"
+        "add": "Nouvelle dépense"
       },
       "budget": "Budget",
       "budgetNone": "Aucun budget"
@@ -3342,6 +3350,99 @@
     "history": "Mois précédents",
     "access": {
       "hint": "Récap écrit des dépenses du mois écoulé."
+    }
+  },
+  "money": {
+    "title": "Argent",
+    "description": "Comptes, dépenses et budgets — les relevés sont la source de vérité.",
+    "tabs": {
+      "control": "Contrôle",
+      "pending": "À ranger",
+      "accounts": "Comptes",
+      "expenses": "Dépenses",
+      "budgets": "Budgets"
+    },
+    "compliance": {
+      "clean": "Tout est conforme",
+      "cleanHint": "Chaque opération est affectée ou arbitrée. Rien ne traîne.",
+      "openCount": "{{count}} écart à traiter",
+      "openCount_plural": "{{count}} écarts à traiter",
+      "openHint": "Chaque écart se résout, ou s'arbitre avec un motif.",
+      "arbitratedCount": "{{count}} arbitré",
+      "arbitratedCount_plural": "{{count}} arbitrés",
+      "staleCount": "{{count}} arbitrage périmé",
+      "staleCount_plural": "{{count}} arbitrages périmés",
+      "groupClean": "Rien à signaler.",
+      "prerequisite": "Prérequis",
+      "staleBadge": "{{count}} périmé",
+      "staleBadge_plural": "{{count}} périmés",
+      "waivedShort": "{{count}} arbitré",
+      "waivedShort_plural": "{{count}} arbitrés",
+      "blockedBy": "Ce contrôle ne porte que sur les comptes dont le prérequis « {{prerequisite}} » est levé.",
+      "andMore": "et {{count}} de plus…",
+      "showArbitrated": "Voir les {{count}} arbitrages",
+      "hideArbitrated": "Masquer les arbitrages",
+      "revoke": "Révoquer",
+      "revoked": "Arbitrage révoqué — l'écart est de retour.",
+      "arbitrate": "Arbitrer",
+      "rearbitrate": "Ré-arbitrer",
+      "notWaivable": "à corriger",
+      "stale": "La situation a changé depuis « {{reason}} ».",
+      "remaining": "Reste à affecter : {{amount}}",
+      "waived": "Écart arbitré.",
+      "waiveTitle": "Arbitrer cet écart",
+      "waiveHelp": "Un arbitrage n'efface rien : il enregistre pourquoi cet écart est acceptable. Il reste consultable et révocable.",
+      "waiveAction": "Arbitrer",
+      "reason": "Motif",
+      "reasonPlaceholder": "Ex. : frais bancaires, ne concerne aucun budget",
+      "reasonRequired": "Le motif est obligatoire.",
+      "noDetectors": "Aucun contrôle disponible",
+      "noDetectorsHint": "Déclarez un compte pour que le contrôle ait quelque chose à vérifier.",
+      "kinds": {
+        "account_no_opening_balance": {
+          "title": "Compte sans solde d'ouverture",
+          "hint": "Sans point de départ, le solde est une supposition.",
+          "resolution": "Renseignez le solde d'ouverture du compte et sa date. Les autres contrôles deviennent alors évaluables."
+        },
+        "transaction_unallocated": {
+          "title": "Sorties non affectées",
+          "hint": "De l'argent est parti sans que personne dise pour quoi.",
+          "resolution": "Rangez ces opérations depuis l'onglet « À ranger », ou arbitrez-les avec un motif."
+        },
+        "transaction_partially_allocated": {
+          "title": "Sorties partiellement affectées",
+          "hint": "Une partie du montant n'est rattachée à rien.",
+          "resolution": "Complétez la ventilation, ou arbitrez le reste."
+        },
+        "expense_unreconciled": {
+          "title": "Dépenses non rapprochées",
+          "hint": "Saisies dans l'app, jamais confirmées par un relevé.",
+          "resolution": "Rattachez-les à la ligne bancaire correspondante, ou arbitrez-les (payé par un tiers, par exemple)."
+        },
+        "account_chain_broken": {
+          "title": "Chaîne de soldes rompue",
+          "hint": "Les soldes du relevé ne s'enchaînent pas : des opérations manquent.",
+          "resolution": "Importez le relevé manquant. Le solde affiché reste marqué comme non fiable d'ici là."
+        }
+      }
+    },
+    "pending": {
+      "count": "{{count}} opération à ranger",
+      "count_plural": "{{count}} opérations à ranger",
+      "selectAll": "Tout sélectionner",
+      "clearSelection": "Tout désélectionner",
+      "bulkSelected": "{{count}} opération sélectionnée",
+      "bulkSelected_plural": "{{count}} opérations sélectionnées",
+      "bulkLabel": "{{count}} opérations",
+      "noBudget": "Hors budget",
+      "split": "Ventiler en plusieurs",
+      "complete": "Compléter la ventilation",
+      "later": "Plus tard",
+      "partial": "{{allocated}} affectés, {{remaining}} restants",
+      "allDone": "File vide",
+      "allDoneHint": "Toutes vos opérations sont affectées ou arbitrées.",
+      "nothingLeft": "Rien pour cette session",
+      "nothingLeftHint": "Les opérations reportées reviendront à votre prochaine visite."
     }
   }
 }

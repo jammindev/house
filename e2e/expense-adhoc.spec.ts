@@ -10,12 +10,12 @@ import { test, expect } from '@playwright/test';
  */
 
 test('parcours dépense ad-hoc — Restaurant Le Bistrot 32€', async ({ page }) => {
-  await page.goto('/app/expenses');
-  await expect(page).toHaveURL(/\/app\/expenses/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Dépenses' })).toBeVisible();
+  await page.goto('/app/money?tab=expenses');
+  await expect(page).toHaveURL(/\/app\/money/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
-  // Cliquer sur le bouton « + Dépense » du PageHeader
-  await page.getByRole('button', { name: 'Dépense' }).first().click();
+  // Cliquer sur le bouton « + Nouvelle dépense » de l'onglet Dépenses
+  await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();
@@ -38,8 +38,8 @@ test('parcours dépense ad-hoc — Restaurant Le Bistrot 32€', async ({ page }
 });
 
 test('parcours dépense ad-hoc — sujet vide refusé', async ({ page }) => {
-  await page.goto('/app/expenses');
-  await page.getByRole('button', { name: 'Dépense' }).first().click();
+  await page.goto('/app/money?tab=expenses');
+  await page.getByRole('button', { name: 'Nouvelle dépense' }).first().click();
 
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible();

@@ -1442,6 +1442,14 @@
           "review": {
             "title": "Nach Zeitraum analysieren",
             "body": "Filtern Sie nach Zeitraum oder Zone, um zu sehen, wohin das Geld fließt."
+          },
+          "sort": {
+            "title": "Buchungen zuordnen",
+            "body": "Der Reiter „Zuordnen“ listet jeden Abgang, den noch niemand zugeordnet hat. Für den Normalfall genügt ein Budget-Chip; „Auf mehrere aufteilen“ hilft, wenn ein Einkauf zwei Posten betrifft. Mehrere Zeilen auswählen, um einen Stapel in einem Zug zu erledigen."
+          },
+          "control": {
+            "title": "Prüfen, ob Ihre Zahlen stimmen",
+            "body": "Der Reiter „Kontrolle“ zeigt alles, was genauen Zahlen im Weg steht: nicht zugeordnete Buchungen, Ausgaben, die die Bank nie gesehen hat, Salden, die nicht zusammenpassen. Jede Abweichung wird gelöst — oder mit einer Begründung abgelegt, die sichtbar und widerrufbar bleibt."
           }
         }
       },
@@ -2919,7 +2927,7 @@
       "subjectRequired": "Ein Betreff ist erforderlich",
       "created": "Ausgabe erfasst",
       "actions": {
-        "add": "Ausgabe"
+        "add": "Neue Ausgabe"
       },
       "budget": "Budget",
       "budgetNone": "Kein Budget"
@@ -3342,6 +3350,99 @@
     "history": "Frühere Monate",
     "access": {
       "hint": "Schriftliche Zusammenfassung der Ausgaben des Vormonats."
+    }
+  },
+  "money": {
+    "title": "Geld",
+    "description": "Konten, Ausgaben und Budgets — Kontoauszüge sind die Quelle der Wahrheit.",
+    "tabs": {
+      "control": "Kontrolle",
+      "pending": "Zuordnen",
+      "accounts": "Konten",
+      "expenses": "Ausgaben",
+      "budgets": "Budgets"
+    },
+    "compliance": {
+      "clean": "Alles stimmt",
+      "cleanHint": "Jede Buchung ist zugeordnet oder begründet abgelegt.",
+      "openCount": "{{count}} offene Abweichung",
+      "openCount_plural": "{{count}} offene Abweichungen",
+      "openHint": "Jede wird entweder gelöst oder mit Begründung abgelegt.",
+      "arbitratedCount": "{{count}} begründet abgelegt",
+      "arbitratedCount_plural": "{{count}} begründet abgelegt",
+      "staleCount": "{{count}} veraltete Ablage",
+      "staleCount_plural": "{{count}} veraltete Ablagen",
+      "groupClean": "Nichts zu melden.",
+      "prerequisite": "Voraussetzung",
+      "staleBadge": "{{count}} veraltet",
+      "staleBadge_plural": "{{count}} veraltet",
+      "waivedShort": "{{count}} abgelegt",
+      "waivedShort_plural": "{{count}} abgelegt",
+      "blockedBy": "Diese Prüfung gilt nur für Konten, deren Voraussetzung „{{prerequisite}}“ erfüllt ist.",
+      "andMore": "und {{count}} weitere…",
+      "showArbitrated": "{{count}} Ablagen anzeigen",
+      "hideArbitrated": "Ablagen ausblenden",
+      "revoke": "Widerrufen",
+      "revoked": "Ablage widerrufen — die Abweichung ist zurück.",
+      "arbitrate": "Begründet ablegen",
+      "rearbitrate": "Neu begründen",
+      "notWaivable": "muss behoben werden",
+      "stale": "Die Lage hat sich seit „{{reason}}“ geändert.",
+      "remaining": "Noch zuzuordnen: {{amount}}",
+      "waived": "Abweichung begründet abgelegt.",
+      "waiveTitle": "Diese Abweichung begründet ablegen",
+      "waiveHelp": "Eine Ablage löscht nichts: sie hält fest, warum diese Abweichung vertretbar ist. Sie bleibt sichtbar und widerrufbar.",
+      "waiveAction": "Ablegen",
+      "reason": "Begründung",
+      "reasonPlaceholder": "z. B. Bankgebühren, gehört zu keinem Budget",
+      "reasonRequired": "Eine Begründung ist erforderlich.",
+      "noDetectors": "Keine Prüfungen verfügbar",
+      "noDetectorsHint": "Legen Sie ein Konto an, damit die Kontrolle etwas prüfen kann.",
+      "kinds": {
+        "account_no_opening_balance": {
+          "title": "Konto ohne Anfangssaldo",
+          "hint": "Ohne Startpunkt ist der Saldo eine Annahme.",
+          "resolution": "Tragen Sie Anfangssaldo und Datum des Kontos ein. Erst dann sind die anderen Prüfungen aussagekräftig."
+        },
+        "transaction_unallocated": {
+          "title": "Nicht zugeordnete Abgänge",
+          "hint": "Geld ist abgegangen, ohne dass jemand den Zweck genannt hat.",
+          "resolution": "Ordnen Sie diese Buchungen im Reiter „Zuordnen“ zu oder legen Sie sie begründet ab."
+        },
+        "transaction_partially_allocated": {
+          "title": "Teilweise zugeordnete Abgänge",
+          "hint": "Ein Teil des Betrags hängt an nichts.",
+          "resolution": "Vervollständigen Sie die Aufteilung oder legen Sie den Rest begründet ab."
+        },
+        "expense_unreconciled": {
+          "title": "Nicht abgeglichene Ausgaben",
+          "hint": "In der App erfasst, nie durch einen Auszug bestätigt.",
+          "resolution": "Verknüpfen Sie sie mit der passenden Kontozeile oder legen Sie sie begründet ab (etwa von Dritten bezahlt)."
+        },
+        "account_chain_broken": {
+          "title": "Saldenkette unterbrochen",
+          "hint": "Die Salden des Auszugs passen nicht zusammen: Buchungen fehlen.",
+          "resolution": "Importieren Sie den fehlenden Auszug. Bis dahin bleibt der Saldo als unzuverlässig markiert."
+        }
+      }
+    },
+    "pending": {
+      "count": "{{count}} Buchung zuzuordnen",
+      "count_plural": "{{count}} Buchungen zuzuordnen",
+      "selectAll": "Alle auswählen",
+      "clearSelection": "Auswahl aufheben",
+      "bulkSelected": "{{count}} Buchung ausgewählt",
+      "bulkSelected_plural": "{{count}} Buchungen ausgewählt",
+      "bulkLabel": "{{count}} Buchungen",
+      "noBudget": "Ohne Budget",
+      "split": "Auf mehrere aufteilen",
+      "complete": "Aufteilung vervollständigen",
+      "later": "Später",
+      "partial": "{{allocated}} zugeordnet, {{remaining}} offen",
+      "allDone": "Liste leer",
+      "allDoneHint": "Alle Buchungen sind zugeordnet oder begründet abgelegt.",
+      "nothingLeft": "Nichts für diese Sitzung",
+      "nothingLeftHint": "Zurückgestellte Buchungen erscheinen beim nächsten Besuch wieder."
     }
   }
 }
