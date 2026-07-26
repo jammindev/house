@@ -158,6 +158,27 @@ export class BankingService {
         });
     }
     /**
+     * Current balance, how it was obtained, and whether it can be trusted.
+     *
+     * Computed at read time — there is no balance column. When the statement
+     * chain has a hole, ``is_reliable`` is false and ``gaps`` says where: a
+     * plausible-looking wrong number is worse than an admitted uncertainty.
+     * @param id
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsBalanceRetrieve(
+        id: string,
+    ): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/accounts/{id}/balance/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
      * Statement imports: history (GET), file drop (POST), preview (POST).
      *
      * **No ``DELETE``.** Deleting an import then re-importing would recreate the
@@ -315,6 +336,47 @@ export class BankingService {
         return __request(OpenAPI, {
             method: 'PATCH',
             url: '/api/banking/transactions/{id}/qualify/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Undo the cash counterpart — deletes only the leg we generated.
+     * @param id
+     * @returns void
+     * @throws ApiError
+     */
+    public static bankingTransactionsUnlinkCashDestroy(
+        id: string,
+    ): CancelablePromise<void> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/banking/transactions/{id}/unlink-cash/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Mirror this withdrawal as a credit on a cash account.
+     *
+     * Both legs become internal movements, so neither shows up in spending —
+     * the money is counted once, later, when the cash is actually spent.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsWithdrawToCashCreate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/transactions/{id}/withdraw-to-cash/',
             path: {
                 'id': id,
             },

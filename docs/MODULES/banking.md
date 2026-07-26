@@ -19,14 +19,14 @@
 | 1 | `BankAccount` + CRUD + module UI | ✅ **Livré** (#384) |
 | 2 | Import CSV/XLSX (`StatementImport`, `BankTransaction`, dédup) | ✅ **Livré** (#385) |
 | 3 | Journal bancaire (liste, filtres, qualification, flux) | ✅ **Livré** (#386) |
-| 4 | Soldes, continuité & espèces | ⬜ #387 |
+| 4 | Soldes, continuité & espèces | ✅ **Livré** (#387) |
 | 5 | Ventilation (FK `bank_transaction` sur `Interaction`) | ⬜ #388 |
 | 6 | Rapprochement automatique | ⬜ #389 |
 | 7 | Recettes, virements internes, couverture | ⬜ #390 |
 | 8 | Intégration agent (lecture seule) | ⬜ #391 |
 | 9 | Différé V2 — import PDF/photo | ⬜ #392 |
 
-**Cette fiche décrit l'état livré (lots 1-3).** Les sections marquées *(à venir)*
+**Cette fiche décrit l'état livré (lots 1-4).** Les sections marquées *(à venir)*
 annoncent le contrat que les lots suivants devront respecter.
 
 ## État synthétique (lot 1)
@@ -253,10 +253,85 @@ tête, `TransactionFilters` (recherche, compte, période, pills direction/intern
 `TransactionList` + `TransactionRow` avec les deux actions de qualification. Les
 filtres sont persistés en session.
 
-## Ce que les lots suivants ajouteront *(à venir)*
+## Soldes, continuité & espèces (lot 4)
 
-- **Lot 4** — soldes ancrés sur `balance_after`, contrôle de chaîne, contrepartie
-  espèces des retraits.
+### Le solde est le test de l'import
+
+Ce n'est pas d'abord une fonctionnalité de confort : si le chiffre calculé tombe
+sur celui du relevé papier, l'import est juste ; s'il dérive, quelque chose
+manque — et il vaut mieux le savoir **avant** d'avoir ventilé six mois de
+dépenses sur des données fausses. D'où le placement du lot avant la ventilation.
+
+### Deux modes, par ordre de confiance
+
+`balances.compute_balance(*, account, as_of=None) -> BalanceResult`
+
+1. **Ancré** — on prend la ligne la plus récente portant un `balance_after` et on
+   ajoute ce qui est venu après. **Aucune hypothèse de continuité** : un janvier
+   manquant ne corrompt pas un solde de mars.
+2. **Dérivé** — `opening_balance` + tous les mouvements depuis
+   `opening_balance_date`. Exact seulement si rien ne manque, d'où
+   `is_reliable=False` quand la date d'ouverture n'est pas renseignée : sommer
+   depuis un départ supposé est une supposition, et le dire coûte moins cher que
+   d'avoir tort.
+
+Le solde n'est **stocké nulle part** — verrouillé par un test qui vérifie
+l'absence de colonne `balance` / `current_balance` sur `BankAccount`.
+
+### Le contrôle de chaîne, gratuit
+
+`check_balance_chain(*, account) -> list[ChainGap]` : entre deux lignes
+consécutives portant un solde, `précédent.balance_after + courant.amount` doit
+égaler `courant.balance_after`. Sinon des opérations manquent, et ce sont les
+chiffres de la banque eux-mêmes qui nous le disent. L'UI affiche l'intervalle et
+le montant manquant plutôt qu'un solde plausible et faux.
+
+Les lignes sans solde sont **ignorées** plutôt que traitées comme une rupture :
+un fichier sans colonne solde ne peut simplement pas être vérifié ainsi, et
+inventer un trou serait pire qu'admettre qu'on ne sait pas.
+
+**`BankTransaction.line_no`** a été ajouté pour ça : deux opérations du même jour
+doivent garder l'ordre du relevé, sinon la chaîne compare des soldes qui ne se
+sont jamais suivis — et `created_at` n'est pas fiable pour ça après un
+`bulk_create`. Il sert aussi de traçabilité vers la ligne du fichier source.
+
+### La contrepartie espèces
+
+`services.record_cash_withdrawal(*, user, transaction, cash_account, amount=None)`
+crée le miroir créditeur du retrait sur le compte espèces, marque **les deux
+jambes** `is_internal` et les relie par `transfer_counterpart` (self-FK
+`SET_NULL`, donc supprimer une jambe ne laisse jamais l'autre pointer dans le
+vide).
+
+Sans elle, suivre un solde espèces n'a aucun sens : l'argent quitte le compte
+bancaire mais n'**arrive** jamais dans le compte liquide, qui plonge en négatif
+dès le premier café payé en pièces. Les deux jambes étant internes, l'argent est
+compté **une seule fois** — plus tard, quand ce liquide est réellement dépensé.
+
+Proposée, jamais imposée : tous les retraits ne finissent pas dans le pot commun,
+donc c'est une action explicite, et le montant est ajustable.
+
+`unlink_counterpart` ne supprime que la jambe **qu'on a générée** (pas de
+`source_import`, sur un compte espèces) ; une ligne importée est seulement
+détachée — même règle que l'éditeur de ventilation du lot 5.
+
+### API
+
+| Méthode | URL | Action |
+|---|---|---|
+| GET | `/api/banking/accounts/{id}/balance/` | Solde, sa source, sa fiabilité et les ruptures (`?as_of=`) |
+| POST | `/api/banking/transactions/{id}/withdraw-to-cash/` | Crée la contrepartie espèces |
+| DELETE | `/api/banking/transactions/{id}/unlink-cash/` | Défait la contrepartie |
+
+Le verbe `DELETE` n'est ouvert que pour `unlink-cash` : le viewset n'a pas de
+`destroy`, donc un `DELETE` sur une transaction reste un 405 (testé).
+
+### Frontend
+
+`BalanceBadge` sur chaque card de compte (montant + pastille « à vérifier »),
+`ChainGapAlert` détaillant les ruptures, `WithdrawToCashDialog` depuis le journal.
+
+## Ce que les lots suivants ajouteront *(à venir)*
 - **Lot 5** — FK `Interaction.bank_transaction` (`SET_NULL`). **Il n'y a pas de
   table `Allocation`** : une `Interaction(type='expense')` *est* une ventilation.
   `amount` reste donc une colonne scalaire et les 9 `Sum("amount")` ne bougent pas.

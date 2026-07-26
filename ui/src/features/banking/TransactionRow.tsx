@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Repeat, StickyNote } from 'lucide-react';
+import { Banknote, Link2Off, Repeat, StickyNote } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -7,19 +7,34 @@ import type { BankTransaction } from '@/lib/api/banking';
 
 interface TransactionRowProps {
   transaction: BankTransaction;
+  /** Y a-t-il un compte espèces où verser un retrait ? */
+  canFeedCash: boolean;
   onToggleInternal: () => void;
   onEditNote: () => void;
+  onFeedCash: () => void;
+  onUnlinkCash: () => void;
 }
 
 export default function TransactionRow({
   transaction,
+  canFeedCash,
   onToggleInternal,
   onEditNote,
+  onFeedCash,
+  onUnlinkCash,
 }: TransactionRowProps) {
   const { t } = useTranslation();
   const isOut = transaction.direction === 'out';
+  const hasCounterpart = Boolean(transaction.transfer_counterpart);
 
   const actions: CardAction[] = [
+    // Verser aux espèces n'a de sens que sur une sortie encore libre.
+    ...(isOut && !hasCounterpart && canFeedCash
+      ? [{ label: t('banking.cash.action'), icon: Banknote, onClick: onFeedCash }]
+      : []),
+    ...(hasCounterpart
+      ? [{ label: t('banking.cash.unlink'), icon: Link2Off, onClick: onUnlinkCash }]
+      : []),
     {
       label: transaction.is_internal
         ? t('banking.journal.unmarkInternal')
@@ -63,8 +78,12 @@ export default function TransactionRow({
 
           {transaction.is_internal ? (
             <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-              <Repeat className="h-3 w-3" aria-hidden />
-              {t('banking.journal.internal')}
+              {hasCounterpart ? (
+                <Banknote className="h-3 w-3" aria-hidden />
+              ) : (
+                <Repeat className="h-3 w-3" aria-hidden />
+              )}
+              {hasCounterpart ? t('banking.cash.linkedBadge') : t('banking.journal.internal')}
             </span>
           ) : null}
 

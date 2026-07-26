@@ -1608,6 +1608,10 @@
           "journal": {
             "title": "Buchungen durchsehen und einordnen",
             "body": "Öffne auf der Konten-Seite das „Kontojournal“: Dort findest du alle Buchungen, filterbar nach Konto, Zeitraum, Richtung und Verwendungszweck (die Suche ignoriert Groß-/Kleinschreibung und Akzente). Zwei nützliche Aktionen pro Zeile: eine interne Umbuchung markieren — eine Abhebung am Automaten oder eine Überweisung zwischen deinen beiden Banken ist keine Ausgabe und muss aus den Summen heraus, sonst wird das Geld doppelt gezählt — und eine Notiz hinzufügen. Verwendungszweck und Betrag lassen sich nicht ändern: Das sagt die Bank."
+          },
+          "balance": {
+            "title": "Saldo prüfen",
+            "body": "Jedes Konto zeigt seinen Saldo, berechnet beim Lesen — nie in der Datenbank eingefroren. Exportiert deine Bank eine Saldo-Spalte, verankert House sich daran und prüft nebenbei die Auszugskette: Fehlen Buchungen, siehst du „Kette unterbrochen“ mit Zeitraum und fehlendem Betrag statt einer plausiblen, aber falschen Zahl. Das ist der beste Test deiner Importe: Stimmt der angezeigte Saldo mit deinem Papierauszug überein, passt alles. Für Bargeld öffne das Journal und nutze „Ins Bargeld buchen“ bei einer Abhebung — sie verlässt die Ausgabensummen und speist den Saldo deines Bargeldkontos."
           }
         }
       }
@@ -3194,6 +3198,39 @@
       "empty": {
         "title": "Keine Buchungen",
         "description": "Importiere einen Kontoauszug auf der Konten-Seite oder erweitere deine Filter."
+      }
+    },
+    "balance": {
+      "uncertain": "zu prüfen",
+      "chainBrokenShort": "Zwischen zwei Auszügen fehlen Buchungen.",
+      "noOpeningDateShort": "Kein Anfangssaldo hinterlegt.",
+      "chainBroken": {
+        "title": "Auszugskette unterbrochen — {{account}}",
+        "gap": "Zwischen {{from}} und {{to}}: {{amount}} an Buchungen fehlen.",
+        "hint": "Importiere den Auszug dieses Zeitraums, um wieder einen exakten Saldo zu erhalten."
+      },
+      "noOpeningDate": {
+        "title": "Saldo ab null berechnet",
+        "body": "Hinterlege den Anfangssaldo von „{{account}}“ und dessen Datum, damit der angezeigte Saldo stimmt."
+      }
+    },
+    "cash": {
+      "title": "Diese Abhebung ins Bargeld buchen",
+      "action": "Ins Bargeld buchen",
+      "intro": "Eine Abhebung ist keine Ausgabe, sondern Bargeld, das die Tasche wechselt. Buchst du sie auf dein Bargeldkonto, fällt sie hier aus den Summen heraus und wird nur einmal gezählt — wenn du das Geld tatsächlich ausgibst.",
+      "unlink": "Bargeld-Verknüpfung lösen",
+      "linked": "Abhebung ins Bargeld gebucht",
+      "unlinked": "Bargeld-Verknüpfung gelöst",
+      "linkedBadge": "Ins Bargeld gebucht",
+      "noCashAccount": "Lege zuerst auf der Konten-Seite ein Konto vom Typ „Bargeld“ an.",
+      "fields": {
+        "account": "Bargeldkonto",
+        "amount": "Gebuchter Betrag",
+        "amountHint": "Nicht jede Abhebung landet in der gemeinsamen Kasse — passe den Betrag bei Bedarf an."
+      },
+      "errors": {
+        "accountRequired": "Wähle ein Bargeldkonto.",
+        "amountInvalid": "Gib einen positiven Betrag ein, höchstens {{max}}."
       }
     }
   },

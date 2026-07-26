@@ -7,15 +7,21 @@ import TransactionRow from './TransactionRow';
 interface TransactionListProps {
   transactions: BankTransaction[];
   total: number;
+  canFeedCash: boolean;
   onToggleInternal: (transaction: BankTransaction) => void;
   onEditNote: (transaction: BankTransaction) => void;
+  onFeedCash: (transaction: BankTransaction) => void;
+  onUnlinkCash: (transaction: BankTransaction) => void;
 }
 
 export default function TransactionList({
   transactions,
   total,
+  canFeedCash,
   onToggleInternal,
   onEditNote,
+  onFeedCash,
+  onUnlinkCash,
 }: TransactionListProps) {
   const { t } = useTranslation();
 
@@ -35,8 +41,11 @@ export default function TransactionList({
         <TransactionRow
           key={transaction.id}
           transaction={transaction}
+          canFeedCash={canFeedCash}
           onToggleInternal={() => onToggleInternal(transaction)}
           onEditNote={() => onEditNote(transaction)}
+          onFeedCash={() => onFeedCash(transaction)}
+          onUnlinkCash={() => onUnlinkCash(transaction)}
         />
       ))}
 

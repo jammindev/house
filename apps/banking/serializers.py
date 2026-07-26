@@ -130,6 +130,7 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "external_id",
             "notes",
             "source_import",
+            "transfer_counterpart",
             "created_at",
         ]
         read_only_fields = [
@@ -144,5 +145,6 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "balance_after",
             "external_id",
             "source_import",
+            "transfer_counterpart",
             "created_at",
         ]

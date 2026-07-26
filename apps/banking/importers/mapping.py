@@ -234,4 +234,5 @@ def _row_to_transaction(row: dict, mapping: Mapping, line_no: int) -> Normalized
         value_on=value_on,
         balance_after=balance_after,
         external_id=_cell(row, mapping.reference_column)[:64] if mapping.reference_column else "",
+        line_no=line_no,
     )

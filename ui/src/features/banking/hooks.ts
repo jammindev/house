@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   archiveBankAccount,
   createBankAccount,
+  fetchAccountBalance,
   fetchAccountFlow,
   fetchBankAccounts,
   fetchStatementImports,
@@ -11,7 +12,9 @@ import {
   previewStatementFile,
   qualifyTransaction,
   restoreBankAccount,
+  unlinkCashCounterpart,
   updateBankAccount,
+  withdrawToCash,
   type BankAccountPayload,
   type StatementMapping,
   type TransactionFilters,
@@ -26,6 +29,8 @@ export const bankingKeys = {
   transactions: (filters: TransactionFilters, limit: number) =>
     [...bankingKeys.all, 'transactions', filters, limit] as const,
   flow: (filters: TransactionFilters) => [...bankingKeys.all, 'flow', filters] as const,
+  balance: (accountId: string, asOf?: string) =>
+    [...bankingKeys.all, 'balance', accountId, asOf ?? 'now'] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -149,6 +154,48 @@ export function useQualifyTransaction() {
     onSuccess: () => {
       invalidate();
       toast({ description: t('banking.journal.qualified'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+// --- Soldes & espèces (lot 4) -----------------------------------------------
+
+export function useAccountBalance(accountId: string | undefined, asOf?: string) {
+  return useQuery({
+    queryKey: bankingKeys.balance(accountId ?? '', asOf),
+    queryFn: () => fetchAccountBalance(accountId as string, asOf),
+    enabled: Boolean(accountId),
+  });
+}
+
+export function useWithdrawToCash() {
+  const invalidate = useInvalidateBanking();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      payload,
+    }: {
+      transactionId: string;
+      payload: { cash_account: string; amount?: string };
+    }) => withdrawToCash(transactionId, payload),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.cash.linked'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useUnlinkCashCounterpart() {
+  const invalidate = useInvalidateBanking();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (transactionId: string) => unlinkCashCounterpart(transactionId),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.cash.unlinked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

@@ -168,6 +168,8 @@ export interface BankTransaction {
   external_id: string;
   notes: string;
   source_import: string | null;
+  /** Autre jambe d'un mouvement interne (retrait ↔ crédit espèces), si liée. */
+  transfer_counterpart: string | null;
   created_at: string;
 }
 
@@ -231,4 +233,57 @@ export async function qualifyTransaction(
     payload,
   );
   return data;
+}
+
+// --- Soldes & espèces (parcours 25, lot 4) ----------------------------------
+
+/** Une rupture dans la chaîne des soldes : des opérations manquent. */
+export interface ChainGap {
+  after_transaction_id: string;
+  gap_start: string;
+  gap_end: string;
+  expected: string;
+  actual: string;
+  missing_amount: string;
+}
+
+/**
+ * Un solde, avec le degré de confiance qu'on peut lui accorder.
+ *
+ * `anchored` = lu sur le solde courant de la banque, sans hypothèse de
+ * continuité. `derived` = solde d'ouverture + mouvements, exact seulement si
+ * aucun relevé ne manque.
+ */
+export interface AccountBalance {
+  amount: string;
+  source: 'anchored' | 'derived';
+  as_of: string | null;
+  is_reliable: boolean;
+  gaps: ChainGap[];
+}
+
+export async function fetchAccountBalance(
+  accountId: string,
+  asOf?: string,
+): Promise<AccountBalance> {
+  const { data } = await api.get<AccountBalance>(`/banking/accounts/${accountId}/balance/`, {
+    params: asOf ? { as_of: asOf } : undefined,
+  });
+  return data;
+}
+
+/** Miroir d'un retrait sur le compte espèces. Les deux jambes deviennent internes. */
+export async function withdrawToCash(
+  transactionId: string,
+  payload: { cash_account: string; amount?: string },
+): Promise<BankTransaction> {
+  const { data } = await api.post<BankTransaction>(
+    `/banking/transactions/${transactionId}/withdraw-to-cash/`,
+    payload,
+  );
+  return data;
+}
+
+export async function unlinkCashCounterpart(transactionId: string): Promise<void> {
+  await api.delete(`/banking/transactions/${transactionId}/unlink-cash/`);
 }

@@ -14,10 +14,12 @@ import {
   useBankAccounts,
   useQualifyTransaction,
   useTransactions,
+  useUnlinkCashCounterpart,
 } from './hooks';
 import FlowSummaryCards from './FlowSummaryCards';
 import TransactionFilters from './TransactionFilters';
 import TransactionList from './TransactionList';
+import WithdrawToCashDialog from './WithdrawToCashDialog';
 
 const PAGE_SIZE = 50;
 const NO_FILTERS: Filters = {};
@@ -30,9 +32,13 @@ export default function TransactionsPage() {
   const transactionsQuery = useTransactions(filters, PAGE_SIZE);
   const flowQuery = useAccountFlow(filters);
   const qualifyMutation = useQualifyTransaction();
+  const unlinkCashMutation = useUnlinkCashCounterpart();
 
   const [noteTarget, setNoteTarget] = React.useState<BankTransaction | null>(null);
   const [noteDraft, setNoteDraft] = React.useState('');
+  const [cashTarget, setCashTarget] = React.useState<BankTransaction | null>(null);
+
+  const cashAccounts = (accountsQuery.data ?? []).filter((a) => a.kind === 'cash');
 
   const showSkeleton = useDelayedLoading(transactionsQuery.isLoading);
 
@@ -87,10 +93,22 @@ export default function TransactionsPage() {
         <TransactionList
           transactions={page?.results ?? []}
           total={page?.count ?? 0}
+          canFeedCash={cashAccounts.length > 0}
           onToggleInternal={toggleInternal}
           onEditNote={openNote}
+          onFeedCash={setCashTarget}
+          onUnlinkCash={(transaction) => unlinkCashMutation.mutate(transaction.id)}
         />
       )}
+
+      {cashTarget ? (
+        <WithdrawToCashDialog
+          open
+          onOpenChange={(next) => !next && setCashTarget(null)}
+          transaction={cashTarget}
+          cashAccounts={cashAccounts}
+        />
+      ) : null}
 
       <SheetDialog
         open={noteTarget !== null}

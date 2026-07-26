@@ -1608,6 +1608,10 @@
           "journal": {
             "title": "Browse and qualify your operations",
             "body": "From the Accounts page, open “Bank journal”: every line is there, filterable by account, period, direction and label (the search ignores case and accents). Two useful gestures per line: flag an internal movement — an ATM withdrawal or a transfer between your two banks is not spending, and must leave the totals or the money gets counted twice — and add a note. The label and the amount cannot be edited: that is what the bank says."
+          },
+          "balance": {
+            "title": "Check your balance",
+            "body": "Each account shows its balance, computed at read time — never frozen in the database. If your bank exports a balance column, House anchors on it and checks the statement chain along the way: when operations are missing you get “chain broken” with the period and the missing amount, rather than a plausible but wrong figure. This is the best test of your imports: if the balance shown matches your paper statement, everything is right. For cash, open the journal and use “Move to cash” on a withdrawal — it leaves the spending totals and feeds your cash account balance."
           }
         }
       }
@@ -3194,6 +3198,39 @@
       "empty": {
         "title": "No operations",
         "description": "Import a statement from the Accounts page, or widen your filters."
+      }
+    },
+    "balance": {
+      "uncertain": "to check",
+      "chainBrokenShort": "Operations are missing between two statements.",
+      "noOpeningDateShort": "No opening balance set.",
+      "chainBroken": {
+        "title": "Statement chain broken — {{account}}",
+        "gap": "Between {{from}} and {{to}}: {{amount}} of operations missing.",
+        "hint": "Import that period's statement to get an exact balance back."
+      },
+      "noOpeningDate": {
+        "title": "Balance computed from zero",
+        "body": "Set the opening balance of “{{account}}” and its date so the balance shown is exact."
+      }
+    },
+    "cash": {
+      "title": "Move this withdrawal to cash",
+      "action": "Move to cash",
+      "intro": "A withdrawal is not spending: it is cash changing pocket. Moving it to your cash account takes it out of the totals here, so the money is counted once — when you actually spend it.",
+      "unlink": "Remove the cash link",
+      "linked": "Withdrawal moved to cash",
+      "unlinked": "Cash link removed",
+      "linkedBadge": "Moved to cash",
+      "noCashAccount": "Create a “Cash” account first, from the Accounts page.",
+      "fields": {
+        "account": "Cash account",
+        "amount": "Amount moved",
+        "amountHint": "Not every withdrawal ends up in the common pot — adjust if needed."
+      },
+      "errors": {
+        "accountRequired": "Pick a cash account.",
+        "amountInvalid": "Enter a positive amount, at most {{max}}."
       }
     }
   },

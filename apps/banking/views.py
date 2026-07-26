@@ -13,6 +13,7 @@ from core.permissions import IsHouseholdMember
 
 from . import importers
 from .aggregations import EMPTY_FLOW, compute_account_flow
+from .balances import compute_balance, serialize_balance
 from .models import BankAccount, BankTransaction, StatementImport, TransactionDirection
 from .queries import search
 from .serializers import (
@@ -25,6 +26,8 @@ from .services import (
     create_account,
     import_statement_file,
     preview_statement_file,
+    record_cash_withdrawal,
+    unlink_counterpart,
     update_account,
 )
 
@@ -96,6 +99,18 @@ class BankAccountViewSet(viewsets.ModelViewSet):
 
     def perform_destroy(self, instance):
         archive_account(account=instance, user=self.request.user)
+
+    @action(detail=True, methods=["get"], url_path="balance")
+    def balance(self, request, pk=None):
+        """Current balance, how it was obtained, and whether it can be trusted.
+
+        Computed at read time — there is no balance column. When the statement
+        chain has a hole, ``is_reliable`` is false and ``gaps`` says where: a
+        plausible-looking wrong number is worse than an admitted uncertainty.
+        """
+        account = self.get_object()
+        as_of = _parse_date_param(request.query_params.get("as_of"), "as_of")
+        return Response(serialize_balance(compute_balance(account=account, as_of=as_of)))
 
 
 class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):
@@ -214,7 +229,9 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
     permission_classes = [IsHouseholdMember]
     serializer_class = BankTransactionSerializer
-    http_method_names = ["get", "post", "patch", "head", "options"]
+    # ``delete`` is here only for the ``unlink-cash`` action: the viewset has no
+    # ``destroy``, so a plain DELETE on a transaction is still a 405.
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     class Pagination(LimitOffsetPagination):
         default_limit = 50
@@ -308,3 +325,37 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
                 date_to=_parse_date_param(request.query_params.get("date_to"), "date_to"),
             )
         )
+
+    @action(detail=True, methods=["post"], url_path="withdraw-to-cash")
+    def withdraw_to_cash(self, request, pk=None):
+        """Mirror this withdrawal as a credit on a cash account.
+
+        Both legs become internal movements, so neither shows up in spending —
+        the money is counted once, later, when the cash is actually spent.
+        """
+        instance = self.get_object()
+        household = request.household or instance.household
+
+        cash_account_id = request.data.get("cash_account")
+        if not cash_account_id:
+            raise ValidationError({"cash_account": "This field is required."})
+        cash_account = BankAccount.objects.filter(
+            household=household, pk=cash_account_id
+        ).first()
+        if cash_account is None:
+            raise ValidationError({"cash_account": "Unknown account for this household."})
+
+        mirror = record_cash_withdrawal(
+            user=request.user,
+            transaction=instance,
+            cash_account=cash_account,
+            amount=request.data.get("amount"),
+        )
+        return Response(self.get_serializer(mirror).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["delete"], url_path="unlink-cash")
+    def unlink_cash(self, request, pk=None):
+        """Undo the cash counterpart — deletes only the leg we generated."""
+        instance = self.get_object()
+        unlink_counterpart(user=request.user, transaction=instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
