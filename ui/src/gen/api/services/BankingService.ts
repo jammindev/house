@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { BankAccount } from '../models/BankAccount';
 import type { PatchedBankAccount } from '../models/PatchedBankAccount';
+import type { StatementImport } from '../models/StatementImport';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -151,6 +152,96 @@ export class BankingService {
             path: {
                 'id': id,
             },
+        });
+    }
+    /**
+     * Statement imports: history (GET), file drop (POST), preview (POST).
+     *
+     * **No ``DELETE``.** Deleting an import then re-importing would recreate the
+     * transactions with fresh UUIDs and silently drop every allocation attached to
+     * them (lot 5). The history is append-only by design.
+     *
+     * **A business failure is a 201, not a 400.** An unreadable file or a wrong
+     * mapping is a normal outcome the user must be able to read and act on: it
+     * returns the created trace with ``status='failed'`` and zero transactions.
+     * Only malformed *requests* (missing account, unknown provider, bad JSON) are
+     * 4xx. Same contract as ``electricity.ConsumptionImportViewSet``.
+     * @returns StatementImport
+     * @throws ApiError
+     */
+    public static bankingImportsList(): CancelablePromise<Array<StatementImport>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/imports/',
+        });
+    }
+    /**
+     * Statement imports: history (GET), file drop (POST), preview (POST).
+     *
+     * **No ``DELETE``.** Deleting an import then re-importing would recreate the
+     * transactions with fresh UUIDs and silently drop every allocation attached to
+     * them (lot 5). The history is append-only by design.
+     *
+     * **A business failure is a 201, not a 400.** An unreadable file or a wrong
+     * mapping is a normal outcome the user must be able to read and act on: it
+     * returns the created trace with ``status='failed'`` and zero transactions.
+     * Only malformed *requests* (missing account, unknown provider, bad JSON) are
+     * 4xx. Same contract as ``electricity.ConsumptionImportViewSet``.
+     * @param formData
+     * @returns StatementImport
+     * @throws ApiError
+     */
+    public static bankingImportsCreate(
+        formData?: StatementImport,
+    ): CancelablePromise<StatementImport> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/imports/',
+            formData: formData,
+            mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * Statement imports: history (GET), file drop (POST), preview (POST).
+     *
+     * **No ``DELETE``.** Deleting an import then re-importing would recreate the
+     * transactions with fresh UUIDs and silently drop every allocation attached to
+     * them (lot 5). The history is append-only by design.
+     *
+     * **A business failure is a 201, not a 400.** An unreadable file or a wrong
+     * mapping is a normal outcome the user must be able to read and act on: it
+     * returns the created trace with ``status='failed'`` and zero transactions.
+     * Only malformed *requests* (missing account, unknown provider, bad JSON) are
+     * 4xx. Same contract as ``electricity.ConsumptionImportViewSet``.
+     * @param id
+     * @returns StatementImport
+     * @throws ApiError
+     */
+    public static bankingImportsRetrieve(
+        id: string,
+    ): CancelablePromise<StatementImport> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/imports/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Detected format, column names and first lines — to build the mapping.
+     * @param formData
+     * @returns StatementImport
+     * @throws ApiError
+     */
+    public static bankingImportsPreviewCreate(
+        formData?: StatementImport,
+    ): CancelablePromise<StatementImport> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/imports/preview/',
+            formData: formData,
+            mediaType: 'multipart/form-data',
         });
     }
 }
