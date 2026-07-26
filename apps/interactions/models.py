@@ -123,6 +123,20 @@ class Interaction(HouseholdScopedModel):
             "budget resets this to null, never deletes the expense."
         ),
     )
+    recurring_expense = models.ForeignKey(
+        'budget.RecurringExpense',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='occurrences',
+        help_text=(
+            "The recurrence this expense materializes (parcours 26, lot 6). "
+            "Promoted out of metadata['recurring_id'] because the conformity "
+            "control has to GROUP BY it — and CLAUDE.md forbids querying "
+            "metadata: a JSON key can be neither indexed nor constrained. The "
+            "JSON key is kept for display."
+        ),
+    )
     bank_transaction = models.ForeignKey(
         'banking.BankTransaction',
         on_delete=models.SET_NULL,
@@ -170,6 +184,14 @@ class Interaction(HouseholdScopedModel):
                 fields=['household', 'amount'],
                 condition=models.Q(type='expense', bank_transaction__isnull=True),
                 name='idx_int_unreconciled_amount',
+            ),
+            # The double-confirmation detector groups occurrences by recurrence and
+            # by month; the partial condition keeps the index to the handful of rows
+            # that actually materialize a recurrence.
+            models.Index(
+                fields=['recurring_expense', 'occurred_at'],
+                condition=models.Q(recurring_expense__isnull=False),
+                name='idx_int_recurring_occurrence',
             ),
         ]
         constraints = [

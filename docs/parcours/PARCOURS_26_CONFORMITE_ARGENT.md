@@ -107,8 +107,8 @@ incohérence à corriger.
 
 | Écart | Détection | Résolution | Flag légitime | Lot |
 |---|---|---|---|---|
-| **Échéance passée non confirmée** | `next_due_date < today` | confirmer, ou laisser le relevé le faire | « prélèvement arrêté » | 6 |
-| **Double confirmation** | deux dépenses sur la même échéance | supprimer la doublonne | **aucun — bug de données** | 6 |
+| **Échéance passée non confirmée** | `next_due_date < today` | confirmer, ou laisser le relevé le faire | « prélèvement arrêté » | 6 ✅ |
+| **Double confirmation** | deux dépenses sur la même échéance | supprimer la doublonne | **aucun — bug de données** | 6 ✅ |
 
 ### Sur un import
 
@@ -145,7 +145,7 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | 3 | **Une ventilation porte projet, zone et budget** — les deux axes sont indépendants | ✅ Livré |
 | 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ✅ Livré |
 | 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ✅ Livré |
-| 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ⬜ |
+| 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ✅ Livré |
 | 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ⬜ |
 
 Détail d'implémentation par lot : `docs/MODULES/banking.md`.

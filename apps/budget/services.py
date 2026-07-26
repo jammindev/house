@@ -209,9 +209,14 @@ def confirm_recurring_occurrence(
     """Confirm one due occurrence: create the expense and advance the schedule.
 
     Records a real ``Interaction(type='expense')`` via the interactions service
-    (feeds the journal + budget counters), tagged ``metadata.kind='recurring'``
-    with a ``recurring_id`` back-reference, then advances ``next_due_date`` by the
-    cadence. ``amount`` overrides the recurrence amount for this occurrence only
+    (feeds the journal + budget counters), tagged ``kind='recurring'`` with a
+    ``recurring_expense`` FK back-reference, then advances ``next_due_date`` by the
+    cadence.
+
+    Remains the **manual** path. Since parcours 26 lot 6 a statement import can
+    confirm an occurrence by itself (``banking.matching.match_recurrences``); this
+    stays for the bills no statement covers, and for the user who wants to record
+    one ahead of the import. ``amount`` overrides the recurrence amount for this occurrence only
     (a bill varies). Never auto-called — always an explicit user action.
 
     Returns ``(interaction, recurring)``.
@@ -235,6 +240,12 @@ def confirm_recurring_occurrence(
             kind="recurring",
             extra_metadata={"recurring_id": str(recurring.id)},
         )
+        # La FK est ce que le contrôle de conformité requête (parcours 26 lot 6) ;
+        # la clé JSON reste pour l'affichage. Écrite ici plutôt que passée au
+        # créateur pour ne pas ajouter un paramètre `budget` à un service
+        # `interactions` qui ne connaît pas les récurrences.
+        interaction.recurring_expense = recurring
+        interaction.save(update_fields=["recurring_expense"])
         recurring.next_due_date = advance_due_date(recurring.next_due_date, recurring.cadence)
         recurring.updated_by = user
         recurring.save(update_fields=["next_due_date", "updated_by", "updated_at"])

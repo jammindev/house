@@ -315,6 +315,25 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
 - Le bloc `bank` du bilan mensuel est **additionnel** : ne jamais modifier les clés
   existantes du snapshot, le rendu et le digest les lisent.
 
+#### Récurrences confirmées par le relevé
+
+- **`Interaction.recurring_expense` est une FK, pas `metadata['recurring_id']`.** La
+  clé JSON reste pour l'affichage, mais tout **groupement ou filtre** passe par la
+  FK : le détecteur de double confirmation fait un `GROUP BY`, ce qu'une clé JSON ne
+  permet ni d'indexer ni de contraindre. Ne jamais réintroduire un filtre
+  `metadata__recurring_id`.
+- **Auto-confirmer exige un montant strictement égal.** Une facture qui varie de
+  cinq centimes reste non confirmée : la confirmer écrirait une occurrence à un
+  montant que l'utilisateur n'a jamais vu.
+- **Ordre à l'import : dépenses d'abord, récurrences ensuite**, sur ce qui reste
+  libre. Une dépense déjà saisie est une information plus sûre qu'une échéance
+  prévue.
+- Une confirmation ventile **intégralement** la ligne. Sinon confirmer créerait un
+  écart « sortie partiellement ventilée » — l'app fabriquerait son propre travail.
+- Le passage sur les lignes libres se fait en **une requête**
+  (`interactions__isnull=True`), jamais un `exists()` par ligne : la version naïve
+  coûtait 160 allers-retours sur un relevé réel.
+
 ### Ajouter un nouveau template d'auto-subject
 
 1. Ajouter l'entrée dans `AUTO_SUBJECT_TEMPLATES` (`apps/interactions/services.py`)

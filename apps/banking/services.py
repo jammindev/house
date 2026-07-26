@@ -254,13 +254,28 @@ def import_statement_file(
         # Reconcile inside the same transaction, and only against the rows we
         # just created: an import that links nothing is an import the user has
         # to sort out by hand, 160 lines a month.
-        from .matching import auto_reconcile
+        from .matching import auto_reconcile, match_recurrences
 
         created_rows = list(base_qs.filter(source_import=imported))
         outcome = auto_reconcile(
             household=household, user=user, transactions=created_rows
         )
-        imported.auto_matched_count = outcome["auto_matched"]
+
+        # Puis les récurrences (parcours 26 lot 6), sur ce qui reste libre. Dans cet
+        # ordre volontairement : une dépense déjà saisie par l'utilisateur est une
+        # information plus sûre qu'une échéance prévue, donc elle gagne la ligne. La
+        # récurrence, elle, sera confirmée par le relevé du mois suivant.
+        # Une seule requête, pas un ``exists()`` par ligne : sur un relevé de
+        # 160 lignes la version naïve coûtait 160 allers-retours (attrapé par
+        # ``test_a_large_import_does_not_explode_in_queries``).
+        still_free = list(
+            base_qs.filter(source_import=imported, interactions__isnull=True).distinct()
+        )
+        recurring_outcome = match_recurrences(
+            household=household, user=user, transactions=still_free
+        )
+
+        imported.auto_matched_count = outcome["auto_matched"] + recurring_outcome["confirmed"]
         imported.save(update_fields=["auto_matched_count", "updated_at"])
 
     return imported

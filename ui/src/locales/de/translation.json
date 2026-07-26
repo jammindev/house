@@ -3285,7 +3285,9 @@
       "pickExisting": "Bereits erfasste Ausgabe verknüpfen",
       "pickExistingHint": "Ausgaben, die die Bank nie bestätigt hat und die in die noch freien {{amount}} passen.",
       "noUnreconciled": "Keine nicht abgeglichene Ausgabe passt in den Rest.",
-      "attach": "Verknüpfen"
+      "attach": "Verknüpfen",
+      "recurringConfirmed": "{{count}} Fälligkeit bestätigt",
+      "recurringConfirmed_plural": "{{count}} Fälligkeiten bestätigt"
     },
     "inflow": {
       "title": "Diese Einnahme einordnen",
@@ -3467,6 +3469,16 @@
           "title": "Interne Bewegungen ohne Gegenbuchung",
           "hint": "Das Geld hat den erfassten Bereich verlassen und nichts erklärt es.",
           "resolution": "Erstellen Sie die Gegenbuchung („Bargeld auffüllen“) oder entfernen Sie die Markierung „intern“."
+        },
+        "recurring_overdue": {
+          "title": "Überfällige Fälligkeiten",
+          "hint": "Liquiditätsprognose und „bereits gebunden“ stimmen nicht, solange die Fälligkeit nicht vorrückt.",
+          "resolution": "Bestätigen Sie die Buchung, lassen Sie es den nächsten Auszug tun, oder legen Sie es begründet ab, wenn die Abbuchung endete."
+        },
+        "recurring_double_confirmed": {
+          "title": "Doppelt bestätigte Wiederholungen",
+          "hint": "Dieselbe Rechnung am selben Tag zweimal gezählt.",
+          "resolution": "Löschen Sie die doppelte Buchung im Reiter Ausgaben."
         }
       }
     },

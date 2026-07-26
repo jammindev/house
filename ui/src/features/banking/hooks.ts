@@ -267,12 +267,25 @@ export function useReconcile() {
     onSuccess: (outcome) => {
       invalidate();
       void qc.invalidateQueries({ queryKey: ['interactions'] });
+      void qc.invalidateQueries({ queryKey: ['budget'] });
+      void qc.invalidateQueries({ queryKey: complianceKeys.all });
+
+      // Deux compteurs, un seul toast : la passe rapproche des dépenses **et**
+      // confirme des échéances. Les annoncer séparément ferait deux toasts pour
+      // une seule action de l'utilisateur.
+      const total = outcome.auto_matched + outcome.recurring_confirmed;
+      const parts: string[] = [];
+      if (outcome.auto_matched > 0) {
+        parts.push(t('banking.reconcile.matched', { count: outcome.auto_matched }));
+      }
+      if (outcome.recurring_confirmed > 0) {
+        parts.push(
+          t('banking.reconcile.recurringConfirmed', { count: outcome.recurring_confirmed }),
+        );
+      }
       toast({
-        description:
-          outcome.auto_matched > 0
-            ? t('banking.reconcile.matched', { count: outcome.auto_matched })
-            : t('banking.reconcile.nothingMatched'),
-        variant: outcome.auto_matched > 0 ? 'success' : undefined,
+        description: total > 0 ? parts.join(' · ') : t('banking.reconcile.nothingMatched'),
+        variant: total > 0 ? 'success' : undefined,
       });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
