@@ -497,3 +497,40 @@ export async function createWaiver(payload: {
 export async function deleteWaiver(id: string): Promise<void> {
   await api.delete(`/banking/waivers/${id}/`);
 }
+
+// --- Dépense en espèces (parcours 26, lot 4) --------------------------------
+
+export interface CashExpensePayload {
+  account: string;
+  label: string;
+  /** Positif — ce que l'utilisateur a dépensé. Stocké signé côté serveur. */
+  amount: string;
+  booked_on?: string;
+  budget_id?: string | null;
+  zone_ids?: string[];
+  source_type?: string | null;
+  source_id?: string | null;
+  notes?: string;
+}
+
+export interface CashExpenseResult {
+  transaction: BankTransaction;
+  allocations: AllocatedExpense[];
+}
+
+/**
+ * Dépense en espèces : l'opération **et** sa ventilation naissent ensemble.
+ *
+ * Passer par le compte plutôt que créer une dépense nue supprime par construction
+ * l'orphelin « dépense que la banque n'a jamais vue » — un écart que le contrôle
+ * ne pourrait que signaler sans que personne puisse le résoudre.
+ */
+export async function recordCashExpense(
+  payload: CashExpensePayload,
+): Promise<CashExpenseResult> {
+  const { data } = await api.post<CashExpenseResult>(
+    '/banking/transactions/cash-expense/',
+    payload,
+  );
+  return data;
+}

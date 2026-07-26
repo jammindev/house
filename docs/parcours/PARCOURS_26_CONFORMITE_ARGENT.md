@@ -101,7 +101,7 @@ incohérence à corriger.
 | **Sans solde d'ouverture** | `opening_balance_date IS NULL` | le renseigner | **aucun — prérequis bloquant** | 1 ✅ |
 | **Chaîne de soldes rompue** | `balances.check_balance_chain` | importer le relevé manquant | « relevé indisponible » | 1 ✅ |
 | **Période non couverte** | trou entre deux `StatementImport` | importer | « pas d'opération sur la période » | 7 |
-| **Espèces à découvert** | solde espèces négatif | déclarer le retrait qui l'alimente | **aucun — incohérence** | 4 |
+| **Espèces à découvert** | solde espèces négatif | déclarer le retrait qui l'alimente | **aucun — incohérence** | 4 ✅ |
 
 ### Sur une récurrence
 
@@ -143,7 +143,7 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | 1 | **Socle de conformité** — `ComplianceWaiver`, `coverage.py`, registre de détecteurs, 5 détecteurs, API | ✅ Livré |
 | 2 | **Module « Argent »** — coque à onglets, panneau Contrôle, file de rangement, actions groupées | ✅ Livré |
 | 3 | **Une ventilation porte projet, zone et budget** — les deux axes sont indépendants | ✅ Livré |
-| 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ⬜ |
+| 4 | **Tout est une ligne de compte** — `create_manual_transaction`, espèces | ✅ Livré |
 | 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ⬜ |
 | 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ⬜ |
 | 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ⬜ |

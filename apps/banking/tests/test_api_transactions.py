@@ -18,6 +18,7 @@ from rest_framework.test import APIClient
 
 from banking.dedup import compute_dedup_hash
 from banking.models import BankTransaction, TransactionDirection
+from budget.models import Budget
 from households.models import HouseholdMember
 
 from .factories import BankAccountFactory, HouseholdFactory, HouseholdMemberFactory, UserFactory
@@ -276,3 +277,125 @@ class TestFlowEndpoint:
         stranger = BankAccountFactory(household=HouseholdFactory())
         response = client.get(f"{FLOW_URL}?account={stranger.id}")
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+# --- Cash expense (parcours 26, lot 4) ---------------------------------------
+
+
+@pytest.mark.django_db
+class TestCashExpenseEndpoint:
+    """POST /api/banking/transactions/cash-expense/.
+
+    One call, two writes, one transaction: the operation and its allocation. The
+    endpoint exists so a cash spend never lands in the app as an expense the bank
+    never saw — an écart the control could only report, never resolve.
+    """
+
+    URL = "/api/banking/transactions/cash-expense/"
+
+    def _cash_account(self, household, user):
+        from banking.models import BankAccount
+        from banking.services import create_account
+
+        return create_account(
+            household=household,
+            user=user,
+            name="Espèces",
+            kind=BankAccount.Kind.CASH,
+            opening_balance="200.00",
+            opening_balance_date="2026-01-01",
+        )
+
+    def test_records_the_line_and_its_allocation(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        account = self._cash_account(household, user)
+        budget = Budget.objects.create(household=household, name="Courses", monthly_amount=400)
+
+        response = _client_for(user).post(
+            self.URL,
+            {
+                "account": str(account.id),
+                "label": "Marché",
+                "amount": "18.50",
+                "booked_on": "2026-03-10",
+                "budget_id": str(budget.id),
+            },
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        body = response.json()
+        assert body["transaction"]["amount"] == "-18.50"
+        assert len(body["allocations"]) == 1
+        assert body["allocations"][0]["amount"] == "18.50"
+
+    def test_defaults_to_today_without_a_date(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        account = self._cash_account(household, user)
+
+        response = _client_for(user).post(
+            self.URL,
+            {"account": str(account.id), "label": "Boulangerie", "amount": "4.20"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.json()["transaction"]["booked_on"] == date.today().isoformat()
+
+    def test_a_missing_account_is_a_400(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        response = _client_for(user).post(
+            self.URL, {"label": "Marché", "amount": "18.50"}, format="json"
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "account" in response.json()
+
+    def test_an_account_from_another_household_is_a_400(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        foreign = BankAccountFactory(household=HouseholdFactory())
+
+        response = _client_for(user).post(
+            self.URL,
+            {"account": str(foreign.id), "label": "Marché", "amount": "18.50"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_a_non_numeric_amount_is_a_400_not_a_500(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        account = self._cash_account(household, user)
+
+        response = _client_for(user).post(
+            self.URL,
+            {"account": str(account.id), "label": "Marché", "amount": "beaucoup"},
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "amount" in response.json()
+
+    def test_a_malformed_date_is_a_400(self):
+        household = HouseholdFactory()
+        user = _make_member(household)
+        account = self._cash_account(household, user)
+
+        response = _client_for(user).post(
+            self.URL,
+            {
+                "account": str(account.id),
+                "label": "Marché",
+                "amount": "18.50",
+                "booked_on": "10/03/2026",
+            },
+            format="json",
+        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_requires_authentication(self):
+        assert APIClient().post(self.URL, {}, format="json").status_code in (
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+        )

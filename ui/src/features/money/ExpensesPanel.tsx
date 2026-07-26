@@ -13,7 +13,7 @@ import ExpenseSummaryCards from '@/features/expenses/ExpenseSummaryCards';
 import ExpenseFilters from '@/features/expenses/ExpenseFilters';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
 import ExpenseList from '@/features/expenses/ExpenseList';
-import ExpenseAdHocDialog from '@/features/expenses/ExpenseAdHocDialog';
+import CashExpenseDialog from './CashExpenseDialog';
 
 /**
  * Onglet « Dépenses » du module Argent (parcours 26, lot 2).
@@ -129,7 +129,7 @@ export default function ExpensesPanel() {
         ) : null}
       </div>
 
-      <ExpenseAdHocDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
+      <CashExpenseDialog open={adhocOpen} onOpenChange={setAdhocOpen} />
     </>
   );
 }
