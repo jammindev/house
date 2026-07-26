@@ -34,6 +34,17 @@ export default function MoneyPage() {
   const [searchParams] = useSearchParams();
   const summaryQuery = useComplianceSummary();
 
+  /** Bascule d'onglet impérative — `TabShell` lit sa valeur dans la session. */
+  const goToTab = React.useCallback((tab: MoneyTab) => {
+    try {
+      sessionStorage.setItem(MONEY_TAB_SESSION_KEY, JSON.stringify(tab));
+    } catch {
+      // sessionStorage indisponible : la navigation manuelle reste possible.
+    }
+    // `TabShell` ne réagit pas au storage ; un reload de la route applique la valeur.
+    window.location.assign(`/app/money?tab=${tab}`);
+  }, []);
+
   // Deep link `?tab=budgets` — les anciennes URLs (/app/budget…) et les liens de
   // l'agent y atterrissent. Écrit dans la session **avant** que TabShell lise sa
   // valeur initiale : l'initialiseur d'état du parent s'exécute avant le montage
@@ -79,7 +90,11 @@ export default function MoneyPage() {
       >
         {(tab) => {
           if (tab === 'control') return <CompliancePanel />;
-          if (tab === 'pending') return <PendingQueue />;
+          if (tab === 'pending') {
+            // La file renvoie vers Contrôle quand un prérequis la rend vide : sinon
+            // l'utilisateur voit une file vide sans savoir où agir.
+            return <PendingQueue onGoToControl={() => goToTab('control')} />;
+          }
           if (tab === 'accounts') return <AccountsPanel />;
           if (tab === 'expenses') return <ExpensesPanel />;
           return <BudgetsPanel />;

@@ -426,6 +426,37 @@ une fonctionnalité mais une **garantie** : de l'argent sorti que personne n'a
 affecté, des dépenses que la banque n'a jamais vues, des chaînes de soldes rompues
 — autant d'**orphelins silencieux**. Le contrôle les rend comptables.
 
+### ⚠️ Un zéro a deux sens — et les confondre a produit un silence total
+
+**Bug trouvé à la recette du parcours 26, corrigé après coup.** À retenir avant de
+toucher à `coverage.py` ou à un détecteur.
+
+Un compte dont la date de solde d'ouverture était **postérieure à ses propres
+lignes** (cas réel : compte créé aujourd'hui, relevé couvrant les mois passés) n'avait
+aucune fenêtre de conformité. Conséquence en chaîne :
+
+1. tous les détecteurs de lignes voyaient zéro ligne ;
+2. le prérequis bloquant ne se déclenchait pas — la date *était* renseignée ;
+3. la file « À ranger » affichait une **coche verte** : « Toutes vos opérations sont
+   affectées ou arbitrées » ;
+4. le panneau Contrôle affichait « Rien à signaler » sur chaque groupe.
+
+C'est-à-dire : **le silence produit par le mécanisme qui existe pour empêcher le
+silence.** Le test `test_no_window_when_everything_predates_the_opening_balance`
+disait déjà « une fenêtre vide, c'est *on ne sait rien* » — mais rien ne rapportait
+« on ne sait rien ».
+
+Les deux règles qui en découlent :
+
+- **`coverage.window_status()` renvoie une raison, pas seulement `None`.** Un compte
+  sans données (`no_data`) est normal ; un compte dont la date postdate les lignes
+  (`opening_date_after_data`) est hors de portée du contrôle et doit le dire. Ne
+  jamais revenir à un booléen : c'est la confusion des deux cas qui a shippé.
+- **Un compteur à zéro ne se lit « conforme » que si le contrôle a pu s'exécuter.**
+  Côté front, `money/prerequisites.ts` distingue *rien à signaler* de *rien
+  d'évaluable*, et la file comme le panneau l'affichent. Tout nouveau compteur doit
+  passer par là.
+
 ### L'horizon de conformité — `coverage.py`
 
 Sans borne, le contrôle serait inutilisable dès le premier jour : les dépenses
@@ -439,9 +470,10 @@ La fenêtre d'un compte est donc `[opening_balance_date, dernière date connue]`
 - **après** le dernier relevé : pas encore de relevé, c'est normal ;
 - **entre les deux** : l'exigence est totale — et « zéro écart » devient atteignable.
 
-Un compte sans `opening_balance_date` n'a **pas de fenêtre** : les détecteurs
-dépendants l'ignorent, et son absence de solde d'ouverture est signalée seule, en
-prérequis bloquant. Une action rend le reste du contrôle signifiant.
+Un compte sans fenêtre est signalé seul, en **prérequis bloquant**
+(`account_without_window`), et les détecteurs dépendants sont rendus « non
+évaluable » — jamais « conforme ». Deux raisons le déclenchent : solde d'ouverture
+absent, ou daté **après** les lignes du compte. Une action rend le reste signifiant.
 
 `_latest_known_date` prend le **maximum** entre le `period_end` des imports
 `completed` et le `booked_on` le plus récent — ce second signal est le seul qu'un
@@ -491,7 +523,7 @@ base pour ne pas avoir à arbitrer deux fois la même situation.
 
 | Clé | Sévérité | Arbitrable | Lot |
 |---|---|---|---|
-| `account_no_opening_balance` | `blocker` | ❌ prérequis | 1 |
+| `account_without_window` | `blocker` | ❌ prérequis | 1 |
 | `transaction_unallocated` | `error` | ✅ | 1 |
 | `transaction_partially_allocated` | `error` | ✅ | 1 |
 | `expense_unreconciled` | `warning` | ✅ | 1 |

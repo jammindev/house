@@ -245,6 +245,14 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
   `[opening_balance_date, dernière date connue]`, un écart n'est pas un écart. Sans
   cette borne le contrôle afficherait des centaines d'écarts irrésolubles, et une
   liste irrésoluble ne se lit pas.
+- **⚠️ Un compteur à zéro a deux sens : « rien à signaler » et « rien d'évaluable ».**
+  Les confondre a produit un silence total en prod (compte dont la date de solde
+  d'ouverture postdatait ses lignes → fenêtre vide → coche verte « tout est
+  affecté »). Deux conséquences permanentes : `coverage.window_status()` renvoie une
+  **raison** et jamais un simple `None` — un compte sans données est normal, un compte
+  hors fenêtre ne l'est pas ; et tout affichage de compteur passe par
+  `ui/src/features/money/prerequisites.ts`, qui distingue les deux. Ne jamais afficher
+  « conforme » sans avoir vérifié que le contrôle a pu s'exécuter.
 - **Le badge doit rester bon marché** : `DetectorSpec.count` est un `COUNT(*)`
   indexé, `findings` est paginé et ne tourne que pour le groupe ouvert. Ne jamais
   matérialiser les écarts en Python pour les compter.

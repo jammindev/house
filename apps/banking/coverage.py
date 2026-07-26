@@ -46,6 +46,38 @@ class Window:
         return self.start <= day <= self.end
 
 
+#: Why an account has no conformity window. ``""`` means it has one.
+WINDOW_OK = ""
+#: No starting point at all — the original blocking prerequisite.
+NO_OPENING_DATE = "no_opening_date"
+#: A starting point, but **later than every line we hold**. The nastiest case: the
+#: date is filled, so the old detector stayed silent, while the window excluded all
+#: the data as "history". Everything then read « conforme » with nothing checked.
+OPENING_DATE_AFTER_DATA = "opening_date_after_data"
+#: Nothing imported yet. Not a problem — a fresh account has nothing to assert.
+NO_DATA = "no_data"
+
+
+def window_status(account) -> tuple[str, Window | None]:
+    """Why this account has (or has not) a conformity window.
+
+    Split out from :func:`covered_period` because the *reason* matters: an account
+    with no data is fine, whereas an account whose opening date postdates its own
+    statements is invisible to every control — and must say so. Returning only
+    ``None`` made those two indistinguishable, which is how the silent case shipped.
+    """
+    start = account.opening_balance_date
+    end = _latest_known_date(account)
+
+    if start is None:
+        return (NO_OPENING_DATE, None)
+    if end is None:
+        return (NO_DATA, None)
+    if end < start:
+        return (OPENING_DATE_AFTER_DATA, None)
+    return (WINDOW_OK, Window(start=start, end=end))
+
+
 def covered_period(account) -> Window | None:
     """Conformity window of ``account``, or ``None`` when it has none.
 
@@ -59,17 +91,7 @@ def covered_period(account) -> Window | None:
     Returns ``None`` when the account has no opening balance date (nothing can be
     asserted) or holds nothing at all (nothing to assert about).
     """
-    start = account.opening_balance_date
-    if start is None:
-        return None
-
-    end = _latest_known_date(account)
-    if end is None or end < start:
-        # Either nothing imported yet, or everything we hold predates the opening
-        # balance — in both cases the window is empty, not "everything is fine".
-        return None
-
-    return Window(start=start, end=end)
+    return window_status(account)[1]
 
 
 def _latest_known_date(account) -> date | None:

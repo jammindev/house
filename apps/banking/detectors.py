@@ -7,7 +7,7 @@ would therefore never ask:
 - money left and only part of it was accounted for (``transaction_partial``);
 - an expense was typed in that the bank never saw (``expense_unreconciled``);
 - an expense that counts against no envelope (``expense_without_budget``);
-- an account whose starting point is unknown (``account_no_opening_balance``);
+- an account the control cannot reach at all (``account_without_window``);
 - an account whose statements do not chain (``account_chain_broken``);
 - a cash account in the red, which is physically impossible (``account_cash_negative``);
 - a receipt nobody classified (``inflow_unclassified``);
@@ -54,7 +54,7 @@ TRANSACTION_UNALLOCATED = "transaction_unallocated"
 TRANSACTION_PARTIAL = "transaction_partially_allocated"
 EXPENSE_UNRECONCILED = "expense_unreconciled"
 EXPENSE_WITHOUT_BUDGET = "expense_without_budget"
-ACCOUNT_NO_OPENING_BALANCE = "account_no_opening_balance"
+ACCOUNT_WITHOUT_WINDOW = "account_without_window"
 ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
 INFLOW_UNCLASSIFIED = "inflow_unclassified"
@@ -267,29 +267,80 @@ def _find_unreconciled(household, **window) -> list[Finding]:
 # --- Accounts ----------------------------------------------------------------
 
 
-def _no_opening_balance_qs(household):
-    return BankAccount.objects.filter(
-        household=household, archived=False, opening_balance_date__isnull=True
-    )
+def _accounts_without_window(household) -> list[tuple[BankAccount, str]]:
+    """Accounts that **hold data** but have no conformity window, with the reason.
+
+    Two reasons matter, and conflating them is what let a silent failure ship:
+
+    - ``no_opening_date`` — no starting point at all;
+    - ``opening_date_after_data`` — a starting point **later than every line held**.
+      The date is filled, so the original detector stayed quiet, while the window
+      excluded all the statement as "history". Every control then read « conforme »
+      with nothing actually checked — the exact silent orphan this parcours forbids.
+
+    An account with **no data** is deliberately not reported: a freshly declared
+    account has nothing to assert about, and nagging about it would be the busywork
+    that makes a control panel stop being read.
+    """
+    from .coverage import NO_DATA, WINDOW_OK, window_status
+
+    pairs = []
+    for account in BankAccount.objects.filter(household=household, archived=False):
+        reason, _ = window_status(account)
+        if reason in (WINDOW_OK, NO_DATA):
+            continue
+        pairs.append((account, reason))
+    return pairs
 
 
-def _count_no_opening_balance(household) -> int:
-    return _no_opening_balance_qs(household).count()
+def _count_without_window(household) -> int:
+    return len(_accounts_without_window(household))
 
 
-def _find_no_opening_balance(household, **window) -> list[Finding]:
+def _find_without_window(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    pairs = _accounts_without_window(household)
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [p for p in pairs if str(p[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+
     return [
         Finding(
-            kind=ACCOUNT_NO_OPENING_BALANCE,
+            kind=ACCOUNT_WITHOUT_WINDOW,
             object_id=str(account.pk),
             label=account.name,
-            # Constant: there is nothing to re-arbitrate here, the field is either
-            # filled or it is not. (And the écart is not waivable anyway.)
-            fingerprint=fingerprint_of(ACCOUNT_NO_OPENING_BALANCE),
-            detail={"name": account.name, "kind": account.kind},
+            # The reason is part of what founds the écart: moving from « no date » to
+            # « date after data » is a different problem needing a different fix.
+            fingerprint=fingerprint_of(ACCOUNT_WITHOUT_WINDOW, reason),
+            detail={
+                "name": account.name,
+                "kind": account.kind,
+                "reason": reason,
+                "opening_balance_date": (
+                    account.opening_balance_date.isoformat()
+                    if account.opening_balance_date
+                    else None
+                ),
+                "earliest_line": _earliest_line_date(account),
+            },
         )
-        for account in apply_window(_no_opening_balance_qs(household), **window)
+        for account, reason in pairs
     ]
+
+
+def _earliest_line_date(account) -> str | None:
+    """Oldest line held, so the UI can propose the date that would fix it."""
+    from django.db.models import Min
+
+    oldest = BankTransaction.objects.filter(account=account).aggregate(
+        oldest=Min("booked_on")
+    )["oldest"]
+    return oldest.isoformat() if oldest else None
 
 
 # --- Receipts and internal movements (lot 5) ---------------------------------
@@ -792,13 +843,13 @@ def _specs() -> list[DetectorSpec]:
 
     return [
         DetectorSpec(
-            kind=ACCOUNT_NO_OPENING_BALANCE,
+            kind=ACCOUNT_WITHOUT_WINDOW,
             severity=BLOCKER,
-            label="Account without an opening balance date",
+            label="Account outside the control's reach — no conformity window",
             target="account",
             model=BankAccount,
-            count=_count_no_opening_balance,
-            findings=_find_no_opening_balance,
+            count=_count_without_window,
+            findings=_find_without_window,
             # A prerequisite, not an arbitration: without it the account has no
             # conformity window, so no other control can say anything about it.
             waivable=False,
@@ -811,7 +862,7 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_unallocated,
             findings=_find_unallocated,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=TRANSACTION_PARTIAL,
@@ -821,7 +872,7 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_partial,
             findings=_find_partial,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=EXPENSE_UNRECONCILED,
@@ -831,7 +882,7 @@ def _specs() -> list[DetectorSpec]:
             model=Interaction,
             count=_count_unreconciled,
             findings=_find_unreconciled,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=EXPENSE_WITHOUT_BUDGET,
@@ -841,7 +892,7 @@ def _specs() -> list[DetectorSpec]:
             model=Interaction,
             count=_count_without_budget,
             findings=_find_without_budget,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=ACCOUNT_CHAIN_BROKEN,
@@ -860,7 +911,7 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_unclassified_inflow,
             findings=_find_unclassified_inflow,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=INTERNAL_WITHOUT_COUNTERPART,
@@ -870,7 +921,7 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_internal_without_counterpart,
             findings=_find_internal_without_counterpart,
-            blocked_by=ACCOUNT_NO_OPENING_BALANCE,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(
             kind=RECURRING_OVERDUE,

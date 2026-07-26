@@ -109,7 +109,7 @@ test.describe('Module Argent — Contrôle', () => {
     // Les cinq détecteurs du lot 1 sont déclarés côté serveur : le panneau doit
     // tous les montrer, y compris ceux à zéro — « contrôlé et conforme » ne doit
     // pas être indistinguable de « pas encore contrôlé ».
-    await expect(page.getByText('Compte sans solde d\'ouverture')).toBeVisible();
+    await expect(page.getByText('Compte hors de portée du contrôle')).toBeVisible();
     await expect(page.getByText('Sorties non affectées')).toBeVisible();
     await expect(page.getByText('Dépenses non rapprochées')).toBeVisible();
   });
@@ -185,7 +185,73 @@ test.describe('Module Argent — création de compte', () => {
 });
 
 // ---------------------------------------------------------------------------
-// 7. Sous-pages autonomes
+// 7. Un zéro ne doit jamais se lire « conforme » quand rien n'est évaluable
+// ---------------------------------------------------------------------------
+
+test.describe('Module Argent — non évaluable ≠ conforme', () => {
+  test('un compte hors fenêtre bloque le contrôle au lieu de le dire conforme', async ({
+    page,
+  }) => {
+    // Reproduit le bug shippé au parcours 26, exactement comme il s'est produit : un
+    // compte créé avec la date du jour, alimenté par des opérations **antérieures**.
+    // La fenêtre de conformité devient vide, tous les détecteurs se taisent, et l'app
+    // affichait une coche verte avec « Toutes vos opérations sont affectées ».
+    await page.goto('/app/money?tab=accounts');
+    const token = await page.evaluate(() => localStorage.getItem('access_token') ?? '');
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const account = await (
+      await page.request.post('/api/banking/accounts/', {
+        headers,
+        data: {
+          name: `Hors fenêtre ${Date.now()}`,
+          kind: 'cash',
+          opening_balance: '0',
+          opening_balance_date: new Date().toISOString().slice(0, 10),
+        },
+      })
+    ).json();
+
+    // Une opération datée d'avant la date d'ouverture → fenêtre vide.
+    const spend = await page.request.post('/api/banking/transactions/cash-expense/', {
+      headers,
+      data: {
+        account: account.id,
+        label: 'Achat antérieur E2E',
+        amount: '12.00',
+        booked_on: '2020-01-15',
+      },
+    });
+    expect(spend.ok()).toBeTruthy();
+
+    const summary = await (
+      await page.request.get('/api/banking/compliance/', { headers })
+    ).json();
+    const blocker = summary.groups.find(
+      (group: { kind: string; open: number }) => group.kind === 'account_without_window',
+    );
+    expect(blocker.open).toBeGreaterThan(0);
+
+    // La file ne doit surtout PAS annoncer que tout est rangé.
+    await page.goto('/app/money?tab=pending');
+    await expect(page.getByText('Toutes vos opérations sont affectées')).toHaveCount(0);
+    await expect(page.getByText("Rien d'évaluable pour l'instant")).toBeVisible();
+
+    // Et le contrôle doit dire « non évaluable », pas « conforme ».
+    await page.goto('/app/money?tab=control');
+    await expect(page.getByText('Tout est conforme')).toHaveCount(0);
+    await expect(page.getByText('Compte hors de portée du contrôle').first()).toBeVisible();
+    // Les contrôles **dépendants** doivent l'annoncer : un zéro affiché comme
+    // « Rien à signaler » était précisément le mensonge à corriger. Les contrôles
+    // qui ne dépendent pas de la fenêtre (chaîne de soldes, récurrences, imports)
+    // restent légitimement « Rien à signaler » — c'est la distinction, pas un
+    // silence global.
+    await expect(page.getByText(/Non évaluable — prérequis/).first()).toBeVisible();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 8. Sous-pages autonomes
 // ---------------------------------------------------------------------------
 
 test.describe('Module Argent — sous-pages', () => {

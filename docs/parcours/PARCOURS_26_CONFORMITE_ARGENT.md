@@ -98,7 +98,7 @@ incohérence à corriger.
 
 | Écart | Détection | Résolution | Flag légitime | Lot |
 |---|---|---|---|---|
-| **Sans solde d'ouverture** | `opening_balance_date IS NULL` | le renseigner | **aucun — prérequis bloquant** | 1 ✅ (requis à la création : 7 ✅) |
+| **Hors de portée du contrôle** | pas de fenêtre : solde d'ouverture absent **ou** daté après les relevés | le renseigner, ou reculer sa date | **aucun — prérequis bloquant** | 1 ✅ (requis à la création : 7 ✅ · date postérieure : corrigé après recette) |
 | **Chaîne de soldes rompue** | `balances.check_balance_chain` | importer le relevé manquant | « relevé indisponible » | 1 ✅ |
 | **Période non couverte** | trou entre deux `StatementImport` | importer | « pas d'opération sur la période » | 7 ✅ |
 | **Espèces à découvert** | solde espèces négatif | déclarer le retrait qui l'alimente | **aucun — incohérence** | 4 ✅ |
@@ -157,7 +157,7 @@ détecteur). Trois n'admettent **aucun** arbitrage, et c'est structurant :
 
 | Clé | Pourquoi aucun motif ne tient |
 |---|---|
-| `account_no_opening_balance` | Prérequis : sans point de départ, aucun contrôle ne porte sur le compte. |
+| `account_without_window` | Prérequis : sans fenêtre de conformité, aucun contrôle ne porte sur le compte. |
 | `account_cash_negative` | Physiquement impossible : un retrait n'a pas été déclaré. |
 | `recurring_double_confirmed` | Compter une facture deux fois n'est jamais acceptable. |
 

@@ -20,7 +20,7 @@ from rest_framework.test import APIClient
 
 from banking.dedup import compute_dedup_hash
 from banking.detectors import (
-    ACCOUNT_NO_OPENING_BALANCE,
+    ACCOUNT_WITHOUT_WINDOW,
     TRANSACTION_PARTIAL,
     TRANSACTION_UNALLOCATED,
 )
@@ -122,7 +122,7 @@ class TestComplianceSummary:
 
         kinds = {g["kind"] for g in body["groups"]}
         assert TRANSACTION_UNALLOCATED in kinds
-        assert ACCOUNT_NO_OPENING_BALANCE in kinds
+        assert ACCOUNT_WITHOUT_WINDOW in kinds
 
     def test_counts_the_open_ecarts(self, household_with_window):
         _, user, account = household_with_window
@@ -139,9 +139,9 @@ class TestComplianceSummary:
         _, user, _ = household_with_window
         body = _client_for(user).get(SUMMARY_URL).json()
 
-        assert _group(body, ACCOUNT_NO_OPENING_BALANCE)["severity"] == "blocker"
-        assert _group(body, ACCOUNT_NO_OPENING_BALANCE)["waivable"] is False
-        assert _group(body, TRANSACTION_UNALLOCATED)["blocked_by"] == ACCOUNT_NO_OPENING_BALANCE
+        assert _group(body, ACCOUNT_WITHOUT_WINDOW)["severity"] == "blocker"
+        assert _group(body, ACCOUNT_WITHOUT_WINDOW)["waivable"] is False
+        assert _group(body, TRANSACTION_UNALLOCATED)["blocked_by"] == ACCOUNT_WITHOUT_WINDOW
 
     def test_another_household_is_never_counted(self, household_with_window):
         _, user, _ = household_with_window
@@ -264,7 +264,7 @@ class TestWaiverCreate:
         response = _client_for(user).post(
             WAIVERS_URL,
             {
-                "finding_kind": ACCOUNT_NO_OPENING_BALANCE,
+                "finding_kind": ACCOUNT_WITHOUT_WINDOW,
                 "object_id": str(account.pk),
                 "reason": "plus tard",
             },

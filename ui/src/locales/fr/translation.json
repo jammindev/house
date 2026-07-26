@@ -3438,11 +3438,6 @@
       "noDetectors": "Aucun contrôle disponible",
       "noDetectorsHint": "Déclarez un compte pour que le contrôle ait quelque chose à vérifier.",
       "kinds": {
-        "account_no_opening_balance": {
-          "title": "Compte sans solde d'ouverture",
-          "hint": "Sans point de départ, le solde est une supposition.",
-          "resolution": "Renseignez le solde d'ouverture du compte et sa date. Les autres contrôles deviennent alors évaluables."
-        },
         "transaction_unallocated": {
           "title": "Sorties non affectées",
           "hint": "De l'argent est parti sans que personne dise pour quoi.",
@@ -3502,8 +3497,16 @@
           "title": "Lignes ignorées à vérifier",
           "hint": "Le fichier n'avait ni référence ni solde : la dédup ne peut pas être certaine.",
           "resolution": "Vérifiez que les lignes ignorées étaient bien des doublons, puis arbitrez."
+        },
+        "account_without_window": {
+          "title": "Compte hors de portée du contrôle",
+          "hint": "Aucune fenêtre de conformité : soit le solde d'ouverture manque, soit sa date est postérieure à tes relevés.",
+          "resolution": "Renseigne le solde d'ouverture, ou recule sa date avant la plus ancienne ligne du compte. Tant que ce n'est pas fait, aucun autre contrôle ne porte sur ce compte."
         }
-      }
+      },
+      "blocked": "Contrôle non évaluable",
+      "blockedHint": "Un prérequis empêche les contrôles de porter sur tes comptes. Règle-le et tout devient mesurable.",
+      "notEvaluable": "Non évaluable — prérequis : {{prerequisite}}"
     },
     "pending": {
       "count": "{{count}} opération à ranger",
@@ -3521,7 +3524,10 @@
       "allDone": "File vide",
       "allDoneHint": "Toutes vos opérations sont affectées ou arbitrées.",
       "nothingLeft": "Rien pour cette session",
-      "nothingLeftHint": "Les opérations reportées reviendront à votre prochaine visite."
+      "nothingLeftHint": "Les opérations reportées reviendront à votre prochaine visite.",
+      "blocked": "Rien d'évaluable pour l'instant",
+      "blockedHint": "Un prérequis bloque le contrôle : {{prerequisite}}. Tes opérations existent, mais aucune règle ne peut encore porter sur elles.",
+      "blockedAction": "Voir le contrôle"
     }
   }
 }

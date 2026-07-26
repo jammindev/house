@@ -3438,11 +3438,6 @@
       "noDetectors": "No checks available",
       "noDetectorsHint": "Declare an account so the control has something to verify.",
       "kinds": {
-        "account_no_opening_balance": {
-          "title": "Account without an opening balance",
-          "hint": "With no starting point, the balance is a guess.",
-          "resolution": "Fill in the account's opening balance and its date. The other checks then become meaningful."
-        },
         "transaction_unallocated": {
           "title": "Unaccounted outflows",
           "hint": "Money left without anyone saying what for.",
@@ -3502,8 +3497,16 @@
           "title": "Skipped lines to verify",
           "hint": "The file had neither reference nor balance: dedup cannot be certain.",
           "resolution": "Check the skipped lines really were duplicates, then arbitrate."
+        },
+        "account_without_window": {
+          "title": "Account outside the control's reach",
+          "hint": "No conformity window: either the opening balance is missing, or its date is later than your statements.",
+          "resolution": "Set the opening balance, or move its date before the account's oldest line. Until then, no other check covers this account."
         }
-      }
+      },
+      "blocked": "Control cannot be evaluated",
+      "blockedHint": "A prerequisite stops the checks from covering your accounts. Fix it and everything becomes measurable.",
+      "notEvaluable": "Not evaluable — prerequisite: {{prerequisite}}"
     },
     "pending": {
       "count": "{{count}} operation to sort",
@@ -3521,7 +3524,10 @@
       "allDone": "Queue empty",
       "allDoneHint": "Every operation is accounted for or arbitrated.",
       "nothingLeft": "Nothing for this session",
-      "nothingLeftHint": "Postponed operations will be back on your next visit."
+      "nothingLeftHint": "Postponed operations will be back on your next visit.",
+      "blocked": "Nothing evaluable yet",
+      "blockedHint": "A prerequisite blocks the control: {{prerequisite}}. Your operations exist, but no rule can cover them yet.",
+      "blockedAction": "Open the control"
     }
   }
 }

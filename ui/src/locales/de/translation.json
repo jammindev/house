@@ -3438,11 +3438,6 @@
       "noDetectors": "Keine Prüfungen verfügbar",
       "noDetectorsHint": "Legen Sie ein Konto an, damit die Kontrolle etwas prüfen kann.",
       "kinds": {
-        "account_no_opening_balance": {
-          "title": "Konto ohne Anfangssaldo",
-          "hint": "Ohne Startpunkt ist der Saldo eine Annahme.",
-          "resolution": "Tragen Sie Anfangssaldo und Datum des Kontos ein. Erst dann sind die anderen Prüfungen aussagekräftig."
-        },
         "transaction_unallocated": {
           "title": "Nicht zugeordnete Abgänge",
           "hint": "Geld ist abgegangen, ohne dass jemand den Zweck genannt hat.",
@@ -3502,8 +3497,16 @@
           "title": "Zu prüfende übersprungene Zeilen",
           "hint": "Die Datei hatte weder Referenz noch Saldo: die Duplikaterkennung kann nicht sicher sein.",
           "resolution": "Prüfen Sie, ob die übersprungenen Zeilen wirklich Duplikate waren, und legen Sie es dann ab."
+        },
+        "account_without_window": {
+          "title": "Konto außerhalb der Kontrolle",
+          "hint": "Kein Konformitätsfenster: entweder fehlt der Anfangssaldo, oder sein Datum liegt nach Ihren Auszügen.",
+          "resolution": "Tragen Sie den Anfangssaldo ein oder setzen Sie sein Datum vor die älteste Zeile des Kontos. Bis dahin deckt keine andere Prüfung dieses Konto ab."
         }
-      }
+      },
+      "blocked": "Kontrolle nicht bewertbar",
+      "blockedHint": "Eine Voraussetzung verhindert, dass die Prüfungen Ihre Konten abdecken. Beheben Sie sie, dann wird alles messbar.",
+      "notEvaluable": "Nicht bewertbar — Voraussetzung: {{prerequisite}}"
     },
     "pending": {
       "count": "{{count}} Buchung zuzuordnen",
@@ -3521,7 +3524,10 @@
       "allDone": "Liste leer",
       "allDoneHint": "Alle Buchungen sind zugeordnet oder begründet abgelegt.",
       "nothingLeft": "Nichts für diese Sitzung",
-      "nothingLeftHint": "Zurückgestellte Buchungen erscheinen beim nächsten Besuch wieder."
+      "nothingLeftHint": "Zurückgestellte Buchungen erscheinen beim nächsten Besuch wieder.",
+      "blocked": "Noch nichts bewertbar",
+      "blockedHint": "Eine Voraussetzung blockiert die Kontrolle: {{prerequisite}}. Ihre Buchungen existieren, aber keine Regel kann sie erfassen.",
+      "blockedAction": "Kontrolle öffnen"
     }
   }
 }
