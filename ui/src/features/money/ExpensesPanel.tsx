@@ -9,6 +9,7 @@ import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { useExpenseSummary } from '@/features/expenses/hooks';
+import { useAccountFlow } from '@/features/banking/hooks';
 import ExpenseSummaryCards from '@/features/expenses/ExpenseSummaryCards';
 import ExpenseFilters from '@/features/expenses/ExpenseFilters';
 import { resolvePeriod, type PeriodRange } from '@/features/expenses/period';
@@ -38,6 +39,17 @@ export default function ExpensesPanel() {
   );
 
   const summaryQuery = useExpenseSummary(filters);
+  // La même période, vue côté banque. Sert le taux de couverture — le seul pont
+  // admis entre les deux mondes.
+  const flowQuery = useAccountFlow(
+    React.useMemo(
+      () => ({
+        ...(range.from ? { date_from: range.from } : {}),
+        ...(range.to ? { date_to: range.to } : {}),
+      }),
+      [range.from, range.to],
+    ),
+  );
 
   const listFilters = React.useMemo(
     () => ({
@@ -114,7 +126,7 @@ export default function ExpensesPanel() {
 
         {!isLoading && summary ? (
           <>
-            <ExpenseSummaryCards summary={summary} />
+            <ExpenseSummaryCards summary={summary} flow={flowQuery.data} />
             {items.length === 0 ? (
               <EmptyState
                 icon={Receipt}

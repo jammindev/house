@@ -46,7 +46,10 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
       setBankLabel('');
       setIbanLast4('');
       setOpeningBalance('');
-      setOpeningBalanceDate('');
+      // Aujourd'hui par défaut : le cas le plus fréquent est « je commence à suivre
+      // ce compte maintenant », et proposer une valeur juste vaut mieux qu'exiger
+      // une saisie de plus.
+      setOpeningBalanceDate(new Date().toISOString().slice(0, 10));
     }
   }, [open, existing]);
 
@@ -68,6 +71,15 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
     const rawBalance = openingBalance.trim().replace(',', '.');
     if (rawBalance && !Number.isFinite(Number(rawBalance))) {
       setError(t('banking.errors.openingBalanceInvalid'));
+      return;
+    }
+
+    // Requise à la création (parcours 26, lot 7) : sans point de départ le solde est
+    // une supposition, et aucun contrôle de conformité ne porte sur le compte. Pas
+    // exigée à l'édition — un simple renommage ne doit pas être bloqué par un champ
+    // sans rapport, le détecteur est là pour ça.
+    if (!isEditing && !openingBalanceDate) {
+      setError(t('banking.errors.openingBalanceDateRequired'));
       return;
     }
 
@@ -160,13 +172,19 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
           </p>
         </FormField>
 
-        <FormField label={t('banking.fields.openingBalanceDate')} htmlFor="account-opening-date">
+        <FormField
+          label={`${t('banking.fields.openingBalanceDate')}${isEditing ? '' : ' *'}`}
+          htmlFor="account-opening-date"
+        >
           <Input
             id="account-opening-date"
             type="date"
             value={openingBalanceDate}
             onChange={(e) => setOpeningBalanceDate(e.target.value)}
           />
+          <p className="text-xs text-muted-foreground">
+            {t('banking.fields.openingBalanceDateHint')}
+          </p>
         </FormField>
 
         {error ? (

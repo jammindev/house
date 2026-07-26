@@ -1602,20 +1602,20 @@
             "body": "Toca «Nueva cuenta» y crea una por banco. El nombre es lo que te permitirá distinguirlas; añade el banco y los 4 últimos caracteres del IBAN si tienes dos cuentas en la misma entidad. El IBAN completo nunca se guarda."
           },
           "cash": {
-            "title": "Controlar también el efectivo",
-            "body": "Crea una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria y se alimentará de tus retiradas una vez importados los extractos."
+            "title": "Seguir también el efectivo",
+            "body": "Cree una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria: sus retiradas la alimentan, y un gasto en metálico pasa a ser una operación de esa cuenta — por tanto un gasto que el control sabe vincular, como los demás."
           },
           "openingBalance": {
             "title": "Indicar el saldo inicial",
-            "body": "Introduce el saldo de la cuenta en una fecha dada, normalmente el del primer extracto que vayas a importar. Es el punto de partida desde el que la app calcula tu saldo. Puede ser negativo si estás en descubierto."
+            "body": "Indique el saldo de la cuenta en una fecha dada — normalmente el del primer extracto que vaya a importar. Es **obligatorio**: sin punto de partida el saldo mostrado sería una suposición, y ningún control de conformidad cubriría esta cuenta. Puede ser negativo si está en descubierto."
           },
           "import": {
             "title": "Importar tu primer extracto",
             "body": "En la tarjeta de la cuenta, elige «Importar un extracto» y sube el archivo CSV o Excel de tu banco. Indica una vez qué columna contiene la fecha, el concepto y el importe; si tu banco exporta también el saldo, asígnalo: es lo que distingue dos operaciones idénticas del mismo día y revela si falta un extracto. La asignación se guarda, así que la próxima vez solo tendrás que subir el archivo. Reimportar el mismo extracto nunca crea duplicados."
           },
           "journal": {
-            "title": "Revisar y clasificar tus operaciones",
-            "body": "Desde la página Cuentas, abre «Diario bancario»: ahí están todas tus líneas, filtrables por cuenta, periodo, sentido y concepto (la búsqueda ignora mayúsculas y acentos). Dos gestos útiles en cada línea: marcar un movimiento interno —una retirada en el cajero o una transferencia entre tus dos bancos no es un gasto, y debe salir de los totales o el dinero se contaría dos veces— y añadir una nota. El concepto y el importe no se modifican: es lo que dice el banco."
+            "title": "Revisar, marcar, clasificar",
+            "body": "Desde la pestaña Cuentas, abra «Diario bancario»: todas sus líneas, filtrables por cuenta, periodo, sentido y concepto. Tres gestos útiles: marcar un movimiento interno (una retirada no es un gasto), clasificar un ingreso (sueldo, reembolso, transferencia interna — los tres no significan lo mismo) y anotar una línea."
           },
           "balance": {
             "title": "Comprobar tu saldo",
@@ -2895,14 +2895,20 @@
       "count_other": "{{count}} gastos",
       "byKind": "Por tipo",
       "bySupplier": "Por proveedor",
-      "empty": "—"
+      "empty": "—",
+      "coverage": "Cobertura",
+      "coverageHint": "{{sorted}} asignados de {{outflow}} salidos de la cuenta",
+      "coverageRemaining": "{{amount}} aún por asignar"
     },
     "kind": {
       "stock_purchase": "Compra de stock",
       "equipment_purchase": "Compra de equipo",
       "project_purchase": "Gasto de proyecto",
       "manual": "Suelto",
-      "unknown": "Otro"
+      "unknown": "Otro",
+      "bank": "Extracto",
+      "recurring": "Recurrente",
+      "chickens_purchase": "Compra gallinas"
     },
     "filters": {
       "from": "Desde",
@@ -2931,6 +2937,11 @@
       },
       "budget": "Presupuesto",
       "budgetNone": "Sin presupuesto"
+    },
+    "provenance": {
+      "statement": "Extracto",
+      "cash": "Efectivo",
+      "pending": "Pendiente de conciliar"
     }
   },
   "aiUsage": {
@@ -3136,11 +3147,13 @@
       "ibanLast4Hint": "Para distinguir dos cuentas. El IBAN completo nunca se guarda.",
       "openingBalance": "Saldo inicial",
       "openingBalanceHint": "Punto de partida del cálculo del saldo. Puede ser negativo (descubierto).",
-      "openingBalanceDate": "Fecha del saldo inicial"
+      "openingBalanceDate": "Fecha del saldo inicial",
+      "openingBalanceDateHint": "El punto de partida del seguimiento: sin él el saldo es una suposición, y ningún control cubre esta cuenta."
     },
     "errors": {
       "nameRequired": "Introduce un nombre.",
-      "openingBalanceInvalid": "Introduce un importe válido."
+      "openingBalanceInvalid": "Introduce un importe válido.",
+      "openingBalanceDateRequired": "La fecha del saldo inicial es obligatoria."
     },
     "import": {
       "title": "Importar un extracto — {{account}}",
@@ -3479,6 +3492,16 @@
           "title": "Recurrencias confirmadas dos veces",
           "hint": "La misma factura contada dos veces el mismo día.",
           "resolution": "Elimine la ocurrencia duplicada desde la pestaña Gastos."
+        },
+        "statement_period_gap": {
+          "title": "Periodos no cubiertos",
+          "hint": "Un mes que ningún extracto cubrió nunca — invisible para el control de cadena.",
+          "resolution": "Importe el extracto que falta, o justifíquelo si no hubo ninguna operación."
+        },
+        "import_skipped_lines": {
+          "title": "Líneas ignoradas por verificar",
+          "hint": "El archivo no tenía referencia ni saldo: la deduplicación no puede estar segura.",
+          "resolution": "Compruebe que las líneas ignoradas eran realmente duplicados, y justifíquelo."
         }
       }
     },

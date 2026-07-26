@@ -10,6 +10,7 @@ Coverage per section:
 """
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -46,8 +47,27 @@ def _results(response) -> list:
     return body["results"] if isinstance(body, dict) else body
 
 
+def _make_account(household, user, **fields):
+    """Crée un compte via le service, en injectant la date de solde d'ouverture.
+
+    Requise depuis le parcours 26 lot 7 ; chaque test n'énonce ainsi que ce qu'il
+    teste. La règle elle-même est couverte par
+    ``test_services_account.py::TestOpeningBalanceDateRequired``.
+    """
+    fields.setdefault("opening_balance_date", date(2026, 1, 1))
+    return create_account(household=household, user=user, **fields)
+
+
 def _payload(**overrides) -> dict:
-    payload = {"name": "Compte joint", "bank_label": "LCL", "kind": "bank", "currency": "EUR"}
+    payload = {
+        "name": "Compte joint",
+        "bank_label": "LCL",
+        "kind": "bank",
+        "currency": "EUR",
+        # Requis depuis le parcours 26 lot 7 : sans point de départ le solde est une
+        # supposition, et aucun contrôle de conformité ne porte sur le compte.
+        "opening_balance_date": "2026-01-01",
+    }
     payload.update(overrides)
     return payload
 
@@ -57,7 +77,7 @@ class TestAccountList:
     def test_lists_own_household_accounts(self):
         household = HouseholdFactory()
         user = _make_member(household)
-        create_account(household=household, user=user, name="Compte joint")
+        _make_account(household, user, name="Compte joint")
 
         response = _client_for(user).get(LIST_URL)
 
@@ -68,7 +88,7 @@ class TestAccountList:
         mine, theirs = HouseholdFactory(), HouseholdFactory()
         user = _make_member(mine)
         other_user = _make_member(theirs)
-        create_account(household=theirs, user=other_user, name="Leur compte")
+        _make_account(theirs, other_user, name="Leur compte")
 
         response = _client_for(user).get(LIST_URL)
 
@@ -77,8 +97,8 @@ class TestAccountList:
     def test_archived_hidden_by_default_and_visible_on_demand(self):
         household = HouseholdFactory()
         user = _make_member(household)
-        create_account(household=household, user=user, name="Actif")
-        create_account(household=household, user=user, name="Fermé", archived=True)
+        _make_account(household, user, name="Actif")
+        _make_account(household, user, name="Fermé", archived=True)
         client = _client_for(user)
 
         assert [a["name"] for a in _results(client.get(LIST_URL))] == ["Actif"]
@@ -113,7 +133,12 @@ class TestAccountCreate:
         user = _make_member(household)
 
         response = _client_for(user).post(
-            LIST_URL, {"name": "Espèces", "kind": "cash"}, format="json"
+            LIST_URL,
+            # La date de solde d'ouverture est requise pour un compte espèces aussi :
+            # sans fenêtre de conformité, la détection du solde négatif ne porterait
+            # sur rien.
+            {"name": "Espèces", "kind": "cash", "opening_balance_date": "2026-01-01"},
+            format="json",
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -179,7 +204,7 @@ class TestAccountUpdate:
     def test_member_can_patch(self):
         household = HouseholdFactory()
         user = _make_member(household)
-        account = create_account(household=household, user=user, name="Old")
+        account = _make_account(household, user, name="Old")
 
         response = _client_for(user).patch(
             f"{LIST_URL}{account.id}/", {"name": "New"}, format="json"
@@ -193,7 +218,7 @@ class TestAccountUpdate:
         mine, theirs = HouseholdFactory(), HouseholdFactory()
         user = _make_member(mine)
         other_user = _make_member(theirs)
-        account = create_account(household=theirs, user=other_user, name="Leur compte")
+        account = _make_account(theirs, other_user, name="Leur compte")
 
         response = _client_for(user).patch(
             f"{LIST_URL}{account.id}/", {"name": "Hacked"}, format="json"
@@ -206,7 +231,7 @@ class TestAccountUpdate:
     def test_import_options_are_read_only(self):
         household = HouseholdFactory()
         user = _make_member(household)
-        account = create_account(household=household, user=user, name="Compte joint")
+        account = _make_account(household, user, name="Compte joint")
 
         response = _client_for(user).patch(
             f"{LIST_URL}{account.id}/",
@@ -225,7 +250,7 @@ class TestAccountDelete:
     def test_delete_archives_instead_of_destroying(self):
         household = HouseholdFactory()
         user = _make_member(household)
-        account = create_account(household=household, user=user, name="Compte joint")
+        account = _make_account(household, user, name="Compte joint")
 
         response = _client_for(user).delete(f"{LIST_URL}{account.id}/")
 
@@ -237,7 +262,7 @@ class TestAccountDelete:
         """Backs the "rouvrir" action on the archived list — archiving is reversible."""
         household = HouseholdFactory()
         user = _make_member(household)
-        account = create_account(household=household, user=user, name="Compte joint")
+        account = _make_account(household, user, name="Compte joint")
         client = _client_for(user)
         client.delete(f"{LIST_URL}{account.id}/")
 
@@ -253,7 +278,7 @@ class TestAccountDelete:
         mine, theirs = HouseholdFactory(), HouseholdFactory()
         user = _make_member(mine)
         other_user = _make_member(theirs)
-        account = create_account(household=theirs, user=other_user, name="Leur compte")
+        account = _make_account(theirs, other_user, name="Leur compte")
 
         response = _client_for(user).delete(f"{LIST_URL}{account.id}/")
 

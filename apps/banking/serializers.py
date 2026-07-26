@@ -69,11 +69,33 @@ class BankAccountSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        """A cash account has no bank behind it: keep its bank fields empty."""
+        """A cash account has no bank behind it: keep its bank fields empty.
+
+        And **on creation, the opening balance date is required** (parcours 26,
+        lot 7). Without it the account has no conformity window: its balance is a
+        guess, and no other control can assert anything about it — the lot 1
+        detector reports exactly that, as a blocking prerequisite. Closing the door
+        at creation is cheaper than asking the user to come back and fix it.
+
+        Only on creation: an existing account without one is handled by the
+        detector, and forcing the field on every PATCH would make an unrelated
+        rename impossible until the user fills it in.
+        """
         kind = attrs.get("kind", getattr(self.instance, "kind", BankAccount.Kind.BANK))
         if kind == BankAccount.Kind.CASH:
             attrs["bank_label"] = ""
             attrs["iban_last4"] = ""
+
+        if self.instance is None and attrs.get("opening_balance_date") is None:
+            raise serializers.ValidationError(
+                {
+                    "opening_balance_date": (
+                        "Required: without a starting point the balance is a guess, "
+                        "and no conformity check can cover this account."
+                    )
+                }
+            )
+
         return attrs
 
 

@@ -13,7 +13,9 @@ would therefore never ask:
 - a receipt nobody classified (``inflow_unclassified``);
 - an internal movement whose other leg is missing (``internal_without_counterpart``);
 - a recurrence past due with nothing recorded (``recurring_overdue``);
-- a recurrence confirmed twice for the same day (``recurring_double_confirmed``).
+- a recurrence confirmed twice for the same day (``recurring_double_confirmed``);
+- a period nobody ever imported (``statement_period_gap``);
+- lines skipped where the dedup recipe cannot be trusted (``import_skipped_lines``).
 
 Every detector that reasons about "money we should know about" is scoped by
 ``banking.coverage``: outside the conformity window an écart is not an écart, it
@@ -23,7 +25,7 @@ Registered from ``banking.apps.BankingConfig.ready()``.
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.db.models import Case, DecimalField, F, Q, Sum, Value, When
@@ -42,7 +44,7 @@ from .compliance import (
     register,
 )
 from .coverage import accounts_with_window, household_covered_period
-from .models import BankAccount, BankTransaction
+from .models import BankAccount, BankTransaction, ImportStatus
 
 AMOUNT_FIELD = DecimalField(max_digits=14, decimal_places=2)
 ZERO = Value(Decimal("0.00"), output_field=AMOUNT_FIELD)
@@ -59,6 +61,8 @@ INFLOW_UNCLASSIFIED = "inflow_unclassified"
 INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
 RECURRING_OVERDUE = "recurring_overdue"
 RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
+STATEMENT_PERIOD_GAP = "statement_period_gap"
+IMPORT_SKIPPED_LINES = "import_skipped_lines"
 
 
 # --- Shared base: spendable outflows inside their account's window -----------
@@ -377,6 +381,154 @@ def _find_internal_without_counterpart(household, **window) -> list[Finding]:
     ]
 
 
+# --- Statement continuity and provenance (lot 7) ------------------------------
+
+
+def _period_gap_pairs(household) -> list[tuple[BankAccount, list[dict]]]:
+    """Accounts with a hole between two consecutive imported periods.
+
+    The balance chain check catches missing operations *inside* an imported period,
+    by arithmetic. This catches the other half: a period nobody ever imported. The
+    two are complementary and neither sees the other's blind spot — a February
+    that was never dropped in leaves no arithmetic trace at all, only a gap in the
+    calendar.
+
+    Only ``completed`` imports count: a failed one wrote nothing, so claiming its
+    period would be a lie. Overlapping periods are fine (re-importing a month is
+    the normal way to catch up) — only a **strictly positive** gap is reported.
+    """
+    from .models import StatementImport
+
+    pairs = []
+    for account in BankAccount.objects.filter(household=household, archived=False):
+        periods = list(
+            StatementImport.objects.filter(
+                account=account,
+                status=ImportStatus.COMPLETED,
+                period_start__isnull=False,
+                period_end__isnull=False,
+            )
+            .order_by("period_start")
+            .values_list("period_start", "period_end")
+        )
+        if len(periods) < 2:
+            continue
+
+        gaps = []
+        covered_to = periods[0][1]
+        for start, end in periods[1:]:
+            if start > covered_to + timedelta(days=1):
+                gaps.append(
+                    {
+                        "gap_start": (covered_to + timedelta(days=1)).isoformat(),
+                        "gap_end": (start - timedelta(days=1)).isoformat(),
+                        "days": (start - covered_to).days - 1,
+                    }
+                )
+            covered_to = max(covered_to, end)
+
+        if gaps:
+            pairs.append((account, gaps))
+    return pairs
+
+
+def _count_period_gaps(household) -> int:
+    return len(_period_gap_pairs(household))
+
+
+def _find_period_gaps(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    pairs = _period_gap_pairs(household)
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [p for p in pairs if str(p[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+
+    return [
+        Finding(
+            kind=STATEMENT_PERIOD_GAP,
+            object_id=str(account.pk),
+            label=account.name,
+            # The missing days found the écart: importing part of the hole must
+            # invalidate an arbitration that accepted the whole of it.
+            fingerprint=fingerprint_of(
+                STATEMENT_PERIOD_GAP, sorted(g["gap_start"] for g in gaps)
+            ),
+            detail={
+                "name": account.name,
+                "gap_count": len(gaps),
+                "missing_days": sum(g["days"] for g in gaps),
+                "gaps": gaps,
+            },
+        )
+        for account, gaps in pairs
+    ]
+
+
+def _skipped_lines_qs(household):
+    """Imports that skipped lines on a file with neither reference nor balance.
+
+    ``skipped_count > 0`` is normally the good news — it is what a re-import looks
+    like. It becomes a warning **only** on a file carrying neither a bank reference
+    nor a running balance, because that is exactly the documented limit of the
+    dedup recipe (``docs/fiches/IMPORT_ET_RAPPROCHEMENT.md`` §3.2): the discriminant
+    falls back to an in-file occurrence index, so a later *partial* export of an
+    identical line can be skipped as a duplicate when it is genuinely new.
+
+    Whether the file had those columns is derived from the rows it created rather
+    than stored: a column that produced no value on any line was, for dedup
+    purposes, absent — which is the property that actually matters here.
+    """
+    from django.db.models import Count, Q as _Q
+
+    from .models import StatementImport
+
+    return (
+        StatementImport.objects.filter(
+            household=household, status=ImportStatus.COMPLETED, skipped_count__gt=0
+        )
+        .annotate(
+            with_reference=Count(
+                "transactions", filter=~_Q(transactions__external_id=""), distinct=True
+            ),
+            with_balance=Count(
+                "transactions",
+                filter=_Q(transactions__balance_after__isnull=False),
+                distinct=True,
+            ),
+        )
+        .filter(with_reference=0, with_balance=0)
+        .select_related("account")
+    )
+
+
+def _count_skipped_lines(household) -> int:
+    return _skipped_lines_qs(household).count()
+
+
+def _find_skipped_lines(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=IMPORT_SKIPPED_LINES,
+            object_id=str(imported.pk),
+            label=f"{imported.filename or imported.provider} · {imported.account.name}",
+            fingerprint=fingerprint_of(IMPORT_SKIPPED_LINES, imported.skipped_count),
+            detail={
+                "filename": imported.filename,
+                "account_name": imported.account.name,
+                "skipped_count": imported.skipped_count,
+                "created_count": imported.created_count,
+                "created_at": imported.created_at.isoformat(),
+            },
+        )
+        for imported in apply_window(_skipped_lines_qs(household), **window)
+    ]
+
+
 # --- Recurrences (lot 6) ------------------------------------------------------
 
 
@@ -627,6 +779,12 @@ def _recurring_model():
     return RecurringExpense
 
 
+def _statement_import_model():
+    from .models import StatementImport
+
+    return StatementImport
+
+
 def _specs() -> list[DetectorSpec]:
     """Declared in the order the control panel should read them: the blocking
     prerequisite first, because it is what makes the others meaningful."""
@@ -733,6 +891,24 @@ def _specs() -> list[DetectorSpec]:
             findings=_find_double_confirmed,
             # Counting one bill twice is never acceptable — one of the two has to go.
             waivable=False,
+        ),
+        DetectorSpec(
+            kind=STATEMENT_PERIOD_GAP,
+            severity=ERROR,
+            label="A period nobody ever imported",
+            target="account",
+            model=BankAccount,
+            count=_count_period_gaps,
+            findings=_find_period_gaps,
+        ),
+        DetectorSpec(
+            kind=IMPORT_SKIPPED_LINES,
+            severity=WARNING,
+            label="Lines skipped on a file with neither reference nor balance",
+            target="import",
+            model=_statement_import_model(),
+            count=_count_skipped_lines,
+            findings=_find_skipped_lines,
         ),
         DetectorSpec(
             kind=ACCOUNT_CASH_NEGATIVE,
