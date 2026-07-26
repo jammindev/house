@@ -168,6 +168,8 @@ export interface BankTransaction {
   external_id: string;
   notes: string;
   source_import: string | null;
+  /** Autre jambe d'un mouvement interne (retrait ↔ crédit espèces), si liée. */
+  transfer_counterpart: string | null;
   created_at: string;
 }
 
