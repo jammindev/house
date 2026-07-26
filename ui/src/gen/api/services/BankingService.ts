@@ -3,7 +3,10 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { BankAccount } from '../models/BankAccount';
+import type { BankTransaction } from '../models/BankTransaction';
+import type { PaginatedBankTransactionList } from '../models/PaginatedBankTransactionList';
 import type { PatchedBankAccount } from '../models/PatchedBankAccount';
+import type { PatchedBankTransaction } from '../models/PatchedBankTransaction';
 import type { StatementImport } from '../models/StatementImport';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
@@ -242,6 +245,95 @@ export class BankingService {
             url: '/api/banking/imports/preview/',
             formData: formData,
             mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * The bank journal: read and qualify statement lines.
+     *
+     * A transaction is **immutable in substance** — ``label_raw``, ``amount``,
+     * ``booked_on`` and ``direction`` are what the bank says, and the serializer
+     * marks them read-only. What a user may do is *qualify* the line: flag it as an
+     * internal movement, or attach a note. Hence a narrow ``qualify`` action rather
+     * than a generic PATCH: the set of writable fields is a decision, not an
+     * oversight.
+     * @param limit Number of results to return per page.
+     * @param offset The initial index from which to return the results.
+     * @returns PaginatedBankTransactionList
+     * @throws ApiError
+     */
+    public static bankingTransactionsList(
+        limit?: number,
+        offset?: number,
+    ): CancelablePromise<PaginatedBankTransactionList> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/',
+            query: {
+                'limit': limit,
+                'offset': offset,
+            },
+        });
+    }
+    /**
+     * The bank journal: read and qualify statement lines.
+     *
+     * A transaction is **immutable in substance** — ``label_raw``, ``amount``,
+     * ``booked_on`` and ``direction`` are what the bank says, and the serializer
+     * marks them read-only. What a user may do is *qualify* the line: flag it as an
+     * internal movement, or attach a note. Hence a narrow ``qualify`` action rather
+     * than a generic PATCH: the set of writable fields is a decision, not an
+     * oversight.
+     * @param id
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsRetrieve(
+        id: string,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/{id}/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Flag a line as internal, or annotate it.
+     *
+     * The only mutation a statement line accepts. Everything else about it
+     * belongs to the bank.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsQualifyPartialUpdate(
+        id: string,
+        requestBody?: PatchedBankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/banking/transactions/{id}/qualify/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Money in / out over a period, internal movements excluded.
+     *
+     * Never add this to a budget or expense total — see the module docstring of
+     * ``banking.aggregations``.
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsFlowRetrieve(): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/transactions/flow/',
         });
     }
 }
