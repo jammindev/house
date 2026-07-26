@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
@@ -14,6 +15,7 @@ import {
   useBankAccounts,
   useQualifyTransaction,
   useTransactions,
+  useReconcile,
   useUnlinkCashCounterpart,
 } from './hooks';
 import FlowSummaryCards from './FlowSummaryCards';
@@ -21,6 +23,7 @@ import TransactionFilters from './TransactionFilters';
 import TransactionList from './TransactionList';
 import WithdrawToCashDialog from './WithdrawToCashDialog';
 import AllocationDialog from './AllocationDialog';
+import SuggestionsDialog from './SuggestionsDialog';
 
 const PAGE_SIZE = 50;
 const NO_FILTERS: Filters = {};
@@ -39,6 +42,8 @@ export default function TransactionsPage() {
   const [noteDraft, setNoteDraft] = React.useState('');
   const [cashTarget, setCashTarget] = React.useState<BankTransaction | null>(null);
   const [allocationTarget, setAllocationTarget] = React.useState<BankTransaction | null>(null);
+  const [suggestTarget, setSuggestTarget] = React.useState<BankTransaction | null>(null);
+  const reconcileMutation = useReconcile();
 
   const cashAccounts = (accountsQuery.data ?? []).filter((a) => a.kind === 'cash');
 
@@ -71,7 +76,16 @@ export default function TransactionsPage() {
         title={t('banking.journal.title')}
         description={t('banking.journal.subtitle')}
         backLink={<BackLink fallback="/app/banking" fallbackLabel={t('banking.title')} />}
-      />
+      >
+        <Button
+          variant="outline"
+          onClick={() => reconcileMutation.mutate({})}
+          disabled={reconcileMutation.isPending}
+        >
+          <Sparkles className="mr-1.5 h-4 w-4" aria-hidden />
+          {t('banking.reconcile.runAll')}
+        </Button>
+      </PageHeader>
 
       {flowQuery.data ? (
         <div className="pb-4">
@@ -101,8 +115,17 @@ export default function TransactionsPage() {
           onFeedCash={setCashTarget}
           onUnlinkCash={(transaction) => unlinkCashMutation.mutate(transaction.id)}
           onAllocate={setAllocationTarget}
+          onSuggest={setSuggestTarget}
         />
       )}
+
+      {suggestTarget ? (
+        <SuggestionsDialog
+          open
+          onOpenChange={(next) => !next && setSuggestTarget(null)}
+          transaction={suggestTarget}
+        />
+      ) : null}
 
       {allocationTarget ? (
         <AllocationDialog

@@ -146,6 +146,14 @@ class StatementImport(HouseholdScopedModel):
         default=0,
         help_text=_("Lines already present — the normal outcome of a re-import."),
     )
+    auto_matched_count = models.PositiveIntegerField(
+        default=0,
+        help_text=_(
+            "Lines this import reconciled by itself with expenses already typed "
+            "into the app (lot 6). The number the user actually cares about: it "
+            "is what they did NOT have to sort out by hand."
+        ),
+    )
     error = models.TextField(blank=True, default="")
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)

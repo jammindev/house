@@ -3252,6 +3252,21 @@
         "amountInvalid": "Every item needs a positive amount.",
         "overAllocated": "The items add up to more than {{total}}."
       }
+    },
+    "reconcile": {
+      "title": "Reconcile this operation",
+      "action": "Reconcile",
+      "runAll": "Reconcile",
+      "accept": "That's it",
+      "linked": "Expense reconciled",
+      "matched_one": "{{count}} operation reconciled automatically",
+      "matched_other": "{{count}} operations reconciled automatically",
+      "nothingMatched": "Nothing could be reconciled automatically",
+      "noSuggestion": "No recorded expense matches this operation.",
+      "unknownExpense": "Expense",
+      "amountGap": "{{amount}} off",
+      "dayGap_one": "{{count}} day apart",
+      "dayGap_other": "{{count}} days apart"
     }
   },
   "pwa": {

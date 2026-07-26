@@ -13,6 +13,7 @@ interface TransactionListProps {
   onFeedCash: (transaction: BankTransaction) => void;
   onUnlinkCash: (transaction: BankTransaction) => void;
   onAllocate: (transaction: BankTransaction) => void;
+  onSuggest: (transaction: BankTransaction) => void;
 }
 
 export default function TransactionList({
@@ -24,6 +25,7 @@ export default function TransactionList({
   onFeedCash,
   onUnlinkCash,
   onAllocate,
+  onSuggest,
 }: TransactionListProps) {
   const { t } = useTranslation();
 
@@ -49,6 +51,7 @@ export default function TransactionList({
           onFeedCash={() => onFeedCash(transaction)}
           onUnlinkCash={() => onUnlinkCash(transaction)}
           onAllocate={() => onAllocate(transaction)}
+          onSuggest={() => onSuggest(transaction)}
         />
       ))}
 

@@ -14,6 +14,7 @@ from core.permissions import IsHouseholdMember
 from . import importers
 from .aggregations import EMPTY_FLOW, compute_account_flow
 from .balances import compute_balance, serialize_balance
+from .matching import auto_reconcile, serialize_candidate, suggestions_for
 from .models import BankAccount, BankTransaction, StatementImport, TransactionDirection
 from .queries import search
 from .validators import allocated_total, remaining_to_allocate
@@ -434,3 +435,54 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
 
         unlink_interaction(user=request.user, interaction=interaction)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=["post"], url_path="reconcile")
+    def reconcile(self, request):
+        """Run the matcher on demand.
+
+        Covers the other direction of the delay: the user recorded a purchase
+        *after* importing the statement, so the import-time pass could not see it.
+        """
+        household = request.household
+        if household is None:
+            return Response({"auto_matched": 0, "suggestions": []})
+
+        outcome = auto_reconcile(
+            household=household,
+            user=request.user,
+            date_from=_parse_date_param(request.data.get("date_from"), "date_from"),
+            date_to=_parse_date_param(request.data.get("date_to"), "date_to"),
+        )
+        return Response(
+            {
+                "auto_matched": outcome["auto_matched"],
+                "suggestions": [serialize_candidate(c) for c in outcome["suggestions"]],
+            }
+        )
+
+    @action(detail=True, methods=["get"], url_path="suggestions")
+    def suggestions(self, request, pk=None):
+        """Best candidate expenses for this line, for the manual dialog."""
+        from interactions.models import Interaction
+        from interactions.serializers import InteractionSerializer
+
+        instance = self.get_object()
+        candidates = suggestions_for(transaction=instance)
+        by_id = {
+            str(i.pk): i
+            for i in Interaction.objects.filter(
+                pk__in=[c.interaction_id for c in candidates]
+            ).select_related("budget")
+        }
+        return Response(
+            [
+                {
+                    **serialize_candidate(candidate),
+                    "interaction": InteractionSerializer(
+                        by_id[candidate.interaction_id]
+                    ).data,
+                }
+                for candidate in candidates
+                if candidate.interaction_id in by_id
+            ]
+        )

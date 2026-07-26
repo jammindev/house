@@ -3252,6 +3252,21 @@
         "amountInvalid": "Jeder Posten braucht einen positiven Betrag.",
         "overAllocated": "Die Posten ergeben zusammen mehr als {{total}}."
       }
+    },
+    "reconcile": {
+      "title": "Diese Buchung zuordnen",
+      "action": "Zuordnen",
+      "runAll": "Zuordnen",
+      "accept": "Das ist es",
+      "linked": "Ausgabe zugeordnet",
+      "matched_one": "{{count}} Buchung automatisch zugeordnet",
+      "matched_other": "{{count}} Buchungen automatisch zugeordnet",
+      "nothingMatched": "Nichts konnte automatisch zugeordnet werden",
+      "noSuggestion": "Keine erfasste Ausgabe passt zu dieser Buchung.",
+      "unknownExpense": "Ausgabe",
+      "amountGap": "{{amount}} Abweichung",
+      "dayGap_one": "{{count}} Tag Abstand",
+      "dayGap_other": "{{count}} Tage Abstand"
     }
   },
   "pwa": {

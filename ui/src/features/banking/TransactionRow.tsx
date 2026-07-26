@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Banknote, Link2Off, PieChart, Repeat, StickyNote } from 'lucide-react';
+import { Banknote, Link2Off, PieChart, Repeat, Sparkles, StickyNote } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -14,6 +14,7 @@ interface TransactionRowProps {
   onFeedCash: () => void;
   onUnlinkCash: () => void;
   onAllocate: () => void;
+  onSuggest: () => void;
 }
 
 export default function TransactionRow({
@@ -24,6 +25,7 @@ export default function TransactionRow({
   onFeedCash,
   onUnlinkCash,
   onAllocate,
+  onSuggest,
 }: TransactionRowProps) {
   const { t } = useTranslation();
   const isOut = transaction.direction === 'out';
@@ -34,6 +36,9 @@ export default function TransactionRow({
     // mouvement interne (son argent est compté quand le liquide est dépensé).
     ...(isOut && !hasCounterpart
       ? [{ label: t('banking.allocation.action'), icon: PieChart, onClick: onAllocate }]
+      : []),
+    ...(isOut && !hasCounterpart
+      ? [{ label: t('banking.reconcile.action'), icon: Sparkles, onClick: onSuggest }]
       : []),
     // Verser aux espèces n'a de sens que sur une sortie encore libre.
     ...(isOut && !hasCounterpart && canFeedCash
