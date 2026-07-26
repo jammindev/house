@@ -1600,6 +1600,10 @@
           "openingBalance": {
             "title": "Set the opening balance",
             "body": "Enter the account balance at a given date — typically the one on the first statement you plan to import. That's the starting point the app computes your balance from. It may be negative if you're overdrawn."
+          },
+          "import": {
+            "title": "Import your first statement",
+            "body": "On the account card, pick “Import a statement” and drop your bank's CSV or Excel export. Set once which column holds the date, the label and the amount — and if your bank also exports the running balance, map it: that's what tells two identical same-day operations apart and reveals a missing statement. The mapping is remembered, so next time you just drop the file. Re-importing the same statement never creates duplicates."
           }
         }
       }
@@ -3121,6 +3125,44 @@
     "errors": {
       "nameRequired": "Please enter a name.",
       "openingBalanceInvalid": "Enter a valid amount."
+    },
+    "import": {
+      "title": "Import a statement — {{account}}",
+      "action": "Import a statement",
+      "intro": "Drop your bank's export (CSV or Excel). You describe the columns once — later imports are instant.",
+      "reading": "Reading the file…",
+      "mappingIntro": "Tell us which column holds what. This choice is remembered on the account.",
+      "fixMapping": "Fix the mapping",
+      "history": "Import history",
+      "fields": {
+        "file": "Statement file",
+        "none": "— none —",
+        "autoDetect": "Auto-detect",
+        "comma": "Comma (1 234,56)",
+        "dot": "Dot (1,234.56)",
+        "dateColumn": "Date column",
+        "labelColumn": "Label column",
+        "amountColumn": "Amount column",
+        "useDebitCredit": "My bank splits debit and credit into two columns",
+        "debitColumn": "Debit column",
+        "creditColumn": "Credit column",
+        "balanceColumn": "Balance column",
+        "balanceColumnHint": "Strongly recommended: it tells two identical same-day operations apart, and lets us check that no statement is missing.",
+        "decimalSeparator": "Decimal separator",
+        "invertSign": "Flip the signs (my bank writes outflows as positive)"
+      },
+      "result": {
+        "created_one": "{{count}} transaction added",
+        "created_other": "{{count}} transactions added",
+        "skipped_one": "{{count}} already there, skipped",
+        "skipped_other": "{{count}} already there, skipped",
+        "nothingNew": "Nothing new in this file",
+        "failed": "Unreadable file — nothing was imported"
+      },
+      "errors": {
+        "previewFailed": "Could not read this file. Check that it is a CSV or an Excel file.",
+        "mappingIncomplete": "Please set at least the date, the label and the amount."
+      }
     }
   },
   "pwa": {

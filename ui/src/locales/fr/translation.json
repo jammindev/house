@@ -1600,6 +1600,10 @@
           "openingBalance": {
             "title": "Renseigner le solde de départ",
             "body": "Indique le solde du compte à une date donnée — typiquement celui du premier relevé que tu comptes importer. C'est le point de départ à partir duquel l'app calculera ton solde. Il peut être négatif si tu es à découvert."
+          },
+          "import": {
+            "title": "Importer ton premier relevé",
+            "body": "Sur la carte du compte, choisis « Importer un relevé » et dépose l'export CSV ou Excel de ta banque. Indique une fois quelle colonne porte la date, le libellé et le montant — si ta banque exporte aussi le solde, mappe-le : c'est ce qui permet de distinguer deux opérations identiques le même jour et de repérer un relevé manquant. Le mapping est mémorisé : les fois suivantes, tu déposes le fichier et c'est tout. Réimporter le même relevé ne crée jamais de doublon."
           }
         }
       }
@@ -3121,6 +3125,44 @@
     "errors": {
       "nameRequired": "Merci d'indiquer un nom.",
       "openingBalanceInvalid": "Saisis un montant valide."
+    },
+    "import": {
+      "title": "Importer un relevé — {{account}}",
+      "action": "Importer un relevé",
+      "intro": "Dépose l'export de ta banque (CSV ou Excel). Tu décris les colonnes une seule fois : les imports suivants seront immédiats.",
+      "reading": "Lecture du fichier…",
+      "mappingIntro": "Indique quelle colonne contient quoi. Ce choix est mémorisé sur le compte.",
+      "fixMapping": "Corriger le mapping",
+      "history": "Historique des imports",
+      "fields": {
+        "file": "Fichier du relevé",
+        "none": "— aucune —",
+        "autoDetect": "Détection automatique",
+        "comma": "Virgule (1 234,56)",
+        "dot": "Point (1,234.56)",
+        "dateColumn": "Colonne date",
+        "labelColumn": "Colonne libellé",
+        "amountColumn": "Colonne montant",
+        "useDebitCredit": "Ma banque sépare débit et crédit en deux colonnes",
+        "debitColumn": "Colonne débit",
+        "creditColumn": "Colonne crédit",
+        "balanceColumn": "Colonne solde",
+        "balanceColumnHint": "Fortement recommandée : elle permet de distinguer deux opérations identiques le même jour, et de vérifier qu'aucun relevé ne manque.",
+        "decimalSeparator": "Séparateur décimal",
+        "invertSign": "Inverser les signes (ma banque note les sorties en positif)"
+      },
+      "result": {
+        "created_one": "{{count}} opération ajoutée",
+        "created_other": "{{count}} opérations ajoutées",
+        "skipped_one": "{{count}} déjà présente, ignorée",
+        "skipped_other": "{{count}} déjà présentes, ignorées",
+        "nothingNew": "Rien de nouveau dans ce fichier",
+        "failed": "Fichier illisible — rien n'a été importé"
+      },
+      "errors": {
+        "previewFailed": "Impossible de lire ce fichier. Vérifie qu'il s'agit bien d'un CSV ou d'un Excel.",
+        "mappingIncomplete": "Indique au moins la date, le libellé et le montant."
+      }
     }
   },
   "pwa": {

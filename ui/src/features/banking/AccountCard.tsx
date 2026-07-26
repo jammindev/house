@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { ArchiveRestore, Banknote, Landmark, Pencil, Trash2 } from 'lucide-react';
+import { ArchiveRestore, Banknote, Landmark, Pencil, Trash2, Upload } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -10,9 +10,16 @@ interface AccountCardProps {
   onEdit: () => void;
   onArchive: () => void;
   onRestore: () => void;
+  onImport: () => void;
 }
 
-export default function AccountCard({ account, onEdit, onArchive, onRestore }: AccountCardProps) {
+export default function AccountCard({
+  account,
+  onEdit,
+  onArchive,
+  onRestore,
+  onImport,
+}: AccountCardProps) {
   const { t } = useTranslation();
   const isCash = account.kind === 'cash';
   const Icon = isCash ? Banknote : Landmark;
@@ -20,8 +27,13 @@ export default function AccountCard({ account, onEdit, onArchive, onRestore }: A
   const actions: CardAction[] = account.archived
     ? [{ label: t('banking.reopen'), icon: ArchiveRestore, onClick: onRestore }]
     : [
+        // Un compte espèces n'a pas de relevé à importer : ses opérations se
+        // saisissent à la main (lot 4).
+        ...(isCash
+          ? []
+          : [{ label: t('banking.import.action'), icon: Upload, onClick: onImport }]),
         { label: t('common.edit'), icon: Pencil, onClick: onEdit },
-        { label: t('banking.archive'), icon: Trash2, onClick: onArchive, variant: 'danger' },
+        { label: t('banking.archive'), icon: Trash2, onClick: onArchive, variant: 'danger' as const },
       ];
 
   // Sous-titre : la banque et les 4 derniers de l'IBAN quand ils existent —

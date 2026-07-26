@@ -1600,6 +1600,10 @@
           "openingBalance": {
             "title": "Indicar el saldo inicial",
             "body": "Introduce el saldo de la cuenta en una fecha dada, normalmente el del primer extracto que vayas a importar. Es el punto de partida desde el que la app calcula tu saldo. Puede ser negativo si estás en descubierto."
+          },
+          "import": {
+            "title": "Importar tu primer extracto",
+            "body": "En la tarjeta de la cuenta, elige «Importar un extracto» y sube el archivo CSV o Excel de tu banco. Indica una vez qué columna contiene la fecha, el concepto y el importe; si tu banco exporta también el saldo, asígnalo: es lo que distingue dos operaciones idénticas del mismo día y revela si falta un extracto. La asignación se guarda, así que la próxima vez solo tendrás que subir el archivo. Reimportar el mismo extracto nunca crea duplicados."
           }
         }
       }
@@ -3121,6 +3125,44 @@
     "errors": {
       "nameRequired": "Introduce un nombre.",
       "openingBalanceInvalid": "Introduce un importe válido."
+    },
+    "import": {
+      "title": "Importar un extracto — {{account}}",
+      "action": "Importar un extracto",
+      "intro": "Sube el archivo que exporta tu banco (CSV o Excel). Describes las columnas una sola vez: los siguientes importes serán inmediatos.",
+      "reading": "Leyendo el archivo…",
+      "mappingIntro": "Indica qué columna contiene qué. Esta elección se guarda en la cuenta.",
+      "fixMapping": "Corregir la asignación",
+      "history": "Historial de importaciones",
+      "fields": {
+        "file": "Archivo del extracto",
+        "none": "— ninguna —",
+        "autoDetect": "Detección automática",
+        "comma": "Coma (1 234,56)",
+        "dot": "Punto (1,234.56)",
+        "dateColumn": "Columna de fecha",
+        "labelColumn": "Columna de concepto",
+        "amountColumn": "Columna de importe",
+        "useDebitCredit": "Mi banco separa el debe y el haber en dos columnas",
+        "debitColumn": "Columna debe",
+        "creditColumn": "Columna haber",
+        "balanceColumn": "Columna de saldo",
+        "balanceColumnHint": "Muy recomendable: distingue dos operaciones idénticas del mismo día y permite comprobar que no falta ningún extracto.",
+        "decimalSeparator": "Separador decimal",
+        "invertSign": "Invertir los signos (mi banco anota las salidas en positivo)"
+      },
+      "result": {
+        "created_one": "{{count}} operación añadida",
+        "created_other": "{{count}} operaciones añadidas",
+        "skipped_one": "{{count}} ya presente, omitida",
+        "skipped_other": "{{count}} ya presentes, omitidas",
+        "nothingNew": "Nada nuevo en este archivo",
+        "failed": "Archivo ilegible: no se ha importado nada"
+      },
+      "errors": {
+        "previewFailed": "No se ha podido leer este archivo. Comprueba que sea un CSV o un Excel.",
+        "mappingIncomplete": "Indica al menos la fecha, el concepto y el importe."
+      }
     }
   },
   "pwa": {
