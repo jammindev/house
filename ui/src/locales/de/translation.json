@@ -3485,7 +3485,9 @@
       "noUnreconciled": "Keine nicht abgeglichene Ausgabe passt in den Rest.",
       "attach": "Verknüpfen",
       "recurringConfirmed": "{{count}} Fälligkeit bestätigt",
-      "recurringConfirmed_other": "{{count}} Fälligkeiten bestätigt"
+      "recurringConfirmed_other": "{{count}} Fälligkeiten bestätigt",
+      "alreadyTyped_one": "1 bereits erfasste Ausgabe passt in diese Zeile",
+      "alreadyTyped_other": "{{count}} bereits erfasste Ausgaben passen in diese Zeile"
     },
     "inflow": {
       "title": "Diese Einnahme einordnen",

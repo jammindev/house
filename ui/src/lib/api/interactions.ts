@@ -109,6 +109,15 @@ interface FetchInteractionsOptions {
    * annonce huit.
    */
   exclude_type?: string;
+  /**
+   * `true` = les dépenses qu'aucune ligne ne justifie encore — le vivier du
+   * rattachement manuel. **Hors fenêtre de conformité**, contrairement au
+   * détecteur : ici la question est « qu'est-ce qui existe déjà ? », pas
+   * « qu'est-ce que je dois réclamer ? ».
+   */
+  unreconciled?: boolean;
+  /** Plafond de montant : ce qui tient dans le reste à ventiler d'une ligne. */
+  max_amount?: string;
   zone?: string;
   contact?: string;
   structure?: string;
@@ -175,6 +184,8 @@ export async function fetchInteractions(
     search,
     type,
     exclude_type,
+    unreconciled,
+    max_amount,
     zone,
     contact,
     structure,
@@ -192,6 +203,8 @@ export async function fetchInteractions(
   if (search) params.search = search;
   if (type) params.type = type;
   if (exclude_type) params.exclude_type = exclude_type;
+  if (unreconciled) params.unreconciled = 'true';
+  if (max_amount) params.max_amount = max_amount;
   if (zone) params.zone = zone;
   if (contact) params.contact = contact;
   if (structure) params.structure = structure;

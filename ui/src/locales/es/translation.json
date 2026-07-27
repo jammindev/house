@@ -3485,7 +3485,9 @@
       "noUnreconciled": "Ningún gasto sin conciliar cabe en lo que queda.",
       "attach": "Vincular",
       "recurringConfirmed": "{{count}} vencimiento confirmado",
-      "recurringConfirmed_other": "{{count}} vencimientos confirmados"
+      "recurringConfirmed_other": "{{count}} vencimientos confirmados",
+      "alreadyTyped_one": "1 gasto ya registrado cabe en esta línea",
+      "alreadyTyped_other": "{{count}} gastos ya registrados caben en esta línea"
     },
     "inflow": {
       "title": "Clasificar este ingreso",

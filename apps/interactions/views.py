@@ -2,6 +2,7 @@
 Interaction views for REST API.
 """
 import uuid
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timedelta
 
 from django.contrib.contenttypes.models import ContentType
@@ -130,6 +131,26 @@ class InteractionViewSet(viewsets.ModelViewSet):
             excluded = [value.strip() for value in exclude_type.split(',') if value.strip()]
             if excluded:
                 queryset = queryset.exclude(type__in=excluded)
+
+        # « Quelles dépenses déjà saisies pourraient être celle-ci ? » — le vivier
+        # du rattachement manuel, dans les deux sens.
+        #
+        # ⚠️ Volontairement **hors fenêtre de conformité**, contrairement au
+        # détecteur `expense_unreconciled` : celui-ci répond « qu'est-ce que je
+        # dois réclamer ? », celui-là « qu'est-ce qui existe déjà ? ». Une dépense
+        # postérieure au dernier relevé n'est pas un écart, mais elle est
+        # exactement celle qu'on vient de saisir et qu'on risque de re-créer en
+        # double au moment de ventiler.
+        if self.request.query_params.get('unreconciled') == 'true':
+            queryset = queryset.filter(type='expense', bank_transaction__isnull=True)
+
+        # Plafond de montant — ce qui tient dans le reste à ventiler d'une ligne.
+        max_amount = self.request.query_params.get('max_amount')
+        if max_amount:
+            try:
+                queryset = queryset.filter(amount__lte=Decimal(max_amount))
+            except (InvalidOperation, TypeError):
+                raise ValidationError({'max_amount': 'Expected a decimal amount.'})
 
         # Filter by zone
         zone_id = self.request.query_params.get('zone')

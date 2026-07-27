@@ -367,6 +367,27 @@ pour une ligne, il cherche une ligne pour une dépense.
 
 Tests : `banking/tests/test_expense_marker.py::TestWhichLinesCouldCarryThisExpense`.
 
+### Le doublon de ventilation, et pourquoi le sélecteur a changé de source
+
+Cas vécu en recette : une dépense saisie et jamais reliée ; au moment de ventiler
+la ligne, l'utilisateur en crée une **nouvelle**, ayant oublié la première. La
+ligne devient pleine, l'ancienne dépense ne peut plus s'y rattacher
+(`assert_allocation_fits` refuse, à raison), et le même argent est compté deux
+fois — plus un écart « dépense non rapprochée » que rien ne permet de résoudre.
+
+Le correctif est **en amont** : `AllocationDialog` affiche, avant les lignes de
+brouillon, les dépenses déjà saisies qui tiennent dans la ligne. Créer reste
+possible, mais après avoir vu.
+
+⚠️ **`UnreconciledPicker` ne lit plus le détecteur de conformité** mais
+`?unreconciled=true&max_amount=`. C'était le piège, et il expliquait le doublon :
+le détecteur est borné par la fenêtre, donc une dépense saisie *après* le dernier
+relevé importé — celle qu'on vient de créer, donc précisément celle qu'on risque
+de re-créer — n'était pas proposée. **« Qu'est-ce qui existe déjà ? » n'est pas
+« qu'est-ce que je dois réclamer ? »** : la seconde question se borne, la première
+jamais. Régression :
+`banking/tests/test_expense_marker.py::TestTheForgottenExpenseIsOffered`.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions

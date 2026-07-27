@@ -3485,7 +3485,9 @@
       "noUnreconciled": "Aucune dépense non rapprochée ne tient dans le reste.",
       "attach": "Rattacher",
       "recurringConfirmed": "{{count}} échéance confirmée",
-      "recurringConfirmed_other": "{{count}} échéances confirmées"
+      "recurringConfirmed_other": "{{count}} échéances confirmées",
+      "alreadyTyped_one": "1 dépense déjà saisie tient dans cette ligne",
+      "alreadyTyped_other": "{{count}} dépenses déjà saisies tiennent dans cette ligne"
     },
     "inflow": {
       "title": "Classer cette recette",
