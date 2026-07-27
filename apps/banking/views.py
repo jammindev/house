@@ -14,6 +14,12 @@ from core.permissions import IsHouseholdMember
 
 from . import importers
 from .aggregations import EMPTY_FLOW, compute_account_flow
+from .anchoring import (
+    FROM_ATTESTATION,
+    FROM_STATEMENT,
+    anchor_context,
+    serialize_anchor_context,
+)
 from .balances import compute_balance, serialize_balance
 from .compliance import (
     get_detector,
@@ -42,12 +48,14 @@ from .models import (
 from .queries import search
 from .validators import allocated_total, remaining_to_allocate
 from .serializers import (
+    BalanceAnchorInputSerializer,
     BankAccountSerializer,
     BankTransactionSerializer,
     ComplianceWaiverSerializer,
     StatementImportSerializer,
 )
 from .services import (
+    apply_statement_opening_balance,
     archive_account,
     create_account,
     import_statement_file,
@@ -57,6 +65,7 @@ from .services import (
     record_cash_withdrawal,
     revoke_waiver,
     set_allocations,
+    set_balance_anchor,
     unlink_counterpart,
     unlink_interaction,
     update_account,
@@ -143,6 +152,68 @@ class BankAccountViewSet(viewsets.ModelViewSet):
         account = self.get_object()
         as_of = _parse_date_param(request.query_params.get("as_of"), "as_of")
         return Response(serialize_balance(compute_balance(account=account, as_of=as_of)))
+
+    @action(detail=True, methods=["get", "post"], url_path="balance-anchor")
+    def balance_anchor(self, request, pk=None):
+        """Find the opening balance the bank never told the user about.
+
+        ``GET`` returns what House can establish on its own: whether the statement
+        carries a balance to read, the last operation it holds (so the user can
+        compare it with their bank before attesting anything), and the periods
+        missing from the interval.
+
+        ``POST`` records the reconstruction. With a statement balance available it
+        takes no input at all — asking for a figure House can read is how a form
+        loses its user. Otherwise it takes the balance the user read and subtracts
+        the movements back to the start, refusing whenever the subtraction cannot
+        be trusted (see :mod:`banking.anchoring`).
+        """
+        account = self.get_object()
+        context = anchor_context(account)
+
+        if request.method == "GET":
+            return Response(serialize_anchor_context(context))
+
+        if context.source == FROM_STATEMENT:
+            result = apply_statement_opening_balance(account=account, user=request.user)
+            return Response(
+                {
+                    "source": FROM_STATEMENT,
+                    "opening_balance": str(result["opening_balance"]),
+                    "opening_balance_date": result["opening_balance_date"].isoformat(),
+                    "movements": None,
+                    "account": BankAccountSerializer(account).data,
+                }
+            )
+
+        payload = BalanceAnchorInputSerializer(data=request.data)
+        payload.is_valid(raise_exception=True)
+        data = payload.validated_data
+        from_date = data.get("from_date") or context.earliest_line
+        if from_date is None:
+            raise ValidationError(
+                {
+                    "detail": "This account holds no line to reconstruct from.",
+                    "code": "no_transactions",
+                }
+            )
+
+        result = set_balance_anchor(
+            account=account,
+            user=request.user,
+            balance=data["balance"],
+            as_of=data["as_of"],
+            from_date=from_date,
+        )
+        return Response(
+            {
+                "source": FROM_ATTESTATION,
+                "opening_balance": str(result["opening_balance"]),
+                "opening_balance_date": from_date.isoformat(),
+                "movements": str(result["movements"]),
+                "account": BankAccountSerializer(account).data,
+            }
+        )
 
 
 class StatementImportViewSet(viewsets.ReadOnlyModelViewSet):

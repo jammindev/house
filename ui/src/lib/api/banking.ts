@@ -11,6 +11,13 @@ export interface BankAccount {
   /** Decimal sérialisé en string par DRF ; peut être négatif (découvert). */
   opening_balance: string;
   opening_balance_date: string | null;
+  /**
+   * Solde relevé par l'utilisateur sur sa banque, dont `opening_balance` a été
+   * reconstruit (lot 8). Conservé pour que la soustraction reste vérifiable :
+   * le détecteur `account_anchor_stale` la refait à chaque recalcul.
+   */
+  attested_balance: string | null;
+  attested_on: string | null;
   /** Écrits par le service d'import (lot 2), jamais par le client. */
   default_provider: string;
   import_options: Record<string, unknown>;
@@ -63,6 +70,66 @@ export async function archiveBankAccount(id: string): Promise<void> {
 /** Undo de l'archivage : le compte redevient actif. */
 export async function restoreBankAccount(id: string): Promise<BankAccount> {
   return updateBankAccount(id, { archived: false });
+}
+
+// --- Retrouver le solde d'ouverture (parcours 26, lot 8) --------------------
+
+/**
+ * D'où le solde d'ouverture peut venir : `statement` = la banque l'a imprimé,
+ * rien à demander ; `attestation` = seul l'utilisateur peut le fournir, en
+ * lisant son solde du jour ; `none` = pas une ligne, rien à reconstruire.
+ */
+export type AnchorSource = 'statement' | 'attestation' | 'none';
+
+export interface AnchorOperation {
+  booked_on: string;
+  label: string;
+  amount: string;
+}
+
+export interface BalanceAnchorContext {
+  source: AnchorSource;
+  transaction_count: number;
+  earliest_line: string | null;
+  latest_line: string | null;
+  /** La dernière opération détenue — ce que l'utilisateur compare à sa banque. */
+  last_operation: AnchorOperation | null;
+  /** Net de tout ce qui est détenu : ce que l'aperçu retranche du solde lu. */
+  movements: string;
+  proposed_opening_balance: string | null;
+  proposed_opening_date: string | null;
+  gaps: { gap_start: string; gap_end: string; days: number }[];
+}
+
+export interface BalanceAnchorResult {
+  source: AnchorSource;
+  opening_balance: string;
+  opening_balance_date: string;
+  /** Le total soustrait — affiché pour que le calcul soit refaisable à la main. */
+  movements: string | null;
+  account: BankAccount;
+}
+
+export async function fetchBalanceAnchor(accountId: string): Promise<BalanceAnchorContext> {
+  const { data } = await api.get<BalanceAnchorContext>(
+    `/banking/accounts/${accountId}/balance-anchor/`,
+  );
+  return data;
+}
+
+/**
+ * Sans `balance`/`as_of`, le serveur applique le solde lu dans le relevé — la
+ * voie sûre, quand elle existe.
+ */
+export async function setBalanceAnchor(
+  accountId: string,
+  payload: { balance?: string; as_of?: string; from_date?: string } = {},
+): Promise<BalanceAnchorResult> {
+  const { data } = await api.post<BalanceAnchorResult>(
+    `/banking/accounts/${accountId}/balance-anchor/`,
+    payload,
+  );
+  return data;
 }
 
 // --- Import de relevés (parcours 25, lot 2) ---------------------------------

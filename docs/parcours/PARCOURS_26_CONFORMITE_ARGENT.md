@@ -102,6 +102,7 @@ incohérence à corriger.
 | **Chaîne de soldes rompue** | `balances.check_balance_chain` | importer le relevé manquant | « relevé indisponible » | 1 ✅ |
 | **Période non couverte** | trou entre deux `StatementImport` | importer | « pas d'opération sur la période » | 7 ✅ |
 | **Espèces à découvert** | solde espèces négatif | déclarer le retrait qui l'alimente | **aucun — incohérence** | 4 ✅ |
+| **Solde constaté qui ne concorde plus** | `opening_balance + Σ mouvements ≠ attested_balance` | importer le relevé manquant, ou relire son solde | **aucun — incohérence** | 8 ✅ |
 
 ### Sur une récurrence
 
@@ -147,19 +148,21 @@ puis ventiler 90 € laisserait 60 € couverts par un motif qui ne décrit plus
 | 5 | **Recettes et mouvements internes** — `inflow_nature`, contreparties | ✅ Livré |
 | 6 | **Le relevé confirme les récurrences** — `match_recurrences` | ✅ Livré |
 | 7 | **Continuité des relevés et provenance** — solde d'ouverture requis, badges | ✅ Livré |
+| 8 | **Retrouver le solde d'ouverture** — `anchoring.py`, attestation re-vérifiée | ✅ Livré |
 
 Détail d'implémentation par lot : `docs/MODULES/banking.md`.
 
 ## Le catalogue est complet
 
-**13 détecteurs**, couvrant les 16 lignes du catalogue (certaines lignes partagent un
-détecteur). Trois n'admettent **aucun** arbitrage, et c'est structurant :
+**14 détecteurs**, couvrant les 17 lignes du catalogue (certaines lignes partagent un
+détecteur). Quatre n'admettent **aucun** arbitrage, et c'est structurant :
 
 | Clé | Pourquoi aucun motif ne tient |
 |---|---|
 | `account_without_window` | Prérequis : sans fenêtre de conformité, aucun contrôle ne porte sur le compte. |
 | `account_cash_negative` | Physiquement impossible : un retrait n'a pas été déclaré. |
 | `recurring_double_confirmed` | Compter une facture deux fois n'est jamais acceptable. |
+| `account_anchor_stale` | L'arithmétique contredit un solde que l'utilisateur a lui-même relevé : il manque un relevé, ou la lecture était fausse. |
 
 Les dix autres sont arbitrables — et chaque arbitrage **périme** si ce qu'il couvrait
 change.
@@ -172,7 +175,8 @@ Sur le vrai relevé Crédit Agricole (116 lignes) :
    d'ouverture. Les dépendants affichent « non évaluable », pas « conforme ».
 2. Renseigner le solde d'ouverture → l'écart disparaît **et** les dépendants
    s'évaluent (~100 lignes non ventilées, chaîne non vérifiable — l'export CA n'a
-   pas de colonne solde).
+   pas de colonne solde). Ce solde passé étant précisément ce que le CA n'exporte
+   pas, il se **retrouve** depuis le solde du jour (lot 8) plutôt que se deviner.
 3. Aucune dépense antérieure au solde d'ouverture n'est signalée.
 4. Ranger 20 lignes en actions groupées, arbitrer les frais bancaires avec motif.
 5. Révoquer un arbitrage → l'écart resurgit à l'identique.

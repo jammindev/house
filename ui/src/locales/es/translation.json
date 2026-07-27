@@ -1645,7 +1645,7 @@
           },
           "window": {
             "title": "Por qué no todo se controla",
-            "body": "La app solo señala lo que usted puede corregir realmente. Define por tanto un periodo de control por cuenta: desde la fecha de su saldo inicial hasta el último extracto importado. Antes: es historial, y ninguna línea bancaria vendrá nunca a vincularse. Después: el extracto simplemente aún no ha llegado. Entre ambos, la exigencia es total — y eso es lo que hace alcanzable el «cero discrepancias».\n\nUna consecuencia que conviene conocer. Si la fecha de su saldo inicial es posterior a sus operaciones, el periodo está vacío y no se controla absolutamente nada. La app se lo dice entonces explícitamente, en lugar de dejarle creer que todo va bien."
+            "body": "La app solo señala lo que usted puede corregir realmente. Define por tanto un periodo de control por cuenta: desde la fecha de su saldo inicial hasta el último extracto importado. Antes: es historial, y ninguna línea bancaria vendrá nunca a vincularse. Después: el extracto simplemente aún no ha llegado. Entre ambos, la exigencia es total — y eso es lo que hace alcanzable el «cero discrepancias».\n\nUna consecuencia que conviene conocer. Si la fecha de su saldo inicial es posterior a sus operaciones, el periodo está vacío y no se controla absolutamente nada. La app se lo dice entonces explícitamente, en lugar de dejarle creer que todo va bien.\n\nY si no conoces ese saldo pasado — muchos bancos no lo exportan — no lo adivines: « Encontrar el saldo inicial » te pide el saldo que ves hoy y resta los movimientos por ti."
           },
           "arbitrate": {
             "title": "Justificar no es esconder",
@@ -1653,7 +1653,7 @@
           },
           "notEvaluable": {
             "title": "Un cero puede significar dos cosas",
-            "body": "«Nada que señalar» significa: el control se ejecutó, todo va bien. «No evaluable» significa: el control no pudo ejecutarse, porque falta un requisito — normalmente una cuenta sin saldo inicial, o cuya fecha queda fuera de sus propias operaciones.\\n\\nLa app nunca confunde ambos. Un control no evaluable muestra un guion, no un cero, y nombra el requisito a resolver. Resuélvalo, y todo pasa a ser medible de golpe."
+            "body": "«Nada que señalar» significa: el control se ejecutó, todo va bien. «No evaluable» significa: el control no pudo ejecutarse, porque falta un requisito — normalmente una cuenta sin saldo inicial, o cuya fecha queda fuera de sus propias operaciones.\n\nLa app nunca confunde ambos. Un control no evaluable muestra un guion, no un cero, y nombra el requisito a resolver. Resuélvalo, y todo pasa a ser medible de golpe."
           },
           "cash": {
             "title": "El efectivo es una cuenta como las demás",
@@ -3352,6 +3352,31 @@
         "transfer": "Transferencia entre mis cuentas",
         "other": "Otro"
       }
+    },
+    "anchor": {
+      "title": "Encontrar el saldo inicial",
+      "action": "Encontrar el saldo inicial",
+      "intro": "Tu banco no exporta el saldo en sus extractos. Indica el saldo que ves hoy: House resta los movimientos para encontrar el del principio.",
+      "noLines": "Esta cuenta no tiene ninguna operación. Importa primero un extracto, o escribe el saldo inicial directamente en la cuenta.",
+      "fromStatement": "Tu extracto trae el saldo — no hay nada que escribir.",
+      "fromStatementDetail": "House ha leído {{amount}} el {{date}} en tus operaciones. Nada estimado: es la cifra del banco.",
+      "apply": "Aplicar",
+      "applied": "Saldo inicial guardado.",
+      "balanceLabel": "Saldo leído en tu banco",
+      "balanceHint": "El saldo tal como lo muestra tu aplicación bancaria. Un descubierto se introduce en negativo.",
+      "asOfLabel": "Fecha de esa lectura",
+      "confirmLast": "Confirmo que la última operación de mi extracto en línea es esta:",
+      "computation": "{{balance}} leídos, menos {{movements}} de movimientos del periodo.",
+      "result": "Saldo inicial el {{date}}: {{amount}}",
+      "gapTitle": "Falta un periodo",
+      "gapDetail": "No se ha importado nada del {{start}} al {{end}}. Los movimientos a restar están incompletos: importa antes ese extracto, o el saldo encontrado quedaría equivocado por la cantidad que falta.",
+      "attestedOn": "Reconstruido a partir de un saldo de {{amount}} leído el {{date}}",
+      "errors": {
+        "beforeLastLine": "Tienes operaciones más recientes que ese saldo. Vuelve a leerlo después de ellas.",
+        "future": "Esa fecha aún no ha llegado.",
+        "periodGap": "Un periodo del intervalo nunca se importó: los movimientos a restar están incompletos.",
+        "noLines": "Esta cuenta no tiene ninguna operación que restar."
+      }
     }
   },
   "pwa": {
@@ -3540,6 +3565,11 @@
           "title": "Cuenta fuera del alcance del control",
           "hint": "Sin ventana de conformidad: falta el saldo inicial, o su fecha es posterior a sus extractos.",
           "resolution": "Ponga la fecha del saldo inicial al comienzo del periodo que importó — no a hoy. El importe debe ser el saldo en esa fecha: si es aproximado, solo el saldo mostrado se verá afectado, ordenar sus operaciones seguirá funcionando. Hasta que la fecha no se corrija, ningún otro control cubre esta cuenta."
+        },
+        "account_anchor_stale": {
+          "title": "El saldo leído ya no cuadra",
+          "hint": "El saldo inicial se reconstruyó a partir de un saldo que leíste. La aritmética ya no cierra.",
+          "resolution": "Han cambiado operaciones desde entonces. Importa el extracto que falta, o vuelve a leer tu saldo y reconstrúyelo: mientras persista la diferencia, todos los saldos de esta cuenta están equivocados en la misma cantidad."
         }
       },
       "blocked": "Control no evaluable",
@@ -3549,7 +3579,9 @@
         "noDate": "No hay fecha de saldo inicial indicada.",
         "afterData": "Su fecha de saldo inicial es {{openingDate}}, pero su operación más antigua es del {{earliestLine}}: el periodo de control está vacío."
       },
-      "fix": "Corregir"
+      "fix": "Corregir",
+      "findBalance": "Encontrar el saldo",
+      "anchorDrift": "Saldo leído: {{attested}} · calculado hoy: {{computed}}"
     },
     "pending": {
       "count": "{{count}} operación por ordenar",

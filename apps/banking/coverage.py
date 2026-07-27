@@ -28,7 +28,7 @@ read it from here.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from django.db.models import Max
 
@@ -106,6 +106,50 @@ def _latest_known_date(account) -> date | None:
 
     candidates = [d for d in (from_imports, from_lines) if d is not None]
     return max(candidates) if candidates else None
+
+
+def period_gaps(account, *, between: Window | None = None) -> list[dict]:
+    """Calendar holes between the periods this account has actually imported.
+
+    Only ``completed`` imports count: a failed one wrote nothing, so claiming its
+    period would be a lie. Overlapping periods are fine — re-importing a month is
+    the normal way to catch up — so only a **strictly positive** gap is reported.
+
+    ``between`` narrows the answer to the holes that overlap a given interval. The
+    balance reconstruction needs exactly that: money missing in February says
+    nothing about a balance reconstructed over June–July, and refusing the
+    reconstruction for it would be the unfixable-écart mistake all over again.
+    """
+    periods = list(
+        StatementImport.objects.filter(
+            account=account,
+            status=ImportStatus.COMPLETED,
+            period_start__isnull=False,
+            period_end__isnull=False,
+        )
+        .order_by("period_start")
+        .values_list("period_start", "period_end")
+    )
+    if len(periods) < 2:
+        return []
+
+    gaps: list[dict] = []
+    covered_to = periods[0][1]
+    for start, end in periods[1:]:
+        if start > covered_to + timedelta(days=1):
+            gap_start = covered_to + timedelta(days=1)
+            gap_end = start - timedelta(days=1)
+            if between is None or (gap_start <= between.end and gap_end >= between.start):
+                gaps.append(
+                    {
+                        "gap_start": gap_start.isoformat(),
+                        "gap_end": gap_end.isoformat(),
+                        "days": (gap_end - gap_start).days + 1,
+                    }
+                )
+        covered_to = max(covered_to, end)
+
+    return gaps
 
 
 def accounts_with_window(household) -> list[tuple[BankAccount, Window]]:

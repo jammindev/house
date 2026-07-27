@@ -15,7 +15,9 @@ would therefore never ask:
 - a recurrence past due with nothing recorded (``recurring_overdue``);
 - a recurrence confirmed twice for the same day (``recurring_double_confirmed``);
 - a period nobody ever imported (``statement_period_gap``);
-- lines skipped where the dedup recipe cannot be trusted (``import_skipped_lines``).
+- lines skipped where the dedup recipe cannot be trusted (``import_skipped_lines``);
+- a reconstructed opening balance whose arithmetic stopped closing
+  (``account_anchor_stale``).
 
 Every detector that reasons about "money we should know about" is scoped by
 ``banking.coverage``: outside the conformity window an écart is not an écart, it
@@ -25,7 +27,7 @@ Registered from ``banking.apps.BankingConfig.ready()``.
 """
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import date
 from decimal import Decimal
 
 from django.db.models import Case, DecimalField, F, Q, Sum, Value, When
@@ -43,7 +45,7 @@ from .compliance import (
     get_detector,
     register,
 )
-from .coverage import accounts_with_window, household_covered_period
+from .coverage import accounts_with_window, household_covered_period, period_gaps
 from .models import BankAccount, BankTransaction, ImportStatus
 
 AMOUNT_FIELD = DecimalField(max_digits=14, decimal_places=2)
@@ -63,6 +65,7 @@ RECURRING_OVERDUE = "recurring_overdue"
 RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
 STATEMENT_PERIOD_GAP = "statement_period_gap"
 IMPORT_SKIPPED_LINES = "import_skipped_lines"
+ACCOUNT_ANCHOR_STALE = "account_anchor_stale"
 
 
 # --- Shared base: spendable outflows inside their account's window -----------
@@ -444,40 +447,13 @@ def _period_gap_pairs(household) -> list[tuple[BankAccount, list[dict]]]:
     that was never dropped in leaves no arithmetic trace at all, only a gap in the
     calendar.
 
-    Only ``completed`` imports count: a failed one wrote nothing, so claiming its
-    period would be a lie. Overlapping periods are fine (re-importing a month is
-    the normal way to catch up) — only a **strictly positive** gap is reported.
+    The gap arithmetic itself lives in ``coverage.period_gaps``: the balance
+    reconstruction needs the same answer scoped to an interval, and two
+    implementations of "which periods are missing" would drift apart.
     """
-    from .models import StatementImport
-
     pairs = []
     for account in BankAccount.objects.filter(household=household, archived=False):
-        periods = list(
-            StatementImport.objects.filter(
-                account=account,
-                status=ImportStatus.COMPLETED,
-                period_start__isnull=False,
-                period_end__isnull=False,
-            )
-            .order_by("period_start")
-            .values_list("period_start", "period_end")
-        )
-        if len(periods) < 2:
-            continue
-
-        gaps = []
-        covered_to = periods[0][1]
-        for start, end in periods[1:]:
-            if start > covered_to + timedelta(days=1):
-                gaps.append(
-                    {
-                        "gap_start": (covered_to + timedelta(days=1)).isoformat(),
-                        "gap_end": (start - timedelta(days=1)).isoformat(),
-                        "days": (start - covered_to).days - 1,
-                    }
-                )
-            covered_to = max(covered_to, end)
-
+        gaps = period_gaps(account)
         if gaps:
             pairs.append((account, gaps))
     return pairs
@@ -577,6 +553,73 @@ def _find_skipped_lines(household, **window) -> list[Finding]:
             },
         )
         for imported in apply_window(_skipped_lines_qs(household), **window)
+    ]
+
+
+def _stale_anchor_pairs(household) -> list[tuple[BankAccount, Decimal]]:
+    """Accounts whose reconstructed opening balance no longer adds up.
+
+    When the bank exports no balance column, the opening balance is reconstructed
+    by subtracting the movements from a balance the user read (see
+    :mod:`banking.anchoring`). That subtraction is exact only while the lines
+    underneath stay put. Import a forgotten week *inside* the interval and the
+    reconstruction is short by exactly that week — every balance the account shows
+    is then wrong by a constant, and on a file with no balance column the chain
+    check has nothing to catch it with.
+
+    So the attestation is re-verified rather than trusted: opening balance plus
+    movements up to the attested date must still equal the attested balance. This
+    is the third leg of the continuity family — ``account_chain_broken`` for banks
+    that print balances, ``statement_period_gap`` for periods never imported, this
+    one for the reconstruction those two cannot see.
+
+    Iterated in Python on purpose: only accounts carrying an attestation are
+    concerned, which is a handful per household, and the check is a sum over an
+    indexed range.
+    """
+    from .anchoring import attestation_drift
+
+    pairs = []
+    for account in BankAccount.objects.filter(
+        household=household, archived=False, attested_on__isnull=False
+    ):
+        drift = attestation_drift(account)
+        if drift is not None and drift != Decimal("0.00"):
+            pairs.append((account, drift))
+    return pairs
+
+
+def _count_stale_anchors(household) -> int:
+    return len(_stale_anchor_pairs(household))
+
+
+def _find_stale_anchors(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    pairs = _stale_anchor_pairs(household)
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [p for p in pairs if str(p[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+
+    return [
+        Finding(
+            kind=ACCOUNT_ANCHOR_STALE,
+            object_id=str(account.pk),
+            label=account.name,
+            fingerprint=fingerprint_of(ACCOUNT_ANCHOR_STALE, drift),
+            detail={
+                "name": account.name,
+                "drift": str(drift),
+                "attested_balance": str(account.attested_balance),
+                "attested_on": account.attested_on.isoformat(),
+                "computed_balance": str(account.attested_balance + drift),
+            },
+        )
+        for account, drift in pairs
     ]
 
 
@@ -960,6 +1003,20 @@ def _specs() -> list[DetectorSpec]:
             model=_statement_import_model(),
             count=_count_skipped_lines,
             findings=_find_skipped_lines,
+        ),
+        DetectorSpec(
+            kind=ACCOUNT_ANCHOR_STALE,
+            severity=ERROR,
+            label="Reconstructed opening balance no longer adds up",
+            target="account",
+            model=BankAccount,
+            count=_count_stale_anchors,
+            findings=_find_stale_anchors,
+            # Not a judgement call: the user attested a balance and the arithmetic
+            # now contradicts it. Either a statement is missing or the reading was
+            # wrong — accepting the contradiction would leave every balance on the
+            # account silently off by the drift.
+            waivable=False,
         ),
         DetectorSpec(
             kind=ACCOUNT_CASH_NEGATIVE,

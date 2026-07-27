@@ -1645,7 +1645,7 @@
           },
           "window": {
             "title": "Why not everything is checked",
-            "body": "The app only flags what you can actually fix. So it defines a checking period per account: from your opening balance date up to the last imported statement. Before that: history, and no bank line will ever come to match it. After that: the statement simply has not arrived yet. Between the two, the requirement is total — and that is what makes “zero discrepancy” reachable.\n\nOne consequence worth knowing. If your opening balance date is later than your operations, the period is empty and nothing at all is checked. The app then says so explicitly, instead of letting you believe all is well."
+            "body": "The app only flags what you can actually fix. So it defines a checking period per account: from your opening balance date up to the last imported statement. Before that: history, and no bank line will ever come to match it. After that: the statement simply has not arrived yet. Between the two, the requirement is total — and that is what makes “zero discrepancy” reachable.\n\nOne consequence worth knowing. If your opening balance date is later than your operations, the period is empty and nothing at all is checked. The app then says so explicitly, instead of letting you believe all is well.\n\nAnd if you do not know that past balance — many banks never export it — do not guess it: « Find the opening balance » asks for the balance you can read today and subtracts the movements for you."
           },
           "arbitrate": {
             "title": "Arbitrating is not hiding",
@@ -1653,7 +1653,7 @@
           },
           "notEvaluable": {
             "title": "A zero can mean two things",
-            "body": "“Nothing to report” means: the check ran, all is well. “Not evaluable” means: the check could not run, because a prerequisite is missing — typically an account with no opening balance, or one whose date falls outside its own operations.\\n\\nThe app never conflates the two. A non-evaluable check shows a dash, not a zero, and names the prerequisite to clear. Fix it, and everything becomes measurable at once."
+            "body": "“Nothing to report” means: the check ran, all is well. “Not evaluable” means: the check could not run, because a prerequisite is missing — typically an account with no opening balance, or one whose date falls outside its own operations.\n\nThe app never conflates the two. A non-evaluable check shows a dash, not a zero, and names the prerequisite to clear. Fix it, and everything becomes measurable at once."
           },
           "cash": {
             "title": "Cash is an account like any other",
@@ -3352,6 +3352,31 @@
         "transfer": "Transfer between my accounts",
         "other": "Other"
       }
+    },
+    "anchor": {
+      "title": "Find the opening balance",
+      "action": "Find the opening balance",
+      "intro": "Your bank does not export balances in its statements. Give the balance you can read today: House subtracts the movements to find the starting one.",
+      "noLines": "This account holds no operation. Import a statement first, or type the opening balance straight into the account.",
+      "fromStatement": "Your statement carries the balance — nothing to type.",
+      "fromStatementDetail": "House read {{amount}} on {{date}} in your operations. Nothing estimated: that is the bank's own figure.",
+      "apply": "Apply",
+      "applied": "Opening balance saved.",
+      "balanceLabel": "Balance read on your bank",
+      "balanceHint": "The balance as your banking app shows it. An overdraft goes in as a negative number.",
+      "asOfLabel": "Date of that reading",
+      "confirmLast": "I confirm the last operation on my online statement is this one:",
+      "computation": "{{balance}} read, minus {{movements}} of movements over the period.",
+      "result": "Opening balance on {{date}}: {{amount}}",
+      "gapTitle": "A period is missing",
+      "gapDetail": "Nothing was imported from {{start}} to {{end}}. The movements to subtract are incomplete: import that statement first, or the balance found would be off by the missing amount.",
+      "attestedOn": "Reconstructed from a balance of {{amount}} read on {{date}}",
+      "errors": {
+        "beforeLastLine": "You hold operations more recent than that balance. Read it again, after them.",
+        "future": "That date has not happened yet.",
+        "periodGap": "A period of the interval was never imported: the movements to subtract are incomplete.",
+        "noLines": "This account holds no operation to subtract."
+      }
     }
   },
   "pwa": {
@@ -3540,6 +3565,11 @@
           "title": "Account outside the control's reach",
           "hint": "No conformity window: either the opening balance is missing, or its date is later than your statements.",
           "resolution": "Set the opening balance date to the beginning of the period you imported — not to today. The amount should be the balance at that date: if it is approximate, only the displayed balance suffers, sorting your operations still works. Until the date is fixed, no other check covers this account."
+        },
+        "account_anchor_stale": {
+          "title": "Attested balance no longer adds up",
+          "hint": "The opening balance was reconstructed from a balance you read. The arithmetic no longer closes.",
+          "resolution": "Operations have changed since. Import the missing statement, or read your balance again and rebuild it: while the gap stands, every balance on this account is off by the same amount."
         }
       },
       "blocked": "Control cannot be evaluated",
@@ -3549,7 +3579,9 @@
         "noDate": "No opening balance date is set.",
         "afterData": "Your opening balance date is {{openingDate}}, but your oldest operation is {{earliestLine}}: the checking period is empty."
       },
-      "fix": "Fix"
+      "fix": "Fix",
+      "findBalance": "Find the balance",
+      "anchorDrift": "Balance you read: {{attested}} · computed today: {{computed}}"
     },
     "pending": {
       "count": "{{count}} operation to sort",

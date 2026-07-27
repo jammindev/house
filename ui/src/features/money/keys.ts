@@ -25,6 +25,7 @@ export const TRANSACTION_PARTIAL = 'transaction_partially_allocated';
 export const EXPENSE_UNRECONCILED = 'expense_unreconciled';
 export const ACCOUNT_WITHOUT_WINDOW = 'account_without_window';
 export const ACCOUNT_CHAIN_BROKEN = 'account_chain_broken';
+export const ACCOUNT_ANCHOR_STALE = 'account_anchor_stale';
 
 /** Les deux écarts que la file « À ranger » traite — même geste de résolution. */
 export const PENDING_KINDS = [TRANSACTION_UNALLOCATED, TRANSACTION_PARTIAL] as const;

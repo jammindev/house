@@ -1,5 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { ArchiveRestore, Banknote, Landmark, Pencil, Trash2, Upload } from 'lucide-react';
+import {
+  ArchiveRestore,
+  Banknote,
+  Landmark,
+  Pencil,
+  Scale,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
@@ -14,6 +22,8 @@ interface AccountCardProps {
   onArchive: () => void;
   onRestore: () => void;
   onImport: () => void;
+  /** Retrouver le solde d'ouverture par soustraction (lot 8). */
+  onFindBalance: () => void;
 }
 
 export default function AccountCard({
@@ -22,6 +32,7 @@ export default function AccountCard({
   onArchive,
   onRestore,
   onImport,
+  onFindBalance,
 }: AccountCardProps) {
   const { t } = useTranslation();
   const isCash = account.kind === 'cash';
@@ -37,6 +48,7 @@ export default function AccountCard({
         ...(isCash
           ? []
           : [{ label: t('banking.import.action'), icon: Upload, onClick: onImport }]),
+        { label: t('banking.anchor.action'), icon: Scale, onClick: onFindBalance },
         { label: t('common.edit'), icon: Pencil, onClick: onEdit },
         { label: t('banking.archive'), icon: Trash2, onClick: onArchive, variant: 'danger' as const },
       ];
@@ -77,6 +89,17 @@ export default function AccountCard({
             ) : (
               <p className="mt-1 text-xs text-muted-foreground">{t('banking.noOpeningBalance')}</p>
             )}
+
+            {/* Dire d'où vient le solde d'ouverture : reconstruit d'un solde
+                attesté, il n'a pas le même statut qu'un chiffre lu sur un relevé. */}
+            {account.attested_on ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t('banking.anchor.attestedOn', {
+                  amount: formatAmount(account.attested_balance ?? '0'),
+                  date: new Date(account.attested_on).toLocaleDateString(),
+                })}
+              </p>
+            ) : null}
 
             {account.archived ? (
               <span className="mt-2 inline-block rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">

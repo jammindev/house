@@ -27,6 +27,8 @@ class BankAccountSerializer(serializers.ModelSerializer):
             "iban_last4",
             "opening_balance",
             "opening_balance_date",
+            "attested_balance",
+            "attested_on",
             "default_provider",
             "import_options",
             "archived",
@@ -43,6 +45,12 @@ class BankAccountSerializer(serializers.ModelSerializer):
             # Written by the import service (lot 2), never by the client.
             "default_provider",
             "import_options",
+            # Written only by the balance-anchor action, which recomputes
+            # ``opening_balance`` from them in the same transaction. Letting a
+            # client PATCH one of the two apart would store an attestation that
+            # contradicts the opening balance it is supposed to justify.
+            "attested_balance",
+            "attested_on",
         ]
 
     def validate_name(self, value):
@@ -97,6 +105,23 @@ class BankAccountSerializer(serializers.ModelSerializer):
             )
 
         return attrs
+
+
+class BalanceAnchorInputSerializer(serializers.Serializer):
+    """Input of ``POST /accounts/{id}/balance-anchor/``.
+
+    ``balance`` may be negative — an overdraft is a balance like any other. The
+    dates are checked against the account's own lines by
+    :mod:`banking.anchoring`, which is the only place that can tell whether the
+    subtraction is safe; validating them here would duplicate that judgement with
+    half the information.
+    """
+
+    balance = serializers.DecimalField(max_digits=14, decimal_places=2)
+    as_of = serializers.DateField()
+    #: Defaults to the account's oldest line, which is what the user wants in
+    #: nearly every case: cover everything you hold.
+    from_date = serializers.DateField(required=False, allow_null=True)
 
 
 class StatementImportSerializer(serializers.ModelSerializer):

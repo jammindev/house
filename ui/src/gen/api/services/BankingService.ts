@@ -180,6 +180,66 @@ export class BankingService {
         });
     }
     /**
+     * Find the opening balance the bank never told the user about.
+     *
+     * ``GET`` returns what House can establish on its own: whether the statement
+     * carries a balance to read, the last operation it holds (so the user can
+     * compare it with their bank before attesting anything), and the periods
+     * missing from the interval.
+     *
+     * ``POST`` records the reconstruction. With a statement balance available it
+     * takes no input at all — asking for a figure House can read is how a form
+     * loses its user. Otherwise it takes the balance the user read and subtracts
+     * the movements back to the start, refusing whenever the subtraction cannot
+     * be trusted (see :mod:`banking.anchoring`).
+     * @param id
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsBalanceAnchorRetrieve(
+        id: string,
+    ): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/banking/accounts/{id}/balance-anchor/',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * Find the opening balance the bank never told the user about.
+     *
+     * ``GET`` returns what House can establish on its own: whether the statement
+     * carries a balance to read, the last operation it holds (so the user can
+     * compare it with their bank before attesting anything), and the periods
+     * missing from the interval.
+     *
+     * ``POST`` records the reconstruction. With a statement balance available it
+     * takes no input at all — asking for a figure House can read is how a form
+     * loses its user. Otherwise it takes the balance the user read and subtracts
+     * the movements back to the start, refusing whenever the subtraction cannot
+     * be trusted (see :mod:`banking.anchoring`).
+     * @param id
+     * @param requestBody
+     * @returns BankAccount
+     * @throws ApiError
+     */
+    public static bankingAccountsBalanceAnchorCreate(
+        id: string,
+        requestBody: BankAccount,
+    ): CancelablePromise<BankAccount> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/banking/accounts/{id}/balance-anchor/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * The conformity control — every écart the app knows how to detect.
      *
      * Two endpoints, and the split between them is a performance decision, not a

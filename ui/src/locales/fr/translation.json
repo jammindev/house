@@ -1645,7 +1645,7 @@
           },
           "window": {
             "title": "Pourquoi tout n'est pas contrôlé",
-            "body": "L'app ne te signale que ce que tu peux réellement corriger. Elle définit donc une période de contrôle par compte : de la date de ton solde d'ouverture jusqu'au dernier relevé importé. Avant : c'est de l'historique, aucune ligne bancaire ne viendra jamais s'y rattacher. Après : le relevé n'est simplement pas encore arrivé. Entre les deux, l'exigence est totale — et c'est ce qui rend le « zéro écart » atteignable.\n\nUne conséquence à connaître. Si la date de ton solde d'ouverture est postérieure à tes opérations, la période est vide et rien n'est contrôlé du tout. L'app te le dit alors explicitement, au lieu de laisser croire que tout va bien."
+            "body": "L'app ne te signale que ce que tu peux réellement corriger. Elle définit donc une période de contrôle par compte : de la date de ton solde d'ouverture jusqu'au dernier relevé importé. Avant : c'est de l'historique, aucune ligne bancaire ne viendra jamais s'y rattacher. Après : le relevé n'est simplement pas encore arrivé. Entre les deux, l'exigence est totale — et c'est ce qui rend le « zéro écart » atteignable.\n\nUne conséquence à connaître. Si la date de ton solde d'ouverture est postérieure à tes opérations, la période est vide et rien n'est contrôlé du tout. L'app te le dit alors explicitement, au lieu de laisser croire que tout va bien.\n\nEt si tu ne connais pas ce solde passé — beaucoup de banques ne l'exportent pas — ne le devine pas : « Retrouver le solde d'ouverture » te demande le solde que tu lis aujourd'hui et retranche les mouvements pour toi."
           },
           "arbitrate": {
             "title": "Arbitrer n'est pas cacher",
@@ -1653,7 +1653,7 @@
           },
           "notEvaluable": {
             "title": "Un zéro peut vouloir dire deux choses",
-            "body": "« Rien à signaler » veut dire : le contrôle a tourné, tout va bien. « Non évaluable » veut dire : le contrôle n'a pas pu tourner, parce qu'un prérequis manque — typiquement un compte sans solde d'ouverture, ou dont la date sort de ses opérations.\\n\\nL'app ne confond jamais les deux. Un contrôle non évaluable affiche un tiret, pas un zéro, et nomme le prérequis à lever. Règle-le, et tout devient mesurable d'un coup."
+            "body": "« Rien à signaler » veut dire : le contrôle a tourné, tout va bien. « Non évaluable » veut dire : le contrôle n'a pas pu tourner, parce qu'un prérequis manque — typiquement un compte sans solde d'ouverture, ou dont la date sort de ses opérations.\n\nL'app ne confond jamais les deux. Un contrôle non évaluable affiche un tiret, pas un zéro, et nomme le prérequis à lever. Règle-le, et tout devient mesurable d'un coup."
           },
           "cash": {
             "title": "Les espèces sont un compte comme un autre",
@@ -3352,6 +3352,31 @@
         "transfer": "Virement entre mes comptes",
         "other": "Autre"
       }
+    },
+    "anchor": {
+      "title": "Retrouver le solde d'ouverture",
+      "action": "Retrouver le solde d'ouverture",
+      "intro": "Ta banque n'exporte pas le solde dans ses relevés. Donne le solde que tu lis aujourd'hui : House retranche les mouvements pour retrouver celui du départ.",
+      "noLines": "Ce compte ne porte aucune opération. Importe d'abord un relevé, ou saisis le solde d'ouverture directement dans la fiche du compte.",
+      "fromStatement": "Ton relevé porte le solde — rien à saisir.",
+      "fromStatementDetail": "House a lu {{amount}} au {{date}} dans tes opérations. Aucune estimation : c'est le chiffre de la banque.",
+      "apply": "Appliquer",
+      "applied": "Solde d'ouverture enregistré.",
+      "balanceLabel": "Solde lu sur ta banque",
+      "balanceHint": "Le solde du compte tel que ton appli bancaire l'affiche. Un découvert se saisit en négatif.",
+      "asOfLabel": "Date de cette lecture",
+      "confirmLast": "Je confirme que la dernière opération de mon relevé en ligne est bien celle-ci :",
+      "computation": "{{balance}} lus, moins {{movements}} de mouvements sur la période.",
+      "result": "Solde d'ouverture au {{date}} : {{amount}}",
+      "gapTitle": "Une période manque à l'appel",
+      "gapDetail": "Rien n'a été importé du {{start}} au {{end}}. Les mouvements à retrancher sont incomplets : importe ce relevé d'abord, sinon le solde retrouvé serait faux du montant manquant.",
+      "attestedOn": "Reconstruit d'un solde de {{amount}} constaté le {{date}}",
+      "errors": {
+        "beforeLastLine": "Tu détiens des opérations plus récentes que ce solde. Relis ton solde après elles.",
+        "future": "Cette date n'est pas encore arrivée.",
+        "periodGap": "Une période de l'intervalle n'a jamais été importée : les mouvements à retrancher sont incomplets.",
+        "noLines": "Ce compte ne porte aucune opération à retrancher."
+      }
     }
   },
   "pwa": {
@@ -3540,6 +3565,11 @@
           "title": "Compte hors de portée du contrôle",
           "hint": "Aucune fenêtre de conformité : soit le solde d'ouverture manque, soit sa date est postérieure à tes relevés.",
           "resolution": "Mets la date du solde d'ouverture au début de la période que tu as importée — pas à aujourd'hui. Le montant doit être le solde à cette date-là : s'il est approximatif, seul le solde affiché en pâtira, le rangement de tes opérations fonctionnera quand même. Tant que la date n'est pas corrigée, aucun autre contrôle ne porte sur ce compte."
+        },
+        "account_anchor_stale": {
+          "title": "Solde constaté qui ne concorde plus",
+          "hint": "Le solde d'ouverture avait été reconstruit d'un solde relevé par toi. L'arithmétique ne ferme plus.",
+          "resolution": "Des opérations ont changé depuis. Importe le relevé manquant, ou relis ton solde et reconstruis-le : tant que l'écart demeure, tous les soldes de ce compte sont faux du même montant."
         }
       },
       "blocked": "Contrôle non évaluable",
@@ -3549,7 +3579,9 @@
         "noDate": "Aucune date de solde d'ouverture n'est renseignée.",
         "afterData": "Ta date de solde d'ouverture est le {{openingDate}}, mais ta plus ancienne opération est du {{earliestLine}} : la période de contrôle est vide."
       },
-      "fix": "Corriger"
+      "fix": "Corriger",
+      "findBalance": "Retrouver le solde",
+      "anchorDrift": "Solde constaté : {{attested}} · calculé aujourd'hui : {{computed}}"
     },
     "pending": {
       "count": "{{count}} opération à ranger",

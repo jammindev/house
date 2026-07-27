@@ -18,9 +18,10 @@ import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
 import { blockingPrerequisite } from './prerequisites';
-import { ACCOUNT_WITHOUT_WINDOW } from './keys';
+import { ACCOUNT_ANCHOR_STALE, ACCOUNT_WITHOUT_WINDOW } from './keys';
 import { useBankAccounts } from '@/features/banking/hooks';
 import AccountDialog from '@/features/banking/AccountDialog';
+import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
 const SEVERITY_ORDER: Record<ComplianceSeverity, number> = { blocker: 0, error: 1, warning: 2 };
@@ -53,11 +54,17 @@ export default function CompliancePanel() {
   // Le prérequis bloquant se règle sur le compte : l'ouvrir depuis le contrôle
   // évite de renvoyer chercher dans un autre onglet ce qu'on peut corriger ici.
   const [fixingAccountId, setFixingAccountId] = React.useState<string | null>(null);
+  // L'autre façon de régler le même prérequis : quand le compte porte déjà des
+  // lignes, le solde d'ouverture se retrouve par arithmétique — le saisir à la
+  // main suppose une information que la banque ne donne pas.
+  const [anchoringAccountId, setAnchoringAccountId] = React.useState<string | null>(null);
   const accountsQuery = useBankAccounts(true);
-  const fixingAccount = React.useMemo(
-    () => (accountsQuery.data ?? []).find((account) => account.id === fixingAccountId),
-    [accountsQuery.data, fixingAccountId],
+  const findAccount = React.useCallback(
+    (id: string | null) => (accountsQuery.data ?? []).find((account) => account.id === id),
+    [accountsQuery.data],
   );
+  const fixingAccount = findAccount(fixingAccountId);
+  const anchoringAccount = findAccount(anchoringAccountId);
 
   const groups = React.useMemo(() => {
     const rows = summaryQuery.data?.groups ?? [];
@@ -107,6 +114,7 @@ export default function CompliancePanel() {
               onToggle={() => setOpenKind((prev) => (prev === group.kind ? null : group.kind))}
               onWaive={setWaiving}
               onFixAccount={setFixingAccountId}
+              onAnchorAccount={setAnchoringAccountId}
             />
           ))}
         </div>
@@ -119,6 +127,14 @@ export default function CompliancePanel() {
           open
           onOpenChange={(next) => !next && setFixingAccountId(null)}
           existing={fixingAccount}
+        />
+      ) : null}
+
+      {anchoringAccount ? (
+        <BalanceAnchorDialog
+          open
+          onOpenChange={(next) => !next && setAnchoringAccountId(null)}
+          account={anchoringAccount}
         />
       ) : null}
     </div>
@@ -184,6 +200,7 @@ function GroupRow({
   onToggle,
   onWaive,
   onFixAccount,
+  onAnchorAccount,
 }: {
   group: ComplianceGroup;
   /** Prérequis encore ouvert : ce groupe n'est pas conforme, il est non évaluable. */
@@ -192,6 +209,7 @@ function GroupRow({
   onToggle: () => void;
   onWaive: (target: WaiverTarget) => void;
   onFixAccount: (accountId: string) => void;
+  onAnchorAccount: (accountId: string) => void;
 }) {
   const { t } = useTranslation();
   const Icon = SEVERITY_ICON[group.severity];
@@ -260,7 +278,12 @@ function GroupRow({
       </button>
 
       {expanded ? (
-        <GroupDetail group={group} onWaive={onWaive} onFixAccount={onFixAccount} />
+        <GroupDetail
+          group={group}
+          onWaive={onWaive}
+          onFixAccount={onFixAccount}
+          onAnchorAccount={onAnchorAccount}
+        />
       ) : null}
     </Card>
   );
@@ -270,10 +293,12 @@ function GroupDetail({
   group,
   onWaive,
   onFixAccount,
+  onAnchorAccount,
 }: {
   group: ComplianceGroup;
   onWaive: (target: WaiverTarget) => void;
   onFixAccount: (accountId: string) => void;
+  onAnchorAccount: (accountId: string) => void;
 }) {
   const { t } = useTranslation();
   const [showWaived, setShowWaived] = React.useState(false);
@@ -316,6 +341,15 @@ function GroupDetail({
               onFix={
                 group.kind === ACCOUNT_WITHOUT_WINDOW
                   ? () => onFixAccount(finding.object_id)
+                  : undefined
+              }
+              // Retrouver le solde plutôt que le saisir : proposé dès que le
+              // compte porte des lignes, puisque c'est alors une soustraction et
+              // non une information que l'utilisateur devrait deviner.
+              onAnchor={
+                (group.kind === ACCOUNT_WITHOUT_WINDOW && Boolean(finding.detail.earliest_line)) ||
+                group.kind === ACCOUNT_ANCHOR_STALE
+                  ? () => onAnchorAccount(finding.object_id)
                   : undefined
               }
               onWaive={() =>
@@ -389,12 +423,15 @@ function FindingRow({
   waivable,
   onWaive,
   onFix,
+  onAnchor,
 }: {
   finding: ComplianceFinding;
   waivable: boolean;
   onWaive: () => void;
   /** Corriger sur place, quand l'écart se règle sur un objet éditable. */
   onFix?: () => void;
+  /** Retrouver le solde d'ouverture par arithmétique plutôt qu'à la main. */
+  onAnchor?: () => void;
 }) {
   const { t } = useTranslation();
   const reason = typeof finding.detail.reason === 'string' ? finding.detail.reason : null;
@@ -429,7 +466,24 @@ function FindingRow({
             {t('money.compliance.remaining', { amount: finding.detail.remaining })}
           </p>
         ) : null}
+        {/* Les deux chiffres qui ne concordent plus. Sans eux « l'ancrage a dérivé »
+            n'apprend rien : c'est l'écart chiffré qui dit s'il manque un relevé ou
+            si la lecture était fausse. */}
+        {typeof finding.detail.drift === 'string' ? (
+          <p className="text-xs text-muted-foreground">
+            {t('money.compliance.anchorDrift', {
+              attested: finding.detail.attested_balance,
+              computed: finding.detail.computed_balance,
+            })}
+          </p>
+        ) : null}
       </div>
+
+      {onAnchor ? (
+        <Button type="button" variant="outline" size="sm" onClick={onAnchor}>
+          {t('money.compliance.findBalance')}
+        </Button>
+      ) : null}
 
       {onFix ? (
         <Button type="button" variant="outline" size="sm" onClick={onFix}>
@@ -443,7 +497,7 @@ function FindingRow({
             ? t('money.compliance.rearbitrate')
             : t('money.compliance.arbitrate')}
         </Button>
-      ) : !onFix ? (
+      ) : !onFix && !onAnchor ? (
         <span className="shrink-0 text-xs italic text-muted-foreground">
           {t('money.compliance.notWaivable')}
         </span>
