@@ -5,9 +5,9 @@ import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
-import { CheckboxField } from '@/design-system/checkbox-field';
 import { Button } from '@/design-system/button';
-import { useZones, buildZoneTree } from '@/features/zones/hooks';
+import { useZones } from '@/features/zones/hooks';
+import ZonePicker from '@/features/zones/ZonePicker';
 import type { InteractionListItem } from '@/lib/api/interactions';
 import {
   RENOVATION_ELEMENTS,
@@ -84,17 +84,7 @@ export default function RenovationDialog({
     }
   }, [open, existing, zoneId]);
 
-  const { sortedZones, depthMap } = React.useMemo(() => buildZoneTree(allZones), [allZones]);
   const allSelected = allZones.length > 0 && selectedZones.size === allZones.length;
-
-  function toggleZone(id: string) {
-    setSelectedZones((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
 
   function toggleWholeHouse() {
     setSelectedZones((prev) =>
@@ -213,7 +203,9 @@ export default function RenovationDialog({
             <Textarea id="reno-notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
           </FormField>
 
-          {/* Multi-zone selector */}
+          {/* Zones — le sélecteur commun. Le raccourci « tout le logement »
+              reste : une rénovation porte souvent sur l'ensemble, et le cocher
+              zone par zone serait absurde. */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">
@@ -223,22 +215,12 @@ export default function RenovationDialog({
                 {allSelected ? t('renovation.form.clearZones') : t('renovation.form.wholeHouse')}
               </Button>
             </div>
-            <div className="max-h-40 space-y-1 overflow-y-auto rounded-md border border-border p-2">
-              {sortedZones.map((zone) => (
-                <div
-                  key={zone.id}
-                  style={{ paddingLeft: (depthMap.get(zone.id) ?? 0) * 12 }}
-                >
-                  <CheckboxField
-                    id={`reno-zone-${zone.id}`}
-                    label={zone.name}
-                    checked={selectedZones.has(zone.id)}
-                    onChange={() => toggleZone(zone.id)}
-                    className="rounded px-1 py-0.5 hover:bg-muted"
-                  />
-                </div>
-              ))}
-            </div>
+            <ZonePicker
+              mode="multiple"
+              id="reno-zones"
+              value={Array.from(selectedZones)}
+              onChange={(zoneIds) => setSelectedZones(new Set(zoneIds))}
+            />
           </div>
 
           {error ? (

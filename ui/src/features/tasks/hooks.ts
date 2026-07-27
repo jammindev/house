@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth/useAuth';
 import {
-  fetchTasks, fetchTask, fetchHouseholdMembers, fetchZones, fetchProjectTasks,
+  fetchTasks, fetchTask, fetchHouseholdMembers, fetchProjectTasks,
   updateTaskStatus, updateTask, createTask, deleteTask,
   fetchTaskDocuments, linkDocumentToTask, unlinkDocumentFromTask,
   fetchTaskInteractions, linkInteractionToTask, unlinkInteractionFromTask,
@@ -63,12 +63,14 @@ export function useHouseholdMembersWithMe() {
   return { ...query, data };
 }
 
-export function useZones() {
-  return useQuery({
-    queryKey: ['zones'],
-    queryFn: fetchZones,
-  });
-}
+/**
+ * Ré-export du hook canonique : une seule entrée de cache pour les zones.
+ *
+ * Cette feature avait sa propre copie avec la clé `['zones']`, distincte de
+ * `zoneKeys.list()` (`['zones', 'list']`) — donc la même liste était chargée
+ * deux fois et une écriture n'invalidait pas toujours les deux copies.
+ */
+export { useZones } from '@/features/zones/hooks';
 
 export function useUpdateTaskStatus() {
   const qc = useQueryClient();

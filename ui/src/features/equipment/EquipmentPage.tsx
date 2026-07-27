@@ -7,10 +7,11 @@ import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { EquipmentListItem } from '@/lib/api/equipment';
-import { useEquipmentList, useDeleteEquipment, useZones, equipmentKeys } from './hooks';
+import { useEquipmentList, useDeleteEquipment, equipmentKeys } from './hooks';
 import EquipmentCard from './EquipmentCard';
 import EquipmentDialog from './EquipmentDialog';
 import EquipmentPurchaseDialog from './EquipmentPurchaseDialog';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 const STATUS_OPTIONS = ['', 'active', 'maintenance', 'storage', 'retired', 'lost', 'ordered'];
 
@@ -35,7 +36,6 @@ export default function EquipmentPage() {
   );
 
   const { data: items = [], isLoading, error } = useEquipmentList(filters);
-  const { data: zones = [] } = useZones();
   const deleteEquipmentMutation = useDeleteEquipment();
 
   const handleSaved = React.useCallback(() => {
@@ -120,18 +120,21 @@ export default function EquipmentPage() {
                 })),
               },
               {
-                type: 'select',
+                type: 'custom',
                 id: 'equipment-zone',
                 label: t('equipment.zone_label'),
                 value: zone,
                 onChange: setZone,
-                options: [
-                  { value: '', label: t('equipment.all_zones') },
-                  ...zones.map((z) => ({
-                    value: z.id,
-                    label: z.full_path || z.name,
-                  })),
-                ],
+                render: (field) => (
+                  <ZonePicker
+                    id={field.id}
+                    value={field.value || null}
+                    onChange={(id) => field.onChange(id ?? '')}
+                    allowEmpty
+                    emptyLabel={t('equipment.all_zones')}
+                    placeholder={t('equipment.all_zones')}
+                  />
+                ),
               },
             ]}
             onReset={resetFilters}

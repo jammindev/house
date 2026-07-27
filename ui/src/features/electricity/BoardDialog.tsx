@@ -6,11 +6,11 @@ import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import { fetchZones } from '@/lib/api/zones';
-import type { Zone } from '@/lib/api/zones';
 import { fetchBoards } from '@/lib/api/electricity';
 import { useCreateBoard, useUpdateBoard } from './hooks';
 import type { ElectricityBoard } from '@/lib/api/electricity';
+import ZonePicker from '@/features/zones/ZonePicker';
+import { useZones } from '@/features/zones/hooks';
 
 interface BoardDialogProps {
   open: boolean;
@@ -22,6 +22,7 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
   const { t } = useTranslation();
   const isEditing = Boolean(existing);
 
+  const { data: zones = [] } = useZones();
   const [label, setLabel] = React.useState('');
   const [name, setName] = React.useState('');
   const [parentId, setParentId] = React.useState('');
@@ -33,7 +34,6 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
   const [notes, setNotes] = React.useState('');
   const [lastInspection, setLastInspection] = React.useState('');
   const [compliance, setCompliance] = React.useState<'' | 'yes' | 'no' | 'partial'>('');
-  const [zones, setZones] = React.useState<Zone[]>([]);
   const [boards, setBoards] = React.useState<ElectricityBoard[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -43,7 +43,6 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
 
   React.useEffect(() => {
     if (!open) return;
-    fetchZones().then(setZones).catch(() => setZones([]));
     fetchBoards().then(setBoards).catch(() => setBoards([]));
   }, [open]);
 
@@ -142,8 +141,6 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
     { value: 'partial', label: t('electricity.board.compliancePartial') },
   ];
 
-  const zoneOptions = zones.map((z) => ({ value: z.id, label: z.full_path ?? z.name }));
-
   return (
     <SheetDialog
       open={open}
@@ -172,13 +169,11 @@ export default function BoardDialog({ open, onOpenChange, existing }: BoardDialo
           </div>
 
           <FormField label={t('electricity.board.zone')} htmlFor="board-zone">
-            <Select
+            <ZonePicker
               id="board-zone"
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              options={zoneOptions}
+              value={zoneId || null}
+              onChange={(id) => setZoneId(id ?? '')}
               placeholder={t('electricity.selectZone')}
-              required
             />
           </FormField>
 

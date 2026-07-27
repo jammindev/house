@@ -6,12 +6,13 @@ import PageHeader from '@/components/PageHeader';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
-import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { useCreateInteraction } from './hooks';
 import ExpenseFields from './ExpenseFields';
+import ZonePicker from '@/features/zones/ZonePicker';
+import { useZones } from '@/features/zones/hooks';
 
 const TYPE_OPTIONS = [
   'note',
@@ -70,7 +71,7 @@ export default function InteractionNewPage() {
   const [description, setDescription] = React.useState('');
   const [tagsInput, setTagsInput] = React.useState('');
   const [zoneId, setZoneId] = React.useState(paramZoneId);
-  const [zones, setZones] = React.useState<ZoneOption[]>([]);
+  const { data: zones = [] } = useZones();
   const [contactId, setContactId] = React.useState('');
   const [structureId, setStructureId] = React.useState('');
   const [contacts, setContacts] = React.useState<Contact[]>([]);
@@ -85,7 +86,6 @@ export default function InteractionNewPage() {
   const zoneIsLocked = !!paramZoneId;
 
   React.useEffect(() => {
-    fetchZones().then(setZones).catch(() => {});
     fetchContacts().then(setContacts).catch(() => {});
     fetchStructures().then(setStructures).catch(() => {});
     fetchEquipmentList().then(setEquipmentList).catch(() => {});
@@ -289,20 +289,12 @@ export default function InteractionNewPage() {
                 zoneId}
             </div>
           ) : (
-            <select
+            <ZonePicker
               id="interaction-zone"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              required
-            >
-              <option value="">{t('interactions.zone_placeholder')}</option>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.full_path ?? z.name}
-                </option>
-              ))}
-            </select>
+              value={zoneId || null}
+              onChange={(id) => setZoneId(id ?? '')}
+              placeholder={t('interactions.zone_placeholder')}
+            />
           )}
         </div>
 

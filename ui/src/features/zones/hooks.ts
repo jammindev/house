@@ -7,6 +7,8 @@ import {
   createZone,
   updateZone,
   deleteZone,
+  moveZone,
+  reorderZones,
   type Zone,
   type ZonePayload,
 } from '@/lib/api/zones';
@@ -79,6 +81,36 @@ export function useDeleteZone() {
   });
 }
 
+/**
+ * Réordonnancement — les deux chemins d'écriture de l'ordre.
+ *
+ * Aucun des deux ne fait de mise à jour optimiste : l'ordre est normalisé côté
+ * serveur (rangs 0..n-1) et un « Descendre » en butée est un no-op. Deviner le
+ * résultat côté client ferait clignoter la liste vers un état que le serveur
+ * n'a pas retenu.
+ */
+export function useMoveZone() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ id, direction }: { id: string; direction: 'up' | 'down' }) =>
+      moveZone(id, direction),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: zoneKeys.all }); },
+    onError: () => toast({ description: t('zones.reorderFailed'), variant: 'destructive' }),
+  });
+}
+
+export function useReorderZones() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({ parent, zoneIds }: { parent: string | null; zoneIds: string[] }) =>
+      reorderZones(parent, zoneIds),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: zoneKeys.all }); },
+    onError: () => toast({ description: t('zones.reorderFailed'), variant: 'destructive' }),
+  });
+}
+
 // ── Zone-scoped data hooks ────────────────────────────────────────────────────
 
 export const zoneEquipmentKeys = {
@@ -128,6 +160,70 @@ export function useZoneProjects(zoneId: string) {
 // ── Tree helpers (used by components) ────────────────────────────────────────
 
 /**
+ * L'ordre d'une fratrie : le rang choisi par le foyer, puis le nom.
+ *
+ * Miroir exact de `Zone.Meta.ordering = ['position', 'name']` côté backend. Le
+ * front trie quand même — l'API sert déjà les zones dans cet ordre, mais chaque
+ * groupe de frères est reconstitué localement (filtres, écriture optimiste du
+ * cache), et un tri implicite hérité d'une réponse HTTP se casse dès qu'on
+ * manipule la liste.
+ *
+ * `name` en second critère garantit un ordre stable quand deux frères partagent
+ * un rang — l'état de toute fratrie qui n'a jamais été réordonnée.
+ */
+export function compareZones(a: Zone, b: Zone): number {
+  const byPosition = (a.position ?? 0) - (b.position ?? 0);
+  if (byPosition !== 0) return byPosition;
+  return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+}
+
+/** Le parent d'une zone, quelle que soit la forme du payload. */
+export function parentIdOf(zone: Zone): string | null {
+  return zone.parentId ?? zone.parent ?? null;
+}
+
+/**
+ * Nouvel ordre d'une fratrie après un glisser-déposer, ou `null` si le geste
+ * n'a rien à changer.
+ *
+ * Renvoie **toute** la fratrie : l'endpoint refuse un sous-ensemble. Le
+ * déplacement est refusé entre parents différents — le reparentage reste au
+ * champ « Zone parente » du formulaire, où il est explicite et réversible ;
+ * l'autoriser au glisser ferait déplacer un sous-arbre entier sur une
+ * imprécision de quelques pixels.
+ */
+export function computeSiblingOrder(
+  zones: Zone[],
+  draggedId: string,
+  targetId: string,
+  edge: 'before' | 'after'
+): { parent: string | null; zoneIds: string[] } | null {
+  if (draggedId === targetId) return null;
+
+  const dragged = zones.find((z) => z.id === draggedId);
+  const target = zones.find((z) => z.id === targetId);
+  if (!dragged || !target) return null;
+
+  const parent = parentIdOf(dragged);
+  if (parent !== parentIdOf(target)) return null;
+
+  const siblings = zones.filter((z) => parentIdOf(z) === parent).sort(compareZones);
+  const current = siblings.map((z) => z.id);
+
+  const without = current.filter((id) => id !== draggedId);
+  const targetIndex = without.indexOf(targetId);
+  if (targetIndex === -1) return null;
+
+  const insertAt = edge === 'before' ? targetIndex : targetIndex + 1;
+  const next = [...without.slice(0, insertAt), draggedId, ...without.slice(insertAt)];
+
+  // Geste sans effet (déposer juste à côté de sa propre place) : ne pas écrire.
+  if (next.every((id, index) => id === current[index])) return null;
+
+  return { parent, zoneIds: next };
+}
+
+/**
  * Given a flat list of zones, compute a depth-first ordered list
  * (roots first, then children indented) along with a depth map.
  */
@@ -151,10 +247,8 @@ export function buildZoneTree(zones: Zone[]): {
     childrenByParent.set(parentId, list);
   }
 
-  // Sort each group alphabetically
-  childrenByParent.forEach((list) =>
-    list.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  );
+  // Ordre du foyer (position, puis nom) — voir compareZones.
+  childrenByParent.forEach((list) => list.sort(compareZones));
 
   const depthMap = new Map<string, number>();
   const sortedZones: Zone[] = [];
@@ -169,9 +263,7 @@ export function buildZoneTree(zones: Zone[]): {
     for (const child of children) visit(child, depth + 1);
   };
 
-  const roots = (childrenByParent.get(null) ?? []).slice().sort((a, b) =>
-    a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-  );
+  const roots = (childrenByParent.get(null) ?? []).slice().sort(compareZones);
   for (const root of roots) visit(root, 0);
 
   // Handle orphans (parent missing from list)
@@ -208,9 +300,7 @@ function groupByParent(zones: Zone[]): Map<string | null, Zone[]> {
     list.push(zone);
     byParent.set(parentId, list);
   }
-  byParent.forEach((list) =>
-    list.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  );
+  byParent.forEach((list) => list.sort(compareZones));
   return byParent;
 }
 
@@ -352,7 +442,7 @@ export function buildZoneRows(
       const parentId = zone.parentId ?? zone.parent ?? null;
       return !parentId || !present.has(parentId);
     })
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+    .sort(compareZones);
 
   roots.forEach((root, index) => walk(root, 0, index === roots.length - 1, []));
 

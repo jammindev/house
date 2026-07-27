@@ -10,8 +10,11 @@ import { toast } from '@/lib/toast';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useSessionState } from '@/lib/useSessionState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
-import { useZones, useDeleteZone, zoneKeys, buildZoneRows, expandableZoneIds } from './hooks';
-import ZoneRow from './ZoneRow';
+import {
+  useZones, useDeleteZone, useMoveZone, useReorderZones, zoneKeys,
+  buildZoneRows, expandableZoneIds, compareZones, computeSiblingOrder, parentIdOf,
+} from './hooks';
+import ZoneRow, { type ZoneDragState } from './ZoneRow';
 import ZoneDialog from './ZoneDialog';
 import type { Zone } from '@/lib/api/zones';
 
@@ -89,6 +92,63 @@ export default function ZonesPage() {
   const toggleAll = React.useCallback(() => {
     setCollapsedIds((previous) => (previous.length > 0 ? [] : allExpandableIds));
   }, [setCollapsedIds, allExpandableIds]);
+
+  // ── Réordonnancement ──────────────────────────────────────────────────────
+  const moveMutation = useMoveZone();
+  const reorderMutation = useReorderZones();
+  const [drag, setDrag] = React.useState<ZoneDragState>({ draggingId: null, target: null });
+
+  /**
+   * Rang de chaque zone dans sa fratrie, et taille de la fratrie — pour savoir
+   * si « Monter »/« Descendre » a un sens. Calculé sur l'arbre **complet** : en
+   * butée dans les lignes filtrées ne veut pas dire en butée dans la fratrie.
+   */
+  const siblingBounds = React.useMemo(() => {
+    const groups = new Map<string | null, string[]>();
+    for (const zone of [...zones].sort(compareZones)) {
+      const parent = parentIdOf(zone);
+      const list = groups.get(parent) ?? [];
+      list.push(zone.id);
+      groups.set(parent, list);
+    }
+    const bounds = new Map<string, { isFirst: boolean; isLast: boolean }>();
+    groups.forEach((ids) =>
+      ids.forEach((id, index) =>
+        bounds.set(id, { isFirst: index === 0, isLast: index === ids.length - 1 })
+      )
+    );
+    return bounds;
+  }, [zones]);
+
+  const handleMove = React.useCallback(
+    (zone: Zone, direction: 'up' | 'down') => {
+      moveMutation.mutate({ id: zone.id, direction });
+    },
+    [moveMutation]
+  );
+
+  const handleDropRow = React.useCallback(
+    (target: Zone) => {
+      const edge = drag.target?.zoneId === target.id ? drag.target.edge : 'before';
+      const draggingId = drag.draggingId;
+      setDrag({ draggingId: null, target: null });
+      if (!draggingId) return;
+
+      const order = computeSiblingOrder(zones, draggingId, target.id, edge);
+      // `null` = geste sans effet, ou dépôt sur une autre fratrie (le
+      // reparentage reste au champ « Zone parente »). On informe plutôt que de
+      // ne rien faire en silence.
+      if (!order) {
+        const dragged = zones.find((z) => z.id === draggingId);
+        if (dragged && parentIdOf(dragged) !== parentIdOf(target)) {
+          toast({ description: t('zones.dropSameParentOnly') });
+        }
+        return;
+      }
+      reorderMutation.mutate(order);
+    },
+    [drag, zones, reorderMutation, t]
+  );
 
   // Stats de tête : ce que la liste ne peut pas dire d'un coup d'œil.
   const stats = React.useMemo(() => {
@@ -210,16 +270,35 @@ export default function ZonesPage() {
               </Card>
             ) : (
               <Card className="divide-y divide-border/60 overflow-hidden">
-                {rows.map((row) => (
-                  <ZoneRow
-                    key={row.zone.id}
-                    row={row}
-                    collapsed={collapsed.has(row.zone.id)}
-                    onToggle={toggleZone}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
+                {rows.map((row) => {
+                  const bounds = siblingBounds.get(row.zone.id);
+                  return (
+                    <ZoneRow
+                      key={row.zone.id}
+                      row={row}
+                      collapsed={collapsed.has(row.zone.id)}
+                      onToggle={toggleZone}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onMove={handleMove}
+                      canMoveUp={!isSearching && bounds ? !bounds.isFirst : false}
+                      canMoveDown={!isSearching && bounds ? !bounds.isLast : false}
+                      drag={drag}
+                      onDragStart={(zone) =>
+                        setDrag({ draggingId: zone.id, target: null })
+                      }
+                      onDragEnd={() => setDrag({ draggingId: null, target: null })}
+                      onDragOverRow={(zone, edge) =>
+                        setDrag((previous) =>
+                          previous.target?.zoneId === zone.id && previous.target.edge === edge
+                            ? previous
+                            : { ...previous, target: { zoneId: zone.id, edge } }
+                        )
+                      }
+                      onDropRow={handleDropRow}
+                    />
+                  );
+                })}
               </Card>
             )}
 

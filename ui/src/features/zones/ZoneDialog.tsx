@@ -6,7 +6,8 @@ import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { Zone, ZonePayload } from '@/lib/api/zones';
-import { useCreateZone, useUpdateZone, useZones, buildZoneTree, getDescendantIds } from './hooks';
+import { useCreateZone, useUpdateZone, useZones, getDescendantIds } from './hooks';
+import ZonePicker from './ZonePicker';
 
 // Default color for first-level zones
 const DEFAULT_COLOR = '#60A5FA';
@@ -35,18 +36,12 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // Build sorted tree for the parent selector
-  const { sortedZones, depthMap } = React.useMemo(
-    () => buildZoneTree(allZones),
-    [allZones]
+  // En édition, la zone elle-même et ses descendants ne peuvent pas devenir son
+  // parent — `getDescendantIds` est inclusif.
+  const excludedParentIds = React.useMemo(
+    () => (existing ? getDescendantIds(existing.id, allZones) : new Set<string>()),
+    [existing, allZones]
   );
-
-  // When editing, exclude self and all descendants from parent options
-  const parentOptions = React.useMemo(() => {
-    if (!existing) return sortedZones;
-    const excluded = getDescendantIds(existing.id, allZones);
-    return sortedZones.filter((z) => !excluded.has(z.id));
-  }, [sortedZones, existing, allZones]);
 
   // Reset form when dialog opens
   React.useEffect(() => {
@@ -138,25 +133,19 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
             />
           </FormField>
 
-          {/* Parent zone */}
+          {/* Zone parente — le sélecteur commun. Les descendants de la zone
+              éditée restent visibles mais désactivés : les masquer trouerait
+              l'arborescence, alors que l'utilisateur a besoin de la voir pour
+              choisir. S'en faire son propre enfant créerait un cycle. */}
           <FormField label={t('zones.fieldParent')} htmlFor="zone-parent">
-            <select
+            <ZonePicker
               id="zone-parent"
-              value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-            >
-              <option value="">{t('zones.noParent')}</option>
-              {parentOptions.map((zone) => {
-                const depth = depthMap.get(zone.id) ?? 0;
-                const prefix = depth > 0 ? `${'— '.repeat(depth)}` : '';
-                return (
-                  <option key={zone.id} value={zone.id}>
-                    {prefix}{zone.name}
-                  </option>
-                );
-              })}
-            </select>
+              value={parentId || null}
+              onChange={(id) => setParentId(id ?? '')}
+              allowEmpty
+              emptyLabel={t('zones.noParent')}
+              disabledIds={excludedParentIds}
+            />
           </FormField>
 
           {/* Color */}

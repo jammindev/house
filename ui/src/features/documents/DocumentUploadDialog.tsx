@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
@@ -8,9 +7,9 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { Label } from '@/design-system/label';
-import { fetchZones } from '@/lib/api/zones';
 import { DOCUMENT_TYPES, type DocumentType, type DocumentDetail } from '@/lib/api/documents';
 import { useCreateDocument } from './hooks';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 interface DocumentUploadDialogProps {
   open: boolean;
@@ -38,11 +37,6 @@ export default function DocumentUploadDialog({
   const [zone, setZone] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
-  const { data: zones = [] } = useQuery({
-    queryKey: ['zones'],
-    queryFn: fetchZones,
-    enabled: open,
-  });
 
   React.useEffect(() => {
     if (!open) return;
@@ -90,11 +84,6 @@ export default function DocumentUploadDialog({
       value: v,
       label: t(`documents.type.${v}`),
     })),
-  ];
-
-  const zoneOptions = [
-    { value: '', label: t('documents.upload.noZone') },
-    ...zones.map((z) => ({ value: z.id, label: z.full_path || z.name })),
   ];
 
   return (
@@ -162,11 +151,12 @@ export default function DocumentUploadDialog({
 
           {/* Zone */}
           <FormField label={t('documents.upload.zone')} htmlFor="upload-zone">
-            <Select
+            <ZonePicker
               id="upload-zone"
-              value={zone}
-              onChange={(e) => setZone(e.target.value)}
-              options={zoneOptions}
+              value={zone || null}
+              onChange={(id) => setZone(id ?? '')}
+              allowEmpty
+              emptyLabel={t('documents.upload.noZone')}
             />
           </FormField>
 

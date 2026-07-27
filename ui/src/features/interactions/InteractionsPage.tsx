@@ -8,10 +8,10 @@ import { FilterBar } from '@/design-system/filter-bar';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import type { InteractionListItem } from '@/lib/api/interactions';
-import { fetchZones, type ZoneOption } from '@/lib/api/zones';
 import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { useInteractions, useDeleteInteraction, interactionKeys } from './hooks';
 import InteractionCard from './InteractionCard';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 const TYPE_OPTIONS = [
   'note',
@@ -43,11 +43,9 @@ export default function InteractionsPage() {
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
 
-  const [zones, setZones] = React.useState<ZoneOption[]>([]);
   const [contacts, setContacts] = React.useState<Contact[]>([]);
 
   React.useEffect(() => {
-    fetchZones().then(setZones).catch(() => {});
     fetchContacts().then(setContacts).catch(() => {});
   }, []);
 
@@ -157,15 +155,21 @@ export default function InteractionsPage() {
               ],
             },
             {
-              type: 'select',
+              type: 'custom',
               id: 'interactions-zone',
               label: t('interactions.filter_zone'),
               value: zone,
               onChange: setZone,
-              options: [
-                { value: '', label: t('interactions.all_zones') },
-                ...zones.map((z) => ({ value: z.id, label: z.full_path || z.name })),
-              ],
+              render: (field) => (
+                <ZonePicker
+                  id={field.id}
+                  value={field.value || null}
+                  onChange={(id) => field.onChange(id ?? '')}
+                  allowEmpty
+                  emptyLabel={t('interactions.all_zones')}
+                  placeholder={t('interactions.all_zones')}
+                />
+              ),
             },
             {
               type: 'select',

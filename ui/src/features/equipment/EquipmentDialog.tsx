@@ -7,7 +7,8 @@ import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { EquipmentListItem, EquipmentPayload } from '@/lib/api/equipment';
-import { useCreateEquipment, useUpdateEquipment, useZones } from './hooks';
+import { useCreateEquipment, useUpdateEquipment } from './hooks';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 interface EquipmentDialogProps {
   open: boolean;
@@ -133,7 +134,6 @@ export default function EquipmentDialog({
   const [form, setForm] = React.useState<FormState>(EMPTY_STATE);
   const [error, setError] = React.useState<string | null>(null);
 
-  const { data: zones = [] } = useZones();
   const createMutation = useCreateEquipment();
   const updateMutation = useUpdateEquipment();
 
@@ -220,18 +220,13 @@ export default function EquipmentDialog({
               </Select>
             </FormField>
             <FormField label={t('equipment.form.fields.zone')} htmlFor="eq-zone">
-              <Select
+              <ZonePicker
                 id="eq-zone"
-                value={form.zone}
-                onChange={(e) => updateField('zone', e.target.value)}
-              >
-                <option value="">{t('equipment.no_zone')}</option>
-                {zones.map((z) => (
-                  <option key={z.id} value={z.id}>
-                    {z.full_path || z.name}
-                  </option>
-                ))}
-              </Select>
+                value={form.zone || null}
+                onChange={(id) => updateField('zone', id ?? '')}
+                allowEmpty
+                emptyLabel={t('equipment.no_zone')}
+              />
             </FormField>
           </div>
 

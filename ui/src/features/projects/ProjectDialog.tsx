@@ -6,7 +6,7 @@ import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
-import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
+import ZonePicker from '@/features/zones/ZonePicker';
 import {
   createProject,
   updateProject,
@@ -192,7 +192,7 @@ export default function ProjectDialog({
 
           {/* Zones — multi-select */}
           <FormField label={t('projects.form.fields.zones')} htmlFor="proj-zones">
-            <ZoneMultiSelect id="proj-zones" value={zoneIds} onChange={setZoneIds} />
+            <ZonePicker mode="multiple" id="proj-zones" value={zoneIds} onChange={setZoneIds} />
           </FormField>
 
           {/* Dates */}

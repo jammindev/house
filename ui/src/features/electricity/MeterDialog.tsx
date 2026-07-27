@@ -6,10 +6,10 @@ import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import { fetchZones, type Zone } from '@/lib/api/zones';
 import type { ElectricityMeter, MeterTariffType } from '@/lib/api/electricity';
 import { useCreateMeter, useUpdateMeter } from './hooks';
 import { ENEDIS_EXPORT_URL } from './exportProviders';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 interface MeterDialogProps {
   open: boolean;
@@ -27,7 +27,6 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
   const [zoneId, setZoneId] = React.useState('');
   const [exportUrl, setExportUrl] = React.useState('');
   const [notes, setNotes] = React.useState('');
-  const [zones, setZones] = React.useState<Zone[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const createMeter = useCreateMeter();
@@ -36,7 +35,6 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
 
   React.useEffect(() => {
     if (!open) return;
-    fetchZones().then(setZones).catch(() => setZones([]));
     if (existing) {
       setName(existing.name);
       setSerialNumber(existing.serial_number ?? '');
@@ -88,11 +86,6 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
     }
   }
 
-  const zoneOptions = [
-    { value: '', label: t('electricity.meter.noZone') },
-    ...zones.map((z) => ({ value: z.id, label: z.name })),
-  ];
-
   return (
     <SheetDialog
       open={open}
@@ -130,11 +123,12 @@ export default function MeterDialog({ open, onOpenChange, existing }: MeterDialo
           </FormField>
         </div>
         <FormField label={t('electricity.meter.zone')} htmlFor="meter-zone">
-          <Select
+          <ZonePicker
             id="meter-zone"
-            value={zoneId}
-            onChange={(e) => setZoneId(e.target.value)}
-            options={zoneOptions}
+            value={zoneId || null}
+            onChange={(id) => setZoneId(id ?? '')}
+            allowEmpty
+            emptyLabel={t('electricity.meter.noZone')}
           />
         </FormField>
         <FormField label={t('electricity.meter.exportUrl')} htmlFor="meter-export-url">
