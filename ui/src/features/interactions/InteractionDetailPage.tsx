@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FileText, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Link2, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
@@ -15,6 +15,7 @@ import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { formatAmount, formatDateTime } from '@/lib/format';
 import ReconciliationBadge from '@/features/money/ReconciliationBadge';
+import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
 // ── Main page ──────────────────────────────────────────────
@@ -27,6 +28,7 @@ export default function InteractionDetailPage() {
   const navigateBack = useNavigateBack('/app/interactions');
 
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [attachOpen, setAttachOpen] = React.useState(false);
 
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
   const deleteMutation = useDeleteInteraction();
@@ -145,7 +147,21 @@ export default function InteractionDetailPage() {
                   <p className="text-xs text-muted-foreground">
                     {interaction.bank_line.account_name} · {interaction.bank_line.label}
                   </p>
-                ) : null}
+                ) : (
+                  /* Le constat sans le geste à côté n'aide personne : c'est ici
+                     qu'on lit « en attente », donc c'est ici qu'on doit pouvoir
+                     désigner l'opération. */
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setAttachOpen(true)}
+                    disabled={!amount}
+                  >
+                    <Link2 className="mr-1.5 h-3 w-3" />
+                    {t('banking.attach.action')}
+                  </Button>
+                )}
               </div>
             </InfoField>
           ) : null}
@@ -248,6 +264,19 @@ export default function InteractionDetailPage() {
           </div>
         ) : null}
       </div>
+
+      {isExpense && amount ? (
+        <AttachToTransactionDialog
+          open={attachOpen}
+          onOpenChange={setAttachOpen}
+          expense={{
+            id: interaction.id,
+            subject: interaction.subject,
+            amount,
+            occurred_at: interaction.occurred_at,
+          }}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={deleteOpen}

@@ -3544,6 +3544,13 @@
       "allocatedOf": "{{allocated}} asignados de {{total}}",
       "noAllocation": "Todavía no hay nada vinculado a esta operación.",
       "remaining": "Quedan {{amount}} por asignar"
+    },
+    "attach": {
+      "title": "Vincular a una operación",
+      "action": "Vincular a una operación",
+      "hint": "Solo se muestran las operaciones cuyo importe restante cubre este gasto. Un gasto puede cubrir solo una parte de una línea: el resto esperará su propia asignación.",
+      "none": "Ninguna operación tiene espacio para este importe. Importa el extracto del periodo, o revisa el importe del gasto.",
+      "remaining": "quedan {{amount}}"
     }
   },
   "pwa": {

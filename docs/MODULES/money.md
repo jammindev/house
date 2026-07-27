@@ -343,6 +343,30 @@ Côté écran : le budget se choisit dans `ClassifyInflowDialog` quand la nature
 page d'un budget liste ses remboursements sous ses dépenses — « avoir la ligne sous
 les yeux » était la moitié de la demande.
 
+### Rattacher une dépense à une opération, depuis la dépense
+
+Le rapprochement manuel n'existait que **depuis la ligne** (`UnreconciledPicker`,
+action « Rapprocher » du journal). Or on part souvent de l'autre bout : on lit
+« En attente de rapprochement » sur une dépense et on veut désigner l'opération.
+Le constat était posé partout sans l'action à côté.
+
+`AttachToTransactionDialog` est le miroir exact : au lieu de chercher une dépense
+pour une ligne, il cherche une ligne pour une dépense.
+
+- **Les candidates viennent du serveur** (`?fits=<montant>`) : seules les sorties
+  non internes dont le **reste à ventiler** couvre le montant. Le reste est une
+  annotation — le client ne peut pas le calculer — et proposer une ligne trop
+  petite offrirait un bouton que `assert_allocation_fits` refuse, ce qui est pire
+  que ne rien proposer.
+- **Une dépense peut ne couvrir qu'une partie d'une ligne** : 90 € sur 150 €, les
+  60 € restants attendent leur propre affectation. C'est précisément ce que le
+  matcher automatique refuse de deviner (`score_pair` rejette au-delà de la
+  tolérance, à raison), et le seul qui puisse trancher est l'utilisateur.
+- Le tri est l'**écart en jours** avec la date de la dépense : à montants
+  compatibles, c'est la seule indication qui distingue deux lignes plausibles.
+
+Tests : `banking/tests/test_expense_marker.py::TestWhichLinesCouldCarryThisExpense`.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions

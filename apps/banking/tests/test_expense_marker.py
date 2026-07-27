@@ -41,7 +41,9 @@ EXPENSES_URL = "/api/interactions/interactions/?type=expense"
 _counter = itertools.count()
 
 
-def make_txn(account, *, amount, booked_on=date(2026, 3, 10), label="CB LECLERC"):
+def make_txn(
+    account, *, amount, booked_on=date(2026, 3, 10), label="CB LECLERC", internal=False
+):
     value = Decimal(amount)
     return BankTransaction.objects.create(
         household=account.household,
@@ -50,6 +52,7 @@ def make_txn(account, *, amount, booked_on=date(2026, 3, 10), label="CB LECLERC"
         label_raw=label,
         label_norm=label.upper(),
         amount=value,
+        is_internal=internal,
         direction=TransactionDirection.OUT if value < 0 else TransactionDirection.IN,
         dedup_hash=compute_dedup_hash(
             account_id=account.id,
@@ -320,3 +323,68 @@ class TestItStaysCheap:
         # Trois : la fenêtre du compte (deux agrégats) et la liste des comptes.
         # Les lignes elles-mêmes arrivent jointes à la requête des interactions.
         assert self._banking_queries(many.captured_queries) <= 4
+
+
+@pytest.mark.django_db
+class TestWhichLinesCouldCarryThisExpense:
+    """`?fits=` — « quelles opérations ont la place pour cette dépense ? ».
+
+    Le pendant, depuis la dépense, de la file « À ranger » qui part de la ligne.
+    Le matcher automatique ne répondra jamais à ça : 90 € face à une ligne de
+    150 € est rejeté par `score_pair`, à raison. Mais c'est un cas réel, et le
+    seul qui puisse trancher est l'utilisateur — on lui montre donc ce qui a
+    matériellement la place, et rien d'autre.
+    """
+
+    URL = "/api/banking/transactions/"
+
+    def labels(self, client, amount):
+        body = client.get(f"{self.URL}?fits={amount}").json()
+        return [r["label_raw"] for r in body["results"]]
+
+    def test_a_line_too_small_is_not_proposed(self, ctx):
+        """Proposer un bouton que le serveur refusera est pire que ne rien proposer."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="-50.00", label="PETITE")
+        make_txn(account, amount="-200.00", label="GRANDE")
+
+        assert self.labels(client, "90.00") == ["GRANDE"]
+
+    def test_a_partly_split_line_offers_only_what_is_left(self, ctx):
+        """150 € dont 90 € déjà ventilés : il reste 60 €, pas 150."""
+        household, user, account, budget, client = ctx
+        txn = make_txn(account, amount="-150.00", label="LEROY MERLIN")
+        create_bank_expense_interaction(
+            household=household,
+            user=user,
+            transaction=txn,
+            subject="Carrelage",
+            amount=Decimal("90.00"),
+            budget_id=budget.id,
+        )
+
+        assert self.labels(client, "60.00") == ["LEROY MERLIN"]
+        assert self.labels(client, "61.00") == []
+
+    def test_an_expense_can_cover_part_of_a_line(self, ctx):
+        """Le cas qui motive tout : 90 € sur une ligne de 150 €."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="-150.00", label="LEROY MERLIN")
+
+        assert self.labels(client, "90.00") == ["LEROY MERLIN"]
+
+    def test_receipts_and_internal_movements_are_never_proposed(self, ctx):
+        """Une recette n'a rien à ventiler ; un retrait est compté ailleurs."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="900.00", label="VIR SALAIRE")
+        make_txn(account, amount="-300.00", internal=True, label="RETRAIT DAB")
+        make_txn(account, amount="-300.00", label="CB VRAIE DEPENSE")
+
+        assert self.labels(client, "50.00") == ["CB VRAIE DEPENSE"]
+
+    def test_a_malformed_amount_is_a_400(self, ctx):
+        """Un paramètre illisible est une erreur, jamais un filtre ignoré."""
+        _, _, account, _, client = ctx
+
+        assert client.get(f"{self.URL}?fits=beaucoup").status_code == 400
+        assert client.get(f"{self.URL}?fits=-10").status_code == 400

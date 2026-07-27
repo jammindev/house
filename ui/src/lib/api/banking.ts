@@ -276,6 +276,12 @@ export interface TransactionFilters {
   allocation?: 'todo' | '';
   /** Id du budget qu'un remboursement recrédite — pour la page d'un budget. */
   refund_budget?: string;
+  /**
+   * Ne garder que les sorties dont le reste à ventiler couvre ce montant —
+   * « quelles lignes pourraient porter cette dépense ? ». Filtre serveur : le
+   * reste est une annotation, il n'existe pas côté client avant la réponse.
+   */
+  fits?: string;
   q?: string;
 }
 

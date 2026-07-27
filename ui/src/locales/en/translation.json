@@ -3544,6 +3544,13 @@
       "allocatedOf": "{{allocated}} allocated out of {{total}}",
       "noAllocation": "Nothing is attached to this operation yet.",
       "remaining": "{{amount}} left to allocate"
+    },
+    "attach": {
+      "title": "Attach to an operation",
+      "action": "Attach to an operation",
+      "hint": "Only operations whose remaining amount covers this expense are listed. An expense may cover just part of a line: the rest will wait for its own allocation.",
+      "none": "No operation has room for this amount. Import the period's statement, or check the expense amount.",
+      "remaining": "{{amount}} left"
     }
   },
   "pwa": {
