@@ -3544,6 +3544,13 @@
       "allocatedOf": "{{allocated}} ventilés sur {{total}}",
       "noAllocation": "Rien n'est encore rattaché à cette opération.",
       "remaining": "Reste {{amount}} à ventiler"
+    },
+    "attach": {
+      "title": "Rattacher à une opération",
+      "action": "Rattacher à une opération",
+      "hint": "Seules les opérations dont le reste à ventiler couvre ce montant sont proposées. Une dépense peut ne couvrir qu'une partie d'une ligne : le reste attendra sa propre affectation.",
+      "none": "Aucune opération n'a la place pour ce montant. Importez le relevé de la période, ou vérifiez le montant de la dépense.",
+      "remaining": "reste {{amount}}"
     }
   },
   "pwa": {

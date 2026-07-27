@@ -1,7 +1,9 @@
 """Banking REST API views."""
 import json
 from datetime import date
-from decimal import InvalidOperation
+from decimal import Decimal, InvalidOperation
+
+from django.db.models import F, Value
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -48,7 +50,7 @@ from .models import (
     TransactionDirection,
 )
 from . import queries
-from .queries import search
+from .queries import AMOUNT_FIELD, search
 from .validators import allocated_total, remaining_to_allocate
 from .serializers import (
     BalanceAnchorInputSerializer,
@@ -376,6 +378,28 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         date_to = _parse_date_param(params.get("date_to"), "date_to")
         if date_to:
             qs = qs.filter(booked_on__lte=date_to)
+
+        # « Quelles lignes pourraient porter cette dépense ? » — le pendant, depuis
+        # la dépense, de la file « À ranger » qui part de la ligne.
+        #
+        # Le matcher automatique ne répondra jamais à ça : un achat de 90 € face à
+        # une ligne de 150 € est rejeté par ``score_pair``, à raison — 60 € d'écart
+        # n'est pas un appariement plausible. Mais c'est un cas réel, et le seul
+        # qui sache trancher est l'utilisateur. On lui montre donc ce qui a
+        # *matériellement* la place : le reste à ventiler doit couvrir le montant.
+        fits = params.get("fits")
+        if fits:
+            try:
+                needed = Decimal(fits)
+            except (InvalidOperation, TypeError):
+                raise ValidationError({"fits": "Expected a decimal amount."})
+            if needed <= 0:
+                raise ValidationError({"fits": "Expected a positive amount."})
+            qs = qs.filter(
+                direction=TransactionDirection.OUT,
+                is_internal=False,
+                transfer_counterpart__isnull=True,
+            ).filter(outflow_value__gte=F("allocated") + Value(needed, output_field=AMOUNT_FIELD))
 
         # Les remboursements d'une enveloppe — ce qui permet à la page d'un budget
         # d'afficher la ligne qui lui a rendu de l'argent, à côté des dépenses qui

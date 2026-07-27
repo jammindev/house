@@ -3544,6 +3544,13 @@
       "allocatedOf": "{{allocated}} von {{total}} zugeordnet",
       "noAllocation": "Dieser Buchung ist noch nichts zugeordnet.",
       "remaining": "Noch {{amount}} zuzuordnen"
+    },
+    "attach": {
+      "title": "Einer Buchung zuordnen",
+      "action": "Einer Buchung zuordnen",
+      "hint": "Es werden nur Buchungen angezeigt, deren Restbetrag diesen Betrag abdeckt. Eine Ausgabe kann nur einen Teil einer Zeile abdecken: der Rest wartet auf seine eigene Zuordnung.",
+      "none": "Keine Buchung hat Platz für diesen Betrag. Importieren Sie den Auszug des Zeitraums, oder prüfen Sie den Betrag.",
+      "remaining": "noch {{amount}}"
     }
   },
   "pwa": {
