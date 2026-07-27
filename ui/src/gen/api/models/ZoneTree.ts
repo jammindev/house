@@ -12,17 +12,18 @@ export type ZoneTree = {
     parent?: string | null;
     readonly parent_name: string;
     note?: string;
-    /**
-     * Surface area (e.g., square meters)
-     */
     surface?: string | null;
     /**
      * Hex color code for zone display
      */
     color?: string;
+    readonly position: number;
     readonly full_path: string;
     readonly depth: string;
     readonly children_count: string;
+    readonly equipment_count: string;
+    readonly open_task_count: string;
+    readonly active_project_count: string;
     readonly created_at: string;
     readonly updated_at: string;
     readonly created_by: number | null;

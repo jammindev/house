@@ -71,6 +71,26 @@ export type InteractionDetail = {
      * * `manual` - Manual
      */
     readonly reconciled_by: ReconciledByEnum;
+    /**
+     * « Rapprochée ou non » — decided here, never in the client.
+     *
+     * The verdict depends on the household's conformity window, exactly like
+     * the ``expense_unreconciled`` détecteur it must agree with. A client that
+     * reads ``bank_transaction === null`` would flag, in red, an expense from
+     * before the first statement — something nobody can ever resolve — while
+     * the Contrôle tab counts it as nothing. Both screens would then be
+     * arguing, and the user would stop believing either.
+     */
+    readonly reconciliation_state: string;
+    /**
+     * Enough of the statement line to name it and link to it, or ``None``.
+     *
+     * The FK id already ships as ``bank_transaction``; what the reader needs on
+     * top is *which operation* — a date and the bank's own wording. Without
+     * them the link is a uuid, and « la dépense est rapprochée » remains a
+     * claim the user cannot check.
+     */
+    readonly bank_line: Record<string, any> | null;
     readonly created_at: string;
     readonly updated_at: string;
     readonly created_by: number | null;
