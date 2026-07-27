@@ -13,9 +13,23 @@ import { useInteractions, useDeleteInteraction, interactionKeys } from './hooks'
 import InteractionCard from './InteractionCard';
 import ZonePicker from '@/features/zones/ZonePicker';
 
+/**
+ * Les dépenses ne sont plus de l'« activité ».
+ *
+ * Elles ont leur module — onglet Dépenses, avec leurs filtres de période, leur
+ * budget et leur badge de rapprochement. Ici, à cent soixante lignes par mois,
+ * elles noyaient les notes, les maintenances et les réparations, c'est-à-dire
+ * tout ce que cette page est censée rendre lisible.
+ *
+ * L'exclusion est **serveur** (`exclude_type`) : la page est paginée par huit,
+ * un filtrage après coup afficherait une page vide sous un compteur qui en
+ * annonce huit. Leur fiche reste accessible (`/app/interactions/:id`), c'est la
+ * liste qui cesse de les mélanger.
+ */
+const EXCLUDED_TYPES = 'expense';
+
 const TYPE_OPTIONS = [
   'note',
-  'expense',
   'maintenance',
   'repair',
   'installation',
@@ -51,6 +65,7 @@ export default function InteractionsPage() {
 
   const filters = React.useMemo(
     () => ({
+      exclude_type: EXCLUDED_TYPES,
       ...(search ? { search } : {}),
       ...(type ? { type } : {}),
       ...(zone ? { zone } : {}),

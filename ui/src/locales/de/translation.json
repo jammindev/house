@@ -1452,15 +1452,15 @@
       },
       "interactions": {
         "title": "Das Haushaltsjournal führen",
-        "intro": "Das Journal hält alles fest: Notizen, Ausgaben, Wartungen…",
+        "intro": "Das Journal hält fest, was im Haushalt passiert: Notizen, Wartungen, Reparaturen, Einsätze. Ausgaben haben ein eigenes Modul.",
         "steps": {
           "log": {
             "title": "Einen Eintrag hinzufügen",
-            "body": "Erstellen Sie in Sekunden eine Notiz oder Ausgabe über die Journal-Seite."
+            "body": "Halten Sie eine Notiz oder einen Einsatz in Sekunden auf der Seite Aktivität fest."
           },
           "types": {
             "title": "Den richtigen Typ wählen",
-            "body": "Notiz, Ausgabe, Wartung… der Typ bestimmt, wo der Eintrag erscheint (Ausgaben-Seite, Aktivitätsverlauf)."
+            "body": "Notiz, Wartung, Reparatur, Garantie… der Typ sagt, worum es geht, und dient als Filter. Ausgaben erscheinen hier nicht: sie leben im Modul Geld, mit ihrem Budget und dem Kontoauszug, der sie belegt."
           },
           "link": {
             "title": "Mit dem Kontext verknüpfen",

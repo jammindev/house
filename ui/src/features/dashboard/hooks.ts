@@ -64,7 +64,12 @@ export function useRecentActivity() {
   return useQuery({
     queryKey: dashboardKeys.activity(),
     queryFn: async () => {
-      const { data } = await api.get('/interactions/interactions/', { params: { limit: 6 } });
+      // Même exclusion que la page Activité, à laquelle « Toute l'activité »
+      // renvoie : sans elle, on cliquerait ici une dépense pour atterrir sur une
+      // liste où elle ne figure pas.
+      const { data } = await api.get('/interactions/interactions/', {
+        params: { limit: 6, exclude_type: 'expense' },
+      });
       return normalizeList<DashboardInteraction>(data);
     },
   });

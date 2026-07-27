@@ -102,6 +102,13 @@ export interface LinkDocumentToInteractionInput {
 interface FetchInteractionsOptions {
   search?: string;
   type?: string;
+  /**
+   * Types à retirer, séparés par des virgules. **Filtre serveur**, jamais un
+   * `.filter()` sur le résultat : la liste est paginée par huit, donc écarter
+   * des lignes après coup afficherait une page vide sous un compteur qui en
+   * annonce huit.
+   */
+  exclude_type?: string;
   zone?: string;
   contact?: string;
   structure?: string;
@@ -167,6 +174,7 @@ export async function fetchInteractions(
   const {
     search,
     type,
+    exclude_type,
     zone,
     contact,
     structure,
@@ -183,6 +191,7 @@ export async function fetchInteractions(
   const params: Record<string, string | number> = { ordering: '-occurred_at' };
   if (search) params.search = search;
   if (type) params.type = type;
+  if (exclude_type) params.exclude_type = exclude_type;
   if (zone) params.zone = zone;
   if (contact) params.contact = contact;
   if (structure) params.structure = structure;
