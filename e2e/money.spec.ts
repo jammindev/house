@@ -80,6 +80,22 @@ test.describe('Module Argent — anciennes URLs', () => {
     await expect(page).toHaveURL(/\/app\/money\/transactions/);
     await expect(page.getByRole('heading', { level: 1, name: 'Journal bancaire' })).toBeVisible();
   });
+
+  test('/app/budget/recurring redirige en gardant son paramètre', async ({ page }) => {
+    // La dernière famille d'URLs à avoir rejoint /app/money. Le paramètre est
+    // celui de l'agent (`?r={id}`) : sans lui, un lien qui ouvrait *une*
+    // récurrence ouvrirait la liste — valide, et faux.
+    await page.goto('/app/budget/recurring?r=8f14e45f-ceea-467a-9c1e-000000000000');
+    await expect(page).toHaveURL(/\/app\/money\/recurring/);
+    await expect(page).toHaveURL(/r=8f14e45f-ceea-467a-9c1e-000000000000/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
+  });
+
+  test('/app/budget/reports redirige vers /app/money/reports', async ({ page }) => {
+    await page.goto('/app/budget/reports');
+    await expect(page).toHaveURL(/\/app\/money\/reports/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Bilan mensuel' })).toBeVisible();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -267,10 +283,10 @@ test.describe('Module Argent — non évaluable ≠ conforme', () => {
 
 test.describe('Module Argent — sous-pages', () => {
   test('les sous-pages restent accessibles en accès direct', async ({ page }) => {
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
 
-    await page.goto('/app/budget/reports');
+    await page.goto('/app/money/reports');
     await expect(page.getByRole('heading', { level: 1, name: 'Bilan mensuel' })).toBeVisible();
 
     await page.goto('/app/money/transactions');

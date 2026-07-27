@@ -198,7 +198,7 @@ export default function BudgetsPanel() {
             hint={t('analysis.access.hint')}
           />
           <AccessCard
-            to="/app/budget/recurring"
+            to="/app/money/recurring"
             icon={CalendarClock}
             title={t('recurring.title')}
             hint={
@@ -210,7 +210,7 @@ export default function BudgetsPanel() {
             }
           />
           <AccessCard
-            to="/app/budget/reports"
+            to="/app/money/reports"
             icon={FileText}
             title={t('report.title')}
             hint={t('report.access.hint')}

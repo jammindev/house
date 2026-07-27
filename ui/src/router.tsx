@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import ProtectedLayout from './components/ProtectedLayout';
 import ModuleRoute from './components/ModuleRoute';
 import LegacyMoneyRedirect from './components/LegacyMoneyRedirect';
+import PreserveQueryRedirect from './components/PreserveQueryRedirect';
 import LoginPage from './features/auth/LoginPage';
 import ForgotPasswordPage from './features/auth/ForgotPasswordPage';
 import ResetPasswordPage from './features/auth/ResetPasswordPage';
@@ -89,8 +90,8 @@ export const router = createBrowserRouter([
       { path: 'money/transactions', element: <BankingTransactionsPage /> },
       { path: 'money/analysis', element: <MoneyAnalysisPage /> },
       { path: 'money/budgets/:id', element: <BudgetDetailPage /> },
-      { path: 'budget/recurring', element: <RecurringPage /> },
-      { path: 'budget/reports', element: <ReportsPage /> },
+      { path: 'money/recurring', element: <RecurringPage /> },
+      { path: 'money/reports', element: <ReportsPage /> },
       // Anciennes URLs (parcours 26, lot 2) : les favoris, les liens de l'agent et
       // les tutoriels pointent encore dessus. La query string est **préservée** —
       // `?b={id}` vient de `budget/apps.py::SearchableSpec.url_template`.
@@ -98,6 +99,10 @@ export const router = createBrowserRouter([
       { path: 'budget', element: <LegacyMoneyRedirect tab="budgets" /> },
       { path: 'banking', element: <LegacyMoneyRedirect tab="accounts" /> },
       { path: 'banking/transactions', element: <Navigate to="/app/money/transactions" replace /> },
+      // Les deux dernières pages restées hors de la famille : `?r={id}` de l'agent
+      // survit au déplacement.
+      { path: 'budget/recurring', element: <PreserveQueryRedirect to="/app/money/recurring" /> },
+      { path: 'budget/reports', element: <PreserveQueryRedirect to="/app/money/reports" /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:id', element: <ProjectDetailPage /> },
       { path: 'equipment', element: <EquipmentPage /> },

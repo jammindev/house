@@ -29,7 +29,7 @@ class BudgetConfig(AppConfig):
             model=RecurringExpense,
             search_fields=("label", "supplier"),
             label_attr="label",
-            url_template="/app/budget/recurring?r={id}",
+            url_template="/app/money/recurring?r={id}",
         ))
 
         # Write: the agent can create a budget on explicit request (undoable).
@@ -50,7 +50,7 @@ class BudgetConfig(AppConfig):
             resolve=_resolve_recurring_for_agent,
             delete=_delete_recurring_from_agent,
             label_attr="label",
-            url_template="/app/budget/recurring?r={id}",
+            url_template="/app/money/recurring?r={id}",
         ))
 
         # Proactive reminder: nudge when a recurrence is due (points to the app to

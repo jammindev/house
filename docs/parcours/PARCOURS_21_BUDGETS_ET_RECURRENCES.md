@@ -72,7 +72,7 @@ Budget global : 1 850 / 2 000 €   92 %
 > Lot 2 livré : modèle `RecurringExpense` (app `budget`) + confirmation qui crée
 > une `Interaction` (`metadata.kind='recurring'`) et avance l'échéance + projection
 > de trésorerie + `committed` sur l'overview + ping `recurring_due` + sous-page
-> `/app/budget/recurring`. **Rappel V1 = nudge Telegram informatif** (pointe vers
+> `/app/money/recurring`. **Rappel V1 = nudge Telegram informatif** (pointe vers
 > l'app), la confirmation 1-clic reste in-app. Voir [docs/MODULES/budget.md](../MODULES/budget.md).
 
 ### Lot 3 — Bilan mensuel rédigé par l'IA · Should · #314
@@ -86,7 +86,7 @@ Budget global : 1 850 / 2 000 €   92 %
 > `apps/budget/report/` (stats → rendu déterministe localisé → polish IA optionnel,
 > miroir du digest) + endpoints `/api/budget/reports/` (historique + `latest`
 > lazy-génère) + ping mensuel `monthly_budget_report` + sous-page
-> `/app/budget/reports`. **Rédigé dans la langue de l'user** (rendu au read),
+> `/app/money/reports`. **Rédigé dans la langue de l'user** (rendu au read),
 > **fallback chiffres bruts** si pas de clé IA. **Parcours 21 COMPLET (Lots 1-3).**
 
 ## Limites V1 assumées
