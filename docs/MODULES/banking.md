@@ -233,6 +233,39 @@ mixte compenserait les entrées avec les sorties et sous-estimerait les deux.
 - `search(qs, term)` — recherche sur `label_norm`, insensible à la casse **et aux
   accents** sans appel à `unaccent` : le libellé est déjà normalisé à l'import,
   c'est précisément la raison d'être de la colonne.
+- `with_allocation(qs)` / `allocation_state(txn, …)` — où en est une ligne
+  (voir juste en dessous)
+
+### Le marqueur « où en est cette ligne »
+
+Chaque ligne du journal porte son état de traitement : **ventilée**, **reste
+X €**, **non ventilée**, ou **hors période contrôlée**. Sans lui, savoir s'il
+restait quelque chose à dire d'une opération demandait de l'ouvrir — sur 116
+lignes, personne ne le fait, et le relevé redevient une liste morte.
+
+Trois règles tiennent ce marqueur :
+
+- **Le verdict est calculé par le serveur, jamais par le client.** Il dépend de
+  la fenêtre de conformité du compte, que le journal n'a pas à re-dériver.
+- **Le journal et l'onglet Contrôle lisent la même fonction**
+  (`queries.allocation_state`, adossée à `queries.with_allocation`). Une ligne
+  verte ici et un écart là-bas, et les deux écrans perdent leur crédit — d'où le
+  test `test_journal_marker.py::TestTheMarkerAgreesWithTheControl`, qui compare
+  les deux lectures nombre par nombre.
+- **Hors fenêtre, le marqueur est gris, pas rouge** (`out_of_scope`) : House
+  n'exige rien là où elle ne peut rien exiger. Même raison que
+  `coverage.window_status` — un reproche irrésoluble est ce qui fait abandonner
+  le contrôle. Exception assumée : une ligne **entièrement** ventilée lit
+  « ventilée » même hors fenêtre. Être fait est un fait ; être exigé est un
+  périmètre.
+
+Une recette, un mouvement interne et une contrepartie espèces n'ont **pas** de
+marqueur (état `""`) : il n'y a rien à ventiler, et un badge y serait un faux
+reproche.
+
+⚠️ `refresh_from_db()` ne rafraîchit **pas** une annotation. Après un
+`PUT allocations/`, la réponse se relit par `get_object()` sur le queryset
+annoté, sinon elle renvoie l'état d'avant l'écriture.
 
 ### `aggregations.py` — la vue « banque »
 
@@ -265,8 +298,8 @@ ignoré : une liste filtrée à tort est pire qu'une erreur.
 
 Sous-page `/app/banking/transactions` (`TransactionsPage`) : `FlowSummaryCards` en
 tête, `TransactionFilters` (recherche, compte, période, pills direction/interne),
-`TransactionList` + `TransactionRow` avec les deux actions de qualification. Les
-filtres sont persistés en session.
+`TransactionList` + `TransactionRow` avec les deux actions de qualification et la
+pastille d'état (`AllocationBadge`). Les filtres sont persistés en session.
 
 ## Soldes, continuité & espèces (lot 4)
 

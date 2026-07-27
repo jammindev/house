@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import {
   Banknote,
+  Check,
+  CircleDashed,
   Link2Off,
   PieChart,
   Repeat,
@@ -103,6 +105,8 @@ export default function TransactionRow({
               : ''}
           </p>
 
+          <AllocationBadge transaction={transaction} />
+
           {transaction.is_internal ? (
             <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               {hasCounterpart ? (
@@ -139,5 +143,51 @@ export default function TransactionRow({
         <CardActions actions={actions} />
       </div>
     </Card>
+  );
+}
+
+/**
+ * Où en est la ligne : traitée, à moitié, pas du tout.
+ *
+ * Sans ce marqueur, savoir s'il reste quelque chose à dire d'une opération
+ * demandait de l'ouvrir — sur un relevé de 116 lignes, personne ne le fait.
+ *
+ * ⚠️ L'état vient du serveur (`allocation_state`), il n'est **pas** recalculé
+ * à partir de `allocated_amount` : le verdict dépend de la fenêtre de conformité
+ * du compte, et il doit rester le même que celui compté par l'onglet Contrôle.
+ * Une ligne verte ici et un écart là-bas, et les deux écrans perdent leur
+ * crédit.
+ */
+function AllocationBadge({ transaction }: { transaction: BankTransaction }) {
+  const { t } = useTranslation();
+  const state = transaction.allocation_state;
+
+  if (state === '') return null;
+
+  // Hors fenêtre, House n'exige rien : le dire en gris, jamais en rouge — un
+  // reproche qu'on ne peut pas résoudre est ce qui fait abandonner le contrôle.
+  const style =
+    state === 'allocated'
+      ? 'bg-primary/10 text-primary'
+      : state === 'out_of_scope'
+        ? 'bg-muted text-muted-foreground'
+        : 'bg-destructive/10 text-destructive';
+
+  const Icon = state === 'allocated' ? Check : state === 'out_of_scope' ? CircleDashed : PieChart;
+
+  const label =
+    state === 'partial'
+      ? t('banking.journal.allocation.partial', {
+          amount: formatAmount(transaction.remaining_amount),
+        })
+      : t(`banking.journal.allocation.${state}`);
+
+  return (
+    <span
+      className={`mt-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${style}`}
+    >
+      <Icon className="h-3 w-3" aria-hidden />
+      {label}
+    </span>
   );
 }

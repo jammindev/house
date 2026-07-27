@@ -244,8 +244,24 @@ export interface BankTransaction {
   source_import: string | null;
   /** Autre jambe d'un mouvement interne (retrait ↔ crédit espèces), si liée. */
   transfer_counterpart: string | null;
+  /** Somme des dépenses ventilées sur la ligne — positive. */
+  allocated_amount: string;
+  /** Ce qui reste à expliquer, jamais négatif. */
+  remaining_amount: string;
+  allocation_state: AllocationProgress;
   created_at: string;
 }
+
+/**
+ * Où en est une ligne — calculé par le serveur, jamais dérivé ici.
+ *
+ * Le verdict dépend de la fenêtre de conformité du compte, et il doit dire
+ * **exactement** ce que compte l'onglet Contrôle : le refaire côté client
+ * garantirait qu'un jour les deux divergent. `''` = rien à ventiler (recette,
+ * mouvement interne) ; `out_of_scope` = hors fenêtre, House n'exige rien —
+ * ce n'est pas la même chose que « pas encore traitée ».
+ */
+export type AllocationProgress = '' | 'unallocated' | 'partial' | 'allocated' | 'out_of_scope';
 
 export interface TransactionFilters {
   account?: string;

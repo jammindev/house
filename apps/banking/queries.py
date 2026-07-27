@@ -64,6 +64,68 @@ def inflow_expr():
     )
 
 
+def allocated_expr():
+    """Sum of the expenses this line has been split into.
+
+    There is no ``Allocation`` table: a line split 80/40 carries two
+    ``Interaction(type='expense')``. Summing them **is** reading how much of the
+    line has been accounted for.
+    """
+    return Coalesce(
+        Sum("interactions__amount", filter=Q(interactions__type="expense")),
+        ZERO,
+    )
+
+
+def with_allocation(qs: QuerySet) -> QuerySet:
+    """Annotate ``allocated`` and ``outflow_value`` on a transaction queryset.
+
+    One definition for two readers that must never disagree: the Contrôle tab
+    counts the écarts, the journal badges each line. Two copies of the same
+    ``Sum`` would eventually differ by a filter, and the user would be told a line
+    is fine in one screen and orphaned in the other.
+
+    ``outflow_value``, not ``outflow``: the latter is already a property on the
+    model, and an annotation cannot be assigned onto a property with no setter.
+    """
+    return qs.annotate(allocated=allocated_expr(), outflow_value=outflow_expr())
+
+
+#: Nothing to allocate — a receipt, an internal movement, a cash counterpart.
+#: Not a state of progress: an empty string renders no badge at all.
+NOT_ALLOCATABLE = ""
+#: Money out that nobody has said anything about.
+UNALLOCATED = "unallocated"
+#: Part of the line is accounted for, the rest is not.
+PARTIAL = "partial"
+#: Fully accounted for.
+ALLOCATED = "allocated"
+#: Outside the account's conformity window — House cannot require anything here,
+#: so the line is *not* reported as untreated. Distinguishing this from
+#: ``unallocated`` is the same rule as ``coverage.window_status``: a blank counter
+#: means either "nothing to report" or "nothing evaluable", never both.
+OUT_OF_SCOPE = "out_of_scope"
+
+
+def allocation_state(txn, *, allocated: Decimal, window) -> str:
+    """How far ``txn`` has been accounted for, from the reader's point of view.
+
+    Mirrors the two detectors ``transaction_unallocated`` and
+    ``transaction_partially_allocated`` exactly, window included — with one
+    deliberate difference: a **fully** allocated line reads « ventilée » even
+    outside the window. Being done is a fact; being required is a scope.
+    """
+    if txn.amount >= 0 or txn.is_internal or txn.transfer_counterpart_id:
+        return NOT_ALLOCATABLE
+
+    outflow = -txn.amount
+    if allocated >= outflow:
+        return ALLOCATED
+    if window is None or not window.contains(txn.booked_on):
+        return OUT_OF_SCOPE
+    return PARTIAL if allocated > 0 else UNALLOCATED
+
+
 def sum_outflow(qs: QuerySet) -> Decimal:
     """Total money out over ``qs``, as a positive number."""
     return qs.aggregate(total=Coalesce(Sum(outflow_expr()), ZERO))["total"] or Decimal("0.00")

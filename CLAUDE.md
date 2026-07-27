@@ -259,6 +259,13 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
 - Le libellé utilisateur d'un `kind` vit dans le namespace i18n **`money`** du
   front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
   passage dans quatre `.po`.
+- **Un écart ne se dit jamais deux fois avec deux voix.** Le marqueur du journal
+  (`allocation_state`, servi par le serializer) et le compteur du Contrôle lisent
+  la **même** fonction `banking.queries.allocation_state` / `with_allocation`. Ne
+  jamais recalculer un état de traitement côté client à partir d'un montant : le
+  verdict dépend de la fenêtre de conformité, et une ligne verte dans un écran
+  face à un écart dans l'autre fait perdre leur crédit aux deux. Régression :
+  `banking/tests/test_journal_marker.py::TestTheMarkerAgreesWithTheControl`.
 
 #### Le module « Argent » — une seule clé, cinq onglets
 

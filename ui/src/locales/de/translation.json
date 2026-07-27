@@ -3246,6 +3246,12 @@
       "inflow": "Eingänge",
       "net": "Saldo des Zeitraums",
       "internal": "Interne Umbuchung",
+      "allocation": {
+        "unallocated": "Nicht zugeordnet",
+        "partial": "Rest {{amount}}",
+        "allocated": "Zugeordnet",
+        "out_of_scope": "Außerhalb des geprüften Zeitraums"
+      },
       "internalExcluded_one": "{{count}} interne Umbuchung ausgeschlossen",
       "internalExcluded_other": "{{count}} interne Umbuchungen ausgeschlossen",
       "markInternal": "Als interne Umbuchung markieren",

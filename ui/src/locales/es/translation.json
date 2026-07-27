@@ -3246,6 +3246,12 @@
       "inflow": "Entradas",
       "net": "Saldo del periodo",
       "internal": "Movimiento interno",
+      "allocation": {
+        "unallocated": "Sin asignar",
+        "partial": "Quedan {{amount}}",
+        "allocated": "Asignada",
+        "out_of_scope": "Fuera del periodo controlado"
+      },
       "internalExcluded_one": "{{count}} movimiento interno excluido",
       "internalExcluded_other": "{{count}} movimientos internos excluidos",
       "markInternal": "Marcar como movimiento interno",

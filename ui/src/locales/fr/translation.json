@@ -3246,6 +3246,12 @@
       "inflow": "Entrées",
       "net": "Solde de la période",
       "internal": "Mouvement interne",
+      "allocation": {
+        "unallocated": "Non ventilée",
+        "partial": "Reste {{amount}}",
+        "allocated": "Ventilée",
+        "out_of_scope": "Hors période contrôlée"
+      },
       "internalExcluded_one": "{{count}} mouvement interne exclu",
       "internalExcluded_other": "{{count}} mouvements internes exclus",
       "markInternal": "Marquer comme mouvement interne",
