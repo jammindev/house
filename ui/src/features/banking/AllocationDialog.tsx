@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2 } from 'lucide-react';
+import { Link2Off, Plus, Trash2 } from 'lucide-react';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
@@ -10,7 +10,7 @@ import { formatAmount } from '@/lib/format';
 import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
 import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
-import { useAllocations, useSetAllocations } from './hooks';
+import { useAllocations, useSetAllocations, useUnlinkAllocation } from './hooks';
 import AllocationSourceSelect from './AllocationSourceSelect';
 import { NO_SOURCE, type AllocationSource } from './allocationSource';
 
@@ -35,6 +35,16 @@ interface DraftLine {
   source: AllocationSource;
   zoneIds: string[];
 }
+
+/**
+ * Le `kind` que cet éditeur possède — miroir de
+ * `interactions/kinds.py::OWNED_BY_ALLOCATION_EDITOR`.
+ *
+ * Tout le reste (un achat de projet, une occurrence de récurrence) a été
+ * rapproché ailleurs, délibérément : l'éditeur l'affiche, le compte contre le
+ * montant de l'opération, et n'y touche pas.
+ */
+const OWNED_KIND = 'bank';
 
 let lineCounter = 0;
 function blankLine(
@@ -65,6 +75,7 @@ export default function AllocationDialog({
   const allocationsQuery = useAllocations(open ? transactionId : undefined);
   const budgetsQuery = useBudgets();
   const mutation = useSetAllocations();
+  const unlinkMutation = useUnlinkAllocation();
 
   const [lines, setLines] = React.useState<DraftLine[]>([]);
   const [error, setError] = React.useState<string | null>(null);
@@ -73,13 +84,22 @@ export default function AllocationDialog({
   const label = transaction?.label_raw ?? '';
   const total = Math.abs(Number(transaction?.amount ?? 0));
 
+  // Les dépenses rapprochées ailleurs : affichées, comptées, jamais réécrites.
+  const linked = (allocationsQuery.data?.allocations ?? []).filter((a) => a.kind !== OWNED_KIND);
+  const linkedTotal = linked.reduce((sum, a) => sum + Number(a.amount ?? 0), 0);
+  /** Ce que cette ventilation peut se partager : l'opération moins les rattachements. */
+  const editable = total - linkedTotal;
+
   React.useEffect(() => {
     if (!open || !allocationsQuery.data) return;
     setError(null);
-    const existing = allocationsQuery.data.allocations;
+    const rows = allocationsQuery.data.allocations;
+    const owned = rows.filter((a) => a.kind === OWNED_KIND);
+    const free =
+      total - rows.filter((a) => a.kind !== OWNED_KIND).reduce((s, a) => s + Number(a.amount ?? 0), 0);
     setLines(
-      existing.length > 0
-        ? existing.map((a) =>
+      owned.length > 0
+        ? owned.map((a) =>
             blankLine(
               a.subject,
               a.amount ?? '',
@@ -90,9 +110,13 @@ export default function AllocationDialog({
               a.zone_ids ?? [],
             ),
           )
-        : // Première ventilation : on pré-remplit une ligne au montant total,
-          // le cas le plus fréquent (une opération = un poste).
-          [blankLine(label, total.toFixed(2), '')],
+        : free > 0
+          ? // Première ventilation : on pré-remplit une ligne au montant restant,
+            // le cas le plus fréquent (une opération = un poste).
+            [blankLine(label, free.toFixed(2), '')]
+          : // Tout est déjà rattaché : proposer une ligne à 0 € serait proposer
+            // une erreur de saisie.
+            [],
     );
   }, [open, allocationsQuery.data, label, total]);
 
@@ -100,7 +124,7 @@ export default function AllocationDialog({
     const value = Number(line.amount.replace(',', '.'));
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
-  const remaining = total - allocated;
+  const remaining = editable - allocated;
 
   function update(key: string, patch: Partial<DraftLine>) {
     setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
@@ -137,8 +161,12 @@ export default function AllocationDialog({
       });
     }
 
-    if (allocated > total + 0.001) {
-      setError(t('banking.allocation.errors.overAllocated', { total: formatAmount(String(total)) }));
+    // Le plafond est ce qui reste **après** les dépenses déjà rattachées : le
+    // serveur les compte aussi, autant refuser ici avec le bon chiffre.
+    if (allocated > editable + 0.001) {
+      setError(
+        t('banking.allocation.errors.overAllocated', { total: formatAmount(editable.toFixed(2)) }),
+      );
       return;
     }
 
@@ -169,6 +197,52 @@ export default function AllocationDialog({
             </p>
           ) : null}
         </div>
+
+        {/* Ce que l'éditeur ne possède pas — un achat de projet rapproché à la
+            main, une occurrence de récurrence. Enregistrer la ventilation les
+            détachait autrefois **en silence**, ce qui défaisait un rapprochement
+            que l'utilisateur avait fait exprès et rendait la ligne à moitié
+            ventilée sans rien dire. Elles vivent donc ici : lisibles, comptées,
+            et détachables seulement si on le demande. */}
+        {linked.length > 0 ? (
+          <div className="space-y-2 rounded-lg border border-border p-3">
+            <p className="text-xs font-medium text-muted-foreground">
+              {t('banking.allocation.linked.title')}
+            </p>
+            {linked.map((expense) => (
+              <div key={expense.id} className="flex items-center justify-between gap-2 text-sm">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-foreground">{expense.subject}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      expense.budget?.name,
+                      expense.source_label,
+                      t(`expenses.kind.${expense.kind}`),
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                </div>
+                <span className="shrink-0 tabular-nums text-foreground">
+                  {formatAmount(expense.amount ?? '0')}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    unlinkMutation.mutate({ transactionId, interactionId: expense.id })
+                  }
+                  disabled={unlinkMutation.isPending}
+                  className="shrink-0 text-muted-foreground hover:text-destructive"
+                  aria-label={t('banking.allocation.linked.detach')}
+                  title={t('banking.allocation.linked.detach')}
+                >
+                  <Link2Off className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+            ))}
+            <p className="text-xs text-muted-foreground">{t('banking.allocation.linked.hint')}</p>
+          </div>
+        ) : null}
 
         <div className="space-y-3">
           {lines.map((line, index) => (
@@ -268,6 +342,12 @@ export default function AllocationDialog({
               : 'border-border bg-muted/40 text-foreground'
           }`}
         >
+          {linkedTotal > 0 ? (
+            <div className="mb-1 flex justify-between text-muted-foreground">
+              <span>{t('banking.allocation.linked.total')}</span>
+              <span className="tabular-nums">{formatAmount(linkedTotal.toFixed(2))}</span>
+            </div>
+          ) : null}
           <div className="flex justify-between">
             <span>{t('banking.allocation.allocated')}</span>
             <span className="font-semibold tabular-nums">{formatAmount(allocated.toFixed(2))}</span>

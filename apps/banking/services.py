@@ -522,11 +522,11 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
     and gets it, which is the only way an "80/40 becomes 100/20" edit stays
     atomic.
 
-    The destructive half is deliberately narrow. Only the expenses this editor
-    created (``kind='bank'``) are deleted; anything else — a stock purchase that
-    was reconciled onto this line — is **detached**, not destroyed. Deleting it
-    would take its documents, tags, zones and possibly a
-    ``Task.source_interaction`` with it, to undo a split.
+    The destructive half is deliberately narrow, and so is its **reach**. Only
+    the expenses this editor created (``kind='bank'``) are touched at all; a
+    stock purchase or a project purchase that was reconciled onto this line is
+    **left exactly where it is**, and its amount is counted against the outflow
+    so the new split cannot overshoot it.
 
     ⚠️ The rule reads ``kind`` **alone**. It used to also require no source
     object, which was redundant (a stock purchase has ``kind='stock_purchase'``,
@@ -536,6 +536,16 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
     deleted on re-edit: **every re-split would leave a phantom expense behind**,
     still counted in the project's cost. Exactly the orphan this parcours exists
     to remove.
+
+    ⚠️ **Saving a split no longer detaches what it does not own.** It used to,
+    and that was the mirror image of the bug above: reconciling a 90 € project
+    purchase onto a 150 € line, then re-splitting the remaining 60 €, silently
+    un-reconciled the 90 € — it reappeared as an écart « dépense non rapprochée »
+    that the user had already resolved, and the editor happily re-created a
+    ``kind='bank'`` expense for the same 90 €, counting the money twice. Nothing
+    in the UI said so. Detaching is now a **gesture of its own**
+    (``unlink_interaction``, ``DELETE …/unlink/{id}/``), never a side effect of
+    saving something else.
 
     The row is locked for the duration so two concurrent edits cannot each see a
     stale total and jointly overshoot.
@@ -547,29 +557,24 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
         locked = BankTransaction.objects.select_for_update().get(pk=transaction.pk)
         assert_allocation_fits(transaction=locked, extra_amount=Decimal("0.00"))
 
+        existing = list(locked.interactions.all())
+        kept = [i for i in existing if i.kind not in OWNED_BY_ALLOCATION_EDITOR]
+        kept_total = sum((i.amount or Decimal("0.00") for i in kept), Decimal("0.00"))
+
         total = sum((Decimal(str(line.get("amount") or 0)) for line in lines), Decimal("0.00"))
-        if total > locked.outflow:
+        if total + kept_total > locked.outflow:
             raise ValidationError(
-                {"amount": f"Allocations would total {total} on an operation of {locked.outflow}."}
+                {
+                    "amount": (
+                        f"Allocations would total {total + kept_total} on an operation of "
+                        f"{locked.outflow}."
+                    )
+                }
             )
 
-        existing = list(locked.interactions.all())
         for interaction in existing:
-            owned = interaction.kind in OWNED_BY_ALLOCATION_EDITOR
-            if owned:
+            if interaction.kind in OWNED_BY_ALLOCATION_EDITOR:
                 interaction.delete()
-            else:
-                interaction.bank_transaction = None
-                interaction.reconciled_by = ""
-                interaction.updated_by = user
-                interaction.save(
-                    update_fields=[
-                        "bank_transaction",
-                        "reconciled_by",
-                        "updated_by",
-                        "updated_at",
-                    ]
-                )
 
         created = []
         for index, line in enumerate(lines):
