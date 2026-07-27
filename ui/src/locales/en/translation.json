@@ -170,7 +170,8 @@
     "add": "Add",
     "create": "Create",
     "showMore": "Show more",
-    "close": "Close"
+    "close": "Close",
+    "clear": "Clear"
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -731,6 +732,32 @@
     "deleteConfirmDescription": "This will permanently delete \"{{name}}\". Child zones must be moved or deleted first.",
     "expandZone": "Expand zone",
     "collapseZone": "Collapse zone",
+    "searchPlaceholder": "Search a zone…",
+    "searchEmpty": "No zone matches “{{query}}”.",
+    "searchResults_one": "{{count}} zone matches",
+    "searchResults_other": "{{count}} zones match",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "toggleAllDisabled": "Unavailable while searching",
+    "surfaceShort": "{{value}} m²",
+    "surfaceLabel": "Surface (m²)",
+    "summary": {
+      "zones_one": "{{count}} zone",
+      "zones_other": "{{count}} zones",
+      "main_one": "{{count}} main",
+      "main_other": "{{count}} main",
+      "surface": "{{value}} m² in total"
+    },
+    "meta": {
+      "children_one": "{{count}} sub-zone",
+      "children_other": "{{count}} sub-zones",
+      "equipment_one": "{{count}} piece of equipment",
+      "equipment_other": "{{count}} pieces of equipment",
+      "tasks_one": "{{count}} open task",
+      "tasks_other": "{{count}} open tasks",
+      "projects_one": "{{count}} active project",
+      "projects_other": "{{count}} active projects"
+    },
     "tabs": {
       "info": "Info",
       "equipment": "Equipment",
@@ -1184,6 +1211,14 @@
           "hierarchy": {
             "title": "Build the hierarchy",
             "body": "Nest zones (floor → bedroom) to mirror your home."
+          },
+          "read": {
+            "title": "Read a row",
+            "body": "On the right of each zone: its area and its counters (sub-zones, equipment, open tasks, active projects); a missing counter means zero. Busy zones and empty ones stand out without opening anything."
+          },
+          "find": {
+            "title": "Collapse and search",
+            "body": "Collapse the branches you don't need, and type in the search field to go straight to a zone: the parents of a match stay visible, so you never lose the context."
           },
           "navigate": {
             "title": "Navigate by zone",

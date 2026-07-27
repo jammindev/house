@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 
 from .models import Zone
+from .queries import with_content_counts
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
 from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
@@ -34,10 +35,16 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
     serializer_class = ZoneSerializer
 
     def get_queryset(self):
-        """Return zones from user's households."""
-        return Zone.objects.for_user_households(self.request.user).select_related(
-            'parent', 'household', 'created_by', 'updated_by'
-        ).prefetch_related('children')
+        """Return zones from user's households, annotées de leurs compteurs.
+
+        L'annotation est posée ici — pas seulement sur l'action `list` — pour que
+        détail, `children` et `tree` répondent la même chose que la liste.
+        """
+        return with_content_counts(
+            Zone.objects.for_user_households(self.request.user).select_related(
+                'parent', 'household', 'created_by', 'updated_by'
+            )
+        )
 
     def get_serializer_class(self):
         """Use tree serializer for tree action."""
@@ -81,7 +88,13 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def partial_update(self, request, *args, **kwargs):
-        """Reject stale writes when last_known_updated_at is provided."""
+        """Reject stale writes when last_known_updated_at is provided.
+
+        ``partial=True`` doit être réinjecté : router vers ``update()`` sans lui
+        faisait valider tout PATCH comme un PUT complet, donc un PATCH d'un seul
+        champ (``{"surface": "24.75"}``) repartait en 400 pour ``name`` manquant.
+        """
+        kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):

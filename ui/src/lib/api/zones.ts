@@ -11,7 +11,13 @@ export interface Zone {
   parentId?: string | null;
   full_path?: string;
   depth?: number;
+  /** Compteurs de contenu servis par `zones.queries.with_content_counts`.
+   *  Toujours des entiers côté API (0 et non null quand la zone est vide) —
+   *  optionnels ici seulement pour les payloads partiels. */
   children_count?: number;
+  equipment_count?: number;
+  open_task_count?: number;
+  active_project_count?: number;
   note?: string | null;
   surface?: number | null;
   updated_at?: string;
@@ -41,10 +47,22 @@ export function findRootZone(zones: Zone[]): Zone | undefined {
   return zones.find((z) => !z.parentId && !z.parent);
 }
 
+/**
+ * DRF sérialise un DecimalField en **string** (`COERCE_DECIMAL_TO_STRING`, actif
+ * par défaut) : `surface` arrive donc en `"18.50"`. On la ramène à un nombre ici,
+ * dans la seule couche d'accès API, pour que l'UI n'ait qu'une forme à connaître.
+ */
+function normalizeSurface(raw: unknown): number | null {
+  if (raw === null || raw === undefined || raw === '') return null;
+  const parsed = typeof raw === 'number' ? raw : Number.parseFloat(String(raw));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function normalizeZone(raw: Zone & { parent?: string | null }): Zone {
   return {
     ...raw,
     parentId: raw.parentId ?? raw.parent ?? null,
+    surface: normalizeSurface(raw.surface),
   };
 }
 

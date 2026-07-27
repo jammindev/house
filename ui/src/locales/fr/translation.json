@@ -170,7 +170,8 @@
     "add": "Ajouter",
     "create": "Créer",
     "showMore": "Afficher plus",
-    "close": "Fermer"
+    "close": "Fermer",
+    "clear": "Effacer"
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
@@ -731,6 +732,32 @@
     "deleteConfirmDescription": "Cela supprimera définitivement \"{{name}}\". Les zones enfants doivent être déplacées ou supprimées d'abord.",
     "expandZone": "Déplier la zone",
     "collapseZone": "Replier la zone",
+    "searchPlaceholder": "Rechercher une zone…",
+    "searchEmpty": "Aucune zone ne correspond à « {{query}} ».",
+    "searchResults_one": "{{count}} zone correspond",
+    "searchResults_other": "{{count}} zones correspondent",
+    "expandAll": "Déplier tout",
+    "collapseAll": "Replier tout",
+    "toggleAllDisabled": "Indisponible pendant une recherche",
+    "surfaceShort": "{{value}} m²",
+    "surfaceLabel": "Surface (m²)",
+    "summary": {
+      "zones_one": "{{count}} zone",
+      "zones_other": "{{count}} zones",
+      "main_one": "{{count}} principale",
+      "main_other": "{{count}} principales",
+      "surface": "{{value}} m² au total"
+    },
+    "meta": {
+      "children_one": "{{count}} sous-zone",
+      "children_other": "{{count}} sous-zones",
+      "equipment_one": "{{count}} équipement",
+      "equipment_other": "{{count}} équipements",
+      "tasks_one": "{{count}} tâche ouverte",
+      "tasks_other": "{{count}} tâches ouvertes",
+      "projects_one": "{{count}} projet actif",
+      "projects_other": "{{count}} projets actifs"
+    },
     "tabs": {
       "info": "Infos",
       "equipment": "Équipements",
@@ -1184,6 +1211,14 @@
           "hierarchy": {
             "title": "Construire la hiérarchie",
             "body": "Imbriquez les zones (étage → chambre) pour refléter votre logement."
+          },
+          "read": {
+            "title": "Lire une ligne",
+            "body": "À droite de chaque zone : sa surface et ses compteurs (sous-zones, équipements, tâches ouvertes, projets actifs) ; un compteur absent vaut zéro. Les zones vivantes et les zones vides se repèrent sans rien ouvrir."
+          },
+          "find": {
+            "title": "Replier et rechercher",
+            "body": "Repliez les branches que vous ne consultez pas, et tapez dans la recherche pour aller droit à une zone : les parents du résultat restent affichés, vous ne perdez jamais le contexte."
           },
           "navigate": {
             "title": "Naviguer par zone",

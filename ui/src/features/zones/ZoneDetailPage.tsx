@@ -98,6 +98,21 @@ function TabInfo({
               {zone.children_count ?? children.length}
             </dd>
           </div>
+
+          {/* La surface est éditable depuis le dialog et sommée en tête de la
+              liste des zones : elle doit aussi se lire ici. */}
+          <div className="rounded-xl border border-border/40 bg-background/60 p-4">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {t('zones.detail.surfaceLabel')}
+            </dt>
+            <dd className="mt-2 text-sm text-foreground">
+              {zone.surface != null ? (
+                t('zones.surfaceShort', { value: zone.surface })
+              ) : (
+                <span className="text-muted-foreground">{t('zones.detail.surfaceMissing')}</span>
+              )}
+            </dd>
+          </div>
         </dl>
 
         {/* Notes */}
