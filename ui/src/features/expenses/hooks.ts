@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   createManualExpense,
@@ -7,9 +7,11 @@ import {
   type ManualExpensePayload,
 } from '@/lib/api/expenses';
 import { toast } from '@/lib/toast';
+import { EXPENSES_ROOT } from '@/features/money/keys';
+import { useInvalidateMoney } from '@/features/money/invalidate';
 
 export const expenseKeys = {
-  all: ['expenses'] as const,
+  all: EXPENSES_ROOT,
   summary: (filters?: ExpenseSummaryFilters) =>
     [...expenseKeys.all, 'summary', filters] as const,
 };
@@ -22,13 +24,12 @@ export function useExpenseSummary(filters: ExpenseSummaryFilters = {}) {
 }
 
 export function useCreateManualExpense() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: ManualExpensePayload) => createManualExpense(payload),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: expenseKeys.all });
-      qc.invalidateQueries({ queryKey: ['interactions'] });
+      invalidate();
       toast({ description: t('expenses.adhoc.created'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),

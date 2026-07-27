@@ -153,3 +153,75 @@ vérifiée directement sur l'API.
 
 Les specs `budget`, `report`, `recurring`, `expense-adhoc`, `expenses-summary` ont
 été retargetées sur les nouvelles URLs.
+
+## L'audit de cohérence (juillet 2026)
+
+Un passage complet sur les trois apps (`banking`, `budget`, `interactions`) et les
+quatre features front. L'architecture tenait ; les défauts étaient tous **aux
+jointures** — là où deux modules répondent à la même question sans passer par la
+même fonction. Les conclusions valent au-delà de l'argent.
+
+### Un compteur ne peut pas avoir deux définitions
+
+« Ce mois-ci » était borné dans le fuseau du foyer par `budget.aggregations` et en
+UTC par `interactions.views`. Deux heures d'écart — mais placées exactement sur la
+frontière d'un mois, donc sur un budget. Cliquer sur « 340 € / 400 € » pouvait
+ouvrir une page annonçant 352 €.
+
+`apps/core/timezones.py` est désormais le seul endroit qui sait ce qu'est un mois,
+une journée, ou « aujourd'hui » chez un foyer. Six copies locales du helper de
+fuseau (dont deux correctes, quatre approximatives) sont devenues des alias.
+Côté front, `toLocalISODate` / `todayISO` remplacent les
+`toISOString().slice(0, 10)` — qui décalaient les quatre périodes d'un jour aux
+deux bouts et proposaient « hier » comme date du jour entre minuit et 2 h.
+
+Régressions : `interactions/tests/test_period_bounds.py`,
+`ui/src/features/expenses/period.test.ts`.
+
+### Un cache périmé est un compteur qui ment
+
+Huit mutations touchent à l'argent, chacune déclarait sa propre liste
+d'invalidations, et cinq en oubliaient au moins une. La pire : **importer un
+relevé** n'invalidait que `banking`, alors que c'est le moment où les compteurs de
+conformité passent de zéro à cent.
+
+`useInvalidateMoney` remplace les huit listes. Invalider trop large coûte quelques
+requêtes ; invalider trop étroit coûte la confiance dans les chiffres — et le bug
+est invisible en revue, parce que chaque liste prise isolément a l'air réfléchie.
+
+### La parité entre catalogues ne voit pas une clé écrasée
+
+Le dialogue « dépense en espèces » (lot 4) a réutilisé le namespace
+`banking.cash.*` et effacé les douze clés du dialogue « retirer vers les espèces ».
+En production, le journal affichait `banking.cash.action` sur chaque ligne
+sortante, et le dialogue de retrait portait le titre du dialogue de dépense.
+
+Le contrôle de parité entre les quatre langues était vert : la clé manquait
+**partout**. Comparer les langues entre elles ne suffit pas — il faut comparer le
+**code** au catalogue. C'est ce que fait `ui/src/locales/keys.test.ts`, désormais
+lancé par la CI (les tests unitaires du front n'étaient exécutés par personne).
+
+Le retrait vit maintenant sous `banking.withdraw.*`.
+
+### Le journal a un filtre « À traiter »
+
+Le marqueur par ligne (#413) disait ce qu'il restait à ranger sans qu'on puisse
+s'y rendre. `?allocation=todo` passe par `detectors.pending_outflows`, la même
+fonction que les compteurs du Contrôle : une file dont le nombre contredirait le
+badge ferait perdre leur crédit aux deux.
+
+### Reste ouvert
+
+Deux points de l'audit demandent un arbitrage produit, pas une correction :
+
+- **`DELETE /transactions/{id}/unlink/{interaction_id}/` n'a aucun appelant.**
+  Détacher une dépense mal rapprochée n'a pas de geste dans l'interface. Soit on
+  lui en donne un, soit on retire l'endpoint — mais un endpoint injoignable est
+  lui-même un orphelin.
+- **`/app/budget/recurring` et `/app/budget/reports`** vivent hors de la famille
+  `/app/money`, alors que `/app/budget` redirige vers elle. Les déplacer touche
+  les `url_template` de l'agent, les tutoriels et les redirections.
+
+Et un lot de dette hors périmètre : `features/settings` compte une trentaine de
+`t(…, { defaultValue })`, interdits par le CLAUDE.md — c'est pour cela que le
+garde-fou i18n couvre une liste de namespaces plutôt que tout le front.

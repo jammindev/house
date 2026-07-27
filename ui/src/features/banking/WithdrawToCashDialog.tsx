@@ -49,12 +49,12 @@ export default function WithdrawToCashDialog({
     setError(null);
 
     if (!cashAccount) {
-      setError(t('banking.cash.errors.accountRequired'));
+      setError(t('banking.withdraw.errors.accountRequired'));
       return;
     }
     const parsed = Number(amount.trim().replace(',', '.'));
     if (!Number.isFinite(parsed) || parsed <= 0 || parsed > Number(fullAmount)) {
-      setError(t('banking.cash.errors.amountInvalid', { max: formatAmount(fullAmount) }));
+      setError(t('banking.withdraw.errors.amountInvalid', { max: formatAmount(fullAmount) }));
       return;
     }
 
@@ -70,9 +70,9 @@ export default function WithdrawToCashDialog({
   }
 
   return (
-    <SheetDialog open={open} onOpenChange={onOpenChange} title={t('banking.cash.title')}>
+    <SheetDialog open={open} onOpenChange={onOpenChange} title={t('banking.withdraw.title')}>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-        <p className="text-sm text-muted-foreground">{t('banking.cash.intro')}</p>
+        <p className="text-sm text-muted-foreground">{t('banking.withdraw.intro')}</p>
 
         <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
           <p className="font-medium text-foreground">{transaction.label_raw}</p>
@@ -84,11 +84,11 @@ export default function WithdrawToCashDialog({
 
         {cashAccounts.length === 0 ? (
           <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-            {t('banking.cash.noCashAccount')}
+            {t('banking.withdraw.noCashAccount')}
           </div>
         ) : (
           <>
-            <FormField label={t('banking.cash.fields.account')} htmlFor="cash-account">
+            <FormField label={t('banking.withdraw.fields.account')} htmlFor="cash-account">
               <Select
                 id="cash-account"
                 value={cashAccount}
@@ -97,7 +97,7 @@ export default function WithdrawToCashDialog({
               />
             </FormField>
 
-            <FormField label={t('banking.cash.fields.amount')} htmlFor="cash-amount">
+            <FormField label={t('banking.withdraw.fields.amount')} htmlFor="cash-amount">
               <Input
                 id="cash-amount"
                 type="number"
@@ -107,7 +107,7 @@ export default function WithdrawToCashDialog({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">{t('banking.cash.fields.amountHint')}</p>
+              <p className="text-xs text-muted-foreground">{t('banking.withdraw.fields.amountHint')}</p>
             </FormField>
           </>
         )}
@@ -123,7 +123,7 @@ export default function WithdrawToCashDialog({
             {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={mutation.isPending || cashAccounts.length === 0}>
-            {t('banking.cash.action')}
+            {t('banking.withdraw.action')}
           </Button>
         </div>
       </form>

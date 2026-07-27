@@ -66,6 +66,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Les tests unitaires du front n'étaient lancés par personne. C'est là que
+      # vit le garde-fou i18n : il compare le code aux quatre catalogues, et
+      # c'est le seul contrôle capable d'attraper une clé écrasée — la parité
+      # entre langues ne voit rien quand la clé manque partout.
+      - name: Unit tests
+        run: npm run test -- --run
+
       - name: Build
         run: npm run build
 

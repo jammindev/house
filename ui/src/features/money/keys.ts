@@ -8,8 +8,24 @@
  * fichiers (où elle finirait par diverger d'un caractère).
  */
 
+/**
+ * Les cinq racines de cache que l'argent partage.
+ *
+ * Elles vivent ici et pas dans le `hooks.ts` de chaque feature parce qu'une
+ * mutation bancaire doit pouvoir invalider les budgets, et réciproquement. Tant
+ * qu'elles étaient écrites en littéraux au point d'appel (`['budget']`,
+ * `['expenses']`…), chaque hook déclarait sa propre liste — et elles ont dérivé :
+ * cinq mutations sur huit oubliaient au moins une famille. Voir
+ * `useInvalidateMoney`.
+ */
+export const BANKING_ROOT = ['banking'] as const;
+export const INTERACTIONS_ROOT = ['interactions'] as const;
+export const EXPENSES_ROOT = ['expenses'] as const;
+export const BUDGET_ROOT = ['budget'] as const;
+export const COMPLIANCE_ROOT = ['compliance'] as const;
+
 export const complianceKeys = {
-  all: ['compliance'] as const,
+  all: COMPLIANCE_ROOT,
   summary: () => [...complianceKeys.all, 'summary'] as const,
   group: (kind: string, waived: boolean, offset: number) =>
     [...complianceKeys.all, 'group', kind, waived, offset] as const,

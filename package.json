@@ -13,9 +13,9 @@
     "gen:api": "openapi --input http://127.0.0.1:8001/api/schema/ --output ui/src/gen/api --client fetch --useUnionTypes",
     "gen:api:clean": "rm -rf ui/src/gen/api",
     "gen:api:refresh": "npm run gen:api:clean && npm run gen:api",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
+    "test": "TZ=Europe/Paris vitest --config ui/vite.config.ts",
+    "test:ui": "TZ=Europe/Paris vitest --ui --config ui/vite.config.ts",
+    "test:coverage": "TZ=Europe/Paris vitest run --coverage --config ui/vite.config.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed"

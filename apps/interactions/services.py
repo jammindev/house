@@ -13,7 +13,6 @@ from datetime import datetime, time
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
-from zoneinfo import ZoneInfo
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
@@ -23,6 +22,7 @@ from django.db.transaction import atomic as transaction_atomic
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from core.timezones import household_tz
 from zones.models import Zone
 
 from .models import Interaction, InteractionZone
@@ -726,9 +726,4 @@ def household_noon(household, day) -> datetime:
     dated the 1st or the 31st changes month — and therefore changes monthly
     budget. Noon is far enough from both edges for every real timezone offset.
     """
-    tz_name = getattr(household, "timezone", "") or "UTC"
-    try:
-        tz = ZoneInfo(tz_name)
-    except Exception:
-        tz = ZoneInfo("UTC")
-    return datetime.combine(day, time(12, 0), tzinfo=tz)
+    return datetime.combine(day, time(12, 0), tzinfo=household_tz(household))

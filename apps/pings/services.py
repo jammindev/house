@@ -16,10 +16,10 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.utils import timezone, translation
 
+from core.timezones import household_tz
 from telegram.models import TelegramAccount
 
 from . import registry
@@ -183,13 +183,8 @@ def _deliver(user, household, text: str) -> bool:
     return delivered
 
 
-def _household_tz(household) -> ZoneInfo:
-    name = getattr(household, "timezone", "") or "UTC"
-    try:
-        return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError):
-        logger.warning("pings: invalid household timezone %r, using UTC", name)
-        return ZoneInfo("UTC")
+#: Alias — la définition (et son log) vivent dans ``core.timezones``.
+_household_tz = household_tz
 
 
 def _recipient_language(pref: PingPreference) -> str:

@@ -255,7 +255,23 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
   « conforme » sans avoir vérifié que le contrôle a pu s'exécuter.
 - **Le badge doit rester bon marché** : `DetectorSpec.count` est un `COUNT(*)`
   indexé, `findings` est paginé et ne tourne que pour le groupe ouvert. Ne jamais
-  matérialiser les écarts en Python pour les compter.
+  matérialiser les écarts en Python pour les compter. Et **ouvrir un groupe ne
+  recompte que lui** (`compliance.group_result`) : passer par `summary()` pour
+  sérialiser un seul en-tête relançait les quatorze détecteurs, dont la marche
+  arithmétique sur les soldes.
+- **Un détecteur non-SQL passe par `compliance.apply_window_to_pairs`.** La moitié
+  du catalogue raisonne sur ce qu'aucun `COUNT(*)` n'exprime (une chaîne de soldes,
+  une reconstruction, un solde espèces) et renvoie `[(objet, détail), …]` ; le
+  filtrage `pks / exclude_pks / limit / offset` est le même pour tous et n'a pas à
+  être réécrit — il l'a été six fois.
+- **Toute écriture sur l'argent invalide tout l'argent** (`useInvalidateMoney`,
+  `ui/src/features/money/invalidate.ts`). Les cinq racines de cache — `banking`,
+  `interactions`, `expenses`, `budget`, `compliance` — sont déclarées dans
+  `money/keys.ts` et jamais en littéral au point d'appel. Chaque hook listait sa
+  propre combinaison et elles avaient dérivé : importer un relevé n'invalidait que
+  `banking`, rattacher une dépense ne touchait pas la conformité. Invalider trop
+  large coûte quelques requêtes ; invalider trop étroit coûte la confiance dans
+  les chiffres, et ne se voit pas en revue.
 - Le libellé utilisateur d'un `kind` vit dans le namespace i18n **`money`** du
   front, pas en `gettext` backend : ajouter un détecteur ne doit pas imposer un
   passage dans quatre `.po`.
@@ -574,6 +590,52 @@ import { formatAmount } from '@/lib/format';
 formatAmount('12.50')                      // « 12,50 € » (fr)
 formatAmount(420, { fractionDigits: 0 })   // « 420 € »
 ```
+
+### Dates de calendrier — jamais `toISOString()`
+
+Même règle, pour la même raison. Une date `YYYY-MM-DD` passe par
+**`toLocalISODate` / `todayISO` de `@/lib/format`**, jamais par
+`new Date().toISOString().slice(0, 10)`.
+
+```ts
+// ❌ Interdit — convertit en UTC avant de formater
+const from = new Date(y, m, 1).toISOString().slice(0, 10);
+
+// ✅ Correct
+import { todayISO, toLocalISODate } from '@/lib/format';
+```
+
+**Pourquoi :** `toISOString()` passe en UTC. À Paris, minuit local recule d'un
+jour, et tout ce qui se produit entre minuit et 2 h est daté de la veille. Les
+quatre périodes de l'onglet Dépenses partaient décalées aux deux bouts (« ce mois-ci »
+= 30 juin → 30 juillet), et dix formulaires proposaient « hier » comme date du
+jour pendant deux heures chaque nuit. Régression :
+`ui/src/features/expenses/period.test.ts`.
+
+Côté serveur, le pendant est `core.timezones` (voir plus bas).
+
+### Le fuseau du foyer — `core.timezones`, et rien d'autre
+
+Toute borne de période, toute notion d'« aujourd'hui », passe par
+`apps/core/timezones.py` : `household_tz`, `household_today`, `start_of_day`,
+`end_of_day`, `month_range`, `current_month_range`.
+
+- **Jamais `date.today()`** (horloge du serveur, UTC en conteneur) ni
+  `timezone.localdate()` (le `TIME_ZONE` du projet, UTC aussi) quand la question
+  est « quel jour est-on **chez le foyer** ».
+- **Jamais un `try: ZoneInfo(...) except:` local** — le helper existait en six
+  exemplaires, et c'est cette dispersion qui a produit le bug ci-dessous.
+- **Une date nue en fin d'intervalle vaut fin de journée.** Un `__lte` la lit
+  sinon à minuit et exclut le dernier jour de la période.
+
+**Pourquoi c'est du métier et pas de la plomberie :** « ce mois-ci » avait deux
+définitions — fuseau du foyer pour le panneau Budgets, UTC pour le résumé des
+dépenses. La borne d'un mois décide de quel budget relève un euro, donc cliquer
+sur « 340 € / 400 € » pouvait ouvrir une page annonçant 352 €, chacune juste
+selon sa propre borne. C'est la règle « un écart ne se dit jamais deux fois avec
+deux voix » appliquée à un montant : **un compteur ne peut pas avoir deux
+définitions.** Régression :
+`apps/interactions/tests/test_period_bounds.py::TestTheTwoScreensAgree`.
 
 ---
 

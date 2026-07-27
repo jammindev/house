@@ -9,14 +9,14 @@ import type { BudgetOverviewRow, BudgetState } from '@/lib/api/budget';
 const BAR_CLASS: Record<BudgetState, string> = {
   uncapped: 'bg-muted-foreground/30',
   ok: 'bg-primary',
-  warning: 'bg-amber-500',
+  warning: 'bg-warning',
   over: 'bg-destructive',
 };
 
 const TEXT_CLASS: Record<BudgetState, string> = {
   uncapped: 'text-muted-foreground',
   ok: 'text-muted-foreground',
-  warning: 'text-amber-600',
+  warning: 'text-warning',
   over: 'text-destructive',
 };
 

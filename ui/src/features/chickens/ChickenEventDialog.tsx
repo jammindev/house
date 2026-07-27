@@ -13,9 +13,10 @@ import {
   type ChickenEventType,
 } from '@/lib/api/chickens';
 import { useCreateChickenEvent, useUpdateChickenEvent } from './hooks';
+import { todayISO } from '@/lib/format';
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 interface ChickenEventDialogProps {

@@ -27,10 +27,11 @@ Registered from ``banking.apps.BankingConfig.ready()``.
 """
 from __future__ import annotations
 
-from datetime import date
 from decimal import Decimal
 
 from django.db.models import F, Q
+
+from core.timezones import household_today
 
 from .balances import check_balance_chain
 from .compliance import (
@@ -40,6 +41,7 @@ from .compliance import (
     DetectorSpec,
     Finding,
     apply_window,
+    apply_window_to_pairs,
     fingerprint_of,
     get_detector,
     register,
@@ -68,6 +70,30 @@ ACCOUNT_ANCHOR_STALE = "account_anchor_stale"
 # --- Shared base: spendable outflows inside their account's window -----------
 
 
+def _window_scope(household) -> Q:
+    """``Q`` matching every line inside its own account's conformity window.
+
+    Matches nothing when no account has a window at all: nothing can be asserted,
+    and the prerequisite detector is the one doing the talking. That case is an
+    impossible ``Q``, not ``.none()`` — an ``EmptyQuerySet`` carries no annotations,
+    so callers filtering on ``allocated`` would hit a ``FieldError`` instead of
+    getting zero rows.
+    """
+    scope = Q(pk__in=[])
+    for account, window in accounts_with_window(household):
+        scope |= Q(account=account, booked_on__gte=window.start, booked_on__lte=window.end)
+    return scope
+
+
+def _scoped_lines(household):
+    """Every line inside its account's conformity window, unfiltered otherwise."""
+    return (
+        BankTransaction.objects.filter(household=household)
+        .filter(_window_scope(household))
+        .select_related("account")
+    )
+
+
 def _allocatable_outflows(household):
     """Outgoing operations the household is expected to account for.
 
@@ -78,26 +104,29 @@ def _allocatable_outflows(household):
       when the cash they fed is actually spent — allocating them would double it,
       which is the same rule ``validators.assert_allocation_fits`` enforces;
     - anything outside its account's conformity window.
-
-    Matches nothing when no account has a window at all: nothing can be asserted,
-    and the prerequisite detector is the one doing the talking. That case is an
-    impossible ``Q``, not ``.none()`` — an ``EmptyQuerySet`` carries no annotations,
-    so callers filtering on ``allocated`` would hit a ``FieldError`` instead of
-    getting zero rows.
     """
-    pairs = accounts_with_window(household)
-
-    scope = Q(pk__in=[])
-    for account, window in pairs:
-        scope |= Q(account=account, booked_on__gte=window.start, booked_on__lte=window.end)
-
     # ``with_allocation`` is shared with the journal badge on purpose: the count
     # on the Contrôle tab and the marker on the line must be the same judgement.
     return with_allocation(
-        BankTransaction.objects.filter(household=household)
-        .filter(scope)
-        .filter(amount__lt=0, is_internal=False, transfer_counterpart__isnull=True)
-    ).select_related("account")
+        _scoped_lines(household).filter(
+            amount__lt=0, is_internal=False, transfer_counterpart__isnull=True
+        )
+    )
+
+
+def pending_outflows(household):
+    """Les lignes que le contrôle réclame — non ventilées **et** partielles.
+
+    Union exacte des deux détecteurs de rangement, exprimée une fois : le journal
+    l'utilise pour son filtre « à traiter », le Contrôle pour ses compteurs. Un
+    filtre qui recalculerait son propre critère finirait par montrer une liste
+    dont le nombre de lignes ne tombe pas d'accord avec le badge juste au-dessus —
+    et c'est précisément ce que la règle « jamais deux voix » interdit.
+
+    ``allocated < outflow_value`` couvre les deux cas d'un coup : zéro alloué, et
+    partiellement alloué.
+    """
+    return _allocatable_outflows(household).filter(allocated__lt=F("outflow_value"))
 
 
 def _unallocated_qs(household):
@@ -284,15 +313,9 @@ def _count_without_window(household) -> int:
 
 def _find_without_window(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _accounts_without_window(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(
@@ -329,17 +352,6 @@ def _earliest_line_date(account) -> str | None:
 
 
 # --- Receipts and internal movements (lot 5) ---------------------------------
-
-
-def _scoped_lines(household):
-    """Every line inside its account's conformity window, unfiltered otherwise."""
-    pairs = accounts_with_window(household)
-    scope = Q(pk__in=[])
-    for account, window in pairs:
-        scope |= Q(account=account, booked_on__gte=window.start, booked_on__lte=window.end)
-    return (
-        BankTransaction.objects.filter(household=household).filter(scope).select_related("account")
-    )
 
 
 def _unclassified_inflow_qs(household):
@@ -447,15 +459,9 @@ def _count_period_gaps(household) -> int:
 
 def _find_period_gaps(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _period_gap_pairs(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(
@@ -577,15 +583,9 @@ def _count_stale_anchors(household) -> int:
 
 def _find_stale_anchors(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _stale_anchor_pairs(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(
@@ -619,11 +619,17 @@ def _overdue_recurring_qs(household):
     No conformity window here: a recurrence is a *schedule*, not a statement line.
     Its due date being in the past is a fact regardless of which periods have been
     imported.
+
+    « Aujourd'hui » se lit **chez le foyer**, jamais avec ``date.today()`` : ce
+    dernier lit l'horloge du serveur (UTC en conteneur), donc un foyer à Paris
+    voyait une échéance basculer « en retard » deux heures trop tôt — et le
+    Contrôle comptait autre chose que la liste « échéances dues », qui utilisait
+    déjà le bon fuseau.
     """
     from budget.models import RecurringExpense
 
     return RecurringExpense.objects.filter(
-        household=household, next_due_date__lt=date.today()
+        household=household, next_due_date__lt=household_today(household)
     )
 
 
@@ -632,7 +638,7 @@ def _count_overdue_recurring(household) -> int:
 
 
 def _find_overdue_recurring(household, **window) -> list[Finding]:
-    today = date.today()
+    today = household_today(household)
     return [
         Finding(
             kind=RECURRING_OVERDUE,
@@ -697,15 +703,9 @@ def _count_double_confirmed(household) -> int:
 
 def _find_double_confirmed(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _double_confirmed_pairs(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(
@@ -752,15 +752,9 @@ def _count_negative_cash(household) -> int:
 
 def _find_negative_cash(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _negative_cash_pairs(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(
@@ -796,15 +790,9 @@ def _count_chain_broken(household) -> int:
 
 def _find_chain_broken(household, *, pks=None, exclude_pks=None, limit=None, offset=None):
     pairs = _chain_broken_pairs(household)
-    if pks is not None:
-        wanted = {str(p) for p in pks}
-        pairs = [p for p in pairs if str(p[0].pk) in wanted]
-    if exclude_pks:
-        unwanted = {str(p) for p in exclude_pks}
-        pairs = [p for p in pairs if str(p[0].pk) not in unwanted]
-    if offset or limit:
-        start = offset or 0
-        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    pairs = apply_window_to_pairs(
+        pairs, pks=pks, exclude_pks=exclude_pks, limit=limit, offset=offset
+    )
 
     return [
         Finding(

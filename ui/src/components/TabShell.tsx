@@ -33,6 +33,19 @@ interface TabShellProps<T extends string> {
    * user can still open one to add its first item. Selecting one activates it.
    */
   moreTabs?: TabConfig<T>[];
+  /**
+   * Mode contrôlé : l'onglet actif vit chez le parent.
+   *
+   * Nécessaire dès qu'un **enfant** doit changer d'onglet (le panneau « À ranger »
+   * renvoie vers « Contrôle » quand un prérequis le vide). Sans ça, le parent
+   * n'avait d'autre prise que d'écrire dans `sessionStorage` et de recharger la
+   * page — un `window.location.assign` au milieu d'une SPA, qui jetait tout le
+   * cache React Query pour un changement d'onglet.
+   *
+   * Omis, le composant reste autonome et persiste dans la session comme avant.
+   */
+  value?: T;
+  onValueChange?: (tab: T) => void;
 }
 
 export function TabShell<T extends string>({
@@ -43,9 +56,21 @@ export function TabShell<T extends string>({
   actions,
   onTabChange,
   moreTabs = [],
+  value,
+  onValueChange,
 }: TabShellProps<T>) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useSessionState<T>(sessionKey, defaultTab);
+  const [storedTab, setStoredTab] = useSessionState<T>(sessionKey, defaultTab);
+
+  const isControlled = value !== undefined;
+  const activeTab = isControlled ? value : storedTab;
+  const setActiveTab = React.useCallback(
+    (tab: T) => {
+      if (isControlled) onValueChange?.(tab);
+      else setStoredTab(tab);
+    },
+    [isControlled, onValueChange, setStoredTab],
+  );
 
   // Guard: if the stored tab no longer exists (e.g. after a config change), reset
   // to default. `moreTabs` are known too — an active tab picked from the « + »

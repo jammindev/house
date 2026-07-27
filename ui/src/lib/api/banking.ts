@@ -269,6 +269,8 @@ export interface TransactionFilters {
   date_to?: string;
   direction?: TransactionDirection | '';
   is_internal?: 'true' | 'false' | '';
+  /** `'todo'` = seulement les sorties que le contrôle réclame (non ventilées ou partielles). */
+  allocation?: 'todo' | '';
   q?: string;
 }
 

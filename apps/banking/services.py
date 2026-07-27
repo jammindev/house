@@ -541,7 +541,6 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
     stale total and jointly overshoot.
     """
     from interactions.kinds import OWNED_BY_ALLOCATION_EDITOR
-    from interactions.models import Interaction
     from interactions.services import create_bank_expense_interaction
 
     with atomic():
@@ -602,8 +601,6 @@ def set_allocations(*, household, user, transaction, lines: list[dict]) -> list:
                 # message actionable on a five-line split.
                 raise ValidationError({"lines": f"line {index + 1}: {exc}"})
 
-        # Refresh so the caller sees the linked state rather than a stale copy.
-        Interaction.objects.filter(pk__in=[i.pk for i in created])
         return created
 
 

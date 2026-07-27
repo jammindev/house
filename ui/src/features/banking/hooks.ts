@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   archiveBankAccount,
@@ -31,10 +31,11 @@ import {
   type TransactionFilters,
 } from '@/lib/api/banking';
 import { toast } from '@/lib/toast';
-import { complianceKeys } from '@/features/money/keys';
+import { BANKING_ROOT } from '@/features/money/keys';
+import { useInvalidateMoney } from '@/features/money/invalidate';
 
 export const bankingKeys = {
-  all: ['banking'] as const,
+  all: BANKING_ROOT,
   accounts: (includeArchived: boolean) =>
     [...bankingKeys.all, 'accounts', includeArchived] as const,
   imports: (accountId?: string) => [...bankingKeys.all, 'imports', accountId ?? 'all'] as const,
@@ -57,15 +58,8 @@ export function useBankAccounts(includeArchived = false) {
   });
 }
 
-function useInvalidateBanking() {
-  const qc = useQueryClient();
-  return () => {
-    void qc.invalidateQueries({ queryKey: bankingKeys.all });
-  };
-}
-
 export function useCreateBankAccount() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: BankAccountPayload) => createBankAccount(payload),
@@ -78,7 +72,7 @@ export function useCreateBankAccount() {
 }
 
 export function useUpdateBankAccount() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<BankAccountPayload> }) =>
@@ -93,7 +87,7 @@ export function useUpdateBankAccount() {
 
 /** Bare archive mutation — la page l'enveloppe dans useDeleteWithUndo. */
 export function useArchiveBankAccount() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (id: string) => archiveBankAccount(id),
     onSuccess: invalidate,
@@ -101,7 +95,7 @@ export function useArchiveBankAccount() {
 }
 
 export function useRestoreBankAccount() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (id: string) => restoreBankAccount(id),
@@ -126,8 +120,7 @@ export function useBalanceAnchor(accountId: string | undefined) {
 }
 
 export function useSetBalanceAnchor() {
-  const invalidate = useInvalidateBanking();
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({
@@ -141,7 +134,6 @@ export function useSetBalanceAnchor() {
       invalidate();
       // Le solde d'ouverture ouvre la fenêtre de conformité : les compteurs de
       // contrôle changent dans la foulée, souvent de zéro à plusieurs centaines.
-      void qc.invalidateQueries({ queryKey: complianceKeys.all });
       toast({ description: t('banking.anchor.applied'), variant: 'success' });
     },
   });
@@ -168,7 +160,7 @@ export function usePreviewStatementFile() {
  * il lit `status` et `created_count` sur la trace retournée.
  */
 export function useImportStatementFile() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (params: {
       accountId: string;
@@ -197,7 +189,7 @@ export function useAccountFlow(filters: TransactionFilters) {
 }
 
 export function useQualifyTransaction() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({
@@ -226,7 +218,7 @@ export function useAccountBalance(accountId: string | undefined, asOf?: string) 
 }
 
 export function useWithdrawToCash() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({
@@ -238,20 +230,20 @@ export function useWithdrawToCash() {
     }) => withdrawToCash(transactionId, payload),
     onSuccess: () => {
       invalidate();
-      toast({ description: t('banking.cash.linked'), variant: 'success' });
+      toast({ description: t('banking.withdraw.linked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 
 export function useUnlinkCashCounterpart() {
-  const invalidate = useInvalidateBanking();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (transactionId: string) => unlinkCashCounterpart(transactionId),
     onSuccess: () => {
       invalidate();
-      toast({ description: t('banking.cash.unlinked'), variant: 'success' });
+      toast({ description: t('banking.withdraw.unlinked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
@@ -268,8 +260,7 @@ export function useAllocations(transactionId: string | undefined) {
 }
 
 export function useSetAllocations() {
-  const invalidate = useInvalidateBanking();
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ transactionId, lines }: { transactionId: string; lines: AllocationLine[] }) =>
@@ -278,14 +269,10 @@ export function useSetAllocations() {
       invalidate();
       // La ventilation crée/supprime des Interaction : les listes de dépenses et
       // les compteurs de budget doivent se rafraîchir aussi.
-      void qc.invalidateQueries({ queryKey: ['interactions'] });
-      void qc.invalidateQueries({ queryKey: ['expenses'] });
-      void qc.invalidateQueries({ queryKey: ['budget'] });
       // Ventiler résout (ou déplace) un écart : sans cette invalidation, le badge
       // « Contrôle » et la file « À ranger » afficheraient encore la ligne qu'on
       // vient de ranger — un compteur qui contredit l'écran est pire que pas de
       // compteur.
-      void qc.invalidateQueries({ queryKey: complianceKeys.all });
       toast({ description: t('banking.allocation.saved'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
@@ -295,17 +282,13 @@ export function useSetAllocations() {
 // --- Rapprochement automatique (lot 6) --------------------------------------
 
 export function useReconcile() {
-  const invalidate = useInvalidateBanking();
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (params: { date_from?: string; date_to?: string } = {}) =>
       reconcileTransactions(params),
     onSuccess: (outcome) => {
       invalidate();
-      void qc.invalidateQueries({ queryKey: ['interactions'] });
-      void qc.invalidateQueries({ queryKey: ['budget'] });
-      void qc.invalidateQueries({ queryKey: complianceKeys.all });
 
       // Deux compteurs, un seul toast : la passe rapproche des dépenses **et**
       // confirme des échéances. Les annoncer séparément ferait deux toasts pour
@@ -338,15 +321,13 @@ export function useSuggestions(transactionId: string | undefined) {
 }
 
 export function useLinkInteraction() {
-  const invalidate = useInvalidateBanking();
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ transactionId, interactionId }: { transactionId: string; interactionId: string }) =>
       linkInteraction(transactionId, interactionId),
     onSuccess: () => {
       invalidate();
-      void qc.invalidateQueries({ queryKey: ['interactions'] });
       toast({ description: t('banking.reconcile.linked'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
@@ -354,8 +335,7 @@ export function useLinkInteraction() {
 }
 
 export function useRecordCashExpense() {
-  const invalidate = useInvalidateBanking();
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: CashExpensePayload) => recordCashExpense(payload),
@@ -364,10 +344,6 @@ export function useRecordCashExpense() {
       // L'opération crée aussi une Interaction : dépenses, budgets et conformité
       // doivent se rafraîchir, sinon la dépense qu'on vient de saisir n'apparaît
       // nulle part avant un reload.
-      void qc.invalidateQueries({ queryKey: ['interactions'] });
-      void qc.invalidateQueries({ queryKey: ['expenses'] });
-      void qc.invalidateQueries({ queryKey: ['budget'] });
-      void qc.invalidateQueries({ queryKey: complianceKeys.all });
       toast({ description: t('banking.cash.recorded'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),

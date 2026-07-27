@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   confirmRecurringOccurrence,
@@ -20,9 +20,11 @@ import {
   type RecurringExpensePayload,
 } from '@/lib/api/budget';
 import { toast } from '@/lib/toast';
+import { BUDGET_ROOT } from '@/features/money/keys';
+import { useInvalidateMoney } from '@/features/money/invalidate';
 
 export const budgetKeys = {
-  all: ['budget'] as const,
+  all: BUDGET_ROOT,
   list: () => [...budgetKeys.all, 'list'] as const,
   overview: () => [...budgetKeys.all, 'overview'] as const,
   recurring: () => [...budgetKeys.all, 'recurring'] as const,
@@ -42,15 +44,8 @@ export function useBudgetOverview() {
   return useQuery({ queryKey: budgetKeys.overview(), queryFn: fetchBudgetOverview });
 }
 
-function useInvalidateBudget() {
-  const qc = useQueryClient();
-  return () => {
-    void qc.invalidateQueries({ queryKey: budgetKeys.all });
-  };
-}
-
 export function useCreateBudget() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: BudgetPayload) => createBudget(payload),
@@ -63,7 +58,7 @@ export function useCreateBudget() {
 }
 
 export function useUpdateBudget() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<BudgetPayload> }) =>
@@ -78,7 +73,7 @@ export function useUpdateBudget() {
 
 /** Bare delete mutation — the page wraps it in useDeleteWithUndo for the toast. */
 export function useDeleteBudget() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (id: string) => deleteBudget(id),
     onSuccess: invalidate,
@@ -100,7 +95,7 @@ export function useCashflowProjection() {
 }
 
 export function useCreateRecurringExpense() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: (payload: RecurringExpensePayload) => createRecurringExpense(payload),
@@ -113,7 +108,7 @@ export function useCreateRecurringExpense() {
 }
 
 export function useUpdateRecurringExpense() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<RecurringExpensePayload> }) =>
@@ -128,7 +123,7 @@ export function useUpdateRecurringExpense() {
 
 /** Bare delete mutation — the page wraps it in useDeleteWithUndo. */
 export function useDeleteRecurringExpense() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (id: string) => deleteRecurringExpense(id),
     onSuccess: invalidate,
@@ -136,7 +131,7 @@ export function useDeleteRecurringExpense() {
 }
 
 export function useConfirmRecurringOccurrence() {
-  const invalidate = useInvalidateBudget();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: ({ id, amount }: { id: string; amount?: number | null }) =>
       confirmRecurringOccurrence(id, amount),

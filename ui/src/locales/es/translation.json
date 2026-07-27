@@ -2572,6 +2572,9 @@
       "actions": {
         "add": "Gasto"
       }
+    },
+    "summary": {
+      "budget": "Presupuesto"
     }
   },
   "notifications": {
@@ -3317,7 +3320,8 @@
       "empty": {
         "title": "Ninguna operación",
         "description": "Importa un extracto desde la página Cuentas, o amplía los filtros."
-      }
+      },
+      "toSortOut": "Por ordenar"
     },
     "balance": {
       "uncertain": "por comprobar",
@@ -3348,6 +3352,25 @@
       "noAccountHint": "Declare una cuenta «Efectivo» en la pestaña Cuentas: un gasto en metálico pasa entonces a ser una operación de cuenta, como las demás.",
       "createAccount": "Crear mi cuenta de efectivo",
       "defaultAccountName": "Efectivo"
+    },
+    "withdraw": {
+      "title": "Pasar a efectivo",
+      "intro": "Esta retirada no es un gasto: el dinero cambia de bolsillo. Al reflejarla en una cuenta de efectivo se cuenta una sola vez — cuando ese efectivo se gaste de verdad.",
+      "action": "Alimentar el efectivo",
+      "fields": {
+        "account": "Cuenta de efectivo",
+        "amount": "Importe reflejado",
+        "amountHint": "Por defecto, la retirada completa. Redúzcalo si una parte no llegó al fondo común."
+      },
+      "errors": {
+        "accountRequired": "Elija la cuenta de efectivo que se abonará.",
+        "amountInvalid": "Indique un importe positivo, como máximo {{max}}."
+      },
+      "noCashAccount": "Aún no hay cuenta de efectivo. Cree una en la pestaña Cuentas para poder seguir el dinero físico.",
+      "linked": "Retirada reflejada en el efectivo.",
+      "unlinked": "Contrapartida en efectivo eliminada.",
+      "linkedBadge": "Efectivo",
+      "unlink": "Eliminar la contrapartida"
     },
     "allocation": {
       "title": "Desglosar esta operación",

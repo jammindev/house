@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   fetchInteractions,
   createInteraction,
@@ -7,6 +7,8 @@ import {
   updateInteraction,
   type CreateInteractionInput,
 } from '@/lib/api/interactions';
+import { INTERACTIONS_ROOT } from '@/features/money/keys';
+import { useInvalidateMoney } from '@/features/money/invalidate';
 
 interface InteractionFilters {
   search?: string;
@@ -24,7 +26,7 @@ interface InteractionFilters {
 }
 
 export const interactionKeys = {
-  all: ['interactions'] as const,
+  all: INTERACTIONS_ROOT,
   list: (filters?: InteractionFilters) =>
     [...interactionKeys.all, 'list', filters] as const,
   detail: (id: string) => [...interactionKeys.all, 'detail', id] as const,
@@ -38,18 +40,18 @@ export function useInteractions(filters: InteractionFilters = {}) {
 }
 
 export function useCreateInteraction() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (payload: CreateInteractionInput) => createInteraction(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: interactionKeys.all }),
+    onSuccess: invalidate,
   });
 }
 
 export function useDeleteInteraction() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: (id: string) => deleteInteraction(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: interactionKeys.all }),
+    onSuccess: invalidate,
   });
 }
 
@@ -62,10 +64,10 @@ export function useInteraction(id: string) {
 }
 
 export function useUpdateInteraction() {
-  const qc = useQueryClient();
+  const invalidate = useInvalidateMoney();
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateInteractionInput> }) =>
       updateInteraction(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: interactionKeys.all }),
+    onSuccess: invalidate,
   });
 }

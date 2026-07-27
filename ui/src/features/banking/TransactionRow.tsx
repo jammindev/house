@@ -55,10 +55,10 @@ export default function TransactionRow({
       : []),
     // Verser aux espèces n'a de sens que sur une sortie encore libre.
     ...(isOut && !hasCounterpart && canFeedCash
-      ? [{ label: t('banking.cash.action'), icon: Banknote, onClick: onFeedCash }]
+      ? [{ label: t('banking.withdraw.action'), icon: Banknote, onClick: onFeedCash }]
       : []),
     ...(hasCounterpart
-      ? [{ label: t('banking.cash.unlink'), icon: Link2Off, onClick: onUnlinkCash }]
+      ? [{ label: t('banking.withdraw.unlink'), icon: Link2Off, onClick: onUnlinkCash }]
       : []),
     // Classer n'a de sens que sur une recette : une sortie n'a pas de nature.
     ...(!isOut && !transaction.is_internal
@@ -114,7 +114,7 @@ export default function TransactionRow({
               ) : (
                 <Repeat className="h-3 w-3" aria-hidden />
               )}
-              {hasCounterpart ? t('banking.cash.linkedBadge') : t('banking.journal.internal')}
+              {hasCounterpart ? t('banking.withdraw.linkedBadge') : t('banking.journal.internal')}
             </span>
           ) : null}
 

@@ -8,11 +8,12 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import type { Cadence, RecurringExpense } from '@/lib/api/budget';
 import { useBudgets, useCreateRecurringExpense, useUpdateRecurringExpense } from './hooks';
+import { todayISO } from '@/lib/format';
 
 const CADENCES: Cadence[] = ['monthly', 'quarterly', 'yearly'];
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 interface Props {

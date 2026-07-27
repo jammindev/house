@@ -8,6 +8,7 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
 import { useBudgets } from '@/features/budget/hooks';
+import { todayISO } from '@/lib/format';
 import {
   useBankAccounts,
   useCreateBankAccount,
@@ -112,7 +113,7 @@ export default function CashExpenseDialog({ open, onOpenChange }: CashExpenseDia
         // honnête : c'est aussi le prérequis de conformité (sans date d'ouverture,
         // aucun contrôle ne porte sur ce compte).
         opening_balance: '0',
-        opening_balance_date: new Date().toISOString().slice(0, 10),
+        opening_balance_date: todayISO(),
       });
       setAccountId(created.id);
     } catch {

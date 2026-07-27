@@ -1,14 +1,12 @@
 """Budget REST API views."""
-from zoneinfo import ZoneInfo
-
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from core.timezones import household_today
 
 from .aggregations import compute_budget_overview, compute_cashflow_projection
 from .analysis import DEFAULT_MONTHS, compute_budget_analysis
@@ -29,16 +27,6 @@ from .services import (
     update_budget,
     update_recurring_expense,
 )
-
-
-def _household_today(household):
-    """Household-local calendar date (recurrences are date-based, tz-aware)."""
-    tz_name = getattr(household, "timezone", "") or "UTC"
-    try:
-        tz = ZoneInfo(tz_name)
-    except Exception:
-        tz = ZoneInfo("UTC")
-    return timezone.now().astimezone(tz).date()
 
 
 class BudgetViewSet(viewsets.ModelViewSet):
@@ -223,7 +211,7 @@ class RecurringExpenseViewSet(viewsets.ModelViewSet):
         household = request.household
         if household is None:
             return Response([])
-        today = _household_today(household)
+        today = household_today(household)
         qs = self.get_queryset().filter(next_due_date__lte=today)
         return Response(self.get_serializer(qs, many=True).data)
 

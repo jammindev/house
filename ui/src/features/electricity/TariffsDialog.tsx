@@ -10,6 +10,7 @@ import { FormField } from '@/design-system/form-field';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import type { ElectricityMeter, MeterTariff } from '@/lib/api/electricity';
+import { todayISO } from '@/lib/format';
 import {
   consumptionKeys,
   useCreateMeterTariff,
@@ -72,7 +73,7 @@ export default function TariffsDialog({ open, onOpenChange, meter }: TariffsDial
       setPriceHc(target.price_hc ?? '');
       setSubscription(target.subscription_eur_month ?? '');
     } else {
-      setValidFrom(new Date().toISOString().slice(0, 10));
+      setValidFrom(todayISO());
       setPriceBase('');
       setPriceHp('');
       setPriceHc('');

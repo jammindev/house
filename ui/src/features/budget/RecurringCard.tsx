@@ -35,7 +35,7 @@ export default function RecurringCard({ recurring, isDue, onEdit, onDelete, onCo
           <p className="mt-0.5 text-xs text-muted-foreground">
             {t(`recurring.cadence.${recurring.cadence}`)}
             {' · '}
-            <span className={isDue ? 'font-medium text-amber-600' : undefined}>
+            <span className={isDue ? 'font-medium text-warning' : undefined}>
               {isDue
                 ? t('recurring.dueOn', { date: formatDate(recurring.next_due_date) })
                 : t('recurring.nextOn', { date: formatDate(recurring.next_due_date) })}
