@@ -1573,11 +1573,11 @@
       },
       "budget": {
         "title": "Presupuestos",
-        "intro": "Fija límites mensuales y comprueba de un vistazo si tus gastos se mantienen dentro.",
+        "intro": "Clasifica tus gastos por categoría y pon un tope mensual donde quieras uno.",
         "steps": {
           "create": {
             "title": "Crear un presupuesto",
-            "body": "Toca «Nuevo presupuesto», ponle un nombre (p. ej. Compras) y un importe mensual. Añade un presupuesto global para limitar todos tus gastos a la vez."
+            "body": "Toca «Nuevo presupuesto» y dale un nombre (p. ej. Compra). El tope mensual es opcional: déjalo vacío para simplemente seguir una categoría como «Regalos». Añade un presupuesto global para limitar el conjunto de tus gastos — ese sí necesita un importe."
           },
           "assign": {
             "title": "Asignar gastos",
@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Seguir el mes",
-            "body": "Cada presupuesto muestra lo gastado frente al límite con una barra de progreso — ámbar cerca del límite, rojo al superarlo. Los contadores se reinician cada mes."
+            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes."
           },
           "recurring": {
             "title": "Anticipar facturas recurrentes",
@@ -3115,11 +3115,14 @@
       "name": "Nombre",
       "namePlaceholder": "p. ej. Compras",
       "monthlyAmount": "Importe mensual",
-      "isGlobal": "Presupuesto global (limita todos los gastos)"
+      "isGlobal": "Presupuesto global (limita todos los gastos)",
+      "monthlyAmountOptional": "Tope mensual (opcional)",
+      "amountHint": "Déjalo vacío para seguir la categoría sin ponerle tope."
     },
     "errors": {
       "amountInvalid": "Introduce un importe positivo.",
-      "nameRequired": "Introduce un nombre."
+      "nameRequired": "Introduce un nombre.",
+      "amountRequiredForGlobal": "El tope del hogar necesita un importe: limitar es su única razón de ser."
     },
     "global": {
       "defaultName": "Presupuesto global",
@@ -3143,6 +3146,9 @@
     "recurringAccess": {
       "hint": "Suscripciones, seguros, facturas y previsión de tesorería.",
       "committed": "{{amount}} comprometidos este mes"
+    },
+    "uncapped": {
+      "hint": "Categoría seguida, sin tope"
     }
   },
   "banking": {

@@ -1573,11 +1573,11 @@
       },
       "budget": {
         "title": "Budgets",
-        "intro": "Fixe des plafonds mensuels et vois d'un coup d'œil si tes dépenses tiennent dedans.",
+        "intro": "Classe tes dépenses par catégorie, et fixe un plafond mensuel là où tu en veux un.",
         "steps": {
           "create": {
             "title": "Créer un budget",
-            "body": "Touche « Nouveau budget », donne-lui un nom (ex. Courses) et un montant mensuel. Ajoute un budget global pour plafonner l'ensemble de tes dépenses."
+            "body": "Touche « Nouveau budget » et donne-lui un nom (ex. Courses). Le plafond mensuel est facultatif : laisse-le vide pour simplement suivre une catégorie comme « Cadeaux ». Ajoute un budget global pour plafonner l'ensemble de tes dépenses — celui-là, lui, a besoin d'un montant."
           },
           "assign": {
             "title": "Rattacher des dépenses",
@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Suivre le mois",
-            "body": "Chaque budget affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Les compteurs repartent à zéro chaque mois."
+            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois."
           },
           "recurring": {
             "title": "Anticiper les factures récurrentes",
@@ -3115,11 +3115,14 @@
       "name": "Nom",
       "namePlaceholder": "ex. Courses",
       "monthlyAmount": "Montant mensuel",
-      "isGlobal": "Budget global (plafonne toutes les dépenses)"
+      "isGlobal": "Budget global (plafonne toutes les dépenses)",
+      "monthlyAmountOptional": "Plafond mensuel (facultatif)",
+      "amountHint": "Laisse vide pour suivre la catégorie sans la plafonner."
     },
     "errors": {
       "amountInvalid": "Saisis un montant positif.",
-      "nameRequired": "Merci d'indiquer un nom."
+      "nameRequired": "Merci d'indiquer un nom.",
+      "amountRequiredForGlobal": "Le plafond du foyer a besoin d’un montant : plafonner est sa seule raison d’être."
     },
     "global": {
       "defaultName": "Budget global",
@@ -3143,6 +3146,9 @@
     "recurringAccess": {
       "hint": "Abonnements, assurances, factures & prévision de trésorerie.",
       "committed": "{{amount}} engagés ce mois"
+    },
+    "uncapped": {
+      "hint": "Catégorie suivie, sans plafond"
     }
   },
   "banking": {

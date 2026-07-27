@@ -3,18 +3,25 @@ import { api } from '@/lib/axios';
 export interface Budget {
   id: string;
   name: string;
-  monthly_amount: string;
+  /** Plafond mensuel. `null` = catégorie suivie, non plafonnée. */
+  monthly_amount: string | null;
   is_global: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export type BudgetState = 'ok' | 'warning' | 'over';
+/**
+ * `uncapped` n'est pas `ok` : une catégorie sans plafond ne peut être ni
+ * respectée ni dépassée. La rendre « ok » afficherait une barre verte à 0 %
+ * sur quelque chose qui n'a pas d'échelle.
+ */
+export type BudgetState = 'uncapped' | 'ok' | 'warning' | 'over';
 
 export interface BudgetOverviewRow {
   id: string;
   name: string;
-  amount: string;
+  /** `null` quand la catégorie n'a pas de plafond — jamais "0.00". */
+  amount: string | null;
   spent: string;
   committed: string;
   ratio: number;
@@ -34,7 +41,8 @@ export interface BudgetOverview {
 
 export interface BudgetPayload {
   name: string;
-  monthly_amount: number;
+  /** Omis ou `null` = catégorie sans plafond. Requis sur le budget global. */
+  monthly_amount?: number | null;
   is_global?: boolean;
 }
 

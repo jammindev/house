@@ -51,7 +51,12 @@ def render_lines(stats: dict[str, Any]) -> list[str]:
             "spent": _money(glob["spent"]), "amount": _money(glob["amount"]), "status": status})
 
     for b in stats.get("budgets", []):
-        if b["state"] == "over":
+        # Sans plafond, « 340 € / 0 € » serait un faux dépassement : la catégorie
+        # ne promet rien, on rapporte donc ce qu'elle a coûté, sans verdict.
+        if b.get("amount") is None:
+            lines.append(_("%(name)s: %(spent)s.") % {
+                "name": b["name"], "spent": _money(b["spent"])})
+        elif b["state"] == "over":
             lines.append(_("⚠ %(name)s: %(spent)s / %(amount)s — over budget.") % {
                 "name": b["name"], "spent": _money(b["spent"]), "amount": _money(b["amount"])})
         else:

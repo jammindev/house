@@ -256,6 +256,20 @@ class TestComputeMonthStats:
         stats = compute_month_stats(hh, "2026-06")
         assert stats["budgets"][0]["state"] == "over"
 
+    def test_an_uncapped_category_is_never_over(self):
+        """Le bilan mensuel doit la raconter sans verdict — elle ne promet rien."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        budget = self._create_budget(hh, owner, name="Cadeaux", monthly_amount=None)
+        _make_expense(hh, owner, "180.00", month="2026-06", budget=budget)
+
+        stats = compute_month_stats(hh, "2026-06")
+
+        row = stats["budgets"][0]
+        assert row["amount"] is None
+        assert row["state"] == "uncapped"
+        assert Decimal(row["spent"]) == Decimal("180.00")
+
     # --- unbudgeted ---
 
     def test_unbudgeted_captures_expenses_without_budget(self):

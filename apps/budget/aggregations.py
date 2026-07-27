@@ -87,8 +87,16 @@ def _committed_by_budget(household_id, start, end) -> dict:
     return {row["budget_id"]: row["total"] or _zero() for row in rows}
 
 
-def _state(spent: Decimal, ceiling: Decimal) -> tuple[float, str]:
-    """Return (ratio, state) where state is 'ok' | 'warning' | 'over'."""
+def _state(spent: Decimal, ceiling: Decimal | None) -> tuple[float, str]:
+    """Return (ratio, state) — 'uncapped' | 'ok' | 'warning' | 'over'.
+
+    ``uncapped`` is its own state, never 'ok': a category with no ceiling cannot
+    be respected or exceeded, and rendering it as 'ok' would put a green bar at
+    0 % on something that has no scale. Same reasoning as the conformity window —
+    « rien à signaler » et « rien à mesurer » ne sont pas le même zéro.
+    """
+    if ceiling is None:
+        return 0.0, "uncapped"
     if ceiling <= 0:
         return 0.0, "ok"
     ratio = float(spent / ceiling)
@@ -104,7 +112,9 @@ def _budget_row(budget: Budget, spent: Decimal, committed: Decimal | None = None
     return {
         "id": str(budget.id),
         "name": budget.name,
-        "amount": _str(budget.monthly_amount),
+        # ``None``, never "0.00": stringified, a missing ceiling and a ceiling of
+        # zero read the same — and the second one is permanently over budget.
+        "amount": None if budget.monthly_amount is None else _str(budget.monthly_amount),
         "spent": _str(spent),
         "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
@@ -143,13 +153,20 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         _budget_row(b, spent_map.get(b.id, _zero()), committed_map.get(b.id, _zero()))
         for b in named
     ]
-    named_total_amount = sum((b.monthly_amount for b in named), _zero())
+    # Only the capped ones: an uncapped category promises nothing, so it cannot
+    # make the envelopes overshoot the global ceiling on paper.
+    named_total_amount = sum(
+        (b.monthly_amount for b in named if b.monthly_amount is not None), _zero()
+    )
 
     global_row = None
     named_exceeds_global = False
     if global_budget is not None:
         global_row = _budget_row(global_budget, total_spent, total_committed)
-        named_exceeds_global = named_total_amount > global_budget.monthly_amount
+        named_exceeds_global = (
+            global_budget.monthly_amount is not None
+            and named_total_amount > global_budget.monthly_amount
+        )
 
     return {
         "month": month,

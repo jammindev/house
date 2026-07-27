@@ -1573,11 +1573,11 @@
       },
       "budget": {
         "title": "Budgets",
-        "intro": "Lege monatliche Obergrenzen fest und sieh auf einen Blick, ob deine Ausgaben darin bleiben.",
+        "intro": "Ordne deine Ausgaben Kategorien zu und setze dort eine monatliche Obergrenze, wo du eine willst.",
         "steps": {
           "create": {
             "title": "Budget erstellen",
-            "body": "Tippe auf „Neues Budget“, gib ihm einen Namen (z. B. Lebensmittel) und einen monatlichen Betrag. Füge ein globales Budget hinzu, um alle Ausgaben auf einmal zu begrenzen."
+            "body": "Tippe auf „Neues Budget“ und gib ihm einen Namen (z. B. Lebensmittel). Die monatliche Obergrenze ist optional: Lass sie leer, um eine Kategorie wie „Geschenke“ einfach nur zu verfolgen. Füge ein globales Budget hinzu, um deine Ausgaben insgesamt zu begrenzen — dieses braucht einen Betrag."
           },
           "assign": {
             "title": "Ausgaben zuordnen",
@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Den Monat verfolgen",
-            "body": "Jedes Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Die Zähler starten jeden Monat neu."
+            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu."
           },
           "recurring": {
             "title": "Wiederkehrende Rechnungen planen",
@@ -3115,11 +3115,14 @@
       "name": "Name",
       "namePlaceholder": "z. B. Lebensmittel",
       "monthlyAmount": "Monatlicher Betrag",
-      "isGlobal": "Globales Budget (begrenzt alle Ausgaben)"
+      "isGlobal": "Globales Budget (begrenzt alle Ausgaben)",
+      "monthlyAmountOptional": "Monatliche Obergrenze (optional)",
+      "amountHint": "Leer lassen, um die Kategorie ohne Obergrenze zu verfolgen."
     },
     "errors": {
       "amountInvalid": "Gib einen positiven Betrag ein.",
-      "nameRequired": "Bitte gib einen Namen ein."
+      "nameRequired": "Bitte gib einen Namen ein.",
+      "amountRequiredForGlobal": "Die Haushaltsobergrenze braucht einen Betrag – sie existiert nur, um zu begrenzen."
     },
     "global": {
       "defaultName": "Globales Budget",
@@ -3143,6 +3146,9 @@
     "recurringAccess": {
       "hint": "Abos, Versicherungen, Rechnungen & Liquiditätsprognose.",
       "committed": "{{amount}} diesen Monat zugesagt"
+    },
+    "uncapped": {
+      "hint": "Verfolgte Kategorie, ohne Obergrenze"
     }
   },
   "banking": {

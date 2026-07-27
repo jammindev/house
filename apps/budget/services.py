@@ -50,14 +50,18 @@ def create_budget(
     user,
     *,
     name: str,
-    monthly_amount: Decimal | str | float,
+    monthly_amount: Decimal | str | float | None = None,
     is_global: bool = False,
 ) -> Budget:
     """Create a budget for ``household`` on behalf of ``user``.
 
-    Reuses ``BudgetSerializer`` for validation (positive amount, non-blank name).
-    Raises ``rest_framework.ValidationError`` on invalid input or a uniqueness
-    clash (duplicate name, second global budget).
+    ``monthly_amount=None`` creates a **tracked category with no ceiling** — the
+    common case for « Cadeaux » or « Santé », which one wants to see totalled
+    without pretending to cap them. The global budget still requires one.
+
+    Reuses ``BudgetSerializer`` for validation (positive amount when given,
+    non-blank name). Raises ``rest_framework.ValidationError`` on invalid input
+    or a uniqueness clash (duplicate name, second global budget).
     """
     serializer = BudgetSerializer(
         data={

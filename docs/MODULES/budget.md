@@ -129,11 +129,47 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
   `settings.pings.types.monthly_budget_report`.
 - **Réglage** : `BUDGET_REPORT_AI_POLISH_ENABLED` (défaut `False`).
 
+## Le budget **est** la catégorie — et le plafond est optionnel
+
+`Interaction.budget` est le **seul axe qui classe un euro**. Projet, zone et
+source disent *sur quoi* / *où* / *depuis quoi*, jamais « bouffe ou bricolage ».
+Et le contrôle de conformité réclame un budget sur chaque dépense de la fenêtre
+(`expense_without_budget`).
+
+Conséquence longtemps subie : pour obtenir une catégorie, il fallait **inventer
+un plafond**. « Cadeaux », « Santé », « Vacances » se retrouvaient avec des
+montants fictifs — et un panneau de plafonds inventés rend *toutes* les barres
+illisibles, y compris les vraies.
+
+D'où : **`monthly_amount` est nullable**. `NULL` = « catégorie suivie, non
+plafonnée ».
+
+- L'état `uncapped` est **un état à part**, jamais `ok` : une catégorie sans
+  plafond ne peut être ni respectée ni dépassée, et une barre verte à 0 % sur
+  quelque chose qui n'a pas d'échelle est un mensonge. Même raisonnement que la
+  fenêtre de conformité — « rien à signaler » et « rien à mesurer » ne sont pas
+  le même zéro.
+- Le payload renvoie `"amount": null`, **jamais `"0.00"`** : une fois
+  sérialisés, un plafond absent et un plafond à zéro se ressemblent, et le second
+  est perpétuellement dépassé.
+- Une catégorie sans plafond **n'entre pas** dans `named_total_amount` : elle ne
+  promet rien, elle ne peut donc pas faire déborder le plafond global sur le
+  papier.
+- **Le budget global garde son montant obligatoire** : plafonner est son unique
+  raison d'être ; sans montant il trônerait en tête du panneau sans rien dire.
+  Refus explicite (400) à la création comme à l'édition.
+- Un plafond à **zéro reste refusé** (`min_value=0.01`) : ce n'est pas « pas de
+  plafond », c'est un plafond infranchissable.
+- Le bilan mensuel écrit « Cadeaux : 180 € » au lieu de « 180 € / 0 € —
+  dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
+  doit accepter les deux formes pour toujours.
+
 ## Décisions clés
 
 - **Budgets multiples nommés = la dimension de regroupement** (pas de taxonomie
-  de catégories séparée). Rattachement d'une dépense **optionnel** ; « hors
-  budget » toujours visible.
+  de catégories séparée) — et depuis que le plafond est optionnel, c'est
+  assumé : le budget *est* la catégorie (voir ci-dessus). Rattachement d'une
+  dépense **optionnel** ; « hors budget » toujours visible.
 - **Budget global optionnel** = filet couvrant tout (budgeté + hors budget).
 - **Tout membre** gère les budgets (aligné sur la saisie de dépenses).
 - **Dépensé calculé à la volée** : pas d'historique dénormalisé, toujours à jour.

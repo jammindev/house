@@ -34,7 +34,7 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
     setError(null);
     if (existing) {
       setName(existing.name);
-      setAmount(existing.monthly_amount);
+      setAmount(existing.monthly_amount ?? '');
       setIsGlobal(existing.is_global);
     } else {
       setName('');
@@ -46,14 +46,25 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
   // The global budget covers everything and needs no name — it's identified by
   // its flag. Named budgets require a name.
   const nameRequired = !isGlobal;
+  // Le plafond est optionnel pour une enveloppe nommée : le budget est le seul
+  // axe qui catégorise un euro, et exiger un montant obligeait à inventer un
+  // plafond pour « Cadeaux ». Le budget global, lui, n'existe que pour plafonner.
+  const amountRequired = isGlobal;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    const parsed = Number(amount.trim().replace(',', '.'));
-    if (!Number.isFinite(parsed) || parsed <= 0) {
+    const raw = amount.trim().replace(',', '.');
+    const parsed = Number(raw);
+    const hasAmount = raw !== '';
+
+    if (hasAmount && (!Number.isFinite(parsed) || parsed <= 0)) {
       setError(t('budget.errors.amountInvalid'));
+      return;
+    }
+    if (amountRequired && !hasAmount) {
+      setError(t('budget.errors.amountRequiredForGlobal'));
       return;
     }
     if (nameRequired && !name.trim()) {
@@ -63,7 +74,9 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
 
     const payload = {
       name: isGlobal ? (name.trim() || t('budget.global.defaultName')) : name.trim(),
-      monthly_amount: parsed,
+      // `null` explicite et pas champ omis : sur une édition, vider le montant
+      // doit **retirer** le plafond, ce qu'un PATCH partiel sans la clé ne ferait pas.
+      monthly_amount: hasAmount ? parsed : null,
       is_global: isGlobal,
     };
 
@@ -109,7 +122,12 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
           <p className="text-sm text-muted-foreground">{t('budget.global.hint')}</p>
         )}
 
-        <FormField label={`${t('budget.fields.monthlyAmount')} *`} htmlFor="budget-amount">
+        <FormField
+          label={amountRequired
+            ? `${t('budget.fields.monthlyAmount')} *`
+            : t('budget.fields.monthlyAmountOptional')}
+          htmlFor="budget-amount"
+        >
           <Input
             id="budget-amount"
             type="number"
@@ -120,6 +138,9 @@ export default function BudgetDialog({ open, onOpenChange, existing, allowGlobal
             placeholder="0.00"
             autoFocus={isGlobal}
           />
+          {amountRequired ? null : (
+            <p className="text-xs text-muted-foreground">{t('budget.fields.amountHint')}</p>
+          )}
         </FormField>
 
         {error ? (

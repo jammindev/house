@@ -254,13 +254,65 @@ class TestBudgetCreate:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "monthly_amount" in response.data
 
-    def test_missing_amount_returns_400(self):
+    def test_a_named_budget_without_an_amount_is_a_tracked_category(self):
+        """Le plafond est optionnel ; la catégorie ne l'est pas.
+
+        Exiger un montant pour obtenir une catégorie obligeait à inventer un
+        plafond pour « Cadeaux » — et un panneau de plafonds inventés rend
+        toutes les barres illisibles.
+        """
         hh = HouseholdFactory()
         owner = _make_owner(hh)
         client = _client_for(owner)
+
         response = client.post(
-            reverse("budget-list"), {"name": "Transport"}, format="json"
+            reverse("budget-list"), {"name": "Cadeaux"}, format="json"
         )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["monthly_amount"] is None
+
+    def test_an_explicit_null_amount_is_accepted_too(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        client = _client_for(owner)
+
+        response = client.post(
+            reverse("budget-list"),
+            {"name": "Santé", "monthly_amount": None},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert response.data["monthly_amount"] is None
+
+    def test_the_global_budget_still_requires_its_ceiling(self):
+        """Capper est son unique raison d'être : sans plafond il ne dit rien."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        client = _client_for(owner)
+
+        response = client.post(
+            reverse("budget-list"),
+            {"name": "Plafond du foyer", "is_global": True},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "monthly_amount" in response.data
+
+    def test_zero_is_still_refused(self):
+        """Un plafond à zéro n'est pas « pas de plafond » : c'est infranchissable."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        client = _client_for(owner)
+
+        response = client.post(
+            reverse("budget-list"),
+            {"name": "Transport", "monthly_amount": "0"},
+            format="json",
+        )
+
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "monthly_amount" in response.data
 
@@ -622,6 +674,38 @@ class TestBudgetOverview:
         response = client.get(reverse("budget-overview"))
         row = response.data["budgets"][0]
         assert Decimal(row["spent"]) == Decimal("0.00")
+
+    def test_an_uncapped_category_totals_without_a_verdict(self):
+        """Elle compte ce qu'elle a coûté, et n'est jamais « dépassée »."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        gifts = self._create_budget(hh, owner, name="Cadeaux", monthly_amount=None)
+        self._make_expense(hh, owner, "180.00", budget=gifts)
+
+        response = _client_for(owner).get(reverse("budget-overview"))
+
+        row = response.data["budgets"][0]
+        assert row["spent"] == "180.00"
+        # ``None``, jamais "0.00" : un plafond absent et un plafond à zéro se
+        # ressemblent une fois sérialisés, et le second est toujours dépassé.
+        assert row["amount"] is None
+        assert row["state"] == "uncapped"
+        assert row["ratio"] == 0.0
+
+    def test_an_uncapped_category_does_not_inflate_the_named_total(self):
+        """Elle ne promet rien : elle ne peut pas faire déborder le plafond global."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        self._create_budget(hh, owner, name="Courses", monthly_amount=Decimal("400"))
+        self._create_budget(hh, owner, name="Cadeaux", monthly_amount=None)
+        self._create_budget(
+            hh, owner, name="Total Cap", monthly_amount=Decimal("500"), is_global=True
+        )
+
+        response = _client_for(owner).get(reverse("budget-overview"))
+
+        assert response.data["named_total_amount"] == "400.00"
+        assert response.data["named_exceeds_global"] is False
 
     def test_named_exceeds_global_flag_set_correctly(self):
         hh = HouseholdFactory()

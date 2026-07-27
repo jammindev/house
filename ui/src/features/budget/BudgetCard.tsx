@@ -6,12 +6,14 @@ import { formatAmount } from '@/lib/format';
 import type { BudgetOverviewRow, BudgetState } from '@/lib/api/budget';
 
 const BAR_CLASS: Record<BudgetState, string> = {
+  uncapped: 'bg-muted-foreground/30',
   ok: 'bg-primary',
   warning: 'bg-amber-500',
   over: 'bg-destructive',
 };
 
 const TEXT_CLASS: Record<BudgetState, string> = {
+  uncapped: 'text-muted-foreground',
   ok: 'text-muted-foreground',
   warning: 'text-amber-600',
   over: 'text-destructive',
@@ -25,8 +27,11 @@ interface BudgetCardProps {
 
 export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
   const { t } = useTranslation();
+  // Pas de plafond → pas de barre, pas de pourcentage, pas de dépassement :
+  // il n'y a rien à mesurer. On dit juste ce que la catégorie a coûté.
+  const uncapped = row.amount === null;
   const pct = Math.min(100, Math.round(row.ratio * 100));
-  const overBy = Number(row.spent) - Number(row.amount);
+  const overBy = Number(row.spent) - Number(row.amount ?? 0);
 
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: onEdit },
@@ -40,25 +45,31 @@ export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
           <div className="flex items-baseline justify-between gap-2">
             <span className="truncate font-medium text-foreground">{row.name}</span>
             <span className={`shrink-0 text-sm tabular-nums ${TEXT_CLASS[row.state]}`}>
-              {formatAmount(row.spent)} / {formatAmount(row.amount)}
+              {uncapped
+                ? formatAmount(row.spent)
+                : `${formatAmount(row.spent)} / ${formatAmount(row.amount as string)}`}
             </span>
           </div>
 
-          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={`h-full rounded-full transition-all ${BAR_CLASS[row.state]}`}
-              style={{ width: `${pct}%` }}
-              role="progressbar"
-              aria-valuenow={pct}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            />
-          </div>
+          {uncapped ? null : (
+            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className={`h-full rounded-full transition-all ${BAR_CLASS[row.state]}`}
+                style={{ width: `${pct}%` }}
+                role="progressbar"
+                aria-valuenow={pct}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              />
+            </div>
+          )}
 
           <p className={`mt-1 text-xs ${TEXT_CLASS[row.state]}`}>
-            {row.state === 'over'
-              ? t('budget.overBy', { amount: formatAmount(String(overBy)) })
-              : t('budget.percentUsed', { pct })}
+            {uncapped
+              ? t('budget.uncapped.hint')
+              : row.state === 'over'
+                ? t('budget.overBy', { amount: formatAmount(String(overBy)) })
+                : t('budget.percentUsed', { pct })}
           </p>
           {Number(row.committed) > 0 ? (
             <p className="mt-0.5 text-xs text-muted-foreground">
