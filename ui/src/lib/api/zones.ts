@@ -18,6 +18,9 @@ export interface Zone {
   equipment_count?: number;
   open_task_count?: number;
   active_project_count?: number;
+  /** Rang parmi les frères. Lecture seule : l'ordre s'écrit par `moveZone` /
+   *  `reorderZones`, les seuls chemins qui gardent la fratrie en 0..n-1. */
+  position?: number;
   note?: string | null;
   surface?: number | null;
   updated_at?: string;
@@ -96,6 +99,29 @@ export async function updateZone(id: string, payload: Partial<ZonePayload>): Pro
 
 export async function deleteZone(id: string): Promise<void> {
   await api.delete(`/zones/${id}/`);
+}
+
+/** Décale une zone d'un rang parmi ses frères. `moved: false` = déjà en butée. */
+export async function moveZone(
+  id: string,
+  direction: 'up' | 'down'
+): Promise<{ moved: boolean; position: number }> {
+  const { data } = await api.post(`/zones/${id}/move/`, { direction });
+  return data as { moved: boolean; position: number };
+}
+
+/**
+ * Applique un ordre explicite à une fratrie (glisser-déposer).
+ *
+ * `zoneIds` doit couvrir **toute** la fratrie de `parent` : le backend refuse un
+ * sous-ensemble plutôt que de le compléter.
+ */
+export async function reorderZones(
+  parent: string | null,
+  zoneIds: string[]
+): Promise<Zone[]> {
+  const { data } = await api.post('/zones/reorder/', { parent, zone_ids: zoneIds });
+  return normalizeList(data);
 }
 
 // Keep legacy alias for compatibility with equipment and other consumers

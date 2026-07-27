@@ -733,6 +733,18 @@
     "deleteConfirmDescription": "This will permanently delete \"{{name}}\". Child zones must be moved or deleted first.",
     "expandZone": "Expand zone",
     "collapseZone": "Collapse zone",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "dragHandle": "Drag to reorder",
+    "dropSameParentOnly": "A zone can only be dragged among its siblings. To move it elsewhere, change its parent zone.",
+    "reorderFailed": "Could not reorder zones",
+    "noZone": "No zone",
+    "pickerPlaceholder": "Pick a zone…",
+    "pickerLabel": "Zone selection",
+    "pickerMore_one": "+{{count}} more",
+    "pickerMore_other": "+{{count}} more",
+    "pickerSelected_one": "{{count}} selected",
+    "pickerSelected_other": "{{count}} selected",
     "searchPlaceholder": "Search a zone…",
     "searchEmpty": "No zone matches “{{query}}”.",
     "searchResults_one": "{{count}} zone matches",
@@ -1223,6 +1235,10 @@
           "find": {
             "title": "Collapse and search",
             "body": "Collapse the branches you don't need, and type in the search field to go straight to a zone: the parents of a match stay visible, so you never lose the context."
+          },
+          "order": {
+            "title": "Put them in your order",
+            "body": "Drag a zone by its handle, or use “Move up” / “Move down” in its ⋯ menu: your order applies everywhere, forms included."
           },
           "navigate": {
             "title": "Navigate by zone",

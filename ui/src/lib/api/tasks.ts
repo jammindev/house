@@ -190,13 +190,6 @@ export async function deleteTask(id: string): Promise<void> {
   await api.delete(`/tasks/tasks/${id}/`);
 }
 
-export async function fetchZones(): Promise<Zone[]> {
-  const { data } = await api.get('/zones/');
-  return Array.isArray(data)
-    ? (data as Zone[])
-    : ((data as { results?: Zone[] }).results ?? []);
-}
-
 export async function fetchHouseholdMembers(): Promise<HouseholdMember[]> {
   const { data } = await api.get('/households/active-members/');
   const list = Array.isArray(data) ? data : [];

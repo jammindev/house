@@ -21,6 +21,7 @@ import {
 import { cn } from "@/lib/utils"
 import { useIsMobile } from "@/lib/hooks/useIsMobile"
 import { X } from "lucide-react"
+import { hasOpenTransientLayer } from "@/lib/transientLayers"
 
 // Accessible visually-hidden wrapper (replaces @radix-ui/react-visually-hidden)
 function VisuallyHidden({ children }: { children: ReactNode }) {
@@ -148,6 +149,14 @@ export function SheetDialog({
           variant={isMobile ? "mobileSheet" : "default"}
           hideDefaultCloseButton={isMobile}
           onOpenAutoFocus={isMobile ? (event) => event.preventDefault() : undefined}
+          onEscapeKeyDown={(event) => {
+            // Un panneau flottant ouvert dans ce dialog (sélecteur de zones,
+            // popover…) a besoin d'Échap pour se refermer seul. Radix écoute en
+            // capture sur `document` et s'est enregistré avant lui, donc c'est au
+            // dialog de céder : sans ça, refermer le panneau fermerait le
+            // formulaire et ferait perdre la saisie.
+            if (hasOpenTransientLayer()) event.preventDefault()
+          }}
           onInteractOutside={(event) => {
             const originalTarget = (event as CustomEvent).detail?.originalEvent?.target
             if (originalTarget instanceof Element && originalTarget.closest("[data-allow-interact]")) {

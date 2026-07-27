@@ -26,6 +26,11 @@ class Zone(HouseholdScopedModel):
         related_name='children',
         db_column='parent_id'
     )
+    # Rang de la zone parmi ses frères. C'est le seul axe de tri de
+    # l'arborescence : un foyer ordonne ses pièces comme il les habite, pas comme
+    # l'alphabet les classe. Toujours normalisé en 0..n-1 par
+    # `zones.services.reorder_siblings` — voir Meta.ordering.
+    position = models.PositiveIntegerField(default=0)
     note = models.TextField(blank=True, default='')
     surface = models.DecimalField(
         max_digits=10,
@@ -53,10 +58,17 @@ class Zone(HouseholdScopedModel):
         db_table = 'zones'
         verbose_name = _("zone")
         verbose_name_plural = _("zones")
+        # L'ordre du foyer s'applique partout — page Zones, sélecteurs, détail,
+        # agent — sans qu'aucun appelant ait à y penser. Deux écrans qui trient
+        # différemment la même arborescence se contredisent, et `name` en second
+        # critère garantit un ordre stable si deux frères partagent un rang.
+        ordering = ['position', 'name']
         unique_together = [['id', 'household']]
         indexes = [
             models.Index(fields=['household', 'parent']),
             models.Index(fields=['parent']),
+            # Sert le tri de la fratrie sans passer par un sort en mémoire.
+            models.Index(fields=['parent', 'position'], name='idx_zone_parent_position'),
         ]
         constraints = [
             models.CheckConstraint(

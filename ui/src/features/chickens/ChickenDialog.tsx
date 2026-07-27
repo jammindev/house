@@ -1,15 +1,14 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useQuery } from '@tanstack/react-query';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
-import { fetchZones } from '@/lib/api/zones';
 import { CHICKEN_STATUSES, type Chicken, type ChickenStatus } from '@/lib/api/chickens';
 import { useCreateChicken, useUpdateChicken } from './hooks';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 interface ChickenDialogProps {
   open: boolean;
@@ -24,7 +23,6 @@ export default function ChickenDialog({ open, onOpenChange, existing }: ChickenD
   const updateMutation = useUpdateChicken();
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const { data: zones = [] } = useQuery({ queryKey: ['zones'], queryFn: fetchZones });
 
   const [name, setName] = React.useState('');
   const [breed, setBreed] = React.useState('');
@@ -144,14 +142,13 @@ export default function ChickenDialog({ open, onOpenChange, existing }: ChickenD
               </FormField>
             ) : null}
             <FormField label={t('chickens.fields.zone')} htmlFor="chicken-zone">
-              <Select id="chicken-zone" value={zoneId} onChange={(e) => setZoneId(e.target.value)}>
-                <option value="">{t('chickens.fields.no_zone')}</option>
-                {zones.map((zone) => (
-                  <option key={zone.id} value={zone.id}>
-                    {zone.full_path || zone.name}
-                  </option>
-                ))}
-              </Select>
+              <ZonePicker
+                id="chicken-zone"
+                value={zoneId || null}
+                onChange={(id) => setZoneId(id ?? '')}
+                allowEmpty
+                emptyLabel={t('chickens.fields.no_zone')}
+              />
             </FormField>
           </div>
 

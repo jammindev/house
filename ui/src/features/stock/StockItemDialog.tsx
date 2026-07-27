@@ -8,8 +8,9 @@ import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { StockItem } from '@/lib/api/stock';
-import { useCreateStockItem, useUpdateStockItem, useStockCategories, useZones } from './hooks';
+import { useCreateStockItem, useUpdateStockItem, useStockCategories } from './hooks';
 import StockCategoryDialog from './StockCategoryDialog';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 interface StockItemDialogProps {
   open: boolean;
@@ -74,7 +75,6 @@ export default function StockItemDialog({
   const [categoryDialogOpen, setCategoryDialogOpen] = React.useState(false);
 
   const { data: categories = [] } = useStockCategories();
-  const { data: zones = [] } = useZones();
   const createMutation = useCreateStockItem();
   const updateMutation = useUpdateStockItem();
 
@@ -182,18 +182,13 @@ export default function StockItemDialog({
               </div>
             </FormField>
             <FormField label={t('stock.fields.zone')} htmlFor="stock-item-zone">
-              <Select
+              <ZonePicker
                 id="stock-item-zone"
-                value={form.zone}
-                onChange={(e) => updateField('zone', e.target.value)}
-              >
-                <option value="">{t('stock.labels.no_zone')}</option>
-                {zones.map((z) => (
-                  <option key={z.id} value={z.id}>
-                    {z.full_path || z.name}
-                  </option>
-                ))}
-              </Select>
+                value={form.zone || null}
+                onChange={(id) => updateField('zone', id ?? '')}
+                allowEmpty
+                emptyLabel={t('stock.labels.no_zone')}
+              />
             </FormField>
           </div>
 

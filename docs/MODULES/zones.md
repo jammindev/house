@@ -1,14 +1,14 @@
 # Module — zones
 
-> Audit : 2026-07-27. Rôle : organisation spatiale hiérarchique (pièces, étages, bâtiments) servant de contexte de navigation à toute l'app.
+> Audit : 2026-07-27 (ordre manuel + sélecteur unifié). Rôle : organisation spatiale hiérarchique (pièces, étages, bâtiments) servant de contexte de navigation à toute l'app.
 
 ## État synthétique
 
 - **Backend** : Présent
-- **Frontend** : Complet — `ui/src/features/zones/` (`ZonesPage`, `ZoneRow`, `ZoneDetailPage`, `ZoneDialog`, `hooks.ts`)
+- **Frontend** : Complet — `ui/src/features/zones/` (`ZonesPage`, `ZoneRow`, `ZonePicker`, `ZoneDetailPage`, `ZoneDialog`, `hooks.ts`)
 - **Locales (en/fr/de/es)** : ok — namespace `zones` présent dans les 4 fichiers de traduction
-- **Tests** : `test_api_zones_extra.py`, `test_zone_content_counts.py`, `test_import_supabase_zones.py`, `test_import_supabase_zone_documents.py` + `tests.py` legacy (73 lignes) à la racine ; E2E `e2e/zones.spec.ts`
-- **Migrations** : 6
+- **Tests** : `test_api_zones_extra.py`, `test_zone_content_counts.py`, `test_zone_ordering.py`, `test_import_supabase_zones.py`, `test_import_supabase_zone_documents.py` + `tests.py` legacy (73 lignes) à la racine ; E2E `e2e/zones.spec.ts` + `e2e/zone-picker.spec.ts`
+- **Migrations** : 7
 - **Agent** : `SearchableSpec('zone')` avec `related` (`apps/zones/apps.py`)
 - **Couverture parcours métier** : parcours 05 (navigation par zone)
 
@@ -58,6 +58,90 @@ Trois règles à préserver :
 Le repli par requête dans `ZoneSerializer._counted` n'existe que pour les
 instances non annotées (création, `get_object` hors viewset) : il ne doit jamais
 devenir le chemin d'une liste, sinon on retombe sur un N+1 par zone.
+
+## L'ordre du foyer — `Zone.position` et `zones/services.py`
+
+Un foyer ordonne ses pièces comme il les habite : « Barbecue » avant « Maison »
+ne dit rien d'un logement. `Zone.position` porte le rang parmi les frères, et
+`Meta.ordering = ['position', 'name']` l'applique **partout** — page Zones,
+sélecteurs, onglet Infos, `zone.children` de l'agent — sans qu'aucun appelant y
+pense. Deux écrans qui trient différemment la même arborescence se contredisent.
+
+L'invariant : **les rangs d'une fratrie sont 0..n-1, sans trou ni doublon.** Il
+vit dans `zones/services.py`, seul chemin d'écriture de l'ordre.
+
+- `reorder_siblings` **refuse un sous-ensemble** de la fratrie au lieu de le
+  compléter : un client partiel travaille sur une vue périmée, et compléter son
+  intention produirait un ordre que personne n'a demandé.
+- `move_zone` **normalise avant d'échanger**. Sur l'existant, où tous les rangs
+  valent `0`, un échange de rangs ne déplacerait rien. Être en butée renvoie
+  `moved: false` — pas une erreur : l'utilisateur n'a rien à deviner.
+- `place_at_end` / `shift_positions_after_removal` sont appelés à la création, au
+  changement de parent et à la suppression. Une zone qui arrive se range en
+  **fin** de fratrie (le défaut `0` la mettrait devant des zones rangées de
+  longue date), et une suppression ne laisse pas de trou — des trous cumulés
+  finissent par rendre « Descendre » inopérant.
+- **`position` est exposé en lecture seule.** Un PATCH libre mettrait deux frères
+  au même rang et l'ordre affiché deviendrait dépendant du plan d'exécution
+  PostgreSQL. Régression : `test_zone_ordering.py::TestPositionIsReadOnlyOverTheApi`.
+
+Endpoints : `POST /api/zones/{id}/move/` (`{"direction": "up"|"down"}`, sert le
+menu contextuel) et `POST /api/zones/reorder/` (`{"parent", "zone_ids"}`, sert le
+glisser-déposer). Les deux passent par le même service.
+
+Le backfill de la migration `0007` **fige l'ordre alphabétique affiché
+jusque-là**, insensible à la casse, pour qu'aucun foyer ne voie ses zones se
+réorganiser au déploiement. Il est `elidable=False` : le rang est une donnée, pas
+un état dérivable — un squash qui le sauterait laisserait la prod à zéro partout.
+
+Côté front, `compareZones` est le miroir exact de `Meta.ordering`. Le front trie
+quand même : l'API sert déjà cet ordre, mais chaque fratrie est reconstituée
+localement (filtres, écriture de cache) et un tri implicite hérité d'une réponse
+HTTP se casse dès qu'on manipule la liste.
+
+Le glisser-déposer ne réordonne **qu'entre frères** — `computeSiblingOrder`
+renvoie `null` sinon, et la page affiche un toast. Le reparentage reste au champ
+« Zone parente » du formulaire, où il est explicite et réversible ; l'autoriser au
+glisser ferait déplacer un sous-arbre entier sur une imprécision de quelques
+pixels. « Monter »/« Descendre » disparaissent du menu pendant une recherche :
+les lignes visibles ne sont pas la fratrie.
+
+## Le sélecteur de zones — `ZonePicker`
+
+`ui/src/features/zones/ZonePicker.tsx` est **le** sélecteur de zones de
+l'application, en mode `single` ou `multiple`. Il a remplacé quatre patterns
+(liste de cases à cocher plate, `<select>` brut, `Select` + options, et une liste
+de cases recopiée dans `RenovationDialog`) sur 17 points d'appel. Tous
+partageaient le même défaut : une liste **à plat**, sans recherche ni hiérarchie
+— passé une vingtaine de zones, choisir « Chambre » parmi trois « Chambre… » de
+trois étages relevait de la divination.
+
+- Le panneau réutilise `buildZoneRows` : même arborescence, même ordre, même
+  recherche que la page Zones. **Ne pas réintroduire une seconde façon de
+  présenter l'arborescence** — c'est deux modèles mentaux pour l'utilisateur.
+- `disabledIds` grise sans masquer. Le champ « Zone parente » y passe la zone
+  éditée et ses descendants (`getDescendantIds`, inclusif) : les masquer
+  trouerait l'arborescence dont l'utilisateur a besoin pour choisir, alors que
+  s'en faire son propre enfant créerait un cycle.
+- **Rien de choisi n'affiche pas la même chose selon le champ** : avec
+  `allowEmpty`, le déclencheur montre le libellé « aucune zone » (c'est un
+  *choix*, comme le faisait l'`<option value="">` d'origine) ; sans lui, une
+  invitation, car le champ est requis côté API.
+- **`useTransientLayer` n'est pas décoratif.** Radix écoute Échap en capture sur
+  `document` et le dialog est monté avant le panneau qu'il contient : deux
+  écouteurs de capture se déclenchent dans l'ordre d'enregistrement, donc le
+  dialog gagne toujours et aucun `stopImmediatePropagation` du panneau n'arrive à
+  temps. C'est donc au dialog de céder — `SheetDialog` consulte
+  `hasOpenTransientLayer()` dans son `onEscapeKeyDown`. Sans ça, refermer le
+  panneau fermait le formulaire et **faisait perdre la saisie**. Régression :
+  `e2e/zone-picker.spec.ts`.
+- Une seule couche de données : `useZones()` / `zoneKeys.list()`. Trois features
+  avaient recopié `useZones` avec la clé `['zones']` — **distincte** de
+  `zoneKeys.list()`, donc la même liste chargée deux fois — et `lib/api/tasks.ts`
+  son propre `fetchZones`. Ne pas réintroduire de clé concurrente.
+- `FilterBar` a un type de champ `custom` pour que les filtres des pages liste
+  utilisent le même sélecteur. L'extension reste générique : le composant pose le
+  label et la grille, le contenu ne le concerne pas.
 
 ## Frontend — l'arborescence dense (`/app/zones`)
 

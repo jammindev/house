@@ -7,7 +7,7 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
-import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
+import ZonePicker from '@/features/zones/ZonePicker';
 import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
 import { useAllocations, useSetAllocations } from './hooks';
@@ -244,11 +244,11 @@ export default function AllocationDialog({
                   label={t('banking.allocation.fields.zones')}
                   htmlFor={`z-${line.key}`}
                 >
-                  <ZoneMultiSelect
+                  <ZonePicker
+                    mode="multiple"
                     id={`z-${line.key}`}
                     value={line.zoneIds}
                     onChange={(zoneIds) => update(line.key, { zoneIds })}
-                    maxHeightClass="max-h-32"
                   />
                 </FormField>
               </div>

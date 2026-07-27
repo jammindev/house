@@ -7,13 +7,21 @@ import { Select } from './select';
  * Configuration for a single filter field
  */
 export interface FilterField {
-  type: 'search' | 'select' | 'date';
+  /**
+   * `custom` rend le node fourni par `render` sous le même label que les autres
+   * champs — pour un filtre qu'un `<select>` ne sait pas exprimer (arborescence,
+   * recherche interne…). Le composant reste agnostique : il pose le label et la
+   * grille, le contenu ne le concerne pas.
+   */
+  type: 'search' | 'select' | 'date' | 'custom';
   id: string;
   label: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   options?: Array<{ value: string; label: string }>;
+  /** Requis pour `type: 'custom'`. */
+  render?: (field: FilterField) => React.ReactNode;
   /** Optional className for custom styling */
   className?: string;
 }
@@ -87,7 +95,9 @@ export function FilterBar({
 }: FilterBarProps) {
   // Separate search fields from other fields for layout purposes
   const searchFields = fields.filter((f) => f.type === 'search');
-  const gridFields = fields.filter((f) => f.type === 'select' || f.type === 'date');
+  const gridFields = fields.filter(
+    (f) => f.type === 'select' || f.type === 'date' || f.type === 'custom',
+  );
 
   return (
     <div className={`space-y-3 ${className}`.trim()}>
@@ -103,13 +113,11 @@ export function FilterBar({
       {/* Select / date fields + actions row */}
       {gridFields.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {gridFields.map((field) =>
-            field.type === 'date' ? (
-              <DateField key={field.id} field={field} />
-            ) : (
-              <SelectField key={field.id} field={field} />
-            ),
-          )}
+          {gridFields.map((field) => {
+            if (field.type === 'date') return <DateField key={field.id} field={field} />;
+            if (field.type === 'custom') return <CustomField key={field.id} field={field} />;
+            return <SelectField key={field.id} field={field} />;
+          })}
 
           {/* Reset button + custom actions */}
           <div className="flex items-end gap-2">
@@ -214,6 +222,20 @@ function SearchField({
           {applyLabel}
         </Button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Champ libre — même label et même gouttière que les autres, contenu délégué.
+ */
+function CustomField({ field }: { field: FilterField }) {
+  return (
+    <div className={`space-y-1 ${field.className || ''}`.trim()}>
+      <label htmlFor={field.id} className="text-xs font-medium text-muted-foreground">
+        {field.label}
+      </label>
+      {field.render?.(field)}
     </div>
   );
 }

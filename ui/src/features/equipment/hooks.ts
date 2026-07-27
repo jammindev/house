@@ -11,7 +11,6 @@ import {
   type EquipmentPayload,
   type EquipmentPurchasePayload,
 } from '@/lib/api/equipment';
-import { fetchZones } from '@/lib/api/zones';
 import { toast } from '@/lib/toast';
 
 interface EquipmentFilters {
@@ -49,12 +48,14 @@ export function useEquipmentHistory(id: string) {
   });
 }
 
-export function useZones() {
-  return useQuery({
-    queryKey: ['zones'],
-    queryFn: fetchZones,
-  });
-}
+/**
+ * Ré-export du hook canonique : une seule entrée de cache pour les zones.
+ *
+ * Cette feature avait sa propre copie avec la clé `['zones']`, distincte de
+ * `zoneKeys.list()` (`['zones', 'list']`) — donc la même liste était chargée
+ * deux fois et une écriture n'invalidait pas toujours les deux copies.
+ */
+export { useZones } from '@/features/zones/hooks';
 
 export function useCreateEquipment() {
   const qc = useQueryClient();

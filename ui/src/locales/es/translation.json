@@ -733,6 +733,18 @@
     "deleteConfirmDescription": "Esto eliminará \"{{name}}\" permanentemente. Las zonas hijas deben moverse o eliminarse primero.",
     "expandZone": "Expandir zona",
     "collapseZone": "Contraer zona",
+    "moveUp": "Subir",
+    "moveDown": "Bajar",
+    "dragHandle": "Arrastra para reordenar",
+    "dropSameParentOnly": "Una zona solo se puede arrastrar entre sus hermanas. Para moverla a otro sitio, cambia su zona superior.",
+    "reorderFailed": "No se han podido reordenar las zonas",
+    "noZone": "Ninguna zona",
+    "pickerPlaceholder": "Elegir una zona…",
+    "pickerLabel": "Selección de zonas",
+    "pickerMore_one": "+{{count}} más",
+    "pickerMore_other": "+{{count}} más",
+    "pickerSelected_one": "{{count}} seleccionada",
+    "pickerSelected_other": "{{count}} seleccionadas",
     "searchPlaceholder": "Buscar una zona…",
     "searchEmpty": "Ninguna zona coincide con «{{query}}».",
     "searchResults_one": "{{count}} zona coincide",
@@ -1223,6 +1235,10 @@
           "find": {
             "title": "Plegar y buscar",
             "body": "Pliega las ramas que no consultas y escribe en el buscador para ir directo a una zona: las zonas superiores del resultado siguen visibles, así nunca pierdes el contexto."
+          },
+          "order": {
+            "title": "Ordénalas a tu manera",
+            "body": "Arrastra una zona por su asa o usa «Subir» / «Bajar» en su menú ⋯: tu orden se aplica en todas partes, también en los formularios."
           },
           "navigate": {
             "title": "Navegar por zona",

@@ -733,6 +733,18 @@
     "deleteConfirmDescription": "Dies löscht \"{{name}}\" dauerhaft. Unterzonen müssen zuerst verschoben oder gelöscht werden.",
     "expandZone": "Zone aufklappen",
     "collapseZone": "Zone einklappen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "dragHandle": "Zum Umsortieren ziehen",
+    "dropSameParentOnly": "Eine Zone lässt sich nur innerhalb ihrer Geschwister ziehen. Um sie woanders einzuordnen, ändern Sie ihre übergeordnete Zone.",
+    "reorderFailed": "Zonen konnten nicht neu sortiert werden",
+    "noZone": "Keine Zone",
+    "pickerPlaceholder": "Zone auswählen…",
+    "pickerLabel": "Zonenauswahl",
+    "pickerMore_one": "+{{count}} weitere",
+    "pickerMore_other": "+{{count}} weitere",
+    "pickerSelected_one": "{{count}} ausgewählt",
+    "pickerSelected_other": "{{count}} ausgewählt",
     "searchPlaceholder": "Zone suchen…",
     "searchEmpty": "Keine Zone entspricht „{{query}}“.",
     "searchResults_one": "{{count}} passende Zone",
@@ -1223,6 +1235,10 @@
           "find": {
             "title": "Einklappen und suchen",
             "body": "Klappen Sie Zweige ein, die Sie nicht brauchen, und springen Sie über die Suche direkt zu einer Zone: die übergeordneten Zonen eines Treffers bleiben sichtbar, der Kontext geht nie verloren."
+          },
+          "order": {
+            "title": "In Ihrer Reihenfolge ordnen",
+            "body": "Ziehen Sie eine Zone am Griff oder nutzen Sie „Nach oben“ / „Nach unten“ in ihrem ⋯-Menü: Ihre Reihenfolge gilt überall, auch in Formularen."
           },
           "navigate": {
             "title": "Nach Zone navigieren",

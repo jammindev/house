@@ -6,10 +6,10 @@ import { Textarea } from '@/design-system/textarea';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
-import { fetchZones } from '@/lib/api/zones';
-import type { Zone } from '@/lib/api/zones';
 import { useCreateUsagePoint, useBulkCreateUsagePoints, useUpdateUsagePoint } from './hooks';
 import type { UsagePoint, UsagePointKind } from '@/lib/api/electricity';
+import ZonePicker from '@/features/zones/ZonePicker';
+import { useZones } from '@/features/zones/hooks';
 
 interface UsagePointDialogProps {
   open: boolean;
@@ -21,13 +21,13 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
   const { t } = useTranslation();
   const isEditing = Boolean(existing);
 
+  const { data: zones = [] } = useZones();
   const [label, setLabel] = React.useState('');
   const [name, setName] = React.useState('');
   const [kind, setKind] = React.useState<UsagePointKind>('socket');
   const [zoneId, setZoneId] = React.useState('');
   const [notes, setNotes] = React.useState('');
   const [quantity, setQuantity] = React.useState(1);
-  const [zones, setZones] = React.useState<Zone[]>([]);
   const [error, setError] = React.useState<string | null>(null);
 
   const createUsagePoint = useCreateUsagePoint();
@@ -37,7 +37,6 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
 
   React.useEffect(() => {
     if (!open) return;
-    fetchZones().then(setZones).catch(() => setZones([]));
   }, [open]);
 
   React.useEffect(() => {
@@ -105,11 +104,6 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
     { value: 'light', label: t('electricity.usagePoint.kindLight') },
   ];
 
-  const zoneOptions = [
-    { value: '', label: '—' },
-    ...zones.map((z) => ({ value: z.id, label: z.full_path ?? z.name })),
-  ];
-
   return (
     <SheetDialog
       open={open}
@@ -148,11 +142,11 @@ export default function UsagePointDialog({ open, onOpenChange, existing }: Usage
           </FormField>
 
           <FormField label={t('electricity.usagePoint.zone')} htmlFor="up-zone">
-            <Select
+            <ZonePicker
               id="up-zone"
-              value={zoneId}
-              onChange={(e) => setZoneId(e.target.value)}
-              options={zoneOptions}
+              value={zoneId || null}
+              onChange={(id) => setZoneId(id ?? '')}
+              allowEmpty
             />
           </FormField>
 

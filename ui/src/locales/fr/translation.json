@@ -733,6 +733,18 @@
     "deleteConfirmDescription": "Cela supprimera définitivement \"{{name}}\". Les zones enfants doivent être déplacées ou supprimées d'abord.",
     "expandZone": "Déplier la zone",
     "collapseZone": "Replier la zone",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "dragHandle": "Glisser pour réordonner",
+    "dropSameParentOnly": "Une zone ne se glisse que parmi ses voisines de même niveau. Pour la déplacer ailleurs, changez sa zone parente.",
+    "reorderFailed": "Échec du réordonnancement des zones",
+    "noZone": "Aucune zone",
+    "pickerPlaceholder": "Choisir une zone…",
+    "pickerLabel": "Sélection de zones",
+    "pickerMore_one": "+{{count}} autre",
+    "pickerMore_other": "+{{count}} autres",
+    "pickerSelected_one": "{{count}} sélectionnée",
+    "pickerSelected_other": "{{count}} sélectionnées",
     "searchPlaceholder": "Rechercher une zone…",
     "searchEmpty": "Aucune zone ne correspond à « {{query}} ».",
     "searchResults_one": "{{count}} zone correspond",
@@ -1223,6 +1235,10 @@
           "find": {
             "title": "Replier et rechercher",
             "body": "Repliez les branches que vous ne consultez pas, et tapez dans la recherche pour aller droit à une zone : les parents du résultat restent affichés, vous ne perdez jamais le contexte."
+          },
+          "order": {
+            "title": "Ranger dans votre ordre",
+            "body": "Glissez une zone par sa poignée, ou utilisez « Monter » / « Descendre » dans son menu ⋯ : votre ordre s'applique partout, y compris dans les formulaires."
           },
           "navigate": {
             "title": "Naviguer par zone",

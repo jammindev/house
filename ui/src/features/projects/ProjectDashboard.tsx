@@ -12,6 +12,7 @@ import { useProjectInteractions, projectKeys } from './hooks';
 import { formatDate, formatDateTime } from './format';
 import { useCreateInteraction, interactionKeys } from '@/features/interactions/hooks';
 import { fetchZones, findRootZone, type Zone } from '@/lib/api/zones';
+import { zoneKeys } from '@/features/zones/hooks';
 import { toast } from '@/lib/toast';
 import type { ProjectListItem } from '@/lib/api/projects';
 import type { Task } from '@/lib/api/tasks';
@@ -272,7 +273,7 @@ function QuickNoteForm({ project }: { project: ProjectListItem }) {
   // Fetch zones only when project has none — to fall back to the household root zone.
   const needsRoot = project.zones.length === 0;
   const { data: allZones = [] } = useQuery<Zone[]>({
-    queryKey: ['zones'],
+    queryKey: zoneKeys.list(),
     queryFn: fetchZones,
     enabled: needsRoot,
   });

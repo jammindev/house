@@ -12,7 +12,6 @@ import type { StockItem, StockCategory } from '@/lib/api/stock';
 import {
   useStockItems,
   useStockCategories,
-  useZones,
   useDeleteStockItem,
   useDeleteCategory,
   stockKeys,
@@ -23,6 +22,7 @@ import StockPurchaseDialog from './StockPurchaseDialog';
 import StockInventoryDialog from './StockInventoryDialog';
 import StockCategoryCard from './StockCategoryCard';
 import StockCategoryDialog from './StockCategoryDialog';
+import ZonePicker from '@/features/zones/ZonePicker';
 
 type ActiveTab = 'items' | 'categories';
 
@@ -59,7 +59,6 @@ export default function StockPage() {
 
   const { data: items = [], isLoading: itemsLoading, error: itemsError } = useStockItems(filters);
   const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useStockCategories();
-  const { data: zones = [] } = useZones();
 
   const deleteItemMutation = useDeleteStockItem();
   const deleteCategoryMutation = useDeleteCategory();
@@ -183,18 +182,21 @@ export default function StockPage() {
                         })),
                       },
                       {
-                        type: 'select',
+                        type: 'custom',
                         id: 'stock-zone',
                         label: t('stock.fields.zone'),
                         value: zone,
                         onChange: setZone,
-                        options: [
-                          { value: '', label: t('stock.fields.all_zones') },
-                          ...zones.map((z) => ({
-                            value: z.id,
-                            label: z.full_path || z.name,
-                          })),
-                        ],
+                        render: (field) => (
+                          <ZonePicker
+                            id={field.id}
+                            value={field.value || null}
+                            onChange={(id) => field.onChange(id ?? '')}
+                            allowEmpty
+                            emptyLabel={t('stock.fields.all_zones')}
+                            placeholder={t('stock.fields.all_zones')}
+                          />
+                        ),
                       },
                       {
                         type: 'select',

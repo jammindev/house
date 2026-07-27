@@ -8,14 +8,15 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import { CheckboxField } from '@/design-system/checkbox-field';
-import { ZoneMultiSelect } from '@/components/ZoneMultiSelect';
+import ZonePicker from '@/features/zones/ZonePicker';
 import { useDisabledModules } from '@/lib/modules';
 import { fetchProjects } from '@/lib/api/projects';
 import type { ProjectListItem } from '@/lib/api/projects';
 import { fetchDocuments, fetchPhotoDocuments, type DocumentItem } from '@/lib/api/documents';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
+import { fetchZones } from '@/lib/api/zones';
 import {
-  createTask, fetchZones, updateTask,
+  createTask, updateTask,
   type Zone, type Task, type HouseholdMember, type TaskPriority, type TaskStatus,
 } from '@/lib/api/tasks';
 
@@ -254,7 +255,7 @@ export default function NewTaskDialog({
           </FormField>
 
           <FormField label={t('tasks.fieldZone')} htmlFor="task-zones">
-            <ZoneMultiSelect id="task-zones" value={zoneIds} onChange={setZoneIds} />
+            <ZonePicker mode="multiple" id="task-zones" value={zoneIds} onChange={setZoneIds} />
           </FormField>
 
           <FormField label={t('tasks.fieldPriority')} htmlFor="task-priority">
