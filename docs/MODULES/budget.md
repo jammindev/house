@@ -164,6 +164,46 @@ plafonnée ».
   dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
   doit accepter les deux formes pour toujours.
 
+## Analyse fine — la lecture longue (`analysis.py`)
+
+`GET /api/budget/budgets/analysis/?months=12&budget=<id>` →
+`{months, series, breakdown, suppliers, biggest, total, monthly_average}`.
+Front : `/app/money/analysis` (`features/money/AnalysisPage`), accessible depuis
+le panneau Budgets.
+
+**Pourquoi une page à part.** Le panneau Budgets ne sait poser qu'une question :
+« ce mois-ci tient-il dans l'enveloppe ». Une catégorie qui dérive de 15 % par
+mois y reste donc invisible jusqu'au jour où elle franchit son plafond — et une
+catégorie **sans plafond** n'y produit aucun signal du tout. C'est exactement le
+trou qu'ouvre le plafond optionnel, et cette page le referme.
+
+Ce que le module refuse de faire, et qui vaut d'être retenu :
+
+- **Quatre requêtes groupées**, quelle que soit la fenêtre. Jamais une par mois :
+  c'est la première chose qui dégénère sur deux ans d'historique. Le test
+  `TestItStaysCheap` borne le compte.
+- **Pas de part sur un total nul.** `breakdown` est vide plutôt que rempli de
+  `0 %` — sans dépense il n'y a pas de répartition, pas une répartition nulle.
+- **La moyenne compte les mois vides.** Les écarter la gonflerait d'un facteur
+  arbitraire ; un mois à zéro est une information.
+- **Un budget qui n'a rien dépensé n'entre pas dans la légende.** Douze entrées
+  mortes cacheraient l'information qu'aucune n'a servi — ce que le panneau
+  Budgets dit déjà.
+- **Le libellé « hors budget » n'est pas produit ici** : le backend renvoie
+  `budget_id: null`, le front le nomme. Ajouter une langue ne doit pas imposer un
+  passage par les `.po`.
+- **`months` est borné** (36) et un `budget` inconnu du foyer est un **400** —
+  le filtre s'applique après le scope, il ne peut jamais l'élargir. Un UUID
+  malformé aussi : il crashe le driver avant d'être une requête.
+- **On lit les `Interaction`, jamais les totaux bancaires.** Règle transverse du
+  CLAUDE.md : le pont entre les deux mondes est le taux de couverture.
+
+Côté rendu : `ConsumptionBarChart` est **réutilisé** (même librairie, mêmes
+tokens de couleur, même infobulle que l'électricité), avec une prop
+`formatValue` ajoutée pour que les montants passent par `formatAmount` au lieu
+d'un `${value} €` recollé. Le classement fournisseurs est en CSS pur — huit
+`div` dont la largeur est une règle de trois ne valent pas un axe recharts.
+
 ## Décisions clés
 
 - **Budgets multiples nommés = la dimension de regroupement** (pas de taxonomie

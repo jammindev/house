@@ -1,5 +1,13 @@
 import * as React from 'react';
-import { Plus, PiggyBank, AlertTriangle, CalendarClock, ChevronRight, FileText } from 'lucide-react';
+import {
+  Plus,
+  PiggyBank,
+  AlertTriangle,
+  BarChart3,
+  CalendarClock,
+  ChevronRight,
+  FileText,
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
@@ -165,11 +173,28 @@ export default function BudgetsPanel() {
         )
       ) : null}
 
+      {/* L'analyse en premier des trois accès : c'est la seule qui répond à
+          « est-ce que ça dérive », question qu'aucune carte au-dessus ne pose. */}
+      {!overviewQuery.isLoading && overview ? (
+        <Link
+          to="/app/money/analysis"
+          state={pushBack(location)}
+          className="mt-5 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
+        >
+          <BarChart3 className="h-5 w-5 shrink-0 text-muted-foreground" />
+          <div className="min-w-0 flex-1">
+            <p className="font-medium text-foreground">{t('analysis.title')}</p>
+            <p className="text-xs text-muted-foreground">{t('analysis.access.hint')}</p>
+          </div>
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      ) : null}
+
       {!overviewQuery.isLoading && overview ? (
         <Link
           to="/app/budget/recurring"
           state={pushBack(location)}
-          className="mt-5 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
+          className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
         >
           <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground" />
           <div className="min-w-0 flex-1">

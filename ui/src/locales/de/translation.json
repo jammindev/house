@@ -1587,6 +1587,10 @@
             "title": "Den Monat verfolgen",
             "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu."
           },
+          "analysis": {
+            "title": "Sehen, wohin es wirklich geht",
+            "body": "Öffne „Ausgabenanalyse“ auf der Budgetseite: jede Kategorie Monat für Monat, die Verteilung über 6, 12 oder 24 Monate, die gewichtigsten Anbieter und deine größten Ausgaben. Hier zeigt sich eine abdriftende Kategorie — das Budget-Panel schaut immer nur auf den laufenden Monat."
+          },
           "recurring": {
             "title": "Wiederkehrende Rechnungen planen",
             "body": "Öffne „Wiederkehrende Ausgaben“ auf der Budgetseite, um Abos, Versicherungen und Rechnungen zu erfassen. Sieh, was in den nächsten 30/90 Tagen fällig wird, und bestätige jede Fälligkeit mit einem Klick, wenn sie bezahlt ist (Betrag editierbar) — sie landet im Journal und rückt aufs nächste Datum vor."
@@ -3149,6 +3153,41 @@
     },
     "uncapped": {
       "hint": "Verfolgte Kategorie, ohne Obergrenze"
+    }
+  },
+  "analysis": {
+    "title": "Ausgabenanalyse",
+    "description": "Der lange Blick: was abdriftet, wohin das Geld geht und an wen.",
+    "access": {
+      "hint": "12-Monats-Trend, Verteilung, Anbieter."
+    },
+    "lastMonths_one": "{{count}} Monat",
+    "lastMonths_other": "{{count}} Monate",
+    "allBudgets": "Alle Budgets",
+    "filterBudget": "Nach Budget filtern",
+    "periodTotal": "Gesamt im Zeitraum",
+    "monthlyAverage": "Monatsdurchschnitt",
+    "topSupplier": "Größter Anbieter",
+    "others": "{{count}} weitere",
+    "empty": "Noch nichts zu analysieren",
+    "emptyDescription": "Ordne einige Ausgaben Budgets zu, dann erscheint hier der Trend.",
+    "footnote": "Von {{from}} bis {{to}}. Zählt nur Journalausgaben, nie Banksummen.",
+    "trend": {
+      "title": "Monatlicher Verlauf",
+      "hint": "Ein leerer Monat zählt als null – das ist eine Information, keine Lücke."
+    },
+    "share": {
+      "title": "Verteilung",
+      "hint": "Anteil jedes Budgets im Zeitraum."
+    },
+    "suppliers": {
+      "title": "Wohin es geht",
+      "hint": "Die Anbieter mit dem größten Gewicht, nach Betrag sortiert.",
+      "count_one": "{{count}} Mal",
+      "count_other": "{{count}} Mal"
+    },
+    "biggest": {
+      "title": "Größte Ausgaben"
     }
   },
   "banking": {
