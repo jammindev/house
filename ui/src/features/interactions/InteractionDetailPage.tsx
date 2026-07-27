@@ -16,6 +16,8 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { formatAmount, formatDateTime } from '@/lib/format';
 import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
+import DetachFromTransactionButton from '@/features/banking/DetachFromTransactionButton';
+import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
 // ── Main page ──────────────────────────────────────────────
@@ -144,9 +146,27 @@ export default function InteractionDetailPage() {
                   line={interaction.bank_line}
                 />
                 {interaction.bank_line ? (
-                  <p className="text-xs text-muted-foreground">
-                    {interaction.bank_line.account_name} · {interaction.bank_line.label}
-                  </p>
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      {interaction.bank_line.account_name} · {interaction.bank_line.label}
+                    </p>
+                    {isOwnedByAllocationEditor(interaction.kind) ? (
+                      /* Née de la ventilation : la détacher ici fabriquerait une
+                         dépense que plus rien ne justifie **et** une sortie
+                         redevenue incomplète. Le badge mène à l'opération, où la
+                         retirer veut dire quelque chose. */
+                      <p className="text-xs text-muted-foreground">
+                        {t('banking.attach.ownedHint')}
+                      </p>
+                    ) : (
+                      <DetachFromTransactionButton
+                        expenseId={interaction.id}
+                        kind={interaction.kind}
+                        transactionId={interaction.bank_line.id}
+                        className="h-7 px-2 text-xs"
+                      />
+                    )}
+                  </>
                 ) : (
                   /* Le constat sans le geste à côté n'aide personne : c'est ici
                      qu'on lit « en attente », donc c'est ici qu'on doit pouvoir

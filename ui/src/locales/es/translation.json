@@ -3552,7 +3552,9 @@
       "action": "Vincular a una operación",
       "hint": "Solo se muestran las operaciones cuyo importe restante cubre este gasto. Un gasto puede cubrir solo una parte de una línea: el resto esperará su propia asignación.",
       "none": "Ninguna operación tiene espacio para este importe. Importa el extracto del periodo, o revisa el importe del gasto.",
-      "remaining": "quedan {{amount}}"
+      "remaining": "quedan {{amount}}",
+      "detach": "Desvincular",
+      "ownedHint": "Este gasto es la asignación de la operación: para quitarlo, edita la asignación desde la operación."
     }
   },
   "pwa": {

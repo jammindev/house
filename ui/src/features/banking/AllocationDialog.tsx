@@ -14,6 +14,7 @@ import { useBudgets } from '@/features/budget/hooks';
 import { useAllocations, useSetAllocations, useUnlinkAllocation } from './hooks';
 import AllocationSourceSelect from './AllocationSourceSelect';
 import { NO_SOURCE, type AllocationSource } from './allocationSource';
+import { isOwnedByAllocationEditor } from './ownership';
 
 interface AllocationDialogProps {
   open: boolean;
@@ -36,16 +37,6 @@ interface DraftLine {
   source: AllocationSource;
   zoneIds: string[];
 }
-
-/**
- * Le `kind` que cet éditeur possède — miroir de
- * `interactions/kinds.py::OWNED_BY_ALLOCATION_EDITOR`.
- *
- * Tout le reste (un achat de projet, une occurrence de récurrence) a été
- * rapproché ailleurs, délibérément : l'éditeur l'affiche, le compte contre le
- * montant de l'opération, et n'y touche pas.
- */
-const OWNED_KIND = 'bank';
 
 let lineCounter = 0;
 function blankLine(
@@ -86,7 +77,7 @@ export default function AllocationDialog({
   const total = Math.abs(Number(transaction?.amount ?? 0));
 
   // Les dépenses rapprochées ailleurs : affichées, comptées, jamais réécrites.
-  const linked = (allocationsQuery.data?.allocations ?? []).filter((a) => a.kind !== OWNED_KIND);
+  const linked = (allocationsQuery.data?.allocations ?? []).filter((a) => !isOwnedByAllocationEditor(a.kind));
   const linkedTotal = linked.reduce((sum, a) => sum + Number(a.amount ?? 0), 0);
   /** Ce que cette ventilation peut se partager : l'opération moins les rattachements. */
   const editable = total - linkedTotal;
@@ -95,9 +86,9 @@ export default function AllocationDialog({
     if (!open || !allocationsQuery.data) return;
     setError(null);
     const rows = allocationsQuery.data.allocations;
-    const owned = rows.filter((a) => a.kind === OWNED_KIND);
+    const owned = rows.filter((a) => isOwnedByAllocationEditor(a.kind));
     const free =
-      total - rows.filter((a) => a.kind !== OWNED_KIND).reduce((s, a) => s + Number(a.amount ?? 0), 0);
+      total - rows.filter((a) => !isOwnedByAllocationEditor(a.kind)).reduce((s, a) => s + Number(a.amount ?? 0), 0);
     setLines(
       owned.length > 0
         ? owned.map((a) =>
