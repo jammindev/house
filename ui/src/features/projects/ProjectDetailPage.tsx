@@ -305,7 +305,7 @@ export default function ProjectDetailPage() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 rounded-lg border bg-muted/30 px-4 py-3 text-sm">
             {planned > 0 ? (
               <span>
-                {t('projects.summary.budget', { defaultValue: 'Budget' })}{' '}
+                {t('projects.summary.budget')}{' '}
                 <span className={`font-medium ${overBudget ? 'text-destructive' : ''}`}>
                   {formatAmount(actual, { fractionDigits: 0 })}
                 </span>

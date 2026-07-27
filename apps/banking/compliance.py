@@ -160,6 +160,30 @@ def apply_window(qs: QuerySet, *, pks=None, exclude_pks=None, limit=None, offset
     return qs
 
 
+def apply_window_to_pairs(pairs, *, pks=None, exclude_pks=None, limit=None, offset=None):
+    """Same contract as :func:`apply_window`, for detectors that cannot be SQL.
+
+    Half the catalogue reasons about something no ``COUNT(*)`` can express — a
+    balance chain walked in arithmetic order, a reconstruction re-verified, a cash
+    balance computed. Those detectors return ``[(object, detail), …]`` and were
+    each re-implementing this filtering by hand: six identical copies, and the
+    next non-SQL detector would have made seven.
+
+    Kept byte-for-byte equivalent to the queryset version, exclusions **before**
+    the slice included — a page of 20 must hold 20 open écarts.
+    """
+    if pks is not None:
+        wanted = {str(p) for p in pks}
+        pairs = [pair for pair in pairs if str(pair[0].pk) in wanted]
+    if exclude_pks:
+        unwanted = {str(p) for p in exclude_pks}
+        pairs = [pair for pair in pairs if str(pair[0].pk) not in unwanted]
+    if offset or limit:
+        start = offset or 0
+        pairs = pairs[start : start + limit] if limit else pairs[start:]
+    return pairs
+
+
 # --- Waiver resolution -------------------------------------------------------
 
 
@@ -220,20 +244,27 @@ def _split_waived(household, spec: DetectorSpec) -> tuple[dict[str, object], dic
     return fresh, stale
 
 
+def group_result(household, spec: DetectorSpec) -> GroupResult:
+    """Counts for **one** detector.
+
+    Extracted so opening a group costs one detector instead of all of them: the
+    detail endpoint used to call :func:`summary` just to serialize the header of
+    the group it was already computing, which re-ran fourteen counts — including
+    the balance-chain walk and the cash-balance computation — for a number it
+    needed once.
+    """
+    fresh, stale = _split_waived(household, spec)
+    return GroupResult(
+        spec=spec,
+        detected=spec.count(household),
+        waived=len(fresh),
+        stale=len(stale),
+    )
+
+
 def summary(household) -> list[GroupResult]:
     """Counts for every registered detector — what the shell badge reads."""
-    results = []
-    for spec in REGISTRY:
-        fresh, stale = _split_waived(household, spec)
-        results.append(
-            GroupResult(
-                spec=spec,
-                detected=spec.count(household),
-                waived=len(fresh),
-                stale=len(stale),
-            )
-        )
-    return results
+    return [group_result(household, spec) for spec in REGISTRY]
 
 
 def open_findings(household, spec: DetectorSpec, *, limit=None, offset=None) -> list[Finding]:

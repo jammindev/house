@@ -11,6 +11,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from core.timezones import household_today
 
 from . import importers
 from .aggregations import EMPTY_FLOW, compute_account_flow
@@ -23,6 +24,7 @@ from .anchoring import (
 from .balances import compute_balance, serialize_balance
 from .compliance import (
     get_detector,
+    group_result,
     open_findings,
     serialize_finding,
     serialize_group,
@@ -385,6 +387,22 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         if internal is not None and internal != "":
             qs = qs.filter(is_internal=internal.lower() in ("1", "true", "yes"))
 
+        # « À traiter » : les lignes que le contrôle réclame, et rien d'autre.
+        #
+        # Le marqueur par ligne existe depuis #413, mais il n'y avait aucun moyen
+        # de ne voir que celles-là — sur un relevé de 160 lignes, le badge disait
+        # quoi faire sans qu'on puisse s'y rendre. Le filtre passe par
+        # ``detectors.pending_outflows``, donc par le **même** jugement que le
+        # compteur : une liste dont le nombre contredirait le badge serait pire
+        # que pas de filtre du tout.
+        if params.get("allocation") == "todo":
+            household = self.request.household
+            if household is None:
+                return qs.none()
+            from .detectors import pending_outflows
+
+            qs = qs.filter(pk__in=pending_outflows(household).values("pk"))
+
         term = params.get("q")
         if term:
             qs = search(qs, term)
@@ -460,7 +478,12 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         if account is None:
             raise ValidationError({"account": "Unknown account for this household."})
 
-        booked_on = _parse_date_param(request.data.get("booked_on"), "booked_on") or date.today()
+        # ``household_today`` et non ``date.today()`` : une dépense en espèces
+        # saisie le soir à Paris serait datée du lendemain par l'horloge UTC du
+        # serveur — donc rangée dans le mois suivant deux fois par an.
+        booked_on = _parse_date_param(
+            request.data.get("booked_on"), "booked_on"
+        ) or household_today(household)
 
         try:
             transaction_row, allocations = record_cash_expense(
@@ -740,13 +763,12 @@ class ComplianceViewSet(viewsets.ViewSet):
         )
         return Response(
             {
-                **serialize_group(
-                    next(
-                        group
-                        for group in compliance_summary(household)
-                        if group.spec.kind == spec.kind
-                    )
-                ),
+                # ``group_result`` et non ``summary`` : ouvrir un groupe ne doit
+                # pas recompter les treize autres, dont la marche arithmétique sur
+                # la chaîne de soldes et le calcul du solde espèces. Le badge lit
+                # le résumé complet, c'est son travail ; le détail n'a besoin que
+                # de son propre en-tête.
+                **serialize_group(group_result(household, spec)),
                 "results": [serialize_finding(f) for f in findings],
                 "limit": limit,
                 "offset": offset,

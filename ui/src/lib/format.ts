@@ -42,6 +42,27 @@ export function formatAmount(
   }).format(parsed);
 }
 
+/**
+ * `Date` → `YYYY-MM-DD` **dans le fuseau du navigateur**.
+ *
+ * `toISOString().slice(0, 10)` convertit d'abord en UTC : à Paris, tout ce qui
+ * se passe entre minuit et 2 h du matin est daté de la veille, et une borne de
+ * période construite à minuit local recule d'un jour entier. C'est le formatteur
+ * unique des dates de calendrier, comme `formatAmount` l'est des montants — ne
+ * jamais réintroduire un `toISOString().slice(0, 10)` local.
+ */
+export function toLocalISODate(value: Date): string {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/** La date d'aujourd'hui telle que l'utilisateur la lit — valeur par défaut des formulaires. */
+export function todayISO(): string {
+  return toLocalISODate(new Date());
+}
+
 /** true si la date est dans le passé (garantie / échéance dépassée, péremption…). */
 export function isPast(value?: string | null): boolean {
   if (!value) return false;

@@ -2607,6 +2607,9 @@
       "actions": {
         "add": "Dépense"
       }
+    },
+    "summary": {
+      "budget": "Budget"
     }
   },
   "notifications": {
@@ -3352,7 +3355,8 @@
       "empty": {
         "title": "Aucune opération",
         "description": "Importe un relevé depuis la page Comptes, ou élargis tes filtres."
-      }
+      },
+      "toSortOut": "À traiter"
     },
     "balance": {
       "uncertain": "à vérifier",
@@ -3383,6 +3387,25 @@
       "noAccountHint": "Déclarez un compte « Espèces » dans l'onglet Comptes : une dépense en liquide devient alors une opération de compte, comme les autres.",
       "createAccount": "Créer mon compte espèces",
       "defaultAccountName": "Espèces"
+    },
+    "withdraw": {
+      "title": "Retirer vers les espèces",
+      "intro": "Ce retrait n'est pas une dépense : l'argent change de poche. En le reflétant sur un compte espèces, il sera compté une seule fois — quand ces espèces seront réellement dépensées.",
+      "action": "Alimenter les espèces",
+      "fields": {
+        "account": "Compte espèces",
+        "amount": "Montant reflété",
+        "amountHint": "Par défaut, la totalité du retrait. Réduisez-le si une partie n'a pas rejoint la caisse commune."
+      },
+      "errors": {
+        "accountRequired": "Choisissez le compte espèces à créditer.",
+        "amountInvalid": "Indiquez un montant positif, au plus {{max}}."
+      },
+      "noCashAccount": "Aucun compte espèces déclaré. Créez-en un dans l'onglet Comptes pour pouvoir suivre le liquide.",
+      "linked": "Retrait reflété sur les espèces.",
+      "unlinked": "Contrepartie espèces supprimée.",
+      "linkedBadge": "Espèces",
+      "unlink": "Supprimer la contrepartie"
     },
     "allocation": {
       "title": "Ventiler cette opération",

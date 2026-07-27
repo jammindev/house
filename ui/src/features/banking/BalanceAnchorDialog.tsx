@@ -6,7 +6,7 @@ import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, todayISO } from '@/lib/format';
 import type { BankAccount } from '@/lib/api/banking';
 import { useBalanceAnchor, useSetBalanceAnchor } from './hooks';
 
@@ -54,7 +54,7 @@ export default function BalanceAnchorDialog({
   React.useEffect(() => {
     if (!open) return;
     setBalance('');
-    setAsOf(new Date().toISOString().slice(0, 10));
+    setAsOf(todayISO());
     setConfirmed(false);
     setError(null);
   }, [open]);

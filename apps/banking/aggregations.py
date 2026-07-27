@@ -70,24 +70,29 @@ def _unallocated_outflow(qs) -> Decimal:
     Calculée par différence sur la **même** requête que les totaux, et non par une
     somme de dépenses : mélanger les deux sources est précisément ce que la règle
     transverse interdit.
+
+    Passe par ``queries.with_allocation`` — la **même** annotation que le marqueur
+    du journal et que les détecteurs. Elle était réécrite ici à la main, ce qui
+    faisait trois copies d'une définition dont le docstring dit qu'elle doit être
+    unique : la troisième aurait fini par diverger d'un filtre, et le taux de
+    couverture aurait contredit le contrôle sans que personne sache lequel croire.
+
+    Ce que ce chiffre mesure reste distinct de ce que le Contrôle *exige* : ici,
+    tout ce qui est sorti sur la période demandée et que rien n'explique ; là-bas,
+    seulement ce qui tombe dans la fenêtre de conformité. Une mesure et une
+    exigence, pas deux verdicts sur le même fait.
     """
-    from django.db.models import Q, Sum
-    from django.db.models.functions import Coalesce
+    from .queries import with_allocation
 
-    from .queries import ZERO, outflow_expr
-
-    rows = qs.filter(amount__lt=0).annotate(
-        allocated=Coalesce(
-            Sum("interactions__amount", filter=Q(interactions__type="expense")),
-            ZERO,
+    rows = with_allocation(qs.filter(amount__lt=0)).values("allocated", "outflow_value")
+    total = sum(
+        (
+            row["outflow_value"] - row["allocated"]
+            for row in rows
+            if row["outflow_value"] > row["allocated"]
         ),
-        outflow_value=outflow_expr(),
+        Decimal("0.00"),
     )
-    total = Decimal("0.00")
-    for row in rows.values("allocated", "outflow_value"):
-        gap = row["outflow_value"] - row["allocated"]
-        if gap > 0:
-            total += gap
     return total.quantize(Decimal("0.01"))
 
 

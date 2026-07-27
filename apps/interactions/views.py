@@ -2,7 +2,7 @@
 Interaction views for REST API.
 """
 import uuid
-from datetime import datetime, time, timedelta, timezone as dt_timezone
+from datetime import datetime, timedelta
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
@@ -16,6 +16,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q, Count
 
 from core.permissions import IsHouseholdMember
+from core.timezones import (
+    current_month_range,
+    end_of_day,
+    household_tz,
+    start_of_day,
+)
 from documents.models import Document, DocumentLink
 from zones.models import Zone
 from .aggregations import UNBUDGETED, compute_expense_summary
@@ -37,54 +43,47 @@ from .services import (
 )
 
 
-def _end_of_day(value: str) -> str:
-    """``'2026-07-31'`` → ``'2026-07-31 23:59:59.999999'``, sinon la valeur telle quelle.
+def _parse_bound(value: str, household, *, closing: bool) -> datetime:
+    """Une borne de période, toujours *aware*, toujours dans le fuseau du foyer.
 
-    Un filtre ``__lte`` sur une colonne datetime lit une date nue à minuit, donc
-    exclut la journée entière qu'on croyait inclure. Un instant explicite est
-    respecté : l'appelant qui écrit une heure sait ce qu'il demande.
+    Deux erreurs qu'un seul endroit ferme désormais :
+
+    - **une date nue en fin d'intervalle vaut fin de journée.** Le filtre est un
+      ``__lte`` : lue à minuit, ``to=2026-07-31`` excluait toutes les dépenses du
+      31 ;
+    - **une date nue se lit chez le foyer, pas en UTC.** Elle était forcée à
+      ``tzinfo=utc`` alors que le panneau Budgets bornait son mois sur le fuseau
+      du foyer : les deux écrans annonçaient deux totaux pour la même enveloppe,
+      chacun juste selon sa propre borne. Le décalage n'est que de deux heures,
+      mais il tombe pile sur la frontière d'un mois — donc sur un budget.
+
+    Un instant explicite (``...T14:00``) est respecté ; naïf, il est simplement
+    ancré dans le fuseau du foyer plutôt que dans celui du serveur.
     """
     try:
-        parsed = datetime.strptime(value, '%Y-%m-%d')
+        day = datetime.strptime(value, '%Y-%m-%d').date()
     except (TypeError, ValueError):
-        return value
-    return datetime.combine(parsed.date(), time.max).isoformat(sep=' ')
+        moment = datetime.fromisoformat(value)
+        if timezone.is_naive(moment):
+            return moment.replace(tzinfo=household_tz(household))
+        return moment
+    return end_of_day(day, household) if closing else start_of_day(day, household)
 
 
-def _parse_period(from_param: str | None, to_param: str | None):
-    """Resolve from/to query params, defaulting to the current calendar month.
+def _parse_period(from_param: str | None, to_param: str | None, household):
+    """Resolve from/to query params, defaulting to the household's current month.
 
-    Accepts ISO date (YYYY-MM-DD) or full datetime. Always returns aware
-    datetimes (UTC for date-only inputs).
-
-    **Une date de fin nue veut dire « fin de cette journée ».** Le filtre est un
-    ``__lte`` : en la lisant à minuit, ``to=2026-07-31`` excluait toutes les
-    dépenses du 31 — le dernier jour de chaque période disparaissait des totaux,
-    en silence. C'est d'autant plus visible depuis qu'on peut ouvrir un budget
-    sur ses dépenses : le détail et le compteur du panneau ne tombaient pas
-    d'accord. Un instant explicite (``...T14:00``) est respecté tel quel.
+    Le défaut passe par ``core.timezones`` — la **même** fonction que le panneau
+    Budgets. C'est ce qui garantit qu'ouvrir une enveloppe affiche le total sur
+    lequel on vient de cliquer.
     """
-    def _parse(value: str, *, end_of_day: bool = False) -> datetime:
-        # Try date-only first, then full datetime.
-        try:
-            d = datetime.strptime(value, '%Y-%m-%d')
-            moment = time.max if end_of_day else time.min
-            return datetime.combine(d.date(), moment, tzinfo=dt_timezone.utc)
-        except ValueError:
-            pass
-        return datetime.fromisoformat(value)
-
     if not from_param and not to_param:
-        now = timezone.now()
-        from_dt = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        if from_dt.month == 12:
-            next_month = from_dt.replace(year=from_dt.year + 1, month=1)
-        else:
-            next_month = from_dt.replace(month=from_dt.month + 1)
-        return from_dt, next_month - timedelta(microseconds=1)
+        start, end, _month = current_month_range(household)
+        # Fin inclusive : le contrat de l'agrégat est un ``__lte``.
+        return start, end - timedelta(microseconds=1)
 
-    from_dt = _parse(from_param) if from_param else None
-    to_dt = _parse(to_param, end_of_day=True) if to_param else None
+    from_dt = _parse_bound(from_param, household, closing=False) if from_param else None
+    to_dt = _parse_bound(to_param, household, closing=True) if to_param else None
     return from_dt, to_dt
 
 
@@ -146,16 +145,22 @@ class InteractionViewSet(viewsets.ModelViewSet):
         if structure_id:
             queryset = queryset.filter(interaction_structures__structure_id=structure_id)
 
-        # Filter by date range. ``end_date`` nue = fin de journée, même règle que
-        # ``_parse_period`` : comparée telle quelle, une date se lit à minuit et
-        # le dernier jour de la période disparaît de la liste alors qu'il compte
-        # dans le total juste à côté.
+        # Filter by date range — **les mêmes bornes que le résumé**, via
+        # ``_parse_bound``. La liste et le total affichés côte à côte sur la page
+        # d'un budget doivent compter les mêmes dépenses ; comparer une chaîne
+        # brute les faisait lire minuit UTC là où l'agrégat lisait le fuseau du
+        # foyer.
+        household_for_dates = self.request.household
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date:
-            queryset = queryset.filter(occurred_at__gte=start_date)
+            queryset = queryset.filter(
+                occurred_at__gte=_parse_bound(start_date, household_for_dates, closing=False)
+            )
         if end_date:
-            queryset = queryset.filter(occurred_at__lte=_end_of_day(end_date))
+            queryset = queryset.filter(
+                occurred_at__lte=_parse_bound(end_date, household_for_dates, closing=True)
+            )
         
         # Filter by tags
         tags = self.request.query_params.get('tags')
@@ -383,6 +388,7 @@ class InteractionViewSet(viewsets.ModelViewSet):
         from_dt, to_dt = _parse_period(
             request.query_params.get('from'),
             request.query_params.get('to'),
+            household,
         )
         supplier = request.query_params.get('supplier')
         kind = request.query_params.get('kind')

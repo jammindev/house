@@ -22,6 +22,8 @@ from zoneinfo import ZoneInfo
 from django.conf import settings
 from django.db.transaction import atomic
 
+from core.timezones import household_tz as _household_tz
+
 from .importers.parsing import normalize_label
 from .models import BankTransaction
 from interactions.kinds import KIND_RECURRING
@@ -52,13 +54,6 @@ class MatchCandidate:
     @property
     def is_exact_amount(self) -> bool:
         return self.amount_delta == 0
-
-
-def _household_tz(household) -> ZoneInfo:
-    try:
-        return ZoneInfo(getattr(household, "timezone", "") or "UTC")
-    except Exception:
-        return ZoneInfo("UTC")
 
 
 def _occurred_date(interaction, tz: ZoneInfo) -> date:

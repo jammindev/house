@@ -79,6 +79,15 @@ export default function TransactionFilters({
         >
           {t('banking.journal.internal')}
         </FilterPill>
+        {/* Le compagnon du marqueur de ligne : il dit depuis #413 ce qu'il reste
+            à ranger, sans qu'on puisse s'y rendre. Sur 160 lignes, c'est la
+            différence entre un reproche et une file de travail. */}
+        <FilterPill
+          active={filters.allocation === 'todo'}
+          onClick={() => set('allocation', filters.allocation === 'todo' ? '' : 'todo')}
+        >
+          {t('banking.journal.toSortOut')}
+        </FilterPill>
       </div>
     </div>
   );

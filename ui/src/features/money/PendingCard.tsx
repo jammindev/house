@@ -88,7 +88,7 @@ export default function PendingCard({
           </div>
 
           {row.isPartial ? (
-            <p className="mt-1 text-xs text-amber-600">
+            <p className="mt-1 text-xs text-warning">
               {t('money.pending.partial', {
                 allocated: formatAmount(row.allocated),
                 remaining: formatAmount(row.remaining),
@@ -97,7 +97,7 @@ export default function PendingCard({
           ) : null}
 
           {row.isStale ? (
-            <p className="mt-1 text-xs italic text-amber-600">
+            <p className="mt-1 text-xs italic text-warning">
               {t('money.compliance.stale', { reason: row.waiverReason })}
             </p>
           ) : null}

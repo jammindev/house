@@ -251,3 +251,71 @@ class TestItStaysCheapAndFresh:
 
         assert body["transaction"]["allocation_state"] == "allocated"
         assert body["transaction"]["remaining_amount"] == "0.00"
+
+
+@pytest.mark.django_db
+class TestTheToSortOutFilter:
+    """`?allocation=todo` — le compagnon du marqueur.
+
+    Le marqueur dit ligne par ligne ce qu'il reste à faire ; sans filtre, sur un
+    relevé de 160 lignes, il énonce un reproche qu'on ne peut pas suivre. Le
+    filtre passe par la **même** fonction que les compteurs du Contrôle
+    (``detectors.pending_outflows``) : une liste dont le nombre contredirait le
+    badge ferait perdre leur crédit aux deux.
+    """
+
+    def test_it_keeps_exactly_the_unallocated_and_the_partial(self, ctx):
+        household, user, account, budget, client = ctx
+        untouched = make_txn(account, amount="-120.00", label="CB LECLERC")
+        partial = make_txn(account, amount="-150.00", label="CB LEROY MERLIN")
+        allocate(household, user, partial, budget, "90.00")
+        done = make_txn(account, amount="-40.00", label="CB BOULANGERIE")
+        allocate(household, user, done, budget, "40.00")
+
+        body = client.get(f"{LIST_URL}?allocation=todo").json()
+
+        assert {r["id"] for r in body["results"]} == {str(untouched.pk), str(partial.pk)}
+
+    def test_a_receipt_is_never_to_sort_out(self, ctx):
+        """Une recette n'est pas une dépense à ranger — elle a son propre écart."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="2100.00", label="VIR SALAIRE")
+
+        body = client.get(f"{LIST_URL}?allocation=todo").json()
+
+        assert body["results"] == []
+
+    def test_an_internal_movement_is_never_to_sort_out(self, ctx):
+        """L'argent qui change de poche est compté plus tard, quand il est dépensé."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="-60.00", label="RETRAIT DAB", internal=True)
+
+        body = client.get(f"{LIST_URL}?allocation=todo").json()
+
+        assert body["results"] == []
+
+    def test_the_filter_count_equals_the_control_count(self, ctx):
+        """Le test qui porte la garantie : la file et le badge, nombre pour nombre."""
+        from banking.compliance import get_detector, group_result
+
+        household, user, account, budget, client = ctx
+        for index in range(4):
+            make_txn(account, amount="-30.00", label=f"CB ACHAT {index}")
+        partial = make_txn(account, amount="-80.00", label="CB BRICO")
+        allocate(household, user, partial, budget, "20.00")
+
+        listed = client.get(f"{LIST_URL}?allocation=todo").json()["count"]
+        counted = (
+            group_result(household, get_detector(TRANSACTION_UNALLOCATED)).detected
+            + group_result(household, get_detector(TRANSACTION_PARTIAL)).detected
+        )
+
+        assert listed == counted == 5
+
+    def test_without_the_filter_nothing_is_hidden(self, ctx):
+        """Le filtre est un choix, jamais un défaut : le journal reste entier."""
+        _, _, account, _, client = ctx
+        make_txn(account, amount="-120.00")
+        make_txn(account, amount="2100.00", label="VIR SALAIRE")
+
+        assert client.get(LIST_URL).json()["count"] == 2

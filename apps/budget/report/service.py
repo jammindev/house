@@ -14,10 +14,11 @@ history via the persisted snapshot.
 from __future__ import annotations
 
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from django.db import IntegrityError
-from django.utils import timezone, translation
+from django.utils import translation
+
+from core.timezones import household_today
 
 from ..models import BudgetReport
 from .polish import polish_report
@@ -27,12 +28,8 @@ from .stats import compute_month_stats, previous_month
 
 def last_closed_month(household) -> str:
     """Return the previous calendar month (``YYYY-MM``) in the household tz."""
-    try:
-        tz = ZoneInfo(getattr(household, "timezone", "") or "UTC")
-    except Exception:  # pragma: no cover
-        tz = ZoneInfo("UTC")
-    now = timezone.now().astimezone(tz)
-    return previous_month(f"{now.year:04d}-{now.month:02d}")
+    today = household_today(household)
+    return previous_month(f"{today.year:04d}-{today.month:02d}")
 
 
 def get_or_generate_report(household, month: str) -> BudgetReport:

@@ -2607,6 +2607,9 @@
       "actions": {
         "add": "Ausgabe"
       }
+    },
+    "summary": {
+      "budget": "Budget"
     }
   },
   "notifications": {
@@ -3352,7 +3355,8 @@
       "empty": {
         "title": "Keine Buchungen",
         "description": "Importiere einen Kontoauszug auf der Konten-Seite oder erweitere deine Filter."
-      }
+      },
+      "toSortOut": "Zu erledigen"
     },
     "balance": {
       "uncertain": "zu prüfen",
@@ -3383,6 +3387,25 @@
       "noAccountHint": "Legen Sie im Reiter Konten ein Konto „Bargeld“ an: eine Barausgabe wird dann eine Kontobuchung wie jede andere.",
       "createAccount": "Barkonto anlegen",
       "defaultAccountName": "Bargeld"
+    },
+    "withdraw": {
+      "title": "Auf Bargeld übertragen",
+      "intro": "Diese Abhebung ist keine Ausgabe: Das Geld wechselt nur die Tasche. Wird sie auf ein Bargeldkonto gespiegelt, zählt sie genau einmal — wenn das Bargeld tatsächlich ausgegeben wird.",
+      "action": "Bargeldkonto speisen",
+      "fields": {
+        "account": "Bargeldkonto",
+        "amount": "Gespiegelter Betrag",
+        "amountHint": "Standardmäßig die gesamte Abhebung. Verringern Sie ihn, wenn ein Teil nicht in die gemeinsame Kasse gewandert ist."
+      },
+      "errors": {
+        "accountRequired": "Wählen Sie das zu belastende Bargeldkonto.",
+        "amountInvalid": "Geben Sie einen positiven Betrag an, höchstens {{max}}."
+      },
+      "noCashAccount": "Noch kein Bargeldkonto vorhanden. Legen Sie eines im Tab „Konten“ an, um Bargeld zu verfolgen.",
+      "linked": "Abhebung auf Bargeld gespiegelt.",
+      "unlinked": "Bargeld-Gegenbuchung entfernt.",
+      "linkedBadge": "Bargeld",
+      "unlink": "Gegenbuchung entfernen"
     },
     "allocation": {
       "title": "Diese Buchung aufteilen",

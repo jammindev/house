@@ -10,23 +10,19 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, time, timedelta
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.utils import timezone
+
+from core.timezones import household_tz as _household_tz
 
 logger = logging.getLogger(__name__)
 
 MIN_SLOT_GAP = timedelta(hours=1)
 
 
-def household_tz(household) -> ZoneInfo:
-    """The household's timezone, falling back to UTC (same as pings)."""
-    name = getattr(household, "timezone", "") or "UTC"
-    try:
-        return ZoneInfo(name)
-    except (ZoneInfoNotFoundError, ValueError):
-        logger.warning("briefings: invalid household timezone %r, using UTC", name)
-        return ZoneInfo("UTC")
+#: Ré-export — la définition vit dans ``core.timezones``, importée ici sous son
+#: nom historique pour ne pas casser les appelants du module.
+household_tz = _household_tz
 
 
 def next_send_at(briefing, *, now: datetime | None = None) -> datetime | None:

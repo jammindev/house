@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import { TabShell, type TabConfig } from '@/components/TabShell';
+import { useSessionState } from '@/lib/useSessionState';
 import { useComplianceSummary } from './hooks';
 import { PENDING_KINDS } from './keys';
 import CompliancePanel from './CompliancePanel';
@@ -34,33 +35,25 @@ export default function MoneyPage() {
   const [searchParams] = useSearchParams();
   const summaryQuery = useComplianceSummary();
 
-  /** Bascule d'onglet impérative — `TabShell` lit sa valeur dans la session. */
-  const goToTab = React.useCallback((tab: MoneyTab) => {
-    try {
-      sessionStorage.setItem(MONEY_TAB_SESSION_KEY, JSON.stringify(tab));
-    } catch {
-      // sessionStorage indisponible : la navigation manuelle reste possible.
-    }
-    // `TabShell` ne réagit pas au storage ; un reload de la route applique la valeur.
-    window.location.assign(`/app/money?tab=${tab}`);
-  }, []);
-
-  // Deep link `?tab=budgets` — les anciennes URLs (/app/budget…) et les liens de
-  // l'agent y atterrissent. Écrit dans la session **avant** que TabShell lise sa
-  // valeur initiale : l'initialiseur d'état du parent s'exécute avant le montage
-  // de l'enfant, ce qui rend le tour de passe-passe fiable plutôt que fragile.
+  // L'onglet actif vit ici, et `TabShell` en est le miroir contrôlé.
+  //
+  // Il vivait dans `TabShell`, ce qui laissait le parent sans prise : pour
+  // renvoyer l'utilisateur de « À ranger » vers « Contrôle », la seule voie était
+  // d'écrire dans `sessionStorage` puis de faire un `window.location.assign` —
+  // un rechargement complet du navigateur au milieu d'une SPA, qui vidait tout le
+  // cache React Query et refetchait chaque compteur pour un changement d'onglet.
+  // Le deep link `?tab=budgets` (anciennes URLs, liens de l'agent) devient au
+  // passage une simple valeur initiale, au lieu d'un tour de passe-passe sur
+  // l'ordre de montage des composants.
   const requestedTab = searchParams.get('tab');
-  React.useState(() => {
-    if (isMoneyTab(requestedTab)) {
-      try {
-        sessionStorage.setItem(MONEY_TAB_SESSION_KEY, JSON.stringify(requestedTab));
-      } catch {
-        // sessionStorage indisponible (navigation privée) — l'onglet par défaut
-        // s'affiche, ce qui est dégradé mais pas cassé.
-      }
-    }
-    return null;
-  });
+  const [tab, setTab] = useSessionState<MoneyTab>(
+    MONEY_TAB_SESSION_KEY,
+    isMoneyTab(requestedTab) ? requestedTab : 'control',
+  );
+
+  React.useEffect(() => {
+    if (isMoneyTab(requestedTab)) setTab(requestedTab);
+  }, [requestedTab, setTab]);
 
   const summary = summaryQuery.data;
 
@@ -86,17 +79,19 @@ export default function MoneyPage() {
       <TabShell
         tabs={tabs}
         sessionKey={MONEY_TAB_SESSION_KEY}
-        defaultTab={isMoneyTab(requestedTab) ? requestedTab : 'control'}
+        defaultTab="control"
+        value={tab}
+        onValueChange={setTab}
       >
-        {(tab) => {
-          if (tab === 'control') return <CompliancePanel />;
-          if (tab === 'pending') {
+        {(activeTab) => {
+          if (activeTab === 'control') return <CompliancePanel />;
+          if (activeTab === 'pending') {
             // La file renvoie vers Contrôle quand un prérequis la rend vide : sinon
             // l'utilisateur voit une file vide sans savoir où agir.
-            return <PendingQueue onGoToControl={() => goToTab('control')} />;
+            return <PendingQueue onGoToControl={() => setTab('control')} />;
           }
-          if (tab === 'accounts') return <AccountsPanel />;
-          if (tab === 'expenses') return <ExpensesPanel />;
+          if (activeTab === 'accounts') return <AccountsPanel />;
+          if (activeTab === 'expenses') return <ExpensesPanel />;
           return <BudgetsPanel />;
         }}
       </TabShell>

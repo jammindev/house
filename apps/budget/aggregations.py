@@ -12,13 +12,13 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from django.conf import settings
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
-from django.utils import timezone
 
+from core.timezones import current_month_range as _current_month_range
+from core.timezones import household_today
 from interactions.queries import expenses
 
 from .models import Budget, RecurringExpense
@@ -36,25 +36,14 @@ def _str(amount: Decimal | None) -> str:
 
 
 def current_month_range(household) -> tuple[datetime, datetime, str]:
-    """Return (start, end_exclusive, 'YYYY-MM') for the household's current month.
+    """``(début, fin_exclusive, 'YYYY-MM')`` du mois en cours chez le foyer.
 
-    The month boundary follows the household's IANA timezone so the counters
-    roll over at local midnight on the 1st, not UTC. ``occurred_at`` is stored
-    timezone-aware, so the aware local bounds filter correctly.
+    Alias de ``core.timezones.current_month_range``, conservé parce que c'est le
+    nom sous lequel le module est importé ailleurs. La définition, elle, est
+    unique : le résumé des dépenses la lit aussi, et c'est ce qui garantit que le
+    compteur d'une enveloppe et la page qui l'ouvre bornent le même mois.
     """
-    tz_name = getattr(household, "timezone", "") or "UTC"
-    try:
-        tz = ZoneInfo(tz_name)
-    except Exception:  # pragma: no cover - defensive against a bad tz string
-        tz = ZoneInfo("UTC")
-
-    now_local = timezone.now().astimezone(tz)
-    start = datetime(now_local.year, now_local.month, 1, tzinfo=tz)
-    if now_local.month == 12:
-        end = datetime(now_local.year + 1, 1, 1, tzinfo=tz)
-    else:
-        end = datetime(now_local.year, now_local.month + 1, 1, tzinfo=tz)
-    return start, end, f"{now_local.year:04d}-{now_local.month:02d}"
+    return _current_month_range(household)
 
 
 def _spent_by_budget(household_id, start, end) -> dict:
@@ -200,12 +189,7 @@ def compute_cashflow_projection(*, household, today=None, horizons=(30, 90)) -> 
     from .services import advance_due_date
 
     if today is None:
-        tz_name = getattr(household, "timezone", "") or "UTC"
-        try:
-            tz = ZoneInfo(tz_name)
-        except Exception:  # pragma: no cover
-            tz = ZoneInfo("UTC")
-        today = timezone.now().astimezone(tz).date()
+        today = household_today(household)
 
     recurrences = list(RecurringExpense.objects.filter(household_id=household.id))
     max_horizon = max(horizons) if horizons else 0

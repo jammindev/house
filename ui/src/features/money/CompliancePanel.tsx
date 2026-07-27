@@ -485,7 +485,7 @@ function FindingRow({
           </p>
         ) : null}
         {finding.is_stale ? (
-          <p className="text-xs text-amber-600">
+          <p className="text-xs text-warning">
             {t('money.compliance.stale', { reason: finding.waiver_reason })}
           </p>
         ) : null}

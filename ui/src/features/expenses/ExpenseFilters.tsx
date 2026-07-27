@@ -3,11 +3,12 @@ import { FilterPill } from '@/design-system/filter-pill';
 import { Input } from '@/design-system/input';
 import { FormField } from '@/design-system/form-field';
 import type { PeriodPreset, PeriodRange } from './period';
+import { todayISO } from '@/lib/format';
 
 const PRESETS: PeriodPreset[] = ['currentMonth', 'previousMonth', 'last30Days', 'currentYear', 'custom'];
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 interface ExpenseFiltersProps {

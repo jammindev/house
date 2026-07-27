@@ -7,6 +7,7 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import type { BankAccount, BankAccountKind } from '@/lib/api/banking';
 import { useCreateBankAccount, useUpdateBankAccount } from './hooks';
+import { todayISO } from '@/lib/format';
 
 interface AccountDialogProps {
   open: boolean;
@@ -49,7 +50,7 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
       // Aujourd'hui par défaut : le cas le plus fréquent est « je commence à suivre
       // ce compte maintenant », et proposer une valeur juste vaut mieux qu'exiger
       // une saisie de plus.
-      setOpeningBalanceDate(new Date().toISOString().slice(0, 10));
+      setOpeningBalanceDate(todayISO());
     }
   }, [open, existing]);
 

@@ -5,7 +5,6 @@ import {
   AlertTriangle,
   BarChart3,
   CalendarClock,
-  ChevronRight,
   FileText,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
@@ -21,6 +20,7 @@ import type { Budget, BudgetOverviewRow } from '@/lib/api/budget';
 import { useBudgetOverview, useDeleteBudget } from '@/features/budget/hooks';
 import BudgetCard from '@/features/budget/BudgetCard';
 import BudgetDialog from '@/features/budget/BudgetDialog';
+import AccessCard from './AccessCard';
 
 /** Rebuild an editable Budget from an overview row (avoids a second fetch). */
 function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
@@ -122,7 +122,7 @@ export default function BudgetsPanel() {
                   onDelete={() => handleDelete(globalRow.id)}
                 />
                 {overview.named_exceeds_global ? (
-                  <div className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-700">
+                  <div className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground dark:text-warning">
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                     <span>
                       {t('budget.namedExceedsGlobal', {
@@ -190,54 +190,32 @@ export default function BudgetsPanel() {
       {/* L'analyse en premier des trois accès : c'est la seule qui répond à
           « est-ce que ça dérive », question qu'aucune carte au-dessus ne pose. */}
       {!overviewQuery.isLoading && overview ? (
-        <Link
-          to="/app/money/analysis"
-          state={pushBack(location)}
-          className="mt-5 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
-        >
-          <BarChart3 className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-foreground">{t('analysis.title')}</p>
-            <p className="text-xs text-muted-foreground">{t('analysis.access.hint')}</p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
-      ) : null}
-
-      {!overviewQuery.isLoading && overview ? (
-        <Link
-          to="/app/budget/recurring"
-          state={pushBack(location)}
-          className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
-        >
-          <CalendarClock className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-foreground">{t('recurring.title')}</p>
-            <p className="text-xs text-muted-foreground">
-              {overview.total_committed && Number(overview.total_committed) > 0
+        <div className="mt-5 space-y-2">
+          <AccessCard
+            to="/app/money/analysis"
+            icon={BarChart3}
+            title={t('analysis.title')}
+            hint={t('analysis.access.hint')}
+          />
+          <AccessCard
+            to="/app/budget/recurring"
+            icon={CalendarClock}
+            title={t('recurring.title')}
+            hint={
+              Number(overview.total_committed) > 0
                 ? t('budget.recurringAccess.committed', {
                     amount: formatAmount(overview.total_committed),
                   })
-                : t('budget.recurringAccess.hint')}
-            </p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
-      ) : null}
-
-      {!overviewQuery.isLoading && overview ? (
-        <Link
-          to="/app/budget/reports"
-          state={pushBack(location)}
-          className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-accent/60"
-        >
-          <FileText className="h-5 w-5 shrink-0 text-muted-foreground" />
-          <div className="min-w-0 flex-1">
-            <p className="font-medium text-foreground">{t('report.title')}</p>
-            <p className="text-xs text-muted-foreground">{t('report.access.hint')}</p>
-          </div>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </Link>
+                : t('budget.recurringAccess.hint')
+            }
+          />
+          <AccessCard
+            to="/app/budget/reports"
+            icon={FileText}
+            title={t('report.title')}
+            hint={t('report.access.hint')}
+          />
+        </div>
       ) : null}
 
       <BudgetDialog

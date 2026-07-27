@@ -2607,6 +2607,9 @@
       "actions": {
         "add": "Expense"
       }
+    },
+    "summary": {
+      "budget": "Budget"
     }
   },
   "notifications": {
@@ -3352,7 +3355,8 @@
       "empty": {
         "title": "No operations",
         "description": "Import a statement from the Accounts page, or widen your filters."
-      }
+      },
+      "toSortOut": "To sort out"
     },
     "balance": {
       "uncertain": "to check",
@@ -3383,6 +3387,25 @@
       "noAccountHint": "Declare a “Cash” account in the Accounts tab: a cash spend then becomes an account operation, like every other.",
       "createAccount": "Create my cash account",
       "defaultAccountName": "Cash"
+    },
+    "withdraw": {
+      "title": "Move to cash",
+      "intro": "This withdrawal is not spending: the money changes pocket. Mirroring it onto a cash account means it gets counted once — when that cash is actually spent.",
+      "action": "Feed the cash account",
+      "fields": {
+        "account": "Cash account",
+        "amount": "Amount mirrored",
+        "amountHint": "The whole withdrawal by default. Lower it if part of it never reached the shared pot."
+      },
+      "errors": {
+        "accountRequired": "Pick the cash account to credit.",
+        "amountInvalid": "Enter a positive amount, at most {{max}}."
+      },
+      "noCashAccount": "No cash account yet. Create one from the Accounts tab to start tracking physical money.",
+      "linked": "Withdrawal mirrored onto cash.",
+      "unlinked": "Cash counterpart removed.",
+      "linkedBadge": "Cash",
+      "unlink": "Remove the counterpart"
     },
     "allocation": {
       "title": "Split this operation",

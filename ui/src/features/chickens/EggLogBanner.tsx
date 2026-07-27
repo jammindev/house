@@ -5,9 +5,10 @@ import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { Input } from '@/design-system/input';
 import { useEggStats, useLogEggs } from './hooks';
+import { todayISO } from '@/lib/format';
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 /**

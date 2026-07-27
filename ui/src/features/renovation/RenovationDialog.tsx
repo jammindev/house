@@ -17,6 +17,7 @@ import {
   type RenovationType,
 } from '@/lib/api/renovation';
 import { useCreateRenovation, useUpdateRenovation } from './hooks';
+import { todayISO } from '@/lib/format';
 
 interface RenovationDialogProps {
   open: boolean;
@@ -28,7 +29,7 @@ interface RenovationDialogProps {
 }
 
 function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 export default function RenovationDialog({

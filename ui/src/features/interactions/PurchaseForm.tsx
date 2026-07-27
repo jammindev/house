@@ -4,6 +4,7 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
+import { todayISO } from '@/lib/format';
 
 export interface PurchaseFormPayload {
   delta?: number;
@@ -45,7 +46,7 @@ interface FormState {
 }
 
 function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayISO();
 }
 
 function emptyState(currentQuantity?: number): FormState {

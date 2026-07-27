@@ -806,3 +806,94 @@ class TestExpenseWithoutBudget:
 
         result = group(household, EXPENSE_WITHOUT_BUDGET)
         assert (result.open, result.waived) == (0, 1)
+
+
+# --- Le coût d'ouvrir un groupe (audit du parcours 26) ------------------------
+
+
+@pytest.mark.django_db
+class TestOpeningOneGroupCostsOneDetector:
+    """Ouvrir un groupe ne doit pas recompter les treize autres.
+
+    L'endpoint de détail sérialisait son en-tête en appelant ``summary()``, donc
+    en relançant **tous** les détecteurs — dont la marche arithmétique sur la
+    chaîne de soldes et le calcul du solde espèces — pour un chiffre dont il
+    n'avait besoin qu'une fois. Le badge, lui, a le droit : c'est son travail.
+    """
+
+    def test_group_result_is_cheaper_than_the_whole_summary(
+        self, ctx, django_assert_max_num_queries
+    ):
+        household, _, account, _ = ctx
+        for index in range(5):
+            make_txn(account, label=f"CB ACHAT {index}")
+
+        with django_assert_max_num_queries(500) as captured:
+            compliance.summary(household)
+        full = len(captured.captured_queries)
+
+        with django_assert_max_num_queries(500) as captured:
+            compliance.group_result(household, get_detector(TRANSACTION_UNALLOCATED))
+        one = len(captured.captured_queries)
+
+        # Une borne relative, pas un nombre magique : elle survit à l'ajout d'un
+        # détecteur, et c'est bien la propriété qu'on veut tenir.
+        assert one < full
+        assert one <= full // len(compliance.REGISTRY) + 3
+
+    def test_it_says_the_same_thing_as_the_summary(self, ctx):
+        """Moins cher, mais pas différent — sinon l'en-tête du détail
+        contredirait le badge, ce qui est précisément l'écart qu'on chasse."""
+        household, _, account, _ = ctx
+        make_txn(account)
+
+        for spec in compliance.REGISTRY:
+            from_summary = group(household, spec.kind)
+            direct = compliance.group_result(household, spec)
+            assert (direct.detected, direct.waived, direct.stale) == (
+                from_summary.detected,
+                from_summary.waived,
+                from_summary.stale,
+            ), spec.kind
+
+
+# --- « Aujourd'hui » se lit chez le foyer -------------------------------------
+
+
+@pytest.mark.django_db
+class TestOverdueIsJudgedInTheHouseholdTimezone:
+    """Une échéance bascule « en retard » à minuit **chez le foyer**.
+
+    Le détecteur lisait ``date.today()`` — l'horloge du serveur, UTC en
+    conteneur — alors que la liste « échéances dues » utilisait déjà le fuseau du
+    foyer. Deux heures par jour, le Contrôle et la liste ne comptaient pas la
+    même chose.
+    """
+
+    def test_todays_due_date_is_not_late_yet(self, ctx, monkeypatch):
+        from zoneinfo import ZoneInfo
+
+        from banking.detectors import RECURRING_OVERDUE
+        from budget.models import RecurringExpense
+        from core import timezones as core_tz
+
+        household, user, _, budget = ctx
+        household.timezone = "Pacific/Kiritimati"  # UTC+14 : demain avant tout le monde
+        household.save(update_fields=["timezone"])
+
+        # 23 h 00 UTC le 14 : il est déjà le 15 chez le foyer.
+        fixed = timezone.datetime(2026, 3, 14, 23, 0, tzinfo=ZoneInfo("UTC"))
+        monkeypatch.setattr(core_tz.timezone, "now", lambda: fixed)
+
+        RecurringExpense.objects.create(
+            household=household,
+            budget=budget,
+            label="Assurance",
+            amount=Decimal("30.00"),
+            cadence="monthly",
+            next_due_date=date(2026, 3, 15),
+            created_by=user,
+        )
+
+        # Échéance le 15, on est le 15 chez le foyer : due, pas en retard.
+        assert group(household, RECURRING_OVERDUE).detected == 0

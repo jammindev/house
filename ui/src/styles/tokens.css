@@ -56,6 +56,12 @@
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
+  /* « attention », le cran avant le dépassement : un budget à 80 %, une échéance
+     due, une ligne partiellement rangée. Il manquait à la palette, alors chaque
+     écran l'écrivait en `amber-500` en dur — donc en clair fixe, y compris en
+     thème sombre. Un token, pas sept littéraux. */
+  --warning: 38 92% 50%;
+  --warning-foreground: 26 83% 24%;
   --border: 214 32% 91%;
   --input: 214 32% 91%;
   --ring: var(--primary);
@@ -97,6 +103,10 @@
   --accent-foreground: 210 40% 98%;
   --destructive: 0 63% 31%;
   --destructive-foreground: 210 40% 98%;
+  /* Plus clair qu'en thème clair : sur fond sombre, l'ambre saturé du jour
+     devient illisible en texte. */
+  --warning: 43 96% 62%;
+  --warning-foreground: 26 83% 14%;
   --border: 217 33% 26%;
   --input: 217 33% 26%;
   --ring: var(--primary);

@@ -12,11 +12,11 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
-from zoneinfo import ZoneInfo
 
 from django.db.models import Sum
 from django.db.models.functions import Coalesce
 
+from core.timezones import household_tz, month_range
 from interactions.queries import expenses
 
 from ..aggregations import _state, _str, _zero
@@ -25,20 +25,14 @@ from ..models import Budget
 TOP_EXPENSES_LIMIT = 5
 
 
-def _tz(household) -> ZoneInfo:
-    try:
-        return ZoneInfo(getattr(household, "timezone", "") or "UTC")
-    except Exception:  # pragma: no cover - defensive
-        return ZoneInfo("UTC")
+#: Alias historique — la définition vit dans ``core.timezones``.
+_tz = household_tz
 
 
 def month_bounds(household, month: str) -> tuple[datetime, datetime]:
     """Return (start, end_exclusive) aware datetimes for a ``YYYY-MM`` month."""
     year, mon = (int(p) for p in month.split("-"))
-    tz = _tz(household)
-    start = datetime(year, mon, 1, tzinfo=tz)
-    end = datetime(year + 1, 1, 1, tzinfo=tz) if mon == 12 else datetime(year, mon + 1, 1, tzinfo=tz)
-    return start, end
+    return month_range(household, year=year, month=mon)
 
 
 def previous_month(month: str) -> str:
