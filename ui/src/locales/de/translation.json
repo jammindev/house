@@ -170,7 +170,8 @@
     "add": "Hinzufügen",
     "create": "Erstellen",
     "showMore": "Mehr anzeigen",
-    "close": "Schließen"
+    "close": "Schließen",
+    "clear": "Löschen"
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -731,6 +732,32 @@
     "deleteConfirmDescription": "Dies löscht \"{{name}}\" dauerhaft. Unterzonen müssen zuerst verschoben oder gelöscht werden.",
     "expandZone": "Zone aufklappen",
     "collapseZone": "Zone einklappen",
+    "searchPlaceholder": "Zone suchen…",
+    "searchEmpty": "Keine Zone entspricht „{{query}}“.",
+    "searchResults_one": "{{count}} passende Zone",
+    "searchResults_other": "{{count}} passende Zonen",
+    "expandAll": "Alle aufklappen",
+    "collapseAll": "Alle einklappen",
+    "toggleAllDisabled": "Während einer Suche nicht verfügbar",
+    "surfaceShort": "{{value}} m²",
+    "surfaceLabel": "Fläche (m²)",
+    "summary": {
+      "zones_one": "{{count}} Zone",
+      "zones_other": "{{count}} Zonen",
+      "main_one": "{{count}} Hauptzone",
+      "main_other": "{{count}} Hauptzonen",
+      "surface": "{{value}} m² insgesamt"
+    },
+    "meta": {
+      "children_one": "{{count}} Unterzone",
+      "children_other": "{{count}} Unterzonen",
+      "equipment_one": "{{count}} Ausstattung",
+      "equipment_other": "{{count}} Ausstattungen",
+      "tasks_one": "{{count}} offene Aufgabe",
+      "tasks_other": "{{count}} offene Aufgaben",
+      "projects_one": "{{count}} aktives Projekt",
+      "projects_other": "{{count}} aktive Projekte"
+    },
     "tabs": {
       "info": "Info",
       "equipment": "Ausrüstung",
@@ -1184,6 +1211,14 @@
           "hierarchy": {
             "title": "Die Hierarchie aufbauen",
             "body": "Verschachteln Sie Zonen (Etage → Schlafzimmer), um Ihr Zuhause abzubilden."
+          },
+          "read": {
+            "title": "Eine Zeile lesen",
+            "body": "Rechts neben jeder Zone: ihre Fläche und ihre Zähler (Unterzonen, Geräte, offene Aufgaben, laufende Projekte); ein fehlender Zähler bedeutet null. Belebte und leere Zonen erkennen Sie so, ohne etwas zu öffnen."
+          },
+          "find": {
+            "title": "Einklappen und suchen",
+            "body": "Klappen Sie Zweige ein, die Sie nicht brauchen, und springen Sie über die Suche direkt zu einer Zone: die übergeordneten Zonen eines Treffers bleiben sichtbar, der Kontext geht nie verloren."
           },
           "navigate": {
             "title": "Nach Zone navigieren",

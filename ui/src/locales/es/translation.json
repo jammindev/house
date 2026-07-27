@@ -170,7 +170,8 @@
     "add": "Añadir",
     "create": "Crear",
     "showMore": "Mostrar más",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "clear": "Borrar"
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",
@@ -731,6 +732,32 @@
     "deleteConfirmDescription": "Esto eliminará \"{{name}}\" permanentemente. Las zonas hijas deben moverse o eliminarse primero.",
     "expandZone": "Expandir zona",
     "collapseZone": "Contraer zona",
+    "searchPlaceholder": "Buscar una zona…",
+    "searchEmpty": "Ninguna zona coincide con «{{query}}».",
+    "searchResults_one": "{{count}} zona coincide",
+    "searchResults_other": "{{count}} zonas coinciden",
+    "expandAll": "Expandir todo",
+    "collapseAll": "Contraer todo",
+    "toggleAllDisabled": "No disponible durante una búsqueda",
+    "surfaceShort": "{{value}} m²",
+    "surfaceLabel": "Superficie (m²)",
+    "summary": {
+      "zones_one": "{{count}} zona",
+      "zones_other": "{{count}} zonas",
+      "main_one": "{{count}} principal",
+      "main_other": "{{count}} principales",
+      "surface": "{{value}} m² en total"
+    },
+    "meta": {
+      "children_one": "{{count}} sub-zona",
+      "children_other": "{{count}} sub-zonas",
+      "equipment_one": "{{count}} equipo",
+      "equipment_other": "{{count}} equipos",
+      "tasks_one": "{{count}} tarea abierta",
+      "tasks_other": "{{count}} tareas abiertas",
+      "projects_one": "{{count}} proyecto activo",
+      "projects_other": "{{count}} proyectos activos"
+    },
     "tabs": {
       "info": "Info",
       "equipment": "Equipamiento",
@@ -1184,6 +1211,14 @@
           "hierarchy": {
             "title": "Construir la jerarquía",
             "body": "Anida las zonas (planta → dormitorio) para reflejar tu vivienda."
+          },
+          "read": {
+            "title": "Leer una línea",
+            "body": "A la derecha de cada zona: su superficie y sus contadores (subzonas, equipos, tareas abiertas, proyectos activos); un contador ausente equivale a cero. Las zonas activas y las vacías se distinguen sin abrir nada."
+          },
+          "find": {
+            "title": "Plegar y buscar",
+            "body": "Pliega las ramas que no consultas y escribe en el buscador para ir directo a una zona: las zonas superiores del resultado siguen visibles, así nunca pierdes el contexto."
           },
           "navigate": {
             "title": "Navegar por zona",

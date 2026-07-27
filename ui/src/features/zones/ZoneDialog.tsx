@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { Zone, ZonePayload } from '@/lib/api/zones';
@@ -24,6 +25,8 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
   const [parentId, setParentId] = React.useState<string>('');
   const [color, setColor] = React.useState(DEFAULT_COLOR);
   const [colorTouched, setColorTouched] = React.useState(false);
+  const [surface, setSurface] = React.useState('');
+  const [note, setNote] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
   const { data: allZones = [] } = useZones();
@@ -49,6 +52,8 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
   React.useEffect(() => {
     if (!open) return;
     setName(existing?.name ?? '');
+    setSurface(existing?.surface != null ? String(existing.surface) : '');
+    setNote(existing?.note ?? '');
     const initialParent = existing?.parentId ?? existing?.parent ?? '';
     setParentId(initialParent);
     if (existing) {
@@ -78,10 +83,24 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
       return;
     }
 
+    // Surface vide ≠ surface à zéro : « pas renseignée » se dit `null`, sinon
+    // toute zone non mesurée pèserait 0 m² dans le total de la liste.
+    const trimmedSurface = surface.trim();
+    let parsedSurface: number | null = null;
+    if (trimmedSurface !== '') {
+      parsedSurface = Number(trimmedSurface.replace(',', '.'));
+      if (!Number.isFinite(parsedSurface) || parsedSurface < 0) {
+        setError(t('zones.invalidSurface'));
+        return;
+      }
+    }
+
     const payload: ZonePayload = {
       name: trimmedName,
       parent: parentId || null,
       color,
+      surface: parsedSurface,
+      note: note.trim(),
     };
 
     try {
@@ -165,6 +184,32 @@ export default function ZoneDialog({ open, onOpenChange, existing }: ZoneDialogP
               />
             </div>
             <p className="text-xs text-muted-foreground">{t('zones.colorHelper')}</p>
+          </FormField>
+
+          {/* Surface — affichée dans la liste des zones et sommée en tête de
+              page : sans ce champ, la colonne resterait vide pour tout le monde. */}
+          <FormField label={t('zones.surfaceLabel')} htmlFor="zone-surface">
+            <Input
+              id="zone-surface"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              value={surface}
+              onChange={(e) => setSurface(e.target.value)}
+              placeholder={t('zones.surfacePlaceholder')}
+            />
+          </FormField>
+
+          {/* Note */}
+          <FormField label={t('zones.detail.notesLabel')} htmlFor="zone-note">
+            <Textarea
+              id="zone-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={t('zones.notePlaceholder')}
+              rows={3}
+            />
           </FormField>
 
           <div className="flex justify-end gap-2 pt-2">
