@@ -171,7 +171,13 @@
     "create": "Crear",
     "showMore": "Mostrar más",
     "close": "Cerrar",
-    "clear": "Borrar"
+    "clear": "Borrar",
+    "loadMore": "Ver más",
+    "shownOfTotal": "{{shown}} de {{total}}",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "rangeOfTotal": "{{from}}–{{to}} de {{total}}",
+    "cappedAtMax": "{{shown}} de {{total}} — resuelve estas para ver el resto."
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",
@@ -3660,7 +3666,6 @@
       "waivedShort": "{{count}} justificada",
       "waivedShort_other": "{{count}} justificadas",
       "blockedBy": "Este control solo cubre las cuentas cuyo requisito «{{prerequisite}}» está resuelto.",
-      "andMore": "y {{count}} más…",
       "showArbitrated": "Ver las {{count}} justificaciones",
       "hideArbitrated": "Ocultar las justificaciones",
       "revoke": "Revocar",

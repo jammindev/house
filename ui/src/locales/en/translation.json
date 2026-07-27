@@ -171,7 +171,13 @@
     "create": "Create",
     "showMore": "Show more",
     "close": "Close",
-    "clear": "Clear"
+    "clear": "Clear",
+    "loadMore": "Show more",
+    "shownOfTotal": "{{shown}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "rangeOfTotal": "{{from}}–{{to}} of {{total}}",
+    "cappedAtMax": "{{shown}} of {{total}} — clear these to see the rest."
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -3660,7 +3666,6 @@
       "waivedShort": "{{count}} arbitrated",
       "waivedShort_other": "{{count}} arbitrated",
       "blockedBy": "This check only covers accounts whose “{{prerequisite}}” prerequisite is cleared.",
-      "andMore": "and {{count}} more…",
       "showArbitrated": "Show the {{count}} arbitrations",
       "hideArbitrated": "Hide arbitrations",
       "revoke": "Revoke",

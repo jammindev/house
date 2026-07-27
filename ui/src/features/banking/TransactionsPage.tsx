@@ -3,6 +3,8 @@ import { Sparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHeader from '@/components/PageHeader';
 import BackLink from '@/components/BackLink';
+import Pager from '@/components/Pager';
+import { usePager } from '@/lib/usePager';
 import { Button } from '@/design-system/button';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
@@ -34,7 +36,10 @@ export default function TransactionsPage() {
   const [filters, setFilters] = useSessionState<Filters>('banking.journal.filters', NO_FILTERS);
 
   const accountsQuery = useBankAccounts();
-  const transactionsQuery = useTransactions(filters, PAGE_SIZE);
+  // Un registre se parcourt : 116 lignes par relevé mensuel, et un plafond muet
+  // à 50 mettait les deux tiers du journal hors d'atteinte.
+  const pager = usePager(PAGE_SIZE, filters);
+  const transactionsQuery = useTransactions(filters, pager.limit, { offset: pager.offset });
   const flowQuery = useAccountFlow(filters);
   const qualifyMutation = useQualifyTransaction();
   const unlinkCashMutation = useUnlinkCashCounterpart();
@@ -71,6 +76,13 @@ export default function TransactionsPage() {
   }
 
   const page = transactionsQuery.data;
+
+  // Même garde que l'onglet Dépenses : une page vidée ramène à la première.
+  React.useEffect(() => {
+    if (!transactionsQuery.isFetching && page && page.results.length === 0 && pager.offset > 0) {
+      pager.reset();
+    }
+  }, [transactionsQuery.isFetching, page, pager]);
 
   return (
     <>
@@ -121,6 +133,16 @@ export default function TransactionsPage() {
           onClassify={setClassifyTarget}
         />
       )}
+
+      <Pager
+        offset={pager.offset}
+        limit={pager.limit}
+        shown={page?.results.length ?? 0}
+        total={page?.count ?? 0}
+        onPrevious={pager.previous}
+        onNext={pager.next}
+        isFetching={transactionsQuery.isFetching}
+      />
 
       {suggestTarget ? (
         <SuggestionsDialog

@@ -171,7 +171,13 @@
     "create": "Créer",
     "showMore": "Afficher plus",
     "close": "Fermer",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "loadMore": "Voir plus",
+    "shownOfTotal": "{{shown}} sur {{total}}",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "rangeOfTotal": "{{from}}–{{to}} sur {{total}}",
+    "cappedAtMax": "{{shown}} sur {{total}} — traitez ces lignes pour voir la suite."
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
@@ -3660,7 +3666,6 @@
       "waivedShort": "{{count}} arbitré",
       "waivedShort_other": "{{count}} arbitrés",
       "blockedBy": "Ce contrôle ne porte que sur les comptes dont le prérequis « {{prerequisite}} » est levé.",
-      "andMore": "et {{count}} de plus…",
       "showArbitrated": "Voir les {{count}} arbitrages",
       "hideArbitrated": "Masquer les arbitrages",
       "revoke": "Révoquer",
