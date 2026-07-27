@@ -45,7 +45,7 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
                 {item.subject}
               </CardTitle>
             </Link>
-            <Badge variant="outline">{t(typeLabelKey, { defaultValue: item.type })}</Badge>
+            <Badge variant="outline">{t(typeLabelKey)}</Badge>
           </div>
 
           {item.content ? (

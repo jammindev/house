@@ -131,12 +131,7 @@ function TabInteractions({
                   <div className="flex shrink-0 gap-1">
                     {item.type ? (
                       <Badge variant="outline" className="h-5 text-[10px]">
-                        {t(`interactions.type.${item.type}`, { defaultValue: item.type })}
-                      </Badge>
-                    ) : null}
-                    {item.status ? (
-                      <Badge variant="secondary" className="h-5 text-[10px]">
-                        {t(`interactions.status.${item.status}`, { defaultValue: item.status })}
+                        {t(`interactions.type.${item.type}`)}
                       </Badge>
                     ) : null}
                   </div>

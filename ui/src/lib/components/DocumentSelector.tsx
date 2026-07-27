@@ -46,7 +46,7 @@ export function DocumentSelector({
   maxSuggestions = 8,
 }: DocumentSelectorProps) {
   const { t } = useTranslation();
-  const resolvedLegend = legend ?? t('documentSelector.legend', { defaultValue: 'Linked documents' });
+  const resolvedLegend = legend ?? t('documentSelector.legend');
   const [query, setQuery] = React.useState('');
   const [selectedType, setSelectedType] = React.useState<string>('');
   const [documents, setDocuments] = React.useState<DocumentItem[]>([]);
@@ -61,7 +61,7 @@ export function DocumentSelector({
   const [uploadNotes, setUploadNotes] = React.useState('');
 
   const typeOptions = React.useMemo(
-    () => DOCUMENT_TYPES.map((value) => ({ value, label: t(`documents.type.${value}`, { defaultValue: value }) })),
+    () => DOCUMENT_TYPES.map((value) => ({ value, label: t(`documents.type.${value}`) })),
     [t]
   );
 
@@ -79,7 +79,7 @@ export function DocumentSelector({
         }
       } catch {
         if (isMounted) {
-          setError(t('documentSelector.error', { defaultValue: 'Unable to load documents.' }));
+          setError(t('documentSelector.error'));
         }
       } finally {
         if (isMounted) {
@@ -137,7 +137,7 @@ export function DocumentSelector({
     event.preventDefault();
 
     if (!selectedFile) {
-      setUploadError(t('documentSelector.upload_file_required', { defaultValue: 'Select a file first.' }));
+      setUploadError(t('documentSelector.upload_file_required'));
       return;
     }
 
@@ -165,7 +165,7 @@ export function DocumentSelector({
       setUploadNotes('');
       setUploadOpen(false);
     } catch {
-      setUploadError(t('documentSelector.upload_failed', { defaultValue: 'Unable to upload the document.' }));
+      setUploadError(t('documentSelector.upload_failed'));
     } finally {
       setUploading(false);
     }
@@ -186,10 +186,7 @@ export function DocumentSelector({
         <legend className="text-sm font-medium">{resolvedLegend}</legend>
         {selectedDocumentIds.length > 0 ? (
           <span className="text-xs text-muted-foreground">
-            {t('documentSelector.selected_count', {
-              count: selectedDocumentIds.length,
-              defaultValue: '{{count}} selected',
-            })}
+            {t('documentSelector.selected_count', { count: selectedDocumentIds.length })}
           </span>
         ) : null}
       </div>
@@ -203,10 +200,7 @@ export function DocumentSelector({
                 type="button"
                 onClick={() => removeDocument(document.id)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-medium text-emerald-950 transition-colors hover:bg-emerald-100"
-                aria-label={t('documentSelector.remove_document', {
-                  name: document.name,
-                  defaultValue: `Remove ${document.name}`,
-                })}
+                aria-label={t('documentSelector.remove_document', { name: document.name })}
               >
                 <FileText className="h-3.5 w-3.5" />
                 <span>{document.name}</span>
@@ -216,15 +210,13 @@ export function DocumentSelector({
           </div>
         ) : (
           <p className="text-xs text-muted-foreground">
-            {t('documentSelector.none_selected', {
-              defaultValue: 'No documents linked yet.',
-            })}
+            {t('documentSelector.none_selected')}
           </p>
         )}
 
         <div className="space-y-2">
           <label htmlFor="document-selector-input" className="text-xs font-medium text-muted-foreground">
-            {t('documentSelector.search_label', { defaultValue: 'Find an existing document' })}
+            {t('documentSelector.search_label')}
           </label>
           <div className="grid gap-2 md:grid-cols-[minmax(0,1.8fr)_minmax(12rem,1fr)]">
             <div className="relative">
@@ -233,7 +225,7 @@ export function DocumentSelector({
                 id="document-selector-input"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder={t('documentSelector.placeholder', { defaultValue: 'Search by document name' })}
+                placeholder={t('documentSelector.placeholder')}
                 className="pl-9"
               />
             </div>
@@ -241,13 +233,11 @@ export function DocumentSelector({
               value={selectedType}
               onChange={(event) => setSelectedType(event.target.value)}
               options={typeOptions}
-              placeholder={t('documentSelector.type_filter_placeholder', { defaultValue: 'All document types' })}
+              placeholder={t('documentSelector.type_filter_placeholder')}
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            {t('documentSelector.helper', {
-              defaultValue: 'Select one or more existing documents to link to this activity.',
-            })}
+            {t('documentSelector.helper')}
           </p>
         </div>
 
@@ -255,14 +245,14 @@ export function DocumentSelector({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-xs font-medium text-foreground">
-                {t('documentSelector.upload_title', { defaultValue: 'Add a document now' })}
+                {t('documentSelector.upload_title')}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {t('documentSelector.upload_helper', { defaultValue: 'Upload a document here and link it immediately to this activity.' })}
+                {t('documentSelector.upload_helper')}
               </p>
             </div>
             <Button type="button" variant="outline" size="sm" onClick={() => setUploadOpen((current) => !current)}>
-              {uploadOpen ? t('documentSelector.upload_cancel', { defaultValue: 'Close upload' }) : t('documentSelector.upload_open', { defaultValue: 'Upload a document' })}
+              {uploadOpen ? t('documentSelector.upload_cancel') : t('documentSelector.upload_open')}
             </Button>
           </div>
 
@@ -272,7 +262,7 @@ export function DocumentSelector({
 
               <div className="space-y-1.5">
                 <label htmlFor="interaction-document-upload-file" className="text-xs font-medium text-muted-foreground">
-                  {t('documents.new.selectFile', { defaultValue: 'Select a file' })}
+                  {t('documents.new.selectFile')}
                 </label>
                 <Input id="interaction-document-upload-file" type="file" onChange={handleFileChange} required />
                 {selectedFile ? (
@@ -286,7 +276,7 @@ export function DocumentSelector({
               <div className="grid gap-3 md:grid-cols-2">
                 <div className="space-y-1.5">
                   <label htmlFor="interaction-document-upload-name" className="text-xs font-medium text-muted-foreground">
-                    {t('documents.fieldName', { defaultValue: 'Name' })}
+                    {t('documents.fieldName')}
                   </label>
                   <Input
                     id="interaction-document-upload-name"
@@ -296,28 +286,28 @@ export function DocumentSelector({
                 </div>
                 <div className="space-y-1.5">
                   <label htmlFor="interaction-document-upload-type" className="text-xs font-medium text-muted-foreground">
-                    {t('documents.fieldType', { defaultValue: 'Type' })}
+                    {t('documents.fieldType')}
                   </label>
                   <Select
                     id="interaction-document-upload-type"
                     value={uploadType}
                     onChange={(event) => setUploadType(event.target.value as DocumentType | '')}
                     options={typeOptions}
-                    placeholder={t('documents.fieldType', { defaultValue: 'Type' })}
+                    placeholder={t('documents.fieldType')}
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label htmlFor="interaction-document-upload-notes" className="text-xs font-medium text-muted-foreground">
-                  {t('documents.fieldNotes', { defaultValue: 'Notes' })}
+                  {t('documents.fieldNotes')}
                 </label>
                 <Textarea
                   id="interaction-document-upload-notes"
                   rows={3}
                   value={uploadNotes}
                   onChange={(event) => setUploadNotes(event.target.value)}
-                  placeholder={t('documents.fieldNotesPlaceholder', { defaultValue: 'Optional notes…' })}
+                  placeholder={t('documents.fieldNotesPlaceholder')}
                 />
               </div>
 
@@ -325,12 +315,12 @@ export function DocumentSelector({
                 <Button type="submit" size="sm" disabled={uploading}>
                   <Upload className="mr-1 h-4 w-4" />
                   {uploading
-                    ? t('documentSelector.upload_submitting', { defaultValue: 'Uploading…' })
-                    : t('documentSelector.upload_submit', { defaultValue: 'Upload and link' })}
+                    ? t('documentSelector.upload_submitting')
+                    : t('documentSelector.upload_submit')}
                 </Button>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setUploadOpen(false)}>
                   <X className="mr-1 h-4 w-4" />
-                  {t('common.cancel', { defaultValue: 'Cancel' })}
+                  {t('common.cancel')}
                 </Button>
               </div>
             </form>
@@ -339,7 +329,7 @@ export function DocumentSelector({
 
         {loading ? (
           <p className="text-xs text-muted-foreground">
-            {t('documentSelector.loading', { defaultValue: 'Loading documents…' })}
+            {t('documentSelector.loading')}
           </p>
         ) : null}
 
@@ -351,8 +341,8 @@ export function DocumentSelector({
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">
                   {normalizedQuery
-                    ? t('documentSelector.results_label', { defaultValue: 'Matching documents' })
-                    : t('documentSelector.recent_label', { defaultValue: 'Recent documents' })}
+                    ? t('documentSelector.results_label')
+                    : t('documentSelector.recent_label')}
                 </p>
                 <div className="space-y-2">
                   {suggestions.map((document) => (
@@ -367,25 +357,24 @@ export function DocumentSelector({
                           <p className="truncate text-sm font-medium text-foreground">{document.name}</p>
                           {document.qualification.qualification_state === 'without_activity' ? (
                             <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-900">
-                              {t('documentSelector.priority_badge', { defaultValue: 'To link first' })}
+                              {t('documentSelector.priority_badge')}
                             </span>
                           ) : null}
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          {t(`documents.type.${document.type}`, { defaultValue: document.type })}
+                          {t(`documents.type.${document.type}`)}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
                         <span className="text-xs font-medium text-primary">
-                          {t('documentSelector.add_action', { defaultValue: 'Link' })}
+                          {t('documentSelector.add_action')}
                         </span>
                         <p className="mt-1 text-[10px] text-muted-foreground">
                           {document.qualification.linked_interactions_count > 0
                             ? t('documentSelector.activity_count', {
                                 count: document.qualification.linked_interactions_count,
-                                defaultValue: '{{count}} activity',
                               })
-                            : t('documentSelector.no_activity_yet', { defaultValue: 'No activity yet' })}
+                            : t('documentSelector.no_activity_yet')}
                         </p>
                       </div>
                     </button>
@@ -394,9 +383,7 @@ export function DocumentSelector({
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                {t('documentSelector.empty', {
-                  defaultValue: 'No document matches this search.',
-                })}
+                {t('documentSelector.empty')}
               </p>
             )}
           </div>

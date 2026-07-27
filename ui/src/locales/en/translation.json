@@ -651,7 +651,8 @@
     "suggestions_label": "Suggested tags",
     "create_tag": "Add tag \"{{name}}\"",
     "empty": "No tag matches this search.",
-    "remove_tag": "Remove {{name}}"
+    "remove_tag": "Remove {{name}}",
+    "legend": "Tags"
   },
   "documentSelector": {
     "selected_count": "{{count}} selected",
@@ -1099,7 +1100,10 @@
       "testNoDevice": "No subscribed device",
       "permissionDenied": "Notifications are blocked. Re-enable them in your browser settings.",
       "iosHint": "On iPhone, first add the app to your home screen (Share → Add to Home Screen) to enable notifications."
-    }
+    },
+    "createHouseholdTitle": "Create household",
+    "avatarUploadFailed": "Upload failed.",
+    "avatarDeleteFailed": "Delete failed."
   },
   "tutorials": {
     "title": "Tutorial",

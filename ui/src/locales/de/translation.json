@@ -651,7 +651,8 @@
     "suggestions_label": "Vorgeschlagene Tags",
     "create_tag": "Tag \"{{name}}\" hinzufügen",
     "empty": "Kein Tag entspricht dieser Suche.",
-    "remove_tag": "{{name}} entfernen"
+    "remove_tag": "{{name}} entfernen",
+    "legend": "Tags"
   },
   "documentSelector": {
     "selected_count": "{{count}} ausgewählt",
@@ -1099,7 +1100,10 @@
       "testNoDevice": "Kein abonniertes Gerät",
       "permissionDenied": "Benachrichtigungen sind blockiert. Aktiviere sie in den Browsereinstellungen.",
       "iosHint": "Füge die App auf dem iPhone zuerst zum Startbildschirm hinzu (Teilen → Zum Home-Bildschirm), um Benachrichtigungen zu aktivieren."
-    }
+    },
+    "createHouseholdTitle": "Haushalt erstellen",
+    "avatarUploadFailed": "Upload fehlgeschlagen.",
+    "avatarDeleteFailed": "Löschen fehlgeschlagen."
   },
   "tutorials": {
     "title": "Tutorial",

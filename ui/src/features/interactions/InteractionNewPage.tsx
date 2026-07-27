@@ -223,7 +223,7 @@ export default function InteractionNewPage() {
             >
               {typeOptions.map((v) => (
                 <option key={v} value={v}>
-                  {t(`equipment.interaction_type.${v}`, { defaultValue: v })}
+                  {t(`equipment.interaction_type.${v}`)}
                 </option>
               ))}
             </select>

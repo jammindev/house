@@ -94,12 +94,35 @@ Ne jamais utiliser de `defaultValue` dans les appels `t()` :
 ```ts
 // ❌ Interdit
 t('tasks.title', 'Tasks')
+t('tasks.title', { defaultValue: 'Tasks' })
 
 // ✅ Correct
 t('tasks.title')
 ```
 
 **Pourquoi :** les `defaultValue` masquent les traductions manquantes. Sans eux, une clé absente du fichier JSON affiche la clé brute, ce qui permet de repérer immédiatement ce qui n'est pas traduit.
+
+**La règle est tenue par un test**, `ui/src/locales/keys.test.ts`, lancé en CI. Il
+fait trois choses, et les trois sont nécessaires :
+
+1. **toute clé `t('…')` littérale existe en français** — c'est le seul contrôle
+   qui compare le *code* au catalogue ;
+2. **aucun fichier ne contient `defaultValue:`** — sans quoi le premier contrôle
+   se laisse contourner ;
+3. **les quatre catalogues ont exactement les mêmes clés.**
+
+Le n° 3 existait déjà de fait, et il n'a rien vu quand le lot 4 a écrasé les douze
+clés de `banking.cash.*` : la clé manquait **partout**, donc la parité était
+verte. Comparer les langues entre elles ne suffit jamais.
+
+Les 111 `defaultValue` historiques masquaient trois vrais défauts en production —
+un titre de dialogue réduit à « Créer », deux échecs distincts fondus en « Échec
+de la requête », une `<legend>` affichant `tagSelector.legend`.
+
+**Limite connue :** une clé construite (`t(\`documents.type.${v}\`)`, `t(labelKey)`)
+n'est pas vérifiable statiquement. Pour une énumération, la contrepartie est que le
+catalogue doit couvrir **toutes** ses valeurs — c'est ce qui rend le `defaultValue`
+inutile là aussi, et non un mal nécessaire.
 
 ## Auto-création d'`Interaction` — pattern write-time + service helper
 

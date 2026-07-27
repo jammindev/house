@@ -54,10 +54,10 @@ export function TagSelector({
   maxSuggestions = 8,
 }: TagSelectorProps) {
   const { t } = useTranslation();
-  const resolvedLegend = legend ?? t('tagSelector.legend', { defaultValue: 'Tags' });
-  const resolvedPlaceholder = placeholder ?? t('tagSelector.placeholder', { defaultValue: 'Add a tag' });
+  const resolvedLegend = legend ?? t('tagSelector.legend');
+  const resolvedPlaceholder = placeholder ?? t('tagSelector.placeholder');
   const resolvedHelperText =
-    helperText ?? t('tagSelector.helper', { defaultValue: 'Press Enter or comma to add a tag.' });
+    helperText ?? t('tagSelector.helper');
 
   const [query, setQuery] = React.useState('');
   const [availableTags, setAvailableTags] = React.useState<TagOption[]>([]);
@@ -106,7 +106,7 @@ export function TagSelector({
         }
       } catch {
         if (isMounted) {
-          setError(t('tagSelector.error', { defaultValue: 'Unable to load tags.' }));
+          setError(t('tagSelector.error'));
         }
       } finally {
         if (isMounted) {
@@ -164,10 +164,7 @@ export function TagSelector({
         <legend className="text-sm font-medium">{resolvedLegend}</legend>
         {selectedTagNames.length > 0 ? (
           <span className="text-xs text-muted-foreground">
-            {t('tagSelector.selected_count', {
-              count: selectedTagNames.length,
-              defaultValue: '{{count}} selected',
-            })}
+            {t('tagSelector.selected_count', { count: selectedTagNames.length })}
           </span>
         ) : null}
       </div>
@@ -181,10 +178,7 @@ export function TagSelector({
                 type="button"
                 onClick={() => removeTag(tagName)}
                 className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-medium text-sky-950 transition-colors hover:bg-sky-100"
-                aria-label={t('tagSelector.remove_tag', {
-                  name: tagName,
-                  defaultValue: `Remove ${tagName}`,
-                })}
+                aria-label={t('tagSelector.remove_tag', { name: tagName })}
               >
                 <TagIcon className="h-3.5 w-3.5" />
                 <span>{tagName}</span>
@@ -196,7 +190,7 @@ export function TagSelector({
 
         <div className="space-y-2">
           <label htmlFor="tag-selector-input" className="text-xs font-medium text-muted-foreground">
-            {t('tagSelector.search_label', { defaultValue: 'Find or create a tag' })}
+            {t('tagSelector.search_label')}
           </label>
           <div className="relative">
             <TagIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -212,7 +206,7 @@ export function TagSelector({
           <p className="text-xs text-muted-foreground">{resolvedHelperText}</p>
         </div>
 
-        {loading ? <p className="text-xs text-muted-foreground">{t('tagSelector.loading', { defaultValue: 'Loading tags…' })}</p> : null}
+        {loading ? <p className="text-xs text-muted-foreground">{t('tagSelector.loading')}</p> : null}
         {error ? <p className="text-xs text-destructive">{error}</p> : null}
 
         {!loading && !error ? (
@@ -225,10 +219,7 @@ export function TagSelector({
               >
                 <Plus className="h-4 w-4 shrink-0" />
                 <span>
-                  {t('tagSelector.create_tag', {
-                    name: normalizeTagName(query),
-                    defaultValue: `Add tag "${normalizeTagName(query)}"`,
-                  })}
+                  {t('tagSelector.create_tag', { name: normalizeTagName(query) })}
                 </span>
               </button>
             ) : null}
@@ -236,7 +227,7 @@ export function TagSelector({
             {suggestions.length > 0 ? (
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground">
-                  {t('tagSelector.suggestions_label', { defaultValue: 'Suggested tags' })}
+                  {t('tagSelector.suggestions_label')}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {suggestions.map((tag) => (
@@ -259,7 +250,7 @@ export function TagSelector({
 
             {!canCreateTag && suggestions.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                {t('tagSelector.empty', { defaultValue: 'No tag matches this search.' })}
+                {t('tagSelector.empty')}
               </p>
             ) : null}
           </div>

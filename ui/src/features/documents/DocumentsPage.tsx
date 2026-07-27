@@ -70,7 +70,7 @@ export default function DocumentsPage() {
     { value: '', label: t('documents.filter.allTypes') },
     ...DOCUMENT_TYPES.map((v) => ({
       value: v,
-      label: t(`documents.type.${v}`, { defaultValue: v }),
+      label: t(`documents.type.${v}`),
     })),
   ];
 

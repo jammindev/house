@@ -651,7 +651,8 @@
     "suggestions_label": "Tags suggérés",
     "create_tag": "Ajouter le tag \"{{name}}\"",
     "empty": "Aucun tag ne correspond à cette recherche.",
-    "remove_tag": "Retirer {{name}}"
+    "remove_tag": "Retirer {{name}}",
+    "legend": "Tags"
   },
   "documentSelector": {
     "selected_count": "{{count}} sélectionné(s)",
@@ -1099,7 +1100,10 @@
       "testNoDevice": "Aucun appareil abonné",
       "permissionDenied": "Les notifications sont bloquées. Réactivez-les dans les réglages de votre navigateur.",
       "iosHint": "Sur iPhone, installez d'abord l'app sur l'écran d'accueil (Partager → Sur l'écran d'accueil) pour activer les notifications."
-    }
+    },
+    "createHouseholdTitle": "Créer un foyer",
+    "avatarUploadFailed": "Échec de l'envoi de la photo.",
+    "avatarDeleteFailed": "Échec de la suppression de la photo."
   },
   "tutorials": {
     "title": "Tutoriel",
