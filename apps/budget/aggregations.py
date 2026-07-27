@@ -160,6 +160,8 @@ def _budget_row(
     committed: Decimal | None = None,
     attested: Decimal | None = None,
     refunded: Decimal | None = None,
+    *,
+    is_group: bool = False,
 ) -> dict[str, Any]:
     seen = attested if attested is not None else _zero()
     given_back = refunded if refunded is not None else _zero()
@@ -189,6 +191,11 @@ def _budget_row(
         "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
         "state": state,
+        # Le rattachement au groupe. ``parent_id`` sert à l'imbrication côté
+        # front ; ``is_group`` dit que cette ligne est un **sous-total**, donc
+        # qu'aucun euro ne s'y range directement.
+        "parent_id": str(budget.parent_id) if budget.parent_id else None,
+        "is_group": is_group,
     }
 
 
@@ -230,26 +237,56 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     named = [b for b in budgets if not b.is_global]
     global_budget = next((b for b in budgets if b.is_global), None)
 
+    # Les groupes : un parent porte la somme de ses enfants. Aucun euro n'y est
+    # rangé (le résolveur le refuse), donc son total est **dérivé**, jamais lu
+    # dans les maps — la définition de ``spent`` ne change pour personne.
+    children_of: dict[Any, list[Budget]] = {}
+    for b in named:
+        if b.parent_id:
+            children_of.setdefault(b.parent_id, []).append(b)
+
     total_spent = sum(spent_map.values(), _zero())
     total_attested = sum(attested_map.values(), _zero())
     total_committed = sum(committed_map.values(), _zero())
     total_refunded = sum(refunded_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
+    def _rolled(source: dict, budget: Budget) -> Decimal:
+        own = source.get(budget.id, _zero())
+        return own + sum(
+            (source.get(child.id, _zero()) for child in children_of.get(budget.id, ())),
+            _zero(),
+        )
+
     named_rows = [
         _budget_row(
             b,
-            spent_map.get(b.id, _zero()),
-            committed_map.get(b.id, _zero()),
-            attested_map.get(b.id, _zero()),
-            refunded_map.get(b.id, _zero()),
+            _rolled(spent_map, b),
+            _rolled(committed_map, b),
+            _rolled(attested_map, b),
+            _rolled(refunded_map, b),
+            is_group=bool(children_of.get(b.id)),
         )
         for b in named
     ]
     # Only the capped ones: an uncapped category promises nothing, so it cannot
     # make the envelopes overshoot the global ceiling on paper.
+    #
+    # ⚠️ On somme les **racines**, et le plafond d'un groupe remplace celui de ses
+    # enfants. Additionner « Maison 500 € » *et* ses « Bricolage 200 € /
+    # Énergie 250 € » compterait deux fois le même engagement, et ferait crier
+    # « les enveloppes dépassent le plafond global » à un foyer parfaitement
+    # cohérent. Un groupe sans plafond, lui, vaut la somme de ce qu'il contient.
+    def _pledged(budget: Budget) -> Decimal:
+        if budget.monthly_amount is not None:
+            return budget.monthly_amount
+        return sum(
+            (c.monthly_amount for c in children_of.get(budget.id, ()) if c.monthly_amount is not None),
+            _zero(),
+        )
+
     named_total_amount = sum(
-        (b.monthly_amount for b in named if b.monthly_amount is not None), _zero()
+        (_pledged(b) for b in named if b.parent_id is None), _zero()
     )
 
     global_row = None

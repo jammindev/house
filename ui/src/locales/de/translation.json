@@ -3184,7 +3184,11 @@
       "monthlyAmount": "Monatlicher Betrag",
       "isGlobal": "Globales Budget (begrenzt alle Ausgaben)",
       "monthlyAmountOptional": "Monatliche Obergrenze (optional)",
-      "amountHint": "Leer lassen, um die Kategorie ohne Obergrenze zu verfolgen."
+      "amountHint": "Leer lassen, um die Kategorie ohne Obergrenze zu verfolgen.",
+      "parent": "Gruppe",
+      "parentNone": "Keine Gruppe",
+      "parentHint": "Ordnen Sie dieses Budget einem anderen unter, das die Summe anzeigt. Höchstens zwei Ebenen.",
+      "isGroupHint": "Dieses Budget ist eine Gruppe: Es summiert seine Budgets und nimmt selbst keine Ausgabe auf."
     },
     "errors": {
       "amountInvalid": "Gib einen positiven Betrag ein.",

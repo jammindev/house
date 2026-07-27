@@ -6,6 +6,10 @@ export interface Budget {
   /** Plafond mensuel. `null` = catégorie suivie, non plafonnée. */
   monthly_amount: string | null;
   is_global: boolean;
+  /** Le groupe qui totalise ce budget, s'il y en a un. */
+  parent: { id: string; name: string } | null;
+  /** Vrai quand ce budget porte des enfants : c'est un sous-total, pas une case. */
+  is_group: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -41,6 +45,13 @@ export interface BudgetOverviewRow {
   committed: string;
   ratio: number;
   state: BudgetState;
+  /** Groupe auquel cette ligne appartient — sert à l'imbrication à l'affichage. */
+  parent_id: string | null;
+  /**
+   * Cette ligne est un **sous-total** : ses chiffres sont la somme de ses
+   * enfants, et aucun euro n'y est rangé directement.
+   */
+  is_group: boolean;
 }
 
 export interface BudgetOverview {
@@ -63,6 +74,8 @@ export interface BudgetPayload {
   /** Omis ou `null` = catégorie sans plafond. Requis sur le budget global. */
   monthly_amount?: number | null;
   is_global?: boolean;
+  /** Groupe parent ; `null` sort le budget de son groupe. Deux niveaux au plus. */
+  parent_id?: string | null;
 }
 
 // --- Analyse fine des dépenses par budget -----------------------------------

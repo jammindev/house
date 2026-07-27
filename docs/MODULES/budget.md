@@ -164,6 +164,48 @@ plafonnée ».
   dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
   doit accepter les deux formes pour toujours.
 
+## Des catégories de catégories — un groupe est un **sous-total**
+
+`Budget.parent` (FK sur soi, `SET_NULL`) permet « Maison » au-dessus de
+« Bricolage » et « Énergie ». Une seule phrase porte tout le reste :
+
+> **Un groupe est un sous-total, jamais une case.** Un euro se range toujours sur
+> une feuille.
+
+C'est ce qui a permis d'ajouter la hiérarchie **sans toucher à une seule des neuf
+agrégations de montants**. L'alternative — pouvoir ventiler sur « Maison » aussi —
+aurait donné à `spent` deux sens, le propre et le consolidé, que chaque compteur
+aurait dû distinguer : l'aperçu, l'analyse, le coût projet, le RAG de l'agent, et
+jusqu'aux **bilans mensuels déjà figés**, qui ignorent la notion de parent et
+doivent rester lisibles pour toujours.
+
+- Le résolveur (`interactions.services._resolve_expense_budget`) refuse un budget
+  qui a des enfants — donc **les six formulaires de dépense**, la ventilation, les
+  récurrences et le PATCH générique sont couverts par un seul garde-fou.
+- Le total d'un parent est **dérivé** à la lecture (`compute_budget_overview`), et
+  son `state` se mesure dessus : « Maison 420 € / 500 € » peut être en alerte
+  pendant qu'aucun de ses enfants ne l'est.
+- **Deux niveaux**, délibérément : une profondeur libre imposerait une CTE
+  récursive à chaque total et un sélecteur en arbre dans six formulaires. La
+  contrainte s'ouvrira si le besoin apparaît ; l'inverse coûterait une
+  re-ventilation.
+- **Un budget qui porte déjà des dépenses ne peut pas recevoir d'enfants** (400
+  nommé, avec le nombre de dépenses qui bloquent) : ses dépenses deviendraient le
+  « propre » d'un parent, c'est-à-dire exactement l'ambiguïté refusée plus haut.
+- ⚠️ **`named_total_amount` somme les racines, pas tout le monde.** Additionner
+  « Maison 500 € » *et* ses « Bricolage 200 € / Énergie 250 € » compterait deux
+  fois le même engagement et crierait « les enveloppes dépassent le plafond
+  global » à un foyer parfaitement cohérent. Un groupe plafonné **remplace** ses
+  enfants ; un groupe sans plafond **vaut leur somme**. Régression :
+  `budget/tests/test_groups.py::TestTheGlobalCeilingIsNotCountedTwice`.
+- Supprimer un groupe **libère** ses enfants (`SET_NULL`) : un intitulé qui
+  disparaît ne doit jamais emporter les enveloppes qui portent l'argent.
+- Côté front, `budget/tree.ts` est le **point unique** : `selectableBudgets`
+  (feuilles, libellées « Maison › Bricolage ») et `groupCandidates` (mêmes règles
+  que le serveur). Sept sélecteurs filtraient les budgets à la main — sept
+  endroits à corriger à chaque règle nouvelle, donc sept occasions d'en oublier
+  un.
+
 ## Ce que le relevé atteste, et ce qui attend de l'être
 
 Chaque ligne de l'aperçu porte `spent_attested` et `spent_pending` **en plus** de

@@ -3184,7 +3184,11 @@
       "monthlyAmount": "Importe mensual",
       "isGlobal": "Presupuesto global (limita todos los gastos)",
       "monthlyAmountOptional": "Tope mensual (opcional)",
-      "amountHint": "Déjalo vacío para seguir la categoría sin ponerle tope."
+      "amountHint": "Déjalo vacío para seguir la categoría sin ponerle tope.",
+      "parent": "Grupo",
+      "parentNone": "Sin grupo",
+      "parentHint": "Coloca este presupuesto bajo otro, que mostrará el total. Dos niveles como máximo.",
+      "isGroupHint": "Este presupuesto es un grupo: suma sus presupuestos y no recibe gastos directamente."
     },
     "errors": {
       "amountInvalid": "Introduce un importe positivo.",

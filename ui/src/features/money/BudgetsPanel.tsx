@@ -23,12 +23,14 @@ import BudgetDialog from '@/features/budget/BudgetDialog';
 import AccessCard from './AccessCard';
 
 /** Rebuild an editable Budget from an overview row (avoids a second fetch). */
-function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean): Budget {
+function rowToBudget(row: BudgetOverviewRow, isGlobal: boolean, parentName?: string): Budget {
   return {
     id: row.id,
     name: row.name,
     monthly_amount: row.amount,
     is_global: isGlobal,
+    parent: row.parent_id ? { id: row.parent_id, name: parentName ?? '' } : null,
+    is_group: row.is_group,
     created_at: '',
     updated_at: '',
   };
@@ -79,6 +81,22 @@ export default function BudgetsPanel() {
   }
 
   const namedRows = (overview?.budgets ?? []).filter((r) => !pendingDelete.has(r.id));
+  // Les groupes d'abord, chacun suivi de ce qu'il totalise, puis les budgets
+  // seuls. L'imbrication est **de l'affichage** : le serveur a déjà fait la
+  // somme, le front ne recalcule rien — un total recalculé côté client finirait
+  // par ne plus dire la même chose que le Contrôle.
+  const childrenOf = React.useMemo(() => {
+    const map = new Map<string, BudgetOverviewRow[]>();
+    for (const row of namedRows) {
+      if (!row.parent_id) continue;
+      const siblings = map.get(row.parent_id) ?? [];
+      siblings.push(row);
+      map.set(row.parent_id, siblings);
+    }
+    return map;
+  }, [namedRows]);
+  const rootRows = namedRows.filter((r) => !r.parent_id);
+  const nameById = new Map(namedRows.map((r) => [r.id, r.name]));
   const globalRow = overview?.global && !pendingDelete.has(overview.global.id) ? overview.global : null;
   const hasAnyBudget = Boolean(globalRow) || namedRows.length > 0;
   const allowGlobal = !globalRow;
@@ -149,15 +167,32 @@ export default function BudgetsPanel() {
                 <p className="text-sm text-muted-foreground">{t('budget.named.empty')}</p>
               ) : (
                 <div className="space-y-2">
-                  {namedRows.map((row) => (
-                    <BudgetCard
-                      key={row.id}
-                      row={row}
-                      to={`/app/money/budgets/${row.id}`}
-                      backState={pushBack(location)}
-                      onEdit={() => openEdit(rowToBudget(row, false))}
-                      onDelete={() => handleDelete(row.id)}
-                    />
+                  {rootRows.map((row) => (
+                    <div key={row.id} className="space-y-2">
+                      <BudgetCard
+                        row={row}
+                        to={`/app/money/budgets/${row.id}`}
+                        backState={pushBack(location)}
+                        onEdit={() => openEdit(rowToBudget(row, false))}
+                        onDelete={() => handleDelete(row.id)}
+                      />
+                      {(childrenOf.get(row.id) ?? []).length > 0 ? (
+                        <div className="ml-4 space-y-2 border-l-2 border-border pl-3">
+                          {(childrenOf.get(row.id) ?? []).map((child) => (
+                            <BudgetCard
+                              key={child.id}
+                              row={child}
+                              to={`/app/money/budgets/${child.id}`}
+                              backState={pushBack(location)}
+                              onEdit={() =>
+                                openEdit(rowToBudget(child, false, nameById.get(row.id)))
+                              }
+                              onDelete={() => handleDelete(child.id)}
+                            />
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
                   ))}
                 </div>
               )}

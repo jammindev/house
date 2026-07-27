@@ -3184,7 +3184,11 @@
       "monthlyAmount": "Monthly amount",
       "isGlobal": "Global budget (caps all spending)",
       "monthlyAmountOptional": "Monthly ceiling (optional)",
-      "amountHint": "Leave empty to track the category without capping it."
+      "amountHint": "Leave empty to track the category without capping it.",
+      "parent": "Group",
+      "parentNone": "No group",
+      "parentHint": "Nest this budget under another, which will show the total. Two levels at most.",
+      "isGroupHint": "This budget is a group: it totals its budgets and takes no expense of its own."
     },
     "errors": {
       "amountInvalid": "Enter a positive amount.",

@@ -95,8 +95,10 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
       .sort((a, b) => a.bookedOn.localeCompare(b.bookedOn));
   }, [unallocatedQuery.data, partialQuery.data, postponed]);
 
+  // Pastilles, pas options : on garde des `Budget`, mais un groupe n'est pas
+  // plus une cible ici qu'ailleurs — le serveur refuserait la ventilation.
   const budgets = React.useMemo(
-    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
+    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global && !b.is_group),
     [budgetsQuery.data],
   );
 

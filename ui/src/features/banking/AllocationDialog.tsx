@@ -11,6 +11,7 @@ import { formatAmount } from '@/lib/format';
 import ZonePicker from '@/features/zones/ZonePicker';
 import type { AllocationLine } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
+import { selectableBudgets } from '@/features/budget/tree';
 import { useAllocations, useSetAllocations, useUnlinkAllocation } from './hooks';
 import AllocationSourceSelect from './AllocationSourceSelect';
 import { NO_SOURCE, type AllocationSource } from './allocationSource';
@@ -172,9 +173,7 @@ export default function AllocationDialog({
 
   const budgetOptions = [
     { value: '', label: t('banking.allocation.noBudget') },
-    ...(budgetsQuery.data ?? [])
-      .filter((b) => !b.is_global)
-      .map((b) => ({ value: b.id, label: b.name })),
+    ...selectableBudgets(budgetsQuery.data),
   ];
 
   return (

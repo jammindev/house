@@ -52,6 +52,21 @@ class Budget(HouseholdScopedModel):
             "(budgeted + hors budget). At most one per household."
         ),
     )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="children",
+        help_text=_(
+            "Optional grouping budget: « Maison » over « Bricolage » and "
+            "« Énergie ». A parent is a SUBTOTAL, never a target — an expense "
+            "always lands on a leaf, so 'budget' keeps meaning exactly one "
+            "thing and the nine amount aggregations keep their definition. "
+            "Two levels only, and SET_NULL: deleting a group must free its "
+            "children, never destroy the envelopes that carry the money."
+        ),
+    )
 
     objects = HouseholdScopedManager()
 
