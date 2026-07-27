@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
@@ -14,6 +15,12 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Zone
 from .queries import with_content_counts
 from .serializers import ZoneSerializer, ZoneTreeSerializer, ZoneDocumentSerializer
+from .services import (
+    move_zone,
+    place_at_end,
+    reorder_siblings,
+    shift_positions_after_removal,
+)
 from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
 from documents.mixins import DocumentLinkActionsMixin
@@ -58,14 +65,27 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         if not household:
             raise ValidationError({'household_id': 'A valid household_id is required.'})
 
-        serializer.save(
+        zone = serializer.save(
             household=household,
             created_by=self.request.user
         )
+        # Une nouvelle zone se range en fin de fratrie : le défaut `0` du champ
+        # la placerait devant des zones ordonnées de longue date.
+        place_at_end(zone)
 
     def perform_update(self, serializer):
-        """Set updated_by from request."""
-        serializer.save(updated_by=self.request.user)
+        """Set updated_by from request, en replaçant la zone si elle a changé de parent."""
+        previous_parent_id = serializer.instance.parent_id
+        previous_position = serializer.instance.position
+        zone = serializer.save(updated_by=self.request.user)
+
+        if zone.parent_id != previous_parent_id:
+            # Changement de parent : la zone prend le dernier rang de sa nouvelle
+            # fratrie, et l'ancienne referme le trou qu'elle laisse.
+            place_at_end(zone)
+            shift_positions_after_removal(
+                zone.household_id, previous_parent_id, previous_position
+            )
 
     def update(self, request, *args, **kwargs):
         """Reject stale writes when last_known_updated_at is provided."""
@@ -105,7 +125,74 @@ class ZoneViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
                 {'detail': 'Cannot delete zone with children. Move or delete child zones first.'},
                 status=status.HTTP_409_CONFLICT,
             )
-        return super().destroy(request, *args, **kwargs)
+        household_id, parent_id, position = zone.household_id, zone.parent_id, zone.position
+        response = super().destroy(request, *args, **kwargs)
+        # Referme le trou : sans ça les rangs d'une fratrie se creusent au fil des
+        # suppressions, et un « Descendre » finit par ne plus rien déplacer.
+        shift_positions_after_removal(household_id, parent_id, position)
+        return response
+
+    @action(detail=True, methods=['post'])
+    def move(self, request, pk=None):
+        """Décale la zone d'un rang parmi ses frères (`{"direction": "up"|"down"}`).
+
+        Sert le menu contextuel de la liste. Être déjà en butée n'est pas une
+        erreur — la réponse porte `moved: false` et le client n'a rien à deviner.
+        """
+        zone = self.get_object()
+        try:
+            moved = move_zone(zone, request.data.get('direction'))
+        except ValueError as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        zone.refresh_from_db()
+        return Response({'moved': moved, 'position': zone.position})
+
+    @action(detail=False, methods=['post'])
+    def reorder(self, request):
+        """Applique un ordre explicite à une fratrie (glisser-déposer).
+
+        Corps : `{"parent": "<uuid>|null", "zone_ids": [...]}` — la liste doit
+        couvrir toute la fratrie, le service refuse un sous-ensemble.
+        """
+        household = request.household
+        if not household:
+            return Response(
+                {'detail': 'A valid household_id is required.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        zone_ids = request.data.get('zone_ids')
+        if not isinstance(zone_ids, list) or not zone_ids:
+            return Response(
+                {'detail': 'zone_ids must be a non-empty list.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        parent_id = request.data.get('parent') or None
+        # Le parent doit appartenir au foyer courant, sinon un client réordonnerait
+        # une fratrie qu'il ne peut pas voir. Un uuid malformé fait lever Django
+        # au filtre — 400, pas 500.
+        if parent_id is not None:
+            try:
+                parent_exists = Zone.objects.filter(pk=parent_id, household=household).exists()
+            except (DjangoValidationError, ValueError):
+                return Response(
+                    {'detail': 'Invalid parent id.'}, status=status.HTTP_400_BAD_REQUEST
+                )
+            if not parent_exists:
+                return Response(
+                    {'detail': 'Parent zone not found in this household.'},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+
+        try:
+            reorder_siblings(household, parent_id, zone_ids)
+        except (ValueError, DjangoValidationError) as exc:
+            return Response({'detail': str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        siblings = self.get_queryset().filter(household=household, parent_id=parent_id)
+        return Response(self.get_serializer(siblings, many=True).data)
 
     @action(detail=False, methods=['get'])
     def tree(self, request):

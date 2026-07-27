@@ -35,11 +35,19 @@ class ZoneSerializer(serializers.ModelSerializer):
         model = Zone
         fields = [
             'id', 'household', 'name', 'parent', 'parent_name', 'note', 'surface', 'color',
-            'full_path', 'depth', 'children_count',
+            'position', 'full_path', 'depth', 'children_count',
             'equipment_count', 'open_task_count', 'active_project_count',
             'created_at', 'updated_at', 'created_by', 'updated_by'
         ]
-        read_only_fields = ['id', 'household', 'created_at', 'updated_at', 'created_by', 'updated_by']
+        # `position` est exposé mais **jamais écrit par le serializer** : l'ordre
+        # s'écrit par `zones.services` (actions `move` / `reorder`), seul endroit
+        # qui garantit des rangs 0..n-1 sans trou ni doublon dans la fratrie. Un
+        # PATCH libre sur ce champ mettrait deux frères au même rang, et l'ordre
+        # affiché deviendrait dépendant du plan d'exécution PostgreSQL.
+        read_only_fields = [
+            'id', 'household', 'position',
+            'created_at', 'updated_at', 'created_by', 'updated_by',
+        ]
 
     @staticmethod
     def _counted(obj, attname, fallback):
