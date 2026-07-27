@@ -11,6 +11,12 @@ import type { InflowNatureEnum } from './InflowNatureEnum';
  * ``label_raw``, ``amount``, ``direction`` and ``dedup_hash`` are immutable:
  * this is what the bank says. Only the qualification fields (``is_internal``,
  * ``notes``) are writable — and only through the lot 3 ``qualify`` action.
+ *
+ * **Où en est cette ligne** (``allocation_state``) is computed here rather than
+ * in the client: the answer depends on the account's conformity window, which
+ * the journal has no business re-deriving, and it has to agree — line by line —
+ * with what the Contrôle tab counts. Both read
+ * :func:`banking.queries.allocation_state`.
  */
 export type PatchedBankTransaction = {
     readonly id?: string;
@@ -66,6 +72,16 @@ export type PatchedBankTransaction = {
      * The other leg of an internal movement — typically an ATM withdrawal and the matching credit on the cash account. SET_NULL so deleting one leg never leaves the other pointing at nothing.
      */
     readonly transfer_counterpart?: string | null;
+    readonly allocated_amount?: string;
+    /**
+     * What is still owed an explanation, never negative.
+     *
+     * Over-allocating is already impossible (``assert_allocation_fits``); if a
+     * legacy row ever went past, showing « reste −5 € » would invite someone to
+     * fix it by adding more.
+     */
+    readonly remaining_amount?: string;
+    readonly allocation_state?: string;
     readonly created_at?: string;
 };
 

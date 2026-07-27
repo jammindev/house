@@ -45,6 +45,7 @@ from .models import (
     StatementImport,
     TransactionDirection,
 )
+from . import queries
 from .queries import search
 from .validators import allocated_total, remaining_to_allocate
 from .serializers import (
@@ -344,8 +345,19 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = Pagination
 
     def get_queryset(self):
-        qs = BankTransaction.objects.for_user_households(self.request.user).select_related(
-            "account"
+        # ``with_allocation`` so the serializer can badge « ventilée / partielle /
+        # non ventilée » without one query per line.
+        #
+        # ⚠️ The explicit ``order_by`` is not decoration: since Django 3.1 a
+        # ``GROUP BY`` query **ignores** ``Meta.ordering``, so annotating silently
+        # served the journal in insertion order — oldest first. Same tuple as
+        # ``BankTransaction.Meta.ordering``.
+        qs = (
+            queries.with_allocation(
+                BankTransaction.objects.for_user_households(self.request.user)
+            )
+            .select_related("account")
+            .order_by("-booked_on", "-line_no", "-created_at")
         )
         if self.request.household:
             qs = qs.filter(household=self.request.household)
@@ -558,8 +570,10 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         set_allocations(
             household=household, user=request.user, transaction=instance, lines=lines
         )
-        instance.refresh_from_db()
-        return Response(self._allocation_payload(instance))
+        # Re-read through the annotated queryset rather than ``refresh_from_db``:
+        # the latter reloads columns but leaves the stale ``allocated`` annotation
+        # in place, so the response would badge the line with its pre-write state.
+        return Response(self._allocation_payload(self.get_object()))
 
     def _allocation_payload(self, instance) -> dict:
         from interactions.serializers import InteractionSerializer

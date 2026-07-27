@@ -30,8 +30,7 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import Case, DecimalField, F, Q, Sum, Value, When
-from django.db.models.functions import Coalesce
+from django.db.models import F, Q
 
 from .balances import check_balance_chain
 from .compliance import (
@@ -47,9 +46,7 @@ from .compliance import (
 )
 from .coverage import accounts_with_window, household_covered_period, period_gaps
 from .models import BankAccount, BankTransaction, ImportStatus
-
-AMOUNT_FIELD = DecimalField(max_digits=14, decimal_places=2)
-ZERO = Value(Decimal("0.00"), output_field=AMOUNT_FIELD)
+from .queries import with_allocation
 
 #: Kind keys — imported by tests and by the services layer, never retyped.
 TRANSACTION_UNALLOCATED = "transaction_unallocated"
@@ -94,28 +91,13 @@ def _allocatable_outflows(household):
     for account, window in pairs:
         scope |= Q(account=account, booked_on__gte=window.start, booked_on__lte=window.end)
 
-    return (
+    # ``with_allocation`` is shared with the journal badge on purpose: the count
+    # on the Contrôle tab and the marker on the line must be the same judgement.
+    return with_allocation(
         BankTransaction.objects.filter(household=household)
         .filter(scope)
         .filter(amount__lt=0, is_internal=False, transfer_counterpart__isnull=True)
-        .annotate(
-            allocated=Coalesce(
-                Sum(
-                    "interactions__amount",
-                    filter=Q(interactions__type="expense"),
-                ),
-                ZERO,
-            ),
-            # NOT ``outflow``: that name is already a property on the model, and
-            # an annotation cannot be assigned onto a property without a setter.
-            outflow_value=Case(
-                When(amount__lt=0, then=-1 * F("amount")),
-                default=ZERO,
-                output_field=AMOUNT_FIELD,
-            ),
-        )
-        .select_related("account")
-    )
+    ).select_related("account")
 
 
 def _unallocated_qs(household):

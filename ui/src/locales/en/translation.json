@@ -3246,6 +3246,12 @@
       "inflow": "Money in",
       "net": "Period net",
       "internal": "Internal movement",
+      "allocation": {
+        "unallocated": "Not allocated",
+        "partial": "{{amount}} left",
+        "allocated": "Allocated",
+        "out_of_scope": "Outside the checked period"
+      },
       "internalExcluded_one": "{{count}} internal movement excluded",
       "internalExcluded_other": "{{count}} internal movements excluded",
       "markInternal": "Mark as internal movement",

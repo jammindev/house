@@ -1,7 +1,14 @@
 """Banking serializers — account CRUD + statement import API."""
+from decimal import Decimal
+
+from django.db.models import Sum
 from rest_framework import serializers
 
+from . import queries
+from .coverage import covered_period
 from .models import BankAccount, BankTransaction, ComplianceWaiver, StatementImport
+
+ZERO = Decimal("0.00")
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -160,7 +167,17 @@ class BankTransactionSerializer(serializers.ModelSerializer):
     ``label_raw``, ``amount``, ``direction`` and ``dedup_hash`` are immutable:
     this is what the bank says. Only the qualification fields (``is_internal``,
     ``notes``) are writable — and only through the lot 3 ``qualify`` action.
+
+    **Où en est cette ligne** (``allocation_state``) is computed here rather than
+    in the client: the answer depends on the account's conformity window, which
+    the journal has no business re-deriving, and it has to agree — line by line —
+    with what the Contrôle tab counts. Both read
+    :func:`banking.queries.allocation_state`.
     """
+
+    allocated_amount = serializers.SerializerMethodField()
+    remaining_amount = serializers.SerializerMethodField()
+    allocation_state = serializers.SerializerMethodField()
 
     class Meta:
         model = BankTransaction
@@ -180,6 +197,9 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "notes",
             "source_import",
             "transfer_counterpart",
+            "allocated_amount",
+            "remaining_amount",
+            "allocation_state",
             "created_at",
         ]
         read_only_fields = [
@@ -197,6 +217,51 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "transfer_counterpart",
             "created_at",
         ]
+
+    def get_allocated_amount(self, obj) -> str:
+        return str(self._allocated(obj))
+
+    def get_remaining_amount(self, obj) -> str:
+        """What is still owed an explanation, never negative.
+
+        Over-allocating is already impossible (``assert_allocation_fits``); if a
+        legacy row ever went past, showing « reste −5 € » would invite someone to
+        fix it by adding more.
+        """
+        if obj.amount >= 0:
+            return str(ZERO)
+        return str(max(-obj.amount - self._allocated(obj), ZERO))
+
+    def get_allocation_state(self, obj) -> str:
+        return queries.allocation_state(
+            obj, allocated=self._allocated(obj), window=self._window(obj)
+        )
+
+    def _allocated(self, obj) -> Decimal:
+        """Prefer the queryset annotation; fall back to a query for lone objects.
+
+        The journal annotates via ``queries.with_allocation`` — without it, fifty
+        rows would mean fifty extra queries. But single-object responses (the
+        ``qualify`` action, the cash counterpart) serialize an unannotated
+        instance, and answering « 0 » there would badge a fully sorted line as
+        untreated.
+        """
+        annotated = getattr(obj, "allocated", None)
+        if annotated is not None:
+            return annotated
+        total = obj.interactions.filter(type="expense").aggregate(t=Sum("amount"))["t"]
+        return total or ZERO
+
+    def _window(self, obj):
+        """Conformity window of the line's account, memoized per response.
+
+        ``covered_period`` costs two aggregates; a household has a handful of
+        accounts and a page has fifty lines.
+        """
+        cache = self.context.setdefault("_allocation_windows", {})
+        if obj.account_id not in cache:
+            cache[obj.account_id] = covered_period(obj.account)
+        return cache[obj.account_id]
 
 
 class ComplianceWaiverSerializer(serializers.ModelSerializer):
