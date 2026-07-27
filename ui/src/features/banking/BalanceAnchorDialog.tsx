@@ -206,7 +206,13 @@ export default function BalanceAnchorDialog({
             onCancel={() => onOpenChange(false)}
             onSubmit={() => void apply({ balance: balance.trim().replace(',', '.'), as_of: asOf })}
             disabled={
-              anchor.isPending || blocked || !confirmed || preview === null || !asOf
+              anchor.isPending ||
+              blocked ||
+              preview === null ||
+              !asOf ||
+              // La confirmation n'est exigée que s'il y a une opération à comparer :
+              // sans elle la case serait une porte fermée sans serrure.
+              (Boolean(context.last_operation) && !confirmed)
             }
             label={t('banking.anchor.apply')}
           />
