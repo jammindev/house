@@ -20,6 +20,8 @@ interface ExpenseFieldsProps {
   expenseId: string;
   /** L'opération qui justifie cette dépense, `null` quand rien ne la justifie. */
   bankLine?: BankLineRef | null;
+  /** Sortie du formulaire quand la dépense vient d'être supprimée d'ici. */
+  onDeleted?: () => void;
   /** Read-only unit_price displayed when filled (computed for stock purchases from delta×amount). */
   unitPrice?: string | null;
   unit?: string | null;
@@ -44,6 +46,7 @@ export default function ExpenseFields({
   kind,
   expenseId,
   bankLine,
+  onDeleted,
   unitPrice,
   unit,
 }: ExpenseFieldsProps) {
@@ -86,7 +89,12 @@ export default function ExpenseFields({
           <span>
             {bankLine.account_name} · {bankLine.label}
           </span>
-          <LinkedLineActions expenseId={expenseId} kind={kind} transactionId={bankLine.id} />
+          <LinkedLineActions
+            expenseId={expenseId}
+            kind={kind}
+            transactionId={bankLine.id}
+            onDeleted={onDeleted}
+          />
         </div>
       ) : null}
 

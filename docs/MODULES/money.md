@@ -378,27 +378,41 @@ liste des dépenses, fiche d'une dépense, **et le formulaire d'édition** — c
 qu'un clic depuis la liste atterrit aujourd'hui, donc un geste absent de cette
 page-là est un geste introuvable par le chemin le plus fréquenté.
 
-⚠️ **Il y a deux gestes, pas un.** Une dépense `kind='bank'` n'a pas été
-rapprochée : elle **est** la ventilation de l'opération. La détacher ne libère
-rien — elle fabrique d'un seul coup une dépense que plus rien ne justifie *et* une
-sortie redevenue partiellement ventilée : deux écarts pour le même argent, ce que
-le module existe pour supprimer. On lui offre donc **« Modifier la ventilation »**,
-qui mène à l'opération ; le détachement reste pour ce qui a été rapproché après
-coup.
+⚠️ **Il y a deux gestes, pas un**, et ils ne portent pas sur la même chose :
 
-La première version n'offrait que le détachement et **n'affichait rien** sur les
-dépenses issues d'un relevé — c'est-à-dire sur la quasi-totalité des dépenses d'un
-foyer qui importe ses relevés. Trouvé en recette, dans les minutes suivant le
-déploiement. La leçon se généralise : *masquer* un geste inapplicable laisse un
-badge sans issue, et l'utilisateur part chercher ailleurs ce qu'il croit absent —
-il faut nommer le geste applicable à la place.
+| Dépense | Geste | Effet |
+|---|---|---|
+| rapprochée après coup (`manual`, `project_purchase`, `recurring`…) | **Détacher** | la dépense survit sans justification ; le fait préexistait au relevé |
+| née de la ventilation (`bank`, espèces comprises) | **Supprimer la ventilation** | la dépense disparaît, **la ligne bancaire n'est jamais touchée** et redevient à ranger |
+
+La seconde ligne est le cœur du sujet. Une dépense `kind='bank'` n'a pas été
+rapprochée : elle **est** la ventilation. La détacher fabriquerait d'un seul coup
+une dépense que plus rien ne justifie *et* une sortie redevenue partiellement
+ventilée — deux écarts pour le même argent, ce que le module existe pour
+supprimer. La supprimer, au contraire, rend exactement son état d'origine à la
+ligne.
+
+**La suppression ne porte que sur cette dépense.** Sur une ligne partagée en 90 € +
+60 €, les 60 € restent et la ligne réapparaît dans « À ranger » avec 90 € à
+replacer. Effacer tout le découpage pour corriger une de ses lignes détruirait un
+travail fini. La suppression passe par `useDeleteWithUndo` : retrait optimiste,
+appel API différé de 5 s, donc « Annuler » ne recrée rien — il n'a jamais rien
+supprimé.
+
+Deux itérations, deux leçons, la même origine. La première version renvoyait à
+l'opération pour ces dépenses-là ; la version d'avant ne montrait **rien du tout**,
+c'est-à-dire rien sur la quasi-totalité des dépenses d'un foyer qui importe ses
+relevés. *Masquer* un geste inapplicable laisse un badge sans issue et envoie
+l'utilisateur chercher ailleurs ce qu'il croit absent ; le renvoyer ailleurs pour
+le geste évident lui fait traverser le module pour un clic. **Le geste juste se
+nomme et s'exécute là où le constat s'affiche.**
 
 La règle de propriété est donc désormais déclarée **une fois** côté front
 (`banking/ownership.ts`, miroir de `interactions/kinds.py::OWNED_BY_ALLOCATION_EDITOR`)
 et consommée par l'éditeur de ventilation comme par le bouton — elle était recopiée
 dans `AllocationDialog`, et une règle recopiée est une règle qui divergera.
-Régression : `ui/src/features/banking/LinkedLineActions.test.tsx`, dont le dernier cas
-vérifie qu'**un geste est offert quel que soit le `kind`**.
+Régression : `ui/src/features/banking/LinkedLineActions.test.tsx` — un cas par geste,
+plus un qui vérifie qu'**un geste est offert quel que soit le `kind`**.
 
 ### Le doublon de ventilation, et pourquoi le sélecteur a changé de source
 

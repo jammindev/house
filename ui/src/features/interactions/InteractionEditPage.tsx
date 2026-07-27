@@ -15,6 +15,7 @@ import { fetchHouseholdMembers, type HouseholdMember } from '@/lib/api/tasks';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 import { useInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useNavigateBack } from '@/lib/backNavigation';
 import ExpenseFields from './ExpenseFields';
 import ZonePicker from '@/features/zones/ZonePicker';
 
@@ -52,6 +53,9 @@ export default function InteractionEditPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  // `navigate(-1)` sert au reste de la page (annuler, enregistrer), mais après une
+  // suppression il peut renvoyer sur la fiche d'un objet qui n'existe plus.
+  const navigateBackAfterDelete = useNavigateBack('/app/money?tab=expenses');
 
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
 
@@ -268,6 +272,7 @@ export default function InteractionEditPage() {
             kind={interaction.kind ?? null}
             expenseId={interaction.id}
             bankLine={interaction.bank_line}
+            onDeleted={navigateBackAfterDelete}
             unitPrice={(metadata.unit_price ?? null) as string | null}
             unit={(metadata.unit ?? null) as string | null}
           />

@@ -151,8 +151,8 @@ export default function InteractionDetailPage() {
                       {interaction.bank_line.account_name} · {interaction.bank_line.label}
                     </p>
                     {/* Née de la ventilation : le geste n'est pas « détacher »
-                        mais « réécrire la ventilation », et il vit sur
-                        l'opération. Le composant tranche ; ici on ajoute le
+                        mais « supprimer », puisque la dépense *est* la
+                        ventilation. Le composant tranche ; ici on ajoute le
                         pourquoi, que seule une fiche a la place de dire. */}
                     {isOwnedByAllocationEditor(interaction.kind) ? (
                       <p className="text-xs text-muted-foreground">
@@ -163,6 +163,7 @@ export default function InteractionDetailPage() {
                       expenseId={interaction.id}
                       kind={interaction.kind}
                       transactionId={interaction.bank_line.id}
+                      onDeleted={navigateBack}
                       className="h-7 px-2 text-xs"
                     />
                   </>
