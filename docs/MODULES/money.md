@@ -367,6 +367,28 @@ pour une ligne, il cherche une ligne pour une dépense.
 
 Tests : `banking/tests/test_expense_marker.py::TestWhichLinesCouldCarryThisExpense`.
 
+### …et s'en dédire au même endroit
+
+Le détachement existait côté relevé (bloc « Dépenses déjà rattachées ») et nulle
+part côté dépense : on pouvait donc désigner la mauvaise opération d'un clic sans
+pouvoir revenir en arrière depuis l'écran où l'erreur se lit. **Un geste réversible
+dont l'annulation vit dans un autre module n'est pas réversible en pratique.**
+`DetachFromTransactionButton` est posé partout où le badge s'affiche avec une
+opération : liste des dépenses, fiche d'une dépense.
+
+⚠️ **Sauf sur une dépense `kind='bank'`**, et c'est la seule subtilité. Celle-là
+n'a pas été rapprochée : elle **est** la ventilation de l'opération. La détacher
+ne libère rien — elle fabrique d'un seul geste une dépense que plus rien ne
+justifie *et* une sortie redevenue partiellement ventilée : deux écarts pour le
+même argent, exactement ce que le module existe pour supprimer. Le bouton ne s'y
+affiche pas ; le badge mène à l'opération, où la retirer veut dire quelque chose.
+
+La règle de propriété est donc désormais déclarée **une fois** côté front
+(`banking/ownership.ts`, miroir de `interactions/kinds.py::OWNED_BY_ALLOCATION_EDITOR`)
+et consommée par l'éditeur de ventilation comme par le bouton — elle était recopiée
+dans `AllocationDialog`, et une règle recopiée est une règle qui divergera.
+Régression : `ui/src/features/banking/DetachFromTransactionButton.test.tsx`.
+
 ### Le doublon de ventilation, et pourquoi le sélecteur a changé de source
 
 Cas vécu en recette : une dépense saisie et jamais reliée ; au moment de ventiler

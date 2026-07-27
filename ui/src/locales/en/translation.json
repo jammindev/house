@@ -3552,7 +3552,9 @@
       "action": "Attach to an operation",
       "hint": "Only operations whose remaining amount covers this expense are listed. An expense may cover just part of a line: the rest will wait for its own allocation.",
       "none": "No operation has room for this amount. Import the period's statement, or check the expense amount.",
-      "remaining": "{{amount}} left"
+      "remaining": "{{amount}} left",
+      "detach": "Detach",
+      "ownedHint": "This expense *is* the operation's allocation: to remove it, edit the allocation from the operation."
     }
   },
   "pwa": {

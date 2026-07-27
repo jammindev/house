@@ -3552,7 +3552,9 @@
       "action": "Rattacher à une opération",
       "hint": "Seules les opérations dont le reste à ventiler couvre ce montant sont proposées. Une dépense peut ne couvrir qu'une partie d'une ligne : le reste attendra sa propre affectation.",
       "none": "Aucune opération n'a la place pour ce montant. Importez le relevé de la période, ou vérifiez le montant de la dépense.",
-      "remaining": "reste {{amount}}"
+      "remaining": "reste {{amount}}",
+      "detach": "Détacher",
+      "ownedHint": "Cette dépense est la ventilation de l'opération : pour la retirer, modifiez la ventilation depuis l'opération."
     }
   },
   "pwa": {
