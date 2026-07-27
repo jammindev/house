@@ -18,7 +18,7 @@ from django.db.models import Q, Count
 from core.permissions import IsHouseholdMember
 from documents.models import Document, DocumentLink
 from zones.models import Zone
-from .aggregations import compute_expense_summary
+from .aggregations import UNBUDGETED, compute_expense_summary
 from .models import Interaction, InteractionZone, InteractionContact, InteractionStructure
 from .serializers import (
     InteractionSerializer,
@@ -37,17 +37,39 @@ from .services import (
 )
 
 
+def _end_of_day(value: str) -> str:
+    """``'2026-07-31'`` → ``'2026-07-31 23:59:59.999999'``, sinon la valeur telle quelle.
+
+    Un filtre ``__lte`` sur une colonne datetime lit une date nue à minuit, donc
+    exclut la journée entière qu'on croyait inclure. Un instant explicite est
+    respecté : l'appelant qui écrit une heure sait ce qu'il demande.
+    """
+    try:
+        parsed = datetime.strptime(value, '%Y-%m-%d')
+    except (TypeError, ValueError):
+        return value
+    return datetime.combine(parsed.date(), time.max).isoformat(sep=' ')
+
+
 def _parse_period(from_param: str | None, to_param: str | None):
     """Resolve from/to query params, defaulting to the current calendar month.
 
     Accepts ISO date (YYYY-MM-DD) or full datetime. Always returns aware
     datetimes (UTC for date-only inputs).
+
+    **Une date de fin nue veut dire « fin de cette journée ».** Le filtre est un
+    ``__lte`` : en la lisant à minuit, ``to=2026-07-31`` excluait toutes les
+    dépenses du 31 — le dernier jour de chaque période disparaissait des totaux,
+    en silence. C'est d'autant plus visible depuis qu'on peut ouvrir un budget
+    sur ses dépenses : le détail et le compteur du panneau ne tombaient pas
+    d'accord. Un instant explicite (``...T14:00``) est respecté tel quel.
     """
-    def _parse(value: str) -> datetime:
+    def _parse(value: str, *, end_of_day: bool = False) -> datetime:
         # Try date-only first, then full datetime.
         try:
             d = datetime.strptime(value, '%Y-%m-%d')
-            return datetime.combine(d.date(), time.min, tzinfo=dt_timezone.utc)
+            moment = time.max if end_of_day else time.min
+            return datetime.combine(d.date(), moment, tzinfo=dt_timezone.utc)
         except ValueError:
             pass
         return datetime.fromisoformat(value)
@@ -62,7 +84,7 @@ def _parse_period(from_param: str | None, to_param: str | None):
         return from_dt, next_month - timedelta(microseconds=1)
 
     from_dt = _parse(from_param) if from_param else None
-    to_dt = _parse(to_param) if to_param else None
+    to_dt = _parse(to_param, end_of_day=True) if to_param else None
     return from_dt, to_dt
 
 
@@ -124,13 +146,16 @@ class InteractionViewSet(viewsets.ModelViewSet):
         if structure_id:
             queryset = queryset.filter(interaction_structures__structure_id=structure_id)
 
-        # Filter by date range
+        # Filter by date range. ``end_date`` nue = fin de journée, même règle que
+        # ``_parse_period`` : comparée telle quelle, une date se lit à minuit et
+        # le dernier jour de la période disparaît de la liste alors qu'il compte
+        # dans le total juste à côté.
         start_date = self.request.query_params.get('start_date')
         end_date = self.request.query_params.get('end_date')
         if start_date:
             queryset = queryset.filter(occurred_at__gte=start_date)
         if end_date:
-            queryset = queryset.filter(occurred_at__lte=end_date)
+            queryset = queryset.filter(occurred_at__lte=_end_of_day(end_date))
         
         # Filter by tags
         tags = self.request.query_params.get('tags')
@@ -150,6 +175,24 @@ class InteractionViewSet(viewsets.ModelViewSet):
         supplier = self.request.query_params.get('supplier')
         if supplier is not None:
             queryset = queryset.filter(supplier=supplier)
+
+        # Filter by budget — « de quoi ce compteur est-il fait ? ».
+        #
+        # ``budget=none`` est une valeur à part entière, pas l'absence de filtre :
+        # « hors budget » est un seau qu'on veut pouvoir ouvrir comme les autres.
+        # Sans elle, la seule façon de lister ses dépenses serait de tout charger
+        # et de filtrer côté client.
+        budget = self.request.query_params.get('budget')
+        if budget:
+            if budget == UNBUDGETED:
+                queryset = queryset.filter(budget__isnull=True)
+            else:
+                try:
+                    queryset = queryset.filter(budget_id=uuid.UUID(budget))
+                except ValueError:
+                    # Un id malformé ne doit pas renvoyer *tout* le journal : la
+                    # liste vide est le seul résultat honnête.
+                    return queryset.none()
 
         return queryset
     
@@ -344,12 +387,22 @@ class InteractionViewSet(viewsets.ModelViewSet):
         supplier = request.query_params.get('supplier')
         kind = request.query_params.get('kind')
 
+        budget = request.query_params.get('budget') or None
+        if budget and budget != UNBUDGETED:
+            try:
+                uuid.UUID(budget)
+            except ValueError:
+                # Un id malformé atteint le driver comme un crash, pas comme un
+                # filtre : un mauvais paramètre est un 400, jamais un 500.
+                raise ValidationError({'budget': 'Expected a budget id or "none".'})
+
         return Response(compute_expense_summary(
             household_id=household.id,
             from_dt=from_dt,
             to_dt=to_dt,
             supplier=supplier if supplier else None,
             kind=kind if kind else None,
+            budget=budget,
         ))
 
 

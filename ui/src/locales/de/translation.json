@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Den Monat verfolgen",
-            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu."
+            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso."
           },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
@@ -3154,6 +3154,15 @@
     "uncapped": {
       "hint": "Verfolgte Kategorie, ohne Obergrenze"
     }
+  },
+  "budgetDetail": {
+    "description": "Die Ausgaben, aus denen dieser Zähler besteht.",
+    "spent": "Ausgegeben im Zeitraum",
+    "count_one": "{{count}} Ausgabe",
+    "count_other": "{{count}} Ausgaben",
+    "empty": "Keine Ausgabe in diesem Zeitraum",
+    "emptyDescription": "Ändere den Zeitraum oder ordne Ausgaben diesem Budget zu.",
+    "truncated": "{{shown}} von {{total}} Ausgaben angezeigt."
   },
   "analysis": {
     "title": "Ausgabenanalyse",

@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Suivre le mois",
-            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois."
+            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil."
           },
           "analysis": {
             "title": "Comprendre où ça part",
@@ -3154,6 +3154,15 @@
     "uncapped": {
       "hint": "Catégorie suivie, sans plafond"
     }
+  },
+  "budgetDetail": {
+    "description": "Les dépenses qui composent ce compteur.",
+    "spent": "Dépensé sur la période",
+    "count_one": "{{count}} dépense",
+    "count_other": "{{count}} dépenses",
+    "empty": "Aucune dépense sur cette période",
+    "emptyDescription": "Change de période, ou range des dépenses dans ce budget.",
+    "truncated": "{{shown}} dépenses affichées sur {{total}}."
   },
   "analysis": {
     "title": "Analyse des dépenses",

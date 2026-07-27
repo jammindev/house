@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Track the month",
-            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month."
+            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way."
           },
           "analysis": {
             "title": "See where it actually goes",
@@ -3154,6 +3154,15 @@
     "uncapped": {
       "hint": "Tracked category, no ceiling"
     }
+  },
+  "budgetDetail": {
+    "description": "The expenses this counter is made of.",
+    "spent": "Spent over the period",
+    "count_one": "{{count}} expense",
+    "count_other": "{{count}} expenses",
+    "empty": "No expense in this period",
+    "emptyDescription": "Change the period, or sort some expenses into this budget.",
+    "truncated": "Showing {{shown}} of {{total}} expenses."
   },
   "analysis": {
     "title": "Spending analysis",

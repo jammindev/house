@@ -116,6 +116,8 @@ export default function BudgetsPanel() {
                 <h2 className="text-sm font-semibold text-foreground">{t('budget.global.heading')}</h2>
                 <BudgetCard
                   row={globalRow}
+                  to={`/app/money/budgets/${globalRow.id}`}
+                  backState={pushBack(location)}
                   onEdit={() => openEdit(rowToBudget(globalRow, true))}
                   onDelete={() => handleDelete(globalRow.id)}
                 />
@@ -151,6 +153,8 @@ export default function BudgetsPanel() {
                     <BudgetCard
                       key={row.id}
                       row={row}
+                      to={`/app/money/budgets/${row.id}`}
+                      backState={pushBack(location)}
                       onEdit={() => openEdit(rowToBudget(row, false))}
                       onDelete={() => handleDelete(row.id)}
                     />
@@ -159,16 +163,26 @@ export default function BudgetsPanel() {
               )}
             </div>
 
-            {/* Hors budget — always visible, no ceiling. */}
-            <Card className="flex items-center justify-between gap-3 p-3">
-              <div className="min-w-0">
-                <p className="font-medium text-foreground">{t('budget.unbudgeted.label')}</p>
-                <p className="text-xs text-muted-foreground">{t('budget.unbudgeted.hint')}</p>
-              </div>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-                {formatAmount(overview.unbudgeted)}
-              </span>
-            </Card>
+            {/* Hors budget — toujours visible, sans plafond, et **ouvrable**
+                comme une enveloppe : c'est le seau où l'on cherche le plus
+                souvent « mais qu'est-ce qu'il y a là-dedans ? ». */}
+            <Link
+              to="/app/money/budgets/none"
+              state={pushBack(location)}
+              className="group block"
+            >
+              <Card className="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-accent/60">
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground group-hover:underline">
+                    {t('budget.unbudgeted.label')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{t('budget.unbudgeted.hint')}</p>
+                </div>
+                <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+                  {formatAmount(overview.unbudgeted)}
+                </span>
+              </Card>
+            </Link>
           </div>
         )
       ) : null}

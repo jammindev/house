@@ -262,3 +262,158 @@ class TestExpenseListFilters:
         assert response.status_code == status.HTTP_200_OK
         assert response.data["count"] == 1
         assert response.data["results"][0]["subject"] == "With supplier"
+
+
+@pytest.mark.django_db
+class TestFilteringByBudget:
+    """« De quoi ce compteur est-il fait ? » — ouvrir un budget sur ses dépenses.
+
+    Le panneau Budgets affiche « 340 € dépensés » ; sans ce filtre, la seule
+    façon de voir *lesquelles* était de charger le journal entier et de le
+    refiltrer dans le navigateur.
+    """
+
+    def _budget(self, household, name, amount=Decimal("400")):
+        from budget.models import Budget
+
+        return Budget.objects.create(household=household, name=name, monthly_amount=amount)
+
+    def test_list_filtered_by_budget(self, owner_client, household, owner, zone):
+        groceries = self._budget(household, "Courses")
+        inside = _create_expense(household, owner, zone, amount=Decimal("30.00"),
+                                 occurred_at=timezone.now(), subject="Dedans")
+        inside.budget = groceries
+        inside.save(update_fields=["budget"])
+        _create_expense(household, owner, zone, amount=Decimal("20.00"),
+                        occurred_at=timezone.now(), subject="Ailleurs")
+
+        response = owner_client.get(
+            reverse("interaction-list") + f"?type=expense&budget={groceries.id}"
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert [r["subject"] for r in response.data["results"]] == ["Dedans"]
+
+    def test_budget_none_opens_the_unbudgeted_bucket(self, owner_client, household, owner, zone):
+        """``none`` est une valeur, pas l'absence de filtre."""
+        groceries = self._budget(household, "Courses")
+        attached = _create_expense(household, owner, zone, amount=Decimal("30.00"),
+                                   occurred_at=timezone.now(), subject="Rangée")
+        attached.budget = groceries
+        attached.save(update_fields=["budget"])
+        _create_expense(household, owner, zone, amount=Decimal("20.00"),
+                        occurred_at=timezone.now(), subject="Hors budget")
+
+        response = owner_client.get(reverse("interaction-list") + "?type=expense&budget=none")
+
+        assert [r["subject"] for r in response.data["results"]] == ["Hors budget"]
+
+    def test_a_malformed_budget_id_lists_nothing_rather_than_everything(
+        self, owner_client, household, owner, zone
+    ):
+        _create_expense(household, owner, zone, amount=Decimal("20.00"),
+                        occurred_at=timezone.now(), subject="Une dépense")
+
+        response = owner_client.get(reverse("interaction-list") + "?type=expense&budget=oops")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["count"] == 0
+
+    def test_summary_narrows_to_the_budget(self, owner_client, household, owner, zone):
+        groceries = self._budget(household, "Courses")
+        inside = _create_expense(household, owner, zone, amount=Decimal("30.00"),
+                                 occurred_at=timezone.now(), supplier="Leclerc")
+        inside.budget = groceries
+        inside.save(update_fields=["budget"])
+        _create_expense(household, owner, zone, amount=Decimal("70.00"),
+                        occurred_at=timezone.now(), supplier="Fnac")
+
+        response = owner_client.get(
+            reverse("interaction-expenses-summary") + f"?budget={groceries.id}"
+        )
+
+        assert response.data["total"] == "30.00"
+        assert response.data["count"] == 1
+        assert [r["supplier"] for r in response.data["by_supplier"]] == ["Leclerc"]
+
+    def test_summary_of_the_unbudgeted_bucket(self, owner_client, household, owner, zone):
+        groceries = self._budget(household, "Courses")
+        inside = _create_expense(household, owner, zone, amount=Decimal("30.00"),
+                                 occurred_at=timezone.now())
+        inside.budget = groceries
+        inside.save(update_fields=["budget"])
+        _create_expense(household, owner, zone, amount=Decimal("70.00"),
+                        occurred_at=timezone.now())
+
+        response = owner_client.get(reverse("interaction-expenses-summary") + "?budget=none")
+
+        assert response.data["total"] == "70.00"
+
+    def test_a_malformed_budget_id_on_the_summary_is_a_400_not_a_500(
+        self, owner_client, household
+    ):
+        response = owner_client.get(reverse("interaction-expenses-summary") + "?budget=oops")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_another_households_budget_yields_nothing(self, owner_client, household, owner, zone):
+        """Le filtre s'applique après le scope foyer — il ne peut pas l'élargir."""
+        stranger_budget = self._budget(_create_household("Chez eux"), "Leur budget")
+        _create_expense(household, owner, zone, amount=Decimal("20.00"),
+                        occurred_at=timezone.now(), subject="La mienne")
+
+        response = owner_client.get(
+            reverse("interaction-list") + f"?type=expense&budget={stranger_budget.id}"
+        )
+
+        assert response.data["count"] == 0
+
+
+@pytest.mark.django_db
+class TestTheLastDayOfThePeriodCounts:
+    """Régression : une date de fin nue veut dire « fin de cette journée ».
+
+    Le filtre est un ``__lte`` ; lue à minuit, ``to=2026-07-31`` excluait toutes
+    les dépenses du 31. Le dernier jour de chaque période disparaissait des
+    totaux **et** de la liste, en silence — et le détail d'un budget ne tombait
+    donc pas d'accord avec le compteur du panneau juste à côté.
+    """
+
+    def _late_expense(self, household, user, zone):
+        from datetime import datetime, timezone as dt_tz
+
+        return _create_expense(
+            household, user, zone,
+            amount=Decimal("42.00"),
+            occurred_at=datetime(2026, 7, 31, 18, 30, tzinfo=dt_tz.utc),
+            subject="Le 31 au soir",
+        )
+
+    def test_the_summary_includes_it(self, owner_client, household, owner, zone):
+        self._late_expense(household, owner, zone)
+
+        response = owner_client.get(
+            reverse("interaction-expenses-summary") + "?from=2026-07-01&to=2026-07-31"
+        )
+
+        assert response.data["total"] == "42.00"
+
+    def test_the_list_includes_it(self, owner_client, household, owner, zone):
+        self._late_expense(household, owner, zone)
+
+        response = owner_client.get(
+            reverse("interaction-list")
+            + "?type=expense&start_date=2026-07-01&end_date=2026-07-31"
+        )
+
+        assert [r["subject"] for r in response.data["results"]] == ["Le 31 au soir"]
+
+    def test_an_explicit_instant_is_still_respected(self, owner_client, household, owner, zone):
+        """Qui écrit une heure sait ce qu'il demande — on ne l'étend pas."""
+        self._late_expense(household, owner, zone)
+
+        response = owner_client.get(
+            reverse("interaction-expenses-summary") + "?from=2026-07-01&to=2026-07-31T12:00:00Z"
+        )
+
+        assert response.data["total"] == "0.00"
