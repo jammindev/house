@@ -133,6 +133,26 @@ export class BudgetService {
         });
     }
     /**
+     * GET /api/budget/budgets/analysis/?months=12&budget=<id>
+     *
+     * La lecture longue : séries mensuelles par budget, répartition,
+     * fournisseurs, plus grosses dépenses. Le panneau Budgets ne répond qu'à
+     * « ce mois-ci tient-il ? » ; une dérive lente, ou une catégorie sans
+     * plafond, n'y produisent aucun signal.
+     *
+     * ``budget`` restreint tout le calcul à une enveloppe. Un id inconnu du
+     * foyer donne une fenêtre vide, jamais les données d'un autre foyer : le
+     * filtre s'applique **après** le scope, il ne peut pas l'élargir.
+     * @returns Budget
+     * @throws ApiError
+     */
+    public static budgetBudgetsAnalysisRetrieve(): CancelablePromise<Budget> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/budget/budgets/analysis/',
+        });
+    }
+    /**
      * GET /api/budget/budgets/overview/
      *
      * The month's budgets with spent/ceiling, the "hors budget" total and the

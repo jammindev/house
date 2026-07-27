@@ -1,6 +1,7 @@
 """Budget REST API views."""
 from zoneinfo import ZoneInfo
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils import timezone
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from core.permissions import IsHouseholdMember
 
 from .aggregations import compute_budget_overview, compute_cashflow_projection
+from .analysis import DEFAULT_MONTHS, compute_budget_analysis
 from .models import Budget, BudgetReport, RecurringExpense
 from .report.service import get_or_generate_report, last_closed_month
 from .serializers import (
@@ -109,6 +111,56 @@ class BudgetViewSet(viewsets.ModelViewSet):
                 }
             )
         return Response(compute_budget_overview(household=household))
+
+    @action(detail=False, methods=["get"])
+    def analysis(self, request):
+        """GET /api/budget/budgets/analysis/?months=12&budget=<id>
+
+        La lecture longue : séries mensuelles par budget, répartition,
+        fournisseurs, plus grosses dépenses. Le panneau Budgets ne répond qu'à
+        « ce mois-ci tient-il ? » ; une dérive lente, ou une catégorie sans
+        plafond, n'y produisent aucun signal.
+
+        ``budget`` restreint tout le calcul à une enveloppe. Un id inconnu du
+        foyer donne une fenêtre vide, jamais les données d'un autre foyer : le
+        filtre s'applique **après** le scope, il ne peut pas l'élargir.
+        """
+        household = request.household
+        if household is None:
+            return Response(
+                {
+                    "months": [],
+                    "series": [],
+                    "breakdown": [],
+                    "suppliers": [],
+                    "biggest": [],
+                    "total": "0.00",
+                    "monthly_average": "0.00",
+                }
+            )
+
+        raw_months = request.query_params.get("months")
+        try:
+            months = int(raw_months) if raw_months else DEFAULT_MONTHS
+        except (TypeError, ValueError):
+            raise ValidationError({"months": "Expected an integer number of months."})
+
+        budget_id = request.query_params.get("budget") or None
+        if budget_id:
+            try:
+                known = Budget.objects.filter(household_id=household.id, pk=budget_id).exists()
+            except (ValueError, DjangoValidationError):
+                # A malformed UUID reaches the DB driver as a crash, not a lookup:
+                # a bad query parameter is a 400, never a 500.
+                known = False
+            if not known:
+                raise ValidationError({"budget": "Unknown budget for this household."})
+
+        return Response(
+            compute_budget_analysis(
+                household=household, months=months, budget_id=budget_id
+            )
+        )
 
 
 class RecurringExpenseViewSet(viewsets.ModelViewSet):

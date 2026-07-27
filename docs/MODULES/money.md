@@ -33,6 +33,8 @@ ui/src/features/money/
   AccountsPanel.tsx    # ex-banking/BankingPage
   ExpensesPanel.tsx    # ex-expenses/ExpensesPage
   BudgetsPanel.tsx     # ex-budget/BudgetPage
+  AnalysisPage.tsx     # sous-page : analyse fine des dépenses par budget
+  BudgetShareChart.tsx # anneau de répartition + légende chiffrée
 ```
 
 Les trois panneaux sont les anciennes pages, **`PageHeader` en moins** : la coque
@@ -119,7 +121,12 @@ valeur initiale — l'initialiseur d'état du parent s'exécute avant le montage
 l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
-`/app/budget/recurring`, `/app/budget/reports`.
+`/app/money/analysis`, `/app/budget/recurring`, `/app/budget/reports`.
+
+`/app/money/analysis` est la **lecture longue** des dépenses (tendance mensuelle
+par budget, répartition, fournisseurs, plus grosses dépenses) — le panneau
+Budgets ne regarde que le mois en cours. Détail du calcul et de ce qu'il refuse
+d'inventer : `docs/MODULES/budget.md`, section « Analyse fine ».
 
 ## i18n
 

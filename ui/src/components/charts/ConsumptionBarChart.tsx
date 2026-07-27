@@ -73,6 +73,14 @@ interface ConsumptionBarChartProps {
   unit: string;
   /** Optional line on a right-hand axis (e.g. temperature). */
   overlay?: ConsumptionChartOverlay;
+  /**
+   * Rendu d'une valeur dans l'axe et l'infobulle. Par défaut `123 kWh`.
+   *
+   * Existe pour l'argent : tout montant du projet passe par `formatAmount`
+   * (CLAUDE.md), et un `${value} €` recollé ici afficherait « 1234.5 € » là où
+   * le reste de l'app écrit « 1 234,50 € ».
+   */
+  formatValue?: (value: number) => string;
 }
 
 export default function ConsumptionBarChart({
@@ -81,6 +89,7 @@ export default function ConsumptionBarChart({
   granularity,
   unit,
   overlay,
+  formatValue,
 }: ConsumptionBarChartProps) {
   const { i18n } = useTranslation();
   const locale = i18n.language;
@@ -121,8 +130,9 @@ export default function ConsumptionBarChart({
             tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickLine={false}
             axisLine={false}
-            width={44}
-            unit={` ${unit}`}
+            width={formatValue ? 56 : 44}
+            unit={formatValue ? undefined : ` ${unit}`}
+            tickFormatter={formatValue ? (v: number) => formatValue(v) : undefined}
           />
           {overlay && (
             <YAxis
@@ -145,7 +155,11 @@ export default function ConsumptionBarChart({
             }}
             labelFormatter={(ts) => formatLabel(String(ts), granularity, locale)}
             formatter={(value, name) => {
-              const u = overlay && name === overlay.key ? overlay.unit : unit;
+              const isOverlay = Boolean(overlay && name === overlay.key);
+              if (formatValue && !isOverlay) {
+                return [formatValue(Number(value)), seriesLabel(String(name))];
+              }
+              const u = isOverlay && overlay ? overlay.unit : unit;
               return [`${String(value)} ${u}`, seriesLabel(String(name))];
             }}
           />

@@ -6,6 +6,7 @@ import {
   createRecurringExpense,
   deleteBudget,
   deleteRecurringExpense,
+  fetchBudgetAnalysis,
   fetchBudgetOverview,
   fetchBudgetReports,
   fetchBudgets,
@@ -29,6 +30,8 @@ export const budgetKeys = {
   projection: () => [...budgetKeys.all, 'projection'] as const,
   reports: () => [...budgetKeys.all, 'reports'] as const,
   latestReport: () => [...budgetKeys.all, 'reports', 'latest'] as const,
+  analysis: (months: number, budget: string | null) =>
+    [...budgetKeys.all, 'analysis', months, budget] as const,
 };
 
 export function useBudgets() {
@@ -152,4 +155,21 @@ export function useBudgetReports() {
 
 export function useLatestBudgetReport() {
   return useQuery({ queryKey: budgetKeys.latestReport(), queryFn: fetchLatestBudgetReport });
+}
+
+// --- Analyse fine -----------------------------------------------------------
+
+/**
+ * La lecture longue des dépenses par budget.
+ *
+ * `staleTime` d'une minute : l'analyse porte sur des mois, elle ne bouge pas
+ * pendant qu'on change de filtre — et refaire quatre agrégats à chaque aller-
+ * retour entre deux budgets serait payé pour rien.
+ */
+export function useBudgetAnalysis(months: number, budget: string | null) {
+  return useQuery({
+    queryKey: budgetKeys.analysis(months, budget),
+    queryFn: () => fetchBudgetAnalysis({ months, budget }),
+    staleTime: 60_000,
+  });
 }

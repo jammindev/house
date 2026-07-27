@@ -46,6 +46,67 @@ export interface BudgetPayload {
   is_global?: boolean;
 }
 
+// --- Analyse fine des dépenses par budget -----------------------------------
+
+/**
+ * Une série mensuelle. `name: null` = « hors budget » — le libellé vit dans
+ * l'i18n du front, pas dans la réponse, pour qu'ajouter une langue n'impose pas
+ * un passage par les `.po` du backend.
+ */
+export interface AnalysisSeries {
+  budget_id: string | null;
+  name: string | null;
+  /** Plafond du budget, `null` quand la catégorie n'en a pas. */
+  monthly_amount: string | null;
+  /** Un montant par mois de `months`, même index, zéros compris. */
+  values: string[];
+  total: string;
+}
+
+export interface AnalysisBreakdownRow {
+  budget_id: string | null;
+  name: string | null;
+  total: string;
+  /** Part du total de la fenêtre, entre 0 et 1. `0` quand rien n'a été dépensé. */
+  share: number;
+}
+
+export interface AnalysisSupplier {
+  supplier: string;
+  total: string;
+  count: number;
+}
+
+export interface AnalysisBiggest {
+  id: string;
+  subject: string;
+  amount: string;
+  occurred_at: string | null;
+  budget_id: string | null;
+  budget_name: string | null;
+}
+
+export interface BudgetAnalysis {
+  /** `YYYY-MM`, du plus ancien au plus récent. */
+  months: string[];
+  series: AnalysisSeries[];
+  breakdown: AnalysisBreakdownRow[];
+  suppliers: AnalysisSupplier[];
+  biggest: AnalysisBiggest[];
+  total: string;
+  monthly_average: string;
+}
+
+export async function fetchBudgetAnalysis(params: {
+  months: number;
+  budget?: string | null;
+}): Promise<BudgetAnalysis> {
+  const { data } = await api.get<BudgetAnalysis>('/budget/budgets/analysis/', {
+    params: { months: params.months, ...(params.budget ? { budget: params.budget } : {}) },
+  });
+  return data;
+}
+
 export async function fetchBudgets(): Promise<Budget[]> {
   const { data } = await api.get<Budget[] | { results: Budget[] }>('/budget/budgets/');
   return Array.isArray(data) ? data : data.results;

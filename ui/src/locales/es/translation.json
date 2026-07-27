@@ -1587,6 +1587,10 @@
             "title": "Seguir el mes",
             "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes."
           },
+          "analysis": {
+            "title": "Ver adónde va de verdad",
+            "body": "Abre «Análisis de gastos» desde la página de presupuestos: cada categoría mes a mes, el reparto en 6, 12 o 24 meses, los proveedores que más pesan y tus mayores gastos. Ahí se ve una categoría que se desvía — el panel Presupuestos solo mira el mes en curso."
+          },
           "recurring": {
             "title": "Anticipar facturas recurrentes",
             "body": "Abre «Gastos recurrentes» desde la página de presupuesto para registrar suscripciones, seguros y facturas. Mira lo que vence en los próximos 30/90 días y confirma cada vencimiento en un clic cuando lo pagues (el importe es editable) — entra en tu diario y avanza a la fecha siguiente."
@@ -3149,6 +3153,41 @@
     },
     "uncapped": {
       "hint": "Categoría seguida, sin tope"
+    }
+  },
+  "analysis": {
+    "title": "Análisis de gastos",
+    "description": "La lectura larga: qué se desvía, adónde va el dinero y a quién.",
+    "access": {
+      "hint": "Tendencia a 12 meses, reparto, proveedores."
+    },
+    "lastMonths_one": "{{count}} mes",
+    "lastMonths_other": "{{count}} meses",
+    "allBudgets": "Todos los presupuestos",
+    "filterBudget": "Filtrar por presupuesto",
+    "periodTotal": "Total del periodo",
+    "monthlyAverage": "Media mensual",
+    "topSupplier": "Primer proveedor",
+    "others": "{{count}} más",
+    "empty": "Nada que analizar todavía",
+    "emptyDescription": "Clasifica algunos gastos en presupuestos y aquí aparecerá la tendencia.",
+    "footnote": "De {{from}} a {{to}}. Solo cuenta los gastos del diario, nunca los totales bancarios.",
+    "trend": {
+      "title": "Evolución mensual",
+      "hint": "Un mes vacío cuenta como cero: es información, no un hueco."
+    },
+    "share": {
+      "title": "Reparto",
+      "hint": "Parte de cada presupuesto en el periodo."
+    },
+    "suppliers": {
+      "title": "Adónde va",
+      "hint": "Los proveedores que más pesan, ordenados por importe.",
+      "count_one": "{{count}} vez",
+      "count_other": "{{count}} veces"
+    },
+    "biggest": {
+      "title": "Mayores gastos"
     }
   },
   "banking": {

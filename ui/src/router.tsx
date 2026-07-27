@@ -49,6 +49,7 @@ const BriefingsPage = lazyWithReload(() => import('./features/briefings/Briefing
 const MoneyPage = lazyWithReload(() => import('./features/money/MoneyPage'));
 const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPage'));
 const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage'));
+const MoneyAnalysisPage = lazyWithReload(() => import('./features/money/AnalysisPage'));
 const BankingTransactionsPage = lazyWithReload(
   () => import('./features/banking/TransactionsPage'),
 );
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
       { path: 'money', element: <MoneyPage /> },
       { path: 'money/transactions', element: <BankingTransactionsPage /> },
+      { path: 'money/analysis', element: <MoneyAnalysisPage /> },
       { path: 'budget/recurring', element: <RecurringPage /> },
       { path: 'budget/reports', element: <ReportsPage /> },
       // Anciennes URLs (parcours 26, lot 2) : les favoris, les liens de l'agent et

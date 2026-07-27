@@ -1587,6 +1587,10 @@
             "title": "Suivre le mois",
             "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois."
           },
+          "analysis": {
+            "title": "Comprendre où ça part",
+            "body": "Ouvre « Analyse des dépenses » depuis la page budget : l'évolution mois par mois de chaque catégorie, la répartition sur 6, 12 ou 24 mois, les fournisseurs qui pèsent le plus et tes plus grosses dépenses. C'est là qu'une catégorie qui dérive se voit — le panneau Budgets, lui, ne regarde que le mois en cours."
+          },
           "recurring": {
             "title": "Anticiper les factures récurrentes",
             "body": "Ouvre « Dépenses récurrentes » depuis la page budget pour déclarer abonnements, assurances et factures. Vois ce qui tombe sur 30/90 jours, et confirme chaque échéance en un clic quand elle est payée (le montant est éditable) — elle rejoint ton journal et avance à la date suivante."
@@ -3149,6 +3153,41 @@
     },
     "uncapped": {
       "hint": "Catégorie suivie, sans plafond"
+    }
+  },
+  "analysis": {
+    "title": "Analyse des dépenses",
+    "description": "La lecture longue : ce qui dérive, où part l'argent, et chez qui.",
+    "access": {
+      "hint": "Tendance sur 12 mois, répartition, fournisseurs."
+    },
+    "lastMonths_one": "{{count}} mois",
+    "lastMonths_other": "{{count}} mois",
+    "allBudgets": "Tous les budgets",
+    "filterBudget": "Filtrer par budget",
+    "periodTotal": "Total période",
+    "monthlyAverage": "Moyenne / mois",
+    "topSupplier": "Premier fournisseur",
+    "others": "{{count}} autres",
+    "empty": "Rien à analyser pour l'instant",
+    "emptyDescription": "Range quelques dépenses dans des budgets, et la tendance apparaîtra ici.",
+    "footnote": "De {{from}} à {{to}}. Ne compte que les dépenses du journal, jamais les totaux bancaires.",
+    "trend": {
+      "title": "Évolution mensuelle",
+      "hint": "Un mois vide compte comme zéro : c'est une information, pas un trou."
+    },
+    "share": {
+      "title": "Répartition",
+      "hint": "Part de chaque budget sur la période."
+    },
+    "suppliers": {
+      "title": "Chez qui",
+      "hint": "Les fournisseurs qui pèsent le plus, classés par montant.",
+      "count_one": "{{count}} fois",
+      "count_other": "{{count}} fois"
+    },
+    "biggest": {
+      "title": "Plus grosses dépenses"
     }
   },
   "banking": {
