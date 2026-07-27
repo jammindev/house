@@ -1624,7 +1624,7 @@
           },
           "track": {
             "title": "Suivre le mois",
-            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil."
+            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil. La barre a deux nuances : la partie franche est ce qu'une ligne de relevé atteste, la partie pâle ce qui attend encore d'être rapproché. Le compteur, lui, compte tout — une dépense d'hier est réelle même si le relevé n'est pas encore importé."
           },
           "analysis": {
             "title": "Comprendre où ça part",
@@ -3195,7 +3195,8 @@
     },
     "uncapped": {
       "hint": "Catégorie suivie, sans plafond"
-    }
+    },
+    "pending": "Dont {{amount}} en attente de rapprochement"
   },
   "budgetDetail": {
     "description": "Les dépenses qui composent ce compteur.",
@@ -3439,6 +3440,13 @@
         "equipment": "Équipement",
         "stock": "Article de stock",
         "pick": "Choisir…"
+      },
+      "linked": {
+        "title": "Dépenses déjà rattachées",
+        "hint": "Rapprochées ailleurs : elles comptent sur cette opération mais ne sont pas modifiées ici.",
+        "detach": "Détacher de cette opération",
+        "detached": "Dépense détachée de l'opération",
+        "total": "Déjà rattaché"
       }
     },
     "reconcile": {

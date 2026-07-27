@@ -38,6 +38,14 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
   const pct = Math.min(100, Math.round(row.ratio * 100));
   const overBy = Number(row.spent) - Number(row.amount ?? 0);
 
+  // Ce que le relevé atteste, et ce qui attend encore de l'être. Le plafond
+  // mesure toujours le total : une dépense saisie avant l'import est réelle, et
+  // un compteur qui reculerait en attendant le relevé serait pire qu'incertain.
+  // La barre le dit en deux nuances, sans changer sa longueur.
+  const spent = Number(row.spent);
+  const pending = Number(row.spent_pending);
+  const attestedPct = spent > 0 ? (Number(row.spent_attested) / spent) * pct : pct;
+
   const actions: CardAction[] = [
     { label: t('common.edit'), icon: Pencil, onClick: onEdit },
     { label: t('common.delete'), icon: Trash2, onClick: onDelete, variant: 'danger' },
@@ -62,14 +70,22 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
           </div>
 
           {uncapped ? null : (
-            <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-muted"
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+            >
               <div
-                className={`h-full rounded-full transition-all ${BAR_CLASS[row.state]}`}
-                style={{ width: `${pct}%` }}
-                role="progressbar"
-                aria-valuenow={pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
+                className={`h-full transition-all ${BAR_CLASS[row.state]}`}
+                style={{ width: `${attestedPct}%` }}
+              />
+              {/* La part en attente : même couleur, moins affirmée. Une teinte
+                  différente laisserait croire à une autre catégorie de dépense. */}
+              <div
+                className={`h-full opacity-40 transition-all ${BAR_CLASS[row.state]}`}
+                style={{ width: `${pct - attestedPct}%` }}
               />
             </div>
           )}
@@ -81,6 +97,11 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
                 ? t('budget.overBy', { amount: formatAmount(String(overBy)) })
                 : t('budget.percentUsed', { pct })}
           </p>
+          {pending > 0 ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t('budget.pending', { amount: formatAmount(row.spent_pending) })}
+            </p>
+          ) : null}
           {Number(row.committed) > 0 ? (
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t('budget.committed', { amount: formatAmount(row.committed) })}

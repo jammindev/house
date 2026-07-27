@@ -1624,7 +1624,7 @@
           },
           "track": {
             "title": "Seguir el mes",
-            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual."
+            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual. La barra tiene dos matices: la parte sólida es lo que una línea del extracto acredita, la parte pálida lo que aún espera conciliación. El contador cuenta todo — un gasto de ayer es real incluso antes de importar el extracto."
           },
           "analysis": {
             "title": "Ver adónde va de verdad",
@@ -3195,7 +3195,8 @@
     },
     "uncapped": {
       "hint": "Categoría seguida, sin tope"
-    }
+    },
+    "pending": "De los cuales {{amount}} pendientes de conciliación"
   },
   "budgetDetail": {
     "description": "Los gastos que componen este contador.",
@@ -3439,6 +3440,13 @@
         "equipment": "Equipo",
         "stock": "Artículo de inventario",
         "pick": "Elegir…"
+      },
+      "linked": {
+        "title": "Gastos ya vinculados",
+        "hint": "Conciliados en otro lugar: cuentan en esta operación pero no se modifican aquí.",
+        "detach": "Desvincular de esta operación",
+        "detached": "Gasto desvinculado de la operación",
+        "total": "Ya vinculado"
       }
     },
     "reconcile": {

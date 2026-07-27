@@ -738,3 +738,146 @@ class TestBudgetOverview:
     def test_anonymous_gets_401(self):
         response = _anon_client().get(reverse("budget-overview"))
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+# ===========================================================================
+# 7. TestWhatTheStatementAttests — deux chiffres par enveloppe
+# ===========================================================================
+
+
+@pytest.mark.django_db
+class TestWhatTheStatementAttests:
+    """« 340 € / 400 € » ne dit pas ce qui, dans les 340 €, est prouvé.
+
+    Une dépense saisie à la main et jamais rapprochée gonfle une enveloppe sans
+    qu'aucune ligne de relevé ne l'atteste. La réponse retenue est **deux chiffres,
+    pas un filtre** : le plafond continue de mesurer le total (une dépense d'hier
+    est réelle même si le relevé de fin de mois n'est pas importé), et l'enveloppe
+    dit à côté ce qui reste à attester. Filtrer aurait fait *reculer* le compteur
+    au fil du mois pour remonter d'un coup à l'import — un plafond qui recule est
+    pire qu'un plafond incertain.
+    """
+
+    def _expense(self, hh, user, amount, budget=None, transaction=None):
+        expense = create_manual_expense_interaction(
+            household=hh,
+            user=user,
+            subject=f"Dépense {amount}",
+            amount=Decimal(str(amount)),
+            occurred_at=timezone.now(),
+            budget_id=budget.id if budget else None,
+        )
+        if transaction is not None:
+            expense.bank_transaction = transaction
+            expense.save(update_fields=["bank_transaction"])
+        return expense
+
+    def _transaction(self, hh):
+        from banking.dedup import compute_dedup_hash
+        from banking.models import BankAccount, BankTransaction, TransactionDirection
+
+        account = BankAccount.objects.create(
+            household=hh, name="Courant", kind=BankAccount.Kind.BANK
+        )
+        booked_on = timezone.now().date()
+        return BankTransaction.objects.create(
+            household=hh,
+            account=account,
+            booked_on=booked_on,
+            label_raw="CB LECLERC",
+            label_norm="CB LECLERC",
+            amount=Decimal("-500.00"),
+            direction=TransactionDirection.OUT,
+            dedup_hash=compute_dedup_hash(
+                account_id=account.id,
+                booked_on=booked_on,
+                label_norm="CB LECLERC",
+                amount=Decimal("-500.00"),
+                currency="EUR",
+                discriminant="attested-test",
+            ),
+        )
+
+    def test_an_unreconciled_expense_still_counts_but_is_flagged_pending(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        groceries = _create_budget(hh, owner, name="Courses", monthly_amount=Decimal("400"))
+        self._expense(hh, owner, "120.00", budget=groceries)
+
+        row = _client_for(owner).get(reverse("budget-overview")).data["budgets"][0]
+
+        assert row["spent"] == "120.00"
+        assert row["spent_attested"] == "0.00"
+        assert row["spent_pending"] == "120.00"
+
+    def test_reconciling_moves_the_money_without_changing_the_total(self):
+        """The ceiling reads the same number before and after the statement lands."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        groceries = _create_budget(hh, owner, name="Courses", monthly_amount=Decimal("400"))
+        expense = self._expense(hh, owner, "120.00", budget=groceries)
+
+        before = _client_for(owner).get(reverse("budget-overview")).data["budgets"][0]
+
+        expense.bank_transaction = self._transaction(hh)
+        expense.save(update_fields=["bank_transaction"])
+
+        after = _client_for(owner).get(reverse("budget-overview")).data["budgets"][0]
+
+        assert before["spent"] == after["spent"] == "120.00"
+        assert before["ratio"] == after["ratio"]
+        assert after["spent_attested"] == "120.00"
+        assert after["spent_pending"] == "0.00"
+
+    def test_the_two_parts_always_recompose_the_total(self):
+        """Computed by difference on purpose: two independent sums would drift."""
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        groceries = _create_budget(hh, owner, name="Courses", monthly_amount=Decimal("400"))
+        txn = self._transaction(hh)
+        self._expense(hh, owner, "80.50", budget=groceries, transaction=txn)
+        self._expense(hh, owner, "39.50", budget=groceries)
+
+        data = _client_for(owner).get(reverse("budget-overview")).data
+        row = data["budgets"][0]
+
+        assert Decimal(row["spent_attested"]) + Decimal(row["spent_pending"]) == Decimal(
+            row["spent"]
+        )
+        assert Decimal(data["total_attested"]) + Decimal(data["total_pending"]) == Decimal(
+            data["total_spent"]
+        )
+        assert row["spent_attested"] == "80.50"
+
+    def test_the_global_envelope_carries_the_split_too(self):
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        _create_budget(hh, owner, name="Global", monthly_amount=Decimal("1000"), is_global=True)
+        txn = self._transaction(hh)
+        self._expense(hh, owner, "200.00", transaction=txn)
+        self._expense(hh, owner, "50.00")
+
+        data = _client_for(owner).get(reverse("budget-overview")).data
+
+        assert data["global"]["spent"] == "250.00"
+        assert data["global"]["spent_attested"] == "200.00"
+        assert data["global"]["spent_pending"] == "50.00"
+
+    def test_the_split_costs_no_extra_query(self, django_assert_max_num_queries):
+        """One conditional aggregate, not a second pass.
+
+        The overview is fetched on every visit to the Budgets tab; paying a round
+        trip per figure is how a panel becomes slow one honest addition at a time.
+        """
+        hh = HouseholdFactory()
+        owner = _make_owner(hh)
+        groceries = _create_budget(hh, owner, name="Courses", monthly_amount=Decimal("400"))
+        txn = self._transaction(hh)
+        for amount in ("10.00", "20.00", "30.00"):
+            self._expense(hh, owner, amount, budget=groceries, transaction=txn)
+        client = _client_for(owner)
+
+        # Quatre : session, foyer, l'agrégat des dépenses (les deux chiffres en
+        # un seul GROUP BY) et celui des récurrences.
+        with django_assert_max_num_queries(5):
+            client.get(reverse("budget-overview"))

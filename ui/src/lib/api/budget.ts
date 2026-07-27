@@ -23,6 +23,13 @@ export interface BudgetOverviewRow {
   /** `null` quand la catégorie n'a pas de plafond — jamais "0.00". */
   amount: string | null;
   spent: string;
+  /**
+   * La part de `spent` qu'une ligne de relevé justifie, et le reste.
+   * `spent_attested + spent_pending === spent`, toujours : le second est calculé
+   * par différence côté serveur.
+   */
+  spent_attested: string;
+  spent_pending: string;
   committed: string;
   ratio: number;
   state: BudgetState;
@@ -34,6 +41,8 @@ export interface BudgetOverview {
   budgets: BudgetOverviewRow[];
   unbudgeted: string;
   total_spent: string;
+  total_attested: string;
+  total_pending: string;
   total_committed: string;
   named_total_amount: string;
   named_exceeds_global: boolean;

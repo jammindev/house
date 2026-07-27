@@ -1624,7 +1624,7 @@
           },
           "track": {
             "title": "Den Monat verfolgen",
-            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso."
+            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso. Der Balken hat zwei Abstufungen: der kräftige Teil ist, was eine Kontozeile belegt, der blasse Teil das, was noch abzugleichen ist. Der Zähler selbst zählt alles — eine Ausgabe von gestern ist echt, auch bevor der Auszug importiert ist."
           },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
@@ -3195,7 +3195,8 @@
     },
     "uncapped": {
       "hint": "Verfolgte Kategorie, ohne Obergrenze"
-    }
+    },
+    "pending": "Davon {{amount}} noch nicht abgeglichen"
   },
   "budgetDetail": {
     "description": "Die Ausgaben, aus denen dieser Zähler besteht.",
@@ -3439,6 +3440,13 @@
         "equipment": "Gerät",
         "stock": "Lagerartikel",
         "pick": "Auswählen…"
+      },
+      "linked": {
+        "title": "Bereits zugeordnete Ausgaben",
+        "hint": "Anderswo abgeglichen: Sie zählen auf diesen Vorgang, werden hier aber nicht bearbeitet.",
+        "detach": "Von diesem Vorgang lösen",
+        "detached": "Ausgabe vom Vorgang gelöst",
+        "total": "Bereits zugeordnet"
       }
     },
     "reconcile": {

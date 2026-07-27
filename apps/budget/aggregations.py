@@ -14,7 +14,7 @@ from decimal import Decimal
 from typing import Any
 
 from django.conf import settings
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from django.db.models.functions import Coalesce
 
 from core.timezones import current_month_range as _current_month_range
@@ -46,15 +46,36 @@ def current_month_range(household) -> tuple[datetime, datetime, str]:
     return _current_month_range(household)
 
 
-def _spent_by_budget(household_id, start, end) -> dict:
-    """SUM of expense amounts for the month, grouped by ``budget_id`` (None = hors budget)."""
+def _spent_by_budget(household_id, start, end) -> tuple[dict, dict]:
+    """``(total, attesté)`` par ``budget_id`` (``None`` = hors budget).
+
+    Deux chiffres, **une** requête : le total du mois, et la part que le relevé
+    a vue (``bank_transaction`` non nul). Le premier ne change pas — c'est lui
+    que le plafond mesure, et il est lu par sept agrégations qu'on ne réécrit
+    pas. Le second dit seulement *ce qu'on peut prouver*.
+
+    Pourquoi pas un filtre dur sur les rapprochées : une dépense saisie
+    aujourd'hui, avant l'import du relevé de fin de mois, est parfaitement réelle.
+    L'exclure ferait baisser le compteur au fil du mois puis remonter à l'import —
+    un plafond qui recule est pire qu'un plafond incertain. On affiche donc le
+    même total, et **à côté** ce qui reste à attester.
+    """
     rows = (
         expenses(household_id=household_id)
         .filter(occurred_at__gte=start, occurred_at__lt=end)
         .values("budget_id")
-        .annotate(total=Coalesce(Sum("amount"), _zero()))
+        .annotate(
+            total=Coalesce(Sum("amount"), _zero()),
+            attested=Coalesce(
+                Sum("amount", filter=Q(bank_transaction__isnull=False)), _zero()
+            ),
+        )
     )
-    return {row["budget_id"]: row["total"] or _zero() for row in rows}
+    spent, attested = {}, {}
+    for row in rows:
+        spent[row["budget_id"]] = row["total"] or _zero()
+        attested[row["budget_id"]] = row["attested"] or _zero()
+    return spent, attested
 
 
 def _committed_by_budget(household_id, start, end) -> dict:
@@ -96,8 +117,14 @@ def _state(spent: Decimal, ceiling: Decimal | None) -> tuple[float, str]:
     return ratio, "ok"
 
 
-def _budget_row(budget: Budget, spent: Decimal, committed: Decimal | None = None) -> dict[str, Any]:
+def _budget_row(
+    budget: Budget,
+    spent: Decimal,
+    committed: Decimal | None = None,
+    attested: Decimal | None = None,
+) -> dict[str, Any]:
     ratio, state = _state(spent, budget.monthly_amount)
+    seen = attested if attested is not None else _zero()
     return {
         "id": str(budget.id),
         "name": budget.name,
@@ -105,6 +132,11 @@ def _budget_row(budget: Budget, spent: Decimal, committed: Decimal | None = None
         # zero read the same — and the second one is permanently over budget.
         "amount": None if budget.monthly_amount is None else _str(budget.monthly_amount),
         "spent": _str(spent),
+        # Deux chiffres **additionnels** : ``spent`` reste le compteur du plafond.
+        # ``spent_attested`` est ce qu'une ligne de relevé justifie, ``spent_pending``
+        # le reste. La somme des deux vaut ``spent``, toujours.
+        "spent_attested": _str(seen),
+        "spent_pending": _str(spent - seen),
         "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
         "state": state,
@@ -119,15 +151,22 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         {
           "month": "2026-07",
           "global": {id, name, amount, spent, ratio, state} | null,
-          "budgets": [{id, name, amount, spent, ratio, state}, ...],
+          "budgets": [{id, name, amount, spent, spent_attested, spent_pending,
+                       committed, ratio, state}, ...],
           "unbudgeted": "700.00",
           "total_spent": "1850.00",
+          "total_attested": "1600.00",
+          "total_pending": "250.00",
           "named_total_amount": "1400.00",
           "named_exceeds_global": false
         }
+
+    ``spent_attested + spent_pending == spent``, par construction : le second est
+    calculé par différence. Deux sommes indépendantes finiraient par se contredire
+    d'un centime d'arrondi, et un total qui ne se recompose pas ne se lit pas.
     """
     start, end, month = current_month_range(household)
-    spent_map = _spent_by_budget(household.id, start, end)
+    spent_map, attested_map = _spent_by_budget(household.id, start, end)
     committed_map = _committed_by_budget(household.id, start, end)
 
     budgets = list(Budget.objects.filter(household_id=household.id))
@@ -135,11 +174,17 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     global_budget = next((b for b in budgets if b.is_global), None)
 
     total_spent = sum(spent_map.values(), _zero())
+    total_attested = sum(attested_map.values(), _zero())
     total_committed = sum(committed_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
     named_rows = [
-        _budget_row(b, spent_map.get(b.id, _zero()), committed_map.get(b.id, _zero()))
+        _budget_row(
+            b,
+            spent_map.get(b.id, _zero()),
+            committed_map.get(b.id, _zero()),
+            attested_map.get(b.id, _zero()),
+        )
         for b in named
     ]
     # Only the capped ones: an uncapped category promises nothing, so it cannot
@@ -151,7 +196,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     global_row = None
     named_exceeds_global = False
     if global_budget is not None:
-        global_row = _budget_row(global_budget, total_spent, total_committed)
+        global_row = _budget_row(global_budget, total_spent, total_committed, total_attested)
         named_exceeds_global = (
             global_budget.monthly_amount is not None
             and named_total_amount > global_budget.monthly_amount
@@ -163,6 +208,8 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         "budgets": named_rows,
         "unbudgeted": _str(unbudgeted),
         "total_spent": _str(total_spent),
+        "total_attested": _str(total_attested),
+        "total_pending": _str(total_spent - total_attested),
         "total_committed": _str(total_committed),
         "named_total_amount": _str(named_total_amount),
         "named_exceeds_global": named_exceeds_global,

@@ -1624,7 +1624,7 @@
           },
           "track": {
             "title": "Track the month",
-            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way."
+            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way. The bar comes in two shades: the solid part is what a statement line attests to, the pale part what is still awaiting reconciliation. The counter itself counts everything — yesterday's expense is real even before the statement is imported."
           },
           "analysis": {
             "title": "See where it actually goes",
@@ -3195,7 +3195,8 @@
     },
     "uncapped": {
       "hint": "Tracked category, no ceiling"
-    }
+    },
+    "pending": "Including {{amount}} awaiting reconciliation"
   },
   "budgetDetail": {
     "description": "The expenses this counter is made of.",
@@ -3439,6 +3440,13 @@
         "equipment": "Equipment",
         "stock": "Stock item",
         "pick": "Pick one…"
+      },
+      "linked": {
+        "title": "Expenses already attached",
+        "hint": "Reconciled elsewhere: they count against this operation but are not edited here.",
+        "detach": "Detach from this operation",
+        "detached": "Expense detached from the operation",
+        "total": "Already attached"
       }
     },
     "reconcile": {
