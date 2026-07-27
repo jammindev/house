@@ -27,6 +27,7 @@ import {
   projectKeys,
 } from './hooks';
 import ProjectDialog from './ProjectDialog';
+import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import EntityDocumentsTab from '@/features/documents/EntityDocumentsTab';
 import EntityPhotosTab from '@/features/photos/EntityPhotosTab';
 import ProjectPurchaseDialog from './ProjectPurchaseDialog';
@@ -128,7 +129,14 @@ function TabInteractions({
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="font-medium">{item.subject || '—'}</span>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 items-center gap-1">
+                    {/* Une dépense de chantier saisie à la main est aussi une
+                        dépense que la banque n'a peut-être jamais vue passer. */}
+                    <ReconciliationBadge
+                      state={item.reconciliation_state}
+                      line={item.bank_line}
+                      linked={false}
+                    />
                     {item.type ? (
                       <Badge variant="outline" className="h-5 text-[10px]">
                         {t(`interactions.type.${item.type}`)}

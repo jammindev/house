@@ -106,8 +106,11 @@ class InteractionViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """Filter interactions to households where current user is a member."""
+        # ``bank_transaction__account``: the serializer answers « rapprochée ? »
+        # and names the operation for the link. Without the join that is two
+        # queries per row.
         queryset = Interaction.objects.for_user_households(self.request.user).select_related(
-            'created_by', 'budget'
+            'created_by', 'budget', 'household', 'bank_transaction__account'
         ).prefetch_related('zones', 'documents', 'source', 'tags__tag')
 
         selected_household = self.request.household

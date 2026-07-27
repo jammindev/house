@@ -15,6 +15,32 @@ export interface InteractionEquipmentSummary {
   name: string;
 }
 
+/**
+ * Est-ce qu'une ligne de relevé justifie cette dépense — **verdict du serveur**.
+ *
+ * Ne jamais le redériver de `bank_transaction === null` : le verdict dépend de
+ * la fenêtre de conformité du foyer, exactement comme le détecteur
+ * `expense_unreconciled` qu'il doit refléter. Une dépense antérieure au premier
+ * relevé n'a aucune ligne à laquelle se rattacher et n'en aura jamais — la
+ * badger en rouge fabriquerait une tâche insoluble que le Contrôle, lui, ne
+ * réclame pas. Miroir exact de `AllocationProgress` côté banque.
+ *
+ * - `''` — pas une dépense, aucun marqueur.
+ * - `attested` — une ligne de relevé la justifie.
+ * - `cash` — une ligne d'un compte espèces : rattachée, mais personne n'a rapproché.
+ * - `pending` — rien ne la justifie, et la banque aurait dû la voir. C'est l'écart.
+ * - `out_of_scope` — rien ne la justifie, hors de la fenêtre. Pas un écart.
+ */
+export type ReconciliationState = '' | 'attested' | 'cash' | 'pending' | 'out_of_scope';
+
+/** De quoi nommer l'opération qui justifie une dépense, et lier vers elle. */
+export interface BankLineRef {
+  id: string;
+  label: string;
+  booked_on: string;
+  account_name: string;
+}
+
 export interface InteractionListItem {
   id: string;
   subject: string;
@@ -38,6 +64,10 @@ export interface InteractionListItem {
   bank_transaction?: string | null;
   /** `auto` | `manual` | `''` — comment le rapprochement s'est fait. */
   reconciled_by?: string;
+  /** Voir {@link ReconciliationState} — calculé par le serveur, jamais ici. */
+  reconciliation_state?: ReconciliationState;
+  /** De quoi nommer l'opération et y aller. `null` quand rien ne la justifie. */
+  bank_line?: BankLineRef | null;
   contacts?: InteractionContactSummary[];
   structures?: InteractionStructureSummary[];
   equipments?: InteractionEquipmentSummary[];

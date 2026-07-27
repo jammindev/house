@@ -122,8 +122,8 @@ valeur initiale — l'initialiseur d'état du parent s'exécute avant le montage
 l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
-`/app/money/analysis`, `/app/money/budgets/:id`, `/app/money/recurring`,
-`/app/money/reports`.
+`/app/money/transactions/:id`, `/app/money/analysis`, `/app/money/budgets/:id`,
+`/app/money/recurring`, `/app/money/reports`.
 
 Les deux dernières ont rejoint la famille en juillet 2026 ; `/app/budget/recurring`
 et `/app/budget/reports` redirigent via `PreserveQueryRedirect`, qui conserve la
@@ -263,6 +263,46 @@ différence en deux nuances de la même couleur — une autre teinte laisserait 
 agrégats indépendants finissent par se contredire d'un centime d'arrondi, et un
 total qui ne se recompose pas ne se lit pas. Régression :
 `budget/tests/test_api_budget.py::TestWhatTheStatementAttests`.
+
+### Une dépense dit si le relevé la justifie — et laquelle
+
+Le marqueur du journal bancaire répondait « où en est cette **ligne** ». Il
+manquait la même question depuis l'autre rive : « cette **dépense**, la banque
+l'a-t-elle vue passer ? ». C'est `reconciliation_state`, servi par
+`InteractionSerializer`, rendu par `ui/src/features/money/ReconciliationBadge.tsx`,
+et posé partout où une dépense s'affiche — onglet Dépenses, journal des
+interactions, détail d'une interaction, onglet Dépenses d'un projet.
+
+Cinq états, miroir exact de `AllocationProgress` : `''` (pas une dépense),
+`attested`, `cash`, `pending`, `out_of_scope`.
+
+- **Le verdict est calculé côté serveur** (`banking.queries.reconciliation_state`),
+  jamais dérivé de `bank_transaction === null` côté client. C'est la même règle que
+  le marqueur bancaire, et pour la même raison : il dépend de la fenêtre de
+  conformité. La première version du badge (lot 7 du parcours 26) lisait la FK et
+  affichait « en attente de rapprochement » **en rouge** sur des dépenses
+  antérieures au premier relevé — que le Contrôle, lui, ne réclamait pas. Deux
+  écrans en désaccord sur le même fait. Régression :
+  `banking/tests/test_expense_marker.py::TestTheMarkerAgreesWithTheControl`.
+- **`cash` ne se déduit pas de `reconciled_by`.** L'ancienne règle
+  (`reconciled_by === ''` → espèces) était morte : `create_bank_expense_interaction`
+  écrit `manual` sur *tous* les rattachements, y compris ceux nés d'une dépense en
+  liquide, et détacher remet la FK à `null` avant qu'on arrive au test. Le
+  discriminant est le **type du compte** de la ligne — un fait, pas une trace.
+- **Le badge mène à l'opération.** « Rapprochée » sans pouvoir aller voir *à quoi*
+  reste une affirmation invérifiable. La destination est une vraie page,
+  `/app/money/transactions/:id`, et non le journal filtré : sur un relevé de
+  160 lignes, « elle est quelque part dans cette liste » ne vérifie rien. Ce que
+  cette page montre et que le journal ne peut pas : les **autres** ventilations de
+  la même opération — arriver là depuis une dépense de 90 €, c'est découvrir que la
+  ligne en faisait 150.
+
+Coût : trois requêtes fixes par réponse (la fenêtre du foyer), la ligne et son
+compte arrivant par `select_related`. Borné par
+`test_expense_marker.py::TestItStaysCheap`, qui compare cinq dépenses à quarante
+plutôt que de plafonner le total de la page — la liste des interactions a un N+1
+antérieur (documents, contacts, structures, équipements : sept requêtes par ligne)
+qu'une borne globale mesurerait à la place.
 
 ### Reste ouvert
 

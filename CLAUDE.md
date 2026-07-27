@@ -305,6 +305,18 @@ Doc : `docs/parcours/PARCOURS_26_CONFORMITE_ARGENT.md` + section « Conformité 
   verdict dépend de la fenêtre de conformité, et une ligne verte dans un écran
   face à un écart dans l'autre fait perdre leur crédit aux deux. Régression :
   `banking/tests/test_journal_marker.py::TestTheMarkerAgreesWithTheControl`.
+- **Et la même règle vaut depuis l'autre rive.** « Cette dépense est-elle
+  justifiée par un relevé ? » se lit dans `reconciliation_state`
+  (`banking.queries`, servi par `InteractionSerializer`, rendu par
+  `money/ReconciliationBadge.tsx`), **jamais** dérivé de `bank_transaction == null`
+  côté client : sans la fenêtre, le badge accusait en rouge des dépenses
+  antérieures au premier relevé, insolubles par construction et que le Contrôle ne
+  réclamait pas. Corollaires : `cash` se déduit du **type du compte** de la ligne,
+  jamais de `reconciled_by` (que le créateur met toujours à `manual`, ce qui
+  rendait la branche morte) ; et le badge **mène à l'opération**
+  (`/app/money/transactions/:id`) — « rapprochée » sans pouvoir aller voir à quoi
+  est invérifiable. Régression :
+  `banking/tests/test_expense_marker.py::TestTheMarkerAgreesWithTheControl`.
 
 #### Le module « Argent » — une seule clé, cinq onglets
 

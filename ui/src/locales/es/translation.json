@@ -1509,6 +1509,10 @@
           "control": {
             "title": "Compruebe que su visión es correcta",
             "body": "La pestaña «Control» enumera todo lo que impide que sus cifras sean exactas: operaciones sin asignar, gastos que el banco nunca vio, saldos que no encadenan. Cada discrepancia se resuelve — o se justifica con un motivo que sigue visible y se puede revocar."
+          },
+          "trace": {
+            "title": "Remontar hasta la operación",
+            "body": "Cada gasto indica si una línea del extracto lo justifica. «Extracto del 12 de julio» es un enlace: llegas a la operación, con su importe, su cuenta y los demás gastos que cubre. «Pendiente de conciliación» significa lo contrario — un gasto que el banco nunca vio, es decir una discrepancia que la pestaña Control cuenta. Fuera del periodo controlado no aparece nada: ahí la app no puede exigir nada."
           }
         }
       },
@@ -3037,11 +3041,6 @@
       },
       "budget": "Presupuesto",
       "budgetNone": "Sin presupuesto"
-    },
-    "provenance": {
-      "statement": "Extracto",
-      "cash": "Efectivo",
-      "pending": "Pendiente de conciliar"
     }
   },
   "aiUsage": {
@@ -3523,6 +3522,23 @@
         "periodGap": "Un periodo del intervalo nunca se importó: los movimientos a restar están incompletos.",
         "noLines": "Esta cuenta no tiene ninguna operación que restar."
       }
+    },
+    "transaction": {
+      "notFound": "Operación no encontrada.",
+      "direction": {
+        "out": "Salida",
+        "in": "Entrada"
+      },
+      "amount": "Importe",
+      "bookedOn": "Fecha de operación",
+      "valueOn": "Fecha valor",
+      "account": "Cuenta",
+      "balanceAfter": "Saldo tras la operación",
+      "reference": "Referencia bancaria",
+      "allocationsTitle": "Lo que justifica esta operación",
+      "allocatedOf": "{{allocated}} asignados de {{total}}",
+      "noAllocation": "Todavía no hay nada vinculado a esta operación.",
+      "remaining": "Quedan {{amount}} por asignar"
     }
   },
   "pwa": {
@@ -3750,6 +3766,13 @@
       "blocked": "Nada evaluable por ahora",
       "blockedHint": "Un requisito bloquea el control: {{prerequisite}}. Sus operaciones existen, pero ninguna regla puede cubrirlas todavía.",
       "blockedAction": "Ver el control"
+    },
+    "reconciliation": {
+      "label": "Conciliación",
+      "attested": "Extracto del {{date}}",
+      "cash": "Efectivo del {{date}}",
+      "pending": "Pendiente de conciliación",
+      "out_of_scope": "Fuera del periodo controlado"
     }
   }
 }

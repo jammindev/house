@@ -3,26 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { formatAmount, formatDate } from '@/lib/format';
+import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface ExpenseListProps {
   items: InteractionListItem[];
-}
-
-/**
- * D'où vient cette dépense — la question que le parcours 26 rend visible.
- *
- * Trois provenances, et la troisième est la seule qui appelle une action : une
- * dépense saisie dans l'app que la banque n'a jamais confirmée est un écart, pas un
- * état normal. Le dire ici, dans la liste où on la lit, plutôt que seulement dans
- * l'onglet Contrôle.
- */
-function provenanceOf(item: InteractionListItem): 'statement' | 'cash' | 'pending' {
-  if (!item.bank_transaction) return 'pending';
-  // Une dépense en espèces est née avec sa ligne (lot 4) : même provenance
-  // technique qu'un relevé, mais un sens différent pour l'utilisateur — personne
-  // n'a « rapproché » quoi que ce soit, l'opération a été saisie à la main.
-  return item.reconciled_by === '' ? 'cash' : 'statement';
 }
 
 export default function ExpenseList({ items }: ExpenseListProps) {
@@ -48,14 +33,10 @@ export default function ExpenseList({ items }: ExpenseListProps) {
                         {t(`expenses.kind.${item.kind}`)}
                       </Badge>
                     ) : null}
-                    <Badge
-                      variant={
-                        provenanceOf(item) === 'pending' ? 'destructive' : 'secondary'
-                      }
-                      className="text-xs"
-                    >
-                      {t(`expenses.provenance.${provenanceOf(item)}`)}
-                    </Badge>
+                    <ReconciliationBadge
+                      state={item.reconciliation_state}
+                      line={item.bank_line}
+                    />
                   </div>
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span>{formatDate(item.occurred_at)}</span>

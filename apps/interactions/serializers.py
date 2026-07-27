@@ -151,6 +151,9 @@ class InteractionSerializer(serializers.ModelSerializer):
     # Optional monthly budget attached to an expense (parcours 21).
     budget = serializers.SerializerMethodField()
     budget_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    # Is this expense justified by a statement line, and which one (parcours 27).
+    reconciliation_state = serializers.SerializerMethodField()
+    bank_line = serializers.SerializerMethodField()
 
     class Meta:
         model = Interaction
@@ -164,6 +167,7 @@ class InteractionSerializer(serializers.ModelSerializer):
             'equipments', 'equipment_ids',
             'budget', 'budget_id',
             'bank_transaction', 'reconciled_by',
+            'reconciliation_state', 'bank_line',
             'created_at', 'updated_at', 'created_by', 'created_by_name'
         ]
         read_only_fields = [
@@ -233,6 +237,52 @@ class InteractionSerializer(serializers.ModelSerializer):
         if not obj.budget_id:
             return None
         return {'id': str(obj.budget_id), 'name': obj.budget.name}
+
+    def get_reconciliation_state(self, obj) -> str:
+        """« Rapprochée ou non » — decided here, never in the client.
+
+        The verdict depends on the household's conformity window, exactly like
+        the ``expense_unreconciled`` détecteur it must agree with. A client that
+        reads ``bank_transaction === null`` would flag, in red, an expense from
+        before the first statement — something nobody can ever resolve — while
+        the Contrôle tab counts it as nothing. Both screens would then be
+        arguing, and the user would stop believing either.
+        """
+        from banking.queries import reconciliation_state
+
+        return reconciliation_state(obj, window=self._conformity_window(obj))
+
+    def get_bank_line(self, obj) -> dict | None:
+        """Enough of the statement line to name it and link to it, or ``None``.
+
+        The FK id already ships as ``bank_transaction``; what the reader needs on
+        top is *which operation* — a date and the bank's own wording. Without
+        them the link is a uuid, and « la dépense est rapprochée » remains a
+        claim the user cannot check.
+        """
+        line = obj.bank_transaction
+        if line is None:
+            return None
+        return {
+            'id': str(line.id),
+            'label': line.label_raw,
+            'booked_on': line.booked_on.isoformat(),
+            'account_name': line.account.name,
+        }
+
+    def _conformity_window(self, obj):
+        """The household's window, computed once per response.
+
+        ``household_covered_period`` walks every account and costs two aggregates
+        each; a page of interactions holds up to a hundred rows, all of the same
+        household.
+        """
+        from banking.coverage import household_covered_period
+
+        cache = self.context.setdefault('_conformity_windows', {})
+        if obj.household_id not in cache:
+            cache[obj.household_id] = household_covered_period(obj.household)
+        return cache[obj.household_id]
 
     def _apply_budget(self, interaction, budget_id):
         """Resolve + attach a budget to an expense, mapping errors to 400s.
