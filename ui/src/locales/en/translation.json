@@ -1452,15 +1452,15 @@
       },
       "interactions": {
         "title": "Keep the household journal",
-        "intro": "The journal records everything that happens: notes, expenses, maintenance…",
+        "intro": "The log records what happens to the household: notes, maintenance, repairs, callouts. Expenses have a module of their own.",
         "steps": {
           "log": {
             "title": "Add an entry",
-            "body": "Create a note or an expense in seconds from the Journal page."
+            "body": "Record a note or a callout in seconds from the Activity page."
           },
           "types": {
             "title": "Pick the right type",
-            "body": "Note, expense, maintenance… the type decides where the entry shows up (Expenses page, activity feed)."
+            "body": "Note, maintenance, repair, warranty… the type says what it is and acts as a filter. Expenses do not appear here: they live in the Money module, where they carry a budget and the statement that accounts for them."
           },
           "link": {
             "title": "Link to context",

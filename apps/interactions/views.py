@@ -116,7 +116,21 @@ class InteractionViewSet(viewsets.ModelViewSet):
         selected_household = self.request.household
         if selected_household:
             queryset = queryset.filter(household=selected_household)
-        
+
+        # Exclure des types — le pendant de ``?type=``, et il doit être **serveur**.
+        #
+        # La page Activité ne montre plus les dépenses : elles ont leur module, avec
+        # leurs filtres, leur badge de rapprochement et leur budget, et à cent
+        # soixante lignes par mois elles noyaient les notes et les maintenances.
+        # Filtrer côté client aurait été plus court et faux : la page est paginée par
+        # huit, donc une page de huit dépenses se serait affichée vide sous un
+        # compteur qui en annonce huit.
+        exclude_type = self.request.query_params.get('exclude_type')
+        if exclude_type:
+            excluded = [value.strip() for value in exclude_type.split(',') if value.strip()]
+            if excluded:
+                queryset = queryset.exclude(type__in=excluded)
+
         # Filter by zone
         zone_id = self.request.query_params.get('zone')
         if zone_id:

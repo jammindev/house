@@ -6,7 +6,6 @@ import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardTitle } from '@/design-system/card';
 import { pushBack } from '@/lib/backNavigation';
-import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import type { InteractionListItem } from '@/lib/api/interactions';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
 
@@ -47,8 +46,6 @@ export default function InteractionCard({ item, onDelete }: InteractionCardProps
               </CardTitle>
             </Link>
             <Badge variant="outline">{t(typeLabelKey)}</Badge>
-            {/* Sur une dépense seulement — le composant ne rend rien sinon. */}
-            <ReconciliationBadge state={item.reconciliation_state} line={item.bank_line} />
           </div>
 
           {item.content ? (

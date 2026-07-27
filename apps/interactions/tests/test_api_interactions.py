@@ -699,3 +699,77 @@ class TestInteractionSourceLink:
         interaction.refresh_from_db()
         assert interaction.subject == "Tâche mise à jour"
         assert interaction.source == project
+
+
+@pytest.mark.django_db
+class TestExcludingTypesFromTheList:
+    """`?exclude_type=` — le pendant de `?type=`, et il doit vivre sur le serveur.
+
+    La page Activité ne montre plus les dépenses. Les écarter côté client aurait
+    été plus court et faux : la liste est paginée par huit, donc une page de huit
+    dépenses se serait affichée **vide** sous un compteur annonçant huit
+    résultats. Ces tests tiennent la pagination autant que le filtre.
+    """
+
+    def _entry(self, household, owner, zone, *, subject, kind):
+        interaction = Interaction.objects.create(
+            household=household,
+            created_by=owner,
+            subject=subject,
+            type=kind,
+            occurred_at=timezone.now(),
+        )
+        interaction.zones.add(zone)
+        return interaction
+
+    def test_an_excluded_type_leaves_the_list(self, owner_client, household, owner, primary_zone):
+        self._entry(household, owner, primary_zone, subject="Chaudière révisée", kind="maintenance")
+        self._entry(household, owner, primary_zone, subject="Courses", kind="expense")
+
+        response = owner_client.get(reverse("interaction-list"), {"exclude_type": "expense"})
+
+        assert response.status_code == status.HTTP_200_OK
+        subjects = [row["subject"] for row in response.data["results"]]
+        assert subjects == ["Chaudière révisée"]
+
+    def test_the_count_matches_what_is_shown(self, owner_client, household, owner, primary_zone):
+        """Un compteur qui annonce ce qu'on ne voit pas est le bug qu'on évite."""
+        for i in range(9):
+            self._entry(household, owner, primary_zone, subject=f"Dépense {i}", kind="expense")
+        self._entry(household, owner, primary_zone, subject="La seule note", kind="note")
+
+        response = owner_client.get(reverse("interaction-list"), {"exclude_type": "expense"})
+
+        assert response.data["count"] == 1
+        assert len(response.data["results"]) == 1
+
+    def test_several_types_can_be_excluded_at_once(self, owner_client, household, owner, primary_zone):
+        self._entry(household, owner, primary_zone, subject="Note", kind="note")
+        self._entry(household, owner, primary_zone, subject="Courses", kind="expense")
+        self._entry(household, owner, primary_zone, subject="Fuite", kind="repair")
+
+        response = owner_client.get(
+            reverse("interaction-list"), {"exclude_type": "expense,repair"}
+        )
+
+        assert [row["subject"] for row in response.data["results"]] == ["Note"]
+
+    def test_without_the_param_nothing_is_hidden(self, owner_client, household, owner, primary_zone):
+        """Le filtre est un choix d'écran, jamais une règle du modèle.
+
+        L'onglet Dépenses et l'onglet d'un projet lisent le même endpoint et
+        doivent continuer à voir les dépenses.
+        """
+        self._entry(household, owner, primary_zone, subject="Note", kind="note")
+        self._entry(household, owner, primary_zone, subject="Courses", kind="expense")
+
+        response = owner_client.get(reverse("interaction-list"))
+
+        assert response.data["count"] == 2
+
+    def test_an_empty_value_is_not_a_filter(self, owner_client, household, owner, primary_zone):
+        self._entry(household, owner, primary_zone, subject="Courses", kind="expense")
+
+        response = owner_client.get(reverse("interaction-list"), {"exclude_type": " , "})
+
+        assert response.data["count"] == 1

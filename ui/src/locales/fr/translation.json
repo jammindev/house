@@ -1452,15 +1452,15 @@
       },
       "interactions": {
         "title": "Tenir le journal du foyer",
-        "intro": "Le journal enregistre tout ce qui se passe : notes, dépenses, maintenances…",
+        "intro": "Le journal enregistre ce qui arrive au foyer : notes, maintenances, réparations, interventions. Les dépenses, elles, ont leur propre module.",
         "steps": {
           "log": {
             "title": "Ajouter une entrée",
-            "body": "Créez une note ou une dépense en quelques secondes depuis la page Journal."
+            "body": "Consignez une note ou une intervention en quelques secondes depuis la page Activité."
           },
           "types": {
             "title": "Choisir le bon type",
-            "body": "Note, dépense, maintenance… le type détermine où l'entrée apparaît (page Dépenses, fil d'activité)."
+            "body": "Note, maintenance, réparation, garantie… le type dit de quoi il s'agit et sert de filtre. Les dépenses n'apparaissent pas ici : elles vivent dans le module Argent, où elles portent un budget et le relevé qui les justifie."
           },
           "link": {
             "title": "Relier au contexte",

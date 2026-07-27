@@ -1452,15 +1452,15 @@
       },
       "interactions": {
         "title": "Llevar el diario del hogar",
-        "intro": "El diario registra todo lo que pasa: notas, gastos, mantenimientos…",
+        "intro": "El diario registra lo que le ocurre al hogar: notas, mantenimientos, reparaciones, intervenciones. Los gastos tienen su propio módulo.",
         "steps": {
           "log": {
             "title": "Añadir una entrada",
-            "body": "Crea una nota o un gasto en segundos desde la página del Diario."
+            "body": "Anota una nota o una intervención en segundos desde la página Actividad."
           },
           "types": {
             "title": "Elegir el tipo adecuado",
-            "body": "Nota, gasto, mantenimiento… el tipo decide dónde aparece la entrada (página de Gastos, hilo de actividad)."
+            "body": "Nota, mantenimiento, reparación, garantía… el tipo dice de qué se trata y sirve de filtro. Los gastos no aparecen aquí: viven en el módulo Dinero, con su presupuesto y el extracto que los justifica."
           },
           "link": {
             "title": "Enlazar con el contexto",

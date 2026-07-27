@@ -10,13 +10,21 @@ import { fetchContacts, type Contact } from '@/lib/api/contacts';
 import { fetchStructures, type Structure } from '@/lib/api/structures';
 import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment';
 import { useCreateInteraction } from './hooks';
-import ExpenseFields from './ExpenseFields';
 import ZonePicker from '@/features/zones/ZonePicker';
 import { useZones } from '@/features/zones/hooks';
 
+/**
+ * `expense` n'est plus créable ici — une dépense se saisit dans le module Argent.
+ *
+ * Deux raisons, et la seconde est la plus sérieuse. La page Activité ne montre
+ * plus les dépenses : ce formulaire y renvoyait après création, donc il aurait
+ * fabriqué une entrée invisible. Et surtout il écrivait le montant et le
+ * fournisseur dans `metadata`, là où plus rien ne les lit depuis leur promotion
+ * en colonnes (`interactions.0024`) — une dépense saisie ici valait **0 €** dans
+ * tous les budgets et tous les totaux, sans que rien ne le dise.
+ */
 const TYPE_OPTIONS = [
   'note',
-  'expense',
   'maintenance',
   'repair',
   'installation',
@@ -47,21 +55,14 @@ export default function InteractionNewPage() {
   const createMutation = useCreateInteraction();
 
   // Read initial values from query params. 'todo' is no longer an interaction
-  // type (todos live in the Task model) — old links fall back to 'note'.
+  // type (todos live in the Task model), 'expense' no longer one either (money
+  // module) — old links fall back to 'note' via the same guard.
   const requestedType = searchParams.get('type') ?? 'note';
-  const rawParamType = TYPE_OPTIONS.includes(requestedType) ? requestedType : 'note';
+  const paramType = TYPE_OPTIONS.includes(requestedType) ? requestedType : 'note';
   const paramZoneId = searchParams.get('zone_id') ?? '';
   const paramProjectId = searchParams.get('project_id') ?? '';
   const paramEquipmentId = searchParams.get('equipment_id') ?? '';
   const paramSourceInteractionId = searchParams.get('source_interaction_id') ?? '';
-
-  // Une dépense liée à un projet passe exclusivement par le dialog d'achat
-  // (ProjectPurchaseDialog, #235) — le form complet ne propose pas ce type
-  // quand un projet est imposé via l'URL.
-  const paramType = paramProjectId && rawParamType === 'expense' ? 'note' : rawParamType;
-  const typeOptions = paramProjectId
-    ? TYPE_OPTIONS.filter((v) => v !== 'expense')
-    : TYPE_OPTIONS;
 
   const [subject, setSubject] = React.useState('');
   const [type, setType] = React.useState(paramType);
@@ -78,11 +79,8 @@ export default function InteractionNewPage() {
   const [structures, setStructures] = React.useState<Structure[]>([]);
   const [equipmentId, setEquipmentId] = React.useState(paramEquipmentId);
   const [equipmentList, setEquipmentList] = React.useState<EquipmentListItem[]>([]);
-  const [amount, setAmount] = React.useState('');
-  const [supplier, setSupplier] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
 
-  const isExpense = type === 'expense';
   const zoneIsLocked = !!paramZoneId;
 
   React.useEffect(() => {
@@ -129,21 +127,9 @@ export default function InteractionNewPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    // Build metadata: source_interaction (when relevant) + expense fields (when type=expense).
     let metadata: Record<string, unknown> | undefined;
     if (paramSourceInteractionId) {
       metadata = { source_interaction: paramSourceInteractionId };
-    }
-    if (isExpense) {
-      const trimmedAmount = amount.trim();
-      metadata = {
-        ...(metadata ?? {}),
-        kind: 'manual',
-        source_name: null,
-        amount: trimmedAmount ? trimmedAmount : null,
-        unit_price: null,
-        supplier: supplier.trim(),
-      };
     }
 
     try {
@@ -221,7 +207,7 @@ export default function InteractionNewPage() {
               value={type}
               onChange={(e) => setType(e.target.value)}
             >
-              {typeOptions.map((v) => (
+              {TYPE_OPTIONS.map((v) => (
                 <option key={v} value={v}>
                   {t(`equipment.interaction_type.${v}`)}
                 </option>
@@ -229,15 +215,6 @@ export default function InteractionNewPage() {
             </select>
           </div>
         </div>
-
-        {isExpense ? (
-          <ExpenseFields
-            amount={amount}
-            onAmountChange={setAmount}
-            supplier={supplier}
-            onSupplierChange={setSupplier}
-          />
-        ) : null}
 
         {/* Date / time */}
         <div className="space-y-2">
