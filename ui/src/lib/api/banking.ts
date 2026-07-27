@@ -316,9 +316,10 @@ function cleanParams(filters: TransactionFilters): Record<string, string> {
 export async function fetchTransactions(
   filters: TransactionFilters = {},
   limit = 50,
+  offset = 0,
 ): Promise<TransactionPage> {
   const { data } = await api.get<TransactionPage>('/banking/transactions/', {
-    params: { ...cleanParams(filters), limit },
+    params: { ...cleanParams(filters), limit, offset },
   });
   return data;
 }

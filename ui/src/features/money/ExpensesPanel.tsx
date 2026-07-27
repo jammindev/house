@@ -3,9 +3,11 @@ import { Plus, Receipt } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import EmptyState from '@/components/EmptyState';
+import Pager from '@/components/Pager';
 import { Button } from '@/design-system/button';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
+import { usePager } from '@/lib/usePager';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { useExpenseSummary } from '@/features/expenses/hooks';
@@ -51,6 +53,11 @@ export default function ExpensesPanel() {
     ),
   );
 
+  // Même mécanique que le journal, et pour la même raison : c'est un registre,
+  // il grandit sans fin. Le serveur plafonne d'ailleurs cette liste à 100 par
+  // requête — une fenêtre qu'on agrandit s'y serait arrêtée sans le dire.
+  const pager = usePager(50, `${kind}|${supplier}|${range.from}|${range.to}`);
+
   const listFilters = React.useMemo(
     () => ({
       type: 'expense' as const,
@@ -61,9 +68,10 @@ export default function ExpensesPanel() {
       // The list endpoint filter param is `start_date`/`end_date` per views.py:71.
       ...(range.from ? { start_date: range.from } : {}),
       ...(range.to ? { end_date: range.to } : {}),
-      limit: 50,
+      limit: pager.limit,
+      offset: pager.offset,
     }),
-    [kind, supplier, range.from, range.to],
+    [kind, supplier, range.from, range.to, pager.limit, pager.offset],
   );
 
   const listQuery = useQuery({
@@ -72,6 +80,13 @@ export default function ExpensesPanel() {
   });
 
   const items: InteractionListItem[] = listQuery.data?.items ?? [];
+
+  // Une page qui s'est vidée sous les doigts (dépenses supprimées pendant la
+  // lecture) ramène à la première : rester sur une page vide afficherait « aucune
+  // dépense » à un foyer qui en a deux cents.
+  React.useEffect(() => {
+    if (!listQuery.isFetching && items.length === 0 && pager.offset > 0) pager.reset();
+  }, [listQuery.isFetching, items.length, pager]);
   const isLoading = summaryQuery.isLoading || listQuery.isLoading;
   const showSkeleton = useDelayedLoading(isLoading);
   const summary = summaryQuery.data;
@@ -135,7 +150,18 @@ export default function ExpensesPanel() {
                 action={{ label: t('expenses.adhoc.actions.add'), onClick: () => setAdhocOpen(true) }}
               />
             ) : (
-              <ExpenseList items={items} />
+              <>
+                <ExpenseList items={items} />
+                <Pager
+                  offset={pager.offset}
+                  limit={pager.limit}
+                  shown={items.length}
+                  total={listQuery.data?.count ?? items.length}
+                  onPrevious={pager.previous}
+                  onNext={pager.next}
+                  isFetching={listQuery.isFetching}
+                />
+              </>
             )}
           </>
         ) : null}

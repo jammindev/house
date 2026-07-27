@@ -178,11 +178,14 @@ export function useImportStatementFile() {
 export function useTransactions(
   filters: TransactionFilters,
   limit = 50,
-  options: { enabled?: boolean } = {},
+  options: { enabled?: boolean; offset?: number } = {},
 ) {
+  const offset = options.offset ?? 0;
   return useQuery({
-    queryKey: bankingKeys.transactions(filters, limit),
-    queryFn: () => fetchTransactions(filters, limit),
+    // L'offset entre dans la clé : sans lui, la page 2 servirait le cache de la
+    // page 1 et le journal paraîtrait bloqué sur ses cinquante premières lignes.
+    queryKey: [...bankingKeys.transactions(filters, limit), offset],
+    queryFn: () => fetchTransactions(filters, limit, offset),
     enabled: options.enabled ?? true,
   });
 }

@@ -470,6 +470,40 @@ Tests : `interactions/tests/test_purchase_budget.py` — un cas par chemin, plus
 budget étranger, le budget global (qui ne doit **rien** écrire du tout, pas même
 la quantité de stock) et l'achat sans budget qui reste permis.
 
+### Aucune liste ne se termine par un mur
+
+Les quatre listes du module s'arrêtaient à un plafond en dur — 50 pour le journal,
+les dépenses et la file, 25 pour un groupe du Contrôle — **sans aucun moyen d'aller
+plus loin**. Sur un relevé réel de 116 lignes, les deux tiers du travail étaient
+hors d'atteinte, et le Contrôle allait jusqu'à afficher « et 66 de plus… » sans
+offrir de les voir. **Un compteur qui nomme ce qu'il cache est pire qu'un compteur
+muet.**
+
+Deux mécanismes, et la distinction n'est pas cosmétique :
+
+| Liste | Mécanisme | Pourquoi |
+|---|---|---|
+| Journal, Dépenses | **Pages** (`usePager` + `Pager`) | Ce sont des registres qu'on consulte : ils grandissent sans fin, leur parcours doit être sans plafond |
+| À ranger, groupe du Contrôle | **« Voir plus »** (`useLoadMore` + `LoadMore`) | Ce sont des piles qu'on vide : les lignes disparaissent à mesure, et changer de page pendant que la précédente se vide fait sauter des lignes |
+
+- **L'agrandissement de fenêtre ne pouvait pas servir aux registres** : le serveur
+  plafonne à 100 (dépenses) et 200 (journal), donc le bouton aurait cessé
+  d'avancer sans le dire — le mur déplacé, pas supprimé.
+- **Et là où il sert, il ne ment pas non plus** : `LoadMore` reçoit le plafond
+  serveur et, une fois atteint, remplace le bouton par une phrase (« 200 sur
+  1 043 — traitez ces lignes pour voir la suite »).
+- On agrandit la fenêtre plutôt que d'empiler des pages (`useInfiniteQuery`) pour
+  deux raisons concrètes : la forme du cache reste `{items, count}`, celle que le
+  retrait optimiste manipule (`LinkedLineActions`), et une invalidation rafraîchit
+  *toute* la liste visible d'un coup — sur de l'argent, une page fraîche et trois
+  périmées serait un piège.
+- Le `Pager` annonce des **bornes** (« 51–100 sur 260 »), pas un numéro de page :
+  c'est ce qui permet de dire « j'ai traité jusqu'au centième » et de reprendre.
+- Une page vidée sous les doigts **ramène à la première** : rester sur une page
+  vide afficherait « aucune dépense » à un foyer qui en a deux cents.
+
+Tests : `ui/src/components/listNavigation.test.tsx`.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions

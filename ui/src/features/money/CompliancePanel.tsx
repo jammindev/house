@@ -10,6 +10,8 @@ import {
   ShieldAlert,
   Undo2,
 } from 'lucide-react';
+import LoadMore from '@/components/LoadMore';
+import { useLoadMore } from '@/lib/useLoadMore';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { Badge } from '@/design-system/badge';
@@ -322,10 +324,14 @@ function GroupDetail({
 }) {
   const { t } = useTranslation();
   const [showWaived, setShowWaived] = React.useState(false);
-  const openQuery = useComplianceGroup(group.kind, { limit: 25 });
+  // Les deux listes s'agrandissent séparément : ouvrir la liste d'audit ne doit
+  // pas recharger la liste actionnable, et inversement.
+  const openWindow = useLoadMore(25, group.kind);
+  const waivedWindow = useLoadMore(25, group.kind);
+  const openQuery = useComplianceGroup(group.kind, { limit: openWindow.limit });
   const waivedQuery = useComplianceGroup(showWaived ? group.kind : undefined, {
     waived: true,
-    limit: 25,
+    limit: waivedWindow.limit,
   });
   const revoke = useRevokeWaiver();
 
@@ -390,11 +396,13 @@ function GroupDetail({
         </ul>
       )}
 
-      {group.open > openRows.length && openRows.length > 0 ? (
-        <p className="text-xs text-muted-foreground">
-          {t('money.compliance.andMore', { count: group.open - openRows.length })}
-        </p>
-      ) : null}
+      <LoadMore
+        shown={openRows.length}
+        total={group.open}
+        max={openWindow.maxLimit}
+        onLoadMore={openWindow.loadMore}
+        isFetching={openQuery.isFetching}
+      />
 
       {/* La liste d'audit. Repliée parce qu'elle n'appelle pas à l'action — mais
           présente, parce qu'un arbitrage qu'on ne peut pas relire ne vaut rien. */}
@@ -436,6 +444,17 @@ function GroupDetail({
                 </li>
               ))}
             </ul>
+          ) : null}
+
+          {showWaived ? (
+            <LoadMore
+              shown={waivedQuery.data?.results.length ?? 0}
+              total={group.waived}
+              max={waivedWindow.maxLimit}
+              onLoadMore={waivedWindow.loadMore}
+              isFetching={waivedQuery.isFetching}
+              className="flex flex-col items-center gap-1 pt-2"
+            />
           ) : null}
         </div>
       ) : null}

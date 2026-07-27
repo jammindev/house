@@ -1,6 +1,8 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Inbox, ShieldAlert } from 'lucide-react';
+import LoadMore from '@/components/LoadMore';
+import { useLoadMore } from '@/lib/useLoadMore';
 import { Button } from '@/design-system/button';
 import { Card } from '@/design-system/card';
 import EmptyState from '@/components/EmptyState';
@@ -66,8 +68,12 @@ interface PendingQueueProps {
 
 export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
   const { t } = useTranslation();
-  const unallocatedQuery = useComplianceGroup(TRANSACTION_UNALLOCATED, { limit: 50 });
-  const partialQuery = useComplianceGroup(TRANSACTION_PARTIAL, { limit: 50 });
+  // Une seule fenêtre pour les deux détecteurs : la file les présente comme une
+  // liste unique triée par date, donc agrandir l'une sans l'autre ferait
+  // apparaître des lignes au milieu de ce qu'on vient de lire.
+  const { limit, loadMore, maxLimit } = useLoadMore(50);
+  const unallocatedQuery = useComplianceGroup(TRANSACTION_UNALLOCATED, { limit });
+  const partialQuery = useComplianceGroup(TRANSACTION_PARTIAL, { limit });
   const summaryQuery = useComplianceSummary();
   const budgetsQuery = useBudgets();
 
@@ -229,6 +235,20 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
           />
         ))}
       </div>
+
+      {/* Le « reporté » de la session est retiré de `rows` sans l'être du total :
+          on compte donc ce qui a été chargé, pas ce qui reste affiché, sinon
+          reporter trois lignes ferait réapparaître un bouton qui ne charge rien. */}
+      <LoadMore
+        shown={
+          (unallocatedQuery.data?.results.length ?? 0) + (partialQuery.data?.results.length ?? 0)
+        }
+        total={totalOpen}
+        max={maxLimit}
+        onLoadMore={loadMore}
+        isFetching={unallocatedQuery.isFetching || partialQuery.isFetching}
+        className="flex flex-col items-center gap-1 pt-2"
+      />
 
       {splitting ? (
         <AllocationDialog

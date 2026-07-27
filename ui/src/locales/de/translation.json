@@ -171,7 +171,13 @@
     "create": "Erstellen",
     "showMore": "Mehr anzeigen",
     "close": "Schließen",
-    "clear": "Löschen"
+    "clear": "Löschen",
+    "loadMore": "Mehr anzeigen",
+    "shownOfTotal": "{{shown}} von {{total}}",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "rangeOfTotal": "{{from}}–{{to}} von {{total}}",
+    "cappedAtMax": "{{shown}} von {{total}} — bearbeiten Sie diese, um den Rest zu sehen."
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -3660,7 +3666,6 @@
       "waivedShort": "{{count}} abgelegt",
       "waivedShort_other": "{{count}} abgelegt",
       "blockedBy": "Diese Prüfung gilt nur für Konten, deren Voraussetzung „{{prerequisite}}“ erfüllt ist.",
-      "andMore": "und {{count}} weitere…",
       "showArbitrated": "{{count}} Ablagen anzeigen",
       "hideArbitrated": "Ablagen ausblenden",
       "revoke": "Widerrufen",
