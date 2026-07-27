@@ -127,7 +127,7 @@ Tout se fait par déclaration — **aucune modification de la logique de
 ## Étape 5 — Livraison
 
 Le lot terminé et vert, livrer avec le skill **`/ship`** : commit conventionnel,
-push, PR vers `main`, attente CI + revue `claude-review`, correctifs, merge. Si le
+push, PR vers `main`, attente CI + revue manuelle (`/review`), correctifs, merge. Si le
 lot est rattaché à une issue, fermer l'issue via la PR (`Closes #<lot>`) ; fermer
 l'**issue parente** du parcours seulement une fois tous les lots livrés.
 

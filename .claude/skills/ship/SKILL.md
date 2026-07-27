@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Livrer le travail courant — commit, push, ouverture de PR, attente des checks CI + revue claude-review, correction si besoin, merge vers main. Utiliser quand l'utilisateur demande de livrer, commit/push/merger une feature terminée.
+description: Livrer le travail courant — commit, push, ouverture de PR, attente des checks CI, revue locale, correction si besoin, merge vers main. Utiliser quand l'utilisateur demande de livrer, commit/push/merger une feature terminée.
 allowed-tools: Bash, Read, Edit
 ---
 
@@ -26,18 +26,22 @@ allowed-tools: Bash, Read, Edit
    ```
    Corps de la PR : `Closes #<issue>` en tête, puis sections « Quoi » (ce qui a été fait et pourquoi), « Critères de l'issue » (checklist ✅), « Hors scope » si pertinent. **Pas de footer de signature.**
 
-4. **Attendre les checks** (Backend tests, Frontend lint & build, claude-review) :
+4. **Attendre les checks CI** (Backend tests, Frontend lint & build) :
    ```bash
    gh pr checks <pr> --watch
    ```
    Lancer en arrière-plan (`run_in_background`) et continuer les tâches annexes en attendant.
 
-5. **Lire la revue claude-review** une fois le check terminé :
+5. **Revoir la PR** — ⚠️ **il n'y a plus de revue automatique en CI** : le workflow
+   `Claude Code Review` est désactivé (il produisait une revue sans jamais la publier —
+   voir l'en-tête de `.github/workflows/claude-code-review.yml`). Ne pas attendre un
+   check `claude-review`, il ne viendra pas. La revue est un **passage manuel** :
    ```bash
-   gh pr view <pr> --comments
-   gh api repos/jammindev/house/pulls/<pr>/comments --jq '.[] | {path, line, body}'
+   gh pr view <pr> --comments   # relire les éventuels retours humains / Copilot
    ```
-   Trier les findings : corriger les vrais problèmes ; pour les faux positifs, répondre dans un commentaire de PR en justifiant (ne pas ignorer silencieusement).
+   Puis lancer le skill `/review <pr>`. Trier les findings : corriger les vrais
+   problèmes ; pour les faux positifs, répondre dans un commentaire de PR en justifiant
+   (ne pas ignorer silencieusement).
 
 6. **Si correctifs** : commit (toujours sans signature) + push, puis re-attendre les checks (retour à l'étape 4).
 

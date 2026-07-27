@@ -89,8 +89,8 @@ pytest -q && npm run lint && npx tsc -b ui/tsconfig.json
   git push origin main
   ```
 - **Bug non-trivial** (touche plusieurs modules, changement de logique, risque de
-  régression) → branche `fix/<app>-<desc>` + PR via le skill `/ship` (revue CI +
-  claude-review). Le commit garde `Closes #N`.
+  régression) → branche `fix/<app>-<desc>` + PR via le skill `/ship` (checks CI +
+  revue manuelle). Le commit garde `Closes #N`.
 
 Message conventionnel `fix(<app>): … (#N)` (alimente le changelog). **Aucune signature.**
 

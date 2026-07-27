@@ -1,26 +1,40 @@
+# ⚠️ DÉSACTIVÉ le 2026-07-27 — ne pas rebrancher sans corriger les deux causes ci-dessous.
+#
+# Ce workflow a tourné sur les PR #413 → #417 sans jamais publier une seule ligne :
+# zéro review, zéro commentaire, zéro commentaire inline (vérifié par l'API). Chaque run
+# vert finissait sur « No buffered inline comments », avec 1, 10 puis 42 refus de
+# permission — la revue était produite, puis jetée. Coût : ~8,5 $ de quota d'abonnement
+# (token OAuth, pas de crédits API) pour rien.
+#
+# Deux causes, indépendantes, à corriger AVANT de réactiver :
+#   1. Le job était déclaré en lecture seule (`pull-requests: read`, `issues: read`).
+#      Il faut `pull-requests: write` + `issues: write` pour publier une revue.
+#   2. En mode `prompt` (automation), l'action ne poste pas son résultat par défaut :
+#      il faut `track_progress: true` (ou `use_sticky_comment`), sinon le rapport final
+#      n'a aucun canal de sortie. Le `ReportFindings` du plugin `code-review` écrit pour
+#      une UI hôte qui n'existe pas dans un runner.
+#
+# Pour diagnostiquer un futur run : `show_full_output: true` (l'action masque la sortie
+# du SDK par défaut, ce qui rend les refus de permission invisibles).
+#
+# En attendant, la revue est un passage manuel dans le skill `/ship` (`/review <pr>`).
+# Le déclencheur `pull_request` est volontairement retiré pour que la décision survive
+# à un `gh workflow enable` — le workflow est aussi désactivé côté GitHub.
+
 name: Claude Code Review
 
 on:
-  pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
-    # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
+  workflow_dispatch:
+  # Déclencheur d'origine, à restaurer une fois les deux causes corrigées :
+  # pull_request:
+  #   types: [opened, synchronize, ready_for_review, reopened]
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # ⚠️ `read` ici = cause n°1 : passer les deux à `write` avant de réactiver.
       pull-requests: read
       issues: read
       id-token: write
@@ -39,6 +53,6 @@ jobs:
           plugin_marketplaces: 'https://github.com/anthropics/claude-code.git'
           plugins: 'code-review@claude-code-plugins'
           prompt: '/code-review:code-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          # ⚠️ cause n°2 : sans `track_progress: true`, ce prompt ne publie rien.
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
-
