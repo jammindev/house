@@ -50,6 +50,7 @@ export default function ShoppingCommitDialog({ open, onOpenChange, item }: Props
           supplier: payload.supplier,
           occurred_at: payload.occurred_at,
           notes: payload.notes,
+          budget_id: payload.budget_id,
           category: isFreeText ? category : undefined,
           unit: item.unit || undefined,
         },

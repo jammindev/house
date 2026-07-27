@@ -16,6 +16,12 @@ class EquipmentPurchaseSerializer(serializers.Serializer):
     supplier = serializers.CharField(required=False, allow_blank=True, default="")
     occurred_at = serializers.DateTimeField(required=False, allow_null=True)
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+    # Enveloppe à laquelle imputer l'achat. Facultative, mais son absence est
+    # l'écart `expense_without_budget` : sans budget, un euro n'est classé par
+    # aucun axe (projet et zone disent *sur quoi* et *où*, pas *de quelle
+    # nature*). L'offrir à la saisie évite de fabriquer l'écart puis de le
+    # réparer.
+    budget_id = serializers.UUIDField(required=False, allow_null=True)
 
 
 class EquipmentSerializer(serializers.ModelSerializer):

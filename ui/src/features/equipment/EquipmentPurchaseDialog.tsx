@@ -37,6 +37,7 @@ export default function EquipmentPurchaseDialog({
           supplier: payload.supplier,
           occurred_at: payload.occurred_at,
           notes: payload.notes,
+          budget_id: payload.budget_id,
         },
       });
       onOpenChange(false);

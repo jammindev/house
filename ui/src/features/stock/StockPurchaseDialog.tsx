@@ -36,6 +36,7 @@ export default function StockPurchaseDialog({ open, onOpenChange, item }: StockP
           remaining_before: payload.remaining_before,
           occurred_at: payload.occurred_at,
           notes: payload.notes,
+          budget_id: payload.budget_id,
         },
       });
       onOpenChange(false);

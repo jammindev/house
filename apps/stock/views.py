@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from interactions.services import validate_expense_budget
 
 from .models import StockCategory, StockItem
 from .notifications import notify_stock_status_change
@@ -140,6 +141,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
         serializer = StockPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
+        budget_id = validate_expense_budget(item.household_id, data.get("budget_id"))
 
         item, interaction = purchase_stock_item(
             item=item,
@@ -151,6 +153,7 @@ class StockItemViewSet(viewsets.ModelViewSet):
             remaining_before=data.get("remaining_before"),
             occurred_at=data.get("occurred_at"),
             notes=data.get("notes", "") or "",
+            budget_id=budget_id,
         )
 
         payload = StockItemSerializer(item, context={"request": request}).data

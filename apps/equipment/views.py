@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from core.permissions import IsHouseholdMember
 from documents.mixins import DocumentLinkActionsMixin
 from interactions.models import Interaction
-from interactions.services import create_expense_interaction
+from interactions.services import create_expense_interaction, validate_expense_budget
 from .models import Equipment, EquipmentInteraction
 from .serializers import (
     EquipmentInteractionSerializer,
@@ -60,6 +60,9 @@ class EquipmentViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         supplier = serializer.validated_data.get("supplier", "") or ""
         occurred_at = serializer.validated_data.get("occurred_at") or timezone.now()
         notes = serializer.validated_data.get("notes", "") or ""
+        budget_id = validate_expense_budget(
+            equipment.household_id, serializer.validated_data.get("budget_id")
+        )
 
         with transaction.atomic():
             # Equipment-specific snapshot of the most recent purchase
@@ -82,6 +85,7 @@ class EquipmentViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
                 occurred_at=occurred_at,
                 notes=notes,
                 kind="equipment_purchase",
+                budget_id=budget_id,
                 extra_metadata={"equipment_name": equipment.name},
             )
 

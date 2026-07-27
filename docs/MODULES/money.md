@@ -435,6 +435,41 @@ de re-créer — n'était pas proposée. **« Qu'est-ce qui existe déjà ? » n
 jamais. Régression :
 `banking/tests/test_expense_marker.py::TestTheForgottenExpenseIsOffered`.
 
+### Le budget se saisit sur *tous* les formulaires de dépense
+
+`Interaction.budget` est le seul axe qui classe un euro, et le détecteur
+`expense_without_budget` en réclame un sur chaque dépense de la fenêtre. Or
+**aucun** des cinq chemins d'achat ne proposait le champ : stock, équipement,
+projet, poule, liste de courses créaient toutes des dépenses sans enveloppe. Ce
+n'était pas un oubli d'ergonomie mais une **fabrique d'écarts** : chaque achat
+naissait non conforme, et l'utilisateur devait aller réparer ailleurs ce que la
+saisie venait de casser. Le formulaire d'édition, seul endroit où corriger après
+coup, ne le proposait pas non plus — on pouvait donc lire « hors budget » sur une
+dépense sans pouvoir y remédier depuis la page ouverte pour ça.
+
+- Le champ vit dans **`PurchaseForm`**, le formulaire partagé, au même titre que
+  le prix : c'est un champ générique de dépense, pas une particularité de
+  feature. Les deux dialogs qui en avaient bricolé un (`ExpenseAdHocDialog`,
+  `CashExpenseDialog`) l'ont perdu au profit du champ commun — deux sélecteurs
+  pour une enveloppe, c'était la duplication qui allait diverger.
+- Il reste **facultatif**. Exiger une enveloppe transformerait un achat pressé en
+  cul-de-sac, et le Contrôle existe précisément pour rattraper ce qu'on n'a pas
+  classé sur le coup.
+- Le **plafond global n'est jamais proposé** : il couvre tout, donc il n'est la
+  catégorie de rien, et le serveur le refuse. Offrir une option qui produit un
+  400 est pire que ne pas l'offrir.
+- Côté serveur, un budget étranger au foyer est un **400 nommé**, pas un 500 :
+  `interactions.services.validate_expense_budget` traduit le `ValueError` du
+  résolveur, une fois pour les cinq chemins. Même correction que
+  `set_allocations` en son temps.
+- L'édition envoie `budget_id: null` **explicitement** quand on retire
+  l'enveloppe : omettre la clé laisserait l'ancienne en place, et « retirer le
+  budget » serait un geste sans effet.
+
+Tests : `interactions/tests/test_purchase_budget.py` — un cas par chemin, plus le
+budget étranger, le budget global (qui ne doit **rien** écrire du tout, pas même
+la quantité de stock) et l'achat sans budget qui reste permis.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions

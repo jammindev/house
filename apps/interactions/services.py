@@ -164,6 +164,27 @@ def _resolve_expense_budget(household_id, budget_id):
     return budget
 
 
+def validate_expense_budget(household_id, budget_id):
+    """Check a client-supplied budget id, as a **400** rather than a 500.
+
+    Every purchase endpoint now accepts a budget, and the resolver signals a
+    foreign or global budget with ``ValueError`` — which, raised from inside a
+    view, is a server error on what is a plain client mistake. Same reasoning
+    as ``banking.services.set_allocations``, and one message instead of five.
+
+    Returns the id unchanged so the caller can pass it straight on: the
+    resolution itself happens once, inside the creator, in the same
+    transaction.
+    """
+    from rest_framework.exceptions import ValidationError
+
+    try:
+        _resolve_expense_budget(household_id, budget_id)
+    except ValueError as exc:
+        raise ValidationError({"budget_id": str(exc)})
+    return budget_id
+
+
 def _resolve_household_zones(household, zone_ids) -> list[Zone]:
     """Resolve zone ids to Zone instances scoped to the household, order preserved.
 

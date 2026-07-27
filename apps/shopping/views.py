@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
+from interactions.services import validate_expense_budget
 from stock.models import StockItem
 
 from .models import ShoppingListItem
@@ -134,6 +135,9 @@ class ShoppingListItemViewSet(viewsets.ModelViewSet):
         On success the line is removed and the stock item is returned.
         """
         item = self.get_object()
+        budget_id = validate_expense_budget(
+            request.household.id, request.data.get("budget_id")
+        )
         stock_item = commit_item_to_stock(
             request.household,
             request.user,
@@ -145,6 +149,7 @@ class ShoppingListItemViewSet(viewsets.ModelViewSet):
             notes=request.data.get("notes") or "",
             category=request.data.get("category"),
             unit=request.data.get("unit"),
+            budget_id=budget_id,
         )
         return Response({"stock_item": str(stock_item.id)}, status=status.HTTP_200_OK)
 

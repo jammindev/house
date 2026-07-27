@@ -4,7 +4,9 @@ import { Input } from '@/design-system/input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
+import { Select } from '@/design-system/select';
 import { todayISO } from '@/lib/format';
+import { useBudgets } from '@/features/budget/hooks';
 
 export interface PurchaseFormPayload {
   delta?: number;
@@ -15,6 +17,8 @@ export interface PurchaseFormPayload {
   remaining_before: number | null;
   occurred_at: string | null;
   notes: string;
+  /** Enveloppe à laquelle imputer l'achat. `null` = non classé. */
+  budget_id: string | null;
 }
 
 interface PurchaseFormProps {
@@ -30,6 +34,8 @@ interface PurchaseFormProps {
   onCancel: () => void;
   /** Optional submit-time error message to display above the buttons. */
   externalError?: string | null;
+  /** Enveloppe pré-sélectionnée (une dépense créée depuis un contexte connu). */
+  initialBudgetId?: string;
 }
 
 type PriceMode = 'total' | 'unit';
@@ -43,13 +49,14 @@ interface FormState {
   remaining: string;
   occurredAt: string;
   notes: string;
+  budgetId: string;
 }
 
 function todayIsoDate(): string {
   return todayISO();
 }
 
-function emptyState(currentQuantity?: number): FormState {
+function emptyState(currentQuantity?: number, budgetId = ''): FormState {
   return {
     delta: '',
     priceMode: 'total',
@@ -59,6 +66,7 @@ function emptyState(currentQuantity?: number): FormState {
     remaining: currentQuantity != null ? String(currentQuantity) : '',
     occurredAt: todayIsoDate(),
     notes: '',
+    budgetId,
   };
 }
 
@@ -77,9 +85,19 @@ export default function PurchaseForm({
   onSubmit,
   onCancel,
   externalError,
+  initialBudgetId = '',
 }: PurchaseFormProps) {
   const { t } = useTranslation();
-  const [form, setForm] = React.useState<FormState>(() => emptyState(currentQuantity));
+  const [form, setForm] = React.useState<FormState>(() =>
+    emptyState(currentQuantity, initialBudgetId),
+  );
+  const budgetsQuery = useBudgets();
+  // Le plafond global couvre tout : il n'est la catégorie de rien, et le serveur
+  // le refuse. L'offrir ici serait offrir une erreur.
+  const budgetOptions = React.useMemo(
+    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
+    [budgetsQuery.data],
+  );
   const [internalError, setInternalError] = React.useState<string | null>(null);
 
   const error = externalError ?? internalError;
@@ -142,6 +160,7 @@ export default function PurchaseForm({
       remaining_before: isRecalibrating ? parsedRemaining : null,
       occurred_at: occurredAt,
       notes: form.notes.trim(),
+      budget_id: form.budgetId || null,
     });
   }
 
@@ -254,6 +273,26 @@ export default function PurchaseForm({
           />
         </FormField>
       </div>
+
+      {/* Le budget est le **seul** axe qui classe un euro : projet et zone disent
+          sur quoi et où, pas de quelle nature. Sans lui, chaque achat naissait
+          en écart `expense_without_budget`, à réparer plus tard ailleurs — l'app
+          fabriquait son propre travail. Il reste facultatif : exiger une
+          enveloppe transformerait un achat pressé en cul-de-sac, et le Contrôle
+          est précisément là pour rattraper ce qu'on n'a pas classé sur le coup. */}
+      {budgetOptions.length > 0 ? (
+        <FormField label={t('purchase.fields.budget')} htmlFor="purchase-budget">
+          <Select
+            id="purchase-budget"
+            value={form.budgetId}
+            onChange={(e) => updateField('budgetId', e.target.value)}
+            options={[
+              { value: '', label: t('purchase.fields.budget_none') },
+              ...budgetOptions.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
+        </FormField>
+      ) : null}
 
       <FormField label={t('purchase.fields.notes')} htmlFor="purchase-notes">
         <Textarea

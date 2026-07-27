@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from core.permissions import IsHouseholdMember
 from documents.mixins import DocumentLinkActionsMixin
-from interactions.services import create_expense_interaction
+from interactions.services import create_expense_interaction, validate_expense_budget
 from .models import (
     Project,
     ProjectGroup,
@@ -103,6 +103,10 @@ class ProjectViewSet(DocumentLinkActionsMixin, _HouseholdScopedViewSet):
         serializer = ProjectPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        budget_id = validate_expense_budget(
+            project.household_id, serializer.validated_data.get("budget_id")
+        )
+
         interaction = create_expense_interaction(
             source=project,
             user=request.user,
@@ -111,6 +115,7 @@ class ProjectViewSet(DocumentLinkActionsMixin, _HouseholdScopedViewSet):
             occurred_at=serializer.validated_data.get("occurred_at") or timezone.now(),
             notes=serializer.validated_data.get("notes", "") or "",
             kind="project_purchase",
+            budget_id=budget_id,
             extra_metadata={"project_title": project.title},
         )
 

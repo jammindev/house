@@ -75,6 +75,7 @@ export default function InteractionEditPage() {
   const [equipmentList, setEquipmentList] = React.useState<EquipmentListItem[]>([]);
   const [amount, setAmount] = React.useState('');
   const [supplier, setSupplier] = React.useState('');
+  const [budgetId, setBudgetId] = React.useState('');
   const [formError, setFormError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [initialised, setInitialised] = React.useState(false);
@@ -101,6 +102,7 @@ export default function InteractionEditPage() {
     setTagsInput((interaction.tags ?? []).join(', '));
     setAmount(interaction.amount ?? '');
     setSupplier(interaction.supplier ?? '');
+    setBudgetId(interaction.budget?.id ?? '');
     setContactId(interaction.contacts?.[0]?.id ?? '');
     setStructureId(interaction.structures?.[0]?.id ?? '');
     setEquipmentId(interaction.equipments?.[0]?.id ?? '');
@@ -145,7 +147,14 @@ export default function InteractionEditPage() {
     // (no metadata round-trip). kind stays as-is; unit_price and other extras
     // remain in metadata and are left untouched by omitting `metadata` here.
     const expenseFields = isExpense
-      ? { amount: amount.trim() ? amount.trim() : null, supplier: supplier.trim() }
+      ? {
+          amount: amount.trim() ? amount.trim() : null,
+          supplier: supplier.trim(),
+          // `null` explicite, jamais l'omission : ne pas envoyer la clé
+          // laisserait l'ancienne enveloppe en place, donc « retirer le budget »
+          // serait un geste sans effet.
+          budget_id: budgetId || null,
+        }
       : {};
 
     try {
@@ -273,6 +282,8 @@ export default function InteractionEditPage() {
             expenseId={interaction.id}
             bankLine={interaction.bank_line}
             onDeleted={navigateBackAfterDelete}
+            budgetId={budgetId}
+            onBudgetChange={setBudgetId}
             unitPrice={(metadata.unit_price ?? null) as string | null}
             unit={(metadata.unit ?? null) as string | null}
           />
