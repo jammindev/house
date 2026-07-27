@@ -266,6 +266,8 @@ export default function InteractionEditPage() {
             sourceType={interaction.source_type}
             sourceId={interaction.source_id}
             kind={interaction.kind ?? null}
+            expenseId={interaction.id}
+            bankLine={interaction.bank_line}
             unitPrice={(metadata.unit_price ?? null) as string | null}
             unit={(metadata.unit ?? null) as string | null}
           />

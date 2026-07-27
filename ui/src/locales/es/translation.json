@@ -3554,7 +3554,8 @@
       "none": "Ninguna operación tiene espacio para este importe. Importa el extracto del periodo, o revisa el importe del gasto.",
       "remaining": "quedan {{amount}}",
       "detach": "Desvincular",
-      "ownedHint": "Este gasto es la asignación de la operación: para quitarlo, edita la asignación desde la operación."
+      "ownedHint": "Este gasto es la asignación de la operación: para quitarlo, edita la asignación desde la operación.",
+      "editSplit": "Editar la asignación"
     }
   },
   "pwa": {

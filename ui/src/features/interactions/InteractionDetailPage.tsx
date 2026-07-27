@@ -16,7 +16,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { formatAmount, formatDateTime } from '@/lib/format';
 import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
-import DetachFromTransactionButton from '@/features/banking/DetachFromTransactionButton';
+import LinkedLineActions from '@/features/banking/LinkedLineActions';
 import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
@@ -150,22 +150,21 @@ export default function InteractionDetailPage() {
                     <p className="text-xs text-muted-foreground">
                       {interaction.bank_line.account_name} · {interaction.bank_line.label}
                     </p>
+                    {/* Née de la ventilation : le geste n'est pas « détacher »
+                        mais « réécrire la ventilation », et il vit sur
+                        l'opération. Le composant tranche ; ici on ajoute le
+                        pourquoi, que seule une fiche a la place de dire. */}
                     {isOwnedByAllocationEditor(interaction.kind) ? (
-                      /* Née de la ventilation : la détacher ici fabriquerait une
-                         dépense que plus rien ne justifie **et** une sortie
-                         redevenue incomplète. Le badge mène à l'opération, où la
-                         retirer veut dire quelque chose. */
                       <p className="text-xs text-muted-foreground">
                         {t('banking.attach.ownedHint')}
                       </p>
-                    ) : (
-                      <DetachFromTransactionButton
-                        expenseId={interaction.id}
-                        kind={interaction.kind}
-                        transactionId={interaction.bank_line.id}
-                        className="h-7 px-2 text-xs"
-                      />
-                    )}
+                    ) : null}
+                    <LinkedLineActions
+                      expenseId={interaction.id}
+                      kind={interaction.kind}
+                      transactionId={interaction.bank_line.id}
+                      className="h-7 px-2 text-xs"
+                    />
                   </>
                 ) : (
                   /* Le constat sans le geste à côté n'aide personne : c'est ici

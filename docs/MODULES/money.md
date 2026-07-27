@@ -373,21 +373,32 @@ Le détachement existait côté relevé (bloc « Dépenses déjà rattachées »
 part côté dépense : on pouvait donc désigner la mauvaise opération d'un clic sans
 pouvoir revenir en arrière depuis l'écran où l'erreur se lit. **Un geste réversible
 dont l'annulation vit dans un autre module n'est pas réversible en pratique.**
-`DetachFromTransactionButton` est posé partout où le badge s'affiche avec une
-opération : liste des dépenses, fiche d'une dépense.
+`LinkedLineActions` est posé partout où une dépense s'affiche avec son opération :
+liste des dépenses, fiche d'une dépense, **et le formulaire d'édition** — c'est là
+qu'un clic depuis la liste atterrit aujourd'hui, donc un geste absent de cette
+page-là est un geste introuvable par le chemin le plus fréquenté.
 
-⚠️ **Sauf sur une dépense `kind='bank'`**, et c'est la seule subtilité. Celle-là
-n'a pas été rapprochée : elle **est** la ventilation de l'opération. La détacher
-ne libère rien — elle fabrique d'un seul geste une dépense que plus rien ne
-justifie *et* une sortie redevenue partiellement ventilée : deux écarts pour le
-même argent, exactement ce que le module existe pour supprimer. Le bouton ne s'y
-affiche pas ; le badge mène à l'opération, où la retirer veut dire quelque chose.
+⚠️ **Il y a deux gestes, pas un.** Une dépense `kind='bank'` n'a pas été
+rapprochée : elle **est** la ventilation de l'opération. La détacher ne libère
+rien — elle fabrique d'un seul coup une dépense que plus rien ne justifie *et* une
+sortie redevenue partiellement ventilée : deux écarts pour le même argent, ce que
+le module existe pour supprimer. On lui offre donc **« Modifier la ventilation »**,
+qui mène à l'opération ; le détachement reste pour ce qui a été rapproché après
+coup.
+
+La première version n'offrait que le détachement et **n'affichait rien** sur les
+dépenses issues d'un relevé — c'est-à-dire sur la quasi-totalité des dépenses d'un
+foyer qui importe ses relevés. Trouvé en recette, dans les minutes suivant le
+déploiement. La leçon se généralise : *masquer* un geste inapplicable laisse un
+badge sans issue, et l'utilisateur part chercher ailleurs ce qu'il croit absent —
+il faut nommer le geste applicable à la place.
 
 La règle de propriété est donc désormais déclarée **une fois** côté front
 (`banking/ownership.ts`, miroir de `interactions/kinds.py::OWNED_BY_ALLOCATION_EDITOR`)
 et consommée par l'éditeur de ventilation comme par le bouton — elle était recopiée
 dans `AllocationDialog`, et une règle recopiée est une règle qui divergera.
-Régression : `ui/src/features/banking/DetachFromTransactionButton.test.tsx`.
+Régression : `ui/src/features/banking/LinkedLineActions.test.tsx`, dont le dernier cas
+vérifie qu'**un geste est offert quel que soit le `kind`**.
 
 ### Le doublon de ventilation, et pourquoi le sélecteur a changé de source
 

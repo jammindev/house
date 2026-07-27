@@ -3554,7 +3554,8 @@
       "none": "Keine Buchung hat Platz für diesen Betrag. Importieren Sie den Auszug des Zeitraums, oder prüfen Sie den Betrag.",
       "remaining": "noch {{amount}}",
       "detach": "Lösen",
-      "ownedHint": "Diese Ausgabe ist die Aufteilung der Buchung: Um sie zu entfernen, bearbeiten Sie die Aufteilung in der Buchung."
+      "ownedHint": "Diese Ausgabe ist die Aufteilung der Buchung: Um sie zu entfernen, bearbeiten Sie die Aufteilung in der Buchung.",
+      "editSplit": "Aufteilung bearbeiten"
     }
   },
   "pwa": {
