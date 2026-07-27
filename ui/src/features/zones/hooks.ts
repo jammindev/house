@@ -231,7 +231,10 @@ function normalizeQuery(value: string): string {
  */
 function visibleForQuery(zones: Zone[], query: string): Set<string> {
   const needle = normalizeQuery(query);
-  const byId = new Map(zones.map((z) => [z.id, z]));
+  // Type explicite : `zones.map(z => [z.id, z])` s'infère en `(string | Zone)[][]`,
+  // ce qui donnerait une Map<string | Zone, …> et rendrait la remontée d'ancêtres
+  // circulaire pour le compilateur.
+  const byId = new Map<string, Zone>(zones.map((z) => [z.id, z]));
   const byParent = groupByParent(zones);
 
   const matched = zones.filter((z) => normalizeQuery(z.name).includes(needle));
@@ -242,7 +245,9 @@ function visibleForQuery(zones: Zone[], query: string): Set<string> {
     let current: Zone | undefined = zone;
     while (current && !visible.has(current.id)) {
       visible.add(current.id);
-      const parentId = current.parentId ?? current.parent ?? null;
+      // Annotation explicite : `current` est réaffecté depuis une valeur dérivée
+      // de lui-même, ce que TS lit comme une initialisation circulaire (TS7022).
+      const parentId: string | null = current.parentId ?? current.parent ?? null;
       current = parentId ? byId.get(parentId) : undefined;
     }
     // Descendants
@@ -300,6 +305,26 @@ export function buildZoneRows(
   const rows: ZoneTreeRow[] = [];
   const seen = new Set<string>();
 
+  /**
+   * Marque tout un sous-arbre comme visité sans émettre de ligne.
+   *
+   * Indispensable au pliage : le filet à orphelins en fin de fonction repêche
+   * tout ce qui n'a pas été vu, donc sans ce marquage il **réinjectait au
+   * niveau 0** les enfants qu'un pliage venait d'écarter — replier ne masquait
+   * rien, ça descendait les enfants en bas de la liste, désindentés.
+   */
+  const markSubtree = (zoneId: string) => {
+    const queue = [zoneId];
+    while (queue.length > 0) {
+      const currentId = queue.pop()!;
+      for (const child of byParent.get(currentId) ?? []) {
+        if (seen.has(child.id)) continue;
+        seen.add(child.id);
+        queue.push(child.id);
+      }
+    }
+  };
+
   const walk = (zone: Zone, depth: number, isLast: boolean, guides: boolean[]) => {
     if (seen.has(zone.id)) return;
     seen.add(zone.id);
@@ -309,7 +334,11 @@ export function buildZoneRows(
 
     rows.push({ zone, depth, hasChildren, isLast, guides });
 
-    if (!hasChildren || collapsed.has(zone.id)) return;
+    if (!hasChildren) return;
+    if (collapsed.has(zone.id)) {
+      markSubtree(zone.id);
+      return;
+    }
     const childGuides = [...guides, !isLast];
     children.forEach((child, index) =>
       walk(child, depth + 1, index === children.length - 1, childGuides)
@@ -327,7 +356,9 @@ export function buildZoneRows(
 
   roots.forEach((root, index) => walk(root, 0, index === roots.length - 1, []));
 
-  // Orphelins d'un cycle éventuel — jamais silencieusement perdus.
+  // Filet à orphelins : une zone rendue inatteignable par un cycle de parenté
+  // doit rester affichée plutôt que disparaître en silence. Les sous-arbres
+  // repliés sont déjà marqués `seen`, ils ne passent donc pas par ici.
   for (const zone of pool) {
     if (!seen.has(zone.id)) walk(zone, 0, true, []);
   }

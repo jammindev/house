@@ -12,7 +12,9 @@ interface ListPageEmptyConfig {
 
 interface ListPageProps {
   title: string;
-  description?: string;
+  /** Sous-titre — `PageHeader` accepte un node, pas seulement une string
+   *  (ex: un résumé en plusieurs segments séparés par des points médians). */
+  description?: React.ReactNode;
   /** Action buttons shown in the header only when the list is NOT empty */
   actions?: React.ReactNode;
   isEmpty: boolean;
