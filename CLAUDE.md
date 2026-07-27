@@ -421,7 +421,29 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
 - **`inflow_nature == ""` n'est pas `"other"`.** Vide = personne n'a regardé (écart) ;
   `other` = choix de l'utilisateur. Confondre les deux rend le détecteur aveugle.
 - **Un remboursement est une ligne bancaire avec une nature, jamais une dépense
-  négative.** `Interaction.amount` reste toujours positif.
+  négative.** `Interaction.amount` reste toujours positif. Ce qu'il porte en plus,
+  c'est **`BankTransaction.refund_budget`** : l'enveloppe qu'il recrédite. Un
+  article de 40 € rendu sur un achat de 150 € veut dire que le budget a consommé
+  110 €, et sans ce champ « 150 € / 400 € » restait faux pour toujours.
+  - **`spent` reste le brut, `net_spent = spent − refunded` est le chiffre du
+    plafond** (`ratio`/`state` le mesurent). Ne pas redéfinir `spent` : sept
+    agrégations le lisent, et sa décomposition attesté/en attente perdrait son
+    sens.
+  - **C'est la seule soustraction admise entre banque et journal**, et elle
+    n'enfreint pas la règle du dessus parce qu'elle ne retranche pas un *total*
+    bancaire : seulement des lignes que l'utilisateur a désignées une par une.
+    Une recette sans `refund_budget` ne retire rien à personne — et c'est l'écart
+    `refund_without_budget`.
+  - **Un remboursement compte dans son mois**, jamais dans celui de l'achat :
+    l'imputer rétroactivement réécrirait un bilan mensuel déjà figé. Conséquence
+    assumée : un mois peut être net négatif.
+  - **Le bilan mensuel recalcule son propre « dépensé »** (`report/stats.py`) : il
+    a donc fallu l'y ajouter aussi, sinon il annonçait « dépassé » là où l'aperçu
+    affichait « ok ». Régression :
+    `budget/tests/test_refunds.py::TestTheMonthlyReportAgreesWithThePanel`.
+  - Un `CheckConstraint` interdit un `refund_budget` sur autre chose qu'une
+    recette de nature `refund`, et reclasser un remboursement en salaire efface
+    le budget avec lui.
 - **Le pont banque ↔ interactions est `coverage_ratio`, jamais une somme.** Il vaut
   `1.0` quand rien n'est sorti — rien à expliquer n'est pas un reproche.
   `unallocated_outflow` se calcule **par différence sur la requête bancaire**, jamais

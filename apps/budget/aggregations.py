@@ -78,6 +78,43 @@ def _spent_by_budget(household_id, start, end) -> tuple[dict, dict]:
     return spent, attested
 
 
+def _refunded_by_budget(household_id, start, end) -> dict:
+    """Ce que le mois a **rendu** à chaque enveloppe, par ``budget_id``.
+
+    Un article retourné, une cotisation bancaire remboursée : l'enveloppe n'a pas
+    consommé cet argent. Sans ce chiffre, « 150 € / 400 € » reste faux pour
+    toujours sur un achat dont 40 € sont revenus.
+
+    ⚠️ **C'est la seule soustraction entre le monde bancaire et le journal**, et
+    elle est étroite par construction : pas un total « banque » retranché d'un
+    total « interactions » — ce que la règle du projet interdit, parce que les
+    deux ne couvrent pas le même périmètre — mais la somme de lignes que
+    l'utilisateur a **désignées une par une** comme créditant cette enveloppe.
+    Une ligne sans ``refund_budget`` ne retire rien à personne.
+
+    Le remboursement compte dans **son** mois, jamais dans celui de l'achat :
+    l'imputer rétroactivement réécrirait un bilan mensuel déjà figé, que le rendu
+    et le digest relisent. Conséquence assumée : un mois peut être net négatif si
+    on s'est fait rembourser plus qu'on n'a dépensé. C'est un fait, pas un bug.
+    """
+    from banking.models import BankTransaction, InflowNature, TransactionDirection
+
+    rows = (
+        BankTransaction.objects.filter(
+            household_id=household_id,
+            direction=TransactionDirection.IN,
+            inflow_nature=InflowNature.REFUND,
+            refund_budget__isnull=False,
+            booked_on__gte=start.date(),
+            booked_on__lt=end.date(),
+        )
+        .values("refund_budget_id")
+        .annotate(total=Coalesce(Sum("amount"), _zero()))
+    )
+    # ``amount`` est signé et une recette est positive : rien à inverser ici.
+    return {row["refund_budget_id"]: row["total"] or _zero() for row in rows}
+
+
 def _committed_by_budget(household_id, start, end) -> dict:
     """Sum of recurring-expense amounts DUE this month, grouped by ``budget_id``.
 
@@ -122,21 +159,33 @@ def _budget_row(
     spent: Decimal,
     committed: Decimal | None = None,
     attested: Decimal | None = None,
+    refunded: Decimal | None = None,
 ) -> dict[str, Any]:
-    ratio, state = _state(spent, budget.monthly_amount)
     seen = attested if attested is not None else _zero()
+    given_back = refunded if refunded is not None else _zero()
+    net = spent - given_back
+    # C'est le **net** que le plafond mesure : de l'argent rendu n'a pas été
+    # dépensé. Mesurer le brut laisserait « 150 € / 400 € » sur un achat dont
+    # 40 € sont revenus, c'est-à-dire un plafond qu'on atteint plus vite que la
+    # réalité — l'inverse du service rendu.
+    ratio, state = _state(net, budget.monthly_amount)
     return {
         "id": str(budget.id),
         "name": budget.name,
         # ``None``, never "0.00": stringified, a missing ceiling and a ceiling of
         # zero read the same — and the second one is permanently over budget.
         "amount": None if budget.monthly_amount is None else _str(budget.monthly_amount),
+        # ``spent`` reste le **brut** : sept agrégations le lisent, et le
+        # décomposer en attesté/en attente n'aurait plus de sens s'il changeait de
+        # définition. Le net est un chiffre de plus, pas une redéfinition.
         "spent": _str(spent),
-        # Deux chiffres **additionnels** : ``spent`` reste le compteur du plafond.
-        # ``spent_attested`` est ce qu'une ligne de relevé justifie, ``spent_pending``
-        # le reste. La somme des deux vaut ``spent``, toujours.
+        # Deux chiffres **additionnels** : ``spent_attested`` est ce qu'une ligne
+        # de relevé justifie, ``spent_pending`` le reste. Leur somme vaut
+        # ``spent``, toujours.
         "spent_attested": _str(seen),
         "spent_pending": _str(spent - seen),
+        "refunded": _str(given_back),
+        "net_spent": _str(net),
         "committed": _str(committed if committed is not None else _zero()),
         "ratio": round(ratio, 4),
         "state": state,
@@ -152,11 +201,13 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
           "month": "2026-07",
           "global": {id, name, amount, spent, ratio, state} | null,
           "budgets": [{id, name, amount, spent, spent_attested, spent_pending,
-                       committed, ratio, state}, ...],
+                       refunded, net_spent, committed, ratio, state}, ...],
           "unbudgeted": "700.00",
           "total_spent": "1850.00",
           "total_attested": "1600.00",
           "total_pending": "250.00",
+          "total_refunded": "40.00",
+          "total_net_spent": "1810.00",
           "named_total_amount": "1400.00",
           "named_exceeds_global": false
         }
@@ -164,10 +215,16 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     ``spent_attested + spent_pending == spent``, par construction : le second est
     calculé par différence. Deux sommes indépendantes finiraient par se contredire
     d'un centime d'arrondi, et un total qui ne se recompose pas ne se lit pas.
+
+    ``net_spent == spent - refunded``, et c'est **le net que ``ratio``/``state``
+    mesurent** : de l'argent rendu n'a pas été dépensé. ``spent`` garde sa
+    définition brute — sept agrégations le lisent, et sa décomposition
+    attesté/en attente perdrait son sens s'il changeait.
     """
     start, end, month = current_month_range(household)
     spent_map, attested_map = _spent_by_budget(household.id, start, end)
     committed_map = _committed_by_budget(household.id, start, end)
+    refunded_map = _refunded_by_budget(household.id, start, end)
 
     budgets = list(Budget.objects.filter(household_id=household.id))
     named = [b for b in budgets if not b.is_global]
@@ -176,6 +233,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     total_spent = sum(spent_map.values(), _zero())
     total_attested = sum(attested_map.values(), _zero())
     total_committed = sum(committed_map.values(), _zero())
+    total_refunded = sum(refunded_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
     named_rows = [
@@ -184,6 +242,7 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
             spent_map.get(b.id, _zero()),
             committed_map.get(b.id, _zero()),
             attested_map.get(b.id, _zero()),
+            refunded_map.get(b.id, _zero()),
         )
         for b in named
     ]
@@ -196,7 +255,9 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
     global_row = None
     named_exceeds_global = False
     if global_budget is not None:
-        global_row = _budget_row(global_budget, total_spent, total_committed, total_attested)
+        global_row = _budget_row(
+            global_budget, total_spent, total_committed, total_attested, total_refunded
+        )
         named_exceeds_global = (
             global_budget.monthly_amount is not None
             and named_total_amount > global_budget.monthly_amount
@@ -210,6 +271,8 @@ def compute_budget_overview(*, household) -> dict[str, Any]:
         "total_spent": _str(total_spent),
         "total_attested": _str(total_attested),
         "total_pending": _str(total_spent - total_attested),
+        "total_refunded": _str(total_refunded),
+        "total_net_spent": _str(total_spent - total_refunded),
         "total_committed": _str(total_committed),
         "named_total_amount": _str(named_total_amount),
         "named_exceeds_global": named_exceeds_global,

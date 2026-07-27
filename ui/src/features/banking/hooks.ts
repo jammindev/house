@@ -175,10 +175,15 @@ export function useImportStatementFile() {
 
 // --- Journal bancaire (lot 3) -----------------------------------------------
 
-export function useTransactions(filters: TransactionFilters, limit = 50) {
+export function useTransactions(
+  filters: TransactionFilters,
+  limit = 50,
+  options: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: bankingKeys.transactions(filters, limit),
     queryFn: () => fetchTransactions(filters, limit),
+    enabled: options.enabled ?? true,
   });
 }
 
@@ -198,7 +203,12 @@ export function useQualifyTransaction() {
       payload,
     }: {
       id: string;
-      payload: { is_internal?: boolean; notes?: string; inflow_nature?: InflowNature };
+      payload: {
+        is_internal?: boolean;
+        notes?: string;
+        inflow_nature?: InflowNature;
+        refund_budget_id?: string | null;
+      };
     }) => qualifyTransaction(id, payload),
     onSuccess: () => {
       invalidate();

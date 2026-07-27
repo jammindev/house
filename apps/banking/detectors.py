@@ -47,7 +47,7 @@ from .compliance import (
     register,
 )
 from .coverage import accounts_with_window, household_covered_period, period_gaps
-from .models import BankAccount, BankTransaction, ImportStatus
+from .models import BankAccount, BankTransaction, ImportStatus, InflowNature
 from .queries import with_allocation
 
 #: Kind keys — imported by tests and by the services layer, never retyped.
@@ -59,6 +59,7 @@ ACCOUNT_WITHOUT_WINDOW = "account_without_window"
 ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
 INFLOW_UNCLASSIFIED = "inflow_unclassified"
+REFUND_WITHOUT_BUDGET = "refund_without_budget"
 INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
 RECURRING_OVERDUE = "recurring_overdue"
 RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
@@ -389,6 +390,48 @@ def _find_unclassified_inflow(household, **window) -> list[Finding]:
             },
         )
         for txn in apply_window(_unclassified_inflow_qs(household), **window)
+    ]
+
+
+def _refund_without_budget_qs(household):
+    """Refunds that give the money back to nobody.
+
+    Classing a receipt « remboursement » says an expense was undone. If no
+    envelope is named, the budget keeps counting money the household got back —
+    « 150 € / 400 € » on an article returned for 40 €, for as long as that month
+    is looked at.
+
+    It is legitimately waivable, and often: a refunded bank fee that was never
+    budgeted credits nothing, and saying so is the arbitration. What is not
+    acceptable is the silence — hence a detector rather than a blank field.
+    """
+    return _scoped_lines(household).filter(
+        amount__gt=0,
+        is_internal=False,
+        inflow_nature=InflowNature.REFUND,
+        refund_budget__isnull=True,
+    )
+
+
+def _count_refund_without_budget(household) -> int:
+    return _refund_without_budget_qs(household).count()
+
+
+def _find_refund_without_budget(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=REFUND_WITHOUT_BUDGET,
+            object_id=str(txn.pk),
+            label=f"{txn.booked_on.isoformat()} · {txn.label_raw[:80]}",
+            fingerprint=fingerprint_of(REFUND_WITHOUT_BUDGET, txn.amount),
+            detail={
+                "account_name": txn.account.name,
+                "booked_on": txn.booked_on.isoformat(),
+                "label": txn.label_raw,
+                "amount": str(txn.amount),
+            },
+        )
+        for txn in apply_window(_refund_without_budget_qs(household), **window)
     ]
 
 
@@ -924,6 +967,16 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_unclassified_inflow,
             findings=_find_unclassified_inflow,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
+        ),
+        DetectorSpec(
+            kind=REFUND_WITHOUT_BUDGET,
+            severity=WARNING,
+            label="Refund that credits no envelope",
+            target="transaction",
+            model=BankTransaction,
+            count=_count_refund_without_budget,
+            findings=_find_refund_without_budget,
             blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(

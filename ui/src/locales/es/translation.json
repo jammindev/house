@@ -1644,7 +1644,7 @@
           },
           "track": {
             "title": "Seguir el mes",
-            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual. La barra tiene dos matices: la parte sólida es lo que una línea del extracto acredita, la parte pálida lo que aún espera conciliación. El contador cuenta todo — un gasto de ayer es real incluso antes de importar el extracto."
+            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual. La barra tiene dos matices: la parte sólida es lo que una línea del extracto acredita, la parte pálida lo que aún espera conciliación. El contador cuenta todo — un gasto de ayer es real incluso antes de importar el extracto. Un reembolso (artículo devuelto, cuota reembolsada) se deduce: el contador muestra el neto, y la línea del reembolso aparece bajo los gastos."
           },
           "analysis": {
             "title": "Ver adónde va de verdad",
@@ -3211,7 +3211,8 @@
     "uncapped": {
       "hint": "Categoría seguida, sin tope"
     },
-    "pending": "De los cuales {{amount}} pendientes de conciliación"
+    "pending": "De los cuales {{amount}} pendientes de conciliación",
+    "refunded": "{{spent}} gastados, {{refunded}} reembolsados"
   },
   "budgetDetail": {
     "description": "Los gastos que componen este contador.",
@@ -3220,7 +3221,8 @@
     "count_other": "{{count}} gastos",
     "empty": "Ningún gasto en este periodo",
     "emptyDescription": "Cambia de periodo o clasifica gastos en este presupuesto.",
-    "truncated": "Mostrando {{shown}} de {{total}} gastos."
+    "truncated": "Mostrando {{shown}} de {{total}} gastos.",
+    "refundsTitle": "Reembolsos del periodo"
   },
   "analysis": {
     "title": "Análisis de gastos",
@@ -3496,7 +3498,10 @@
         "refund": "Reembolso",
         "transfer": "Transferencia entre mis cuentas",
         "other": "Otro"
-      }
+      },
+      "refundBudget": "Presupuesto acreditado",
+      "refundBudgetNone": "Ningún presupuesto",
+      "refundBudgetHint": "El sobre que recupera este dinero. Déjalo vacío si el reembolso no afecta a ningún presupuesto — el control te pedirá entonces que lo arbitres."
     },
     "anchor": {
       "title": "Encontrar el saldo inicial",
@@ -3732,6 +3737,11 @@
           "title": "El saldo leído ya no cuadra",
           "hint": "El saldo inicial se reconstruyó a partir de un saldo que leíste. La aritmética ya no cierra.",
           "resolution": "Han cambiado operaciones desde entonces. Importa el extracto que falta, o vuelve a leer tu saldo y reconstrúyelo: mientras persista la diferencia, todos los saldos de esta cuenta están equivocados en la misma cantidad."
+        },
+        "refund_without_budget": {
+          "title": "Reembolsos sin sobre",
+          "hint": "Este dinero volvió, pero ningún presupuesto lo recupera: el contador del mes sigue inflado por ese importe.",
+          "resolution": "Elige el presupuesto acreditado desde el diario bancario, o arbitra si el reembolso no afecta a ningún sobre."
         }
       },
       "blocked": "Control no evaluable",

@@ -1644,7 +1644,7 @@
           },
           "track": {
             "title": "Track the month",
-            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way. The bar comes in two shades: the solid part is what a statement line attests to, the pale part what is still awaiting reconciliation. The counter itself counts everything — yesterday's expense is real even before the statement is imported."
+            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month. Tap a budget to see the expenses its counter is made of — “Unbudgeted” opens the same way. The bar comes in two shades: the solid part is what a statement line attests to, the pale part what is still awaiting reconciliation. The counter itself counts everything — yesterday's expense is real even before the statement is imported. A refund (returned item, reimbursed fee) is deducted: the counter shows the net, and the refund line appears under the expenses."
           },
           "analysis": {
             "title": "See where it actually goes",
@@ -3211,7 +3211,8 @@
     "uncapped": {
       "hint": "Tracked category, no ceiling"
     },
-    "pending": "Including {{amount}} awaiting reconciliation"
+    "pending": "Including {{amount}} awaiting reconciliation",
+    "refunded": "{{spent}} spent, {{refunded}} refunded"
   },
   "budgetDetail": {
     "description": "The expenses this counter is made of.",
@@ -3220,7 +3221,8 @@
     "count_other": "{{count}} expenses",
     "empty": "No expense in this period",
     "emptyDescription": "Change the period, or sort some expenses into this budget.",
-    "truncated": "Showing {{shown}} of {{total}} expenses."
+    "truncated": "Showing {{shown}} of {{total}} expenses.",
+    "refundsTitle": "Refunds over the period"
   },
   "analysis": {
     "title": "Spending analysis",
@@ -3496,7 +3498,10 @@
         "refund": "Refund",
         "transfer": "Transfer between my accounts",
         "other": "Other"
-      }
+      },
+      "refundBudget": "Budget credited back",
+      "refundBudgetNone": "No budget",
+      "refundBudgetHint": "The envelope this money goes back to. Leave empty if the refund concerns no budget — the control will then ask you to arbitrate it."
     },
     "anchor": {
       "title": "Find the opening balance",
@@ -3732,6 +3737,11 @@
           "title": "Attested balance no longer adds up",
           "hint": "The opening balance was reconstructed from a balance you read. The arithmetic no longer closes.",
           "resolution": "Operations have changed since. Import the missing statement, or read your balance again and rebuild it: while the gap stands, every balance on this account is off by the same amount."
+        },
+        "refund_without_budget": {
+          "title": "Refunds crediting no envelope",
+          "hint": "This money came back, but no budget takes it: the month's counter stays inflated by that much.",
+          "resolution": "Pick the budget credited back from the bank journal, or arbitrate if this refund concerns no envelope."
         }
       },
       "blocked": "Control cannot be evaluated",

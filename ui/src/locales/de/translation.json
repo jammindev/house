@@ -1644,7 +1644,7 @@
           },
           "track": {
             "title": "Den Monat verfolgen",
-            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso. Der Balken hat zwei Abstufungen: der kräftige Teil ist, was eine Kontozeile belegt, der blasse Teil das, was noch abzugleichen ist. Der Zähler selbst zählt alles — eine Ausgabe von gestern ist echt, auch bevor der Auszug importiert ist."
+            "body": "Jedes begrenzte Budget zeigt Ausgaben vs. Obergrenze mit einem Fortschrittsbalken — orange nahe der Grenze, rot bei Überschreitung. Eine Kategorie ohne Obergrenze zeigt nur ihre Summe. Die Zähler starten jeden Monat neu. Tippe auf ein Budget, um die Ausgaben zu sehen, aus denen sein Zähler besteht — „Ohne Budget“ öffnet sich genauso. Der Balken hat zwei Abstufungen: der kräftige Teil ist, was eine Kontozeile belegt, der blasse Teil das, was noch abzugleichen ist. Der Zähler selbst zählt alles — eine Ausgabe von gestern ist echt, auch bevor der Auszug importiert ist. Eine Erstattung (zurückgegebener Artikel, erstattete Gebühr) wird abgezogen: der Zähler zeigt den Nettobetrag, und die Erstattungszeile erscheint unter den Ausgaben."
           },
           "analysis": {
             "title": "Sehen, wohin es wirklich geht",
@@ -3211,7 +3211,8 @@
     "uncapped": {
       "hint": "Verfolgte Kategorie, ohne Obergrenze"
     },
-    "pending": "Davon {{amount}} noch nicht abgeglichen"
+    "pending": "Davon {{amount}} noch nicht abgeglichen",
+    "refunded": "{{spent}} ausgegeben, {{refunded}} erstattet"
   },
   "budgetDetail": {
     "description": "Die Ausgaben, aus denen dieser Zähler besteht.",
@@ -3220,7 +3221,8 @@
     "count_other": "{{count}} Ausgaben",
     "empty": "Keine Ausgabe in diesem Zeitraum",
     "emptyDescription": "Ändere den Zeitraum oder ordne Ausgaben diesem Budget zu.",
-    "truncated": "{{shown}} von {{total}} Ausgaben angezeigt."
+    "truncated": "{{shown}} von {{total}} Ausgaben angezeigt.",
+    "refundsTitle": "Erstattungen im Zeitraum"
   },
   "analysis": {
     "title": "Ausgabenanalyse",
@@ -3496,7 +3498,10 @@
         "refund": "Rückerstattung",
         "transfer": "Übertrag zwischen eigenen Konten",
         "other": "Sonstiges"
-      }
+      },
+      "refundBudget": "Gutgeschriebenes Budget",
+      "refundBudgetNone": "Kein Budget",
+      "refundBudgetHint": "Der Umschlag, der dieses Geld zurückbekommt. Leer lassen, wenn die Erstattung kein Budget betrifft — die Kontrolle bittet Sie dann um eine Entscheidung."
     },
     "anchor": {
       "title": "Eröffnungssaldo ermitteln",
@@ -3732,6 +3737,11 @@
           "title": "Abgelesener Saldo stimmt nicht mehr",
           "hint": "Der Eröffnungssaldo wurde aus einem von dir abgelesenen Saldo rekonstruiert. Die Rechnung geht nicht mehr auf.",
           "resolution": "Seitdem haben sich Buchungen geändert. Importiere den fehlenden Auszug oder lies deinen Saldo erneut ab und rekonstruiere ihn: Solange die Differenz besteht, sind alle Salden dieses Kontos um denselben Betrag falsch."
+        },
+        "refund_without_budget": {
+          "title": "Erstattungen ohne Umschlag",
+          "hint": "Dieses Geld kam zurück, aber kein Budget nimmt es auf: der Monatszähler bleibt um diesen Betrag zu hoch.",
+          "resolution": "Wählen Sie im Bankjournal das gutgeschriebene Budget, oder entscheiden Sie, dass die Erstattung keinen Umschlag betrifft."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",

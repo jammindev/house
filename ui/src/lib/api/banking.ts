@@ -238,6 +238,9 @@ export interface BankTransaction {
   direction: TransactionDirection;
   is_internal: boolean;
   inflow_nature: InflowNature;
+  /** Budget recrédité par un remboursement — jamais posé sur autre chose. */
+  refund_budget: string | null;
+  refund_budget_name: string | null;
   balance_after: string | null;
   external_id: string;
   notes: string;
@@ -271,6 +274,8 @@ export interface TransactionFilters {
   is_internal?: 'true' | 'false' | '';
   /** `'todo'` = seulement les sorties que le contrôle réclame (non ventilées ou partielles). */
   allocation?: 'todo' | '';
+  /** Id du budget qu'un remboursement recrédite — pour la page d'un budget. */
+  refund_budget?: string;
   q?: string;
 }
 
@@ -322,7 +327,13 @@ export async function fetchAccountFlow(filters: TransactionFilters = {}): Promis
 /** La seule écriture admise sur une ligne de relevé. */
 export async function qualifyTransaction(
   id: string,
-  payload: { is_internal?: boolean; notes?: string; inflow_nature?: InflowNature },
+  payload: {
+    is_internal?: boolean;
+    notes?: string;
+    inflow_nature?: InflowNature;
+    /** Budget qu'un remboursement recrédite. `null` détache. */
+    refund_budget_id?: string | null;
+  },
 ): Promise<BankTransaction> {
   const { data } = await api.patch<BankTransaction>(
     `/banking/transactions/${id}/qualify/`,

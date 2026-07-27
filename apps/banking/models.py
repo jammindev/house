@@ -288,6 +288,21 @@ class BankTransaction(HouseholdScopedModel):
             "control reports."
         ),
     )
+    refund_budget = models.ForeignKey(
+        "budget.Budget",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="refunds",
+        help_text=_(
+            "Budget this refund credits back. Only meaningful on an inflow "
+            "classified `refund`: returning a 40 € item means the envelope "
+            "consumed 110 € of the 150 € spent, not 150 €. Kept here rather than "
+            "as a negative Interaction — `Interaction.amount` never goes negative, "
+            "which is what protects the nine Sum('amount') aggregations. SET_NULL: "
+            "deleting a budget must never destroy a bank line."
+        ),
+    )
     balance_after = models.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -368,6 +383,17 @@ class BankTransaction(HouseholdScopedModel):
                     | models.Q(direction=TransactionDirection.IN, amount__gt=0)
                 ),
                 name="bank_txn_direction_matches_sign",
+            ),
+            # A budget on anything but a refund would credit an envelope from a
+            # salary or a transfer. The serializer refuses it too, but this is the
+            # kind of invariant that survives a future write path only if the
+            # database holds it.
+            models.CheckConstraint(
+                condition=(
+                    models.Q(refund_budget__isnull=True)
+                    | models.Q(inflow_nature=InflowNature.REFUND)
+                ),
+                name="bank_txn_refund_budget_only_on_refund",
             ),
         ]
         indexes = [

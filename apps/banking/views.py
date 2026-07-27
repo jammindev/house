@@ -358,7 +358,7 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             queries.with_allocation(
                 BankTransaction.objects.for_user_households(self.request.user)
             )
-            .select_related("account")
+            .select_related("account", "refund_budget")
             .order_by("-booked_on", "-line_no", "-created_at")
         )
         if self.request.household:
@@ -376,6 +376,13 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         date_to = _parse_date_param(params.get("date_to"), "date_to")
         if date_to:
             qs = qs.filter(booked_on__lte=date_to)
+
+        # Les remboursements d'une enveloppe — ce qui permet à la page d'un budget
+        # d'afficher la ligne qui lui a rendu de l'argent, à côté des dépenses qui
+        # l'ont consommé.
+        refund_budget = params.get("refund_budget")
+        if refund_budget:
+            qs = qs.filter(refund_budget_id=refund_budget)
 
         direction = params.get("direction")
         if direction:
@@ -440,15 +447,64 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             instance.inflow_nature = nature
             updated_fields.append("inflow_nature")
+            # Reclassing a refund as a salary must drop the budget with it.
+            # Otherwise the envelope keeps being credited by a line that no longer
+            # claims to refund anything — and the DB check would reject the save
+            # anyway, turning a legitimate edit into a 500.
+            if nature != InflowNature.REFUND and instance.refund_budget_id:
+                instance.refund_budget = None
+                updated_fields.append("refund_budget")
+
+        if "refund_budget_id" in request.data:
+            instance.refund_budget = self._resolve_refund_budget(
+                instance, request.data.get("refund_budget_id")
+            )
+            if "refund_budget" not in updated_fields:
+                updated_fields.append("refund_budget")
 
         if not updated_fields:
             raise ValidationError(
-                {"detail": "Provide 'is_internal', 'inflow_nature' and/or 'notes'."}
+                {
+                    "detail": (
+                        "Provide 'is_internal', 'inflow_nature', 'refund_budget_id' "
+                        "and/or 'notes'."
+                    )
+                }
             )
 
         instance.updated_by = request.user
         instance.save(update_fields=[*updated_fields, "updated_by", "updated_at"])
         return Response(self.get_serializer(instance).data)
+
+    def _resolve_refund_budget(self, instance, raw):
+        """Resolve the budget a refund credits back, or ``None`` to clear it.
+
+        Three refusals, all 400 rather than a silent no-op: a budget on an outflow
+        or on a receipt that is not a refund would credit an envelope from a
+        salary; a budget from another household would let a client move a figure
+        it cannot see; and a global budget is a ceiling over everything, not a
+        category — crediting it directly would double-count against the named
+        envelopes it already sums.
+        """
+        from budget.models import Budget
+
+        if raw in (None, ""):
+            return None
+
+        nature = instance.inflow_nature
+        if instance.amount < 0 or nature != InflowNature.REFUND:
+            raise ValidationError(
+                {"refund_budget_id": "Only a receipt classified as a refund credits a budget."}
+            )
+
+        budget = Budget.objects.filter(pk=raw, household_id=instance.household_id).first()
+        if budget is None:
+            raise ValidationError({"refund_budget_id": "Unknown budget for this household."})
+        if budget.is_global:
+            raise ValidationError(
+                {"refund_budget_id": "The global budget is a ceiling, not a category."}
+            )
+        return budget
 
     @action(detail=False, methods=["post"], url_path="cash-expense")
     def cash_expense(self, request):
