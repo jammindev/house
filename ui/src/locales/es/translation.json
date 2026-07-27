@@ -2420,7 +2420,9 @@
       "remaining_before_hint": "Opcional — cuánto quedaba antes de reabastecer. Alimenta tu historial de consumo.",
       "remaining_adjusted": "Existencias ajustadas de {{from}} a {{to}} {{unit}}",
       "occurred_at": "Fecha de compra",
-      "notes": "Notas"
+      "notes": "Notas",
+      "budget": "Presupuesto",
+      "budget_none": "Sin presupuesto"
     },
     "price_mode": {
       "total": "Total",
@@ -3038,9 +3040,7 @@
       "created": "Gasto registrado",
       "actions": {
         "add": "Nuevo gasto"
-      },
-      "budget": "Presupuesto",
-      "budgetNone": "Sin presupuesto"
+      }
     }
   },
   "aiUsage": {
@@ -3402,8 +3402,6 @@
       "account": "Cuenta de efectivo",
       "accountRequired": "Elija una cuenta de efectivo.",
       "amountRequired": "Indique un importe positivo.",
-      "budget": "Presupuesto",
-      "budgetNone": "Sin presupuesto",
       "recorded": "Gasto registrado en la cuenta de efectivo.",
       "noAccount": "Sin cuenta de efectivo",
       "noAccountHint": "Declare una cuenta «Efectivo» en la pestaña Cuentas: un gasto en metálico pasa entonces a ser una operación de cuenta, como las demás.",

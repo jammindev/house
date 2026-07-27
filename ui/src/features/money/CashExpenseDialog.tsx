@@ -7,7 +7,6 @@ import { Input } from '@/design-system/input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import PurchaseForm, { type PurchaseFormPayload } from '@/features/interactions/PurchaseForm';
-import { useBudgets } from '@/features/budget/hooks';
 import { todayISO } from '@/lib/format';
 import {
   useBankAccounts,
@@ -38,13 +37,11 @@ interface CashExpenseDialogProps {
 export default function CashExpenseDialog({ open, onOpenChange }: CashExpenseDialogProps) {
   const { t } = useTranslation();
   const accountsQuery = useBankAccounts();
-  const { data: budgets } = useBudgets();
   const mutation = useRecordCashExpense();
   const createAccount = useCreateBankAccount();
 
   const [label, setLabel] = React.useState('');
   const [accountId, setAccountId] = React.useState('');
-  const [budgetId, setBudgetId] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
 
   const cashAccounts = React.useMemo(
@@ -52,15 +49,9 @@ export default function CashExpenseDialog({ open, onOpenChange }: CashExpenseDia
     [accountsQuery.data],
   );
 
-  const budgetOptions = React.useMemo(
-    () => (budgets ?? []).filter((b) => !b.is_global).map((b) => ({ value: b.id, label: b.name })),
-    [budgets],
-  );
-
   React.useEffect(() => {
     if (!open) {
       setLabel('');
-      setBudgetId('');
       setError(null);
       return;
     }
@@ -94,7 +85,9 @@ export default function CashExpenseDialog({ open, onOpenChange }: CashExpenseDia
         // `occurred_at` du form est un datetime ; l'opération de compte est datée
         // au jour, comme toute ligne de relevé.
         booked_on: payload.occurred_at ? payload.occurred_at.slice(0, 10) : undefined,
-        budget_id: budgetId || null,
+        // Le budget vient du form partagé, où il est devenu un champ générique
+        // de dépense. En garder une copie ici afficherait deux sélecteurs.
+        budget_id: payload.budget_id,
         notes: payload.notes,
       });
       onOpenChange(false);
@@ -173,18 +166,6 @@ export default function CashExpenseDialog({ open, onOpenChange }: CashExpenseDia
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
                 options={cashAccounts.map((a) => ({ value: a.id, label: a.name }))}
-              />
-            </FormField>
-          ) : null}
-
-          {budgetOptions.length > 0 ? (
-            <FormField label={t('banking.cash.budget')} htmlFor="cash-budget">
-              <Select
-                id="cash-budget"
-                value={budgetId}
-                onChange={(e) => setBudgetId(e.target.value)}
-                placeholder={t('banking.cash.budgetNone')}
-                options={budgetOptions}
               />
             </FormField>
           ) : null}

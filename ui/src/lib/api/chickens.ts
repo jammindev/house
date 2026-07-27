@@ -161,6 +161,8 @@ export interface ChickenPurchasePayload {
   supplier?: string;
   occurred_at?: string | null;
   notes?: string;
+  /** Enveloppe à laquelle imputer la dépense créée. `null` = non classée. */
+  budget_id?: string | null;
 }
 
 export interface ChickenPurchaseResponse extends Chicken {

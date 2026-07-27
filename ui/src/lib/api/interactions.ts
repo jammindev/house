@@ -60,6 +60,8 @@ export interface InteractionListItem {
   source_type?: string | null;
   source_id?: string | null;
   source_label?: string | null;
+  /** Enveloppe qui classe cette dépense — le seul axe qui dit *de quelle nature*. */
+  budget?: { id: string; name: string } | null;
   /** Ligne de relevé dont cette dépense est une ventilation (parcours 25). */
   bank_transaction?: string | null;
   /** `auto` | `manual` | `''` — comment le rapprochement s'est fait. */
@@ -84,6 +86,8 @@ export interface CreateInteractionInput {
   amount?: string | null;
   kind?: string;
   supplier?: string;
+  /** Enveloppe de la dépense ; `null` la retire. Omettre la clé ne change rien. */
+  budget_id?: string | null;
   document_ids?: string[];
   source_type?: string | null;
   source_id?: string | null;

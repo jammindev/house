@@ -226,6 +226,7 @@ def commit_item_to_stock(
     notes: str = "",
     category=None,
     unit: str | None = None,
+    budget_id=None,
 ) -> StockItem:
     """Turn a shopping line into a stock purchase (Lot 4), then remove the line.
 
@@ -267,6 +268,7 @@ def commit_item_to_stock(
         supplier=supplier or "",
         occurred_at=occurred_at,
         notes=notes or "",
+        budget_id=budget_id,
     )
     item.delete()
     return stock_item

@@ -271,10 +271,10 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
     const dialog = await openCashDialog(page);
 
     // Le select "Budget" doit être présent
-    await expect(dialog.locator('#cash-budget')).toBeVisible();
+    await expect(dialog.locator('#purchase-budget')).toBeVisible();
 
     // L'option "Courses Tests" doit être disponible dans le select
-    const select = dialog.locator('#cash-budget');
+    const select = dialog.locator('#purchase-budget');
     await expect(select.locator('option', { hasText: 'Courses Tests' })).toHaveCount(1);
   });
 
@@ -285,7 +285,7 @@ test.describe('Budgets — intégration dépenses ad-hoc', () => {
     await dialog.locator('#cash-label').fill(subject);
 
     // Sélectionner le budget "Courses Tests"
-    await dialog.locator('#cash-budget').selectOption({ label: 'Courses Tests' });
+    await dialog.locator('#purchase-budget').selectOption({ label: 'Courses Tests' });
 
     await page.locator('#purchase-price').fill('85');
     await dialog.getByRole('button', { name: "Enregistrer l'achat" }).click();

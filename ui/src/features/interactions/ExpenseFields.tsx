@@ -1,7 +1,11 @@
+import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@/design-system/input';
 import { Badge } from '@/design-system/badge';
+import { Select } from '@/design-system/select';
+import { FormField } from '@/design-system/form-field';
+import { useBudgets } from '@/features/budget/hooks';
 import LinkedLineActions from '@/features/banking/LinkedLineActions';
 import type { BankLineRef } from '@/lib/api/interactions';
 
@@ -22,6 +26,9 @@ interface ExpenseFieldsProps {
   bankLine?: BankLineRef | null;
   /** Sortie du formulaire quand la dépense vient d'être supprimée d'ici. */
   onDeleted?: () => void;
+  /** Enveloppe actuelle (id), et son écriture. */
+  budgetId: string;
+  onBudgetChange: (value: string) => void;
   /** Read-only unit_price displayed when filled (computed for stock purchases from delta×amount). */
   unitPrice?: string | null;
   unit?: string | null;
@@ -47,10 +54,18 @@ export default function ExpenseFields({
   expenseId,
   bankLine,
   onDeleted,
+  budgetId,
+  onBudgetChange,
   unitPrice,
   unit,
 }: ExpenseFieldsProps) {
   const { t } = useTranslation();
+  const budgetsQuery = useBudgets();
+  // Le plafond global n'est la catégorie de rien : le serveur le refuse.
+  const budgetOptions = React.useMemo(
+    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
+    [budgetsQuery.data],
+  );
   const hasSource = Boolean(sourceLabel && sourceType);
   const link = sourceLink(sourceType, sourceId);
 
@@ -127,6 +142,24 @@ export default function ExpenseFields({
           />
         </div>
       </div>
+
+      {/* Le budget se corrige ici, et pas seulement à la création : c'est le
+          seul axe qui classe un euro, et l'écran d'édition était le seul à ne
+          pas le proposer — on pouvait donc lire « hors budget » sur une dépense
+          sans pouvoir y remédier depuis la page ouverte pour ça. */}
+      {budgetOptions.length > 0 ? (
+        <FormField label={t('purchase.fields.budget')} htmlFor="expense-budget">
+          <Select
+            id="expense-budget"
+            value={budgetId}
+            onChange={(e) => onBudgetChange(e.target.value)}
+            options={[
+              { value: '', label: t('purchase.fields.budget_none') },
+              ...budgetOptions.map((b) => ({ value: b.id, label: b.name })),
+            ]}
+          />
+        </FormField>
+      ) : null}
 
       {unitPrice ? (
         <p className="text-xs text-muted-foreground">

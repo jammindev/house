@@ -2420,7 +2420,9 @@
       "remaining_before_hint": "Optional — wie viel vor dem Auffüllen übrig war. Fließt in deinen Verbrauchsverlauf ein.",
       "remaining_adjusted": "Bestand von {{from}} auf {{to}} {{unit}} angepasst",
       "occurred_at": "Kaufdatum",
-      "notes": "Notizen"
+      "notes": "Notizen",
+      "budget": "Budget",
+      "budget_none": "Kein Budget"
     },
     "price_mode": {
       "total": "Gesamt",
@@ -3038,9 +3040,7 @@
       "created": "Ausgabe erfasst",
       "actions": {
         "add": "Neue Ausgabe"
-      },
-      "budget": "Budget",
-      "budgetNone": "Kein Budget"
+      }
     }
   },
   "aiUsage": {
@@ -3402,8 +3402,6 @@
       "account": "Barkonto",
       "accountRequired": "Wählen Sie ein Barkonto.",
       "amountRequired": "Geben Sie einen positiven Betrag ein.",
-      "budget": "Budget",
-      "budgetNone": "Ohne Budget",
       "recorded": "Ausgabe auf dem Barkonto erfasst.",
       "noAccount": "Kein Barkonto",
       "noAccountHint": "Legen Sie im Reiter Konten ein Konto „Bargeld“ an: eine Barausgabe wird dann eine Kontobuchung wie jede andere.",

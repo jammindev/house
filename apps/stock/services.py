@@ -79,6 +79,7 @@ def purchase_stock_item(
     remaining_before: Decimal | None = None,
     occurred_at: datetime | None = None,
     notes: str = "",
+    budget_id=None,
 ):
     """Compose an inbound stock movement with an expense interaction.
 
@@ -139,6 +140,7 @@ def purchase_stock_item(
         occurred_at=occurred_at,
         notes=notes,
         kind="stock_purchase",
+        budget_id=budget_id,
         extra_metadata={
             "stock_item_name": item.name,
             "brand": brand,

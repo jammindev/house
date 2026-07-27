@@ -2420,7 +2420,9 @@
       "remaining_before_hint": "Optionnel — combien il restait avant de réapprovisionner. Alimente ton historique de consommation.",
       "remaining_adjusted": "Stock ajusté de {{from}} à {{to}} {{unit}}",
       "occurred_at": "Date d'achat",
-      "notes": "Notes"
+      "notes": "Notes",
+      "budget": "Budget",
+      "budget_none": "Aucun budget"
     },
     "price_mode": {
       "total": "Total",
@@ -3038,9 +3040,7 @@
       "created": "Dépense enregistrée",
       "actions": {
         "add": "Nouvelle dépense"
-      },
-      "budget": "Budget",
-      "budgetNone": "Aucun budget"
+      }
     }
   },
   "aiUsage": {
@@ -3402,8 +3402,6 @@
       "account": "Compte espèces",
       "accountRequired": "Choisissez un compte espèces.",
       "amountRequired": "Indiquez un montant positif.",
-      "budget": "Budget",
-      "budgetNone": "Hors budget",
       "recorded": "Dépense enregistrée sur le compte espèces.",
       "noAccount": "Aucun compte espèces",
       "noAccountHint": "Déclarez un compte « Espèces » dans l'onglet Comptes : une dépense en liquide devient alors une opération de compte, comme les autres.",

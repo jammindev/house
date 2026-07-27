@@ -2420,7 +2420,9 @@
       "remaining_before_hint": "Optional — how much was left before restocking. Feeds your consumption history.",
       "remaining_adjusted": "Stock adjusted from {{from}} to {{to}} {{unit}}",
       "occurred_at": "Purchase date",
-      "notes": "Notes"
+      "notes": "Notes",
+      "budget": "Budget",
+      "budget_none": "No budget"
     },
     "price_mode": {
       "total": "Total",
@@ -3038,9 +3040,7 @@
       "created": "Expense recorded",
       "actions": {
         "add": "New expense"
-      },
-      "budget": "Budget",
-      "budgetNone": "No budget"
+      }
     }
   },
   "aiUsage": {
@@ -3402,8 +3402,6 @@
       "account": "Cash account",
       "accountRequired": "Pick a cash account.",
       "amountRequired": "Enter a positive amount.",
-      "budget": "Budget",
-      "budgetNone": "No budget",
       "recorded": "Expense recorded on the cash account.",
       "noAccount": "No cash account",
       "noAccountHint": "Declare a “Cash” account in the Accounts tab: a cash spend then becomes an account operation, like every other.",

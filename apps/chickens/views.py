@@ -13,7 +13,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from core.permissions import IsHouseholdMember
 from documents.mixins import DocumentLinkActionsMixin
-from interactions.services import create_expense_interaction
+from interactions.services import create_expense_interaction, validate_expense_budget
 
 from . import services
 from .models import Chicken, ChickenEvent, EggLog
@@ -87,6 +87,10 @@ class ChickenViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
         serializer = ChickenPurchaseSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        budget_id = validate_expense_budget(
+            chicken.household_id, serializer.validated_data.get('budget_id')
+        )
+
         interaction = create_expense_interaction(
             source=chicken,
             user=request.user,
@@ -95,6 +99,7 @@ class ChickenViewSet(DocumentLinkActionsMixin, viewsets.ModelViewSet):
             occurred_at=serializer.validated_data.get('occurred_at') or timezone.now(),
             notes=serializer.validated_data.get('notes', '') or '',
             kind='chickens_purchase',
+            budget_id=budget_id,
         )
 
         payload = ChickenSerializer(chicken, context=self.get_serializer_context()).data

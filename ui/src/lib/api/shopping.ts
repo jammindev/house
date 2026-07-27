@@ -125,6 +125,8 @@ export interface CommitToStockPayload {
   /** Required only for a free-text line (creates the stock item). */
   category?: string;
   unit?: string;
+  /** Enveloppe à laquelle imputer la dépense créée. `null` = non classée. */
+  budget_id?: string | null;
 }
 
 export async function commitShoppingItemToStock(
@@ -139,6 +141,7 @@ export async function commitShoppingItemToStock(
     notes: payload.notes ?? '',
     category: payload.category ?? undefined,
     unit: payload.unit ?? undefined,
+    budget_id: payload.budget_id ?? null,
   });
   return data as { stock_item: string };
 }
