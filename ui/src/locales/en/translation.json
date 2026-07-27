@@ -1509,6 +1509,10 @@
           "control": {
             "title": "Check that your figures are right",
             "body": "The “Control” tab lists everything standing between you and accurate figures: unaccounted operations, expenses the bank never saw, balances that do not chain. Each one is resolved — or arbitrated with a motive that stays visible and revocable."
+          },
+          "trace": {
+            "title": "Trace it back to the operation",
+            "body": "Every expense shows whether a statement line accounts for it. “Statement of 12 July” is a link: it takes you to the operation, with its amount, its account, and the other expenses it covers. “Awaiting reconciliation” means the opposite — an expense the bank never saw, which is a discrepancy the Control tab counts. Nothing shows outside the checked period: there, the app cannot require anything."
           }
         }
       },
@@ -3037,11 +3041,6 @@
       },
       "budget": "Budget",
       "budgetNone": "No budget"
-    },
-    "provenance": {
-      "statement": "Statement",
-      "cash": "Cash",
-      "pending": "Awaiting reconciliation"
     }
   },
   "aiUsage": {
@@ -3523,6 +3522,23 @@
         "periodGap": "A period of the interval was never imported: the movements to subtract are incomplete.",
         "noLines": "This account holds no operation to subtract."
       }
+    },
+    "transaction": {
+      "notFound": "Operation not found.",
+      "direction": {
+        "out": "Outgoing",
+        "in": "Incoming"
+      },
+      "amount": "Amount",
+      "bookedOn": "Booking date",
+      "valueOn": "Value date",
+      "account": "Account",
+      "balanceAfter": "Balance after operation",
+      "reference": "Bank reference",
+      "allocationsTitle": "What this operation accounts for",
+      "allocatedOf": "{{allocated}} allocated out of {{total}}",
+      "noAllocation": "Nothing is attached to this operation yet.",
+      "remaining": "{{amount}} left to allocate"
     }
   },
   "pwa": {
@@ -3750,6 +3766,13 @@
       "blocked": "Nothing evaluable yet",
       "blockedHint": "A prerequisite blocks the control: {{prerequisite}}. Your operations exist, but no rule can cover them yet.",
       "blockedAction": "Open the control"
+    },
+    "reconciliation": {
+      "label": "Reconciliation",
+      "attested": "Statement of {{date}}",
+      "cash": "Cash on {{date}}",
+      "pending": "Awaiting reconciliation",
+      "out_of_scope": "Outside the checked period"
     }
   }
 }

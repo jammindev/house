@@ -14,6 +14,7 @@ import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { formatAmount, formatDateTime } from '@/lib/format';
+import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import { useInteraction, useDeleteInteraction } from './hooks';
 
 // ── Main page ──────────────────────────────────────────────
@@ -128,6 +129,25 @@ export default function InteractionDetailPage() {
 
           {isExpense && supplier ? (
             <InfoField label={t('interactions.contact_label')}>{supplier}</InfoField>
+          ) : null}
+
+          {/* Rapprochée ou non — et si oui, l'opération qui le prouve. C'est ici
+              que la question se pose vraiment : sur la page d'une dépense, « la
+              banque l'a-t-elle vue passer ? » n'a pas d'autre endroit où être lue. */}
+          {isExpense ? (
+            <InfoField label={t('money.reconciliation.label')}>
+              <div className="space-y-1.5">
+                <ReconciliationBadge
+                  state={interaction.reconciliation_state}
+                  line={interaction.bank_line}
+                />
+                {interaction.bank_line ? (
+                  <p className="text-xs text-muted-foreground">
+                    {interaction.bank_line.account_name} · {interaction.bank_line.label}
+                  </p>
+                ) : null}
+              </div>
+            </InfoField>
           ) : null}
         </dl>
 

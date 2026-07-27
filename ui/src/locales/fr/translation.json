@@ -1509,6 +1509,10 @@
           "control": {
             "title": "Vérifiez que votre vision est juste",
             "body": "L'onglet « Contrôle » énumère tout ce qui empêche vos chiffres d'être exacts : opérations non affectées, dépenses jamais vues par la banque, soldes qui ne s'enchaînent pas. Chaque écart se résout — ou s'arbitre avec un motif, qui reste consultable et révocable."
+          },
+          "trace": {
+            "title": "Remonter à l'opération",
+            "body": "Chaque dépense affiche si une ligne de relevé la justifie. « Relevé du 12 juillet » est cliquable : vous arrivez sur l'opération, avec son montant, son compte, et les autres dépenses qu'elle couvre. « En attente de rapprochement » signale au contraire une dépense que la banque n'a jamais vue — c'est un écart, et le Contrôle la compte. Rien n'apparaît hors de la période contrôlée : là, l'app ne peut rien exiger."
           }
         }
       },
@@ -3037,11 +3041,6 @@
       },
       "budget": "Budget",
       "budgetNone": "Aucun budget"
-    },
-    "provenance": {
-      "statement": "Relevé",
-      "cash": "Espèces",
-      "pending": "En attente de rapprochement"
     }
   },
   "aiUsage": {
@@ -3523,6 +3522,23 @@
         "periodGap": "Une période de l'intervalle n'a jamais été importée : les mouvements à retrancher sont incomplets.",
         "noLines": "Ce compte ne porte aucune opération à retrancher."
       }
+    },
+    "transaction": {
+      "notFound": "Opération introuvable.",
+      "direction": {
+        "out": "Sortie",
+        "in": "Entrée"
+      },
+      "amount": "Montant",
+      "bookedOn": "Date d'opération",
+      "valueOn": "Date de valeur",
+      "account": "Compte",
+      "balanceAfter": "Solde après opération",
+      "reference": "Référence bancaire",
+      "allocationsTitle": "Ce que cette opération justifie",
+      "allocatedOf": "{{allocated}} ventilés sur {{total}}",
+      "noAllocation": "Rien n'est encore rattaché à cette opération.",
+      "remaining": "Reste {{amount}} à ventiler"
     }
   },
   "pwa": {
@@ -3750,6 +3766,13 @@
       "blocked": "Rien d'évaluable pour l'instant",
       "blockedHint": "Un prérequis bloque le contrôle : {{prerequisite}}. Tes opérations existent, mais aucune règle ne peut encore porter sur elles.",
       "blockedAction": "Voir le contrôle"
+    },
+    "reconciliation": {
+      "label": "Rapprochement",
+      "attested": "Relevé du {{date}}",
+      "cash": "Espèces du {{date}}",
+      "pending": "En attente de rapprochement",
+      "out_of_scope": "Hors période contrôlée"
     }
   }
 }

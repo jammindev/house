@@ -94,6 +94,10 @@ export class ZonesService {
     }
     /**
      * Reject stale writes when last_known_updated_at is provided.
+     *
+     * ``partial=True`` doit être réinjecté : router vers ``update()`` sans lui
+     * faisait valider tout PATCH comme un PUT complet, donc un PATCH d'un seul
+     * champ (``{"surface": "24.75"}``) repartait en 400 pour ``name`` manquant.
      * @param id A UUID string identifying this zone.
      * @param requestBody
      * @returns Zone
@@ -223,6 +227,30 @@ export class ZonesService {
         });
     }
     /**
+     * Décale la zone d'un rang parmi ses frères (`{"direction": "up"|"down"}`).
+     *
+     * Sert le menu contextuel de la liste. Être déjà en butée n'est pas une
+     * erreur — la réponse porte `moved: false` et le client n'a rien à deviner.
+     * @param id A UUID string identifying this zone.
+     * @param requestBody
+     * @returns Zone
+     * @throws ApiError
+     */
+    public static zonesMoveCreate(
+        id: string,
+        requestBody: Zone,
+    ): CancelablePromise<Zone> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/zones/{id}/move/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Get photos linked to this zone.
      * @param id A UUID string identifying this zone.
      * @returns Zone
@@ -262,6 +290,25 @@ export class ZonesService {
             path: {
                 'id': id,
             },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
+     * Applique un ordre explicite à une fratrie (glisser-déposer).
+     *
+     * Corps : `{"parent": "<uuid>|null", "zone_ids": [...]}` — la liste doit
+     * couvrir toute la fratrie, le service refuse un sous-ensemble.
+     * @param requestBody
+     * @returns Zone
+     * @throws ApiError
+     */
+    public static zonesReorderCreate(
+        requestBody: Zone,
+    ): CancelablePromise<Zone> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/zones/reorder/',
             body: requestBody,
             mediaType: 'application/json',
         });

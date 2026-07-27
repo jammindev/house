@@ -263,6 +263,12 @@ Une recette, un mouvement interne et une contrepartie espèces n'ont **pas** de
 marqueur (état `""`) : il n'y a rien à ventiler, et un badge y serait un faux
 reproche.
 
+**Le marqueur symétrique existe côté dépense** — `queries.reconciliation_state`,
+même fenêtre, mêmes règles, même exception (« être fait est un fait »). Il répond
+à la question depuis l'autre rive : *cette dépense, une ligne de relevé la
+justifie-t-elle ?* Voir `docs/MODULES/money.md`, section « Une dépense dit si le
+relevé la justifie ».
+
 ⚠️ `refresh_from_db()` ne rafraîchit **pas** une annotation. Après un
 `PUT allocations/`, la réponse se relit par `get_object()` sur le queryset
 annoté, sinon elle renvoie l'état d'avant l'écriture.
@@ -296,10 +302,18 @@ ignoré : une liste filtrée à tort est pire qu'une erreur.
 
 ### Frontend
 
-Sous-page `/app/banking/transactions` (`TransactionsPage`) : `FlowSummaryCards` en
+Sous-page `/app/money/transactions` (`TransactionsPage`) : `FlowSummaryCards` en
 tête, `TransactionFilters` (recherche, compte, période, pills direction/interne),
 `TransactionList` + `TransactionRow` avec les deux actions de qualification et la
 pastille d'état (`AllocationBadge`). Les filtres sont persistés en session.
+
+Le libellé d'une ligne mène à **`/app/money/transactions/:id`**
+(`TransactionDetailPage`) : l'opération en entier — montant, dates, compte, solde
+imprimé, référence — et surtout **ce qu'elle justifie**, c'est-à-dire les dépenses
+qui la ventilent avec le reste à ventiler. C'est la destination des badges de
+rapprochement du module Argent ; elle tient en une requête
+(`GET …/transactions/{id}/allocations/`, qui renvoie déjà la ligne, ses
+ventilations et les deux totaux).
 
 ## Soldes, continuité & espèces (lot 4)
 

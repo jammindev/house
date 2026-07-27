@@ -601,7 +601,11 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
     def _allocation_payload(self, instance) -> dict:
         from interactions.serializers import InteractionSerializer
 
-        allocations = list(instance.interactions.all().select_related("budget"))
+        allocations = list(
+            instance.interactions.all().select_related(
+                "budget", "household", "bank_transaction__account"
+            )
+        )
         return {
             "transaction": self.get_serializer(instance).data,
             "allocations": InteractionSerializer(allocations, many=True).data,

@@ -15,6 +15,7 @@ from decimal import Decimal
 
 from django.db.models import Case, DecimalField, F, Q, QuerySet, Sum, Value, When
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from .models import BankTransaction
 
@@ -124,6 +125,54 @@ def allocation_state(txn, *, allocated: Decimal, window) -> str:
     if window is None or not window.contains(txn.booked_on):
         return OUT_OF_SCOPE
     return PARTIAL if allocated > 0 else UNALLOCATED
+
+
+# --- The same question, asked from the expense's side ------------------------
+
+#: Not an expense — a note, a renovation entry. No reconciliation to speak of.
+NOT_RECONCILABLE = ""
+#: A statement line justifies this expense.
+ATTESTED = "attested"
+#: A cash-account line justifies it. Attached like the above, but nobody
+#: "reconciled" anything: the operation was typed in with its expense (lot 4).
+CASH = "cash"
+#: No line, and the bank *should* have seen it — the écart ``expense_unreconciled``.
+UNRECONCILED = "pending"
+#: No line, outside the household's conformity horizon. An expense from before
+#: any account was tracked has no line to attach to and never will; one from
+#: after the last import is simply waiting for the next statement. Neither is an
+#: orphan, and saying so in red is what makes a control panel stop being read.
+UNRECONCILED_OUT_OF_SCOPE = "out_of_scope"
+
+
+def reconciliation_state(expense, *, window) -> str:
+    """Whether a statement line justifies this expense, from the reader's side.
+
+    Exact mirror of :func:`allocation_state`, and it exists for the same reason:
+    the answer depends on the conformity window, so a client that derives it from
+    ``bank_transaction == null`` will contradict the Contrôle tab — green in one
+    screen, écart in the other, and both lose their credit. The window is the
+    household's (:func:`coverage.household_covered_period`), the same one
+    ``detectors._unreconciled_qs`` filters on.
+
+    Same deliberate asymmetry as the bank side: an expense that *is* attached
+    reads « rapprochée » even outside the window. Being done is a fact; being
+    required is a scope.
+    """
+    if expense.type != "expense":
+        return NOT_RECONCILABLE
+
+    account = getattr(getattr(expense, "bank_transaction", None), "account", None)
+    if account is not None:
+        return CASH if account.kind == account.Kind.CASH else ATTESTED
+
+    # ``localdate`` and not ``.date()``: the detector filters on ``occurred_at__date``,
+    # which SQL evaluates in the *active* timezone. Two readings of the same
+    # instant that differ by a day is precisely the disagreement this function
+    # exists to prevent.
+    if window is None or not window.contains(timezone.localdate(expense.occurred_at)):
+        return UNRECONCILED_OUT_OF_SCOPE
+    return UNRECONCILED
 
 
 def sum_outflow(qs: QuerySet) -> Decimal:

@@ -1,3 +1,4 @@
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Banknote,
@@ -13,6 +14,7 @@ import {
 import { Card } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import { formatAmount } from '@/lib/format';
+import { pushBack } from '@/lib/backNavigation';
 import type { BankTransaction } from '@/lib/api/banking';
 
 interface TransactionRowProps {
@@ -41,6 +43,7 @@ export default function TransactionRow({
   onClassify,
 }: TransactionRowProps) {
   const { t } = useTranslation();
+  const location = useLocation();
   const isOut = transaction.direction === 'out';
   const hasCounterpart = Boolean(transaction.transfer_counterpart);
 
@@ -80,9 +83,13 @@ export default function TransactionRow({
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
             {/* Libellé brut de la banque — jamais réécrit. */}
-            <span className="truncate text-sm font-medium text-foreground">
+            <Link
+              to={`/app/money/transactions/${transaction.id}`}
+              state={pushBack(location)}
+              className="truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
+            >
               {transaction.label_raw}
-            </span>
+            </Link>
             <span
               className={`shrink-0 text-sm font-semibold tabular-nums ${
                 transaction.is_internal

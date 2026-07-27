@@ -1,4 +1,5 @@
 import { api } from '@/lib/axios';
+import type { BankLineRef, ReconciliationState } from '@/lib/api/interactions';
 
 export type ProjectStatus = 'draft' | 'active' | 'on_hold' | 'completed' | 'cancelled';
 export type ProjectType =
@@ -201,6 +202,9 @@ export interface ProjectInteractionItem {
   content: string;
   type: string;
   occurred_at: string;
+  /** Sur une dépense : est-ce qu'une ligne de relevé la justifie (verdict serveur). */
+  reconciliation_state?: ReconciliationState;
+  bank_line?: BankLineRef | null;
 }
 
 export async function fetchProjectInteractions(

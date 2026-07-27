@@ -1509,6 +1509,10 @@
           "control": {
             "title": "Prüfen, ob Ihre Zahlen stimmen",
             "body": "Der Reiter „Kontrolle“ zeigt alles, was genauen Zahlen im Weg steht: nicht zugeordnete Buchungen, Ausgaben, die die Bank nie gesehen hat, Salden, die nicht zusammenpassen. Jede Abweichung wird gelöst — oder mit einer Begründung abgelegt, die sichtbar und widerrufbar bleibt."
+          },
+          "trace": {
+            "title": "Zur Buchung zurückgehen",
+            "body": "Jede Ausgabe zeigt, ob eine Kontoauszugszeile sie belegt. „Kontoauszug vom 12. Juli“ ist ein Link: Sie landen auf der Buchung, mit Betrag, Konto und den weiteren Ausgaben, die sie abdeckt. „Abgleich ausstehend“ bedeutet das Gegenteil — eine Ausgabe, die die Bank nie gesehen hat, also eine Abweichung, die das Kontrollregister zählt. Außerhalb des geprüften Zeitraums erscheint nichts: dort kann die App nichts verlangen."
           }
         }
       },
@@ -3037,11 +3041,6 @@
       },
       "budget": "Budget",
       "budgetNone": "Kein Budget"
-    },
-    "provenance": {
-      "statement": "Auszug",
-      "cash": "Bargeld",
-      "pending": "Abgleich ausstehend"
     }
   },
   "aiUsage": {
@@ -3523,6 +3522,23 @@
         "periodGap": "Ein Zeitraum des Intervalls wurde nie importiert: Die abzuziehenden Bewegungen sind unvollständig.",
         "noLines": "Dieses Konto enthält keine Buchung zum Abziehen."
       }
+    },
+    "transaction": {
+      "notFound": "Buchung nicht gefunden.",
+      "direction": {
+        "out": "Ausgang",
+        "in": "Eingang"
+      },
+      "amount": "Betrag",
+      "bookedOn": "Buchungsdatum",
+      "valueOn": "Wertstellung",
+      "account": "Konto",
+      "balanceAfter": "Saldo nach Buchung",
+      "reference": "Bankreferenz",
+      "allocationsTitle": "Wofür diese Buchung steht",
+      "allocatedOf": "{{allocated}} von {{total}} zugeordnet",
+      "noAllocation": "Dieser Buchung ist noch nichts zugeordnet.",
+      "remaining": "Noch {{amount}} zuzuordnen"
     }
   },
   "pwa": {
@@ -3750,6 +3766,13 @@
       "blocked": "Noch nichts bewertbar",
       "blockedHint": "Eine Voraussetzung blockiert die Kontrolle: {{prerequisite}}. Ihre Buchungen existieren, aber keine Regel kann sie erfassen.",
       "blockedAction": "Kontrolle öffnen"
+    },
+    "reconciliation": {
+      "label": "Abgleich",
+      "attested": "Kontoauszug vom {{date}}",
+      "cash": "Bargeld vom {{date}}",
+      "pending": "Abgleich ausstehend",
+      "out_of_scope": "Außerhalb des geprüften Zeitraums"
     }
   }
 }

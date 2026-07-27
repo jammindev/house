@@ -55,6 +55,9 @@ const BudgetDetailPage = lazyWithReload(() => import('./features/money/BudgetDet
 const BankingTransactionsPage = lazyWithReload(
   () => import('./features/banking/TransactionsPage'),
 );
+const BankingTransactionDetailPage = lazyWithReload(
+  () => import('./features/banking/TransactionDetailPage'),
+);
 const ChangelogPage = lazyWithReload(() => import('./features/changelog/ChangelogPage'));
 const TutorialsPage = lazyWithReload(() => import('./features/tutorials/TutorialsPage'));
 const TutorialGuidePage = lazyWithReload(() => import('./features/tutorials/TutorialGuidePage'));
@@ -88,6 +91,7 @@ export const router = createBrowserRouter([
       { path: 'interactions/:id/edit', element: <InteractionEditPage /> },
       { path: 'money', element: <MoneyPage /> },
       { path: 'money/transactions', element: <BankingTransactionsPage /> },
+      { path: 'money/transactions/:id', element: <BankingTransactionDetailPage /> },
       { path: 'money/analysis', element: <MoneyAnalysisPage /> },
       { path: 'money/budgets/:id', element: <BudgetDetailPage /> },
       { path: 'money/recurring', element: <RecurringPage /> },
