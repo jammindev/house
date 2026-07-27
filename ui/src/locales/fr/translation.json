@@ -3554,7 +3554,10 @@
       "none": "Aucune opération n'a la place pour ce montant. Importez le relevé de la période, ou vérifiez le montant de la dépense.",
       "remaining": "reste {{amount}}",
       "detach": "Détacher",
-      "ownedHint": "Cette dépense est la ventilation de l'opération : pour la retirer, modifiez la ventilation depuis l'opération."
+      "ownedHint": "Cette dépense est la ventilation de l'opération : la supprimer rend la ligne à « À ranger ». L'opération, elle, n'est jamais touchée.",
+      "removeSplit": "Supprimer la ventilation",
+      "removeSplitHint": "Supprime cette dépense ; l'opération bancaire n'est pas touchée et redevient à ranger.",
+      "splitRemoved": "Ventilation supprimée"
     }
   },
   "pwa": {

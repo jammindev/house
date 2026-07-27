@@ -3554,7 +3554,10 @@
       "none": "No operation has room for this amount. Import the period's statement, or check the expense amount.",
       "remaining": "{{amount}} left",
       "detach": "Detach",
-      "ownedHint": "This expense *is* the operation's allocation: to remove it, edit the allocation from the operation."
+      "ownedHint": "This expense *is* the operation's allocation: removing it sends the line back to the queue. The operation itself is never touched.",
+      "removeSplit": "Remove the allocation",
+      "removeSplitHint": "Deletes this expense; the bank operation is untouched and goes back to the queue.",
+      "splitRemoved": "Allocation removed"
     }
   },
   "pwa": {

@@ -8,7 +8,7 @@ import { Button } from '@/design-system/button';
 import { formatAmount, formatDate } from '@/lib/format';
 import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
-import DetachFromTransactionButton from '@/features/banking/DetachFromTransactionButton';
+import LinkedLineActions from '@/features/banking/LinkedLineActions';
 import type { InteractionListItem } from '@/lib/api/interactions';
 
 interface ExpenseListProps {
@@ -72,7 +72,7 @@ export default function ExpenseList({ items }: ExpenseListProps) {
                           ligne est une erreur d'un clic, s'en dédire ne doit pas
                           demander d'aller la chercher dans l'autre module. */}
                       {item.bank_line ? (
-                        <DetachFromTransactionButton
+                        <LinkedLineActions
                           expenseId={item.id}
                           kind={item.kind}
                           transactionId={item.bank_line.id}
