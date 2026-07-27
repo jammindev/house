@@ -44,9 +44,11 @@ test('dépense en espèces — Marché 32 €, opération et ventilation ensembl
   // La dépense apparaît dans l'onglet Dépenses — le libellé est saisi tel quel.
   await expect(page.getByText(label).first()).toBeVisible();
 
-  // Et dans le journal du foyer, comme toute dépense.
+  // Et **pas** dans la page Activité : les dépenses en sont sorties, elles ont
+  // leur module. Leur fiche reste accessible, c'est la liste qui ne les mélange
+  // plus aux notes et aux maintenances.
   await page.goto('/app/interactions');
-  await expect(page.getByText(label).first()).toBeVisible();
+  await expect(page.getByText(label)).toHaveCount(0);
 });
 
 test('dépense en espèces — la ligne apparaît dans le journal bancaire', async ({ page }) => {
