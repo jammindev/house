@@ -3485,7 +3485,9 @@
       "noUnreconciled": "No unreconciled expense fits in what is left.",
       "attach": "Attach",
       "recurringConfirmed": "{{count}} recurrence confirmed",
-      "recurringConfirmed_other": "{{count}} recurrences confirmed"
+      "recurringConfirmed_other": "{{count}} recurrences confirmed",
+      "alreadyTyped_one": "1 expense already typed fits in this line",
+      "alreadyTyped_other": "{{count}} expenses already typed fit in this line"
     },
     "inflow": {
       "title": "Classify this receipt",

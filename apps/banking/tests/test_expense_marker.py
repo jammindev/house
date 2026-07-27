@@ -388,3 +388,72 @@ class TestWhichLinesCouldCarryThisExpense:
 
         assert client.get(f"{self.URL}?fits=beaucoup").status_code == 400
         assert client.get(f"{self.URL}?fits=-10").status_code == 400
+
+
+@pytest.mark.django_db
+class TestTheForgottenExpenseIsOffered:
+    """Le doublon vécu en recette : une dépense saisie, oubliée, puis re-créée.
+
+    L'utilisateur avait saisi une dépense sans la relier. Au moment de ventiler la
+    ligne il en a créé une **nouvelle**, la ligne est devenue pleine, et l'ancienne
+    ne pouvait plus s'y rattacher : le même argent compté deux fois, et un écart
+    « dépense non rapprochée » insoluble.
+
+    Le correctif est en amont — montrer l'existant avant d'offrir d'en fabriquer.
+    Ces tests tiennent la source de cette liste.
+    """
+
+    URL = "/api/interactions/interactions/"
+
+    def subjects(self, client, **params):
+        query = "&".join(f"{k}={v}" for k, v in params.items())
+        body = client.get(f"{self.URL}?{query}").json()
+        items = body["results"] if isinstance(body, dict) else body
+        return [row["subject"] for row in items]
+
+    def test_it_lists_expenses_no_line_justifies(self, ctx):
+        household, user, account, budget, client = ctx
+        loose_expense(household, user, subject="Carrelage oublié")
+        txn = make_txn(account, amount="-90.00")
+        create_bank_expense_interaction(
+            household=household,
+            user=user,
+            transaction=txn,
+            subject="Déjà rapprochée",
+            amount=Decimal("90.00"),
+            budget_id=budget.id,
+        )
+
+        assert self.subjects(client, unreconciled="true") == ["Carrelage oublié"]
+
+    def test_it_ignores_the_conformity_window(self, ctx):
+        """Le piège de la première version, et la raison même du doublon.
+
+        Le sélecteur lisait le détecteur `expense_unreconciled`, borné par la
+        fenêtre. Une dépense saisie **après** le dernier relevé importé — celle
+        qu'on vient de créer, donc celle qu'on risque de re-créer — n'était pas
+        proposée. « Qu'est-ce qui existe déjà » n'est pas « qu'est-ce que je dois
+        réclamer ».
+        """
+        household, user, _, _, client = ctx
+        loose_expense(household, user, day=date(2026, 6, 1), subject="Saisie hier")
+
+        from banking.compliance import summary
+        from banking.detectors import EXPENSE_UNRECONCILED
+
+        flagged = {g.spec.kind: g.open for g in summary(household)}[EXPENSE_UNRECONCILED]
+
+        assert flagged == 0, "hors fenêtre : le contrôle ne la réclame pas, et c'est normal"
+        assert self.subjects(client, unreconciled="true") == ["Saisie hier"]
+
+    def test_it_never_offers_more_than_the_line_can_hold(self, ctx):
+        household, user, _, _, client = ctx
+        loose_expense(household, user, amount="40.00", subject="Tient")
+        loose_expense(household, user, amount="300.00", subject="Trop grosse")
+
+        assert self.subjects(client, unreconciled="true", max_amount="60.00") == ["Tient"]
+
+    def test_a_malformed_ceiling_is_a_400(self, ctx):
+        _, _, _, _, client = ctx
+
+        assert client.get(f"{self.URL}?max_amount=beaucoup").status_code == 400

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link2Off, Plus, Trash2 } from 'lucide-react';
+import UnreconciledPicker from './UnreconciledPicker';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
@@ -197,6 +198,19 @@ export default function AllocationDialog({
             </p>
           ) : null}
         </div>
+
+        {/* ⚠️ Avant de faire créer quoi que ce soit : ce qui existe déjà.
+            Sans ce bloc, on ventile en créant une dépense alors qu'on l'avait
+            saisie la veille — la ligne devient pleine, l'ancienne dépense ne peut
+            plus s'y rattacher, et le même argent est compté deux fois. Le geste
+            de rangement doit montrer l'existant *avant* d'offrir d'en fabriquer. */}
+        {remaining > 0 ? (
+          <UnreconciledPicker
+            transactionId={transactionId}
+            remaining={remaining.toFixed(2)}
+            defaultOpen
+          />
+        ) : null}
 
         {/* Ce que l'éditeur ne possède pas — un achat de projet rapproché à la
             main, une occurrence de récurrence. Enregistrer la ventilation les

@@ -22,7 +22,7 @@ interface InteractionFilters {
   end_date?: string;
   limit?: number;
   offset?: number;
-  [key: string]: string | number | undefined;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export const interactionKeys = {
