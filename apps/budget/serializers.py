@@ -9,13 +9,19 @@ from .models import Budget, BudgetReport, RecurringExpense
 class BudgetSerializer(serializers.ModelSerializer):
     """Full read/write serializer for the Budget API.
 
-    ``monthly_amount`` must be strictly positive. ``is_global`` is writable but
-    the "one global per household" invariant is enforced at the DB level (unique
-    constraint) and surfaced as a clean 400 by the service layer.
+    ``monthly_amount`` is **optional** — omitted or ``null`` means « catégorie
+    suivie, non plafonnée ». When given it must be strictly positive: a ceiling
+    of zero is not a ceiling, it is a budget nobody can respect. ``is_global`` is
+    writable but the "one global per household" invariant is enforced at the DB
+    level (unique constraint) and surfaced as a clean 400 by the service layer.
     """
 
     monthly_amount = serializers.DecimalField(
-        max_digits=12, decimal_places=2, min_value=Decimal("0.01")
+        max_digits=12,
+        decimal_places=2,
+        min_value=Decimal("0.01"),
+        required=False,
+        allow_null=True,
     )
 
     class Meta:
@@ -37,6 +43,35 @@ class BudgetSerializer(serializers.ModelSerializer):
         if not value:
             raise serializers.ValidationError("This field cannot be blank.")
         return value
+
+    def validate(self, attrs):
+        """The global budget keeps its ceiling: capping is its only job.
+
+        A named envelope without a ceiling is a category — useful. A *global*
+        budget without one caps nothing and would sit at the top of the panel
+        saying nothing at all.
+
+        Read through to the instance on a PATCH: renaming the global budget must
+        not require re-sending its amount, and clearing the amount of an existing
+        global one must still be refused.
+        """
+        is_global = attrs.get("is_global", getattr(self.instance, "is_global", False))
+        if not is_global:
+            return attrs
+
+        amount = attrs.get(
+            "monthly_amount", getattr(self.instance, "monthly_amount", None)
+        )
+        if amount is None:
+            raise serializers.ValidationError(
+                {
+                    "monthly_amount": (
+                        "Required on the global budget: it exists only to cap "
+                        "total spending."
+                    )
+                }
+            )
+        return attrs
 
 
 class RecurringExpenseSerializer(serializers.ModelSerializer):

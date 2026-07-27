@@ -1573,11 +1573,11 @@
       },
       "budget": {
         "title": "Budgets",
-        "intro": "Set monthly ceilings and see at a glance whether your spending stays within them.",
+        "intro": "Sort your spending into categories, and set a monthly ceiling wherever you want one.",
         "steps": {
           "create": {
             "title": "Create a budget",
-            "body": "Tap \"New budget\", give it a name (e.g. Groceries) and a monthly amount. Add a global budget to cap all your spending at once."
+            "body": "Tap “New budget” and give it a name (e.g. Groceries). The monthly ceiling is optional: leave it empty to simply track a category like “Gifts”. Add a global budget to cap your spending as a whole — that one does need an amount."
           },
           "assign": {
             "title": "Attach expenses",
@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Track the month",
-            "body": "Each budget shows spent vs ceiling with a progress bar — amber near the limit, red once exceeded. Counters reset every month."
+            "body": "Each capped budget shows spent vs ceiling with a progress bar — amber near the limit, red once over. A category with no ceiling shows its total only. Counters reset every month."
           },
           "recurring": {
             "title": "Anticipate recurring bills",
@@ -3115,11 +3115,14 @@
       "name": "Name",
       "namePlaceholder": "e.g. Groceries",
       "monthlyAmount": "Monthly amount",
-      "isGlobal": "Global budget (caps all spending)"
+      "isGlobal": "Global budget (caps all spending)",
+      "monthlyAmountOptional": "Monthly ceiling (optional)",
+      "amountHint": "Leave empty to track the category without capping it."
     },
     "errors": {
       "amountInvalid": "Enter a positive amount.",
-      "nameRequired": "Please enter a name."
+      "nameRequired": "Please enter a name.",
+      "amountRequiredForGlobal": "The household cap needs an amount: capping is its only purpose."
     },
     "global": {
       "defaultName": "Global budget",
@@ -3143,6 +3146,9 @@
     "recurringAccess": {
       "hint": "Subscriptions, insurance, bills & cash-flow forecast.",
       "committed": "{{amount}} committed this month"
+    },
+    "uncapped": {
+      "hint": "Tracked category, no ceiling"
     }
   },
   "banking": {

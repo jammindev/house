@@ -91,7 +91,9 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
         ratio, state = _state(spent, b.monthly_amount)
         return {
             "name": b.name,
-            "amount": _str(b.monthly_amount),
+            # ``None`` = catégorie sans plafond. Les snapshots déjà figés portent
+            # une string : le rendu doit accepter les deux, pour toujours.
+            "amount": None if b.monthly_amount is None else _str(b.monthly_amount),
             "spent": _str(spent),
             "ratio": round(ratio, 4),
             "state": state,

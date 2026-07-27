@@ -11,6 +11,14 @@ safety net over the named envelopes.
 No per-month rows: a budget carries one ``monthly_amount`` reconducted every
 month. The spent side is computed on the fly from the interactions journal
 (see ``budget.aggregations``), never denormalized.
+
+**Le plafond est optionnel ; la catégorie ne l'est pas.** ``monthly_amount`` may
+be ``NULL`` — « catégorie suivie, non plafonnée ». A budget is the only axis that
+classifies a euro (``Interaction.budget``), and the conformity control asks for
+one on every expense in the window; requiring a ceiling to get a category forced
+users to invent a number for « Cadeaux » or « Santé », and a panel full of
+made-up ceilings makes every bar meaningless. The *global* budget is the
+exception: it exists only to cap, so its amount stays required.
 """
 import uuid
 
@@ -26,7 +34,17 @@ class Budget(HouseholdScopedModel):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=120)
-    monthly_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    monthly_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Monthly ceiling. NULL = tracked category with no ceiling — the "
+            "counters still add up what it spent, nothing is ever 'over'. "
+            "Required on the global budget, which exists only to cap."
+        ),
+    )
     is_global = models.BooleanField(
         default=False,
         help_text=_(
@@ -58,6 +76,8 @@ class Budget(HouseholdScopedModel):
         ]
 
     def __str__(self):
+        if self.monthly_amount is None:
+            return f"{self.name} (no ceiling)"
         return f"{self.name} ({self.monthly_amount}/mo)"
 
 

@@ -69,7 +69,8 @@ class BudgetViewSet(viewsets.ModelViewSet):
             household,
             self.request.user,
             name=serializer.validated_data["name"],
-            monthly_amount=serializer.validated_data["monthly_amount"],
+            # ``.get``: an omitted amount is a category with no ceiling, not a 400.
+            monthly_amount=serializer.validated_data.get("monthly_amount"),
             is_global=serializer.validated_data.get("is_global", False),
         )
 

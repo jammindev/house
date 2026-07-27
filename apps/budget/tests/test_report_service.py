@@ -210,6 +210,33 @@ class TestRenderReport:
         text_2 = render_report(report, lang="en", polish=False)
         assert text_1 == text_2
 
+    def test_an_uncapped_category_is_reported_without_a_ceiling(self):
+        """« Cadeaux : 180 € », jamais « 180 € / 0 € — dépassé »."""
+        hh = HouseholdFactory()
+        stats = _minimal_stats("2026-05")
+        stats["budgets"] = [
+            {"name": "Cadeaux", "amount": None, "spent": "180.00", "ratio": 0.0,
+             "state": "uncapped"},
+        ]
+        report = self._make_report(hh, "2026-05", stats=stats)
+
+        text = render_report(report, lang="en", polish=False)
+
+        assert "Cadeaux" in text
+        assert "over budget" not in text
+
+    def test_a_frozen_snapshot_from_before_the_change_still_renders(self):
+        """Les bilans déjà figés portent une string : le rendu accepte les deux."""
+        hh = HouseholdFactory()
+        stats = _minimal_stats("2026-05")
+        stats["budgets"] = [
+            {"name": "Courses", "amount": "400.00", "spent": "350.00", "ratio": 0.875,
+             "state": "warning"},
+        ]
+        report = self._make_report(hh, "2026-05", stats=stats)
+
+        assert "Courses" in render_report(report, lang="en", polish=False)
+
     def test_render_with_explicit_lang_parameter(self):
         """render_report accepts a lang parameter without raising."""
         hh = HouseholdFactory()

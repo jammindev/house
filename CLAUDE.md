@@ -289,6 +289,27 @@ onglets : Contrôle / À ranger / Comptes / Dépenses / Budgets. Doc :
   complet, donc un raccourci sur une ligne partielle détruirait le travail déjà
   fait. Même raison pour la sélection multiple.
 
+#### Le budget est la catégorie — et son plafond est optionnel
+
+`Interaction.budget` est le **seul axe qui classe un euro** (projet et zone
+disent *sur quoi* et *où*, pas *de quelle nature*), et le détecteur
+`expense_without_budget` en réclame un sur chaque dépense de la fenêtre.
+
+- **`Budget.monthly_amount` est nullable** : `NULL` = « catégorie suivie, non
+  plafonnée ». Exiger un plafond pour obtenir une catégorie forçait à inventer un
+  montant pour « Cadeaux » — et un panneau de plafonds inventés rend illisibles
+  jusqu'aux vraies barres.
+- **`uncapped` est un état à part, jamais `ok`.** Une catégorie sans plafond ne
+  peut être ni respectée ni dépassée ; une barre verte à 0 % sur ce qui n'a pas
+  d'échelle est le même mensonge que la coche verte d'un contrôle qui n'a rien
+  vérifié. Et le payload renvoie `"amount": null`, **jamais `"0.00"`** — un
+  plafond à zéro est perpétuellement dépassé.
+- **Le budget global garde son montant obligatoire** (400 sinon) : plafonner est
+  sa seule raison d'être. Un plafond à zéro reste refusé partout — ce n'est pas
+  « pas de plafond ».
+- Un `stats` de bilan **déjà figé** porte `"amount": "400.00"` ; `report/render.py`
+  doit accepter la string *et* le `null` pour toujours.
+
 #### Ventilation — budget et projet sont deux axes indépendants
 
 Une ligne de ventilation porte un **budget** *et* un **objet** (projet, équipement,
