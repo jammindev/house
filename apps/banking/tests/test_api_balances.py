@@ -178,3 +178,92 @@ class TestWithdrawToCashEndpoint:
         assert client.delete(f"{TX_URL}{txn.id}/").status_code == (
             status.HTTP_405_METHOD_NOT_ALLOWED
         )
+
+
+@pytest.mark.django_db
+class TestBalanceAnchorEndpoint:
+    """`GET/POST /accounts/{id}/balance-anchor/` — retrouver le solde d'ouverture."""
+
+    def url(self, account):
+        return f"{ACCOUNTS_URL}{account.id}/balance-anchor/"
+
+    def test_get_offers_the_statement_value_when_the_bank_printed_it(self, context):
+        _, _, bank, _, client = context
+        make_txn(bank, amount="-10.00", booked_on=date(2026, 7, 1), balance_after="990.00")
+
+        body = client.get(self.url(bank)).json()
+
+        assert body["source"] == "statement"
+        assert body["proposed_opening_balance"] == "1000.00"
+        assert body["proposed_opening_date"] == "2026-07-01"
+
+    def test_get_shows_the_last_operation_so_the_user_can_compare(self, context):
+        """Sans colonne solde, c'est la seule chose que l'utilisateur peut vérifier."""
+        _, _, bank, _, client = context
+        make_txn(bank, amount="-26.54", booked_on=date(2026, 7, 25), label="PICARD")
+
+        body = client.get(self.url(bank)).json()
+
+        assert body["source"] == "attestation"
+        assert body["proposed_opening_balance"] is None
+        assert body["last_operation"] == {
+            "booked_on": "2026-07-25",
+            "label": "PICARD",
+            "amount": "-26.54",
+        }
+
+    def test_post_applies_the_statement_value_without_asking_anything(self, context):
+        _, _, bank, _, client = context
+        make_txn(bank, amount="-10.00", booked_on=date(2026, 7, 1), balance_after="990.00")
+
+        response = client.post(self.url(bank), {}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        bank.refresh_from_db()
+        assert bank.opening_balance == Decimal("1000.00")
+        assert bank.attested_on is None
+
+    def test_post_reconstructs_from_the_attested_balance(self, context):
+        _, _, bank, _, client = context
+        make_txn(bank, amount="-100.00", booked_on=date(2026, 6, 1))
+        make_txn(bank, amount="+2000.00", booked_on=date(2026, 6, 15))
+
+        response = client.post(
+            self.url(bank),
+            {"balance": "3000.00", "as_of": date.today().isoformat()},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        body = response.json()
+        assert body["source"] == "attestation"
+        assert body["movements"] == "1900.00"
+        assert body["opening_balance"] == "1100.00"
+        # from_date omis → la plus ancienne ligne, ce que l'utilisateur veut
+        # presque toujours : couvrir tout ce qu'il détient.
+        assert body["opening_balance_date"] == "2026-06-01"
+
+    def test_post_refuses_a_reading_older_than_the_lines_held(self, context):
+        _, _, bank, _, client = context
+        make_txn(bank, amount="-100.00", booked_on=date(2026, 6, 1))
+        make_txn(bank, amount="-100.00", booked_on=date(2026, 7, 25))
+
+        response = client.post(
+            self.url(bank),
+            {"balance": "3000.00", "as_of": "2026-07-01"},
+            format="json",
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.json()["code"] == "as_of_before_last_line"
+
+    def test_another_household_cannot_reach_the_account(self, context):
+        _, _, bank, _, _ = context
+        outsider = UserFactory()
+        other_client = APIClient()
+        other_client.force_authenticate(user=outsider)
+
+        assert other_client.get(self.url(bank)).status_code in (
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )

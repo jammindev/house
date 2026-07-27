@@ -348,10 +348,29 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
   l'édition. Sans elle le compte n'a pas de fenêtre de conformité ; mais l'exiger à
   chaque PATCH rendrait un simple renommage impossible — le détecteur du lot 1 traite
   l'existant.
-- `statement_period_gap` et `account_chain_broken` sont **complémentaires** : le
-  second attrape les opérations manquantes *dans* une période importée par
-  l'arithmétique, le premier une période jamais importée, qui ne laisse aucune trace
-  arithmétique. Ne pas fusionner.
+- `statement_period_gap`, `account_chain_broken` et `account_anchor_stale` sont
+  **complémentaires**, et aucun ne voit l'angle mort des deux autres : le deuxième
+  attrape les opérations manquantes *dans* une période importée par l'arithmétique
+  des soldes imprimés ; le premier une période jamais importée, qui ne laisse aucune
+  trace arithmétique ; le troisième la dérive d'un solde d'ouverture **reconstruit**,
+  que les deux premiers ne peuvent pas voir sur un fichier sans colonne solde. Ne pas
+  fusionner.
+- **Ne jamais demander une information que House peut calculer.** Le solde
+  d'ouverture d'un compte se lit dans le relevé quand il y figure, et se **retrouve
+  par soustraction** sinon (`banking.anchoring`) : une appli bancaire n'affiche que
+  le solde du *jour*, jamais celui d'une date passée. Exiger le second sans offrir de
+  le dériver du premier a produit en prod des comptes ouverts « aujourd'hui »,
+  fenêtre vide, contrôle muet.
+- **Une reconstruction qu'on ne peut pas re-vérifier est un orphelin.** D'où
+  `attested_balance`/`attested_on` : ce ne sont pas des soldes dénormalisés (règle du
+  lot 4 intacte) mais les **saisies** dont `opening_balance` a été dérivé, gardées
+  pour que `opening_balance + Σ mouvements == attested_balance` soit re-testé à
+  chaque recalcul. Tout mécanisme futur qui *dérive* une valeur d'une déclaration
+  utilisateur doit conserver la déclaration, sinon la dérive devient invisible.
+- Le partage est explicite : ce que House **peut réfuter** (lecture antérieure aux
+  lignes détenues, période manquante *dans l'intervalle*) est un **400 nommé** ; ce
+  que seul l'utilisateur **peut attester** est demandé à côté de la dernière
+  opération connue, jamais dans le vide.
 - `skipped_count > 0` n'est un écart que sur un fichier **sans référence ni solde** —
   ailleurs c'est la signature normale d'un ré-import. La présence de ces colonnes est
   dérivée des lignes créées, pas stockée.

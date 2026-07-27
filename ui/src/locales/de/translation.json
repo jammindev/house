@@ -1645,7 +1645,7 @@
           },
           "window": {
             "title": "Warum nicht alles geprüft wird",
-            "body": "Die App meldet nur, was Sie wirklich beheben können. Sie definiert daher pro Konto einen Prüfzeitraum: von Ihrem Anfangssaldo-Datum bis zum letzten importierten Auszug. Davor: Historie, dazu wird nie eine Kontozeile passen. Danach: der Auszug ist einfach noch nicht da. Dazwischen gilt der Anspruch vollständig — und genau das macht „null Abweichungen“ erreichbar.\n\nEine Folge, die Sie kennen sollten. Liegt Ihr Anfangssaldo-Datum nach Ihren Buchungen, ist der Zeitraum leer und es wird überhaupt nichts geprüft. Die App sagt das dann ausdrücklich, statt Sie glauben zu lassen, alles sei in Ordnung."
+            "body": "Die App meldet nur, was Sie wirklich beheben können. Sie definiert daher pro Konto einen Prüfzeitraum: von Ihrem Anfangssaldo-Datum bis zum letzten importierten Auszug. Davor: Historie, dazu wird nie eine Kontozeile passen. Danach: der Auszug ist einfach noch nicht da. Dazwischen gilt der Anspruch vollständig — und genau das macht „null Abweichungen“ erreichbar.\n\nEine Folge, die Sie kennen sollten. Liegt Ihr Anfangssaldo-Datum nach Ihren Buchungen, ist der Zeitraum leer und es wird überhaupt nichts geprüft. Die App sagt das dann ausdrücklich, statt Sie glauben zu lassen, alles sei in Ordnung.\n\nUnd wenn du diesen früheren Saldo nicht kennst — viele Banken exportieren ihn nie —, rate nicht: « Eröffnungssaldo ermitteln » fragt nach dem Saldo, den du heute abliest, und zieht die Bewegungen für dich ab."
           },
           "arbitrate": {
             "title": "Begründet ablegen heißt nicht verstecken",
@@ -1653,7 +1653,7 @@
           },
           "notEvaluable": {
             "title": "Eine Null kann zwei Dinge bedeuten",
-            "body": "„Nichts zu melden“ heißt: die Prüfung lief, alles in Ordnung. „Nicht bewertbar“ heißt: die Prüfung konnte nicht laufen, weil eine Voraussetzung fehlt — typischerweise ein Konto ohne Anfangssaldo oder mit einem Datum außerhalb seiner eigenen Buchungen.\\n\\nDie App verwechselt beides nie. Eine nicht bewertbare Prüfung zeigt einen Strich, keine Null, und benennt die Voraussetzung. Beheben Sie sie, und alles wird auf einmal messbar."
+            "body": "„Nichts zu melden“ heißt: die Prüfung lief, alles in Ordnung. „Nicht bewertbar“ heißt: die Prüfung konnte nicht laufen, weil eine Voraussetzung fehlt — typischerweise ein Konto ohne Anfangssaldo oder mit einem Datum außerhalb seiner eigenen Buchungen.\n\nDie App verwechselt beides nie. Eine nicht bewertbare Prüfung zeigt einen Strich, keine Null, und benennt die Voraussetzung. Beheben Sie sie, und alles wird auf einmal messbar."
           },
           "cash": {
             "title": "Bargeld ist ein Konto wie jedes andere",
@@ -3352,6 +3352,31 @@
         "transfer": "Übertrag zwischen eigenen Konten",
         "other": "Sonstiges"
       }
+    },
+    "anchor": {
+      "title": "Eröffnungssaldo ermitteln",
+      "action": "Eröffnungssaldo ermitteln",
+      "intro": "Deine Bank exportiert in ihren Auszügen keinen Saldo. Gib den Saldo an, den du heute abliest: House zieht die Bewegungen ab und ermittelt den Startsaldo.",
+      "noLines": "Dieses Konto enthält keine Buchung. Importiere zuerst einen Auszug oder trage den Eröffnungssaldo direkt im Konto ein.",
+      "fromStatement": "Dein Auszug enthält den Saldo — nichts einzugeben.",
+      "fromStatementDetail": "House hat {{amount}} am {{date}} in deinen Buchungen gelesen. Nichts geschätzt: Das ist die Zahl der Bank.",
+      "apply": "Übernehmen",
+      "applied": "Eröffnungssaldo gespeichert.",
+      "balanceLabel": "Bei deiner Bank abgelesener Saldo",
+      "balanceHint": "Der Saldo, wie ihn deine Banking-App anzeigt. Eine Überziehung wird negativ eingetragen.",
+      "asOfLabel": "Datum dieser Ablesung",
+      "confirmLast": "Ich bestätige, dass die letzte Buchung meines Online-Auszugs diese ist:",
+      "computation": "{{balance}} abgelesen, abzüglich {{movements}} Bewegungen im Zeitraum.",
+      "result": "Eröffnungssaldo am {{date}}: {{amount}}",
+      "gapTitle": "Ein Zeitraum fehlt",
+      "gapDetail": "Vom {{start}} bis zum {{end}} wurde nichts importiert. Die abzuziehenden Bewegungen sind unvollständig: Importiere zuerst diesen Auszug, sonst wäre der ermittelte Saldo um den fehlenden Betrag falsch.",
+      "attestedOn": "Rekonstruiert aus einem am {{date}} abgelesenen Saldo von {{amount}}",
+      "errors": {
+        "beforeLastLine": "Du hast Buchungen, die neuer sind als dieser Saldo. Lies den Saldo danach erneut ab.",
+        "future": "Dieses Datum liegt noch in der Zukunft.",
+        "periodGap": "Ein Zeitraum des Intervalls wurde nie importiert: Die abzuziehenden Bewegungen sind unvollständig.",
+        "noLines": "Dieses Konto enthält keine Buchung zum Abziehen."
+      }
     }
   },
   "pwa": {
@@ -3540,6 +3565,11 @@
           "title": "Konto außerhalb der Kontrolle",
           "hint": "Kein Konformitätsfenster: entweder fehlt der Anfangssaldo, oder sein Datum liegt nach Ihren Auszügen.",
           "resolution": "Setzen Sie das Anfangssaldo-Datum auf den Beginn des importierten Zeitraums — nicht auf heute. Der Betrag sollte der Saldo zu diesem Datum sein: ist er ungefähr, leidet nur der angezeigte Saldo, das Zuordnen Ihrer Buchungen funktioniert weiterhin. Solange das Datum nicht korrigiert ist, deckt keine andere Prüfung dieses Konto ab."
+        },
+        "account_anchor_stale": {
+          "title": "Abgelesener Saldo stimmt nicht mehr",
+          "hint": "Der Eröffnungssaldo wurde aus einem von dir abgelesenen Saldo rekonstruiert. Die Rechnung geht nicht mehr auf.",
+          "resolution": "Seitdem haben sich Buchungen geändert. Importiere den fehlenden Auszug oder lies deinen Saldo erneut ab und rekonstruiere ihn: Solange die Differenz besteht, sind alle Salden dieses Kontos um denselben Betrag falsch."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",
@@ -3549,7 +3579,9 @@
         "noDate": "Es ist kein Anfangssaldo-Datum eingetragen.",
         "afterData": "Ihr Anfangssaldo-Datum ist der {{openingDate}}, Ihre älteste Buchung aber vom {{earliestLine}}: der Prüfzeitraum ist leer."
       },
-      "fix": "Beheben"
+      "fix": "Beheben",
+      "findBalance": "Saldo ermitteln",
+      "anchorDrift": "Abgelesener Saldo: {{attested}} · heute berechnet: {{computed}}"
     },
     "pending": {
       "count": "{{count}} Buchung zuzuordnen",

@@ -97,6 +97,99 @@ def archive_account(*, account: BankAccount, user) -> BankAccount:
     return update_account(account=account, user=user, fields={"archived": True})
 
 
+def set_balance_anchor(
+    *, account: BankAccount, user, balance, as_of, from_date, today=None
+) -> dict:
+    """Reconstruct and store the opening balance from a balance the user read.
+
+    Writes the four fields together: the reconstructed ``opening_balance`` and its
+    date, plus the attestation it came from. Keeping the attestation is what makes
+    the reconstruction verifiable forever after (``detectors.ACCOUNT_ANCHOR_STALE``)
+    — without it we would store a figure nobody, including House, could ever
+    re-derive.
+
+    Refusals from :mod:`banking.anchoring` become 400s carrying their ``code``, so
+    the UI can name the actual obstacle (a missing period, a stale reading) instead
+    of a generic failure.
+    """
+    from django.utils import timezone
+
+    from .anchoring import AnchorError, opening_from_attestation
+
+    try:
+        opening, movements = opening_from_attestation(
+            account,
+            balance=balance,
+            as_of=as_of,
+            from_date=from_date,
+            today=today or timezone.localdate(),
+        )
+    except AnchorError as exc:
+        raise ValidationError({"detail": str(exc), "code": exc.code, **exc.detail}) from exc
+
+    account.opening_balance = opening
+    account.opening_balance_date = from_date
+    account.attested_balance = balance
+    account.attested_on = as_of
+    account.updated_by = user
+    account.save(
+        update_fields=[
+            "opening_balance",
+            "opening_balance_date",
+            "attested_balance",
+            "attested_on",
+            "updated_by",
+            "updated_at",
+        ]
+    )
+    return {"opening_balance": opening, "movements": movements}
+
+
+def apply_statement_opening_balance(*, account: BankAccount, user) -> dict:
+    """Set the opening balance from the bank's own running balance.
+
+    The sure path: when the export carries a balance column there is nothing to
+    attest and nothing to get wrong, so no attestation is stored — the chain check
+    already watches those files. Asking the user for a figure House can read is
+    how a form loses its user's trust.
+    """
+    from .anchoring import anchor_context
+
+    context = anchor_context(account)
+    if context.proposed_opening_balance is None or context.proposed_opening_date is None:
+        raise ValidationError(
+            {
+                "detail": "This account's statements carry no balance to read.",
+                "code": "no_statement_balance",
+            }
+        )
+
+    account.opening_balance = context.proposed_opening_balance
+    account.opening_balance_date = context.proposed_opening_date
+    # Any earlier attestation is superseded: the bank's own balances now anchor this
+    # account, and ``account_chain_broken`` guards them. Keeping the attestation
+    # would raise a permanent, non-waivable écart the moment the user's old reading
+    # disagreed with the statement — an écart whose only resolution would be to
+    # re-attest a figure House no longer needs.
+    account.attested_balance = None
+    account.attested_on = None
+    account.updated_by = user
+    account.save(
+        update_fields=[
+            "opening_balance",
+            "opening_balance_date",
+            "attested_balance",
+            "attested_on",
+            "updated_by",
+            "updated_at",
+        ]
+    )
+    return {
+        "opening_balance": context.proposed_opening_balance,
+        "opening_balance_date": context.proposed_opening_date,
+    }
+
+
 def remember_import_mapping(*, account: BankAccount, provider: str, options: dict | None) -> None:
     """Persist the column mapping on the account after a successful import.
 

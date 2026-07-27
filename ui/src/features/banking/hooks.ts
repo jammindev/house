@@ -6,6 +6,7 @@ import {
   fetchAccountBalance,
   fetchAllocations,
   fetchAccountFlow,
+  fetchBalanceAnchor,
   fetchBankAccounts,
   fetchStatementImports,
   fetchSuggestions,
@@ -18,6 +19,7 @@ import {
   recordCashExpense,
   restoreBankAccount,
   setAllocations,
+  setBalanceAnchor,
   unlinkCashCounterpart,
   updateBankAccount,
   withdrawToCash,
@@ -45,6 +47,7 @@ export const bankingKeys = {
     [...bankingKeys.all, 'allocations', transactionId] as const,
   suggestions: (transactionId: string) =>
     [...bankingKeys.all, 'suggestions', transactionId] as const,
+  anchor: (accountId: string) => [...bankingKeys.all, 'anchor', accountId] as const,
 };
 
 export function useBankAccounts(includeArchived = false) {
@@ -107,6 +110,40 @@ export function useRestoreBankAccount() {
       toast({ description: t('banking.reopened'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Ce que House sait avant de demander quoi que ce soit : relevé porteur d'un
+ * solde ou non, dernière opération détenue, périodes manquantes (lot 8).
+ */
+export function useBalanceAnchor(accountId: string | undefined) {
+  return useQuery({
+    queryKey: bankingKeys.anchor(accountId ?? ''),
+    queryFn: () => fetchBalanceAnchor(accountId as string),
+    enabled: Boolean(accountId),
+  });
+}
+
+export function useSetBalanceAnchor() {
+  const invalidate = useInvalidateBanking();
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      accountId,
+      payload,
+    }: {
+      accountId: string;
+      payload?: { balance?: string; as_of?: string; from_date?: string };
+    }) => setBalanceAnchor(accountId, payload ?? {}),
+    onSuccess: () => {
+      invalidate();
+      // Le solde d'ouverture ouvre la fenêtre de conformité : les compteurs de
+      // contrôle changent dans la foulée, souvent de zéro à plusieurs centaines.
+      void qc.invalidateQueries({ queryKey: complianceKeys.all });
+      toast({ description: t('banking.anchor.applied'), variant: 'success' });
+    },
   });
 }
 

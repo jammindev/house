@@ -39,6 +39,7 @@ Le lot 7 du parcours 25 (recettes, virements internes, couverture — #390) est
 | 5 | Recettes et mouvements internes | ✅ **Livré** |
 | 6 | Le relevé confirme les récurrences | ✅ **Livré** |
 | 7 | Continuité des relevés et provenance | ✅ **Livré** |
+| 8 | Retrouver le solde d'ouverture | ✅ **Livré** |
 
 **Cette fiche décrit l'état livré.** Les sections marquées *(à venir)* annoncent le
 contrat que les lots suivants devront respecter.
@@ -868,9 +869,111 @@ Nettoyé au passage : trois `t()` avec `defaultValue` dans les composants de dé
 que CLAUDE.md interdit précisément parce qu'ils masquent les traductions manquantes.
 Les clés `bank`, `recurring` et `chickens_purchase` manquaient effectivement.
 
+## Retrouver le solde d'ouverture (parcours 26, lot 8)
+
+### Le problème : on demandait la seule information que personne ne détient
+
+Le solde dérivé part d'un solde à une date **passée**. Or une appli bancaire
+n'affiche que celui d'**aujourd'hui**, et une bonne moitié des exports français —
+celui du Crédit Agricole en tête — **ne porte aucune colonne solde**. Le chiffre que
+le modèle réclame est donc précisément celui que l'utilisateur ne peut pas obtenir.
+
+Conséquence observée en production : la date d'ouverture est renseignée à
+*aujourd'hui* (la seule que l'on puisse remplir honnêtement), ce qui place la fenêtre
+de conformité après toutes les lignes, `OPENING_DATE_AFTER_DATA`, et éteint tout le
+contrôle. Le lot 7 avait rendu le champ obligatoire à la création ; il restait à le
+rendre **remplissable**.
+
+### Deux voies, la plus sûre d'abord — `anchoring.py`
+
+`anchor_context(account)` choisit, il ne demande pas :
+
+- **`statement`** — une ligne porte le solde courant de la banque. Le solde
+  d'ouverture est alors une soustraction sur des lignes détenues : on remonte au
+  premier solde imprimé et on le défait. Aucune saisie, aucune attestation, rien à se
+  tromper. Demander un chiffre qu'on sait lire est le meilleur moyen de perdre la
+  confiance de l'utilisateur.
+- **`attestation`** — aucune ligne ne porte de solde. L'utilisateur lit son solde du
+  jour, House retranche les mouvements. Exact **si** toutes les opérations de
+  l'intervalle sont importées : c'est exactement ce qu'il ne faut pas croire sur
+  parole.
+
+### Le partage entre ce qu'on vérifie et ce qu'on fait attester
+
+**Ce que House peut réfuter, il le refuse** (`AnchorError`, 400 portant son `code`) :
+
+| Code | Pourquoi c'est un refus et pas un avertissement |
+|---|---|
+| `as_of_before_last_line` | Le solde lu ignore des lignes déjà détenues : elles seraient comptées deux fois. |
+| `as_of_in_future` | Un solde ne se lit pas à une date qui n'est pas arrivée. |
+| `period_gap` | Une période jamais importée **dans l'intervalle** rend la soustraction courte d'un montant inconnu, définitivement enfoui dans le solde d'ouverture. |
+| `no_transactions` | Rien à retrancher — saisir le solde directement est plus honnête. |
+
+Le trou de période est cherché **borné à l'intervalle reconstruit**
+(`coverage.period_gaps(account, between=…)`) : un février manquant ne dit rien d'un
+solde reconstruit sur juin–juillet, et refuser pour lui recréerait l'écart
+irrésoluble que la fenêtre de conformité existe pour éviter.
+
+**Ce que seul l'utilisateur peut attester** — « rien n'a bougé depuis que mon relevé
+ne montre pas » — est demandé explicitement, **à côté de la dernière opération
+détenue**. Une case à cocher dans le vide ne vaut rien ; comparée à une ligne datée et
+chiffrée, elle est vérifiable en deux secondes sur l'appli bancaire.
+
+Et le calcul est montré **avant** d'écrire : « 3 000 € lus, moins 1 870 € de
+mouvements → 1 130 € au 01/06 ». Un chiffre qu'on ne peut pas refaire à la main est un
+chiffre qu'on ne peut pas vérifier.
+
+### ⚠️ L'attestation est conservée — c'est tout l'intérêt
+
+`BankAccount.attested_balance` / `attested_on` ne dénormalisent pas un solde : comme
+`opening_balance`, ce sont des **saisies**, pas des calculs. Les garder transforme une
+reconstruction ponctuelle en **ancrage re-vérifiable** :
+
+> `opening_balance + Σ mouvements jusqu'à attested_on == attested_balance`
+
+Vrai par construction à l'écriture. Faux dès que les lignes bougent — une semaine
+oubliée importée après coup, une opération supprimée. Le détecteur
+**`account_anchor_stale`** le dit, au lieu de laisser **tous** les soldes du compte
+faux d'une constante que rien ne rattraperait sur un fichier sans colonne solde.
+
+C'est la **troisième jambe** de la famille continuité, et les trois sont
+complémentaires : `account_chain_broken` pour les banques qui impriment leurs soldes,
+`statement_period_gap` pour les périodes jamais importées, `account_anchor_stale` pour
+la reconstruction que les deux premiers ne peuvent pas voir.
+
+**Non arbitrable** (`waivable=False`) : un solde attesté que l'arithmétique contredit
+n'est pas un choix de gestion. Il manque un relevé, ou la lecture était fausse.
+
+Une reconstruction qu'on ne peut pas re-vérifier serait exactement l'orphelin
+silencieux que le parcours 26 existe pour supprimer.
+
+### API
+
+- `GET /api/banking/accounts/{id}/balance-anchor/` — `source`, `last_operation`,
+  `movements`, `earliest_line` / `latest_line`, `gaps`, et la valeur proposée quand
+  le relevé la porte.
+- `POST /api/banking/accounts/{id}/balance-anchor/` — sans corps en mode `statement` ;
+  `{balance, as_of, from_date?}` en mode `attestation`. `from_date` omise ⇒ la plus
+  ancienne ligne, ce que l'utilisateur veut presque toujours.
+
+`attested_balance` / `attested_on` sont **lecture seule** sur
+`BankAccountSerializer` : les écrire séparément permettrait de stocker une attestation
+qui contredit le solde d'ouverture qu'elle est censée justifier.
+
+### Frontend
+
+`BalanceAnchorDialog`, ouvert depuis trois endroits : l'écart
+« compte hors de portée du contrôle » (dès que le compte porte des lignes — sinon
+seul « Corriger » a un sens), l'écart `account_anchor_stale`, et le menu de la carte
+de compte.
+
 ## Règle transverse
 - On n'additionne **jamais** un total banque et un total interactions. Le pont est un
   taux de couverture, pas une somme.
+- **Ne jamais demander une information que House peut calculer.** Le solde
+  d'ouverture se lit dans le relevé quand il y est, se retrouve par soustraction
+  sinon. Le formulaire nu du lot 7 était un cul-de-sac pour toute banque qui
+  n'exporte pas ses soldes.
 
 ## Points d'attention
 

@@ -17,6 +17,11 @@ Note on balances: they are NEVER stored as a column. ``opening_balance`` is only
 the starting point of a computation done at read time (lot 4, #387), exactly like
 the budget "spent" of parcours 21. A denormalized balance would be a competing
 source of truth that drifts on the first partial import.
+
+``attested_balance`` does not break that rule: like ``opening_balance`` it is an
+**input** the user typed, not a figure House computed. It is a second point on
+the same curve, and the whole reason to keep it is that comparing it to the
+computed balance is what catches a drift instead of hiding one.
 """
 import uuid
 from decimal import Decimal
@@ -69,6 +74,24 @@ class BankAccount(HouseholdScopedModel):
         null=True,
         blank=True,
         help_text=_("Date the opening balance refers to. Null = not set yet."),
+    )
+    attested_balance = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text=_(
+            "Balance the user read on their bank at 'attested_on', used to "
+            "reconstruct 'opening_balance' by subtracting the movements in "
+            "between. Kept so the arithmetic can be re-checked forever after "
+            "(parcours 26, lot 8) — banks that export no balance column give us "
+            "no other anchor."
+        ),
+    )
+    attested_on = models.DateField(
+        null=True,
+        blank=True,
+        help_text=_("Date 'attested_balance' was read. Null = never attested."),
     )
     default_provider = models.CharField(
         max_length=50,

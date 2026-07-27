@@ -17,6 +17,7 @@ import {
   useStatementImports,
 } from '@/features/banking/hooks';
 import AccountCard from '@/features/banking/AccountCard';
+import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
 import AccountDialog from '@/features/banking/AccountDialog';
 import ImportHistoryCard from '@/features/banking/ImportHistoryCard';
 import StatementImportDialog from '@/features/banking/StatementImportDialog';
@@ -42,6 +43,7 @@ export default function AccountsPanel() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<BankAccount | undefined>(undefined);
   const [importing, setImporting] = React.useState<BankAccount | null>(null);
+  const [anchoring, setAnchoring] = React.useState<BankAccount | null>(null);
   const [pendingArchive, setPendingArchive] = React.useState<Set<string>>(new Set());
 
   const { deleteWithUndo } = useDeleteWithUndo({
@@ -125,6 +127,7 @@ export default function AccountsPanel() {
               onArchive={() => handleArchive(account.id)}
               onRestore={() => restoreMutation.mutate(account.id)}
               onImport={() => setImporting(account)}
+              onFindBalance={() => setAnchoring(account)}
             />
           ))}
         </div>
@@ -143,6 +146,14 @@ export default function AccountsPanel() {
           open
           onOpenChange={(next) => !next && setImporting(null)}
           account={importing}
+        />
+      ) : null}
+
+      {anchoring ? (
+        <BalanceAnchorDialog
+          open
+          onOpenChange={(next) => !next && setAnchoring(null)}
+          account={anchoring}
         />
       ) : null}
     </>

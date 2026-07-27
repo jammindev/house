@@ -36,6 +36,14 @@ export type PatchedBankAccount = {
      */
     opening_balance_date?: string | null;
     /**
+     * Balance the user read on their bank at 'attested_on', used to reconstruct 'opening_balance' by subtracting the movements in between. Kept so the arithmetic can be re-checked forever after (parcours 26, lot 8) — banks that export no balance column give us no other anchor.
+     */
+    readonly attested_balance?: string | null;
+    /**
+     * Date 'attested_balance' was read. Null = never attested.
+     */
+    readonly attested_on?: string | null;
+    /**
      * Statement importer key remembered from the last import (lot 2).
      */
     readonly default_provider?: string;
