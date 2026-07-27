@@ -316,10 +316,16 @@ onglets : Contrôle / À ranger / Comptes / Dépenses / Budgets. Doc :
   ces clés n'existent plus dans `MODULES` ni dans `households.modules`. `money` est
   **core** (non désactivable) — conséquence assumée : les comptes bancaires ne sont
   plus un opt-in.
-- Toute nouvelle URL de la famille argent vit sous `/app/money`. Les trois
-  anciennes redirigent via `LegacyMoneyRedirect` en **préservant la query string**
-  (l'agent produit `/app/budget?b={id}`) — ne pas remplacer par un `<Navigate to>`
-  en dur.
+- Toute nouvelle URL de la famille argent vit sous `/app/money` — y compris
+  `/app/money/recurring` et `/app/money/reports`, entrées dans la famille en juillet
+  2026. Les anciennes redirigent en **préservant la query string** :
+  `LegacyMoneyRedirect` pour les trois onglets (l'agent produit `/app/budget?b={id}`),
+  `PreserveQueryRedirect` pour les sous-pages (`?r={id}`) — ne pas remplacer par un
+  `<Navigate to>` en dur, qui perd le paramètre et transforme un lien précis en lien
+  faux. **Un `url_template` d'agent de cette famille doit pointer directement sous
+  `/app/money`**, jamais via une redirection : une redirection rattrape un ancien
+  lien, elle ne justifie pas d'en produire de nouveaux. Tenu par
+  `agent/tests/test_registry.py::test_the_money_family_links_stay_inside_the_money_module`.
 - Les panneaux (`AccountsPanel`, `ExpensesPanel`, `BudgetsPanel`) n'ont **pas** de
   `PageHeader` : la coque porte le titre. Un panneau qui en ajoute un produit deux
   `h1`.
@@ -348,6 +354,16 @@ disent *sur quoi* et *où*, pas *de quelle nature*), et le détecteur
   « pas de plafond ».
 - Un `stats` de bilan **déjà figé** porte `"amount": "400.00"` ; `report/render.py`
   doit accepter la string *et* le `null` pour toujours.
+- **Le dépensé se dit en deux chiffres, jamais en un filtre.** Chaque ligne de
+  l'aperçu porte `spent_attested` / `spent_pending` **en plus** de `spent` — la part
+  qu'une ligne de relevé justifie, et le reste. Ne jamais filtrer
+  `bank_transaction__isnull=False` pour ne compter que le prouvé : une dépense saisie
+  hier est réelle avant l'import du relevé, donc le compteur reculerait au fil du mois
+  pour remonter d'un coup — **un plafond qui recule est pire qu'un plafond
+  incertain**. `spent` reste le compteur du plafond ; `spent_pending` est calculé **par
+  différence** (deux sommes indépendantes divergent d'un centime d'arrondi, et un total
+  qui ne se recompose pas ne se lit pas) ; et les deux chiffres sortent d'**un seul**
+  `GROUP BY` avec `Sum(filter=…)`, l'aperçu étant rechargé à chaque visite de l'onglet.
 
 #### Ventilation — budget et projet sont deux axes indépendants
 
@@ -362,6 +378,17 @@ comptent dans le chantier **et** dans l'enveloppe « Bricolage ».
   ré-édition — **chaque ré-édition laisse une dépense fantôme** toujours comptée
   dans le coût du projet. Test de régression :
   `banking/tests/test_allocation_axes.py::TestOwnershipRuleRegression`.
+- **⚠️ Et la portée de l'éditeur s'arrête là.** Il supprime ses lignes `kind='bank'`
+  et **ne touche à rien d'autre** — ni suppression, ni *détachement*. Enregistrer une
+  ventilation dé-rapprochait autrefois tout ce qu'elle ne possède pas : un achat de
+  projet rapproché à la main sur la même ligne redevenait « non rapproché » en
+  silence, et comme le dialogue rechargeait *toutes* les ventilations dans son
+  brouillon, il recréait une dépense `bank` pour le même argent — 180 € de dépenses
+  sur 150 €, chantier facturé deux fois. Corollaire : le montant déjà rattaché est un
+  **plancher** compté contre l'`outflow` (renvoyer la ligne rattachée = 400), et
+  détacher est un **geste explicite** (`unlink_interaction`, bloc « Dépenses déjà
+  rattachées » du dialogue), jamais l'effet de bord d'un enregistrement. Régression :
+  `banking/tests/test_allocation_axes.py::TestSavingASplitNeverUndoesAReconciliation`.
 - `kind` reste `bank` même avec une source : il dit *d'où vient* la dépense, pas
   *sur quoi elle porte*.
 - Toute résolution de source passe par

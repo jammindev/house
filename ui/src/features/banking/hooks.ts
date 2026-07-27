@@ -20,6 +20,7 @@ import {
   restoreBankAccount,
   setAllocations,
   setBalanceAnchor,
+  unlinkAllocation,
   unlinkCashCounterpart,
   updateBankAccount,
   withdrawToCash,
@@ -274,6 +275,33 @@ export function useSetAllocations() {
       // vient de ranger — un compteur qui contredit l'écran est pire que pas de
       // compteur.
       toast({ description: t('banking.allocation.saved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Détacher une dépense de sa ligne bancaire — sans la supprimer.
+ *
+ * Le geste manquait, et son absence n'était pas neutre : enregistrer une
+ * ventilation détachait *en silence* tout ce que l'éditeur ne possède pas (un
+ * achat de projet rapproché à la main). Le service ne le fait plus, donc il faut
+ * un endroit pour le vouloir explicitement — ici.
+ */
+export function useUnlinkAllocation() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      interactionId,
+    }: {
+      transactionId: string;
+      interactionId: string;
+    }) => unlinkAllocation(transactionId, interactionId),
+    onSuccess: () => {
+      invalidate();
+      toast({ description: t('banking.allocation.linked.detached'), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

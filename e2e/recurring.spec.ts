@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 2 : Dépenses récurrentes.
  *
  * Couvre :
- *  1. Navigation depuis l'onglet Budgets vers /app/budget/recurring via la link card
+ *  1. Navigation depuis l'onglet Budgets vers /app/money/recurring via la link card
  *  2. État vide ("Aucune dépense récurrente")
  *  3. Création d'une récurrence avec échéance aujourd'hui → apparaît sous "À confirmer"
  *     + cartes de projection trésorerie (30/90 jours)
@@ -87,16 +87,16 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
     await deleteAllRecurring(page);
   });
 
-  // ── 1. Navigation depuis l'onglet Budgets → /app/budget/recurring ────────
+  // ── 1. Navigation depuis l'onglet Budgets → /app/money/recurring ────────
 
-  test('la link card "Dépenses récurrentes" mène à /app/budget/recurring avec état vide', async ({ page }) => {
+  test('la link card "Dépenses récurrentes" mène à /app/money/recurring avec état vide', async ({ page }) => {
     // La link card n'apparaît qu'une fois l'overview chargé — attendre le titre
     await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // Cliquer sur la card "Dépenses récurrentes"
     await page.getByText('Dépenses récurrentes').click();
 
-    await expect(page).toHaveURL(/\/app\/budget\/recurring/);
+    await expect(page).toHaveURL(/\/app\/money\/recurring/);
 
     // Titre de la page
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
@@ -114,7 +114,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   // ── 2. Ouverture du SheetDialog ───────────────────────────────────────────
 
   test('le bouton "Nouvelle récurrence" ouvre le SheetDialog avec tous les champs', async ({ page }) => {
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Nouvelle récurrence' }).click();
@@ -141,7 +141,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   // ── 3. Création avec échéance aujourd'hui → section "À confirmer" ─────────
 
   test('crée "Netflix" 15 € échéance aujourd\'hui → apparaît sous "À confirmer" avec bouton "Confirmer"', async ({ page }) => {
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Nouvelle récurrence' }).click();
@@ -182,7 +182,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   // ── 4. Validation : libellé requis ────────────────────────────────────────
 
   test('affiche une erreur si le libellé est vide', async ({ page }) => {
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Nouvelle récurrence' }).click();
@@ -207,7 +207,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
     await apiCreateRecurring(page, 'Spotify', 10, todayIso(), 'monthly');
 
     // Recharger pour afficher la récurrence
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
     await expect(page.getByText('Spotify')).toBeVisible();
 
@@ -246,7 +246,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
     // Créer directement via l'API
     await apiCreateRecurring(page, 'Disney+ E2E', 8, todayIso(), 'monthly');
 
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByRole('heading', { level: 1, name: 'Dépenses récurrentes' })).toBeVisible();
     await expect(page.getByText('Disney+ E2E')).toBeVisible();
 
@@ -269,7 +269,7 @@ test.describe('Dépenses récurrentes — parcours 21 lot 2', () => {
   test('suppression annulable : undo restaure la carte', async ({ page }) => {
     await apiCreateRecurring(page, 'Canal+ Undo', 25, todayIso(), 'monthly');
 
-    await page.goto('/app/budget/recurring');
+    await page.goto('/app/money/recurring');
     await expect(page.getByText('Canal+ Undo')).toBeVisible();
 
     const card = page.getByText('Canal+ Undo').locator('xpath=ancestor::*[4]');

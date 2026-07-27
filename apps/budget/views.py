@@ -93,6 +93,8 @@ class BudgetViewSet(viewsets.ModelViewSet):
                     "budgets": [],
                     "unbudgeted": "0.00",
                     "total_spent": "0.00",
+                    "total_attested": "0.00",
+                    "total_pending": "0.00",
                     "total_committed": "0.00",
                     "named_total_amount": "0.00",
                     "named_exceeds_global": False,

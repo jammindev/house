@@ -26,7 +26,7 @@ from banking.services import (
     set_allocations,
     unlink_interaction,
 )
-from banking.validators import remaining_to_allocate
+from banking.validators import allocated_total, remaining_to_allocate
 from budget.models import Budget
 from interactions.kinds import KIND_BANK, KIND_STOCK_PURCHASE
 from interactions.models import Interaction
@@ -219,9 +219,16 @@ class TestTheEditorOnlyDeletesWhatItCreated:
         link_interaction(user=user, transaction=txn, interaction=purchase)
         return purchase
 
-    def test_a_reconciled_purchase_is_detached_not_destroyed(self, context):
+    def test_a_reconciled_purchase_survives_an_edit_untouched(self, context):
+        """Saving a split leaves what it does not own **exactly** where it is.
+
+        It used to detach it, which quietly undid a reconciliation the user had
+        made on purpose — and, on a line with room left, let the editor recreate
+        a ``kind='bank'`` expense for the same money. Detaching is now its own
+        gesture (``unlink_interaction``), never a side effect of saving.
+        """
         household, user, account, groceries, _ = context
-        txn = make_txn(account)
+        txn = make_txn(account, amount="-240.00")
         purchase = self._reconciled_stock_purchase(household, user, txn)
 
         set_allocations(
@@ -232,9 +239,29 @@ class TestTheEditorOnlyDeletesWhatItCreated:
         )
 
         purchase.refresh_from_db()
-        assert Interaction.objects.filter(pk=purchase.pk).exists()
-        assert purchase.bank_transaction_id is None
-        assert purchase.reconciled_by == ""
+        assert purchase.bank_transaction_id == txn.id
+        assert purchase.reconciled_by == "manual"
+        # 120 € generated + 120 € pre-existing = the whole line, counted once.
+        assert allocated_total(txn) == Decimal("240.00")
+
+    def test_a_split_cannot_take_what_a_linked_expense_already_holds(self, context):
+        """The other half of not detaching: the linked amount is a floor.
+
+        Without counting it, a 120 € purchase on a 240 € line plus a 240 € split
+        would total 360 € of expenses on 240 € of money — the invariant the whole
+        ``validators`` module exists to keep.
+        """
+        household, user, account, groceries, _ = context
+        txn = make_txn(account, amount="-240.00")
+        self._reconciled_stock_purchase(household, user, txn)
+
+        with pytest.raises(ValidationError):
+            set_allocations(
+                household=household,
+                user=user,
+                transaction=txn,
+                lines=[{"subject": "A", "amount": "240.00", "budget_id": groceries.id}],
+            )
 
     def test_deleting_the_line_keeps_the_purchase_and_drops_the_bank_rows(self, context):
         household, user, account, groceries, _ = context
@@ -246,9 +273,6 @@ class TestTheEditorOnlyDeletesWhatItCreated:
             transaction=txn,
             lines=[{"subject": "A", "amount": "100.00", "budget_id": groceries.id}],
         )
-        # `set_allocations` detached the purchase; re-link it to test both paths.
-        purchase.refresh_from_db()
-        link_interaction(user=user, transaction=txn, interaction=purchase)
 
         delete_transaction(user=user, transaction=txn)
 

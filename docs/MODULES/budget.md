@@ -91,7 +91,7 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
 - **Rappel** : `PingSpec('recurring_due')` — nudge Telegram **informatif** listant
   les échéances dues (pointe vers l'app ; la confirmation 1-clic reste in-app).
 - **Agent** : entité `recurring_expense` searchable + writable (create + undo).
-- **Frontend** : sous-page `/app/budget/recurring` (`RecurringPage` : projection,
+- **Frontend** : sous-page `/app/money/recurring` (`RecurringPage` : projection,
   section « à confirmer » avec confirm 1-clic, liste, dialogs, undo compound) ;
   carte d'accès depuis `BudgetPage` ; `committed` affiché sur les cards budget.
   i18n namespace `recurring.*` + `budget.committed`/`budget.recurringAccess.*` +
@@ -124,7 +124,7 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
   `retrieve` par mois (`/2026-06/`). Texte rendu dans la langue de la requête.
 - **Ping** : `PingSpec('monthly_budget_report')` (le digest est quotidien ; ici
   mensuel, la cadence est portée par le `build_message` qui ne renvoie qu'au 1er).
-- **Frontend** : sous-page `/app/budget/reports` (`ReportsPage` : dernier bilan +
+- **Frontend** : sous-page `/app/money/reports` (`ReportsPage` : dernier bilan +
   historique) + carte d'accès depuis `BudgetPage`. i18n namespace `report.*` +
   `settings.pings.types.monthly_budget_report`.
 - **Réglage** : `BUDGET_REPORT_AI_POLISH_ENABLED` (défaut `False`).
@@ -163,6 +163,31 @@ plafonnée ».
 - Le bilan mensuel écrit « Cadeaux : 180 € » au lieu de « 180 € / 0 € —
   dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
   doit accepter les deux formes pour toujours.
+
+## Ce que le relevé atteste, et ce qui attend de l'être
+
+Chaque ligne de l'aperçu porte `spent_attested` et `spent_pending` **en plus** de
+`spent` (idem `total_attested` / `total_pending` au niveau du foyer) : la part de
+la dépense qu'une ligne de relevé justifie, et le reste. Sans eux, « 340 € / 400 € »
+mélange sans le dire une dépense prouvée et une dépense seulement affirmée.
+
+- **`spent` ne change pas** : c'est lui que le plafond mesure, et sept agrégations
+  le lisent. La distinction est **additive**, comme le bloc `bank` du bilan.
+- **Pas de filtre `bank_transaction__isnull=False`.** Une dépense saisie hier est
+  réelle même si le relevé de fin de mois n'est pas importé ; ne compter que le
+  prouvé ferait *reculer* le compteur au fil du mois pour remonter d'un coup à
+  l'import. Un plafond qui recule est pire qu'un plafond incertain.
+- **`spent_pending` est calculé par différence.** Deux sommes indépendantes
+  divergeraient d'un centime d'arrondi, et un total qui ne se recompose pas ne se
+  lit pas. L'invariant `attested + pending == spent` est testé.
+- **Un seul `GROUP BY`** (`Sum(filter=Q(…))` conditionnel) : l'aperçu est rechargé
+  à chaque visite de l'onglet, et une requête par chiffre est la façon dont un
+  panneau devient lent une addition honnête à la fois.
+- La barre le montre en **deux nuances de la même couleur** — une autre teinte
+  laisserait croire à une autre nature de dépense — et sa longueur totale reste
+  celle de `spent`.
+
+Régression : `budget/tests/test_api_budget.py::TestWhatTheStatementAttests`.
 
 ## Ouvrir un budget sur ses dépenses
 

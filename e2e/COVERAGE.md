@@ -432,7 +432,7 @@ Ancre : projet "Rénovation salle de bain" (seedé). Entité cible : second proj
 
 | Parcours | Statut |
 |---|---|
-| Link card "Dépenses récurrentes" depuis /app/budget → /app/budget/recurring + état vide | ✅ |
+| Link card "Dépenses récurrentes" depuis /app/budget → /app/money/recurring + état vide | ✅ |
 | Ouverture du SheetDialog (champs libellé, montant, cadence, échéance, fournisseur, notes) | ✅ |
 | Validation : libellé vide → erreur, dialog reste ouvert | ✅ |
 | Création "Netflix" 15 € échéance aujourd'hui → section "À confirmer (1)" + bouton "Confirmer" | ✅ |
@@ -536,13 +536,13 @@ Households stubés pour contrôler la présence ou l'absence de lat/lon.
 
 ## Bilan mensuel (`report.spec.ts`)
 
-Page `/app/budget/reports` — rapport mensuel généré en lazy par le backend (LLM).
+Page `/app/money/reports` — rapport mensuel généré en lazy par le backend (LLM).
 Les assertions sur le contenu du rapport sont tolérantes : la présence d'un rapport
 dépend des données seedées et du cycle calendaire (dernier mois clôturé).
 
 | Parcours | Statut |
 |---|---|
-| Link card "Bilan mensuel" depuis /app/budget → /app/budget/reports | ✅ |
+| Link card "Bilan mensuel" depuis /app/budget → /app/money/reports | ✅ |
 | BackLink "Budgets" + titre h1 "Bilan mensuel" + description visibles | ✅ |
 | Page sans rapport : EmptyState "Aucun bilan" | ✅ |
 | Page avec rapport : section "Mois dernier" + libellé de mois capitalisé | 🚧 (dépend du seed DB — tolérant) |

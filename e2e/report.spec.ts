@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Parcours 21 — Lot 3 : Bilan mensuel.
  *
  * Couvre :
- *  1. Navigation depuis l'onglet Budgets → /app/budget/reports via la link card "Bilan mensuel"
+ *  1. Navigation depuis l'onglet Budgets → /app/money/reports via la link card "Bilan mensuel"
  *  2. Structure de la page (BackLink vers Budgets, titre, description)
  *  3. État tolérant : soit un état vide ("Aucun bilan"), soit une card de rapport
  *     avec un libellé de mois capitalisé — le contenu dépend des données seedées
@@ -83,20 +83,20 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
 
   // ── 1. Navigation depuis /app/budget via la link card ──────────────────────
 
-  test('la link card "Bilan mensuel" depuis l\'onglet Budgets mène à /app/budget/reports', async ({ page }) => {
+  test('la link card "Bilan mensuel" depuis l\'onglet Budgets mène à /app/money/reports', async ({ page }) => {
     // Attendre que l'overview soit chargé (la link card n'apparaît qu'ensuite)
     await expect(page.getByRole('heading', { level: 1, name: 'Argent' })).toBeVisible();
 
     // La link card est identifiée par son titre "Bilan mensuel"
     await page.getByText('Bilan mensuel').click();
 
-    await expect(page).toHaveURL(/\/app\/budget\/reports/);
+    await expect(page).toHaveURL(/\/app\/money\/reports/);
   });
 
   // ── 2. Structure de la page ────────────────────────────────────────────────
 
-  test('la page /app/budget/reports affiche le BackLink, le titre et la description', async ({ page }) => {
-    await page.goto('/app/budget/reports');
+  test('la page /app/money/reports affiche le BackLink, le titre et la description', async ({ page }) => {
+    await page.goto('/app/money/reports');
 
     // BackLink vers Budgets
     await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
@@ -113,7 +113,7 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   // ── 3. Contenu tolérant : état vide OU card de rapport ────────────────────
 
   test('la page affiche soit "Aucun bilan" soit une card de rapport avec un libellé de mois', async ({ page }) => {
-    await page.goto('/app/budget/reports');
+    await page.goto('/app/money/reports');
 
     // Attendre la fin du chargement : skeleton disparu → contenu visible
     // On attend que l'un des deux états soit présent (tolérant au contenu DB)
@@ -125,7 +125,7 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
   // ── 4. BackLink ramène au module Argent ───────────────────────────────────
 
   test('le BackLink "Budgets" navigue bien vers l\'onglet Budgets', async ({ page }) => {
-    await page.goto('/app/budget/reports');
+    await page.goto('/app/money/reports');
 
     await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
     await page.getByRole('link', { name: 'Budgets' }).click();
@@ -147,7 +147,7 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
     await apiCreatePreviousMonthExpense(page, `Dépense test bilan ${Date.now()}`, 42);
 
     // Naviguer sur la page des rapports
-    await page.goto('/app/budget/reports');
+    await page.goto('/app/money/reports');
 
     // Attendre la fin du chargement (skeleton résolu)
     await expect(
@@ -169,11 +169,11 @@ test.describe('Bilan mensuel — parcours 21 lot 3', () => {
 
   // ── 6. Accès direct par URL (deep-link) ───────────────────────────────────
 
-  test('accès direct à /app/budget/reports (sans passer par le module Argent) → page chargée correctement', async ({ page }) => {
+  test('accès direct à /app/money/reports (sans passer par le module Argent) → page chargée correctement', async ({ page }) => {
     // Accès direct sans state.back → BackLink affichera le fallback "Budgets"
-    await page.goto('/app/budget/reports');
+    await page.goto('/app/money/reports');
 
-    await expect(page).toHaveURL(/\/app\/budget\/reports/);
+    await expect(page).toHaveURL(/\/app\/money\/reports/);
     await expect(page.getByRole('heading', { level: 1, name: 'Bilan mensuel' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Budgets' })).toBeVisible();
   });

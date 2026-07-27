@@ -122,8 +122,16 @@ valeur initiale — l'initialiseur d'état du parent s'exécute avant le montage
 l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
-`/app/money/analysis`, `/app/money/budgets/:id`, `/app/budget/recurring`,
-`/app/budget/reports`.
+`/app/money/analysis`, `/app/money/budgets/:id`, `/app/money/recurring`,
+`/app/money/reports`.
+
+Les deux dernières ont rejoint la famille en juillet 2026 ; `/app/budget/recurring`
+et `/app/budget/reports` redirigent via `PreserveQueryRedirect`, qui conserve la
+query string pour la même raison que `LegacyMoneyRedirect`. Un test tient la
+règle côté serveur : `agent/tests/test_registry.py::test_the_money_family_links_stay_inside_the_money_module`
+refuse tout `url_template` de la famille argent qui ne commence pas par
+`/app/money` — une redirection rattrape un ancien lien, elle ne justifie pas d'en
+produire de nouveaux.
 
 `/app/money/analysis` est la **lecture longue** des dépenses (tendance mensuelle
 par budget, répartition, fournisseurs, plus grosses dépenses) — le panneau
@@ -210,18 +218,55 @@ s'y rendre. `?allocation=todo` passe par `detectors.pending_outflows`, la même
 fonction que les compteurs du Contrôle : une file dont le nombre contredirait le
 badge ferait perdre leur crédit aux deux.
 
+### Détacher est un geste, plus un effet de bord
+
+L'endpoint `DELETE /transactions/{id}/unlink/{interaction_id}/` n'avait aucun
+appelant. En cherchant où le brancher, on a trouvé pourquoi il était inutile : le
+service le faisait déjà **tout seul**, au mauvais moment.
+
+`set_allocations` détachait tout ce qu'il ne possède pas. Concrètement : 150 € chez
+Leroy Merlin, dont 90 € déjà saisis comme achat de projet et rapprochés à la main ;
+éditer les 60 € restants dé-rapprochait les 90 €. L'écart « dépense non rapprochée »
+resurgissait sur une dépense que l'utilisateur avait résolue, et comme l'éditeur
+chargeait *toutes* les ventilations dans son brouillon, enregistrer recréait une
+dépense `kind='bank'` pour les mêmes 90 € — 180 € de dépenses sur 150 € d'argent,
+et le chantier facturé deux fois pour le même carrelage.
+
+Trois conséquences, symétriques de la règle de propriété du lot 3 :
+
+- **la portée de l'éditeur s'arrête à ce qu'il a créé.** Il supprime ses lignes
+  `kind='bank'`, et ne touche à rien d'autre — ni suppression, ni détachement ;
+- **le montant rattaché est un plancher.** `set_allocations` le compte contre
+  l'`outflow`, donc renvoyer la ligne rattachée dans le payload est un **400** au
+  lieu d'un doublement silencieux ;
+- **le geste existe** : le bloc « Dépenses déjà rattachées » de l'`AllocationDialog`
+  les affiche en lecture seule avec un bouton « Détacher », qui appelle l'endpoint.
+
+Régression : `banking/tests/test_allocation_axes.py::TestSavingASplitNeverUndoesAReconciliation`.
+
+### « 340 € / 400 € » : deux chiffres, jamais un filtre
+
+Une dépense jamais rapprochée gonfle une enveloppe sans qu'aucune ligne de relevé
+ne l'atteste. Chaque ligne de l'aperçu porte donc `spent_attested` et
+`spent_pending` **en plus** de `spent`, calculés en un seul `GROUP BY` (un
+`Sum(filter=…)` conditionnel — l'aperçu est rechargé à chaque visite de l'onglet).
+
+Ce qui n'a **pas** été fait, et pourquoi : filtrer `bank_transaction__isnull=False`
+pour ne compter que le prouvé. Une dépense saisie hier est réelle même si le relevé
+de fin de mois n'est pas importé ; le compteur reculerait au fil du mois pour
+remonter d'un coup à l'import. **Un plafond qui recule est pire qu'un plafond
+incertain.** Le plafond mesure donc toujours le total, et la barre dit la
+différence en deux nuances de la même couleur — une autre teinte laisserait croire
+à une autre nature de dépense.
+
+`spent_pending` est calculé **par différence**, jamais par une seconde somme : deux
+agrégats indépendants finissent par se contredire d'un centime d'arrondi, et un
+total qui ne se recompose pas ne se lit pas. Régression :
+`budget/tests/test_api_budget.py::TestWhatTheStatementAttests`.
+
 ### Reste ouvert
 
-Deux points de l'audit demandent un arbitrage produit, pas une correction :
-
-- **`DELETE /transactions/{id}/unlink/{interaction_id}/` n'a aucun appelant.**
-  Détacher une dépense mal rapprochée n'a pas de geste dans l'interface. Soit on
-  lui en donne un, soit on retire l'endpoint — mais un endpoint injoignable est
-  lui-même un orphelin.
-- **`/app/budget/recurring` et `/app/budget/reports`** vivent hors de la famille
-  `/app/money`, alors que `/app/budget` redirige vers elle. Les déplacer touche
-  les `url_template` de l'agent, les tutoriels et les redirections.
-
-Et un lot de dette hors périmètre : `features/settings` compte une trentaine de
-`t(…, { defaultValue })`, interdits par le CLAUDE.md — c'est pour cela que le
-garde-fou i18n couvre une liste de namespaces plutôt que tout le front.
+Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions
+de budget apprises** (`label_norm` + fournisseur + historique des budgets). C'est
+le vrai levier sur l'effort de rangement, mais l'apprendre demande un mois réel de
+données — le construire avant, c'est inventer les motifs qu'on croit avoir.
