@@ -1236,6 +1236,10 @@
             "title": "Plegar y buscar",
             "body": "Pliega las ramas que no consultas y escribe en el buscador para ir directo a una zona: las zonas superiores del resultado siguen visibles, así nunca pierdes el contexto."
           },
+          "order": {
+            "title": "Ordénalas a tu manera",
+            "body": "Arrastra una zona por su asa o usa «Subir» / «Bajar» en su menú ⋯: tu orden se aplica en todas partes, también en los formularios."
+          },
           "navigate": {
             "title": "Navegar por zona",
             "body": "La página de una zona reúne los equipos, tareas y eventos asociados."

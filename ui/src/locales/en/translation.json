@@ -1236,6 +1236,10 @@
             "title": "Collapse and search",
             "body": "Collapse the branches you don't need, and type in the search field to go straight to a zone: the parents of a match stay visible, so you never lose the context."
           },
+          "order": {
+            "title": "Put them in your order",
+            "body": "Drag a zone by its handle, or use “Move up” / “Move down” in its ⋯ menu: your order applies everywhere, forms included."
+          },
           "navigate": {
             "title": "Navigate by zone",
             "body": "A zone's page gathers the equipment, tasks and events attached to it."

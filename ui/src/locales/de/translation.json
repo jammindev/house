@@ -1236,6 +1236,10 @@
             "title": "Einklappen und suchen",
             "body": "Klappen Sie Zweige ein, die Sie nicht brauchen, und springen Sie über die Suche direkt zu einer Zone: die übergeordneten Zonen eines Treffers bleiben sichtbar, der Kontext geht nie verloren."
           },
+          "order": {
+            "title": "In Ihrer Reihenfolge ordnen",
+            "body": "Ziehen Sie eine Zone am Griff oder nutzen Sie „Nach oben“ / „Nach unten“ in ihrem ⋯-Menü: Ihre Reihenfolge gilt überall, auch in Formularen."
+          },
           "navigate": {
             "title": "Nach Zone navigieren",
             "body": "Die Seite einer Zone bündelt die zugehörigen Geräte, Aufgaben und Ereignisse."

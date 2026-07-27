@@ -1236,6 +1236,10 @@
             "title": "Replier et rechercher",
             "body": "Repliez les branches que vous ne consultez pas, et tapez dans la recherche pour aller droit à une zone : les parents du résultat restent affichés, vous ne perdez jamais le contexte."
           },
+          "order": {
+            "title": "Ranger dans votre ordre",
+            "body": "Glissez une zone par sa poignée, ou utilisez « Monter » / « Descendre » dans son menu ⋯ : votre ordre s'applique partout, y compris dans les formulaires."
+          },
           "navigate": {
             "title": "Naviguer par zone",
             "body": "La page d'une zone regroupe équipements, tâches et événements qui s'y rattachent."

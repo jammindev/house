@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@/design-system/input';
 import { fieldBase } from '@/design-system/field-styles';
 import { cn } from '@/lib/utils';
+import { useTransientLayer } from '@/lib/transientLayers';
 import { useZones, buildZoneRows, expandableZoneIds } from './hooks';
 import type { Zone } from '@/lib/api/zones';
 
@@ -69,19 +70,24 @@ function useDismiss(
       if (!containerRef.current?.contains(event.target as Node)) close();
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        close();
-      }
+      if (event.key !== 'Escape') return;
+      // Échap ne doit fermer QUE le panneau. Le picker vit presque toujours dans
+      // un SheetDialog dont Radix écoute aussi Échap sur `document` :
+      // `stopPropagation` n'arrête pas un autre écouteur du même nœud, il faut
+      // `stopImmediatePropagation` **et** la phase de capture pour passer avant.
+      // Sans ça, refermer le panneau fermait le formulaire et perdait la saisie.
+      event.stopImmediatePropagation();
+      event.preventDefault();
+      close();
     };
 
     document.addEventListener('mousedown', onPointerDown);
     document.addEventListener('touchstart', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('touchstart', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
     };
   }, [open, close, containerRef]);
 }
@@ -106,6 +112,8 @@ export default function ZonePicker(props: ZonePickerProps) {
     setQuery('');
   }, []);
   useDismiss(open, close, containerRef);
+  // Tant que le panneau est ouvert, il revendique Échap face au dialog parent.
+  useTransientLayer(open);
 
   // À l'ouverture, le curseur va dans la recherche : c'est le geste attendu
   // quand on cherche une zone parmi beaucoup.
@@ -158,7 +166,16 @@ export default function ZonePicker(props: ZonePickerProps) {
   };
 
   // ── Contenu du déclencheur ────────────────────────────────────────────────
-  const emptyText = placeholder ?? t('zones.pickerPlaceholder');
+  /**
+   * Quand rien n'est choisi, un champ qui autorise le vide affiche son libellé
+   * « aucune zone » — c'est un **choix**, pas une absence de choix, et c'est ce
+   * que montrait le `<option value="">` du `<select>` d'origine. Un champ requis
+   * affiche au contraire une invitation.
+   */
+  const emptyText =
+    placeholder ??
+    (props.mode !== 'multiple' && props.allowEmpty ? props.emptyLabel ?? t('zones.noZone') : null) ??
+    t('zones.pickerPlaceholder');
 
   let triggerContent: React.ReactNode;
   if (props.mode === 'multiple') {

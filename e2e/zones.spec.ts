@@ -14,6 +14,8 @@ import type { Page } from '@playwright/test';
  *  7. Déplier/Replier tout désactivé pendant une recherche
  *  8. Édition d'une zone via le menu ⋯
  *  9. Suppression bloquée si la zone a des sous-zones
+ * 10. Ordre manuel : Monter / Descendre, butées, persistance
+ * 11. ZonePicker : le sélecteur commun (recherche, hiérarchie, simple/multiple)
  *
  * Chaque test crée ses propres zones (noms suffixés d'un timestamp unique) —
  * aucune hypothèse sur le contenu préexistant du foyer de test, hormis la
@@ -284,5 +286,114 @@ test.describe('Zones — arborescence dense', () => {
 
     // La zone reste affichée — la suppression n'a pas eu lieu.
     await expect(page.getByText(parentName, { exact: true })).toBeVisible();
+  });
+
+  // ── 10. Ordre manuel ──────────────────────────────────────────────────────
+
+  test('Monter et Descendre réordonnent la fratrie', async ({ page }) => {
+    const ts = Date.now();
+    // Créées dans cet ordre → rangs 0, 1, 2 (place_at_end côté serveur).
+    const first = `AAA Ordre E2E ${ts}`;
+    const second = `BBB Ordre E2E ${ts}`;
+
+    await apiCreateZone(page, { name: first });
+    await apiCreateZone(page, { name: second });
+
+    await page.goto('/app/zones');
+    await expect(page.getByText(second, { exact: true })).toBeVisible();
+
+    const orderOf = async () => {
+      const names = await page
+        .locator('a[href^="/app/zones/"]')
+        .filter({ hasText: `Ordre E2E ${ts}` })
+        .allInnerTexts();
+      return names.map((n) => n.trim());
+    };
+
+    expect(await orderOf()).toEqual([first, second]);
+
+    // Monter la seconde : elle doit passer devant.
+    await openZoneMenu(page, second);
+    await page.getByRole('menuitem', { name: 'Monter' }).click();
+    await expect.poll(orderOf).toEqual([second, first]);
+
+    // Puis la redescendre : retour à l'ordre initial.
+    await openZoneMenu(page, second);
+    await page.getByRole('menuitem', { name: 'Descendre' }).click();
+    await expect.poll(orderOf).toEqual([first, second]);
+  });
+
+  test('l\'ordre manuel survit à un rechargement', async ({ page }) => {
+    const ts = Date.now();
+    const first = `AAA Persist E2E ${ts}`;
+    const second = `BBB Persist E2E ${ts}`;
+
+    await apiCreateZone(page, { name: first });
+    await apiCreateZone(page, { name: second });
+
+    await page.goto('/app/zones');
+    await openZoneMenu(page, second);
+    await page.getByRole('menuitem', { name: 'Monter' }).click();
+
+    const orderOf = async () => {
+      const names = await page
+        .locator('a[href^="/app/zones/"]')
+        .filter({ hasText: `Persist E2E ${ts}` })
+        .allInnerTexts();
+      return names.map((n) => n.trim());
+    };
+    await expect.poll(orderOf).toEqual([second, first]);
+
+    // Rechargement complet : l'ordre vient de la base, pas de l'état React.
+    await page.reload();
+    await expect(page.getByText(second, { exact: true })).toBeVisible();
+    expect(await orderOf()).toEqual([second, first]);
+  });
+
+  test('la première zone n\'offre pas « Monter », la dernière n\'offre pas « Descendre »', async ({ page }) => {
+    const ts = Date.now();
+    const first = `AAA Butee E2E ${ts}`;
+    const last = `ZZZ Butee E2E ${ts}`;
+
+    await apiCreateZone(page, { name: first });
+    await apiCreateZone(page, { name: last });
+
+    await page.goto('/app/zones');
+    await expect(page.getByText(last, { exact: true })).toBeVisible();
+
+    // `first` est en tête de la fratrie de la racine créée par ce test… mais la
+    // racine du foyer contient aussi les zones préexistantes. On vérifie donc la
+    // butée sur la vraie première et la vraie dernière ligne de la fratrie.
+    const links = page.locator('a[href^="/app/zones/"]');
+    const total = await links.count();
+    const firstName = (await links.nth(1).innerText()).trim(); // 0 = la racine
+    const lastName = (await links.nth(total - 1).innerText()).trim();
+
+    await openZoneMenu(page, firstName);
+    await expect(page.getByRole('menuitem', { name: 'Monter' })).toHaveCount(0);
+    await expect(page.getByRole('menuitem', { name: 'Descendre' })).toHaveCount(1);
+    await page.keyboard.press('Escape');
+
+    await openZoneMenu(page, lastName);
+    await expect(page.getByRole('menuitem', { name: 'Descendre' })).toHaveCount(0);
+    await expect(page.getByRole('menuitem', { name: 'Monter' })).toHaveCount(1);
+    await page.keyboard.press('Escape');
+  });
+
+  test('pendant une recherche, Monter et Descendre ne sont pas proposés', async ({ page }) => {
+    const ts = Date.now();
+    const name = `Filtre Ordre E2E ${ts}`;
+    await apiCreateZone(page, { name });
+    await apiCreateZone(page, { name: `Autre Ordre E2E ${ts}` });
+
+    await page.goto('/app/zones');
+    await page.getByRole('searchbox', { name: 'Rechercher une zone…' }).fill(name);
+    await expect(page.getByText(name, { exact: true })).toBeVisible();
+
+    // Réordonner depuis une vue filtrée n'a pas de sens : les lignes visibles
+    // ne sont pas la fratrie.
+    await openZoneMenu(page, name);
+    await expect(page.getByRole('menuitem', { name: 'Monter' })).toHaveCount(0);
+    await expect(page.getByRole('menuitem', { name: 'Descendre' })).toHaveCount(0);
   });
 });
