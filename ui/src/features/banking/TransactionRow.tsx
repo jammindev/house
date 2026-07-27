@@ -139,6 +139,13 @@ export default function TransactionRow({
               {transaction.inflow_nature
                 ? t(`banking.inflow.natures.${transaction.inflow_nature}`)
                 : t('banking.inflow.unclassified')}
+              {/* Un remboursement qui ne recrédite rien laisse le budget compter
+                  de l'argent revenu : le dire ici, là où on peut le corriger. */}
+              {transaction.inflow_nature === 'refund'
+                ? ` · ${
+                    transaction.refund_budget_name ?? t('banking.inflow.refundBudgetNone')
+                  }`
+                : ''}
             </span>
           ) : null}
 

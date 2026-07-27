@@ -124,6 +124,8 @@ def compute_expense_summary(
         for row in by_month_rows
     ]
 
+    refunded = _refunded_total(household_id, from_dt, to_dt, budget=budget)
+
     return {
         'period': {
             'from': from_dt.isoformat() if from_dt else None,
@@ -131,7 +133,45 @@ def compute_expense_summary(
         },
         'total': _str(overall['total']),
         'count': overall['count'],
+        # Ce que la période a **rendu**, et le net qui en découle. ``total`` reste
+        # le brut : c'est lui que décomposent ``by_kind`` / ``by_supplier`` /
+        # ``by_month``, et un total qui ne se recompose pas ne se lit pas.
+        'refunded': _str(refunded),
+        'net_total': _str(overall['total'] - refunded),
         'by_kind': by_kind,
         'by_supplier': by_supplier,
         'by_month': by_month,
     }
+
+
+def _refunded_total(household_id, from_dt, to_dt, *, budget: str | None) -> Decimal:
+    """Somme des remboursements de la période, cadrée sur le même filtre budget.
+
+    Trois lectures, cohérentes avec le filtre demandé : une enveloppe précise
+    donne ce qui lui est revenu, ``'none'`` donne les remboursements qui ne
+    créditent personne, et l'absence de filtre donne tout ce qui est revenu sur
+    la période. Renvoyer zéro quand on ne sait pas serait le silence que le
+    module refuse.
+
+    Le remboursement est daté par ``booked_on`` (la banque), la dépense par
+    ``occurred_at`` (le foyer) : deux dates différentes pour deux faits
+    différents, bornées par le même intervalle.
+    """
+    from banking.models import BankTransaction, InflowNature, TransactionDirection
+
+    qs = BankTransaction.objects.filter(
+        household_id=household_id,
+        direction=TransactionDirection.IN,
+        inflow_nature=InflowNature.REFUND,
+    )
+    if budget == UNBUDGETED:
+        qs = qs.filter(refund_budget__isnull=True)
+    elif budget:
+        qs = qs.filter(refund_budget_id=budget)
+
+    if from_dt is not None:
+        qs = qs.filter(booked_on__gte=from_dt.date())
+    if to_dt is not None:
+        qs = qs.filter(booked_on__lte=to_dt.date())
+
+    return qs.aggregate(total=Coalesce(Sum('amount'), _zero()))['total'] or Decimal('0.00')

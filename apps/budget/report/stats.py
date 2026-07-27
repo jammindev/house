@@ -78,23 +78,41 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
     total_spent = sum(spent_map.values(), _zero())
     unbudgeted = spent_map.get(None, _zero())
 
+    # Le bilan recalcule son propre « dépensé » : sans les remboursements il
+    # annoncerait « dépassé » là où le panneau affiche « ok », sur le même mois
+    # et le même budget. Un compteur ne peut pas avoir deux définitions.
+    from ..aggregations import _refunded_by_budget
+
+    refunded_map = _refunded_by_budget(household.id, start, end)
+    total_refunded = sum(refunded_map.values(), _zero())
+
     budgets = list(Budget.objects.filter(household_id=household.id))
     global_budget = next((b for b in budgets if b.is_global), None)
 
-    def _row(b: Budget, spent: Decimal) -> dict[str, Any]:
-        ratio, state = _state(spent, b.monthly_amount)
+    def _row(b: Budget, spent: Decimal, refunded: Decimal) -> dict[str, Any]:
+        net = spent - refunded
+        ratio, state = _state(net, b.monthly_amount)
         return {
             "name": b.name,
             # ``None`` = catégorie sans plafond. Les snapshots déjà figés portent
             # une string : le rendu doit accepter les deux, pour toujours.
             "amount": None if b.monthly_amount is None else _str(b.monthly_amount),
+            # Clés **ajoutées**, jamais renommées : un bilan déjà figé se relit.
+            # ``spent`` garde sa définition brute ; c'est le net que le plafond
+            # mesure, comme dans l'aperçu.
             "spent": _str(spent),
+            "refunded": _str(refunded),
+            "net_spent": _str(net),
             "ratio": round(ratio, 4),
             "state": state,
         }
 
-    budget_rows = [_row(b, spent_map.get(b.id, _zero())) for b in budgets if not b.is_global]
-    global_row = _row(global_budget, total_spent) if global_budget else None
+    budget_rows = [
+        _row(b, spent_map.get(b.id, _zero()), refunded_map.get(b.id, _zero()))
+        for b in budgets
+        if not b.is_global
+    ]
+    global_row = _row(global_budget, total_spent, total_refunded) if global_budget else None
 
     # Exclude amount-less expenses: on Postgres a NULL sorts NULLS FIRST under
     # DESC and would otherwise steal the "biggest expense" slot with a 0 amount.
@@ -116,6 +134,8 @@ def compute_month_stats(household, month: str) -> dict[str, Any]:
     return {
         "month": month,
         "total_spent": _str(total_spent),
+        "total_refunded": _str(total_refunded),
+        "total_net_spent": _str(total_spent - total_refunded),
         "prev_month": prev,
         "prev_total": _str(prev_total),
         "trend_delta": _str(delta),

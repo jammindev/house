@@ -6,6 +6,7 @@ import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
 import type { BankTransaction, InflowNature } from '@/lib/api/banking';
+import { useBudgets } from '@/features/budget/hooks';
 import { useQualifyTransaction } from './hooks';
 
 interface ClassifyInflowDialogProps {
@@ -36,15 +37,30 @@ export default function ClassifyInflowDialog({
   const { t } = useTranslation();
   const mutation = useQualifyTransaction();
   const [nature, setNature] = React.useState<InflowNature | ''>('');
+  const [refundBudgetId, setRefundBudgetId] = React.useState('');
+  const budgetsQuery = useBudgets();
 
   React.useEffect(() => {
-    if (open) setNature(transaction.inflow_nature);
-  }, [open, transaction.inflow_nature]);
+    if (!open) return;
+    setNature(transaction.inflow_nature);
+    setRefundBudgetId(transaction.refund_budget ?? '');
+  }, [open, transaction.inflow_nature, transaction.refund_budget]);
+
+  const isRefund = nature === 'refund';
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     mutation.mutate(
-      { id: transaction.id, payload: { inflow_nature: nature } },
+      {
+        id: transaction.id,
+        payload: {
+          inflow_nature: nature,
+          // Le serveur refuse un budget sur autre chose qu'un remboursement, et
+          // efface celui d'un remboursement reclassé. On envoie donc `null`
+          // plutôt que rien : ne pas envoyer la clé laisserait l'ancien budget.
+          refund_budget_id: isRefund ? refundBudgetId || null : null,
+        },
+      },
       { onSuccess: () => onOpenChange(false) },
     );
   }
@@ -75,6 +91,29 @@ export default function ClassifyInflowDialog({
           />
           <p className="text-xs text-muted-foreground">{t('banking.inflow.hint')}</p>
         </FormField>
+
+        {/* Un remboursement est la seule recette qui *annule* une dépense : sans
+            enveloppe nommée, le budget continue de compter de l'argent revenu.
+            Le laisser vide reste possible — un frais bancaire jamais budgété ne
+            recrédite rien — mais c'est alors un écart que le Contrôle signale. */}
+        {isRefund ? (
+          <FormField label={t('banking.inflow.refundBudget')} htmlFor="inflow-refund-budget">
+            <Select
+              id="inflow-refund-budget"
+              value={refundBudgetId}
+              onChange={(e) => setRefundBudgetId(e.target.value)}
+              options={[
+                { value: '', label: t('banking.inflow.refundBudgetNone') },
+                ...(budgetsQuery.data ?? [])
+                  .filter((b) => !b.is_global)
+                  .map((b) => ({ value: b.id, label: b.name })),
+              ]}
+            />
+            <p className="text-xs text-muted-foreground">
+              {t('banking.inflow.refundBudgetHint')}
+            </p>
+          </FormField>
+        ) : null}
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

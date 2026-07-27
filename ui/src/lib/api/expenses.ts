@@ -22,6 +22,12 @@ export interface ExpenseSummary {
   period: { from: string | null; to: string | null };
   total: string;
   count: number;
+  /**
+   * Ce que la période a **rendu**, et le net. `total` reste le brut — c'est lui
+   * que décomposent `by_kind` / `by_supplier` / `by_month`.
+   */
+  refunded: string;
+  net_total: string;
   by_kind: ExpenseSummaryRow[];
   by_supplier: ExpenseSupplierRow[];
   by_month: ExpenseMonthRow[];

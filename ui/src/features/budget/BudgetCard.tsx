@@ -36,12 +36,20 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
   // il n'y a rien à mesurer. On dit juste ce que la catégorie a coûté.
   const uncapped = row.amount === null;
   const pct = Math.min(100, Math.round(row.ratio * 100));
-  const overBy = Number(row.spent) - Number(row.amount ?? 0);
+  // Le **net** : de l'argent rendu n'a pas été dépensé. C'est ce que le serveur
+  // compare au plafond (`ratio`/`state`), donc c'est ce que la carte affiche —
+  // montrer le brut à côté d'une barre calculée sur le net serait deux voix.
+  const net = Number(row.net_spent);
+  const refunded = Number(row.refunded);
+  const overBy = net - Number(row.amount ?? 0);
 
   // Ce que le relevé atteste, et ce qui attend encore de l'être. Le plafond
   // mesure toujours le total : une dépense saisie avant l'import est réelle, et
   // un compteur qui reculerait en attendant le relevé serait pire qu'incertain.
   // La barre le dit en deux nuances, sans changer sa longueur.
+  // Les deux nuances décomposent le **brut** (c'est de lui qu'on sait ce que le
+  // relevé atteste) ; la proportion est ensuite appliquée à la longueur de la
+  // barre, qui elle mesure le net.
   const spent = Number(row.spent);
   const pending = Number(row.spent_pending);
   const attestedPct = spent > 0 ? (Number(row.spent_attested) / spent) * pct : pct;
@@ -64,8 +72,8 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
             </span>
             <span className={`shrink-0 text-sm tabular-nums ${TEXT_CLASS[row.state]}`}>
               {uncapped
-                ? formatAmount(row.spent)
-                : `${formatAmount(row.spent)} / ${formatAmount(row.amount as string)}`}
+                ? formatAmount(row.net_spent)
+                : `${formatAmount(row.net_spent)} / ${formatAmount(row.amount as string)}`}
             </span>
           </div>
 
@@ -97,6 +105,14 @@ export default function BudgetCard({ row, onEdit, onDelete, to, backState }: Bud
                 ? t('budget.overBy', { amount: formatAmount(String(overBy)) })
                 : t('budget.percentUsed', { pct })}
           </p>
+          {refunded > 0 ? (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {t('budget.refunded', {
+                spent: formatAmount(row.spent),
+                refunded: formatAmount(row.refunded),
+              })}
+            </p>
+          ) : null}
           {pending > 0 ? (
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t('budget.pending', { amount: formatAmount(row.spent_pending) })}

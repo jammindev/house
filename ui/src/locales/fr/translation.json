@@ -1644,7 +1644,7 @@
           },
           "track": {
             "title": "Suivre le mois",
-            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil. La barre a deux nuances : la partie franche est ce qu'une ligne de relevé atteste, la partie pâle ce qui attend encore d'être rapproché. Le compteur, lui, compte tout — une dépense d'hier est réelle même si le relevé n'est pas encore importé."
+            "body": "Chaque budget plafonné affiche le dépensé vs le plafond avec une barre de progression — orange près de la limite, rouge en cas de dépassement. Une catégorie sans plafond affiche seulement son total. Les compteurs repartent à zéro chaque mois. Touche un budget pour voir les dépenses qui composent son compteur — « Hors budget » s'ouvre pareil. La barre a deux nuances : la partie franche est ce qu'une ligne de relevé atteste, la partie pâle ce qui attend encore d'être rapproché. Le compteur, lui, compte tout — une dépense d'hier est réelle même si le relevé n'est pas encore importé. Un remboursement (article retourné, cotisation remboursée) vient en déduction : le compteur affiche alors le net, et la ligne du remboursement apparaît sous les dépenses."
           },
           "analysis": {
             "title": "Comprendre où ça part",
@@ -3211,7 +3211,8 @@
     "uncapped": {
       "hint": "Catégorie suivie, sans plafond"
     },
-    "pending": "Dont {{amount}} en attente de rapprochement"
+    "pending": "Dont {{amount}} en attente de rapprochement",
+    "refunded": "{{spent}} dépensés, {{refunded}} remboursés"
   },
   "budgetDetail": {
     "description": "Les dépenses qui composent ce compteur.",
@@ -3220,7 +3221,8 @@
     "count_other": "{{count}} dépenses",
     "empty": "Aucune dépense sur cette période",
     "emptyDescription": "Change de période, ou range des dépenses dans ce budget.",
-    "truncated": "{{shown}} dépenses affichées sur {{total}}."
+    "truncated": "{{shown}} dépenses affichées sur {{total}}.",
+    "refundsTitle": "Remboursements de la période"
   },
   "analysis": {
     "title": "Analyse des dépenses",
@@ -3496,7 +3498,10 @@
         "refund": "Remboursement",
         "transfer": "Virement entre mes comptes",
         "other": "Autre"
-      }
+      },
+      "refundBudget": "Budget recrédité",
+      "refundBudgetNone": "Aucun budget",
+      "refundBudgetHint": "L'enveloppe qui récupère cet argent. Laissez vide si ce remboursement ne concerne aucun budget — le contrôle vous demandera alors de l'arbitrer."
     },
     "anchor": {
       "title": "Retrouver le solde d'ouverture",
@@ -3732,6 +3737,11 @@
           "title": "Solde constaté qui ne concorde plus",
           "hint": "Le solde d'ouverture avait été reconstruit d'un solde relevé par toi. L'arithmétique ne ferme plus.",
           "resolution": "Des opérations ont changé depuis. Importe le relevé manquant, ou relis ton solde et reconstruis-le : tant que l'écart demeure, tous les soldes de ce compte sont faux du même montant."
+        },
+        "refund_without_budget": {
+          "title": "Remboursements sans enveloppe",
+          "hint": "Cet argent est revenu, mais aucun budget ne le récupère : le compteur du mois reste gonflé d'autant.",
+          "resolution": "Choisissez le budget recrédité depuis le journal bancaire, ou arbitrez si ce remboursement ne concerne aucune enveloppe."
         }
       },
       "blocked": "Contrôle non évaluable",

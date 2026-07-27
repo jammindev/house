@@ -30,6 +30,14 @@ export interface BudgetOverviewRow {
    */
   spent_attested: string;
   spent_pending: string;
+  /**
+   * Ce que le mois a **rendu** à l'enveloppe : articles retournés, cotisations
+   * remboursées. `net_spent === spent - refunded`, et c'est le **net** que le
+   * plafond mesure — de l'argent rendu n'a pas été dépensé. `spent` garde sa
+   * définition brute, que sept agrégations lisent.
+   */
+  refunded: string;
+  net_spent: string;
   committed: string;
   ratio: number;
   state: BudgetState;
@@ -43,6 +51,8 @@ export interface BudgetOverview {
   total_spent: string;
   total_attested: string;
   total_pending: string;
+  total_refunded: string;
+  total_net_spent: string;
   total_committed: string;
   named_total_amount: string;
   named_exceeds_global: boolean;

@@ -178,6 +178,11 @@ class BankTransactionSerializer(serializers.ModelSerializer):
     allocated_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
     allocation_state = serializers.SerializerMethodField()
+    # Le budget qu'un remboursement recrédite. Écrit par l'action ``qualify``
+    # seule, comme les deux autres champs de qualification.
+    refund_budget_name = serializers.CharField(
+        source="refund_budget.name", read_only=True, default=None
+    )
 
     class Meta:
         model = BankTransaction
@@ -192,6 +197,8 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "direction",
             "is_internal",
             "inflow_nature",
+            "refund_budget",
+            "refund_budget_name",
             "balance_after",
             "external_id",
             "notes",
@@ -215,6 +222,8 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "external_id",
             "source_import",
             "transfer_counterpart",
+            "refund_budget",
+            "refund_budget_name",
             "created_at",
         ]
 

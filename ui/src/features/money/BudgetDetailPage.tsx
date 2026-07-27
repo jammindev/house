@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Receipt } from 'lucide-react';
@@ -8,13 +8,14 @@ import BackLink from '@/components/BackLink';
 import EmptyState from '@/components/EmptyState';
 import { Card } from '@/design-system/card';
 import { FilterPill } from '@/design-system/filter-pill';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, formatDate } from '@/lib/format';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { fetchInteractions, type InteractionListItem } from '@/lib/api/interactions';
 import { interactionKeys } from '@/features/interactions/hooks';
 import { useExpenseSummary } from '@/features/expenses/hooks';
 import { useBudgetOverview } from '@/features/budget/hooks';
+import { useTransactions } from '@/features/banking/hooks';
 import { resolvePeriod, type PeriodPreset, type PeriodRange } from '@/features/expenses/period';
 import ExpenseList from '@/features/expenses/ExpenseList';
 
@@ -79,6 +80,19 @@ export default function BudgetDetailPage() {
     queryFn: () => fetchInteractions(listFilters),
   });
 
+  // Ce que l'enveloppe s'est fait rendre sur la période. Une ligne à part, pas
+  // une dépense négative : `Interaction.amount` ne descend jamais sous zéro.
+  const refundFilters = React.useMemo(
+    () => ({
+      refund_budget: isUnbudgeted ? undefined : id,
+      ...(range.from ? { date_from: range.from } : {}),
+      ...(range.to ? { date_to: range.to } : {}),
+    }),
+    [id, isUnbudgeted, range.from, range.to],
+  );
+  const refundsQuery = useTransactions(refundFilters, 50, { enabled: !isUnbudgeted });
+  const refunds = refundsQuery.data?.results ?? [];
+
   const items: InteractionListItem[] = listQuery.data?.items ?? [];
   const summary = summaryQuery.data;
   const isLoading = summaryQuery.isLoading || listQuery.isLoading;
@@ -125,7 +139,7 @@ export default function BudgetDetailPage() {
           <Card className="p-4">
             <p className="text-xs text-muted-foreground">{t('budgetDetail.spent')}</p>
             <p className="mt-0.5 text-2xl font-semibold tabular-nums text-foreground">
-              {formatAmount(summary.total)}
+              {formatAmount(summary.net_total)}
               {showCeiling ? (
                 <span className="text-base font-normal text-muted-foreground">
                   {' / '}
@@ -136,7 +150,47 @@ export default function BudgetDetailPage() {
             <p className="mt-1 text-xs text-muted-foreground">
               {t('budgetDetail.count', { count: summary.count })}
             </p>
+            {Number(summary.refunded) > 0 ? (
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t('budget.refunded', {
+                  spent: formatAmount(summary.total),
+                  refunded: formatAmount(summary.refunded),
+                })}
+              </p>
+            ) : null}
           </Card>
+
+          {refunds.length > 0 ? (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold text-foreground">
+                {t('budgetDetail.refundsTitle')}
+              </h2>
+              <ul className="space-y-2">
+                {refunds.map((line) => (
+                  <li key={line.id}>
+                    <Card className="p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            to={`/app/money/transactions/${line.id}`}
+                            className="truncate text-sm font-medium text-foreground hover:text-primary hover:underline"
+                          >
+                            {line.label_raw}
+                          </Link>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {formatDate(line.booked_on)}
+                          </p>
+                        </div>
+                        <p className="shrink-0 text-sm font-semibold tabular-nums text-primary">
+                          −{formatAmount(line.amount)}
+                        </p>
+                      </div>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
           {items.length === 0 ? (
             <EmptyState

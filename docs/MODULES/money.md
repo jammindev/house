@@ -304,6 +304,45 @@ plutôt que de plafonner le total de la page — la liste des interactions a un 
 antérieur (documents, contacts, structures, équipements : sept requêtes par ligne)
 qu'une borne globale mesurerait à la place.
 
+### Un remboursement recrédite son enveloppe
+
+Le cas qui a déclenché le mécanisme : un article de 40 € rendu à Leroy Merlin, une
+cotisation bancaire remboursée. `inflow_nature='refund'` existait depuis le lot 5 —
+et la docstring du modèle disait déjà qu'un remboursement « *offsets* an expense » —
+mais **rien ne l'implémentait** : classer une recette en remboursement ne changeait
+aucun chiffre. Le budget continuait d'afficher 150 € consommés sur un achat dont
+40 € étaient revenus, pour toujours.
+
+Ce qui manquait tient en un champ : **`BankTransaction.refund_budget`**.
+
+- **Le remboursement reste une ligne bancaire.** Pas une `Interaction` à montant
+  négatif — c'est ce qui protège les neuf `Sum("amount")` et `top_expenses`. Un
+  `CheckConstraint` interdit le champ sur autre chose qu'une recette `refund`, et
+  reclasser un remboursement en salaire efface le budget avec lui : sinon
+  l'enveloppe reste créditée par une ligne qui ne rembourse plus rien.
+- **`spent` reste le brut, `net_spent` est le chiffre du plafond.** `ratio` et
+  `state` mesurent le net. Redéfinir `spent` aurait cassé ses sept lecteurs et vidé
+  de son sens sa décomposition attesté / en attente.
+- **La seule soustraction admise entre les deux mondes.** La règle « ne jamais
+  additionner un total banque et un total interactions » tient toujours : ici on ne
+  retranche pas un *total* bancaire, mais des lignes **désignées une par une** par
+  l'utilisateur. Une recette sans budget ne retire rien à personne — c'est l'écart
+  `refund_without_budget`, waivable (un frais bancaire jamais budgété ne recrédite
+  rien, et le dire est l'arbitrage).
+- **Le mois du remboursement, jamais celui de l'achat.** Imputer rétroactivement
+  réécrirait un bilan mensuel déjà figé, que le rendu et le digest relisent. Le prix
+  est un mois net négatif quand le remboursement arrive après — c'est un fait, et le
+  cacher serait pire.
+- **Le bilan mensuel recalcule son propre « dépensé »**, il a donc fallu l'y ajouter
+  aussi : sans quoi il annonçait « dépassé » sur un budget que l'aperçu affichait
+  « ok », le même mois. Régression :
+  `budget/tests/test_refunds.py::TestTheMonthlyReportAgreesWithThePanel`.
+
+Côté écran : le budget se choisit dans `ClassifyInflowDialog` quand la nature est
+« remboursement », la ligne du journal affiche l'enveloppe qu'elle recrédite, et la
+page d'un budget liste ses remboursements sous ses dépenses — « avoir la ligne sous
+les yeux » était la moitié de la demande.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions
