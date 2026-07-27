@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/design-system/card';
@@ -23,9 +24,13 @@ interface BudgetCardProps {
   row: BudgetOverviewRow;
   onEdit: () => void;
   onDelete: () => void;
+  /** Ouvre le détail — « de quoi ce compteur est-il fait ». */
+  to: string;
+  /** Pile de retour, pour que le détail sache d'où on vient. */
+  backState?: unknown;
 }
 
-export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
+export default function BudgetCard({ row, onEdit, onDelete, to, backState }: BudgetCardProps) {
   const { t } = useTranslation();
   // Pas de plafond → pas de barre, pas de pourcentage, pas de dépassement :
   // il n'y a rien à mesurer. On dit juste ce que la catégorie a coûté.
@@ -41,9 +46,14 @@ export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
   return (
     <Card className="p-3">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
+        {/* Le lien porte le corps de la carte, pas la carte entière : le
+            dropdown d'actions est un enfant, et l'imbriquer dans un <a> en
+            ferait un déclencheur de navigation au premier clic. */}
+        <Link to={to} state={backState} className="group min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="truncate font-medium text-foreground">{row.name}</span>
+            <span className="truncate font-medium text-foreground group-hover:underline">
+              {row.name}
+            </span>
             <span className={`shrink-0 text-sm tabular-nums ${TEXT_CLASS[row.state]}`}>
               {uncapped
                 ? formatAmount(row.spent)
@@ -76,7 +86,7 @@ export default function BudgetCard({ row, onEdit, onDelete }: BudgetCardProps) {
               {t('budget.committed', { amount: formatAmount(row.committed) })}
             </p>
           ) : null}
-        </div>
+        </Link>
 
         <CardActions actions={actions} />
       </div>

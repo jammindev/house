@@ -34,6 +34,7 @@ ui/src/features/money/
   ExpensesPanel.tsx    # ex-expenses/ExpensesPage
   BudgetsPanel.tsx     # ex-budget/BudgetPage
   AnalysisPage.tsx     # sous-page : analyse fine des dépenses par budget
+  BudgetDetailPage.tsx # sous-page : de quoi un budget est fait
   BudgetShareChart.tsx # anneau de répartition + légende chiffrée
 ```
 
@@ -121,7 +122,8 @@ valeur initiale — l'initialiseur d'état du parent s'exécute avant le montage
 l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
-`/app/money/analysis`, `/app/budget/recurring`, `/app/budget/reports`.
+`/app/money/analysis`, `/app/money/budgets/:id`, `/app/budget/recurring`,
+`/app/budget/reports`.
 
 `/app/money/analysis` est la **lecture longue** des dépenses (tendance mensuelle
 par budget, répartition, fournisseurs, plus grosses dépenses) — le panneau

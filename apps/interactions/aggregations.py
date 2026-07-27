@@ -17,8 +17,15 @@ from django.db.models.functions import Coalesce, TruncMonth
 from .queries import expenses
 
 
+#: Valeur de ``budget`` qui désigne le seau « hors budget ». Une chaîne plutôt
+#: qu'un ``None`` : dans une query string, l'absence de paramètre et « aucun
+#: budget » doivent rester deux demandes différentes.
+UNBUDGETED = 'none'
+
+
 def _expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
-                supplier: str | None = None, kind: str | None = None):
+                supplier: str | None = None, kind: str | None = None,
+                budget: str | None = None):
     qs = expenses(household_id=household_id)
     if from_dt is not None:
         qs = qs.filter(occurred_at__gte=from_dt)
@@ -28,6 +35,8 @@ def _expense_qs(household_id, from_dt: datetime | None, to_dt: datetime | None,
         qs = qs.filter(supplier=supplier)
     if kind is not None:
         qs = qs.filter(kind=kind)
+    if budget is not None:
+        qs = qs.filter(budget__isnull=True) if budget == UNBUDGETED else qs.filter(budget_id=budget)
     return qs
 
 
@@ -46,8 +55,14 @@ def compute_expense_summary(
     to_dt: datetime | None,
     supplier: str | None = None,
     kind: str | None = None,
+    budget: str | None = None,
 ) -> dict[str, Any]:
     """Return totals + breakdowns for expense interactions in the period.
+
+    ``budget`` restreint le calcul à une enveloppe, ou au seau « hors budget »
+    avec la valeur ``'none'`` — c'est ce qui permet d'ouvrir un compteur pour
+    voir de quelles dépenses il est fait, sans charger le journal entier côté
+    client pour le refiltrer.
 
     Shape:
         {
@@ -59,7 +74,7 @@ def compute_expense_summary(
           "by_month": [{"month": "2026-05", "total": "1247.83", "count": 18}, ...],
         }
     """
-    qs = _expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind)
+    qs = _expense_qs(household_id, from_dt, to_dt, supplier=supplier, kind=kind, budget=budget)
 
     overall = qs.aggregate(
         total=Coalesce(Sum('amount'), _zero()),

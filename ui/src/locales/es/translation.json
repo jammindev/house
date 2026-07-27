@@ -1585,7 +1585,7 @@
           },
           "track": {
             "title": "Seguir el mes",
-            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes."
+            "body": "Cada presupuesto con tope muestra lo gastado frente al tope con una barra de progreso — naranja cerca del límite, rojo al superarlo. Una categoría sin tope muestra solo su total. Los contadores se reinician cada mes. Toca un presupuesto para ver los gastos que componen su contador: «Sin presupuesto» se abre igual."
           },
           "analysis": {
             "title": "Ver adónde va de verdad",
@@ -3154,6 +3154,15 @@
     "uncapped": {
       "hint": "Categoría seguida, sin tope"
     }
+  },
+  "budgetDetail": {
+    "description": "Los gastos que componen este contador.",
+    "spent": "Gastado en el periodo",
+    "count_one": "{{count}} gasto",
+    "count_other": "{{count}} gastos",
+    "empty": "Ningún gasto en este periodo",
+    "emptyDescription": "Cambia de periodo o clasifica gastos en este presupuesto.",
+    "truncated": "Mostrando {{shown}} de {{total}} gastos."
   },
   "analysis": {
     "title": "Análisis de gastos",

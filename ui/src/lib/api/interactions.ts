@@ -80,6 +80,8 @@ interface FetchInteractionsOptions {
   end_date?: string;
   kind?: string;
   supplier?: string;
+  /** Id d'un budget, ou `'none'` pour le seau « hors budget ». */
+  budget?: string;
   limit?: number;
   offset?: number;
 }
@@ -143,6 +145,7 @@ export async function fetchInteractions(
     end_date,
     kind,
     supplier,
+    budget,
     limit = 8,
     offset = 0,
   } = options;
@@ -158,6 +161,8 @@ export async function fetchInteractions(
   if (end_date) params.end_date = end_date;
   if (kind) params.kind = kind;
   if (supplier !== undefined) params.supplier = supplier;
+  // `'none'` est une valeur (« hors budget »), pas l'absence de filtre.
+  if (budget) params.budget = budget;
   if (limit > 0) params.limit = limit;
   if (offset > 0) params.offset = offset;
 

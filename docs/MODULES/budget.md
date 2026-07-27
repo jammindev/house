@@ -164,6 +164,34 @@ plafonnée ».
   dépassé ». ⚠️ Les snapshots **déjà figés** portent une string : `render.py`
   doit accepter les deux formes pour toujours.
 
+## Ouvrir un budget sur ses dépenses
+
+`/app/money/budgets/:id` (`features/money/BudgetDetailPage`). Le panneau affiche
+« 340 € / 400 € » ; la question suivante est toujours *lesquelles*. Jusqu'ici il
+fallait partir dans l'onglet Dépenses et refaire le filtre à la main, sans
+garantie de retomber sur le même chiffre.
+
+- La période par défaut est **le mois en cours**, celle du panneau : le total de
+  la page est celui sur lequel on vient de cliquer. Changer de période est
+  ensuite explicite.
+- **Le plafond ne s'affiche que sur le mois en cours.** Le comparer à un total
+  annuel donnerait « 4 200 € / 400 € » — un dépassement qui n'existe pas.
+- **« Hors budget » s'ouvre comme une enveloppe** (`/app/money/budgets/none`) :
+  c'est le seau où l'on cherche le plus souvent ce qu'il y a dedans. D'où le
+  paramètre `budget=none` sur la liste **et** sur le résumé : dans une query
+  string, l'absence de filtre et « aucun budget » sont deux demandes
+  différentes.
+- Le lien porte le **corps** de la carte, pas la carte entière : le dropdown
+  d'actions est un enfant, et l'imbriquer dans un `<a>` en ferait un
+  déclencheur de navigation.
+
+⚠️ **Une date de fin nue veut dire « fin de cette journée ».** Le filtre est un
+`__lte` : lue à minuit, `to=2026-07-31` excluait toutes les dépenses du 31 — le
+dernier jour de chaque période disparaissait des totaux **et** de la liste, en
+silence. Corrigé dans `_parse_period` et dans le filtre `end_date`, avec un test
+de régression (`TestTheLastDayOfThePeriodCounts`). Un instant explicite
+(`...T12:00:00Z`) reste respecté tel quel.
+
 ## Analyse fine — la lecture longue (`analysis.py`)
 
 `GET /api/budget/budgets/analysis/?months=12&budget=<id>` →

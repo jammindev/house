@@ -32,6 +32,8 @@ export interface ExpenseSummaryFilters {
   to?: string;
   supplier?: string;
   kind?: string;
+  /** Id d'un budget, ou `'none'` pour le seau « hors budget ». */
+  budget?: string;
 }
 
 export async function fetchExpenseSummary(filters: ExpenseSummaryFilters = {}): Promise<ExpenseSummary> {
@@ -40,6 +42,7 @@ export async function fetchExpenseSummary(filters: ExpenseSummaryFilters = {}): 
   if (filters.to) params.to = filters.to;
   if (filters.supplier) params.supplier = filters.supplier;
   if (filters.kind) params.kind = filters.kind;
+  if (filters.budget) params.budget = filters.budget;
   const { data } = await api.get<ExpenseSummary>('/interactions/interactions/expenses/summary/', { params });
   return data;
 }
