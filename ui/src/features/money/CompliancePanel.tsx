@@ -18,10 +18,11 @@ import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
 import { blockingPrerequisite } from './prerequisites';
-import { ACCOUNT_ANCHOR_STALE, ACCOUNT_WITHOUT_WINDOW } from './keys';
+import { ACCOUNT_ANCHOR_STALE, ACCOUNT_WITHOUT_WINDOW, PENDING_KINDS } from './keys';
 import { useBankAccounts } from '@/features/banking/hooks';
 import AccountDialog from '@/features/banking/AccountDialog';
 import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
+import AllocationDialog from '@/features/banking/AllocationDialog';
 import WaiverDialog, { type WaiverTarget } from './WaiverDialog';
 
 const SEVERITY_ORDER: Record<ComplianceSeverity, number> = { blocker: 0, error: 1, warning: 2 };
@@ -58,6 +59,11 @@ export default function CompliancePanel() {
   // lignes, le solde d'ouverture se retrouve par arithmétique — le saisir à la
   // main suppose une information que la banque ne donne pas.
   const [anchoringAccountId, setAnchoringAccountId] = React.useState<string | null>(null);
+  // ⚠️ Résoudre doit être une **action**, pas une phrase. Tant que la seule
+  // commande d'une ligne était « Arbitrer », le contrôle n'offrait en un clic que
+  // la sortie de secours, et renvoyait le vrai travail vers un autre onglet — le
+  // contraire de ce que le parcours 26 cherche à obtenir.
+  const [allocatingId, setAllocatingId] = React.useState<string | null>(null);
   const accountsQuery = useBankAccounts(true);
   const findAccount = React.useCallback(
     (id: string | null) => (accountsQuery.data ?? []).find((account) => account.id === id),
@@ -115,6 +121,7 @@ export default function CompliancePanel() {
               onWaive={setWaiving}
               onFixAccount={setFixingAccountId}
               onAnchorAccount={setAnchoringAccountId}
+              onAllocate={setAllocatingId}
             />
           ))}
         </div>
@@ -135,6 +142,14 @@ export default function CompliancePanel() {
           open
           onOpenChange={(next) => !next && setAnchoringAccountId(null)}
           account={anchoringAccount}
+        />
+      ) : null}
+
+      {allocatingId ? (
+        <AllocationDialog
+          open
+          onOpenChange={(next) => !next && setAllocatingId(null)}
+          transactionId={allocatingId}
         />
       ) : null}
     </div>
@@ -201,6 +216,7 @@ function GroupRow({
   onWaive,
   onFixAccount,
   onAnchorAccount,
+  onAllocate,
 }: {
   group: ComplianceGroup;
   /** Prérequis encore ouvert : ce groupe n'est pas conforme, il est non évaluable. */
@@ -210,6 +226,7 @@ function GroupRow({
   onWaive: (target: WaiverTarget) => void;
   onFixAccount: (accountId: string) => void;
   onAnchorAccount: (accountId: string) => void;
+  onAllocate: (transactionId: string) => void;
 }) {
   const { t } = useTranslation();
   const Icon = SEVERITY_ICON[group.severity];
@@ -283,6 +300,7 @@ function GroupRow({
           onWaive={onWaive}
           onFixAccount={onFixAccount}
           onAnchorAccount={onAnchorAccount}
+          onAllocate={onAllocate}
         />
       ) : null}
     </Card>
@@ -294,11 +312,13 @@ function GroupDetail({
   onWaive,
   onFixAccount,
   onAnchorAccount,
+  onAllocate,
 }: {
   group: ComplianceGroup;
   onWaive: (target: WaiverTarget) => void;
   onFixAccount: (accountId: string) => void;
   onAnchorAccount: (accountId: string) => void;
+  onAllocate: (transactionId: string) => void;
 }) {
   const { t } = useTranslation();
   const [showWaived, setShowWaived] = React.useState(false);
@@ -350,6 +370,11 @@ function GroupDetail({
                 (group.kind === ACCOUNT_WITHOUT_WINDOW && Boolean(finding.detail.earliest_line)) ||
                 group.kind === ACCOUNT_ANCHOR_STALE
                   ? () => onAnchorAccount(finding.object_id)
+                  : undefined
+              }
+              onAllocate={
+                (PENDING_KINDS as readonly string[]).includes(group.kind)
+                  ? () => onAllocate(finding.object_id)
                   : undefined
               }
               onWaive={() =>
@@ -424,6 +449,7 @@ function FindingRow({
   onWaive,
   onFix,
   onAnchor,
+  onAllocate,
 }: {
   finding: ComplianceFinding;
   waivable: boolean;
@@ -432,6 +458,8 @@ function FindingRow({
   onFix?: () => void;
   /** Retrouver le solde d'ouverture par arithmétique plutôt qu'à la main. */
   onAnchor?: () => void;
+  /** Ventiler la ligne — la **résolution** de l'écart, pas son contournement. */
+  onAllocate?: () => void;
 }) {
   const { t } = useTranslation();
   const reason = typeof finding.detail.reason === 'string' ? finding.detail.reason : null;
@@ -479,6 +507,15 @@ function FindingRow({
         ) : null}
       </div>
 
+      {/* La résolution d'abord, et visuellement dominante : « Arbitrer » reste un
+          bouton fantôme à côté. Un écart s'arbitre parce qu'on l'a jugé légitime,
+          jamais parce que c'était le seul bouton à portée de clic. */}
+      {onAllocate ? (
+        <Button type="button" size="sm" onClick={onAllocate}>
+          {t('money.compliance.allocate')}
+        </Button>
+      ) : null}
+
       {onAnchor ? (
         <Button type="button" variant="outline" size="sm" onClick={onAnchor}>
           {t('money.compliance.findBalance')}
@@ -497,7 +534,7 @@ function FindingRow({
             ? t('money.compliance.rearbitrate')
             : t('money.compliance.arbitrate')}
         </Button>
-      ) : !onFix && !onAnchor ? (
+      ) : !onFix && !onAnchor && !onAllocate ? (
         <span className="shrink-0 text-xs italic text-muted-foreground">
           {t('money.compliance.notWaivable')}
         </span>
