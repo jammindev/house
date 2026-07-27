@@ -46,4 +46,15 @@
   dans tous les budgets et tous les totaux. `InteractionEditPage` écrit bien les
   colonnes ; c'était la seule voie fautive. La saisie ad hoc passe désormais par le
   module Argent (`CashExpenseDialog`).
+- **Réparation des dépenses restées à 0 € (`interactions.0028`, 2026-07)** : les
+  dépenses saisies par l'ancien formulaire portaient leur montant dans
+  `metadata`, où plus rien ne le lit — elles valaient **0 €** dans tous les
+  budgets, tous les totaux et tous les bilans. La migration remonte
+  `metadata.amount` / `metadata.supplier` en colonnes et retire les clés, comme
+  `0024`. La règle vit dans `interactions/repairs.py` (testable hors migration) :
+  la **colonne gagne toujours** (une clé JSON à côté d'une colonne renseignée est
+  un résidu, pas une correction), une valeur illisible est **laissée absente**
+  plutôt que forcée à zéro (un montant faux est pire qu'un montant manquant, qui
+  lui se voit), et les clés sont retirées dans tous les cas. Tests :
+  `interactions/tests/test_repairs.py`.
 - **Carnet de rénovation par zone (parcours 13, 2026-07)** : une entrée de carnet est une `Interaction` discriminée par `metadata.kind == "renovation"` — **aucun nouveau modèle**. Elle porte un `type` curaté (installation/replacement/upgrade/repair/maintenance) et des champs structurés en `metadata` (`element`, `product`, `brand`, `reference`), et s'appuie sur le M2M zones (une entrée peut couvrir N pièces — cas « toutes les menuiseries de la maison »). Services : `create_renovation_interaction` / `update_renovation_interaction` / `delete_renovation_interaction` (`services.py`), avec le builder `_build_renovation_metadata`. Endpoints : `POST /api/interactions/interactions/renovation/` + `PATCH .../{id}/renovation/`. UI : onglet « Rénovation » du détail zone (`ui/src/features/renovation/`). Agent : `WritableSpec(entity_type='renovation')` (create + undo) — l'**édition agent est volontairement hors périmètre** car le snapshot d'undo d'`update_entity` lit des attributs modèle, pas les clés `metadata` ; l'édition passe par l'UI/REST. Cadrage : `docs/parcours/PARCOURS_13_CARNET_DE_RENOVATION_PAR_ZONE.md`.
