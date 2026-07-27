@@ -58,7 +58,7 @@ export default function DocumentEditDialog({
 
   const typeOptions = DOCUMENT_TYPES.map((v) => ({
     value: v,
-    label: t(`documents.type.${v}`, { defaultValue: v }),
+    label: t(`documents.type.${v}`),
   }));
 
   return (

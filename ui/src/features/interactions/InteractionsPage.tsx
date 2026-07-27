@@ -152,7 +152,7 @@ export default function InteractionsPage() {
                 { value: '', label: t('interactions.all_types') },
                 ...TYPE_OPTIONS.map((v) => ({
                   value: v,
-                  label: t(`equipment.interaction_type.${v}`, { defaultValue: v }),
+                  label: t(`equipment.interaction_type.${v}`),
                 })),
               ],
             },

@@ -651,7 +651,8 @@
     "suggestions_label": "Tags sugeridos",
     "create_tag": "Añadir el tag \"{{name}}\"",
     "empty": "Ningún tag coincide con esta búsqueda.",
-    "remove_tag": "Quitar {{name}}"
+    "remove_tag": "Quitar {{name}}",
+    "legend": "Etiquetas"
   },
   "documentSelector": {
     "selected_count": "{{count}} seleccionado(s)",
@@ -1099,7 +1100,10 @@
       "testNoDevice": "Ningún dispositivo suscrito",
       "permissionDenied": "Las notificaciones están bloqueadas. Reactívalas en los ajustes del navegador.",
       "iosHint": "En iPhone, primero añade la app a la pantalla de inicio (Compartir → Añadir a pantalla de inicio) para activar las notificaciones."
-    }
+    },
+    "createHouseholdTitle": "Crear un hogar",
+    "avatarUploadFailed": "Error al subir la foto.",
+    "avatarDeleteFailed": "Error al eliminar la foto."
   },
   "tutorials": {
     "title": "Tutorial",

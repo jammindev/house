@@ -63,14 +63,14 @@ export function HouseholdManagement({
           size="icon"
           variant="ghost"
           className="h-8 w-8 rounded-lg border border-transparent text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground"
-          aria-label={t('common.actions', { defaultValue: 'Actions' })}
+          aria-label={t('common.actions')}
         >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <HouseholdCreateSheet
-          title={t('settings.createHousehold', { defaultValue: 'Create household' })}
+          title={t('settings.createHouseholdTitle')}
           isSaving={creating}
           values={createForm}
           onOpen={startCreate}
@@ -78,26 +78,26 @@ export function HouseholdManagement({
           onSubmit={handleCreate}
           trigger={
             <DropdownMenuItem>
-              {t('settings.createHousehold', { defaultValue: 'Create' })}
+              {t('settings.createHousehold')}
             </DropdownMenuItem>
           }
           labels={{
-            create: t('settings.createHousehold', { defaultValue: 'Create' }),
-            creating: t('settings.creating', { defaultValue: 'Creating…' }),
-            submit: t('settings.createHousehold', { defaultValue: 'Create' }),
-            submitting: t('settings.creating', { defaultValue: 'Creating\u2026' }),
-            name: t('settings.householdName', { defaultValue: 'Household name' }),
-            sectionLocation: t('settings.sectionLocation', { defaultValue: 'Location' }),
-            address: t('settings.address', { defaultValue: 'Address' }),
-            city: t('settings.city', { defaultValue: 'City' }),
-            postalCode: t('settings.postalCode', { defaultValue: 'Postal code' }),
-            country: t('settings.country', { defaultValue: 'Country' }),
-            countryPlaceholder: t('settings.countryPlaceholder', { defaultValue: '— Select country —' }),
-            timezone: t('settings.timezone', { defaultValue: 'Timezone' }),
-            timezonePlaceholder: t('settings.timezonePlaceholder', { defaultValue: '— Select timezone —' }),
-            sectionContext: t('settings.sectionContext', { defaultValue: 'Context & AI' }),
-            contextNotes: t('settings.contextNotes', { defaultValue: 'Household notes' }),
-            aiPromptContext: t('settings.aiPromptContext', { defaultValue: 'AI prompt context' }),
+            create: t('settings.createHousehold'),
+            creating: t('settings.creating'),
+            submit: t('settings.createHousehold'),
+            submitting: t('settings.creating'),
+            name: t('settings.householdName'),
+            sectionLocation: t('settings.sectionLocation'),
+            address: t('settings.address'),
+            city: t('settings.city'),
+            postalCode: t('settings.postalCode'),
+            country: t('settings.country'),
+            countryPlaceholder: t('settings.countryPlaceholder'),
+            timezone: t('settings.timezone'),
+            timezonePlaceholder: t('settings.timezonePlaceholder'),
+            sectionContext: t('settings.sectionContext'),
+            contextNotes: t('settings.contextNotes'),
+            aiPromptContext: t('settings.aiPromptContext'),
           }}
         />
       </DropdownMenuContent>
@@ -106,12 +106,12 @@ export function HouseholdManagement({
 
   return (
     <SettingsSection
-      title={t('settings.householdsTitle', { defaultValue: 'Households' })}
+      title={t('settings.householdsTitle')}
       actions={actionsMenu}
     >
         {households.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {t('settings.noHouseholds', { defaultValue: 'No households yet.' })}
+            {t('settings.noHouseholds')}
           </p>
         ) : (
           <ul className="space-y-3">

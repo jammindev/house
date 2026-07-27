@@ -200,7 +200,6 @@ export interface ProjectInteractionItem {
   subject: string;
   content: string;
   type: string;
-  status: string | null;
   occurred_at: string;
 }
 

@@ -51,7 +51,7 @@ export default function ExpenseFields({
         </h3>
         {kind ? (
           <Badge variant="outline" className="text-xs">
-            {t(`expenses.kind.${kind}`, { defaultValue: kind })}
+            {t(`expenses.kind.${kind}`)}
           </Badge>
         ) : null}
       </div>

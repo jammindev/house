@@ -267,9 +267,7 @@ export default function EquipmentDetailPage() {
                             <div className="flex shrink-0 gap-1">
                               {item.interaction_type ? (
                                 <Badge variant="outline" className="h-5 text-[10px]">
-                                  {t(`equipment.interaction_type.${item.interaction_type}`, {
-                                    defaultValue: item.interaction_type,
-                                  })}
+                                  {t(`equipment.interaction_type.${item.interaction_type}`)}
                                 </Badge>
                               ) : null}
                             </div>

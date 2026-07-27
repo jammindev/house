@@ -36,7 +36,7 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
       document.body.dispatchEvent(new CustomEvent('profile-updated'));
       toast({ description: t('settings.avatarUpdated'), variant: 'success' });
     } catch (err) {
-      toast({ description: err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Upload failed.' }), variant: 'destructive' });
+      toast({ description: err instanceof Error ? err.message : t('settings.avatarUploadFailed'), variant: 'destructive' });
     } finally {
       setSaving(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -51,7 +51,7 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
       document.body.dispatchEvent(new CustomEvent('profile-updated'));
       toast({ description: t('settings.avatarRemoved'), variant: 'success' });
     } catch (err) {
-      toast({ description: err instanceof Error ? err.message : t('settings.requestFailed', { defaultValue: 'Delete failed.' }), variant: 'destructive' });
+      toast({ description: err instanceof Error ? err.message : t('settings.avatarDeleteFailed'), variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -84,7 +84,7 @@ export function AvatarSection({ user, onUserUpdate }: AvatarSectionProps) {
                 onClick={() => fileInputRef.current?.click()}
                 disabled={saving}
               >
-                {saving ? t('settings.updating') : t('settings.avatarUpload', { defaultValue: 'Upload' })}
+                {saving ? t('settings.updating') : t('settings.avatarUpload')}
               </Button>
               {currentAvatarUrl && (
                 <Button

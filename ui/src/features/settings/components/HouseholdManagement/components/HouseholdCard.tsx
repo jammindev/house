@@ -112,11 +112,11 @@ export function HouseholdCard({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-medium">{household.name}</span>
           <span className="text-xs text-muted-foreground">
-            {household.members_count} {t('settings.members', { defaultValue: 'members' })}
+            {household.members_count} {t('settings.members')}
           </span>
           {activeId === household.id && (
             <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-              {t('settings.activeHousehold', { defaultValue: 'Active' })}
+              {t('settings.activeHousehold')}
             </span>
           )}
         </div>
@@ -128,7 +128,7 @@ export function HouseholdCard({
               size="icon"
               variant="ghost"
               className="h-8 w-8 rounded-lg border border-transparent text-muted-foreground hover:border-border hover:bg-accent/70 hover:text-foreground"
-              aria-label={t('common.actions', { defaultValue: 'Actions' })}
+              aria-label={t('common.actions')}
             >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -136,7 +136,7 @@ export function HouseholdCard({
           <DropdownMenuContent align="end">
             {canSwitch && (
               <DropdownMenuItem onSelect={() => void onSwitch(household.id)} disabled={switching}>
-                {t('settings.setActiveHousehold', { defaultValue: 'Set as active' })}
+                {t('settings.setActiveHousehold')}
               </DropdownMenuItem>
             )}
 
@@ -144,21 +144,21 @@ export function HouseholdCard({
               <>
                 {canSwitch && <DropdownMenuSeparator />}
                 <DropdownMenuItem onSelect={() => onStartEdit(household)}>
-                  {t('common.edit', { defaultValue: 'Edit' })}
+                  {t('common.edit')}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onStartInvite(household.id)}>
-                  {t('settings.invite', { defaultValue: 'Invite' })}
+                  {t('settings.invite')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => onStartArchive(household.id)} className="text-destructive focus:text-destructive">
-                  {t('common.archive', { defaultValue: 'Archive' })}
+                  {t('common.archive')}
                 </DropdownMenuItem>
               </>
             ) : (
               <>
                 {canSwitch && <DropdownMenuSeparator />}
                 <DropdownMenuItem onSelect={() => void onLeave(household.id)} disabled={loading}>
-                  {t('settings.leave', { defaultValue: 'Leave' })}
+                  {t('settings.leave')}
                 </DropdownMenuItem>
               </>
             )}
@@ -174,8 +174,8 @@ export function HouseholdCard({
               {' — '}
               <span className="capitalize">
                 {member.role === 'owner'
-                  ? t('settings.owner', { defaultValue: 'Owner' })
-                  : t('settings.member', { defaultValue: 'Member' })}
+                  ? t('settings.owner')
+                  : t('settings.member')}
               </span>
             </li>
           ))}
@@ -187,7 +187,7 @@ export function HouseholdCard({
       {isOwner && (
         <HouseholdEditSheet
           household={household}
-          title={t('settings.editHousehold', { defaultValue: 'Edit household' })}
+          title={t('settings.editHousehold')}
           isOpen={activePanel?.id === household.id && activePanel.mode === 'edit'}
           isSaving={editSaving}
           values={editForm}
@@ -197,21 +197,21 @@ export function HouseholdCard({
           onSubmit={onEditSave}
           trigger={<Button type="button" className="hidden" aria-hidden tabIndex={-1} />}
           labels={{
-            edit: t('common.edit', { defaultValue: 'Edit' }),
-            submit: t('common.save', { defaultValue: 'Save' }),
-            submitting: t('settings.saving', { defaultValue: 'Saving…' }),
-            name: t('settings.householdName', { defaultValue: 'Household name' }),
-            sectionLocation: t('settings.sectionLocation', { defaultValue: 'Location' }),
-            address: t('settings.address', { defaultValue: 'Address' }),
-            city: t('settings.city', { defaultValue: 'City' }),
-            postalCode: t('settings.postalCode', { defaultValue: 'Postal code' }),
-            country: t('settings.country', { defaultValue: 'Country' }),
-            countryPlaceholder: t('settings.countryPlaceholder', { defaultValue: '— Select country —' }),
-            timezone: t('settings.timezone', { defaultValue: 'Timezone' }),
-            timezonePlaceholder: t('settings.timezonePlaceholder', { defaultValue: '— Select timezone —' }),
-            sectionContext: t('settings.sectionContext', { defaultValue: 'Context & AI' }),
-            contextNotes: t('settings.contextNotes', { defaultValue: 'Household notes' }),
-            aiPromptContext: t('settings.aiPromptContext', { defaultValue: 'AI prompt context' }),
+            edit: t('common.edit'),
+            submit: t('common.save'),
+            submitting: t('settings.saving'),
+            name: t('settings.householdName'),
+            sectionLocation: t('settings.sectionLocation'),
+            address: t('settings.address'),
+            city: t('settings.city'),
+            postalCode: t('settings.postalCode'),
+            country: t('settings.country'),
+            countryPlaceholder: t('settings.countryPlaceholder'),
+            timezone: t('settings.timezone'),
+            timezonePlaceholder: t('settings.timezonePlaceholder'),
+            sectionContext: t('settings.sectionContext'),
+            contextNotes: t('settings.contextNotes'),
+            aiPromptContext: t('settings.aiPromptContext'),
           }}
         />
       )}
@@ -221,13 +221,13 @@ export function HouseholdCard({
         onOpenChange={(open) => {
           if (!open) onClosePanel();
         }}
-        title={t('settings.invite', { defaultValue: 'Invite' })}
-        description={t('settings.inviteDescription', { defaultValue: 'Enter the email address of the person you want to invite to this household.' })}
+        title={t('settings.invite')}
+        description={t('settings.inviteDescription')}
       >
         <form onSubmit={(event) => void onInvite(event, household.id)} className="space-y-3 pt-1">
           <Input
             type="email"
-            placeholder={t('settings.inviteEmailPlaceholder', { defaultValue: 'member@example.com' })}
+            placeholder={t('settings.inviteEmailPlaceholder')}
             value={inviteEmail}
             onChange={(event) => onSetInviteEmail(event.target.value)}
             className="w-full"
@@ -235,10 +235,10 @@ export function HouseholdCard({
           />
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={onClosePanel} type="button">
-              {t('common.cancel', { defaultValue: 'Cancel' })}
+              {t('common.cancel')}
             </Button>
             <Button type="submit" size="sm" disabled={inviting}>
-              {inviting ? t('settings.sending', { defaultValue: 'Sending…' }) : t('settings.send', { defaultValue: 'Send' })}
+              {inviting ? t('settings.sending') : t('settings.send')}
             </Button>
           </div>
         </form>
@@ -249,12 +249,12 @@ export function HouseholdCard({
         onOpenChange={(open) => {
           if (!open) onClosePanel();
         }}
-        title={t('common.archive', { defaultValue: 'Archive' })}
-        description={t('common.confirmArchive', { defaultValue: 'Archive this household? It will no longer be accessible.' })}
+        title={t('common.archive')}
+        description={t('common.confirmArchive')}
       >
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="ghost" onClick={onClosePanel}>
-            {t('common.cancel', { defaultValue: 'Cancel' })}
+            {t('common.cancel')}
           </Button>
           <Button
             type="button"
@@ -263,8 +263,8 @@ export function HouseholdCard({
             disabled={loading}
           >
             {loading
-              ? t('settings.saving', { defaultValue: 'Saving…' })
-              : t('common.archive', { defaultValue: 'Archive' })}
+              ? t('settings.saving')
+              : t('common.archive')}
           </Button>
         </div>
       </HouseholdActionDialog>

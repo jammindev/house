@@ -91,7 +91,7 @@ export default function ExpenseFilters({
           </FilterPill>
           {kindOptions.map((value) => (
             <FilterPill key={value} active={kind === value} onClick={() => onKindChange(value)}>
-              {t(`expenses.kind.${value}`, { defaultValue: value })}
+              {t(`expenses.kind.${value}`)}
             </FilterPill>
           ))}
         </div>
