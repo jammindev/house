@@ -162,6 +162,10 @@
     "view": "Ansehen",
     "saveFailed": "Speichern fehlgeschlagen.",
     "search": "Suchen",
+    "select": "Auswählen",
+    "selectAll": "Alle auswählen",
+    "clearSelection": "Auswahl aufheben",
+    "exitSelection": "Auswahl beenden",
     "noResults": "Keine Ergebnisse",
     "linked": "Bereits verknüpft",
     "actions": "Aktionen",
@@ -1559,7 +1563,7 @@
           },
           "file": {
             "title": "Ein Foto einem Bereich zuordnen",
-            "body": "Die Markierung „Ohne Bereich“ zeigt ein Foto, das nirgends einsortiert ist; der gleichnamige Filter sammelt sie alle. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder im Block Bereiche des geöffneten Fotos."
+            "body": "Die Markierung „Ohne Bereich“ zeigt ein Foto, das nirgends einsortiert ist; der gleichnamige Filter sammelt sie alle. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder im Block Bereiche des geöffneten Fotos. Für mehrere auf einmal: „Auswählen“ und ankreuzen — die gewählten Bereiche kommen zu den vorhandenen hinzu."
           }
         }
       },
@@ -1813,12 +1817,20 @@
     },
     "takenOn": "Aufgenommen am {{date}}",
     "withoutZone": "Ohne Bereich",
+    "selection": {
+      "selected": "{{count}} Foto ausgewählt",
+      "selected_other": "{{count}} Fotos ausgewählt"
+    },
     "zones": {
       "label": "Bereiche",
       "placeholder": "Einen oder mehrere Bereiche wählen…",
       "title": "Foto einordnen",
       "assign": "Bereich zuweisen",
-      "saved": "Bereiche gespeichert."
+      "saved": "Bereiche gespeichert.",
+      "bulkTitle": "{{count}} Fotos einordnen",
+      "bulkHint": "Die gewählten Bereiche kommen zu den bereits vorhandenen hinzu; einen Bereich entfernen geht Foto für Foto.",
+      "bulkSaved": "{{count}} Foto eingeordnet.",
+      "bulkSaved_other": "{{count}} Fotos eingeordnet."
     }
   },
   "directory": {

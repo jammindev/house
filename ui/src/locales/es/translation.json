@@ -162,6 +162,10 @@
     "view": "Ver",
     "saveFailed": "Error al guardar.",
     "search": "Buscar",
+    "select": "Seleccionar",
+    "selectAll": "Seleccionar todo",
+    "clearSelection": "Anular la selección",
+    "exitSelection": "Salir de la selección",
     "noResults": "Sin resultados",
     "linked": "Ya vinculado",
     "actions": "Acciones",
@@ -1559,7 +1563,7 @@
           },
           "file": {
             "title": "Clasificar una foto en una zona",
-            "body": "La etiqueta «Sin zona» señala una foto que no está clasificada en ninguna parte, y el filtro del mismo nombre las reúne. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o en el bloque Zonas de la foto abierta."
+            "body": "La etiqueta «Sin zona» señala una foto que no está clasificada en ninguna parte, y el filtro del mismo nombre las reúne. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o en el bloque Zonas de la foto abierta. Para clasificar varias a la vez, pulsa «Seleccionar» y márcalas: las zonas elegidas se añaden a las ya presentes."
           }
         }
       },
@@ -1813,12 +1817,20 @@
     },
     "takenOn": "Tomada el {{date}}",
     "withoutZone": "Sin zona",
+    "selection": {
+      "selected": "{{count}} foto seleccionada",
+      "selected_other": "{{count}} fotos seleccionadas"
+    },
     "zones": {
       "label": "Zonas",
       "placeholder": "Elige una o varias zonas…",
       "title": "Clasificar la foto",
       "assign": "Asignar una zona",
-      "saved": "Zonas guardadas."
+      "saved": "Zonas guardadas.",
+      "bulkTitle": "Clasificar {{count}} fotos",
+      "bulkHint": "Las zonas elegidas se añaden a las ya presentes; quitar una zona se hace foto por foto.",
+      "bulkSaved": "{{count}} foto clasificada.",
+      "bulkSaved_other": "{{count}} fotos clasificadas."
     }
   },
   "directory": {

@@ -14,6 +14,12 @@ interface PhotoGridProps {
   renderActions?: (photo: DocumentItem) => React.ReactNode;
   /** Signale les photos rangées dans aucune zone (galerie seulement). */
   flagWithoutZone?: boolean;
+  /**
+   * Fourni = mode sélection : les vignettes cochent au lieu d'ouvrir. Un `undefined`
+   * porte le mode « normal », donc la grille n'a pas de booléen à tenir en plus.
+   */
+  onToggleSelected?: (photo: DocumentItem) => void;
+  isSelected?: (photo: DocumentItem) => boolean;
 }
 
 export default function PhotoGrid({
@@ -22,6 +28,8 @@ export default function PhotoGrid({
   phaseOf,
   renderActions,
   flagWithoutZone,
+  onToggleSelected,
+  isSelected,
 }: PhotoGridProps) {
   return (
     <div className={GRID_CLASS}>
@@ -33,6 +41,8 @@ export default function PhotoGrid({
           phase={phaseOf?.(photo)}
           actions={renderActions?.(photo)}
           flagWithoutZone={flagWithoutZone}
+          onToggleSelected={onToggleSelected ? () => onToggleSelected(photo) : undefined}
+          selected={isSelected?.(photo) ?? false}
         />
       ))}
     </div>

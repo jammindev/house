@@ -1,6 +1,5 @@
 """Document views for REST API."""
 import logging
-import uuid
 from pathlib import Path
 
 from django.contrib.contenttypes.models import ContentType
@@ -29,7 +28,13 @@ from .serializers import (
     DocumentUploadSerializer,
 )
 from .thumbnails import generate_thumbnails
-from .services import link_document
+from .services import (
+    add_documents_zones,
+    link_document,
+    parse_zone_ids,
+    set_document_zones,
+    zones_of_household,
+)
 from interactions.models import Interaction
 from zones.models import Zone
 
@@ -382,46 +387,81 @@ class DocumentViewSet(viewsets.ModelViewSet):
         raw = request.data.get('zone_ids', None)
         if raw is None:
             raise ValidationError({'zone_ids': 'zone_ids is required.'})
-        if isinstance(raw, str) or not isinstance(raw, (list, tuple)):
-            raise ValidationError({'zone_ids': 'zone_ids must be a list.'})
 
-        # Un id malformé est une erreur du client, pas un 500 : passé tel quel à
-        # `id__in` sur un UUIDField, il lèverait un `ValidationError` Django.
-        requested = []
-        for value in raw:
-            text = str(value).strip()
-            if not text:
-                continue
-            try:
-                requested.append(uuid.UUID(text))
-            except (ValueError, AttributeError, TypeError):
-                raise ValidationError({'zone_ids': f'Invalid zone id: {text}'})
-        requested = list(dict.fromkeys(requested))
-
-        zones = list(Zone.objects.filter(id__in=requested, household_id=document.household_id))
-        if len(zones) != len(requested):
-            raise ValidationError({'zone_ids': 'Invalid zone or access denied.'})
-
-        zone_ct = ContentType.objects.get_for_model(Zone)
-        with transaction.atomic():
-            existing = set(
-                DocumentLink.objects.filter(
-                    document=document, content_type=zone_ct
-                ).values_list('object_id', flat=True)
+        try:
+            requested = parse_zone_ids(raw)
+            zones = zones_of_household(
+                household_id=document.household_id, zone_ids=requested
             )
-            DocumentLink.objects.filter(document=document, content_type=zone_ct).exclude(
-                object_id__in=[zone.id for zone in zones]
-            ).delete()
-            # Ne relier que ce qui manque : `link_document` est un upsert qui remet
-            # `role`/`note`/`phase` à leur défaut, donc ré-enregistrer une zone déjà
-            # liée effacerait en silence le contexte porté par son lien.
-            for zone in zones:
-                if zone.id not in existing:
-                    link_document(entity=zone, document=document, user=request.user)
+        except ValueError as error:
+            raise ValidationError({'zone_ids': str(error)})
+
+        with transaction.atomic():
+            set_document_zones(document=document, zones=zones, user=request.user)
 
         document = self.get_queryset().get(pk=document.pk)
         serializer = DocumentSerializer(document, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='bulk_add_zones')
+    def bulk_add_zones(self, request):
+        """Ajoute des zones à un lot de documents : `{document_ids, zone_ids}`.
+
+        **Le lot ajoute, il n'écrase pas** — voir `services.add_documents_zones`.
+        Une liste de zones vide est donc refusée : ce serait une destruction de masse
+        déguisée en raccourci, et le geste unitaire existe pour ça.
+
+        **Tout ou rien** : un document invisible (autre foyer, privé d'un autre
+        membre) refuse le lot entier. En ranger la moitié sans le dire laisserait
+        l'utilisateur croire son tri fait.
+        """
+        raw_documents = request.data.get('document_ids', None)
+        raw_zones = request.data.get('zone_ids', None)
+        if raw_documents is None:
+            raise ValidationError({'document_ids': 'document_ids is required.'})
+        if raw_zones is None:
+            raise ValidationError({'zone_ids': 'zone_ids is required.'})
+        if isinstance(raw_documents, str) or not isinstance(raw_documents, (list, tuple)):
+            raise ValidationError({'document_ids': 'document_ids must be a list.'})
+
+        document_ids = []
+        for value in raw_documents:
+            text = str(value).strip()
+            if not text:
+                continue
+            if not text.isdigit():
+                raise ValidationError({'document_ids': f'Invalid document id: {text}'})
+            document_ids.append(int(text))
+        document_ids = list(dict.fromkeys(document_ids))
+        if not document_ids:
+            raise ValidationError({'document_ids': 'document_ids cannot be empty.'})
+
+        # `get_queryset()` porte déjà le scope foyer **et** la confidentialité : on ne
+        # refait pas ce filtrage ici, sous peine de le voir dériver.
+        documents = list(self.get_queryset().filter(pk__in=document_ids))
+        if len(documents) != len(document_ids):
+            raise ValidationError({'document_ids': 'Invalid document or access denied.'})
+
+        households = {document.household_id for document in documents}
+        if len(households) > 1:
+            raise ValidationError({'document_ids': 'All documents must share one household.'})
+
+        try:
+            requested = parse_zone_ids(raw_zones)
+            if not requested:
+                raise ValueError('zone_ids cannot be empty.')
+            zones = zones_of_household(
+                household_id=households.pop(), zone_ids=requested
+            )
+        except ValueError as error:
+            raise ValidationError({'zone_ids': str(error)})
+
+        with transaction.atomic():
+            updated = add_documents_zones(
+                documents=documents, zones=zones, user=request.user
+            )
+
+        return Response({'updated': updated}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
     def reprocess_ocr(self, request, pk=None):

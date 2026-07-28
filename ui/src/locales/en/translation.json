@@ -162,6 +162,10 @@
     "view": "View",
     "saveFailed": "Failed to save.",
     "search": "Search",
+    "select": "Select",
+    "selectAll": "Select all",
+    "clearSelection": "Clear selection",
+    "exitSelection": "Exit selection",
     "noResults": "No results",
     "linked": "Already linked",
     "actions": "Actions",
@@ -1559,7 +1563,7 @@
           },
           "file": {
             "title": "File a photo into a zone",
-            "body": "The “No zone” badge flags a photo filed nowhere, and the filter of the same name gathers them all. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or in the Zones block of the open photo."
+            "body": "The “No zone” badge flags a photo filed nowhere, and the filter of the same name gathers them all. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or in the Zones block of the open photo. To file several at once, hit “Select” and tick them: the zones you pick are added to those already set."
           }
         }
       },
@@ -1813,12 +1817,20 @@
     },
     "takenOn": "Taken on {{date}}",
     "withoutZone": "No zone",
+    "selection": {
+      "selected": "{{count}} photo selected",
+      "selected_other": "{{count}} photos selected"
+    },
     "zones": {
       "label": "Zones",
       "placeholder": "Pick one or more zones…",
       "title": "File this photo",
       "assign": "Assign a zone",
-      "saved": "Zones saved."
+      "saved": "Zones saved.",
+      "bulkTitle": "File {{count}} photos",
+      "bulkHint": "The zones you pick are added to those already set; removing a zone is done photo by photo.",
+      "bulkSaved": "{{count}} photo filed.",
+      "bulkSaved_other": "{{count}} photos filed."
     }
   },
   "directory": {

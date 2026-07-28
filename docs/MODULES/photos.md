@@ -115,6 +115,50 @@ d'aller dans la bonne. Trois pièces le règlent, et chacune a une raison de for
   photo change le `tab_counts.photos` de la zone d'arrivée comme celui de la zone de
   départ.
 
+### Ranger un lot — le lot ajoute, il n'écrase pas
+
+`POST /api/documents/documents/bulk_add_zones/ {"document_ids", "zone_ids"}`, adossé
+à `services.add_documents_zones`. Trois règles, et elles ne sont pas symétriques de
+celles du geste unitaire :
+
+- **Le lot ajoute.** Les zones choisies complètent celles déjà présentes. Un lot qui
+  remplacerait effacerait le rangement de photos qu'on n'a pas regardées une par une,
+  et cet effacement ne se verrait nulle part. **Contrepartie assumée : le lot ne sait
+  pas *retirer* une zone** — c'est le geste unitaire (`set_zones`) qui le fait. Le
+  dialog l'écrit (`photos.zones.bulkHint`) : sans cette phrase, « Enregistrer »
+  pourrait tout aussi bien avoir écrasé.
+- **Une liste de zones vide est refusée** (400) : ce serait une destruction de masse
+  déguisée en raccourci.
+- **Tout ou rien.** Un document invisible (autre foyer, privé d'un autre membre)
+  refuse le lot entier ; en ranger la moitié laisserait l'utilisateur croire son tri
+  fait. Le scope vient de `get_queryset()` — foyer **et** confidentialité — jamais
+  refiltré sur place.
+- Le coût ne suit pas la taille du lot : une requête établit les liens déjà présents,
+  un `bulk_create` pose les manquants. Régression :
+  `test_photo_zones_bulk.py::test_the_batch_costs_a_bounded_number_of_queries`.
+
+Côté UI, le mécanisme de sélection est **générique** et vit hors des photos :
+
+- **`ui/src/lib/useMultiSelect.ts`** — mode sélection, toggle, tout sélectionner,
+  effacer. Deux garde-fous qui sont du métier, pas de la plomberie : la sélection est
+  **dérivée** des ids affichés (un élément qui quitte l'écran quitte la sélection au
+  même rendu — une action de masse sur ce qu'on ne voit plus est un dégât qu'aucun
+  écran n'explique), et **changer de portée la vide** (`scopeKey` = les filtres :
+  cocher douze photos « sans zone » puis basculer sur « Salon » laisserait sinon douze
+  cases cochées invisibles). Régressions : `useMultiSelect.test.ts`.
+- **`ui/src/components/SelectionBar.tsx`** — barre collante en bas (atteignable au
+  pouce quand la grille défile), compteur **fourni** par l'appelant (« 3 photos
+  sélectionnées » se dit mieux que « 3 éléments »), actions injectées. La croix
+  *quitte le mode* ; « Tout décocher » est un autre geste, porté par le bouton
+  bascule.
+- Sur la vignette, c'est la **présence** de `onToggleSelected` qui porte le mode —
+  pas un booléen de plus, que rien n'empêcherait de contredire l'état réel. En mode
+  sélection le menu d'actions disparaît : il disputerait le clic à la coche sur une
+  cible de la taille du pouce. La coche est visible cochée **ou non** — une case qui
+  n'apparaît qu'au survol laisse croire, au doigt, qu'il n'y a rien à cocher.
+- La file « À ranger » de l'argent (`money/PendingQueue.tsx`) porte encore sa propre
+  copie de ce mécanisme ; elle peut migrer sans changer de comportement.
+
 ## Onglet Photos par entité + avant/après (parcours 20)
 
 - `EntityPhotosTab` (`ui/src/features/photos/EntityPhotosTab.tsx`) : onglet photos

@@ -8,6 +8,7 @@ import {
   detachEntityDocument,
   setDocumentPhase,
   setDocumentZones,
+  bulkAddDocumentZones,
   entityDetailQueryKey,
   type PhotoPhase,
 } from '@/lib/api/documents';
@@ -73,6 +74,29 @@ export function useSetPhotoZones() {
       void qc.invalidateQueries({ queryKey: documentKeys.all });
       void qc.invalidateQueries({ queryKey: zoneKeys.all });
       toast({ description: t('photos.zones.saved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Range un lot de photos : **ajoute** les zones choisies à chacune.
+ *
+ * Le toast dit combien de photos ont bougé — sur un lot, « enregistré » sans
+ * nombre ne se vérifie pas : l'écran vient justement de vider sa sélection.
+ */
+export function useAddPhotosZones() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ photoIds, zoneIds }: { photoIds: string[]; zoneIds: string[] }) =>
+      bulkAddDocumentZones(photoIds, zoneIds),
+    onSuccess: ({ updated }) => {
+      void qc.invalidateQueries({ queryKey: photoKeys.all });
+      void qc.invalidateQueries({ queryKey: documentKeys.all });
+      void qc.invalidateQueries({ queryKey: zoneKeys.all });
+      toast({ description: t('photos.zones.bulkSaved', { count: updated }), variant: 'success' });
     },
     onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });

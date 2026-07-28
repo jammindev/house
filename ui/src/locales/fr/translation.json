@@ -162,6 +162,10 @@
     "view": "Voir",
     "saveFailed": "Impossible d'enregistrer.",
     "search": "Rechercher",
+    "select": "Sélectionner",
+    "selectAll": "Tout sélectionner",
+    "clearSelection": "Tout décocher",
+    "exitSelection": "Quitter la sélection",
     "noResults": "Aucun résultat",
     "linked": "Déjà lié",
     "actions": "Actions",
@@ -1559,7 +1563,7 @@
           },
           "file": {
             "title": "Ranger une photo dans une zone",
-            "body": "La pastille « Sans zone » signale une photo rangée nulle part, et le filtre du même nom les regroupe. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou dans le bloc Zones de la photo ouverte."
+            "body": "La pastille « Sans zone » signale une photo rangée nulle part, et le filtre du même nom les regroupe. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou dans le bloc Zones de la photo ouverte. Pour en ranger plusieurs d'un coup, « Sélectionner » puis cochez : les zones choisies s'ajoutent à celles déjà présentes."
           }
         }
       },
@@ -1813,12 +1817,20 @@
     },
     "takenOn": "Prise le {{date}}",
     "withoutZone": "Sans zone",
+    "selection": {
+      "selected": "{{count}} photo sélectionnée",
+      "selected_other": "{{count}} photos sélectionnées"
+    },
     "zones": {
       "label": "Zones",
       "placeholder": "Choisir une ou plusieurs zones…",
       "title": "Ranger la photo",
       "assign": "Attribuer une zone",
-      "saved": "Zones enregistrées."
+      "saved": "Zones enregistrées.",
+      "bulkTitle": "Ranger {{count}} photos",
+      "bulkHint": "Les zones choisies s'ajoutent à celles déjà présentes ; retirer une zone se fait photo par photo.",
+      "bulkSaved": "{{count}} photo rangée.",
+      "bulkSaved_other": "{{count}} photos rangées."
     }
   },
   "directory": {

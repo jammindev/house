@@ -193,6 +193,24 @@ export async function setDocumentZones(id: string, zoneIds: string[]): Promise<D
 }
 
 /**
+ * Ajoute des zones à un lot de documents — **sans rien retirer**, contrairement à
+ * `setDocumentZones`. Un lot qui remplacerait effacerait le rangement de documents
+ * qu'on n'a pas regardés un par un. Contrepartie : le lot ne sait pas retirer une
+ * zone. Un seul appel : trente photos ne valent pas trente allers-retours, et un
+ * échec au milieu laisserait un lot à moitié rangé.
+ */
+export async function bulkAddDocumentZones(
+  documentIds: string[],
+  zoneIds: string[],
+): Promise<{ updated: number }> {
+  const { data } = await api.post('/documents/documents/bulk_add_zones/', {
+    document_ids: documentIds,
+    zone_ids: zoneIds,
+  });
+  return data as { updated: number };
+}
+
+/**
  * Entity types that expose document attach/detach endpoints, mapped to their
  * URL base. Reads go through the polymorphic DocumentLink (`?<entityType>=id`);
  * writes still go through each entity's wrapper endpoint (kept for compat).

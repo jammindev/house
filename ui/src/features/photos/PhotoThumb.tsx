@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Camera, ImageOff, MapPinOff } from 'lucide-react';
+import { Camera, Check, ImageOff, MapPinOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { DocumentItem, PhotoPhase } from '@/lib/api/documents';
@@ -19,6 +19,13 @@ interface Props {
    * une pastille de plus sur chaque vignette n'y avertirait de rien.
    */
   flagWithoutZone?: boolean;
+  /**
+   * Fourni = **mode sélection** : la vignette coche au lieu d'ouvrir. C'est la
+   * présence du callback qui porte le mode, pas un booléen de plus — les deux
+   * pourraient se contredire.
+   */
+  onToggleSelected?: () => void;
+  selected?: boolean;
   className?: string;
 }
 
@@ -44,6 +51,8 @@ export default function PhotoThumb({
   actions,
   showName = true,
   flagWithoutZone = false,
+  onToggleSelected,
+  selected = false,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -57,17 +66,21 @@ export default function PhotoThumb({
   // pourraient se contredire sur la même photo.
   const withoutZone = flagWithoutZone && (photo.zone_links ?? []).length === 0;
 
+  const selecting = onToggleSelected !== undefined;
+
   return (
     <div
       className={cn(
-        'group relative overflow-hidden rounded-xl border border-border bg-muted',
+        'group relative overflow-hidden rounded-xl border bg-muted',
+        selected ? 'border-primary ring-2 ring-primary' : 'border-border',
         className,
       )}
     >
       <button
         type="button"
-        onClick={onOpen}
+        onClick={selecting ? onToggleSelected : onOpen}
         aria-label={label}
+        aria-pressed={selecting ? selected : undefined}
         className="block aspect-square w-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       >
         {src && !failed ? (
@@ -117,6 +130,23 @@ export default function PhotoThumb({
             </span>
           ) : null}
         </div>
+      ) : null}
+
+      {/* La coche est toujours visible en mode sélection, cochée ou non : une case à
+          cocher qui n'apparaît qu'au survol laisse croire, au doigt, qu'il n'y a
+          rien à cocher. */}
+      {selecting ? (
+        <span
+          aria-hidden
+          className={cn(
+            'pointer-events-none absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full border shadow-sm',
+            selected
+              ? 'border-primary bg-primary text-primary-foreground'
+              : 'border-border bg-background/85 backdrop-blur-sm',
+          )}
+        >
+          {selected ? <Check className="h-3.5 w-3.5" /> : null}
+        </span>
       ) : null}
 
       {actions ? (
