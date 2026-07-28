@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 13:26+0000\n"
+"POT-Creation-Date: 2026-07-28 09:22+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: Spanish\n"
@@ -273,7 +273,8 @@ msgstr "Stock por reponer"
 #: apps/agent/digest/collectors.py:181
 #, python-format
 msgid "Consumption up %(pct)s%% over the last 30 days vs the previous 30"
-msgstr "Consumo un %(pct)s%% mayor en los últimos 30 días frente a los 30 anteriores"
+msgstr ""
+"Consumo un %(pct)s%% mayor en los últimos 30 días frente a los 30 anteriores"
 
 #: apps/agent/digest/collectors.py:183
 msgid "Electricity anomaly"
@@ -282,7 +283,8 @@ msgstr "Anomalía eléctrica"
 #: apps/agent/digest/collectors.py:201
 #, python-format
 msgid "Laying down: %(a7)s eggs/day (7-day avg) vs %(a30)s (30-day avg)"
-msgstr "Puesta a la baja: %(a7)s huevos/día (media 7 días) vs %(a30)s (media 30 días)"
+msgstr ""
+"Puesta a la baja: %(a7)s huevos/día (media 7 días) vs %(a30)s (media 30 días)"
 
 #: apps/agent/digest/collectors.py:203
 msgid "Egg laying dropped"
@@ -302,6 +304,440 @@ msgstr ""
 
 #: apps/ai_usage/models.py:23
 msgid "Agent — ask"
+msgstr ""
+
+#: apps/banking/models.py:42
+msgid "Bank account"
+msgstr ""
+
+#: apps/banking/models.py:43
+msgid "Cash"
+msgstr ""
+
+#: apps/banking/models.py:51
+msgid "Bank name, free text. Empty for a cash account."
+msgstr ""
+
+#: apps/banking/models.py:60
+msgid ""
+"Last 4 characters of the IBAN, to tell two accounts apart. The full IBAN is "
+"NEVER stored."
+msgstr ""
+
+#: apps/banking/models.py:69
+msgid ""
+"Balance at 'opening_balance_date'. Starting point of the derived balance "
+"computation; may be negative (overdraft)."
+msgstr ""
+
+#: apps/banking/models.py:76
+msgid "Date the opening balance refers to. Null = not set yet."
+msgstr ""
+
+#: apps/banking/models.py:84
+msgid ""
+"Balance the user read on their bank at 'attested_on', used to reconstruct "
+"'opening_balance' by subtracting the movements in between. Kept so the "
+"arithmetic can be re-checked forever after (parcours 26, lot 8) — banks that "
+"export no balance column give us no other anchor."
+msgstr ""
+
+#: apps/banking/models.py:94
+msgid "Date 'attested_balance' was read. Null = never attested."
+msgstr ""
+
+#: apps/banking/models.py:100
+msgid "Statement importer key remembered from the last import (lot 2)."
+msgstr ""
+
+#: apps/banking/models.py:106
+msgid ""
+"Column mapping remembered for this bank's export, so the format is described "
+"once and not at every import (lot 2)."
+msgstr ""
+
+#: apps/banking/models.py:112
+msgid "Closed account: hidden from the default list, never deleted."
+msgstr ""
+
+#: apps/banking/models.py:119
+msgid "bank account"
+msgstr ""
+
+#: apps/banking/models.py:120
+msgid "bank accounts"
+msgstr ""
+
+#: apps/banking/models.py:139 apps/electricity/models.py:663
+msgid "Completed"
+msgstr ""
+
+#: apps/banking/models.py:140 apps/electricity/models.py:664
+msgid "Failed"
+msgstr ""
+
+#: apps/banking/models.py:165
+msgid "Importer key used (e.g. generic_csv). Empty when unrecognized."
+msgstr ""
+
+#: apps/banking/models.py:172
+msgid "Lines already present — the normal outcome of a re-import."
+msgstr ""
+
+#: apps/banking/models.py:177
+msgid ""
+"Lines this import reconciled by itself with expenses already typed into the "
+"app (lot 6). The number the user actually cares about: it is what they did "
+"NOT have to sort out by hand."
+msgstr ""
+
+#: apps/banking/models.py:190
+msgid "statement import"
+msgstr ""
+
+#: apps/banking/models.py:191
+msgid "statement imports"
+msgstr ""
+
+#: apps/banking/models.py:202
+msgid "Money out"
+msgstr ""
+
+#: apps/banking/models.py:203
+msgid "Money in"
+msgstr ""
+
+#: apps/banking/models.py:222
+msgid "Income"
+msgstr ""
+
+#: apps/banking/models.py:223
+msgid "Refund"
+msgstr ""
+
+#: apps/banking/models.py:224
+msgid "Transfer between own accounts"
+msgstr ""
+
+#: apps/banking/models.py:225 apps/insurance/models.py:17
+#: apps/interactions/services.py:107
+msgid "Other"
+msgstr "Otro"
+
+#: apps/banking/models.py:248
+msgid ""
+"PROTECT: an account holding transactions cannot be deleted — it is archived "
+"instead (see services.archive_account)."
+msgstr ""
+
+#: apps/banking/models.py:252
+msgid "Operation date as printed on the statement."
+msgstr ""
+
+#: apps/banking/models.py:253
+msgid "Value date, when provided."
+msgstr ""
+
+#: apps/banking/models.py:257
+msgid "Raw bank label. Never rewritten."
+msgstr ""
+
+#: apps/banking/models.py:263
+msgid "Normalized label: feeds the dedup hash and the lot 6 matcher."
+msgstr ""
+
+#: apps/banking/models.py:268
+msgid "Signed: negative = money out."
+msgstr ""
+
+#: apps/banking/models.py:275
+msgid ""
+"Internal movement (ATM withdrawal, transfer between the household's own "
+"accounts). Excluded from spending aggregates — counting it would double the "
+"money."
+msgstr ""
+
+#: apps/banking/models.py:286
+msgid ""
+"What this receipt is (parcours 26, lot 5). Empty on an outflow, and empty on "
+"an unclassified receipt — which is an écart the conformity control reports."
+msgstr ""
+
+#: apps/banking/models.py:297
+msgid ""
+"Running balance after this operation, when the bank exports it. Anchors the "
+"lot 4 balance and its chain check."
+msgstr ""
+
+#: apps/banking/models.py:305
+msgid "Bank-provided operation reference, when available."
+msgstr ""
+
+#: apps/banking/models.py:311
+msgid ""
+"Natural key of the line. Set once at creation and NEVER recomputed: re-"
+"hashing after a label cleanup would resurrect duplicates."
+msgstr ""
+
+#: apps/banking/models.py:321
+msgid "SET_NULL: transactions outlive the trace of their import."
+msgstr ""
+
+#: apps/banking/models.py:326
+msgid ""
+"Row position in the source file. Two operations booked the same day must "
+"keep the statement's own order, otherwise the balance chain check "
+"(banking.balances) cannot tell which balance follows which — and "
+"'created_at' is not dependable for that after a bulk_create."
+msgstr ""
+
+#: apps/banking/models.py:339
+msgid ""
+"The other leg of an internal movement — typically an ATM withdrawal and the "
+"matching credit on the cash account. SET_NULL so deleting one leg never "
+"leaves the other pointing at nothing."
+msgstr ""
+
+#: apps/banking/models.py:350
+#, fuzzy
+#| msgid "interaction"
+msgid "bank transaction"
+msgstr "interacción"
+
+#: apps/banking/models.py:351
+#, fuzzy
+#| msgid "interactions"
+msgid "bank transactions"
+msgstr "interacciones"
+
+#: apps/banking/models.py:439
+msgid ""
+"CASCADE: the bank line is the fact, its credits are a reading of it. "
+"Deleting the line must not leave envelopes credited by nothing."
+msgstr ""
+
+#: apps/banking/models.py:448
+msgid ""
+"CASCADE too: a credit to an envelope that no longer exists is not a fact "
+"worth keeping — unlike the bank line itself, which survives everything."
+msgstr ""
+
+#: apps/banking/models.py:456
+msgid "Always positive: what this envelope gets back, never a signed amount."
+msgstr ""
+
+#: apps/banking/models.py:463
+msgid "refund allocation"
+msgstr ""
+
+#: apps/banking/models.py:464
+msgid "refund allocations"
+msgstr ""
+
+#: apps/banking/models.py:519
+msgid "Detector key from banking.compliance.REGISTRY."
+msgstr ""
+
+#: apps/banking/models.py:525
+msgid "Model of the object being arbitrated."
+msgstr ""
+
+#: apps/banking/models.py:531
+msgid ""
+"Why this écart is acceptable. Required: an arbitration without a motive is "
+"indistinguishable from hiding the problem."
+msgstr ""
+
+#: apps/banking/models.py:538
+msgid ""
+"State of the écart when it was arbitrated. When it no longer matches, the "
+"waiver is stale and the écart resurfaces."
+msgstr ""
+
+#: apps/banking/models.py:547
+msgid "compliance waiver"
+msgstr ""
+
+#: apps/banking/models.py:548
+msgid "compliance waivers"
+msgstr ""
+
+#: apps/briefings/models.py:34
+msgid "Recurring"
+msgstr ""
+
+#: apps/briefings/models.py:35
+msgid "Event-driven"
+msgstr ""
+
+#: apps/briefings/models.py:74
+msgid "briefing"
+msgstr ""
+
+#: apps/briefings/models.py:75
+msgid "briefings"
+msgstr ""
+
+#: apps/briefings/models.py:97
+msgid "Sent"
+msgstr ""
+
+#: apps/briefings/models.py:98
+msgid "Error"
+msgstr ""
+
+#: apps/briefings/models.py:99
+msgid "Skipped (condition not met)"
+msgstr ""
+
+#: apps/budget/apps.py:161
+#, python-format
+msgid "%(count)d recurring expense is due:"
+msgid_plural "%(count)d recurring expenses are due:"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: apps/budget/apps.py:166
+msgid "Confirm them in the app when paid."
+msgstr ""
+
+#: apps/budget/models.py:43
+msgid ""
+"Monthly ceiling. NULL = tracked category with no ceiling — the counters "
+"still add up what it spent, nothing is ever 'over'. Required on the global "
+"budget, which exists only to cap."
+msgstr ""
+
+#: apps/budget/models.py:51
+msgid ""
+"The single household-wide budget that caps all expenses (budgeted + hors "
+"budget). At most one per household."
+msgstr ""
+
+#: apps/budget/models.py:62
+msgid ""
+"Optional grouping budget: « Maison » over « Bricolage » and « Énergie ». A "
+"parent is a SUBTOTAL, never a target — an expense always lands on a leaf, so "
+"'budget' keeps meaning exactly one thing and the nine amount aggregations "
+"keep their definition. Two levels only, and SET_NULL: deleting a group must "
+"free its children, never destroy the envelopes that carry the money."
+msgstr ""
+
+#: apps/budget/models.py:75
+msgid "budget"
+msgstr ""
+
+#: apps/budget/models.py:76
+msgid "budgets"
+msgstr ""
+
+#: apps/budget/models.py:115 apps/insurance/models.py:25
+#, fuzzy
+#| msgid "Monthly cost"
+msgid "Monthly"
+msgstr "Coste mensual"
+
+#: apps/budget/models.py:116 apps/insurance/models.py:26
+msgid "Quarterly"
+msgstr ""
+
+#: apps/budget/models.py:117 apps/insurance/models.py:27
+#, fuzzy
+#| msgid "Yearly cost"
+msgid "Yearly"
+msgstr "Coste anual"
+
+#: apps/budget/models.py:133
+msgid ""
+"Optional budget each confirmed occurrence counts against, and whose "
+"'committed' (engagé à venir) it feeds. Null resets on budget delete."
+msgstr ""
+
+#: apps/budget/models.py:142
+msgid "recurring expense"
+msgstr ""
+
+#: apps/budget/models.py:143
+msgid "recurring expenses"
+msgstr ""
+
+#: apps/budget/models.py:172
+msgid "budget report"
+msgstr ""
+
+#: apps/budget/models.py:173
+msgid "budget reports"
+msgstr ""
+
+#: apps/budget/report/ping.py:30
+#, python-format
+msgid "Your budget report for %(month)s:"
+msgstr ""
+
+#: apps/budget/report/render.py:28
+#, python-format
+msgid "Total spent: %(total)s over %(count)d expense(s)."
+msgstr ""
+
+#: apps/budget/report/render.py:36
+#, python-format
+msgid "That's %(pct)s%% more than the previous month (%(prev)s)."
+msgstr ""
+
+#: apps/budget/report/render.py:39
+#, python-format
+msgid "That's %(pct)s%% less than the previous month (%(prev)s)."
+msgstr ""
+
+#: apps/budget/report/render.py:42
+#, python-format
+msgid "Same as the previous month (%(prev)s)."
+msgstr ""
+
+#: apps/budget/report/render.py:47
+msgid "over the global budget"
+msgstr ""
+
+#: apps/budget/report/render.py:48
+msgid "within the global budget"
+msgstr ""
+
+#: apps/budget/report/render.py:50
+#, python-format
+msgid "Global budget: %(spent)s / %(amount)s — %(status)s."
+msgstr ""
+
+#: apps/budget/report/render.py:57
+#, python-format
+msgid "%(name)s: %(spent)s."
+msgstr ""
+
+#: apps/budget/report/render.py:60
+#, python-format
+msgid "⚠ %(name)s: %(spent)s / %(amount)s — over budget."
+msgstr ""
+
+#: apps/budget/report/render.py:63
+#, fuzzy, python-format
+#| msgid "%(name)s — low (%(qty)s %(unit)s)"
+msgid "%(name)s: %(spent)s / %(amount)s."
+msgstr "%(name)s — bajo (%(qty)s %(unit)s)"
+
+#: apps/budget/report/render.py:68
+#, fuzzy, python-format
+#| msgid "Pinned: %(count)s"
+msgid "Unbudgeted: %(amount)s."
+msgstr "Fijados: %(count)s"
+
+#: apps/budget/report/render.py:72
+#, python-format
+msgid "Recurring bills paid: %(count)d for %(total)s."
+msgstr ""
+
+#: apps/budget/report/render.py:78
+#, python-format
+msgid "Biggest expense: %(subject)s (%(amount)s)."
 msgstr ""
 
 #: apps/chickens/pings.py:32
@@ -361,19 +797,26 @@ msgstr "contacto"
 msgid "contacts"
 msgstr "contactos"
 
-#: apps/documents/mixins.py:26 apps/documents/mixins.py:59
+#: apps/documents/mixins.py:27 apps/documents/mixins.py:74
+#: apps/documents/mixins.py:93
 #, fuzzy
 #| msgid "user_id is required."
 msgid "document_id is required."
 msgstr "user_id es obligatorio."
 
-#: apps/documents/mixins.py:33
+#: apps/documents/mixins.py:34
 #, fuzzy
 #| msgid "You are not a member of this household."
 msgid "Document not found in this household."
 msgstr "No es miembro de este hogar."
 
-#: apps/documents/mixins.py:63
+#: apps/documents/mixins.py:41 apps/documents/mixins.py:79
+#, fuzzy
+#| msgid "Invalid amount."
+msgid "Invalid phase."
+msgstr "Importe no válido."
+
+#: apps/documents/mixins.py:83 apps/documents/mixins.py:97
 #, fuzzy
 #| msgid "Recent files linked to this household"
 msgid "Document is not linked to this entity."
@@ -386,6 +829,18 @@ msgstr "documento"
 #: apps/documents/models.py:83
 msgid "documents"
 msgstr "documentos"
+
+#: apps/documents/models.py:129
+msgid "Before"
+msgstr ""
+
+#: apps/documents/models.py:130
+msgid "During"
+msgstr ""
+
+#: apps/documents/models.py:131
+msgid "After"
+msgstr ""
 
 #: apps/electricity/models.py:16
 msgid "Single phase"
@@ -495,55 +950,47 @@ msgstr "Marcar como leído"
 msgid "Import"
 msgstr ""
 
-#: apps/electricity/models.py:523
+#: apps/electricity/models.py:527
 #, fuzzy
 #| msgid "electricity board"
 msgid "electricity meter"
 msgstr "cuadro eléctrico"
 
-#: apps/electricity/models.py:524
+#: apps/electricity/models.py:528
 #, fuzzy
 #| msgid "electricity boards"
 msgid "electricity meters"
 msgstr "cuadros eléctricos"
 
-#: apps/electricity/models.py:553
+#: apps/electricity/models.py:557
 msgid "meter reading"
 msgstr ""
 
-#: apps/electricity/models.py:554
+#: apps/electricity/models.py:558
 msgid "meter readings"
 msgstr ""
 
-#: apps/electricity/models.py:599
+#: apps/electricity/models.py:603
 msgid "consumption record"
 msgstr ""
 
-#: apps/electricity/models.py:600
+#: apps/electricity/models.py:604
 msgid "consumption records"
 msgstr ""
 
-#: apps/electricity/models.py:644
+#: apps/electricity/models.py:648
 msgid "meter tariff"
 msgstr ""
 
-#: apps/electricity/models.py:645
+#: apps/electricity/models.py:649
 msgid "meter tariffs"
 msgstr ""
 
-#: apps/electricity/models.py:659
-msgid "Completed"
-msgstr ""
-
-#: apps/electricity/models.py:660
-msgid "Failed"
-msgstr ""
-
-#: apps/electricity/models.py:684
+#: apps/electricity/models.py:688
 msgid "consumption import"
 msgstr ""
 
-#: apps/electricity/models.py:685
+#: apps/electricity/models.py:689
 msgid "consumption imports"
 msgstr ""
 
@@ -590,7 +1037,7 @@ msgid "Zone is required."
 msgstr "El correo electrónico es obligatorio."
 
 #: apps/electricity/serializers.py:110 apps/electricity/serializers.py:300
-#: apps/electricity/serializers.py:436
+#: apps/electricity/serializers.py:437
 msgid "Zone must belong to the same household."
 msgstr "La zona debe pertenecer al mismo hogar."
 
@@ -691,63 +1138,63 @@ msgstr "El actor es requerido."
 msgid "Actor must be a member of the household."
 msgstr "El actor debe ser miembro del hogar."
 
-#: apps/electricity/serializers.py:428
+#: apps/electricity/serializers.py:429
 msgid "Unknown timezone."
 msgstr ""
 
-#: apps/electricity/serializers.py:468 apps/water/serializers.py:29
+#: apps/electricity/serializers.py:469 apps/water/serializers.py:29
 #, fuzzy
 #| msgid "Yearly cost must be non-negative."
 msgid "Index cannot be negative."
 msgstr "El coste anual debe ser mayor o igual que cero."
 
-#: apps/electricity/serializers.py:487 apps/electricity/serializers.py:574
+#: apps/electricity/serializers.py:488 apps/electricity/serializers.py:575
 #, fuzzy
 #| msgid "Breaker must belong to the same household."
 msgid "Meter must belong to the same household."
 msgstr "El disyuntor debe pertenecer al mismo hogar."
 
-#: apps/electricity/serializers.py:491
+#: apps/electricity/serializers.py:492
 msgid "This register does not match the meter tariff type."
 msgstr ""
 
-#: apps/electricity/serializers.py:501
+#: apps/electricity/serializers.py:502
 msgid "Index is lower than the previous reading of this register."
 msgstr ""
 
-#: apps/electricity/serializers.py:506
+#: apps/electricity/serializers.py:507
 msgid "Index is higher than the next reading of this register."
 msgstr ""
 
-#: apps/electricity/serializers.py:510
+#: apps/electricity/serializers.py:511
 msgid "A reading already exists at this time for this register."
 msgstr ""
 
-#: apps/electricity/serializers.py:567
+#: apps/electricity/serializers.py:568
 msgid "Must be zero or positive."
 msgstr ""
 
-#: apps/electricity/serializers.py:579
+#: apps/electricity/serializers.py:580
 msgid "Peak and off-peak prices are required for a peak/off-peak meter."
 msgstr ""
 
-#: apps/electricity/serializers.py:583
+#: apps/electricity/serializers.py:584
 #, fuzzy
 #| msgid "Phase must be empty for single-phase board."
 msgid "Base price must be empty for a peak/off-peak meter."
 msgstr "La fase debe estar vacía para un cuadro monofásico."
 
-#: apps/electricity/serializers.py:588
+#: apps/electricity/serializers.py:589
 #, fuzzy
 #| msgid "Phase is required for three-phase board."
 msgid "Base price is required for a base meter."
 msgstr "La fase es requerida para un cuadro trifásico."
 
-#: apps/electricity/serializers.py:592
+#: apps/electricity/serializers.py:593
 msgid "Peak/off-peak prices must be empty for a base meter."
 msgstr ""
 
-#: apps/electricity/serializers.py:601
+#: apps/electricity/serializers.py:602
 msgid "A tariff already starts on this date for this meter."
 msgstr ""
 
@@ -772,7 +1219,7 @@ msgstr "No se puede eliminar un recurso con dependencias activas."
 #: apps/electricity/views.py:176 apps/electricity/views.py:334
 #: apps/electricity/views.py:377 apps/equipment/views.py:42
 #: apps/insurance/serializers.py:57 apps/insurance/views.py:32
-#: apps/stock/views.py:52 apps/stock/views.py:87 apps/water/views.py:70
+#: apps/stock/views.py:54 apps/stock/views.py:89 apps/water/views.py:70
 msgid "A valid household context is required."
 msgstr "Se requiere un contexto de hogar válido."
 
@@ -821,7 +1268,7 @@ msgstr ""
 msgid "A file is required."
 msgstr "El correo electrónico es obligatorio."
 
-#: apps/electricity/views.py:385 apps/stock/views.py:196
+#: apps/electricity/views.py:385 apps/stock/views.py:209
 msgid "This field is required."
 msgstr ""
 
@@ -859,7 +1306,7 @@ msgstr ""
 msgid "Lost"
 msgstr ""
 
-#: apps/equipment/models.py:18 apps/stock/models.py:37
+#: apps/equipment/models.py:18
 msgid "Ordered"
 msgstr ""
 
@@ -867,25 +1314,25 @@ msgstr ""
 msgid "equipment"
 msgstr "equipo"
 
-#: apps/equipment/serializers.py:71 apps/stock/serializers.py:108
+#: apps/equipment/serializers.py:77 apps/stock/serializers.py:105
 msgid "Invalid zone or access denied."
 msgstr "Zona no válida o acceso denegado."
 
-#: apps/equipment/serializers.py:88
+#: apps/equipment/serializers.py:94
 msgid "Zone must belong to the same household as equipment."
 msgstr "La zona debe pertenecer al mismo hogar que el equipo."
 
-#: apps/equipment/views.py:135
+#: apps/equipment/views.py:139
 #, fuzzy
 #| msgid "Invalid zone or access denied."
 msgid "Invalid equipment or access denied."
 msgstr "Zona no válida o acceso denegado."
 
-#: apps/equipment/views.py:137
+#: apps/equipment/views.py:141
 msgid "Interaction household must match equipment household."
 msgstr "El hogar de la interacción debe coincidir con el hogar del equipo."
 
-#: apps/equipment/views.py:139
+#: apps/equipment/views.py:143
 msgid "Invalid interaction or access denied."
 msgstr "Interacción no válida o acceso denegado."
 
@@ -1068,10 +1515,6 @@ msgstr ""
 msgid "Liability"
 msgstr ""
 
-#: apps/insurance/models.py:17 apps/interactions/services.py:107
-msgid "Other"
-msgstr "Otro"
-
 #: apps/insurance/models.py:21
 msgid "Suspended"
 msgstr ""
@@ -1079,22 +1522,6 @@ msgstr ""
 #: apps/insurance/models.py:22
 msgid "Terminated"
 msgstr ""
-
-#: apps/insurance/models.py:25
-#, fuzzy
-#| msgid "Monthly cost"
-msgid "Monthly"
-msgstr "Coste mensual"
-
-#: apps/insurance/models.py:26
-msgid "Quarterly"
-msgstr ""
-
-#: apps/insurance/models.py:27
-#, fuzzy
-#| msgid "Yearly cost"
-msgid "Yearly"
-msgstr "Coste anual"
 
 #: apps/insurance/models.py:49
 msgid "insurance contract"
@@ -1118,21 +1545,21 @@ msgid "Yearly cost must be non-negative."
 msgstr "El coste anual debe ser mayor o igual que cero."
 
 #: apps/interactions/migrations/0014_backfill_stock_purchase_subjects.py:37
-#: apps/interactions/services.py:30 apps/interactions/services.py:31
-#: apps/interactions/services.py:32 apps/interactions/services.py:33
+#: apps/interactions/services.py:34 apps/interactions/services.py:35
+#: apps/interactions/services.py:36 apps/interactions/services.py:37
 #, python-brace-format
 msgid "Purchase — {name}"
 msgstr "Compra — {name}"
 
-#: apps/interactions/models.py:94
+#: apps/interactions/models.py:168
 msgid "interaction"
 msgstr "interacción"
 
-#: apps/interactions/models.py:95
+#: apps/interactions/models.py:169
 msgid "interactions"
 msgstr "interacciones"
 
-#: apps/interactions/services.py:50
+#: apps/interactions/services.py:54
 #, fuzzy, python-brace-format
 #| msgid "Interactions"
 msgid "Interaction — {name}"
@@ -1191,6 +1618,81 @@ msgstr ""
 msgid "Out of stock"
 msgstr ""
 
+#: apps/recap/models.py:44
+msgid "household recap"
+msgstr "resumen del hogar"
+
+#: apps/recap/models.py:45
+msgid "household recaps"
+msgstr "resúmenes del hogar"
+
+#: apps/recap/render.py:57
+#, python-format
+msgid "Across %(count)d expense."
+msgid_plural "Across %(count)d expenses."
+msgstr[0] "En %(count)d gasto."
+msgstr[1] "En %(count)d gastos."
+msgstr[2] ""
+
+#: apps/recap/render.py:60
+#, python-format
+msgid "That's %(pct)s%% more than the month before."
+msgstr "Es un %(pct)s%% más que el mes anterior."
+
+#: apps/recap/render.py:62
+#, python-format
+msgid "That's %(pct)s%% less than the month before."
+msgstr "Es un %(pct)s%% menos que el mes anterior."
+
+#: apps/recap/render.py:64
+msgid "Exactly as much as the month before."
+msgstr "Exactamente lo mismo que el mes anterior."
+
+#: apps/recap/render.py:67
+msgid "spent"
+msgstr "gastados"
+
+#: apps/recap/render.py:80
+#, python-format
+msgid "Over budget: %(names)s."
+msgstr "Presupuesto superado: %(names)s."
+
+#: apps/recap/render.py:84
+msgid "None of your categories has a ceiling yet."
+msgstr "Ninguna de tus categorías tiene aún un límite."
+
+#: apps/recap/render.py:86
+msgid "Every capped category held."
+msgstr "Todas las categorías con límite se respetaron."
+
+#: apps/recap/render.py:91
+msgid "budgets held"
+msgstr "presupuestos respetados"
+
+#: apps/recap/render.py:108
+msgid "Your biggest expense of the month."
+msgstr "Tu mayor gasto del mes."
+
+#: apps/recap/render.py:128
+msgid "Money"
+msgstr "Dinero"
+
+#: apps/shopping/models.py:48
+msgid "shopping list item"
+msgstr ""
+
+#: apps/shopping/models.py:49
+msgid "shopping list items"
+msgstr ""
+
+#: apps/shopping/models.py:86
+msgid "shopping suggestion dismissal"
+msgstr ""
+
+#: apps/shopping/models.py:87
+msgid "shopping suggestion dismissals"
+msgstr ""
+
 #: apps/stock/models.py:23
 msgid "stock category"
 msgstr ""
@@ -1203,37 +1705,29 @@ msgstr ""
 msgid "In stock"
 msgstr ""
 
-#: apps/stock/models.py:38
-msgid "Expired"
-msgstr ""
-
-#: apps/stock/models.py:39
-msgid "Reserved"
-msgstr ""
-
-#: apps/stock/models.py:65
+#: apps/stock/models.py:61
 msgid "stock item"
 msgstr ""
 
-#: apps/stock/models.py:66
+#: apps/stock/models.py:62
 msgid "stock items"
 msgstr ""
 
-#: apps/stock/models.py:91
+#: apps/stock/models.py:86
 msgid "Inventory count"
 msgstr ""
 
-#: apps/stock/models.py:92
+#: apps/stock/models.py:87
 msgid "Post-purchase level"
 msgstr ""
 
-#: apps/stock/models.py:111
+#: apps/stock/models.py:106
 #, fuzzy
 #| msgid "Mark read"
 msgid "stock level reading"
 msgstr "Marcar como leído"
 
-#: apps/stock/models.py:112
+#: apps/stock/models.py:107
 #, fuzzy
 #| msgid "Mark read"
 msgid "stock level readings"
@@ -1257,36 +1751,36 @@ msgstr ""
 msgid "This item has crossed its minimum quantity threshold."
 msgstr ""
 
-#: apps/stock/serializers.py:95
+#: apps/stock/serializers.py:92
 #, fuzzy
 #| msgid "Invalid zone or access denied."
 msgid "Invalid category or access denied."
 msgstr "Zona no válida o acceso denegado."
 
-#: apps/stock/serializers.py:123
+#: apps/stock/serializers.py:120
 #, fuzzy
 #| msgid "Breaker must belong to the same household."
 msgid "Category must belong to the same household as item."
 msgstr "El disyuntor debe pertenecer al mismo hogar."
 
-#: apps/stock/serializers.py:126
+#: apps/stock/serializers.py:123
 #, fuzzy
 #| msgid "Zone must belong to the same household as equipment."
 msgid "Zone must belong to the same household as item."
 msgstr "La zona debe pertenecer al mismo hogar que el equipo."
 
-#: apps/stock/serializers.py:131
+#: apps/stock/serializers.py:128
 #, fuzzy
 #| msgid "End date must be after or equal to start date."
 msgid "Max quantity must be greater than or equal to min quantity."
 msgstr ""
 "La fecha de finalización debe ser posterior o igual a la fecha de inicio."
 
-#: apps/stock/serializers.py:141
+#: apps/stock/serializers.py:138
 msgid "Delta must not be zero."
 msgstr ""
 
-#: apps/stock/views.py:106
+#: apps/stock/views.py:117
 msgid "Adjustment would produce a negative quantity."
 msgstr ""
 
@@ -1441,15 +1935,15 @@ msgstr "Alerta meteorológica"
 msgid "⚠️ Weather alert for the days ahead:"
 msgstr "⚠️ Alerta meteorológica para los próximos días:"
 
-#: apps/zones/models.py:54
+#: apps/zones/models.py:59
 msgid "zone"
 msgstr "zona"
 
-#: apps/zones/models.py:55
+#: apps/zones/models.py:60
 msgid "zones"
 msgstr "zonas"
 
-#: apps/zones/serializers.py:53
+#: apps/zones/serializers.py:110
 msgid "Parent zone must belong to the same household"
 msgstr "La zona padre debe pertenecer al mismo hogar"
 
@@ -1610,10 +2104,6 @@ msgstr "Volver al inicio"
 
 #~ msgid "Active projects"
 #~ msgstr "Proyectos activos"
-
-#, python-format
-#~ msgid "Pinned: %(count)s"
-#~ msgstr "Fijados: %(count)s"
 
 #~ msgid "Todos with backlog, pending, or in progress status"
 #~ msgstr "Tareas con estado de backlog, pendiente o en curso"
@@ -1884,9 +2374,6 @@ msgstr "Volver al inicio"
 
 #~ msgid "Insurance type"
 #~ msgstr "Tipo de seguro"
-
-#~ msgid "Invalid amount."
-#~ msgstr "Importe no válido."
 
 #~ msgid "Amount must be non-negative."
 #~ msgstr "El importe debe ser mayor o igual que cero."

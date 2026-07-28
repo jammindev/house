@@ -56,10 +56,20 @@ export type PatchedBankTransaction = {
      */
     inflow_nature?: (InflowNatureEnum | BlankEnum);
     /**
-     * Budget this refund credits back. Only meaningful on an inflow classified `refund`: returning a 40 € item means the envelope consumed 110 € of the 150 € spent, not 150 €. Kept here rather than as a negative Interaction — `Interaction.amount` never goes negative, which is what protects the nine Sum('amount') aggregations. SET_NULL: deleting a budget must never destroy a bank line.
+     * Ce que cette recette rend, enveloppe par enveloppe.
+     *
+     * Une liste et non un champ : un virement de 70 € peut recréditer deux
+     * budgets, ce qu'une FK ne pouvait pas dire.
      */
-    readonly refund_budget?: string | null;
-    readonly refund_budget_name?: string;
+    readonly refund_allocations?: Array<any>;
+    /**
+     * Ce qui n'est attribué à personne — le « reste » de l'éditeur.
+     *
+     * Toujours calculé, jamais dénormalisé : c'est aussi ce que le détecteur
+     * `refund_partially_allocated` réclame, et un écart ne se dit jamais deux
+     * fois avec deux voix.
+     */
+    readonly refund_remaining?: string;
     /**
      * Running balance after this operation, when the bank exports it. Anchors the lot 4 balance and its chain check.
      */

@@ -1,6 +1,32 @@
 # Next steps
 
-> **Priorité au 2026-07-25 — Parcours 25 : les relevés bancaires comme source de
+> **Priorité au 2026-07-28 — Parcours 27 : le récap mensuel raconté.** Chantier cadré
+> ce jour (doc produit, fiche concept, backlog en 6 lots, issues #435 → #441) ;
+> implémentation à démarrer au lot 1.
+>
+> Changement de nature par rapport aux parcours 21 → 26, qui ont rendu l'argent
+> complet puis fiable : celui-ci ne demande **rien de nouveau** à l'utilisateur, il lui
+> rend ce qu'il a déjà donné. La limite qu'il lève n'est pas technique mais affective —
+> House est entièrement tourné vers le devoir, et **rien n'y récompense jamais d'avoir
+> tenu ses données à jour**, alors que c'est l'effort le plus coûteux et le plus fragile
+> du produit.
+>
+> Ordre : **1 → 2 → 3 → 4** en tranche verticale (à la fin du lot 4 la story tourne
+> avec un seul chapitre, et c'est là qu'on juge la forme) → **5** (les autres
+> chapitres) → **6** (le rendez-vous). Ne pas inverser 4 et 5.
+>
+> - Doc produit : [`PARCOURS_27_LE_RECAP_MENSUEL_RACONTE.md`](./parcours/PARCOURS_27_LE_RECAP_MENSUEL_RACONTE.md)
+> - Backlog : [`PARCOURS_27_BACKLOG_TECHNIQUE.md`](./parcours/PARCOURS_27_BACKLOG_TECHNIQUE.md)
+> - Fiche concept : [`SNAPSHOT_ET_RECIT.md`](./fiches/SNAPSHOT_ET_RECIT.md)
+> - Journal : [`2026-07-28_parcours-27_cadrage_initial.md`](./journal/2026-07-28_parcours-27_cadrage_initial.md)
+>
+> Le chantier voisin, délibérément **non** retenu cette fois : le **fil du foyer avec
+> réactions** — le seul levier où la récompense est une autre personne. À rouvrir après
+> cette V1, surtout si les foyers réels comptent deux membres actifs ou plus.
+
+---
+
+> **Priorité précédente au 2026-07-25 — Parcours 25 : les relevés bancaires comme source de
 > vérité des dépenses.** Chantier cadré ce jour (doc produit, fiche concept,
 > backlog en 9 lots, issues GitHub) ; implémentation à démarrer au lot 1.
 >

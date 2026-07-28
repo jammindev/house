@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "chickens",
     "pings",
     "budget",
+    "recap",
     "banking",
     "shopping",
     "briefings",
@@ -296,6 +297,16 @@ BUDGET_WARNING_RATIO = 0.8
 # Monthly budget report (lot 3): when on + an API key exists, the factual report
 # is rewritten into a warm paragraph by the LLM (fallback = deterministic text).
 BUDGET_REPORT_AI_POLISH_ENABLED = False
+
+# --- Household monthly recap (parcours 27) ---
+# MIN_CARDS: below this many cards the recap is still computed and browsable, but
+# no ping is sent and no dashboard teaser appears — a monthly appointment that
+# delivers nothing wears the appointment out.
+# AI_POLISH_ENABLED: when on + an API key exists, the factual captions (never the
+# figures) are rewritten into warmer one-liners. Off by default, same reason as the
+# digest and the budget report: the deterministic template must always leave.
+RECAP_MIN_CARDS = 3
+RECAP_AI_POLISH_ENABLED = False
 
 # Telegram bot channel for the agent. Empty token = channel disabled: the
 # webhook rejects everything and no outbound call is ever made.
