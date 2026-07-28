@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!-- Page de secours du reverse-proxy. Zéro dépendance externe (tout est inline),
+     sinon elle arriverait cassée. Pourquoi elle existe et pourquoi elle sonde
+     /health/ au lieu d'un meta refresh : DEPLOYMENT.md, § « Redéploiement ». -->
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>House revient dans un instant</title>
+  <style>
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --fg: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --primary: #258059;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1613;
+        --card: #171f1b;
+        --fg: #f3f4f6;
+        --muted: #9ca3af;
+        --border: #26302b;
+        --primary: #5fb789;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .card {
+      width: 100%;
+      max-width: 26rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    }
+    .icon {
+      width: 44px;
+      height: 44px;
+      color: var(--primary);
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9375rem;
+    }
+    .status {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.8); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .dot { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5 9.5V21h14V9.5" />
+      <path d="M9.5 21v-6h5v6" />
+    </svg>
+    <h1>House revient dans un instant</h1>
+    <p>L’application est momentanément indisponible, le temps d’une mise à jour.
+       Cette page se rafraîchira toute seule.</p>
+    <div class="status">
+      <span class="dot"></span>
+      <span id="status">Reconnexion…</span>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var tries = 0;
+
+      function reconnect() {
+        tries++;
+        fetch('/health/', { cache: 'no-store' })
+          .then(function (r) {
+            if (r.ok) {
+              document.getElementById('status').textContent = 'C’est reparti, rechargement…';
+              window.location.reload();
+              return;
+            }
+            again();
+          })
+          .catch(again);
+      }
+
+      function again() {
+        // Palier progressif : 2 s au début (un deploy dure quelques secondes),
+        // puis 10 s si l'absence dure — inutile de marteler un serveur en panne.
+        setTimeout(reconnect, tries < 15 ? 2000 : 10000);
+      }
+
+      reconnect();
+    })();
+  </script>
+</body>
+</html>

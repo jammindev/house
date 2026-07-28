@@ -206,25 +206,91 @@ graph TD
 | Fichier | Rôle |
 |---|---|
 | `Dockerfile` | Build multi-stage : Node (React) → Python (Django/Gunicorn) |
-| `docker-entrypoint.sh` | Migrations + collectstatic + démarrage Gunicorn |
 | `docker-compose.prod.yml` | Stack complète : db + web + nginx |
 | `nginx/default.conf` | Config Nginx : media files + proxy vers Gunicorn |
+| `nginx/html/maintenance.html` | Page servie quand Django ne répond pas (§ 3.4) |
+| `nginx/test-resilience.sh` | Test de régression du proxy, lancé en CI (§ 3.4) |
 | `.env.production.example` | Template des variables d'environnement |
-| `.dockerignore` | Exclut .venv, node_modules, secrets, etc. du build |
+| `.dockerignore` | Exclut venv, node_modules, secrets, etc. du build |
 
 ### Dockerfile — build multi-stage
 
 Le build se fait en deux étapes pour ne pas embarquer Node.js dans l'image finale :
 
 1. **Stage `frontend` (node:22-alpine)** — installe les dépendances npm et compile le React (`npm run build`). L'output va dans `static/react/`.
-2. **Stage final (python:3.12-slim)** — installe les dépendances Python, copie le code, copie les assets React compilés depuis le stage 1, et lance `docker-entrypoint.sh`.
+2. **Stage final (python:3.12-slim)** — installe les dépendances Python, copie le code, copie les assets React compilés depuis le stage 1, exécute `collectstatic`, et déclare Gunicorn en `CMD`.
 
-### docker-entrypoint.sh
+### Démarrage du container
 
-À chaque démarrage du container, dans l'ordre :
-1. `python manage.py migrate --noinput` — applique les nouvelles migrations
-2. `python manage.py collectstatic --noinput` — copie les fichiers statiques dans `staticfiles/` pour WhiteNoise
-3. `gunicorn config.wsgi:application` — démarre le serveur (4 workers, timeout 60s)
+Il n'y a **pas d'entrypoint** : l'image déclare directement
+`CMD ["gunicorn", …]` (4 workers, timeout 60 s — c'est là qu'on change le nombre
+de workers). Deux conséquences voulues :
+
+- **Le chemin de démarrage ne fait que démarrer le serveur.** `collectstatic` a
+  lieu au build, plus à chaque boot de conteneur.
+- **Le `CMD` reste remplaçable**, ce qui permet au deploy de lancer
+  `compose run --rm web python manage.py migrate` sur l'image neuve — donc de
+  migrer *avant* de basculer le trafic (§ 3.4). Un `ENTRYPOINT` qui ignore ses
+  arguments, comme l'ancien `docker-entrypoint.sh`, rendait ça impossible.
+
+Les **migrations** ne tournent pas au démarrage : elles sont une étape explicite
+du pipeline de deploy.
+
+### 3.4 Redéploiement — pourquoi on ne voit plus de 502
+
+Le symptôme : pendant chaque redéploiement, le navigateur affichait un
+`502 Bad Gateway` brut jusqu'à ce qu'on recharge à la main (issue #449). Trois
+causes cumulées, et le correctif de chacune est à préserver.
+
+**1. nginx figeait la résolution DNS de `web`.** Un `proxy_pass http://web:8000`
+littéral est résolu **une seule fois, au chargement de la config** ; l'IP est
+gardée pour la vie du process. Or chaque recréation du conteneur `web` lui donne
+une nouvelle IP : nginx continuait de taper l'ancienne. Le 502 finissait par
+passer seulement parce que compose recréait nginx à son tour (`depends_on`) — un
+`docker compose restart web` seul, lui, cassait la prod jusqu'au prochain
+redémarrage de nginx.
+
+→ `resolver 127.0.0.11` **et** `proxy_pass http://$django` (sur variable). Il faut
+les deux : sans variable, le resolver ne sert à rien.
+
+**2. Rien à servir pendant le trou.** Un 502/503/504 remonte désormais
+`nginx/html/maintenance.html` en **503 + `Retry-After`**, et du **JSON** sur
+`/api/` (l'intercepteur axios lit `detail` ; du HTML lui vaudrait une erreur de
+parsing en place du motif). La page sonde `/health/` et se recharge d'elle-même
+dès que l'app répond.
+
+**3. L'ordre des étapes.** Le pipeline (`.github/workflows/ci.yml`) :
+
+```
+build web                                  # image neuve
+up -d --no-deps db nginx                   # nginx reste debout, il n'est PAS recréé
+run --rm --no-deps web … migrate           # migrer AVANT de basculer
+up -d --no-deps --wait web scheduler …     # basculer, puis attendre /health/
+exec nginx nginx -t && nginx -s reload     # recharger le conf sans couper
+```
+
+- **`--no-deps` partout** : sans lui compose recrée nginx dans la foulée de web,
+  donc le proxy tombe pendant l'opération et sa page de maintenance ne sert plus à
+  rien.
+- **Migrer avant de basculer** : l'ordre inverse laissait le code neuf servir
+  quelques secondes sur l'ancien schéma. Contrepartie assumée, la moins chère des
+  deux : l'ancien code voit le nouveau schéma le temps du basculement — une
+  migration additive lui est transparente, une migration **destructive** (colonne
+  supprimée ou renommée) doit donc être livrée **en deux fois**.
+- **`--wait`** s'appuie sur le healthcheck de `web` (`GET /health/`) : le job ne
+  continue que quand gunicorn accepte vraiment des connexions, et **échoue
+  bruyamment** si le conteneur neuf ne démarre pas.
+
+**Ce qui reste vrai** : il subsiste une courte interruption (quelques secondes, le
+temps d'arrêter l'ancien conteneur et de démarrer le neuf). Elle est désormais
+*visible* et *auto-résolue* côté navigateur, pas supprimée. La faire disparaître
+demanderait deux répliques de `web` et l'engagement permanent d'écrire des
+migrations rétro-compatibles — ce n'est pas le contrat actuel.
+
+**Régression** : `nginx/test-resilience.sh` (job `proxy` de la CI, bloquant pour le
+deploy) monte un nginx sur un réseau Docker jetable et vérifie les trois
+propriétés : il démarre sans `web`, il sert la page de maintenance, et il suit
+`web` **recréé sur une nouvelle IP** sans reload.
 
 ### Pourquoi Nginx en plus de Gunicorn ?
 
@@ -265,8 +331,8 @@ docker network ls | grep traefik-public
 ### Étape 1 — Pousser le code (depuis ta machine de dev)
 
 ```bash
-git add Dockerfile docker-entrypoint.sh docker-compose.prod.yml \
-        nginx/default.conf .env.production.example .dockerignore
+git add Dockerfile docker-compose.prod.yml \
+        nginx/default.conf nginx/html/ .env.production.example .dockerignore
 git commit -m "feat: add Docker production deployment config"
 git push
 ```
@@ -484,7 +550,7 @@ Nginx est configuré avec `client_max_body_size 50M`. Si l'app est amenée à re
 ### Priorité moyenne
 
 **Ajuster le nombre de workers Gunicorn**
-Actuellement fixé à 4. La formule recommandée est `2 × CPU + 1`. Sur un Mac Mini M2 (8 cœurs) : 17 workers est le maximum théorique, mais 4–6 est raisonnable pour une app perso. Modifier dans `docker-entrypoint.sh`.
+Actuellement fixé à 4. La formule recommandée est `2 × CPU + 1`. Sur un Mac Mini M2 (8 cœurs) : 17 workers est le maximum théorique, mais 4–6 est raisonnable pour une app perso. Modifier dans le `CMD` du `Dockerfile`.
 
 **Fuseau horaire**
 `TIME_ZONE = "UTC"` dans `base.py`. Si tu veux que les horodatages dans l'admin Django correspondent à ton heure locale, changer pour `"Europe/Paris"` (ou ta timezone). Les données en base restent en UTC, seul l'affichage change.
@@ -532,13 +598,39 @@ Causes fréquentes :
 - `DATABASE_URL` incorrect (mauvais mot de passe ou hostname)
 - Permissions sur le volume `media-files`
 
-### Erreur 502 Bad Gateway dans le navigateur
+### La page « House revient dans un instant » ne part pas
 
-Nginx ne joind pas Gunicorn. Vérifier que le service `web` tourne :
+C'est la page de maintenance du proxy (§ 3.4) : Nginx ne joint pas Gunicorn. Elle
+se recharge toute seule, donc si elle *reste*, le conteneur `web` est vraiment
+en panne :
 
 ```bash
-docker compose -f docker-compose.prod.yml ps web
+docker compose -f docker-compose.prod.yml ps web        # état + santé (/health/)
 docker compose -f docker-compose.prod.yml logs web
+curl -sI -H "X-Forwarded-Proto: https" http://localhost/health/   # depuis le Mac Mini
+```
+
+Si `web` est `healthy` alors que la page persiste, le suspect est Nginx et sa
+résolution DNS. À vérifier dans ses logs — une IP d'upstream qui n'existe plus,
+ou `127.0.53.53` (sentinelle NXDOMAIN) :
+
+```bash
+docker compose -f docker-compose.prod.yml logs nginx | grep upstream
+docker compose -f docker-compose.prod.yml exec nginx nginx -s reload   # dépannage immédiat
+```
+
+Un reload qui répare = le `resolver` du § 3.4 a été perdu. Le test
+`nginx/test-resilience.sh` est là pour que ça n'arrive plus.
+
+### Erreur 502 Bad Gateway brute dans le navigateur
+
+Elle ne devrait plus jamais apparaître : ce cas est couvert par la page de
+maintenance ci-dessus. Un 502 brut vient donc d'**avant** Nginx — c'est-à-dire de
+Traefik, qui ne joint pas le conteneur `nginx` :
+
+```bash
+docker compose -f docker-compose.prod.yml ps nginx
+cd ~/traefik-public && docker compose -f docker-compose.traefik.yml logs traefik
 ```
 
 ### Le certificat Let's Encrypt ne s'obtient pas

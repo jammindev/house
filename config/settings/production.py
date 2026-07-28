@@ -53,6 +53,10 @@ SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=31536000)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool("SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True)
 SECURE_HSTS_PRELOAD = env.bool("SECURE_HSTS_PRELOAD", default=True)
 SECURE_CONTENT_TYPE_NOSNIFF = True
+# La sonde de vie du deploy tape http://127.0.0.1:8000/health/ depuis l'intérieur
+# du conteneur : sans exemption, elle ne récolterait que la redirection HTTPS et
+# le conteneur neuf ne serait jamais déclaré prêt (issue #449).
+SECURE_REDIRECT_EXEMPT = [r"^health/?$"]
 SECURE_REFERRER_POLICY = "same-origin"
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https") if env.bool("USE_X_FORWARDED_PROTO", default=True) else None
 

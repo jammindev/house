@@ -9,9 +9,14 @@ from rest_framework_simplejwt.views import TokenRefreshView, TokenVerifyView
 
 from . import admin_ordering as _admin_ordering
 from accounts.views import TokenObtainPairWithSessionView
+from core.views_health import health
 from core.views_media import serve_protected_media
 
 urlpatterns = [
+    # Sonde de vie du deploy — doit rester AVANT le catch-all SPA, qui répondrait
+    # sinon 200 + du HTML et déclarerait prêt un conteneur incapable de servir
+    # une seule vue.
+    path("health/", health, name="health"),
     path("admin/", admin.site.urls),
     path("api/auth/token/", TokenObtainPairWithSessionView.as_view(), name="token_obtain_pair"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
