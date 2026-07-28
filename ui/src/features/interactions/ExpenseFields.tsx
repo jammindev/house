@@ -8,6 +8,7 @@ import { FormField } from '@/design-system/form-field';
 import { useBudgets } from '@/features/budget/hooks';
 import { selectableBudgets } from '@/features/budget/tree';
 import LinkedLineActions from '@/features/banking/LinkedLineActions';
+import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
 import type { BankLineRef } from '@/lib/api/interactions';
 
 interface ExpenseFieldsProps {
@@ -96,21 +97,28 @@ export default function ExpenseFields({
         </div>
       ) : null}
 
-      {/* Le rapprochement se lit et se défait **ici aussi**, parce que c'est ici
-          qu'on atterrit : cliquer une dépense de la liste ouvre ce formulaire, pas
-          sa fiche. Le geste posé sur la liste et sur la fiche restait donc
-          introuvable pour qui passe par le chemin le plus courant. */}
+      {/* L'opération qui justifie la dépense, et le lien pour aller la voir.
+          ⚠️ **Un seul geste par écran** : sur une dépense née de la ventilation,
+          « défaire » veut dire *supprimer*, et l'en-tête de la page le propose
+          déjà — deux boutons de suppression sur le même formulaire ne se
+          distinguent pas l'un de l'autre. Ne reste donc ici que le détachement,
+          qui n'existe nulle part ailleurs sur cet écran. */}
       {bankLine ? (
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span>
+          <Link
+            to={`/app/money/transactions/${bankLine.id}`}
+            className="font-medium text-foreground underline-offset-2 hover:underline"
+          >
             {bankLine.account_name} · {bankLine.label}
-          </span>
-          <LinkedLineActions
-            expenseId={expenseId}
-            kind={kind}
-            transactionId={bankLine.id}
-            onDeleted={onDeleted}
-          />
+          </Link>
+          {!isOwnedByAllocationEditor(kind) ? (
+            <LinkedLineActions
+              expenseId={expenseId}
+              kind={kind}
+              transactionId={bankLine.id}
+              onDeleted={onDeleted}
+            />
+          ) : null}
         </div>
       ) : null}
 

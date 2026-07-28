@@ -1,11 +1,12 @@
 import * as React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Link2 } from 'lucide-react';
 import { Card, CardTitle } from '@/design-system/card';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { formatAmount, formatDate } from '@/lib/format';
+import { pushBack } from '@/lib/backNavigation';
 import ReconciliationBadge from '@/features/money/ReconciliationBadge';
 import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
 import LinkedLineActions from '@/features/banking/LinkedLineActions';
@@ -18,6 +19,7 @@ interface ExpenseListProps {
 export default function ExpenseList({ items }: ExpenseListProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [attachTarget, setAttachTarget] = React.useState<InteractionListItem | null>(null);
 
   return (
@@ -35,7 +37,11 @@ export default function ExpenseList({ items }: ExpenseListProps) {
             <li key={item.id}>
               <Card
                 className="cursor-pointer p-3 transition-shadow hover:shadow-md"
-                onClick={() => navigate(`/app/interactions/${item.id}/edit`)}
+                /* Cliquer une dépense ouvre sa **fiche**, plus un formulaire :
+                   on clique pour lire, et un champ de saisie ne se lit pas. */
+                onClick={() =>
+                  navigate(`/app/money/expenses/${item.id}`, { state: pushBack(location) })
+                }
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">

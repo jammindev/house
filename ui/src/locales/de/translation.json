@@ -1519,6 +1519,10 @@
           "trace": {
             "title": "Zur Buchung zurückgehen",
             "body": "Jede Ausgabe zeigt, ob eine Kontoauszugszeile sie belegt. „Kontoauszug vom 12. Juli“ ist ein Link: Sie landen auf der Buchung, mit Betrag, Konto und den weiteren Ausgaben, die sie abdeckt. „Abgleich ausstehend“ bedeutet das Gegenteil — eine Ausgabe, die die Bank nie gesehen hat, also eine Abweichung, die das Kontrollregister zählt. Außerhalb des geprüften Zeitraums erscheint nichts: dort kann die App nichts verlangen."
+          },
+          "sheet": {
+            "title": "Die Ausgabenseite",
+            "body": "Klicken Sie eine Ausgabe an: ihre Seite öffnet sich. Sie beantwortet drei Fragen — wie viel und an wen, in welches Budget der Euro fällt, und was ihn belegt. Eine Ausgabe ohne Budget sagt es und bietet an, eines zu wählen. Eine aus einem Kontoauszug entstandene Ausgabe zeigt die übrigen Ausgaben derselben Buchung, damit 90 € bei einem Abgang von 150 € nicht wie ein Fehler aussehen. Bearbeiten, löschen, zuordnen, Beleg anhängen: alles von dort."
           }
         }
       },
@@ -3823,6 +3827,20 @@
       "cash": "Bargeld vom {{date}}",
       "pending": "Abgleich ausstehend",
       "out_of_scope": "Außerhalb des geprüften Zeitraums"
+    },
+    "expense": {
+      "classification": "Einordnung",
+      "attachedTo": "Verknüpft mit",
+      "noBudget": "Kein Budget — diese Ausgabe zählt in keiner Kategorie.",
+      "pickBudget": "Budget wählen",
+      "notReconciled": "Noch keine Kontobewegung belegt diese Ausgabe.",
+      "sharedLine": "Der Rest dieser Buchung ({{count}})",
+      "lineRemaining": "{{allocated}} auf der Buchung zugeordnet, {{remaining}} offen",
+      "receipts": "Belege",
+      "addReceipt": "Hinzufügen",
+      "noReceipt": "Kein Beleg angehängt.",
+      "deleteConfirm": "Diese Ausgabe löschen? Sie verschwindet aus dem Journal und aus den Budgetsummen.",
+      "deleteSplitConfirm": "Diese Ausgabe löschen? Die Kontobewegung bleibt unberührt: ihr Betrag wandert zurück in die Warteschlange."
     }
   }
 }

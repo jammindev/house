@@ -13,6 +13,8 @@ import { fetchEquipmentList, type EquipmentListItem } from '@/lib/api/equipment'
 import { updateInteraction } from '@/lib/api/interactions';
 import { fetchHouseholdMembers, type HouseholdMember } from '@/lib/api/tasks';
 import NewTaskDialog from '@/features/tasks/NewTaskDialog';
+import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
+import InteractionDeleteAction from './InteractionDeleteAction';
 import { useInteraction } from './hooks';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useNavigateBack } from '@/lib/backNavigation';
@@ -217,6 +219,19 @@ export default function InteractionEditPage() {
         >
           {t('common.cancel')}
         </Button>
+        {/* Supprimer depuis le formulaire : on y arrive pour corriger un montant,
+            on y découvre parfois que l'entrée n'a rien à faire là. Le geste vivait
+            seulement sur la fiche, qu'il fallait donc rouvrir pour l'atteindre. */}
+        <InteractionDeleteAction
+          id={id ?? ''}
+          onDeleted={navigateBackAfterDelete}
+          className="h-10 px-4 text-sm"
+          description={
+            isExpense && isOwnedByAllocationEditor(interaction.kind)
+              ? t('money.expense.deleteSplitConfirm')
+              : t('interactions.delete_confirm')
+          }
+        />
       </PageHeader>
 
       <NewTaskDialog

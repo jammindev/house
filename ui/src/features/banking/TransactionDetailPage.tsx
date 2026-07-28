@@ -222,7 +222,7 @@ function AllocationLine({ expense }: { expense: AllocatedExpense }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <Link
-              to={`/app/interactions/${expense.id}`}
+              to={`/app/money/expenses/${expense.id}`}
               state={pushBack(location)}
               className="group text-foreground hover:text-primary"
             >

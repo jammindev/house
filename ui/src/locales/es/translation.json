@@ -1519,6 +1519,10 @@
           "trace": {
             "title": "Remontar hasta la operación",
             "body": "Cada gasto indica si una línea del extracto lo justifica. «Extracto del 12 de julio» es un enlace: llegas a la operación, con su importe, su cuenta y los demás gastos que cubre. «Pendiente de conciliación» significa lo contrario — un gasto que el banco nunca vio, es decir una discrepancia que la pestaña Control cuenta. Fuera del periodo controlado no aparece nada: ahí la app no puede exigir nada."
+          },
+          "sheet": {
+            "title": "La ficha de un gasto",
+            "body": "Haga clic en un gasto: se abre su ficha. Responde a tres preguntas — cuánto y a quién, en qué sobre cae el euro, y qué lo justifica. Un gasto sin sobre lo dice y propone elegir uno. Un gasto nacido de un extracto muestra los demás gastos de la misma operación, para que 90 € en una salida de 150 € no parezcan un error. Editar, eliminar, vincular, adjuntar un justificante: todo desde ahí."
           }
         }
       },
@@ -3823,6 +3827,20 @@
       "cash": "Efectivo del {{date}}",
       "pending": "Pendiente de conciliación",
       "out_of_scope": "Fuera del periodo controlado"
+    },
+    "expense": {
+      "classification": "Clasificación",
+      "attachedTo": "Vinculada a",
+      "noBudget": "Sin sobre — este gasto no cuenta en ninguna categoría.",
+      "pickBudget": "Elegir un sobre",
+      "notReconciled": "Ningún movimiento del extracto justifica todavía este gasto.",
+      "sharedLine": "El resto de esta operación ({{count}})",
+      "lineRemaining": "{{allocated}} asignados en la línea, quedan {{remaining}}",
+      "receipts": "Justificantes",
+      "addReceipt": "Añadir",
+      "noReceipt": "Ningún justificante adjunto.",
+      "deleteConfirm": "¿Eliminar este gasto? Desaparecerá del diario y de los totales de presupuesto.",
+      "deleteSplitConfirm": "¿Eliminar este gasto? La operación bancaria no se toca: su importe vuelve a la cola."
     }
   }
 }

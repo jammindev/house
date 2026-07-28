@@ -1519,6 +1519,10 @@
           "trace": {
             "title": "Trace it back to the operation",
             "body": "Every expense shows whether a statement line accounts for it. “Statement of 12 July” is a link: it takes you to the operation, with its amount, its account, and the other expenses it covers. “Awaiting reconciliation” means the opposite — an expense the bank never saw, which is a discrepancy the Control tab counts. Nothing shows outside the checked period: there, the app cannot require anything."
+          },
+          "sheet": {
+            "title": "An expense's sheet",
+            "body": "Click an expense: its sheet opens. It answers three questions — how much and to whom, which envelope the euro falls into, and what justifies it. An expense with no envelope says so and offers to pick one. An expense born from a statement shows the other expenses on the same transaction, so €90 on a €150 outflow doesn't look like a mistake. Edit, delete, attach to a line, add a receipt: all from there."
           }
         }
       },
@@ -3823,6 +3827,20 @@
       "cash": "Cash on {{date}}",
       "pending": "Awaiting reconciliation",
       "out_of_scope": "Outside the checked period"
+    },
+    "expense": {
+      "classification": "Classification",
+      "attachedTo": "Attached to",
+      "noBudget": "No envelope — this expense counts in no category.",
+      "pickBudget": "Pick an envelope",
+      "notReconciled": "No statement line justifies this expense yet.",
+      "sharedLine": "The rest of this transaction ({{count}})",
+      "lineRemaining": "{{allocated}} allocated on the line, {{remaining}} left",
+      "receipts": "Receipts",
+      "addReceipt": "Add",
+      "noReceipt": "No receipt attached.",
+      "deleteConfirm": "Delete this expense? It will disappear from the journal and from budget totals.",
+      "deleteSplitConfirm": "Delete this expense? The bank transaction is untouched: its amount goes back to the queue."
     }
   }
 }
