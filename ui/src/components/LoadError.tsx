@@ -5,16 +5,32 @@ interface LoadErrorProps {
   message: string;
   /** Lien de repli optionnel (ex: retour à la liste). */
   link?: { to: string; label: string };
+  /**
+   * Relance le chargement. À préférer au lien de repli quand l'échec est
+   * transitoire : renvoyer l'utilisateur ailleurs lui fait perdre son contexte.
+   */
+  onRetry?: () => void;
+  /** Libellé du bouton de relance, déjà traduit — comme `message`. */
+  retryLabel?: string;
 }
 
 /**
  * Encart d'erreur de chargement standard (token `destructive`).
  * Remplace le bloc `border-destructive/30 bg-destructive/10 …` recopié dans ~10 pages.
  */
-export default function LoadError({ message, link }: LoadErrorProps) {
+export default function LoadError({ message, link, onRetry, retryLabel }: LoadErrorProps) {
   return (
     <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
       {message}
+      {onRetry ? (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="ml-2 underline hover:no-underline"
+        >
+          {retryLabel}
+        </button>
+      ) : null}
       {link ? (
         <Link to={link.to} className="ml-2 underline hover:no-underline">
           {link.label}

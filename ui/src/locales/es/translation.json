@@ -177,7 +177,8 @@
     "previous": "Anterior",
     "next": "Siguiente",
     "rangeOfTotal": "{{from}}–{{to}} de {{total}}",
-    "cappedAtMax": "{{shown}} de {{total}} — resuelve estas para ver el resto."
+    "cappedAtMax": "{{shown}} de {{total}} — resuelve estas para ver el resto.",
+    "deleteFailed": "No se pudo eliminar."
   },
   "errors": {
     "notFoundTitle": "Página no encontrada",
@@ -1550,11 +1551,11 @@
         "steps": {
           "browse": {
             "title": "Explorar la galería",
-            "body": "Las imágenes subidas en Documentos aparecen aquí automáticamente."
+            "body": "Las imágenes subidas a Documentos aparecen aquí, agrupadas por mes. Filtra por zona para ver solo una habitación y, con una foto abierta, las flechas (o ← →) pasan a la siguiente sin cerrarla."
           },
           "add": {
             "title": "Añadir fotos",
-            "body": "Sube tus fotos como cualquier otro documento de tipo imagen."
+            "body": "Sube fotos como cualquier documento de tipo imagen. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
           }
         }
       },
@@ -1763,8 +1764,6 @@
     }
   },
   "photos": {
-    "app_title": "Mini-app Fotos",
-    "section_label": "Nodo Django de sección: {{section}}",
     "title": "Fotos",
     "empty": "Sin fotos por el momento.",
     "empty_description": "Sube tu primera foto con el botón de arriba.",
@@ -1776,13 +1775,7 @@
     "addedOn": "Añadida el {{date}}",
     "view": "Ver",
     "download": "Descargar",
-    "upload_title": "Subir fotos",
-    "upload_label": "Seleccionar archivos",
-    "upload_hint": "JPG, PNG, WEBP — máx. 10 MB cada uno",
-    "uploading": "Subiendo…",
-    "upload_success": "{{count}} foto(s) subida(s).",
-    "upload_failed": "Error al subir.",
-    "delete_confirm": "¿Eliminar esta foto?",
+    "upload_title": "Añadir una foto",
     "phase": {
       "before": "Antes",
       "during": "Durante",
@@ -1801,6 +1794,17 @@
       "empty": "Aún no hay fotos. Sube una para documentar el antes y el después del proyecto.",
       "attach_existing": "Elegir existente",
       "empty_hint": "Sube una nueva o vincula una foto existente."
+    },
+    "thumbFailed": "Vista previa no disponible",
+    "noPreview": "Sin vista previa",
+    "previous": "Foto anterior",
+    "next": "Foto siguiente",
+    "position": "{{current}} de {{total}}",
+    "noResults_description": "Ninguna foto coincide con tu búsqueda.",
+    "filter": {
+      "zone": "Zona",
+      "allZones": "Todas las zonas",
+      "reset": "Restablecer"
     }
   },
   "directory": {

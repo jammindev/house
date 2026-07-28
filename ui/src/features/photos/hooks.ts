@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { useToast } from '@/lib/toast';
 import {
   fetchPhotoDocuments,
   deleteDocument,
@@ -8,6 +10,7 @@ import {
   entityDetailQueryKey,
   type PhotoPhase,
 } from '@/lib/api/documents';
+import { documentKeys } from '@/features/documents/hooks';
 
 export interface PhotoFilters {
   search?: string;
@@ -32,9 +35,17 @@ export function usePhotos(filters?: PhotoFilters) {
 
 export function useDeletePhoto() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
   return useMutation({
     mutationFn: (id: string) => deleteDocument(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: photoKeys.all }),
+    onSuccess: () => {
+      // Les photos sont des `Document` : la liste documents doit bouger aussi,
+      // sinon la corbeille d'un écran contredit l'autre.
+      void qc.invalidateQueries({ queryKey: photoKeys.all });
+      void qc.invalidateQueries({ queryKey: documentKeys.all });
+    },
+    onError: () => toast({ description: t('common.deleteFailed'), variant: 'destructive' }),
   });
 }
 
@@ -55,6 +66,8 @@ function useEntityPhotoInvalidation(entityType: string, objectId: string) {
   return () => {
     void qc.invalidateQueries({ queryKey: photoKeys.entity(entityType, objectId) });
     void qc.invalidateQueries({ queryKey: photoKeys.all });
+    // Une photo EST un `Document` : attacher/détacher change aussi ses backlinks.
+    void qc.invalidateQueries({ queryKey: documentKeys.all });
     // tab_counts.photos lives on the linked entity's detail (project, chicken…).
     const detailKey = entityDetailQueryKey(entityType);
     if (detailKey) void qc.invalidateQueries({ queryKey: detailKey });

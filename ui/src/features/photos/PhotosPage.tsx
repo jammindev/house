@@ -1,50 +1,89 @@
 import * as React from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, SearchX, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
-import ConfirmDialog from '@/components/ConfirmDialog';
-import type { DocumentItem } from '@/lib/api/documents';
+import EmptyState from '@/components/EmptyState';
+import LoadError from '@/components/LoadError';
+import { Button } from '@/design-system/button';
+import { Input } from '@/design-system/input';
+import { Label } from '@/design-system/label';
+import ZonePicker from '@/features/zones/ZonePicker';
 import DocumentUploadDialog from '@/features/documents/DocumentUploadDialog';
-import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
-import PhotoGrid from './PhotoGrid';
-import PhotoDetailPanel from './PhotoDetailPanel';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
+import { useDebouncedValue } from '@/lib/useDebouncedValue';
+import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
+import { useSessionState } from '@/lib/useSessionState';
+import { formatMonthYear } from '@/lib/format';
+import type { DocumentItem } from '@/lib/api/documents';
+import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
+import PhotoGrid, { PhotoGridSkeleton } from './PhotoGrid';
+import PhotoLightbox from './PhotoLightbox';
+import { groupPhotosByMonth } from './grouping';
 
 export default function PhotosPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
 
   const [search, setSearch] = React.useState('');
-  const [selectedPhoto, setSelectedPhoto] = React.useState<DocumentItem | null>(null);
-  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [zone, setZone] = useSessionState<string>('photos.zone', '');
+  const [openId, setOpenId] = React.useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = React.useState(false);
 
+  // Une frappe ne vaut pas une requête : la recherche partait à chaque caractère.
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const hasFilters = debouncedSearch !== '' || zone !== '';
+
   const filters = React.useMemo(
-    () => (search ? { search } : undefined),
-    [search],
+    () => ({
+      ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      ...(zone ? { zone } : {}),
+    }),
+    [debouncedSearch, zone],
   );
 
   const { data: photos = [], isLoading, error } = usePhotos(filters);
   const deletePhotoMutation = useDeletePhoto();
 
+  const { deleteWithUndo } = useDeleteWithUndo({
+    label: t('photos.deleted'),
+    onDelete: (id) => deletePhotoMutation.mutateAsync(id),
+  });
+
   const handleDelete = React.useCallback(
-    (id: string) => {
-      deletePhotoMutation.mutate(id, {
-        onSuccess: () => setDeletingId(null),
+    (photo: DocumentItem) => {
+      setOpenId(null);
+      const listKey = photoKeys.list(filters);
+      deleteWithUndo(photo.id, {
+        onRemove: () =>
+          qc.setQueryData<DocumentItem[]>(listKey, (old) => old?.filter((p) => p.id !== photo.id)),
+        onRestore: () =>
+          qc.setQueryData<DocumentItem[]>(listKey, (old) => (old ? [...old, photo] : [photo])),
       });
     },
-    [deletePhotoMutation],
+    [deleteWithUndo, qc, filters],
   );
 
-  const isEmpty = !isLoading && !error && photos.length === 0;
+  const resetFilters = React.useCallback(() => {
+    setSearch('');
+    setZone('');
+  }, [setZone]);
+
+  const groups = React.useMemo(() => groupPhotosByMonth(photos), [photos]);
   const showSkeleton = useDelayedLoading(isLoading);
+
+  // `ListPage` masque ses enfants quand la liste est vide — donc la barre de
+  // filtres avec. On ne lui déclare « vide » que la galerie réellement vide :
+  // sinon une recherche sans résultat effaçait le champ qui l'a produite, et il
+  // devenait impossible de revenir en arrière.
+  const isTrulyEmpty = !isLoading && !error && photos.length === 0 && !hasFilters;
+  const isNoResults = !isLoading && !error && photos.length === 0 && hasFilters;
 
   return (
     <>
       <ListPage
         title={t('photos.title')}
-        isEmpty={isEmpty}
+        isEmpty={isTrulyEmpty}
         emptyState={{
           icon: Camera,
           title: t('photos.empty'),
@@ -52,77 +91,76 @@ export default function PhotosPage() {
           action: { label: t('photos.upload_title'), onClick: () => setUploadOpen(true) },
         }}
         actions={
-          <button
-            type="button"
-            onClick={() => setUploadOpen(true)}
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-          >
+          <Button type="button" onClick={() => setUploadOpen(true)} className="gap-1.5">
+            <Upload className="h-4 w-4" aria-hidden />
             {t('photos.upload_title')}
-          </button>
+          </Button>
         }
       >
-        {error ? (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {t('photos.loadFailed')}
-            <button
-              type="button"
-              onClick={() => qc.invalidateQueries({ queryKey: photoKeys.all })}
-              className="ml-2 underline hover:no-underline"
-            >
-              {t('common.retry')}
-            </button>
-          </div>
-        ) : null}
-
-        {/* Filter bar */}
-        {!error ? (
-          <div className="mb-4">
-            <input
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1 space-y-1 sm:max-w-xs">
+            <Label htmlFor="photos-search">{t('photos.search')}</Label>
+            <Input
+              id="photos-search"
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('photos.search_placeholder')}
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:max-w-xs"
-              aria-label={t('photos.search')}
             />
           </div>
-        ) : null}
+          <div className="flex-1 space-y-1 sm:max-w-xs">
+            <Label htmlFor="photos-zone">{t('photos.filter.zone')}</Label>
+            <ZonePicker
+              id="photos-zone"
+              value={zone || null}
+              onChange={(id) => setZone(id ?? '')}
+              allowEmpty
+              emptyLabel={t('photos.filter.allZones')}
+            />
+          </div>
+          {hasFilters ? (
+            <Button type="button" variant="outline" onClick={resetFilters}>
+              {t('photos.filter.reset')}
+            </Button>
+          ) : null}
+        </div>
 
-        {showSkeleton ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="aspect-square animate-pulse rounded-md bg-slate-100" />
+        {error ? (
+          <LoadError
+            message={t('photos.loadFailed')}
+            onRetry={() => void qc.invalidateQueries({ queryKey: photoKeys.all })}
+            retryLabel={t('common.retry')}
+          />
+        ) : showSkeleton ? (
+          <PhotoGridSkeleton />
+        ) : isNoResults ? (
+          <EmptyState
+            icon={SearchX}
+            title={t('common.noResults')}
+            description={t('photos.noResults_description')}
+            action={{ label: t('photos.filter.reset'), onClick: resetFilters }}
+          />
+        ) : (
+          <div className="space-y-6">
+            {groups.map((group) => (
+              <section key={group.key} className="space-y-2">
+                <h2 className="text-sm font-medium capitalize text-muted-foreground">
+                  {formatMonthYear(group.anchor)}{' '}
+                  <span className="tabular-nums">({group.photos.length})</span>
+                </h2>
+                <PhotoGrid photos={group.photos} onPhotoClick={(p) => setOpenId(p.id)} />
+              </section>
             ))}
           </div>
-        ) : null}
-
-        {!isLoading && !error ? (
-          <PhotoGrid photos={photos} onPhotoClick={setSelectedPhoto} />
-        ) : null}
+        )}
       </ListPage>
 
-      <PhotoDetailPanel
-        photo={selectedPhoto}
-        open={selectedPhoto !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelectedPhoto(null);
-        }}
-        onDelete={(id) => {
-          setSelectedPhoto(null);
-          setDeletingId(id);
-        }}
-      />
-
-      <ConfirmDialog
-        open={deletingId !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeletingId(null);
-        }}
-        title={t('common.confirmDelete')}
-        onConfirm={() => {
-          if (deletingId) handleDelete(deletingId);
-        }}
-        loading={deletePhotoMutation.isPending}
+      <PhotoLightbox
+        photos={photos}
+        openId={openId}
+        onOpenChange={setOpenId}
+        onRemove={handleDelete}
+        removeLabel={t('common.delete')}
       />
 
       <DocumentUploadDialog

@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera, Upload, Trash2, ArrowRightLeft, GitCompareArrows, Plus } from 'lucide-react';
 import { Button } from '@/design-system/button';
-import { Card, CardTitle } from '@/design-system/card';
 import CardActions, { type CardAction } from '@/components/CardActions';
 import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useDeleteWithUndo } from '@/lib/useDeleteWithUndo';
 import DocumentUploadDialog from '@/features/documents/DocumentUploadDialog';
 import EntityAttachDocumentDialog from '@/features/documents/EntityAttachDocumentDialog';
-import PhotoDetailPanel from './PhotoDetailPanel';
+import PhotoGrid, { PhotoGridSkeleton } from './PhotoGrid';
+import PhotoLightbox from './PhotoLightbox';
 import BeforeAfterCompare from './BeforeAfterCompare';
 import {
   photoKeys,
@@ -52,8 +52,18 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
 
   const [uploadPhase, setUploadPhase] = React.useState<PhotoPhase | '' | null>(null);
   const [attachOpen, setAttachOpen] = React.useState(false);
-  const [viewing, setViewing] = React.useState<DocumentItem | null>(null);
+  const [openId, setOpenId] = React.useState<string | null>(null);
   const [comparing, setComparing] = React.useState(false);
+
+  // Le dialog d'upload appelle `onOpenChange(false)` **avant** `onSaved` : la
+  // phase choisie était donc lue dans une closure que le rendu suivant allait
+  // remettre à `null`. Ça ne tenait que par le batching React. Une ref garde la
+  // valeur au moment de l'ouverture, indépendamment de l'ordre des callbacks.
+  const uploadPhaseRef = React.useRef<PhotoPhase | ''>('');
+  const openUpload = React.useCallback((phase: PhotoPhase | '') => {
+    uploadPhaseRef.current = phase;
+    setUploadPhase(phase);
+  }, []);
 
   const queryKey = React.useMemo(
     () => photoKeys.entity(entityType, objectId),
@@ -74,7 +84,7 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
 
   const handleDetach = React.useCallback(
     (photo: DocumentItem) => {
-      setViewing(null);
+      setOpenId(null);
       deleteWithUndo(photo.id, {
         onRemove: () =>
           qc.setQueryData<DocumentItem[]>(queryKey, (old) =>
@@ -94,11 +104,11 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
       if (created) {
         await attachMutation.mutateAsync({
           documentId: created.id,
-          phase: uploadPhase ?? '',
+          phase: uploadPhaseRef.current,
         });
       }
     },
-    [attachMutation, uploadPhase],
+    [attachMutation],
   );
 
   const grouped = React.useMemo(() => {
@@ -107,69 +117,85 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
     return map;
   }, [photos]);
 
-  const hasBefore = grouped.before.length > 0;
-  const hasAfter = grouped.after.length > 0;
-  const canCompare = hasBefore && hasAfter;
+  const canCompare = grouped.before.length > 0 && grouped.after.length > 0;
+
+  // La visionneuse parcourt les photos dans l'ordre **affiché** (par phase), pas
+  // dans celui de l'API : sinon « suivant » sautait d'un « Avant » à un « Après »
+  // sans raison lisible à l'écran.
+  const orderedPhotos = React.useMemo(
+    () => PHASE_ORDER.flatMap((phase) => grouped[phase]),
+    [grouped],
+  );
+
+  const renderActions = React.useCallback(
+    (photo: DocumentItem) => {
+      const phase = normalizePhase(photo);
+      const actions: CardAction[] = [
+        ...PHASE_ORDER.filter((p) => p !== phase).map((p) => ({
+          label: t('photos.entity.moveTo', { phase: t(`photos.phase.${p || 'unclassified'}`) }),
+          icon: ArrowRightLeft,
+          onClick: () => setPhaseMutation.mutate({ documentId: photo.id, phase: p }),
+        })),
+        {
+          label: t('photos.entity.remove'),
+          icon: Trash2,
+          onClick: () => handleDetach(photo),
+          variant: 'danger' as const,
+        },
+      ];
+      return <CardActions actions={actions} />;
+    },
+    [t, setPhaseMutation, handleDetach],
+  );
 
   const showSkeleton = useDelayedLoading(isLoading);
 
-  if (showSkeleton) {
-    return (
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="aspect-square animate-pulse rounded-md bg-muted" />
-        ))}
-      </div>
-    );
-  }
-
-  if (error) {
-    return <p className="text-sm text-destructive">{t('common.error_loading')}</p>;
-  }
+  if (showSkeleton) return <PhotoGridSkeleton count={4} />;
+  if (error) return <p className="text-sm text-destructive">{t('common.error_loading')}</p>;
 
   return (
     <>
       <div className="space-y-6">
-        <div className="flex flex-wrap justify-end gap-2">
-          {canCompare ? (
+        {/* Quand il n'y a rien, l'`EmptyState` porte le seul appel à l'action :
+            une barre de boutons au-dessus d'un encart qui redit « Ajouter une
+            photo » proposait deux fois la même chose. */}
+        {photos.length > 0 ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            {canCompare ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setComparing(true)}
+                className="gap-1.5"
+              >
+                <GitCompareArrows className="h-3.5 w-3.5" />
+                {t('photos.entity.compare')}
+              </Button>
+            ) : null}
             <Button
               type="button"
               size="sm"
               variant="outline"
-              onClick={() => setComparing(true)}
+              onClick={() => setAttachOpen(true)}
               className="gap-1.5"
             >
-              <GitCompareArrows className="h-3.5 w-3.5" />
-              {t('photos.entity.compare')}
+              <Plus className="h-3.5 w-3.5" />
+              {t('photos.entity.attach_existing')}
             </Button>
-          ) : null}
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => setAttachOpen(true)}
-            className="gap-1.5"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t('photos.entity.attach_existing')}
-          </Button>
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setUploadPhase('')}
-            className="gap-1.5"
-          >
-            <Upload className="h-3.5 w-3.5" />
-            {t('photos.entity.upload')}
-          </Button>
-        </div>
+            <Button type="button" size="sm" onClick={() => openUpload('')} className="gap-1.5">
+              <Upload className="h-3.5 w-3.5" />
+              {t('photos.entity.upload')}
+            </Button>
+          </div>
+        ) : null}
 
         {photos.length === 0 ? (
           <EmptyState
             icon={Camera}
             title={t('photos.entity.empty')}
             description={t('photos.entity.empty_hint')}
-            action={{ label: t('photos.entity.upload'), onClick: () => setUploadPhase('') }}
+            action={{ label: t('photos.entity.upload'), onClick: () => openUpload('') }}
           />
         ) : (
           PHASE_ORDER.map((phase) => {
@@ -179,35 +205,26 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
             return (
               <section key={phaseKey} className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <CardTitle className="text-sm">
+                  <h3 className="text-sm font-medium text-foreground">
                     {t(`photos.phase.${phaseKey}`)}{' '}
-                    <span className="text-muted-foreground">({items.length})</span>
-                  </CardTitle>
+                    <span className="tabular-nums text-muted-foreground">({items.length})</span>
+                  </h3>
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    onClick={() => setUploadPhase(phase)}
+                    onClick={() => openUpload(phase)}
                     className="h-7 gap-1.5 px-2 text-xs"
                   >
                     <Upload className="h-3 w-3" />
                     {t('photos.entity.addToPhase')}
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                  {items.map((photo) => (
-                    <PhotoTile
-                      key={photo.id}
-                      photo={photo}
-                      phase={phase}
-                      onOpen={() => setViewing(photo)}
-                      onSetPhase={(next) =>
-                        setPhaseMutation.mutate({ documentId: photo.id, phase: next })
-                      }
-                      onDelete={() => handleDetach(photo)}
-                    />
-                  ))}
-                </div>
+                <PhotoGrid
+                  photos={items}
+                  onPhotoClick={(photo) => setOpenId(photo.id)}
+                  renderActions={renderActions}
+                />
               </section>
             );
           })
@@ -221,6 +238,10 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
         }}
         onSaved={handleUploaded}
         forcedType="photo"
+        // Sans cette précision, ouvrir l'upload depuis la section « Après »
+        // donnait le même dialog que depuis le bouton global : rien n'indiquait
+        // où la photo allait atterrir.
+        titleSuffix={uploadPhase ? t(`photos.phase.${uploadPhase}`) : undefined}
       />
 
       <EntityAttachDocumentDialog
@@ -235,15 +256,15 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
         title={t('photos.entity.attach_existing')}
       />
 
-      <PhotoDetailPanel
-        photo={viewing}
-        open={viewing !== null}
-        onOpenChange={(open) => {
-          if (!open) setViewing(null);
-        }}
-        onDelete={() => {
-          if (viewing) handleDetach(viewing);
-        }}
+      <PhotoLightbox
+        photos={orderedPhotos}
+        openId={openId}
+        onOpenChange={setOpenId}
+        onRemove={handleDetach}
+        // « Supprimer » était un mensonge : l'action détache la photo de l'entité,
+        // le fichier reste dans la galerie du foyer.
+        removeLabel={t('photos.entity.remove')}
+        phaseOf={normalizePhase}
       />
 
       <BeforeAfterCompare
@@ -253,68 +274,5 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
         after={grouped.after}
       />
     </>
-  );
-}
-
-// ── Photo tile with phase controls ────────────────────────────────────────
-
-function PhotoTile({
-  photo,
-  phase,
-  onOpen,
-  onSetPhase,
-  onDelete,
-}: {
-  photo: DocumentItem;
-  phase: PhotoPhase | '';
-  onOpen: () => void;
-  onSetPhase: (phase: PhotoPhase | '') => void;
-  onDelete: () => void;
-}) {
-  const { t } = useTranslation();
-
-  const actions: CardAction[] = [
-    ...PHASE_ORDER.filter((p) => p !== phase).map((p) => ({
-      label: t('photos.entity.moveTo', { phase: t(`photos.phase.${p || 'unclassified'}`) }),
-      icon: ArrowRightLeft,
-      onClick: () => onSetPhase(p),
-    })),
-    {
-      label: t('photos.entity.remove'),
-      icon: Trash2,
-      onClick: onDelete,
-      variant: 'danger' as const,
-    },
-  ];
-
-  return (
-    <Card className="group relative overflow-hidden p-0">
-      <button
-        type="button"
-        className="block aspect-square w-full cursor-pointer bg-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        onClick={onOpen}
-        aria-label={photo.name}
-      >
-        {photo.thumbnail_url || photo.file_url ? (
-          <img
-            src={photo.thumbnail_url || photo.file_url || ''}
-            alt={photo.name}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = 'none';
-            }}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <Camera className="h-6 w-6" aria-hidden />
-          </div>
-        )}
-      </button>
-      <div className="absolute right-1 top-1 rounded-md bg-background/80 backdrop-blur-sm">
-        <CardActions actions={actions} />
-      </div>
-    </Card>
   );
 }

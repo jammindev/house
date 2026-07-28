@@ -177,7 +177,8 @@
     "previous": "Zurück",
     "next": "Weiter",
     "rangeOfTotal": "{{from}}–{{to}} von {{total}}",
-    "cappedAtMax": "{{shown}} von {{total}} — bearbeiten Sie diese, um den Rest zu sehen."
+    "cappedAtMax": "{{shown}} von {{total}} — bearbeiten Sie diese, um den Rest zu sehen.",
+    "deleteFailed": "Löschen fehlgeschlagen."
   },
   "errors": {
     "notFoundTitle": "Seite nicht gefunden",
@@ -1549,12 +1550,12 @@
         "intro": "Eine eigene Ansicht der Haushaltsfotos, gespeist vom Modul Dokumente.",
         "steps": {
           "browse": {
-            "title": "Die Galerie durchsehen",
-            "body": "In Dokumente hochgeladene Bilder erscheinen hier automatisch."
+            "title": "Galerie durchsehen",
+            "body": "In Dokumente hochgeladene Bilder erscheinen hier, nach Monat gruppiert. Filtern Sie nach Bereich, um nur einen Raum zu sehen; bei geöffnetem Foto führen die Pfeile (oder ← →) zum nächsten, ohne zu schließen."
           },
           "add": {
             "title": "Fotos hinzufügen",
-            "body": "Laden Sie Ihre Fotos wie jedes andere Dokument vom Typ Bild hoch."
+            "body": "Laden Sie Fotos wie jedes Bilddokument hoch. Aus einem Projekt, einem Gerät oder einem Bereich sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
           }
         }
       },
@@ -1763,8 +1764,6 @@
     }
   },
   "photos": {
-    "app_title": "Fotos-Mini-App",
-    "section_label": "Django-App-Knoten: {{section}}",
     "title": "Fotos",
     "empty": "Noch keine Fotos vorhanden.",
     "empty_description": "Lade dein erstes Foto über den Button oben hoch.",
@@ -1776,13 +1775,7 @@
     "addedOn": "Hinzugefügt am {{date}}",
     "view": "Ansehen",
     "download": "Herunterladen",
-    "upload_title": "Fotos hochladen",
-    "upload_label": "Dateien auswählen",
-    "upload_hint": "JPG, PNG, WEBP — max. 10 MB pro Datei",
-    "uploading": "Hochladen…",
-    "upload_success": "{{count}} Foto(s) hochgeladen.",
-    "upload_failed": "Upload fehlgeschlagen.",
-    "delete_confirm": "Dieses Foto löschen?",
+    "upload_title": "Foto hinzufügen",
     "phase": {
       "before": "Vorher",
       "during": "Während",
@@ -1801,6 +1794,17 @@
       "empty": "Noch keine Fotos. Laden Sie eines hoch, um das Vorher und Nachher des Projekts zu dokumentieren.",
       "attach_existing": "Vorhandenes wählen",
       "empty_hint": "Laden Sie ein neues hoch oder verknüpfen Sie ein vorhandenes Foto."
+    },
+    "thumbFailed": "Vorschau nicht verfügbar",
+    "noPreview": "Keine Vorschau",
+    "previous": "Vorheriges Foto",
+    "next": "Nächstes Foto",
+    "position": "{{current}} von {{total}}",
+    "noResults_description": "Kein Foto entspricht Ihrer Suche.",
+    "filter": {
+      "zone": "Bereich",
+      "allZones": "Alle Bereiche",
+      "reset": "Zurücksetzen"
     }
   },
   "directory": {

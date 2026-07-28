@@ -42,6 +42,14 @@ export function formatAmount(
   }).format(parsed);
 }
 
+/** Mois + année localisés (« juillet 2026 ») — en-têtes de regroupement chronologique. */
+export function formatMonthYear(value?: string | null): string {
+  if (!value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric' }).format(d);
+}
+
 /**
  * `Date` → `YYYY-MM-DD` **dans le fuseau du navigateur**.
  *

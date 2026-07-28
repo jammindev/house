@@ -177,7 +177,8 @@
     "previous": "Précédent",
     "next": "Suivant",
     "rangeOfTotal": "{{from}}–{{to}} sur {{total}}",
-    "cappedAtMax": "{{shown}} sur {{total}} — traitez ces lignes pour voir la suite."
+    "cappedAtMax": "{{shown}} sur {{total}} — traitez ces lignes pour voir la suite.",
+    "deleteFailed": "Impossible de supprimer."
   },
   "errors": {
     "notFoundTitle": "Page introuvable",
@@ -1550,11 +1551,11 @@
         "steps": {
           "browse": {
             "title": "Parcourir la galerie",
-            "body": "Les images déposées dans Documents apparaissent automatiquement ici."
+            "body": "Les images déposées dans Documents apparaissent ici, regroupées par mois. Filtrez par zone pour ne voir qu'une pièce, et ouvrez une photo : les flèches (ou ← →) passent à la suivante sans refermer."
           },
           "add": {
             "title": "Ajouter des photos",
-            "body": "Déposez vos photos comme n'importe quel document de type image."
+            "body": "Déposez vos photos comme n'importe quel document de type image. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
           }
         }
       },
@@ -1763,8 +1764,6 @@
     }
   },
   "photos": {
-    "app_title": "Mini-app Photos",
-    "section_label": "Nœud Django scopé : {{section}}",
     "title": "Photos",
     "empty": "Aucune photo pour le moment.",
     "empty_description": "Téléversez votre première photo en cliquant sur le bouton ci-dessous.",
@@ -1776,13 +1775,7 @@
     "addedOn": "Ajoutée le {{date}}",
     "view": "Voir",
     "download": "Télécharger",
-    "upload_title": "Téléverser des photos",
-    "upload_label": "Sélectionner des fichiers",
-    "upload_hint": "JPG, PNG, WEBP — 10 Mo max chacun",
-    "uploading": "Téléversement…",
-    "upload_success": "{{count}} photo(s) téléversée(s).",
-    "upload_failed": "Échec du téléversement.",
-    "delete_confirm": "Supprimer cette photo ?",
+    "upload_title": "Ajouter une photo",
     "phase": {
       "before": "Avant",
       "during": "Pendant",
@@ -1801,6 +1794,17 @@
       "empty": "Aucune photo. Ajoutez-en pour documenter l'avant et l'après du projet.",
       "attach_existing": "Choisir une existante",
       "empty_hint": "Ajoutez-en une ou reliez une photo existante."
+    },
+    "thumbFailed": "Aperçu indisponible",
+    "noPreview": "Pas d'aperçu",
+    "previous": "Photo précédente",
+    "next": "Photo suivante",
+    "position": "{{current}} sur {{total}}",
+    "noResults_description": "Aucune photo ne correspond à votre recherche.",
+    "filter": {
+      "zone": "Zone",
+      "allZones": "Toutes les zones",
+      "reset": "Réinitialiser"
     }
   },
   "directory": {

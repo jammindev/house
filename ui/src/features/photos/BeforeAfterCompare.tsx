@@ -20,10 +20,19 @@ function photoSrc(photo: DocumentItem | undefined): string | null {
 }
 
 /**
- * Before/after comparator. Overlays the "after" photo on top of the "before" one
- * and reveals it with a draggable slider (works with mouse and touch via a range
- * input). Thumbnails let the user pick which pair to compare. Pure presentation —
- * consumes the phase tags set in the Photos tab.
+ * Comparateur avant/après : superpose la photo « après » sur l'« avant » et la
+ * révèle avec un curseur glissant.
+ *
+ * Deux corrections structurantes par rapport à la première version :
+ *
+ * - **`object-cover`, pas `object-contain`.** Le `clip-path` découpe la *boîte*
+ *   de l'élément, pas l'image visible. Avec `contain`, deux photos de ratios
+ *   différents ne remplissaient pas la même surface : le curseur superposait
+ *   deux cadrages distincts et la comparaison mentait. `cover` garantit que les
+ *   deux images occupent exactement le même rectangle.
+ * - **Le glissement se fait sur l'image.** Le `<input type=range>` sous le cadre
+ *   reste (clavier, lecteurs d'écran), mais personne ne pense à le chercher :
+ *   le geste attendu est de tirer la séparation elle-même.
  */
 export default function BeforeAfterCompare({ open, onOpenChange, before, after }: Props) {
   const { t } = useTranslation();
@@ -33,17 +42,48 @@ export default function BeforeAfterCompare({ open, onOpenChange, before, after }
   const [afterId, setAfterId] = React.useState<string | null>(null);
   const [pos, setPos] = React.useState(50);
 
+  // Ne dépend QUE de `open`. Avec `[open, before, after]`, la moindre mutation de
+  // phase pendant la comparaison recréait les tableaux et remettait le curseur à
+  // 50 % — le réglage de l'utilisateur sautait sans qu'il ait rien touché.
   React.useEffect(() => {
     if (!open) return;
-    setBeforeId(before.length ? before[before.length - 1].id : null);
-    setAfterId(after.length ? after[0].id : null);
+    setBeforeId(null);
+    setAfterId(null);
     setPos(50);
-  }, [open, before, after]);
+  }, [open]);
 
   const beforePhoto = before.find((p) => p.id === beforeId) ?? before[before.length - 1];
   const afterPhoto = after.find((p) => p.id === afterId) ?? after[0];
   const beforeUrl = photoSrc(beforePhoto);
   const afterUrl = photoSrc(afterPhoto);
+
+  const frameRef = React.useRef<HTMLDivElement | null>(null);
+  const dragging = React.useRef(false);
+
+  const setPosFromClientX = React.useCallback((clientX: number) => {
+    const rect = frameRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return;
+    const ratio = ((clientX - rect.left) / rect.width) * 100;
+    setPos(Math.min(100, Math.max(0, ratio)));
+  }, []);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragging.current = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setPosFromClientX(event.clientX);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragging.current) return;
+    setPosFromClientX(event.clientX);
+  };
+
+  const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    dragging.current = false;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
 
   return (
     <SheetDialog
@@ -54,12 +94,19 @@ export default function BeforeAfterCompare({ open, onOpenChange, before, after }
       contentClassName="gap-4"
     >
       <div className="space-y-4">
-        <div className="relative aspect-video w-full select-none overflow-hidden rounded-md bg-muted">
+        <div
+          ref={frameRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="relative aspect-video w-full cursor-ew-resize touch-none select-none overflow-hidden rounded-md bg-muted"
+        >
           {beforeUrl ? (
             <img
               src={beforeUrl}
               alt={t('photos.phase.before')}
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
               draggable={false}
             />
           ) : (
@@ -70,7 +117,7 @@ export default function BeforeAfterCompare({ open, onOpenChange, before, after }
             <img
               src={afterUrl}
               alt={t('photos.phase.after')}
-              className="absolute inset-0 h-full w-full object-contain"
+              className="absolute inset-0 h-full w-full object-cover"
               style={{ clipPath: `inset(0 0 0 ${pos}%)` }}
               draggable={false}
             />
@@ -80,28 +127,32 @@ export default function BeforeAfterCompare({ open, onOpenChange, before, after }
             </div>
           )}
 
-          {/* Divider line */}
+          {/* Poignée de séparation */}
           <div
             className="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
             style={{ left: `${pos}%` }}
-          />
+          >
+            <span className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-background/90 shadow-sm" />
+          </div>
 
           {/* Corner labels */}
-          <span className="absolute left-2 top-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
+          <span className="pointer-events-none absolute left-2 top-2 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
             {t('photos.phase.before')}
           </span>
-          <span className="absolute right-2 top-2 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
+          <span className="pointer-events-none absolute right-2 top-2 rounded bg-background/85 px-1.5 py-0.5 text-[10px] font-medium text-foreground backdrop-blur-sm">
             {t('photos.phase.after')}
           </span>
         </div>
 
+        {/* Doublon assumé de la poignée : le curseur natif est le seul chemin
+            accessible au clavier et aux technologies d'assistance. */}
         <input
           type="range"
           min={0}
           max={100}
-          value={pos}
+          value={Math.round(pos)}
           onChange={(e) => setPos(Number(e.target.value))}
-          className="w-full accent-[var(--primary)]"
+          className="w-full accent-primary"
           aria-label={t('photos.entity.compareSlider')}
         />
 
@@ -155,7 +206,7 @@ function PhotoPicker({
               type="button"
               onClick={() => onSelect(photo.id)}
               className={cn(
-                'h-14 w-14 shrink-0 overflow-hidden rounded-md border-2 bg-muted',
+                'flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border-2 bg-muted',
                 selectedId === photo.id ? 'border-primary' : 'border-transparent',
               )}
               aria-label={photo.name}
@@ -169,7 +220,7 @@ function PhotoPicker({
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <Camera className="m-auto h-4 w-4 text-muted-foreground" aria-hidden />
+                <Camera className="h-4 w-4 text-muted-foreground" aria-hidden />
               )}
             </button>
           );

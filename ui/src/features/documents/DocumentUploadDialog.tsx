@@ -18,6 +18,12 @@ interface DocumentUploadDialogProps {
   onSaved: (created?: DocumentDetail) => void;
   /** When set, hides the type selector and submits with this type. */
   forcedType?: 'photo';
+  /**
+   * Précision ajoutée au titre — la destination du fichier quand l'appelant en a
+   * une (la phase « Avant / Pendant / Après » d'un onglet photos, par exemple).
+   * Sans elle, tous les points d'entrée ouvraient le même dialog anonyme.
+   */
+  titleSuffix?: string;
 }
 
 export default function DocumentUploadDialog({
@@ -25,6 +31,7 @@ export default function DocumentUploadDialog({
   onOpenChange,
   onSaved,
   forcedType,
+  titleSuffix,
 }: DocumentUploadDialogProps) {
   const { t } = useTranslation();
   const createDocument = useCreateDocument();
@@ -78,6 +85,9 @@ export default function DocumentUploadDialog({
     );
   };
 
+  const baseTitle = isPhotoMode ? t('photos.upload_title') : t('documents.upload.title');
+  const title = titleSuffix ? `${baseTitle} — ${titleSuffix}` : baseTitle;
+
   const typeOptions = [
     { value: '', label: t('documents.filter.allTypes') },
     ...DOCUMENT_TYPES.map((v) => ({
@@ -90,7 +100,7 @@ export default function DocumentUploadDialog({
     <SheetDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={isPhotoMode ? t('photos.upload_title') : t('documents.upload.title')}
+      title={title}
     >
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (

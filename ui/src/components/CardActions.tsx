@@ -28,7 +28,10 @@ export default function CardActions({ actions, triggerClassName }: CardActionsPr
         <Button
           variant="ghost"
           size="icon"
-          className={cn('h-7 w-7 text-slate-400 hover:text-slate-600', triggerClassName)}
+          // Tokens, pas `slate` : sur une vignette photo claire le gris fixe
+          // devenait invisible, et le thème sombre affichait un gris clair sur
+          // fond sombre. `text-muted-foreground` suit le thème dans les deux sens.
+          className={cn('h-7 w-7 text-muted-foreground hover:text-foreground', triggerClassName)}
           type="button"
         >
           <MoreHorizontal className="h-4 w-4" />
@@ -41,7 +44,11 @@ export default function CardActions({ actions, triggerClassName }: CardActionsPr
             <DropdownMenuItem
               key={action.label}
               onClick={action.onClick}
-              className={action.variant === 'danger' ? 'text-rose-600 hover:text-rose-700 focus:text-rose-700' : undefined}
+              className={
+                action.variant === 'danger'
+                  ? 'text-destructive focus:text-destructive'
+                  : undefined
+              }
             >
               <Icon className="h-4 w-4" />
               {action.label}

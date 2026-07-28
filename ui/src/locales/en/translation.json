@@ -177,7 +177,8 @@
     "previous": "Previous",
     "next": "Next",
     "rangeOfTotal": "{{from}}–{{to}} of {{total}}",
-    "cappedAtMax": "{{shown}} of {{total}} — clear these to see the rest."
+    "cappedAtMax": "{{shown}} of {{total}} — clear these to see the rest.",
+    "deleteFailed": "Could not delete."
   },
   "errors": {
     "notFoundTitle": "Page not found",
@@ -1550,11 +1551,11 @@
         "steps": {
           "browse": {
             "title": "Browse the gallery",
-            "body": "Images uploaded in Documents automatically show up here."
+            "body": "Images uploaded to Documents show up here, grouped by month. Filter by zone to focus on one room, and once a photo is open the arrows (or ← →) move to the next one without closing it."
           },
           "add": {
             "title": "Add photos",
-            "body": "Upload your photos like any other document of type image."
+            "body": "Upload photos like any image document. From a project, a piece of equipment or a zone, the Photos tab sorts them into Before / During / After and can compare them."
           }
         }
       },
@@ -1763,8 +1764,6 @@
     }
   },
   "photos": {
-    "app_title": "Photos mini-app",
-    "section_label": "Django app scoped node: {{section}}",
     "title": "Photos",
     "empty": "No photos yet.",
     "empty_description": "Upload your first photo using the button above.",
@@ -1776,13 +1775,7 @@
     "addedOn": "Added {{date}}",
     "view": "View",
     "download": "Download",
-    "upload_title": "Upload photos",
-    "upload_label": "Select files",
-    "upload_hint": "JPG, PNG, WEBP — max 10 MB each",
-    "uploading": "Uploading…",
-    "upload_success": "{{count}} photo(s) uploaded.",
-    "upload_failed": "Upload failed.",
-    "delete_confirm": "Delete this photo?",
+    "upload_title": "Add a photo",
     "phase": {
       "before": "Before",
       "during": "During",
@@ -1801,6 +1794,17 @@
       "empty": "No photos yet. Upload one to document the project before and after.",
       "attach_existing": "Choose existing",
       "empty_hint": "Upload a new one or connect an existing photo."
+    },
+    "thumbFailed": "Preview unavailable",
+    "noPreview": "No preview",
+    "previous": "Previous photo",
+    "next": "Next photo",
+    "position": "{{current}} of {{total}}",
+    "noResults_description": "No photo matches your search.",
+    "filter": {
+      "zone": "Zone",
+      "allZones": "All zones",
+      "reset": "Reset"
     }
   },
   "directory": {
