@@ -68,9 +68,13 @@ converges_in() { # converges_in <path> <attendu> <timeout_s> -> secondes écoul�
 # Attend que web réponde — interrogé EN DIRECT, pas à travers nginx : sinon un
 # nginx à la résolution figée se lirait « web pas prêt ».
 start_web() { # start_web <nom-conteneur> <marqueur>
+  # `app.js` sert au contrôle de compression : `python -m http.server` l'annonce en
+  # `text/javascript`, exactement comme Django. Il doit dépasser `gzip_min_length`.
   docker run -d --network "$NET" --network-alias web --name "$1" \
     python:3.12-slim \
-    sh -c "mkdir -p /w && echo $2 > /w/probe.txt && cd /w && exec python -m http.server 8000" >/dev/null
+    sh -c "mkdir -p /w && echo $2 > /w/probe.txt \
+      && python -c \"open('/w/app.js','w').write('const x = 1;'.ljust(4096))\" \
+      && cd /w && exec python -m http.server 8000" >/dev/null
   for _ in $(seq 1 30); do
     direct=$(docker run --rm --network "$NET" "$CURL" -s --max-time 5 http://web:8000/probe.txt 2>/dev/null)
     [ "$direct" = "$2" ] && return 0
@@ -144,6 +148,20 @@ if start_web "$WEB" FIRST; then
 else
   fail "web n'a jamais répondu (problème de harnais, pas de nginx)"
 fi
+
+# Le bundle React partait brut parce que `gzip_types` ne connaissait que
+# `application/javascript`, quand Django annonce les `.js` en `text/javascript` :
+# 824 Ko au lieu de 257 Ko, et rien pour le signaler (issue #452). Le CSS, lui,
+# passait — la compression avait donc l'air de marcher.
+echo "→ 2b. un .js est bien compressé (le CSS ne suffit pas à le prouver)"
+hdr=$(docker run --rm --network "$NET" "$CURL" -sD - -o /dev/null \
+        -H 'Accept-Encoding: gzip' --max-time 10 "http://${NGINX}/app.js" 2>/dev/null \
+        | tr -d '\r' | grep -iE '^content-(type|encoding):' | tr 'A-Z' 'a-z' | paste -sd' ' -)
+case "$hdr" in
+  *text/javascript*gzip*|*gzip*text/javascript*) pass "text/javascript → content-encoding: gzip" ;;
+  *text/javascript*) fail "un .js en text/javascript sort NON compressé — gzip_types ?" ;;
+  *)                 fail "app.js n'a pas été servi en text/javascript (reçu : ${hdr:-rien})" ;;
+esac
 
 echo "→ 3. web recréé (nouvelle IP, = un deploy) est vu sans reload"
 old_ip=$(ip_of "$WEB")
