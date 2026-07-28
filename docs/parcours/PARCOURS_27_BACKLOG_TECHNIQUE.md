@@ -1,7 +1,7 @@
 # Parcours 27 — Backlog technique V1
 
 > **V1 livrée le 2026-07-28** — cadrage et implémentation le même jour, en 4 PR
-> (#443 lots 1-3, #444 lot 4, #445 lot 5, #446 lot 6). Fiche module :
+> (#443 lots 1-3, #444 lot 4, #445 lot 5, #447 lot 6). Fiche module :
 > `docs/MODULES/recap.md`.
 >
 > Cadrage réalisé le 2026-07-28. Chantier **métier** : le récap mensuel raconté du
@@ -19,7 +19,7 @@
 | 3 | API de lecture (`/api/recap/`, historique + mois + `latest`) | ✅ Livré (#443) | #438 |
 | 4 | La story — frontend `/app/recap`, cartes séquencées, historique, i18n | ✅ Livré (#444) | #439 |
 | 5 | Les quatre autres chapitres — accompli, maison, souvenirs | ✅ Livré (#445) | #440 |
-| 6 | Le rendez-vous — `PingSpec` du 1er, carte dashboard, préférences de chapitres | ✅ Livré (#446) | #441 |
+| 6 | Le rendez-vous — `PingSpec` du 1er, carte dashboard, préférences de chapitres | ✅ Livré (#447) | #441 |
 
 ## Doc associée
 
