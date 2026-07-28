@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 09:22+0000\n"
+"POT-Creation-Date: 2026-07-28 09:51+0000\n"
 "PO-Revision-Date: 2026-02-11 21:22+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: French\n"
@@ -1669,9 +1669,84 @@ msgstr "budgets tenus"
 msgid "Your biggest expense of the month."
 msgstr "Votre plus grosse dépense du mois."
 
-#: apps/recap/render.py:128
+#: apps/recap/render.py:122
+msgid "tasks finished"
+msgstr "tâches terminées"
+
+#: apps/recap/render.py:127
+msgid "Your household ticked one thing off."
+msgid_plural "That's everything your household ticked off."
+msgstr[0] "Votre foyer a coché une chose."
+msgstr[1] "Voilà tout ce que votre foyer a coché."
+
+#: apps/recap/render.py:143
+#, python-format
+msgid "%(count)d task"
+msgid_plural "%(count)d tasks"
+msgstr[0] "%(count)d tâche"
+msgstr[1] "%(count)d tâches"
+
+#: apps/recap/render.py:145
+msgid "The project that moved most this month."
+msgstr "Le chantier qui a le plus avancé ce mois-ci."
+
+#: apps/recap/render.py:160
+#, python-format
+msgid "Best day: %(best)d eggs."
+msgstr "Meilleur jour : %(best)d œufs."
+
+#: apps/recap/render.py:165
+#, python-format
+msgid "Logged on %(days)d day."
+msgid_plural "Logged across %(days)d days."
+msgstr[0] "Noté sur %(days)d jour."
+msgstr[1] "Noté sur %(days)d jours."
+
+#: apps/recap/render.py:168
+msgid "eggs laid"
+msgstr "œufs pondus"
+
+#: apps/recap/render.py:179
+msgid "kWh used"
+msgstr "kWh consommés"
+
+#: apps/recap/render.py:182
+msgid "Everything your meters recorded this month."
+msgstr "Tout ce que vos compteurs ont enregistré ce mois-ci."
+
+#: apps/recap/render.py:194
+msgid "m³ of water"
+msgstr "m³ d'eau"
+
+#: apps/recap/render.py:197
+msgid "Roughly what the house drank this month."
+msgstr "À peu près ce que la maison a bu ce mois-ci."
+
+#: apps/recap/render.py:211
+msgid "photo added"
+msgid_plural "photos added"
+msgstr[0] "photo ajoutée"
+msgstr[1] "photos ajoutées"
+
+#: apps/recap/render.py:214
+msgid "A month of your house, kept."
+msgstr "Un mois de votre maison, gardé."
+
+#: apps/recap/render.py:247
 msgid "Money"
 msgstr "Argent"
+
+#: apps/recap/render.py:248
+msgid "What you got done"
+msgstr "Ce que vous avez accompli"
+
+#: apps/recap/render.py:249
+msgid "The house"
+msgstr "La maison"
+
+#: apps/recap/render.py:250
+msgid "Memories"
+msgstr "Souvenirs"
 
 #: apps/shopping/models.py:48
 msgid "shopping list item"

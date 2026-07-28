@@ -23,11 +23,14 @@ regardless of app-loading order.
 """
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -140,12 +143,151 @@ def collect_money(household, month: str, *, start: datetime, end: datetime) -> C
     return Chapter("money", cards)
 
 
+# --- What we got done (core: tasks and projects are not switchable) -----------
+
+
+def collect_achievements(
+    household, month: str, *, start: datetime, end: datetime
+) -> Chapter | None:
+    """Tasks finished and projects moved — the « what we accomplished » chapter.
+
+    Everything comes from ``tasks.services.completion_summary``, which owns the two
+    rules that matter: private tasks never enter the count, and nothing is ever
+    grouped by member.
+    """
+    from tasks.services import completion_summary
+
+    summary = completion_summary(household, start=start, end=end)
+    if not summary["completed"]:
+        return None
+
+    cards = [RecapCard("tasks_done", {"count": summary["completed"]})]
+
+    if summary["top_project"]:
+        cards.append(
+            RecapCard(
+                "project_progress",
+                {
+                    "name": summary["top_project"],
+                    "count": summary["top_project_count"],
+                    "projects": summary["projects_advanced"],
+                },
+            )
+        )
+
+    return Chapter("achievements", cards)
+
+
+# --- The house (each card gated by its own module) -----------------------------
+
+
+def _inclusive_dates(start: datetime, end: datetime) -> tuple:
+    """Aware bounds (end exclusive) → inclusive calendar dates.
+
+    Several source services speak in inclusive dates; the same conversion as
+    ``budget/report/stats.py::_bank_block``, kept in one place so the recap never
+    reasons about the month's edges twice.
+    """
+    return start.date(), (end - timedelta(days=1)).date()
+
+
+def collect_home(household, month: str, *, start: datetime, end: datetime) -> Chapter | None:
+    """Eggs, electricity and water — the « tiens, je ne savais pas » chapter.
+
+    Each card is gated by its own module and each source is read through its
+    service. A module without history contributes **no card**, never a card at
+    zero: a household that hasn't logged a meter reading has nothing to be told
+    about, and « 0 kWh » would be a false statement rather than an empty one.
+    """
+    disabled = frozenset(getattr(household, "disabled_modules", None) or [])
+    date_from, date_to = _inclusive_dates(start, end)
+    cards: list[RecapCard] = []
+
+    if "chickens" not in disabled:
+        from chickens.services import egg_total_for_period
+
+        eggs = egg_total_for_period(household, start_date=date_from, end_date=date_to)
+        if eggs["logged_days"]:
+            cards.append(
+                RecapCard(
+                    "eggs",
+                    {
+                        "value": eggs["total"],
+                        "logged_days": eggs["logged_days"],
+                        "best_day": eggs["best_day"],
+                    },
+                )
+            )
+
+    if "electricity" not in disabled:
+        from electricity.models import ElectricityMeter
+        from electricity.services import consumption_summary as elec_summary
+
+        total_wh = 0
+        for meter in ElectricityMeter.objects.filter(household=household):
+            try:
+                summary = elec_summary(
+                    household, meter, granularity="day", date_from=date_from, date_to=date_to
+                )
+            except Exception:  # noqa: BLE001 — one bad meter never sinks the card
+                logger.exception("recap: electricity summary failed for meter %s", meter.pk)
+                continue
+            total_wh += summary.get("total_wh") or 0
+        if total_wh > 0:
+            cards.append(RecapCard("electricity", {"wh": int(total_wh)}))
+
+    if "water" not in disabled:
+        from water.services import consumption_summary as water_summary
+
+        try:
+            summary = water_summary(
+                household, granularity="month", date_from=date_from, date_to=date_to
+            )
+        except Exception:  # noqa: BLE001
+            logger.exception("recap: water summary failed for %s", month)
+            summary = None
+        total_l = (summary or {}).get("total_l") or 0
+        if total_l > 0:
+            cards.append(RecapCard("water", {"litres": int(total_l)}))
+
+    return Chapter("home", cards) if cards else None
+
+
+# --- Memories (module: photos) -------------------------------------------------
+
+
+def collect_memories(
+    household, month: str, *, start: datetime, end: datetime
+) -> Chapter | None:
+    """The photos added during the month — what turns a report into an album.
+
+    Stores **ids**, never URLs: a signed URL expires and the snapshot is meant to
+    outlive it. A photo deleted afterwards degrades at render time.
+    """
+    from documents.services import photos_added_between
+
+    photos = photos_added_between(household, start=start, end=end)
+    if not photos["count"]:
+        return None
+
+    return Chapter(
+        "memories",
+        [RecapCard("photos", {"count": photos["count"], "ids": photos["ids"]})],
+    )
+
+
 # --- Registry -----------------------------------------------------------------
 
 #: Order of the registry **is** the order of the story, and it is frozen with each
 #: snapshot. Appending a spec never reorders a month already told.
+#:
+#: Money first (the figure everyone came for), then what the household did, then
+#: what the house did, then the album — from the factual to the warm.
 CHAPTER_SPECS: tuple[ChapterSpec, ...] = (
     ChapterSpec("money", None, collect_money),
+    ChapterSpec("achievements", None, collect_achievements),
+    ChapterSpec("home", None, collect_home),
+    ChapterSpec("memories", "photos", collect_memories),
 )
 
 CHAPTER_KEYS: tuple[str, ...] = tuple(spec.key for spec in CHAPTER_SPECS)
