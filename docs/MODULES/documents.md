@@ -24,6 +24,7 @@
 - `type` : choix parmi `photo`, `document`, `invoice`, `manual`, `warranty`, `receipt`, `plan`, `certificate`, `other`.
 - `ocr_text` : texte extrait (vide si photo ou extraction échouée).
 - `metadata` : JSONField libre — contient `size`, `ocr_method`, `ocr_extracted_at`, `normalized`, `resized`, `dimensions`.
+- `taken_at` : `DateTimeField(null=True, db_index=True)` — date de **prise de vue**, lue dans l'EXIF à l'upload (`apps/documents/exif.py`). Voir « Date de prise de vue » plus bas.
 - `is_private` : boolean — filtre appliqué dans le queryset (seul `created_by` voit ses propres privés).
 - `interaction` : FK nullable vers `Interaction` (`on_delete=CASCADE`). FK "legacy" conservée par rétro-compat. La relation principale passe désormais par `InteractionDocument` (M2M).
 - **Pas de soft-delete** — suppression physique + cascade complète.
@@ -73,6 +74,54 @@ Permissions : `IsHouseholdMember` partout. Seul le `created_by` peut changer `is
   renseigne `phase` par document **pour l'entité filtrée** (champ `phase` du
   serializer liste, via le contexte `link_entity_id`). `None` hors contexte.
 
+### Date de prise de vue (`Document.taken_at`, `apps/documents/exif.py`)
+
+La galerie se rangeait par `created_at` — la date d'**ajout dans House**. Une série prise
+en juin et importée en juillet apparaissait donc sous « juillet ». `taken_at` porte la
+date du déclenchement, lue dans l'EXIF.
+
+- **⚠️ La lecture doit précéder `normalize_image`.** Celui-ci ré-encode en JPEG **sans
+  transmettre l'EXIF**, donc il le détruit — pour tout HEIC/HEIF (le défaut iPhone,
+  toujours transcodé) et pour toute image dépassant `MAX_DIMENSION` sur son plus grand
+  côté, soit l'essentiel des photos réelles. Inverser les deux appels dans
+  `views.upload` laisse `taken_at` vide sans qu'aucun test d'upload existant ne s'en
+  aperçoive. Régression :
+  `documents/tests/test_taken_at.py::TestUploadCapturesTheDate::test_a_LARGE_photo_keeps_its_capture_date_although_the_exif_is_destroyed`
+  (vérifié par mutation : c'est le seul test qui tombe).
+- **On ne réinjecte volontairement pas l'EXIF dans le fichier stocké.** Ce serait la
+  correction symétrique, mais elle réintroduirait les **coordonnées GPS** dans des
+  originaux qui n'en portent plus, et il faudrait penser à retirer le tag `Orientation`
+  (`exif_transpose` ayant déjà appliqué la rotation aux pixels, le garder ferait pivoter
+  l'image une seconde fois). La date partant dans une colonne, la conserver dans le
+  fichier n'apporte rien.
+- **C'est une colonne, pas une clé `metadata`** : la galerie trie et regroupe dessus, et
+  `metadata` doit rester affiché, jamais requêté ni contraint (même mouvement que
+  `amount`/`kind`/`supplier` promus sur `Interaction`).
+- **`NULL` est un état, pas un zéro.** Une capture d'écran, un scan, une image strippée
+  n'ont pas de date de prise. Ne jamais y écrire `created_at` en repli : ça fabriquerait
+  une donnée fausse indistinguable d'une vraie. Le repli est à la **lecture**
+  (`COALESCE`), là où on peut encore dire laquelle des deux on affiche — d'où
+  `photos.takenOn` vs `photos.addedOn` dans la visionneuse.
+- **`taken_at` est read-only dans le serializer.** L'exposer en écriture permettrait de
+  contredire l'EXIF par un PATCH, et le tri cesserait de vouloir dire quelque chose.
+- **L'EXIF est une heure locale sans fuseau.** `OffsetTimeOriginal` (EXIF 2.31+) le donne
+  quand il est là ; sinon on interprète dans le **fuseau du foyer** (`core.timezones`) —
+  le choix le moins faux, et le seul cohérent avec la règle « le fuseau du foyer, et rien
+  d'autre ». Conséquence assumée : le même fichier importé par deux foyers distants ne
+  donne pas le même instant absolu.
+- `DateTime` (tag 306) est **volontairement ignoré** : c'est la date de *modification*
+  du fichier. Sur une photo retouchée elle vaut la date de l'export, et la lire ferait
+  passer une donnée fausse pour une date de prise.
+- Une date en dehors de `[1900, maintenant + 2 jours]` est rejetée : une pile morte remet
+  l'horloge d'un appareil à une date lointaine, et sans borne la photo resterait perchée
+  en tête de galerie pour toujours. Un tri faux est pire qu'une date absente.
+- **Tri de la galerie** : l'`ordering_fields` expose `effective_date`, annotation
+  `COALESCE(taken_at, created_at)` calculée **en SQL** — trier en Python obligerait à
+  charger tout le foyer pour afficher une page. Le front demande
+  `ordering=-effective_date`, et `grouping.ts::effectiveDate` applique la même règle
+  pour les en-têtes de mois : s'ils divergeaient, une photo apparaîtrait sous un en-tête
+  « juillet » entre deux photos de juin.
+
 ### Pipeline OCR / extraction (`apps/documents/extraction.py`)
 
 - Images (JPEG, PNG, WebP, GIF) → Claude Haiku 4.5 Vision (base64).
@@ -100,6 +149,7 @@ Permissions : `IsHouseholdMember` partout. Seul le `created_by` peut changer `is
 
 - `extract_documents_text` : backfill OCR sur documents existants. Options : `--household`, `--force`, `--type`, `--limit`, `--include-photos`, `--dry-run`.
 - `regenerate_photo_thumbnails` : backfill thumbnails.
+- `backfill_photo_taken_at` : relit l'EXIF des fichiers stockés dans `Document.taken_at`. Options : `--household`, `--force`, `--dry-run`. **Rapporte combien de photos restent sans date récupérable** — pour celles dont l'EXIF a été détruit au ré-encodage de l'upload, il n'y a rien à retrouver, et un compteur qui n'annoncerait que ses succès laisserait croire la galerie triable de bout en bout.
 - `download_supabase_bucket_files` : migration legacy depuis Supabase storage.
 
 ---

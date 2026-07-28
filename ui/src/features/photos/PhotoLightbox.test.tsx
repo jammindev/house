@@ -122,6 +122,52 @@ describe('PhotoLightbox', () => {
     expect(screen.queryByRole('button', { name: 'common.delete' })).not.toBeInTheDocument();
   });
 
+  it('annonce « prise le » quand l’EXIF donne la date, pas « ajoutée le »', () => {
+    render(
+      <PhotoLightbox
+        photos={[photo('x', { created_at: '2026-07-20T10:00:00Z', taken_at: '2026-06-14T13:30:00Z' })]}
+        openId="x"
+        onOpenChange={onOpenChange}
+        onRemove={onRemove}
+        removeLabel="common.delete"
+      />,
+    );
+
+    // Les deux dates s'écartent de plus d'un jour : l'import reste dit, mais à part.
+    expect(screen.getByText(/photos\.takenOn/)).toBeInTheDocument();
+    expect(screen.getByText(/photos\.addedOn/)).toBeInTheDocument();
+  });
+
+  it('n’annonce que « ajoutée le » quand l’EXIF ne dit rien', () => {
+    render(
+      <PhotoLightbox
+        photos={[photo('x', { created_at: '2026-07-20T10:00:00Z', taken_at: null })]}
+        openId="x"
+        onOpenChange={onOpenChange}
+        onRemove={onRemove}
+        removeLabel="common.delete"
+      />,
+    );
+
+    expect(screen.queryByText(/photos\.takenOn/)).not.toBeInTheDocument();
+    expect(screen.getByText(/photos\.addedOn/)).toBeInTheDocument();
+  });
+
+  it('ne répète pas la date d’import quand elle colle à la prise de vue', () => {
+    render(
+      <PhotoLightbox
+        photos={[photo('x', { created_at: '2026-06-14T18:00:00Z', taken_at: '2026-06-14T13:30:00Z' })]}
+        openId="x"
+        onOpenChange={onOpenChange}
+        onRemove={onRemove}
+        removeLabel="common.delete"
+      />,
+    );
+
+    expect(screen.getByText(/photos\.takenOn/)).toBeInTheDocument();
+    expect(screen.queryByText(/photos\.addedOn/)).not.toBeInTheDocument();
+  });
+
   it('affiche un repli explicite quand l’image ne charge pas', () => {
     open('a');
 

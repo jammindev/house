@@ -71,9 +71,12 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
-            'phase',
+            'phase', 'taken_at',
         ]
-        read_only_fields = ['id', 'household', 'created_at', 'created_by']
+        # `taken_at` est lu dans l'EXIF, jamais saisi : l'exposer en écriture
+        # permettrait de le contredire par un PATCH, et le tri de la galerie
+        # cesserait de vouloir dire quelque chose.
+        read_only_fields = ['id', 'household', 'created_at', 'created_by', 'taken_at']
 
     def get_created_by_name(self, obj):
         return obj.created_by.full_name if obj.created_by else ''

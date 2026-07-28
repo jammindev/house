@@ -1805,7 +1805,8 @@
       "zone": "Zone",
       "allZones": "All zones",
       "reset": "Reset"
-    }
+    },
+    "takenOn": "Taken on {{date}}"
   },
   "directory": {
     "title": "Directory",

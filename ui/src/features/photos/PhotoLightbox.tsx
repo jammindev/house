@@ -15,6 +15,7 @@ import { Button, buttonVariants } from '@/design-system/button';
 import { cn } from '@/lib/utils';
 import { formatDate } from '@/lib/format';
 import { formatFileSize, type DocumentItem, type PhotoPhase } from '@/lib/api/documents';
+import { hasCaptureDate } from './grouping';
 
 interface Props {
   /** La collection parcourue — donne le contexte précédent/suivant. */
@@ -116,12 +117,28 @@ export default function PhotoLightbox({
   const phase = phaseOf?.(photo);
   const phaseKey = phase === undefined ? null : phase || 'unclassified';
 
+  // « Prise le » et « ajoutée le » ne sont pas la même information, et le back-end
+  // refuse de les confondre (`taken_at` reste `null` quand l'EXIF ne dit rien). Les
+  // afficher sous un libellé unique reviendrait à présenter une date d'import comme
+  // une date de prise de vue — exactement ce que la colonne nullable évite.
+  const dateFact = hasCaptureDate(photo)
+    ? t('photos.takenOn', { date: formatDate(photo.taken_at) })
+    : t('photos.addedOn', { date: formatDate(photo.created_at) });
+
   const facts = [
-    t('photos.addedOn', { date: formatDate(photo.created_at) }),
+    dateFact,
     size || null,
     dimensionsLabel,
     photo.created_by_name || null,
   ].filter(Boolean) as string[];
+
+  // Quand les deux dates s'écartent, l'import est une information à part entière :
+  // c'est ce décalage qui explique pourquoi la photo n'est pas là où l'utilisateur
+  // l'attendait avant ce changement. Sous un jour d'écart, le redire est du bruit.
+  const showImportDate =
+    hasCaptureDate(photo) &&
+    Math.abs(new Date(photo.created_at).getTime() - new Date(photo.taken_at!).getTime()) >
+      24 * 60 * 60 * 1000;
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onOpenChange(null); }}>
@@ -176,6 +193,11 @@ export default function PhotoLightbox({
                   {label}
                 </DialogTitle>
                 <p className="text-xs text-muted-foreground">{facts.join(' · ')}</p>
+                {showImportDate ? (
+                  <p className="text-xs text-muted-foreground/70">
+                    {t('photos.addedOn', { date: formatDate(photo.created_at) })}
+                  </p>
+                ) : null}
               </div>
               <Button
                 type="button"
