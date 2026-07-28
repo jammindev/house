@@ -3842,5 +3842,26 @@
       "deleteConfirm": "Delete this expense? It will disappear from the journal and from budget totals.",
       "deleteSplitConfirm": "Delete this expense? The bank transaction is untouched: its amount goes back to the queue."
     }
+  },
+  "recap": {
+    "title": "Recap",
+    "description": "Your household's month, told in a few cards.",
+    "empty": "No recap yet",
+    "emptyDescription": "Your first recap will arrive on the 1st, once a month has closed.",
+    "history": "Earlier months",
+    "open": "See the recap",
+    "cardCount_one": "{{count}} card",
+    "cardCount_other": "{{count}} cards",
+    "backToHistory": "Back to recaps",
+    "story": {
+      "previous": "Previous",
+      "next": "Next",
+      "done": "Done",
+      "cardRole": "recap card",
+      "position": "Card {{current}} of {{total}}",
+      "goTo": "Go to card {{position}}",
+      "unavailable": "Nothing to tell for this month",
+      "unavailableDescription": "This month has too little recorded to make a recap."
+    }
   }
 }

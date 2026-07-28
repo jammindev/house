@@ -3842,5 +3842,26 @@
       "deleteConfirm": "Supprimer cette dépense ? Elle disparaîtra du journal et des totaux de budget.",
       "deleteSplitConfirm": "Supprimer cette dépense ? L'opération bancaire n'est pas touchée : son montant redevient à ranger."
     }
+  },
+  "recap": {
+    "title": "Récap",
+    "description": "Le mois de votre foyer, raconté en quelques cartes.",
+    "empty": "Pas encore de récap",
+    "emptyDescription": "Votre premier récap arrivera le 1er, une fois un mois clôturé.",
+    "history": "Mois précédents",
+    "open": "Voir le récap",
+    "cardCount_one": "{{count}} carte",
+    "cardCount_other": "{{count}} cartes",
+    "backToHistory": "Retour aux récaps",
+    "story": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "done": "Terminé",
+      "cardRole": "carte de récap",
+      "position": "Carte {{current}} sur {{total}}",
+      "goTo": "Aller à la carte {{position}}",
+      "unavailable": "Rien à raconter pour ce mois",
+      "unavailableDescription": "Ce mois-ci contient trop peu d'éléments pour en faire un récap."
+    }
   }
 }
