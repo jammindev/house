@@ -42,6 +42,26 @@ export const EXPENSE_UNRECONCILED = 'expense_unreconciled';
 export const ACCOUNT_WITHOUT_WINDOW = 'account_without_window';
 export const ACCOUNT_CHAIN_BROKEN = 'account_chain_broken';
 export const ACCOUNT_ANCHOR_STALE = 'account_anchor_stale';
+export const INFLOW_UNCLASSIFIED = 'inflow_unclassified';
+export const REFUND_WITHOUT_BUDGET = 'refund_without_budget';
+export const REFUND_PARTIALLY_ALLOCATED = 'refund_partially_allocated';
 
-/** Les deux écarts que la file « À ranger » traite — même geste de résolution. */
-export const PENDING_KINDS = [TRANSACTION_UNALLOCATED, TRANSACTION_PARTIAL] as const;
+/** Ce qui est sorti et que personne n'a affecté — pastilles de budget. */
+export const PENDING_OUTFLOW_KINDS = [TRANSACTION_UNALLOCATED, TRANSACTION_PARTIAL] as const;
+
+/**
+ * Ce qui est **entré** et que personne n'a qualifié — pastilles de nature.
+ *
+ * Même file et même geste que les sorties, décidé en recette : « d'abord les
+ * recettes doivent être considérées comme des dépenses ». Une recette non classée
+ * est du travail de rangement au même titre qu'une sortie non ventilée, et les
+ * séparer en deux écrans obligeait à se souvenir lequel on avait vidé.
+ */
+export const PENDING_INFLOW_KINDS = [
+  INFLOW_UNCLASSIFIED,
+  REFUND_WITHOUT_BUDGET,
+  REFUND_PARTIALLY_ALLOCATED,
+] as const;
+
+/** Tout ce que la file traite — ce que compte le badge de la coque. */
+export const PENDING_KINDS = [...PENDING_OUTFLOW_KINDS, ...PENDING_INFLOW_KINDS] as const;

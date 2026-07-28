@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Split } from 'lucide-react';
+import { ArrowDownLeft, Split, Tag } from 'lucide-react';
 import { Card } from '@/design-system/card';
 import { Button } from '@/design-system/button';
 import { CheckboxField } from '@/design-system/checkbox-field';
 import { formatAmount } from '@/lib/format';
-import { useSetAllocations } from '@/features/banking/hooks';
+import { useQualifyTransaction, useSetAllocations } from '@/features/banking/hooks';
 import type { PendingRow } from './PendingQueue';
 
 interface PendingCardProps {
@@ -17,6 +17,8 @@ interface PendingCardProps {
   onSplit: () => void;
   onPostpone: () => void;
   onWaive: () => void;
+  /** Ouvre le dialogue de qualification — le seul chemin d'un remboursement. */
+  onClassify: () => void;
 }
 
 /**
@@ -33,6 +35,14 @@ interface PendingCardProps {
  * l'enregistrement d'une ventilation est un remplacement complet, donc imputer
  * d'un clic une ligne déjà partagée écraserait le travail déjà fait. Sur une ligne
  * partielle, le seul chemin est le dialog, qui part de l'existant.
+ *
+ * ⚠️ **Une recette a les mêmes issues, mais pas les mêmes pastilles.** Ce qu'on lui
+ * demande n'est pas un budget mais une **nature** : salaire, remboursement,
+ * transfert interne, autre. Trois d'entre elles se règlent d'un clic ; le
+ * remboursement ouvre son dialogue, parce que lui seul demande de désigner des
+ * enveloppes *et* des montants. Offrir des pastilles de budget sur une recette
+ * aurait laissé croire qu'on peut la ventiler comme une dépense — alors qu'elle
+ * ne consomme rien, elle rend.
  */
 export default function PendingCard({
   row,
@@ -42,17 +52,29 @@ export default function PendingCard({
   onSplit,
   onPostpone,
   onWaive,
+  onClassify,
 }: PendingCardProps) {
   const { t } = useTranslation();
   const setAllocationsMutation = useSetAllocations();
+  const qualify = useQualifyTransaction();
   const [pending, setPending] = React.useState(false);
+  const isInflow = row.direction === 'in';
+
+  async function classify(nature: 'salary' | 'transfer' | 'other') {
+    setPending(true);
+    try {
+      await qualify.mutateAsync({ id: row.transactionId, payload: { inflow_nature: nature } });
+    } finally {
+      setPending(false);
+    }
+  }
 
   async function assignWhole(budgetId: string) {
     setPending(true);
     try {
       await setAllocationsMutation.mutateAsync({
         transactionId: row.transactionId,
-        lines: [{ subject: row.label, amount: row.outflow, budget_id: budgetId || null }],
+        lines: [{ subject: row.label, amount: row.amount, budget_id: budgetId || null }],
       });
     } finally {
       setPending(false);
@@ -82,14 +104,19 @@ export default function PendingCard({
                 {row.accountName ? ` · ${row.accountName}` : ''}
               </p>
             </div>
-            <span className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-              {formatAmount(row.outflow)}
+            <span
+              className={`flex shrink-0 items-center gap-1 text-sm font-semibold tabular-nums ${
+                isInflow ? 'text-primary' : 'text-foreground'
+              }`}
+            >
+              {isInflow ? <ArrowDownLeft className="h-3.5 w-3.5" aria-hidden /> : null}
+              {formatAmount(row.amount)}
             </span>
           </div>
 
           {row.isPartial ? (
             <p className="mt-1 text-xs text-warning">
-              {t('money.pending.partial', {
+              {t(isInflow ? 'money.pending.partialRefund' : 'money.pending.partial', {
                 allocated: formatAmount(row.allocated),
                 remaining: formatAmount(row.remaining),
               })}
@@ -103,25 +130,64 @@ export default function PendingCard({
           ) : null}
 
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {!row.isPartial
-              ? budgets.map((budget) => (
+            {/* Une recette : sa nature. Une sortie : son budget. Même geste,
+                même place, mais la question posée n'est pas la même. */}
+            {isInflow ? (
+              <>
+                {(['salary', 'transfer', 'other'] as const).map((nature) => (
                   <Button
-                    key={budget.id}
+                    key={nature}
                     type="button"
                     variant="outline"
                     size="sm"
                     disabled={pending}
-                    onClick={() => assignWhole(budget.id)}
+                    onClick={() => classify(nature)}
                   >
-                    {budget.name}
+                    {t(`banking.inflow.natures.${nature}`)}
                   </Button>
-                ))
-              : null}
+                ))}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onClassify}
+                  disabled={pending}
+                >
+                  <Tag className="mr-1 h-3.5 w-3.5" aria-hidden />
+                  {row.isPartial
+                    ? t('money.pending.completeRefund')
+                    : t('banking.inflow.natures.refund')}
+                </Button>
+              </>
+            ) : (
+              <>
+                {!row.isPartial
+                  ? budgets.map((budget) => (
+                      <Button
+                        key={budget.id}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={pending}
+                        onClick={() => assignWhole(budget.id)}
+                      >
+                        {budget.name}
+                      </Button>
+                    ))
+                  : null}
 
-            <Button type="button" variant="ghost" size="sm" onClick={onSplit} disabled={pending}>
-              <Split className="mr-1 h-3.5 w-3.5" aria-hidden />
-              {row.isPartial ? t('money.pending.complete') : t('money.pending.split')}
-            </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSplit}
+                  disabled={pending}
+                >
+                  <Split className="mr-1 h-3.5 w-3.5" aria-hidden />
+                  {row.isPartial ? t('money.pending.complete') : t('money.pending.split')}
+                </Button>
+              </>
+            )}
 
             <Button type="button" variant="ghost" size="sm" onClick={onWaive} disabled={pending}>
               {row.isStale

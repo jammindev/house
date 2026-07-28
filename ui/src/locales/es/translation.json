@@ -3774,6 +3774,11 @@
           "title": "Reembolsos sin sobre",
           "hint": "Este dinero volvió, pero ningún presupuesto lo recupera: el contador del mes sigue inflado por ese importe.",
           "resolution": "Elige el presupuesto acreditado desde el diario bancario, o arbitra si el reembolso no afecta a ningún sobre."
+        },
+        "refund_partially_allocated": {
+          "title": "Reembolsos parcialmente asignados",
+          "hint": "Una parte de lo devuelto no acredita ningún presupuesto: sus contadores siguen inflados en ese importe.",
+          "resolution": "Completa el reparto desde la cola, o justifica el resto si no corresponde a ningún presupuesto."
         }
       },
       "blocked": "Control no evaluable",
@@ -3807,7 +3812,10 @@
       "nothingLeftHint": "Las operaciones postergadas volverán en su próxima visita.",
       "blocked": "Nada evaluable por ahora",
       "blockedHint": "Un requisito bloquea el control: {{prerequisite}}. Sus operaciones existen, pero ninguna regla puede cubrirlas todavía.",
-      "blockedAction": "Ver el control"
+      "blockedAction": "Ver el control",
+      "bulkSelectedInflows": "{{count}} ingresos seleccionados",
+      "partialRefund": "{{allocated}} devueltos, {{remaining}} sin presupuesto",
+      "completeRefund": "Completar el reparto"
     },
     "reconciliation": {
       "label": "Conciliación",
