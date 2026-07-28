@@ -1545,7 +1545,7 @@
           },
           "find": {
             "title": "Reencontrar un documento",
-            "body": "Búsqueda y filtros por tipo; el asistente de IA también sabe encontrarlos."
+            "body": "Filtra por tipo con un clic, agrupa por tipo o fecha, busca en el texto de los archivos — el asistente de IA también sabe encontrarlos."
           }
         }
       },
@@ -1918,7 +1918,11 @@
     "filter": {
       "unlinked": "Mostrar solo sin actividad",
       "unlinkedActive": "Mostrando sin actividad",
-      "allTypes": "Todos los tipos"
+      "allTypes": "Todos los tipos",
+      "reset": "Restablecer",
+      "groupBy": "Agrupar por:",
+      "groupBy_type": "Tipo",
+      "groupBy_date": "Fecha"
     },
     "upload": {
       "title": "Subir documento",
@@ -2026,7 +2030,8 @@
         "task": "Tarea",
         "interaction": "Actividad"
       }
-    }
+    },
+    "noResults_description": "Ningún documento coincide con tu búsqueda."
   },
   "equipment": {
     "app_title": "Mini-app Equipos",
