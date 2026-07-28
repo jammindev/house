@@ -21,20 +21,6 @@ import { useNavigateBack } from '@/lib/backNavigation';
 import ExpenseFields from './ExpenseFields';
 import ZonePicker from '@/features/zones/ZonePicker';
 
-const TYPE_OPTIONS = [
-  'note',
-  'expense',
-  'maintenance',
-  'repair',
-  'installation',
-  'inspection',
-  'warranty',
-  'issue',
-  'upgrade',
-  'replacement',
-  'disposal',
-];
-
 function isoToDate(value: string): string {
   if (!value) return '';
   const d = new Date(value);
@@ -62,7 +48,6 @@ export default function InteractionEditPage() {
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
 
   const [subject, setSubject] = React.useState('');
-  const [type, setType] = React.useState('note');
   const [occurredOn, setOccurredOn] = React.useState('');
   const [includeTime, setIncludeTime] = React.useState(false);
   const [occurredTime, setOccurredTime] = React.useState('12:00');
@@ -95,7 +80,6 @@ export default function InteractionEditPage() {
   React.useEffect(() => {
     if (!interaction || initialised) return;
     setSubject(interaction.subject ?? '');
-    setType(interaction.type ?? 'note');
     if (interaction.occurred_at) {
       setOccurredOn(isoToDate(interaction.occurred_at));
       setOccurredTime(isoToTime(interaction.occurred_at));
@@ -117,6 +101,11 @@ export default function InteractionEditPage() {
     fetchEquipmentList().then(setEquipmentList).catch(() => {});
   }, []);
 
+  // Le type n'est plus un état du formulaire : il se choisit à la création et
+  // jamais plus (il décide si un montant compte comme une dépense — voir
+  // `InteractionSerializer.get_fields`). On le lit pour savoir quels champs
+  // afficher, on ne l'écrit pas.
+  const type = interaction?.type ?? '';
   const isExpense = type === 'expense';
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -164,7 +153,6 @@ export default function InteractionEditPage() {
       await updateInteraction(id ?? '', {
         subject: subject.trim(),
         content: description,
-        type,
         occurred_at: occurredAt.toISOString(),
         zone_ids: zoneId ? [zoneId] : [],
         tags_input: tags,
@@ -263,24 +251,15 @@ export default function InteractionEditPage() {
           />
         </div>
 
-        {/* Type */}
+        {/* Type — affiché, jamais modifiable : il dit de quoi on édite la fiche
+            (et pourquoi les champs de dépense sont là), sans offrir de le
+            basculer. */}
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <label htmlFor="interaction-type" className="text-sm font-medium">
-              {t('interactions.type_label')}
-            </label>
-            <select
-              id="interaction-type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-            >
-              {TYPE_OPTIONS.map((v) => (
-                <option key={v} value={v}>
-                  {t(`equipment.interaction_type.${v}`)}
-                </option>
-              ))}
-            </select>
+            <span className="block text-sm font-medium">{t('interactions.type_label')}</span>
+            <p className="text-sm text-muted-foreground">
+              {t(`equipment.interaction_type.${type}`)}
+            </p>
           </div>
         </div>
 

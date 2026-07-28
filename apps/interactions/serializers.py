@@ -177,6 +177,32 @@ class InteractionSerializer(serializers.ModelSerializer):
             'bank_transaction', 'reconciled_by',
         ]
 
+    def get_fields(self):
+        """``type`` se choisit à la création, et jamais plus.
+
+        Ce n'est pas une étiquette d'affichage : ``queries.expenses()`` et les
+        agrégations qui la suivent filtrent ``type='expense'``, donc le type
+        décide si un euro existe. Le basculer par ce PATCH générique faisait
+        sortir un montant des budgets, du coût du projet et du bilan mensuel
+        **sans un mot** — et sur une dépense rapprochée, le lien de ventilation
+        survivait à la sortie, ``assert_allocation_fits`` n'étant même pas
+        consulté puisque ``amount`` n'avait pas bougé. Dans l'autre sens, une
+        note promue en dépense naissait sans montant ni budget, orpheline pour la
+        conformité.
+
+        Le seul chemin qui change encore un type est
+        ``services.update_renovation_interaction`` : borné à
+        ``RENOVATION_TYPES``, il ne peut faire sortir un euro d'aucun total.
+
+        Le champ est rendu **read-only** plutôt que refusé en 400 : un client qui
+        renvoie le type qu'il vient de lire corrige toujours son libellé.
+        """
+        fields = super().get_fields()
+        if self.instance is not None:
+            fields['type'].read_only = True
+            fields['type'].required = False
+        return fields
+
     def validate(self, data):
         data = super().validate(data)
         if not data.get('occurred_at') and not (self.instance and self.instance.occurred_at):
