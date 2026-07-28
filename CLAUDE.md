@@ -41,6 +41,13 @@ de la CI, bloquant pour le deploy). Ce que tout changement doit préserver :
   ne résout rien. Le `valid=5s` **borne** la bascule sans la rendre instantanée — le
   DNS de Docker annonce un TTL de 600 s, que nginx respecterait : c'est cette valeur
   qui décide combien de temps il peut viser l'IP morte.
+- **Le conf de nginx se monte par RÉPERTOIRE, jamais fichier par fichier.** Un bind
+  mount de fichier unique **épingle l'inode** ; or `git reset --hard` n'édite pas le
+  fichier en place, il en écrit un neuf et le renomme par-dessus. Le conteneur reste
+  donc sur l'ancien inode pour toujours — `nginx -s reload` compris, qui recharge
+  l'ancien contenu. Un correctif de conf a semblé livré sans l'être : la prod
+  affichait `gzip_types` d'avant pendant que le repo avait celui d'après. Le test
+  refuse tout `*.conf` monté seul.
 - **Un trou se montre, il ne s'affiche pas en erreur technique.** 502/503/504 →
   `nginx/html/maintenance.html` en 503, et du **JSON** sur `/api/` (l'intercepteur
   axios lit `detail`). La page sonde `/health/` et se recharge seule.

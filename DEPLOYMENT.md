@@ -207,7 +207,7 @@ graph TD
 |---|---|
 | `Dockerfile` | Build multi-stage : Node (React) → Python (Django/Gunicorn) |
 | `docker-compose.prod.yml` | Stack complète : db + web + nginx |
-| `nginx/default.conf` | Config Nginx : media files + proxy vers Gunicorn |
+| `nginx/conf.d/default.conf` | Config Nginx : media files + proxy vers Gunicorn |
 | `nginx/html/maintenance.html` | Page servie quand Django ne répond pas (§ 3.4) |
 | `nginx/test-resilience.sh` | Test de régression du proxy, lancé en CI (§ 3.4) |
 | `.env.production.example` | Template des variables d'environnement |
@@ -285,6 +285,12 @@ exec nginx nginx -t && nginx -s reload     # recharger le conf sans couper
 - **`--wait`** s'appuie sur le healthcheck de `web` (`GET /health/`) : le job ne
   continue que quand gunicorn accepte vraiment des connexions, et **échoue
   bruyamment** si le conteneur neuf ne démarre pas.
+- **Le conf est monté par répertoire** (`./nginx/conf.d:/etc/nginx/conf.d`), sans
+  quoi le `reload` ci-dessus ne rechargerait rien : un bind mount de fichier unique
+  **épingle l'inode**, et `git reset --hard` remplace le fichier au lieu de
+  l'éditer. Le conteneur garderait l'ancien contenu pour toujours. Symptôme vécu :
+  le repo annonçait un `gzip_types` corrigé, la prod servait l'ancien, et
+  `nginx -t` passait — sur l'ancien.
 
 **Ce qui reste vrai** : il subsiste une courte interruption (quelques secondes, le
 temps d'arrêter l'ancien conteneur et de démarrer le neuf). Elle est désormais
@@ -337,7 +343,7 @@ docker network ls | grep traefik-public
 
 ```bash
 git add Dockerfile docker-compose.prod.yml \
-        nginx/default.conf nginx/html/ .env.production.example .dockerignore
+        nginx/conf.d/ nginx/html/ .env.production.example .dockerignore
 git commit -m "feat: add Docker production deployment config"
 git push
 ```
@@ -550,7 +556,7 @@ docker run --rm \
 Mettre en place la crontab décrite ci-dessus dès le premier jour. Une base de données sans backup n'est pas une base de données de production.
 
 **Vérifier la taille des uploads**
-Nginx est configuré avec `client_max_body_size 50M`. Si l'app est amenée à recevoir des fichiers plus lourds, augmenter cette valeur dans `nginx/default.conf` et redémarrer Nginx (`docker compose -f docker-compose.prod.yml restart nginx`).
+Nginx est configuré avec `client_max_body_size 50M`. Si l'app est amenée à recevoir des fichiers plus lourds, augmenter cette valeur dans `nginx/conf.d/default.conf` puis recharger Nginx (`docker compose -f docker-compose.prod.yml exec nginx nginx -s reload`).
 
 ### Priorité moyenne
 

@@ -34,11 +34,12 @@ trap cleanup EXIT
 fail() { echo "  ✗ $1"; FAILURES=$((FAILURES + 1)); }
 pass() { echo "  ✓ $1"; }
 
+# Les montages reproduisent ceux de docker-compose.prod.yml — répertoires, jamais
+# fichiers seuls (voir l'étape 0b).
+MOUNTS=(-v "$CONF/conf.d:/etc/nginx/conf.d:ro" -v "$CONF/html:/usr/share/nginx/html:ro")
+
 run_nginx_t() {
-  docker run --rm \
-    -v "$CONF/default.conf:/etc/nginx/conf.d/default.conf:ro" \
-    -v "$CONF/html:/usr/share/nginx/html:ro" \
-    nginx:alpine nginx -t
+  docker run --rm "${MOUNTS[@]}" nginx:alpine nginx -t
 }
 
 # curl depuis le réseau interne : nginx n'est pas exposé sur l'hôte.
@@ -92,23 +93,37 @@ else
   exit 1
 fi
 
-# Ce script monte `nginx/html` à la main — donc il ne prouve RIEN sur ce que la
-# prod monte. C'est exactement le trou par lequel le premier deploy est passé :
-# conf correcte, page absente du conteneur, `try_files` retombant sur un 503 vide.
-# Le contrat conf ↔ compose se vérifie donc explicitement.
-echo "→ 0b. Le montage de la page est déclaré dans docker-compose.prod.yml"
+# Ce script monte lui-même ce qu'il teste — donc il ne prouve RIEN sur ce que la
+# prod monte. Deux deploys sont passés par ce trou : une page absente du conteneur
+# (503 vide), puis un conf figé sur un inode mort. Le contrat compose se vérifie
+# donc explicitement, ici, et pas par ressemblance.
+echo "→ 0b. Les montages de la prod sont ceux que ce test suppose"
 COMPOSE_FILE="$(dirname "$CONF")/docker-compose.prod.yml"
+
+if grep -q '\./nginx/conf\.d:/etc/nginx/conf\.d' "$COMPOSE_FILE"; then
+  pass "le conf est monté par répertoire"
+else
+  fail "compose ne monte pas ./nginx/conf.d — le conf ne suivrait pas un git reset"
+fi
+
+# La régression exacte : revenir à un bind mount de fichier unique. L'inode est
+# épinglé au démarrage du conteneur, et git remplace le fichier au lieu de
+# l'éditer — le conteneur garde donc l'ancien contenu pour toujours, `nginx -s
+# reload` compris.
+if grep -qE '\./nginx/(conf\.d/)?[a-z]+\.conf:' "$COMPOSE_FILE"; then
+  fail "un fichier .conf est monté seul — l'inode sera épinglé, le conf figé"
+else
+  pass "aucun fichier .conf monté seul"
+fi
+
 if grep -q '\./nginx/html:/usr/share/nginx/html' "$COMPOSE_FILE"; then
-  pass "compose monte nginx/html dans le conteneur nginx"
+  pass "la page de maintenance est montée"
 else
   fail "compose ne monte pas nginx/html — la prod servirait un 503 vide"
 fi
 
 docker network create "$NET" >/dev/null
-docker run -d --network "$NET" --name "$NGINX" \
-  -v "$CONF/default.conf:/etc/nginx/conf.d/default.conf:ro" \
-  -v "$CONF/html:/usr/share/nginx/html:ro" \
-  nginx:alpine >/dev/null
+docker run -d --network "$NET" --name "$NGINX" "${MOUNTS[@]}" nginx:alpine >/dev/null
 sleep 3
 
 echo "→ 1. nginx sans upstream : page de maintenance, pas d'erreur technique"

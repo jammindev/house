@@ -91,7 +91,12 @@ services:
     depends_on:
       - web
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Le RÉPERTOIRE, jamais le fichier seul. Un bind mount de fichier unique
+      # épingle l'inode : `git reset --hard` n'édite pas le fichier en place, il en
+      # écrit un neuf et le renomme par-dessus, donc le conteneur reste sur
+      # l'ancien inode — à jamais, et `nginx -s reload` recharge l'ancien contenu.
+      # Un correctif de conf semblait livré et ne l'était pas (issue #452).
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
       # La page de maintenance (`root` de la location @unavailable). Sans ce
       # montage, `try_files` retombe sur `=503` et sert un 503 *vide* : nginx a la
       # bonne config et rien à afficher avec.

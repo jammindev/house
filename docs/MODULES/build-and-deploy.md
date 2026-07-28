@@ -12,7 +12,7 @@
 - Build front : `ui/vite.config.ts` (manualChunks par vendor), `tsconfig.json`, `package.json` (scripts `dev`, `build`, `gen:api:refresh`, `lint`, `test:e2e`)
 - Image : `Dockerfile` (stage `frontend` node:22-alpine → stage final python:3.12-slim), `docker-entrypoint.sh` (collectstatic + gunicorn 4 workers, timeout 60s)
 - Stack : `docker-compose.prod.yml`
-- Reverse proxy : `nginx/default.conf` (gzip, security headers, CSP, `/media/` via Django `X-Accel-Redirect` → `/_protected_media/` `internal`)
+- Reverse proxy : `nginx/conf.d/default.conf` (gzip, security headers, CSP, `/media/` via Django `X-Accel-Redirect` → `/_protected_media/` `internal`)
 - Traefik : labels dans le service `nginx` (entrypoints `http`/`https`, certresolver `le`, middleware `https-redirect@docker`)
 - CI/CD : `.github/workflows/ci.yml` (jobs `backend`, `frontend`, `deploy` sur runner self-hosted `jammindev`), `.github/workflows/claude.yml`, `claude-code-review.yml`
 - Settings : `config/settings/production.py` (RuntimeError si `CORS_ALLOWED_ORIGINS` vide, HSTS, secure cookies, `SECURE_PROXY_SSL_HEADER`)

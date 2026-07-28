@@ -114,7 +114,7 @@ jobs:
       # `--no-deps` partout dans ce job, et c'est le cœur du correctif : sans lui,
       # compose recrée nginx dans la foulée de web, donc le proxy tombe pendant
       # l'opération et sa page de maintenance ne sert à rien. nginx reste debout et
-      # ré-résout `web` tout seul (voir nginx/default.conf).
+      # ré-résout `web` tout seul (voir nginx/conf.d/default.conf).
       - name: Ensure db & nginx are up
         run: |
           cd ~/jammin-dev/apps/house
