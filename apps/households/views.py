@@ -1,6 +1,7 @@
 """
 Households views - REST API for household management.
 """
+from django.contrib.auth import login as auth_login
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, status
@@ -9,8 +10,21 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from . import services
 from .models import Household, HouseholdMember, HouseholdInvitation
-from .serializers import HouseholdSerializer, HouseholdDetailSerializer, HouseholdMemberSerializer, HouseholdInvitationSerializer
+from .serializers import (
+    HouseholdSerializer,
+    HouseholdDetailSerializer,
+    HouseholdMemberSerializer,
+    HouseholdInvitationSerializer,
+    HouseholdInvitationLinkSerializer,
+    InvitationPreviewSerializer,
+)
+from .throttles import InvitationJoinThrottle
 from core.permissions import IsHouseholdMember, IsHouseholdOwner
 
 
@@ -29,7 +43,11 @@ class HouseholdViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         """Apply role-based permissions for management actions."""
-        if self.action in {'update', 'partial_update', 'destroy', 'invite', 'remove_member', 'update_role'}:
+        if self.action in {
+            'update', 'partial_update', 'destroy',
+            'invite', 'invitations', 'revoke_invitation',
+            'remove_member', 'update_role',
+        }:
             return [IsAuthenticated(), IsHouseholdOwner()]
         if self.action in {'retrieve', 'members', 'leave'}:
             return [IsAuthenticated(), IsHouseholdMember()]
@@ -153,74 +171,67 @@ class HouseholdViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def invite(self, request, pk=None):
-        """Invite a user to household (by email)."""
+        """Create an invitation link for this household.
+
+        `email` is **optional** — the owner shares the returned `join_url`
+        themselves, so a link addressed to nobody in particular is legitimate.
+        When the address does have a House account, an in-app notification goes
+        out on top of the link.
+        """
         household = self.get_object()
 
-        email = request.data.get('email')
-        role = request.data.get('role', HouseholdMember.Role.MEMBER)
-        
-        if not email:
-            return Response(
-                {"detail": _("Email is required.")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        from accounts.models import User
-        try:
-            invited_user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response(
-                {"detail": _("No user found with that email address.")},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        if HouseholdMember.objects.filter(household=household, user=invited_user).exists():
-            return Response(
-                {"detail": _("User is already a member of this household.")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if HouseholdInvitation.objects.filter(
+        invitation = services.create_invitation(
             household=household,
-            invited_user=invited_user,
-            status=HouseholdInvitation.Status.PENDING,
-        ).exists():
-            return Response(
-                {"detail": _("An invitation is already pending for this user.")},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        invitation = HouseholdInvitation.objects.create(
-            household=household,
-            invited_user=invited_user,
             invited_by=request.user,
-            role=role,
-            status=HouseholdInvitation.Status.PENDING,
-        )
-
-        from notifications.service import create_notification
-        from django.utils import translation
-        inviter_name = request.user.display_name or request.user.email
-        user_locale = getattr(invited_user, "locale", "en") or "en"
-        with translation.override(user_locale):
-            notif_title = _("You've been invited to join %(name)s") % {"name": household.name}
-            notif_body = _("%(inviter)s invited you to join their household.") % {"inviter": inviter_name}
-        create_notification(
-            user=invited_user,
-            notification_type="household_invitation",
-            title=notif_title,
-            body=notif_body,
-            payload={
-                "household_id": str(household.id),
-                "household_name": household.name,
-                "invitation_id": str(invitation.id),
-            },
+            email=request.data.get('email') or '',
+            role=request.data.get('role') or HouseholdMember.Role.MEMBER,
         )
 
         return Response(
-            {"detail": _("Invitation sent."), "invitation_id": str(invitation.id)},
-            status=status.HTTP_201_CREATED
+            HouseholdInvitationLinkSerializer(invitation).data,
+            status=status.HTTP_201_CREATED,
         )
+
+    @action(detail=True, methods=['get'], url_path='invitations')
+    def invitations(self, request, pk=None):
+        """Pending invitation links of this household (owner only) — to copy or revoke."""
+        household = self.get_object()
+        invitations = HouseholdInvitation.objects.filter(
+            household=household,
+            status=HouseholdInvitation.Status.PENDING,
+        ).select_related('invited_by').order_by('-created_at')
+        return Response(HouseholdInvitationLinkSerializer(invitations, many=True).data)
+
+    @action(detail=True, methods=['post'], url_path='revoke-invitation')
+    def revoke_invitation(self, request, pk=None):
+        """Kill a shared link (owner only). A leaked link must be stoppable."""
+        household = self.get_object()
+        invitation_id = request.data.get('invitation_id')
+        if not invitation_id:
+            return Response(
+                {'detail': _('invitation_id is required.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        invitation = HouseholdInvitation.objects.filter(
+            household=household,
+            id=invitation_id,
+        ).first()
+        if not invitation:
+            return Response(
+                {'detail': _('Invitation not found.')},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if invitation.status != HouseholdInvitation.Status.PENDING:
+            return Response(
+                {'detail': _('This invitation is no longer pending.')},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        invitation.status = HouseholdInvitation.Status.REVOKED
+        invitation.save(update_fields=['status'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def remove_member(self, request, pk=None):
@@ -310,7 +321,6 @@ class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
             status=HouseholdInvitation.Status.PENDING,
         ).select_related('household', 'invited_by').order_by('-created_at')
 
-    @transaction.atomic
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):
         """
@@ -319,40 +329,22 @@ class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
         """
         invitation = self.get_object()
 
-        if invitation.status != HouseholdInvitation.Status.PENDING:
+        if not invitation.is_usable:
             return Response(
-                {"detail": _("This invitation is no longer pending.")},
+                {"detail": _("This invitation has expired.") if invitation.is_expired
+                           else _("This invitation is no longer pending.")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create membership
-        _member, created = HouseholdMember.objects.get_or_create(
-            household=invitation.household,
-            user=request.user,
-            defaults={"role": invitation.role},
-        )
-
-        # Mark invitation accepted
-        invitation.status = HouseholdInvitation.Status.ACCEPTED
-        invitation.save(update_fields=["status"])
-
-        # Optionally switch active household; always set if the user has none yet
-        should_switch = request.data.get("switch", False)
+        should_switch = bool(request.data.get("switch", False))
         had_no_active = not request.user.active_household_id
-        if should_switch or had_no_active:
-            request.user.active_household_id = invitation.household.id
-            request.user.save(update_fields=["active_household_id"])
-        switched = bool(should_switch or had_no_active)
-
-        # Mark related notification(s) as read
-        from notifications.service import mark_read_by_payload
-        mark_read_by_payload(request.user, "household_invitation", invitation_id=str(invitation.id))
+        services.consume_invitation(invitation, request.user, switch=should_switch)
 
         return Response(
             {
                 "detail": _("You have joined %(name)s.") % {"name": invitation.household.name},
                 "household_id": str(invitation.household.id),
-                "switched": switched,
+                "switched": should_switch or had_no_active,
             },
             status=status.HTTP_200_OK,
         )
@@ -379,4 +371,87 @@ class HouseholdInvitationViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(
             {"detail": _("Invitation declined.")},
             status=status.HTTP_200_OK,
+        )
+
+
+class JoinHouseholdView(APIView):
+    """Public endpoint behind a shared invitation link — `/api/households/join/<token>/`.
+
+    GET  previews the invitation so the visitor knows what they are joining.
+    POST joins: creates the account when nobody is logged in, or enrolls the
+         current user when somebody is.
+
+    Deliberately `AllowAny`: the token *is* the credential. It is 32 random bytes
+    and single-use, and the endpoint is throttled per IP.
+    """
+    permission_classes = [AllowAny]
+    throttle_classes = [InvitationJoinThrottle]
+
+    def get(self, request, token=None):
+        invitation = services.get_pending_invitation(token)
+        if invitation is None:
+            return Response(
+                {"detail": _("This invitation link is not valid.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        return Response(InvitationPreviewSerializer(invitation).data)
+
+    def post(self, request, token=None):
+        invitation = services.get_pending_invitation(token)
+        if invitation is None:
+            return Response(
+                {"detail": _("This invitation link is not valid.")},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        if invitation.is_expired:
+            return Response(
+                {"detail": _("This invitation has expired. Ask for a new link.")},
+                status=status.HTTP_410_GONE,
+            )
+
+        # Already logged in — no account to create, just enroll.
+        if request.user and request.user.is_authenticated:
+            _membership, already_member = services.consume_invitation(
+                invitation, request.user, switch=True
+            )
+            return Response(
+                {
+                    "detail": _("You are already a member of %(name)s.") % {"name": invitation.household.name}
+                    if already_member
+                    else _("You have joined %(name)s.") % {"name": invitation.household.name},
+                    "household_id": str(invitation.household_id),
+                    "already_member": already_member,
+                    "created_account": False,
+                },
+                status=status.HTTP_200_OK,
+            )
+
+        # Anonymous — an addressed invitation pins the email, so a forwarded link
+        # cannot be used to open an account under a different address.
+        email = invitation.email or request.data.get("email") or ""
+        user = services.join_with_new_account(
+            invitation,
+            email=email,
+            password=request.data.get("password") or "",
+            display_name=request.data.get("display_name") or "",
+        )
+
+        # Log them straight in — otherwise joining ends on a login screen and the
+        # password they just chose has to be typed again. The SPA authenticates
+        # with the JWT pair; the session cookie is what lets native `<img
+        # src="/media/…">` requests carry auth (see TokenObtainPairWithSessionView).
+        auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "detail": _("You have joined %(name)s.") % {"name": invitation.household.name},
+                "household_id": str(invitation.household_id),
+                "already_member": False,
+                "created_account": True,
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+            },
+            status=status.HTTP_201_CREATED,
         )

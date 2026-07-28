@@ -1,6 +1,7 @@
 """
 Households serializers.
 """
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 from .models import Household, HouseholdMember, HouseholdInvitation
@@ -73,6 +74,17 @@ class HouseholdDetailSerializer(HouseholdSerializer):
         fields = HouseholdSerializer.Meta.fields
 
 
+def _inviter_name(invitation):
+    if invitation.invited_by:
+        return invitation.invited_by.display_name or invitation.invited_by.email
+    return None
+
+
+def invitation_join_url(invitation):
+    """Absolute link the owner shares themselves (no mail leaves the server)."""
+    return f"{settings.FRONTEND_URL.rstrip('/')}/join/{invitation.token}"
+
+
 class HouseholdInvitationSerializer(serializers.ModelSerializer):
     """Serializer for pending household invitations (user-facing)."""
     household_name = serializers.CharField(source='household.name', read_only=True)
@@ -84,6 +96,41 @@ class HouseholdInvitationSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_invited_by_name(self, obj):
-        if obj.invited_by:
-            return obj.invited_by.display_name or obj.invited_by.email
-        return None
+        return _inviter_name(obj)
+
+
+class HouseholdInvitationLinkSerializer(serializers.ModelSerializer):
+    """Owner-facing view of an invitation — carries the link to share."""
+    join_url = serializers.SerializerMethodField()
+    is_expired = serializers.BooleanField(read_only=True)
+    has_account = serializers.SerializerMethodField()
+
+    class Meta:
+        model = HouseholdInvitation
+        fields = [
+            'id', 'email', 'role', 'status', 'created_at', 'expires_at',
+            'join_url', 'is_expired', 'has_account',
+        ]
+        read_only_fields = fields
+
+    def get_join_url(self, obj):
+        return invitation_join_url(obj)
+
+    def get_has_account(self, obj):
+        """True when the invited address already had a House account at invite time."""
+        return obj.invited_user_id is not None
+
+
+class InvitationPreviewSerializer(serializers.ModelSerializer):
+    """What an anonymous visitor is told about the link they just opened."""
+    household_name = serializers.CharField(source='household.name', read_only=True)
+    invited_by_name = serializers.SerializerMethodField()
+    is_expired = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = HouseholdInvitation
+        fields = ['household_name', 'invited_by_name', 'email', 'role', 'status', 'is_expired']
+        read_only_fields = fields
+
+    def get_invited_by_name(self, obj):
+        return _inviter_name(obj)

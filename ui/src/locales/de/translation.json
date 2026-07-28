@@ -1081,7 +1081,6 @@
     "members": "Mitglieder",
     "leave": "Verlassen",
     "invite": "Einladen",
-    "inviteDescription": "Geben Sie die E-Mail-Adresse der Person ein, die Sie zu diesem Haushalt einladen möchten. Der Benutzer muss bereits registriert sein.",
     "inviteEmailPlaceholder": "E-Mail des Mitglieds (z. B. mitglied@beispiel.de)",
     "memberInvited": "Mitglied eingeladen",
     "inviteFailed": "Einladung fehlgeschlagen",
@@ -1170,7 +1169,7 @@
         },
         "invite-member": {
           "title": "Ein Haushaltsmitglied einladen",
-          "description": "Laden Sie Ihre Familie über die Einstellungen in den Haushalt ein."
+          "description": "Erstellen Sie in den Einstellungen einen Einladungslink und senden Sie ihn selbst an Ihre Familie."
         },
         "declare-account": {
           "title": "Ein Konto und seinen Startpunkt anlegen",
@@ -1606,6 +1605,10 @@
           "household": {
             "title": "Den Haushalt verwalten",
             "body": "Laden Sie Mitglieder ein, verwalten Sie Rollen, wechseln Sie den aktiven Haushalt."
+          },
+          "invite": {
+            "title": "Den Haushalt einladen",
+            "body": "Einladen erzeugt einen Link — House versendet keine E-Mail. Kopieren Sie ihn und geben Sie ihn weiter, wie Sie möchten: wer ihn öffnet, wählt ein Passwort und landet direkt im Haushalt, ohne vorher ein Konto zu brauchen. Die E-Mail-Adresse ist optional und adressiert lediglich die Einladung. Ein Link gilt eine Woche und kann jederzeit widerrufen werden."
           },
           "modules": {
             "title": "Die richtigen Module aktivieren",
@@ -2736,7 +2739,36 @@
     "invitedBy": "Eingeladen von {{name}}",
     "decline": "Ablehnen",
     "accept": "Annehmen",
-    "acceptAndSwitch": "Annehmen & wechseln"
+    "acceptAndSwitch": "Annehmen & wechseln",
+    "inviteDescription": "Erstellen Sie einen Link und versenden Sie ihn selbst — per Nachricht, wie Sie möchten. Wer ihn öffnet, tritt diesem Haushalt bei.",
+    "emailOptional": "E-Mail (optional)",
+    "emailOptionalHint": "Dient nur dazu, die Einladung zu adressieren. Leer lassen für einen Link, den Sie jedem geben können.",
+    "role": "Rolle",
+    "createLink": "Link erstellen",
+    "copyLink": "Kopieren",
+    "copied": "Kopiert",
+    "revoke": "Diesen Link widerrufen",
+    "linkRevoked": "Link widerrufen",
+    "openLink": "Link ohne festgelegte Adresse",
+    "expired": "Abgelaufen",
+    "expiresOn": "Gültig bis {{date}}",
+    "pendingLinks_one": "{{count}} offener Link",
+    "pendingLinks_other": "{{count}} offene Links",
+    "alsoNotifiedInApp": "Diese Adresse hat bereits ein House-Konto — die Person wurde auch in der App benachrichtigt.",
+    "linkInvalidTitle": "Ungültiger Link",
+    "linkInvalid": "Dieser Einladungslink ist nicht gültig. Möglicherweise wurde er bereits verwendet oder widerrufen.",
+    "expiredTitle": "Einladung abgelaufen",
+    "expiredBody": "Dieser Link ist nicht mehr gültig. Bitten Sie um einen neuen.",
+    "joinTitle": "{{name}} beitreten",
+    "joinSubtitle": "Sie wurden eingeladen, diesem Haushalt beizutreten.",
+    "joinSubtitleBy": "{{name}} lädt Sie ein, dem Haushalt beizutreten.",
+    "joinAsCurrentUser": "Sie sind angemeldet als {{email}}.",
+    "joinSubmit": "Haushalt beitreten",
+    "notNow": "Später",
+    "displayName": "Ihr Name",
+    "choosePassword": "Passwort wählen",
+    "alreadyHaveAccount": "Sie haben schon ein Konto?",
+    "joinFailed": "Beitritt zu diesem Haushalt nicht möglich."
   },
   "changelog": {
     "title": "Neuigkeiten",

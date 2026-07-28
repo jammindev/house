@@ -184,10 +184,14 @@ class TestInviteHousehold:
         ).exists()
         assert not HouseholdMember.objects.filter(household=household, user=new_user).exists()
 
-    def test_invite_nonexistent_user(self, owner_client, household):
+    def test_invite_user_without_an_account_yet(self, owner_client, household):
+        """No account is needed to be invited — the link is what creates one."""
         url = reverse("household-invite", kwargs={"pk": household.pk})
         response = owner_client.post(url, {"email": "ghost@example.com", "role": "member"}, format="json")
-        assert response.status_code == status.HTTP_404_NOT_FOUND
+        assert response.status_code == status.HTTP_201_CREATED
+        assert HouseholdInvitation.objects.filter(
+            household=household, email="ghost@example.com", invited_user=None
+        ).exists()
 
     def test_member_cannot_invite(self, db, household):
         member_user = UserFactory()
