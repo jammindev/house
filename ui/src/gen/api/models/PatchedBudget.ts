@@ -20,6 +20,9 @@ export type PatchedBudget = {
      * The single household-wide budget that caps all expenses (budgeted + hors budget). At most one per household.
      */
     is_global?: boolean;
+    readonly parent?: string;
+    parent_id?: string | null;
+    readonly is_group?: string;
     readonly created_at?: string;
     readonly updated_at?: string;
     readonly created_by?: number | null;

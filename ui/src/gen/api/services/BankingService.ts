@@ -513,6 +513,31 @@ export class BankingService {
         });
     }
     /**
+     * Remplacer la répartition d'un remboursement sur les enveloppes.
+     *
+     * ``PUT`` et non des CRUD par ligne, pour la raison qui vaut aussi pour les
+     * sorties : « 40/30 devient 50/20 » doit être atomique, sinon on traverse
+     * un état où la somme dépasse ce que la recette a rapporté.
+     * @param id
+     * @param requestBody
+     * @returns BankTransaction
+     * @throws ApiError
+     */
+    public static bankingTransactionsRefundAllocationsUpdate(
+        id: string,
+        requestBody?: BankTransaction,
+    ): CancelablePromise<BankTransaction> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/banking/transactions/{id}/refund-allocations/',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+        });
+    }
+    /**
      * Best candidate expenses for this line, for the manual dialog.
      * @param id
      * @returns BankTransaction
