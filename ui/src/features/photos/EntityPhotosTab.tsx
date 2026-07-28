@@ -196,6 +196,14 @@ export default function EntityPhotosTab({ entityType, objectId }: Props) {
             title={t('photos.entity.empty')}
             description={t('photos.entity.empty_hint')}
             action={{ label: t('photos.entity.upload'), onClick: () => openUpload('') }}
+            // L'encart doit relayer les **deux** chemins : la barre d'actions
+            // au-dessus n'existe qu'à partir d'une photo, et sans ce relais
+            // rattacher une photo déjà dans la galerie devenait impossible tant
+            // que l'entité n'en avait aucune — soit exactement quand c'est utile.
+            secondaryAction={{
+              label: t('photos.entity.attach_existing'),
+              onClick: () => setAttachOpen(true),
+            }}
           />
         ) : (
           PHASE_ORDER.map((phase) => {
