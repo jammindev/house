@@ -1,4 +1,8 @@
 # Dépendances locales
+# `venv/` autant que `.venv/` : le venv de dev est versionné dans ce repo, donc
+# sans cette ligne il partait dans le contexte de build ET dans l'image — des
+# centaines de Mo de dépendances macOS recopiées à chaque deploy.
+venv/
 .venv/
 node_modules/
 
@@ -22,6 +26,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 coverage.xml
+coverage.json
 htmlcov/
 
 # Git

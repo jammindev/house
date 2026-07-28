@@ -76,11 +76,28 @@ jobs:
       - name: Build
         run: npm run build
 
+  # Le reverse-proxy est la seule pièce dont une faute de frappe met la prod par
+  # terre sans qu'aucun test ne l'ait vue : le conf n'était jamais chargé avant
+  # d'être en production. Ce job le charge pour de vrai (`nginx -t`) et vérifie
+  # les trois propriétés qui font qu'un deploy ne montre pas un 502 (issue #449).
+  proxy:
+    name: Reverse-proxy resilience
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test de résilience nginx
+        run: ./nginx/test-resilience.sh
+
   deploy:
     name: Deploy to Production
     runs-on: self-hosted
-    needs: [backend, frontend]
+    needs: [backend, frontend, proxy]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    env:
+      COMPOSE: /usr/local/bin/docker compose -f docker-compose.prod.yml
 
     steps:
       - name: Pull latest code
@@ -89,16 +106,51 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
 
-      - name: Build & restart
+      - name: Build the new image
         run: |
           cd ~/jammin-dev/apps/house
-          /usr/local/bin/docker compose -f docker-compose.prod.yml build
-          /usr/local/bin/docker compose -f docker-compose.prod.yml up -d
+          $COMPOSE build web
 
-      - name: Run migrations
+      # `--no-deps` partout dans ce job, et c'est le cœur du correctif : sans lui,
+      # compose recrée nginx dans la foulée de web, donc le proxy tombe pendant
+      # l'opération et sa page de maintenance ne sert à rien. nginx reste debout et
+      # ré-résout `web` tout seul (voir nginx/default.conf).
+      - name: Ensure db & nginx are up
         run: |
           cd ~/jammin-dev/apps/house
-          /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web python manage.py migrate
+          $COMPOSE up -d --no-deps db nginx
+
+      # Migrer AVANT de basculer le trafic, sur un conteneur jetable de l'image
+      # neuve. L'ordre inverse — basculer puis migrer — laissait le code neuf
+      # servir quelques secondes sur l'ancien schéma, donc des 500 sur toute
+      # colonne fraîchement ajoutée.
+      #
+      # Contrepartie assumée, et c'est la moins chère des deux : l'ancien code voit
+      # le nouveau schéma le temps du basculement. Une migration additive lui est
+      # transparente ; une migration destructive (colonne supprimée ou renommée)
+      # doit donc être livrée en deux fois.
+      - name: Run migrations (before the swap)
+        run: |
+          cd ~/jammin-dev/apps/house
+          $COMPOSE run --rm --no-deps web python manage.py migrate
+
+      # `--wait` s'appuie sur le healthcheck de `web` (GET /health/) : le job ne
+      # continue que quand gunicorn accepte vraiment des connexions, et échoue
+      # bruyamment si le conteneur neuf ne démarre pas — au lieu de laisser la prod
+      # sur la page de maintenance sans que personne ne soit prévenu.
+      - name: Swap web & schedulers
+        run: |
+          cd ~/jammin-dev/apps/house
+          $COMPOSE up -d --no-deps --wait --wait-timeout 180 web scheduler scheduler-briefings
+
+      # nginx n'est pas recréé (voir plus haut) : un changement de default.conf ne
+      # serait donc jamais pris en compte. `nginx -t` d'abord — un conf invalide
+      # fait échouer l'étape sans toucher au process, qui garde l'ancien.
+      - name: Reload nginx config
+        run: |
+          cd ~/jammin-dev/apps/house
+          $COMPOSE exec -T nginx nginx -t
+          $COMPOSE exec -T nginx nginx -s reload
 
       # Pousse le menu de commandes du bot (/ autocomplete, BOT_COMMANDS).
       # Idempotent, skip propre si le canal Telegram est off. continue-on-error :
@@ -107,7 +159,7 @@ jobs:
         continue-on-error: true
         run: |
           cd ~/jammin-dev/apps/house
-          /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web python manage.py telegram_set_commands
+          $COMPOSE exec -T web python manage.py telegram_set_commands
 
       # Alimente la page « Nouveautés » (/app/changelog). Le conteneur n'a pas le
       # .git (exclu par .dockerignore) : le runner, lui, l'a → on pipe le git log
@@ -117,5 +169,4 @@ jobs:
         run: |
           cd ~/jammin-dev/apps/house
           git log --pretty=format:'%H%x1f%cI%x1f%s%x1e' | \
-            /usr/local/bin/docker compose -f docker-compose.prod.yml exec -T web \
-            python manage.py generate_changelog --from-stdin
+            $COMPOSE exec -T web python manage.py generate_changelog --from-stdin

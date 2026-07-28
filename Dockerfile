@@ -17,8 +17,36 @@ COPY . .
 # Écrase le dossier static/react vide (dev) par le build React compilé
 COPY --from=frontend /app/static/react ./static/react
 
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+ENV DJANGO_SETTINGS_MODULE=config.settings.production
+
+# `collectstatic` AU BUILD, plus au démarrage.
+#
+# Mesuré : ~0,4 s, donc ce n'est PAS le gros du 502 (issue #449) — le coupable
+# était nginx et sa résolution DNS figée. Le déplacement se justifie autrement :
+# le chemin de démarrage ne doit rien contenir d'autre que le lancement du
+# serveur, et c'est ici que la recompression gzip/brotli atterrira le jour où le
+# storage whitenoise sera réactivé (`STATICFILES_STORAGE` est ignoré depuis
+# Django 5.1, qui l'a supprimé au profit de `STORAGES` — copier le même travail
+# dans chaque démarrage de conteneur serait alors tout sauf gratuit).
+#
+# Les valeurs ci-dessous ne vivent que le temps de la commande : collectstatic ne
+# se connecte à rien, il lui faut seulement une config qui s'importe — et
+# `config.settings.production` exige ces quatre variables.
+RUN SECRET_KEY=build-only \
+    ALLOWED_HOSTS=localhost \
+    CORS_ALLOWED_ORIGINS=http://localhost \
+    DATABASE_URL=sqlite:///build-only.sqlite3 \
+    python manage.py collectstatic --noinput
 
 EXPOSE 8000
-ENTRYPOINT ["/docker-entrypoint.sh"]
+
+# Pas d'ENTRYPOINT : le CMD reste remplaçable, ce qui permet au deploy de lancer
+# `compose run --rm web python manage.py migrate` sur l'image neuve — donc de
+# migrer AVANT de basculer le trafic, au lieu de laisser le code neuf servir
+# quelques secondes sur l'ancien schéma.
+CMD ["gunicorn", "config.wsgi:application", \
+     "--bind", "0.0.0.0:8000", \
+     "--workers", "4", \
+     "--timeout", "60", \
+     "--access-logfile", "-", \
+     "--error-logfile", "-"]

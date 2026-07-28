@@ -28,6 +28,32 @@ Les messages de commit alimentent **automatiquement** la page « Nouveautés »
 
 Le n° de PR de merge (`(#238)`) est extrait automatiquement pour le lien GitHub.
 
+## Déploiement — le proxy ne tombe pas avec l'app
+
+Doc : `DEPLOYMENT.md` § 3.4. Régression : `nginx/test-resilience.sh` (job `proxy`
+de la CI, bloquant pour le deploy). Ce que tout changement doit préserver :
+
+- **nginx atteint Django par une variable, jamais par un nom littéral.** Un
+  `proxy_pass http://web:8000` est résolu **une seule fois, au chargement de la
+  config**, et l'IP est gardée pour la vie du process : chaque recréation du
+  conteneur `web` — donc chaque deploy — laissait nginx taper une IP morte. Il faut
+  le `resolver 127.0.0.11` **et** le `proxy_pass http://$django` ; l'un sans l'autre
+  ne résout rien. Le `valid=5s` **borne** la bascule sans la rendre instantanée — le
+  DNS de Docker annonce un TTL de 600 s, que nginx respecterait : c'est cette valeur
+  qui décide combien de temps il peut viser l'IP morte.
+- **Un trou se montre, il ne s'affiche pas en erreur technique.** 502/503/504 →
+  `nginx/html/maintenance.html` en 503, et du **JSON** sur `/api/` (l'intercepteur
+  axios lit `detail`). La page sonde `/health/` et se recharge seule.
+- **`--no-deps` dans toutes les étapes du deploy.** Sans lui compose recrée nginx
+  dans la foulée de `web`, et une page de maintenance servie par un proxy qui tombe
+  au même moment ne sert à rien.
+- **On migre avant de basculer**, sur un conteneur jetable de l'image neuve. D'où :
+  une migration **destructive** (colonne supprimée ou renommée) se livre **en deux
+  fois**, puisque l'ancien code voit le nouveau schéma le temps du basculement.
+- **`/health/` reste une preuve de vie, pas de santé** — aucune requête en base. Le
+  healthcheck y sert de porte au `up -d --wait` : un hoquet de postgres marquerait
+  `web` malade alors qu'il va bien, et le deploy suivant attendrait pour rien.
+
 ## Commandes utiles
 
 ### Backend Django
@@ -674,6 +700,42 @@ import { formatAmount } from '@/lib/format';
 formatAmount('12.50')                      // « 12,50 € » (fr)
 formatAmount(420, { fractionDigits: 0 })   // « 420 € »
 ```
+
+### Saisie d'un décimal — jamais `<input type="number">`
+
+Le pendant en écriture de `formatAmount` : tout champ portant un décimal (montant,
+prix, index de compteur, tarif, quantité, surface) est un **`DecimalInput` de
+`@/design-system/decimal-input`**. Les `type="number"` restants sont les
+**compteurs entiers**, qui gardent leurs flèches.
+
+```tsx
+import { DecimalInput } from '@/design-system/decimal-input';
+
+<DecimalInput value={amount} onChange={setAmount} />              // 2 décimales
+<DecimalInput value={index} onChange={setIndex} decimals={3} />   // index compteur
+<DecimalInput value={balance} onChange={setBalance} allowNegative />  // découvert
+```
+
+- L'état du parent est **canonique** (séparateur point, tel qu'il part vers
+  l'API) ; le champ affiche celui de la locale. Donc **plus aucun
+  `.replace(',', '.')` au moment du submit** — il y en avait seize, tous morts.
+- `onChange` reçoit **la valeur**, pas l'événement.
+- Le pas fractionnaire est remplacé par `decimals`, et il **borne la frappe** au
+  lieu de la signaler invalide après coup ; `min="0"` est remplacé par le refus du
+  moins (`allowNegative` pour un solde, qui peut être à découvert).
+
+**Pourquoi c'est du métier et pas de la plomberie :** le HTML impose au `value`
+d'un champ `number` d'être un *valid floating-point number* — le séparateur y est
+**toujours** le point. Une virgule rend la valeur invalide, `e.target.value`
+renvoie du tronqué, React réécrit ce tronqué dans le DOM et détruit le tampon de
+saisie. Taper « 12,5 » sur un clavier français donnait **512 €** sur Chromium et
+**5 €** sur Safari et Firefox : pas un champ qui refuse une touche, **un montant
+faux enregistré sans un mot**. C'est la règle « un compteur ne peut pas avoir deux
+définitions » à l'entrée : ce que l'utilisateur tape et ce que le foyer enregistre
+doivent être le même nombre. Régressions : `ui/src/design-system/decimal-input.test.tsx`
+(dont le garde-fou « aucun pas fractionnaire dans le front ») et
+`e2e/decimal-input.spec.ts` — **le bug n'existait que dans un vrai moteur, jamais
+en jsdom : il fallait un test navigateur pour l'attester.**
 
 ### Dates de calendrier — jamais `toISOString()`
 

@@ -35,9 +35,23 @@ services:
       - media-files:/app/media
     networks:
       - internal
+    # Sonde de vie — c'est elle que le deploy attend (`up -d --wait`) avant de se
+    # déclarer terminé. Sans healthcheck, `--wait` se contente de « le conteneur
+    # a démarré », ce qui est vrai plusieurs secondes avant que gunicorn accepte
+    # une connexion (issue #449).
+    #
+    # `Host` explicite : ALLOWED_HOSTS ne contient que le domaine public, et la
+    # sonde tape 127.0.0.1. `X-Forwarded-Proto` pour ne pas récolter la
+    # redirection HTTPS de SecurityMiddleware.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/health/', headers={'Host': '${DOMAIN}', 'X-Forwarded-Proto': 'https'}), timeout=5)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
 
-  # Scheduler des pings proactifs (agent → Telegram). Même image que web, mais
-  # l'entrypoint gunicorn est remplacé par un tick idempotent en boucle
+  # Scheduler des pings proactifs (agent → Telegram). Même image que web, mais la
+  # commande gunicorn est remplacée par un tick idempotent en boucle
   # (voir apps/pings/services.py::send_due_pings).
   scheduler:
     image: house:latest
@@ -50,7 +64,7 @@ services:
     env_file: .env
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
-    entrypoint: ["python", "manage.py", "send_scheduled_pings", "--loop"]
+    command: ["python", "manage.py", "send_scheduled_pings", "--loop"]
     networks:
       - internal
 
@@ -67,7 +81,7 @@ services:
     env_file: .env
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.production
-    entrypoint: ["python", "manage.py", "send_due_briefings", "--loop"]
+    command: ["python", "manage.py", "send_due_briefings", "--loop"]
     networks:
       - internal
 
