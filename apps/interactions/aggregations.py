@@ -157,21 +157,27 @@ def _refunded_total(household_id, from_dt, to_dt, *, budget: str | None) -> Deci
     ``occurred_at`` (le foyer) : deux dates différentes pour deux faits
     différents, bornées par le même intervalle.
     """
-    from banking.models import BankTransaction, InflowNature, TransactionDirection
+    from banking.models import InflowNature, RefundAllocation, TransactionDirection
 
-    qs = BankTransaction.objects.filter(
+    # ⚠️ On somme les **parts attribuées**, pas les montants des lignes. Depuis
+    # que 70 € peuvent se répartir en 40 € + 30 €, sommer la ligne annoncerait
+    # 70 € à une enveloppe qui n'a récupéré que 40 € — et la page d'un budget
+    # dirait alors autre chose que son aperçu.
+    qs = RefundAllocation.objects.filter(
         household_id=household_id,
-        direction=TransactionDirection.IN,
-        inflow_nature=InflowNature.REFUND,
+        transaction__direction=TransactionDirection.IN,
+        transaction__inflow_nature=InflowNature.REFUND,
     )
     if budget == UNBUDGETED:
-        qs = qs.filter(refund_budget__isnull=True)
-    elif budget:
-        qs = qs.filter(refund_budget_id=budget)
+        # Un remboursement non attribué ne crédite aucune enveloppe : par
+        # construction il n'a pas de ligne de ventilation, donc rien à sommer ici.
+        return Decimal('0.00')
+    if budget:
+        qs = qs.filter(budget_id=budget)
 
     if from_dt is not None:
-        qs = qs.filter(booked_on__gte=from_dt.date())
+        qs = qs.filter(transaction__booked_on__gte=from_dt.date())
     if to_dt is not None:
-        qs = qs.filter(booked_on__lte=to_dt.date())
+        qs = qs.filter(transaction__booked_on__lte=to_dt.date())
 
     return qs.aggregate(total=Coalesce(Sum('amount'), _zero()))['total'] or Decimal('0.00')

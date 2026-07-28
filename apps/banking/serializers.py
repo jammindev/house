@@ -178,11 +178,11 @@ class BankTransactionSerializer(serializers.ModelSerializer):
     allocated_amount = serializers.SerializerMethodField()
     remaining_amount = serializers.SerializerMethodField()
     allocation_state = serializers.SerializerMethodField()
-    # Le budget qu'un remboursement recrédite. Écrit par l'action ``qualify``
-    # seule, comme les deux autres champs de qualification.
-    refund_budget_name = serializers.CharField(
-        source="refund_budget.name", read_only=True, default=None
-    )
+    # Les enveloppes qu'un remboursement recrédite, avec leur part. Écrites par
+    # l'action ``refund-allocations`` seule — jamais par un PATCH, comme la
+    # ventilation d'une sortie.
+    refund_allocations = serializers.SerializerMethodField()
+    refund_remaining = serializers.SerializerMethodField()
 
     class Meta:
         model = BankTransaction
@@ -197,8 +197,8 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "direction",
             "is_internal",
             "inflow_nature",
-            "refund_budget",
-            "refund_budget_name",
+            "refund_allocations",
+            "refund_remaining",
             "balance_after",
             "external_id",
             "notes",
@@ -222,10 +222,38 @@ class BankTransactionSerializer(serializers.ModelSerializer):
             "external_id",
             "source_import",
             "transfer_counterpart",
-            "refund_budget",
-            "refund_budget_name",
+            "refund_allocations",
+            "refund_remaining",
             "created_at",
         ]
+
+    def get_refund_allocations(self, obj) -> list:
+        """Ce que cette recette rend, enveloppe par enveloppe.
+
+        Une liste et non un champ : un virement de 70 € peut recréditer deux
+        budgets, ce qu'une FK ne pouvait pas dire.
+        """
+        return [
+            {
+                "budget": str(row.budget_id),
+                "budget_name": row.budget.name,
+                "amount": str(row.amount),
+            }
+            for row in obj.refund_allocations.all()
+        ]
+
+    def get_refund_remaining(self, obj) -> str:
+        """Ce qui n'est attribué à personne — le « reste » de l'éditeur.
+
+        Toujours calculé, jamais dénormalisé : c'est aussi ce que le détecteur
+        `refund_partially_allocated` réclame, et un écart ne se dit jamais deux
+        fois avec deux voix.
+        """
+        from .validators import remaining_to_refund
+
+        if obj.amount <= 0:
+            return "0.00"
+        return str(remaining_to_refund(obj))
 
     def get_allocated_amount(self, obj) -> str:
         return str(self._allocated(obj))

@@ -504,6 +504,50 @@ Deux mécanismes, et la distinction n'est pas cosmétique :
 
 Tests : `ui/src/components/listNavigation.test.tsx`.
 
+### Ventiler une recette — le miroir, enfin
+
+Un remboursement ne créditait qu'**une** enveloppe, pour la totalité de la ligne.
+Les 70 € qu'une amie rend pour sa part d'une soirée *et* d'un plein de courses
+n'avaient donc pas de forme : il fallait choisir 40 ou 30, et « 150 € / 400 € »
+restait faux.
+
+`banking.RefundAllocation(transaction, budget, amount)` est le jumeau de la
+ventilation d'une sortie, avec les mêmes propriétés : **remplacement complet**
+(`PUT .../refund-allocations/`), somme bornée par ce que la recette a rapporté
+(`validators.assert_refund_fits`), et un **reste** possible.
+
+- **Pourquoi une table ici, alors qu'une ventilation de dépense n'en est
+  délibérément pas une** : une ventilation de dépense est un fait du journal, donc
+  c'est une `Interaction`. Un crédit de remboursement n'est pas une entrée du
+  journal — il *corrige* une enveloppe. En faire une `Interaction` imposerait un
+  montant négatif, la seule chose qui protège les neuf `Sum("amount")`.
+- **`BankTransaction.refund_budget` a disparu** (migrations `banking.0009` +
+  `0010`), replié en une ligne de ventilation du montant entier — ce que la
+  colonne signifiait. Garder les deux aurait donné deux façons de dire la même
+  chose, donc deux totaux à départager : l'écart « dit deux fois avec deux voix ».
+- ⚠️ **La page d'un budget affiche la part attribuée, pas le montant de la ligne.**
+  C'était le piège de ce lot : sommer la ligne annonçait 70 € rendus à une
+  enveloppe qui n'en a récupéré que 40, et la page contredisait son propre total.
+  Même correction dans `interactions.aggregations`.
+- **Le reste est un écart arbitrable** (`refund_partially_allocated`), miroir de
+  « sortie partiellement ventilée ». Souvent c'est normal — une amie qui arrondit —
+  et c'est exactement ce qu'un arbitrage exprime : motif, daté, révocable. Ce qui
+  n'est pas acceptable, c'est qu'un remboursement de 200 € dont 5 € sont attribués
+  passe pour traité. Ne crédite **rien** reste `refund_without_budget` : deux
+  écarts distincts, parce qu'ils ne se résolvent pas du même geste.
+- Le `fingerprint` du nouveau détecteur porte le **reste**, pas le montant de la
+  ligne : arbitrer « les 30 € qui traînent ne rendent rien » puis en attribuer 20
+  fait resurgir l'arbitrage. Le montant d'une ligne bancaire, lui, ne bouge jamais
+  — l'y mettre n'aurait rien périmé.
+- **La nature d'abord** : le service refuse de créditer une enveloppe depuis une
+  recette qui ne se déclare pas remboursement, et reclasser en salaire efface les
+  attributions. L'ancien `CheckConstraint` n'est plus exprimable (il porte sur deux
+  tables), donc l'invariant vit dans l'unique chemin d'écriture.
+
+Tests : `banking/tests/test_refund_allocations.py` (14 cas) et
+`budget/tests/test_refunds.py`, dont les 22 cas de netting tournent inchangés sur
+le nouveau mécanisme — c'est ce qui prouve qu'aucun total n'a bougé.
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions

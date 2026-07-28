@@ -84,3 +84,47 @@ def assert_allocation_fits(
                 )
             }
         )
+
+
+# --- Le miroir, côté recette (parcours 26, ventilation des remboursements) -----
+
+
+def refunded_total(transaction, *, exclude_budget_id=None) -> Decimal:
+    """Somme déjà rendue aux enveloppes par cette recette."""
+    from django.db.models import Sum
+
+    qs = transaction.refund_allocations.all()
+    if exclude_budget_id is not None:
+        qs = qs.exclude(budget_id=exclude_budget_id)
+    return qs.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+
+def remaining_to_refund(transaction, *, exclude_budget_id=None) -> Decimal:
+    """Ce qui reste à attribuer sur cette recette — le « reste » de l'éditeur."""
+    return transaction.inflow - refunded_total(
+        transaction, exclude_budget_id=exclude_budget_id
+    )
+
+
+def assert_refund_fits(*, transaction, extra_amount: Decimal = Decimal("0.00")) -> None:
+    """Refuse (400) une répartition qui rendrait plus que la recette n'a apporté.
+
+    Même raison d'être que ``assert_allocation_fits`` : aucun ``CHECK`` ne
+    s'exprime en travers de plusieurs lignes, donc la garantie est un service qui
+    verrouille la ligne avant de sommer. Et même conséquence si on l'oubliait :
+    une enveloppe recréditée de 200 € par un virement de 70 € ferait mentir son
+    plafond sans que rien ne le signale.
+    """
+    if transaction is None:
+        return
+    if transaction.inflow <= 0:
+        raise ValidationError({"transaction": "Only a receipt can credit a budget back."})
+    if refunded_total(transaction) + extra_amount > transaction.inflow:
+        raise ValidationError(
+            {
+                "amount": (
+                    "This refund only brought "
+                    f"{transaction.inflow}; it cannot credit more than that."
+                )
+            }
+        )

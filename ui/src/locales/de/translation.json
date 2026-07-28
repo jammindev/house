@@ -3511,7 +3511,18 @@
       },
       "refundBudget": "Gutgeschriebenes Budget",
       "refundBudgetNone": "Kein Budget",
-      "refundBudgetHint": "Der Umschlag, der dieses Geld zurückbekommt. Leer lassen, wenn die Erstattung kein Budget betrifft — die Kontrolle bittet Sie dann um eine Entscheidung."
+      "refundBudgetHint": "Verteilen Sie den erstatteten Betrag auf die betroffenen Budgets. Was nicht zugeordnet wird, bleibt in der Kontrolle gemeldet.",
+      "refundSaved": "Rückzahlung aufgeteilt",
+      "refundAmount": "Erstatteter Betrag",
+      "refundBudgetCount": "{{count}} Budgets",
+      "remaining": "noch {{amount}}",
+      "addLine": "Budget hinzufügen",
+      "removeLine": "Diese Zeile entfernen",
+      "errors": {
+        "budgetRequired": "Wählen Sie für jeden erstatteten Betrag ein Budget.",
+        "amountInvalid": "Jeder erstattete Betrag muss über null liegen.",
+        "overCredited": "Diese Rückzahlung brachte nur {{total}}: mehr kann sie nicht erstatten."
+      }
     },
     "anchor": {
       "title": "Eröffnungssaldo ermitteln",

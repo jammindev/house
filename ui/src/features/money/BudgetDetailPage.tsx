@@ -181,8 +181,18 @@ export default function BudgetDetailPage() {
                             {formatDate(line.booked_on)}
                           </p>
                         </div>
+                        {/* ⚠️ La **part attribuée** à cette enveloppe, pas le
+                            montant de la ligne. Depuis que 70 € peuvent se
+                            répartir en 40 € + 30 €, afficher la ligne annoncerait
+                            ici 70 € rendus à une enveloppe qui n'en a récupéré
+                            que 40 — et cette page dirait autre chose que son
+                            propre total, juste au-dessus. */}
                         <p className="shrink-0 text-sm font-semibold tabular-nums text-primary">
-                          −{formatAmount(line.amount)}
+                          −
+                          {formatAmount(
+                            (line.refund_allocations ?? []).find((row) => row.budget === id)
+                              ?.amount ?? '0',
+                          )}
                         </p>
                       </div>
                     </Card>

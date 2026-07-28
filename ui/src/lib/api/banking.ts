@@ -239,8 +239,14 @@ export interface BankTransaction {
   is_internal: boolean;
   inflow_nature: InflowNature;
   /** Budget recrédité par un remboursement — jamais posé sur autre chose. */
-  refund_budget: string | null;
-  refund_budget_name: string | null;
+  /**
+   * Les enveloppes que cette recette recrédite, avec leur part. Une **liste** et
+   * non un champ : 70 € peuvent rendre 40 € au resto et 30 € aux courses, ce
+   * qu'une FK unique ne pouvait pas dire.
+   */
+  refund_allocations: { budget: string; budget_name: string; amount: string }[];
+  /** Ce qui n'est attribué à personne — calculé, jamais dénormalisé. */
+  refund_remaining: string;
   balance_after: string | null;
   external_id: string;
   notes: string;
@@ -275,6 +281,7 @@ export interface TransactionFilters {
   /** `'todo'` = seulement les sorties que le contrôle réclame (non ventilées ou partielles). */
   allocation?: 'todo' | '';
   /** Id du budget qu'un remboursement recrédite — pour la page d'un budget. */
+  /** Id de budget : les recettes qui recréditent cette enveloppe. */
   refund_budget?: string;
   /**
    * Ne garder que les sorties dont le reste à ventiler couvre ce montant —
@@ -451,6 +458,29 @@ export async function fetchAllocations(transactionId: string): Promise<Allocatio
 }
 
 /** Remplace la ventilation entière. Atomique : « 80/40 devient 100/20 » en un appel. */
+/** Une part de recette rendue à une enveloppe. */
+export interface RefundAllocationLine {
+  budget_id: string;
+  /** Décimale en string, comme tous les montants de l'API. */
+  amount: string;
+}
+
+/**
+ * Remplace la répartition d'un remboursement. **Un « set »**, pas des
+ * modifications ligne à ligne : « 40/30 devient 50/20 » doit être atomique,
+ * sinon on traverse un état où la somme dépasse ce que la recette a rapporté.
+ */
+export async function setRefundAllocations(
+  transactionId: string,
+  lines: RefundAllocationLine[],
+): Promise<BankTransaction> {
+  const { data } = await api.put<BankTransaction>(
+    `/banking/transactions/${transactionId}/refund-allocations/`,
+    { lines },
+  );
+  return data;
+}
+
 export async function setAllocations(
   transactionId: string,
   lines: AllocationLine[],

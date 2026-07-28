@@ -77,7 +77,7 @@ def refund(account, *, amount, budget=None, booked_on=None, nature=InflowNature.
            label="AVOIR LEROY MERLIN"):
     value = Decimal(str(amount))
     booked_on = booked_on or timezone.localdate()
-    return BankTransaction.objects.create(
+    txn = BankTransaction.objects.create(
         household=account.household,
         account=account,
         booked_on=booked_on,
@@ -86,7 +86,6 @@ def refund(account, *, amount, budget=None, booked_on=None, nature=InflowNature.
         amount=value,
         direction=TransactionDirection.IN if value > 0 else TransactionDirection.OUT,
         inflow_nature=nature,
-        refund_budget=budget,
         dedup_hash=compute_dedup_hash(
             account_id=account.id,
             booked_on=booked_on,
@@ -95,6 +94,25 @@ def refund(account, *, amount, budget=None, booked_on=None, nature=InflowNature.
             currency="EUR",
             discriminant=f"#{next(_counter)}",
         ),
+    )
+    if budget is not None:
+        credit(txn, budget)
+    return txn
+
+
+def credit(txn, budget, amount=None):
+    """Attribuer une part du remboursement à une enveloppe.
+
+    Par défaut la totalité : c'est exactement ce que l'ancienne colonne
+    ``refund_budget`` voulait dire, et ça garde ces tests centrés sur le net.
+    """
+    from banking.models import RefundAllocation
+
+    return RefundAllocation.objects.create(
+        household=txn.household,
+        transaction=txn,
+        budget=budget,
+        amount=Decimal(str(amount)) if amount is not None else txn.amount,
     )
 
 
@@ -222,11 +240,18 @@ class TestWhatTheApiRefuses:
             f"/api/banking/transactions/{txn.id}/qualify/", payload, format="json"
         )
 
+    def _credit(self, client, txn, budget_id, amount="40.00"):
+        return client.put(
+            f"/api/banking/transactions/{txn.id}/refund-allocations/",
+            {"lines": [{"budget_id": str(budget_id), "amount": amount}]},
+            format="json",
+        )
+
     def test_a_budget_on_a_salary_is_refused(self, ctx):
         household, user, budget, account, client = ctx
         txn = refund(account, amount="2100.00", nature=InflowNature.SALARY, label="VIR SALAIRE")
 
-        response = self._qualify(client, txn, {"refund_budget_id": str(budget.id)})
+        response = self._credit(client, txn, budget.id, "2100.00")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -234,7 +259,7 @@ class TestWhatTheApiRefuses:
         household, user, budget, account, client = ctx
         txn = refund(account, amount="-80.00", nature="", label="CB LECLERC")
 
-        response = self._qualify(client, txn, {"refund_budget_id": str(budget.id)})
+        response = self._credit(client, txn, budget.id)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -245,7 +270,7 @@ class TestWhatTheApiRefuses:
         )
         txn = refund(account, amount="40.00")
 
-        response = self._qualify(client, txn, {"refund_budget_id": str(other.id)})
+        response = self._credit(client, txn, other.id)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -257,7 +282,7 @@ class TestWhatTheApiRefuses:
         )
         txn = refund(account, amount="40.00")
 
-        response = self._qualify(client, txn, {"refund_budget_id": str(overall.id)})
+        response = self._credit(client, txn, overall.id)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -265,12 +290,14 @@ class TestWhatTheApiRefuses:
         household, user, budget, account, client = ctx
         txn = refund(account, amount="40.00")
 
-        response = self._qualify(client, txn, {"refund_budget_id": str(budget.id)})
+        response = self._credit(client, txn, budget.id)
 
         assert response.status_code == status.HTTP_200_OK
-        assert response.json()["refund_budget_name"] == "Bricolage"
-        txn.refresh_from_db()
-        assert txn.refund_budget_id == budget.id
+        payload = response.json()
+        assert payload["refund_allocations"] == [
+            {"budget": str(budget.id), "budget_name": "Bricolage", "amount": "40.00"}
+        ]
+        assert payload["refund_remaining"] == "0.00"
 
     def test_reclassing_a_refund_as_a_salary_drops_the_budget(self, ctx):
         """Sinon l'enveloppe reste créditée par une ligne qui ne rembourse plus rien."""
@@ -280,32 +307,46 @@ class TestWhatTheApiRefuses:
         response = self._qualify(client, txn, {"inflow_nature": "salary"})
 
         assert response.status_code == status.HTTP_200_OK
-        txn.refresh_from_db()
-        assert txn.refund_budget_id is None
+        assert txn.refund_allocations.count() == 0
 
-    def test_clearing_the_budget_is_allowed(self, ctx):
+    def test_clearing_the_budgets_is_allowed(self, ctx):
+        """Une liste vide est un remplacement par rien — pas une erreur."""
         household, user, budget, account, client = ctx
         txn = refund(account, amount="40.00", budget=budget)
 
-        response = self._qualify(client, txn, {"refund_budget_id": None})
+        response = client.put(
+            f"/api/banking/transactions/{txn.id}/refund-allocations/",
+            {"lines": []},
+            format="json",
+        )
 
         assert response.status_code == status.HTTP_200_OK
-        txn.refresh_from_db()
-        assert txn.refund_budget_id is None
+        assert txn.refund_allocations.count() == 0
 
 
 @pytest.mark.django_db
 class TestTheDatabaseHoldsTheInvariant:
-    def test_a_budget_without_the_refund_nature_is_rejected(self, ctx):
-        """La vue refuse déjà ; la base doit refuser aussi.
+    def test_a_zero_credit_is_rejected(self, ctx):
+        """Une part nulle n'est pas un crédit, c'est une ligne qui ne dit rien.
 
-        C'est le genre d'invariant qui ne survit à un futur chemin d'écriture que
-        si la base le tient.
+        La vue refuse déjà ; la base doit refuser aussi — c'est le genre
+        d'invariant qui ne survit à un futur chemin d'écriture que si la base le
+        tient. (L'ancienne contrainte « un budget seulement sur un remboursement »
+        n'est plus exprimable en `CHECK` : elle porte sur deux tables, et vit donc
+        dans `set_refund_allocations`, unique chemin d'écriture.)
         """
         household, user, budget, account, _ = ctx
+        txn = refund(account, amount="40.00")
 
         with pytest.raises(IntegrityError):
-            refund(account, amount="2100.00", budget=budget, nature=InflowNature.SALARY)
+            credit(txn, budget, "0.00")
+
+    def test_the_same_envelope_cannot_be_credited_twice(self, ctx):
+        household, user, budget, account, _ = ctx
+        txn = refund(account, amount="40.00", budget=budget)
+
+        with pytest.raises(IntegrityError):
+            credit(txn, budget, "10.00")
 
 
 @pytest.mark.django_db
@@ -345,8 +386,7 @@ class TestTheDetectorSeesTheSilence:
         self._window(account)
         txn = refund(account, amount="40.00", budget=None, booked_on=date(2026, 3, 10))
 
-        txn.refund_budget = budget
-        txn.save(update_fields=["refund_budget"])
+        credit(txn, budget)
 
         assert self._open_count(household) == 0
 
