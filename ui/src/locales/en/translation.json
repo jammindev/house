@@ -3774,6 +3774,11 @@
           "title": "Refunds crediting no envelope",
           "hint": "This money came back, but no budget takes it: the month's counter stays inflated by that much.",
           "resolution": "Pick the budget credited back from the bank journal, or arbitrate if this refund concerns no envelope."
+        },
+        "refund_partially_allocated": {
+          "title": "Partially credited refunds",
+          "hint": "Part of what came back credits no envelope: those budgets' counters stay inflated by that much.",
+          "resolution": "Complete the split from the queue, or arbitrate if the remainder concerns no envelope."
         }
       },
       "blocked": "Control cannot be evaluated",
@@ -3807,7 +3812,10 @@
       "nothingLeftHint": "Postponed operations will be back on your next visit.",
       "blocked": "Nothing evaluable yet",
       "blockedHint": "A prerequisite blocks the control: {{prerequisite}}. Your operations exist, but no rule can cover them yet.",
-      "blockedAction": "Open the control"
+      "blockedAction": "Open the control",
+      "bulkSelectedInflows": "{{count}} receipts selected",
+      "partialRefund": "{{allocated}} credited, {{remaining}} with no envelope",
+      "completeRefund": "Complete the split"
     },
     "reconciliation": {
       "label": "Reconciliation",

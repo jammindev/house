@@ -3774,6 +3774,11 @@
           "title": "Erstattungen ohne Umschlag",
           "hint": "Dieses Geld kam zurück, aber kein Budget nimmt es auf: der Monatszähler bleibt um diesen Betrag zu hoch.",
           "resolution": "Wählen Sie im Bankjournal das gutgeschriebene Budget, oder entscheiden Sie, dass die Erstattung keinen Umschlag betrifft."
+        },
+        "refund_partially_allocated": {
+          "title": "Teilweise zugeordnete Rückzahlungen",
+          "hint": "Ein Teil des zurückgekommenen Geldes erstattet kein Budget: deren Zähler bleiben um diesen Betrag zu hoch.",
+          "resolution": "Vervollständigen Sie die Aufteilung in der Warteschlange, oder begründen Sie den Rest."
         }
       },
       "blocked": "Kontrolle nicht bewertbar",
@@ -3807,7 +3812,10 @@
       "nothingLeftHint": "Zurückgestellte Buchungen erscheinen beim nächsten Besuch wieder.",
       "blocked": "Noch nichts bewertbar",
       "blockedHint": "Eine Voraussetzung blockiert die Kontrolle: {{prerequisite}}. Ihre Buchungen existieren, aber keine Regel kann sie erfassen.",
-      "blockedAction": "Kontrolle öffnen"
+      "blockedAction": "Kontrolle öffnen",
+      "bulkSelectedInflows": "{{count}} Einnahmen ausgewählt",
+      "partialRefund": "{{allocated}} erstattet, {{remaining}} ohne Budget",
+      "completeRefund": "Aufteilung vervollständigen"
     },
     "reconciliation": {
       "label": "Abgleich",

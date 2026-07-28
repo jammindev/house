@@ -20,7 +20,11 @@ import EmptyState from '@/components/EmptyState';
 import type { ComplianceFinding, ComplianceGroup, ComplianceSeverity } from '@/lib/api/banking';
 import { useComplianceGroup, useComplianceSummary, useRevokeWaiver } from './hooks';
 import { blockingPrerequisite } from './prerequisites';
-import { ACCOUNT_ANCHOR_STALE, ACCOUNT_WITHOUT_WINDOW, PENDING_KINDS } from './keys';
+import {
+  ACCOUNT_ANCHOR_STALE,
+  ACCOUNT_WITHOUT_WINDOW,
+  PENDING_OUTFLOW_KINDS,
+} from './keys';
 import { useBankAccounts } from '@/features/banking/hooks';
 import AccountDialog from '@/features/banking/AccountDialog';
 import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
@@ -378,8 +382,12 @@ function GroupDetail({
                   ? () => onAnchorAccount(finding.object_id)
                   : undefined
               }
+              // ⚠️ `PENDING_OUTFLOW_KINDS`, pas `PENDING_KINDS` : depuis que la
+              // file traite aussi les recettes, ce dernier en contient, et
+              // l'éditeur de ventilation ne sait pas les traiter — il aurait
+              // proposé de ventiler un virement reçu.
               onAllocate={
-                (PENDING_KINDS as readonly string[]).includes(group.kind)
+                (PENDING_OUTFLOW_KINDS as readonly string[]).includes(group.kind)
                   ? () => onAllocate(finding.object_id)
                   : undefined
               }

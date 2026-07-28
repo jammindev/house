@@ -3774,6 +3774,11 @@
           "title": "Remboursements sans enveloppe",
           "hint": "Cet argent est revenu, mais aucun budget ne le récupère : le compteur du mois reste gonflé d'autant.",
           "resolution": "Choisissez le budget recrédité depuis le journal bancaire, ou arbitrez si ce remboursement ne concerne aucune enveloppe."
+        },
+        "refund_partially_allocated": {
+          "title": "Remboursements partiellement attribués",
+          "hint": "Une part de ce qui est revenu ne recrédite aucune enveloppe : les compteurs de ces budgets restent gonflés d'autant.",
+          "resolution": "Complétez la répartition depuis « À ranger », ou arbitrez si le reste ne concerne aucune enveloppe."
         }
       },
       "blocked": "Contrôle non évaluable",
@@ -3807,7 +3812,10 @@
       "nothingLeftHint": "Les opérations reportées reviendront à votre prochaine visite.",
       "blocked": "Rien d'évaluable pour l'instant",
       "blockedHint": "Un prérequis bloque le contrôle : {{prerequisite}}. Tes opérations existent, mais aucune règle ne peut encore porter sur elles.",
-      "blockedAction": "Voir le contrôle"
+      "blockedAction": "Voir le contrôle",
+      "bulkSelectedInflows": "{{count}} recettes sélectionnées",
+      "partialRefund": "{{allocated}} rendus, {{remaining}} sans enveloppe",
+      "completeRefund": "Compléter la répartition"
     },
     "reconciliation": {
       "label": "Rapprochement",

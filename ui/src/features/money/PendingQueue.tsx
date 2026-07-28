@@ -9,9 +9,16 @@ import EmptyState from '@/components/EmptyState';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useBudgets } from '@/features/budget/hooks';
 import AllocationDialog from '@/features/banking/AllocationDialog';
-import { useSetAllocations } from '@/features/banking/hooks';
+import ClassifyInflowDialog from '@/features/banking/ClassifyInflowDialog';
+import { useAllocations, useQualifyTransaction, useSetAllocations } from '@/features/banking/hooks';
 import type { ComplianceFinding } from '@/lib/api/banking';
-import { TRANSACTION_PARTIAL, TRANSACTION_UNALLOCATED } from './keys';
+import {
+  INFLOW_UNCLASSIFIED,
+  REFUND_PARTIALLY_ALLOCATED,
+  REFUND_WITHOUT_BUDGET,
+  TRANSACTION_PARTIAL,
+  TRANSACTION_UNALLOCATED,
+} from './keys';
 import { useComplianceGroup, useComplianceSummary } from './hooks';
 import { householdBlocker } from './prerequisites';
 import PendingCard from './PendingCard';
@@ -24,15 +31,22 @@ export interface PendingRow {
   label: string;
   accountName: string;
   bookedOn: string;
-  outflow: string;
+  /** Magnitude, toujours positive — le sens est porté par `direction`. */
+  amount: string;
   allocated: string;
   remaining: string;
+  /** `in` = une recette à qualifier, `out` = une sortie à ventiler. */
+  direction: 'in' | 'out';
+  /** Sortie à moitié ventilée, ou remboursement à moitié attribué. */
   isPartial: boolean;
   isStale: boolean;
   waiverReason: string;
 }
 
-function toRow(finding: ComplianceFinding, isPartial: boolean): PendingRow {
+function toRow(
+  finding: ComplianceFinding,
+  { direction, isPartial }: { direction: 'in' | 'out'; isPartial: boolean },
+): PendingRow {
   const detail = finding.detail as Record<string, string | undefined>;
   return {
     kind: finding.kind,
@@ -40,9 +54,12 @@ function toRow(finding: ComplianceFinding, isPartial: boolean): PendingRow {
     label: detail.label ?? finding.label,
     accountName: detail.account_name ?? '',
     bookedOn: detail.booked_on ?? '',
-    outflow: detail.outflow ?? '0',
-    allocated: detail.allocated ?? '0',
+    // Les détecteurs de sortie nomment `outflow`, ceux de recette `amount` : la
+    // file n'a pas à connaître cette différence, elle range des lignes.
+    amount: detail.outflow ?? detail.amount ?? '0',
+    allocated: detail.allocated ?? detail.credited ?? '0',
     remaining: detail.remaining ?? '0',
+    direction,
     isPartial,
     isStale: finding.is_stale,
     waiverReason: finding.waiver_reason,
@@ -74,26 +91,62 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
   const { limit, loadMore, maxLimit } = useLoadMore(50);
   const unallocatedQuery = useComplianceGroup(TRANSACTION_UNALLOCATED, { limit });
   const partialQuery = useComplianceGroup(TRANSACTION_PARTIAL, { limit });
+  // Les recettes, dans la même file et au même titre : une recette non classée
+  // est du rangement, exactement comme une sortie non ventilée.
+  const unclassifiedQuery = useComplianceGroup(INFLOW_UNCLASSIFIED, { limit });
+  const refundNoBudgetQuery = useComplianceGroup(REFUND_WITHOUT_BUDGET, { limit });
+  const refundPartialQuery = useComplianceGroup(REFUND_PARTIALLY_ALLOCATED, { limit });
+
+  const inflowQueries = [unclassifiedQuery, refundNoBudgetQuery, refundPartialQuery];
+  const allQueries = [unallocatedQuery, partialQuery, ...inflowQueries];
   const summaryQuery = useComplianceSummary();
   const budgetsQuery = useBudgets();
 
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [postponed, setPostponed] = React.useState<Set<string>>(new Set());
   const [splitting, setSplitting] = React.useState<string | null>(null);
+  const [classifying, setClassifying] = React.useState<string | null>(null);
+  const classifyQuery = useAllocations(classifying ?? undefined);
+  const classifyTarget = classifyQuery.data?.transaction ?? null;
   const [waiving, setWaiving] = React.useState<WaiverTarget | null>(null);
 
-  const isLoading = unallocatedQuery.isLoading || partialQuery.isLoading;
+  const isLoading = allQueries.some((q) => q.isLoading);
   const showSkeleton = useDelayedLoading(isLoading);
 
   const rows = React.useMemo(() => {
-    const unallocated = (unallocatedQuery.data?.results ?? []).map((f) => toRow(f, false));
-    const partial = (partialQuery.data?.results ?? []).map((f) => toRow(f, true));
+    const out = [
+      ...(unallocatedQuery.data?.results ?? []).map((f) =>
+        toRow(f, { direction: 'out', isPartial: false }),
+      ),
+      ...(partialQuery.data?.results ?? []).map((f) =>
+        toRow(f, { direction: 'out', isPartial: true }),
+      ),
+    ];
+    const inn = [
+      ...(unclassifiedQuery.data?.results ?? []).map((f) =>
+        toRow(f, { direction: 'in', isPartial: false }),
+      ),
+      ...(refundNoBudgetQuery.data?.results ?? []).map((f) =>
+        toRow(f, { direction: 'in', isPartial: false }),
+      ),
+      ...(refundPartialQuery.data?.results ?? []).map((f) =>
+        toRow(f, { direction: 'in', isPartial: true }),
+      ),
+    ];
     // Les plus anciennes d'abord : ranger dans l'ordre du relevé est le seul ordre
-    // qui laisse une chance de se souvenir de ce qu'était une ligne.
-    return [...unallocated, ...partial]
+    // qui laisse une chance de se souvenir de ce qu'était une ligne. Recettes et
+    // sorties se mélangent — c'est le relevé, pas deux listes.
+    return [...out, ...inn]
       .filter((row) => !postponed.has(row.transactionId))
       .sort((a, b) => a.bookedOn.localeCompare(b.bookedOn));
-  }, [unallocatedQuery.data, partialQuery.data, postponed]);
+  }, [
+    unallocatedQuery.data,
+    partialQuery.data,
+    unclassifiedQuery.data,
+    refundNoBudgetQuery.data,
+    refundPartialQuery.data,
+    postponed,
+  ]);
 
   // Pastilles, pas options : on garde des `Budget`, mais un groupe n'est pas
   // plus une cible ici qu'ailleurs — le serveur refuserait la ventilation.
@@ -102,8 +155,7 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
     [budgetsQuery.data],
   );
 
-  const totalOpen =
-    (unallocatedQuery.data?.open ?? 0) + (partialQuery.data?.open ?? 0);
+  const totalOpen = allQueries.reduce((sum, q) => sum + (q.data?.open ?? 0), 0);
 
   function toggleSelected(id: string) {
     setSelected((prev) => {
@@ -168,12 +220,22 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
     );
   }
 
-  // Une sélection ne peut porter que sur des lignes entièrement non ventilées :
+  // Une sélection ne peut porter que sur des sorties entièrement non ventilées :
   // imputer en masse une ligne déjà partiellement ventilée écraserait sa
   // ventilation existante (le PUT est un « set »). Les lignes partielles se
   // complètent une par une, dans le dialog.
-  const selectableRows = rows.filter((row) => !row.isPartial);
-  const selectedRows = rows.filter((row) => selected.has(row.transactionId));
+  //
+  // Les **recettes** ont leur propre lot, séparé : leur action groupée n'est pas
+  // un budget mais une nature, et mélanger les deux sélections produirait une
+  // barre d'actions dont la moitié ne s'applique pas à la moitié de la sélection.
+  const selectableRows = rows.filter((row) => !row.isPartial && row.direction === 'out');
+  const selectableInflows = rows.filter((row) => row.direction === 'in');
+  const selectedRows = rows.filter(
+    (row) => selected.has(row.transactionId) && row.direction === 'out',
+  );
+  const selectedInflows = rows.filter(
+    (row) => selected.has(row.transactionId) && row.direction === 'in',
+  );
 
   return (
     <div className="space-y-3">
@@ -181,25 +243,31 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
         <p className="text-sm text-muted-foreground">
           {t('money.pending.count', { count: totalOpen })}
         </p>
-        {selectableRows.length > 0 ? (
+        {selectableRows.length + selectableInflows.length > 0 ? (
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={() =>
               setSelected((prev) =>
-                prev.size === selectableRows.length
+                prev.size === selectableRows.length + selectableInflows.length
                   ? new Set()
-                  : new Set(selectableRows.map((r) => r.transactionId)),
+                  : new Set(
+                      [...selectableRows, ...selectableInflows].map((r) => r.transactionId),
+                    ),
               )
             }
           >
-            {selected.size === selectableRows.length
+            {selected.size === selectableRows.length + selectableInflows.length
               ? t('money.pending.clearSelection')
               : t('money.pending.selectAll')}
           </Button>
         ) : null}
       </div>
+
+      {selectedInflows.length > 0 ? (
+        <InflowBulkBar rows={selectedInflows} onDone={() => setSelected(new Set())} />
+      ) : null}
 
       {selectedRows.length > 0 ? (
         <BulkBar
@@ -223,8 +291,13 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
             row={row}
             budgets={budgets}
             selected={selected.has(row.transactionId)}
-            onToggleSelected={row.isPartial ? undefined : () => toggleSelected(row.transactionId)}
+            onToggleSelected={
+              row.isPartial && row.direction === 'out'
+                ? undefined
+                : () => toggleSelected(row.transactionId)
+            }
             onSplit={() => setSplitting(row.transactionId)}
+            onClassify={() => setClassifying(row.transactionId)}
             onPostpone={() => postpone(row.transactionId)}
             onWaive={() =>
               setWaiving({
@@ -242,13 +315,11 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
           on compte donc ce qui a été chargé, pas ce qui reste affiché, sinon
           reporter trois lignes ferait réapparaître un bouton qui ne charge rien. */}
       <LoadMore
-        shown={
-          (unallocatedQuery.data?.results.length ?? 0) + (partialQuery.data?.results.length ?? 0)
-        }
+        shown={allQueries.reduce((sum, q) => sum + (q.data?.results.length ?? 0), 0)}
         total={totalOpen}
         max={maxLimit}
         onLoadMore={loadMore}
-        isFetching={unallocatedQuery.isFetching || partialQuery.isFetching}
+        isFetching={allQueries.some((q) => q.isFetching)}
         className="flex flex-col items-center gap-1 pt-2"
       />
 
@@ -260,8 +331,70 @@ export default function PendingQueue({ onGoToControl }: PendingQueueProps) {
         />
       ) : null}
 
+      {/* Le dialogue de qualification veut la ligne complète, pas son id : la file
+          ne connaît que des écarts (voir `AllocationDialog`, même contrainte
+          inversée). On la relit par l'endpoint que toute cette famille de
+          dialogues utilise déjà, plutôt que d'inventer un second chemin. */}
+      {classifyTarget ? (
+        <ClassifyInflowDialog
+          open
+          onOpenChange={(next) => !next && setClassifying(null)}
+          transaction={classifyTarget}
+        />
+      ) : null}
+
       <WaiverDialog target={waiving} onClose={() => setWaiving(null)} />
     </div>
+  );
+}
+
+/**
+ * Le lot des recettes : une **nature** pour toute la sélection.
+ *
+ * Quinze virements internes se classent d'un geste — c'est le cas réel après un
+ * import : les allers-retours entre comptes arrivent en paquet. « Remboursement »
+ * n'y figure pas : il demande de désigner des enveloppes et des montants, donc il
+ * se traite ligne à ligne, dans son dialogue.
+ */
+function InflowBulkBar({ rows, onDone }: { rows: PendingRow[]; onDone: () => void }) {
+  const { t } = useTranslation();
+  const [pending, setPending] = React.useState(false);
+  const qualify = useQualifyTransaction();
+
+  async function classifyAll(nature: 'salary' | 'transfer' | 'other') {
+    setPending(true);
+    try {
+      // Séquentiel, comme pour les sorties : quinze lignes ne doivent pas partir
+      // en quinze requêtes concurrentes qui verrouillent chacune leur ligne.
+      for (const row of rows) {
+        await qualify.mutateAsync({ id: row.transactionId, payload: { inflow_nature: nature } });
+      }
+      onDone();
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <Card className="space-y-2 border-primary/40 bg-primary/5 p-3">
+      <p className="text-sm font-medium text-foreground">
+        {t('money.pending.bulkSelectedInflows', { count: rows.length })}
+      </p>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {(['salary', 'transfer', 'other'] as const).map((nature) => (
+          <Button
+            key={nature}
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => classifyAll(nature)}
+          >
+            {t(`banking.inflow.natures.${nature}`)}
+          </Button>
+        ))}
+      </div>
+    </Card>
   );
 }
 
@@ -288,7 +421,7 @@ function BulkBar({
       for (const row of rows) {
         await setAllocationsMutation.mutateAsync({
           transactionId: row.transactionId,
-          lines: [{ subject: row.label, amount: row.outflow, budget_id: budgetId || null }],
+          lines: [{ subject: row.label, amount: row.amount, budget_id: budgetId || null }],
         });
       }
       onDone();
