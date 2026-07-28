@@ -59,3 +59,9 @@ export async function fetchRecap(month: string): Promise<HouseholdRecap> {
   const { data } = await api.get<HouseholdRecap>(`/recap/${month}/`);
   return data;
 }
+
+/** Chapter keys this household can be told — gated by its enabled modules. */
+export async function fetchRecapChapters(): Promise<string[]> {
+  const { data } = await api.get<string[]>('/recap/chapters/');
+  return data ?? [];
+}

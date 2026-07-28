@@ -128,6 +128,30 @@ test.describe('Récap mensuel', () => {
     await expect(page).toHaveURL(/\/app\/recap$/);
   });
 
+  test('le récap frais se trouve sans être cherché, et se ferme', async ({ page }) => {
+    await stubRecap(page);
+    await page.goto('/app/dashboard');
+
+    const teaser = page.getByText(/3 tarjetas|3 cartes te|3 cartes vous attendent/i);
+    await expect(teaser).toBeVisible();
+
+    // Fermer la carte la retire pour ce mois — sans toucher au récap lui-même.
+    await page.getByRole('button', { name: 'Fermer' }).first().click();
+    await expect(teaser).toHaveCount(0);
+
+    await page.goto('/app/recap');
+    await expect(page.getByText(/Voir le récap/i)).toBeVisible();
+  });
+
+  test('les chapitres se coupent depuis la page Récap', async ({ page }) => {
+    await stubRecap(page);
+    await page.goto('/app/recap');
+
+    // `CardTitle` rend un div, pas un heading — d'où le getByText.
+    await expect(page.getByText('Chapitres', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Argent', { exact: true })).toBeChecked();
+  });
+
   test('un mois sans rien à raconter ne prétend pas le contraire', async ({ page }) => {
     // Un mois jamais gelé n'existe pas : la story le dit au lieu d'afficher un vide.
     await page.goto('/app/recap/2019-01');

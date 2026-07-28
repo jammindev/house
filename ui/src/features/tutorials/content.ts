@@ -1,6 +1,6 @@
 import {
-  AlertCircle, Landmark, LayoutDashboard, Newspaper, PiggyBank, Receipt, ShieldCheck,
-  Smartphone, Sparkles, User,
+  AlertCircle, Landmark, LayoutDashboard, Newspaper, PartyPopper, PiggyBank, Receipt,
+  ShieldCheck, Smartphone, Sparkles, User,
   type LucideIcon,
 } from 'lucide-react';
 import { MODULES } from '@/lib/modules';
@@ -63,6 +63,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'dashboard', Icon: LayoutDashboard, to: '/app/dashboard', stepIds: ['overview', 'activity', 'alerts'] },
   { key: 'agent', Icon: Sparkles, to: '/app/agent', stepIds: ['ask', 'citations', 'web', 'context', 'create', 'memory'] },
   { key: 'digest', Icon: Newspaper, to: '/app/digest', stepIds: ['preview', 'enable', 'sections'] },
+  { key: 'recap', Icon: PartyPopper, to: '/app/recap', stepIds: ['what', 'story', 'chapters', 'appointment', 'frozen'] },
   { key: 'install', Icon: Smartphone, to: '/app/settings', stepIds: ['install', 'enable', 'badge'] },
   { key: 'zones', moduleKey: 'zones', to: '/app/zones', stepIds: ['create', 'hierarchy', 'read', 'find', 'order', 'navigate'] },
   { key: 'equipment', moduleKey: 'equipment', to: '/app/equipment', stepIds: ['add', 'purchase', 'history'] },

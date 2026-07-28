@@ -40,6 +40,7 @@ Lecture recommandée pour reprendre un module après pause — pour les bugs et 
 - [agent](./agent.md) — assistant conversationnel (RAG + function calling)
 - [pings](./pings.md) — questions proactives templatées (Telegram)
 - [digest](./digest.md) — résumé quotidien proactif (agrège les signaux du foyer)
+- [recap](./recap.md) — le récap mensuel raconté : le mois du foyer en une story de cartes
 - [telegram](./telegram.md) — canal Telegram entrant/sortant
 - [webpush](./webpush.md) — canal notifications push PWA (Web Push / VAPID)
 

@@ -1733,6 +1733,32 @@
             "body": "Un billet donné au marché ne laisse aucune ligne de relevé. Pour qu'il ne devienne pas une dépense que la banque n'a jamais vue — donc un écart que personne ne peut résoudre — l'app en fait une opération de ton compte « Espèces ». Alimente-le avec tes retraits, et ton argent liquide se suit comme le reste."
           }
         }
+      },
+      "recap": {
+        "title": "Votre récap mensuel",
+        "intro": "Chaque module de House vous demande quelque chose. Voici la seule page qui vous rend quelque chose : une fois par mois, le mois de votre foyer raconté en quelques cartes.",
+        "steps": {
+          "what": {
+            "title": "Ce que c'est",
+            "body": "Le 1er, House clôt le mois écoulé et le raconte : ce que vous avez dépensé, ce que vous avez accompli, ce que la maison a consommé, ce que vous avez photographié. Rien à saisir — tout est construit depuis ce que vous avez déjà enregistré."
+          },
+          "story": {
+            "title": "Se lit comme une story",
+            "body": "Les cartes défilent une par écran : un chiffre, une phrase. Avancez avec les boutons, les pastilles ou les flèches ← → ; Échap pour sortir. Les mois précédents restent dans la liste en dessous — pas besoin de les rejouer."
+          },
+          "chapters": {
+            "title": "Choisir ses chapitres",
+            "body": "Coupez ce que vous préférez ne pas qu'on vous raconte. Couper n'efface jamais : réactivez et les mois passés se relisent en entier. Un chapitre dont le module est désactivé n'apparaît pas du tout."
+          },
+          "appointment": {
+            "title": "Être prévenu quand il est prêt",
+            "body": "Activez le rappel et House vous écrit le 1er avec un lien. C'est désactivé par défaut : si vous recevez déjà le bilan mensuel, vous auriez sinon deux messages ce matin-là."
+          },
+          "frozen": {
+            "title": "Pourquoi les chiffres ne bougent plus",
+            "body": "Un récap est figé à sa première lecture, et jamais recalculé. Corrigez en août une dépense de juin : le récap de juin garde les chiffres qu'il avait — c'est ce qui en fait un souvenir et non une requête."
+          }
+        }
       }
     }
   },
@@ -3862,6 +3888,25 @@
       "goTo": "Aller à la carte {{position}}",
       "unavailable": "Rien à raconter pour ce mois",
       "unavailableDescription": "Ce mois-ci contient trop peu d'éléments pour en faire un récap."
+    },
+    "teaser": {
+      "ready_one": "{{count}} carte vous attend.",
+      "ready_other": "{{count}} cartes vous attendent."
+    },
+    "delivery": {
+      "title": "Le rendez-vous",
+      "linkFirst": "Reliez votre compte Telegram pour recevoir le récap.",
+      "enable": "Me prévenir quand un récap est prêt",
+      "sendAt": "Heure d'envoi",
+      "hint": "Envoyé le 1er, sur le mois qui vient de se clore. Désactivé par défaut : si vous recevez aussi le bilan mensuel, vous auriez deux messages ce matin-là."
+    },
+    "chapters": {
+      "title": "Chapitres",
+      "description": "Coupez ce que vous préférez ne pas qu'on vous raconte. Couper un chapitre ne l'effface jamais — réactivez-le et les mois passés se relisent en entier.",
+      "money": "Argent",
+      "achievements": "Ce que vous avez accompli",
+      "home": "La maison",
+      "memories": "Souvenirs"
     }
   }
 }

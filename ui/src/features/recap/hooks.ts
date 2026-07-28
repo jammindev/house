@@ -1,11 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchLatestRecap, fetchRecap, fetchRecaps } from '@/lib/api/recap';
+import {
+  fetchLatestRecap,
+  fetchRecap,
+  fetchRecapChapters,
+  fetchRecaps,
+} from '@/lib/api/recap';
 
 export const recapKeys = {
   all: ['recap'] as const,
   list: () => [...recapKeys.all, 'list'] as const,
   latest: () => [...recapKeys.all, 'latest'] as const,
   detail: (month: string) => [...recapKeys.all, month] as const,
+  chapters: () => [...recapKeys.all, 'chapters'] as const,
 };
 
 /**
@@ -32,3 +38,15 @@ export function useRecap(month: string | undefined) {
     ...FROZEN,
   });
 }
+
+/** The chapters this household can be told — drives the preference toggles. */
+export function useRecapChapters() {
+  return useQuery({
+    queryKey: recapKeys.chapters(),
+    queryFn: fetchRecapChapters,
+    ...FROZEN,
+  });
+}
+
+/** Delivery config (enable + send time) lives on the shared 'monthly_recap' ping. */
+export const RECAP_PING_TYPE = 'monthly_recap';

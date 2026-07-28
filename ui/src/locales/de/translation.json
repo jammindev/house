@@ -1733,6 +1733,32 @@
             "body": "Ein auf dem Markt übergebener Schein hinterlässt keine Auszugszeile. Damit daraus keine Ausgabe wird, die die Bank nie gesehen hat — eine Abweichung, die niemand lösen kann — erfasst die App sie als Buchung auf Ihrem „Bargeld“-Konto. Füllen Sie es mit Ihren Abhebungen, und Ihr Bargeld wird wie alles andere verfolgt."
           }
         }
+      },
+      "recap": {
+        "title": "Ihr Monatsrückblick",
+        "intro": "Jedes Modul in House verlangt etwas von Ihnen. Dies ist die eine Seite, die etwas zurückgibt: einmal im Monat der Monat Ihres Haushalts, in einigen Karten erzählt.",
+        "steps": {
+          "what": {
+            "title": "Was das ist",
+            "body": "Am 1. schließt House den vergangenen Monat ab und erzählt ihn: was Sie ausgegeben, was Sie geschafft, was das Haus verbraucht und was Sie fotografiert haben. Nichts einzutragen — alles entsteht aus dem, was Sie schon erfasst haben."
+          },
+          "story": {
+            "title": "Liest sich wie eine Story",
+            "body": "Die Karten kommen einzeln: eine Zahl, ein Satz. Weiter mit den Schaltflächen, den Punkten oder den Pfeilen ← → ; Escape zum Verlassen. Frühere Monate bleiben in der Liste darunter — Sie müssen sie nicht erneut abspielen."
+          },
+          "chapters": {
+            "title": "Kapitel auswählen",
+            "body": "Schalten Sie aus, was Sie nicht erzählt bekommen möchten. Ausschalten löscht nie: schalten Sie es wieder ein, und vergangene Monate lesen sich wieder vollständig. Ein Kapitel mit ausgeschaltetem Modul erscheint gar nicht."
+          },
+          "appointment": {
+            "title": "Benachrichtigt werden",
+            "body": "Aktivieren Sie die Erinnerung, und House schreibt Ihnen am 1. mit einem Link. Standardmäßig aus: wenn Sie schon den Monatsbericht erhalten, bekämen Sie sonst zwei Nachrichten an diesem Morgen."
+          },
+          "frozen": {
+            "title": "Warum die Zahlen sich nicht mehr ändern",
+            "body": "Ein Rückblick wird beim ersten Lesen eingefroren und nie neu berechnet. Korrigieren Sie im August eine Ausgabe vom Juni: der Juni-Rückblick behält seine Zahlen — genau das macht ihn zu einer Erinnerung und nicht zu einer Abfrage."
+          }
+        }
       }
     }
   },
@@ -3862,6 +3888,25 @@
       "goTo": "Zu Karte {{position}}",
       "unavailable": "Für diesen Monat gibt es nichts zu erzählen",
       "unavailableDescription": "In diesem Monat ist zu wenig erfasst, um einen Rückblick zu erstellen."
+    },
+    "teaser": {
+      "ready_one": "{{count}} Karte wartet auf Sie.",
+      "ready_other": "{{count}} Karten warten auf Sie."
+    },
+    "delivery": {
+      "title": "Der Termin",
+      "linkFirst": "Verknüpfen Sie Ihr Telegram-Konto, um den Rückblick zu erhalten.",
+      "enable": "Mich benachrichtigen, wenn ein Rückblick fertig ist",
+      "sendAt": "Sendezeit",
+      "hint": "Wird am 1. für den gerade abgeschlossenen Monat gesendet. Standardmäßig aus: wenn Sie auch den Monatsbericht erhalten, bekämen Sie an diesem Morgen zwei Nachrichten."
+    },
+    "chapters": {
+      "title": "Kapitel",
+      "description": "Schalten Sie aus, was Sie nicht erzählt bekommen möchten. Ein stummgeschaltetes Kapitel wird nie gelöscht — schalten Sie es wieder ein, und vergangene Monate lesen sich wieder vollständig.",
+      "money": "Geld",
+      "achievements": "Was Sie geschafft haben",
+      "home": "Das Haus",
+      "memories": "Erinnerungen"
     }
   }
 }

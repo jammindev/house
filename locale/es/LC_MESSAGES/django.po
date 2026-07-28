@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: House Backend 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-28 09:51+0000\n"
+"POT-Creation-Date: 2026-07-28 10:03+0000\n"
 "PO-Revision-Date: 2026-03-08 00:00+0000\n"
 "Last-Translator: House Team\n"
 "Language-Team: Spanish\n"
@@ -81,43 +81,56 @@ msgstr ""
 msgid "Daily-digest section keys the user turned off."
 msgstr ""
 
-#: apps/accounts/models.py:162
+#: apps/accounts/models.py:160
+msgid "Monthly-recap chapter keys the user turned off."
+msgstr "Claves de los capítulos del resumen mensual desactivados por el usuario."
+
+#: apps/accounts/models.py:173
 msgid "user"
 msgstr "usuario"
 
-#: apps/accounts/models.py:163
+#: apps/accounts/models.py:174
 msgid "users"
 msgstr "usuarios"
 
-#: apps/accounts/serializers.py:57 apps/households/serializers.py:49
+#: apps/accounts/serializers.py:58 apps/households/serializers.py:49
 msgid "Expected a list of module keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:61
+#: apps/accounts/serializers.py:62
 #, python-format
 msgid "Module(s) not pinnable: %(keys)s"
 msgstr ""
 
-#: apps/accounts/serializers.py:70
+#: apps/accounts/serializers.py:71
 msgid "Expected a list of tutorial keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:72
+#: apps/accounts/serializers.py:73
 msgid "Tutorial key too long."
 msgstr ""
 
-#: apps/accounts/serializers.py:75
+#: apps/accounts/serializers.py:76
 msgid "Too many tutorial keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:83
+#: apps/accounts/serializers.py:84
 msgid "Expected a list of section keys."
 msgstr ""
 
-#: apps/accounts/serializers.py:89
+#: apps/accounts/serializers.py:90
 #, python-format
 msgid "Unknown digest section(s): %(keys)s"
 msgstr ""
+
+#: apps/accounts/serializers.py:98
+msgid "Expected a list of chapter keys."
+msgstr "Se espera una lista de claves de capítulo."
+
+#: apps/accounts/serializers.py:104
+#, python-format
+msgid "Unknown recap chapter(s): %(keys)s"
+msgstr "Capítulo(s) de resumen desconocido(s): %(keys)s"
 
 #: apps/accounts/templates/accounts/emails/password_reset.html:3
 #, fuzzy
@@ -1625,6 +1638,19 @@ msgstr "resumen del hogar"
 #: apps/recap/models.py:45
 msgid "household recaps"
 msgstr "resúmenes del hogar"
+
+#: apps/recap/ping.py:52
+#, python-format
+msgid "Your recap for %(month)s is ready."
+msgstr "Tu resumen de %(month)s está listo."
+
+#: apps/recap/ping.py:55
+#, python-format
+msgid "%(count)d card is waiting for you:"
+msgid_plural "%(count)d cards are waiting for you:"
+msgstr[0] "%(count)d tarjeta te espera:"
+msgstr[1] "%(count)d tarjetas te esperan:"
+msgstr[2] "%(count)d tarjetas te esperan:"
 
 #: apps/recap/render.py:57
 #, python-format
