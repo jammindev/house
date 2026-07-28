@@ -548,6 +548,33 @@ Tests : `banking/tests/test_refund_allocations.py` (14 cas) et
 `budget/tests/test_refunds.py`, dont les 22 cas de netting tournent inchangés sur
 le nouveau mécanisme — c'est ce qui prouve qu'aucun total n'a bougé.
 
+### Les recettes entrent dans la file — même geste, pastilles différentes
+
+« D'abord les recettes doivent être considérées comme des dépenses, ensuite un
+seul endroit où l'on dispatch. » La file traite désormais **cinq** détecteurs :
+les deux sorties, plus `inflow_unclassified`, `refund_without_budget` et
+`refund_partially_allocated`. Les lignes se mélangent, triées par date — c'est le
+relevé, pas deux listes, et deux écrans obligeaient à se souvenir lequel on avait
+vidé.
+
+⚠️ **Mêmes issues, pastilles différentes.** Ce qu'on demande à une recette n'est
+pas un budget mais une **nature** : salaire, transfert interne, autre se règlent
+d'un clic, et le remboursement ouvre son dialogue parce que lui seul demande de
+désigner des enveloppes *et* des montants. Offrir des pastilles de budget sur une
+recette aurait laissé croire qu'on la ventile comme une dépense — alors qu'elle ne
+consomme rien, elle rend.
+
+- **Actions groupées séparées par sens** : quinze virements internes se classent
+  d'un geste (le cas réel après un import). Une barre commune aurait proposé des
+  actions inapplicables à la moitié de la sélection.
+- `PENDING_KINDS` se scinde en `PENDING_OUTFLOW_KINDS` / `PENDING_INFLOW_KINDS`.
+  Le badge de la coque lit l'union ; **le Contrôle lit les sorties seules**, sans
+  quoi il proposerait « Ventiler » sur un virement reçu — un éditeur qui ne sait
+  pas les traiter.
+- `PendingRow.outflow` devient `amount` (magnitude), le sens porté par
+  `direction` : la file range des lignes, elle n'a pas à connaître la convention
+  de signe des détecteurs (`outflow` pour les uns, `amount` pour les autres).
+
 ### Reste ouvert
 
 Un seul point, et il attend de l'usage plutôt qu'un arbitrage : les **suggestions
