@@ -253,6 +253,11 @@ redémarrage de nginx.
 → `resolver 127.0.0.11` **et** `proxy_pass http://$django` (sur variable). Il faut
 les deux : sans variable, le resolver ne sert à rien.
 
+Le `valid=5s` du resolver **borne** la bascule, il ne la rend pas instantanée : le
+DNS interne de Docker annonce un TTL de 600 s, que nginx respecterait sinon. Après
+une recréation de `web`, nginx peut donc viser l'ancienne IP jusqu'à 5 s — page de
+maintenance à l'appui — puis converge seul, sans reload.
+
 **2. Rien à servir pendant le trou.** Un 502/503/504 remonte désormais
 `nginx/html/maintenance.html` en **503 + `Retry-After`**, et du **JSON** sur
 `/api/` (l'intercepteur axios lit `detail` ; du HTML lui vaudrait une erreur de

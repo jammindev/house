@@ -38,7 +38,9 @@ de la CI, bloquant pour le deploy). Ce que tout changement doit préserver :
   config**, et l'IP est gardée pour la vie du process : chaque recréation du
   conteneur `web` — donc chaque deploy — laissait nginx taper une IP morte. Il faut
   le `resolver 127.0.0.11` **et** le `proxy_pass http://$django` ; l'un sans l'autre
-  ne résout rien.
+  ne résout rien. Le `valid=5s` **borne** la bascule sans la rendre instantanée — le
+  DNS de Docker annonce un TTL de 600 s, que nginx respecterait : c'est cette valeur
+  qui décide combien de temps il peut viser l'IP morte.
 - **Un trou se montre, il ne s'affiche pas en erreur technique.** 502/503/504 →
   `nginx/html/maintenance.html` en 503, et du **JSON** sur `/api/` (l'intercepteur
   axios lit `detail`). La page sonde `/health/` et se recharge seule.

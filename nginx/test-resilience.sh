@@ -51,6 +51,20 @@ body() { fetch "$1" | sed '$d'; }
 
 ip_of() { docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$1"; }
 
+# Attend, à travers nginx, que le corps devienne <attendu>. La bascule n'est PAS
+# instantanée : nginx garde la résolution de `web` pendant le `valid=` du resolver.
+# On chronomètre donc la convergence au lieu de la supposer immédiate — c'est cette
+# borne qui est la propriété intéressante.
+converges_in() { # converges_in <path> <attendu> <timeout_s> -> secondes écoulées, ou "" si jamais
+  local waited=0
+  while [ "$waited" -le "$3" ]; do
+    [ "$(body "$1")" = "$2" ] && { echo "$waited"; return 0; }
+    sleep 1
+    waited=$((waited + 1))
+  done
+  return 1
+}
+
 # Attend que web réponde — interrogé EN DIRECT, pas à travers nginx : sinon un
 # nginx à la résolution figée se lirait « web pas prêt ».
 start_web() { # start_web <nom-conteneur> <marqueur>
@@ -110,8 +124,11 @@ esac
 
 echo "→ 2. web qui démarre est vu sans reload de nginx"
 if start_web "$WEB" FIRST; then
-  got=$(body /probe.txt)
-  [ "$got" = "FIRST" ] && pass "web atteint sans reload" || fail "web injoignable sans reload (corps : $got)"
+  if waited=$(converges_in /probe.txt FIRST 20); then
+    pass "web atteint sans reload (en ${waited}s)"
+  else
+    fail "web injoignable sans reload après 20s (corps : $(body /probe.txt | head -c 80))"
+  fi
 else
   fail "web n'a jamais répondu (problème de harnais, pas de nginx)"
 fi
@@ -125,11 +142,10 @@ if start_web "${WEB}-2" SECOND; then
   new_ip=$(ip_of "${WEB}-2")
   if [ "$old_ip" = "$new_ip" ]; then
     fail "harnais : IP recyclée ($new_ip), le test ne prouverait rien"
+  elif waited=$(converges_in /probe.txt SECOND 20); then
+    pass "nouvelle IP suivie sans reload en ${waited}s ($old_ip → $new_ip)"
   else
-    got=$(body /probe.txt)
-    [ "$got" = "SECOND" ] \
-      && pass "nouvelle IP suivie sans reload ($old_ip → $new_ip)" \
-      || fail "nginx tape encore l'ancienne IP $old_ip (corps : $got)"
+    fail "nginx tape encore l'ancienne IP $old_ip après 20s — resolver perdu ?"
   fi
 else
   fail "le nouveau web n'a jamais répondu (problème de harnais, pas de nginx)"
