@@ -57,6 +57,13 @@ export interface DocumentItem {
   legacy_interaction_subject?: string | null;
   /** Phase of this photo for the entity being filtered on (null when unscoped). */
   phase?: PhotoPhase | '' | null;
+  /**
+   * Date de prise de vue, lue dans l'EXIF à l'upload. `null` = inconnue (capture
+   * d'écran, scan, EXIF strippé) — **jamais** un repli sur `created_at` : le
+   * backend refuse de fabriquer cette donnée, et l'affichage doit donc pouvoir
+   * dire « prise le » plutôt que « ajoutée le ».
+   */
+  taken_at?: string | null;
 }
 
 export interface DocumentDetail extends DocumentItem {
@@ -110,7 +117,11 @@ export async function fetchDocuments(filters: DocumentFilters = {}): Promise<Doc
 }
 
 export async function fetchPhotoDocuments(filters: Omit<DocumentFilters, 'type'> = {}): Promise<DocumentItem[]> {
-  const params: Record<string, string> = { ordering: '-created_at', type: 'photo' };
+  // `effective_date` = COALESCE(taken_at, created_at) côté serveur : une galerie se
+  // range par date de prise de vue, pas par date d'import — une série prise en juin
+  // et importée en juillet apparaissait sous « juillet ». Le repli garde les photos
+  // sans EXIF à une place plausible plutôt que de les reléguer en fin de liste.
+  const params: Record<string, string> = { ordering: '-effective_date', type: 'photo' };
   for (const [key, value] of Object.entries(filters)) {
     if (key === 'type') continue; // forced to 'photo'
     if (value) params[key] = value;

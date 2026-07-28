@@ -57,6 +57,23 @@ class Document(HouseholdScopedModel):
         blank=True,
         help_text="Size, dimensions, processing status, etc."
     )
+
+    # Date de prise de vue, lue dans l'EXIF à l'upload (voir `documents.exif`).
+    #
+    # C'est une **colonne**, pas une clé de `metadata` : la galerie trie et regroupe
+    # dessus, et `metadata` doit rester affiché, jamais requêté ni contraint (même
+    # mouvement que `amount`/`kind`/`supplier` promus sur `Interaction`).
+    #
+    # `NULL` est un état, pas un zéro : une capture d'écran, un scan ou une image
+    # strippée n'ont pas de date de prise. Ne jamais y écrire `created_at` en repli —
+    # ça fabriquerait une donnée fausse indistinguable d'une vraie. Le repli se fait à
+    # la lecture (`COALESCE`), là où on peut encore dire laquelle des deux on affiche.
+    taken_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        db_index=True,
+        help_text="Capture date read from EXIF. NULL = unknown, never a fallback.",
+    )
     
     # Privacy
     is_private = models.BooleanField(

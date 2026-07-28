@@ -41,6 +41,20 @@ avaient divergé. Trois règles en sortent, à ne pas re-perdre :
   l'API : l'onglet par entité lui passe ses photos aplaties par phase, sinon
   « suivant » sautait d'un « Avant » à un « Après » sans raison lisible.
 
+## Galerie — la date qui compte est celle de la prise de vue
+
+La galerie se range par `Document.taken_at` (EXIF), avec repli sur `created_at`. Le tri
+vient du serveur (`ordering=-effective_date`), les en-têtes de mois de
+`grouping.ts::effectiveDate` — **les deux appliquent la même règle**, sinon une photo
+apparaîtrait sous un en-tête « juillet » entre deux photos de juin et la liste
+semblerait mal triée alors que c'est l'étiquette qui mentirait.
+
+La visionneuse dit **« Prise le »** ou **« Ajoutée le »** selon ce qu'elle affiche, et
+mentionne l'import à part quand les deux dates s'écartent de plus d'un jour. Les
+confondre sous un libellé unique présenterait une date d'import comme une date de prise
+de vue. Détail du mécanisme et de ses pièges : section « Date de prise de vue » de
+`docs/MODULES/documents.md`.
+
 ## Galerie — regroupement par mois et filtres
 
 - Le regroupement passe par `grouping.ts::groupPhotosByMonth`, dont la clé est

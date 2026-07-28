@@ -6,6 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.files.storage import default_storage
 from django.db import models as db_models, transaction
 from django.db.models import Prefetch
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from rest_framework import status
 from rest_framework import viewsets, filters
@@ -18,6 +19,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from core.permissions import IsHouseholdMember
 from core.file_validation import validate_upload, ALLOWED_DOCUMENT_TYPES, DOCUMENT_MAX_SIZE
 from .extraction import extract_text
+from .exif import read_taken_at
 from .image_processing import normalize_image
 from .models import Document, DocumentLink
 from .serializers import (
@@ -132,12 +134,24 @@ class DocumentViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['type', 'interaction', 'created_by']
     search_fields = ['name', 'notes', 'ocr_text']
-    ordering_fields = ['created_at', 'name', 'type']
+    ordering_fields = ['created_at', 'name', 'type', 'taken_at', 'effective_date']
     ordering = ['-created_at']
-    
+
     def get_queryset(self):
-        """Filter documents to households where current user is a member."""
-        return get_documents_queryset_for_request(self.request)
+        """Filter documents to households where current user is a member.
+
+        Annote `effective_date` = `COALESCE(taken_at, created_at)` : la date de prise
+        de vue quand on la connaît, celle d'ajout sinon. C'est l'ordre que veut une
+        galerie, et il doit se calculer **en SQL** — trier en Python obligerait à
+        charger tout le foyer pour afficher une page.
+
+        L'annotation ne remplace pas `taken_at` dans le payload : le front doit pouvoir
+        dire « prise le » plutôt que « ajoutée le », donc il lui faut savoir laquelle
+        des deux valeurs a servi.
+        """
+        return get_documents_queryset_for_request(self.request).annotate(
+            effective_date=Coalesce('taken_at', 'created_at'),
+        )
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -242,6 +256,13 @@ class DocumentViewSet(viewsets.ModelViewSet):
                 raise ValidationError({'zone': 'Invalid zone or access denied.'})
 
         original_name = Path(uploaded_file.name).name or 'Document'
+
+        # AVANT `normalize_image`, qui ré-encode sans transmettre l'EXIF et détruit donc
+        # la date de prise de vue — pour tout HEIC/HEIF et pour tout ce qui dépasse
+        # `MAX_DIMENSION`, soit l'essentiel des photos réelles. Inverser ces deux lignes
+        # rendrait `taken_at` vide sans qu'aucun test d'upload ne s'en aperçoive.
+        taken_at = read_taken_at(uploaded_file, household=household)
+
         try:
             normalized_file, final_mime, normalize_info = normalize_image(uploaded_file, detected_mime)
         except Exception as exc:
@@ -281,6 +302,7 @@ class DocumentViewSet(viewsets.ModelViewSet):
                     is_private=serializer.validated_data.get('is_private', False),
                     notes=serializer.validated_data.get('notes', ''),
                     metadata=metadata,
+                    taken_at=taken_at,
                 )
                 if zone is not None:
                     link_document(
