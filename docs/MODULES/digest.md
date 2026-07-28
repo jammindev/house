@@ -9,6 +9,15 @@
 > Sous-package de l'agent : `apps/agent/digest/`. Parcours :
 > `docs/parcours/PARCOURS_19_AGENT_PROACTIF_DIGEST.md`. Socle réutilisé :
 > [pings.md](./pings.md) (scheduler, opt-in, livraison), [agent.md](./agent.md).
+>
+> ⚠️ **Le récap mensuel (parcours 27, `apps/recap/`) reprend ce registre mais pas ce
+> contrat de collecteur.** Un collecteur de digest renvoie des chaînes **déjà
+> traduites** — correct pour un message jetable composé pour un destinataire connu.
+> Un récap est persistant et relu : ses collecteurs renvoient des **données**, la
+> langue arrive au rendu. Ne pas copier un collecteur d'ici vers là sans le convertir
+> (et sans retirer le filtrage par destinataire, qui n'a pas de sens dans un
+> instantané de foyer). Voir
+> [../fiches/SNAPSHOT_ET_RECIT.md](../fiches/SNAPSHOT_ET_RECIT.md).
 
 ## État synthétique
 

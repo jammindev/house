@@ -104,6 +104,11 @@ un modèle dédié. Le rattachement dépense→budget est une **vraie colonne** 
   sont jamais recalculés (l'historique ne bouge pas si un budget/dépense change
   après coup). La prose n'est **pas** stockée : elle est rendue depuis `stats` au
   read-time dans la langue du lecteur.
+> **Ce mécanisme est généralisé par le parcours 27** (récap mensuel du foyer) :
+> `apps/recap/` élargit l'instantané d'argent en récit multi-modules et **lit** ce
+> `BudgetReport` gelé pour son chapitre Argent — il ne resomme jamais les dépenses.
+> Le concept est expliqué dans [../fiches/SNAPSHOT_ET_RECIT.md](../fiches/SNAPSHOT_ET_RECIT.md).
+
 - **Sous-package `apps/budget/report/`** (miroir de `agent/digest/`) :
   - `stats.py::compute_month_stats` — total, par-budget vs plafond, hors budget,
     top 5 dépenses, récurrences payées (`metadata.kind='recurring'`), tendance vs
