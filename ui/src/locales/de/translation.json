@@ -1545,7 +1545,7 @@
           },
           "find": {
             "title": "Ein Dokument wiederfinden",
-            "body": "Suche und Filter nach Typ; auch der KI-Assistent findet sie."
+            "body": "Mit einem Klick nach Typ filtern, nach Typ oder Datum gruppieren, im Dateitext suchen — der KI-Assistent findet sie ebenfalls."
           }
         }
       },
@@ -1918,7 +1918,11 @@
     "filter": {
       "unlinked": "Nur ohne Aktivität anzeigen",
       "unlinkedActive": "Zeige ohne Aktivität",
-      "allTypes": "Alle Typen"
+      "allTypes": "Alle Typen",
+      "reset": "Zurücksetzen",
+      "groupBy": "Gruppieren nach:",
+      "groupBy_type": "Typ",
+      "groupBy_date": "Datum"
     },
     "upload": {
       "title": "Dokument hochladen",
@@ -2026,7 +2030,8 @@
         "task": "Aufgabe",
         "interaction": "Aktivität"
       }
-    }
+    },
+    "noResults_description": "Kein Dokument entspricht Ihrer Suche."
   },
   "equipment": {
     "app_title": "Geräte-Mini-App",

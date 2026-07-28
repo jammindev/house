@@ -1545,7 +1545,7 @@
           },
           "find": {
             "title": "Retrouver un document",
-            "body": "Recherche et filtres par type ; l'assistant IA sait aussi les retrouver."
+            "body": "Filtrez par type d'un clic, groupez par type ou par date, cherchez dans le texte des fichiers — l'assistant IA sait aussi les retrouver."
           }
         }
       },
@@ -1918,7 +1918,11 @@
     "filter": {
       "unlinked": "Afficher seulement sans activité",
       "unlinkedActive": "Affichage sans activité",
-      "allTypes": "Tous les types"
+      "allTypes": "Tous les types",
+      "reset": "Réinitialiser",
+      "groupBy": "Grouper par :",
+      "groupBy_type": "Type",
+      "groupBy_date": "Date"
     },
     "upload": {
       "title": "Téléverser un document",
@@ -2026,7 +2030,8 @@
         "task": "Tâche",
         "interaction": "Activité"
       }
-    }
+    },
+    "noResults_description": "Aucun document ne correspond à votre recherche."
   },
   "equipment": {
     "app_title": "Mini-app Équipements",

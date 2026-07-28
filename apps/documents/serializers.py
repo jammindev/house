@@ -62,6 +62,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     legacy_interaction_subject = serializers.SerializerMethodField()
     phase = serializers.SerializerMethodField()
     zone_links = serializers.SerializerMethodField()
+    entity_links = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
@@ -72,7 +73,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
-            'phase', 'taken_at', 'zone_links',
+            'phase', 'taken_at', 'zone_links', 'entity_links',
         ]
         # `taken_at` est lu dans l'EXIF, jamais saisi : l'exposer en écriture
         # permettrait de le contredire par un PATCH, et le tri de la galerie
@@ -183,6 +184,23 @@ class DocumentSerializer(serializers.ModelSerializer):
             payload.append({'zone_id': str(zone.id), 'zone_name': zone.name})
         return ZoneLinkSummarySerializer(payload, many=True).data
 
+    def get_entity_links(self, obj):
+        """Tout ce à quoi le document est rattaché — **dans la liste**, pas seulement
+        dans le détail.
+
+        Même raison que `zone_links` juste au-dessus : c'est ce champ qui permet à la
+        liste de dire *où vit* un document, et une liste de deux cents fichiers qui
+        n'affiche que des noms de fichiers ne se lit pas. Un tableau vide est une
+        information (rattaché à rien), jamais l'absence de la clé.
+
+        Le coût ne suit pas le nombre de documents : la vue précharge les liens **et**
+        leur `GenericForeignKey` (`prefetched_links` + `entity`), que
+        `entity_links_for_document` réutilise. Régression :
+        `test_document_links.py::test_entity_links_cost_a_bounded_number_of_queries`.
+        """
+        from .services import entity_links_for_document
+        return EntityLinkSummarySerializer(entity_links_for_document(obj), many=True).data
+
     def get_phase(self, obj):
         """Photo phase relative to the entity currently being filtered on.
 
@@ -204,15 +222,14 @@ class DocumentDetailSerializer(DocumentSerializer):
 
     interaction_subject = serializers.SerializerMethodField()
     project_links = serializers.SerializerMethodField()
-    entity_links = serializers.SerializerMethodField()
     recent_interaction_candidates = serializers.SerializerMethodField()
 
     class Meta(DocumentSerializer.Meta):
-        # `zone_links` est hérité : la galerie en a besoin dès la liste.
+        # `zone_links` et `entity_links` sont hérités : la galerie et la liste des
+        # documents en ont besoin dès la liste.
         fields = DocumentSerializer.Meta.fields + [
             'interaction_subject',
             'project_links',
-            'entity_links',
             'recent_interaction_candidates',
         ]
 

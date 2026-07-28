@@ -71,11 +71,17 @@ export interface DocumentItem {
    * information (aucune zone), et le backend l'envoie toujours.
    */
   zone_links: ZoneLinkSummary[];
+  /**
+   * Tout ce à quoi le document est rattaché (projet, équipement, zone, tâche…) —
+   * servi **dès la liste**, comme `zone_links`. C'est ce qui permet à la page
+   * Documents de dire *où vit* un fichier : une liste de deux cents noms de
+   * fichiers ne se lit pas. Tableau vide = rattaché à rien, une information.
+   */
+  entity_links: EntityLinkSummary[];
 }
 
 export interface DocumentDetail extends DocumentItem {
   project_links: ProjectLinkSummary[];
-  entity_links: EntityLinkSummary[];
   recent_interaction_candidates: LinkedInteractionSummary[];
 }
 

@@ -1545,7 +1545,7 @@
           },
           "find": {
             "title": "Find a document again",
-            "body": "Search and filter by type; the AI assistant can find them too."
+            "body": "Filter by type in one click, group by type or date, search inside file text — the AI assistant can find them too."
           }
         }
       },
@@ -1918,7 +1918,11 @@
     "filter": {
       "unlinked": "Show without activity only",
       "unlinkedActive": "Showing without activity",
-      "allTypes": "All types"
+      "allTypes": "All types",
+      "reset": "Reset",
+      "groupBy": "Group by:",
+      "groupBy_type": "Type",
+      "groupBy_date": "Date"
     },
     "upload": {
       "title": "Upload document",
@@ -2026,7 +2030,8 @@
         "task": "Task",
         "interaction": "Activity"
       }
-    }
+    },
+    "noResults_description": "No document matches your search."
   },
   "equipment": {
     "app_title": "Equipment mini-app",
