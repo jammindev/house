@@ -1680,7 +1680,7 @@
           },
           "cash": {
             "title": "Seguir también el efectivo",
-            "body": "Cree una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria: sus retiradas la alimentan, y un gasto en metálico pasa a ser una operación de esa cuenta — por tanto un gasto que el control sabe vincular, como los demás."
+            "body": "Crea una cuenta de tipo «Efectivo» para el dinero en metálico del hogar. Funciona como una cuenta bancaria, y el efectivo entra por dos caminos: «Alimentar el efectivo» en una línea de retirada, y «Entrada de efectivo» en la pestaña Cuentas para lo que viene de otro sitio (un regalo, una venta, la parte de un amigo). Un gasto en efectivo se convierte en una operación de esa cuenta — un gasto que el control sabe conciliar, como los demás. Si solo ingresas una parte de una retirada en la caja, el Control te lo avisa: el resto no pertenecería a nada."
           },
           "openingBalance": {
             "title": "Indicar el saldo inicial",
@@ -3420,7 +3420,8 @@
       "noAccount": "Sin cuenta de efectivo",
       "noAccountHint": "Declare una cuenta «Efectivo» en la pestaña Cuentas: un gasto en metálico pasa entonces a ser una operación de cuenta, como las demás.",
       "createAccount": "Crear mi cuenta de efectivo",
-      "defaultAccountName": "Efectivo"
+      "defaultAccountName": "Efectivo",
+      "deposited": "Entrada de efectivo registrada."
     },
     "withdraw": {
       "title": "Pasar a efectivo",
@@ -3439,7 +3440,10 @@
       "linked": "Retirada reflejada en el efectivo.",
       "unlinked": "Contrapartida en efectivo eliminada.",
       "linkedBadge": "Efectivo",
-      "unlink": "Eliminar la contrapartida"
+      "unlink": "Eliminar la contrapartida",
+      "completeTitle": "Completar el ingreso en caja",
+      "completeHint": "Retirada de {{outflow}}, de la cual {{mirrored}} declarados como entrados en la caja. El resto no pertenece a nada: ni gasto, ni efectivo.",
+      "adjusted": "Parte ingresada en caja corregida."
     },
     "allocation": {
       "title": "Desglosar esta operación",
@@ -3581,6 +3585,14 @@
       "removeSplit": "Eliminar la asignación",
       "removeSplitHint": "Elimina este gasto; la operación bancaria no se toca y vuelve a la cola.",
       "splitRemoved": "Asignación eliminada"
+    },
+    "deposit": {
+      "title": "Entrada de efectivo",
+      "action": "Entrada de efectivo",
+      "labelPlaceholder": "Ej.: regalo, bici vendida, parte de Marie",
+      "amount": "Importe recibido",
+      "date": "Fecha",
+      "natureHint": "Una transferencia interna no se registra aquí: el efectivo procedente de una retirada se declara desde la línea de retirada, con «Alimentar el efectivo»."
     }
   },
   "pwa": {
@@ -3783,6 +3795,11 @@
           "title": "Reembolsos parcialmente asignados",
           "hint": "Una parte de lo devuelto no acredita ningún presupuesto: sus contadores siguen inflados en ese importe.",
           "resolution": "Completa el reparto desde la cola, o justifica el resto si no corresponde a ningún presupuesto."
+        },
+        "cash_mirror_partial": {
+          "title": "Retiradas solo parcialmente ingresadas en caja",
+          "hint": "Parte de la retirada no es ni un gasto ni efectivo declarado: ese dinero no pertenece a nada.",
+          "resolution": "Corrija la parte que entró en la caja, o arbitre si el resto fue a otro sitio (bolsillo propio, otro hogar)."
         }
       },
       "blocked": "Control no evaluable",
@@ -3795,7 +3812,9 @@
       "fix": "Corregir",
       "findBalance": "Encontrar el saldo",
       "anchorDrift": "Saldo leído: {{attested}} · calculado hoy: {{computed}}",
-      "allocate": "Ordenar"
+      "allocate": "Ordenar",
+      "pour": "Corregir el ingreso",
+      "cashMissing": "Retirada de {{outflow}}, {{mirrored}} ingresados en caja — {{missing}} no pertenecen a nada."
     },
     "pending": {
       "count": "{{count}} operación por ordenar",

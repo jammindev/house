@@ -1014,6 +1014,68 @@ qui contredit le solde d'ouverture qu'elle est censée justifier.
 seul « Corriger » a un sens), l'écart `account_anchor_stale`, et le menu de la carte
 de compte.
 
+## Les deux trous restants du liquide (juillet 2026)
+
+### `cash_mirror_partial` — 40 € qui n'appartiennent à rien
+
+Le dernier orphelin silencieux du modèle, et le plus discret : **100 € retirés,
+60 € déclarés entrés dans la caisse**. Rien n'est faux arithmétiquement — le solde
+bancaire est juste, le solde espèces est juste — et 40 € n'appartiennent à rien. La
+ligne de retrait est `is_internal` **en entier**, donc son reste est exclu des
+dépenses par la règle des mouvements internes, et aucune ligne espèces ne le
+réclame.
+
+- **Ses deux voisins sont aveugles à ce cas**, et il faut le savoir avant de
+  proposer de fusionner : `internal_without_counterpart` *voit* une contrepartie et
+  se taît ; `account_cash_negative` ne peut rien dire non plus, puisque
+  sous-déclarer les espèces fait paraître la caisse **plus riche**, jamais négative.
+- **Pur SQL**, donc un `COUNT(*)` honnête pour le badge :
+  `amount + transfer_counterpart__amount < 0` — `amount` est négatif, le miroir
+  positif, leur somme est exactement ce qui manque.
+- **Arbitrable**, contrairement au solde espèces négatif : garder une partie d'un
+  retrait hors du pot commun est un **choix** (« 40 € restés dans ma poche »), pas
+  une impossibilité. Le `fingerprint` porte le **montant manquant**, donc en
+  déclarer davantage périme l'arbitrage.
+- **Hors de la file « À ranger »** (`money/keys.ts`) : ce qui le résout n'est ni une
+  ventilation ni une nature, mais la correction du montant versé. C'est le seul
+  écart d'opération dont le geste vit dans le Contrôle.
+- La résolution est `services.adjust_cash_mirror` (`PATCH
+  /banking/transactions/{id}/cash-mirror/`). Elle n'ajuste que la jambe **qu'on a
+  générée**, reconnue exactement comme `unlink_counterpart` la reconnaît (pas de
+  `source_import`, compte espèces) : le montant d'une ligne importée est un fait du
+  relevé. ⚠️ Le `dedup_hash` est **recalculé** — l'amount y entre, et laisser
+  l'ancien ferait revendiquer à la ligne une identité qu'elle n'a plus, donc un
+  ré-import pourrait déposer une **seconde** ligne pour le même argent.
+
+Avant, corriger un versement partiel demandait de délier puis refaire, ce qui
+détruit et recrée la ligne espèces.
+
+### `record_cash_deposit` — les espèces peuvent venir d'ailleurs
+
+La moitié manquante de l'histoire du liquide : jusque-là les espèces ne pouvaient
+entrer qu'**en miroir d'un retrait**. Un billet donné à un repas de famille, un vélo
+vendu, la part d'un ami payée en pièces n'avaient donc aucune représentation, et le
+seul conseil possible était de gonfler le solde d'ouverture — réécrire l'histoire
+pour enregistrer un fait daté, exactement le mensonge que le module refuse ailleurs.
+
+- `POST /banking/transactions/cash-deposit/`, compte **espèces** obligatoire : une
+  rentrée sur un compte bancaire s'importe, elle ne se saisit pas.
+- **Née classée** : `inflow_nature` est requis, comme la dépense en espèces naît
+  ventilée. Sans ça la rentrée atterrirait dans « À ranger » et l'app fabriquerait
+  son propre travail.
+- **`transfer` est refusé.** Un mouvement interne promet une contrepartie sur un
+  autre compte suivi ; les espèces issues d'un retrait ont déjà leur chemin. En
+  déclarer un à la main laisserait une jambe dont rien ne fournira jamais l'autre
+  moitié — `internal_without_counterpart`, fabriqué par le geste censé combler un
+  trou.
+- Un remboursement en espèces accepte ses `refund_lines` dans le **même** appel,
+  sinon il resterait l'écart `refund_without_budget`.
+- Le `dedup_hash` porte `manual:{uuid4}` : deux billets de 20 € le même jour sont
+  deux rentrées, et seul l'utilisateur sait si c'est une erreur.
+
+Régressions : `banking/tests/test_cash_gap.py` (18 tests, dont l'aveuglement des
+deux détecteurs voisins et la péremption de l'arbitrage).
+
 ## Règle transverse
 - On n'additionne **jamais** un total banque et un total interactions. Le pont est un
   taux de couverture, pas une somme.

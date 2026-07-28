@@ -470,6 +470,55 @@ def record_cash_withdrawal(*, user, transaction, cash_account, amount=None):
     return mirror
 
 
+def adjust_cash_mirror(*, user, transaction, amount) -> "object":
+    """Change **how much** of a withdrawal is declared as entering the cash pot.
+
+    The resolution gesture of ``cash_mirror_partial``. Declaring 60 € of a 100 €
+    withdrawal was possible from the start; correcting it to 100 € was not — the
+    only way out was to unlink and redo, which destroys and recreates the cash line
+    (and with it, anything already spent against that line's balance history).
+
+    Only the leg **we** generated is adjustable, recognised exactly as
+    ``unlink_counterpart`` recognises it: no ``source_import`` and living on a cash
+    account. An imported line's amount is a fact from a statement and is never
+    rewritten here.
+
+    ⚠️ ``dedup_hash`` embeds the amount, so it is recomputed. Leaving the old hash
+    would make the row claim an identity it no longer has — and a re-import could
+    then land a *second* line for the same money.
+    """
+    from .models import BankAccount
+
+    mirror = transaction.transfer_counterpart
+    if mirror is None:
+        raise ValidationError({"transaction": "This operation has no cash counterpart."})
+    if mirror.source_import_id is not None or mirror.account.kind != BankAccount.Kind.CASH:
+        raise ValidationError(
+            {"transaction": "Only a generated cash counterpart can be adjusted."}
+        )
+
+    value = abs(Decimal(str(amount)))
+    if value <= 0:
+        raise ValidationError({"amount": "Amount must be positive."})
+    if value > transaction.outflow:
+        raise ValidationError({"amount": "Amount cannot exceed the withdrawal."})
+
+    with atomic():
+        mirror.amount = value
+        mirror.dedup_hash = compute_dedup_hash(
+            account_id=mirror.account_id,
+            booked_on=mirror.booked_on,
+            label_norm=mirror.label_norm,
+            amount=value,
+            currency=mirror.currency,
+            discriminant=f"cash-of:{transaction.id}",
+        )
+        mirror.updated_by = user
+        mirror.save(update_fields=["amount", "dedup_hash", "updated_by", "updated_at"])
+
+    return mirror
+
+
 def unlink_counterpart(*, user, transaction) -> None:
     """Undo a cash counterpart.
 
@@ -959,3 +1008,78 @@ def record_cash_expense(
         )
 
     return transaction_row, allocations
+
+
+def record_cash_deposit(
+    *,
+    household,
+    user,
+    account,
+    booked_on,
+    label: str,
+    amount: Decimal,
+    inflow_nature: str,
+    refund_lines: list[dict] | None = None,
+    notes: str = "",
+):
+    """Cash that came in from outside the tracked world.
+
+    The missing half of the cash story. ``record_cash_withdrawal`` covers money
+    that *left a bank account*, and it is the only way cash could ever enter — so
+    a note handed over at a family lunch, a bike sold for cash, a flatmate paying
+    their share in coins had **no representation at all**. The advice one could
+    give was to inflate the opening balance, which rewrites history to record a
+    dated fact: exactly the kind of lie the module refuses elsewhere.
+
+    Born classified, like ``record_cash_expense`` is born allocated: an
+    ``inflow_nature`` is **required**, so the line never lands in the queue as
+    ``inflow_unclassified``. The app does not create its own work.
+
+    ``transfer`` is refused here on purpose. An internal movement promises a
+    counterpart on another tracked account; cash arriving from a withdrawal already
+    has its own path (``record_cash_withdrawal``), and declaring one by hand would
+    leave an internal leg whose other half nothing will ever supply — the écart
+    ``internal_without_counterpart``, manufactured by the very gesture meant to
+    resolve a gap.
+    """
+    from .models import BankAccount, InflowNature
+
+    if account.kind != BankAccount.Kind.CASH:
+        raise ValidationError({"account": "Target account must be a cash account."})
+
+    nature = (inflow_nature or "").strip()
+    allowed = {c for c in InflowNature.values if c and c != InflowNature.TRANSFER}
+    if nature not in allowed:
+        raise ValidationError(
+            {"inflow_nature": f"Pick one of: {', '.join(sorted(allowed))}."}
+        )
+
+    value = abs(Decimal(str(amount)))
+    if value <= 0:
+        raise ValidationError({"amount": "Amount must be positive."})
+
+    with atomic():
+        transaction_row = create_manual_transaction(
+            household=household,
+            user=user,
+            account=account,
+            booked_on=booked_on,
+            label=label,
+            amount=value,
+            notes=notes,
+        )
+        transaction_row.inflow_nature = nature
+        transaction_row.updated_by = user
+        transaction_row.save(update_fields=["inflow_nature", "updated_by", "updated_at"])
+
+        # Un remboursement en espèces recrédite une enveloppe comme n'importe quel
+        # autre : sans ses parts, il resterait l'écart `refund_without_budget`.
+        if nature == InflowNature.REFUND and refund_lines:
+            set_refund_allocations(
+                household=household,
+                user=user,
+                transaction=transaction_row,
+                lines=refund_lines,
+            )
+
+    return transaction_row

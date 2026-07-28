@@ -45,6 +45,13 @@ export const ACCOUNT_ANCHOR_STALE = 'account_anchor_stale';
 export const INFLOW_UNCLASSIFIED = 'inflow_unclassified';
 export const REFUND_WITHOUT_BUDGET = 'refund_without_budget';
 export const REFUND_PARTIALLY_ALLOCATED = 'refund_partially_allocated';
+/**
+ * Retrait dont une partie seulement a été déclarée entrée en caisse. **Hors de la
+ * file** : ce qui le résout n'est ni une ventilation ni une nature, mais la
+ * correction du montant versé — le seul écart d'opération dont le geste vit dans
+ * le Contrôle.
+ */
+export const CASH_MIRROR_PARTIAL = 'cash_mirror_partial';
 
 /** Ce qui est sorti et que personne n'a affecté — pastilles de budget. */
 export const PENDING_OUTFLOW_KINDS = [TRANSACTION_UNALLOCATED, TRANSACTION_PARTIAL] as const;

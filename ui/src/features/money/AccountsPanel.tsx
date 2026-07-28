@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Landmark, Plus, Receipt } from 'lucide-react';
+import { Banknote, Landmark, Plus, Receipt } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import EmptyState from '@/components/EmptyState';
@@ -21,6 +21,7 @@ import BalanceAnchorDialog from '@/features/banking/BalanceAnchorDialog';
 import AccountDialog from '@/features/banking/AccountDialog';
 import ImportHistoryCard from '@/features/banking/ImportHistoryCard';
 import StatementImportDialog from '@/features/banking/StatementImportDialog';
+import CashDepositDialog from './CashDepositDialog';
 
 /**
  * Onglet « Comptes » du module Argent (parcours 26, lot 2).
@@ -44,6 +45,7 @@ export default function AccountsPanel() {
   const [editing, setEditing] = React.useState<BankAccount | undefined>(undefined);
   const [importing, setImporting] = React.useState<BankAccount | null>(null);
   const [anchoring, setAnchoring] = React.useState<BankAccount | null>(null);
+  const [depositOpen, setDepositOpen] = React.useState(false);
   const [pendingArchive, setPendingArchive] = React.useState<Set<string>>(new Set());
 
   const { deleteWithUndo } = useDeleteWithUndo({
@@ -97,6 +99,13 @@ export default function AccountsPanel() {
             <Receipt className="mr-1.5 h-4 w-4" aria-hidden />
             {t('banking.journal.title')}
           </Link>
+          {/* Une rentrée d'espèces se saisit ici et pas dans l'onglet Dépenses :
+              ce n'est pas une dépense, c'est de l'argent qui arrive dans une
+              caisse — donc un geste de compte. */}
+          <Button variant="outline" onClick={() => setDepositOpen(true)}>
+            <Banknote className="mr-1.5 h-4 w-4" aria-hidden />
+            {t('banking.deposit.action')}
+          </Button>
           <Button onClick={openCreate}>
             <Plus className="mr-1.5 h-4 w-4" aria-hidden />
             {t('banking.new.action')}
@@ -140,6 +149,8 @@ export default function AccountsPanel() {
       ) : null}
 
       <AccountDialog open={dialogOpen} onOpenChange={setDialogOpen} existing={editing} />
+
+      <CashDepositDialog open={depositOpen} onOpenChange={setDepositOpen} />
 
       {importing ? (
         <StatementImportDialog
