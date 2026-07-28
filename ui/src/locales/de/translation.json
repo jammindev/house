@@ -3842,5 +3842,26 @@
       "deleteConfirm": "Diese Ausgabe löschen? Sie verschwindet aus dem Journal und aus den Budgetsummen.",
       "deleteSplitConfirm": "Diese Ausgabe löschen? Die Kontobewegung bleibt unberührt: ihr Betrag wandert zurück in die Warteschlange."
     }
+  },
+  "recap": {
+    "title": "Rückblick",
+    "description": "Der Monat Ihres Haushalts, in wenigen Karten erzählt.",
+    "empty": "Noch kein Rückblick",
+    "emptyDescription": "Ihr erster Rückblick kommt am 1., sobald ein Monat abgeschlossen ist.",
+    "history": "Frühere Monate",
+    "open": "Rückblick ansehen",
+    "cardCount_one": "{{count}} Karte",
+    "cardCount_other": "{{count}} Karten",
+    "backToHistory": "Zurück zu den Rückblicken",
+    "story": {
+      "previous": "Zurück",
+      "next": "Weiter",
+      "done": "Fertig",
+      "cardRole": "Rückblick-Karte",
+      "position": "Karte {{current}} von {{total}}",
+      "goTo": "Zu Karte {{position}}",
+      "unavailable": "Für diesen Monat gibt es nichts zu erzählen",
+      "unavailableDescription": "In diesem Monat ist zu wenig erfasst, um einen Rückblick zu erstellen."
+    }
   }
 }

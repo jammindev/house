@@ -46,6 +46,8 @@ const AIUsagePage = lazyWithReload(() => import('./features/ai-usage/AIUsagePage
 const AgentPage = lazyWithReload(() => import('./features/agent/AgentPage'));
 const MemoryPage = lazyWithReload(() => import('./features/agent/MemoryPage'));
 const DigestPage = lazyWithReload(() => import('./features/digest/DigestPage'));
+const RecapHistoryPage = lazyWithReload(() => import('./features/recap/RecapHistoryPage'));
+const RecapStoryPage = lazyWithReload(() => import('./features/recap/RecapStoryPage'));
 const BriefingsPage = lazyWithReload(() => import('./features/briefings/BriefingsPage'));
 const MoneyPage = lazyWithReload(() => import('./features/money/MoneyPage'));
 const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPage'));
@@ -139,6 +141,8 @@ export const router = createBrowserRouter([
       { path: 'agent', element: <AgentPage /> },
       { path: 'agent/memory', element: <MemoryPage /> },
       { path: 'digest', element: <DigestPage /> },
+      { path: 'recap', element: <RecapHistoryPage /> },
+      { path: 'recap/:month', element: <RecapStoryPage /> },
       { path: 'briefings', element: <BriefingsPage /> },
       { path: 'admin/users', element: <AdminUsersPage /> },
       { path: 'admin/ai-usage', element: <AIUsagePage /> },

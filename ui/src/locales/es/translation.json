@@ -3842,5 +3842,26 @@
       "deleteConfirm": "¿Eliminar este gasto? Desaparecerá del diario y de los totales de presupuesto.",
       "deleteSplitConfirm": "¿Eliminar este gasto? La operación bancaria no se toca: su importe vuelve a la cola."
     }
+  },
+  "recap": {
+    "title": "Resumen",
+    "description": "El mes de tu hogar, contado en unas pocas tarjetas.",
+    "empty": "Aún no hay resumen",
+    "emptyDescription": "Tu primer resumen llegará el día 1, una vez cerrado un mes.",
+    "history": "Meses anteriores",
+    "open": "Ver el resumen",
+    "cardCount_one": "{{count}} tarjeta",
+    "cardCount_other": "{{count}} tarjetas",
+    "backToHistory": "Volver a los resúmenes",
+    "story": {
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "done": "Terminado",
+      "cardRole": "tarjeta de resumen",
+      "position": "Tarjeta {{current}} de {{total}}",
+      "goTo": "Ir a la tarjeta {{position}}",
+      "unavailable": "Nada que contar de este mes",
+      "unavailableDescription": "Este mes tiene muy pocos datos para hacer un resumen."
+    }
   }
 }
