@@ -1733,6 +1733,32 @@
             "body": "Un billete entregado en el mercado no deja ninguna línea de extracto. Para que no se convierta en un gasto que el banco nunca vio — una discrepancia que nadie puede resolver — la app lo registra como una operación de su cuenta «Efectivo». Aliméntela con sus retiradas, y su dinero en metálico se sigue como el resto."
           }
         }
+      },
+      "recap": {
+        "title": "Tu resumen mensual",
+        "intro": "Cada módulo de House te pide algo. Esta es la única página que te devuelve algo: una vez al mes, el mes de tu hogar contado en unas pocas tarjetas.",
+        "steps": {
+          "what": {
+            "title": "Qué es",
+            "body": "El día 1, House cierra el mes pasado y lo cuenta: lo que gastaste, lo que lograste, lo que consumió la casa, lo que fotografiaste. Nada que rellenar — todo se construye con lo que ya registraste."
+          },
+          "story": {
+            "title": "Se lee como una story",
+            "body": "Las tarjetas van de una en una: una cifra, una frase. Avanza con los botones, los puntos o las flechas ← → ; Escape para salir. Los meses anteriores quedan en la lista de abajo — no hace falta repetirlos."
+          },
+          "chapters": {
+            "title": "Elegir tus capítulos",
+            "body": "Desactiva lo que prefieras que no te cuenten. Silenciar nunca borra: vuelve a activarlo y los meses pasados se leen completos. Un capítulo cuyo módulo está desactivado no aparece en absoluto."
+          },
+          "appointment": {
+            "title": "Que te avisen cuando esté listo",
+            "body": "Activa el aviso y House te escribe el día 1 con un enlace. Está desactivado por defecto: si ya recibes el balance mensual, tendrías dos mensajes esa mañana."
+          },
+          "frozen": {
+            "title": "Por qué las cifras ya no cambian",
+            "body": "Un resumen se congela la primera vez que se lee, y nunca se recalcula. Corrige en agosto un gasto de junio: el resumen de junio conserva sus cifras — eso es lo que lo convierte en un recuerdo y no en una consulta."
+          }
+        }
       }
     }
   },
@@ -3862,6 +3888,25 @@
       "goTo": "Ir a la tarjeta {{position}}",
       "unavailable": "Nada que contar de este mes",
       "unavailableDescription": "Este mes tiene muy pocos datos para hacer un resumen."
+    },
+    "teaser": {
+      "ready_one": "{{count}} tarjeta te espera.",
+      "ready_other": "{{count}} tarjetas te esperan."
+    },
+    "delivery": {
+      "title": "La cita",
+      "linkFirst": "Vincula tu cuenta de Telegram para recibir el resumen.",
+      "enable": "Avisarme cuando haya un resumen listo",
+      "sendAt": "Hora de envío",
+      "hint": "Se envía el día 1, sobre el mes que acaba de cerrarse. Desactivado por defecto: si también recibes el balance mensual, tendrías dos mensajes esa mañana."
+    },
+    "chapters": {
+      "title": "Capítulos",
+      "description": "Desactiva lo que prefieras que no te cuenten. Silenciar un capítulo nunca lo borra — vuelve a activarlo y los meses pasados se leen completos otra vez.",
+      "money": "Dinero",
+      "achievements": "Lo que habéis logrado",
+      "home": "La casa",
+      "memories": "Recuerdos"
     }
   }
 }

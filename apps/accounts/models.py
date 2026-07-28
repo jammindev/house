@@ -149,6 +149,17 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("Daily-digest section keys the user turned off."),
     )
 
+    # Recap chapters the user turned OFF (keys from recap.chapters). Same shape and
+    # same reasoning as the digest above: storing the *disabled* list means a newly
+    # shipped chapter is active by default. This is a **read** preference — a muted
+    # chapter disappears from the rendering but stays in the frozen snapshot, so
+    # turning it back on restores months already told.
+    recap_disabled_chapters = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("Monthly-recap chapter keys the user turned off."),
+    )
+
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)

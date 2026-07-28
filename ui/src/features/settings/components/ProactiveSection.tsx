@@ -21,7 +21,9 @@ export function ProactiveSection() {
   // The daily digest has its own dedicated page (/app/digest) where it is
   // configured alongside its sections + preview — keep it out of this generic
   // per-ping list to avoid two places editing the same opt-in.
-  const rows = pings?.filter((p) => p.ping_type !== 'daily_digest') ?? [];
+  // Le digest et le récap sont configurés sur leur page dédiée : les relister ici
+  // donnerait deux interrupteurs pour le même rendez-vous.
+  const rows = pings?.filter((p) => !['daily_digest', 'monthly_recap'].includes(p.ping_type)) ?? [];
 
   if (!status?.enabled || rows.length === 0) return null;
 

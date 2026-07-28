@@ -1733,6 +1733,32 @@
             "body": "A note handed over at the market leaves no statement line. So that it does not become an expense the bank never saw — a discrepancy nobody can resolve — the app records it as an operation on your “Cash” account. Feed it with your withdrawals, and your physical money is tracked like the rest."
           }
         }
+      },
+      "recap": {
+        "title": "Your monthly recap",
+        "intro": "Every module in House asks you for something. This is the one page that gives something back: once a month, your household's month told in a handful of cards.",
+        "steps": {
+          "what": {
+            "title": "What it is",
+            "body": "On the 1st, House closes the month just gone and tells it: what you spent, what you got done, what the house consumed, what you photographed. Nothing to fill in — it is built from what you already recorded."
+          },
+          "story": {
+            "title": "Read it like a story",
+            "body": "Cards come one screen at a time: one figure, one sentence. Move with the buttons, the dots, or the ← → arrows; press Escape to leave. Earlier months stay in the list below — no need to replay them."
+          },
+          "chapters": {
+            "title": "Choose your chapters",
+            "body": "Turn off any chapter you would rather not be told about. Muting never erases: turn it back on and past months read in full again. Chapters whose module is off never appear at all."
+          },
+          "appointment": {
+            "title": "Get told when it's ready",
+            "body": "Enable the reminder and House messages you on the 1st with a link. It is off by default: if you already receive the monthly budget report, you would otherwise get two messages that morning."
+          },
+          "frozen": {
+            "title": "Why the figures never move",
+            "body": "A recap is frozen the first time it is read, and never recomputed. Correct an expense from June in August and June's recap keeps the figures it had — that is what makes it a memory rather than a query."
+          }
+        }
       }
     }
   },
@@ -3862,6 +3888,25 @@
       "goTo": "Go to card {{position}}",
       "unavailable": "Nothing to tell for this month",
       "unavailableDescription": "This month has too little recorded to make a recap."
+    },
+    "teaser": {
+      "ready_one": "{{count}} card is waiting for you.",
+      "ready_other": "{{count}} cards are waiting for you."
+    },
+    "delivery": {
+      "title": "The appointment",
+      "linkFirst": "Link your Telegram account to get the recap.",
+      "enable": "Tell me when a recap is ready",
+      "sendAt": "Send time",
+      "hint": "Sent on the 1st, on the month that just closed. Off by default: if you also get the monthly budget report, you would receive two messages that morning."
+    },
+    "chapters": {
+      "title": "Chapters",
+      "description": "Turn off what you would rather not be told. Muting a chapter never erases it — turn it back on and past months read in full again.",
+      "money": "Money",
+      "achievements": "What you got done",
+      "home": "The house",
+      "memories": "Memories"
     }
   }
 }

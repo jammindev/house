@@ -32,6 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
             "pinned_modules",
             "completed_tutorials",
             "digest_disabled_sections",
+            "recap_disabled_chapters",
             "agent_memory_enabled",
             "agent_web_search_available",
             "full_name",
@@ -87,6 +88,20 @@ class UserSerializer(serializers.ModelSerializer):
         if unknown:
             raise serializers.ValidationError(
                 _("Unknown digest section(s): %(keys)s") % {'keys': ', '.join(sorted(unknown))}
+            )
+        return list(dict.fromkeys(value))
+
+    def validate_recap_disabled_chapters(self, value):
+        # Chapter keys live in recap.chapters — validate against them so a typo
+        # can't silently mute nothing. Lazy import, same reason as above.
+        if not isinstance(value, list) or not all(isinstance(k, str) for k in value):
+            raise serializers.ValidationError(_("Expected a list of chapter keys."))
+        from recap.chapters import CHAPTER_KEYS
+
+        unknown = [k for k in value if k not in CHAPTER_KEYS]
+        if unknown:
+            raise serializers.ValidationError(
+                _("Unknown recap chapter(s): %(keys)s") % {'keys': ', '.join(sorted(unknown))}
             )
         return list(dict.fromkeys(value))
 

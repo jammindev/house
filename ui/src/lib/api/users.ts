@@ -16,6 +16,8 @@ export interface UserProfile {
   completed_tutorials: string[];
   /** Daily-digest section keys the user turned off (agent.digest sections). */
   digest_disabled_sections: string[];
+  /** Recap chapters the user muted — a read preference, the snapshot is untouched. */
+  recap_disabled_chapters: string[];
   agent_memory_enabled: boolean;
   /** Instance capability: true only when the deployment enabled agent web search
    * (implies a Sonnet 4.6+ model). Gates the per-conversation web-search toggle. */
@@ -56,6 +58,7 @@ export interface UpdateProfileInput {
   pinned_modules?: string[];
   completed_tutorials?: string[];
   digest_disabled_sections?: string[];
+  recap_disabled_chapters?: string[];
   agent_memory_enabled?: boolean;
 }
 

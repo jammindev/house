@@ -72,6 +72,10 @@ export type PatchedUser = {
      */
     digest_disabled_sections?: any;
     /**
+     * Monthly-recap chapter keys the user turned off.
+     */
+    recap_disabled_chapters?: any;
+    /**
      * When enabled, the AI agent automatically remembers durable facts about the user from conversations and uses them in its answers. When disabled, memories are neither captured automatically nor injected; explicit 'remember that…' requests still work.
      */
     agent_memory_enabled?: boolean;

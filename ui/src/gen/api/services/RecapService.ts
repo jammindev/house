@@ -36,6 +36,22 @@ export class RecapService {
         });
     }
     /**
+     * GET /api/recap/chapters/ — the chapter keys this household can be told.
+     *
+     * Served rather than hardcoded in the client for two reasons: a front-side list
+     * would silently drift from ``CHAPTER_SPECS``, and the gating belongs here — a
+     * household with the photos module off must not be offered a « Souvenirs »
+     * toggle for a chapter it will never receive.
+     * @returns HouseholdRecap
+     * @throws ApiError
+     */
+    public static recapChaptersRetrieve(): CancelablePromise<HouseholdRecap> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/recap/chapters/',
+        });
+    }
+    /**
      * GET /api/recap/latest/ — ensure + return the last closed month's recap.
      *
      * Returns 204 when the month has too little to tell (``RECAP_MIN_CARDS``): the

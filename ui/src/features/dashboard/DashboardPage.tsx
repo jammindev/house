@@ -1,4 +1,5 @@
 import HeroGreeting from './HeroGreeting';
+import RecapTeaserCard from './RecapTeaserCard';
 import QuickActions from './QuickActions';
 import TriageSection from './TriageSection';
 import MyWeekCard from './MyWeekCard';
@@ -23,6 +24,10 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <HeroGreeting />
+      {/* Le récap frais passe devant tout : c'est le seul bloc du dashboard qui
+          ne demande rien et rend quelque chose. Il ne rend rien s'il n'y a pas de
+          récap à annoncer. */}
+      <RecapTeaserCard />
       <QuickActions />
 
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
