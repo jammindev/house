@@ -1556,6 +1556,10 @@
           "add": {
             "title": "Añadir fotos",
             "body": "Sube fotos como cualquier documento de tipo imagen. Desde un proyecto, un equipo o una zona, la pestaña Fotos las clasifica en Antes / Durante / Después y sabe compararlas."
+          },
+          "file": {
+            "title": "Clasificar una foto en una zona",
+            "body": "La etiqueta «Sin zona» señala una foto que no está clasificada en ninguna parte, y el filtro del mismo nombre las reúne. Asígnale una zona sin salir de la galería: desde el menú ⋯ de la miniatura o en el bloque Zonas de la foto abierta."
           }
         }
       },
@@ -1804,9 +1808,18 @@
     "filter": {
       "zone": "Zona",
       "allZones": "Todas las zonas",
+      "withoutZone": "Sin zona",
       "reset": "Restablecer"
     },
-    "takenOn": "Tomada el {{date}}"
+    "takenOn": "Tomada el {{date}}",
+    "withoutZone": "Sin zona",
+    "zones": {
+      "label": "Zonas",
+      "placeholder": "Elige una o varias zonas…",
+      "title": "Clasificar la foto",
+      "assign": "Asignar una zona",
+      "saved": "Zonas guardadas."
+    }
   },
   "directory": {
     "title": "Directorio",

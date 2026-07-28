@@ -1,11 +1,13 @@
 import * as React from 'react';
-import { Camera, SearchX, Upload } from 'lucide-react';
+import { Camera, MapPin, MapPinOff, SearchX, Trash2, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import ListPage from '@/components/ListPage';
 import EmptyState from '@/components/EmptyState';
 import LoadError from '@/components/LoadError';
+import CardActions, { type CardAction } from '@/components/CardActions';
 import { Button } from '@/design-system/button';
+import { FilterPill } from '@/design-system/filter-pill';
 import { Input } from '@/design-system/input';
 import { Label } from '@/design-system/label';
 import ZonePicker from '@/features/zones/ZonePicker';
@@ -19,6 +21,8 @@ import type { DocumentItem } from '@/lib/api/documents';
 import { usePhotos, useDeletePhoto, photoKeys } from './hooks';
 import PhotoGrid, { PhotoGridSkeleton } from './PhotoGrid';
 import PhotoLightbox from './PhotoLightbox';
+import PhotoZonesEditor from './PhotoZonesEditor';
+import PhotoZonesDialog from './PhotoZonesDialog';
 import { groupPhotosByMonth } from './grouping';
 
 export default function PhotosPage() {
@@ -27,19 +31,22 @@ export default function PhotosPage() {
 
   const [search, setSearch] = React.useState('');
   const [zone, setZone] = useSessionState<string>('photos.zone', '');
+  const [withoutZone, setWithoutZone] = useSessionState<boolean>('photos.withoutZone', false);
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = React.useState(false);
+  const [zonesFor, setZonesFor] = React.useState<DocumentItem | null>(null);
 
   // Une frappe ne vaut pas une requête : la recherche partait à chaque caractère.
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
-  const hasFilters = debouncedSearch !== '' || zone !== '';
+  const hasFilters = debouncedSearch !== '' || zone !== '' || withoutZone;
 
   const filters = React.useMemo(
     () => ({
       ...(debouncedSearch ? { search: debouncedSearch } : {}),
       ...(zone ? { zone } : {}),
+      ...(withoutZone ? { without_zone: '1' } : {}),
     }),
-    [debouncedSearch, zone],
+    [debouncedSearch, zone, withoutZone],
   );
 
   const { data: photos = [], isLoading, error } = usePhotos(filters);
@@ -67,7 +74,44 @@ export default function PhotosPage() {
   const resetFilters = React.useCallback(() => {
     setSearch('');
     setZone('');
-  }, [setZone]);
+    setWithoutZone(false);
+  }, [setZone, setWithoutZone]);
+
+  // « Dans le salon » et « dans aucune zone » ne peuvent pas être vrais ensemble :
+  // les cumuler ne rendrait jamais qu'une liste vide, sans dire pourquoi.
+  const toggleWithoutZone = React.useCallback(() => {
+    const next = !withoutZone;
+    setWithoutZone(next);
+    if (next) setZone('');
+  }, [withoutZone, setWithoutZone, setZone]);
+
+  const handleZoneFilterChange = React.useCallback(
+    (id: string | null) => {
+      setZone(id ?? '');
+      if (id) setWithoutZone(false);
+    },
+    [setZone, setWithoutZone],
+  );
+
+  const renderActions = React.useCallback(
+    (photo: DocumentItem) => {
+      const actions: CardAction[] = [
+        {
+          label: t('photos.zones.assign'),
+          icon: MapPin,
+          onClick: () => setZonesFor(photo),
+        },
+        {
+          label: t('common.delete'),
+          icon: Trash2,
+          onClick: () => handleDelete(photo),
+          variant: 'danger',
+        },
+      ];
+      return <CardActions actions={actions} />;
+    },
+    [t, handleDelete],
+  );
 
   const groups = React.useMemo(() => groupPhotosByMonth(photos), [photos]);
   const showSkeleton = useDelayedLoading(isLoading);
@@ -113,16 +157,22 @@ export default function PhotosPage() {
             <ZonePicker
               id="photos-zone"
               value={zone || null}
-              onChange={(id) => setZone(id ?? '')}
+              onChange={handleZoneFilterChange}
               allowEmpty
               emptyLabel={t('photos.filter.allZones')}
             />
           </div>
-          {hasFilters ? (
-            <Button type="button" variant="outline" onClick={resetFilters}>
-              {t('photos.filter.reset')}
-            </Button>
-          ) : null}
+          <div className="flex items-center gap-2">
+            <FilterPill active={withoutZone} onClick={toggleWithoutZone}>
+              <MapPinOff className="h-3 w-3" aria-hidden />
+              {t('photos.filter.withoutZone')}
+            </FilterPill>
+            {hasFilters ? (
+              <Button type="button" variant="outline" onClick={resetFilters}>
+                {t('photos.filter.reset')}
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         {error ? (
@@ -148,7 +198,12 @@ export default function PhotosPage() {
                   {formatMonthYear(group.anchor)}{' '}
                   <span className="tabular-nums">({group.photos.length})</span>
                 </h2>
-                <PhotoGrid photos={group.photos} onPhotoClick={(p) => setOpenId(p.id)} />
+                <PhotoGrid
+                  photos={group.photos}
+                  onPhotoClick={(p) => setOpenId(p.id)}
+                  renderActions={renderActions}
+                  flagWithoutZone
+                />
               </section>
             ))}
           </div>
@@ -161,7 +216,10 @@ export default function PhotosPage() {
         onOpenChange={setOpenId}
         onRemove={handleDelete}
         removeLabel={t('common.delete')}
+        renderZones={(photo) => <PhotoZonesEditor photo={photo} />}
       />
+
+      <PhotoZonesDialog photo={zonesFor} onOpenChange={(open) => { if (!open) setZonesFor(null); }} />
 
       <DocumentUploadDialog
         open={uploadOpen}

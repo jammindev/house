@@ -12,9 +12,17 @@ interface PhotoGridProps {
   phaseOf?: (photo: DocumentItem) => PhotoPhase | '' | undefined;
   /** Menu d'actions posé sur chaque vignette. */
   renderActions?: (photo: DocumentItem) => React.ReactNode;
+  /** Signale les photos rangées dans aucune zone (galerie seulement). */
+  flagWithoutZone?: boolean;
 }
 
-export default function PhotoGrid({ photos, onPhotoClick, phaseOf, renderActions }: PhotoGridProps) {
+export default function PhotoGrid({
+  photos,
+  onPhotoClick,
+  phaseOf,
+  renderActions,
+  flagWithoutZone,
+}: PhotoGridProps) {
   return (
     <div className={GRID_CLASS}>
       {photos.map((photo) => (
@@ -24,6 +32,7 @@ export default function PhotoGrid({ photos, onPhotoClick, phaseOf, renderActions
           onOpen={() => onPhotoClick(photo)}
           phase={phaseOf?.(photo)}
           actions={renderActions?.(photo)}
+          flagWithoutZone={flagWithoutZone}
         />
       ))}
     </div>

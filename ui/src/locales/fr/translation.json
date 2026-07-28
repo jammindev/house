@@ -1556,6 +1556,10 @@
           "add": {
             "title": "Ajouter des photos",
             "body": "Déposez vos photos comme n'importe quel document de type image. Depuis un projet, un équipement ou une zone, l'onglet Photos les classe en Avant / Pendant / Après et sait les comparer."
+          },
+          "file": {
+            "title": "Ranger une photo dans une zone",
+            "body": "La pastille « Sans zone » signale une photo rangée nulle part, et le filtre du même nom les regroupe. Attribuez-lui une zone sans quitter la galerie : par le menu ⋯ de la vignette, ou dans le bloc Zones de la photo ouverte."
           }
         }
       },
@@ -1804,9 +1808,18 @@
     "filter": {
       "zone": "Zone",
       "allZones": "Toutes les zones",
+      "withoutZone": "Sans zone",
       "reset": "Réinitialiser"
     },
-    "takenOn": "Prise le {{date}}"
+    "takenOn": "Prise le {{date}}",
+    "withoutZone": "Sans zone",
+    "zones": {
+      "label": "Zones",
+      "placeholder": "Choisir une ou plusieurs zones…",
+      "title": "Ranger la photo",
+      "assign": "Attribuer une zone",
+      "saved": "Zones enregistrées."
+    }
   },
   "directory": {
     "title": "Répertoire",

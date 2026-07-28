@@ -1,5 +1,6 @@
 """Document views for REST API."""
 import logging
+import uuid
 from pathlib import Path
 
 from django.contrib.contenttypes.models import ContentType
@@ -63,7 +64,13 @@ def get_documents_queryset_for_request(request):
     ).prefetch_related(
         Prefetch(
             'links',
-            queryset=DocumentLink.objects.select_related('content_type').order_by('-created_at'),
+            # `entity` est une `GenericForeignKey` : sans ce prefetch imbriqué, chaque
+            # lien tire sa cible à part. La liste n'étant pas paginée, sérialiser
+            # `zone_links` coûterait alors une requête par lien — cinq cents pour une
+            # galerie de cinq cents photos rangées.
+            queryset=DocumentLink.objects.select_related('content_type')
+            .prefetch_related('entity')
+            .order_by('-created_at'),
             to_attr='prefetched_links',
         ),
     )
@@ -80,6 +87,14 @@ def get_documents_queryset_for_request(request):
     if qualification_state == 'without_activity' or without_activity in {'1', 'true', 'yes'}:
         # No linked interaction = not qualified by an activity.
         queryset = queryset.exclude(links__content_type=interaction_ct)
+
+    # Photos non rangées : aucun lien vers une zone. C'est le pendant en lecture de
+    # la pastille « Sans zone » de la galerie — le front ne le déduit pas d'un champ
+    # local, sinon filtrer et signaler pourraient se contredire.
+    without_zone = (query_params.get('without_zone') or '').strip().lower()
+    if without_zone in {'1', 'true', 'yes'}:
+        zone_ct = ContentType.objects.get_for_model(Zone)
+        queryset = queryset.exclude(links__content_type=zone_ct)
 
     # Legacy per-entity params (?zone= / ?project= / ?equipment=) + generic
     # ?linked_to=<entity_type>:<uuid> all resolve to a DocumentLink filter.
@@ -351,6 +366,63 @@ class DocumentViewSet(viewsets.ModelViewSet):
         
         return Response(type_counts)
     
+    @action(detail=True, methods=['post'], url_path='set_zones')
+    def set_zones(self, request, pk=None):
+        """Remplace les zones d'un document : `{"zone_ids": [...]}`.
+
+        Un seul appel, et non `detach(ancienne)` + `attach(nouvelle)` enchaînés par le
+        client : ranger une photo passerait par un état intermédiaire sans zone, et le
+        client devrait connaître les anciens liens pour les défaire.
+
+        Une liste vide **efface** les zones — c'est un geste explicite, jamais l'effet
+        de bord d'un enregistrement.
+        """
+        document = self.get_object()
+
+        raw = request.data.get('zone_ids', None)
+        if raw is None:
+            raise ValidationError({'zone_ids': 'zone_ids is required.'})
+        if isinstance(raw, str) or not isinstance(raw, (list, tuple)):
+            raise ValidationError({'zone_ids': 'zone_ids must be a list.'})
+
+        # Un id malformé est une erreur du client, pas un 500 : passé tel quel à
+        # `id__in` sur un UUIDField, il lèverait un `ValidationError` Django.
+        requested = []
+        for value in raw:
+            text = str(value).strip()
+            if not text:
+                continue
+            try:
+                requested.append(uuid.UUID(text))
+            except (ValueError, AttributeError, TypeError):
+                raise ValidationError({'zone_ids': f'Invalid zone id: {text}'})
+        requested = list(dict.fromkeys(requested))
+
+        zones = list(Zone.objects.filter(id__in=requested, household_id=document.household_id))
+        if len(zones) != len(requested):
+            raise ValidationError({'zone_ids': 'Invalid zone or access denied.'})
+
+        zone_ct = ContentType.objects.get_for_model(Zone)
+        with transaction.atomic():
+            existing = set(
+                DocumentLink.objects.filter(
+                    document=document, content_type=zone_ct
+                ).values_list('object_id', flat=True)
+            )
+            DocumentLink.objects.filter(document=document, content_type=zone_ct).exclude(
+                object_id__in=[zone.id for zone in zones]
+            ).delete()
+            # Ne relier que ce qui manque : `link_document` est un upsert qui remet
+            # `role`/`note`/`phase` à leur défaut, donc ré-enregistrer une zone déjà
+            # liée effacerait en silence le contexte porté par son lien.
+            for zone in zones:
+                if zone.id not in existing:
+                    link_document(entity=zone, document=document, user=request.user)
+
+        document = self.get_queryset().get(pk=document.pk)
+        serializer = DocumentSerializer(document, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'])
     def reprocess_ocr(self, request, pk=None):
         """Re-run text extraction on this document and persist the result."""

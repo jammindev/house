@@ -88,7 +88,7 @@ export const TUTORIAL_GUIDES: TutorialGuide[] = [
   { key: 'budget', moduleKey: 'money', Icon: PiggyBank, to: '/app/money?tab=budgets', stepIds: ['create', 'assign', 'track', 'analysis', 'recurring', 'report'] },
   { key: 'banking', moduleKey: 'money', Icon: Landmark, to: '/app/money?tab=accounts', stepIds: ['accounts', 'cash', 'openingBalance', 'import', 'journal', 'balance'] },
   { key: 'documents', moduleKey: 'documents', to: '/app/documents', stepIds: ['upload', 'link', 'find'] },
-  { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add'] },
+  { key: 'photos', moduleKey: 'photos', to: '/app/photos', stepIds: ['browse', 'add', 'file'] },
   { key: 'directory', moduleKey: 'directory', to: '/app/directory', stepIds: ['contacts', 'structures'] },
   { key: 'alerts', Icon: AlertCircle, to: '/app/alerts', stepIds: ['review', 'act'] },
   { key: 'settings', Icon: User, to: '/app/settings', stepIds: ['profile', 'household', 'modules'] },

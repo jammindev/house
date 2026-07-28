@@ -61,6 +61,7 @@ class DocumentSerializer(serializers.ModelSerializer):
     legacy_interaction = serializers.SerializerMethodField()
     legacy_interaction_subject = serializers.SerializerMethodField()
     phase = serializers.SerializerMethodField()
+    zone_links = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
@@ -71,7 +72,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             'file_url', 'thumbnail_url', 'medium_url',
             'qualification', 'linked_interactions',
             'legacy_interaction', 'legacy_interaction_subject',
-            'phase', 'taken_at',
+            'phase', 'taken_at', 'zone_links',
         ]
         # `taken_at` est lu dans l'EXIF, jamais saisi : l'exposer en écriture
         # permettrait de le contredire par un PATCH, et le tri de la galerie
@@ -159,6 +160,29 @@ class DocumentSerializer(serializers.ModelSerializer):
     def get_legacy_interaction_subject(self, obj):
         return obj.interaction.subject if obj.interaction_id and obj.interaction else None
 
+    def get_zone_links(self, obj):
+        """Zones de la photo — **dans la liste**, pas seulement dans le détail.
+
+        C'est ce champ qui permet à la galerie de dire où est rangée une photo et
+        de signaler celle qui ne l'est pas. Une liste vide est une information (aucune
+        zone), jamais l'absence de la clé.
+
+        Le coût se paie côté requête : la liste n'est pas paginée, donc la
+        `GenericForeignKey` de chaque lien est préchargée en bloc par la vue
+        (`prefetched_links` + `entity`). Résoudre `link.entity` photo par photo
+        coûterait une requête par lien. Régression :
+        `test_photo_zones.py::test_zone_links_cost_a_bounded_number_of_queries`.
+        """
+        payload = []
+        for link in self._document_links(obj):
+            if link.content_type.model != 'zone':
+                continue
+            zone = link.entity
+            if zone is None:
+                continue
+            payload.append({'zone_id': str(zone.id), 'zone_name': zone.name})
+        return ZoneLinkSummarySerializer(payload, many=True).data
+
     def get_phase(self, obj):
         """Photo phase relative to the entity currently being filtered on.
 
@@ -179,15 +203,14 @@ class DocumentDetailSerializer(DocumentSerializer):
     """Document detail with qualification and secondary context summaries."""
 
     interaction_subject = serializers.SerializerMethodField()
-    zone_links = serializers.SerializerMethodField()
     project_links = serializers.SerializerMethodField()
     entity_links = serializers.SerializerMethodField()
     recent_interaction_candidates = serializers.SerializerMethodField()
 
     class Meta(DocumentSerializer.Meta):
+        # `zone_links` est hérité : la galerie en a besoin dès la liste.
         fields = DocumentSerializer.Meta.fields + [
             'interaction_subject',
-            'zone_links',
             'project_links',
             'entity_links',
             'recent_interaction_candidates',
@@ -195,17 +218,6 @@ class DocumentDetailSerializer(DocumentSerializer):
 
     def get_interaction_subject(self, obj):
         return obj.interaction.subject if obj.interaction_id and obj.interaction else None
-
-    def get_zone_links(self, obj):
-        payload = []
-        for link in self._document_links(obj):
-            if link.content_type.model != 'zone':
-                continue
-            zone = link.entity
-            if zone is None:
-                continue
-            payload.append({'zone_id': str(zone.id), 'zone_name': zone.name})
-        return ZoneLinkSummarySerializer(payload, many=True).data
 
     def get_project_links(self, obj):
         payload = []

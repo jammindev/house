@@ -1556,6 +1556,10 @@
           "add": {
             "title": "Add photos",
             "body": "Upload photos like any image document. From a project, a piece of equipment or a zone, the Photos tab sorts them into Before / During / After and can compare them."
+          },
+          "file": {
+            "title": "File a photo into a zone",
+            "body": "The “No zone” badge flags a photo filed nowhere, and the filter of the same name gathers them all. Assign a zone without leaving the gallery: from the ⋯ menu on the thumbnail, or in the Zones block of the open photo."
           }
         }
       },
@@ -1804,9 +1808,18 @@
     "filter": {
       "zone": "Zone",
       "allZones": "All zones",
+      "withoutZone": "No zone",
       "reset": "Reset"
     },
-    "takenOn": "Taken on {{date}}"
+    "takenOn": "Taken on {{date}}",
+    "withoutZone": "No zone",
+    "zones": {
+      "label": "Zones",
+      "placeholder": "Pick one or more zones…",
+      "title": "File this photo",
+      "assign": "Assign a zone",
+      "saved": "Zones saved."
+    }
   },
   "directory": {
     "title": "Directory",

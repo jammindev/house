@@ -71,6 +71,50 @@ de vue. Détail du mécanisme et de ses pièges : section « Date de prise de vu
   effaçait le champ qui l'avait produite et il devenait impossible de revenir en
   arrière.
 
+## Ranger une photo — depuis la photo, et rien qui reste sans zone en silence
+
+`attach_document` ne se pose que **sur une zone** : corriger une photo mal rangée
+demandait de deviner où elle était, d'aller dans cette zone, de l'en détacher, puis
+d'aller dans la bonne. Trois pièces le règlent, et chacune a une raison de forme :
+
+- **`zone_links` est servi dès la liste** (`DocumentSerializer`, plus seulement le
+  détail) : c'est ce qui permet de dire où est une photo et de signaler celle qui
+  n'est nulle part. Le coût se paie côté requête — la liste n'est **pas paginée**,
+  donc la `GenericForeignKey` de chaque lien est préchargée en bloc
+  (`Prefetch('links', queryset=…prefetch_related('entity'))`). Sans ce prefetch
+  imbriqué, cinq cents photos rangées coûtaient cinq cents requêtes. Régression :
+  `test_photo_zones.py::test_zone_links_cost_a_bounded_number_of_queries`.
+- **L'écriture est un remplacement en un appel** :
+  `POST /api/documents/documents/{id}/set_zones/ {"zone_ids": [...]}`. Enchaîner
+  `detach` + `attach` côté client ferait passer la photo par un instant où elle
+  n'est rangée nulle part, et obligerait le client à connaître les anciens liens
+  pour les défaire. Une liste vide **efface** les zones — un geste, pas un oubli.
+  - Le service ne relie que **ce qui manque** : `link_document` est un upsert qui
+    remet `role`/`note`/`phase` à leur défaut, donc ré-enregistrer une zone déjà
+    liée effacerait en silence le contexte porté par son lien.
+  - Les liens vers d'autres entités (projet, équipement…) ne sont pas touchés :
+    l'endpoint ne possède que les liens de type zone. Même règle de portée que
+    l'éditeur de ventilation côté argent.
+- **La pastille et le filtre lisent la même source.** « Sans zone » se déduit de
+  `zone_links` côté vignette et de `?without_zone=1` côté serveur — jamais d'un état
+  local. Deux définitions du même manque, et un écran finirait par contredire l'autre
+  sur la même photo (même règle que « un écart ne se dit jamais deux fois avec deux
+  voix »). Le filtre zone et « sans zone » s'excluent : les cumuler ne rendrait
+  qu'une liste vide, sans dire pourquoi.
+- **La pastille est réservée à la galerie** (`flagWithoutZone`) : sous l'onglet
+  Photos d'une entité la question posée est la phase des travaux, et une pastille de
+  plus sur chaque vignette n'y avertirait de rien.
+- Un seul formulaire pour l'écriture, `PhotoZonesEditor` — posé dans le panneau de
+  la visionneuse (via `renderZones`, injecté : la visionneuse reste sans données
+  propres) et dans `PhotoZonesDialog`, ouvert par le menu de la vignette. Le
+  brouillon est local et l'enregistrement explicite : en mode multiple, chaque clic
+  déclencherait sinon sa propre requête. Il ne se réaligne sur le serveur que quand
+  le **contenu** des zones change, sinon un refetch de fond effacerait une
+  sélection en cours. Régressions : `PhotoZones.test.tsx`.
+- `useSetPhotoZones` invalide `photos`, `documents` **et** `zones` : ranger une
+  photo change le `tab_counts.photos` de la zone d'arrivée comme celui de la zone de
+  départ.
+
 ## Onglet Photos par entité + avant/après (parcours 20)
 
 - `EntityPhotosTab` (`ui/src/features/photos/EntityPhotosTab.tsx`) : onglet photos

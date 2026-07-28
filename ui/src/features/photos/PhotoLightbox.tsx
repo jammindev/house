@@ -30,6 +30,12 @@ interface Props {
   removeLabel: string;
   /** Phase de la photo courante, si le contexte en porte une. */
   phaseOf?: (photo: DocumentItem) => PhotoPhase | '' | undefined;
+  /**
+   * Bloc « Zones » du panneau de métadonnées. Injecté plutôt que câblé ici : la
+   * visionneuse reste sans données propres — elle reçoit déjà `phaseOf`,
+   * `onRemove` et `removeLabel` de son appelant.
+   */
+  renderZones?: (photo: DocumentItem) => React.ReactNode;
 }
 
 /** Distance horizontale minimale, en px, pour qu'un glissement compte comme un swipe. */
@@ -56,6 +62,7 @@ export default function PhotoLightbox({
   onRemove,
   removeLabel,
   phaseOf,
+  renderZones,
 }: Props) {
   const { t } = useTranslation();
   const [failed, setFailed] = React.useState(false);
@@ -220,6 +227,8 @@ export default function PhotoLightbox({
             {photo.notes?.trim() ? (
               <p className="whitespace-pre-line text-sm leading-relaxed text-foreground">{photo.notes}</p>
             ) : null}
+
+            {renderZones?.(photo)}
 
             <div className="mt-auto flex flex-col gap-2 pt-4">
               {photo.file_url ? (

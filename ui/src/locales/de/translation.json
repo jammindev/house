@@ -1556,6 +1556,10 @@
           "add": {
             "title": "Fotos hinzufügen",
             "body": "Laden Sie Fotos wie jedes Bilddokument hoch. Aus einem Projekt, einem Gerät oder einem Bereich sortiert der Reiter Fotos sie in Vorher / Während / Nachher und kann sie vergleichen."
+          },
+          "file": {
+            "title": "Ein Foto einem Bereich zuordnen",
+            "body": "Die Markierung „Ohne Bereich“ zeigt ein Foto, das nirgends einsortiert ist; der gleichnamige Filter sammelt sie alle. Weisen Sie einen Bereich zu, ohne die Galerie zu verlassen: über das ⋯-Menü der Miniatur oder im Block Bereiche des geöffneten Fotos."
           }
         }
       },
@@ -1804,9 +1808,18 @@
     "filter": {
       "zone": "Bereich",
       "allZones": "Alle Bereiche",
+      "withoutZone": "Ohne Bereich",
       "reset": "Zurücksetzen"
     },
-    "takenOn": "Aufgenommen am {{date}}"
+    "takenOn": "Aufgenommen am {{date}}",
+    "withoutZone": "Ohne Bereich",
+    "zones": {
+      "label": "Bereiche",
+      "placeholder": "Einen oder mehrere Bereiche wählen…",
+      "title": "Foto einordnen",
+      "assign": "Bereich zuweisen",
+      "saved": "Bereiche gespeichert."
+    }
   },
   "directory": {
     "title": "Verzeichnis",

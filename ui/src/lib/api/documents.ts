@@ -64,10 +64,16 @@ export interface DocumentItem {
    * dire « prise le » plutôt que « ajoutée le ».
    */
   taken_at?: string | null;
+  /**
+   * Zones où la photo est rangée — servi **dès la liste**, pas seulement sur le
+   * détail : c'est ce qui permet à la galerie de dire où est une photo et de
+   * signaler celle qui n'est rangée nulle part. Un tableau vide est une
+   * information (aucune zone), et le backend l'envoie toujours.
+   */
+  zone_links: ZoneLinkSummary[];
 }
 
 export interface DocumentDetail extends DocumentItem {
-  zone_links: ZoneLinkSummary[];
   project_links: ProjectLinkSummary[];
   entity_links: EntityLinkSummary[];
   recent_interaction_candidates: LinkedInteractionSummary[];
@@ -92,6 +98,8 @@ export interface DocumentFilters {
   zone?: string;
   project?: string;
   equipment?: string;
+  /** `'1'` = seulement les documents rangés dans aucune zone. */
+  without_zone?: string;
   [key: string]: string | undefined;
 }
 
@@ -171,6 +179,17 @@ export async function updateDocument(
 
 export async function deleteDocument(id: string): Promise<void> {
   await api.delete(`/documents/documents/${id}/`);
+}
+
+/**
+ * Remplace les zones d'un document — un seul appel, pas un `detach` suivi d'un
+ * `attach` : ranger une photo passerait par un état intermédiaire sans zone, et le
+ * client devrait connaître les anciens liens pour les défaire. Une liste vide
+ * efface les zones.
+ */
+export async function setDocumentZones(id: string, zoneIds: string[]): Promise<DocumentItem> {
+  const { data } = await api.post(`/documents/documents/${id}/set_zones/`, { zone_ids: zoneIds });
+  return normalizeId(data as DocumentItem & { id: string | number });
 }
 
 /**

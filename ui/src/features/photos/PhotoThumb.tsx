@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Camera, ImageOff } from 'lucide-react';
+import { Camera, ImageOff, MapPinOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import type { DocumentItem, PhotoPhase } from '@/lib/api/documents';
@@ -13,6 +13,12 @@ interface Props {
   actions?: React.ReactNode;
   /** Affiche le nom en bas de la vignette. Défaut : true. */
   showName?: boolean;
+  /**
+   * Signale la photo rangée dans aucune zone. Réservé à la galerie : sous
+   * l'onglet Photos d'une entité, la question posée est la phase des travaux, et
+   * une pastille de plus sur chaque vignette n'y avertirait de rien.
+   */
+  flagWithoutZone?: boolean;
   className?: string;
 }
 
@@ -37,6 +43,7 @@ export default function PhotoThumb({
   phase,
   actions,
   showName = true,
+  flagWithoutZone = false,
   className,
 }: Props) {
   const { t } = useTranslation();
@@ -45,6 +52,10 @@ export default function PhotoThumb({
   const src = photo.thumbnail_url || photo.file_url || null;
   const label = photo.name || t('photos.untitled');
   const phaseKey = phase === undefined ? null : phase || 'unclassified';
+  // `zone_links` vient de la liste, jamais déduit localement : c'est la même
+  // source que le filtre « Sans zone », sinon la pastille et le filtre
+  // pourraient se contredire sur la même photo.
+  const withoutZone = flagWithoutZone && (photo.zone_links ?? []).length === 0;
 
   return (
     <div
@@ -90,10 +101,22 @@ export default function PhotoThumb({
         </div>
       ) : null}
 
-      {phaseKey ? (
-        <span className="pointer-events-none absolute left-1.5 top-1.5 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm backdrop-blur-sm">
-          {t(`photos.phase.${phaseKey}`)}
-        </span>
+      {/* Les pastilles s'empilent : posées toutes deux en haut à gauche elles se
+          recouvriraient, et le bas de la vignette porte déjà le nom. */}
+      {phaseKey || withoutZone ? (
+        <div className="pointer-events-none absolute left-1.5 top-1.5 flex flex-col items-start gap-1">
+          {phaseKey ? (
+            <span className="rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-medium text-foreground shadow-sm backdrop-blur-sm">
+              {t(`photos.phase.${phaseKey}`)}
+            </span>
+          ) : null}
+          {withoutZone ? (
+            <span className="flex items-center gap-1 rounded-full bg-warning/90 px-2 py-0.5 text-[10px] font-medium text-warning-foreground shadow-sm">
+              <MapPinOff className="h-3 w-3" aria-hidden />
+              {t('photos.withoutZone')}
+            </span>
+          ) : null}
+        </div>
       ) : null}
 
       {actions ? (

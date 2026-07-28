@@ -7,14 +7,18 @@ import {
   attachEntityDocument,
   detachEntityDocument,
   setDocumentPhase,
+  setDocumentZones,
   entityDetailQueryKey,
   type PhotoPhase,
 } from '@/lib/api/documents';
 import { documentKeys } from '@/features/documents/hooks';
+import { zoneKeys } from '@/features/zones/hooks';
 
 export interface PhotoFilters {
   search?: string;
   zone?: string;
+  /** `'1'` = seulement les photos rangées dans aucune zone. */
+  without_zone?: string;
   [key: string]: string | undefined;
 }
 
@@ -46,6 +50,31 @@ export function useDeletePhoto() {
       void qc.invalidateQueries({ queryKey: documentKeys.all });
     },
     onError: () => toast({ description: t('common.deleteFailed'), variant: 'destructive' }),
+  });
+}
+
+/**
+ * Range une photo : remplace ses zones.
+ *
+ * Invalide large — galerie, documents, **et** zones. Ranger une photo change le
+ * `tab_counts.photos` de la zone d'arrivée comme celui de la zone de départ, et
+ * l'onglet Photos d'une zone lit la même liste : n'invalider que les photos
+ * laisserait deux écrans se contredire sur la même donnée.
+ */
+export function useSetPhotoZones() {
+  const qc = useQueryClient();
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  return useMutation({
+    mutationFn: ({ photoId, zoneIds }: { photoId: string; zoneIds: string[] }) =>
+      setDocumentZones(photoId, zoneIds),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: photoKeys.all });
+      void qc.invalidateQueries({ queryKey: documentKeys.all });
+      void qc.invalidateQueries({ queryKey: zoneKeys.all });
+      toast({ description: t('photos.zones.saved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
   });
 }
 
