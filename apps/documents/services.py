@@ -115,3 +115,22 @@ def entity_links_for_document(document):
             }
         )
     return results
+
+
+def photos_added_between(household, *, start, end, limit: int = 12) -> dict:
+    """Photos added to the household between ``start`` and ``end`` (end exclusive).
+
+    Feeds the monthly recap's memories chapter. Returns **ids**, never URLs: a
+    signed or generated URL expires, and a frozen snapshot is meant to outlive it.
+    The caller resolves the ids at read time and degrades when one is gone.
+    """
+    qs = Document.objects.filter(
+        household_id=household.id,
+        type="photo",
+        created_at__gte=start,
+        created_at__lt=end,
+    ).order_by("-created_at")
+    return {
+        "count": qs.count(),
+        "ids": [str(pk) for pk in qs.values_list("id", flat=True)[:limit]],
+    }

@@ -109,6 +109,112 @@ def _render_biggest_expense(data: dict[str, Any]) -> dict[str, Any] | None:
     )
 
 
+# --- What we got done ---------------------------------------------------------
+
+
+def _render_tasks_done(data: dict[str, Any]) -> dict[str, Any] | None:
+    count = int(data.get("count") or 0)
+    if not count:
+        return None
+    return _card(
+        "tasks_done",
+        "✅",
+        _("tasks finished"),
+        str(count),
+        "count",
+        # "You", never "you more than them": a household figure is collective.
+        ngettext(
+            "Your household ticked one thing off.",
+            "That's everything your household ticked off.",
+            count,
+        ),
+    )
+
+
+def _render_project_progress(data: dict[str, Any]) -> dict[str, Any] | None:
+    name = (data.get("name") or "").strip()
+    count = int(data.get("count") or 0)
+    if not name or not count:
+        return None
+    return _card(
+        "project_progress",
+        "🔨",
+        name,
+        ngettext("%(count)d task", "%(count)d tasks", count) % {"count": count},
+        "raw",
+        _("The project that moved most this month."),
+    )
+
+
+# --- The house ----------------------------------------------------------------
+
+
+def _render_eggs(data: dict[str, Any]) -> dict[str, Any] | None:
+    total = int(data.get("value") or 0)
+    if not total:
+        return None
+    logged = int(data.get("logged_days") or 0)
+    best = data.get("best_day")
+
+    if best:
+        caption = _("Best day: %(best)d eggs.") % {"best": int(best)}
+    else:
+        # A day without a log is *unknown*, not a zero — so we say what the total
+        # actually covers instead of implying a full month.
+        caption = ngettext(
+            "Logged on %(days)d day.", "Logged across %(days)d days.", logged
+        ) % {"days": logged}
+
+    return _card("eggs", "🥚", _("eggs laid"), str(total), "count", caption)
+
+
+def _render_electricity(data: dict[str, Any]) -> dict[str, Any] | None:
+    wh = int(data.get("wh") or 0)
+    if wh <= 0:
+        return None
+    kwh = round(wh / 1000, 1)
+    return _card(
+        "electricity",
+        "⚡",
+        _("kWh used"),
+        f"{kwh:g}",
+        "count",
+        _("Everything your meters recorded this month."),
+    )
+
+
+def _render_water(data: dict[str, Any]) -> dict[str, Any] | None:
+    litres = int(data.get("litres") or 0)
+    if litres <= 0:
+        return None
+    m3 = round(litres / 1000, 1)
+    return _card(
+        "water",
+        "💧",
+        _("m³ of water"),
+        f"{m3:g}",
+        "count",
+        _("Roughly what the house drank this month."),
+    )
+
+
+# --- Memories -----------------------------------------------------------------
+
+
+def _render_photos(data: dict[str, Any]) -> dict[str, Any] | None:
+    count = int(data.get("count") or 0)
+    if not count:
+        return None
+    return _card(
+        "photos",
+        "📸",
+        ngettext("photo added", "photos added", count),
+        str(count),
+        "count",
+        _("A month of your house, kept."),
+    )
+
+
 # --- Registry -----------------------------------------------------------------
 
 #: One renderer per card kind. A kind absent from this map is skipped silently —
@@ -117,15 +223,32 @@ CARD_RENDERERS: dict[str, Any] = {
     "total_spent": _render_total_spent,
     "budget_outcome": _render_budget_outcome,
     "biggest_expense": _render_biggest_expense,
+    "tasks_done": _render_tasks_done,
+    "project_progress": _render_project_progress,
+    "eggs": _render_eggs,
+    "electricity": _render_electricity,
+    "water": _render_water,
+    "photos": _render_photos,
 }
 
-#: Localized chapter titles, keyed by chapter key. An unknown chapter renders with
-#: an empty title rather than disappearing — its cards are still worth showing.
-CHAPTER_EMOJI: dict[str, str] = {"money": "💰"}
+#: Chapter emoji, keyed by chapter key. An unknown chapter renders with a neutral
+#: one and an empty title rather than disappearing — its cards are still worth
+#: showing, even when this version of the code has never heard of the chapter.
+CHAPTER_EMOJI: dict[str, str] = {
+    "money": "💰",
+    "achievements": "✅",
+    "home": "🏡",
+    "memories": "📸",
+}
 
 
 def chapter_title(key: str) -> str:
-    titles = {"money": _("Money")}
+    titles = {
+        "money": _("Money"),
+        "achievements": _("What you got done"),
+        "home": _("The house"),
+        "memories": _("Memories"),
+    }
     return titles.get(key, "")
 
 

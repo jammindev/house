@@ -411,3 +411,27 @@ def chicken_tab_counts(chicken: Chicken) -> dict[str, int]:
         'documents': links.exclude(document__type='photo').count(),
         'photos': links.filter(document__type='photo').count(),
     }
+
+
+def egg_total_for_period(household, *, start_date, end_date) -> dict:
+    """Eggs logged between ``start_date`` and ``end_date`` (both inclusive).
+
+    ``egg_stats`` only answers about windows relative to *today*, so a closed month
+    needs its own read — but it stays here, in the chickens service, rather than
+    being reimplemented by whoever asks (parcours 27 rule: a consumer never
+    duplicates a module's ORM).
+
+    Keeps this module's pivot honest: a day without an ``EggLog`` is *unknown*, not
+    a zero. Hence ``logged_days`` alongside the total — a total over three logged
+    days is not a month's laying, and the caller must be able to tell.
+    """
+    rows = list(
+        EggLog.objects.filter(
+            household=household, date__gte=start_date, date__lte=end_date
+        ).values_list("count", flat=True)
+    )
+    return {
+        "total": sum(rows),
+        "logged_days": len(rows),
+        "best_day": max(rows) if rows else None,
+    }

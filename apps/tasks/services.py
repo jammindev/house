@@ -120,3 +120,44 @@ def archive_task(user, task: Task) -> Task:
     task.updated_by = user
     task.save(update_fields=["status", "updated_by"])
     return task
+
+
+def completion_summary(household, *, start, end) -> dict:
+    """What the household finished between ``start`` and ``end`` (end exclusive).
+
+    Feeds the monthly recap (parcours 27). Two rules are baked in here rather than
+    left to the caller, because getting either wrong is silent:
+
+    - **Private tasks are excluded from the count**, not filtered later. The recap
+      freezes one snapshot for the whole household and every member reads it, so
+      anything whose visibility varies by reader must never enter the figure.
+    - **Nothing is grouped by member.** No ``assigned_to`` / ``completed_by``
+      breakdown, ever: chiffrer que l'un en a fait moins que l'autre transforme un
+      moment de fierté en dispute. A contribution figure is collective or nothing.
+
+    Returns ``{completed, projects_advanced, top_project, top_project_count}``.
+    """
+    from collections import Counter
+
+    done = (
+        Task.objects.filter(
+            household_id=household.id,
+            status=Task.Status.DONE,
+            completed_at__gte=start,
+            completed_at__lt=end,
+            is_private=False,
+        )
+        .select_related("project")
+        .values_list("project__title", flat=True)
+    )
+
+    names = list(done)
+    per_project = Counter(name for name in names if name)
+    top = per_project.most_common(1)[0] if per_project else None
+
+    return {
+        "completed": len(names),
+        "projects_advanced": len(per_project),
+        "top_project": top[0] if top else None,
+        "top_project_count": top[1] if top else 0,
+    }
