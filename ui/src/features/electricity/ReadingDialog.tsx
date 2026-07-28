@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -109,14 +110,11 @@ export default function ReadingDialog({ open, onOpenChange, meter, existing }: R
           </FormField>
         </div>
         <FormField label={t('electricity.reading.indexKwh')} htmlFor="reading-index">
-          <Input
+          <DecimalInput
             id="reading-index"
-            type="number"
-            step="0.001"
-            min="0"
-            inputMode="decimal"
+            decimals={3}
             value={indexKwh}
-            onChange={(e) => setIndexKwh(e.target.value)}
+            onChange={setIndexKwh}
             placeholder="45230.5"
             required
           />

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
@@ -68,12 +69,11 @@ export default function ShoppingItemDialog({ open, onOpenChange, existing }: Pro
 
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField label={t('shoppingList.fields.quantity')} htmlFor="shopping-qty">
-            <Input
+            <DecimalInput
               id="shopping-qty"
-              type="number"
-              step="0.001"
+              decimals={3}
               value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
+              onChange={setQuantity}
             />
           </FormField>
           <FormField label={t('shoppingList.fields.unit')} htmlFor="shopping-unit">

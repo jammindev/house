@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
-import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Button } from '@/design-system/button';
 import { FormField } from '@/design-system/form-field';
 import type { StockItem } from '@/lib/api/stock';
@@ -14,7 +14,7 @@ interface StockInventoryDialogProps {
 }
 
 function parseDecimal(value: string): number | null {
-  const trimmed = value.trim().replace(',', '.');
+  const trimmed = value.trim();
   if (!trimmed) return null;
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
@@ -70,13 +70,11 @@ export default function StockInventoryDialog({ open, onOpenChange, item }: Stock
           label={`${t('stock.inventory.fields.quantity', { unit: item.unit })} *`}
           htmlFor="inventory-quantity"
         >
-          <Input
+          <DecimalInput
             id="inventory-quantity"
-            type="number"
-            step="0.001"
-            min="0"
+            decimals={3}
             value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            onChange={setQuantity}
             required
             autoFocus
           />

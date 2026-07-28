@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Textarea } from '@/design-system/textarea';
 import { Button } from '@/design-system/button';
@@ -255,24 +256,18 @@ export default function InsuranceDialog({ open, onOpenChange, onSaved, existing 
               />
             </FormField>
             <FormField label={t('insurance.field.monthly_cost')} htmlFor="insurance-monthly-cost">
-              <Input
+              <DecimalInput
                 id="insurance-monthly-cost"
-                type="number"
-                step="0.01"
-                min="0"
                 value={form.monthly_cost}
-                onChange={(e) => update('monthly_cost', e.target.value)}
+                onChange={(value) => update('monthly_cost', value)}
                 placeholder="0.00"
               />
             </FormField>
             <FormField label={t('insurance.field.yearly_cost')} htmlFor="insurance-yearly-cost">
-              <Input
+              <DecimalInput
                 id="insurance-yearly-cost"
-                type="number"
-                step="0.01"
-                min="0"
                 value={form.yearly_cost}
-                onChange={(e) => update('yearly_cost', e.target.value)}
+                onChange={(value) => update('yearly_cost', value)}
                 placeholder="0.00"
               />
             </FormField>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { SheetDialog } from '@/design-system/sheet-dialog';
 import { FormField } from '@/design-system/form-field';
 import { Input } from '@/design-system/input';
+import { DecimalInput } from '@/design-system/decimal-input';
 import { Select } from '@/design-system/select';
 import { Button } from '@/design-system/button';
 import type { BankAccount, BankAccountKind } from '@/lib/api/banking';
@@ -69,7 +70,7 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
 
     // Le solde d'ouverture peut être négatif (découvert) : on ne valide que la
     // forme numérique, jamais le signe.
-    const rawBalance = openingBalance.trim().replace(',', '.');
+    const rawBalance = openingBalance.trim();
     if (rawBalance && !Number.isFinite(Number(rawBalance))) {
       setError(t('banking.errors.openingBalanceInvalid'));
       return;
@@ -160,12 +161,11 @@ export default function AccountDialog({ open, onOpenChange, existing }: AccountD
         ) : null}
 
         <FormField label={t('banking.fields.openingBalance')} htmlFor="account-opening-balance">
-          <Input
+          <DecimalInput
             id="account-opening-balance"
-            type="number"
-            step="0.01"
+            allowNegative
             value={openingBalance}
-            onChange={(e) => setOpeningBalance(e.target.value)}
+            onChange={setOpeningBalance}
             placeholder="0.00"
           />
           <p className="text-xs text-muted-foreground">

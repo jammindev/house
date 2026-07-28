@@ -675,6 +675,42 @@ formatAmount('12.50')                      // « 12,50 € » (fr)
 formatAmount(420, { fractionDigits: 0 })   // « 420 € »
 ```
 
+### Saisie d'un décimal — jamais `<input type="number">`
+
+Le pendant en écriture de `formatAmount` : tout champ portant un décimal (montant,
+prix, index de compteur, tarif, quantité, surface) est un **`DecimalInput` de
+`@/design-system/decimal-input`**. Les `type="number"` restants sont les
+**compteurs entiers**, qui gardent leurs flèches.
+
+```tsx
+import { DecimalInput } from '@/design-system/decimal-input';
+
+<DecimalInput value={amount} onChange={setAmount} />              // 2 décimales
+<DecimalInput value={index} onChange={setIndex} decimals={3} />   // index compteur
+<DecimalInput value={balance} onChange={setBalance} allowNegative />  // découvert
+```
+
+- L'état du parent est **canonique** (séparateur point, tel qu'il part vers
+  l'API) ; le champ affiche celui de la locale. Donc **plus aucun
+  `.replace(',', '.')` au moment du submit** — il y en avait seize, tous morts.
+- `onChange` reçoit **la valeur**, pas l'événement.
+- Le pas fractionnaire est remplacé par `decimals`, et il **borne la frappe** au
+  lieu de la signaler invalide après coup ; `min="0"` est remplacé par le refus du
+  moins (`allowNegative` pour un solde, qui peut être à découvert).
+
+**Pourquoi c'est du métier et pas de la plomberie :** le HTML impose au `value`
+d'un champ `number` d'être un *valid floating-point number* — le séparateur y est
+**toujours** le point. Une virgule rend la valeur invalide, `e.target.value`
+renvoie du tronqué, React réécrit ce tronqué dans le DOM et détruit le tampon de
+saisie. Taper « 12,5 » sur un clavier français donnait **512 €** sur Chromium et
+**5 €** sur Safari et Firefox : pas un champ qui refuse une touche, **un montant
+faux enregistré sans un mot**. C'est la règle « un compteur ne peut pas avoir deux
+définitions » à l'entrée : ce que l'utilisateur tape et ce que le foyer enregistre
+doivent être le même nombre. Régressions : `ui/src/design-system/decimal-input.test.tsx`
+(dont le garde-fou « aucun pas fractionnaire dans le front ») et
+`e2e/decimal-input.spec.ts` — **le bug n'existait que dans un vrai moteur, jamais
+en jsdom : il fallait un test navigateur pour l'attester.**
+
 ### Dates de calendrier — jamais `toISOString()`
 
 Même règle, pour la même raison. Une date `YYYY-MM-DD` passe par

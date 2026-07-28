@@ -43,6 +43,65 @@ export function formatAmount(
 }
 
 /**
+ * Le séparateur décimal de la locale de lecture — « , » en français, « . » en
+ * anglais. Même source que `formatAmount` (la locale du navigateur), pour qu'un
+ * montant saisi et le même montant réaffiché ne se lisent pas de deux façons.
+ */
+export function decimalSeparator(locale?: string): string {
+  const parts = new Intl.NumberFormat(locale).formatToParts(1.1);
+  return parts.find((part) => part.type === 'decimal')?.value ?? '.';
+}
+
+/**
+ * Les séparateurs de groupe d'un montant collé. `\s` couvre l'espace insécable
+ * (U+00A0) et l'espace fine insécable (U+202F) — celle que produit `Intl` en
+ * français, donc celle qu'on récupère en copiant un montant affiché par l'app.
+ */
+const GROUP_SPACES = /\s/g;
+
+/**
+ * Frappe utilisateur → décimal canonique (séparateur point), ou `null` si la
+ * frappe n'est pas un décimal acceptable — auquel cas `DecimalInput` l'ignore.
+ *
+ * **Les deux séparateurs sont toujours acceptés, quelle que soit la locale** : un
+ * pavé numérique et un copier-coller donnent un point, un clavier français une
+ * virgule, et l'utilisateur ne choisit pas la locale de son navigateur.
+ *
+ * Ne jamais rendre un décimal invalide même en cours de frappe : « 12, » vaut
+ * « 12 » (le séparateur en attente ne part pas vers l'API), « ,5 » vaut « 0.5 ».
+ */
+export function parseDecimalInput(
+  raw: string,
+  options?: { decimals?: number; allowNegative?: boolean },
+): string | null {
+  const decimals = options?.decimals ?? 2;
+  const compact = raw.replace(GROUP_SPACES, '').replace(',', '.');
+  if (compact === '') return '';
+
+  const match = /^(-?)(\d*)(?:\.(\d*))?$/.exec(compact);
+  if (!match) return null;
+
+  const [, sign, whole, fraction] = match;
+  if (sign && !options?.allowNegative) return null;
+  if (fraction != null && fraction.length > decimals) return null;
+
+  if (whole === '' && !fraction) return '';          // « - », « , », « -, »
+  if (!fraction) return `${sign}${whole}`;           // « 12 », « 12, »
+  return `${sign}${whole || '0'}.${fraction}`;       // « 12,5 », « ,5 »
+}
+
+/**
+ * Décimal canonique → ce que l'utilisateur relit dans son champ : le séparateur
+ * de sa locale, et **jamais** de séparateur de groupe (« 1 234,56 » dans un champ
+ * rend l'édition au caret illisible).
+ */
+export function toDecimalDisplay(value: string, locale?: string): string {
+  if (!value) return '';
+  if (!/^-?\d*\.?\d*$/.test(value)) return value;
+  return value.replace('.', decimalSeparator(locale));
+}
+
+/**
  * `Date` → `YYYY-MM-DD` **dans le fuseau du navigateur**.
  *
  * `toISOString().slice(0, 10)` convertit d'abord en UTC : à Paris, tout ce qui
