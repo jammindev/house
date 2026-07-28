@@ -6,6 +6,7 @@ import { Badge } from '@/design-system/badge';
 import { Select } from '@/design-system/select';
 import { FormField } from '@/design-system/form-field';
 import { useBudgets } from '@/features/budget/hooks';
+import { selectableBudgets } from '@/features/budget/tree';
 import LinkedLineActions from '@/features/banking/LinkedLineActions';
 import type { BankLineRef } from '@/lib/api/interactions';
 
@@ -63,7 +64,7 @@ export default function ExpenseFields({
   const budgetsQuery = useBudgets();
   // Le plafond global n'est la catégorie de rien : le serveur le refuse.
   const budgetOptions = React.useMemo(
-    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
+    () => selectableBudgets(budgetsQuery.data),
     [budgetsQuery.data],
   );
   const hasSource = Boolean(sourceLabel && sourceType);
@@ -155,7 +156,7 @@ export default function ExpenseFields({
             onChange={(e) => onBudgetChange(e.target.value)}
             options={[
               { value: '', label: t('purchase.fields.budget_none') },
-              ...budgetOptions.map((b) => ({ value: b.id, label: b.name })),
+              ...budgetOptions,
             ]}
           />
         </FormField>

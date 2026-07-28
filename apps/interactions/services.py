@@ -149,8 +149,15 @@ def _resolve_expense_budget(household_id, budget_id):
     """Resolve an optional budget id to a named ``Budget`` scoped to the household.
 
     Returns ``None`` when ``budget_id`` is falsy. Raises ``ValueError`` when the
-    budget does not belong to the household or is the global budget (the global
-    cap covers everything and is never a per-expense assignment target).
+    budget does not belong to the household, is the global budget (the global cap
+    covers everything and is never a per-expense assignment target), or is a
+    **group**.
+
+    A group is a subtotal, never a target. Letting an expense land on « Maison »
+    while its children carry their own would give ``spent`` two meanings — the
+    envelope's own and the consolidated one — that every counter, including the
+    already-frozen monthly reports, would then have to distinguish forever. One
+    euro, one leaf: that is what keeps the nine amount aggregations honest.
     """
     if not budget_id:
         return None
@@ -161,6 +168,8 @@ def _resolve_expense_budget(household_id, budget_id):
         raise ValueError("budget not found in this household")
     if budget.is_global:
         raise ValueError("cannot attach an expense to the global budget")
+    if budget.children.exists():
+        raise ValueError("cannot attach an expense to a budget group; pick one of its budgets")
     return budget
 
 

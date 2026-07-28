@@ -7,6 +7,7 @@ import { FormField } from '@/design-system/form-field';
 import { Select } from '@/design-system/select';
 import { todayISO } from '@/lib/format';
 import { useBudgets } from '@/features/budget/hooks';
+import { selectableBudgets } from '@/features/budget/tree';
 
 export interface PurchaseFormPayload {
   delta?: number;
@@ -95,7 +96,7 @@ export default function PurchaseForm({
   // Le plafond global couvre tout : il n'est la catégorie de rien, et le serveur
   // le refuse. L'offrir ici serait offrir une erreur.
   const budgetOptions = React.useMemo(
-    () => (budgetsQuery.data ?? []).filter((b) => !b.is_global),
+    () => selectableBudgets(budgetsQuery.data),
     [budgetsQuery.data],
   );
   const [internalError, setInternalError] = React.useState<string | null>(null);
@@ -288,7 +289,7 @@ export default function PurchaseForm({
             onChange={(e) => updateField('budgetId', e.target.value)}
             options={[
               { value: '', label: t('purchase.fields.budget_none') },
-              ...budgetOptions.map((b) => ({ value: b.id, label: b.name })),
+              ...budgetOptions,
             ]}
           />
         </FormField>

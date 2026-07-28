@@ -7,6 +7,7 @@ import { Button } from '@/design-system/button';
 import { formatAmount } from '@/lib/format';
 import type { BankTransaction, InflowNature } from '@/lib/api/banking';
 import { useBudgets } from '@/features/budget/hooks';
+import { selectableBudgets } from '@/features/budget/tree';
 import { useQualifyTransaction } from './hooks';
 
 interface ClassifyInflowDialogProps {
@@ -104,9 +105,7 @@ export default function ClassifyInflowDialog({
               onChange={(e) => setRefundBudgetId(e.target.value)}
               options={[
                 { value: '', label: t('banking.inflow.refundBudgetNone') },
-                ...(budgetsQuery.data ?? [])
-                  .filter((b) => !b.is_global)
-                  .map((b) => ({ value: b.id, label: b.name })),
+                ...selectableBudgets(budgetsQuery.data),
               ]}
             />
             <p className="text-xs text-muted-foreground">

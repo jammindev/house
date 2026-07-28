@@ -9,6 +9,7 @@ import { Button } from '@/design-system/button';
 import type { Cadence, RecurringExpense } from '@/lib/api/budget';
 import { useBudgets, useCreateRecurringExpense, useUpdateRecurringExpense } from './hooks';
 import { todayISO } from '@/lib/format';
+import { selectableBudgets } from '@/features/budget/tree';
 
 const CADENCES: Cadence[] = ['monthly', 'quarterly', 'yearly'];
 
@@ -40,7 +41,7 @@ export default function RecurringExpenseDialog({ open, onOpenChange, existing }:
   const [error, setError] = React.useState<string | null>(null);
 
   const budgetOptions = React.useMemo(
-    () => (budgets ?? []).filter((b) => !b.is_global).map((b) => ({ value: b.id, label: b.name })),
+    () => selectableBudgets(budgets),
     [budgets],
   );
 

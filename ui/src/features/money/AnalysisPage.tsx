@@ -17,6 +17,7 @@ import { useDelayedLoading } from '@/lib/useDelayedLoading';
 import { useSessionState } from '@/lib/useSessionState';
 import { useBudgetAnalysis, useBudgets } from '@/features/budget/hooks';
 import BudgetShareChart from './BudgetShareChart';
+import { selectableBudgets } from '@/features/budget/tree';
 
 /** Trois fenêtres, pas un curseur : on compare des saisons, pas des jours. */
 const WINDOWS = [6, 12, 24] as const;
@@ -101,9 +102,7 @@ export default function AnalysisPage() {
           aria-label={t('analysis.filterBudget')}
           options={[
             { value: '', label: t('analysis.allBudgets') },
-            ...(budgetsQuery.data ?? [])
-              .filter((b) => !b.is_global)
-              .map((b) => ({ value: b.id, label: b.name })),
+            ...selectableBudgets(budgetsQuery.data),
           ]}
         />
       </div>

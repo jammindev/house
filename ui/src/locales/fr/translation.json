@@ -3184,7 +3184,11 @@
       "monthlyAmount": "Montant mensuel",
       "isGlobal": "Budget global (plafonne toutes les dépenses)",
       "monthlyAmountOptional": "Plafond mensuel (facultatif)",
-      "amountHint": "Laisse vide pour suivre la catégorie sans la plafonner."
+      "amountHint": "Laisse vide pour suivre la catégorie sans la plafonner.",
+      "parent": "Groupe",
+      "parentNone": "Aucun groupe",
+      "parentHint": "Range ce budget sous un autre, qui en affichera le total. Deux niveaux au maximum.",
+      "isGroupHint": "Ce budget est un groupe : il totalise ses budgets et ne reçoit pas de dépense directement."
     },
     "errors": {
       "amountInvalid": "Saisis un montant positif.",
