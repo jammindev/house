@@ -29,7 +29,8 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.db.models import F, Q
+from django.db.models import DecimalField, F, Q, Sum, Value
+from django.db.models.functions import Coalesce
 
 from core.timezones import household_today
 
@@ -50,6 +51,9 @@ from .coverage import accounts_with_window, household_covered_period, period_gap
 from .models import BankAccount, BankTransaction, ImportStatus, InflowNature
 from .queries import with_allocation
 
+#: Zéro typé pour les `Coalesce` sur des montants — la même précision partout.
+ZERO_AMOUNT = Value(Decimal("0.00"), output_field=DecimalField(max_digits=14, decimal_places=2))
+
 #: Kind keys — imported by tests and by the services layer, never retyped.
 TRANSACTION_UNALLOCATED = "transaction_unallocated"
 TRANSACTION_PARTIAL = "transaction_partially_allocated"
@@ -60,6 +64,7 @@ ACCOUNT_CHAIN_BROKEN = "account_chain_broken"
 ACCOUNT_CASH_NEGATIVE = "account_cash_negative"
 INFLOW_UNCLASSIFIED = "inflow_unclassified"
 REFUND_WITHOUT_BUDGET = "refund_without_budget"
+REFUND_PARTIALLY_ALLOCATED = "refund_partially_allocated"
 INTERNAL_WITHOUT_COUNTERPART = "internal_without_counterpart"
 RECURRING_OVERDUE = "recurring_overdue"
 RECURRING_DOUBLE_CONFIRMED = "recurring_double_confirmed"
@@ -409,7 +414,7 @@ def _refund_without_budget_qs(household):
         amount__gt=0,
         is_internal=False,
         inflow_nature=InflowNature.REFUND,
-        refund_budget__isnull=True,
+        refund_allocations__isnull=True,
     )
 
 
@@ -432,6 +437,63 @@ def _find_refund_without_budget(household, **window) -> list[Finding]:
             },
         )
         for txn in apply_window(_refund_without_budget_qs(household), **window)
+    ]
+
+
+def _refund_partially_allocated_qs(household):
+    """Remboursements dont une part ne crédite aucune enveloppe.
+
+    Miroir exact de « sortie partiellement ventilée », et pour la même raison : un
+    virement de 70 € dont 40 € seulement sont attribués laisse 30 € qui ne rendent
+    rien à personne. Souvent c'est normal — une amie qui arrondit — et c'est
+    précisément un **arbitrage** : motif, daté, révocable. Ce qui n'est pas
+    acceptable, c'est qu'un remboursement de 200 € dont 5 € sont attribués passe
+    pour traité.
+
+    Un remboursement qui ne crédite **rien** relève de ``refund_without_budget`` :
+    deux écarts distincts, parce qu'ils ne se résolvent pas du même geste.
+    """
+    return (
+        _scoped_lines(household)
+        .filter(
+            amount__gt=0,
+            is_internal=False,
+            inflow_nature=InflowNature.REFUND,
+            refund_allocations__isnull=False,
+        )
+        .annotate(credited=Coalesce(Sum("refund_allocations__amount"), ZERO_AMOUNT))
+        .filter(credited__lt=F("amount"))
+        .distinct()
+    )
+
+
+def _count_refund_partially_allocated(household) -> int:
+    return _refund_partially_allocated_qs(household).count()
+
+
+def _find_refund_partially_allocated(household, **window) -> list[Finding]:
+    return [
+        Finding(
+            kind=REFUND_PARTIALLY_ALLOCATED,
+            object_id=str(txn.pk),
+            label=f"{txn.booked_on.isoformat()} · {txn.label_raw[:80]}",
+            # Le reste **fonde** l'écart : le fingerprint le porte, donc arbitrer
+            # « les 30 € qui traînent ne rendent rien » puis attribuer 20 € de plus
+            # fait resurgir l'arbitrage. Le montant de la ligne, lui, ne bouge
+            # jamais — l'y mettre n'aurait rien périmé.
+            fingerprint=fingerprint_of(
+                REFUND_PARTIALLY_ALLOCATED, txn.amount - txn.credited
+            ),
+            detail={
+                "account_name": txn.account.name,
+                "booked_on": txn.booked_on.isoformat(),
+                "label": txn.label_raw,
+                "amount": str(txn.amount),
+                "credited": str(txn.credited),
+                "remaining": str(txn.amount - txn.credited),
+            },
+        )
+        for txn in apply_window(_refund_partially_allocated_qs(household), **window)
     ]
 
 
@@ -977,6 +1039,16 @@ def _specs() -> list[DetectorSpec]:
             model=BankTransaction,
             count=_count_refund_without_budget,
             findings=_find_refund_without_budget,
+            blocked_by=ACCOUNT_WITHOUT_WINDOW,
+        ),
+        DetectorSpec(
+            kind=REFUND_PARTIALLY_ALLOCATED,
+            severity=WARNING,
+            label="Refund whose remainder credits no envelope",
+            target="transaction",
+            model=BankTransaction,
+            count=_count_refund_partially_allocated,
+            findings=_find_refund_partially_allocated,
             blocked_by=ACCOUNT_WITHOUT_WINDOW,
         ),
         DetectorSpec(

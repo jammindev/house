@@ -3511,7 +3511,18 @@
       },
       "refundBudget": "Presupuesto acreditado",
       "refundBudgetNone": "Ningún presupuesto",
-      "refundBudgetHint": "El sobre que recupera este dinero. Déjalo vacío si el reembolso no afecta a ningún presupuesto — el control te pedirá entonces que lo arbitres."
+      "refundBudgetHint": "Reparte el importe devuelto entre los presupuestos afectados. Lo que quede sin asignar seguirá señalado en Control.",
+      "refundSaved": "Reembolso repartido",
+      "refundAmount": "Importe devuelto",
+      "refundBudgetCount": "{{count}} presupuestos",
+      "remaining": "quedan {{amount}}",
+      "addLine": "Añadir un presupuesto",
+      "removeLine": "Quitar esta línea",
+      "errors": {
+        "budgetRequired": "Elige un presupuesto para cada importe devuelto.",
+        "amountInvalid": "Cada importe devuelto debe ser mayor que cero.",
+        "overCredited": "Este reembolso solo aportó {{total}}: no puede devolver más."
+      }
     },
     "anchor": {
       "title": "Encontrar el saldo inicial",

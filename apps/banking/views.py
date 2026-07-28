@@ -70,6 +70,7 @@ from .services import (
     record_cash_withdrawal,
     revoke_waiver,
     set_allocations,
+    set_refund_allocations,
     set_balance_anchor,
     unlink_counterpart,
     unlink_interaction,
@@ -360,7 +361,8 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
             queries.with_allocation(
                 BankTransaction.objects.for_user_households(self.request.user)
             )
-            .select_related("account", "refund_budget")
+            .select_related("account")
+            .prefetch_related("refund_allocations__budget")
             .order_by("-booked_on", "-line_no", "-created_at")
         )
         if self.request.household:
@@ -406,7 +408,7 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         # l'ont consommé.
         refund_budget = params.get("refund_budget")
         if refund_budget:
-            qs = qs.filter(refund_budget_id=refund_budget)
+            qs = qs.filter(refund_allocations__budget_id=refund_budget).distinct()
 
         direction = params.get("direction")
         if direction:
@@ -471,64 +473,21 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
                 )
             instance.inflow_nature = nature
             updated_fields.append("inflow_nature")
-            # Reclassing a refund as a salary must drop the budget with it.
-            # Otherwise the envelope keeps being credited by a line that no longer
-            # claims to refund anything — and the DB check would reject the save
-            # anyway, turning a legitimate edit into a 500.
-            if nature != InflowNature.REFUND and instance.refund_budget_id:
-                instance.refund_budget = None
-                updated_fields.append("refund_budget")
-
-        if "refund_budget_id" in request.data:
-            instance.refund_budget = self._resolve_refund_budget(
-                instance, request.data.get("refund_budget_id")
-            )
-            if "refund_budget" not in updated_fields:
-                updated_fields.append("refund_budget")
+            # Reclasser un remboursement en salaire efface ses attributions.
+            # Sinon des enveloppes restent recréditées par une ligne qui ne
+            # prétend plus rembourser quoi que ce soit — un orphelin silencieux,
+            # et le pire : un plafond qui reste faux dans le bon sens.
+            if nature != InflowNature.REFUND:
+                instance.refund_allocations.all().delete()
 
         if not updated_fields:
             raise ValidationError(
-                {
-                    "detail": (
-                        "Provide 'is_internal', 'inflow_nature', 'refund_budget_id' "
-                        "and/or 'notes'."
-                    )
-                }
+                {"detail": "Provide 'is_internal', 'inflow_nature' and/or 'notes'."}
             )
 
         instance.updated_by = request.user
         instance.save(update_fields=[*updated_fields, "updated_by", "updated_at"])
         return Response(self.get_serializer(instance).data)
-
-    def _resolve_refund_budget(self, instance, raw):
-        """Resolve the budget a refund credits back, or ``None`` to clear it.
-
-        Three refusals, all 400 rather than a silent no-op: a budget on an outflow
-        or on a receipt that is not a refund would credit an envelope from a
-        salary; a budget from another household would let a client move a figure
-        it cannot see; and a global budget is a ceiling over everything, not a
-        category — crediting it directly would double-count against the named
-        envelopes it already sums.
-        """
-        from budget.models import Budget
-
-        if raw in (None, ""):
-            return None
-
-        nature = instance.inflow_nature
-        if instance.amount < 0 or nature != InflowNature.REFUND:
-            raise ValidationError(
-                {"refund_budget_id": "Only a receipt classified as a refund credits a budget."}
-            )
-
-        budget = Budget.objects.filter(pk=raw, household_id=instance.household_id).first()
-        if budget is None:
-            raise ValidationError({"refund_budget_id": "Unknown budget for this household."})
-        if budget.is_global:
-            raise ValidationError(
-                {"refund_budget_id": "The global budget is a ceiling, not a category."}
-            )
-        return budget
 
     @action(detail=False, methods=["post"], url_path="cash-expense")
     def cash_expense(self, request):
@@ -677,6 +636,26 @@ class BankTransactionViewSet(viewsets.ReadOnlyModelViewSet):
         # the latter reloads columns but leaves the stale ``allocated`` annotation
         # in place, so the response would badge the line with its pre-write state.
         return Response(self._allocation_payload(self.get_object()))
+
+    @action(detail=True, methods=["put"], url_path="refund-allocations")
+    def refund_allocations_write(self, request, pk=None):
+        """Remplacer la répartition d'un remboursement sur les enveloppes.
+
+        ``PUT`` et non des CRUD par ligne, pour la raison qui vaut aussi pour les
+        sorties : « 40/30 devient 50/20 » doit être atomique, sinon on traverse
+        un état où la somme dépasse ce que la recette a rapporté.
+        """
+        instance = self.get_object()
+
+        lines = request.data.get("lines")
+        if not isinstance(lines, list):
+            raise ValidationError({"lines": "Expected a list of refund allocation lines."})
+
+        household = request.household or instance.household
+        set_refund_allocations(
+            household=household, user=request.user, transaction=instance, lines=lines
+        )
+        return Response(self.get_serializer(self.get_object()).data)
 
     def _allocation_payload(self, instance) -> dict:
         from interactions.serializers import InteractionSerializer

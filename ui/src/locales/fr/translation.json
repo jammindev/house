@@ -3511,7 +3511,18 @@
       },
       "refundBudget": "Budget recrédité",
       "refundBudgetNone": "Aucun budget",
-      "refundBudgetHint": "L'enveloppe qui récupère cet argent. Laissez vide si ce remboursement ne concerne aucun budget — le contrôle vous demandera alors de l'arbitrer."
+      "refundBudgetHint": "Répartissez le montant rendu sur les enveloppes concernées. Ce qui n'est attribué à personne reste signalé par le Contrôle.",
+      "refundSaved": "Remboursement réparti",
+      "refundAmount": "Montant rendu",
+      "refundBudgetCount": "{{count}} budgets",
+      "remaining": "reste {{amount}}",
+      "addLine": "Ajouter un budget",
+      "removeLine": "Retirer cette ligne",
+      "errors": {
+        "budgetRequired": "Choisissez un budget pour chaque montant rendu.",
+        "amountInvalid": "Chaque montant rendu doit être supérieur à zéro.",
+        "overCredited": "Ce remboursement n'a rapporté que {{total}} : il ne peut pas en rendre plus."
+      }
     },
     "anchor": {
       "title": "Retrouver le solde d'ouverture",

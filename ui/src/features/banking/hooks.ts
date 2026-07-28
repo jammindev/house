@@ -19,6 +19,8 @@ import {
   recordCashExpense,
   restoreBankAccount,
   setAllocations,
+  setRefundAllocations,
+  type RefundAllocationLine,
   setBalanceAnchor,
   unlinkAllocation,
   unlinkCashCounterpart,
@@ -301,6 +303,27 @@ export function useSetAllocations() {
  * achat de projet rapproché à la main). Le service ne le fait plus, donc il faut
  * un endroit pour le vouloir explicitement — ici.
  */
+export function useSetRefundAllocations() {
+  const invalidate = useInvalidateMoney();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: ({
+      transactionId,
+      lines,
+    }: {
+      transactionId: string;
+      lines: RefundAllocationLine[];
+    }) => setRefundAllocations(transactionId, lines),
+    onSuccess: () => {
+      // Toute écriture sur l'argent invalide tout l'argent : un remboursement
+      // réparti change des plafonds, le Contrôle et la file en même temps.
+      invalidate();
+      toast({ description: t('banking.inflow.refundSaved'), variant: 'success' });
+    },
+    onError: () => toast({ description: t('common.saveFailed'), variant: 'destructive' }),
+  });
+}
+
 export function useUnlinkAllocation() {
   const invalidate = useInvalidateMoney();
   const { t } = useTranslation();

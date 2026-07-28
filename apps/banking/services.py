@@ -633,6 +633,97 @@ def link_interaction(*, user, transaction, interaction, by: str = "manual"):
     return interaction
 
 
+def set_refund_allocations(*, household, user, transaction, lines):
+    """Répartir une recette de type remboursement sur des enveloppes.
+
+    Jumeau de ``set_allocations``, et volontairement jumeau : **remplacement
+    complet**, pas une suite de modifications. On envoie la répartition voulue,
+    le service efface l'ancienne et écrit la nouvelle dans une transaction.
+
+    Ce qui reste non attribué est un **reste**, comme sur une sortie : une amie
+    qui arrondit à 70 € un remboursement de 40 € n'a pas recrédité 70 € d'
+    enveloppes. Le Contrôle le réclame (``refund_partially_allocated``) et
+    l'utilisateur l'arbitre s'il n'y a rien à créditer.
+
+    ``lines`` : ``[{"budget_id": ..., "amount": Decimal}, …]``.
+    """
+    from .models import InflowNature, RefundAllocation
+    from .validators import assert_refund_fits
+
+    if transaction.household_id != household.id:
+        raise ValidationError({"transaction": "Belongs to another household."})
+    if transaction.inflow <= 0:
+        raise ValidationError({"transaction": "Only a receipt can credit a budget back."})
+    if transaction.inflow_nature != InflowNature.REFUND:
+        # La nature d'abord : créditer une enveloppe depuis un salaire retirerait
+        # de l'argent à un budget sans qu'aucun euro ne soit revenu.
+        raise ValidationError(
+            {"inflow_nature": "Classify this receipt as a refund before crediting budgets."}
+        )
+
+    with atomic():
+        locked = BankTransaction.objects.select_for_update().get(pk=transaction.pk)
+        locked.refund_allocations.all().delete()
+
+        created = []
+        running = Decimal("0.00")
+        for index, line in enumerate(lines):
+            amount = Decimal(str(line.get("amount") or "0"))
+            if amount <= 0:
+                raise ValidationError({"lines": f"line {index + 1}: amount must be positive."})
+            budget = _resolve_refund_target(household, line.get("budget_id"), index)
+            running += amount
+            if running > locked.inflow:
+                # Le message porte le total, pas la ligne : c'est la somme qui ne
+                # tient pas, et l'utilisateur corrige celle qu'il veut.
+                raise ValidationError(
+                    {
+                        "lines": (
+                            f"total {running} exceeds the {locked.inflow} this refund "
+                            "brought back."
+                        )
+                    }
+                )
+            created.append(
+                RefundAllocation(
+                    household_id=household.id,
+                    transaction=locked,
+                    budget=budget,
+                    amount=amount,
+                    created_by=user,
+                    updated_by=user,
+                )
+            )
+
+        RefundAllocation.objects.bulk_create(created)
+        # Ceinture et bretelles : la boucle a déjà borné le total, mais le lock
+        # protège aussi de deux éditeurs simultanés, et c'est ce contrôle-là qui
+        # le dit.
+        assert_refund_fits(transaction=locked)
+
+    return created
+
+
+def _resolve_refund_target(household, budget_id, index):
+    """L'enveloppe créditée — mêmes refus que pour une dépense, dans le même ordre."""
+    from budget.models import Budget
+
+    if not budget_id:
+        raise ValidationError({"lines": f"line {index + 1}: a budget is required."})
+    budget = Budget.objects.filter(id=budget_id, household_id=household.id).first()
+    if budget is None:
+        raise ValidationError({"lines": f"line {index + 1}: unknown budget for this household."})
+    if budget.is_global:
+        raise ValidationError(
+            {"lines": f"line {index + 1}: the global budget is a ceiling, not a category."}
+        )
+    if budget.children.exists():
+        raise ValidationError(
+            {"lines": f"line {index + 1}: a budget group is a subtotal; pick one of its budgets."}
+        )
+    return budget
+
+
 def unlink_interaction(*, user, interaction):
     """Detach an expense from its bank line. The expense itself survives."""
     interaction.bank_transaction = None

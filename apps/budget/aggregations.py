@@ -97,22 +97,24 @@ def _refunded_by_budget(household_id, start, end) -> dict:
     et le digest relisent. Conséquence assumée : un mois peut être net négatif si
     on s'est fait rembourser plus qu'on n'a dépensé. C'est un fait, pas un bug.
     """
-    from banking.models import BankTransaction, InflowNature, TransactionDirection
+    from banking.models import InflowNature, RefundAllocation, TransactionDirection
 
     rows = (
-        BankTransaction.objects.filter(
+        RefundAllocation.objects.filter(
             household_id=household_id,
-            direction=TransactionDirection.IN,
-            inflow_nature=InflowNature.REFUND,
-            refund_budget__isnull=False,
-            booked_on__gte=start.date(),
-            booked_on__lt=end.date(),
+            transaction__direction=TransactionDirection.IN,
+            transaction__inflow_nature=InflowNature.REFUND,
+            transaction__booked_on__gte=start.date(),
+            transaction__booked_on__lt=end.date(),
         )
-        .values("refund_budget_id")
+        .values("budget_id")
         .annotate(total=Coalesce(Sum("amount"), _zero()))
     )
-    # ``amount`` est signé et une recette est positive : rien à inverser ici.
-    return {row["refund_budget_id"]: row["total"] or _zero() for row in rows}
+    # On somme le **montant attribué**, pas celui de la ligne : un virement de
+    # 70 € dont 40 € couvrent le resto ne rend 40 € qu'à cette enveloppe. Compter
+    # la ligne entière était juste tant qu'une recette ne créditait qu'un budget ;
+    # ça ne l'est plus, et l'écart aurait été silencieux.
+    return {row["budget_id"]: row["total"] or _zero() for row in rows}
 
 
 def _committed_by_budget(household_id, start, end) -> dict:

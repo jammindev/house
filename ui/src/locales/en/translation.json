@@ -3511,7 +3511,18 @@
       },
       "refundBudget": "Budget credited back",
       "refundBudgetNone": "No budget",
-      "refundBudgetHint": "The envelope this money goes back to. Leave empty if the refund concerns no budget — the control will then ask you to arbitrate it."
+      "refundBudgetHint": "Split the credited amount across the envelopes it refunds. Whatever is left unassigned stays reported by the Control tab.",
+      "refundSaved": "Refund split saved",
+      "refundAmount": "Credited amount",
+      "refundBudgetCount": "{{count}} budgets",
+      "remaining": "{{amount}} left",
+      "addLine": "Add a budget",
+      "removeLine": "Remove this line",
+      "errors": {
+        "budgetRequired": "Pick a budget for every credited amount.",
+        "amountInvalid": "Every credited amount must be above zero.",
+        "overCredited": "This refund only brought {{total}}: it cannot credit more."
+      }
     },
     "anchor": {
       "title": "Find the opening balance",

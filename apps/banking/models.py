@@ -288,21 +288,6 @@ class BankTransaction(HouseholdScopedModel):
             "control reports."
         ),
     )
-    refund_budget = models.ForeignKey(
-        "budget.Budget",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="refunds",
-        help_text=_(
-            "Budget this refund credits back. Only meaningful on an inflow "
-            "classified `refund`: returning a 40 € item means the envelope "
-            "consumed 110 € of the 150 € spent, not 150 €. Kept here rather than "
-            "as a negative Interaction — `Interaction.amount` never goes negative, "
-            "which is what protects the nine Sum('amount') aggregations. SET_NULL: "
-            "deleting a budget must never destroy a bank line."
-        ),
-    )
     balance_after = models.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -388,13 +373,6 @@ class BankTransaction(HouseholdScopedModel):
             # salary or a transfer. The serializer refuses it too, but this is the
             # kind of invariant that survives a future write path only if the
             # database holds it.
-            models.CheckConstraint(
-                condition=(
-                    models.Q(refund_budget__isnull=True)
-                    | models.Q(inflow_nature=InflowNature.REFUND)
-                ),
-                name="bank_txn_refund_budget_only_on_refund",
-            ),
         ]
         indexes = [
             models.Index(fields=["household", "booked_on"], name="idx_bank_txn_hh_date"),
@@ -416,6 +394,91 @@ class BankTransaction(HouseholdScopedModel):
         transaction to an ``Interaction.amount`` (always positive) uses this.
         """
         return -self.amount if self.amount < 0 else Decimal("0.00")
+
+    @property
+    def inflow(self) -> Decimal:
+        """Positive magnitude when money arrived, else zero.
+
+        The mirror of ``outflow``, and it exists for the same reason: a refund is
+        split across envelopes whose credits are always positive, so the sign
+        convention must be bridged in exactly one place.
+        """
+        return self.amount if self.amount > 0 else Decimal("0.00")
+
+
+class RefundAllocation(HouseholdScopedModel):
+    """How much of a refund credits which envelope — the mirror of an expense split.
+
+    A 70 € transfer covering 40 € of restaurant and 30 € of groceries credits
+    **two** envelopes. One FK on the transaction could only ever name one, so
+    « 150 € / 400 € » stayed wrong on any refund that spanned categories.
+
+    Why a table here, when an *expense* allocation is deliberately not one (see
+    CLAUDE.md « il n'y a pas de table Allocation ») : an expense allocation is a
+    fact of the household journal, so it **is** an ``Interaction``. A refund
+    credit is not a journal entry — it corrects an envelope. Making it an
+    ``Interaction`` would mean a negative amount, which is the one thing that
+    protects the nine ``Sum("amount")`` aggregations.
+
+    Invariants, and where each lives:
+
+    - **amount > 0** and **one row per (line, budget)** — DB constraints;
+    - **Σ amounts ≤ the line's inflow** — ``validators.assert_refund_fits``, since
+      no ``CHECK`` spans rows;
+    - **only on an inflow classified ``refund``** — the service, single write
+      path. Reclassifying the receipt drops its allocations, exactly as the old
+      ``refund_budget`` column was cleared.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    transaction = models.ForeignKey(
+        BankTransaction,
+        on_delete=models.CASCADE,
+        related_name="refund_allocations",
+        help_text=_(
+            "CASCADE: the bank line is the fact, its credits are a reading of it. "
+            "Deleting the line must not leave envelopes credited by nothing."
+        ),
+    )
+    budget = models.ForeignKey(
+        "budget.Budget",
+        on_delete=models.CASCADE,
+        related_name="refund_allocations",
+        help_text=_(
+            "CASCADE too: a credit to an envelope that no longer exists is not a "
+            "fact worth keeping — unlike the bank line itself, which survives "
+            "everything."
+        ),
+    )
+    amount = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        help_text=_("Always positive: what this envelope gets back, never a signed amount."),
+    )
+
+    objects = HouseholdScopedManager()
+
+    class Meta:
+        db_table = "bank_refund_allocations"
+        verbose_name = _("refund allocation")
+        verbose_name_plural = _("refund allocations")
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(amount__gt=0),
+                name="refund_allocation_amount_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["transaction", "budget"],
+                name="one_refund_allocation_per_budget",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["budget"], name="idx_refund_alloc_budget"),
+        ]
+
+    def __str__(self):
+        return f"{self.amount} → {self.budget_id}"
 
 
 class ComplianceWaiver(HouseholdScopedModel):

@@ -31,6 +31,17 @@ interface TransactionRowProps {
   onClassify: () => void;
 }
 
+/** Une enveloppe : son nom. Plusieurs : leur nombre. Aucune : l'écart, nommé. */
+function creditedLabel(
+  allocations: { budget_name: string }[] | undefined,
+  t: (key: string, vars?: Record<string, unknown>) => string,
+): string {
+  const rows = allocations ?? [];
+  if (rows.length === 0) return t('banking.inflow.refundBudgetNone');
+  if (rows.length === 1) return rows[0].budget_name;
+  return t('banking.inflow.refundBudgetCount', { count: rows.length });
+}
+
 export default function TransactionRow({
   transaction,
   canFeedCash,
@@ -43,6 +54,7 @@ export default function TransactionRow({
   onClassify,
 }: TransactionRowProps) {
   const { t } = useTranslation();
+  const refundLabel = creditedLabel(transaction.refund_allocations, t);
   const location = useLocation();
   const isOut = transaction.direction === 'out';
   const hasCounterpart = Boolean(transaction.transfer_counterpart);
@@ -140,12 +152,10 @@ export default function TransactionRow({
                 ? t(`banking.inflow.natures.${transaction.inflow_nature}`)
                 : t('banking.inflow.unclassified')}
               {/* Un remboursement qui ne recrédite rien laisse le budget compter
-                  de l'argent revenu : le dire ici, là où on peut le corriger. */}
-              {transaction.inflow_nature === 'refund'
-                ? ` · ${
-                    transaction.refund_budget_name ?? t('banking.inflow.refundBudgetNone')
-                  }`
-                : ''}
+                  de l'argent revenu : le dire ici, là où on peut le corriger.
+                  Plusieurs enveloppes possibles depuis la ventilation des
+                  recettes — on nomme la seule, on compte les autres. */}
+              {transaction.inflow_nature === 'refund' ? ` · ${refundLabel}` : ''}
             </span>
           ) : null}
 
