@@ -92,6 +92,10 @@ services:
       - web
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # La page de maintenance (`root` de la location @unavailable). Sans ce
+      # montage, `try_files` retombe sur `=503` et sert un 503 *vide* : nginx a la
+      # bonne config et rien à afficher avec.
+      - ./nginx/html:/usr/share/nginx/html:ro
       - media-files:/app/media:ro
     networks:
       - internal

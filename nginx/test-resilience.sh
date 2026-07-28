@@ -88,6 +88,18 @@ else
   exit 1
 fi
 
+# Ce script monte `nginx/html` à la main — donc il ne prouve RIEN sur ce que la
+# prod monte. C'est exactement le trou par lequel le premier deploy est passé :
+# conf correcte, page absente du conteneur, `try_files` retombant sur un 503 vide.
+# Le contrat conf ↔ compose se vérifie donc explicitement.
+echo "→ 0b. Le montage de la page est déclaré dans docker-compose.prod.yml"
+COMPOSE_FILE="$(dirname "$CONF")/docker-compose.prod.yml"
+if grep -q '\./nginx/html:/usr/share/nginx/html' "$COMPOSE_FILE"; then
+  pass "compose monte nginx/html dans le conteneur nginx"
+else
+  fail "compose ne monte pas nginx/html — la prod servirait un 503 vide"
+fi
+
 docker network create "$NET" >/dev/null
 docker run -d --network "$NET" --name "$NGINX" \
   -v "$CONF/default.conf:/etc/nginx/conf.d/default.conf:ro" \
