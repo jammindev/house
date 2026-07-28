@@ -268,9 +268,9 @@ export default function DocumentDetailPage() {
                                 </Badge>
                               )}
                               <Link
-                                to={`/app/interactions/${item.id}/edit`}
+                                to={`/app/interactions/${item.id}`}
                                 className="ml-1 inline-flex items-center text-xs text-muted-foreground hover:text-foreground"
-                                aria-label={t('common.edit')}
+                                aria-label={t('common.view')}
                               >
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </Link>

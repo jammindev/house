@@ -45,10 +45,16 @@ export function useDetachEntityDocument(entityType: string, objectId: string) {
   });
 }
 
-export function useDocuments(filters: DocumentFilters = {}) {
+/**
+ * `enabled: false` compte : un filtre d'entité dont l'id est vide est **retiré**
+ * de la requête (voir `fetchDocuments`), donc la liste vide qu'on croit demander
+ * revient en réalité avec *tous* les documents du foyer.
+ */
+export function useDocuments(filters: DocumentFilters = {}, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: documentKeys.list(filters),
     queryFn: () => fetchDocuments(filters),
+    enabled: options?.enabled ?? true,
   });
 }
 

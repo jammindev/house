@@ -1519,6 +1519,10 @@
           "trace": {
             "title": "Remonter à l'opération",
             "body": "Chaque dépense affiche si une ligne de relevé la justifie. « Relevé du 12 juillet » est cliquable : vous arrivez sur l'opération, avec son montant, son compte, et les autres dépenses qu'elle couvre. « En attente de rapprochement » signale au contraire une dépense que la banque n'a jamais vue — c'est un écart, et le Contrôle la compte. Rien n'apparaît hors de la période contrôlée : là, l'app ne peut rien exiger."
+          },
+          "sheet": {
+            "title": "La fiche d'une dépense",
+            "body": "Cliquez une dépense : sa fiche s'ouvre. Elle répond à trois questions — combien et à qui, dans quelle enveloppe l'euro tombe, et ce qui la justifie. Une dépense sans enveloppe le dit et propose d'en choisir une. Une dépense née d'un relevé montre les autres dépenses de la même opération, pour que 90 € sur une sortie de 150 € ne ressemblent pas à une erreur. Éditer, supprimer, rattacher, joindre un justificatif : tout se fait depuis là."
           }
         }
       },
@@ -3823,6 +3827,20 @@
       "cash": "Espèces du {{date}}",
       "pending": "En attente de rapprochement",
       "out_of_scope": "Hors période contrôlée"
+    },
+    "expense": {
+      "classification": "Classement",
+      "attachedTo": "Rattachée à",
+      "noBudget": "Aucune enveloppe — cette dépense ne compte dans aucune catégorie.",
+      "pickBudget": "Choisir une enveloppe",
+      "notReconciled": "Aucune opération de relevé ne justifie encore cette dépense.",
+      "sharedLine": "Le reste de cette opération ({{count}})",
+      "lineRemaining": "{{allocated}} affectés sur la ligne, reste {{remaining}}",
+      "receipts": "Justificatifs",
+      "addReceipt": "Ajouter",
+      "noReceipt": "Aucun justificatif joint.",
+      "deleteConfirm": "Supprimer cette dépense ? Elle disparaîtra du journal et des totaux de budget.",
+      "deleteSplitConfirm": "Supprimer cette dépense ? L'opération bancaire n'est pas touchée : son montant redevient à ranger."
     }
   }
 }

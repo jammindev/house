@@ -52,6 +52,7 @@ const RecurringPage = lazyWithReload(() => import('./features/budget/RecurringPa
 const ReportsPage = lazyWithReload(() => import('./features/budget/ReportsPage'));
 const MoneyAnalysisPage = lazyWithReload(() => import('./features/money/AnalysisPage'));
 const BudgetDetailPage = lazyWithReload(() => import('./features/money/BudgetDetailPage'));
+const ExpenseDetailPage = lazyWithReload(() => import('./features/money/ExpenseDetailPage'));
 const BankingTransactionsPage = lazyWithReload(
   () => import('./features/banking/TransactionsPage'),
 );
@@ -94,6 +95,9 @@ export const router = createBrowserRouter([
       { path: 'money/transactions/:id', element: <BankingTransactionDetailPage /> },
       { path: 'money/analysis', element: <MoneyAnalysisPage /> },
       { path: 'money/budgets/:id', element: <BudgetDetailPage /> },
+      // Une dépense est une `Interaction`, mais sa fiche appartient à la famille
+      // argent : elle vit donc sous `/app/money`, comme toute URL de la famille.
+      { path: 'money/expenses/:id', element: <ExpenseDetailPage /> },
       { path: 'money/recurring', element: <RecurringPage /> },
       { path: 'money/reports', element: <ReportsPage /> },
       // Anciennes URLs (parcours 26, lot 2) : les favoris, les liens de l'agent et

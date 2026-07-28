@@ -1,11 +1,9 @@
-import * as React from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FileText, Link2, Pencil, Trash2 } from 'lucide-react';
+import { FileText, Pencil } from 'lucide-react';
 import { Badge } from '@/design-system/badge';
 import { Button } from '@/design-system/button';
 import { Card, CardContent } from '@/design-system/card';
-import ConfirmDialog from '@/components/ConfirmDialog';
 import BackLink from '@/components/BackLink';
 import PageHeader from '@/components/PageHeader';
 import InfoField from '@/components/InfoField';
@@ -13,15 +11,24 @@ import LoadError from '@/components/LoadError';
 import ListSkeleton from '@/components/ListSkeleton';
 import { pushBack, useNavigateBack } from '@/lib/backNavigation';
 import { useDelayedLoading } from '@/lib/useDelayedLoading';
-import { formatAmount, formatDateTime } from '@/lib/format';
-import ReconciliationBadge from '@/features/money/ReconciliationBadge';
-import AttachToTransactionDialog from '@/features/banking/AttachToTransactionDialog';
-import LinkedLineActions from '@/features/banking/LinkedLineActions';
-import { isOwnedByAllocationEditor } from '@/features/banking/ownership';
-import { useInteraction, useDeleteInteraction } from './hooks';
+import { formatDateTime } from '@/lib/format';
+import InteractionDeleteAction from './InteractionDeleteAction';
+import { useInteraction } from './hooks';
 
 // ── Main page ──────────────────────────────────────────────
 
+/**
+ * La fiche d'une entrée du journal — note, entretien, réparation, rénovation.
+ *
+ * ⚠️ **Une dépense a la sienne** (`/app/money/expenses/:id`) : les questions
+ * qu'elle pose — quelle enveloppe, quelle ligne de relevé, quelles dépenses
+ * sœurs — n'ont pas d'équivalent sur une note, et les traiter ici obligeait à
+ * cacher la moitié de l'écran une fois sur deux. Cette page **redirige** donc les
+ * dépenses au lieu de les rendre : les liens génériques (fil d'activité, fiche
+ * projet, tâche) n'ont pas à connaître le type de ce qu'ils pointent, mais un
+ * lien qui *sait* pointer sur une dépense doit viser directement la bonne page —
+ * une redirection rattrape un ancien lien, elle ne justifie pas d'en produire.
+ */
 export default function InteractionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { t } = useTranslation();
@@ -29,20 +36,9 @@ export default function InteractionDetailPage() {
   const location = useLocation();
   const navigateBack = useNavigateBack('/app/interactions');
 
-  const [deleteOpen, setDeleteOpen] = React.useState(false);
-  const [attachOpen, setAttachOpen] = React.useState(false);
-
   const { data: interaction, isLoading, error } = useInteraction(id ?? '');
-  const deleteMutation = useDeleteInteraction();
 
   const showSkeleton = useDelayedLoading(isLoading);
-
-  function handleDelete() {
-    if (!id) return;
-    deleteMutation.mutate(id, {
-      onSuccess: () => navigateBack(),
-    });
-  }
 
   if (!id) return null;
 
@@ -60,9 +56,11 @@ export default function InteractionDetailPage() {
     );
   }
 
-  const amount = interaction.amount;
-  const supplier = interaction.supplier;
-  const isExpense = interaction.type === 'expense';
+  if (interaction.type === 'expense') {
+    // `state` recopié tel quel : la pile de retour doit survivre au saut, sinon
+    // le lien « retour » de la fiche de dépense oublierait d'où l'on vient.
+    return <Navigate to={`/app/money/expenses/${id}`} replace state={location.state} />;
+  }
 
   return (
     <>
@@ -86,15 +84,7 @@ export default function InteractionDetailPage() {
             <Pencil className="mr-1.5 h-3.5 w-3.5" />
             {t('common.edit')}
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            className="h-8 px-3 text-sm"
-            onClick={() => setDeleteOpen(true)}
-          >
-            <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-            {t('common.delete')}
-          </Button>
+          <InteractionDeleteAction id={interaction.id} onDeleted={navigateBack} />
         </PageHeader>
 
         {/* Info grid */}
@@ -127,64 +117,6 @@ export default function InteractionDetailPage() {
             </InfoField>
           )}
 
-          {isExpense && amount ? (
-            <InfoField label={t('interactions.expense_amount_label')}>{formatAmount(amount)}</InfoField>
-          ) : null}
-
-          {isExpense && supplier ? (
-            <InfoField label={t('interactions.contact_label')}>{supplier}</InfoField>
-          ) : null}
-
-          {/* Rapprochée ou non — et si oui, l'opération qui le prouve. C'est ici
-              que la question se pose vraiment : sur la page d'une dépense, « la
-              banque l'a-t-elle vue passer ? » n'a pas d'autre endroit où être lue. */}
-          {isExpense ? (
-            <InfoField label={t('money.reconciliation.label')}>
-              <div className="space-y-1.5">
-                <ReconciliationBadge
-                  state={interaction.reconciliation_state}
-                  line={interaction.bank_line}
-                />
-                {interaction.bank_line ? (
-                  <>
-                    <p className="text-xs text-muted-foreground">
-                      {interaction.bank_line.account_name} · {interaction.bank_line.label}
-                    </p>
-                    {/* Née de la ventilation : le geste n'est pas « détacher »
-                        mais « supprimer », puisque la dépense *est* la
-                        ventilation. Le composant tranche ; ici on ajoute le
-                        pourquoi, que seule une fiche a la place de dire. */}
-                    {isOwnedByAllocationEditor(interaction.kind) ? (
-                      <p className="text-xs text-muted-foreground">
-                        {t('banking.attach.ownedHint')}
-                      </p>
-                    ) : null}
-                    <LinkedLineActions
-                      expenseId={interaction.id}
-                      kind={interaction.kind}
-                      transactionId={interaction.bank_line.id}
-                      onDeleted={navigateBack}
-                      className="h-7 px-2 text-xs"
-                    />
-                  </>
-                ) : (
-                  /* Le constat sans le geste à côté n'aide personne : c'est ici
-                     qu'on lit « en attente », donc c'est ici qu'on doit pouvoir
-                     désigner l'opération. */
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-7 px-2 text-xs"
-                    onClick={() => setAttachOpen(true)}
-                    disabled={!amount}
-                  >
-                    <Link2 className="mr-1.5 h-3 w-3" />
-                    {t('banking.attach.action')}
-                  </Button>
-                )}
-              </div>
-            </InfoField>
-          ) : null}
         </dl>
 
         {/* Content */}
@@ -285,27 +217,6 @@ export default function InteractionDetailPage() {
         ) : null}
       </div>
 
-      {isExpense && amount ? (
-        <AttachToTransactionDialog
-          open={attachOpen}
-          onOpenChange={setAttachOpen}
-          expense={{
-            id: interaction.id,
-            subject: interaction.subject,
-            amount,
-            occurred_at: interaction.occurred_at,
-          }}
-        />
-      ) : null}
-
-      <ConfirmDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title={t('common.confirmDelete')}
-        description={t('interactions.delete_confirm')}
-        onConfirm={handleDelete}
-        loading={deleteMutation.isPending}
-      />
     </>
   );
 }

@@ -1,12 +1,14 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchInteractions,
   createInteraction,
   deleteInteraction,
   fetchInteraction,
   updateInteraction,
+  linkDocumentToInteraction,
   type CreateInteractionInput,
 } from '@/lib/api/interactions';
+import { documentKeys } from '@/features/documents/hooks';
 import { INTERACTIONS_ROOT } from '@/features/money/keys';
 import { useInvalidateMoney } from '@/features/money/invalidate';
 
@@ -60,6 +62,22 @@ export function useInteraction(id: string) {
     queryKey: interactionKeys.detail(id),
     queryFn: () => fetchInteraction(id),
     enabled: !!id,
+  });
+}
+
+/**
+ * Joindre un document à une entrée du journal — le justificatif d'une dépense.
+ *
+ * Le lien vit dans `DocumentLink` (table polymorphe), donc la liste se relit par
+ * `?linked_to=interaction:{id}` : c'est le cache `documents` qu'il faut invalider,
+ * pas celui de l'interaction, qui ne porte pas ses pièces.
+ */
+export function useAttachDocumentToInteraction(interactionId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (documentId: string) =>
+      linkDocumentToInteraction({ interactionId, documentId }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: documentKeys.all }),
   });
 }
 

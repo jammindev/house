@@ -267,7 +267,9 @@ export default function StockItemDetailPage() {
                         <li key={entry.id}>
                           <Card
                             className="cursor-pointer p-3 text-sm transition-shadow hover:shadow-md"
-                            onClick={() => navigate(`/app/interactions/${entry.id}/edit`)}
+                            /* L'historique mêle achats et notes : on ouvre la
+                               fiche, qui aiguille une dépense vers la sienne. */
+                            onClick={() => navigate(`/app/interactions/${entry.id}`)}
                           >
                             <div className="flex items-start justify-between gap-2">
                               <span className="font-medium">{entry.subject || '—'}</span>

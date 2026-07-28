@@ -123,7 +123,7 @@ l'enfant, ce qui rend le mécanisme fiable plutôt que fragile.
 
 Sous-pages autonomes (avec `BackLink`) : `/app/money/transactions`,
 `/app/money/transactions/:id`, `/app/money/analysis`, `/app/money/budgets/:id`,
-`/app/money/recurring`, `/app/money/reports`.
+`/app/money/expenses/:id`, `/app/money/recurring`, `/app/money/reports`.
 
 Les deux dernières ont rejoint la famille en juillet 2026 ; `/app/budget/recurring`
 et `/app/budget/reports` redirigent via `PreserveQueryRedirect`, qui conserve la
@@ -574,6 +574,48 @@ consomme rien, elle rend.
 - `PendingRow.outflow` devient `amount` (magnitude), le sens porté par
   `direction` : la file range des lignes, elle n'a pas à connaître la convention
   de signe des détecteurs (`outflow` pour les uns, `amount` pour les autres).
+
+### Une dépense a sa propre fiche
+
+`/app/money/expenses/:id` (`money/ExpenseDetailPage.tsx`). Sous le capot c'est
+toujours une `Interaction` — mais **la fiche générique du journal ne répondait à
+aucune des questions qu'une dépense pose**. Elle affichait un montant et un
+fournisseur, et taisait le budget : le seul axe qui classe un euro. D'où l'écran
+d'édition comme unique endroit habitable, donc comme destination du clic : un
+formulaire, ouvert pour lire.
+
+La fiche répond aux trois seules questions d'une dépense, dans cet ordre :
+**combien / où est-ce classé / qu'est-ce qui la justifie**.
+
+- **`/app/interactions/:id` redirige** quand le type est `expense`, en recopiant
+  `location.state` — sans quoi le lien retour de la fiche oublierait d'où l'on
+  vient. Les liens qui *savent* pointer une dépense (liste des dépenses, dépenses
+  d'une opération) visent directement la nouvelle URL : une redirection rattrape un
+  ancien lien, elle ne justifie pas d'en produire.
+- **Les dépenses sœurs sont affichées** (`useAllocations` sur la ligne, la dépense
+  courante retirée). 90 € lus sur une sortie de 150 € sans trace des 60 autres
+  ressemblent à une erreur de saisie ; le total de la ligne et son reste sont
+  rappelés dessous.
+- **Sans budget, la fiche le dit et propose d'y remédier.** C'est l'écart le plus
+  courant du foyer (`expense_without_budget`) et le résoudre demandait de deviner
+  qu'il faut passer par l'édition.
+- **Un seul geste de suppression par écran.** `InteractionDeleteAction` porte la
+  confirmation et la sortie pour les trois écrans (fiche, fiche de dépense,
+  édition) — l'édition ne l'offrait pas du tout, alors que c'est là qu'on découvre
+  qu'une entrée n'a rien à faire dans le journal. Corollaire : `ExpenseFields` ne
+  garde que le **détachement**, qui n'existe nulle part ailleurs sur ce
+  formulaire ; sur une dépense `kind='bank'`, deux boutons rouges au même endroit
+  ne se distinguaient pas l'un de l'autre.
+- Le libellé de confirmation **change de sens** sur une dépense née d'une
+  ventilation : elle ne disparaît pas, son montant retourne dans « À ranger ».
+- Les justificatifs se lisent via `?linked_to=interaction:{id}` (`DocumentLink`,
+  pas la FK legacy) et s'ajoutent en un geste — photographier un ticket depuis la
+  fiche d'une dépense le rattache forcément à elle. La section reste visible même
+  vide : une section qui n'apparaît qu'une fois remplie n'apprend à personne
+  qu'on peut la remplir.
+
+Régression : `ui/src/features/money/ExpenseDetailPage.test.tsx` (dont la
+redirection, et le fait que la fiche générique reste celle d'une note).
 
 ### Reste ouvert
 
